@@ -1,4 +1,4 @@
-/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
+/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,1128 +15,2033 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var _ = require('lodash');
 var rewire = require('rewire');
-var async = require('async'); // eslint-disable-line no-unused-vars
-var Promise = require('bluebird');
-var constants = require('../../../../helpers/constants');
-var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
-var clearDatabaseTable = require('../../../common/db_sandbox')
-	.clearDatabaseTable; // eslint-disable-line no-unused-vars
-var modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
-var random = require('../../../common/utils/random');
-var slots = require('../../../../helpers/slots.js');
-var genesisBlock = require('../../../data/genesis_block.json');
-var genesisDelegates = require('../../../data/genesis_delegates.json')
-	.delegates;
 
-var previousBlock = {
-	blockSignature:
-		'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
-	generatorPublicKey:
-		'86499879448d1b0215d59cbf078836e3d7d9d2782d56a2274a568761bff36f19',
-	height: 488,
-	id: '11850828211026019525',
-	numberOfTransactions: 0,
-	payloadHash:
-		'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-	payloadLength: 0,
-	previousBlock: '8805727971083409014',
-	relays: 1,
-	reward: 0,
-	timestamp: 32578360,
-	totalAmount: 0,
-	totalFee: 0,
-	transactions: [],
-	version: 0,
-};
-
-var validBlock = {
-	blockSignature:
-		'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
-	generatorPublicKey:
-		'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-	numberOfTransactions: 2,
-	payloadHash:
-		'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
-	payloadLength: 494,
-	height: 489,
-	previousBlock: '11850828211026019525',
-	reward: 0,
-	timestamp: 32578370,
-	totalAmount: 10000000000000000,
-	totalFee: 0,
-	transactions: [
-		{
-			type: 0,
-			amount: 10000000000000000,
-			fee: 0,
-			timestamp: 0,
-			recipientId: '16313739661670634666L',
-			senderId: '1085993630748340485L',
-			senderPublicKey:
-				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-			signature:
-				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05',
-			id: '1465651642158264047',
-		},
-		{
-			type: 3,
-			amount: 0,
-			fee: 0,
-			timestamp: 0,
-			recipientId: '16313739661670634666L',
-			senderId: '16313739661670634666L',
-			senderPublicKey:
-				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-			asset: {
-				votes: [
-					'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					'+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-					'-3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-					'-5d28e992b80172f38d3a2f9592cad740fd18d3c2e187745cd5f7badf285ed819',
-				],
-			},
-			signature:
-				'9f9446b527e93f81d3fb8840b02fcd1454e2b6276d3c19bd724033a01d3121dd2edb0aff61d48fad29091e222249754e8ec541132032aefaeebc312796f69e08',
-			id: '9314232245035524467',
-		},
-	],
-	version: 0,
-	id: '884740302254229983',
-};
-
-var testAccount = {
-	account: {
-		username: 'test_verify',
-		isDelegate: 1,
-		address: '2737453412992791987L',
-		publicKey:
-			'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
-		balance: 5300000000000000000,
-	},
-	secret:
-		'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
-};
-
-var block1;
-
-var block2;
-
-function createBlock(
-	blocksModule,
-	blockLogic,
-	secret,
-	timestamp,
-	transactions,
-	previousBlock
-) {
-	var keypair = blockLogic.scope.ed.makeKeypair(
-		crypto
-			.createHash('sha256')
-			.update(secret, 'utf8')
-			.digest()
-	);
-	blocksModule.lastBlock.set(previousBlock);
-	var newBlock = blockLogic.create({
-		keypair,
-		timestamp,
-		previousBlock: blocksModule.lastBlock.get(),
-		transactions,
-	});
-	// newBlock.id = blockLogic.getId(newBlock);
-	return newBlock;
-}
-
-function getValidKeypairForSlot(library, slot) {
-	var generateDelegateListPromisified = Promise.promisify(
-		library.modules.delegates.generateDelegateList
-	);
-	var lastBlock = genesisBlock;
-
-	return generateDelegateListPromisified(lastBlock.height, null)
-		.then(list => {
-			var delegatePublicKey = list[slot % slots.delegates];
-			var secret = _.find(genesisDelegates, delegate => {
-				return delegate.publicKey === delegatePublicKey;
-			}).secret;
-			return secret;
-		})
-		.catch(err => {
-			throw err;
-		});
-}
+var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
 
 describe('blocks/verify', () => {
-	var library;
-	var accounts;
-	var blocksVerify;
-	var blocks;
-	var blockLogic;
-	var delegates;
-	var db;
-	var results;
-
-	before(done => {
-		application.init(
-			{
-				sandbox: {
-					name: 'lisk_test_blocks_verify',
-				},
-			},
-			(err, scope) => {
-				scope.modules.blocks.verify.onBind(scope.modules);
-				scope.modules.delegates.onBind(scope.modules);
-				scope.modules.transactions.onBind(scope.modules);
-				scope.modules.blocks.chain.onBind(scope.modules);
-				scope.modules.transport.onBind(scope.modules);
-				scope.modules.accounts.onBind(scope.modules);
-				accounts = scope.modules.accounts;
-				blocksVerify = scope.modules.blocks.verify;
-				blockLogic = scope.logic.block;
-				blocks = scope.modules.blocks;
-				delegates = scope.modules.delegates;
-				db = scope.db;
-
-				library = scope;
-				library.modules.blocks.lastBlock.set(genesisBlock);
-				// Bus gets overwritten - waiting for mem_accounts has to be done manually
-				setTimeout(done, 5000);
-			}
-		);
-	});
-
-	afterEach(() => {
-		library.modules.blocks.lastBlock.set(genesisBlock);
-		return db.none('DELETE FROM blocks WHERE height > 1');
-	});
+	let library;
+	let __private;
+	let loggerStub;
+	let dbStub;
+	let logicBlockStub;
+	let logicTransactionStub;
+	let blocksVerifyModule;
+	let modulesStub;
+	let modules;
 
 	beforeEach(done => {
-		results = {
-			verified: true,
-			errors: [],
+		// Logic
+		loggerStub = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
 		};
+
+		dbStub = {
+			blocks: {
+				loadLastNBlockIds: sinonSandbox.stub(),
+				blockExists: sinonSandbox.stub(),
+			},
+		};
+
+		logicBlockStub = {
+			verifySignature: sinonSandbox.stub(),
+			getId: sinonSandbox.stub(),
+			objectNormalize: sinonSandbox.stub(),
+		};
+
+		logicTransactionStub = {
+			getId: sinonSandbox.stub(),
+			checkConfirmed: sinonSandbox.stub(),
+			verify: sinonSandbox.stub(),
+			getBytes: sinonSandbox.stub(),
+		};
+
+		blocksVerifyModule = new BlocksVerify(
+			loggerStub,
+			logicBlockStub,
+			logicTransactionStub,
+			dbStub
+		);
+
+		library = BlocksVerify.__get__('library');
+		__private = BlocksVerify.__get__('__private');
+
+		// Modules
+		const modulesAccountsStub = {
+			getAccount: sinonSandbox.stub(),
+			validateBlockSlot: sinonSandbox.stub(),
+		};
+
+		const modulesDelegatesStub = {
+			fork: sinonSandbox.stub(),
+			validateBlockSlot: sinonSandbox.stub(),
+		};
+
+		const modulesTransactionsStub = {
+			undoUnconfirmed: sinonSandbox.stub(),
+			removeUnconfirmedTransaction: sinonSandbox.stub(),
+		};
+
+		const modulesBlocksStub = {
+			lastBlock: {
+				get: sinonSandbox.stub(),
+			},
+			isCleaning: {
+				get: sinonSandbox.stub(),
+			},
+			chain: {
+				broadcastReducedBlock: sinonSandbox.stub(),
+				applyBlock: sinonSandbox.stub(),
+			},
+		};
+
+		modulesStub = {
+			accounts: modulesAccountsStub,
+			blocks: modulesBlocksStub,
+			delegates: modulesDelegatesStub,
+			transactions: modulesTransactionsStub,
+		};
+
+		blocksVerifyModule.onBind(modulesStub);
+		modules = BlocksVerify.__get__('modules');
 		done();
 	});
 
-	after(done => {
-		application.cleanup(done);
+	afterEach(() => {
+		return sinonSandbox.restore();
 	});
 
-	describe('__private', () => {
-		var privateFunctions;
-		var RewiredVerify;
-		before(done => {
-			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
-			var verify = new RewiredVerify(
-				library.logger,
-				library.logic.block,
-				library.logic.transaction,
-				library.db
-			);
-			verify.onBind(library.modules);
-			privateFunctions = RewiredVerify.__get__('__private');
-			done();
+	describe('constructor', () => {
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(loggerStub);
+			expect(library.db).to.eql(dbStub);
+			expect(library.logic.block).to.eql(logicBlockStub);
+			return expect(library.logic.transaction).to.eql(logicTransactionStub);
 		});
+
+		it('should initialize __private.blockReward', () => {
+			expect(__private.blockReward).to.be.an('object');
+			return expect(__private.blockReward.calcReward).to.be.a('function');
+		});
+
+		it('should call library.logger.trace with "Blocks->Verify: Submodule initialized."', () => {
+			return expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Verify: Submodule initialized.'
+			);
+		});
+
+		it('should return self', () => {
+			expect(blocksVerifyModule).to.be.an('object');
+			expect(blocksVerifyModule.verifyReceipt).to.be.a('function');
+			expect(blocksVerifyModule.onBlockchainReady).to.be.a('function');
+			expect(blocksVerifyModule.onNewBlock).to.be.a('function');
+			expect(blocksVerifyModule.verifyBlock).to.be.a('function');
+			expect(blocksVerifyModule.addBlockProperties).to.be.a('function');
+			expect(blocksVerifyModule.deleteBlockProperties).to.be.a('function');
+			expect(blocksVerifyModule.processBlock).to.be.a('function');
+			return expect(blocksVerifyModule.onBind).to.be.a('function');
+		});
+	});
+
+	describe('__private.checkTransaction', () => {
+		const dummyBlock = { id: '5', height: 5 };
+		const dummyTransaction = { id: '5', type: 0 };
+
+		describe('when library.logic.transaction.getId fails', () => {
+			beforeEach(() => {
+				return library.logic.transaction.getId.throws('getId-ERR');
+			});
+
+			it('should call a callback with error', done => {
+				__private.checkTransaction(dummyBlock, dummyTransaction, err => {
+					expect(err).to.equal('getId-ERR');
+					done();
+				});
+			});
+		});
+
+		describe('when library.logic.transaction.getId succeeds', () => {
+			beforeEach(() => {
+				return library.logic.transaction.getId.returns('4');
+			});
+
+			describe('when library.logic.transaction.checkConfirmed fails', () => {
+				beforeEach(() => {
+					return library.logic.transaction.checkConfirmed.callsArgWith(
+						1,
+						'checkConfirmed-ERR',
+						null
+					);
+				});
+
+				afterEach(() => {
+					expect(modules.delegates.fork.calledOnce).to.be.true;
+					expect(modules.delegates.fork.args[0][0]).to.deep.equal(dummyBlock);
+					return expect(modules.delegates.fork.args[0][1]).to.equal(2);
+				});
+
+				describe('when modules.transactions.undoUnconfirmed fails', () => {
+					beforeEach(() => {
+						return modules.transactions.undoUnconfirmed.callsArgWith(
+							1,
+							'undoUnconfirmed-ERR',
+							null
+						);
+					});
+
+					afterEach(() => {
+						expect(modules.transactions.removeUnconfirmedTransaction.calledOnce)
+							.to.be.true;
+						return expect(
+							modules.transactions.removeUnconfirmedTransaction.args[0][0]
+						).to.equal('4');
+					});
+
+					it('should call a callback with error', done => {
+						__private.checkTransaction(dummyBlock, dummyTransaction, err => {
+							expect(err).to.equal('undoUnconfirmed-ERR');
+							done();
+						});
+					});
+				});
+
+				describe('when modules.transactions.undoUnconfirmed succeeds', () => {
+					beforeEach(() => {
+						return modules.transactions.undoUnconfirmed.callsArgWith(
+							1,
+							null,
+							true
+						);
+					});
+
+					afterEach(() => {
+						expect(modules.transactions.removeUnconfirmedTransaction.calledOnce)
+							.to.be.true;
+						return expect(
+							modules.transactions.removeUnconfirmedTransaction.args[0][0]
+						).to.equal('4');
+					});
+
+					it('should call a callback with error', done => {
+						__private.checkTransaction(dummyBlock, dummyTransaction, err => {
+							expect(err).to.equal('checkConfirmed-ERR');
+							done();
+						});
+					});
+				});
+			});
+
+			describe('when library.logic.transaction.checkConfirmed succeeds', () => {
+				beforeEach(() => {
+					return library.logic.transaction.checkConfirmed.callsArgWith(
+						1,
+						null,
+						true
+					);
+				});
+
+				describe('when modules.accounts.getAccount fails', () => {
+					beforeEach(() => {
+						return modules.accounts.getAccount.callsArgWith(
+							1,
+							'getAccount-ERR',
+							null
+						);
+					});
+
+					it('should call a callback with error', done => {
+						__private.checkTransaction(dummyBlock, dummyTransaction, err => {
+							expect(err).to.equal('getAccount-ERR');
+							done();
+						});
+					});
+				});
+
+				describe('when modules.accounts.getAccount succeeds', () => {
+					beforeEach(() => {
+						return modules.accounts.getAccount.callsArgWith(1, null, true);
+					});
+
+					describe('when library.logic.transaction.verify fails', () => {
+						beforeEach(() => {
+							return library.logic.transaction.verify.callsArgWith(
+								2,
+								'verify-ERR',
+								null
+							);
+						});
+
+						it('should call a callback with error', done => {
+							__private.checkTransaction(dummyBlock, dummyTransaction, err => {
+								expect(err).to.equal('verify-ERR');
+								done();
+							});
+						});
+					});
+
+					describe('when library.logic.transaction.verify succeeds', () => {
+						beforeEach(() => {
+							return library.logic.transaction.verify.callsArgWith(
+								2,
+								null,
+								true
+							);
+						});
+
+						it('should call a callback with no error', done => {
+							__private.checkTransaction(dummyBlock, dummyTransaction, err => {
+								expect(err).to.be.null;
+								done();
+							});
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('__private.setHeight', () => {
+		const dummyBlock = {
+			id: '6',
+			height: 4,
+		};
+		const dummyLastBlock = {
+			id: '5',
+			height: 5,
+		};
+
+		it('should return block with increased height based on last block', () => {
+			return expect(
+				__private.setHeight(dummyBlock, dummyLastBlock)
+			).to.deep.equal({
+				id: '6',
+				height: 6,
+			});
+		});
+	});
+
+	describe('__private.verifySignature', () => {
+		describe('when library.logic.block.verifySignature fails', () => {
+			describe('if throws error', () => {
+				beforeEach(() => {
+					return library.logic.block.verifySignature.throws(
+						'verifySignature-ERR'
+					);
+				});
+
+				it('should return error', () => {
+					const verifySignature = __private.verifySignature(
+						{ id: 6 },
+						{ errors: [] }
+					);
+					expect(verifySignature.errors[0]).to.equal('verifySignature-ERR');
+					return expect(verifySignature.errors[1]).to.equal(
+						'Failed to verify block signature'
+					);
+				});
+			});
+
+			describe('if is not valid', () => {
+				beforeEach(() => {
+					return library.logic.block.verifySignature.returns(false);
+				});
+
+				it('should return error', () => {
+					const verifySignature = __private.verifySignature(
+						{ id: 6 },
+						{ errors: [] }
+					);
+					return expect(verifySignature.errors[0]).to.equal(
+						'Failed to verify block signature'
+					);
+				});
+			});
+		});
+
+		describe('when library.logic.block.verifySignature succeeds', () => {
+			beforeEach(() => {
+				return library.logic.block.verifySignature.returns(true);
+			});
+
+			it('should return no error', () => {
+				const verifySignature = __private.verifySignature(
+					{ id: 6 },
+					{ errors: [] }
+				);
+				return expect(verifySignature.errors.length).to.equal(0);
+			});
+		});
+	});
+
+	describe('when __private.verifyPreviousBlock fails', () => {
+		describe('if block.previousBlock is not defined and height != 1', () => {
+			it('should return error', () => {
+				const verifyPreviousBlock = __private.verifyPreviousBlock(
+					{ id: 6, height: 3 },
+					{ errors: [] }
+				);
+				return expect(verifyPreviousBlock.errors[0]).to.equal(
+					'Invalid previous block'
+				);
+			});
+		});
+	});
+
+	describe('when __private.verifyPreviousBlock succeeds', () => {
+		describe('if block.previousBlock is not defined and height = 1', () => {
+			it('should return no error', () => {
+				const verifyPreviousBlock = __private.verifyPreviousBlock(
+					{ id: 6, height: 1 },
+					{ errors: [] }
+				);
+				return expect(verifyPreviousBlock.errors.length).to.equal(0);
+			});
+		});
+
+		describe('if block.previousBlock is defined and block.height != 1', () => {
+			it('should return no error', () => {
+				const verifyPreviousBlock = __private.verifyPreviousBlock(
+					{ id: 6, previousBlock: 5, height: 3 },
+					{ errors: [] }
+				);
+				return expect(verifyPreviousBlock.errors.length).to.equal(0);
+			});
+		});
+
+		describe('if block.previousBlock is defined and block.height = 1', () => {
+			it('should return no error', () => {
+				const verifyPreviousBlock = __private.verifyPreviousBlock(
+					{ id: 6, previousBlock: 5, height: 1 },
+					{ errors: [] }
+				);
+				return expect(verifyPreviousBlock.errors.length).to.equal(0);
+			});
+		});
+	});
+
+	describe('__private.verifyAgainstLastNBlockIds', () => {
+		let lastNBlockIdsTemp;
 
 		beforeEach(done => {
-			results = {
-				verified: true,
-				errors: [],
-			};
+			lastNBlockIdsTemp = __private.lastNBlockIds;
+			__private.lastNBlockIds = [1, 2, 3, 4];
 			done();
 		});
 
-		describe('verifySignature', () => {
-			it('should fail when blockSignature property is not a hex string', done => {
-				var blockSignature = validBlock.blockSignature;
-				validBlock.blockSignature = 'invalidBlockSignature';
+		afterEach(done => {
+			__private.lastNBlockIds = lastNBlockIdsTemp;
+			done();
+		});
 
-				var result = privateFunctions.verifySignature(validBlock, results);
+		it('should return error when block is in list', () => {
+			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+				{ id: 3 },
+				{ errors: [] }
+			);
+			return expect(verifyAgainstLastNBlockIds.errors[0]).to.equal(
+				'Block already exists in chain'
+			);
+		});
 
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(2);
+		it('should return no error when block is not in list', () => {
+			const verifyAgainstLastNBlockIds = __private.verifyAgainstLastNBlockIds(
+				{ id: 5 },
+				{ errors: [] }
+			);
+			return expect(verifyAgainstLastNBlockIds.errors.length).to.equal(0);
+		});
+	});
 
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
-				expect(result.errors[1]).to.equal('Failed to verify block signature');
+	describe('__private.verifyVersion', () => {
+		let verifyVersion;
 
-				validBlock.blockSignature = blockSignature;
-				done();
+		it('should return error when block version > 0', () => {
+			verifyVersion = __private.verifyVersion({ version: 3 }, { errors: [] });
+			return expect(verifyVersion.errors[0]).to.equal('Invalid block version');
+		});
+
+		it('should return no error when block version = 0', () => {
+			verifyVersion = __private.verifyVersion({ version: 0 }, { errors: [] });
+			return expect(verifyVersion.errors.length).to.equal(0);
+		});
+	});
+
+	describe('__private.verifyReward', () => {
+		let verifyReward;
+		let blockRewardTemp;
+		let exceptions;
+		let exceptionsTemp;
+
+		beforeEach(done => {
+			blockRewardTemp = __private.blockReward;
+			__private.blockReward = {
+				calcReward: sinonSandbox.stub(),
+			};
+			exceptions = BlocksVerify.__get__('exceptions');
+			exceptionsTemp = exceptions;
+			exceptions.blockRewards = [1, 2, 3, 4];
+			done();
+		});
+
+		afterEach(done => {
+			__private.blockReward = blockRewardTemp;
+			exceptions = exceptionsTemp;
+			done();
+		});
+
+		describe('when __private.blockReward.calcReward fails', () => {
+			beforeEach(() => {
+				return __private.blockReward.calcReward.returns('calcReward-ERR');
 			});
 
-			it('should fail when blockSignature property is an invalid hex string', done => {
-				var blockSignature = validBlock.blockSignature;
-				validBlock.blockSignature =
-					'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
-
-				var result = privateFunctions.verifySignature(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Failed to verify block signature');
-
-				validBlock.blockSignature = blockSignature;
-				done();
-			});
-
-			it('should fail when generatorPublicKey property is not a hex string', done => {
-				var generatorPublicKey = validBlock.generatorPublicKey;
-				validBlock.generatorPublicKey = 'invalidBlockSignature';
-
-				var result = privateFunctions.verifySignature(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(2);
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
-				expect(result.errors[1]).to.equal('Failed to verify block signature');
-
-				validBlock.generatorPublicKey = generatorPublicKey;
-				done();
-			});
-
-			it('should fail when generatorPublicKey property is an invalid hex string', done => {
-				var generatorPublicKey = validBlock.generatorPublicKey;
-				validBlock.generatorPublicKey =
-					'948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
-
-				var result = privateFunctions.verifySignature(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Failed to verify block signature');
-
-				validBlock.generatorPublicKey = generatorPublicKey;
-				done();
+			it('should return error', () => {
+				verifyReward = __private.verifyReward(
+					{ height: 'ERR' },
+					{ errors: [] }
+				);
+				return expect(verifyReward.errors[0]).to.equal(
+					'Invalid block reward:  expected: calcReward-ERR'
+				);
 			});
 		});
 
-		describe('verifyPreviousBlock', () => {
-			it('should fail when previousBlock property is missing', done => {
-				var previousBlock = validBlock.previousBlock;
-				delete validBlock.previousBlock;
-
-				var result = privateFunctions.verifyPreviousBlock(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid previous block');
-
-				validBlock.previousBlock = previousBlock;
-				done();
-			});
-		});
-
-		describe('verifyVersion', () => {
-			it('should fail when block version != 0', done => {
-				var version = validBlock.version;
-				validBlock.version = 1;
-
-				var result = privateFunctions.verifyVersion(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid block version');
-
-				validBlock.version = version;
-				done();
-			});
-		});
-
-		describe('verifyReward', () => {
-			it('should fail when block reward is invalid', done => {
-				validBlock.reward = 99;
-
-				var result = privateFunctions.verifyReward(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal(
-					['Invalid block reward:', 99, 'expected:', 0].join(' ')
-				);
-
-				validBlock.reward = 0;
-				done();
-			});
-		});
-
-		describe.skip('verifyId', () => {
-			it('should reset block id when block id is an invalid alpha-numeric string value', () => {
-				var blockId = '884740302254229983';
-				validBlock.id = 'invalid-block-id';
-
-				expect(validBlock.id).to.equal(blockId);
-				return expect(validBlock.id).to.not.equal('invalid-block-id');
+		describe('when __private.blockReward.calcReward succeeds', () => {
+			beforeEach(() => {
+				return __private.blockReward.calcReward.returns(5);
 			});
 
-			it('should reset block id when block id is an invalid numeric string value', () => {
-				var blockId = '884740302254229983';
-				validBlock.id = '11850828211026019526';
-
-				expect(validBlock.id).to.equal(blockId);
-				return expect(validBlock.id).to.not.equal('11850828211026019526');
-			});
-
-			it('should reset block id when block id is an invalid integer value', () => {
-				var blockId = '884740302254229983';
-				validBlock.id = 11850828211026019526;
-
-				expect(validBlock.id).to.equal(blockId);
-				return expect(validBlock.id).to.not.equal(11850828211026019526);
-			});
-
-			it('should reset block id when block id is a valid integer value', () => {
-				var blockId = '884740302254229983';
-				validBlock.id = 11850828211026019525;
-				expect(validBlock.id).to.equal(blockId);
-				return expect(validBlock.id).to.not.equal(11850828211026019525);
-			});
-		});
-
-		describe('verifyPayload', () => {
-			it('should fail when payload length greater than maxPayloadLength constant value', done => {
-				var payloadLength = validBlock.payloadLength;
-				validBlock.payloadLength = 1024 * 1024 * 2;
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Payload length is too long');
-
-				validBlock.payloadLength = payloadLength;
-				done();
-			});
-
-			it('should fail when transactions length is not equal to numberOfTransactions property', done => {
-				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal(
-					'Included transactions do not match block transactions count'
-				);
-
-				validBlock.numberOfTransactions = validBlock.transactions.length;
-				done();
-			});
-
-			it('should fail when transactions length greater than maxTxsPerBlock constant value', done => {
-				var transactions = validBlock.transactions;
-				validBlock.transactions = new Array(26);
-				validBlock.numberOfTransactions = validBlock.transactions.length;
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(3);
-				expect(result.errors[0]).to.equal(
-					'Number of transactions exceeds maximum per block'
-				);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
-				expect(result.errors[2]).to.equal('Invalid total amount');
-
-				validBlock.transactions = transactions;
-				validBlock.numberOfTransactions = transactions.length;
-				done();
-			});
-
-			it('should fail when a transaction is of an unknown type', done => {
-				var transactionType = validBlock.transactions[0].type;
-				validBlock.transactions[0].type = 555;
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(2);
-				expect(result.errors[0]).to.equal(
-					`Unknown transaction type ${validBlock.transactions[0].type}`
-				);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
-
-				validBlock.transactions[0].type = transactionType;
-				done();
-			});
-
-			it('should fail when a transaction is duplicated', done => {
-				var secondTransaction = validBlock.transactions[1];
-				validBlock.transactions[1] = validBlock.transactions[0];
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(3);
-				expect(result.errors[0]).to.equal(
-					`Encountered duplicate transaction: ${validBlock.transactions[1].id}`
-				);
-				expect(result.errors[1]).to.equal('Invalid payload hash');
-				expect(result.errors[2]).to.equal('Invalid total amount');
-
-				validBlock.transactions[1] = secondTransaction;
-				done();
-			});
-
-			it('should fail when payload hash is invalid', done => {
-				var payloadHash = validBlock.payloadHash;
-				validBlock.payloadHash = 'invalidPayloadHash';
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid payload hash');
-
-				validBlock.payloadHash = payloadHash;
-				done();
-			});
-
-			it('should fail when summed transaction amounts do not match totalAmount property', done => {
-				var totalAmount = validBlock.totalAmount;
-				validBlock.totalAmount = 99;
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid total amount');
-
-				validBlock.totalAmount = totalAmount;
-				done();
-			});
-
-			it('should fail when summed transaction fees do not match totalFee property', done => {
-				var totalFee = validBlock.totalFee;
-				validBlock.totalFee = 99;
-
-				var result = privateFunctions.verifyPayload(validBlock, results);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid total fee');
-
-				validBlock.totalFee = totalFee;
-				done();
-			});
-		});
-
-		describe('verifyForkOne', () => {
-			it('should fail when previousBlock value is invalid', done => {
-				validBlock.previousBlock = '10937893559311260102';
-
-				var result = privateFunctions.verifyForkOne(
-					validBlock,
-					previousBlock,
-					results
-				);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal(
-					[
-						'Invalid previous block:',
-						validBlock.previousBlock,
-						'expected:',
-						previousBlock.id,
-					].join(' ')
-				);
-
-				validBlock.previousBlock = previousBlock;
-				done();
-			});
-		});
-
-		describe('verifyBlockSlot', () => {
-			it('should fail when block timestamp is less than previousBlock timestamp', done => {
-				var timestamp = validBlock.timestamp;
-				validBlock.timestamp = 32578350;
-
-				var result = privateFunctions.verifyBlockSlot(
-					validBlock,
-					previousBlock,
-					results
-				);
-
-				expect(result.errors)
-					.to.be.an('array')
-					.with.lengthOf(1);
-				expect(result.errors[0]).to.equal('Invalid block timestamp');
-
-				validBlock.timestamp = timestamp;
-				done();
-			});
-		});
-
-		describe('verifyBlockSlotWindow', () => {
-			var verifyBlockSlotWindow;
-			var result;
-
-			before(done => {
-				verifyBlockSlotWindow = RewiredVerify.__get__(
-					'__private.verifyBlockSlotWindow'
-				);
-				done();
-			});
-
-			beforeEach(done => {
-				result = {
-					errors: [],
-				};
-				done();
-			});
-
-			describe('for current slot number', () => {
-				var dummyBlock;
-
-				before(done => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(slots.getSlotNumber()),
-					};
-					done();
-				});
-
-				it('should return empty result.errors array', () => {
-					return expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.have.length(0);
+			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
+				it('should return error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 1, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors[0]).to.equal(
+						'Invalid block reward: 1 expected: 5'
+					);
 				});
 			});
 
-			describe(`for slot number ${
-				constants.blockSlotWindow
-			} slots in the past`, () => {
-				var dummyBlock;
-
-				before(done => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - constants.blockSlotWindow
-						),
-					};
-					done();
-				});
-
-				it('should return empty result.errors array', () => {
-					return expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.have.length(0);
+			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 1, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
 			});
 
-			describe('for slot number in the future', () => {
-				var dummyBlock;
-
-				before(done => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(slots.getSlotNumber() + 1),
-					};
-					done();
-				});
-
-				it('should call callback with error = Block slot is in the future ', () => {
-					return expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.include.members(['Block slot is in the future']);
+			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 5, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
 			});
 
-			describe(`for slot number ${constants.blockSlotWindow +
-				1} slots in the past`, () => {
-				var dummyBlock;
-
-				before(done => {
-					dummyBlock = {
-						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - (constants.blockSlotWindow + 1)
-						),
-					};
-					done();
+			describe('if block.height != 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 5, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				it('should call callback with error = Block slot is too old', () => {
-					return expect(
-						verifyBlockSlotWindow(dummyBlock, result).errors
-					).to.include.members(['Block slot is too old']);
+			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 1, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
+				});
+			});
+
+			describe('if block.height = 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 1, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
+				});
+			});
+
+			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 5, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
+				});
+			});
+
+			describe('if block.height = 1 && expectedReward = block.reward && exceptions.blockRewards.indexOf(block.id) != -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 5, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
 			});
 		});
+	});
 
-		describe('onBlockchainReady', () => {
-			var onBlockchainReady;
+	describe('__private.verifyId', () => {
+		let verifyId;
 
-			before(done => {
-				RewiredVerify.__set__('library', {
-					db,
-					logger: library.logger,
-				});
-				onBlockchainReady = RewiredVerify.prototype.onBlockchainReady;
-				done();
+		describe('when block = undefined', () => {
+			it('should return error', () => {
+				verifyId = __private.verifyId(undefined, { errors: [] });
+				return expect(verifyId.errors[0]).to.equal(
+					"TypeError: Cannot set property 'id' of undefined"
+				);
+			});
+		});
+
+		describe('when library.logic.block.getId fails', () => {
+			beforeEach(() => {
+				return library.logic.block.getId.throws('getId-ERR');
 			});
 
-			it('should set the __private.lastNBlockIds variable', () => {
-				return onBlockchainReady().then(() => {
-					var lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
-					expect(lastNBlockIds)
-						.to.be.an('array')
-						.and.to.have.length.below(constants.blockSlotWindow + 1);
-					_.each(lastNBlockIds, value => {
-						expect(value).to.be.a('string');
+			it('should return error', () => {
+				verifyId = __private.verifyId({ id: 5 }, { errors: [] });
+				return expect(verifyId.errors[0]).to.equal('getId-ERR');
+			});
+		});
+
+		describe('when library.logic.block.getId succeeds', () => {
+			beforeEach(() => {
+				return library.logic.block.getId.returns(5);
+			});
+
+			it('should return no error', () => {
+				verifyId = __private.verifyId({ id: 5 }, { errors: [] });
+				return expect(verifyId.errors.length).to.equal(0);
+			});
+		});
+	});
+
+	describe('__private.verifyPayload', () => {
+		let verifyPayload;
+		const dummyBlock = {
+			payloadLength: 2,
+			numberOfTransactions: 2,
+			payloadHash:
+				'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+			totalAmount: 10,
+			totalFee: 2,
+			transactions: [
+				{
+					amount: 5,
+					fee: 1,
+					id: 1,
+				},
+				{
+					amount: 5,
+					fee: 1,
+					id: 2,
+				},
+			],
+		};
+
+		describe('when __private.verifyPayload fails', () => {
+			afterEach(() => {
+				return expect(verifyPayload.errors)
+					.to.be.an('array')
+					.with.lengthOf(1);
+			});
+
+			describe('when payload lenght is too long', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.payloadLength = 1048577;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
 					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Payload length is too long'
+					);
 				});
 			});
-		});
 
-		describe('onNewBlock', () => {
-			describe('with lastNBlockIds', () => {
-				var lastNBlockIds;
-
-				before(done => {
-					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
-					done();
+			describe('when transactions do not match block transactions count', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.numberOfTransactions = 4;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Included transactions do not match block transactions count'
+					);
 				});
+			});
 
-				describe('when onNewBlock function is called once', () => {
-					var dummyBlock;
+			describe('when number of transactions exceeds maximum per block', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.numberOfTransactions = 32;
+					dummyBlockERR.transactions = dummyBlockERR.transactions.concat(
+						new Array(30)
+					);
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Number of transactions exceeds maximum per block'
+					);
+				});
+			});
 
-					before(() => {
-						dummyBlock = {
-							id: '123123123',
-						};
-
-						return RewiredVerify.prototype.onNewBlock(dummyBlock);
+			describe('library.logic.transaction.getBytes fails', () => {
+				describe('when throws error', () => {
+					beforeEach(() => {
+						return library.logic.transaction.getBytes
+							.onCall(0)
+							.throws('getBytes-ERR')
+							.onCall(1)
+							.returns(0);
 					});
 
-					it('should include block in lastNBlockIds queue', () => {
-						return expect(lastNBlockIds).to.include.members([dummyBlock.id]);
+					it('should return error', () => {
+						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+						return expect(verifyPayload.errors[0]).to.equal('getBytes-ERR');
 					});
 				});
 
-				describe(`when onNewBlock function is called ${
-					constants.blockSlotWindow
-				}times`, () => {
-					var blockIds = [];
-
-					before(() => {
-						return _.map(_.range(0, constants.blockSlotWindow), () => {
-							var randomId = Math.floor(
-								Math.random() * 100000000000
-							).toString();
-							blockIds.push(randomId);
-							var dummyBlock = {
-								id: randomId,
-							};
-
-							RewiredVerify.prototype.onNewBlock(dummyBlock);
-						});
+				describe('when returns invalid bytes', () => {
+					beforeEach(() => {
+						return library.logic.transaction.getBytes.returns('abc');
 					});
 
-					it('should include blockId in lastNBlockIds queue', () => {
-						return expect(lastNBlockIds).to.include.members(blockIds);
-					});
-				});
-
-				describe(`when onNewBlock function is called ${constants.blockSlotWindow *
-					2} times`, () => {
-					var recentNBlockIds;
-					var olderThanNBlockIds;
-
-					before(done => {
-						var blockIds = [];
-						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
-							var randomId = Math.floor(
-								Math.random() * 100000000000
-							).toString();
-							blockIds.push(randomId);
-							var dummyBlock = {
-								id: randomId,
-							};
-
-							RewiredVerify.prototype.onNewBlock(dummyBlock);
-						});
-
-						recentNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index < constants.blockSlotWindow;
-						});
-
-						olderThanNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index >= constants.blockSlotWindow;
-						});
-						done();
-					});
-
-					it(`should maintain last ${
-						constants.blockSlotWindow
-					} blockIds in lastNBlockIds queue`, () => {
-						expect(lastNBlockIds).to.include.members(recentNBlockIds);
-						return expect(lastNBlockIds).to.not.include.members(
-							olderThanNBlockIds
+					it('should return error', () => {
+						verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+						return expect(verifyPayload.errors[0]).to.equal(
+							'Invalid payload hash'
 						);
 					});
 				});
 			});
+
+			describe('when encountered duplicate transaction', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.transactions[1].id = 1;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Encountered duplicate transaction: 1'
+					);
+				});
+			});
+
+			describe('when payload hash is invalid', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.payloadHash = 'abc';
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Invalid payload hash'
+					);
+				});
+			});
+
+			describe('when total amount is invalid', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.totalAmount = 1;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal(
+						'Invalid total amount'
+					);
+				});
+			});
+
+			describe('when total fee is invalid', () => {
+				it('should return error', () => {
+					const dummyBlockERR = _.cloneDeep(dummyBlock);
+					dummyBlockERR.totalFee = 1;
+					verifyPayload = __private.verifyPayload(dummyBlockERR, {
+						errors: [],
+					});
+					return expect(verifyPayload.errors[0]).to.equal('Invalid total fee');
+				});
+			});
 		});
 
-		describe('verifyAgainstLastNBlockIds', () => {
-			var verifyAgainstLastNBlockIds;
-			var result = {
+		describe('when __private.verifyPayload succeeds', () => {
+			it('should return no error', () => {
+				verifyPayload = __private.verifyPayload(dummyBlock, { errors: [] });
+				return expect(verifyPayload.errors.length).to.equal(0);
+			});
+		});
+	});
+
+	describe('__private.verifyForkOne', () => {
+		let verifyForkOne;
+		let block;
+		let lastBlock;
+
+		describe('when __private.verifyForkOne fails', () => {
+			describe('when block.previousBlock && block.previousBlock != lastBlock.id', () => {
+				afterEach(() => {
+					expect(modules.delegates.fork.calledOnce).to.be.true;
+					expect(modules.delegates.fork.args[0][0]).to.deep.equal(block);
+					return expect(modules.delegates.fork.args[0][1]).to.equal(1);
+				});
+
+				it('should return error', () => {
+					block = { previousBlock: 4 };
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors[0]).to.equal(
+						'Invalid previous block: 4 expected: 5'
+					);
+				});
+			});
+		});
+
+		describe('when __private.verifyForkOne succeeds', () => {
+			describe('when block.previousBlock = undefined', () => {
+				afterEach(() => {
+					return expect(modules.delegates.fork.calledOnce).to.be.false;
+				});
+
+				it('should return no error', () => {
+					block = { id: 6 };
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors.length).to.equal(0);
+				});
+			});
+
+			describe('when block.previousBlock = lastBlock.id', () => {
+				afterEach(() => {
+					return expect(modules.delegates.fork.calledOnce).to.be.false;
+				});
+
+				it('should return no error', () => {
+					block = { previousBlock: 5 };
+					lastBlock = { id: 5 };
+					verifyForkOne = __private.verifyForkOne(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyForkOne.errors.length).to.equal(0);
+				});
+			});
+		});
+	});
+
+	describe('__private.verifyBlockSlot', () => {
+		let verifyBlockSlot;
+		let block;
+		let lastBlock;
+		let slots;
+		let slotsTemp;
+
+		beforeEach(done => {
+			slots = BlocksVerify.__get__('slots');
+			slotsTemp = slots;
+			slots.getSlotNumber = input => {
+				return input === undefined ? 4 : input;
+			};
+			done();
+		});
+
+		afterEach(done => {
+			slots = slotsTemp;
+			done();
+		});
+
+		describe('when __private.verifyBlockSlot fails', () => {
+			describe('when blockSlotNumber > slots.getSlotNumber()', () => {
+				it('should return error', () => {
+					block = { timestamp: 5 };
+					lastBlock = { timestamp: 5 };
+					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyBlockSlot.errors[0]).to.equal(
+						'Invalid block timestamp'
+					);
+				});
+			});
+
+			describe('when blockSlotNumber <= lastBlockSlotNumber', () => {
+				it('should return error', () => {
+					block = { timestamp: 3 };
+					lastBlock = { timestamp: 3 };
+					verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+						errors: [],
+					});
+					return expect(verifyBlockSlot.errors[0]).to.equal(
+						'Invalid block timestamp'
+					);
+				});
+			});
+		});
+
+		describe('when __private.verifyBlockSlot succeeds', () => {
+			it('should return no error', () => {
+				block = { timestamp: 4 };
+				lastBlock = { timestamp: 3 };
+				verifyBlockSlot = __private.verifyBlockSlot(block, lastBlock, {
+					errors: [],
+				});
+				return expect(verifyBlockSlot.errors.length).to.equal(0);
+			});
+		});
+	});
+
+	describe('__private.verifyBlockSlotWindow', () => {
+		let verifyBlockSlotWindow;
+		let slots;
+		let slotsTemp;
+
+		beforeEach(done => {
+			slots = BlocksVerify.__get__('slots');
+			slotsTemp = slots;
+			slots.getSlotNumber = input => {
+				return input === undefined ? 100 : input;
+			};
+			done();
+		});
+
+		afterEach(done => {
+			slots = slotsTemp;
+			done();
+		});
+
+		describe('when __private.verifyBlockSlotWindow fails', () => {
+			describe('when currentApplicationSlot - blockSlot > constants.blockSlotWindow', () => {
+				it('should return error', () => {
+					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+						{ timestamp: 10 },
+						{ errors: [] }
+					);
+					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+						'Block slot is too old'
+					);
+				});
+			});
+
+			describe('currentApplicationSlot < blockSlot', () => {
+				it('should return error', () => {
+					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+						{ timestamp: 110 },
+						{ errors: [] }
+					);
+					return expect(verifyBlockSlotWindow.errors[0]).to.equal(
+						'Block slot is in the future'
+					);
+				});
+			});
+		});
+
+		describe('when __private.verifyBlockSlotWindow succeeds', () => {
+			it('should return no error', () => {
+				verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
+					{ timestamp: 99 },
+					{ errors: [] }
+				);
+				return expect(verifyBlockSlotWindow.errors.length).to.equal(0);
+			});
+		});
+	});
+
+	describe('verifyReceipt', () => {
+		let privateTemp;
+		let verifyReceipt;
+		const dummyBlock = { id: 5 };
+		const dummylastBlock = { id: 4 };
+
+		beforeEach(done => {
+			privateTemp = __private;
+			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
+			__private.verifySignature = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyPreviousBlock = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyAgainstLastNBlockIds = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyBlockSlotWindow = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyVersion = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyReward = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyId = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyPayload = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			modules.blocks.lastBlock.get.returns(dummylastBlock);
+			done();
+		});
+
+		afterEach(done => {
+			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(__private.setHeight).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock
+			);
+			expect(__private.verifySignature).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyPreviousBlock).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyAgainstLastNBlockIds).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyBlockSlotWindow).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyVersion).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyReward).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyId).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyPayload).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			__private = privateTemp;
+			done();
+		});
+
+		it('should call private functions with correct parameters', () => {
+			verifyReceipt = blocksVerifyModule.verifyReceipt(dummyBlock);
+			return expect(verifyReceipt).to.deep.equal({
 				verified: true,
 				errors: [],
-			};
+			});
+		});
+	});
 
-			before(done => {
-				verifyAgainstLastNBlockIds = RewiredVerify.__get__(
-					'__private.verifyAgainstLastNBlockIds'
+	describe('onBlockchainReady', () => {
+		describe('when library.db.blocks.loadLastNBlockIds fails', () => {
+			beforeEach(() => {
+				return library.db.blocks.loadLastNBlockIds.rejects(
+					'loadLastNBlockIds-ERR'
 				);
+			});
+
+			afterEach(() => {
+				expect(loggerStub.error.args[0][0]).to.equal(
+					'Unable to load last 5 block ids'
+				);
+				return expect(loggerStub.error.args[1][0].name).to.equal(
+					'loadLastNBlockIds-ERR'
+				);
+			});
+
+			it('should log error', () => {
+				return blocksVerifyModule.onBlockchainReady();
+			});
+		});
+
+		describe('when library.db.blocks.loadLastNBlockIds succeeds', () => {
+			beforeEach(() => {
+				return library.db.blocks.loadLastNBlockIds.resolves([
+					{ id: 1 },
+					{ id: 2 },
+					{ id: 3 },
+					{ id: 4 },
+				]);
+			});
+
+			afterEach(() => {
+				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4]);
+				return expect(loggerStub.error.args.length).to.equal(0);
+			});
+
+			it('should log error', () => {
+				return blocksVerifyModule.onBlockchainReady();
+			});
+		});
+	});
+
+	describe('onNewBlock', () => {
+		describe('when __private.lastNBlockIds.length > constants.blockSlotWindow', () => {
+			beforeEach(done => {
+				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
 				done();
 			});
 
-			afterEach(done => {
-				result = {
+			afterEach(() => {
+				expect(__private.lastNBlockIds).to.deep.equal([2, 3, 4, 5, 6, 7]);
+				return expect();
+			});
+
+			it('should add new id to the end of lastNBlockIds array and delete first one', () => {
+				return blocksVerifyModule.onNewBlock({ id: 7 });
+			});
+		});
+
+		describe('when __private.lastNBlockIds.length <= constants.blockSlotWindow', () => {
+			beforeEach(done => {
+				__private.lastNBlockIds = [1, 2, 3, 4];
+				done();
+			});
+
+			afterEach(() => {
+				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5]);
+				return expect();
+			});
+
+			it('should add new id to the end of lastNBlockIds array', () => {
+				return blocksVerifyModule.onNewBlock({ id: 5 });
+			});
+		});
+	});
+
+	describe('verifyBlock', () => {
+		let privateTemp;
+		let verifyReceipt;
+		const dummyBlock = { id: 5 };
+		const dummylastBlock = { id: 4 };
+
+		beforeEach(done => {
+			modules.blocks.lastBlock.get.returns(dummylastBlock);
+			privateTemp = __private;
+			__private.setHeight = sinonSandbox.stub().returns(dummyBlock);
+			__private.verifySignature = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyPreviousBlock = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyVersion = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyReward = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyId = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyPayload = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyForkOne = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			__private.verifyBlockSlot = sinonSandbox
+				.stub()
+				.returns({ verified: false, errors: [] });
+			done();
+		});
+
+		afterEach(done => {
+			expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
+			expect(__private.setHeight).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock
+			);
+			expect(__private.verifySignature).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyPreviousBlock).to.have.been.calledWith(
+				dummyBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyVersion).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyReward).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyId).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyPayload).to.have.been.calledWith(dummyBlock, {
+				verified: false,
+				errors: [],
+			});
+			expect(__private.verifyForkOne).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock,
+				{ verified: false, errors: [] }
+			);
+			expect(__private.verifyBlockSlot).to.have.been.calledWith(
+				dummyBlock,
+				dummylastBlock,
+				{ verified: false, errors: [] }
+			);
+			__private = privateTemp;
+			done();
+		});
+
+		it('should call private functions with correct parameters', () => {
+			verifyReceipt = blocksVerifyModule.verifyBlock(dummyBlock);
+			return expect(verifyReceipt).to.deep.equal({
+				verified: true,
+				errors: [],
+			});
+		});
+	});
+
+	describe('addBlockProperties', () => {
+		let dummyBlockReturned;
+		const dummyBlock = {
+			id: 1,
+			version: 0,
+			numberOfTransactions: 0,
+			transactions: [],
+			totalAmount: 0,
+			totalFee: 0,
+			payloadLength: 0,
+			reward: 0,
+		};
+
+		afterEach(() => {
+			return expect(dummyBlockReturned).to.deep.equal(dummyBlock);
+		});
+
+		describe('when block.version = undefined', () => {
+			it('should add version = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.version;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.numberOfTransactions = undefined', () => {
+			describe('and block.transactions = undefined', () => {
+				it('should add numberOfTransactions = 0', () => {
+					const dummyBlockReduced = _.cloneDeep(dummyBlock);
+					delete dummyBlockReduced.numberOfTransactions;
+					delete dummyBlockReduced.transactions;
+					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+						dummyBlockReduced
+					);
+					return dummyBlockReturned;
+				});
+			});
+
+			describe('and block.transactions != undefined', () => {
+				it('should add numberOfTransactions = block.transactions.length', () => {
+					const dummyBlockReduced = _.cloneDeep(dummyBlock);
+					delete dummyBlockReduced.numberOfTransactions;
+					dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+						dummyBlockReduced
+					);
+					return dummyBlockReturned;
+				});
+			});
+		});
+
+		describe('when block.totalAmount = undefined', () => {
+			it('should add totalAmount = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.totalAmount;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.totalFee = undefined', () => {
+			it('should add totalFee = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.totalFee;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.payloadLength = undefined', () => {
+			it('should add payloadLength = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.payloadLength;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.reward = undefined', () => {
+			it('should add reward = 0', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.reward;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+
+		describe('when block.transactions = undefined', () => {
+			it('should add transactions = []', () => {
+				const dummyBlockReduced = _.cloneDeep(dummyBlock);
+				delete dummyBlockReduced.transactions;
+				dummyBlockReturned = blocksVerifyModule.addBlockProperties(
+					dummyBlockReduced
+				);
+				return dummyBlockReturned;
+			});
+		});
+	});
+
+	describe('deleteBlockProperties', () => {
+		let dummyBlockReduced;
+		const dummyBlock = {
+			id: 1,
+			version: 1,
+			numberOfTransactions: 1,
+			transactions: [{ id: 1 }],
+			totalAmount: 1,
+			totalFee: 1,
+			payloadLength: 1,
+			reward: 1,
+		};
+
+		describe('when block.version = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.not.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete version property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.version = 0;
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.numberOfTransactions = number', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete numberOfTransactions property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.totalAmount = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.not.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalAmount property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.totalAmount = 0;
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.totalFee = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.not.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalFee property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.totalFee = 0;
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.payloadLength = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.not.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalFee property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.payloadLength = 0;
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.reward = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.not.have.property('reward');
+				return expect(dummyBlockReduced).to.have.property('transactions');
+			});
+
+			it('should delete totalFee property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.reward = 0;
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+
+		describe('when block.transactions.length = 0', () => {
+			afterEach(() => {
+				expect(dummyBlockReduced).to.have.property('version');
+				expect(dummyBlockReduced).to.not.have.property('numberOfTransactions');
+				expect(dummyBlockReduced).to.have.property('totalAmount');
+				expect(dummyBlockReduced).to.have.property('totalFee');
+				expect(dummyBlockReduced).to.have.property('payloadLength');
+				expect(dummyBlockReduced).to.have.property('reward');
+				return expect(dummyBlockReduced).to.not.have.property('transactions');
+			});
+
+			it('should delete totalFee property', () => {
+				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
+				dummyBlockCompleted.transactions = [];
+				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
+					dummyBlockCompleted
+				);
+				return dummyBlockReduced;
+			});
+		});
+	});
+
+	describe('__private.addBlockProperties', () => {
+		let addBlockPropertiesTemp;
+		const dummyBlock = { id: 1 };
+
+		beforeEach(done => {
+			addBlockPropertiesTemp = blocksVerifyModule.addBlockProperties;
+			blocksVerifyModule.addBlockProperties = sinonSandbox.stub();
+			done();
+		});
+
+		afterEach(done => {
+			blocksVerifyModule.addBlockProperties = addBlockPropertiesTemp;
+			done();
+		});
+
+		describe('when broadcast = false', () => {
+			describe('when self.addBlockProperties fails', () => {
+				beforeEach(() => {
+					return blocksVerifyModule.addBlockProperties.throws(
+						'addBlockProperties-ERR'
+					);
+				});
+
+				it('should call a callback with error', done => {
+					__private.addBlockProperties(dummyBlock, false, err => {
+						expect(err.name).to.equal('addBlockProperties-ERR');
+						done();
+					});
+				});
+			});
+
+			describe('when self.addBlockProperties succeeds', () => {
+				beforeEach(() => {
+					return blocksVerifyModule.addBlockProperties.returns({
+						id: 1,
+						version: 0,
+					});
+				});
+
+				it('should call a callback with no error', done => {
+					__private.addBlockProperties(dummyBlock, false, err => {
+						expect(err).to.be.undefined;
+						done();
+					});
+				});
+			});
+		});
+
+		describe('when broadcast = true', () => {
+			beforeEach(() => {
+				return blocksVerifyModule.addBlockProperties.returns({
+					id: 1,
+					version: 0,
+				});
+			});
+
+			it('should call a callback with no error', done => {
+				__private.addBlockProperties(dummyBlock, true, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
+			});
+		});
+	});
+
+	describe('__private.normalizeBlock', () => {
+		const dummyBlock = { id: 1 };
+
+		describe('when library.logic.block.objectNormalize fails', () => {
+			beforeEach(() => {
+				return library.logic.block.objectNormalize.throws(
+					'objectNormalize-ERR'
+				);
+			});
+
+			it('should call a callback with error', done => {
+				__private.normalizeBlock(dummyBlock, err => {
+					expect(err.name).to.equal('objectNormalize-ERR');
+					done();
+				});
+			});
+		});
+
+		describe('when library.logic.block.objectNormalize succeeds', () => {
+			beforeEach(() => {
+				return library.logic.block.objectNormalize.returns({
+					id: 1,
+					version: 0,
+				});
+			});
+
+			it('should call a callback with no error', done => {
+				__private.normalizeBlock(dummyBlock, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
+			});
+		});
+	});
+
+	describe('__private.verifyBlock', () => {
+		let verifyBlockTemp;
+		const dummyBlock = { id: 1 };
+
+		beforeEach(done => {
+			verifyBlockTemp = blocksVerifyModule.verifyBlock;
+			blocksVerifyModule.verifyBlock = sinonSandbox.stub();
+			done();
+		});
+
+		afterEach(done => {
+			blocksVerifyModule.verifyBlock = verifyBlockTemp;
+			done();
+		});
+
+		describe('when self.verifyBlock fails', () => {
+			beforeEach(() => {
+				return blocksVerifyModule.verifyBlock.returns({
+					verified: false,
+					errors: ['verifyBlock-ERR'],
+				});
+			});
+
+			afterEach(() => {
+				expect(loggerStub.error.args[0][0]).to.be.equal(
+					'Block 1 verification failed'
+				);
+				return expect(loggerStub.error.args[0][1]).to.be.equal(
+					'verifyBlock-ERR'
+				);
+			});
+
+			it('should call a callback with error', done => {
+				__private.verifyBlock(dummyBlock, err => {
+					expect(err).to.equal('verifyBlock-ERR');
+					done();
+				});
+			});
+		});
+
+		describe('when self.verifyBlock succeeds', () => {
+			beforeEach(() => {
+				return blocksVerifyModule.verifyBlock.returns({
 					verified: true,
 					errors: [],
-				};
-				done();
+				});
 			});
 
-			describe('when __private.lastNBlockIds', () => {
-				var lastNBlockIds;
-
-				before(done => {
-					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+			it('should call a callback with no error', done => {
+				__private.verifyBlock(dummyBlock, err => {
+					expect(err).to.be.undefined;
 					done();
 				});
-
-				describe('contains block id', () => {
-					var dummyBlockId = '123123123123';
-
-					before(() => {
-						return lastNBlockIds.push(dummyBlockId);
-					});
-
-					it('should return result with error = Block already exists in chain', () => {
-						return expect(
-							verifyAgainstLastNBlockIds({ id: dummyBlockId }, result).errors
-						).to.include.members(['Block already exists in chain']);
-					});
-				});
-
-				describe('does not contain block id', () => {
-					it('should return result with no errors', () => {
-						return expect(
-							verifyAgainstLastNBlockIds({ id: '1231231234' }, result).errors
-						).to.have.length(0);
-					});
-				});
 			});
 		});
 	});
 
-	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
-	describe('verifyReceipt() when block is valid', () => {});
+	describe('__private.broadcastBlock', () => {
+		let broadcastReducedBlockTemp;
+		let deleteBlockPropertiesTemp;
+		const dummyBlock = { id: 1, version: 0 };
+		const dummyBlockReduced = { id: 1 };
 
-	describe('verifyBlock() when block is valid', () => {});
-
-	describe('addBlockProperties()', () => {
-		it('should be ok');
-	});
-
-	describe('deleteBlockProperties()', () => {
-		it('should be ok');
-	});
-
-	// Sends a block to network, save it locally
-	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', () => {
-		it('should clear database', done => {
-			async.every(
-				[
-					'blocks WHERE height > 1',
-					'trs WHERE "blockId" != \'6524861224470851795\'',
-					"mem_accounts WHERE address IN ('2737453412992791987L', '2896019180726908125L')",
-					'forks_stat',
-					'votes WHERE "transactionId" = \'17502993173215211070\'',
-				],
-				(table, seriesCb) => {
-					clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
-				},
-				err => {
-					if (err) {
-						return done(err);
-					}
-					delegates.generateDelegateList(1, null, done);
-				}
-			);
-		});
-
-		it('should generate account', done => {
-			accounts.setAccountAndGet(testAccount.account, (err, newaccount) => {
-				if (err) {
-					return done(err);
-				}
-				expect(newaccount.address).to.equal(testAccount.account.address);
-				done();
-			});
-		});
-
-		it('should generate block 1', done => {
-			var slot = slots.getSlotNumber();
-			var time = slots.getSlotTime(slots.getSlotNumber());
-
-			getValidKeypairForSlot(library, slot).then(secret => {
-				block1 = createBlock(
-					blocks,
-					blockLogic,
-					secret,
-					time,
-					[],
-					genesisBlock
-				);
-				expect(block1.version).to.equal(0);
-				expect(block1.timestamp).to.equal(time);
-				expect(block1.numberOfTransactions).to.equal(0);
-				expect(block1.reward).to.equal(0);
-				expect(block1.totalFee).to.equal(0);
-				expect(block1.totalAmount).to.equal(0);
-				expect(block1.payloadLength).to.equal(0);
-				expect(block1.transactions).to.deep.eql([]);
-				expect(block1.previousBlock).to.equal(genesisBlock.id);
-				done();
-			});
-		});
-
-		it('should be ok when processing block 1', done => {
-			blocksVerify.processBlock(block1, true, true, (err, result) => {
-				if (err) {
-					return done(err);
-				}
-				expect(result).to.be.undefined;
-				done();
-			});
-		});
-	});
-
-	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', () => {
 		beforeEach(done => {
-			blocksVerify.processBlock(block1, true, true, done);
-		});
-
-		it('should fail when processing block 1 multiple times', done => {
-			blocksVerify.processBlock(block1, true, true, err => {
-				expect(err).to.equal('Invalid block timestamp');
-				done();
-			});
-		});
-	});
-
-	// Receives a block from network, save it locally
-	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', () => {
-		var invalidBlock2;
-
-		it('should generate block 2 with invalid generator slot', done => {
-			var secret =
-				'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
-
-			invalidBlock2 = createBlock(
-				blocks,
-				blockLogic,
-				secret,
-				33772882,
-				[],
-				genesisBlock
-			);
-			expect(invalidBlock2.version).to.equal(0);
-			expect(invalidBlock2.timestamp).to.equal(33772882);
-			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward).to.equal(0);
-			expect(invalidBlock2.totalFee).to.equal(0);
-			expect(invalidBlock2.totalAmount).to.equal(0);
-			expect(invalidBlock2.payloadLength).to.equal(0);
-			expect(invalidBlock2.transactions).to.deep.eql([]);
-			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
+			broadcastReducedBlockTemp = blocksVerifyModule.broadcastReducedBlock;
+			deleteBlockPropertiesTemp = blocksVerifyModule.deleteBlockProperties;
+			blocksVerifyModule.broadcastReducedBlock = sinonSandbox.stub();
+			blocksVerifyModule.deleteBlockProperties = sinonSandbox
+				.stub()
+				.returns(dummyBlock);
 			done();
 		});
 
-		describe('normalizeBlock validations', () => {
-			before(done => {
-				block2 = createBlock(
-					blocks,
-					blockLogic,
-					random.password(),
-					33772882,
-					[genesisBlock.transactions[0]],
-					genesisBlock
-				);
-				done();
-			});
+		afterEach(done => {
+			blocksVerifyModule.broadcastReducedBlock = broadcastReducedBlockTemp;
+			blocksVerifyModule.deleteBlockProperties = deleteBlockPropertiesTemp;
+			done();
+		});
 
-			it('should fail when timestamp property is missing', done => {
-				block2 = blocksVerify.deleteBlockProperties(block2);
-				var timestamp = block2.timestamp;
-				delete block2.timestamp;
-
-				blocksVerify.processBlock(block2, false, true, err => {
-					if (err) {
-						expect(err).equal(
-							'Failed to validate block schema: Missing required property: timestamp'
-						);
-						block2.timestamp = timestamp;
-						done();
-					}
+		describe('when broadcast = true', () => {
+			describe('when self.deleteBlockProperties fails', () => {
+				beforeEach(() => {
+					return blocksVerifyModule.deleteBlockProperties.throws(
+						'deleteBlockProperties-ERR'
+					);
 				});
-			});
 
-			it('should fail when transactions property is missing', done => {
-				var transactions = block2.transactions;
-				delete block2.transactions;
-
-				blocksVerify.processBlock(block2, false, true, err => {
-					if (err) {
-						expect(err).equal('Invalid total amount');
-						block2.transactions = transactions;
-						done();
-					}
+				afterEach(() => {
+					return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce)
+						.to.be.false;
 				});
-			});
 
-			it('should fail when transaction type property is missing', done => {
-				var transactionType = block2.transactions[0].type;
-				delete block2.transactions[0].type;
-
-				blocksVerify.processBlock(block2, false, true, err => {
-					if (err) {
-						expect(err).equal('Unknown transaction type undefined');
-						block2.transactions[0].type = transactionType;
-						done();
-					}
-				});
-			});
-
-			it('should fail when transaction timestamp property is missing', done => {
-				var transactionTimestamp = block2.transactions[0].timestamp;
-				delete block2.transactions[0].timestamp;
-
-				blocksVerify.processBlock(block2, false, true, err => {
-					if (err) {
-						expect(err).equal(
-							'Failed to validate transaction schema: Missing required property: timestamp'
-						);
-						block2.transactions[0].timestamp = transactionTimestamp;
-						done();
-					}
-				});
-			});
-
-			it('should fail when block generator is invalid (fork:3)', done => {
-				blocksVerify.processBlock(block2, false, true, err => {
-					if (err) {
-						expect(err).equal('Failed to verify slot: 3377288');
-						done();
-					}
-				});
-			});
-
-			describe('block with processed transaction', () => {
-				var block2;
-
-				it('should generate block 1 with valid generator slot and processed transaction', done => {
-					var slot = slots.getSlotNumber();
-					var time = slots.getSlotTime(slots.getSlotNumber());
-
-					getValidKeypairForSlot(library, slot).then(secret => {
-						block2 = createBlock(
-							blocks,
-							blockLogic,
-							secret,
-							time,
-							[genesisBlock.transactions[0]],
-							genesisBlock
-						);
-
-						expect(block2.version).to.equal(0);
-						expect(block2.timestamp).to.equal(time);
-						expect(block2.numberOfTransactions).to.equal(1);
-						expect(block2.reward).to.equal(0);
-						expect(block2.totalFee).to.equal(0);
-						expect(block2.totalAmount).to.equal(10000000000000000);
-						expect(block2.payloadLength).to.equal(117);
-						expect(block2.transactions).to.deep.eql([
-							genesisBlock.transactions[0],
-						]);
-						expect(block2.previousBlock).to.equal(genesisBlock.id);
+				it('should call a callback with error', done => {
+					__private.broadcastBlock(dummyBlock, true, err => {
+						expect(err.name).to.equal('deleteBlockProperties-ERR');
 						done();
 					});
 				});
+			});
 
-				it('should fail when transaction is already confirmed (fork:2)', done => {
-					block2 = blocksVerify.deleteBlockProperties(block2);
+			describe('when self.deleteBlockProperties succeeds', () => {
+				beforeEach(() => {
+					return blocksVerifyModule.deleteBlockProperties.returns(
+						dummyBlockReduced
+					);
+				});
 
-					blocksVerify.processBlock(block2, false, true, err => {
-						if (err) {
-							expect(err).to.equal(
-								[
-									'Transaction is already confirmed:',
-									genesisBlock.transactions[0].id,
-								].join(' ')
-							);
-							done();
-						}
+				afterEach(() => {
+					expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to.be
+						.true;
+					return expect(
+						modules.blocks.chain.broadcastReducedBlock
+					).to.have.been.calledWith(dummyBlockReduced, true);
+				});
+
+				it('should call a callback with no error', done => {
+					__private.broadcastBlock(dummyBlock, true, err => {
+						expect(err).to.be.undefined;
+						done();
+					});
+				});
+			});
+		});
+
+		describe('when broadcast = false', () => {
+			afterEach(() => {
+				expect(blocksVerifyModule.deleteBlockProperties.calledOnce).to.be.false;
+				return expect(modules.blocks.chain.broadcastReducedBlock.calledOnce).to
+					.be.false;
+			});
+
+			it('should call a callback with no error', done => {
+				__private.broadcastBlock(dummyBlock, false, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
+			});
+		});
+	});
+
+	describe('__private.checkExists', () => {
+		const dummyBlock = { id: 1 };
+
+		describe('when library.db.blocks.blockExists fails', () => {
+			beforeEach(() => {
+				return library.db.blocks.blockExists.rejects('blockExists-ERR');
+			});
+
+			afterEach(() => {
+				return expect(loggerStub.error.args[0][0].name).to.equal(
+					'blockExists-ERR'
+				);
+			});
+
+			it('should call a callback with error', done => {
+				__private.checkExists(dummyBlock, err => {
+					expect(err).to.equal('Block#blockExists error');
+					done();
+				});
+			});
+		});
+
+		describe('when library.db.blocks.blockExists succeeds', () => {
+			describe('if rows = true', () => {
+				beforeEach(() => {
+					return library.db.blocks.blockExists.resolves(true);
+				});
+
+				it('should call a callback with error', done => {
+					__private.checkExists(dummyBlock, err => {
+						expect(err).to.be.equal('Block 1 already exists');
+						done();
+					});
+				});
+			});
+
+			describe('if rows = false', () => {
+				beforeEach(() => {
+					return library.db.blocks.blockExists.resolves(false);
+				});
+
+				it('should call a callback with no error', done => {
+					__private.checkExists(dummyBlock, err => {
+						expect(err).to.be.undefined;
+						done();
 					});
 				});
 			});
 		});
 	});
 
-	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', () => {
-		it('should generate block 2 with valid generator slot', done => {
-			var slot = slots.getSlotNumber();
-			var time = slots.getSlotTime(slots.getSlotNumber());
+	describe('__private.validateBlockSlot', () => {
+		const dummyBlock = { id: 1 };
 
-			getValidKeypairForSlot(library, slot).then(secret => {
-				block2 = createBlock(
-					blocks,
-					blockLogic,
-					secret,
-					time,
-					[],
-					genesisBlock
+		describe('when modules.delegates.validateBlockSlot fails', () => {
+			beforeEach(() => {
+				return modules.delegates.validateBlockSlot.callsArgWith(
+					1,
+					'validateBlockSlot-ERR',
+					null
 				);
-				expect(block2.version).to.equal(0);
-				expect(block2.timestamp).to.equal(time);
-				expect(block2.numberOfTransactions).to.equal(0);
-				expect(block2.reward).to.equal(0);
-				expect(block2.totalFee).to.equal(0);
-				expect(block2.totalAmount).to.equal(0);
-				expect(block2.payloadLength).to.equal(0);
-				expect(block2.transactions).to.deep.equal([]);
-				expect(block2.previousBlock).to.equal(genesisBlock.id);
-				done();
+			});
+
+			afterEach(() => {
+				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
+				return expect(modules.delegates.fork).calledWith(dummyBlock, 3);
+			});
+
+			it('should call a callback with error', done => {
+				__private.validateBlockSlot(dummyBlock, err => {
+					expect(err).to.equal('validateBlockSlot-ERR');
+					done();
+				});
 			});
 		});
 
-		it('should be ok when processing block 2', done => {
-			blocksVerify.processBlock(block2, false, true, (err, result) => {
-				if (err) {
-					return done(err);
-				}
-				expect(result).to.be.undefined;
-				done();
+		describe('when modules.delegates.validateBlockSlot succeeds', () => {
+			beforeEach(() => {
+				return modules.delegates.validateBlockSlot.callsArgWith(1, null, true);
 			});
+
+			afterEach(() => {
+				expect(modules.delegates.validateBlockSlot).calledWith(dummyBlock);
+				return expect(modules.delegates.fork.calledOnce).to.be.false;
+			});
+
+			it('should call a callback with no error', done => {
+				__private.validateBlockSlot(dummyBlock, err => {
+					expect(err).to.be.undefined;
+					done();
+				});
+			});
+		});
+	});
+
+	describe('__private.checkTransactions', () => {
+		let checkTransactionTemp;
+		let dummyBlock;
+
+		beforeEach(done => {
+			checkTransactionTemp = __private.checkTransaction;
+			__private.checkTransaction = sinonSandbox.stub();
+			done();
+		});
+
+		afterEach(done => {
+			__private.checkTransaction = checkTransactionTemp;
+			done();
+		});
+
+		describe('when block.transactions is empty', () => {
+			afterEach(() => {
+				return expect(__private.checkTransaction.called).to.be.false;
+			});
+
+			it('should call a callback with no error', done => {
+				dummyBlock = { id: 1, transactions: [] };
+				__private.checkTransactions(dummyBlock, err => {
+					expect(err).to.be.null;
+					done();
+				});
+			});
+		});
+
+		describe('when block.transactions is not empty', () => {
+			afterEach(() => {
+				return expect(__private.checkTransaction.called).to.be.true;
+			});
+
+			describe('when __private.checkTransaction fails', () => {
+				beforeEach(() => {
+					return __private.checkTransaction.callsArgWith(
+						2,
+						'checkTransaction-ERR',
+						null
+					);
+				});
+
+				it('should call a callback with error', done => {
+					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
+					__private.checkTransactions(dummyBlock, err => {
+						expect(err).to.equal('checkTransaction-ERR');
+						done();
+					});
+				});
+			});
+
+			describe('when __private.checkTransaction succeeds', () => {
+				beforeEach(() => {
+					return __private.checkTransaction.callsArgWith(2, null, true);
+				});
+
+				it('should call a callback with no error', done => {
+					dummyBlock = { id: 1, transactions: [{ id: 1 }] };
+					__private.checkTransactions(dummyBlock, err => {
+						expect(err).to.be.null;
+						done();
+					});
+				});
+			});
+		});
+	});
+
+	describe('processBlock', () => {
+		let privateTemp;
+		const dummyBlock = { id: 5 };
+		let broadcast;
+		let saveBlock;
+
+		beforeEach(done => {
+			privateTemp = __private;
+			__private.addBlockProperties = sinonSandbox
+				.stub()
+				.callsArgWith(2, null, true);
+			__private.normalizeBlock = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			__private.verifyBlock = sinonSandbox.stub().callsArgWith(1, null, true);
+			__private.broadcastBlock = sinonSandbox
+				.stub()
+				.callsArgWith(2, null, true);
+			__private.checkExists = sinonSandbox.stub().callsArgWith(1, null, true);
+			__private.validateBlockSlot = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			__private.checkTransactions = sinonSandbox
+				.stub()
+				.callsArgWith(1, null, true);
+			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
+			done();
+		});
+
+		afterEach(done => {
+			expect(modules.blocks.isCleaning.get.calledOnce).to.be.true;
+			expect(__private.addBlockProperties).to.have.been.calledWith(
+				dummyBlock,
+				broadcast
+			);
+			expect(__private.normalizeBlock).to.have.been.calledWith(dummyBlock);
+			expect(__private.verifyBlock).to.have.been.calledWith(dummyBlock);
+			expect(__private.broadcastBlock).to.have.been.calledWith(
+				dummyBlock,
+				broadcast
+			);
+			expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
+			expect(__private.validateBlockSlot).to.have.been.calledWith(dummyBlock);
+			expect(__private.checkTransactions).to.have.been.calledWith(dummyBlock);
+			expect(modules.blocks.chain.applyBlock).to.have.been.calledWith(
+				dummyBlock,
+				saveBlock
+			);
+			__private = privateTemp;
+			done();
+		});
+
+		describe('when broadcast = true', () => {
+			describe('when saveBlock = true', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = true;
+					saveBlock = true;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+
+			describe('when saveBlock = false', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = true;
+					saveBlock = false;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+		});
+
+		describe('when broadcast = false', () => {
+			describe('when saveBlock = true', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = false;
+					saveBlock = true;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+
+			describe('when saveBlock = false', () => {
+				it('should call private functions with correct parameters', done => {
+					broadcast = false;
+					saveBlock = false;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+							done();
+						}
+					);
+				});
+			});
+		});
+	});
+
+	describe('onBind', () => {
+		beforeEach(done => {
+			loggerStub.trace.reset();
+			__private.loaded = false;
+			blocksVerifyModule.onBind(modulesStub);
+			done();
+		});
+
+		it('should call library.logger.trace with "Blocks->Verify: Shared modules bind."', () => {
+			return expect(loggerStub.trace.args[0][0]).to.equal(
+				'Blocks->Verify: Shared modules bind.'
+			);
+		});
+
+		it('should assign params to modules', done => {
+			expect(modules.accounts).to.equal(modulesStub.accounts);
+			expect(modules.blocks).to.equal(modulesStub.blocks);
+			expect(modules.delegates).to.equal(modulesStub.delegates);
+			expect(modules.transactions).to.equal(modulesStub.transactions);
+			done();
+		});
+
+		it('should set __private.loaded to true', () => {
+			return expect(__private.loaded).to.be.true;
 		});
 	});
 });
