@@ -97,9 +97,9 @@ WSServer.prototype.start = function() {
 			resolve();
 		});
 
-		self.socketCluster.on('fail', () => {
+		self.socketCluster.on('fail', error => {
 			self.stop();
-			reject(new Error());
+			reject(error);
 		});
 
 		self.socketCluster.on('error', () => {

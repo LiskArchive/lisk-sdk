@@ -442,6 +442,7 @@ describe('db', () => {
 						done(value);
 					})
 					.catch(error => {
+						expect(error).instanceOf(Error);
 						expect(error.message).to.be.eql(
 							'Error: db.accounts.upsert - invalid "conflictingFields" argument.'
 						);

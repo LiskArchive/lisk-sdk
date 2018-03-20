@@ -60,9 +60,9 @@ WSServerMaster.prototype.start = function() {
 			}
 		);
 
-		self.masterProcess.on('error', () => {
+		self.masterProcess.on('error', error => {
 			self.stop();
-			reject(new Error());
+			reject(error);
 		});
 
 		self.masterProcess.on('close', () => {
