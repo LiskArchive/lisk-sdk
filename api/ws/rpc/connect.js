@@ -114,9 +114,18 @@ const connectSteps = {
 
 	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
 		// Unregister all the events just in case
+		peer.socket.off('connect');
 		peer.socket.off('connectAbort');
 		peer.socket.off('error');
 		peer.socket.off('close');
+		peer.socket.off('message');
+
+		peer.socket.on('connect', () => {
+			logger.trace(
+				`[Outbound socket] Peer connection established with socket id ${peer.socket.id}`
+			);
+		});
+
 		// When handshake process will fail - disconnect
 		// ToDo: Use parameters code and description returned while handshake fails
 		peer.socket.on('connectAbort', () => {
@@ -125,24 +134,25 @@ const connectSteps = {
 				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
 			);
 		});
+
 		// When error on transport layer occurs - disconnect
 		peer.socket.on('error', () => {
 			peer.socket.disconnect();
 		});
 
-		// The 'message' event can be used to log all low-level WebSocket messages.
-		peer.socket.on('message', message => {
-			logger.trace(
-				`[Outbound socket] Received message: ${message}`
-			);
-		});
-
 		// When WS connection ends - remove peer
 		peer.socket.on('close', (code, reason) => {
 			logger.debug(
-				`[Outbound socket] Peer WebSocket connection failed with code ${code} and reason: "${reason}"`
+				`[Outbound socket] Peer connection failed with code ${code} and reason: "${reason}"`
 			);
 			onDisconnectCb();
+		});
+
+		// The 'message' event can be used to log all low-level WebSocket messages.
+		peer.socket.on('message', message => {
+			logger.trace(
+				`[Outbound socket] Peer message received: ${message}`
+			);
 		});
 		return peer;
 	},
