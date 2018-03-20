@@ -130,6 +130,13 @@ const connectSteps = {
 			peer.socket.disconnect();
 		});
 
+		// The 'message' event can be used to log all low-level WebSocket messages.
+		peer.socket.on('message', message => {
+			logger.trace(
+				`[Outbound socket] Received message: ${message}`
+			);
+		});
+
 		// When WS connection ends - remove peer
 		peer.socket.on('close', (code, reason) => {
 			logger.debug(
