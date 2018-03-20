@@ -493,108 +493,106 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('', () => {
-			describe('when __private.blockReward.calcReward fails', () => {
-				beforeEach(() => {
-					return __private.blockReward.calcReward.returns('calcReward-ERR');
-				});
+		describe('when __private.blockReward.calcReward fails', () => {
+			beforeEach(() => {
+				return __private.blockReward.calcReward.returns('calcReward-ERR');
+			});
 
+			it('should return error', () => {
+				verifyReward = __private.verifyReward(
+					{ height: 'ERR' },
+					{ errors: [] }
+				);
+				return expect(verifyReward.errors[0]).to.equal(
+					'Invalid block reward:  expected: calcReward-ERR'
+				);
+			});
+		});
+
+		describe('when __private.blockReward.calcReward succeeds', () => {
+			beforeEach(() => {
+				return __private.blockReward.calcReward.returns(5);
+			});
+
+			describe('if block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
 				it('should return error', () => {
 					verifyReward = __private.verifyReward(
-						{ height: 'ERR' },
+						{ height: 5, reward: 1, id: 5 },
 						{ errors: [] }
 					);
 					return expect(verifyReward.errors[0]).to.equal(
-						'Invalid block reward:  expected: calcReward-ERR'
+						'Invalid block reward: 1 expected: 5'
 					);
 				});
 			});
 
-			describe('when __private.blockReward.calcReward succeeds', () => {
-				beforeEach(() => {
-					return __private.blockReward.calcReward.returns(5);
+			describe('if block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 1, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				describe('if block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
-					it('should return error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 5, reward: 1, id: 5 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors[0]).to.equal(
-							'Invalid block reward: 1 expected: 5'
-						);
-					});
+			describe('if block.height !== 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 5, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				describe('if block.height !== 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 5, reward: 1, id: 3 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
+			describe('if block.height !== 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 5, reward: 5, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				describe('if block.height !== 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 5, reward: 5, id: 3 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
+			describe('if block.height === 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 1, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				describe('if block.height !== 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 5, reward: 5, id: 5 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
+			describe('if block.height === 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 1, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				describe('if block.height === 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 1, reward: 1, id: 5 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
+			describe('if block.height === 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 5, id: 5 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
+			});
 
-				describe('if block.height === 1 && expectedReward !== block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 1, reward: 1, id: 3 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
-				});
-
-				describe('if block.height === 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) === -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 1, reward: 5, id: 5 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
-				});
-
-				describe('if block.height === 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
-					it('should return no error', () => {
-						verifyReward = __private.verifyReward(
-							{ height: 1, reward: 5, id: 3 },
-							{ errors: [] }
-						);
-						return expect(verifyReward.errors.length).to.equal(0);
-					});
+			describe('if block.height === 1 && expectedReward === block.reward && exceptions.blockRewards.indexOf(block.id) !== -1', () => {
+				it('should return no error', () => {
+					verifyReward = __private.verifyReward(
+						{ height: 1, reward: 5, id: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyReward.errors.length).to.equal(0);
 				});
 			});
 		});
