@@ -124,6 +124,21 @@ describe('db', () => {
 				expect(db.transactions.cs).to.be.an('object');
 				expect(db.transactions.cs).to.not.empty;
 				expect(db.transactions.cs).to.have.all.keys('insert');
+				expect(db.transactions.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'id',
+					'blockId',
+					'type',
+					'timestamp',
+					'senderPublicKey',
+					'requesterPublicKey',
+					'senderId',
+					'recipientId',
+					'amount',
+					'fee',
+					'signature',
+					'signSignature',
+					'signatures',
+				]);
 
 				expect(db.transactions.transactionsRepoMap).to.be.an('object');
 				return expect(db.transactions.transactionsRepoMap).to.have.all.keys(
@@ -680,6 +695,38 @@ describe('db', () => {
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+				});
+				yield db.transactions.save(transaction);
+
+				transaction.senderPublicKey = Buffer.from(
+					transaction.senderPublicKey,
+					'hex'
+				);
+				transaction.signature = Buffer.from(transaction.signature, 'hex');
+				transaction.signSignature = Buffer.from(
+					transaction.signSignature,
+					'hex'
+				);
+				transaction.requesterPublicKey = Buffer.from(
+					transaction.requesterPublicKey,
+					'hex'
+				);
+				transaction.signatures = transaction.signatures.join();
+
+				// One call for trs table and one for transfer table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+				return expect(db.$config.pgp.helpers.insert.firstCall.args).to.be.eql([
+					[transaction],
+					db.transactions.cs.insert,
+				]);
+			});
+
 			it('should save single transaction', function*() {
 				const block = seeder.getLastBlock();
 				const transaction = transactionsFixtures.Transaction({

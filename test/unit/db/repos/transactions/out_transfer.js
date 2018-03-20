@@ -77,11 +77,40 @@ describe('db', () => {
 
 				expect(outTransferRepo.cs).to.be.an('object');
 				expect(outTransferRepo.cs).to.not.empty;
-				return expect(outTransferRepo.cs).to.have.all.keys('insert');
+				expect(outTransferRepo.cs).to.have.all.keys('insert');
+				return expect(
+					outTransferRepo.cs.insert.columns.map(c => c.name)
+				).to.be.eql(['dappId', 'outTransactionId', 'transactionId']);
 			});
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = seeder.getLastBlock();
+				const transaction = transactionsFixtures.Transaction({
+					blockId: block.id,
+					type: transactionTypes.OUT_TRANSFER,
+				});
+				yield db.transactions.save(transaction);
+
+				// One call for trs table and one for respective transaction type table
+				expect(db.$config.pgp.helpers.insert).to.have.callCount(2);
+
+				// Expect the second call for for respective transaction type
+				return expect(db.$config.pgp.helpers.insert.secondCall.args).to.be.eql([
+					[
+						{
+							dappId: transaction.asset.outTransfer.dappId,
+							outTransactionId: transaction.asset.outTransfer.transactionId,
+							transactionId: transaction.id,
+						},
+					],
+					outTransferRepo.cs.insert,
+				]);
+			});
+
 			it('should insert entry into "outtransfer" table for type 7 transactions', function*() {
 				const block = seeder.getLastBlock();
 				const transactions = [];
