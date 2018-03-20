@@ -351,7 +351,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyReward', () => {
-			it('should fail when block reward is invalid', done => {
+			it('should fail when block reward = 99 instead of 0', done => {
 				validBlock.reward = 99;
 
 				var result = privateFunctions.verifyReward(validBlock, results);
@@ -417,7 +417,7 @@ describe('blocks/verify', () => {
 				done();
 			});
 
-			it('should fail when transactions length is not equal to numberOfTransactions property', done => {
+			it('should fail when transactions length != numberOfTransactions property', done => {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
 
 				var result = privateFunctions.verifyPayload(validBlock, results);
@@ -433,7 +433,7 @@ describe('blocks/verify', () => {
 				done();
 			});
 
-			it('should fail when transactions length greater than maxTxsPerBlock constant value', done => {
+			it('should fail when transactions length > maxTxsPerBlock constant value', done => {
 				var transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;
@@ -565,7 +565,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyBlockSlot', () => {
-			it('should fail when block timestamp is less than previousBlock timestamp', done => {
+			it('should fail when block timestamp < than previousBlock timestamp', done => {
 				var timestamp = validBlock.timestamp;
 				validBlock.timestamp = 32578350;
 
@@ -850,20 +850,16 @@ describe('blocks/verify', () => {
 	});
 
 	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
-	describe('verifyReceipt() when block is valid', () => {});
+	describe('verifyReceipt', () => {});
 
-	describe('verifyBlock() when block is valid', () => {});
+	describe('verifyBlock', () => {});
 
-	describe('addBlockProperties()', () => {
-		it('should be ok');
-	});
+	describe('addBlockProperties', () => {});
 
-	describe('deleteBlockProperties()', () => {
-		it('should be ok');
-	});
+	describe('deleteBlockProperties', () => {});
 
 	// Sends a block to network, save it locally
-	describe('processBlock() for valid block {broadcast: true, saveBlock: true}', () => {
+	describe('processBlock for valid block {broadcast: true, saveBlock: true}', () => {
 		it('should clear database', done => {
 			async.every(
 				[
@@ -932,7 +928,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('processBlock() for invalid block {broadcast: true, saveBlock: true}', () => {
+	describe('processBlock for invalid block {broadcast: true, saveBlock: true}', () => {
 		beforeEach(done => {
 			blocksVerify.processBlock(block1, true, true, done);
 		});
@@ -946,7 +942,7 @@ describe('blocks/verify', () => {
 	});
 
 	// Receives a block from network, save it locally
-	describe('processBlock() for invalid block {broadcast: false, saveBlock: true}', () => {
+	describe('processBlock for invalid block {broadcast: false, saveBlock: true}', () => {
 		var invalidBlock2;
 
 		it('should generate block 2 with invalid generator slot', done => {
@@ -1103,7 +1099,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	describe('processBlock() for valid block {broadcast: false, saveBlock: true}', () => {
+	describe('processBlock for valid block {broadcast: false, saveBlock: true}', () => {
 		it('should generate block 2 with valid generator slot', done => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
