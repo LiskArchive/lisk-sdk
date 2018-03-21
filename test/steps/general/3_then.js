@@ -99,6 +99,12 @@ export function itShouldRejectWithTheErrorMessage() {
 	return expect(returnValue).to.be.rejectedWith(errorMessage);
 }
 
+export function itShouldRejectWithErrorAndMessage() {
+	const { returnValue } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return expect(returnValue).to.be.rejectedWith(message);
+}
+
 export function itShouldRejectWithFileSystemErrorAndMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);

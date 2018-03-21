@@ -31,9 +31,9 @@ export function itShouldNotBroadcastTheSignature() {
 
 export function itShouldBroadcastTheSignature() {
 	const { liskAPIInstance, signature } = this.test.ctx;
-	return expect(liskAPIInstance.signatures.broadcast).to.be.calledWithExactly([
+	return expect(liskAPIInstance.signatures.broadcast).to.be.calledWithExactly(
 		JSON.parse(signature),
-	]);
+	);
 }
 
 export function itShouldNotBroadcastTheTransaction() {

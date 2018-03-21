@@ -28,38 +28,60 @@ describe('Query function', () => {
 					given.theParametersObjectHasKeySetTo,
 					() => {
 						When(
-									'the query instance sends a request and the lisk api instance resolves with a successful response',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponse,
-									() => {
-										Then(
-											'it should resolve to an object',
-											then.itShouldResolveToAnObject,
-										);
-										Then(
-											'it should resolve to the first element of array wrapped by the endpoint key',
-											then.itShouldResolveToTheFirstElementOfArrayWrappedByTheEndpointKey,
-										);
-										Then(
-											'it should use the lisk api instance to send a request to the endpoint using the parameters',
-											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
-										);
-									},
+							'the query instance sends a request and the lisk api instance resolves with a successful array data response',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulArrayDataResponse,
+							() => {
+								Then(
+									'it should resolve to an object',
+									then.itShouldResolveToAnObject,
 								);
+								Then(
+									'it should resolve to the first element of data of the response',
+									then.itShouldResolveToTheFirstElementOfDataKeyOfTheResponse,
+								);
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+							},
+						);
 						Given(
 							'an options object with key "testnet" set to boolean "true"',
 							given.anOptionsObjectWithKeySetToBoolean,
 							() => {
 								When(
-									'the query instance sends a request and the lisk api instance resolves with a successful response',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponse,
+									'the query instance sends a request and the lisk api instance resolves with a successful array data response',
+									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulArrayDataResponse,
 									() => {
 										Then(
 											'it should resolve to an object',
 											then.itShouldResolveToAnObject,
 										);
 										Then(
-											'it should resolve to the first element of array wrapped by the endpoint key',
-											then.itShouldResolveToTheFirstElementOfArrayWrappedByTheEndpointKey,
+											'it should resolve to the first element of data of the response',
+											then.itShouldResolveToTheFirstElementOfDataKeyOfTheResponse,
+										);
+										Then(
+											'it should use the lisk api instance to send a request to the endpoint using the parameters',
+											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+										);
+										Then(
+											'the "getAPIClient" should be called with the testnet option',
+											then.theGetAPIClientShouldBeCalledWithTestnetOption,
+										);
+									},
+								);
+								When(
+									'the query instance sends a request and the lisk api instance resolves with a successful object data response',
+									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulObjectDataResponse,
+									() => {
+										Then(
+											'it should resolve to an object',
+											then.itShouldResolveToAnObject,
+										);
+										Then(
+											'it should resolve to the data of the response',
+											then.itShouldResolveToTheDataKeyOfTheResponse,
 										);
 										Then(
 											'it should use the lisk api instance to send a request to the endpoint using the parameters',
@@ -80,8 +102,8 @@ describe('Query function', () => {
 											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
 										);
 										Then(
-											'it should resolve to the result of sending the request',
-											then.itShouldResolveToTheResultOfSendingTheRequest,
+											'it should reject with the error and message "Data was not found with specified parameters."',
+											then.itShouldRejectWithErrorAndMessage,
 										);
 									},
 								);
@@ -94,12 +116,8 @@ describe('Query function', () => {
 											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
 										);
 										Then(
-											'it should resolve to an object',
-											then.itShouldResolveToAnObject,
-										);
-										Then(
-											'it should resolve to an empty object',
-											then.itShouldResolveToAnEmptyObject,
+											'it should reject with the error and message "Data was not found with specified parameters."',
+											then.itShouldRejectWithErrorAndMessage,
 										);
 									},
 								);

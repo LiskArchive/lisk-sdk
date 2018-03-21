@@ -16,13 +16,17 @@
 import getAPIClient from './api';
 
 export default (endpoint, parameters, { testnet } = {}) =>
+	// prettier-ignore
 	getAPIClient(testnet)[endpoint].get(parameters)
 		.then(res => {
-			if (res.success !== true) {
-				return res;
+			if (res.data) {
+				if (Array.isArray(res.data)) {
+					if (res.data.length === 0) {
+						throw new Error('Data was not found with specified parameters.');
+					}
+					return res.data[0];
+				}
+				return res.data;
 			}
-			if (res[endpoint] && res[endpoint].length > 0) {
-				return res[endpoint][0];
-			}
-			return {};
+			throw new Error('Data was not found with specified parameters.');
 		});

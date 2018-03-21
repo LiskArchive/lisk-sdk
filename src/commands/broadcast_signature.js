@@ -57,7 +57,7 @@ export const actionCreator = () => async ({ signature, stdin }) => {
 	}
 	return signatureObject.error
 		? signatureObject
-		: getAPIClient().signatures.broadcast([signatureObject]);
+		: getAPIClient().signatures.broadcast(signatureObject);
 };
 
 const broadcastSignature = createCommand({

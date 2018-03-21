@@ -29,11 +29,14 @@ export function itShouldResolveToAnEmptyObject() {
 	return expect(returnValue).to.eventually.be.eql({});
 }
 
-export function itShouldResolveToTheFirstElementOfArrayWrappedByTheEndpointKey() {
-	const { returnValue, sendRequestResult, endpoint } = this.test.ctx;
-	return expect(returnValue).to.eventually.equal(
-		sendRequestResult[endpoint][0],
-	);
+export function itShouldResolveToTheDataKeyOfTheResponse() {
+	const { returnValue, sendRequestResult } = this.test.ctx;
+	return expect(returnValue).to.eventually.equal(sendRequestResult.data);
+}
+
+export function itShouldResolveToTheFirstElementOfDataKeyOfTheResponse() {
+	const { returnValue, sendRequestResult } = this.test.ctx;
+	return expect(returnValue).to.eventually.equal(sendRequestResult.data[0]);
 }
 
 export function itShouldResolveToTheResultOfTheQuery() {

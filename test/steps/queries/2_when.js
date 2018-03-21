@@ -16,12 +16,26 @@
 import { processQueryResult } from '../../../src/utils/helpers';
 import query from '../../../src/utils/query';
 
-export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponse() {
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulArrayDataResponse() {
 	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
 
 	const sendRequestResult = {
-		success: true,
-		[endpoint]: [{ some: 'value' }],
+		data: [{ some: 'value' }],
+	};
+	liskAPIInstance[endpoint].get.resolves(sendRequestResult);
+	this.test.ctx.sendRequestResult = sendRequestResult;
+
+	const returnValue = query(endpoint, parameters, options);
+	this.test.ctx.returnValue = returnValue;
+
+	return returnValue.catch(e => e);
+}
+
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulObjectDataResponse() {
+	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
+
+	const sendRequestResult = {
+		data: { message: 'value' },
 	};
 	liskAPIInstance[endpoint].get.resolves(sendRequestResult);
 	this.test.ctx.sendRequestResult = sendRequestResult;
@@ -36,7 +50,6 @@ export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAF
 	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
 
 	const sendRequestResult = {
-		success: false,
 		message: 'request failed',
 	};
 	liskAPIInstance[endpoint].get.resolves(sendRequestResult);
@@ -53,7 +66,7 @@ export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAS
 
 	const sendRequestResult = {
 		success: true,
-		[endpoint]: [],
+		data: [],
 	};
 	liskAPIInstance[endpoint].get.resolves(sendRequestResult);
 	this.test.ctx.sendRequestResult = sendRequestResult;
