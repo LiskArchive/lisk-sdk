@@ -122,7 +122,9 @@ const connectSteps = {
 
 		peer.socket.on('connect', () => {
 			logger.trace(
-				`[Outbound socket] Peer connection established with socket id ${peer.socket.id}`
+				`[Outbound socket] Peer connection established with socket id ${
+					peer.socket.id
+				}`
 			);
 		});
 
@@ -150,9 +152,7 @@ const connectSteps = {
 
 		// The 'message' event can be used to log all low-level WebSocket messages.
 		peer.socket.on('message', message => {
-			logger.trace(
-				`[Outbound socket] Peer message received: ${message}`
-			);
+			logger.trace(`[Outbound socket] Peer message received: ${message}`);
 		});
 		return peer;
 	},
