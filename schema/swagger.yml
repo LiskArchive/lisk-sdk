@@ -976,8 +976,6 @@ parameters:
     description: Lisk version of the node
     type: string
     format: version
-    minLength: 5
-    maxLength: 12
   state:
     name: state
     in: query
@@ -2003,8 +2001,6 @@ definitions:
         type: string
         example: v0.8.0
         format: version
-        minLength: 5
-        maxLength: 12
       state:
         type: integer
         example: 2
