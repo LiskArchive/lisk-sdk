@@ -95,10 +95,10 @@ describe('#transferIntoDapp transaction', () => {
 					.and.equal(transferFee);
 			});
 
-			it('should have recipientId equal to null', () => {
-				return expect(transferIntoDappTransaction).to.have.property(
-					'recipientId',
-				).be.null;
+			it('should have recipientId equal to empty string', () => {
+				return expect(transferIntoDappTransaction)
+					.to.have.property('recipientId')
+					.and.equal('');
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -191,7 +191,7 @@ describe('#transferIntoDapp transaction', () => {
 			it('should have the recipient id', () => {
 				return expect(transferIntoDappTransaction)
 					.to.have.property('recipientId')
-					.equal(null);
+					.equal('');
 			});
 
 			it('should have the sender public key', () => {
