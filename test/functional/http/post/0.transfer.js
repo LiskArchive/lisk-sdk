@@ -151,7 +151,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('from the genesis account should fail', () => {
 			var signedTransactionFromGenesis = {
 				type: 0,
-				amount: 1000,
+				amount: '1000',
 				senderPublicKey:
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 				requesterPublicKey: null,
@@ -161,7 +161,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				signature:
 					'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
 				id: '15307587316657110485',
-				fee: 0.1 * normalizer,
+				fee: (0.1 * normalizer).toString(),
 			};
 
 			return sendTransactionPromise(

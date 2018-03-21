@@ -19,8 +19,6 @@ const lisk = require('lisk-js').default;
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../common/phases');
 const randomUtil = require('../../../common/utils/random');
-const normalizeTransactionObject = require('../../../common/helpers/api')
-	.normalizeTransactionObject;
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
 
@@ -32,7 +30,6 @@ describe('Posting transaction (type 0)', () => {
 	let wsTestClient;
 
 	function postTransaction(transaction) {
-		transaction = normalizeTransactionObject(transaction);
 		wsTestClient.client.rpc.postTransactions({
 			transactions: [transaction],
 		});

@@ -188,30 +188,10 @@ function getPendingMultisignatures(params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function normalizeTransactionObject(transaction) {
-	if (_.isObject(transaction)) {
-		transaction = _.cloneDeep(transaction);
-
-		transaction.recipientId = transaction.recipientId || '';
-		transaction.senderId = transaction.senderId || '';
-
-		if (_.has(transaction, 'amount')) {
-			transaction.amount = transaction.amount.toString();
-		}
-
-		if (_.has(transaction, 'fee')) {
-			transaction.fee = transaction.fee.toString();
-		}
-	}
-	return transaction;
-}
-
 var postTransactionsEndpoint = new swaggerSpec('POST /transactions');
 
 function sendTransactionPromise(transaction, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;
-
-	transaction = normalizeTransactionObject(transaction);
 
 	return postTransactionsEndpoint.makeRequest(
 		{ transaction },
@@ -429,6 +409,5 @@ module.exports = {
 	getBlocksPromise,
 	expectSwaggerParamError,
 	createSignatureObject,
-	normalizeTransactionObject,
 	getNotFoundEndpointPromise,
 };

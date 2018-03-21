@@ -695,8 +695,6 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				}
 			);
 
-			console.log(transaction);
-
 			return sendTransactionPromise(
 				transaction,
 				errorCodes.PROCESSING_ERROR
