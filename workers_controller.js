@@ -122,15 +122,24 @@ SCWorker.create({
 				scServer.addMiddleware(scServer.MIDDLEWARE_EMIT, emitMiddleware);
 
 				scServer.on('handshake', socket => {
+					socket.on('message', message => {
+						scope.logger.trace(`[Inbound socket] Received message: ${message}`);
+					});
 					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
 					// so we can access our custom socket.request.failedQueryValidation property here.
 					// If the property exists then we disconnect the connection.
 					if (socket.request.failedHeadersValidationError) {
+						var handshakeFailedCode = socket.request.failedHeadersValidationError.code;
+						var handshakeFailedDesc = socket.request.failedHeadersValidationError.description;
+						scope.logger.debug(`[Inbound socket] WebSocket handshake from socket ${socket.id} failed with code ${handshakeFailedCode}: ${handshakeFailedDesc}`);
 						return socket.disconnect(
-							socket.request.failedHeadersValidationError.code,
-							socket.request.failedHeadersValidationError.description
+							handshakeFailedCode,
+							handshakeFailedDesc
 						);
 					}
+
+					scope.logger.trace(`[Inbound socket] WebSocket handshake from socket ${socket.id} succeeded`);
+
 					updatePeerConnection(
 						Rules.UPDATES.INSERT,
 						socket,
