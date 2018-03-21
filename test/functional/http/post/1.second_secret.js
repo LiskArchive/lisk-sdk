@@ -19,7 +19,7 @@ var lisk = require('lisk-js');
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -47,12 +47,12 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		);
 		var transaction2 = lisk.transaction.createTransaction(
 			accountMinimalFunds.address,
-			constants.fees.secondSignature,
+			FEES.secondSignature,
 			accountFixtures.genesis.password
 		);
 		var transaction3 = lisk.transaction.createTransaction(
 			accountNoSecondPassword.address,
-			constants.fees.secondSignature,
+			FEES.secondSignature,
 			accountFixtures.genesis.password
 		);
 

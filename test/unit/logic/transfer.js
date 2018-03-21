@@ -21,7 +21,7 @@ var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 var transactionTypes = require('../../../helpers/transaction_types');
 var ed = require('../../../helpers/ed');
-var constants = require('../../../helpers/constants');
+const { FEES, ADDITIONAL_DATA } = require('../../../helpers/constants');
 var bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
@@ -149,7 +149,7 @@ describe('transfer', () => {
 		it('should return the correct fee when data field is not set', () => {
 			return expect(
 				transfer.calculateFee.call(transactionLogic, validTransaction)
-			).to.equal(constants.fees.send);
+			).to.equal(FEES.send);
 		});
 
 		it('should return the correct fee when data field is set', () => {
@@ -160,7 +160,7 @@ describe('transfer', () => {
 
 			return expect(
 				transfer.calculateFee.call(transactionLogic, transaction)
-			).to.equal(constants.fees.send + constants.fees.data);
+			).to.equal(FEES.send + FEES.data);
 		});
 	});
 
@@ -437,11 +437,9 @@ describe('transfer', () => {
 		});
 
 		it(`should throw error if data field length is greater than ${
-			constants.additionalData.maxLength
+			ADDITIONAL_DATA.maxLength
 		} characters`, () => {
-			var invalidString = randomstring.generate(
-				constants.additionalData.maxLength + 1
-			);
+			var invalidString = randomstring.generate(ADDITIONAL_DATA.maxLength + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString,
@@ -455,10 +453,10 @@ describe('transfer', () => {
 		});
 
 		it(`should throw error if data field length is greater than ${
-			constants.additionalData.maxLength
+			ADDITIONAL_DATA.maxLength
 		} bytes`, () => {
 			var invalidString = `${randomstring.generate(
-				constants.additionalData.maxLength - 1
+				ADDITIONAL_DATA.maxLength - 1
 			)}现`;
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {

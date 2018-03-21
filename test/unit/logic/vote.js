@@ -24,7 +24,7 @@ var modulesLoader = require('../../common/modules_loader');
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transaction_types');
-var constants = require('../../../helpers/constants');
+const { FEES, MAX_VOTES_PER_TXS } = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
@@ -237,7 +237,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee()).to.equal(constants.fees.vote);
+			return expect(vote.calculateFee()).to.equal(FEES.vote);
 		});
 	});
 
@@ -762,11 +762,11 @@ describe('vote', () => {
 
 		it('should return error when votes array is longer than maximum acceptable', () => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.asset.votes = Array(
-				...Array(constants.maxVotesPerTransaction + 1)
-			).map(() => {
-				return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
-			});
+			transaction.asset.votes = Array(...Array(MAX_VOTES_PER_TXS + 1)).map(
+				() => {
+					return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
+				}
+			);
 			return expect(() => {
 				vote.objectNormalize.call(transactionLogic, transaction);
 			}).to.throw(

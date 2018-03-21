@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../helpers/constants.js');
+const { FEES } = require('../helpers/constants.js');
 const exceptions = require('../helpers/exceptions.js');
 
 let modules;
@@ -63,11 +63,11 @@ Delegate.prototype.bind = function(accounts) {
  * Obtains constant fee delegate.
  *
  * @see {@link helpers/constants}
- * @returns {number} constants.fees.delegate
+ * @returns {number} FEES.delegate
  * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {
-	return constants.fees.delegate;
+	return FEES.delegate;
 };
 
 /**

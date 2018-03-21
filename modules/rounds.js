@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var constants = require('../helpers/constants.js');
+const { ACTIVE_DELEGATES } = require('../helpers/constants.js');
 var Round = require('../logic/round.js');
 var slots = require('../helpers/slots.js');
 
@@ -417,7 +417,7 @@ __private.sumRound = function(scope, cb, tx) {
 	library.logger.debug('Summing round', scope.round);
 
 	(tx || library.db).rounds
-		.summedRound(scope.round, constants.activeDelegates)
+		.summedRound(scope.round, ACTIVE_DELEGATES)
 		.then(rows => {
 			var rewards = [];
 

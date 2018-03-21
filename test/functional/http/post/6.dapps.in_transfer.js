@@ -20,7 +20,7 @@ var lisk = require('lisk-js');
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
@@ -49,7 +49,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 		);
 		var transaction2 = lisk.transaction.createTransaction(
 			accountMinimalFunds.address,
-			constants.fees.dappRegistration,
+			FEES.dappRegistration,
 			accountFixtures.genesis.password
 		);
 		var promises = [];

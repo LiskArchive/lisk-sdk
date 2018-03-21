@@ -20,7 +20,7 @@ var async = require('async');
 var apiCodes = require('../helpers/api_codes.js');
 var ApiError = require('../helpers/api_error.js');
 var BlockReward = require('../logic/block_reward.js');
-var constants = require('../helpers/constants.js');
+const { ACTIVE_DELEGATES } = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobs_queue.js');
 var Delegate = require('../logic/delegate.js');
 var slots = require('../helpers/slots.js');
@@ -440,14 +440,12 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 
 					var total_votes = existing_votes + additions - removals;
 
-					if (total_votes > constants.activeDelegates) {
-						var exceeded = total_votes - constants.activeDelegates;
+					if (total_votes > ACTIVE_DELEGATES) {
+						var exceeded = total_votes - ACTIVE_DELEGATES;
 
 						return setImmediate(
 							cb,
-							`Maximum number of ${
-								constants.activeDelegates
-							} votes exceeded (${exceeded} too many)`
+							`Maximum number of ${ACTIVE_DELEGATES} votes exceeded (${exceeded} too many)`
 						);
 					}
 					return setImmediate(cb);

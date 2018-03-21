@@ -16,7 +16,7 @@
 'use strict';
 
 var async = require('async');
-var constants = require('../../../../../helpers/constants');
+const { REWARDS } = require('../../../../../helpers/constants');
 var genesisBlock = require('../../../../data/genesis_block.json');
 var application = require('../../../../common/application');
 var modulesLoader = require('../../../../common/modules_loader');
@@ -33,8 +33,8 @@ describe('system test (blocks) - process', () => {
 
 	before(done => {
 		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = constants.rewards.offset;
-		constants.rewards.offset = 150;
+		originalBlockRewardsOffset = REWARDS.offset;
+		REWARDS.offset = 150;
 		application.init(
 			{ sandbox: { name: 'system_blocks_process' } },
 			(err, scopeInit) => {
@@ -48,7 +48,7 @@ describe('system test (blocks) - process', () => {
 	});
 
 	after(done => {
-		constants.rewards.offset = originalBlockRewardsOffset;
+		REWARDS.offset = originalBlockRewardsOffset;
 		application.cleanup(done);
 	});
 

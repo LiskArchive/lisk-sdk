@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-js');
 var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var slots = require('../../../../helpers/slots');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -104,7 +104,7 @@ describe('GET /delegates', () => {
 
 			var creditTransaction = lisk.transaction.createTransaction(
 				secondSecretAccount.address,
-				constants.fees.secondSignature + constants.fees.delegate,
+				FEES.secondSignature + FEES.delegate,
 				accountFixtures.genesis.password
 			);
 			var signatureTransaction = lisk.signature.createSignature(

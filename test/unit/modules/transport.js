@@ -20,7 +20,7 @@ var chai = require('chai');
 var randomstring = require('randomstring');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
-var constants = require('../../../helpers/constants');
+const { MAX_PEERS, MAX_SHARED_TXS } = require('../../../helpers/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var Block = require('../../fixtures/blocks').Block;
@@ -1131,7 +1131,7 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when modules.peers.calculateConsensus() < constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
 						isPoorConsensusResult = transportInstance.poorConsensus();
@@ -1143,7 +1143,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when modules.peers.calculateConsensus() >= constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
 						isPoorConsensusResult = transportInstance.poorConsensus();
@@ -1520,11 +1520,11 @@ describe('transport', () => {
 					});
 
 					describe('when async.each succeeds', () => {
-						it('should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}', () => {
+						it('should call __private.broadcaster.broadcast with {limit: MAX_PEERS, broadhash: modules.system.getBroadhash()}', () => {
 							return expect(
 								__private.broadcaster.broadcast.calledWith(
 									{
-										limit: constants.maxPeers,
+										limit: MAX_PEERS,
 										broadhash:
 											'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 									},
@@ -1846,8 +1846,8 @@ describe('transport', () => {
 
 					it('should invoke callback with empty result', () => {
 						expect(modules.peers.list.calledOnce).to.be.true;
-						expect(modules.peers.list.calledWith({ limit: constants.maxPeers }))
-							.to.be.true;
+						expect(modules.peers.list.calledWith({ limit: MAX_PEERS })).to.be
+							.true;
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
@@ -2170,11 +2170,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTxs', () => {
+				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TXS', () => {
 					return expect(
 						modules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
-							constants.maxSharedTxs
+							MAX_SHARED_TXS
 						)
 					).to.be.true;
 				});
@@ -2251,11 +2251,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs', () => {
+				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TXS', () => {
 					return expect(
 						modules.transactions.getMergedTransactionList.calledWith(
 							true,
-							constants.maxSharedTxs
+							MAX_SHARED_TXS
 						)
 					).to.be.true;
 				});

@@ -16,7 +16,7 @@
 
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
-var constants = require('../../../helpers/constants');
+const { FEES } = require('../../../helpers/constants');
 var accountFixtures = require('../../fixtures/accounts');
 
 var random = {};
@@ -30,7 +30,7 @@ random.number = function(min, max) {
 
 // Returns the expected fee for the given amount with data property
 random.expectedFeeForTransactionWithData = function() {
-	return parseInt(constants.fees.transaction) + parseInt(constants.fees.data);
+	return parseInt(FEES.transaction) + parseInt(FEES.data);
 };
 
 // Returns a random username of 16 characters

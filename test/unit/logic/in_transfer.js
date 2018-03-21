@@ -17,7 +17,7 @@
 var crypto = require('crypto');
 var rewire = require('rewire');
 var ed = require('../../../helpers/ed');
-var constants = require('../../../helpers/constants');
+const { FEES } = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../fixtures/types_representatives');
 var modulesLoader = require('../../common/modules_loader');
@@ -201,8 +201,8 @@ describe('inTransfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should return constants.fees.send', () => {
-			return expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
+		it('should return FEES.send', () => {
+			return expect(inTransfer.calculateFee(trs)).to.equal(FEES.send);
 		});
 	});
 

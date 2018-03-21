@@ -16,7 +16,11 @@
 
 var async = require('async');
 var Broadcaster = require('../logic/broadcaster.js');
-var constants = require('../helpers/constants.js');
+const {
+	MIN_BROADHASH_CONSENSUS,
+	MAX_PEERS,
+	MAX_SHARED_TXS,
+} = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 var Rules = require('../api/ws/workers/rules');
@@ -277,7 +281,7 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
+	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
 };
 
 /**
@@ -408,7 +412,7 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 					() => {
 						__private.broadcaster.broadcast(
 							{
-								limit: constants.maxPeers,
+								limit: MAX_PEERS,
 								broadhash: modules.system.getBroadhash(),
 							},
 							{ api: 'postBlock', data: { block }, immediate: true }
@@ -594,7 +598,7 @@ Transport.prototype.shared = {
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
-			Object.assign({}, { limit: constants.maxPeers }, req.query),
+			Object.assign({}, { limit: MAX_PEERS }, req.query),
 			(err, peers) => {
 				peers = !err ? peers : [];
 				return setImmediate(cb, null, { success: !err, peers });
@@ -683,7 +687,7 @@ Transport.prototype.shared = {
 	getSignatures(req, cb) {
 		var transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			constants.maxSharedTxs
+			MAX_SHARED_TXS
 		);
 		var signatures = [];
 
@@ -712,7 +716,7 @@ Transport.prototype.shared = {
 	getTransactions(query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(
 			true,
-			constants.maxSharedTxs
+			MAX_SHARED_TXS
 		);
 		return setImmediate(cb, null, {
 			success: true,

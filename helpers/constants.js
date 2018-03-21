@@ -60,81 +60,113 @@
  * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
  * @todo Add description for the namespace and the properties
  */
-var constants = {
-	activeDelegates: 101,
-	addressLength: 208,
-	blockSlotWindow: 5,
-	additionalData: {
-		minLength: 1,
-		maxLength: 64,
-	},
-	blockHeaderLength: 248,
-	blockReceiptTimeOut: 20, // 2 blocks
-	confirmationLength: 77,
-	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
-	fees: {
-		send: 10000000,
-		vote: 100000000,
-		secondSignature: 500000000,
-		delegate: 2500000000,
-		multisignature: 500000000,
-		dappRegistration: 2500000000,
-		dappWithdrawal: 10000000,
-		dappDeposit: 10000000,
-		data: 10000000,
-	},
-	feeStart: 1,
-	feeStartVolume: 10000 * 100000000,
-	fixedPoint: Math.pow(10, 8),
-	maxAddressesLength: 208 * 128,
-	maxAmount: 100000000,
-	maxConfirmations: 77 * 100,
-	maxPayloadLength: 1024 * 1024,
-	maxPeers: 100,
-	maxRequests: 10000 * 12,
-	maxSharedTxs: 100,
-	maxSignaturesLength: 196 * 256,
-	maxTxsPerBlock: 25,
-	maxVotesPerTransaction: 33,
-	maxVotesPerAccount: 101,
-	minBroadhashConsensus: 51,
-	multisigConstraints: {
-		min: {
-			minimum: 1,
-			maximum: 15,
-		},
-		lifetime: {
-			minimum: 1,
-			maximum: 72,
-		},
-		keysgroup: {
-			minItems: 1,
-			maxItems: 15,
-		},
-	},
-	nethashes: [
-		// Mainnet
-		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
-		// Testnet
-		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
-	],
-	numberLength: 100000000,
-	requestLength: 104,
-	rewards: {
-		milestones: [
-			500000000, // Initial Reward
-			400000000, // Milestone 1
-			300000000, // Milestone 2
-			200000000, // Milestone 3
-			100000000, // Milestone 4
-		],
-		offset: 1451520, // Start rewards at block (n)
-		distance: 3000000, // Distance between each milestone
-	},
-	signatureLength: 196,
-	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
-	totalAmount: 10000000000000000,
-	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
-};
 
-module.exports = constants;
+const ACTIVE_DELEGATES = 101;
+const ADDRESS_LENGTH = 208;
+const ADDITIONAL_DATA = {
+	minLength: 1,
+	maxLength: 64,
+};
+const BLOCK_SLOT_WINDOW = 5;
+const BLOCK_HEADER_LENGTH = 248;
+const BLOCK_RECEIPT_TIMEOUT = 20; // 2 blocks
+const CONFIRMATION_LENGTH = 77;
+const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
+const FEES = {
+	send: 10000000,
+	vote: 100000000,
+	secondSignature: 500000000,
+	delegate: 2500000000,
+	multisignature: 500000000,
+	dappRegistration: 2500000000,
+	dappWithdrawal: 10000000,
+	dappDeposit: 10000000,
+	data: 10000000,
+};
+const FEE_START = 1;
+const FEE_START_VOLUME = 10000 * 100000000;
+const FIXED_POINT = Math.pow(10, 8);
+const MAX_ADDRESS_LENGTH = 208 * 128;
+const MAX_AMOUNT = 100000000;
+const MAX_CONFIRMATIONS = 77 * 100;
+const MAX_PAYLOAD_LENGTH = 1024 * 1024;
+const MAX_PEERS = 100;
+const MAX_REQUESTS = 10000 * 12;
+const MAX_SHARED_TXS = 100;
+const MAX_SIGNATURES_LENGTH = 196 * 256;
+const MAX_TXS_PER_BLOCK = 25;
+const MAX_VOTES_PER_TXS = 33;
+const MAX_VOTES_PER_ACCOUNT = 101;
+const MIN_BROADHASH_CONSENSUS = 51;
+const MULTISIG_CONSTRAINTS = {
+	min: {
+		minimum: 1,
+		maximum: 15,
+	},
+	lifetime: {
+		minimum: 1,
+		maximum: 72,
+	},
+	keysgroup: {
+		minItems: 1,
+		maxItems: 15,
+	},
+};
+const NETHASHES = [
+	// Mainnet
+	'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
+	// Testnet
+	'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
+];
+const NUMBER_LENGTH = 100000000;
+const REQUEST_LENGTH = 104;
+const REWARDS = {
+	milestones: [
+		500000000, // Initial Reward
+		400000000, // Milestone 1
+		300000000, // Milestone 2
+		200000000, // Milestone 3
+		100000000, // Milestone 4
+	],
+	offset: 1451520, // Start rewards at block (n)
+	distance: 3000000, // Distance between each milestone
+};
+const SIGNATURE_LENGTH = 196;
+// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
+const TOTAL_AMOUNT = 10000000000000000;
+const UNCONFIRMED_TXS_TIMEOUT = 10800; // 1080 blocks
+
+module.exports = {
+	ACTIVE_DELEGATES,
+	ADDRESS_LENGTH,
+	ADDITIONAL_DATA,
+	BLOCK_SLOT_WINDOW,
+	BLOCK_HEADER_LENGTH,
+	BLOCK_RECEIPT_TIMEOUT,
+	CONFIRMATION_LENGTH,
+	EPOCH_TIME,
+	FEES,
+	FEE_START,
+	FEE_START_VOLUME,
+	FIXED_POINT,
+	MAX_ADDRESS_LENGTH,
+	MAX_AMOUNT,
+	MAX_CONFIRMATIONS,
+	MAX_PAYLOAD_LENGTH,
+	MAX_PEERS,
+	MAX_REQUESTS,
+	MAX_SHARED_TXS,
+	MAX_SIGNATURES_LENGTH,
+	MAX_TXS_PER_BLOCK,
+	MAX_VOTES_PER_TXS,
+	MAX_VOTES_PER_ACCOUNT,
+	MIN_BROADHASH_CONSENSUS,
+	MULTISIG_CONSTRAINTS,
+	NETHASHES,
+	NUMBER_LENGTH,
+	REQUEST_LENGTH,
+	REWARDS,
+	SIGNATURE_LENGTH,
+	TOTAL_AMOUNT,
+	UNCONFIRMED_TXS_TIMEOUT,
+};

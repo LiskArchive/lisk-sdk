@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+const { REWARDS, TOTAL_AMOUNT } = require('../helpers/constants.js');
 
 const __private = {};
 /**
@@ -32,13 +32,13 @@ const __private = {};
 class BlockReward {
 	constructor() {
 		// Array of milestones
-		this.milestones = constants.rewards.milestones;
+		this.milestones = REWARDS.milestones;
 
 		// Distance between each milestone
-		this.distance = Math.floor(constants.rewards.distance);
+		this.distance = Math.floor(REWARDS.distance);
 
 		// Start rewards at block (n)
-		this.rewardOffset = Math.floor(constants.rewards.offset);
+		this.rewardOffset = Math.floor(REWARDS.offset);
 	}
 
 	/**
@@ -88,11 +88,11 @@ class BlockReward {
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
-			return constants.totalAmount;
+			return TOTAL_AMOUNT;
 		}
 
 		const milestone = this.calcMilestone(height);
-		let supply = constants.totalAmount;
+		let supply = TOTAL_AMOUNT;
 		const rewards = [];
 
 		let amount = 0;

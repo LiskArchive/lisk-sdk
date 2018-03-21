@@ -18,7 +18,7 @@ require('../../functional.js');
 var randomstring = require('randomstring');
 var lisk = require('lisk-js');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
@@ -242,9 +242,7 @@ describe('GET /api/voters', () => {
 			before(() => {
 				var enrichExtraDelegateVoterTransaction = lisk.transaction.createTransaction(
 					validExtraDelegateVoter.address,
-					constants.fees.delegate +
-						constants.fees.vote +
-						constants.fees.secondSignature,
+					FEES.delegate + FEES.vote + FEES.secondSignature,
 					accountFixtures.genesis.password
 				);
 

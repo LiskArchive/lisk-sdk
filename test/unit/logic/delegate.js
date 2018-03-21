@@ -17,7 +17,7 @@
 var crypto = require('crypto');
 var rewire = require('rewire');
 var accounts = require('../../fixtures/accounts');
-var constants = require('../../../helpers/constants');
+const { FEES } = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 var exceptions = require('../../../helpers/exceptions');
 var modulesLoader = require('../../common/modules_loader');
@@ -157,9 +157,7 @@ describe('delegate', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee for delegate transaction', () => {
-			return expect(delegate.calculateFee(transaction)).to.equal(
-				constants.fees.delegate
-			);
+			return expect(delegate.calculateFee(transaction)).to.equal(FEES.delegate);
 		});
 	});
 

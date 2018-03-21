@@ -22,7 +22,10 @@ var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
-var constants = require('../../../../helpers/constants');
+const {
+	FEES,
+	MAX_VOTES_PER_ACCOUNT,
+} = require('../../../../helpers/constants');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -34,7 +37,7 @@ describe('GET /api/votes', () => {
 
 	function expectValidVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.least(res.body.data.votes.length);
-		expect(constants.maxVotesPerAccount).to.be.equal(
+		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable
 		);
 	}
@@ -42,7 +45,7 @@ describe('GET /api/votes', () => {
 	function expectValidNonVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.equal(0);
 		expect(res.body.data.votes).to.be.empty;
-		expect(constants.maxVotesPerAccount).to.be.equal(
+		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable
 		);
 	}
@@ -361,7 +364,7 @@ describe('GET /api/votes', () => {
 				var account = randomUtil.account();
 				var creditTransaction = lisk.transaction.createTransaction(
 					account.address,
-					constants.fees.delegate + constants.fees.vote,
+					FEES.delegate + FEES.vote,
 					accountFixtures.genesis.password
 				);
 				var delegateTransaction = lisk.delegate.createDelegate(
@@ -395,7 +398,7 @@ describe('GET /api/votes', () => {
 						expect(res.body.data.address).to.be.equal(account.address);
 						expect(res.body.data.votesUsed).to.be.equal(0);
 						expect(res.body.data.votesAvailable).to.be.equal(
-							constants.maxVotesPerAccount
+							MAX_VOTES_PER_ACCOUNT
 						);
 					})
 					.then(() => {

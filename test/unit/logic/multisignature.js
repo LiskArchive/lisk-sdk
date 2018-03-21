@@ -19,7 +19,7 @@ var rewire = require('rewire');
 var lisk = require('lisk-js');
 var modulesLoader = require('../../common/modules_loader');
 var randomUtil = require('../../common/utils/random');
-var constants = require('../../../helpers/constants');
+const { MULTISIG_CONSTRAINTS } = require('../../../helpers/constants');
 var accountFixtures = require('../../fixtures/accounts');
 var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
@@ -174,7 +174,7 @@ describe('multisignature', () => {
 	describe('verify', () => {
 		describe('from multisignature.verify tests', () => {
 			it('should return error when min value is smaller than minimum acceptable value', done => {
-				var min = constants.multisigConstraints.min.minimum - 1;
+				var min = MULTISIG_CONSTRAINTS.min.minimum - 1;
 				var transaction = lisk.multisignature.createMultisignature(
 					accountFixtures.genesis.password,
 					null,
@@ -194,7 +194,7 @@ describe('multisignature', () => {
 		});
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
-			var min = constants.multisigConstraints.min.maximum + 1;
+			var min = MULTISIG_CONSTRAINTS.min.maximum + 1;
 			var transaction = lisk.multisignature.createMultisignature(
 				accountFixtures.genesis.password,
 				null,
@@ -917,7 +917,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var min = constants.multisigConstraints.min.minimum - 1;
+				var min = MULTISIG_CONSTRAINTS.min.minimum - 1;
 				var transaction = lisk.multisignature.createMultisignature(
 					accountFixtures.genesis.password,
 					null,
@@ -934,7 +934,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var min = constants.multisigConstraints.min.maximum + 1;
+				var min = MULTISIG_CONSTRAINTS.min.maximum + 1;
 				var transaction = lisk.multisignature.createMultisignature(
 					accountFixtures.genesis.password,
 					null,
@@ -989,7 +989,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var lifetime = constants.multisigConstraints.lifetime.minimum - 1;
+				var lifetime = MULTISIG_CONSTRAINTS.lifetime.minimum - 1;
 				var transaction = lisk.multisignature.createMultisignature(
 					accountFixtures.genesis.password,
 					null,
@@ -1006,7 +1006,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var lifetime = constants.multisigConstraints.lifetime.maximum + 1;
+				var lifetime = MULTISIG_CONSTRAINTS.lifetime.maximum + 1;
 				var transaction = lisk.multisignature.createMultisignature(
 					accountFixtures.genesis.password,
 					null,
@@ -1078,7 +1078,7 @@ describe('multisignature', () => {
 
 			it('should return error when array length is greater than maximum acceptable value', () => {
 				var keysgroup = Array(
-					...Array(constants.multisigConstraints.keysgroup.maxItems + 1)
+					...Array(MULTISIG_CONSTRAINTS.keysgroup.maxItems + 1)
 				).map(() => {
 					return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
 				});

@@ -16,7 +16,7 @@
 
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
-const constants = require('../helpers/constants.js');
+const { FEES } = require('../helpers/constants.js');
 const dappCategories = require('../helpers/dapp_categories.js');
 
 let library;
@@ -66,7 +66,7 @@ DApp.prototype.bind = function() {};
  * @returns {number} Transaction fee
  */
 DApp.prototype.calculateFee = function() {
-	return constants.fees.dappRegistration;
+	return FEES.dappRegistration;
 };
 
 /**

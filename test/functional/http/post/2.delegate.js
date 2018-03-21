@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-js');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
@@ -53,17 +53,17 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		);
 		var transaction2 = lisk.transaction.createTransaction(
 			accountMinimalFunds.address,
-			constants.fees.delegate,
+			FEES.delegate,
 			accountFixtures.genesis.password
 		);
 		var transaction3 = lisk.transaction.createTransaction(
 			accountUpperCase.address,
-			constants.fees.delegate,
+			FEES.delegate,
 			accountFixtures.genesis.password
 		);
 		var transaction4 = lisk.transaction.createTransaction(
 			accountFormerDelegate.address,
-			constants.fees.delegate,
+			FEES.delegate,
 			accountFixtures.genesis.password
 		);
 		transactions.push(transaction1);

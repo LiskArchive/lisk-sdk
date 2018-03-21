@@ -23,7 +23,7 @@ var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum');
 var transactionTypes = require('../../../helpers/transaction_types');
 var slots = require('../../../helpers/slots');
-var constants = require('../../../helpers/constants');
+const { TOTAL_AMOUNT } = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 var Delegate = require('../../../logic/delegate');
@@ -719,7 +719,7 @@ describe('transaction', () => {
 
 		it('should return error when transaction amount is invalid', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount + 10;
+			transactionDataClone.amount = TOTAL_AMOUNT + 10;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, {}, err => {
@@ -731,7 +731,7 @@ describe('transaction', () => {
 
 		it('should return error when account balance is less than transaction amount', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount;
+			transactionDataClone.amount = TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, {}, err => {

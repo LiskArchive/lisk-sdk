@@ -16,7 +16,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const constants = require('../../../helpers/constants.js');
+const { EPOCH_TIME } = require('../../../helpers/constants.js');
 
 const Blocks = rewire('../../../modules/blocks.js');
 
@@ -179,7 +179,7 @@ describe('blocks', () => {
 						const timestamp =
 							10000 +
 							Math.floor(Date.now() / 1000) -
-							Math.floor(constants.epochTime / 1000);
+							Math.floor(EPOCH_TIME / 1000);
 						__private.lastBlock = { timestamp };
 						done();
 					});

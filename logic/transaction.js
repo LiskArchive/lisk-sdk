@@ -19,7 +19,7 @@ const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const bignum = require('../helpers/bignum.js');
-const constants = require('../helpers/constants.js');
+const { TOTAL_AMOUNT } = require('../helpers/constants.js');
 const exceptions = require('../helpers/exceptions.js');
 const slots = require('../helpers/slots.js');
 
@@ -646,7 +646,7 @@ class Transaction {
 		// Check amount
 		if (
 			transaction.amount < 0 ||
-			transaction.amount > constants.totalAmount ||
+			transaction.amount > TOTAL_AMOUNT ||
 			String(transaction.amount).indexOf('.') >= 0 ||
 			transaction.amount.toString().indexOf('e') >= 0
 		) {
@@ -1271,12 +1271,12 @@ Transaction.prototype.schema = {
 		amount: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount,
+			maximum: TOTAL_AMOUNT,
 		},
 		fee: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount,
+			maximum: TOTAL_AMOUNT,
 		},
 		signature: {
 			type: 'string',
