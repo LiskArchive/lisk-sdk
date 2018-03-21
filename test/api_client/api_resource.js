@@ -37,6 +37,7 @@ describe('API resource module', () => {
 	};
 
 	const sendRequestResult = {
+		status: 200,
 		body: { success: true, sendRequest: true },
 	};
 	let resource;
@@ -88,10 +89,8 @@ describe('API resource module', () => {
 	describe('#request', () => {
 		let popsicleStub;
 		let handleRetryStub;
-		let defaultError;
 
 		beforeEach(() => {
-			defaultError = new Error('could not connect to a node');
 			popsicleStub = sandbox.stub(popsicle, 'request').returns({
 				use: () => Promise.resolve(sendRequestResult),
 			});
@@ -115,14 +114,46 @@ describe('API resource module', () => {
 			});
 		});
 
-		it('should make a request to API with calling retry when it fails', () => {
-			popsicleStub.returns({
-				use: () => Promise.reject(defaultError),
+		describe('when response status is greater than 300', () => {
+			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
+				popsicleStub.returns({
+					use: () =>
+						Promise.resolve({
+							status: 300,
+						}),
+				});
+				return resource.request(defaultRequest, true).catch(err => {
+					return expect(err.message).to.equal('An unknown error has occurred.');
+				});
 			});
-			return resource.request(defaultRequest, true).catch(err => {
-				expect(popsicleStub).to.be.calledOnce;
-				expect(handleRetryStub).to.be.calledOnce;
-				return expect(err).to.eql(defaultError);
+
+			it('should reject with error message from server if message is supplied', () => {
+				const serverErrorMessage = 'validation error';
+				popsicleStub.returns({
+					use: () =>
+						Promise.resolve({
+							status: 300,
+							body: {
+								message: serverErrorMessage,
+							},
+						}),
+				});
+				return resource.request(defaultRequest, true).catch(err => {
+					return expect(err.message).to.eql(serverErrorMessage);
+				});
+			});
+
+			it('should make a request to API with calling retry', () => {
+				popsicleStub.returns({
+					use: () =>
+						Promise.resolve({
+							status: 300,
+						}),
+				});
+				return resource.request(defaultRequest, true).catch(() => {
+					expect(popsicleStub).to.be.calledOnce;
+					return expect(handleRetryStub).to.be.calledOnce;
+				});
 			});
 		});
 	});

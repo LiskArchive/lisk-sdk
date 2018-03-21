@@ -39,7 +39,15 @@ export default class APIResource {
 		const request = popsicle
 			.request(req)
 			.use(popsicle.plugins.parse(['json', 'urlencoded']))
-			.then(res => res.body);
+			.then(res => {
+				if (res.status >= 300) {
+					if (res.body && res.body.message) {
+						throw new Error(res.body.message);
+					}
+					throw new Error('An unknown error has occurred.');
+				}
+				return res.body;
+			});
 
 		if (retry) {
 			request.catch(err => this.handleRetry(err, req, retryCount));
