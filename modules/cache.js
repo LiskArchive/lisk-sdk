@@ -18,7 +18,7 @@ var async = require('async');
 var transactionTypes = require('../helpers/transaction_types.js');
 
 var cacheReady = true;
-var errorCacheDisabled = 'Cache disabled';
+var errorCacheDisabled = 'Cache Disabled';
 var client;
 var self;
 var logger;
