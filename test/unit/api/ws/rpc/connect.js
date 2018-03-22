@@ -267,7 +267,7 @@ describe('connect', () => {
 				validRPCSocket.call.reset();
 				validRPCSocket.emit.reset();
 				validPeer.socket = validRPCSocket;
-				peerAsResult = registerRPC(validPeer);
+				peerAsResult = registerRPC(validPeer, loggerMock);
 				done();
 			});
 
