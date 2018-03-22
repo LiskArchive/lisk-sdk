@@ -173,6 +173,46 @@ describe('PeersManager', () => {
 						.equal(validPeerB.string);
 				});
 			});
+
+			describe('when peer gets added nonce = undefined', () => {
+				beforeEach(done => {
+					validPeer.nonce = undefined;
+					peersManagerInstance.add(validPeer);
+					done();
+				});
+
+				it('should add an entry [validPeer.string] = undefined in addressToNonce map', () => {
+					return expect(
+						peersManagerInstance.addressToNonceMap
+					).to.have.property(validPeer.string).to.be.undefined;
+				});
+
+				it('should not create any entry in nonceToAddress map', () => {
+					return expect(
+						peersManagerInstance.nonceToAddressMap
+					).not.to.have.property(validPeer.nonce);
+				});
+
+				describe('when peer is updated with defined nonce = "validNonce"', () => {
+					beforeEach(done => {
+						validPeer.nonce = 'validNonce';
+						peersManagerInstance.add(validPeer);
+						done();
+					});
+
+					it('should update an entry [validPeer.string] = "validNonce" in addressToNonce map', () => {
+						return expect(peersManagerInstance.addressToNonceMap)
+							.to.have.property(validPeer.string)
+							.to.equal('validNonce');
+					});
+
+					it('should add an entry "validNonce" = [peer.string] in nonceToAddress map', () => {
+						return expect(peersManagerInstance.nonceToAddressMap)
+							.to.have.property('validNonce')
+							.equal(validPeer.string);
+					});
+				});
+			});
 		});
 
 		describe('remove', () => {

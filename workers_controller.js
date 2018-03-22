@@ -199,7 +199,9 @@ SCWorker.create({
 										onUpdateError.code
 									}, message: ${
 										failureCodes.errorMessages[onUpdateError.code]
-									}, description: ${onUpdateError.description}`
+									}, description: ${onUpdateError.description} on peer ${
+										peer.ip
+									}:${peer.wsPort}`
 								);
 							} else {
 								scope.logger.info(
