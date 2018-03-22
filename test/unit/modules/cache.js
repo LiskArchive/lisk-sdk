@@ -253,7 +253,7 @@ describe('cache', () => {
 
 				cache.onSyncStarted();
 				cache.onNewBlock(dummyBlock, err => {
-					expect(err).to.equal('Cache disabled');
+					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -313,7 +313,7 @@ describe('cache', () => {
 
 				cache.onSyncStarted();
 				cache.onFinishRound(null, err => {
-					expect(err).to.equal('Cache disabled');
+					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -386,7 +386,7 @@ describe('cache', () => {
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], err => {
-					expect(err).to.equal('Cache disabled');
+					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
