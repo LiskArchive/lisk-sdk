@@ -16,24 +16,17 @@
 
 var lisk = require('lisk-js').default;
 
-module.exports = {
-	generateValidTransaction() {
-		var gAccountPassphrase =
-			'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
-		var randomAddress = lisk.cryptography.getAddress(
-			lisk.cryptography.getKeys(
-				Math.random()
-					.toString(36)
-					.substring(7)
-			).publicKey
-		);
+var elements = {};
 
-		return lisk.transaction.transfer(
-			{
-				amount: 1,
-				passphrase: gAccountPassphrase,
-				recipientId: randomAddress,
-			}
-		);
-	},
+elements.redoSignature = function(transaction, passphrase) {
+    delete transaction.signature;
+    transaction.signature = lisk.transaction.utils.signTransaction(
+        transaction,
+        passphrase
+    );
+    transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+    return transaction;
 };
+
+// Exports
+module.exports = elements;

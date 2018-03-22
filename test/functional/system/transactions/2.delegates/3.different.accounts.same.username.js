@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../../fixtures/accounts');
 var randomUtil = require('../../../../common/utils/random');
 var normalizer = require('../../../../common/utils/normalizer');
@@ -36,10 +36,12 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction;
 			var transaction1;
 			var transaction2;
-			transaction = lisk.transaction.createTransaction(
-				account.address,
-				1000 * normalizer,
-				accountFixtures.genesis.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 1000 * normalizer,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				}
 			);
 
 			before(done => {
@@ -51,18 +53,22 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 			describe('with two different accounts using same username', () => {
 				before(done => {
-					transaction = lisk.transaction.createTransaction(
-						account2.address,
-						1000 * normalizer,
-						accountFixtures.genesis.password
+					transaction = lisk.transaction.transfer(
+						{
+							amount: 1000 * normalizer,
+							passphrase: accountFixtures.genesis.password,
+							recipientId: account2.address,
+						}
 					);
 					localCommon.addTransactionsAndForge(library, [transaction], done);
 				});
 
 				it('adding to pool delegate registration should be ok', done => {
-					transaction1 = lisk.delegate.createDelegate(
-						account.password,
-						account.username
+					transaction1 = lisk.transaction.registerDelegate(
+						{
+							passphrase: account.password,
+							username: account.username,
+						}
 					);
 					localCommon.addTransaction(library, transaction1, (err, res) => {
 						expect(res).to.equal(transaction1.id);
@@ -71,9 +77,11 @@ describe('system test (type 2) - double delegate registrations', () => {
 				});
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
-					transaction2 = lisk.delegate.createDelegate(
-						account2.password,
-						account.username
+					transaction2 = lisk.transaction.registerDelegate(
+						{
+							passphrase: account2.password,
+							username: account.username,
+						}
 					);
 					localCommon.addTransaction(library, transaction2, (err, res) => {
 						expect(res).to.equal(transaction2.id);
