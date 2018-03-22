@@ -124,7 +124,9 @@ SCWorker.create({
 				scServer.on('handshake', socket => {
 					socket.on('message', message => {
 						scope.logger.trace(
-							`[Inbound socket :: message] Received message: ${message}`
+							`[Inbound socket :: message] Received message from ${
+								socket.request.remoteAddress
+							} - ${message}`
 						);
 					});
 					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
@@ -136,16 +138,16 @@ SCWorker.create({
 						var handshakeFailedDesc =
 							socket.request.failedHeadersValidationError.description;
 						scope.logger.debug(
-							`[Inbound socket :: handshake] Handshake from socket ${
-								socket.id
-							} failed with code ${handshakeFailedCode}: ${handshakeFailedDesc}`
+							`[Inbound socket :: handshake] WebSocket handshake from ${
+								socket.request.remoteAddress
+							} failed with code ${handshakeFailedCode} - ${handshakeFailedDesc}`
 						);
 						return socket.disconnect(handshakeFailedCode, handshakeFailedDesc);
 					}
 
 					scope.logger.trace(
-						`[Inbound socket :: handshake] Handshake from socket ${
-							socket.id
+						`[Inbound socket :: handshake] WebSocket handshake from ${
+							socket.request.remoteAddress
 						} succeeded`
 					);
 
