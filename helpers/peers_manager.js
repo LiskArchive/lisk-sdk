@@ -51,12 +51,14 @@ PeersManager.prototype.add = function(peer) {
 		return false;
 	}
 	this.peers[peer.string] = peer;
+	if (!this.addressToNonceMap[peer.string]) {
+		// Create client WS connection to peer
+		connect(peer, this.logger, this.remove.bind(this, peer));
+	}
 	this.addressToNonceMap[peer.string] = peer.nonce;
 	if (peer.nonce) {
 		this.nonceToAddressMap[peer.nonce] = peer.string;
 	}
-	// Create client WS connection to peer
-	connect(peer, this.logger, this.remove.bind(this, peer));
 	return true;
 };
 
