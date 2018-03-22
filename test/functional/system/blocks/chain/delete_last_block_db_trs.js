@@ -122,7 +122,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					library.modules.accounts.setAccountAndGet = setAccountAndGet;
 					done();
 				});
-
+				// ToDo: Unskip when #1726 done
 				it.skip('it should call process.exit(1)', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
@@ -131,7 +131,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 						done();
 					});
 				});
-
+				// ToDo: Unskip when #1726 done
 				it.skip('should not have perform undoStep on transactions of block', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
