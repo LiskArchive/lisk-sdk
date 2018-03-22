@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var randomstring = require('randomstring');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
@@ -359,22 +359,29 @@ describe('GET /api/votes', () => {
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				var account = randomUtil.account();
-				var creditTransaction = lisk.transaction.createTransaction(
-					account.address,
-					constants.fees.delegate + constants.fees.vote,
-					accountFixtures.genesis.password
+				var creditTransaction = lisk.transaction.transfer(
+					{
+						amount: constants.fees.delegate + constants.fees.vote,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: account.address,
+					}
 				);
-				var delegateTransaction = lisk.delegate.createDelegate(
-					account.password,
-					randomstring.generate({
-						length: 10,
-						charset: 'alphabetic',
-						capitalization: 'lowercase',
-					})
+				var delegateTransaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: account.password,
+						username: randomstring.generate({
+							length: 10,
+							charset: 'alphabetic',
+							capitalization: 'lowercase',
+						}),
+					}
 				);
-				var voteTransaction = lisk.vote.createVote(account.password, [
-					`+${nonVoterDelegate.publicKey}`,
-				]);
+				var voteTransaction = lisk.transaction.castVotes(
+					{
+						passphrase: account.password,
+						votes: [`${nonVoterDelegate.publicKey}`],
+					}
+				);
 
 				apiHelpers
 					.sendTransactionPromise(creditTransaction)

@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var normalizer = require('../../../common/utils/normalizer');
@@ -39,10 +39,12 @@ describe('GET /dapps', () => {
 	var registeredDappsAmount = 2;
 
 	before(() => {
-		var transaction = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
+		var transaction = lisk.transaction.transfer(
+			{
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: account.address,
+			}
 		);
 		transactionsToWaitFor.push(transaction.id);
 		return apiHelpers
@@ -56,8 +58,18 @@ describe('GET /dapps', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 
-				var transaction1 = lisk.dapp.createDapp(account.password, null, dapp1);
-				var transaction2 = lisk.dapp.createDapp(account.password, null, dapp2);
+				var transaction1 = lisk.transaction.createDapp(
+					{
+						passphrase: account.password,
+						options: dapp1,
+					}
+				);
+				var transaction2 = lisk.transaction.createDapp(
+					{
+						passphrase: account.password,
+						options: dapp2,
+					}
+				);
 				var promises = [];
 				promises.push(apiHelpers.sendTransactionPromise(transaction1));
 				promises.push(apiHelpers.sendTransactionPromise(transaction2));
@@ -253,10 +265,11 @@ describe('GET /dapps', () => {
 				var transactionsToWaitFor = [];
 
 				for (var i = 1; i <= 20; i++) {
-					transaction = lisk.dapp.createDapp(
-						account.password,
-						null,
-						randomUtil.application()
+					transaction = lisk.transaction.createDapp(
+						{
+							passphrase: account.password,
+							options: randomUtil.application(),
+						}
 					);
 					transactionsToWaitFor.push(transaction.id);
 					promises.push(apiHelpers.sendTransactionPromise(transaction));

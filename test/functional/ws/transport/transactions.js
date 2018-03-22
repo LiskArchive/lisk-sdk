@@ -15,12 +15,10 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-js');
+const lisk = require('lisk-js').default;
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../common/phases');
 const randomUtil = require('../../../common/utils/random');
-const normalizeTransactionObject = require('../../../common/helpers/api')
-	.normalizeTransactionObject;
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
 
@@ -32,7 +30,6 @@ describe('Posting transaction (type 0)', () => {
 	let wsTestClient;
 
 	function postTransaction(transaction) {
-		transaction = normalizeTransactionObject(transaction);
 		wsTestClient.client.rpc.postTransactions({
 			transactions: [transaction],
 		});
@@ -58,10 +55,12 @@ describe('Posting transaction (type 0)', () => {
 
 	describe('transaction processing', () => {
 		it('when sender has no funds should broadcast transaction but not confirm', done => {
-			transaction = lisk.transaction.createTransaction(
-				'1L',
-				1,
-				account.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 1,
+					passphrase: account.password,
+					recipientId: '1L',
+				}
 			);
 
 			postTransaction(transaction);
