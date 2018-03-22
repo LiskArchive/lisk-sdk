@@ -33,7 +33,7 @@ function WSServerMaster() {
 
 	this.headers = WSServerMaster.generatePeerHeaders({
 		ip: this.ip,
-		version: `0.0.${Math.floor(Math.random() * 10) + 1}`,
+		version: '9.8.7',
 	});
 
 	this.wsPort = this.headers.wsPort;
