@@ -45,9 +45,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				});
 			});
 		});
-	});
 
-	describe('transaction processing', () => {
 		it('with lowercase recipientId should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.recipientId = transaction.recipientId.toLowerCase();
@@ -56,13 +54,15 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				400
 			).then(res => {
-				expect(res.body.message).to.be.equal('Failed to verify signature');
+				expect(res.body.message).to.be.equal('Validation errors');
 				badTransactions.push(transaction);
 			});
 		});
+	});
 
+	describe('transaction processing', () => {
 		it('with invalid signature should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
