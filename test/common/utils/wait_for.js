@@ -120,8 +120,6 @@ function blocks(blocksToWait, cb) {
 	});
 }
 
-var blocksPromise = Promise.promisify(blocks);
-
 function newBlock(height, blocksToWait, cb) {
 	if (blocksToWait === 0) {
 		return setImmediate(cb, null, height);
@@ -207,9 +205,12 @@ function confirmations(transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
+var blocksPromise = Promise.promisify(blocks);
+
 module.exports = {
 	blockchainReady,
 	newRound,
 	blocks,
+	blocksPromise,
 	confirmations,
 };
