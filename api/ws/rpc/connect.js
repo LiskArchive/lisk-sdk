@@ -132,9 +132,7 @@ const connectSteps = {
 
 		peer.socket.on('connect', () => {
 			logger.trace(
-				`[Outbound Socket :: connect] Peer connection established with socket id ${
-					peer.socket.id
-				}`
+				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
 			);
 		});
 
@@ -149,14 +147,20 @@ const connectSteps = {
 
 		// When error on transport layer occurs - disconnect
 		peer.socket.on('error', err => {
-			logger.debug(`[Outbound socket :: error] Peer error: "${err.message}"`);
+			logger.debug(
+				`[Outbound socket :: error] Peer error from ${
+					peer.ip
+				} - ${err.message}`
+			);
 			peer.socket.disconnect();
 		});
 
 		// When WS connection ends - remove peer
 		peer.socket.on('close', (code, reason) => {
 			logger.debug(
-				`[Outbound socket :: close] Peer connection closed with code ${code} and reason: "${reason}"`
+				`[Outbound socket :: close] Peer connection to ${
+					peer.ip
+				} failed with code ${code} and reason - ${reason}`
 			);
 			onDisconnectCb();
 		});
@@ -164,7 +168,9 @@ const connectSteps = {
 		// The 'message' event can be used to log all low-level WebSocket messages.
 		peer.socket.on('message', message => {
 			logger.trace(
-				`[Outbound socket :: message] Peer message received: ${message}`
+				`[Outbound socket :: message] Peer message from ${
+					peer.ip
+				} received - ${message}`
 			);
 		});
 		return peer;
