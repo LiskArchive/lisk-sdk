@@ -21,7 +21,6 @@ var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var elements = require('../../../common/utils/elements');
 var apiHelpers = require('../../../common/helpers/api');
@@ -65,7 +64,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 	before(() => {
 		var transactions = [];
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: delegateAccount.address,
 		});
@@ -75,17 +74,17 @@ describe('POST /api/transactions (type 3) votes', () => {
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: accountFixtures.existingDelegate.address,
 		});
 		var transaction4 = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: accountMaxVotesPerTransaction.address,
 		});
 		var transaction5 = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: accountMaxVotesPerAccount.address,
 		});

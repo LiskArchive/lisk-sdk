@@ -17,7 +17,7 @@
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../../fixtures/accounts');
 var randomUtil = require('../../../../common/utils/random');
-var normalizer = require('../../../../common/utils/normalizer');
+var constants = require('../../../../../helpers/constants');
 var localCommon = require('../../common');
 
 describe('system test (type 2) - double delegate registrations', () => {
@@ -36,7 +36,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction1;
 			var transaction2;
 			transaction = lisk.transaction.transfer({
-				amount: 1000 * normalizer,
+				amount: 1000 * constants.normalizer,
 				passphrase: accountFixtures.genesis.password,
 				recipientId: account.address,
 			});

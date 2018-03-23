@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
+var constants = require('../../../../helpers/constants.js');
 var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
@@ -40,7 +40,7 @@ describe('GET /dapps', () => {
 
 	before(() => {
 		var transaction = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: account.address,
 		});

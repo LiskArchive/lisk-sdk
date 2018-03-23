@@ -1,0 +1,74 @@
+[log] 2018-03-23 15:42:09 | Generating PM2 configuration
+[log] 2018-03-23 15:42:09 | Recreating databases
+[log] 2018-03-23 15:42:11 | Clearing existing logs
+[log] 2018-03-23 15:42:11 | Launching network
+[log] 2018-03-23 15:42:16 | Waiting for nodes to load the blockchain
+[log] 2018-03-23 15:42:51 | Enabling forging with registered delegates
+[log] 2018-03-23 15:42:52 | Waiting 20 seconds for nodes to establish connections
+[log] 2018-03-23 15:43:13 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:14 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:15 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:16 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:17 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:18 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:19 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:20 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:43:21 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:22 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:23 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:24 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:25 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:26 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:27 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:28 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:29 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:43:30 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:31 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:32 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:33 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:34 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:35 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:36 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:37 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:38 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:39 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:43:40 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:43:41 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:43:42 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:46:18 | Generating PM2 configuration
+[log] 2018-03-23 15:46:18 | Recreating databases
+[log] 2018-03-23 15:46:19 | Clearing existing logs
+[log] 2018-03-23 15:46:19 | Launching network
+[log] 2018-03-23 15:46:21 | Waiting for nodes to load the blockchain
+[log] 2018-03-23 15:46:48 | Enabling forging with registered delegates
+[log] 2018-03-23 15:46:48 | Waiting 20 seconds for nodes to establish connections
+[log] 2018-03-23 15:47:10 | network status: height - 3, average height - 3
+[log] 2018-03-23 15:47:11 | network status: height - 4, average height - 3.1
+[log] 2018-03-23 15:47:12 | network status: height - 4, average height - 3.1
+[log] 2018-03-23 15:47:13 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:14 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:15 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:16 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:17 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:18 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:19 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:20 | network status: height - 4, average height - 4
+[log] 2018-03-23 15:47:21 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:22 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:23 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:24 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:25 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:26 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:27 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:28 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:29 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:30 | network status: height - 5, average height - 5
+[log] 2018-03-23 15:47:31 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:32 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:33 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:34 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:35 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:36 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:37 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:38 | network status: height - 6, average height - 6
+[log] 2018-03-23 15:47:39 | network status: height - 6, average height - 6

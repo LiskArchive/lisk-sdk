@@ -42,6 +42,7 @@
  * @property {number} maxTxsPerBlock -	Maximum Number of transactions allowed per block.
  * @property {number} minBroadhashConsensus - Minimum broadhash consensus(%) among connected {maxPeers} peers.
  * @property {string[]} nethashes - For mainnet and testnet.
+ * @property {number} constants.normalizer - Use this to convert LISK amount to normal value.
  * @property {Object} rewards - Object representing LSK rewards milestone.
  * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
  * @property {number} rewards.offset - Start rewards at block (n).
@@ -98,6 +99,7 @@ var constants = {
 		// Testnet
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	],
+	normalizer: 100000000,
 	rewards: {
 		milestones: [
 			500000000, // Initial Reward

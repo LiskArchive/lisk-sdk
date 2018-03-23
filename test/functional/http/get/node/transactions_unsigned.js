@@ -21,7 +21,7 @@ var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
-var normalizer = require('../../../../common/utils/normalizer');
+var constants = require('../../../../../helpers/constants');
 var waitFor = require('../../../../common/utils/wait_for');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -47,7 +47,7 @@ describe('GET /api/node', () => {
 			before(() => {
 				// Credit account with some funds
 				transaction = lisk.transaction.transfer({
-					amount: 1000 * normalizer,
+					amount: 1000 * constants.normalizer,
 					passphrase: accountFixtures.genesis.password,
 					recipientId: senderAccount.address,
 				});
@@ -110,7 +110,7 @@ describe('GET /api/node', () => {
 						for (var i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
 								lisk.transaction.transfer({
-									amount: (i + 1) * normalizer,
+									amount: (i + 1) * constants.normalizer,
 									passphrase: senderAccount.password,
 									secondPassphrase: senderAccount.secondPassword,
 									recipientId: recipientAccount.address,
