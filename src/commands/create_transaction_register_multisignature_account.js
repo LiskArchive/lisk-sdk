@@ -15,7 +15,6 @@
  */
 import {
 	createCommand,
-	prependPlusToPublicKeys,
 	validateLifetime,
 	validateMinimum,
 	validatePublicKeys,
@@ -59,7 +58,6 @@ export const actionCreator = vorpal => async ({
 	} = options;
 
 	const publicKeys = validatePublicKeys(keysgroup);
-	const publicKeysWithPlus = prependPlusToPublicKeys(publicKeys);
 
 	validateLifetime(lifetime);
 	validateMinimum(minimum);
@@ -69,7 +67,7 @@ export const actionCreator = vorpal => async ({
 	const processFunction = processInputs(
 		transactionLifetime,
 		transactionMinimumConfirmations,
-		publicKeysWithPlus,
+		publicKeys,
 	);
 
 	return signature === false

@@ -173,13 +173,10 @@ export function itShouldCreateARegisterDelegateTransactionUsingThePassphraseTheS
 
 export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const { keysgroup, lifetime, minimum } = this.test.ctx;
-	const publicKeysWithPlus = keysgroup.map(publicKey => {
-		return `+${publicKey}`;
-	});
 	return expect(transactions.registerMultisignature).to.be.calledWithExactly({
 		passphrase: null,
 		secondPassphrase: null,
-		keysgroup: publicKeysWithPlus,
+		keysgroup,
 		lifetime,
 		minimum,
 	});
@@ -193,13 +190,10 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 		lifetime,
 		minimum,
 	} = this.test.ctx;
-	const publicKeysWithPlus = keysgroup.map(publicKey => {
-		return `+${publicKey}`;
-	});
 	return expect(transactions.registerMultisignature).to.be.calledWithExactly({
 		passphrase,
 		secondPassphrase,
-		keysgroup: publicKeysWithPlus,
+		keysgroup,
 		lifetime,
 		minimum,
 	});
@@ -207,13 +201,10 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 
 export function itShouldCreateARegisterMultisignatureAccountTransactionUsingThePassphraseTheKeysgroupTheLifetimeAndTheMinimumNumberOfSignatures() {
 	const { passphrase, keysgroup, lifetime, minimum } = this.test.ctx;
-	const publicKeysWithPlus = keysgroup.map(publicKey => {
-		return `+${publicKey}`;
-	});
 	return expect(transactions.registerMultisignature).to.be.calledWithExactly({
 		passphrase,
 		secondPassphrase: null,
-		keysgroup: publicKeysWithPlus,
+		keysgroup,
 		lifetime,
 		minimum,
 	});
