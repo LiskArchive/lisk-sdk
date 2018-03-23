@@ -15,12 +15,13 @@
 'use strict';
 
 /* eslint-disable mocha/no-skipped-tests */
-const lisk = require('lisk-js');
+const lisk = require('lisk-js').default;
 const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
+const normalizer = require('../../../../common/utils/normalizer');
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
@@ -50,11 +51,13 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 		beforeEach('send funds to signature account', done => {
 			signatureAccount = randomUtil.account();
-			const sendTransaction = lisk.transaction.createTransaction(
-				signatureAccount.address,
-				1000000000 * 100,
-				accountFixtures.genesis.password
-			);
+			const sendTransaction = lisk.transaction.transfer({
+				amount: 1000 * normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: signatureAccount.address,
+			});
+			sendTransaction.amount = parseInt(sendTransaction.amount);
+			sendTransaction.fee = parseInt(sendTransaction.fee);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
@@ -62,10 +65,12 @@ describe('system test (type 1) - second signature transactions from pool and pee
 			let signatureTransaction;
 
 			beforeEach(done => {
-				signatureTransaction = lisk.signature.createSignature(
-					signatureAccount.password,
-					signatureAccount.secondPassword
-				);
+				signatureTransaction = lisk.transaction.registerSecondPassphrase({
+					passphrase: signatureAccount.password,
+					secondPassphrase: signatureAccount.secondPassword,
+				});
+				signatureTransaction.amount = parseInt(signatureTransaction.amount);
+				signatureTransaction.fee = parseInt(signatureTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
@@ -125,11 +130,13 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				let signatureTransaction2;
 
 				beforeEach(done => {
-					signatureTransaction2 = lisk.signature.createSignature(
-						signatureAccount.password,
-						randomUtil.password()
-					);
+					signatureTransaction2 = lisk.transaction.registerSecondPassphrase({
+						passphrase: signatureAccount.password,
+						secondPassphrase: randomUtil.password(),
+					});
 					signatureTransaction2.senderId = signatureAccount.address;
+					signatureTransaction2.amount = parseInt(signatureTransaction2.amount);
+					signatureTransaction2.fee = parseInt(signatureTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[signatureTransaction2],
@@ -181,16 +188,16 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					let blockId;
 
 					beforeEach(done => {
-						signatureTransaction2 = lisk.signature.createSignature(
-							signatureAccount.password,
-							randomUtil.password()
-						);
+						signatureTransaction2 = lisk.transaction.registerSecondPassphrase({
+							passphrase: signatureAccount.password,
+							secondPassphrase: randomUtil.password(),
+						});
 						signatureTransaction2.senderId = signatureAccount.address;
 
-						signatureTransaction3 = lisk.signature.createSignature(
-							signatureAccount.password,
-							randomUtil.password()
-						);
+						signatureTransaction3 = lisk.transaction.registerSecondPassphrase({
+							passphrase: signatureAccount.password,
+							secondPassphrase: randomUtil.password(),
+						});
 						signatureTransaction3.senderId = signatureAccount.address;
 						localCommon.createValidBlock(
 							library,

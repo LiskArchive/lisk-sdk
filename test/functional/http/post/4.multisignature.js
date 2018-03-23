@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -23,6 +23,7 @@ var apiCodes = require('../../../../helpers/api_codes');
 var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
+var elements = require('../../../common/utils/elements');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
@@ -40,11 +41,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		}),
 		max_members: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 1,
-			min: 2,
+			minimum: 2,
 		}),
 		max_members_max_min: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 1,
-			min: constants.multisigConstraints.min.maximum,
+			minimum: constants.multisigConstraints.min.maximum,
 		}),
 		more_than_max_members: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 2,
@@ -87,12 +88,16 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		describe('keysgroup', () => {
 			it('using empty array should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[],
-					1,
-					2
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup: scenarios.regular.keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+				transaction.asset.multisignature.keysgroup = [];
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -109,17 +114,23 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using empty member should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						`+${accountFixtures.existingDelegate.publicKey}`,
-						`+${scenarios.no_funds.account.publicKey}`,
-						`+${scenarios.minimal_funds.account.publicKey}`,
-						null,
-					],
-					1,
-					2
+				var keysgroup = [
+					`${accountFixtures.existingDelegate.publicKey}`,
+					`${scenarios.no_funds.account.publicKey}`,
+					`${scenarios.minimal_funds.account.publicKey}`,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup.push(null);
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -132,16 +143,17 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('including sender should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						`+${accountFixtures.existingDelegate.publicKey}`,
-						`+${scenarios.regular.account.publicKey}`,
-					],
-					1,
-					2
-				);
+				var keysgroup = [
+					`${accountFixtures.existingDelegate.publicKey}`,
+					`${scenarios.regular.account.publicKey}`,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -155,15 +167,25 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using same member twice should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						`+${accountFixtures.existingDelegate.publicKey}`,
-						`+${accountFixtures.existingDelegate.publicKey}`,
-					],
-					1,
-					2
+				var keysgroup = [
+					randomUtil.account().publicKey,
+					randomUtil.account().publicKey,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup = [
+					`+${accountFixtures.existingDelegate.publicKey}`,
+					`+${accountFixtures.existingDelegate.publicKey}`,
+				];
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -178,15 +200,25 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using invalid publicKey should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						`+L${accountFixtures.existingDelegate.publicKey.slice(0, -1)}`,
-						`+${scenarios.no_funds.account.publicKey}`,
-					],
-					1,
-					2
+				var keysgroup = [
+					scenarios.no_funds.account.publicKey,
+					accountFixtures.existingDelegate.publicKey,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup = [
+					`+${scenarios.no_funds.account.publicKey}`,
+					`+L${accountFixtures.existingDelegate.publicKey.slice(0, -1)}`,
+				];
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -201,16 +233,26 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using no math operator (just publicKey) should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						accountFixtures.existingDelegate.publicKey,
-						scenarios.no_funds.account.publicKey,
-						scenarios.minimal_funds.account.publicKey,
-					],
-					1,
-					2
+				var keysgroup = [
+					accountFixtures.existingDelegate.publicKey,
+					scenarios.no_funds.account.publicKey,
+					scenarios.minimal_funds.account.publicKey,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup[0] = transaction.asset.multisignature.keysgroup[0].replace(
+					'+',
+					''
+				);
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -225,12 +267,22 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using just math operator should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					['+', '+'],
-					1,
-					2
+				var keysgroup = [
+					accountFixtures.existingDelegate.publicKey,
+					randomUtil.account().publicKey,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup = ['+', '+'];
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -245,15 +297,25 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using invalid math operator should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						`-${accountFixtures.existingDelegate.publicKey}`,
-						`+${scenarios.no_funds.account.publicKey}`,
-					],
-					1,
-					2
+				var keysgroup = [
+					accountFixtures.existingDelegate.publicKey,
+					scenarios.no_funds.account.publicKey,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup = [
+					`-${accountFixtures.existingDelegate.publicKey}`,
+					`+${scenarios.no_funds.account.publicKey}`,
+				];
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -268,15 +330,25 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using duplicated correct operator should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[
-						`++${accountFixtures.existingDelegate.publicKey}`,
-						`+${scenarios.no_funds.account.publicKey}`,
-					],
-					1,
-					2
+				var keysgroup = [
+					accountFixtures.existingDelegate.publicKey,
+					scenarios.no_funds.account.publicKey,
+				];
+
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
+
+				transaction.asset.multisignature.keysgroup = [
+					`++${accountFixtures.existingDelegate.publicKey}`,
+					`+${scenarios.no_funds.account.publicKey}`,
+				];
+				transaction = elements.redoSignature(
+					transaction,
+					scenarios.regular.account.password
 				);
 
 				return sendTransactionPromise(
@@ -292,13 +364,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 			it(`using more_than_max_members scenario(${constants.multisigConstraints
 				.keysgroup.maxItems + 2},2) should fail`, () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.more_than_max_members.account.password,
-					null,
-					scenarios.more_than_max_members.keysgroup,
-					1,
-					2
-				);
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.more_than_max_members.account.password,
+					keysgroup: scenarios.more_than_max_members.keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -317,13 +388,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		describe('min', () => {
 			it('using bigger than keysgroup size plus 1 should fail', () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					[accountFixtures.existingDelegate.publicKey],
-					1,
-					2
-				);
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup: [accountFixtures.existingDelegate.publicKey],
+					lifetime: 1,
+					minimum: 2,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -339,13 +409,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using min greater than maximum(${
 				constants.multisigConstraints.min.maximum
 			}) should fail`, () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.max_members_max_min.account.password,
-					null,
-					scenarios.max_members_max_min.keysgroup,
-					1,
-					constants.multisigConstraints.min.maximum + 1
-				);
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.max_members_max_min.account.password,
+					keysgroup: scenarios.max_members_max_min.keysgroup,
+					lifetime: 1,
+					minimum: constants.multisigConstraints.min.maximum + 1,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -364,13 +433,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using min less than minimum(${
 				constants.multisigConstraints.min.minimum
 			}) should fail`, () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.max_members.account.password,
-					null,
-					scenarios.max_members.keysgroup,
-					1,
-					constants.multisigConstraints.min.minimum - 1
-				);
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.max_members.account.password,
+					keysgroup: scenarios.max_members.keysgroup,
+					lifetime: 1,
+					minimum: constants.multisigConstraints.min.minimum - 1,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -391,13 +459,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using greater than maximum(${
 				constants.multisigConstraints.lifetime.maximum
 			}) should fail`, () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					scenarios.regular.keysgroup,
-					constants.multisigConstraints.lifetime.maximum + 1,
-					2
-				);
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup: scenarios.regular.keysgroup,
+					lifetime: constants.multisigConstraints.lifetime.maximum + 1,
+					minimum: 2,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -417,13 +484,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using less than minimum(${
 				constants.multisigConstraints.lifetime.minimum
 			}) should fail`, () => {
-				transaction = lisk.multisignature.createMultisignature(
-					scenarios.regular.account.password,
-					null,
-					scenarios.regular.keysgroup,
-					constants.multisigConstraints.lifetime.minimum - 1,
-					2
-				);
+				transaction = lisk.transaction.registerMultisignature({
+					passphrase: scenarios.regular.account.password,
+					keysgroup: scenarios.regular.keysgroup,
+					lifetime: constants.multisigConstraints.lifetime.minimum - 1,
+					minimum: 2,
+				});
 
 				return sendTransactionPromise(
 					transaction,
@@ -496,12 +562,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		it('using valid params regular_with_second_signature scenario should be ok', () => {
 			var scenario = scenarios.regular_with_second_signature;
-			var multiSigSecondPasswordTransaction = lisk.multisignature.createMultisignature(
-				scenario.account.password,
-				scenario.account.secondPassword,
-				scenario.keysgroup,
-				1,
-				2
+			var multiSigSecondPasswordTransaction = lisk.transaction.registerMultisignature(
+				{
+					passphrase: scenario.account.password,
+					secondPassphrase: scenario.account.secondPassword,
+					keysgroup: scenario.keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				}
 			);
 
 			return sendTransactionPromise(scenario.secondSignatureTransaction)

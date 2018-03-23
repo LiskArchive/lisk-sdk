@@ -17,12 +17,12 @@
 const async = require('async');
 const transactionTypes = require('../helpers/transaction_types.js');
 
-let cacheReady = true;
-const errorCacheDisabled = 'Cache Unavailable';
-let client;
-let self;
-let logger;
-let cacheEnabled;
+var cacheReady = true;
+var errorCacheDisabled = 'Cache Disabled';
+var client;
+var self;
+var logger;
+var cacheEnabled;
 
 /**
  * Cache module.
@@ -238,7 +238,6 @@ Cache.prototype.onNewBlock = function(block, cb) {
 		['Cache - onNewBlock', '| Status:', self.isConnected()].join(' ')
 	);
 	if (!self.isReady()) {
-		logger.debug(errorCacheDisabled);
 		return cb(errorCacheDisabled);
 	}
 	async.map(

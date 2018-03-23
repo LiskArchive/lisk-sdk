@@ -32,7 +32,7 @@ const connect = (peer, logger, onDisconnectCb) => {
 	async.parallel([
 		() => {
 			connectSteps.upgradeSocket(peer);
-			connectSteps.registerRPC(peer);
+			connectSteps.registerRPC(peer, logger);
 		},
 		() => connectSteps.registerSocketListeners(peer, logger, onDisconnectCb),
 	]);
@@ -65,7 +65,7 @@ const connectSteps = {
 		return peer;
 	},
 
-	registerRPC: peer => {
+	registerRPC: (peer, logger) => {
 		// Assemble empty RPC entry
 		peer.rpc = {};
 		let wsServer;
@@ -85,6 +85,12 @@ const connectSteps = {
 							? rpcCallback
 							: typeof data === 'function' ? data : () => {};
 					data = data && typeof data !== 'function' ? data : {};
+
+					logger.trace(
+						`[Outbound socket :: call] Peer RPC procedure '${rpcProcedureName}' called with data`,
+						data
+					);
+
 					peer.socket
 						.call(rpcProcedureName, data)
 						.then(res => {
@@ -104,6 +110,10 @@ const connectSteps = {
 			wsServer.endpoints.event,
 			(peerExtendedWithPublish, localHandler, eventProcedureName) => {
 				peerExtendedWithPublish.rpc[eventProcedureName] = data => {
+					logger.trace(
+						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
+						data
+					);
 					peer.socket.emit(eventProcedureName, data);
 				};
 				return peerExtendedWithPublish;
@@ -122,7 +132,7 @@ const connectSteps = {
 
 		peer.socket.on('connect', () => {
 			logger.trace(
-				`[Outbound socket] Peer connection established with socket id ${peer.socket.id}`
+				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
 			);
 		});
 
@@ -136,14 +146,19 @@ const connectSteps = {
 		});
 
 		// When error on transport layer occurs - disconnect
-		peer.socket.on('error', () => {
+		peer.socket.on('error', err => {
+			logger.debug(
+				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
+			);
 			peer.socket.disconnect();
 		});
 
 		// When WS connection ends - remove peer
 		peer.socket.on('close', (code, reason) => {
 			logger.debug(
-				`[Outbound socket] Peer connection failed with code ${code} and reason: "${reason}"`
+				`[Outbound socket :: close] Peer connection to ${
+					peer.ip
+				} failed with code ${code} and reason - ${reason}`
 			);
 			onDisconnectCb();
 		});
@@ -151,7 +166,9 @@ const connectSteps = {
 		// The 'message' event can be used to log all low-level WebSocket messages.
 		peer.socket.on('message', message => {
 			logger.trace(
-				`[Outbound socket] Peer message received: ${message}`
+				`[Outbound socket :: message] Peer message from ${
+					peer.ip
+				} received - ${message}`
 			);
 		});
 		return peer;

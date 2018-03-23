@@ -16,7 +16,7 @@
 
 require('../../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
@@ -46,11 +46,11 @@ describe('GET /api/node', () => {
 
 			before(() => {
 				// Credit account with some funds
-				transaction = lisk.transaction.createTransaction(
-					senderAccount.address,
-					1000 * normalizer,
-					accountFixtures.genesis.password
-				);
+				transaction = lisk.transaction.transfer({
+					amount: 1000 * normalizer,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: senderAccount.address,
+				});
 
 				return sendTransactionPromise(transaction)
 					.then(res => {
@@ -62,10 +62,10 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Create Second Signature for sender account
-						transaction = lisk.signature.createSignature(
-							senderAccount.password,
-							senderAccount.secondPassword
-						);
+						transaction = lisk.transaction.registerSecondPassphrase({
+							passphrase: senderAccount.password,
+							secondPassphrase: senderAccount.secondPassword,
+						});
 
 						return sendTransactionPromise(transaction);
 					})
@@ -78,13 +78,13 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Convert account to multisig account
-						transaction = lisk.multisignature.createMultisignature(
-							senderAccount.password,
-							senderAccount.secondPassword,
-							[`+${randomMember.publicKey}`],
-							1,
-							1
-						);
+						transaction = lisk.transaction.registerMultisignature({
+							passphrase: senderAccount.password,
+							secondPassphrase: senderAccount.secondPassword,
+							keysgroup: [`${randomMember.publicKey}`],
+							lifetime: 1,
+							minimum: 1,
+						});
 
 						return sendTransactionPromise(transaction);
 					})
@@ -109,12 +109,12 @@ describe('GET /api/node', () => {
 						// Create numOfTransactions transactions
 						for (var i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
-								lisk.transaction.createTransaction(
-									recipientAccount.address,
-									Math.random() * 5 * normalizer,
-									senderAccount.password,
-									senderAccount.secondPassword
-								)
+								lisk.transaction.transfer({
+									amount: (i + 1) * normalizer,
+									passphrase: senderAccount.password,
+									secondPassphrase: senderAccount.secondPassword,
+									recipientId: recipientAccount.address,
+								})
 							);
 						}
 

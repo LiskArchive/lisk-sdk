@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesis_block.json');
 var transactionTypes = require('../../../../helpers/transaction_types');
@@ -37,21 +37,20 @@ describe('GET /api/transactions', () => {
 	var account2 = randomUtil.account();
 	var minAmount = 20 * normalizer; // 20 LSK
 	var maxAmount = 100 * normalizer; // 100 LSK
+	var transaction1 = lisk.transaction.transfer({
+		amount: maxAmount,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+	});
+	var transaction2 = lisk.transaction.transfer({
+		amount: minAmount,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account2.address,
+	});
 
 	// Crediting accounts
 	before(() => {
 		var promises = [];
-
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			maxAmount,
-			accountFixtures.genesis.password
-		);
-		var transaction2 = lisk.transaction.createTransaction(
-			account2.address,
-			minAmount,
-			accountFixtures.genesis.password
-		);
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		return Promise.all(promises).then(() => {

@@ -12,16 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+'use strict';
 
-/*
-  DESCRIPTION: ?
+var lisk = require('lisk-js').default;
 
-  PARAMETERS: None
-*/
+var elements = {};
 
-DELETE FROM mem_accounts;
-DELETE FROM mem_round;
-DELETE FROM mem_accounts2delegates;
-DELETE FROM mem_accounts2u_delegates;
-DELETE FROM mem_accounts2multisignatures;
-DELETE FROM mem_accounts2u_multisignatures;
+elements.redoSignature = function(transaction, passphrase) {
+	delete transaction.signature;
+	transaction.signature = lisk.transaction.utils.signTransaction(
+		transaction,
+		passphrase
+	);
+	transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+	return transaction;
+};
+
+// Exports
+module.exports = elements;

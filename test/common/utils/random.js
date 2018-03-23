@@ -15,7 +15,7 @@
 'use strict';
 
 var randomstring = require('randomstring');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var constants = require('../../../helpers/constants');
 var accountFixtures = require('../../fixtures/accounts');
 
@@ -104,23 +104,23 @@ random.account = function() {
 	account.password = random.password();
 	account.secondPassword = random.password();
 	account.username = random.delegateName();
-	account.publicKey = lisk.crypto.getKeys(account.password).publicKey;
-	account.address = lisk.crypto.getAddress(account.publicKey);
-	account.secondPublicKey = lisk.crypto.getKeys(
+	account.publicKey = lisk.cryptography.getKeys(account.password).publicKey;
+	account.address = lisk.cryptography.getAddress(account.publicKey);
+	account.secondPublicKey = lisk.cryptography.getKeys(
 		account.secondPassword
 	).publicKey;
 
 	return account;
 };
 
-// Returns an random basic transaction to send 1 LSK from genesis account to a random account
+// Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
 random.transaction = function(offset) {
-	return lisk.transaction.createTransaction(
-		random.account().address,
-		1,
-		accountFixtures.genesis.password,
-		offset
-	);
+	return lisk.transaction.transfer({
+		amount: 1,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: random.account().address,
+		timeOffset: offset,
+	});
 };
 
 // Returns a random password
