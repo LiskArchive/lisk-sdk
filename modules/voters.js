@@ -18,7 +18,7 @@ var _ = require('lodash');
 var async = require('async');
 var apiCodes = require('../helpers/api_codes');
 var ApiError = require('../helpers/api_error');
-var constants = require('../helpers/constants');
+const { MAX_VOTES_PER_ACCOUNT } = require('../helpers/constants');
 
 // Private fields
 var modules;
@@ -294,7 +294,7 @@ Voters.prototype.shared = {
 				results.delegate.votes = results.populatedVotes;
 				results.delegate.votesUsed = results.votesCount;
 				results.delegate.votesAvailable =
-					constants.maxVotesPerAccount - results.votesCount;
+					MAX_VOTES_PER_ACCOUNT - results.votesCount;
 
 				return setImmediate(cb, null, results.delegate);
 			}

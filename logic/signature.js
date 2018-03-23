@@ -15,7 +15,7 @@
 'use strict';
 
 const ByteBuffer = require('bytebuffer');
-const constants = require('../helpers/constants.js');
+const { FEES } = require('../helpers/constants.js');
 
 let modules;
 let library;
@@ -62,7 +62,7 @@ Signature.prototype.bind = function(accounts) {
  * @returns {number} Transaction fee
  */
 Signature.prototype.calculateFee = function() {
-	return constants.fees.secondSignature;
+	return FEES.secondSignature;
 };
 
 /**

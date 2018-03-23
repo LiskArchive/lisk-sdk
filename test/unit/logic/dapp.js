@@ -19,7 +19,7 @@ var rewire = require('rewire');
 var randomstring = require('randomstring');
 var modulesLoader = require('../../common/modules_loader.js');
 var randomUtil = require('../../common/utils/random');
-var constants = require('../../../helpers/constants');
+const { FEES } = require('../../../helpers/constants');
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
 var testData = require('./test_data/dapp.js');
 
@@ -110,9 +110,9 @@ describe('dapp', () => {
 		});
 
 		describe('calculateFee', () => {
-			it('should return constants.fees.dappRegistration', () => {
+			it('should return FEES.dappRegistration', () => {
 				return expect(dapp.calculateFee(transaction)).to.equal(
-					constants.fees.dappRegistration
+					FEES.dappRegistration
 				);
 			});
 		});

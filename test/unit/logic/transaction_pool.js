@@ -18,7 +18,9 @@ const _ = require('lodash');
 const rewire = require('rewire');
 const expect = require('chai').expect;
 const transactionTypes = require('../../../helpers/transaction_types.js');
-const constants = require('../../../helpers/constants.js');
+const {
+	UNCONFIRMED_TRANSACTION_TIMEOUT,
+} = require('../../../helpers/constants.js');
 // Load config file - global (one from test directory)
 const config = require('../../../config.json');
 const Sequence = require('../../../helpers/sequence.js');
@@ -1622,7 +1624,7 @@ describe('transactionPool', () => {
 					signatures: [],
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
-					constants.unconfirmedTransactionTimeOut * 8
+					UNCONFIRMED_TRANSACTION_TIMEOUT * 8
 				);
 			});
 
@@ -1631,7 +1633,7 @@ describe('transactionPool', () => {
 					id: '103111423423423',
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
-					constants.unconfirmedTransactionTimeOut
+					UNCONFIRMED_TRANSACTION_TIMEOUT
 				);
 			});
 		});

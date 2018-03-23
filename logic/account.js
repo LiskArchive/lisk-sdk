@@ -15,7 +15,11 @@
 'use strict';
 
 const _ = require('lodash');
-const constants = require('../helpers/constants.js');
+const {
+	MULTISIG_CONSTRAINTS,
+	ACTIVE_DELEGATES,
+	TOTAL_AMOUNT,
+} = require('../helpers/constants.js');
 const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
@@ -304,7 +308,7 @@ class Account {
 			}
 		});
 
-		let limit = constants.activeDelegates;
+		let limit = ACTIVE_DELEGATES;
 		let offset = 0;
 		let sort = { sortField: '', sortMethod: '' };
 
@@ -890,12 +894,12 @@ Account.prototype.schema = {
 		balance: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount,
+			maximum: TOTAL_AMOUNT,
 		},
 		u_balance: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.totalAmount,
+			maximum: TOTAL_AMOUNT,
 		},
 		rate: {
 			type: 'integer',
@@ -926,8 +930,8 @@ Account.prototype.schema = {
 			anyOf: [
 				{
 					type: 'array',
-					minItems: constants.multisigConstraints.keysgroup.minItems,
-					maxItems: constants.multisigConstraints.keysgroup.maxItems,
+					minItems: MULTISIG_CONSTRAINTS.keysgroup.minItems,
+					maxItems: MULTISIG_CONSTRAINTS.keysgroup.maxItems,
 				},
 				{
 					type: 'null',
@@ -938,8 +942,8 @@ Account.prototype.schema = {
 			anyOf: [
 				{
 					type: 'array',
-					minItems: constants.multisigConstraints.keysgroup.minItems,
-					maxItems: constants.multisigConstraints.keysgroup.maxItems,
+					minItems: MULTISIG_CONSTRAINTS.keysgroup.minItems,
+					maxItems: MULTISIG_CONSTRAINTS.keysgroup.maxItems,
 				},
 				{
 					type: 'null',
@@ -949,22 +953,22 @@ Account.prototype.schema = {
 		multimin: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.min.maximum,
+			maximum: MULTISIG_CONSTRAINTS.min.maximum,
 		},
 		u_multimin: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.min.maximum,
+			maximum: MULTISIG_CONSTRAINTS.min.maximum,
 		},
 		multilifetime: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.lifetime.maximum,
+			maximum: MULTISIG_CONSTRAINTS.lifetime.maximum,
 		},
 		u_multilifetime: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.multisigConstraints.lifetime.maximum,
+			maximum: MULTISIG_CONSTRAINTS.lifetime.maximum,
 		},
 		blockId: {
 			type: 'string',

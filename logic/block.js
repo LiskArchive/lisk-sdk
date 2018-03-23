@@ -17,7 +17,7 @@
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const bignum = require('../helpers/bignum.js');
-const constants = require('../helpers/constants.js');
+const { MAX_PAYLOAD_LENGTH, FEES } = require('../helpers/constants.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
 
@@ -111,7 +111,7 @@ class Block {
 			const transaction = transactions[i];
 			const bytes = this.scope.transaction.getBytes(transaction);
 
-			if (size + bytes.length > constants.maxPayloadLength) {
+			if (size + bytes.length > MAX_PAYLOAD_LENGTH) {
 				break;
 			}
 
@@ -466,7 +466,7 @@ Block.prototype.getId = function(block) {
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return FEES.send;
 };
 
 /**

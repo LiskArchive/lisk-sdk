@@ -17,7 +17,7 @@
 var fs = require('fs');
 var path = require('path');
 var program = require('commander');
-var constants = require('../helpers/constants.js');
+const { NETHASHES } = require('../helpers/constants.js');
 var configSchema = require('../schema/config.js');
 var z_schema = require('./z_schema.js');
 /**
@@ -129,8 +129,7 @@ function Config(packageJson) {
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
-		var index = constants.nethashes.indexOf(configData.nethash);
-
+		const index = NETHASHES.indexOf(configData.nethash);
 		if (index !== -1) {
 			console.info('Forced forging disabled for nethash', configData.nethash);
 			configData.forging.force = false;

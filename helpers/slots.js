@@ -14,7 +14,7 @@
 
 'use strict';
 
-var constants = require('./constants.js');
+const { EPOCH_TIME, ACTIVE_DELEGATES } = require('./constants.js');
 
 /**
  * Description of the module.
@@ -34,9 +34,7 @@ var constants = require('./constants.js');
  * @returns {number} Lisk epoch time
  */
 function beginEpochTime() {
-	var d = constants.epochTime;
-
-	return d;
+	return EPOCH_TIME;
 }
 
 /**
@@ -59,7 +57,7 @@ function getEpochTime(time) {
 
 module.exports = {
 	interval: 10,
-	delegates: constants.activeDelegates,
+	delegates: ACTIVE_DELEGATES,
 
 	/**
 	 * Description of the function.

@@ -15,7 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
-const constants = require('../../../helpers/constants.js');
+const { ACTIVE_DELEGATES } = require('../../../helpers/constants.js');
 const application = require('../../common/application.js');
 const modulesLoader = require('../../common/modules_loader');
 
@@ -363,7 +363,7 @@ describe('account', () => {
 				.map(v => {
 					return { username: v.username };
 				})
-				.slice(0, constants.activeDelegates);
+				.slice(0, ACTIVE_DELEGATES);
 
 			account.getAll(
 				{
@@ -384,7 +384,7 @@ describe('account', () => {
 				.map(v => {
 					return { username: v.username };
 				})
-				.slice(0, constants.activeDelegates);
+				.slice(0, ACTIVE_DELEGATES);
 
 			account.getAll(
 				{

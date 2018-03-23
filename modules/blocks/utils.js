@@ -15,7 +15,7 @@
 'use strict';
 
 var _ = require('lodash');
-var constants = require('../../helpers/constants.js');
+const { ACTIVE_DELEGATES, EPOCH_TIME } = require('../../helpers/constants.js');
 var transactionTypes = require('../../helpers/transaction_types.js');
 
 var modules;
@@ -196,7 +196,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 		.getIdSequence({
 			height,
 			limit: 5,
-			delegates: constants.activeDelegates,
+			delegates: ACTIVE_DELEGATES,
 		})
 		.then(rows => {
 			if (rows.length === 0) {
@@ -390,15 +390,15 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		}
 
 		params.generatorPublicKey = account.publicKey;
-		params.delegates = constants.activeDelegates;
+		params.delegates = ACTIVE_DELEGATES;
 
 		if (filter.start !== undefined) {
-			params.start = (filter.start - constants.epochTime.getTime()) / 1000;
+			params.start = (filter.start - EPOCH_TIME.getTime()) / 1000;
 			params.start = params.start.toFixed();
 		}
 
 		if (filter.end !== undefined) {
-			params.end = (filter.end - constants.epochTime.getTime()) / 1000;
+			params.end = (filter.end - EPOCH_TIME.getTime()) / 1000;
 			params.end = params.end.toFixed();
 		}
 

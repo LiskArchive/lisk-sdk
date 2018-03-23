@@ -14,7 +14,10 @@
 
 'use strict';
 
-var constants = require('../helpers/constants.js');
+const {
+	BLOCK_RECEIPT_TIMEOUT,
+	EPOCH_TIME,
+} = require('../helpers/constants.js');
 // Submodules
 var blocksAPI = require('./blocks/api');
 var blocksVerify = require('./blocks/verify');
@@ -147,8 +150,8 @@ Blocks.prototype.lastBlock = {
 		// Current time in seconds - (epoch start in seconds + block timestamp)
 		var secondsAgo =
 			Math.floor(Date.now() / 1000) -
-			(Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
-		return secondsAgo < constants.blockReceiptTimeOut;
+			(Math.floor(EPOCH_TIME / 1000) + __private.lastBlock.timestamp);
+		return secondsAgo < BLOCK_RECEIPT_TIMEOUT;
 	},
 };
 
@@ -178,7 +181,7 @@ Blocks.prototype.lastReceipt = {
 		}
 		// Current time in seconds - lastReceipt (seconds)
 		var secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
-		return secondsAgo > constants.blockReceiptTimeOut;
+		return secondsAgo > BLOCK_RECEIPT_TIMEOUT;
 	},
 };
 

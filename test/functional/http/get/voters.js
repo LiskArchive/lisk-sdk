@@ -18,7 +18,7 @@ require('../../functional.js');
 var randomstring = require('randomstring');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
@@ -240,15 +240,11 @@ describe('GET /api/voters', () => {
 			var validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer(
-					{
-						amount: constants.fees.delegate +
-								constants.fees.vote +
-								constants.fees.secondSignature,
-						passphrase: accountFixtures.genesis.password,
-						recipientId: validExtraDelegateVoter.address,
-					}
-				);
+				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
+					amount: FEES.delegate + FEES.vote + FEES.secondSignature,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: validExtraDelegateVoter.address,
+				});
 
 				var registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
 					{
@@ -261,12 +257,10 @@ describe('GET /api/voters', () => {
 					}
 				);
 
-				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes(
-					{
-						passphrase: validExtraDelegateVoter.password,
-						votes: [`${validVotedDelegate.publicKey}`],
-					}
-				);
+				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
+					passphrase: validExtraDelegateVoter.password,
+					votes: [`${validVotedDelegate.publicKey}`],
+				});
 
 				return apiHelpers
 					.sendTransactionPromise(enrichExtraDelegateVoterTransaction)

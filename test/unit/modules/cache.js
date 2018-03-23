@@ -333,14 +333,12 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.transaction.transfer(
-					{
-						amount: 1,
-						passphrase: accountFixtures.genesis.password,
-						secondPassphrase: accountFixtures.genesis.secondPassword,
-						recipientId: '1L',
-					}
-				);
+				var transaction = lisk.transaction.transfer({
+					amount: 1,
+					passphrase: accountFixtures.genesis.password,
+					secondPassphrase: accountFixtures.genesis.secondPassword,
+					recipientId: '1L',
+				});
 
 				cache.onTransactionsSaved([transaction], () => {
 					cache.getJsonForKey(key, (err, res) => {
@@ -359,12 +357,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.transaction.registerDelegate(
-					{
-						passphrase: randomUtil.password(),
-						username: randomUtil.delegateName().toLowerCase(),
-					}
-				);
+				var transaction = lisk.transaction.registerDelegate({
+					passphrase: randomUtil.password(),
+					username: randomUtil.delegateName().toLowerCase(),
+				});
 
 				cache.onTransactionsSaved([transaction], () => {
 					cache.getJsonForKey(key, (err, res) => {
@@ -383,12 +379,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.transaction.registerDelegate(
-					{
-						passphrase: randomUtil.password(),
-						username: randomUtil.delegateName().toLowerCase(),
-					}
-				);
+				var transaction = lisk.transaction.registerDelegate({
+					passphrase: randomUtil.password(),
+					username: randomUtil.delegateName().toLowerCase(),
+				});
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], err => {

@@ -17,7 +17,7 @@
 require('../../../functional.js');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../../fixtures/accounts');
-var constants = require('../../../../../helpers/constants');
+const { FEES } = require('../../../../../helpers/constants');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var randomUtil = require('../../../../common/utils/random');
 var waitFor = require('../../../../common/utils/wait_for');
@@ -179,19 +179,15 @@ describe('GET /accounts', () => {
 
 		describe('secondPublicKey', () => {
 			var secondPublicKeyAccount = randomUtil.account();
-			var creditTransaction = lisk.transaction.transfer(
-				{
-					amount: constants.fees.secondSignature,
-					passphrase: accountFixtures.genesis.password,
-					recipientId: secondPublicKeyAccount.address,
-				}
-			);
-			var signatureTransaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: secondPublicKeyAccount.password,
-					secondPassphrase: secondPublicKeyAccount.secondPassword,
-				}
-			);
+			var creditTransaction = lisk.transaction.transfer({
+				amount: FEES.secondSignature,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: secondPublicKeyAccount.address,
+			});
+			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: secondPublicKeyAccount.password,
+				secondPassphrase: secondPublicKeyAccount.secondPassword,
+			});
 
 			before(() => {
 				return apiHelpers

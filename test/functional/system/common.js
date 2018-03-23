@@ -266,82 +266,66 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 	}
 	switch (key) {
 		case 'SEND':
-			transaction = lisk.transaction.transfer(
-				{
-					amount: 1,
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					recipientId: randomUtil.account().address,
-				}
-			);
+			transaction = lisk.transaction.transfer({
+				amount: 1,
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				recipientId: randomUtil.account().address,
+			});
 			break;
 		case 'SIGNATURE':
-			transaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: account.password,
-					secondPassphrase: account.secondPassword,
-				}
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: account.password,
+				secondPassphrase: account.secondPassword,
+			});
 			break;
 		case 'DELEGATE':
-			transaction = lisk.transaction.registerDelegate(
-				{
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					username: accountCopy.username,
-				}
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				username: accountCopy.username,
+			});
 			break;
 		case 'VOTE':
-			transaction = lisk.transaction.castVotes(
-				{
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					votes: [accountFixtures.existingDelegate.publicKey],
-				}
-			);
+			transaction = lisk.transaction.castVotes({
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				votes: [accountFixtures.existingDelegate.publicKey],
+			});
 			break;
 		case 'MULTI':
-			transaction = lisk.transaction.registerMultisignature(
-				{
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					keysgroup: [accountFixtures.existingDelegate.publicKey],
-					lifetime: 1,
-					minimum: 1,
-				}
-			);
+			transaction = lisk.transaction.registerMultisignature({
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				keysgroup: [accountFixtures.existingDelegate.publicKey],
+				lifetime: 1,
+				minimum: 1,
+			});
 			break;
 		case 'DAPP':
-			transaction = lisk.transaction.createDapp(
-				{
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					options: randomUtil.guestbookDapp,
-				}
-			);
+			transaction = lisk.transaction.createDapp({
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				options: randomUtil.guestbookDapp,
+			});
 			break;
 		case 'IN_TRANSFER':
-			transaction = lisk.transaction.transferIntoDapp(
-				{
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					amount: 1,
-					dappId: dapp.id,
-				}
-			);
+			transaction = lisk.transaction.transferIntoDapp({
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				amount: 1,
+				dappId: dapp.id,
+			});
 			break;
 		case 'OUT_TRANSFER':
-			transaction = lisk.transaction.transferOutOfDapp(
-				{
-					passphrase: accountCopy.password,
-					secondPassphrase: accountCopy.secondPassword,
-					amount: 1,
-					dappId: dapp.id,
-					transactionId: randomUtil.transaction().id,
-					recipientId: randomUtil.account().address,
-				}
-			);
+			transaction = lisk.transaction.transferOutOfDapp({
+				passphrase: accountCopy.password,
+				secondPassphrase: accountCopy.secondPassword,
+				amount: 1,
+				dappId: dapp.id,
+				transactionId: randomUtil.transaction().id,
+				recipientId: randomUtil.account().address,
+			});
 			break;
 		// no default
 	}

@@ -19,7 +19,7 @@ const rewire = require('rewire');
 const ed = require('../../../helpers/ed');
 const modulesLoader = require('../../common/modules_loader');
 const transactionTypes = require('../../../helpers/transaction_types.js');
-const constants = require('../../../helpers/constants.js');
+const { FEES } = require('../../../helpers/constants.js');
 
 const Block = rewire('../../../logic/block.js');
 
@@ -595,7 +595,7 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', () => {
-			return expect(block.calculateFee(blockData)).to.eql(constants.fees.send);
+			return expect(block.calculateFee(blockData)).to.eql(FEES.send);
 		});
 	});
 

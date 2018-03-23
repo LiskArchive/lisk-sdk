@@ -24,13 +24,11 @@ describe('system test (type 1) - double second signature registrations', () => {
 	var library;
 
 	var account = randomUtil.account();
-	var transaction = lisk.transaction.transfer(
-		{
-			amount: 1000 * normalizer,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: account.address,
-		}
-	);
+	var transaction = lisk.transaction.transfer({
+		amount: 1000 * normalizer,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+	});
 	var transaction1;
 	var transaction2;
 
@@ -45,13 +43,11 @@ describe('system test (type 1) - double second signature registrations', () => {
 	});
 
 	it('adding to pool second signature registration should be ok', done => {
-		transaction1 = lisk.transaction.registerSecondPassphrase(
-			{
-				passphrase: account.password,
-				secondPassphrase: account.secondPassword,
-				timeOffset: -10000,
-			}
-		);
+		transaction1 = lisk.transaction.registerSecondPassphrase({
+			passphrase: account.password,
+			secondPassphrase: account.secondPassword,
+			timeOffset: -10000,
+		});
 		localCommon.addTransaction(library, transaction1, (err, res) => {
 			expect(res).to.equal(transaction1.id);
 			done();
@@ -59,12 +55,10 @@ describe('system test (type 1) - double second signature registrations', () => {
 	});
 
 	it('adding to pool same second signature registration with different timestamp should be ok', done => {
-		transaction2 = lisk.transaction.registerSecondPassphrase(
-			{
-				passphrase: account.password,
-				secondPassphrase: account.secondPassword,
-			}
-		);
+		transaction2 = lisk.transaction.registerSecondPassphrase({
+			passphrase: account.password,
+			secondPassphrase: account.secondPassword,
+		});
 		localCommon.addTransaction(library, transaction2, (err, res) => {
 			expect(res).to.equal(transaction2.id);
 			done();

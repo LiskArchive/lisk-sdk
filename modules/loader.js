@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var constants = require('../helpers/constants.js');
+const { ACTIVE_DELEGATES, MAX_PEERS } = require('../helpers/constants.js');
 var jobsQueue = require('../helpers/jobs_queue.js');
 var slots = require('../helpers/slots.js');
 
@@ -511,7 +511,7 @@ __private.loadBlockChain = function() {
 			) {
 				library.config.loading.snapshot = round;
 
-				if (count === 1 || count % constants.activeDelegates > 0) {
+				if (count === 1 || count % ACTIVE_DELEGATES > 0) {
 					library.config.loading.snapshot = round > 1 ? round - 1 : 1;
 				}
 
@@ -731,10 +731,7 @@ __private.sync = function(cb) {
 		{
 			getPeersBefore(seriesCb) {
 				library.logger.debug('Establishing broadhash consensus before sync');
-				return modules.transport.getPeers(
-					{ limit: constants.maxPeers },
-					seriesCb
-				);
+				return modules.transport.getPeers({ limit: MAX_PEERS }, seriesCb);
 			},
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
@@ -744,10 +741,7 @@ __private.sync = function(cb) {
 			},
 			getPeersAfter(seriesCb) {
 				library.logger.debug('Establishing broadhash consensus after sync');
-				return modules.transport.getPeers(
-					{ limit: constants.maxPeers },
-					seriesCb
-				);
+				return modules.transport.getPeers({ limit: MAX_PEERS }, seriesCb);
 			},
 		},
 		err => {

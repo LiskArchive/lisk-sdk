@@ -18,7 +18,7 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var typesRepresentatives = require('../../fixtures/types_representatives');
-var constants = require('../../../helpers/constants');
+const { FEES } = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 
 var Signature = rewire('../../../logic/signature');
@@ -167,8 +167,8 @@ describe('signature', () => {
 				done();
 			});
 
-			it('should return constants.fees.secondSignature', () => {
-				return expect(fee).to.equal(constants.fees.secondSignature);
+			it('should return FEES.secondSignature', () => {
+				return expect(fee).to.equal(FEES.secondSignature);
 			});
 		});
 

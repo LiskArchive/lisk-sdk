@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+const { FEES } = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
 const milestones = require('../helpers/milestones.js');
 
@@ -66,7 +66,7 @@ OutTransfer.prototype.bind = function(accounts, blocks) {
  * @returns {number} Transaction fee
  */
 OutTransfer.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return FEES.send;
 };
 
 /**

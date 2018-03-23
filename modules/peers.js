@@ -19,7 +19,7 @@ var async = require('async');
 var ip = require('ip');
 // We also initialize library here
 var pgp = require('pg-promise')(); // eslint-disable-line no-unused-vars
-var constants = require('../helpers/constants.js');
+const { MAX_PEERS } = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes.js');
 var jobsQueue = require('../helpers/jobs_queue.js');
 var Peer = require('../logic/peer.js');
@@ -412,7 +412,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	var broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
-	var activeCount = Math.min(active.length, constants.maxPeers);
+	var activeCount = Math.min(active.length, MAX_PEERS);
 	var matchedCount = Math.min(matched.length, activeCount);
 	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
 	self.consensus = isNaN(consensus) ? 0 : consensus;
@@ -594,7 +594,7 @@ Peers.prototype.acceptable = function(peers) {
  * Gets peers list and calculated consensus.
  *
  * @param {Object} options
- * @param {number} [options.limit=constants.maxPeers] - Maximum number of peers to get
+ * @param {number} [options.limit=MAX_PEERS] - Maximum number of peers to get
  * @param {string} [options.broadhash=null] - Broadhash to match peers by
  * @param {string} [options.normalized=undefined] - Return peers in normalized (json) form
  * @param {Array} [options.allowedStates=[2]] - Allowed peer states
@@ -605,7 +605,7 @@ Peers.prototype.acceptable = function(peers) {
  * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
-	var limit = options.limit || constants.maxPeers;
+	var limit = options.limit || MAX_PEERS;
 	var broadhash = options.broadhash || modules.system.getBroadhash();
 	var allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	var attempts =

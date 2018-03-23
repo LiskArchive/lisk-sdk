@@ -23,7 +23,7 @@ var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum');
 var transactionTypes = require('../../../helpers/transaction_types');
 var slots = require('../../../helpers/slots');
-var constants = require('../../../helpers/constants');
+const { TOTAL_AMOUNT } = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 var Delegate = require('../../../logic/delegate');
@@ -276,7 +276,9 @@ describe('transaction', () => {
 			var transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
-			var transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(validTransaction);
+			var transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(
+				validTransaction
+			);
 
 			return expect(
 				transactionBytesFromLogic.equals(transactionBytesFromLiskJs)
@@ -344,13 +346,11 @@ describe('transaction', () => {
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
-			var transaction = lisk.transaction.transfer(
-				{
-					amount: transactionData.amount,
-					passphrase: transactionData.secret,
-					recipientId: transactionData.recipientId,
-				}
-			);
+			var transaction = lisk.transaction.transfer({
+				amount: transactionData.amount,
+				passphrase: transactionData.secret,
+				recipientId: transactionData.recipientId,
+			});
 
 			transactionLogic.checkConfirmed(transaction, err => {
 				expect(err).to.not.exist;
@@ -470,9 +470,7 @@ describe('transaction', () => {
 				secondPassphrase: transactionData.secondSecret,
 				recipientId: transactionData.recipientId,
 			};
-			var transaction = lisk.transaction.transfer(
-				transferObject
-			);
+			var transaction = lisk.transaction.transfer(transferObject);
 			transaction.fee = Number(transaction.fee);
 			transactionLogic.process(transaction, sender, (err, transaction) => {
 				cb(err, transaction);
@@ -724,7 +722,7 @@ describe('transaction', () => {
 
 		it('should return error when transaction amount is invalid', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount + 10;
+			transactionDataClone.amount = TOTAL_AMOUNT + 10;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, {}, err => {
@@ -736,7 +734,7 @@ describe('transaction', () => {
 
 		it('should return error when account balance is less than transaction amount', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount;
+			transactionDataClone.amount = TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, {}, err => {

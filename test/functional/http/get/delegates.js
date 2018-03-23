@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
+const { FEES } = require('../../../../helpers/constants');
 var slots = require('../../../../helpers/slots');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -102,25 +102,19 @@ describe('GET /delegates', () => {
 		describe('secondPublicKey', () => {
 			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = lisk.transaction.transfer(
-				{
-					amount: constants.fees.secondSignature + constants.fees.delegate,
-					passphrase: accountFixtures.genesis.password,
-					recipientId: secondSecretAccount.address,
-				}
-			);
-			var signatureTransaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: secondSecretAccount.password,
-					secondPassphrase: secondSecretAccount.secondPassword,
-				}
-			);
-			var delegateTransaction = lisk.transaction.registerDelegate(
-				{
-					passphrase: secondSecretAccount.password,
-					username: secondSecretAccount.username,
-				}
-			);
+			var creditTransaction = lisk.transaction.transfer({
+				amount: FEES.secondSignature + FEES.delegate,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: secondSecretAccount.address,
+			});
+			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: secondSecretAccount.password,
+				secondPassphrase: secondSecretAccount.secondPassword,
+			});
+			var delegateTransaction = lisk.transaction.registerDelegate({
+				passphrase: secondSecretAccount.password,
+				username: secondSecretAccount.username,
+			});
 
 			before(() => {
 				return apiHelpers

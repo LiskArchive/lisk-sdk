@@ -18,7 +18,7 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
-var constants = require('../../../helpers/constants');
+const { FEES } = require('../../../helpers/constants');
 var slots = require('../../../helpers/slots');
 var testData = require('./test_data/out_transfer');
 
@@ -138,10 +138,8 @@ describe('outTransfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should return constants.fees.send', () => {
-			return expect(outTransfer.calculateFee(transaction)).to.equal(
-				constants.fees.send
-			);
+		it('should return FEES.send', () => {
+			return expect(outTransfer.calculateFee(transaction)).to.equal(FEES.send);
 		});
 	});
 

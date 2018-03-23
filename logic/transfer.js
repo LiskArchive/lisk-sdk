@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+const { FEES, ADDITIONAL_DATA } = require('../helpers/constants.js');
 const bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
@@ -66,9 +66,9 @@ Transfer.prototype.bind = function(accounts) {
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function(transaction) {
-	let fee = new bignum(constants.fees.send);
+	let fee = new bignum(FEES.send);
 	if (transaction.asset && transaction.asset.data) {
-		fee = fee.plus(constants.fees.data);
+		fee = fee.plus(FEES.data);
 	}
 
 	return Number(fee.toString());
@@ -231,8 +231,8 @@ Transfer.prototype.schema = {
 		data: {
 			type: 'string',
 			format: 'additionalData',
-			minLength: constants.additionalData.minLength,
-			maxLength: constants.additionalData.maxLength,
+			minLength: ADDITIONAL_DATA.minLength,
+			maxLength: ADDITIONAL_DATA.maxLength,
 		},
 	},
 };

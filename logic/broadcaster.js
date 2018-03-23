@@ -17,7 +17,7 @@
 const async = require('async');
 const extend = require('extend');
 const _ = require('lodash');
-const constants = require('../helpers/constants.js');
+const { MAX_PEERS } = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 
 let modules;
@@ -64,7 +64,7 @@ class Broadcaster {
 
 		self.queue = [];
 		self.config = library.config.broadcasts;
-		self.config.peerLimit = constants.maxPeers;
+		self.config.peerLimit = MAX_PEERS;
 
 		// Broadcast routes
 		self.routes = [
@@ -112,7 +112,7 @@ class Broadcaster {
 				return setImmediate(cb, err);
 			}
 
-			if (originalLimit === constants.maxPeers) {
+			if (originalLimit === MAX_PEERS) {
 				library.logger.info(
 					[
 						'Broadhash consensus now',
