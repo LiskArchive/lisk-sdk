@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../fixtures/accounts');
 var modulesLoader = require('../../common/modules_loader');
 var randomUtil = require('../../common/utils/random');
@@ -253,7 +253,7 @@ describe('cache', () => {
 
 				cache.onSyncStarted();
 				cache.onNewBlock(dummyBlock, err => {
-					expect(err).to.equal('Cache Unavailable');
+					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -313,7 +313,7 @@ describe('cache', () => {
 
 				cache.onSyncStarted();
 				cache.onFinishRound(null, err => {
-					expect(err).to.equal('Cache Unavailable');
+					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -333,11 +333,13 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.transaction.createTransaction(
-					'1L',
-					1,
-					accountFixtures.genesis.password,
-					accountFixtures.genesis.secondPassword
+				var transaction = lisk.transaction.transfer(
+					{
+						amount: 1,
+						passphrase: accountFixtures.genesis.password,
+						secondPassphrase: accountFixtures.genesis.secondPassword,
+						recipientId: '1L',
+					}
 				);
 
 				cache.onTransactionsSaved([transaction], () => {
@@ -357,9 +359,11 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.delegate.createDelegate(
-					randomUtil.password(),
-					randomUtil.delegateName().toLowerCase()
+				var transaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: randomUtil.password(),
+						username: randomUtil.delegateName().toLowerCase(),
+					}
 				);
 
 				cache.onTransactionsSaved([transaction], () => {
@@ -379,14 +383,16 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				var transaction = lisk.delegate.createDelegate(
-					randomUtil.password(),
-					randomUtil.delegateName().toLowerCase()
+				var transaction = lisk.transaction.registerDelegate(
+					{
+						passphrase: randomUtil.password(),
+						username: randomUtil.delegateName().toLowerCase(),
+					}
 				);
 
 				cache.onSyncStarted();
 				cache.onTransactionsSaved([transaction], err => {
-					expect(err).to.equal('Cache Unavailable');
+					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;

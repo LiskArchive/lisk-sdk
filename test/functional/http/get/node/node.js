@@ -53,10 +53,12 @@ describe('GET /node', () => {
 			return expect(constantsResponse.supply).to.be.equal('10000000000000000');
 		});
 
-		it('should return a result containing version = "0.0.1"', () => {
+		it('should return a result containing version in semver format', () => {
 			return expect(constantsResponse)
 				.to.have.property('version')
-				.equal('0.0.1');
+				.to.match(
+					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3})?$/
+				);
 		});
 
 		it('should return a result containing fees.send = 10000000', () => {

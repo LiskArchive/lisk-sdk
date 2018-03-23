@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var crypto = require('crypto');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 var phases = require('../../common/phases');
@@ -45,28 +45,28 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				});
 			});
 		});
-	});
 
-	describe('transaction processing', () => {
 		it('with lowercase recipientId should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.recipientId = transaction.recipientId.toLowerCase();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.crypto.getId(transaction);
+			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
-				errorCodes.PROCESSING_ERROR
+				400
 			).then(res => {
-				expect(res.body.message).to.be.equal('Failed to verify signature');
+				expect(res.body.message).to.be.equal('Validation errors');
 				badTransactions.push(transaction);
 			});
 		});
+	});
 
+	describe('transaction processing', () => {
 		it('with invalid signature should fail', () => {
 			transaction = randomUtil.transaction();
 			transaction.signature = crypto.randomBytes(64).toString('hex');
-			transaction.id = lisk.crypto.getId(transaction);
+			transaction.id = lisk.transaction.utils.getTransactionId(transaction);
 
 			return sendTransactionPromise(
 				transaction,
@@ -91,10 +91,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using zero amount should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				account.address,
-				0,
-				accountFixtures.genesis.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 0,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -107,10 +109,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('when sender has no funds should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				'1L',
-				1,
-				account.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: 1,
+					passphrase: account.password,
+					recipientId: '1L',
+				}
 			);
 
 			return sendTransactionPromise(
@@ -125,10 +129,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		});
 
 		it('using entire balance should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				account.address,
-				Math.floor(accountFixtures.genesis.balance),
-				accountFixtures.genesis.password
+			transaction = lisk.transaction.transfer(
+				{
+					amount: Math.floor(accountFixtures.genesis.balance),
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				}
 			);
 
 			return sendTransactionPromise(
@@ -145,7 +151,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('from the genesis account should fail', () => {
 			var signedTransactionFromGenesis = {
 				type: 0,
-				amount: 1000,
+				amount: '1000',
 				senderPublicKey:
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 				requesterPublicKey: null,
@@ -155,7 +161,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				signature:
 					'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
 				id: '15307587316657110485',
-				fee: 0.1 * normalizer,
+				fee: (0.1 * normalizer).toString(),
 			};
 
 			return sendTransactionPromise(
@@ -215,13 +221,13 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		describe('with offset', () => {
 			it('using -10000 should be ok', () => {
-				transaction = lisk.transaction.createTransaction(
-					accountOffset.address,
-					1,
-					accountFixtures.genesis.password,
-					null,
-					null,
-					-10000
+				transaction = lisk.transaction.transfer(
+					{
+						amount: 1,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: accountOffset.address,
+						timeOffset: -10000,
+					}
 				);
 
 				return sendTransactionPromise(transaction).then(res => {
@@ -231,13 +237,13 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			});
 
 			it('using future timestamp should fail', () => {
-				transaction = lisk.transaction.createTransaction(
-					accountOffset.address,
-					1,
-					accountFixtures.genesis.password,
-					null,
-					null,
-					10000
+				transaction = lisk.transaction.transfer(
+					{
+						amount: 1,
+						passphrase: accountFixtures.genesis.password,
+						recipientId: accountOffset.address,
+						timeOffset: 10000,
+					}
 				);
 
 				return sendTransactionPromise(
@@ -261,10 +267,12 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				invalidCases.forEach(test => {
 					it(`using ${test.description} should fail`, () => {
 						var accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.createTransaction(
-							accountAdditionalData.address,
-							1,
-							accountFixtures.genesis.password
+						transaction = lisk.transaction.transfer(
+							{
+								amount: 1,
+								passphrase: accountFixtures.genesis.password,
+								recipientId: accountAdditionalData.address,
+							}
 						);
 						transaction.asset.data = test.input;
 
@@ -287,12 +295,13 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				validCases.forEach(test => {
 					it(`using ${test.description} should be ok`, () => {
 						var accountAdditionalData = randomUtil.account();
-						transaction = lisk.transaction.createTransaction(
-							accountAdditionalData.address,
-							1,
-							accountFixtures.genesis.password,
-							null,
-							test.input
+						transaction = lisk.transaction.transfer(
+							{
+								amount: 1,
+								passphrase: accountFixtures.genesis.password,
+								recipientId: accountAdditionalData.address,
+								data: test.input,
+							}
 						);
 
 						return sendTransactionPromise(transaction).then(res => {

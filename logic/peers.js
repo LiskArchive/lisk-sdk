@@ -128,18 +128,25 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	// Update existing peer
 	const update = function(peer) {
 		peer.updated = Date.now();
-
 		const diff = {};
-		_.each(peer, (value, key) => {
+
+		const recentPeer = self.peersManager.getByAddress(peer.string);
+		// Make a copy for logging difference purposes only
+		const recentPeerBeforeUpdate = Object.assign({}, recentPeer);
+
+		recentPeer.update(peer);
+		self.peersManager.add(recentPeer);
+
+		// Create a log after peer update to summarize updated fields
+		_.each(recentPeer, (value, key) => {
 			if (
 				key !== 'updated' &&
-				self.peersManager.getByAddress(peer.string)[key] !== value
+				peer.properties.indexOf(key) !== -1 &&
+				recentPeerBeforeUpdate[key] !== value
 			) {
 				diff[key] = value;
 			}
 		});
-
-		self.peersManager.getByAddress(peer.string).update(peer);
 
 		if (Object.keys(diff).length) {
 			library.logger.debug(`Updated peer ${peer.string}`, diff);

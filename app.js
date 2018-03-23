@@ -623,6 +623,9 @@ d.run(() => {
 			 */
 			cache(cb) {
 				var cache = require('./helpers/cache.js');
+				logger.debug(
+					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
+				);
 				cache.connect(config.cacheEnabled, config.cache, logger, cb);
 			},
 

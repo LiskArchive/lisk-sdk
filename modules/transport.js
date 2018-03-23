@@ -392,10 +392,6 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 						peer.rpc.updateMyself(library.logic.peers.me(), err => {
 							if (err) {
 								library.logger.debug('Failed to notify peer about self', err);
-								__private.removePeer({
-									nonce: peer.nonce,
-									code: 'ECOMMUNICATION',
-								});
 							} else {
 								library.logger.debug(
 									'Successfully notified peer about self',
