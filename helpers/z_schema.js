@@ -85,7 +85,7 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	address(str) {
-		return str === '' || /^[0-9]+L$/gi.test(str);
+		return str === '' || /^[0-9]+L$/g.test(str);
 	},
 	/**
 	 * Description of the function.

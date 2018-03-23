@@ -50,16 +50,15 @@ PeersManager.prototype.add = function(peer) {
 	) {
 		return false;
 	}
-	if (this.peers[peer.string]) {
-		return this.update(peer);
-	}
 	this.peers[peer.string] = peer;
+	if (!this.addressToNonceMap[peer.string]) {
+		// Create client WS connection to peer
+		connect(peer, this.logger, this.remove.bind(this, peer));
+	}
 	this.addressToNonceMap[peer.string] = peer.nonce;
 	if (peer.nonce) {
 		this.nonceToAddressMap[peer.nonce] = peer.string;
 	}
-	// Create client WS connection to peer
-	connect(peer, this.logger, this.remove.bind(this, peer));
 	return true;
 };
 
@@ -84,31 +83,6 @@ PeersManager.prototype.remove = function(peer) {
 	delete this.peers[peer.string];
 
 	disconnect(peer);
-	return true;
-};
-
-/**
- * Description of the function.
- *
- * @param {Object} peer
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-PeersManager.prototype.update = function(peer) {
-	var oldNonce = this.addressToNonceMap[peer.string];
-	var oldAddress = this.nonceToAddressMap[oldNonce];
-	if (oldNonce) {
-		this.nonceToAddressMap[oldNonce] = null;
-		delete this.nonceToAddressMap[oldNonce];
-	}
-	if (oldAddress) {
-		this.addressToNonceMap[oldAddress] = null;
-		delete this.addressToNonceMap[oldAddress];
-
-		this.peers[oldAddress] = null;
-		delete this.peers[oldAddress];
-	}
-	this.add(peer);
 	return true;
 };
 

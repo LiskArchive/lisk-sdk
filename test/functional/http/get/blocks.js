@@ -16,12 +16,9 @@
 
 require('../../functional.js');
 
-var Promise = require('bluebird');
 var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
-
-Promise.promisify(waitFor.blocks);
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -47,6 +44,10 @@ describe('GET /blocks', () => {
 			}
 		});
 	}
+
+	before(() => {
+		return waitFor.blocksPromise(2);
+	});
 
 	describe('?', () => {
 		describe('blockId', () => {
@@ -333,6 +334,7 @@ describe('GET /blocks', () => {
 			});
 
 			it('using 1 should be ok', () => {
+				// Need to wait for at least 2 blocks to be a valid test
 				return blocksEndpoint.makeRequest({ offset: 1 }, 200).then(res => {
 					expect(res.body.data[0].height).to.be.at.least(1);
 				});

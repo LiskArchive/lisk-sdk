@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
 const { FEES } = require('../../../../helpers/constants');
@@ -102,19 +102,19 @@ describe('GET /delegates', () => {
 		describe('secondPublicKey', () => {
 			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = lisk.transaction.createTransaction(
-				secondSecretAccount.address,
-				FEES.secondSignature + FEES.delegate,
-				accountFixtures.genesis.password
-			);
-			var signatureTransaction = lisk.signature.createSignature(
-				secondSecretAccount.password,
-				secondSecretAccount.secondPassword
-			);
-			var delegateTransaction = lisk.delegate.createDelegate(
-				secondSecretAccount.password,
-				secondSecretAccount.username
-			);
+			var creditTransaction = lisk.transaction.transfer({
+				amount: FEES.secondSignature + FEES.delegate,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: secondSecretAccount.address,
+			});
+			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: secondSecretAccount.password,
+				secondPassphrase: secondSecretAccount.secondPassword,
+			});
+			var delegateTransaction = lisk.transaction.registerDelegate({
+				passphrase: secondSecretAccount.password,
+				username: secondSecretAccount.username,
+			});
 
 			before(() => {
 				return apiHelpers

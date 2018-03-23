@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var typesRepresentatives = require('../../../fixtures/types_representatives');
 var accountFixtures = require('../../../fixtures/accounts');
 var apiHelpers = require('../../../common/helpers/api');
@@ -29,54 +29,53 @@ function invalidAssets(option, badTransactions) {
 		beforeEach(done => {
 			switch (option) {
 				case 'signature':
-					transaction = lisk.signature.createSignature(
-						accountFixtures.genesis.password,
-						randomUtil.password()
-					);
+					transaction = lisk.transaction.registerSecondPassphrase({
+						passphrase: accountFixtures.genesis.password,
+						secondPassphrase: randomUtil.password(),
+					});
 					break;
 				case 'delegate':
-					transaction = lisk.delegate.createDelegate(
-						accountFixtures.genesis.password,
-						randomUtil.delegateName()
-					);
+					transaction = lisk.transaction.registerDelegate({
+						passphrase: accountFixtures.genesis.password,
+						username: randomUtil.delegateName(),
+					});
 					break;
 				case 'votes':
-					transaction = lisk.vote.createVote(
-						accountFixtures.genesis.password,
-						[]
-					);
+					transaction = lisk.transaction.castVotes({
+						passphrase: accountFixtures.genesis.password,
+						votes: [],
+						unvotes: [],
+					});
 					break;
 				case 'multisignature':
-					transaction = lisk.multisignature.createMultisignature(
-						accountFixtures.genesis.password,
-						null,
-						[`+${accountFixtures.existingDelegate.publicKey}`],
-						1,
-						2
-					);
+					transaction = lisk.transaction.registerMultisignature({
+						passphrase: accountFixtures.genesis.password,
+						keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
+						lifetime: 1,
+						minimum: 2,
+					});
 					break;
 				case 'dapp':
-					transaction = lisk.dapp.createDapp(
-						accountFixtures.genesis.password,
-						null,
-						randomUtil.guestbookDapp
-					);
+					transaction = lisk.transaction.createDapp({
+						passphrase: accountFixtures.genesis.password,
+						options: randomUtil.guestbookDapp,
+					});
 					break;
 				case 'inTransfer':
-					transaction = lisk.transfer.createInTransfer(
-						randomUtil.guestbookDapp.id,
-						Date.now(),
-						accountFixtures.genesis.password
-					);
+					transaction = lisk.transaction.transferIntoDapp({
+						passphrase: accountFixtures.genesis.password,
+						amount: Date.now(),
+						dappId: randomUtil.guestbookDapp.id,
+					});
 					break;
 				case 'outTransfer':
-					transaction = lisk.transfer.createOutTransfer(
-						randomUtil.guestbookDapp.id,
-						randomUtil.transaction().id,
-						accountFixtures.genesis.address,
-						Date.now(),
-						accountFixtures.genesis.password
-					);
+					transaction = lisk.transaction.transferOutOfDapp({
+						passphrase: accountFixtures.genesis.password,
+						amount: Date.now(),
+						dappId: randomUtil.guestbookDapp.id,
+						transactionId: randomUtil.transaction().id,
+						recipientId: accountFixtures.genesis.address,
+					});
 					break;
 				// no default
 			}

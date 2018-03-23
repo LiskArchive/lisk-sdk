@@ -1483,15 +1483,6 @@ describe('transport', () => {
 								transportInstance.onBroadcastBlock(block, true);
 								done();
 							});
-
-							it('should call __private.removePeer with {peer: peer, code: "ECOMMUNICATION"}', () => {
-								return expect(
-									__private.removePeer.calledWith({
-										nonce: peerMock.nonce,
-										code: 'ECOMMUNICATION',
-									})
-								).to.be.true;
-							});
 						});
 
 						describe('when peer.rpc.updateMyself succeeds', () => {

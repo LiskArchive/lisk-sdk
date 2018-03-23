@@ -16,7 +16,7 @@
 
 var crypto = require('crypto');
 var async = require('async');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var accountFixtures = require('../../fixtures/accounts');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
@@ -764,7 +764,9 @@ describe('vote', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(...Array(MAX_VOTES_PER_TXS + 1)).map(
 				() => {
-					return `+${lisk.crypto.getKeys(randomUtil.password()).publicKey}`;
+					return `+${
+						lisk.cryptography.getKeys(randomUtil.password()).publicKey
+					}`;
 				}
 			);
 			return expect(() => {

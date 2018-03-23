@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var async = require('async');
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
@@ -25,13 +25,16 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	var library;
 
 	var account = randomUtil.account();
-	var transaction = lisk.transaction.createTransaction(
-		account.address,
-		1000 * normalizer,
-		accountFixtures.genesis.password
-	);
+	var transaction = lisk.transaction.transfer({
+		amount: 1000 * normalizer,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+	});
 	var dapp = randomUtil.application();
-	var dappTransaction = lisk.dapp.createDapp(account.password, null, dapp);
+	var dappTransaction = lisk.transaction.createDapp({
+		passphrase: account.password,
+		options: dapp,
+	});
 	dapp.id = dappTransaction.id;
 	var goodTransactions = [];
 	var badTransactions = [];
@@ -63,12 +66,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	});
 
 	it('adding to pool dapp transaction 1 should be ok', done => {
-		transaction1 = lisk.dapp.createDapp(
-			account.password,
-			null,
-			dappDuplicate,
-			-10000
-		);
+		transaction1 = lisk.transaction.createDapp({
+			passphrase: account.password,
+			options: dappDuplicate,
+			timeOffset: -10000,
+		});
 		badTransactions.push(transaction1);
 		localCommon.addTransaction(library, transaction1, (err, res) => {
 			expect(res).to.equal(transaction1.id);
@@ -77,12 +79,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	});
 
 	it('adding to pool dapp transaction 2 with same data than 1 but different id should be ok', done => {
-		transaction2 = lisk.dapp.createDapp(
-			account.password,
-			null,
-			dappDuplicate,
-			-5000
-		);
+		transaction2 = lisk.transaction.createDapp({
+			passphrase: account.password,
+			options: dappDuplicate,
+			timeOffset: -5000,
+		});
 		goodTransactions.push(transaction2);
 		localCommon.addTransaction(library, transaction2, (err, res) => {
 			expect(res).to.equal(transaction2.id);
@@ -91,12 +92,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	});
 
 	it('adding to pool dapp transaction 3 should be ok', done => {
-		transaction3 = lisk.dapp.createDapp(
-			account.password,
-			null,
-			dappDuplicateNameFail,
-			-10000
-		);
+		transaction3 = lisk.transaction.createDapp({
+			passphrase: account.password,
+			options: dappDuplicateNameFail,
+			timeOffset: -10000,
+		});
 		badTransactions.push(transaction3);
 		localCommon.addTransaction(library, transaction3, (err, res) => {
 			expect(res).to.equal(transaction3.id);
@@ -105,11 +105,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	});
 
 	it('adding to pool dapp transaction 4 with same name than 3 should be ok', done => {
-		transaction4 = lisk.dapp.createDapp(
-			account.password,
-			null,
-			dappDuplicateNameSuccess
-		);
+		transaction4 = lisk.transaction.createDapp({
+			passphrase: account.password,
+			options: dappDuplicateNameSuccess,
+		});
 		goodTransactions.push(transaction4);
 		localCommon.addTransaction(library, transaction4, (err, res) => {
 			expect(res).to.equal(transaction4.id);
@@ -118,12 +117,11 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	});
 
 	it('adding to pool dapp transaction 5 should be ok', done => {
-		transaction5 = lisk.dapp.createDapp(
-			account.password,
-			null,
-			dappDuplicateLinkFail,
-			-10000
-		);
+		transaction5 = lisk.transaction.createDapp({
+			passphrase: account.password,
+			options: dappDuplicateLinkFail,
+			timeOffset: -10000,
+		});
 		badTransactions.push(transaction5);
 		localCommon.addTransaction(library, transaction5, (err, res) => {
 			expect(res).to.equal(transaction5.id);
@@ -132,11 +130,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	});
 
 	it('adding to pool dapp transaction 6 with same link than 5 should be ok', done => {
-		transaction6 = lisk.dapp.createDapp(
-			account.password,
-			null,
-			dappDuplicateLinkSuccess
-		);
+		transaction6 = lisk.transaction.createDapp({
+			passphrase: account.password,
+			options: dappDuplicateLinkSuccess,
+		});
 		goodTransactions.push(transaction6);
 		localCommon.addTransaction(library, transaction6, (err, res) => {
 			expect(res).to.equal(transaction6.id);
@@ -199,11 +196,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 		});
 
 		it('adding to pool already registered dapp should fail', done => {
-			transaction2 = lisk.dapp.createDapp(
-				account.password,
-				null,
-				dappDuplicate
-			);
+			transaction2 = lisk.transaction.createDapp({
+				passphrase: account.password,
+				options: dappDuplicate,
+			});
 			localCommon.addTransaction(library, transaction2, err => {
 				expect(err).to.equal(
 					`Application name already exists: ${dappDuplicate.name}`
@@ -213,11 +209,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 		});
 
 		it('adding to pool already registered dapp name should fail', done => {
-			transaction4 = lisk.dapp.createDapp(
-				account.password,
-				null,
-				dappDuplicateNameFail
-			);
+			transaction4 = lisk.transaction.createDapp({
+				passphrase: account.password,
+				options: dappDuplicateNameFail,
+			});
 			localCommon.addTransaction(library, transaction4, err => {
 				expect(err).to.equal(
 					`Application name already exists: ${dappDuplicateNameFail.name}`
@@ -227,11 +222,10 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 		});
 
 		it('adding to pool already registered dapp link should fail', done => {
-			transaction6 = lisk.dapp.createDapp(
-				account.password,
-				null,
-				dappDuplicateLinkFail
-			);
+			transaction6 = lisk.transaction.createDapp({
+				passphrase: account.password,
+				options: dappDuplicateLinkFail,
+			});
 			localCommon.addTransaction(library, transaction6, err => {
 				expect(err).to.equal(
 					`Application link already exists: ${dappDuplicateLinkFail.link}`
