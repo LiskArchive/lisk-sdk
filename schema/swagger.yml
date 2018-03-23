@@ -1105,7 +1105,6 @@ parameters:
     description: Maximum transaction amount
     type: integer
     minimum: 0
-    maximum: 100000000 # Please refer to constants.js {maxAmount}
   fromTimestamp:
     name: fromTimestamp
     in: query
