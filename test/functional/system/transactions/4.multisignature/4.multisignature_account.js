@@ -26,13 +26,11 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	var multisigAccount = randomUtil.account();
 	var multisigTransaction;
-	var creditTransaction = lisk.transaction.transfer(
-		{
-			amount: 1000 * normalizer,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: multisigAccount.address,
-		}
-	);
+	var creditTransaction = lisk.transaction.transfer({
+		amount: 1000 * normalizer,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: multisigAccount.address,
+	});
 	var signer1 = randomUtil.account();
 	var signer2 = randomUtil.account();
 
@@ -54,19 +52,14 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	describe('forge block with multisignature transaction', () => {
 		before('forge block with multisignature transaction', done => {
-			var keysgroup = [
-				signer1.publicKey,
-				signer2.publicKey,
-			];
+			var keysgroup = [signer1.publicKey, signer2.publicKey];
 
-			multisigTransaction = lisk.transaction.registerMultisignature(
-				{
-					passphrase: multisigAccount.password,
-					keysgroup,
-					lifetime: 4,
-					minimum: 2,
-				}
-			);
+			multisigTransaction = lisk.transaction.registerMultisignature({
+				passphrase: multisigAccount.password,
+				keysgroup,
+				lifetime: 4,
+				minimum: 2,
+			});
 			var sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer1.password
@@ -287,18 +280,13 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	describe('apply unconfirmed transaction', () => {
 		before('apply unconfirmed multisig transaction', done => {
-			var keysgroup = [
-				signer1.publicKey,
-				signer2.publicKey,
-			];
-			multisigTransaction = lisk.transaction.registerMultisignature(
-				{
-					passphrase: multisigAccount.password,
-					keysgroup,
-					lifetime: 4,
-					minimum: 2,
-				}
-			);
+			var keysgroup = [signer1.publicKey, signer2.publicKey];
+			multisigTransaction = lisk.transaction.registerMultisignature({
+				passphrase: multisigAccount.password,
+				keysgroup,
+				lifetime: 4,
+				minimum: 2,
+			});
 			var sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer1.password
@@ -409,18 +397,13 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			var signer4 = randomUtil.account();
 
 			before('process multisignature transaction', done => {
-				var keysgroup = [
-					signer3.publicKey,
-					signer4.publicKey,
-				];
-				multisigTransaction2 = lisk.transaction.registerMultisignature(
-					{
-						passphrase: multisigAccount.password,
-						keysgroup,
-						lifetime: 4,
-						minimum: 2,
-					}
-				);
+				var keysgroup = [signer3.publicKey, signer4.publicKey];
+				multisigTransaction2 = lisk.transaction.registerMultisignature({
+					passphrase: multisigAccount.password,
+					keysgroup,
+					lifetime: 4,
+					minimum: 2,
+				});
 				multisigTransaction2.amount = parseInt(multisigTransaction2.amount);
 				multisigTransaction2.fee = parseInt(multisigTransaction2.fee);
 				var sign3 = lisk.transaction.utils.multiSignTransaction(

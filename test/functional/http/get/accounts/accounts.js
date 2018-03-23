@@ -179,19 +179,15 @@ describe('GET /accounts', () => {
 
 		describe('secondPublicKey', () => {
 			var secondPublicKeyAccount = randomUtil.account();
-			var creditTransaction = lisk.transaction.transfer(
-				{
-					amount: constants.fees.secondSignature,
-					passphrase: accountFixtures.genesis.password,
-					recipientId: secondPublicKeyAccount.address,
-				}
-			);
-			var signatureTransaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: secondPublicKeyAccount.password,
-					secondPassphrase: secondPublicKeyAccount.secondPassword,
-				}
-			);
+			var creditTransaction = lisk.transaction.transfer({
+				amount: constants.fees.secondSignature,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: secondPublicKeyAccount.address,
+			});
+			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: secondPublicKeyAccount.password,
+				secondPassphrase: secondPublicKeyAccount.secondPassword,
+			});
 
 			before(() => {
 				return apiHelpers

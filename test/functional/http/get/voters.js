@@ -240,15 +240,14 @@ describe('GET /api/voters', () => {
 			var validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer(
-					{
-						amount: constants.fees.delegate +
-								constants.fees.vote +
-								constants.fees.secondSignature,
-						passphrase: accountFixtures.genesis.password,
-						recipientId: validExtraDelegateVoter.address,
-					}
-				);
+				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
+					amount:
+						constants.fees.delegate +
+						constants.fees.vote +
+						constants.fees.secondSignature,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: validExtraDelegateVoter.address,
+				});
 
 				var registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
 					{
@@ -261,12 +260,10 @@ describe('GET /api/voters', () => {
 					}
 				);
 
-				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes(
-					{
-						passphrase: validExtraDelegateVoter.password,
-						votes: [`${validVotedDelegate.publicKey}`],
-					}
-				);
+				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
+					passphrase: validExtraDelegateVoter.password,
+					votes: [`${validVotedDelegate.publicKey}`],
+				});
 
 				return apiHelpers
 					.sendTransactionPromise(enrichExtraDelegateVoterTransaction)

@@ -42,20 +42,16 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.transfer(
-			{
-				amount: 1000 * normalizer,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: account.address,
-			}
-		);
-		var transaction2 = lisk.transaction.transfer(
-			{
-				amount: constants.fees.dappRegistration,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: accountMinimalFunds.address,
-			}
-		);
+		var transaction1 = lisk.transaction.transfer({
+			amount: 1000 * normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		});
+		var transaction2 = lisk.transaction.transfer({
+			amount: constants.fees.dappRegistration,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountMinimalFunds.address,
+		});
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
@@ -71,12 +67,10 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(() => {
-				transaction = lisk.transaction.createDapp(
-					{
-						passphrase: account.password,
-						options: randomUtil.guestbookDapp,
-					}
-				);
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.password,
+					options: randomUtil.guestbookDapp,
+				});
 
 				return sendTransactionPromise(transaction);
 			})
@@ -85,12 +79,10 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
-				transaction = lisk.transaction.createDapp(
-					{
-						passphrase: accountMinimalFunds.password,
-						options: randomUtil.blockDataDapp,
-					}
-				);
+				transaction = lisk.transaction.createDapp({
+					passphrase: accountMinimalFunds.password,
+					options: randomUtil.blockDataDapp,
+				});
 
 				return sendTransactionPromise(transaction);
 			})
@@ -685,15 +677,13 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
-			transaction = lisk.transaction.transferOutOfDapp(
-				{
-					passphrase: account.password,
-					amount: 10 * normalizer,
-					dappId: randomUtil.guestbookDapp.id,
-					transactionId: randomUtil.transaction().id,
-					recipientId: accountFixtures.genesis.address,
-				}
-			);
+			transaction = lisk.transaction.transferOutOfDapp({
+				passphrase: account.password,
+				amount: 10 * normalizer,
+				dappId: randomUtil.guestbookDapp.id,
+				transactionId: randomUtil.transaction().id,
+				recipientId: accountFixtures.genesis.address,
+			});
 
 			return sendTransactionPromise(
 				transaction,

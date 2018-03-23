@@ -28,12 +28,10 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp(
-		{
-			passphrase: scenarios.regular.account.password,
-			options: scenarios.regular.dapp,
-		}
-	);
+	var dappTransaction = lisk.transaction.createDapp({
+		passphrase: scenarios.regular.account.password,
+		options: scenarios.regular.dapp,
+	});
 	scenarios.regular.dapp.id = dappTransaction.id;
 
 	scenarios.regular.multiSigTransaction.ready = true;

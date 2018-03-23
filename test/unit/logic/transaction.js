@@ -276,7 +276,9 @@ describe('transaction', () => {
 			var transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
-			var transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(validTransaction);
+			var transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(
+				validTransaction
+			);
 
 			return expect(
 				transactionBytesFromLogic.equals(transactionBytesFromLiskJs)
@@ -344,13 +346,11 @@ describe('transaction', () => {
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
-			var transaction = lisk.transaction.transfer(
-				{
-					amount: transactionData.amount,
-					passphrase: transactionData.secret,
-					recipientId: transactionData.recipientId,
-				}
-			);
+			var transaction = lisk.transaction.transfer({
+				amount: transactionData.amount,
+				passphrase: transactionData.secret,
+				recipientId: transactionData.recipientId,
+			});
 
 			transactionLogic.checkConfirmed(transaction, err => {
 				expect(err).to.not.exist;
@@ -470,9 +470,7 @@ describe('transaction', () => {
 				secondPassphrase: transactionData.secondSecret,
 				recipientId: transactionData.recipientId,
 			};
-			var transaction = lisk.transaction.transfer(
-				transferObject
-			);
+			var transaction = lisk.transaction.transfer(transferObject);
 			transaction.fee = Number(transaction.fee);
 			transactionLogic.process(transaction, sender, (err, transaction) => {
 				cb(err, transaction);

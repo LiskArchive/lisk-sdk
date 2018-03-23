@@ -40,27 +40,21 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.transfer(
-			{
-				amount: 1000 * normalizer,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: account.address,
-			}
-		);
-		var transaction2 = lisk.transaction.transfer(
-			{
-				amount: constants.fees.secondSignature,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: accountMinimalFunds.address,
-			}
-		);
-		var transaction3 = lisk.transaction.transfer(
-			{
-				amount: constants.fees.secondSignature,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: accountNoSecondPassword.address,
-			}
-		);
+		var transaction1 = lisk.transaction.transfer({
+			amount: 1000 * normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		});
+		var transaction2 = lisk.transaction.transfer({
+			amount: constants.fees.secondSignature,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountMinimalFunds.address,
+		});
+		var transaction3 = lisk.transaction.transfer({
+			amount: constants.fees.secondSignature,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountNoSecondPassword.address,
+		});
 
 		var promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
@@ -87,14 +81,12 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', () => {
-			transaction = lisk.transaction.transfer(
-				{
-					amount: 1,
-					passphrase: accountNoSecondPassword.password,
-					secondPassphrase: accountNoSecondPassword.secondPassword,
-					recipientId: accountFixtures.existingDelegate.address,
-				}
-			);
+			transaction = lisk.transaction.transfer({
+				amount: 1,
+				passphrase: accountNoSecondPassword.password,
+				secondPassphrase: accountNoSecondPassword.secondPassword,
+				recipientId: accountFixtures.existingDelegate.address,
+			});
 
 			return apiHelpers
 				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
@@ -107,12 +99,10 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		});
 
 		it('with no funds should fail', () => {
-			transaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: accountNoFunds.password,
-					secondPassphrase: accountNoFunds.secondPassword,
-				}
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: accountNoFunds.password,
+				secondPassphrase: accountNoFunds.secondPassword,
+			});
 
 			return apiHelpers
 				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
@@ -127,13 +117,11 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		});
 
 		it('with minimal required amount of funds should be ok', () => {
-			transaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: accountMinimalFunds.password,
-					secondPassphrase: accountMinimalFunds.secondPassword,
-					timeOffset: -10000,
-				}
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: accountMinimalFunds.password,
+				secondPassphrase: accountMinimalFunds.secondPassword,
+				timeOffset: -10000,
+			});
 
 			return apiHelpers.sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -142,12 +130,10 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		});
 
 		it('with valid params should be ok', () => {
-			transaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: account.password,
-					secondPassphrase: account.secondPassword,
-				}
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: account.password,
+				secondPassphrase: account.secondPassword,
+			});
 
 			return apiHelpers.sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');

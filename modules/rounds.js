@@ -14,16 +14,17 @@
 
 'use strict';
 
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var Round = require('../logic/round.js');
-var slots = require('../helpers/slots.js');
+const async = require('async');
+const constants = require('../helpers/constants.js');
+// eslint-disable-next-line prefer-const
+let Round = require('../logic/round.js');
+const slots = require('../helpers/slots.js');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.loaded = false;
 __private.ticking = false;
@@ -43,21 +44,23 @@ __private.ticking = false;
  * @returns {setImmediateCallback} cb, null, self
  * @todo Apply node pattern for callbacks: callback always at the end
  */
-function Rounds(cb, scope) {
-	library = {
-		logger: scope.logger,
-		db: scope.db,
-		bus: scope.bus,
-		network: scope.network,
-		config: {
-			loading: {
-				snapshot: scope.config.loading.snapshot,
+class Rounds {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			db: scope.db,
+			bus: scope.bus,
+			network: scope.network,
+			config: {
+				loading: {
+					snapshot: scope.config.loading.snapshot,
+				},
 			},
-		},
-	};
-	self = this;
+		};
+		self = this;
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 // Public methods
@@ -104,11 +107,11 @@ Rounds.prototype.flush = function(round, cb) {
  * @returns {function} Calling done with error if any
  */
 Rounds.prototype.backwardTick = function(block, previousBlock, done) {
-	var round = slots.calcRound(block.height);
-	var prevRound = slots.calcRound(previousBlock.height);
-	var nextRound = slots.calcRound(block.height + 1);
+	const round = slots.calcRound(block.height);
+	const prevRound = slots.calcRound(previousBlock.height);
+	const nextRound = slots.calcRound(block.height + 1);
 
-	var scope = {
+	const scope = {
 		library,
 		modules,
 		block,
@@ -129,7 +132,7 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done) {
 	 * @todo Add description of the function
 	 */
 	function BackwardTick(t) {
-		var promised = new Round(scope, t);
+		const promised = new Round(scope, t);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
@@ -198,10 +201,10 @@ Rounds.prototype.setSnapshotRound = function(round) {
  * @returns {function} Calling done with error if any
  */
 Rounds.prototype.tick = function(block, done, tx) {
-	var round = slots.calcRound(block.height);
-	var nextRound = slots.calcRound(block.height + 1);
+	const round = slots.calcRound(block.height);
+	const nextRound = slots.calcRound(block.height + 1);
 
-	var scope = {
+	const scope = {
 		library,
 		modules,
 		block,
@@ -227,7 +230,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 	 * @todo Add description of the class
 	 */
 	function Tick(t) {
-		var promised = new Round(scope, t);
+		const promised = new Round(scope, t);
 
 		library.logger.debug('Performing forward tick');
 		library.logger.trace(scope);
@@ -313,7 +316,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 
 // Events
 /**
- * Assigns modules to private variable `modules`.
+ * Assigns modules to private constiable `modules`.
  *
  * @param {modules} scope - Loaded modules
  */
@@ -326,7 +329,7 @@ Rounds.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private variable loaded to true.
+ * Sets private constiable loaded to true.
  *
  * @listens module:loader~event:blockchainReady
  */
@@ -346,7 +349,7 @@ Rounds.prototype.onFinishRound = function(round) {
 };
 
 /**
- * Sets private variable `loaded` to false.
+ * Sets private constiable `loaded` to false.
  *
  * @param {function} cb
  * @returns {setImmediateCallback} cb
@@ -359,7 +362,7 @@ Rounds.prototype.cleanup = function(cb) {
 
 // Private methods
 /**
- * Generates outsiders array and pushes to param scope variable.
+ * Generates outsiders array and pushes to param scope constiable.
  * Obtains delegate list and for each delegate generate address.
  *
  * @private
@@ -404,7 +407,7 @@ __private.getOutsiders = function(scope, cb, tx) {
 
 /**
  * Gets rows from `round_blocks` and calculates rewards.
- * Loads into scope variable fees, rewards and delegates.
+ * Loads into scope constiable fees, rewards and delegates.
  *
  * @private
  * @param {number} round
@@ -419,7 +422,7 @@ __private.sumRound = function(scope, cb, tx) {
 	(tx || library.db).rounds
 		.summedRound(scope.round, constants.activeDelegates)
 		.then(rows => {
-			var rewards = [];
+			const rewards = [];
 
 			rows[0].rewards.forEach(reward => {
 				rewards.push(Math.floor(reward));

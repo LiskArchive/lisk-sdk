@@ -179,14 +179,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 1,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 1,
+				});
 				transaction.asset.multisignature.min = minimum.toString();
 
 				multisignature.verify(transaction, accountFixtures.genesis, err => {
@@ -200,18 +198,13 @@ describe('multisignature', () => {
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
 			var minimum = constants.multisigConstraints.min.maximum + 1;
-			var keysgroup = [
-				multiSigAccount1.publicKey,
-				multiSigAccount2.publicKey,
-			];
-			var transaction = lisk.transaction.registerMultisignature(
-				{
-					passphrase: accountFixtures.genesis.password,
-					keysgroup,
-					lifetime: 1,
-					minimum,
-				}
-			);
+			var keysgroup = [multiSigAccount1.publicKey, multiSigAccount2.publicKey];
+			var transaction = lisk.transaction.registerMultisignature({
+				passphrase: accountFixtures.genesis.password,
+				keysgroup,
+				lifetime: 1,
+				minimum,
+			});
 
 			multisignature.verify(transaction, accountFixtures.genesis, err => {
 				expect(err).to.equal(
@@ -896,14 +889,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 1,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 1,
+				});
 				transaction.asset.multisignature.min = minimum;
 
 				return expect(() => {
@@ -919,14 +910,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 1,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 1,
+				});
 				transaction.asset.multisignature.min = minimum;
 
 				return expect(() => {
@@ -942,14 +931,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum,
+				});
 
 				return expect(() => {
 					multisignature.objectNormalize(transaction);
@@ -964,14 +951,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum,
+				});
 
 				return expect(() => {
 					multisignature.objectNormalize(transaction);
@@ -986,14 +971,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 2,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 				transaction.asset.multisignature.min = minimum;
 
 				return expect(() => {
@@ -1011,14 +994,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 2,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 				transaction.asset.multisignature.lifetime = lifetime;
 
 				return expect(() => {
@@ -1034,14 +1015,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime,
-						minimum: 2,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime,
+					minimum: 2,
+				});
 
 				return expect(() => {
 					multisignature.objectNormalize(transaction);
@@ -1056,14 +1035,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime,
-						minimum: 2,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime,
+					minimum: 2,
+				});
 
 				return expect(() => {
 					multisignature.objectNormalize(transaction);
@@ -1078,14 +1055,12 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 2,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 				transaction.asset.multisignature.lifetime = lifetime;
 
 				return expect(() => {
@@ -1098,17 +1073,13 @@ describe('multisignature', () => {
 
 		describe('keysgroup', () => {
 			it('should return error when it is not an array', () => {
-				var keysgroup = [
-					multiSigAccount1.publicKey,
-				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 2,
-					}
-				);
+				var keysgroup = [multiSigAccount1.publicKey];
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 				transaction.asset.multisignature.keysgroup = '';
 
 				return expect(() => {
@@ -1119,17 +1090,13 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when array length is smaller than minimum acceptable value', () => {
-				var keysgroup = [
-					multiSigAccount1.publicKey,
-				];
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 2,
-					}
-				);
+				var keysgroup = [multiSigAccount1.publicKey];
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 				transaction.asset.multisignature.keysgroup = [];
 
 				return expect(() => {
@@ -1143,16 +1110,16 @@ describe('multisignature', () => {
 				var keysgroup = Array(
 					...Array(constants.multisigConstraints.keysgroup.maxItems + 1)
 				).map(() => {
-					return `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
+					return `${
+						lisk.cryptography.getKeys(randomUtil.password()).publicKey
+					}`;
 				});
-				var transaction = lisk.transaction.registerMultisignature(
-					{
-						passphrase: accountFixtures.genesis.password,
-						keysgroup,
-						lifetime: 1,
-						minimum: 2,
-					}
-				);
+				var transaction = lisk.transaction.registerMultisignature({
+					passphrase: accountFixtures.genesis.password,
+					keysgroup,
+					lifetime: 1,
+					minimum: 2,
+				});
 
 				return expect(() => {
 					multisignature.objectNormalize(transaction);
@@ -1167,14 +1134,12 @@ describe('multisignature', () => {
 				return `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});
 
-			var transaction = lisk.transaction.registerMultisignature(
-				{
-					passphrase: accountFixtures.genesis.password,
-					keysgroup,
-					lifetime: 1,
-					minimum: 2,
-				}
-			);
+			var transaction = lisk.transaction.registerMultisignature({
+				passphrase: accountFixtures.genesis.password,
+				keysgroup,
+				lifetime: 1,
+				minimum: 2,
+			});
 
 			return expect(multisignature.objectNormalize(transaction)).to.eql(
 				transaction

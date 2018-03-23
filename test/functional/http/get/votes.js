@@ -359,29 +359,23 @@ describe('GET /api/votes', () => {
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				var account = randomUtil.account();
-				var creditTransaction = lisk.transaction.transfer(
-					{
-						amount: constants.fees.delegate + constants.fees.vote,
-						passphrase: accountFixtures.genesis.password,
-						recipientId: account.address,
-					}
-				);
-				var delegateTransaction = lisk.transaction.registerDelegate(
-					{
-						passphrase: account.password,
-						username: randomstring.generate({
-							length: 10,
-							charset: 'alphabetic',
-							capitalization: 'lowercase',
-						}),
-					}
-				);
-				var voteTransaction = lisk.transaction.castVotes(
-					{
-						passphrase: account.password,
-						votes: [`${nonVoterDelegate.publicKey}`],
-					}
-				);
+				var creditTransaction = lisk.transaction.transfer({
+					amount: constants.fees.delegate + constants.fees.vote,
+					passphrase: accountFixtures.genesis.password,
+					recipientId: account.address,
+				});
+				var delegateTransaction = lisk.transaction.registerDelegate({
+					passphrase: account.password,
+					username: randomstring.generate({
+						length: 10,
+						charset: 'alphabetic',
+						capitalization: 'lowercase',
+					}),
+				});
+				var voteTransaction = lisk.transaction.castVotes({
+					passphrase: account.password,
+					votes: [`${nonVoterDelegate.publicKey}`],
+				});
 
 				apiHelpers
 					.sendTransactionPromise(creditTransaction)

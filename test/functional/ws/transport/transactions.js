@@ -55,13 +55,11 @@ describe('Posting transaction (type 0)', () => {
 
 	describe('transaction processing', () => {
 		it('when sender has no funds should broadcast transaction but not confirm', done => {
-			transaction = lisk.transaction.transfer(
-				{
-					amount: 1,
-					passphrase: account.password,
-					recipientId: '1L',
-				}
-			);
+			transaction = lisk.transaction.transfer({
+				amount: 1,
+				passphrase: account.password,
+				recipientId: '1L',
+			});
 
 			postTransaction(transaction);
 			badTransactions.push(transaction);

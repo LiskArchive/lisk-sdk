@@ -14,18 +14,18 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var _ = require('lodash');
-var async = require('async');
-var BlockReward = require('../../logic/block_reward.js');
-var constants = require('../../helpers/constants.js');
-var slots = require('../../helpers/slots.js');
-var exceptions = require('../../helpers/exceptions.js');
+const crypto = require('crypto');
+const _ = require('lodash');
+const async = require('async');
+const BlockReward = require('../../logic/block_reward.js');
+const constants = require('../../helpers/constants.js');
+const slots = require('../../helpers/slots.js');
+const exceptions = require('../../helpers/exceptions.js');
 
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.lastNBlockIds = [];
 
@@ -45,19 +45,21 @@ __private.lastNBlockIds = [];
  * @todo Add @param tags
  * @todo Add description for the class
  */
-function Verify(logger, block, transaction, db) {
-	library = {
-		logger,
-		db,
-		logic: {
-			block,
-			transaction,
-		},
-	};
-	self = this;
-	__private.blockReward = new BlockReward();
-	library.logger.trace('Blocks->Verify: Submodule initialized.');
-	return self;
+class Verify {
+	constructor(logger, block, transaction, db) {
+		library = {
+			logger,
+			db,
+			logic: {
+				block,
+				transaction,
+			},
+		};
+		self = this;
+		__private.blockReward = new BlockReward();
+		library.logger.trace('Blocks->Verify: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -149,7 +151,7 @@ __private.setHeight = function(block, lastBlock) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifySignature = function(block, result) {
-	var valid;
+	let valid;
 
 	try {
 		valid = library.logic.block.verifySignature(block);
@@ -232,7 +234,7 @@ __private.verifyVersion = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyReward = function(block, result) {
-	var expectedReward = __private.blockReward.calcReward(block.height);
+	const expectedReward = __private.blockReward.calcReward(block.height);
 
 	if (
 		block.height !== 1 &&
@@ -298,14 +300,14 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
-	var totalAmount = 0;
-	var totalFee = 0;
-	var payloadHash = crypto.createHash('sha256');
-	var appliedTransactions = {};
+	let totalAmount = 0;
+	let totalFee = 0;
+	const payloadHash = crypto.createHash('sha256');
+	const appliedTransactions = {};
 
-	for (var i in block.transactions) {
-		var transaction = block.transactions[i];
-		var bytes;
+	for (const i in block.transactions) {
+		const transaction = block.transactions[i];
+		let bytes;
 
 		try {
 			bytes = library.logic.transaction.getBytes(transaction);
@@ -383,8 +385,8 @@ __private.verifyForkOne = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlot = function(block, lastBlock, result) {
-	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+	const blockSlotNumber = slots.getSlotNumber(block.timestamp);
+	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
 	if (
 		blockSlotNumber > slots.getSlotNumber() ||
@@ -407,8 +409,8 @@ __private.verifyBlockSlot = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlotWindow = function(block, result) {
-	var currentApplicationSlot = slots.getSlotNumber();
-	var blockSlot = slots.getSlotNumber(block.timestamp);
+	const currentApplicationSlot = slots.getSlotNumber();
+	const blockSlot = slots.getSlotNumber(block.timestamp);
 
 	// Reject block if it's slot is older than constants.blockSlotWindow
 	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
@@ -432,11 +434,11 @@ __private.verifyBlockSlotWindow = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 Verify.prototype.verifyReceipt = function(block) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 
 	block = __private.setHeight(block, lastBlock);
 
-	var result = { verified: false, errors: [] };
+	let result = { verified: false, errors: [] };
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
@@ -471,7 +473,7 @@ Verify.prototype.onBlockchainReady = function() {
 };
 
 /**
- * Maintains __private.lastNBlock variable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
+ * Maintains __private.lastNBlock constiable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
  *
  * @func onNewBlock
  * @param {block} block
@@ -493,11 +495,11 @@ Verify.prototype.onNewBlock = function(block) {
  * @returns {Array} result.errors - Array of validation errors
  */
 Verify.prototype.verifyBlock = function(block) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 
 	block = __private.setHeight(block, lastBlock);
 
-	var result = { verified: false, errors: [] };
+	let result = { verified: false, errors: [] };
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
@@ -557,7 +559,7 @@ Verify.prototype.addBlockProperties = function(block) {
  * @returns {Object} Block object reduced
  */
 Verify.prototype.deleteBlockProperties = function(block) {
-	var reducedBlock = JSON.parse(JSON.stringify(block));
+	const reducedBlock = JSON.parse(JSON.stringify(block));
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
 	}
