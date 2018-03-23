@@ -14,16 +14,16 @@
 
 'use strict';
 
-var apiCodes = require('../helpers/api_codes.js');
-var ApiError = require('../helpers/api_error.js');
-var Signature = require('../logic/signature.js');
-var transactionTypes = require('../helpers/transaction_types.js');
+const apiCodes = require('../helpers/api_codes.js');
+const ApiError = require('../helpers/api_error.js');
+const Signature = require('../logic/signature.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.assetTypes = {};
 
@@ -42,25 +42,27 @@ __private.assetTypes = {};
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-function Signatures(cb, scope) {
-	library = {
-		schema: scope.schema,
-		ed: scope.ed,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			transaction: scope.logic.transaction,
-		},
-	};
-	self = this;
+class Signatures {
+	constructor(cb, scope) {
+		library = {
+			schema: scope.schema,
+			ed: scope.ed,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				transaction: scope.logic.transaction,
+			},
+		};
+		self = this;
 
-	__private.assetTypes[
-		transactionTypes.SIGNATURE
-	] = library.logic.transaction.attachAssetType(
-		transactionTypes.SIGNATURE,
-		new Signature(scope.schema, scope.logger)
-	);
+		__private.assetTypes[
+			transactionTypes.SIGNATURE
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.SIGNATURE,
+			new Signature(scope.schema, scope.logger)
+		);
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 // Public methods
@@ -90,13 +92,13 @@ Signatures.prototype.onBind = function(scope) {
 };
 
 __private.processPostResult = function(err, res, cb) {
-	var error = null;
-	var response = null;
+	let error = null;
+	let response = null;
 
 	// TODO: Need to improve error handling so that we don't
 	// need to parse the error message to determine the error type.
-	var processingError = /^Error processing signature/;
-	var badRequestBodyError = /^Invalid signature body/;
+	const processingError = /^Error processing signature/;
+	const badRequestBodyError = /^Invalid signature body/;
 
 	if (err) {
 		error = new ApiError(err, apiCodes.PROCESSING_ERROR);

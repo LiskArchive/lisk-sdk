@@ -17,7 +17,7 @@
 
 const async = require('async');
 const expect = require('chai').expect;
-const lisk = require('lisk-js');
+const lisk = require('lisk-js').default;
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../common/utils/random');
 const localCommon = require('../../common');
@@ -62,29 +62,29 @@ describe('system test (blocks) - chain/applyBlock', () => {
 		poolAccount3 = randomUtil.account();
 		poolAccount4 = randomUtil.account();
 
-		const fundTrsForAccount1 = lisk.transaction.createTransaction(
-			blockAccount1.address,
-			transferAmount,
-			accountFixtures.genesis.password
-		);
+		const fundTrsForAccount1 = lisk.transaction.transfer({
+			amount: transferAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: blockAccount1.address,
+		});
 
-		const fundTrsForAccount2 = lisk.transaction.createTransaction(
-			blockAccount2.address,
-			transferAmount,
-			accountFixtures.genesis.password
-		);
+		const fundTrsForAccount2 = lisk.transaction.transfer({
+			amount: transferAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: blockAccount2.address,
+		});
 
-		const fundTrsForAccount3 = lisk.transaction.createTransaction(
-			poolAccount3.address,
-			transferAmount,
-			accountFixtures.genesis.password
-		);
+		const fundTrsForAccount3 = lisk.transaction.transfer({
+			amount: transferAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: poolAccount3.address,
+		});
 
-		const fundTrsForAccount4 = lisk.transaction.createTransaction(
-			poolAccount4.address,
-			transferAmount,
-			accountFixtures.genesis.password
-		);
+		const fundTrsForAccount4 = lisk.transaction.transfer({
+			amount: transferAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: poolAccount4.address,
+		});
 
 		localCommon.addTransactionsAndForge(
 			library,
@@ -107,14 +107,18 @@ describe('system test (blocks) - chain/applyBlock', () => {
 		let blockTransaction2;
 
 		beforeEach('create block', done => {
-			blockTransaction1 = lisk.delegate.createDelegate(
-				blockAccount1.password,
-				blockAccount1.username
-			);
-			blockTransaction2 = lisk.delegate.createDelegate(
-				blockAccount2.password,
-				blockAccount2.username
-			);
+			blockTransaction1 = lisk.transaction.registerDelegate({
+				passphrase: blockAccount1.password,
+				username: blockAccount1.username,
+			});
+			blockTransaction1.amount = parseInt(blockTransaction1.amount);
+			blockTransaction1.fee = parseInt(blockTransaction1.fee);
+			blockTransaction2 = lisk.transaction.registerDelegate({
+				passphrase: blockAccount2.password,
+				username: blockAccount2.username,
+			});
+			blockTransaction2.amount = parseInt(blockTransaction2.amount);
+			blockTransaction2.fee = parseInt(blockTransaction2.fee);
 			blockTransaction1.senderId = blockAccount1.address;
 			blockTransaction2.senderId = blockAccount2.address;
 			localCommon.createValidBlock(
@@ -132,15 +136,15 @@ describe('system test (blocks) - chain/applyBlock', () => {
 			let transaction4;
 
 			beforeEach('with transactions in unconfirmed queue', done => {
-				transaction3 = lisk.signature.createSignature(
-					poolAccount3.password,
-					poolAccount3.secondPassword
-				);
+				transaction3 = lisk.transaction.registerSecondPassphrase({
+					passphrase: poolAccount3.password,
+					secondPassphrase: poolAccount3.secondPassword,
+				});
 
-				transaction4 = lisk.signature.createSignature(
-					poolAccount4.password,
-					poolAccount4.secondPassword
-				);
+				transaction4 = lisk.transaction.registerSecondPassphrase({
+					passphrase: poolAccount4.password,
+					secondPassphrase: poolAccount4.secondPassword,
+				});
 
 				transaction3.senderId = poolAccount3.address;
 				transaction4.senderId = poolAccount4.address;

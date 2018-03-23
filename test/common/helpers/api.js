@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var Promise = require('bluebird');
 var accountFixtures = require('../../fixtures/accounts');
 var swaggerSpec = require('../swagger_spec');
@@ -188,30 +188,10 @@ function getPendingMultisignatures(params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-function normalizeTransactionObject(transaction) {
-	if (_.isObject(transaction)) {
-		transaction = _.cloneDeep(transaction);
-
-		transaction.recipientId = transaction.recipientId || '';
-		transaction.senderId = transaction.senderId || '';
-
-		if (_.has(transaction, 'amount')) {
-			transaction.amount = transaction.amount.toString();
-		}
-
-		if (_.has(transaction, 'fee')) {
-			transaction.fee = transaction.fee.toString();
-		}
-	}
-	return transaction;
-}
-
 var postTransactionsEndpoint = new swaggerSpec('POST /transactions');
 
 function sendTransactionPromise(transaction, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;
-
-	transaction = normalizeTransactionObject(transaction);
 
 	return postTransactionsEndpoint.makeRequest(
 		{ transaction },
@@ -236,11 +216,11 @@ function sendSignature(signature, transaction, cb) {
 }
 
 function creditAccount(address, amount, cb) {
-	var transaction = lisk.transaction.createTransaction(
-		address,
+	var transaction = lisk.transaction.transfer({
 		amount,
-		accountFixtures.genesis.password
-	);
+		passphrase: accountFixtures.genesis.password,
+		recipientId: address,
+	});
 	sendTransactionPromise(transaction).then(cb);
 }
 
@@ -249,10 +229,10 @@ function getCount(param, cb) {
 }
 
 function registerDelegate(account, cb) {
-	var transaction = lisk.delegate.createDelegate(
-		account.password,
-		account.username
-	);
+	var transaction = lisk.transaction.registerDelegate({
+		passphrase: account.password,
+		username: account.username,
+	});
 	sendTransactionPromise(transaction).then(cb);
 }
 
@@ -349,7 +329,7 @@ function createSignatureObject(transaction, signer) {
 	return {
 		transactionId: transaction.id,
 		publicKey: signer.publicKey,
-		signature: lisk.multisignature.signTransaction(
+		signature: lisk.transaction.utils.multiSignTransaction(
 			transaction,
 			signer.password
 		),
@@ -425,6 +405,5 @@ module.exports = {
 	getBlocksPromise,
 	expectSwaggerParamError,
 	createSignatureObject,
-	normalizeTransactionObject,
 	getNotFoundEndpointPromise,
 };

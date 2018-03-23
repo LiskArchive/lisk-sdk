@@ -14,23 +14,23 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var _ = require('lodash');
-var async = require('async');
-var apiCodes = require('../helpers/api_codes.js');
-var ApiError = require('../helpers/api_error.js');
-var BlockReward = require('../logic/block_reward.js');
-var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobs_queue.js');
-var Delegate = require('../logic/delegate.js');
-var slots = require('../helpers/slots.js');
-var transactionTypes = require('../helpers/transaction_types.js');
+const crypto = require('crypto');
+const _ = require('lodash');
+const async = require('async');
+const apiCodes = require('../helpers/api_codes.js');
+const ApiError = require('../helpers/api_error.js');
+const BlockReward = require('../logic/block_reward.js');
+const constants = require('../helpers/constants.js');
+const jobsQueue = require('../helpers/jobs_queue.js');
+const Delegate = require('../logic/delegate.js');
+const slots = require('../helpers/slots.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.assetTypes = {};
 __private.loaded = false;
@@ -59,40 +59,41 @@ __private.forgeInterval = 1000;
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, self
  */
-// Constructor
-function Delegates(cb, scope) {
-	library = {
-		logger: scope.logger,
-		sequence: scope.sequence,
-		ed: scope.ed,
-		db: scope.db,
-		network: scope.network,
-		schema: scope.schema,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			transaction: scope.logic.transaction,
-		},
-		config: {
-			forging: {
-				secret: scope.config.forging.secret,
-				force: scope.config.forging.force,
-				defaultKey: scope.config.forging.defaultKey,
-				access: {
-					whiteList: scope.config.forging.access.whiteList,
+class Delegates {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			sequence: scope.sequence,
+			ed: scope.ed,
+			db: scope.db,
+			network: scope.network,
+			schema: scope.schema,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				transaction: scope.logic.transaction,
+			},
+			config: {
+				forging: {
+					secret: scope.config.forging.secret,
+					force: scope.config.forging.force,
+					defaultKey: scope.config.forging.defaultKey,
+					access: {
+						whiteList: scope.config.forging.access.whiteList,
+					},
 				},
 			},
-		},
-	};
-	self = this;
-	__private.blockReward = new BlockReward();
-	__private.assetTypes[
-		transactionTypes.DELEGATE
-	] = library.logic.transaction.attachAssetType(
-		transactionTypes.DELEGATE,
-		new Delegate(scope.logger, scope.schema)
-	);
+		};
+		self = this;
+		__private.blockReward = new BlockReward();
+		__private.assetTypes[
+			transactionTypes.DELEGATE
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.DELEGATE,
+			new Delegate(scope.logger, scope.schema)
+		);
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 /**
@@ -135,7 +136,7 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
 	(tx || library.db).rounds
 		.getDelegatesSnapshot(slots.delegates)
 		.then(rows => {
-			var delegatesPublicKeys = [];
+			const delegatesPublicKeys = [];
 			rows.forEach(row => {
 				delegatesPublicKeys.push(row.publicKey.toString('hex'));
 			});
@@ -162,8 +163,8 @@ __private.validateBlockSlot = function(block, source, cb) {
 			return setImmediate(cb, err);
 		}
 
-		var currentSlot = slots.getSlotNumber(block.timestamp);
-		var delegateId = activeDelegates[currentSlot % slots.delegates];
+		const currentSlot = slots.getSlotNumber(block.timestamp);
+		const delegateId = activeDelegates[currentSlot % slots.delegates];
 
 		if (delegateId && block.generatorPublicKey === delegateId) {
 			return setImmediate(cb);
@@ -193,12 +194,12 @@ __private.getBlockSlotData = function(slot, height, cb) {
 			return setImmediate(cb, err);
 		}
 
-		var currentSlot = slot;
-		var lastSlot = slots.getLastSlot(currentSlot);
+		let currentSlot = slot;
+		const lastSlot = slots.getLastSlot(currentSlot);
 
 		for (; currentSlot < lastSlot; currentSlot += 1) {
-			var delegate_pos = currentSlot % slots.delegates;
-			var delegate_id = activeDelegates[delegate_pos];
+			const delegate_pos = currentSlot % slots.delegates;
+			const delegate_id = activeDelegates[delegate_pos];
 
 			if (delegate_id && __private.keypairs[delegate_id]) {
 				return setImmediate(cb, null, {
@@ -239,8 +240,8 @@ __private.forge = function(cb) {
 		return setImmediate(cb);
 	}
 
-	var currentSlot = slots.getSlotNumber();
-	var lastBlock = modules.blocks.lastBlock.get();
+	const currentSlot = slots.getSlotNumber();
+	const lastBlock = modules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
 		library.logger.debug('Waiting for next delegate slot');
@@ -264,7 +265,7 @@ __private.forge = function(cb) {
 			}
 
 			if (modules.transport.poorConsensus()) {
-				var consensusErr = [
+				const consensusErr = [
 					'Inadequate broadhash consensus',
 					modules.peers.getLastConsensus(),
 					'%',
@@ -296,7 +297,7 @@ __private.forge = function(cb) {
 						return setImmediate(cb);
 					}
 
-					var forgedBlock = modules.blocks.lastBlock.get();
+					const forgedBlock = modules.blocks.lastBlock.get();
 					modules.blocks.lastReceipt.update();
 
 					library.logger.info(
@@ -331,8 +332,8 @@ __private.forge = function(cb) {
  * @todo Add description for the params
  */
 __private.decryptSecret = function(encryptedSecret, key) {
-	var decipher = crypto.createDecipher('aes-256-cbc', key);
-	var decryptedSecret = decipher.update(encryptedSecret, 'hex', 'utf8');
+	const decipher = crypto.createDecipher('aes-256-cbc', key);
+	let decryptedSecret = decipher.update(encryptedSecret, 'hex', 'utf8');
 	decryptedSecret += decipher.final('utf8');
 	return decryptedSecret;
 };
@@ -365,16 +366,16 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 				return setImmediate(cb, 'Account not found');
 			}
 
-			var delegates =
+			const delegates =
 				state === 'confirmed' ? account.delegates : account.u_delegates;
-			var existing_votes = Array.isArray(delegates) ? delegates.length : 0;
-			var additions = 0;
-			var removals = 0;
+			const existingVotes = Array.isArray(delegates) ? delegates.length : 0;
+			let additions = 0;
+			let removals = 0;
 
 			async.eachSeries(
 				votes,
 				(action, cb) => {
-					var math = action[0];
+					const math = action[0];
 
 					if (math === '+') {
 						additions += 1;
@@ -384,7 +385,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 						return setImmediate(cb, 'Invalid math operator');
 					}
 
-					var publicKey = action.slice(1);
+					const publicKey = action.slice(1);
 
 					try {
 						Buffer.from(publicKey, 'hex');
@@ -438,10 +439,10 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
 						return setImmediate(cb, err);
 					}
 
-					var total_votes = existing_votes + additions - removals;
+					const totalVotes = existingVotes + additions - removals;
 
-					if (total_votes > constants.activeDelegates) {
-						var exceeded = total_votes - constants.activeDelegates;
+					if (totalVotes > constants.activeDelegates) {
+						const exceeded = totalVotes - constants.activeDelegates;
 
 						return setImmediate(
 							cb,
@@ -467,7 +468,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
-	var secretsList = library.config.forging.secret;
+	const secretsList = library.config.forging.secret;
 
 	if (
 		!secretsList ||
@@ -488,7 +489,7 @@ __private.loadDelegates = function(cb) {
 	async.eachSeries(
 		secretsList,
 		(encryptedItem, seriesCb) => {
-			var secret;
+			let secret;
 			try {
 				secret = __private.decryptSecret(
 					encryptedItem.encryptedSecret,
@@ -504,7 +505,7 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			var keypair = library.ed.makeKeypair(
+			const keypair = library.ed.makeKeypair(
 				crypto
 					.createHash('sha256')
 					.update(secret, 'utf8')
@@ -569,15 +570,16 @@ __private.loadDelegates = function(cb) {
  * @todo Add description for the return value
  */
 Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
-	var actionEnable = false;
-	var actionDisable = false;
+	const encryptedList = library.config.forging.secret;
+	const encryptedItem = _.find(
+		encryptedList,
+		item => item.publicKey === publicKey
+	);
 
-	var keypair;
-	var encryptedList;
-	var decryptedSecret;
-	var encryptedItem;
-	encryptedList = library.config.forging.secret;
-	encryptedItem = _.find(encryptedList, item => item.publicKey === publicKey);
+	let keypair;
+	let decryptedSecret;
+	let actionEnable = false;
+	let actionDisable = false;
 
 	if (encryptedItem) {
 		try {
@@ -622,7 +624,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 			}
 
 			if (account && account.isDelegate) {
-				var forgingStatus;
+				let forgingStatus;
 
 				if (actionEnable) {
 					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
@@ -667,16 +669,16 @@ Delegates.prototype.generateDelegateList = function(height, source, cb, tx) {
 			return setImmediate(cb, err);
 		}
 
-		var seedSource = slots.calcRound(height).toString();
-		var currentSeed = crypto
+		const seedSource = slots.calcRound(height).toString();
+		let currentSeed = crypto
 			.createHash('sha256')
 			.update(seedSource, 'utf8')
 			.digest();
 
-		for (var i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
-			for (var x = 0; x < 4 && i < delCount; i++, x++) {
-				var newIndex = currentSeed[x] % delCount;
-				var b = truncDelegateList[newIndex];
+		for (let i = 0, delCount = truncDelegateList.length; i < delCount; i++) {
+			for (let x = 0; x < 4 && i < delCount; i++, x++) {
+				const newIndex = currentSeed[x] % delCount;
+				const b = truncDelegateList[newIndex];
 				truncDelegateList[newIndex] = truncDelegateList[i];
 				truncDelegateList[i] = b;
 			}
@@ -772,9 +774,9 @@ Delegates.prototype.getForgers = function(query, cb) {
 	query.limit = query.limit || 10;
 	query.offset = query.offset || 0;
 
-	var currentBlock = modules.blocks.lastBlock.get();
-	var currentSlot = slots.getSlotNumber();
-	var forgerKeys = [];
+	const currentBlock = modules.blocks.lastBlock.get();
+	const currentSlot = slots.getSlotNumber();
+	const forgerKeys = [];
 
 	self.generateDelegateList(
 		currentBlock.height,
@@ -785,7 +787,7 @@ Delegates.prototype.getForgers = function(query, cb) {
 			}
 
 			for (
-				var i = query.offset + 1;
+				let i = query.offset + 1;
 				i <= slots.delegates && i <= query.limit + query.offset;
 				i++
 			) {
@@ -865,7 +867,7 @@ Delegates.prototype.fork = function(block, cause) {
 		cause,
 	});
 
-	var fork = {
+	const fork = {
 		delegatePublicKey: block.generatorPublicKey,
 		blockTimestamp: block.timestamp,
 		blockId: block.id,
@@ -985,9 +987,9 @@ Delegates.prototype.shared = {
 	 * @todo Add description for the return value
 	 */
 	getForgers(filters, cb) {
-		var lastBlock = modules.blocks.lastBlock.get();
-		var lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
-		var currentSlot = slots.getSlotNumber();
+		const lastBlock = modules.blocks.lastBlock.get();
+		const lastBlockSlot = slots.getSlotNumber(lastBlock.timestamp);
+		const currentSlot = slots.getSlotNumber();
 
 		modules.delegates.getForgers(filters, (err, forgers) => {
 			if (err) {

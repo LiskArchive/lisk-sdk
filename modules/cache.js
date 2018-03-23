@@ -14,11 +14,11 @@
 
 'use strict';
 
-var async = require('async');
-var transactionTypes = require('../helpers/transaction_types.js');
+const async = require('async');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 var cacheReady = true;
-var errorCacheDisabled = 'Cache Unavailable';
+var errorCacheDisabled = 'Cache Disabled';
 var client;
 var self;
 var logger;
@@ -36,12 +36,14 @@ var cacheEnabled;
  * @param {Object} scope
  * @todo Add description for the params
  */
-function Cache(cb, scope) {
-	self = this;
-	client = scope.cache.client;
-	logger = scope.logger;
-	cacheEnabled = scope.cache.cacheEnabled;
-	setImmediate(cb, null, self);
+class Cache {
+	constructor(cb, scope) {
+		self = this;
+		client = scope.cache.client;
+		logger = scope.logger;
+		cacheEnabled = scope.cache.cacheEnabled;
+		setImmediate(cb, null, self);
+	}
 }
 
 /**
@@ -51,7 +53,7 @@ function Cache(cb, scope) {
  * @todo Add description for the return value
  */
 Cache.prototype.isConnected = function() {
-	// Use client.ready because this variable is updated on client connection
+	// Use client.ready because this constiable is updated on client connection
 	return cacheEnabled && client && client.ready;
 };
 
@@ -155,8 +157,8 @@ Cache.prototype.removeByPattern = function(pattern, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	var keys;
-	var cursor = 0;
+	let keys;
+	let cursor = 0;
 	async.doWhilst(
 		whilstCb => {
 			client.scan(cursor, 'MATCH', pattern, (err, res) => {
@@ -236,7 +238,6 @@ Cache.prototype.onNewBlock = function(block, cb) {
 		['Cache - onNewBlock', '| Status:', self.isConnected()].join(' ')
 	);
 	if (!self.isReady()) {
-		logger.debug(errorCacheDisabled);
 		return cb(errorCacheDisabled);
 	}
 	async.map(
@@ -284,7 +285,7 @@ Cache.prototype.onFinishRound = function(round, cb) {
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
 	}
-	var pattern = '/api/delegates*';
+	const pattern = '/api/delegates*';
 	self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
@@ -324,9 +325,9 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
 	}
-	var pattern = '/api/delegates*';
+	const pattern = '/api/delegates*';
 
-	var delegateTransaction = transactions.find(
+	const delegateTransaction = transactions.find(
 		transaction =>
 			!!transaction && transaction.type === transactionTypes.DELEGATE
 	);

@@ -152,14 +152,17 @@ class DatabaseSeed {
 			'trs',
 			'transfer',
 		];
-		const promises = [];
-
-		tables.forEach(table => {
-			promises.push(db.query(`TRUNCATE TABLE "${table}" CASCADE`));
-		});
 
 		return db
 			.task('db:seed:reset', t => {
+				const promises = [];
+
+				tables.forEach(table => {
+					promises.push(
+						t.query('TRUNCATE TABLE ${table:name} CASCADE', { table })
+					);
+				});
+
 				return t.batch(promises);
 			})
 			.then(() => {

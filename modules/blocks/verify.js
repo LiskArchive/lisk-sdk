@@ -14,18 +14,18 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var _ = require('lodash');
-var async = require('async');
-var BlockReward = require('../../logic/block_reward.js');
-var constants = require('../../helpers/constants.js');
-var slots = require('../../helpers/slots.js');
-var exceptions = require('../../helpers/exceptions.js');
+const crypto = require('crypto');
+const _ = require('lodash');
+const async = require('async');
+const BlockReward = require('../../logic/block_reward.js');
+const constants = require('../../helpers/constants.js');
+const slots = require('../../helpers/slots.js');
+const exceptions = require('../../helpers/exceptions.js');
 
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.lastNBlockIds = [];
 
@@ -45,19 +45,21 @@ __private.lastNBlockIds = [];
  * @todo Add @param tags
  * @todo Add description for the class
  */
-function Verify(logger, block, transaction, db) {
-	library = {
-		logger,
-		db,
-		logic: {
-			block,
-			transaction,
-		},
-	};
-	self = this;
-	__private.blockReward = new BlockReward();
-	library.logger.trace('Blocks->Verify: Submodule initialized.');
-	return self;
+class Verify {
+	constructor(logger, block, transaction, db) {
+		library = {
+			logger,
+			db,
+			logic: {
+				block,
+				transaction,
+			},
+		};
+		self = this;
+		__private.blockReward = new BlockReward();
+		library.logger.trace('Blocks->Verify: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -78,7 +80,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 			function(waterCb) {
 				try {
 					// Calculate transaction ID
-					// FIXME: Can have poor performance, because of hash cancluation
+					// FIXME: Can have poor performance, because of hash calculation
 					transaction.id = library.logic.transaction.getId(transaction);
 				} catch (e) {
 					return setImmediate(waterCb, e.toString());
@@ -88,13 +90,13 @@ __private.checkTransaction = function(block, transaction, cb) {
 				return setImmediate(waterCb);
 			},
 			function(waterCb) {
-				// Check if transaction is already in database, otherwise fork 2.
+				// Check if transaction is already in database, otherwise fork 2
 				// DATABASE: read only
 				library.logic.transaction.checkConfirmed(transaction, err => {
 					if (err) {
-						// Fork: Transaction already confirmed.
+						// Fork: Transaction already confirmed
 						modules.delegates.fork(block, 2);
-						// Undo the offending transaction.
+						// Undo the offending transaction
 						// DATABASE: write
 						modules.transactions.undoUnconfirmed(transaction, err2 => {
 							modules.transactions.removeUnconfirmedTransaction(transaction.id);
@@ -106,7 +108,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 				});
 			},
 			function(waterCb) {
-				// Get account from database if any (otherwise cold wallet).
+				// Get account from database if any (otherwise cold wallet)
 				// DATABASE: read only
 				modules.accounts.getAccount(
 					{ publicKey: transaction.senderPublicKey },
@@ -114,7 +116,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 				);
 			},
 			function(sender, waterCb) {
-				// Check if transaction id valid against database state (mem_* tables).
+				// Check if transaction id valid against database state (mem_* tables)
 				// DATABASE: read only
 				library.logic.transaction.verify(transaction, sender, waterCb);
 			},
@@ -134,7 +136,6 @@ __private.checkTransaction = function(block, transaction, cb) {
  */
 __private.setHeight = function(block, lastBlock) {
 	block.height = lastBlock.height + 1;
-
 	return block;
 };
 
@@ -150,7 +151,7 @@ __private.setHeight = function(block, lastBlock) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifySignature = function(block, result) {
-	var valid;
+	let valid;
 
 	try {
 		valid = library.logic.block.verifySignature(block);
@@ -180,7 +181,6 @@ __private.verifyPreviousBlock = function(block, result) {
 	if (!block.previousBlock && block.height !== 1) {
 		result.errors.push('Invalid previous block');
 	}
-
 	return result;
 };
 
@@ -234,7 +234,7 @@ __private.verifyVersion = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyReward = function(block, result) {
-	var expectedReward = __private.blockReward.calcReward(block.height);
+	const expectedReward = __private.blockReward.calcReward(block.height);
 
 	if (
 		block.height !== 1 &&
@@ -300,14 +300,14 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
-	var totalAmount = 0;
-	var totalFee = 0;
-	var payloadHash = crypto.createHash('sha256');
-	var appliedTransactions = {};
+	let totalAmount = 0;
+	let totalFee = 0;
+	const payloadHash = crypto.createHash('sha256');
+	const appliedTransactions = {};
 
-	for (var i in block.transactions) {
-		var transaction = block.transactions[i];
-		var bytes;
+	for (const i in block.transactions) {
+		const transaction = block.transactions[i];
+		let bytes;
 
 		try {
 			bytes = library.logic.transaction.getBytes(transaction);
@@ -385,8 +385,8 @@ __private.verifyForkOne = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlot = function(block, lastBlock, result) {
-	var blockSlotNumber = slots.getSlotNumber(block.timestamp);
-	var lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
+	const blockSlotNumber = slots.getSlotNumber(block.timestamp);
+	const lastBlockSlotNumber = slots.getSlotNumber(lastBlock.timestamp);
 
 	if (
 		blockSlotNumber > slots.getSlotNumber() ||
@@ -409,8 +409,8 @@ __private.verifyBlockSlot = function(block, lastBlock, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyBlockSlotWindow = function(block, result) {
-	var currentApplicationSlot = slots.getSlotNumber();
-	var blockSlot = slots.getSlotNumber(block.timestamp);
+	const currentApplicationSlot = slots.getSlotNumber();
+	const blockSlot = slots.getSlotNumber(block.timestamp);
 
 	// Reject block if it's slot is older than constants.blockSlotWindow
 	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
@@ -434,11 +434,11 @@ __private.verifyBlockSlotWindow = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 Verify.prototype.verifyReceipt = function(block) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 
 	block = __private.setHeight(block, lastBlock);
 
-	var result = { verified: false, errors: [] };
+	let result = { verified: false, errors: [] };
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
@@ -473,7 +473,7 @@ Verify.prototype.onBlockchainReady = function() {
 };
 
 /**
- * Maintains __private.lastNBlock variable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
+ * Maintains __private.lastNBlock constiable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
  *
  * @func onNewBlock
  * @param {block} block
@@ -495,11 +495,11 @@ Verify.prototype.onNewBlock = function(block) {
  * @returns {Array} result.errors - Array of validation errors
  */
 Verify.prototype.verifyBlock = function(block) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 
 	block = __private.setHeight(block, lastBlock);
 
-	var result = { verified: false, errors: [] };
+	let result = { verified: false, errors: [] };
 
 	result = __private.verifySignature(block, result);
 	result = __private.verifyPreviousBlock(block, result);
@@ -559,7 +559,7 @@ Verify.prototype.addBlockProperties = function(block) {
  * @returns {Object} Block object reduced
  */
 Verify.prototype.deleteBlockProperties = function(block) {
-	var reducedBlock = JSON.parse(JSON.stringify(block));
+	const reducedBlock = JSON.parse(JSON.stringify(block));
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
 	}
@@ -583,6 +583,175 @@ Verify.prototype.deleteBlockProperties = function(block) {
 		delete reducedBlock.transactions;
 	}
 	return reducedBlock;
+};
+
+/**
+ * Adds block properties.
+ *
+ * @private
+ * @func addBlockProperties
+ * @param {Object} block - Full block
+ * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.addBlockProperties = function(block, broadcast, cb) {
+	if (!broadcast) {
+		try {
+			// Set default properties
+			block = self.addBlockProperties(block);
+		} catch (err) {
+			return setImmediate(cb, err);
+		}
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Validates block schema.
+ *
+ * @private
+ * @func normalizeBlock
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.normalizeBlock = function(block, cb) {
+	try {
+		block = library.logic.block.objectNormalize(block);
+	} catch (err) {
+		return setImmediate(cb, err);
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Verifies block.
+ *
+ * @private
+ * @func verifyBlock
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.verifyBlock = function(block, cb) {
+	// Sanity check of the block, if values are coherent
+	// No access to database
+	var result = self.verifyBlock(block);
+
+	if (!result.verified) {
+		library.logger.error(
+			['Block', block.id, 'verification failed'].join(' '),
+			result.errors[0]
+		);
+		return setImmediate(cb, result.errors[0]);
+	}
+	return setImmediate(cb);
+};
+
+/**
+ * Broadcasts block.
+ *
+ * @private
+ * @func broadcastBlock
+ * @param {Object} block - Full block
+ * @param {boolean} broadcast - Indicator that block needs to be broadcasted
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.broadcastBlock = function(block, broadcast, cb) {
+	if (broadcast) {
+		try {
+			// Delete default properties
+			var reducedBlock = self.deleteBlockProperties(block);
+			modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
+		} catch (err) {
+			return setImmediate(cb, err);
+		}
+	}
+
+	return setImmediate(cb);
+};
+
+/**
+ * Checks if block is in database.
+ *
+ * @private
+ * @func checkExists
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.checkExists = function(block, cb) {
+	// Check if block id is already in the database (very low probability of hash collision)
+	// TODO: In case of hash-collision, to me it would be a special autofork...
+	// DATABASE: read only
+	library.db.blocks
+		.blockExists(block.id)
+		.then(rows => {
+			if (rows) {
+				return setImmediate(
+					cb,
+					['Block', block.id, 'already exists'].join(' ')
+				);
+			}
+			return setImmediate(cb);
+		})
+		.catch(err => {
+			library.logger.error(err);
+			return setImmediate(cb, 'Block#blockExists error');
+		});
+};
+
+/**
+ * Checks if block was generated by the right active delagate.
+ *
+ * @private
+ * @func validateBlockSlot
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.validateBlockSlot = function(block, cb) {
+	// Check if block was generated by the right active delagate. Otherwise, fork 3
+	// DATABASE: Read only to mem_accounts to extract active delegate list
+	modules.delegates.validateBlockSlot(block, err => {
+		if (err) {
+			// Fork: Delegate does not match calculated slot
+			modules.delegates.fork(block, 3);
+			return setImmediate(cb, err);
+		}
+		return setImmediate(cb);
+	});
+};
+
+/**
+ * Checks transactions in block.
+ *
+ * @private
+ * @func checkTransactions
+ * @param {Object} block - Full block
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ */
+__private.checkTransactions = function(block, cb) {
+	// Check against the mem_* tables that we can perform the transactions included in the block
+	async.eachSeries(
+		block.transactions,
+		(transaction, eachSeriesCb) => {
+			__private.checkTransaction(block, transaction, eachSeriesCb);
+		},
+		err => setImmediate(cb, err)
+	);
 };
 
 /**
@@ -610,88 +779,25 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 	async.series(
 		{
 			addBlockProperties(seriesCb) {
-				if (!broadcast) {
-					try {
-						// Set default properties
-						block = self.addBlockProperties(block);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-				}
-
-				return setImmediate(seriesCb);
+				__private.addBlockProperties(block, broadcast, seriesCb);
 			},
 			normalizeBlock(seriesCb) {
-				try {
-					block = library.logic.block.objectNormalize(block);
-				} catch (err) {
-					return setImmediate(seriesCb, err);
-				}
-
-				return setImmediate(seriesCb);
+				__private.normalizeBlock(block, seriesCb);
 			},
 			verifyBlock(seriesCb) {
-				// Sanity check of the block, if values are coherent
-				// No access to database
-				var result = self.verifyBlock(block);
-
-				if (!result.verified) {
-					library.logger.error(
-						['Block', block.id, 'verification failed'].join(' '),
-						result.errors[0]
-					);
-					return setImmediate(seriesCb, result.errors[0]);
-				}
-				return setImmediate(seriesCb);
+				__private.verifyBlock(block, seriesCb);
 			},
 			broadcastBlock(seriesCb) {
-				if (broadcast) {
-					try {
-						// Delete default properties
-						var reducedBlock = self.deleteBlockProperties(block);
-						modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
-					} catch (err) {
-						return setImmediate(seriesCb, err);
-					}
-				}
-
-				return setImmediate(seriesCb);
+				__private.broadcastBlock(block, broadcast, seriesCb);
 			},
 			checkExists(seriesCb) {
-				// Check if block id is already in the database (very low probability of hash collision)
-				// TODO: In case of hash-collision, to me it would be a special autofork...
-				// DATABASE: read only
-				library.db.blocks.blockExists(block.id).then(rows => {
-					if (rows) {
-						return setImmediate(
-							seriesCb,
-							['Block', block.id, 'already exists'].join(' ')
-						);
-					}
-					return setImmediate(seriesCb);
-				});
+				__private.checkExists(block, seriesCb);
 			},
 			validateBlockSlot(seriesCb) {
-				// Check if block was generated by the right active delagate. Otherwise, fork 3
-				// DATABASE: Read only to mem_accounts to extract active delegate list
-				modules.delegates.validateBlockSlot(block, err => {
-					if (err) {
-						// Fork: Delegate does not match calculated slot
-						modules.delegates.fork(block, 3);
-						return setImmediate(seriesCb, err);
-					}
-					return setImmediate(seriesCb);
-				});
+				__private.validateBlockSlot(block, seriesCb);
 			},
 			checkTransactions(seriesCb) {
-				// Check against the mem_* tables that we can perform the transactions included in the block
-				async.eachSeries(
-					block.transactions,
-					(transaction, eachSeriesCb) => {
-						__private.checkTransaction(block, transaction, eachSeriesCb);
-					},
-					err => setImmediate(seriesCb, err)
-				);
+				__private.checkTransactions(block, seriesCb);
 			},
 		},
 		err => {

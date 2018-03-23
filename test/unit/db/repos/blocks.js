@@ -107,23 +107,55 @@ describe('db', () => {
 
 	describe('BlocksRepository', () => {
 		describe('constructor()', () => {
-			it('should assign param and data members properly', done => {
+			it('should assign param and data members properly', () => {
 				expect(db.blocks.db).to.be.eql(db);
 				expect(db.blocks.pgp).to.be.eql(db.$config.pgp);
 				expect(db.blocks.dbTable).to.be.eql('blocks');
 
-				expect(db.blocks.dbFields).to.be.an('array');
-				expect(db.blocks.dbFields).to.have.lengthOf(13);
+				expect(db.blocks.dbFields).to.be.eql([
+					'id',
+					'version',
+					'timestamp',
+					'height',
+					'previousBlock',
+					'numberOfTransactions',
+					'totalAmount',
+					'totalFee',
+					'reward',
+					'payloadLength',
+					'payloadHash',
+					'generatorPublicKey',
+					'blockSignature',
+				]);
 
-				expect(db.blocks.sortFields).to.be.an('array');
-				expect(db.blocks.sortFields).to.have.lengthOf(9);
-
-				// TODO: Need to explore way to rewire an initialized module to fetch private members
-				// expect(db.blocks.cs).to.be.an('object');
-				// expect(db.blocks.cs).to.be.not.empty;
-				// expect(db.blocks.cs).to.have.all.keys(['insert']);
-
-				done();
+				expect(db.blocks.sortFields).to.be.eql([
+					'id',
+					'timestamp',
+					'height',
+					'previousBlock',
+					'totalAmount',
+					'totalFee',
+					'reward',
+					'numberOfTransactions',
+					'generatorPublicKey',
+				]);
+				expect(db.blocks.cs).to.an('object');
+				expect(db.blocks.cs).to.have.all.keys(['insert']);
+				return expect(db.blocks.cs.insert.columns.map(c => c.name)).to.be.eql([
+					'id',
+					'version',
+					'timestamp',
+					'height',
+					'previousBlock',
+					'numberOfTransactions',
+					'totalAmount',
+					'totalFee',
+					'reward',
+					'payloadLength',
+					'payloadHash',
+					'generatorPublicKey',
+					'blockSignature',
+				]);
 			});
 		});
 
@@ -866,6 +898,23 @@ describe('db', () => {
 		});
 
 		describe('save()', () => {
+			it('should use pgp.helpers.insert with correct parameters', function*() {
+				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
+
+				const block = blocksFixtures.Block();
+				yield db.blocks.save(block);
+
+				block.payloadHash = Buffer.from(block.payloadHash, 'hex');
+				block.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
+				block.blockSignature = Buffer.from(block.blockSignature, 'hex');
+				block.reward = block.reward;
+
+				return expect(db.$config.pgp.helpers.insert).to.be.calledWithExactly(
+					block,
+					db.blocks.cs.insert
+				);
+			});
+
 			it('should save a valid block without any error', function*() {
 				sinonSandbox.spy(db, 'none');
 

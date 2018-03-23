@@ -25,16 +25,16 @@ const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const TIMEOUT = 2000;
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 
-const connect = (peer, onDisconnectCb) => {
+const connect = (peer, logger, onDisconnectCb) => {
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer);
 
 	async.parallel([
 		() => {
 			connectSteps.upgradeSocket(peer);
-			connectSteps.registerRPC(peer);
+			connectSteps.registerRPC(peer, logger);
 		},
-		() => connectSteps.registerSocketListeners(peer, onDisconnectCb),
+		() => connectSteps.registerSocketListeners(peer, logger, onDisconnectCb),
 	]);
 	return peer;
 };
@@ -65,7 +65,7 @@ const connectSteps = {
 		return peer;
 	},
 
-	registerRPC: peer => {
+	registerRPC: (peer, logger) => {
 		// Assemble empty RPC entry
 		peer.rpc = {};
 		let wsServer;
@@ -85,6 +85,12 @@ const connectSteps = {
 							? rpcCallback
 							: typeof data === 'function' ? data : () => {};
 					data = data && typeof data !== 'function' ? data : {};
+
+					logger.trace(
+						`[Outbound socket :: call] Peer RPC procedure '${rpcProcedureName}' called with data`,
+						data
+					);
+
 					peer.socket
 						.call(rpcProcedureName, data)
 						.then(res => {
@@ -104,6 +110,10 @@ const connectSteps = {
 			wsServer.endpoints.event,
 			(peerExtendedWithPublish, localHandler, eventProcedureName) => {
 				peerExtendedWithPublish.rpc[eventProcedureName] = data => {
+					logger.trace(
+						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
+						data
+					);
 					peer.socket.emit(eventProcedureName, data);
 				};
 				return peerExtendedWithPublish;
@@ -112,11 +122,20 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: (peer, onDisconnectCb = () => {}) => {
+	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
 		// Unregister all the events just in case
+		peer.socket.off('connect');
 		peer.socket.off('connectAbort');
 		peer.socket.off('error');
 		peer.socket.off('close');
+		peer.socket.off('message');
+
+		peer.socket.on('connect', () => {
+			logger.trace(
+				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
+			);
+		});
+
 		// When handshake process will fail - disconnect
 		// ToDo: Use parameters code and description returned while handshake fails
 		peer.socket.on('connectAbort', () => {
@@ -125,14 +144,32 @@ const connectSteps = {
 				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
 			);
 		});
+
 		// When error on transport layer occurs - disconnect
-		peer.socket.on('error', () => {
+		peer.socket.on('error', err => {
+			logger.debug(
+				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
+			);
 			peer.socket.disconnect();
 		});
 
 		// When WS connection ends - remove peer
-		peer.socket.on('close', () => {
+		peer.socket.on('close', (code, reason) => {
+			logger.debug(
+				`[Outbound socket :: close] Peer connection to ${
+					peer.ip
+				} failed with code ${code} and reason - ${reason}`
+			);
 			onDisconnectCb();
+		});
+
+		// The 'message' event can be used to log all low-level WebSocket messages.
+		peer.socket.on('message', message => {
+			logger.trace(
+				`[Outbound socket :: message] Peer message from ${
+					peer.ip
+				} received - ${message}`
+			);
 		});
 		return peer;
 	},

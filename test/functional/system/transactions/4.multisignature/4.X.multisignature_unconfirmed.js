@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var randomUtil = require('../../../../common/utils/random');
 var Scenarios = require('../../../common/scenarios');
 var transactionTypes = require('../../../../../helpers/transaction_types.js');
@@ -28,11 +28,10 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	var dappTransaction = lisk.dapp.createDapp(
-		scenarios.regular.account.password,
-		null,
-		scenarios.regular.dapp
-	);
+	var dappTransaction = lisk.transaction.createDapp({
+		passphrase: scenarios.regular.account.password,
+		options: scenarios.regular.dapp,
+	});
 	scenarios.regular.dapp.id = dappTransaction.id;
 
 	localCommon.beforeBlock('system_4_X_multisig_unconfirmed', lib => {

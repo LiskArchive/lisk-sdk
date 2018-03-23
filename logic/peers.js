@@ -18,7 +18,7 @@ const _ = require('lodash');
 const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const Peer = require('../logic/peer.js');
 const System = require('../modules/system.js');
-const peersManager = require('../helpers/peers_manager.js');
+const PeersManager = require('../helpers/peers_manager.js');
 
 // Private fields
 const __private = {};
@@ -50,7 +50,7 @@ class Peers {
 		self = this;
 		__private.me = null;
 
-		this.peersManager = peersManager;
+		this.peersManager = new PeersManager(logger);
 
 		return setImmediate(cb, null, this);
 	}
@@ -128,18 +128,25 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	// Update existing peer
 	const update = function(peer) {
 		peer.updated = Date.now();
-
 		const diff = {};
-		_.each(peer, (value, key) => {
+
+		const recentPeer = self.peersManager.getByAddress(peer.string);
+		// Make a copy for logging difference purposes only
+		const recentPeerBeforeUpdate = Object.assign({}, recentPeer);
+
+		recentPeer.update(peer);
+		self.peersManager.add(recentPeer);
+
+		// Create a log after peer update to summarize updated fields
+		_.each(recentPeer, (value, key) => {
 			if (
 				key !== 'updated' &&
-				self.peersManager.getByAddress(peer.string)[key] !== value
+				peer.properties.indexOf(key) !== -1 &&
+				recentPeerBeforeUpdate[key] !== value
 			) {
 				diff[key] = value;
 			}
 		});
-
-		self.peersManager.getByAddress(peer.string).update(peer);
 
 		if (Object.keys(diff).length) {
 			library.logger.debug(`Updated peer ${peer.string}`, diff);

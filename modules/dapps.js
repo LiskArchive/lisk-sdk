@@ -14,21 +14,21 @@
 
 'use strict';
 
-var apiCodes = require('../helpers/api_codes.js');
-var ApiError = require('../helpers/api_error.js');
-var DApp = require('../logic/dapp.js');
-var dappCategories = require('../helpers/dapp_categories.js');
-var InTransfer = require('../logic/in_transfer.js');
-var sortBy = require('../helpers/sort_by.js').sortBy;
-var OutTransfer = require('../logic/out_transfer.js');
-var transactionTypes = require('../helpers/transaction_types.js');
+const apiCodes = require('../helpers/api_codes.js');
+const ApiError = require('../helpers/api_error.js');
+const DApp = require('../logic/dapp.js');
+const dappCategories = require('../helpers/dapp_categories.js');
+const InTransfer = require('../logic/in_transfer.js');
+const sortBy = require('../helpers/sort_by.js').sortBy;
+const OutTransfer = require('../logic/out_transfer.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
-var shared = {};
+let modules;
+let library;
+let self;
+const __private = {};
+const shared = {};
 
 __private.assetTypes = {};
 
@@ -59,53 +59,54 @@ __private.assetTypes = {};
  * @todo Apply node pattern for callbacks: callback always at the end
  * @todo Add 'use strict';
  */
-// Constructor
-function DApps(cb, scope) {
-	library = {
-		logger: scope.logger,
-		db: scope.db,
-		network: scope.network,
-		schema: scope.schema,
-		ed: scope.ed,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			transaction: scope.logic.transaction,
-		},
-		config: {
-			dapp: scope.config.dapp,
-		},
-	};
-	self = this;
+class DApps {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			db: scope.db,
+			network: scope.network,
+			schema: scope.schema,
+			ed: scope.ed,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				transaction: scope.logic.transaction,
+			},
+			config: {
+				dapp: scope.config.dapp,
+			},
+		};
+		self = this;
 
-	__private.assetTypes[
-		transactionTypes.DAPP
-	] = library.logic.transaction.attachAssetType(
-		transactionTypes.DAPP,
-		new DApp(scope.db, scope.logger, scope.schema, scope.network)
-	);
+		__private.assetTypes[
+			transactionTypes.DAPP
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.DAPP,
+			new DApp(scope.db, scope.logger, scope.schema, scope.network)
+		);
 
-	__private.assetTypes[
-		transactionTypes.IN_TRANSFER
-	] = library.logic.transaction.attachAssetType(
-		transactionTypes.IN_TRANSFER,
-		new InTransfer(scope.db, scope.schema)
-	);
+		__private.assetTypes[
+			transactionTypes.IN_TRANSFER
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.IN_TRANSFER,
+			new InTransfer(scope.db, scope.schema)
+		);
 
-	__private.assetTypes[
-		transactionTypes.OUT_TRANSFER
-	] = library.logic.transaction.attachAssetType(
-		transactionTypes.OUT_TRANSFER,
-		new OutTransfer(scope.db, scope.schema, scope.logger)
-	);
+		__private.assetTypes[
+			transactionTypes.OUT_TRANSFER
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.OUT_TRANSFER,
+			new OutTransfer(scope.db, scope.schema, scope.logger)
+		);
 
-	/**
-	 * Receives an 'exit' signal and calls stopDApp for each launched application.
-	 *
-	 * @listens exit
-	 */
-	process.on('exit', () => {});
+		/**
+		 * Receives an 'exit' signal and calls stopDApp for each launched application.
+		 *
+		 * @listens exit
+		 */
+		process.on('exit', () => {});
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 // Private methods
@@ -119,8 +120,8 @@ function DApps(cb, scope) {
  * @returns {setImmediateCallback} cb, err, applications
  */
 __private.list = function(filter, cb) {
-	var params = {};
-	var where = [];
+	const params = {};
+	const where = [];
 
 	if (filter.transactionId) {
 		where.push('"transactionId" = ${transactionId}');
@@ -138,7 +139,7 @@ __private.list = function(filter, cb) {
 	}
 
 	if (filter.category) {
-		var category = dappCategories[filter.category];
+		const category = dappCategories[filter.category];
 
 		if (category != null) {
 			where.push('"category" = ${category}');
@@ -169,7 +170,7 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var sort = sortBy(filter.sort, {
+	const sort = sortBy(filter.sort, {
 		sortFields: library.db.dapps.sortFields,
 	});
 
@@ -198,7 +199,7 @@ __private.list = function(filter, cb) {
 
 // Events
 /**
- * Bounds used scope modules to private modules variable and sets params
+ * Bounds used scope modules to private modules constiable and sets params
  * to private Dapp, InTransfer and OutTransfer instances.
  *
  * @param {Object} scope - Loaded modules
@@ -286,7 +287,7 @@ shared.getGenesis = function(req, cb, tx) {
 			if (rows.length === 0) {
 				return setImmediate(cb, 'Application genesis block not found');
 			}
-			var row = rows[0];
+			const row = rows[0];
 
 			return setImmediate(cb, null, {
 				pointId: row.id,

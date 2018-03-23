@@ -14,19 +14,19 @@
 
 'use strict';
 
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobs_queue.js');
-var slots = require('../helpers/slots.js');
+const async = require('async');
+const constants = require('../helpers/constants.js');
+const jobsQueue = require('../helpers/jobs_queue.js');
+const slots = require('../helpers/slots.js');
 
 require('colors');
 
 // Private fields
-var modules;
-var definitions;
-var library;
-var self;
-var __private = {};
+let modules;
+let definitions;
+let library;
+let self;
+const __private = {};
 
 __private.loaded = false;
 __private.isActive = false;
@@ -54,39 +54,40 @@ __private.retries = 5;
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-// Constructor
-function Loader(cb, scope) {
-	library = {
-		logger: scope.logger,
-		db: scope.db,
-		network: scope.network,
-		schema: scope.schema,
-		sequence: scope.sequence,
-		bus: scope.bus,
-		genesisblock: scope.genesisblock,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			transaction: scope.logic.transaction,
-			account: scope.logic.account,
-			peers: scope.logic.peers,
-		},
-		config: {
-			loading: {
-				verifyOnLoading: scope.config.loading.verifyOnLoading,
-				snapshot: scope.config.loading.snapshot,
+class Loader {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			db: scope.db,
+			network: scope.network,
+			schema: scope.schema,
+			sequence: scope.sequence,
+			bus: scope.bus,
+			genesisblock: scope.genesisblock,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				transaction: scope.logic.transaction,
+				account: scope.logic.account,
+				peers: scope.logic.peers,
 			},
-			syncing: {
-				active: scope.config.syncing.active,
+			config: {
+				loading: {
+					verifyOnLoading: scope.config.loading.verifyOnLoading,
+					snapshot: scope.config.loading.snapshot,
+				},
+				syncing: {
+					active: scope.config.syncing.active,
+				},
 			},
-		},
-	};
-	self = this;
+		};
+		self = this;
 
-	__private.initialize();
-	__private.lastBlock = library.genesisblock;
-	__private.genesisBlock = library.genesisblock;
+		__private.initialize();
+		__private.lastBlock = library.genesisblock;
+		__private.genesisBlock = library.genesisblock;
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 // Private methods
@@ -103,7 +104,7 @@ __private.initialize = function() {
 };
 
 /**
- * Cancels timers based on input parameter and private variable syncIntervalId
+ * Cancels timers based on input parameter and private constiable syncIntervalId
  * or Sync trigger by sending a socket signal with 'loader/sync' and setting
  * next sync with 1000 milliseconds.
  *
@@ -195,7 +196,7 @@ __private.loadSignatures = function(cb) {
 					if (err) {
 						return setImmediate(waterCb, err);
 					}
-					var peer =
+					const peer =
 						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
@@ -259,7 +260,7 @@ __private.loadTransactions = function(cb) {
 					if (err) {
 						return setImmediate(waterCb, err);
 					}
-					var peer =
+					const peer =
 						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
@@ -287,7 +288,7 @@ __private.loadTransactions = function(cb) {
 				async.eachSeries(
 					transactions,
 					(transaction, eachSeriesCb) => {
-						var id = transaction ? transactions.id : 'null';
+						const id = transaction ? transactions.id : 'null';
 
 						try {
 							transaction = library.logic.transaction.objectNormalize(
@@ -366,9 +367,9 @@ __private.loadTransactions = function(cb) {
  * @todo Add @returns tag
  */
 __private.loadBlockChain = function() {
-	var offset = 0;
-	var limit = Number(library.config.loading.loadPerIteration) || 1000;
-	var verify = Boolean(library.config.loading.verifyOnLoading);
+	let offset = 0;
+	const limit = Number(library.config.loading.loadPerIteration) || 1000;
+	let verify = Boolean(library.config.loading.verifyOnLoading);
 
 	/**
 	 * Description of load.
@@ -459,7 +460,7 @@ __private.loadBlockChain = function() {
 	 * @todo Add description for the function
 	 */
 	function checkMemTables(t) {
-		var promises = [
+		const promises = [
 			t.blocks.count(),
 			t.blocks.getGenesisBlock(),
 			t.accounts.countMemAccounts(),
@@ -478,7 +479,7 @@ __private.loadBlockChain = function() {
 	 */
 	function matchGenesisBlock(row) {
 		if (row) {
-			var matched =
+			const matched =
 				row.id === __private.genesisBlock.block.id &&
 				row.payloadHash.toString('hex') ===
 					__private.genesisBlock.block.payloadHash &&
@@ -538,7 +539,7 @@ __private.loadBlockChain = function() {
 			) => {
 				library.logger.info(`Blocks ${blocksCount}`);
 
-				var round = slots.calcRound(blocksCount);
+				const round = slots.calcRound(blocksCount);
 
 				if (blocksCount === 1) {
 					return reload(blocksCount);
@@ -552,13 +553,15 @@ __private.loadBlockChain = function() {
 					return reload(blocksCount, 'Blocks verification enabled');
 				}
 
-				var missed = !memAccountsCount;
+				const missed = !memAccountsCount;
 
 				if (missed) {
 					return reload(blocksCount, 'Detected missed blocks in mem_accounts');
 				}
 
-				var unapplied = getMemRounds.filter(row => row.round !== String(round));
+				const unapplied = getMemRounds.filter(
+					row => row.round !== String(round)
+				);
 
 				if (unapplied.length > 0) {
 					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
@@ -572,7 +575,7 @@ __private.loadBlockChain = function() {
 				}
 
 				function updateMemAccounts(t) {
-					var promises = [
+					const promises = [
 						t.accounts.updateMemAccounts(),
 						t.accounts.getOrphanedMemAccounts(),
 						t.accounts.getDelegates(),
@@ -620,8 +623,8 @@ __private.loadBlockChain = function() {
  * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
-	var errorCount = 0;
-	var loaded = false;
+	let errorCount = 0;
+	let loaded = false;
 
 	self.getNetwork((err, network) => {
 		if (err) {
@@ -630,9 +633,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 		async.whilst(
 			() => !loaded && errorCount < 5,
 			next => {
-				var peer =
+				const peer =
 					network.peers[Math.floor(Math.random() * network.peers.length)];
-				var lastBlock = modules.blocks.lastBlock.get();
+				let lastBlock = modules.blocks.lastBlock.get();
 
 				function loadBlocks() {
 					__private.blocksToSync = peer.height;
@@ -771,7 +774,7 @@ __private.sync = function(cb) {
  * @todo Add description for the params
  */
 Loader.prototype.findGoodPeers = function(peers) {
-	var lastBlockHeight = modules.blocks.lastBlock.get().height;
+	const lastBlockHeight = modules.blocks.lastBlock.get().height;
 	library.logger.trace('Good peers - received', { count: peers.length });
 
 	peers = peers.filter(
@@ -789,16 +792,16 @@ Loader.prototype.findGoodPeers = function(peers) {
 	// Order peers by descending height
 	peers = peers.sort((a, b) => b.height - a.height);
 
-	var histogram = {};
-	var max = 0;
-	var height;
+	const histogram = {};
+	let max = 0;
+	let height;
 
 	// Aggregate height by 2. TODO: To be changed if node latency increases?
-	var aggregation = 2;
+	const aggregation = 2;
 
 	// Perform histogram calculation, together with histogram maximum
-	for (var i in peers) {
-		var val = parseInt(peers[i].height / aggregation) * aggregation;
+	for (const i in peers) {
+		const val = parseInt(peers[i].height / aggregation) * aggregation;
 		histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
 
 		if (histogram[val] > max) {
@@ -845,7 +848,7 @@ Loader.prototype.getNetwork = function(cb) {
 };
 
 /**
- * Checks if private variable syncIntervalId has value.
+ * Checks if private constiable syncIntervalId has value.
  *
  * @returns {boolean} True if syncIntervalId has value
  */
@@ -863,7 +866,7 @@ Loader.prototype.isLoaded = function() {
 };
 
 /**
- * Checks private variable loaded.
+ * Checks private constiable loaded.
  *
  * @returns {boolean} False if not loaded
  */
@@ -922,7 +925,7 @@ Loader.prototype.onPeersReady = function() {
 };
 
 /**
- * Assigns needed modules from scope to private modules variable.
+ * Assigns needed modules from scope to private modules constiable.
  *
  * @param {modules} scope
  * @returns {function} Calling __private.loadBlockChain
@@ -945,14 +948,14 @@ Loader.prototype.onBind = function(scope) {
 };
 
 /**
- * Sets private variable loaded to true.
+ * Sets private constiable loaded to true.
  */
 Loader.prototype.onBlockchainReady = function() {
 	__private.loaded = true;
 };
 
 /**
- * Sets private variable loaded to false.
+ * Sets private constiable loaded to false.
  *
  * @param {function} cb
  * @returns {setImmediateCallback} cb

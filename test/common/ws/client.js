@@ -40,6 +40,12 @@ WSClient.prototype.start = function() {
 			ip: testConfig.address,
 			wsPort: testConfig.wsPort,
 		},
+		{
+			trace() {},
+			log() {},
+			debug() {},
+			error() {},
+		},
 		this.stop.bind(this)
 	);
 	// Emit random message to initialize connection

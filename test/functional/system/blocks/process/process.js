@@ -450,30 +450,4 @@ describe('system test (blocks) - process', () => {
 			});
 		});
 	});
-
-	describe('loadBlocksFromPeer()', () => {
-		it('should be ok');
-	});
-
-	describe('generateBlock()', () => {
-		it('should be ok');
-	});
-
-	describe('onReceiveBlock()', () => {
-		describe('calling receiveBlock()', () => {
-			it('should be ok');
-		});
-
-		describe('calling receiveForkOne()', () => {
-			it('should be ok');
-		});
-
-		describe('calling receiveForkFive()', () => {
-			it('should be ok');
-		});
-	});
-
-	describe('onBind()', () => {
-		it('should be ok');
-	});
 });
