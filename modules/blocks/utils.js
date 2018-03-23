@@ -122,21 +122,26 @@ Utils.prototype.readDbRows = function(rows) {
  * @param {Object} filter.limit - Limit blocks to amount
  * @param {Object} filter.lastId - ID of block to begin with
  * @param {function} cb - Callback function
+ * @param {Object} tx - database transaction
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.rows - List of normalized blocks
  */
-Utils.prototype.loadBlocksPart = function(filter, cb) {
-	self.loadBlocksData(filter, (err, rows) => {
-		let blocks;
+Utils.prototype.loadBlocksPart = function(filter, cb, tx) {
+	self.loadBlocksData(
+		filter,
+		(err, rows) => {
+			let blocks;
 
-		if (!err) {
-			// Normalize list of blocks
-			blocks = self.readDbRows(rows);
-		}
+			if (!err) {
+				// Normalize list of blocks
+				blocks = self.readDbRows(rows);
+			}
 
-		return setImmediate(cb, err, blocks);
-	});
+			return setImmediate(cb, err, blocks);
+		},
+		tx
+	);
 };
 
 /**
@@ -258,11 +263,12 @@ Utils.prototype.getIdSequence = function(height, cb) {
  * @param {Object} filter.limit - Limit blocks to amount
  * @param {Object} filter.lastId - ID of block to begin with
  * @param {function} cb - Callback function
+ * @param {Object} tx - database transaction
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.rows - List of blocks
  */
-Utils.prototype.loadBlocksData = function(filter, cb) {
+Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	const params = { limit: filter.limit || 1 };
 
 	// FIXME: filter.id is not used
@@ -275,7 +281,7 @@ Utils.prototype.loadBlocksData = function(filter, cb) {
 	}
 
 	// Get height of block with supplied ID
-	library.db.blocks
+	(tx || library.db).blocks
 		.getHeightByLastId(filter.lastId || null)
 		.then(rows => {
 			const height = rows.length ? rows[0].height : 0;
@@ -287,7 +293,7 @@ Utils.prototype.loadBlocksData = function(filter, cb) {
 
 			// Retrieve blocks from database
 			// FIXME: That SQL query have mess logic, need to be refactored
-			library.db.blocks
+			(tx || library.db).blocks
 				.loadBlocksData(Object.assign({}, filter, params))
 				.then(rows => setImmediate(cb, null, rows));
 		})

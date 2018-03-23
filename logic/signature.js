@@ -170,14 +170,15 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Signature.prototype.undo = function(transaction, block, sender, cb) {
+Signature.prototype.undo = function(transaction, block, sender, cb, tx) {
 	modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
 			secondSignature: 0,
 			secondPublicKey: null,
 		},
-		cb
+		cb,
+		tx
 	);
 };
 
