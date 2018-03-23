@@ -129,7 +129,8 @@ function Config(packageJson) {
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
-		if (!NETHASHES.includes(configData.nethash)) {
+		const index = NETHASHES.indexOf(configData.nethash);
+		if (index !== -1) {
 			console.info('Forced forging disabled for nethash', configData.nethash);
 			configData.forging.force = false;
 		}

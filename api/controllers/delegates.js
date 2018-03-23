@@ -17,7 +17,7 @@
 var _ = require('lodash');
 var bignum = require('../../helpers/bignum.js');
 var swaggerHelper = require('../../helpers/swagger');
-const { EPOC_TIME } = require('../../helpers/constants.js');
+const { EPOCH_TIME } = require('../../helpers/constants.js');
 
 // Private Fields
 var modules;
@@ -129,7 +129,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 
 	var filters = {
 		address: params.address.value,
-		start: params.fromTimestamp.value || EPOC_TIME.getTime(),
+		start: params.fromTimestamp.value || EPOCH_TIME.getTime(),
 		end: params.toTimestamp.value || Date.now(),
 	};
 
