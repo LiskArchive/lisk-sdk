@@ -15,28 +15,12 @@
  */
 import {
 	deAlias,
-	prependMinusToPublicKeys,
-	prependPlusToPublicKeys,
 	validateAddress,
 	validateAmount,
 	validateLifetime,
 	validateMinimum,
 	validatePublicKeys,
 } from '../../../src/utils/helpers';
-
-export function prependMinusToPublicKeysIsCalledWithThePublicKeys() {
-	const { publicKeys } = this.test.ctx;
-	const returnValue = prependMinusToPublicKeys(publicKeys);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
-}
-
-export function prependPlusToPublicKeysIsCalledWithThePublicKeys() {
-	const { publicKeys } = this.test.ctx;
-	const returnValue = prependPlusToPublicKeys(publicKeys);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
-}
 
 export function validatePublicKeysIsCalledWithThePublicKeys() {
 	const { publicKeys } = this.test.ctx;

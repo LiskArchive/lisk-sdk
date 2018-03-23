@@ -40,12 +40,6 @@ export const validatePublicKeys = publicKeys =>
 		return publicKey;
 	});
 
-export const prependPlusToPublicKeys = publicKeys =>
-	publicKeys.map(publicKey => `+${publicKey}`);
-
-export const prependMinusToPublicKeys = publicKeys =>
-	publicKeys.map(publicKey => `-${publicKey}`);
-
 const regExpAddress = /^\d{1,21}[L|l]$/;
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
 

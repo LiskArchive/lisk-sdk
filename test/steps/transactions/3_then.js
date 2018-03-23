@@ -15,36 +15,28 @@
  */
 import transactions from '../../../src/utils/transactions';
 import { getNumbers, getTransactionCreatorFunctionNameByType } from '../utils';
-import {
-	prependPlusToPublicKeys,
-	prependMinusToPublicKeys,
-} from '../../../src/utils/helpers';
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, secondPassphrase, unvotePublicKeys } = this.test.ctx;
-	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
-		delegates: unvotes,
+		delegates: unvotePublicKeys,
 		secondPassphrase,
 	});
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, secondPassphrase, votePublicKeys } = this.test.ctx;
-	const votes = prependPlusToPublicKeys(votePublicKeys);
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
-		delegates: votes,
+		delegates: votePublicKeys,
 		secondPassphrase,
 	});
 }
 
 export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
 	const { passphrase, votePublicKeys, unvotePublicKeys } = this.test.ctx;
-	const votes = prependPlusToPublicKeys(votePublicKeys);
-	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
-	const allVotes = [...votes, ...unvotes];
+	const allVotes = [...votePublicKeys, ...unvotePublicKeys];
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
 		delegates: allVotes,
@@ -54,30 +46,27 @@ export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicK
 
 export function itShouldCreateACastVotesTransactionWithThePublicKeysPrependedWithAPlus() {
 	const { votePublicKeys } = this.test.ctx;
-	const votes = prependPlusToPublicKeys(votePublicKeys);
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase: null,
-		delegates: votes,
+		delegates: votePublicKeys,
 		secondPassphrase: null,
 	});
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAMinus() {
 	const { passphrase, unvotePublicKeys } = this.test.ctx;
-	const unvotes = prependMinusToPublicKeys(unvotePublicKeys);
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
-		delegates: unvotes,
+		delegates: unvotePublicKeys,
 		secondPassphrase: null,
 	});
 }
 
 export function itShouldCreateACastVotesTransactionWithThePassphraseAndThePublicKeysPrependedWithAPlus() {
 	const { passphrase, votePublicKeys } = this.test.ctx;
-	const votes = prependPlusToPublicKeys(votePublicKeys);
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
-		delegates: votes,
+		delegates: votePublicKeys,
 		secondPassphrase: null,
 	});
 }

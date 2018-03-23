@@ -16,12 +16,7 @@
 import { ValidationError } from '../utils/error';
 import getInputsFromSources from '../utils/input';
 import { getData } from '../utils/input/utils';
-import {
-	createCommand,
-	prependPlusToPublicKeys,
-	prependMinusToPublicKeys,
-	validatePublicKeys,
-} from '../utils/helpers';
+import { createCommand, validatePublicKeys } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
 
@@ -75,19 +70,12 @@ export const actionCreator = vorpal => async ({ options }) => {
 
 	const validatedVotes = processedVotesInput
 		? validatePublicKeys(processVotes(processedVotesInput))
-		: null;
+		: [];
 	const validatedUnvotes = processedUnvotesInput
 		? validatePublicKeys(processVotes(processedUnvotesInput))
-		: null;
-
-	const prependedVotes = processedVotesInput
-		? prependPlusToPublicKeys(validatedVotes)
-		: [];
-	const prependedUnvotes = processedUnvotesInput
-		? prependMinusToPublicKeys(validatedUnvotes)
 		: [];
 
-	const allVotes = [...prependedVotes, ...prependedUnvotes];
+	const allVotes = [...validatedVotes, ...validatedUnvotes];
 	const processFunction = processInputs(allVotes);
 
 	return signature === false
