@@ -16,7 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
-const { FEES, MAX_VOTES_PER_TXS } = require('../helpers/constants.js');
+const { FEES, MAX_VOTES_PER_TRANSACTION } = require('../helpers/constants.js');
 const exceptions = require('../helpers/exceptions.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
@@ -159,13 +159,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 
 	if (
 		transaction.asset.votes &&
-		transaction.asset.votes.length > MAX_VOTES_PER_TXS
+		transaction.asset.votes.length > MAX_VOTES_PER_TRANSACTION
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Voting limit exceeded. Maximum is',
-				MAX_VOTES_PER_TXS,
+				MAX_VOTES_PER_TRANSACTION,
 				'votes per transaction',
 			].join(' ')
 		);
@@ -399,7 +399,7 @@ Vote.prototype.schema = {
 		votes: {
 			type: 'array',
 			minItems: 1,
-			maxItems: MAX_VOTES_PER_TXS,
+			maxItems: MAX_VOTES_PER_TRANSACTION,
 			uniqueItems: true,
 		},
 	},

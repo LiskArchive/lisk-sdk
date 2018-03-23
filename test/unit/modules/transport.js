@@ -20,7 +20,10 @@ var chai = require('chai');
 var randomstring = require('randomstring');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
-const { MAX_PEERS, MAX_SHARED_TXS } = require('../../../helpers/constants');
+const {
+	MAX_PEERS,
+	MAX_SHARED_TRANSACTIONS,
+} = require('../../../helpers/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var Block = require('../../fixtures/blocks').Block;
@@ -2161,11 +2164,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TXS', () => {
+				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', () => {
 					return expect(
 						modules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
-							MAX_SHARED_TXS
+							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true;
 				});
@@ -2242,11 +2245,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TXS', () => {
+				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', () => {
 					return expect(
 						modules.transactions.getMergedTransactionList.calledWith(
 							true,
-							MAX_SHARED_TXS
+							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true;
 				});

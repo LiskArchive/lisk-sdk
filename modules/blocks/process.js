@@ -16,7 +16,7 @@
 
 var _ = require('lodash');
 var async = require('async');
-const { MAX_TXS_PER_BLOCK } = require('../../helpers/constants.js');
+const { MAX_TRANSACTIONS_PER_BLOCK } = require('../../helpers/constants.js');
 var slots = require('../../helpers/slots.js');
 
 var modules;
@@ -550,7 +550,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
 	var transactions = modules.transactions.getUnconfirmedTransactionList(
 		false,
-		MAX_TXS_PER_BLOCK
+		MAX_TRANSACTIONS_PER_BLOCK
 	);
 	var ready = [];
 

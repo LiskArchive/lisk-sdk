@@ -24,16 +24,16 @@ const {
 	MAX_AMOUNT,
 	MAX_PAYLOAD_LENGTH,
 	MAX_PEERS,
-	MAX_SHARED_TXS,
-	MAX_TXS_PER_BLOCK,
-	MAX_VOTES_PER_TXS,
+	MAX_SHARED_TRANSACTIONS,
+	MAX_TRANSACTIONS_PER_BLOCK,
+	MAX_VOTES_PER_TRANSACTION,
 	MAX_VOTES_PER_ACCOUNT,
 	MIN_BROADHASH_CONSENSUS,
 	MULTISIG_CONSTRAINTS,
 	NETHASHES,
 	REWARDS,
 	TOTAL_AMOUNT,
-	UNCONFIRMED_TXS_TIMEOUT,
+	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } = require('../../../helpers/constants');
 
 describe('constants', () => {
@@ -134,25 +134,25 @@ describe('constants', () => {
 		});
 	});
 
-	describe('MAX_SHARED_TXS', () => {
-		it(`should be a integer and equals ${MAX_SHARED_TXS}`, () => {
-			return expect(MAX_SHARED_TXS)
+	describe('MAX_SHARED_TRANSACTIONS', () => {
+		it(`should be a integer and equals ${MAX_SHARED_TRANSACTIONS}`, () => {
+			return expect(MAX_SHARED_TRANSACTIONS)
 				.to.be.a('number')
 				.that.eql(100);
 		});
 	});
 
-	describe('MAX_TXS_PER_BLOCK', () => {
-		it(`should be a integer and equals ${MAX_TXS_PER_BLOCK}`, () => {
-			return expect(MAX_TXS_PER_BLOCK)
+	describe('MAX_TRANSACTIONS_PER_BLOCK', () => {
+		it(`should be a integer and equals ${MAX_TRANSACTIONS_PER_BLOCK}`, () => {
+			return expect(MAX_TRANSACTIONS_PER_BLOCK)
 				.to.be.a('number')
 				.that.eql(25);
 		});
 	});
 
-	describe('MAX_VOTES_PER_TXS', () => {
-		it(`should be a integer and equals ${MAX_VOTES_PER_TXS}`, () => {
-			return expect(MAX_VOTES_PER_TXS)
+	describe('MAX_VOTES_PER_TRANSACTION', () => {
+		it(`should be a integer and equals ${MAX_VOTES_PER_TRANSACTION}`, () => {
+			return expect(MAX_VOTES_PER_TRANSACTION)
 				.to.be.a('number')
 				.that.eql(33);
 		});
@@ -228,9 +228,9 @@ describe('constants', () => {
 		});
 	});
 
-	describe('UNCONFIRMED_TXS_TIMEOUT', () => {
-		it(`should be a integer and equals ${UNCONFIRMED_TXS_TIMEOUT}`, () => {
-			return expect(UNCONFIRMED_TXS_TIMEOUT)
+	describe('UNCONFIRMED_TRANSACTION_TIMEOUT', () => {
+		it(`should be a integer and equals ${UNCONFIRMED_TRANSACTION_TIMEOUT}`, () => {
+			return expect(UNCONFIRMED_TRANSACTION_TIMEOUT)
 				.to.be.a('number')
 				.that.eql(10800);
 		});

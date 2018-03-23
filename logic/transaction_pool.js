@@ -17,9 +17,9 @@
 const async = require('async');
 const config = require('../config.json');
 const {
-	MAX_TXS_PER_BLOCK,
-	MAX_SHARED_TXS,
-	UNCONFIRMED_TXS_TIMEOUT,
+	MAX_TRANSACTIONS_PER_BLOCK,
+	MAX_SHARED_TRANSACTIONS,
+	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } = require('../helpers/constants.js');
 // eslint-disable-next-line  prefer-const
 let jobsQueue = require('../helpers/jobs_queue.js');
@@ -272,21 +272,21 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
  * @todo Limit is only implemented with queued transactions, reverse param is unused
  */
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
-	const minLimit = MAX_TXS_PER_BLOCK + 2;
+	const minLimit = MAX_TRANSACTIONS_PER_BLOCK + 2;
 
-	if (limit <= minLimit || limit > MAX_SHARED_TXS) {
+	if (limit <= minLimit || limit > MAX_SHARED_TRANSACTIONS) {
 		limit = minLimit;
 	}
 
 	const unconfirmed = self.getUnconfirmedTransactionList(
 		false,
-		MAX_TXS_PER_BLOCK
+		MAX_TRANSACTIONS_PER_BLOCK
 	);
 	limit -= unconfirmed.length;
 
 	const multisignatures = self.getMultisignatureTransactionList(
 		false,
-		MAX_TXS_PER_BLOCK
+		MAX_TRANSACTIONS_PER_BLOCK
 	);
 	limit -= multisignatures.length;
 
@@ -725,20 +725,20 @@ TransactionPool.prototype.fillPool = function(cb) {
 	const unconfirmedCount = self.countUnconfirmed();
 	library.logger.debug(`Transaction pool size: ${unconfirmedCount}`);
 
-	if (unconfirmedCount >= MAX_TXS_PER_BLOCK) {
+	if (unconfirmedCount >= MAX_TRANSACTIONS_PER_BLOCK) {
 		return setImmediate(cb);
 	}
 	let spare = 0;
 	const multisignaturesLimit = 5;
 
-	spare = MAX_TXS_PER_BLOCK - unconfirmedCount;
+	spare = MAX_TRANSACTIONS_PER_BLOCK - unconfirmedCount;
 	const spareMulti = spare >= multisignaturesLimit ? multisignaturesLimit : 0;
 	const multisignatures = self
 		.getMultisignatureTransactionList(true, multisignaturesLimit, true)
 		.slice(0, spareMulti);
 	spare = Math.abs(spare - multisignatures.length);
 	const queuedTransactions = self
-		.getQueuedTransactionList(true, MAX_TXS_PER_BLOCK)
+		.getQueuedTransactionList(true, MAX_TRANSACTIONS_PER_BLOCK)
 		.slice(0, spare);
 
 	return __private.applyUnconfirmedList(
@@ -959,9 +959,9 @@ __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
 		return transaction.asset.multisignature.lifetime * 3600;
 	} else if (Array.isArray(transaction.signatures)) {
-		return UNCONFIRMED_TXS_TIMEOUT * 8;
+		return UNCONFIRMED_TRANSACTION_TIMEOUT * 8;
 	}
-	return UNCONFIRMED_TXS_TIMEOUT;
+	return UNCONFIRMED_TRANSACTION_TIMEOUT;
 };
 
 /**

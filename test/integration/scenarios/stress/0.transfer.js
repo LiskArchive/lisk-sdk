@@ -18,7 +18,7 @@ var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
-const { MAX_TXS_PER_BLOCK } = require('../../../../helpers/constants');
+const { MAX_TRANSACTIONS_PER_BLOCK } = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var sendTransactionsPromise = require('../../../common/helpers/api')
@@ -79,7 +79,7 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(maximum / MAX_TXS_PER_BLOCK);
+				var blocksToWait = Math.ceil(maximum / MAX_TRANSACTIONS_PER_BLOCK);
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});
@@ -103,7 +103,7 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(maximum / MAX_TXS_PER_BLOCK);
+				var blocksToWait = Math.ceil(maximum / MAX_TRANSACTIONS_PER_BLOCK);
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});

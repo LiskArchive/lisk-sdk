@@ -19,7 +19,7 @@ var Broadcaster = require('../logic/broadcaster.js');
 const {
 	MIN_BROADHASH_CONSENSUS,
 	MAX_PEERS,
-	MAX_SHARED_TXS,
+	MAX_SHARED_TRANSACTIONS,
 } = require('../helpers/constants.js');
 var failureCodes = require('../api/ws/rpc/failure_codes');
 var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
@@ -683,7 +683,7 @@ Transport.prototype.shared = {
 	getSignatures(req, cb) {
 		var transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			MAX_SHARED_TXS
+			MAX_SHARED_TRANSACTIONS
 		);
 		var signatures = [];
 
@@ -712,7 +712,7 @@ Transport.prototype.shared = {
 	getTransactions(query, cb) {
 		var transactions = modules.transactions.getMergedTransactionList(
 			true,
-			MAX_SHARED_TXS
+			MAX_SHARED_TRANSACTIONS
 		);
 		return setImmediate(cb, null, {
 			success: true,

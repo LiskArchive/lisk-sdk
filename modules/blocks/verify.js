@@ -21,7 +21,7 @@ var BlockReward = require('../../logic/block_reward.js');
 const {
 	BLOCK_SLOT_WINDOW,
 	MAX_PAYLOAD_LENGTH,
-	MAX_TXS_PER_BLOCK,
+	MAX_TRANSACTIONS_PER_BLOCK,
 } = require('../../helpers/constants.js');
 var slots = require('../../helpers/slots.js');
 var exceptions = require('../../helpers/exceptions.js');
@@ -298,7 +298,7 @@ __private.verifyPayload = function(block, result) {
 		);
 	}
 
-	if (block.transactions.length > MAX_TXS_PER_BLOCK) {
+	if (block.transactions.length > MAX_TRANSACTIONS_PER_BLOCK) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
