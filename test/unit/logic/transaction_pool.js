@@ -693,7 +693,7 @@ describe('transactionPool', () => {
 			}).to.throw();
 		});
 
-		it('should return transaction pool is full when bundled is greater than maxTxsPerQueue', done => {
+		it('should return transaction pool is full when bundled is greater than maxTransactionsPerQueue', done => {
 			const transaction = {
 				id: '131123423423L',
 				bundled: true,
@@ -714,7 +714,7 @@ describe('transactionPool', () => {
 				done();
 			});
 
-			it('should return error multisignature transactionPool is greater than maxTxsPerQueue', done => {
+			it('should return error multisignature transactionPool is greater than maxTransactionsPerQueue', done => {
 				const transaction = {
 					id: '131992423L',
 					bundled: false,
@@ -1254,7 +1254,7 @@ describe('transactionPool', () => {
 			return resetStates();
 		});
 
-		it('should return countUnconfirmed is greater than maxTxsPerBlock', done => {
+		it('should return countUnconfirmed is greater than maxTransactionsPerBlock', done => {
 			const unconfirmedCount = 1001;
 			loaderStub.syncing.returns(false);
 			transactionPool.countUnconfirmed = sinonSandbox
