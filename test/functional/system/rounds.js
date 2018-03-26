@@ -291,7 +291,7 @@ describe('rounds', () => {
 			const found = _.find(accounts, {
 				publicKey: Buffer.from(delegate.dependentId, 'hex'),
 			});
-			expect(found).to.be.an('object');
+
 			_.each(delegate.array_agg, voter => {
 				const found = _.find(accounts, {
 					address: voter,
