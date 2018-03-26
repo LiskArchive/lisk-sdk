@@ -307,16 +307,22 @@ describe('rounds', () => {
 	function applyOutsiders(_accounts, delegatesList, blocks) {
 		const accounts = _.cloneDeep(_accounts);
 
-		_.each(delegatesList, publicKey => {
-			const found = _.find(blocks, {
-				generatorPublicKey: Buffer.from(publicKey, 'hex'),
-			});
+		// Get all public keys of delegates that forged blocks in current round
+		const blockGeneratorsPublicKeys = blocks.map(b =>
+			b.generatorPublicKey.toString('hex')
+		);
+		// Get public keys of delegates who were expected to forge in current round but they didn't
+		const roundOutsidersList = _.difference(
+			delegatesList,
+			blockGeneratorsPublicKeys
+		);
+
+		// Increase missed blocks counter for every outsider
+		roundOutsidersList.forEach(publicKey => {
 			const account = _.find(accounts, {
 				publicKey: Buffer.from(publicKey, 'hex'),
 			});
-			if (!found) {
-				account.missedBlocks += 1;
-			}
+			account.missedBlocks += 1;
 		});
 
 		return accounts;
