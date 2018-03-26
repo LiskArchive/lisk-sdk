@@ -42,9 +42,11 @@ export default class APIResource {
 			.then(res => {
 				if (res.status >= 300) {
 					if (res.body && res.body.message) {
-						throw new Error(res.body.message);
+						throw new Error(`Status ${res.status} : ${res.body.message}`);
 					}
-					throw new Error('An unknown error has occurred.');
+					throw new Error(
+						`Status ${res.status} : An unknown error has occurred.`,
+					);
 				}
 				return res.body;
 			});

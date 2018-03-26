@@ -116,30 +116,36 @@ describe('API resource module', () => {
 
 		describe('when response status is greater than 300', () => {
 			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
+				const statusCode = 300;
 				popsicleStub.returns({
 					use: () =>
 						Promise.resolve({
-							status: 300,
+							status: statusCode,
 						}),
 				});
 				return resource.request(defaultRequest, true).catch(err => {
-					return expect(err.message).to.equal('An unknown error has occurred.');
+					return expect(err.message).to.equal(
+						`Status ${statusCode} : An unknown error has occurred.`,
+					);
 				});
 			});
 
 			it('should reject with error message from server if message is supplied', () => {
 				const serverErrorMessage = 'validation error';
+				const statusCode = 300;
 				popsicleStub.returns({
 					use: () =>
 						Promise.resolve({
-							status: 300,
+							status: statusCode,
 							body: {
 								message: serverErrorMessage,
 							},
 						}),
 				});
 				return resource.request(defaultRequest, true).catch(err => {
-					return expect(err.message).to.eql(serverErrorMessage);
+					return expect(err.message).to.eql(
+						`Status ${statusCode} : ${serverErrorMessage}`,
+					);
 				});
 			});
 
