@@ -1214,6 +1214,7 @@ describe('rounds', () => {
 				return expect(lastBlock.height).to.equal(99);
 			});
 
+			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1782 is closed
 			// eslint-disable-next-line
 			it.skip('transactions from deleted block should be added back to transaction pool', done => {
 				const transactionPool = library.rewiredModules.transactions.__get__(
