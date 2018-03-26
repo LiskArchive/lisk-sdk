@@ -1166,6 +1166,7 @@ describe('rounds', () => {
 				).to.eventually.deep.equal({});
 			});
 
+			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1781 is closed
 			// eslint-disable-next-line
 			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
 				return getMemAccounts().then(_accounts => {
