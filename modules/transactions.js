@@ -582,9 +582,9 @@ Transactions.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Transactions.prototype.undo = function(transaction, block, sender, cb) {
+Transactions.prototype.undo = function(transaction, block, sender, cb, tx) {
 	library.logger.debug('Undoing confirmed transaction', transaction.id);
-	library.logic.transaction.undo(transaction, block, sender, cb);
+	library.logic.transaction.undo(transaction, block, sender, cb, tx);
 };
 
 /**

@@ -236,7 +236,7 @@ OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
+OutTransfer.prototype.undo = function(transaction, block, sender, cb, tx) {
 	__private.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = true;
@@ -255,9 +255,11 @@ OutTransfer.prototype.undo = function(transaction, block, sender, cb) {
 					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
-				err => setImmediate(cb, err)
+				err => setImmediate(cb, err),
+				tx
 			);
-		}
+		},
+		tx
 	);
 };
 
