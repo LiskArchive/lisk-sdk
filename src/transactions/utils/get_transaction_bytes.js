@@ -83,8 +83,10 @@ export const getAssetDataForCreateDappTransaction = ({ dapp }) => {
 	const { name, description, tags, link, icon, type, category } = dapp;
 	const nameBuffer = Buffer.from(name, 'utf8');
 	const linkBuffer = Buffer.from(link, 'utf8');
-	const typeBuffer = Buffer.alloc(4, type);
-	const categoryBuffer = Buffer.alloc(4, category);
+	const typeBuffer = Buffer.alloc(4);
+	typeBuffer.writeIntLE(type, 0);
+	const categoryBuffer = Buffer.alloc(4);
+	categoryBuffer.writeIntLE(category, 0);
 
 	const descriptionBuffer = description
 		? Buffer.from(description, 'utf8')
