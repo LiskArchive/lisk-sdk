@@ -16,7 +16,7 @@
 
 const path = require('path');
 const async = require('async');
-const elements = require('lisk-js');
+const elements = require('lisk-js').default;
 const Promise = require('bluebird');
 const QueryFile = require('pg-promise').QueryFile;
 const constants = require('../../../helpers/constants');
@@ -986,11 +986,11 @@ describe('rounds', () => {
 			const transactions = [];
 
 			before(done => {
-				const transaction = elements.transaction.createTransaction(
-					randomUtil.account().address,
-					randomUtil.number(100000000, 1000000000),
-					accountsFixtures.genesis.password
-				);
+				const transaction = elements.transaction.transfer({
+					recipientId: randomUtil.account().address,
+					amount: randomUtil.number(100000000, 1000000000),
+					passphrase: accountsFixtures.genesis.password,
+				});
 				transactions.push(transaction);
 				done();
 			});
@@ -1005,11 +1005,11 @@ describe('rounds', () => {
 				const transactionsPerBlock = 25;
 
 				for (let i = transactionsPerBlock - 1; i >= 0; i--) {
-					const transaction = elements.transaction.createTransaction(
-						randomUtil.account().address,
-						randomUtil.number(100000000, 1000000000),
-						accountsFixtures.genesis.password
-					);
+					const transaction = elements.transaction.transfer({
+						recipientId: randomUtil.account().address,
+						amount: randomUtil.number(100000000, 1000000000),
+						passphrase: accountsFixtures.genesis.password,
+					});
 					transactions.push(transaction);
 				}
 				done();
@@ -1028,11 +1028,11 @@ describe('rounds', () => {
 					++blocksProcessed;
 					const transactions = [];
 					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
-						const transaction = elements.transaction.createTransaction(
-							randomUtil.account().address,
-							randomUtil.number(100000000, 1000000000),
-							accountsFixtures.genesis.password
-						);
+						const transaction = elements.transaction.transfer({
+							recipientId: randomUtil.account().address,
+							amount: randomUtil.number(100000000, 1000000000),
+							passphrase: accountsFixtures.genesis.password,
+						});
 						transactions.push(transaction);
 					}
 
@@ -1054,11 +1054,11 @@ describe('rounds', () => {
 			const transactions = [];
 
 			before(() => {
-				const transaction = elements.transaction.createTransaction(
-					randomUtil.account().address,
-					randomUtil.number(100000000, 1000000000),
-					accountsFixtures.genesis.password
-				);
+				const transaction = elements.transaction.transfer({
+					recipientId: randomUtil.account().address,
+					amount: randomUtil.number(100000000, 1000000000),
+					passphrase: accountsFixtures.genesis.password,
+				});
 				transactions.push(transaction);
 
 				return getMemAccounts().then(_accounts => {
@@ -1194,10 +1194,10 @@ describe('rounds', () => {
 					lastBlockForger = delegatePublicKey;
 
 					// Create unvote transaction
-					const transaction = elements.vote.createVote(
-						accountsFixtures.genesis.password,
-						[`-${lastBlockForger}`]
-					);
+					const transaction = elements.transaction.castVotes({
+						passphrase: accountsFixtures.genesis.password,
+						unvotes: [lastBlockForger],
+					});
 					transactions.push(transaction);
 
 					lastBlock = library.modules.blocks.lastBlock.get();
@@ -1326,24 +1326,25 @@ describe('rounds', () => {
 					tmpAccount = randomUtil.account();
 
 					// Create transfer transaction (fund new account)
-					let transaction = elements.transaction.createTransaction(
-						tmpAccount.address,
-						5000000000,
-						accountsFixtures.genesis.password
-					);
+					let transaction = elements.transaction.transfer({
+						recipientId: tmpAccount.address,
+						amount: 5000000000,
+						passphrase: accountsFixtures.genesis.password,
+					});
 					transactions.transfer.push(transaction);
 
 					// Create register delegate transaction
-					transaction = elements.delegate.createDelegate(
-						tmpAccount.password,
-						'my_little_delegate'
-					);
+					transaction = elements.transaction.registerDelegate({
+						passphrase: tmpAccount.password,
+						username: 'my_little_delegate',
+					});
 					transactions.delegate.push(transaction);
 
-					transaction = elements.vote.createVote(
-						accountsFixtures.genesis.password,
-						[`-${lastBlockForger}`, `+${tmpAccount.publicKey}`]
-					);
+					transaction = elements.transaction.castVotes({
+						passphrase: accountsFixtures.genesis.password,
+						unvotes: [lastBlockForger],
+						votes: [tmpAccount.publicKey],
+					});
 					transactions.vote.push(transaction);
 
 					// Delete two blocks more
@@ -1478,11 +1479,11 @@ describe('rounds', () => {
 						++blocksProcessed;
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
-							const transaction = elements.transaction.createTransaction(
-								randomUtil.account().address,
-								randomUtil.number(100000000, 1000000000),
-								accountsFixtures.genesis.password
-							);
+							const transaction = elements.transaction.transfer({
+								recipientId: randomUtil.account().address,
+								amount: randomUtil.number(100000000, 1000000000),
+								passphrase: accountsFixtures.genesis.password,
+							});
 							transactions.push(transaction);
 						}
 
@@ -1533,11 +1534,11 @@ describe('rounds', () => {
 						++blocksProcessed;
 						const transactions = [];
 						for (let t = transactionsPerBlock - 1; t >= 0; t--) {
-							const transaction = elements.transaction.createTransaction(
-								randomUtil.account().address,
-								randomUtil.number(100000000, 1000000000),
-								accountsFixtures.genesis.password
-							);
+							const transaction = elements.transaction.transfer({
+								recipientId: randomUtil.account().address,
+								amount: randomUtil.number(100000000, 1000000000),
+								passphrase: accountsFixtures.genesis.password,
+							});
 							transactions.push(transaction);
 						}
 
