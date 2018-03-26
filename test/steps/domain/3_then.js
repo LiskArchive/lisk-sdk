@@ -14,22 +14,6 @@
  *
  */
 
-export function itShouldReturnThePublicKeyPrependedWithAMinus() {
-	const { publicKeys, returnValue } = this.test.ctx;
-	const publicKeysWithMinus = publicKeys.map(publicKey => {
-		return `-${publicKey}`;
-	});
-	return expect(returnValue).to.eql(publicKeysWithMinus);
-}
-
-export function itShouldReturnThePublicKeyPrependedWithAPlus() {
-	const { publicKeys, returnValue } = this.test.ctx;
-	const publicKeysWithPlus = publicKeys.map(publicKey => {
-		return `+${publicKey}`;
-	});
-	return expect(returnValue).to.eql(publicKeysWithPlus);
-}
-
 export function itShouldReturnThePublicKeys() {
 	const { returnValue, publicKeys } = this.test.ctx;
 	return expect(returnValue).to.eql(publicKeys);
