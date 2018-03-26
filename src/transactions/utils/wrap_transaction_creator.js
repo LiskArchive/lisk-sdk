@@ -27,7 +27,7 @@ const wrapTransactionCreator = transactionCreator => transactionParameters => {
 	const transaction = Object.assign(
 		{
 			amount: '0',
-			recipientId: null,
+			recipientId: '',
 			senderPublicKey,
 			timestamp,
 		},
