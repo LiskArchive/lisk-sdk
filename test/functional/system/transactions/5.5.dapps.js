@@ -18,7 +18,7 @@ var lisk = require('lisk-js').default;
 var async = require('async');
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
+var constants = require('../../../../helpers/constants');
 var localCommon = require('../common');
 
 describe('system test (type 5) - dapp registrations with repeated values', () => {
@@ -26,7 +26,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.transfer({
-		amount: 1000 * normalizer,
+		amount: 1000 * constants.normalizer,
 		passphrase: accountFixtures.genesis.password,
 		recipientId: account.address,
 	});

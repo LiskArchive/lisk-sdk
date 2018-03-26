@@ -20,57 +20,45 @@
  * @namespace constants
  * @memberof helpers
  * @see Parent: {@link helpers}
- * @property {number} activeDelegates - The default number of delegates
- * @property {number} maxVotesPerTransaction - The maximum number of votes in vote type transaction
- * @property {number} addressLength - The default address length
- * @property {number} blockSlotWindow - The default no. of previous blocks to keep in memory
- * @property {number} blockHeaderLength - The default block header length
- * @property {number} blockReceiptTimeOut
- * @property {number} confirmationLength
- * @property {Date} epochTime
- * @property {Object} fees - The default values for fees
- * @property {number} fees.send
- * @property {number} fees.vote
- * @property {number} fees.secondSignature
- * @property {number} fees.delegate
- * @property {number} fees.multisignature
- * @property {number} fees.dapp
- * @property {number} feeStart
- * @property {number} feeStartVolume
- * @property {number} fixedPoint
- * @property {number} maxAddressesLength
- * @property {number} maxAmount
- * @property {number} maxConfirmations
- * @property {number} maxPayloadLength
- * @property {number} maxPeers
- * @property {number} maxRequests
- * @property {number} maxSharedTxs
- * @property {number} maxSignaturesLength
- * @property {number} maxTxsPerBlock
- * @property {number} minBroadhashConsensus
- * @property {string[]} nethashes - For mainnet and testnet
- * @property {number} numberLength
- * @property {number} requestLength
- * @property {Object} rewards
- * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1
- * @property {number} rewards.offset - Start rewards at block (n)
- * @property {number} rewards.distance - Distance between each milestone
- * @property {number} signatureLength
- * @property {number} totalAmount
- * @property {number} unconfirmedTransactionTimeOut - 1080 blocks
- * @todo Add description for the namespace and the properties
+ * @property {number} activeDelegates - The default number of delegates allowed to forge a block.
+ * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
+ * @property {number} blockSlotWindow - The default number of previous blocks to keep in memory.
+ * @property {number} blockReceiptTimeOut - Seconds to check if the block is fresh or not.
+ * @property {Date} epochTime	- Timestamp indicating the start of lisk core.
+ * @property {Object} fees - Object representing amount of fees for different types of transactions.
+ * @property {number} fees.send	- Fee for sending a transaction.
+ * @property {number} fees.vote - Fee for voting a delegate.
+ * @property {number} fees.secondSignature	- Fee for creating a secondSignature.
+ * @property {number} fees.delegate - Fee for registering as a delegate.
+ * @property {number} fees.multisignature - Fee for multisignature transaction.
+ * @property {number} fees.dapp	- Fee for registering as a dapp.
+ * @property {number} maxAmount - Maximum amount of LSK that can be transfered in a transaction.
+ // TODO: Needs additional check to revise max payload length
+ // for each transaction type for consistency
+ // FYI: https://lisk.io/documentation/the-lisk-protocol/blocks {Block Payload Section}
+ * @property {number} maxPayloadLength - Maximum transaction bytes length for 25 transactions in a single block.
+ * @property {number} maxPeers - Maximum number of peers allowed to connect while broadcasting a block.
+ * @property {number} maxSharedTxs - Maximum number of in-memory transactions/signatures shared accros peers.
+ * @property {number} maxTxsPerBlock -	Maximum Number of transactions allowed per block.
+ * @property {number} minBroadhashConsensus - Minimum broadhash consensus(%) among connected {maxPeers} peers.
+ * @property {string[]} nethashes - For mainnet and testnet.
+ * @property {number} constants.normalizer - Use this to convert LISK amount to normal value.
+ * @property {Object} rewards - Object representing LSK rewards milestone.
+ * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
+ * @property {number} rewards.offset - Start rewards at block (n).
+ * @property {number} rewards.distance - Distance between each milestone.
+ * @property {number} totalAmount - Total amount of LSK available in network before rewards milestone started.
+ * @property {number} unconfirmedTransactionTimeOut - Expiration time for unconfirmed transaction/signatures in transaction pool.
+ * @todo Add description for the namespace and the properties.
  */
 var constants = {
 	activeDelegates: 101,
-	addressLength: 208,
 	blockSlotWindow: 5,
 	additionalData: {
 		minLength: 1,
 		maxLength: 64,
 	},
-	blockHeaderLength: 248,
 	blockReceiptTimeOut: 20, // 2 blocks
-	confirmationLength: 77,
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
 	fees: {
 		send: 10000000,
@@ -83,17 +71,10 @@ var constants = {
 		dappDeposit: 10000000,
 		data: 10000000,
 	},
-	feeStart: 1,
-	feeStartVolume: 10000 * 100000000,
-	fixedPoint: Math.pow(10, 8),
-	maxAddressesLength: 208 * 128,
 	maxAmount: 100000000,
-	maxConfirmations: 77 * 100,
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,
-	maxRequests: 10000 * 12,
 	maxSharedTxs: 100,
-	maxSignaturesLength: 196 * 256,
 	maxTxsPerBlock: 25,
 	maxVotesPerTransaction: 33,
 	maxVotesPerAccount: 101,
@@ -118,8 +99,7 @@ var constants = {
 		// Testnet
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	],
-	numberLength: 100000000,
-	requestLength: 104,
+	normalizer: 100000000,
 	rewards: {
 		milestones: [
 			500000000, // Initial Reward
@@ -131,7 +111,6 @@ var constants = {
 		offset: 1451520, // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
-	signatureLength: 196,
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
