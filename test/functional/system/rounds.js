@@ -1384,6 +1384,7 @@ describe('rounds', () => {
 					return expect(lastBlock.height).to.equal(101);
 				});
 
+				// FIXME: Unskip that tests and fix the order (or not) after issue https://github.com/LiskHQ/lisk-js/issues/625 is closed
 				// eslint-disable-next-line
 				it.skip('after finishing round, should unvote expected forger of last block of round and vote new delegate (block data)', () => {
 					return Queries.getFullBlock(lastBlock.height).then(blocks => {
