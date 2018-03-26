@@ -119,31 +119,23 @@ describe('rounds', () => {
 
 	function getMemAccounts() {
 		return Queries.getAccounts().then(rows => {
-			return _.cloneDeep(normalizeMemAccounts(rows));
+			const accounts = {};
+			_.map(rows, acc => {
+				accounts[acc.address] = acc;
+			});
+			return _.cloneDeep(accounts);
 		});
-	}
-
-	function normalizeMemAccounts(_accounts) {
-		const accounts = {};
-		_.map(_accounts, acc => {
-			accounts[acc.address] = acc;
-		});
-		return accounts;
 	}
 
 	function getDelegates() {
 		return Queries.getDelegates().then(rows => {
-			return _.cloneDeep(normalizeDelegates(rows));
+			const delegates = {};
+			_.map(rows, d => {
+				d.publicKey = d.publicKey.toString('hex');
+				delegates[d.publicKey] = d;
+			});
+			return _.cloneDeep(delegates);
 		});
-	}
-
-	function normalizeDelegates(_delegates) {
-		const delegates = {};
-		_.map(_delegates, d => {
-			d.publicKey = d.publicKey.toString('hex');
-			delegates[d.publicKey] = d;
-		});
-		return delegates;
 	}
 
 	function expectedMemState(transactions, _accounts) {
