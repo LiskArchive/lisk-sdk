@@ -1,22 +1,24 @@
 pipeline {
-	agent { node { label 'dependencies-check' } }
+	agent { node { label 'node-06' } }
 	stages {
-		stage('Prepare workspace') {
-			steps {
-				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'scan-1', url: 'https://github.com/LiskHQ/lisk']]])
-			}
-		}
 		stage('Install dependencies') {
 			steps {
 				sh 'npm install --verbose'
 			}
 		}
-		stage('Run vulnerabilities check') {
+		stage('Run integration tests') {
 			steps {
-				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk test'
-				}
-				sh 'sha1sum package.json >~/.lisk.package.json.sha1sum'
+				sh 'npm test -- mocha:extensive:integration'
+			}
+		}
+		stage('Run integration tests w/o broadcasting') {
+			steps {
+				sh 'BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
+			}
+		}
+		stage('Run integration tests w/o syncing') {
+			steps {
+				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
 	}
