@@ -121,10 +121,10 @@ describe('#registerMultisignatureAccount transaction', () => {
 					.and.equal(fee);
 			});
 
-			it('should have recipientId string equal to null', () => {
-				return expect(registerMultisignatureTransaction).to.have.property(
-					'recipientId',
-				).and.be.null;
+			it('should have recipientId string equal to empty string', () => {
+				return expect(registerMultisignatureTransaction)
+					.to.have.property('recipientId')
+					.and.equal('');
 			});
 
 			it('should have senderPublicKey hex string equal to sender public key', () => {
@@ -333,7 +333,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 			it('should have the recipient id', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.property('recipientId')
-					.equal(null);
+					.equal('');
 			});
 
 			it('should have the sender public key', () => {

@@ -54,8 +54,10 @@ describe('#wrapTransactionCreator', () => {
 				.equal('0');
 		});
 
-		it('should set a default recipientId of null', () => {
-			return expect(result).to.have.property('recipientId').be.null;
+		it('should set a default recipientId of empty string', () => {
+			return expect(result)
+				.to.have.property('recipientId')
+				.and.equal('');
 		});
 
 		it('should set a default senderPublicKey of null', () => {
@@ -112,8 +114,10 @@ describe('#wrapTransactionCreator', () => {
 				.equal('0');
 		});
 
-		it('should set a default recipientId of null', () => {
-			return expect(result).to.have.property('recipientId').be.null;
+		it('should set a default recipientId of empty string', () => {
+			return expect(result)
+				.to.have.property('recipientId')
+				.and.equal('');
 		});
 
 		it('should set a default senderPublicKey using the passphrase', () => {
@@ -150,8 +154,10 @@ describe('#wrapTransactionCreator', () => {
 				.equal('0');
 		});
 
-		it('should set a default recipientId of null', () => {
-			return expect(result).to.have.property('recipientId').be.null;
+		it('should set a default recipientId of empty string', () => {
+			return expect(result)
+				.to.have.property('recipientId')
+				.and.equal('');
 		});
 
 		it('should set a default senderPublicKey using the passphrase', () => {
