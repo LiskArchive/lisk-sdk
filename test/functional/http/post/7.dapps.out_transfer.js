@@ -23,7 +23,6 @@ var phases = require('../../common/phases');
 var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
@@ -43,7 +42,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: account.address,
 		});
@@ -623,7 +622,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				randomUtil.guestbookDapp.id,
 				randomUtil.transaction().id,
 				accountFixtures.genesis.address,
-				10 * normalizer,
+				10 * constants.normalizer,
 				account.password
 			);
 
@@ -639,7 +638,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 					randomUtil.blockDataDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
-					10 * normalizer,
+					10 * constants.normalizer,
 					accountMinimalFunds.password
 				);
 
@@ -659,7 +658,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
-					10 * normalizer,
+					10 * constants.normalizer,
 					account.password
 				);
 
@@ -679,7 +678,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 		it('transaction should be rejected', () => {
 			transaction = lisk.transaction.transferOutOfDapp({
 				passphrase: account.password,
-				amount: 10 * normalizer,
+				amount: 10 * constants.normalizer,
 				dappId: randomUtil.guestbookDapp.id,
 				transactionId: randomUtil.transaction().id,
 				recipientId: accountFixtures.genesis.address,
