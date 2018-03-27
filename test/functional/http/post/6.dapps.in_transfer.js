@@ -16,14 +16,13 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
@@ -42,16 +41,16 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
-		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.dappRegistration,
-			accountFixtures.genesis.password
-		);
+		var transaction1 = lisk.transaction.transfer({
+			amount: 1000 * constants.normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		});
+		var transaction2 = lisk.transaction.transfer({
+			amount: constants.fees.dappRegistration,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountMinimalFunds.address,
+		});
 		var promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
@@ -67,11 +66,10 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				return waitFor.confirmations(transactionsToWaitFor);
 			})
 			.then(() => {
-				transaction = lisk.dapp.createDapp(
-					account.password,
-					null,
-					randomUtil.guestbookDapp
-				);
+				transaction = lisk.transaction.createDapp({
+					passphrase: account.password,
+					options: randomUtil.guestbookDapp,
+				});
 
 				return sendTransactionPromise(transaction);
 			})
@@ -80,11 +78,10 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
-				transaction = lisk.dapp.createDapp(
-					accountMinimalFunds.password,
-					null,
-					randomUtil.blockDataDapp
-				);
+				transaction = lisk.transaction.createDapp({
+					passphrase: accountMinimalFunds.password,
+					options: randomUtil.blockDataDapp,
+				});
 
 				return sendTransactionPromise(transaction);
 			})
@@ -345,7 +342,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 		it('with correct data should be ok', () => {
 			transaction = lisk.transfer.createInTransfer(
 				randomUtil.guestbookDapp.id,
-				10 * normalizer,
+				10 * constants.normalizer,
 				accountFixtures.genesis.password
 			);
 
@@ -377,7 +374,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			it('with enough funds should be ok', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
-					10 * normalizer,
+					10 * constants.normalizer,
 					account.password
 				);
 
@@ -395,11 +392,11 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
-			transaction = lisk.transfer.createInTransfer(
-				randomUtil.guestbookDapp.id,
-				10 * normalizer,
-				accountFixtures.genesis.password
-			);
+			transaction = lisk.transaction.transferIntoDapp({
+				passphrase: accountFixtures.genesis.password,
+				amount: 10 * constants.normalizer,
+				dappId: randomUtil.guestbookDapp.id,
+			});
 
 			return sendTransactionPromise(
 				transaction,

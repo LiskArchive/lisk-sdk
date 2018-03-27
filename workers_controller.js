@@ -123,22 +123,33 @@ SCWorker.create({
 
 				scServer.on('handshake', socket => {
 					socket.on('message', message => {
-						scope.logger.trace(`[Inbound socket] Received message: ${message}`);
+						scope.logger.trace(
+							`[Inbound socket :: message] Received message from ${
+								socket.request.remoteAddress
+							} - ${message}`
+						);
 					});
 					// We can access the HTTP request (which instantiated the WebSocket connection) using socket.request
 					// so we can access our custom socket.request.failedQueryValidation property here.
 					// If the property exists then we disconnect the connection.
 					if (socket.request.failedHeadersValidationError) {
-						var handshakeFailedCode = socket.request.failedHeadersValidationError.code;
-						var handshakeFailedDesc = socket.request.failedHeadersValidationError.description;
-						scope.logger.debug(`[Inbound socket] WebSocket handshake from socket ${socket.id} failed with code ${handshakeFailedCode}: ${handshakeFailedDesc}`);
-						return socket.disconnect(
-							handshakeFailedCode,
-							handshakeFailedDesc
+						var handshakeFailedCode =
+							socket.request.failedHeadersValidationError.code;
+						var handshakeFailedDesc =
+							socket.request.failedHeadersValidationError.description;
+						scope.logger.debug(
+							`[Inbound socket :: handshake] WebSocket handshake from ${
+								socket.request.remoteAddress
+							} failed with code ${handshakeFailedCode} - ${handshakeFailedDesc}`
 						);
+						return socket.disconnect(handshakeFailedCode, handshakeFailedDesc);
 					}
 
-					scope.logger.trace(`[Inbound socket] WebSocket handshake from socket ${socket.id} succeeded`);
+					scope.logger.trace(
+						`[Inbound socket :: handshake] WebSocket handshake from ${
+							socket.request.remoteAddress
+						} succeeded`
+					);
 
 					updatePeerConnection(
 						Rules.UPDATES.INSERT,
@@ -190,7 +201,9 @@ SCWorker.create({
 										onUpdateError.code
 									}, message: ${
 										failureCodes.errorMessages[onUpdateError.code]
-									}, description: ${onUpdateError.description}`
+									}, description: ${onUpdateError.description} on peer ${
+										peer.ip
+									}:${peer.wsPort}`
 								);
 							} else {
 								scope.logger.info(

@@ -14,20 +14,23 @@
 
 'use strict';
 
-var async = require('async');
-var Broadcaster = require('../logic/broadcaster.js');
-var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failure_codes');
-var PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
-var Rules = require('../api/ws/workers/rules');
-var wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
+const async = require('async');
+// eslint-disable-next-line prefer-const
+let Broadcaster = require('../logic/broadcaster.js');
+const constants = require('../helpers/constants.js');
+const failureCodes = require('../api/ws/rpc/failure_codes');
+const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
+const Rules = require('../api/ws/workers/rules');
+// eslint-disable-next-line prefer-const
+let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
 // Private fields
-var modules;
-var definitions;
-var library;
-var self;
-var __private = {};
+let modules;
+let definitions;
+let library;
+let self;
+// eslint-disable-next-line prefer-const
+let __private = {};
 
 __private.loaded = false;
 __private.messages = {};
@@ -49,44 +52,46 @@ __private.messages = {};
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-function Transport(cb, scope) {
-	library = {
-		logger: scope.logger,
-		db: scope.db,
-		bus: scope.bus,
-		schema: scope.schema,
-		network: scope.network,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			block: scope.logic.block,
-			transaction: scope.logic.transaction,
-			peers: scope.logic.peers,
-		},
-		config: {
-			peers: {
-				options: {
-					timeout: scope.config.peers.options.timeout,
+class Transport {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			db: scope.db,
+			bus: scope.bus,
+			schema: scope.schema,
+			network: scope.network,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				block: scope.logic.block,
+				transaction: scope.logic.transaction,
+				peers: scope.logic.peers,
+			},
+			config: {
+				peers: {
+					options: {
+						timeout: scope.config.peers.options.timeout,
+					},
+				},
+				forging: {
+					force: scope.config.forging.force,
+				},
+				broadcasts: {
+					active: scope.config.broadcasts.active,
 				},
 			},
-			forging: {
-				force: scope.config.forging.force,
-			},
-			broadcasts: {
-				active: scope.config.broadcasts.active,
-			},
-		},
-	};
-	self = this;
+		};
+		self = this;
 
-	__private.broadcaster = new Broadcaster(
-		scope.config.broadcasts,
-		scope.config.forging.force,
-		scope.logic.peers,
-		scope.logic.transaction,
-		scope.logger
-	);
+		__private.broadcaster = new Broadcaster(
+			scope.config.broadcasts,
+			scope.config.forging.force,
+			scope.logic.peers,
+			scope.logic.transaction,
+			scope.logger
+		);
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 /**
@@ -209,7 +214,7 @@ __private.receiveTransaction = function(
 	extraLogMessage,
 	cb
 ) {
-	var id = transaction ? transaction.id : 'null';
+	const id = transaction ? transaction.id : 'null';
 
 	try {
 		// This sanitizes the transaction object and then validates it.
@@ -333,7 +338,7 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postSignatures', data: { signatures: [signature] } }
+			{ api: 'postSignatures', data: { signature } }
 		);
 		library.network.io.sockets.emit('signature/change', signature);
 	}
@@ -354,7 +359,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postTransactions', data: { transactions: [transaction] } }
+			{ api: 'postTransactions', data: { transaction } }
 		);
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
@@ -392,10 +397,6 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 						peer.rpc.updateMyself(library.logic.peers.me(), err => {
 							if (err) {
 								library.logger.debug('Failed to notify peer about self', err);
-								__private.removePeer({
-									nonce: peer.nonce,
-									code: 'ECOMMUNICATION',
-								});
 							} else {
 								library.logger.debug(
 									'Successfully notified peer about self',
@@ -482,7 +483,7 @@ Transport.prototype.shared = {
 					return setImmediate(cb, err);
 				}
 
-				var escapedIds = query.ids
+				const escapedIds = query.ids
 					// Remove quotes
 					.replace(/['"]+/g, '')
 					// Separate by comma into an array
@@ -590,7 +591,7 @@ Transport.prototype.shared = {
 	 */
 	list(req, cb) {
 		req = req || {};
-		var peersFinder = !req.query
+		const peersFinder = !req.query
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
@@ -624,7 +625,7 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	status(req, cb) {
-		var headers = modules.system.headers();
+		const headers = modules.system.headers();
 		return setImmediate(cb, null, {
 			success: true,
 			height: headers.height,
@@ -681,11 +682,11 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getSignatures(req, cb) {
-		var transactions = modules.transactions.getMultisignatureTransactionList(
+		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			constants.maxSharedTxs
+			constants.maxSharedTransactions
 		);
-		var signatures = [];
+		const signatures = [];
 
 		async.eachSeries(
 			transactions,
@@ -710,9 +711,9 @@ Transport.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getTransactions(query, cb) {
-		var transactions = modules.transactions.getMergedTransactionList(
+		const transactions = modules.transactions.getMergedTransactionList(
 			true,
-			constants.maxSharedTxs
+			constants.maxSharedTransactions
 		);
 		return setImmediate(cb, null, {
 			success: true,
@@ -813,10 +814,10 @@ Transport.prototype.internal = {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			var updates = {};
+			const updates = {};
 			updates[Rules.UPDATES.INSERT] = modules.peers.update;
 			updates[Rules.UPDATES.REMOVE] = modules.peers.remove;
-			var updateResult = updates[query.updateType](query.peer);
+			const updateResult = updates[query.updateType](query.peer);
 			return setImmediate(
 				cb,
 				updateResult === true

@@ -388,7 +388,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Multisignature.prototype.undo = function(transaction, block, sender, cb) {
+Multisignature.prototype.undo = function(transaction, block, sender, cb, tx) {
 	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;
@@ -402,7 +402,8 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb) {
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		},
-		err => setImmediate(cb, err)
+		err => setImmediate(cb, err),
+		tx
 	);
 };
 

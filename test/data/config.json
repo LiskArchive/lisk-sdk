@@ -69,7 +69,7 @@
 		"relayLimit": 2
 	},
 	"transactions": {
-		"maxTxsPerQueue": 1000
+		"maxTransactionsPerQueue": 1000
 	},
 	"forging": {
 		"force": true,

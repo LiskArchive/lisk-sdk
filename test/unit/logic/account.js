@@ -113,16 +113,6 @@ describe('account', () => {
 		});
 	});
 
-	describe('resetMemTables', () => {
-		it('should remove the tables', done => {
-			account.resetMemTables((err, res) => {
-				expect(err).to.not.exist;
-				expect(res).to.be.undefined;
-				done();
-			});
-		});
-	});
-
 	describe('objectNormalize', () => {
 		it('should validate account schema', () => {
 			return expect(account.objectNormalize(validAccount)).to.be.an('object');
@@ -540,6 +530,16 @@ describe('account', () => {
 					expect(res).to.eql(_.sortBy(res, 'username').reverse());
 					done();
 				});
+			});
+		});
+	});
+
+	describe('resetMemTables', () => {
+		it('should remove the tables', done => {
+			account.resetMemTables((err, res) => {
+				expect(err).to.not.exist;
+				expect(res).to.be.undefined;
+				done();
 			});
 		});
 	});

@@ -14,19 +14,19 @@
 
 'use strict';
 
-var async = require('async');
-var Multisignature = require('../logic/multisignature.js');
-var transactionTypes = require('../helpers/transaction_types.js');
-var ApiError = require('../helpers/api_error');
-var errorCodes = require('../helpers/api_codes');
+const async = require('async');
+const Multisignature = require('../logic/multisignature.js');
+const transactionTypes = require('../helpers/transaction_types.js');
+const ApiError = require('../helpers/api_error');
+const errorCodes = require('../helpers/api_codes');
 
-var genesisblock = null; // eslint-disable-line no-unused-vars
+let genesisblock = null; // eslint-disable-line no-unused-vars
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.assetTypes = {};
 
@@ -95,13 +95,13 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 			'Unable to process signature. Signature is undefined.'
 		);
 	}
-	var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
+	const multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
 		transaction.transactionId
 	);
 
 	function done(cb) {
 		library.balancesSequence.add(cb => {
-			var multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
+			const multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
 				transaction.transactionId
 			);
 
@@ -150,16 +150,16 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 		}
 
 		// Find public key
-		var verify = false;
+		let verify = false;
 
 		try {
 			for (
-				var i = 0;
+				let i = 0;
 				i < multisignatureTransaction.asset.multisignature.keysgroup.length &&
 				!verify;
 				i++
 			) {
-				var key = multisignatureTransaction.asset.multisignature.keysgroup[
+				const key = multisignatureTransaction.asset.multisignature.keysgroup[
 					i
 				].substring(1);
 				verify = library.logic.transaction.verifySignature(
@@ -188,8 +188,8 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 				return setImmediate(cb, 'Multisignature account not found');
 			}
 
-			var verify = false;
-			var multisignatures = account.multisignatures;
+			let verify = false;
+			const multisignatures = account.multisignatures;
 
 			if (multisignatureTransaction.requesterPublicKey) {
 				multisignatures.push(multisignatureTransaction.senderPublicKey);
@@ -209,7 +209,7 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
 			}
 
 			try {
-				for (var i = 0; i < multisignatures.length && !verify; i++) {
+				for (let i = 0; i < multisignatures.length && !verify; i++) {
 					verify = library.logic.transaction.verifySignature(
 						multisignatureTransaction,
 						multisignatures[i],
@@ -241,7 +241,7 @@ Multisignatures.prototype.processSignature = function(transaction, cb) {
  * @todo Add description for the function
  */
 Multisignatures.prototype.getGroup = function(address, cb) {
-	var scope = {};
+	const scope = {};
 
 	async.series(
 		{
@@ -279,7 +279,7 @@ Multisignatures.prototype.getGroup = function(address, cb) {
 				library.db.multisignatures
 					.getMemberPublicKeys(scope.group.address)
 					.then(memberAccountKeys => {
-						var addresses = [];
+						const addresses = [];
 
 						memberAccountKeys.forEach(key => {
 							addresses.push(modules.accounts.generateAddressByPublicKey(key));
@@ -368,7 +368,7 @@ Multisignatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	getMemberships(filters, cb) {
-		var scope = {};
+		const scope = {};
 
 		async.series(
 			{

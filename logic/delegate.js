@@ -305,7 +305,7 @@ Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @todo Delete unused block parameter
  * @todo Add description for the params
  */
-Delegate.prototype.undo = function(transaction, block, sender, cb) {
+Delegate.prototype.undo = function(transaction, block, sender, cb, tx) {
 	const data = {
 		address: sender.address,
 		isDelegate: 0,
@@ -313,7 +313,7 @@ Delegate.prototype.undo = function(transaction, block, sender, cb) {
 		username: null,
 	};
 
-	modules.accounts.setAccountAndGet(data, cb);
+	modules.accounts.setAccountAndGet(data, cb, tx);
 };
 
 /**

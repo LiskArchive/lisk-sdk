@@ -17,9 +17,10 @@
 
 require('../../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
+var constants = require('../../../../../helpers/constants');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
 
@@ -43,13 +44,12 @@ describe('GET /api/node', () => {
 				// Create numOfTransactions transactions
 				for (var i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
-						lisk.transaction.createTransaction(
-							account.address,
-							Math.random() * 1000,
-							accountFixtures.genesis.password,
-							null,
-							data
-						)
+						lisk.transaction.transfer({
+							amount: (i + 1) * constants.normalizer,
+							passphrase: accountFixtures.genesis.password,
+							recipientId: account.address,
+							data,
+						})
 					);
 				}
 

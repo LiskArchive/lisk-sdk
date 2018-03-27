@@ -14,22 +14,20 @@
 
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var ip = require('ip');
-// We also initialize library here
-var pgp = require('pg-promise')(); // eslint-disable-line no-unused-vars
-var constants = require('../helpers/constants.js');
-var failureCodes = require('../api/ws/rpc/failure_codes.js');
-var jobsQueue = require('../helpers/jobs_queue.js');
-var Peer = require('../logic/peer.js');
+const _ = require('lodash');
+const async = require('async');
+const ip = require('ip');
+const constants = require('../helpers/constants.js');
+const failureCodes = require('../api/ws/rpc/failure_codes.js');
+const jobsQueue = require('../helpers/jobs_queue.js');
+const Peer = require('../logic/peer.js');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
-var definitions;
+let modules;
+let library;
+let self;
+const __private = {};
+let definitions;
 
 /**
  * Main peers methods. Initializes library with scope content.
@@ -49,26 +47,28 @@ var definitions;
  * @param {scope} scope - App instance
  * @returns {setImmediateCallback} cb, null, self
  */
-function Peers(cb, scope) {
-	library = {
-		logger: scope.logger,
-		db: scope.db,
-		schema: scope.schema,
-		bus: scope.bus,
-		nonce: scope.nonce,
-		build: scope.build,
-		lastCommit: scope.lastCommit,
-		logic: {
-			peers: scope.logic.peers,
-		},
-		config: {
-			peers: scope.config.peers,
-			version: scope.config.version,
-		},
-	};
-	self = this;
-	self.consensus = scope.config.forging.force ? 100 : 0;
-	setImmediate(cb, null, self);
+class Peers {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			db: scope.db,
+			schema: scope.schema,
+			bus: scope.bus,
+			nonce: scope.nonce,
+			build: scope.build,
+			lastCommit: scope.lastCommit,
+			logic: {
+				peers: scope.logic.peers,
+			},
+			config: {
+				peers: scope.config.peers,
+				version: scope.config.version,
+			},
+		};
+		self = this;
+		self.consensus = scope.config.forging.force ? 100 : 0;
+		setImmediate(cb, null, self);
+	}
 }
 
 // Private methods
@@ -98,7 +98,7 @@ __private.countByFilter = function(filter, cb) {
  * @todo Add description for the params
  */
 __private.getByFilter = function(filter, cb) {
-	var allowedFields = [
+	const allowedFields = [
 		'ip',
 		'wsPort',
 		'httpPort',
@@ -109,8 +109,8 @@ __private.getByFilter = function(filter, cb) {
 		'height',
 		'nonce',
 	];
-	var limit = filter.limit ? Math.abs(filter.limit) : null;
-	var offset = filter.offset ? Math.abs(filter.offset) : 0;
+	const limit = filter.limit ? Math.abs(filter.limit) : null;
+	const offset = filter.offset ? Math.abs(filter.offset) : 0;
 
 	/**
 	 * Sorts peers.
@@ -119,9 +119,9 @@ __private.getByFilter = function(filter, cb) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	var sortPeers = function(field, asc) {
+	const sortPeers = function(field, asc) {
 		return function(a, b) {
-			var sort_res =
+			const sortedPeers =
 				// Nulls last
 				a[field] === b[field]
 					? 0
@@ -134,7 +134,7 @@ __private.getByFilter = function(filter, cb) {
 								? a[field] < b[field] ? -1 : 1
 								: // Descending
 									a[field] < b[field] ? 1 : -1;
-			return sort_res;
+			return sortedPeers;
 		};
 	};
 
@@ -145,10 +145,10 @@ __private.getByFilter = function(filter, cb) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	var shuffle = function(array) {
-		var m = array.length;
-		var t;
-		var i;
+	const shuffle = function(array) {
+		let m = array.length;
+		let t;
+		let i;
 		// While there remain elements to shuffle
 		while (m) {
 			// Pick a remaining element
@@ -162,12 +162,12 @@ __private.getByFilter = function(filter, cb) {
 	};
 
 	// Apply filters (by AND)
-	var normalized = filter.normalized === undefined ? true : filter.normalized;
-	var peers = library.logic.peers.list(normalized);
+	const normalized = filter.normalized === undefined ? true : filter.normalized;
+	let peers = library.logic.peers.list(normalized);
 
 	peers = peers.filter(peer => {
-		// var peer = __private.peers[index];
-		var passed = true;
+		// const peer = __private.peers[index];
+		let passed = true;
 		_.each(filter, (value, key) => {
 			// Every filter field need to be in allowed fields, exists and match value
 			if (
@@ -183,11 +183,11 @@ __private.getByFilter = function(filter, cb) {
 
 	// Sorting
 	if (filter.sort) {
-		var sort_arr = String(filter.sort).split(':');
-		var sort_field = sort_arr[0]
+		const sort_arr = String(filter.sort).split(':');
+		const sort_field = sort_arr[0]
 			? _.includes(allowedFields, sort_arr[0]) ? sort_arr[0] : null
 			: null;
-		var sort_method = sort_arr.length === 2 ? sort_arr[1] !== 'desc' : true;
+		const sort_method = sort_arr.length === 2 ? sort_arr[1] !== 'desc' : true;
 		if (sort_field) {
 			peers.sort(sortPeers(sort_field, sort_method));
 		}
@@ -219,8 +219,8 @@ __private.getByFilter = function(filter, cb) {
 __private.getMatched = function(test, peers) {
 	peers = peers || library.logic.peers.list();
 
-	var key = Object.keys(test)[0];
-	var value = test[key];
+	const key = Object.keys(test)[0];
+	const value = test[key];
 
 	return peers.filter(peer => peer[key] === value);
 };
@@ -238,7 +238,10 @@ __private.updatePeerStatus = function(err, status, peer) {
 			// If the node tries to connect to itself as a peer, the
 			// nonce will be incompatible. Here we put the peer in a BANNED
 			// state so that the node doesn't keep trying to reconnect to itself.
-			peer.applyHeaders({ state: Peer.STATE.BANNED });
+			peer.applyHeaders({
+				state: Peer.STATE.BANNED,
+				nonce: self.me().nonce,
+			});
 		} else {
 			library.logic.peers.remove(peer);
 		}
@@ -265,7 +268,7 @@ __private.updatePeerStatus = function(err, status, peer) {
  * @returns {setImmediateCallback} cb
  */
 __private.insertSeeds = function(cb) {
-	var updated = 0;
+	let updated = 0;
 	library.logger.trace('Peers->insertSeeds');
 	async.each(
 		library.config.peers.list,
@@ -304,7 +307,7 @@ __private.insertSeeds = function(cb) {
  * @returns {setImmediateCallback} cb
  */
 __private.dbLoad = function(cb) {
-	var updated = 0;
+	let updated = 0;
 	library.logger.trace('Importing peers from database');
 	library.db.peers
 		.list()
@@ -360,7 +363,7 @@ __private.dbLoad = function(cb) {
  * @returns {setImmediateCallback} cb
  */
 __private.dbSave = function(cb) {
-	var peers = library.logic.peers.list(true);
+	const peers = library.logic.peers.list(true);
 
 	// Do nothing when peers list is empty
 	if (!peers.length) {
@@ -407,11 +410,11 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 		library.logic.peers
 			.list(true)
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
-	var broadhash = modules.system.getBroadhash();
+	const broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
-	var activeCount = Math.min(active.length, constants.maxPeers);
-	var matchedCount = Math.min(matched.length, activeCount);
-	var consensus = +(matchedCount / activeCount * 100).toPrecision(2);
+	const activeCount = Math.min(active.length, constants.maxPeers);
+	const matchedCount = Math.min(matched.length, activeCount);
+	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
 	self.consensus = isNaN(consensus) ? 0 : consensus;
 	return self.consensus;
 };
@@ -437,7 +440,7 @@ Peers.prototype.update = function(peer) {
  * @todo Add description for the params
  */
 Peers.prototype.remove = function(peer) {
-	var frozenPeer = _.find(
+	const frozenPeer = _.find(
 		library.config.peers.list,
 		__peer => peer.ip === __peer.ip && peer.wsPort === __peer.wsPort
 	);
@@ -478,7 +481,7 @@ Peers.prototype.discover = function(cb) {
 				normalized: false,
 			},
 			(err, peers) => {
-				var randomPeer = peers.length ? peers[0] : null;
+				const randomPeer = peers.length ? peers[0] : null;
 				if (!err && randomPeer) {
 					randomPeer.rpc.status((err, status) => {
 						__private.updatePeerStatus(err, status, randomPeer);
@@ -515,7 +518,7 @@ Peers.prototype.discover = function(cb) {
 	 * @todo Add description of the function
 	 */
 	function pickPeers(peers, waterCb) {
-		var picked = self.acceptable(peers);
+		const picked = self.acceptable(peers);
 		library.logger.debug(
 			['Picked', picked.length, 'of', peers.length, 'peers'].join(' ')
 		);
@@ -602,12 +605,12 @@ Peers.prototype.acceptable = function(peers) {
  * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
-	var limit = options.limit || constants.maxPeers;
-	var broadhash = options.broadhash || modules.system.getBroadhash();
-	var allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
-	var attempts =
+	let limit = options.limit || constants.maxPeers;
+	const broadhash = options.broadhash || modules.system.getBroadhash();
+	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
+	const attempts =
 		options.attempt === 0 || options.attempt === 1 ? [options.attempt] : [1, 0];
-	var attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
+	const attemptsDescriptions = ['matched broadhash', 'unmatched broadhash'];
 
 	/**
 	 * Description of randomList.
@@ -621,13 +624,8 @@ Peers.prototype.list = function(options, cb) {
 		__private.getByFilter(
 			{ normalized: options.normalized },
 			(err, peersList) => {
-				var accepted;
-				var found;
-				var matched;
-				var picked;
-
-				found = peersList.length;
-				var attempt = attempts.pop();
+				const found = peersList.length;
+				const attempt = attempts.pop();
 				// Apply filters
 				peersList = peersList.filter(peer => {
 					if (broadhash) {
@@ -644,11 +642,11 @@ Peers.prototype.list = function(options, cb) {
 					// Skip banned and disconnected peers by default
 					return allowedStates.indexOf(peer.state) !== -1;
 				});
-				matched = peersList.length;
+				const matched = peersList.length;
 				// Apply limit
 				peersList = peersList.slice(0, limit);
-				picked = peersList.length;
-				accepted = peers.concat(peersList);
+				const picked = peersList.length;
+				const accepted = peers.concat(peersList);
 				library.logger.debug('Listing peers', {
 					attempt: attemptsDescriptions[options.attempt],
 					found,
@@ -682,7 +680,7 @@ Peers.prototype.list = function(options, cb) {
 
 // Events
 /**
- * Assigns scope to modules variable.
+ * Assigns scope to modules constiable.
  *
  * @param {modules} scope
  * @todo Add description for the params
@@ -756,8 +754,8 @@ Peers.prototype.onPeersReady = function() {
 				 * @todo Add @returns tag
 				 */
 				updatePeers(seriesCb) {
-					var updated = 0;
-					var peers = library.logic.peers.list();
+					let updated = 0;
+					const peers = library.logic.peers.list();
 
 					library.logger.trace('Updating peers', { count: peers.length });
 

@@ -63,7 +63,7 @@ class Vote {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undo(transaction, block, sender, cb) {
+	undo(transaction, block, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
 		}
@@ -77,7 +77,8 @@ class Vote {
 				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
-			err => setImmediate(cb, err)
+			err => setImmediate(cb, err),
+			tx
 		);
 	}
 

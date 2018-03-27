@@ -14,14 +14,14 @@
 
 'use strict';
 
-var _ = require('lodash');
-var constants = require('../../helpers/constants.js');
-var transactionTypes = require('../../helpers/transaction_types.js');
+const _ = require('lodash');
+const constants = require('../../helpers/constants.js');
+const transactionTypes = require('../../helpers/transaction_types.js');
 
-var modules;
-var library;
-var self;
-var __private = {};
+const __private = {};
+let modules;
+let library;
+let self;
 
 /**
  * Main utils logic. Allows utils functions for blocks. Initializes library.
@@ -40,21 +40,25 @@ var __private = {};
  * @param {Object} genesisblock
  * @todo Add description for the params
  */
-function Utils(logger, account, block, transaction, db, genesisblock) {
-	library = {
-		logger,
-		db,
-		genesisblock,
-		logic: {
+class Utils {
+	constructor(logger, account, block, transaction, db, genesisblock) {
+		library = {
+			logger,
 			account,
 			block,
 			transaction,
-		},
-	};
-	self = this;
-
-	library.logger.trace('Blocks->Utils: Submodule initialized.');
-	return self;
+			db,
+			genesisblock,
+			logic: {
+				account,
+				block,
+				transaction,
+			},
+		};
+		self = this;
+		library.logger.trace('Blocks->Utils: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -64,13 +68,13 @@ function Utils(logger, account, block, transaction, db, genesisblock) {
  * @returns {Array} blocks - List of normalized blocks with transactions
  */
 Utils.prototype.readDbRows = function(rows) {
-	var blocks = {};
-	var order = [];
+	let blocks = {};
+	const order = [];
 
-	for (var i = 0, length = rows.length; i < length; i++) {
+	for (let i = 0, length = rows.length; i < length; i++) {
 		// Normalize block
 		// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-		var block = library.logic.block.dbRead(rows[i]);
+		const block = library.logic.block.dbRead(rows[i]);
 
 		if (block) {
 			// If block is not already in the list...
@@ -87,7 +91,7 @@ Utils.prototype.readDbRows = function(rows) {
 			}
 
 			// Normalize transaction
-			var transaction = library.logic.transaction.dbRead(rows[i]);
+			const transaction = library.logic.transaction.dbRead(rows[i]);
 			// Set empty object if there are no transactions in block
 			blocks[block.id].transactions = blocks[block.id].transactions || {};
 
@@ -118,21 +122,26 @@ Utils.prototype.readDbRows = function(rows) {
  * @param {Object} filter.limit - Limit blocks to amount
  * @param {Object} filter.lastId - ID of block to begin with
  * @param {function} cb - Callback function
+ * @param {Object} tx - database transaction
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.rows - List of normalized blocks
  */
-Utils.prototype.loadBlocksPart = function(filter, cb) {
-	self.loadBlocksData(filter, (err, rows) => {
-		var blocks;
+Utils.prototype.loadBlocksPart = function(filter, cb, tx) {
+	self.loadBlocksData(
+		filter,
+		(err, rows) => {
+			let blocks;
 
-		if (!err) {
-			// Normalize list of blocks
-			blocks = self.readDbRows(rows);
-		}
+			if (!err) {
+				// Normalize list of blocks
+				blocks = self.readDbRows(rows);
+			}
 
-		return setImmediate(cb, err, blocks);
-	});
+			return setImmediate(cb, err, blocks);
+		},
+		tx
+	);
 };
 
 /**
@@ -150,7 +159,7 @@ Utils.prototype.loadLastBlock = function(cb) {
 		.loadLastBlock()
 		.then(rows => {
 			// Normalize block
-			var block = modules.blocks.utils.readDbRows(rows)[0];
+			const block = modules.blocks.utils.readDbRows(rows)[0];
 
 			// Sort block's transactions
 			block.transactions = block.transactions.sort(a => {
@@ -189,7 +198,7 @@ Utils.prototype.loadLastBlock = function(cb) {
  * @returns {string} cb.res.ids - Comma separated list of blocks IDs
  */
 Utils.prototype.getIdSequence = function(height, cb) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	const lastBlock = modules.blocks.lastBlock.get();
 	// Get IDs of first blocks of (n) last rounds, descending order
 	// EXAMPLE: For height 2000000 (round 19802) we will get IDs of blocks at height: 1999902, 1999801, 1999700, 1999599, 1999498
 	library.db.blocks
@@ -206,11 +215,11 @@ Utils.prototype.getIdSequence = function(height, cb) {
 				);
 			}
 
-			var ids = [];
+			const ids = [];
 
 			// Add genesis block at the end if the set doesn't contain it already
 			if (library.genesisblock && library.genesisblock.block) {
-				var __genesisblock = {
+				const __genesisblock = {
 					id: library.genesisblock.block.id,
 					height: library.genesisblock.block.height,
 				};
@@ -254,12 +263,13 @@ Utils.prototype.getIdSequence = function(height, cb) {
  * @param {Object} filter.limit - Limit blocks to amount
  * @param {Object} filter.lastId - ID of block to begin with
  * @param {function} cb - Callback function
+ * @param {Object} tx - database transaction
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.rows - List of blocks
  */
-Utils.prototype.loadBlocksData = function(filter, cb) {
-	var params = { limit: filter.limit || 1 };
+Utils.prototype.loadBlocksData = function(filter, cb, tx) {
+	const params = { limit: filter.limit || 1 };
 
 	// FIXME: filter.id is not used
 	if (filter.id && filter.lastId) {
@@ -271,19 +281,19 @@ Utils.prototype.loadBlocksData = function(filter, cb) {
 	}
 
 	// Get height of block with supplied ID
-	library.db.blocks
+	(tx || library.db).blocks
 		.getHeightByLastId(filter.lastId || null)
 		.then(rows => {
-			var height = rows.length ? rows[0].height : 0;
+			const height = rows.length ? rows[0].height : 0;
 			// Calculate max block height for database query
-			var realLimit = height + (parseInt(filter.limit) || 1);
+			const realLimit = height + (parseInt(filter.limit) || 1);
 
 			params.limit = realLimit;
 			params.height = height;
 
 			// Retrieve blocks from database
 			// FIXME: That SQL query have mess logic, need to be refactored
-			library.db.blocks
+			(tx || library.db).blocks
 				.loadBlocksData(Object.assign({}, filter, params))
 				.then(rows => setImmediate(cb, null, rows));
 		})
@@ -378,7 +388,7 @@ Utils.prototype.getBlockProgressLogger = function(
  * @returns {number} cb.data.count - Blocks count
  */
 Utils.prototype.aggregateBlocksReward = function(filter, cb) {
-	var params = {};
+	const params = {};
 
 	library.logic.account.get({ address: filter.address }, (err, account) => {
 		if (err) {
@@ -406,7 +416,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		library.db.blocks
 			.aggregateBlocksReward(params)
 			.then(rows => {
-				var data = rows[0];
+				let data = rows[0];
 				if (data.delegate === null) {
 					return setImmediate(cb, 'Account is not a delegate');
 				}

@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
@@ -23,7 +23,6 @@ var constants = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-var normalizer = require('../../../common/utils/normalizer');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
@@ -40,21 +39,21 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
-		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.secondSignature,
-			accountFixtures.genesis.password
-		);
-		var transaction3 = lisk.transaction.createTransaction(
-			accountNoSecondPassword.address,
-			constants.fees.secondSignature,
-			accountFixtures.genesis.password
-		);
+		var transaction1 = lisk.transaction.transfer({
+			amount: 1000 * constants.normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		});
+		var transaction2 = lisk.transaction.transfer({
+			amount: constants.fees.secondSignature,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountMinimalFunds.address,
+		});
+		var transaction3 = lisk.transaction.transfer({
+			amount: constants.fees.secondSignature,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountNoSecondPassword.address,
+		});
 
 		var promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
@@ -81,12 +80,12 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	describe('transactions processing', () => {
 		it('using second passphrase on a fresh account should fail', () => {
-			transaction = lisk.transaction.createTransaction(
-				accountFixtures.existingDelegate.address,
-				1,
-				accountNoSecondPassword.password,
-				accountNoSecondPassword.secondPassword
-			);
+			transaction = lisk.transaction.transfer({
+				amount: 1,
+				passphrase: accountNoSecondPassword.password,
+				secondPassphrase: accountNoSecondPassword.secondPassword,
+				recipientId: accountFixtures.existingDelegate.address,
+			});
 
 			return apiHelpers
 				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
@@ -99,10 +98,10 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		});
 
 		it('with no funds should fail', () => {
-			transaction = lisk.signature.createSignature(
-				accountNoFunds.password,
-				accountNoFunds.secondPassword
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: accountNoFunds.password,
+				secondPassphrase: accountNoFunds.secondPassword,
+			});
 
 			return apiHelpers
 				.sendTransactionPromise(transaction, errorCodes.PROCESSING_ERROR)
@@ -117,11 +116,11 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		});
 
 		it('with minimal required amount of funds should be ok', () => {
-			transaction = lisk.signature.createSignature(
-				accountMinimalFunds.password,
-				accountMinimalFunds.secondPassword,
-				-10000
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: accountMinimalFunds.password,
+				secondPassphrase: accountMinimalFunds.secondPassword,
+				timeOffset: -10000,
+			});
 
 			return apiHelpers.sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -130,10 +129,10 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		});
 
 		it('with valid params should be ok', () => {
-			transaction = lisk.signature.createSignature(
-				account.password,
-				account.secondPassword
-			);
+			transaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: account.password,
+				secondPassphrase: account.secondPassword,
+			});
 
 			return apiHelpers.sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');

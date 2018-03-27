@@ -16,13 +16,12 @@
 
 require('../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js');
+var lisk = require('lisk-js').default;
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
 var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
@@ -46,26 +45,26 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	// Crediting accounts
 	before(() => {
 		var transactions = [];
-		var transaction1 = lisk.transaction.createTransaction(
-			account.address,
-			1000 * normalizer,
-			accountFixtures.genesis.password
-		);
-		var transaction2 = lisk.transaction.createTransaction(
-			accountMinimalFunds.address,
-			constants.fees.delegate,
-			accountFixtures.genesis.password
-		);
-		var transaction3 = lisk.transaction.createTransaction(
-			accountUpperCase.address,
-			constants.fees.delegate,
-			accountFixtures.genesis.password
-		);
-		var transaction4 = lisk.transaction.createTransaction(
-			accountFormerDelegate.address,
-			constants.fees.delegate,
-			accountFixtures.genesis.password
-		);
+		var transaction1 = lisk.transaction.transfer({
+			amount: 1000 * constants.normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		});
+		var transaction2 = lisk.transaction.transfer({
+			amount: constants.fees.delegate,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountMinimalFunds.address,
+		});
+		var transaction3 = lisk.transaction.transfer({
+			amount: constants.fees.delegate,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountUpperCase.address,
+		});
+		var transaction4 = lisk.transaction.transfer({
+			amount: constants.fees.delegate,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: accountFormerDelegate.address,
+		});
 		transactions.push(transaction1);
 		transactions.push(transaction2);
 		transactions.push(transaction3);
@@ -91,10 +90,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('transactions processing', () => {
 		it('with no funds should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountNoFunds.password,
-				accountNoFunds.username
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: accountNoFunds.password,
+				username: accountNoFunds.username,
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -110,10 +109,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('with minimal required amount of funds should be ok', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountMinimalFunds.password,
-				accountMinimalFunds.username
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: accountMinimalFunds.password,
+				username: accountMinimalFunds.username,
+			});
 
 			return sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -122,7 +121,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using blank username should fail', () => {
-			transaction = lisk.delegate.createDelegate(account.password, '');
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.password,
+				username: '',
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -135,7 +137,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using invalid username should fail', () => {
 			var username = '~!@#$ %^&*()_+.,?/';
-			transaction = lisk.delegate.createDelegate(account.password, username);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.password,
+				username,
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -150,10 +155,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using username longer than 20 characters should fail', () => {
 			var delegateName = `${randomUtil.delegateName()}x`;
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				delegateName
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.password,
+				username: delegateName,
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -167,10 +172,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using uppercase username should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountUpperCase.password,
-				accountUpperCase.username.toUpperCase()
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: accountUpperCase.password,
+				username: accountUpperCase.username.toUpperCase(),
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -182,10 +187,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using valid params should be ok', () => {
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				account.username
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.password,
+				username: account.username,
+			});
 
 			return sendTransactionPromise(transaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -200,10 +205,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 	describe('validation', () => {
 		it('setting same delegate twice should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				account.username
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.password,
+				username: account.username,
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -215,10 +220,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using existing username should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				accountFormerDelegate.password,
-				account.username
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: accountFormerDelegate.password,
+				username: account.username,
+			});
 
 			return sendTransactionPromise(
 				transaction,
@@ -232,10 +237,10 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('updating registered delegate should fail', () => {
-			transaction = lisk.delegate.createDelegate(
-				account.password,
-				'newusername'
-			);
+			transaction = lisk.transaction.registerDelegate({
+				passphrase: account.password,
+				username: 'newusername',
+			});
 
 			return sendTransactionPromise(
 				transaction,
