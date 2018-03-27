@@ -29,6 +29,7 @@ describe('blocks/process', () => {
 	var loggerStub;
 	var dummyBlock;
 	var dummyCommonBlock;
+	var dummyCommonBlockGenesis;
 	var blockStub;
 	var transactionStub;
 	var peersStub;
@@ -64,12 +65,15 @@ describe('blocks/process', () => {
 		};
 
 		dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
+		dummyCommonBlockGenesis = { id: '3', previousBlock: '2', height: '1' };
 
 		peerStub.rpc.blocksCommon
 			.withArgs(sinonSandbox.match({ ids: 'ERR' }))
 			.callsArgWith(1, 'rpc.blocksCommon-ERR', null)
 			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Empty' }))
 			.callsArgWith(1, null, { common: undefined })
+			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Genesis' }))
+			.callsArgWith(1, null, { common: dummyCommonBlockGenesis })
 			.withArgs(sinonSandbox.match({ ids: 'OK' }))
 			.callsArgWith(1, null, {
 				common: dummyCommonBlock,
@@ -884,6 +888,65 @@ describe('blocks/process', () => {
 									done();
 								}
 							);
+						});
+					});
+
+					describe('when comparison failed because of receiving genesis block', () => {
+						beforeEach(() => {
+							modules.blocks.utils.getIdSequence.callsArgWith(1, null, {
+								ids: 'rpc.blocksCommon-Genesis',
+							});
+							return modules.blocks.chain.recoverChain.callsArgWith(
+								0,
+								null,
+								true
+							);
+						});
+
+						describe('when consensus is low', () => {
+							beforeEach(() => {
+								return modules.transport.poorConsensus.returns(true);
+							});
+
+							it('should perform chain recovery', done => {
+								blocksProcessModule.getCommonBlock(
+									{ ip: 1, wsPort: 2 },
+									10,
+									(err, block) => {
+										expect(library.logic.peers.applyHeaders.calledOnce).to.be
+											.false;
+										expect(err).to.be.null;
+										expect(block).to.be.true;
+										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
+											.true;
+										done();
+									}
+								);
+							});
+						});
+
+						describe('when consensus is high', () => {
+							beforeEach(() => {
+								return modules.transport.poorConsensus.returns(false);
+							});
+
+							it('should call a callback with error ', done => {
+								blocksProcessModule.getCommonBlock(
+									{ ip: 1, wsPort: 2 },
+									10,
+									(err, block) => {
+										expect(library.logic.peers.applyHeaders.calledOnce).to.be
+											.false;
+										expect(err).to.equal(
+											'Comparison failed - received genesis as common block'
+										);
+										expect(block).to.be.undefined;
+										expect(modules.blocks.chain.recoverChain.calledOnce).to.be
+											.false;
+										done();
+									}
+								);
+							});
 						});
 					});
 
