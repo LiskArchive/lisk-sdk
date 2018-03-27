@@ -899,7 +899,7 @@ describe('rounds', () => {
 
 				it('should be equal to one generated with Lisk-Core 0.9.3', () => {
 					return expect(delegatesList).to.deep.equal(
-						roundsFixtures.expectedDelegatesOrder
+						roundsFixtures.delegatesOrderAfterGenesisBlock
 					);
 				});
 			});

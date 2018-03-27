@@ -80,7 +80,7 @@ rounds.mem_accountsFields = [
 ];
 
 // Results from Lisk-Core 0.9.3 (after genesis block insertion)
-rounds.expectedDelegatesOrder = [
+rounds.delegatesOrderAfterGenesisBlock = [
 	'948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b',
 	'f25af3c59ac7f5155c7a9f36762bd941b9dc9c5c051a1bc2d4e34ed773dd04a3',
 	'74583aba9c0b92e4f08c8c75e6df341c255ca007971195ff64d6f909dc4b7177',
