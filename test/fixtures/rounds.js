@@ -47,38 +47,6 @@ const Round = stampit({
 	},
 });
 
-rounds.mem_accountsFields = [
-	'username',
-	'isDelegate',
-	'u_isDelegate',
-	'secondSignature',
-	'u_secondSignature',
-	'u_username',
-	'address',
-	'publicKey',
-	'secondPublicKey',
-	'balance',
-	'u_balance',
-	'vote',
-	'rate',
-	'delegates',
-	'u_delegates',
-	'multisignatures',
-	'u_multisignatures',
-	'multimin',
-	'u_multimin',
-	'multilifetime',
-	'u_multilifetime',
-	'blockId',
-	'nameexist',
-	'u_nameexist',
-	'producedBlocks',
-	'missedBlocks',
-	'fees',
-	'rewards',
-	'virgin',
-];
-
 // Results from Lisk-Core 0.9.3 (after genesis block insertion)
 rounds.delegatesOrderAfterGenesisBlock = [
 	'948b8b509579306694c00833ec1c0f81e964487db2206ddb1517bfeca2b0dc1b',

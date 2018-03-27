@@ -41,6 +41,38 @@ accounts.genesis = {
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
+accounts.mem_accountsFields = [
+	'username',
+	'isDelegate',
+	'u_isDelegate',
+	'secondSignature',
+	'u_secondSignature',
+	'u_username',
+	'address',
+	'publicKey',
+	'secondPublicKey',
+	'balance',
+	'u_balance',
+	'vote',
+	'rate',
+	'delegates',
+	'u_delegates',
+	'multisignatures',
+	'u_multisignatures',
+	'multimin',
+	'u_multimin',
+	'multilifetime',
+	'u_multilifetime',
+	'blockId',
+	'nameexist',
+	'u_nameexist',
+	'producedBlocks',
+	'missedBlocks',
+	'fees',
+	'rewards',
+	'virgin',
+];
+
 const Account = stampit({
 	props: {
 		username: '',

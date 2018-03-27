@@ -659,7 +659,7 @@ describe('rounds', () => {
 								expect(delegate).to.be.an('object');
 								// We require here 'transactionId' field that is not part of 'mem_accounts', but comes from join with 'delegates' table
 								expect(delegate).to.have.all.keys([
-									...roundsFixtures.mem_accountsFields,
+									...accountsFixtures.mem_accountsFields,
 									'transactionId',
 								]);
 							});
@@ -776,7 +776,7 @@ describe('rounds', () => {
 							_.each(accounts, delegate => {
 								expect(delegate).to.be.an('object');
 								expect(delegate).to.have.all.keys(
-									roundsFixtures.mem_accountsFields
+									accountsFixtures.mem_accountsFields
 								);
 							});
 							done();
