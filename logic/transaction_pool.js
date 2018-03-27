@@ -268,21 +268,21 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
  * @todo Limit is only implemented with queued transactions, reverse param is unused
  */
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
-	const minLimit = constants.maxTxsPerBlock + 2;
+	const minLimit = constants.maxTransactionsPerBlock + 2;
 
-	if (limit <= minLimit || limit > constants.maxSharedTxs) {
+	if (limit <= minLimit || limit > constants.maxSharedTransactions) {
 		limit = minLimit;
 	}
 
 	const unconfirmed = self.getUnconfirmedTransactionList(
 		false,
-		constants.maxTxsPerBlock
+		constants.maxTransactionsPerBlock
 	);
 	limit -= unconfirmed.length;
 
 	const multisignatures = self.getMultisignatureTransactionList(
 		false,
-		constants.maxTxsPerBlock
+		constants.maxTransactionsPerBlock
 	);
 	limit -= multisignatures.length;
 
@@ -597,7 +597,7 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 	transaction.receivedAt = new Date();
 
 	if (transaction.bundled) {
-		if (self.countBundled() >= config.transactions.maxTxsPerQueue) {
+		if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
 			return setImmediate(cb, 'Transaction pool is full');
 		}
 		self.addBundledTransaction(transaction);
@@ -605,11 +605,15 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 		transaction.type === transactionTypes.MULTI ||
 		Array.isArray(transaction.signatures)
 	) {
-		if (self.countMultisignature() >= config.transactions.maxTxsPerQueue) {
+		if (
+			self.countMultisignature() >= config.transactions.maxTransactionsPerQueue
+		) {
 			return setImmediate(cb, 'Transaction pool is full');
 		}
 		self.addMultisignatureTransaction(transaction);
-	} else if (self.countQueued() >= config.transactions.maxTxsPerQueue) {
+	} else if (
+		self.countQueued() >= config.transactions.maxTransactionsPerQueue
+	) {
 		return setImmediate(cb, 'Transaction pool is full');
 	} else {
 		self.addQueuedTransaction(transaction);
@@ -721,20 +725,20 @@ TransactionPool.prototype.fillPool = function(cb) {
 	const unconfirmedCount = self.countUnconfirmed();
 	library.logger.debug(`Transaction pool size: ${unconfirmedCount}`);
 
-	if (unconfirmedCount >= constants.maxTxsPerBlock) {
+	if (unconfirmedCount >= constants.maxTransactionsPerBlock) {
 		return setImmediate(cb);
 	}
 	let spare = 0;
 	const multisignaturesLimit = 5;
 
-	spare = constants.maxTxsPerBlock - unconfirmedCount;
+	spare = constants.maxTransactionsPerBlock - unconfirmedCount;
 	const spareMulti = spare >= multisignaturesLimit ? multisignaturesLimit : 0;
 	const multisignatures = self
 		.getMultisignatureTransactionList(true, multisignaturesLimit, true)
 		.slice(0, spareMulti);
 	spare = Math.abs(spare - multisignatures.length);
 	const queuedTransactions = self
-		.getQueuedTransactionList(true, constants.maxTxsPerBlock)
+		.getQueuedTransactionList(true, constants.maxTransactionsPerBlock)
 		.slice(0, spare);
 
 	return __private.applyUnconfirmedList(

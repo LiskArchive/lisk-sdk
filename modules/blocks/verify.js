@@ -296,7 +296,7 @@ __private.verifyPayload = function(block, result) {
 		);
 	}
 
-	if (block.transactions.length > constants.maxTxsPerBlock) {
+	if (block.transactions.length > constants.maxTransactionsPerBlock) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
