@@ -98,7 +98,8 @@ NodeController.getStatus = function(context, next) {
 
 			// Check if properties are null, then set it to 0
 			// as per schema defined for these properties in swagger
-			data.networkHeight = data.networkHeight || 0;
+			data.networkHeight =
+				data.networkHeight || modules.blocks.lastBlock.get().height;
 			data.consensus = data.consensus || 0;
 
 			modules.transactions.shared.getTransactionsCount((err, count) => {

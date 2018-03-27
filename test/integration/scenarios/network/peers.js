@@ -142,6 +142,46 @@ module.exports = function(params) {
 					});
 				});
 			});
+
+			describe('node status after 30 seconds', () => {
+				let nodeList = [];
+				let peersCount;
+				let networkHeight;
+				before(done => {
+					Promise.all(
+						params.sockets.map(socket => {
+							return socket.call('list', {});
+						})
+					).then(peers => {
+						peersCount = peers.length;
+						const fn = function getNodeStatus(peer) {
+							return utils.http.getNodeStatus(peer.httpPort, peer.ip);
+						};
+						const actions = peers.map(fn);
+						const status = Promise.all(actions);
+						status
+							.then(data => {
+								networkHeight = _.countBy(data, 'networkHeight');
+								nodeList = data;
+								done();
+							})
+							.catch(err => {
+								done(err);
+							});
+					});
+				});
+
+				it('should have a networkHeight which is greater than 0 for all the peers', () => {
+					expect(nodeList)
+						.to.be.a('Array')
+						.to.have.lengthOf(peersCount);
+					return expect(networkHeight['0']).to.be.undefined;
+				});
+
+				it('should have same networkHeight for all the peers', () => {
+					return expect(Object.keys(networkHeight)).to.have.lengthOf(1);
+				});
+			});
 		});
 	});
 };
