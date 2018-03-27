@@ -14,99 +14,31 @@
 
 'use strict';
 
-const path = require('path');
 const async = require('async');
 const elements = require('lisk-js').default;
 const Promise = require('bluebird');
-const QueryFile = require('pg-promise').QueryFile;
 const constants = require('../../../helpers/constants');
 const slots = require('../../../helpers/slots');
 const Bignum = require('../../../helpers/bignum');
 const accountsFixtures = require('../../fixtures/accounts');
 const roundsFixtures = require('../../fixtures/rounds').rounds;
 const randomUtil = require('../../common/utils/random');
+const queriesHelper = require('../common/sql/queriesHelper.js');
 const localCommon = require('./common');
 
 describe('rounds', () => {
 	let library;
 	let keypairs;
-	let validateAccountsBalancesQuery;
+	let Queries;
 	let generateDelegateListPromise;
 	let addTransactionsAndForgePromise;
-
-	const Queries = {
-		validateAccountsBalances: () => {
-			return library.db.query(validateAccountsBalancesQuery);
-		},
-		getAccounts: () => {
-			return library.db.query('SELECT * FROM mem_accounts');
-		},
-		getDelegates: () => {
-			return library.db.query(
-				'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
-			);
-		},
-		getDelegatesOrderedByVote: () => {
-			return library.db.query(
-				`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${
-					slots.delegates
-				}`
-			);
-		},
-		getFullBlock: height => {
-			return library.db
-				.query('SELECT * FROM full_blocks_list WHERE b_height = ${height}', {
-					height,
-				})
-				.then(rows => {
-					// Normalize blocks
-					return library.modules.blocks.utils.readDbRows(rows);
-				});
-		},
-		getBlocks: round => {
-			return library.db.query(
-				'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
-				{ round }
-			);
-		},
-		getRoundRewards: round => {
-			return library.db
-				.query(
-					'SELECT ENCODE("publicKey", \'hex\') AS "publicKey", SUM(fees) AS fees, SUM(reward) AS rewards FROM rounds_rewards WHERE round = ${round} GROUP BY "publicKey"',
-					{ round }
-				)
-				.then(rows => {
-					const rewards = {};
-					_.each(rows, row => {
-						rewards[row.publicKey] = {
-							publicKey: row.publicKey,
-							fees: row.fees,
-							rewards: row.rewards,
-						};
-					});
-					return rewards;
-				});
-		},
-		getVoters: () => {
-			return library.db.query(
-				'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
-			);
-		},
-	};
 
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
-
-		validateAccountsBalancesQuery = new QueryFile(
-			path.join(
-				__dirname,
-				'../common/sql/rounds/validate_accounts_balances.sql'
-			),
-			{ minify: true }
-		);
+		Queries = new queriesHelper(lib, lib.db);
 
 		generateDelegateListPromise = Promise.promisify(
 			library.modules.delegates.generateDelegateList
