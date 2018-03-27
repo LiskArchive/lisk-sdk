@@ -684,7 +684,7 @@ Transport.prototype.shared = {
 	getSignatures(req, cb) {
 		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			constants.maxSharedTxs
+			constants.maxSharedTransactions
 		);
 		const signatures = [];
 
@@ -713,7 +713,7 @@ Transport.prototype.shared = {
 	getTransactions(query, cb) {
 		const transactions = modules.transactions.getMergedTransactionList(
 			true,
-			constants.maxSharedTxs
+			constants.maxSharedTransactions
 		);
 		return setImmediate(cb, null, {
 			success: true,

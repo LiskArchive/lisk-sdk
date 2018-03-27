@@ -2161,11 +2161,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTxs', () => {
+				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTransactions', () => {
 					return expect(
 						modules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
-							constants.maxSharedTxs
+							constants.maxSharedTransactions
 						)
 					).to.be.true;
 				});
@@ -2242,11 +2242,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs', () => {
+				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTransactions', () => {
 					return expect(
 						modules.transactions.getMergedTransactionList.calledWith(
 							true,
-							constants.maxSharedTxs
+							constants.maxSharedTransactions
 						)
 					).to.be.true;
 				});

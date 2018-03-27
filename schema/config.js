@@ -255,12 +255,12 @@ module.exports = {
 			},
 			transactions: {
 				type: 'object',
-				maxTxsPerQueue: {
+				maxTransactionsPerQueue: {
 					type: 'integer',
 					minimum: 100,
 					maximum: 5000,
 				},
-				required: ['maxTxsPerQueue'],
+				required: ['maxTransactionsPerQueue'],
 			},
 			forging: {
 				type: 'object',
