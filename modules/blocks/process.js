@@ -294,6 +294,14 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				});
 			},
 			function(common, waterCb) {
+				// Check if we received genesis block - before response validation, as genesis block have previousBlock = null
+				if (common && common.height === 1) {
+					comparisionFailed = true;
+					return setImmediate(
+						waterCb,
+						'Comparison failed - received genesis as common block'
+					);
+				}
 				// Validate remote peer response via schema
 				library.schema.validate(common, definitions.CommonBlock, err => {
 					if (err) {
