@@ -115,14 +115,12 @@ random.account = function() {
 
 // Returns an random basic transfer transaction to send 1 LSK from genesis account to a random account
 random.transaction = function(offset) {
-	return lisk.transaction.transfer(
-		{
-			amount: 1,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: random.account().address,
-			timeOffset: offset,
-		}
-	);
+	return lisk.transaction.transfer({
+		amount: 1,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: random.account().address,
+		timeOffset: offset,
+	});
 };
 
 // Returns a random password

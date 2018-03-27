@@ -42,14 +42,12 @@ describe('GET /api/node', () => {
 				// Create numOfTransactions transactions
 				for (var i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
-						lisk.transaction.transfer(
-							{
-								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.password,
-								recipientId: account.address,
-								data,
-							}
-						)
+						lisk.transaction.transfer({
+							amount: randomUtil.number(100000000, 1000000000),
+							passphrase: accountFixtures.genesis.password,
+							recipientId: account.address,
+							data,
+						})
 					);
 				}
 

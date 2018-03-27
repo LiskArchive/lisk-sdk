@@ -216,13 +216,11 @@ function sendSignature(signature, transaction, cb) {
 }
 
 function creditAccount(address, amount, cb) {
-	var transaction = lisk.transaction.transfer(
-		{
-			amount,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: address,
-		}
-	);
+	var transaction = lisk.transaction.transfer({
+		amount,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: address,
+	});
 	sendTransactionPromise(transaction).then(cb);
 }
 
@@ -231,12 +229,10 @@ function getCount(param, cb) {
 }
 
 function registerDelegate(account, cb) {
-	var transaction = lisk.transaction.registerDelegate(
-		{
-			passphrase: account.password,
-			username: account.username,
-		}
-	);
+	var transaction = lisk.transaction.registerDelegate({
+		passphrase: account.password,
+		username: account.username,
+	});
 	sendTransactionPromise(transaction).then(cb);
 }
 

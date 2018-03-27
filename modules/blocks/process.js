@@ -14,16 +14,16 @@
 
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var constants = require('../../helpers/constants.js');
-var slots = require('../../helpers/slots.js');
+const _ = require('lodash');
+const async = require('async');
+const constants = require('../../helpers/constants.js');
+const slots = require('../../helpers/slots.js');
 
-var modules;
-var definitions;
-var library;
-var self;
-var __private = {};
+const __private = {};
+let modules;
+let definitions;
+let library;
+let self;
 
 /**
  * Main process logic. Allows process blocks. Initializes library.
@@ -46,32 +46,34 @@ var __private = {};
  * @param {Object} genesisblock
  * @todo Add description for the params
  */
-function Process(
-	logger,
-	block,
-	peers,
-	transaction,
-	schema,
-	db,
-	sequence,
-	genesisblock
-) {
-	library = {
+class Process {
+	constructor(
 		logger,
+		block,
+		peers,
+		transaction,
 		schema,
 		db,
 		sequence,
-		genesisblock,
-		logic: {
-			block,
-			peers,
-			transaction,
-		},
-	};
-	self = this;
+		genesisblock
+	) {
+		library = {
+			logger,
+			schema,
+			db,
+			sequence,
+			genesisblock,
+			logic: {
+				block,
+				peers,
+				transaction,
+			},
+		};
+		self = this;
 
-	library.logger.trace('Blocks->Process: Submodule initialized.');
-	return self;
+		library.logger.trace('Blocks->Process: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -113,7 +115,7 @@ __private.receiveBlock = function(block, cb) {
  * @param {function} cb - Callback function
  */
 __private.receiveForkOne = function(block, lastBlock, cb) {
-	var tmp_block = _.clone(block);
+	let tmp_block = _.clone(block);
 
 	// Fork: Consecutive height but different previous block id
 	modules.delegates.fork(block, 1);
@@ -143,7 +145,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+				const check = modules.blocks.verify.verifyReceipt(tmp_block);
 
 				if (!check.verified) {
 					library.logger.error(
@@ -177,7 +179,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
  * @param {function} cb - Callback function
  */
 __private.receiveForkFive = function(block, lastBlock, cb) {
-	var tmp_block = _.clone(block);
+	let tmpBlock = _.clone(block);
 
 	// Fork: Same height and previous block id, but different block id
 	modules.delegates.fork(block, 5);
@@ -203,7 +205,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		[
 			function(seriesCb) {
 				try {
-					tmp_block = library.logic.block.objectNormalize(tmp_block);
+					tmpBlock = library.logic.block.objectNormalize(tmpBlock);
 				} catch (err) {
 					return setImmediate(seriesCb, err);
 				}
@@ -211,15 +213,15 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 			},
 			// Check valid slot
 			function(seriesCb) {
-				__private.validateBlockSlot(tmp_block, lastBlock, seriesCb);
+				__private.validateBlockSlot(tmpBlock, lastBlock, seriesCb);
 			},
 			// Check received block before any deletion
 			function(seriesCb) {
-				var check = modules.blocks.verify.verifyReceipt(tmp_block);
+				const check = modules.blocks.verify.verifyReceipt(tmpBlock);
 
 				if (!check.verified) {
 					library.logger.error(
-						['Block', tmp_block.id, 'verification failed'].join(' '),
+						['Block', tmpBlock.id, 'verification failed'].join(' '),
 						check.errors.join(', ')
 					);
 					// Return first error from checks
@@ -257,7 +259,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
  * @returns {Object} cb.res - Result object
  */
 Process.prototype.getCommonBlock = function(peer, height, cb) {
-	var comparisionFailed = false;
+	let comparisionFailed = false;
 
 	async.waterfall(
 		[
@@ -268,7 +270,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				);
 			},
 			function(res, waterCb) {
-				var ids = res.ids;
+				const ids = res.ids;
 				// Perform request to supplied remote peer
 				peer = library.logic.peers.create(peer);
 				peer.rpc.blocksCommon({ ids }, (err, res) => {
@@ -356,8 +358,8 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
  */
 Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 	// Calculate limit if offset is supplied
-	var newLimit = limit + (offset || 0);
-	var params = { limit: newLimit, offset: offset || 0 };
+	const newLimit = limit + (offset || 0);
+	const params = { limit: newLimit, offset: offset || 0 };
 
 	library.logger.debug('Loading blocks offset', {
 		limit,
@@ -371,7 +373,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 		.loadBlocksOffset(params.offset, params.limit)
 		.then(rows => {
 			// Normalize blocks
-			var blocks = modules.blocks.utils.readDbRows(rows);
+			const blocks = modules.blocks.utils.readDbRows(rows);
 
 			async.eachSeries(
 				blocks,
@@ -398,7 +400,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 								verifyBlock(seriesCb) {
 									// Sanity check of the block, if values are coherent.
 									// No access to database
-									var result = modules.blocks.verify.verifyBlock(block);
+									const result = modules.blocks.verify.verifyBlock(block);
 
 									if (!result.verified) {
 										library.logger.error(
@@ -453,7 +455,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
  * @returns {Object} cb.lastValidBlock - Normalized new last block
  */
 Process.prototype.loadBlocksFromPeer = function(peer, cb) {
-	var lastValidBlock = modules.blocks.lastBlock.get();
+	let lastValidBlock = modules.blocks.lastBlock.get();
 
 	peer = library.logic.peers.create(peer);
 	library.logger.info(`Loading blocks from: ${peer.string}`);
@@ -473,7 +475,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 	}
 
 	function validateBlocks(blocks, seriesCb) {
-		var report = library.schema.validate(blocks, definitions.WSBlocksList);
+		const report = library.schema.validate(blocks, definitions.WSBlocksList);
 
 		if (!report) {
 			return setImmediate(seriesCb, 'Received invalid blocks data');
@@ -512,7 +514,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 					`height: ${block.height}`
 				);
 			} else {
-				var id = block ? block.id : 'null';
+				const id = block ? block.id : 'null';
 
 				library.logger.debug('Block processing failed', {
 					id,
@@ -548,11 +550,11 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
  */
 Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
-	var transactions = modules.transactions.getUnconfirmedTransactionList(
+	const transactions = modules.transactions.getUnconfirmedTransactionList(
 		false,
-		constants.maxTxsPerBlock
+		constants.maxTransactionsPerBlock
 	);
-	var ready = [];
+	const ready = [];
 
 	async.eachSeries(
 		transactions,
@@ -583,7 +585,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			var block;
+			let block;
 
 			try {
 				// Create a block
@@ -614,8 +616,8 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
  * @param {Function} cb - Callback function
  */
 __private.validateBlockSlot = function(block, lastBlock, cb) {
-	var roundNextBlock = slots.calcRound(block.height);
-	var roundLastBlock = slots.calcRound(lastBlock.height);
+	const roundNextBlock = slots.calcRound(block.height);
+	const roundLastBlock = slots.calcRound(lastBlock.height);
 
 	if (
 		lastBlock.height % slots.delegates === 0 ||
@@ -641,7 +643,7 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
  * @todo Add @returns tag
  */
 Process.prototype.onReceiveBlock = function(block) {
-	var lastBlock;
+	let lastBlock;
 
 	// Execute in sequence via sequence
 	library.sequence.add(cb => {

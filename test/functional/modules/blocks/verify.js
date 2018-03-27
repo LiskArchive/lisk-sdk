@@ -433,7 +433,7 @@ describe('blocks/verify', () => {
 				done();
 			});
 
-			it('should fail when transactions length > maxTxsPerBlock constant value', done => {
+			it('should fail when transactions length > maxTransactionsPerBlock constant value', done => {
 				var transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;

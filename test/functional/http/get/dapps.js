@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
+var constants = require('../../../../helpers/constants.js');
 var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
@@ -39,13 +39,11 @@ describe('GET /dapps', () => {
 	var registeredDappsAmount = 2;
 
 	before(() => {
-		var transaction = lisk.transaction.transfer(
-			{
-				amount: 1000 * normalizer,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: account.address,
-			}
-		);
+		var transaction = lisk.transaction.transfer({
+			amount: 1000 * constants.normalizer,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: account.address,
+		});
 		transactionsToWaitFor.push(transaction.id);
 		return apiHelpers
 			.sendTransactionPromise(transaction)
@@ -58,18 +56,14 @@ describe('GET /dapps', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 
-				var transaction1 = lisk.transaction.createDapp(
-					{
-						passphrase: account.password,
-						options: dapp1,
-					}
-				);
-				var transaction2 = lisk.transaction.createDapp(
-					{
-						passphrase: account.password,
-						options: dapp2,
-					}
-				);
+				var transaction1 = lisk.transaction.createDapp({
+					passphrase: account.password,
+					options: dapp1,
+				});
+				var transaction2 = lisk.transaction.createDapp({
+					passphrase: account.password,
+					options: dapp2,
+				});
 				var promises = [];
 				promises.push(apiHelpers.sendTransactionPromise(transaction1));
 				promises.push(apiHelpers.sendTransactionPromise(transaction2));
@@ -265,12 +259,10 @@ describe('GET /dapps', () => {
 				var transactionsToWaitFor = [];
 
 				for (var i = 1; i <= 20; i++) {
-					transaction = lisk.transaction.createDapp(
-						{
-							passphrase: account.password,
-							options: randomUtil.application(),
-						}
-					);
+					transaction = lisk.transaction.createDapp({
+						passphrase: account.password,
+						options: randomUtil.application(),
+					});
 					transactionsToWaitFor.push(transaction.id);
 					promises.push(apiHelpers.sendTransactionPromise(transaction));
 				}

@@ -20,7 +20,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
-const normalizer = require('../../../../common/utils/normalizer');
+var constants = require('../../../../../helpers/constants');
 
 describe('delegate', () => {
 	let library;
@@ -50,13 +50,11 @@ describe('delegate', () => {
 
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
-			const sendTransaction = lisk.transaction.transfer(
-				{
-					amount: 1000 * normalizer,
-					passphrase: accountFixtures.genesis.password,
-					recipientId: delegateAccount.address,
-				}
-			);
+			const sendTransaction = lisk.transaction.transfer({
+				amount: 1000 * constants.normalizer,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: delegateAccount.address,
+			});
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
@@ -67,12 +65,10 @@ describe('delegate', () => {
 			beforeEach(done => {
 				username = randomUtil.username().toLowerCase();
 
-				delegateTransaction = lisk.transaction.registerDelegate(
-					{
-						passphrase: delegateAccount.password,
-						username,
-					}
-				);
+				delegateTransaction = lisk.transaction.registerDelegate({
+					passphrase: delegateAccount.password,
+					username,
+				});
 				delegateTransaction.amount = parseInt(delegateTransaction.amount);
 				delegateTransaction.fee = parseInt(delegateTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
@@ -134,12 +130,10 @@ describe('delegate', () => {
 
 				beforeEach(done => {
 					username2 = randomUtil.username().toLowerCase();
-					delegateTransaction2 = lisk.transaction.registerDelegate(
-						{
-							passphrase: delegateAccount.password,
-							username: username2,
-						}
-					);
+					delegateTransaction2 = lisk.transaction.registerDelegate({
+						passphrase: delegateAccount.password,
+						username: username2,
+					});
 					delegateTransaction2.senderId = delegateAccount.address;
 					delegateTransaction2.amount = parseInt(delegateTransaction2.amount);
 					delegateTransaction2.fee = parseInt(delegateTransaction2.fee);

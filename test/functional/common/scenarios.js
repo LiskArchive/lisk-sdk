@@ -42,27 +42,21 @@ function Multisig(options) {
 	this.lifetime = options.lifetime || 1;
 	this.amount = options.amount || 100000000000;
 
-	this.multiSigTransaction = lisk.transaction.registerMultisignature(
-		{
-			passphrase: this.account.password,
-			keysgroup: this.keysgroup,
-			lifetime: this.lifetime,
-			minimum: this.minimum,
-		}
-	);
-	this.creditTransaction = lisk.transaction.transfer(
-		{
-			amount: this.amount,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: this.account.address,
-		}
-	);
-	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase(
-		{
-			passphrase: this.account.password,
-			secondPassphrase: this.account.secondPassword,
-		}
-	);
+	this.multiSigTransaction = lisk.transaction.registerMultisignature({
+		passphrase: this.account.password,
+		keysgroup: this.keysgroup,
+		lifetime: this.lifetime,
+		minimum: this.minimum,
+	});
+	this.creditTransaction = lisk.transaction.transfer({
+		amount: this.amount,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: this.account.address,
+	});
+	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
+		passphrase: this.account.password,
+		secondPassphrase: this.account.secondPassword,
+	});
 }
 
 module.exports = {

@@ -21,7 +21,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var genesisblock = require('../../../data/genesis_block.json');
 var transactionTypes = require('../../../../helpers/transaction_types');
 var randomUtil = require('../../../common/utils/random');
-var normalizer = require('../../../common/utils/normalizer');
+var constants = require('../../../../helpers/constants.js');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var swaggerEndpoint = require('../../../common/swagger_spec');
@@ -35,22 +35,18 @@ describe('GET /api/transactions', () => {
 
 	var account = randomUtil.account();
 	var account2 = randomUtil.account();
-	var minAmount = 20 * normalizer; // 20 LSK
-	var maxAmount = 100 * normalizer; // 100 LSK
-	var transaction1 = lisk.transaction.transfer(
-		{
-			amount: maxAmount,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: account.address,
-		}
-	);
-	var transaction2 = lisk.transaction.transfer(
-		{
-			amount: minAmount,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: account2.address,
-		}
-	);
+	var minAmount = 20 * constants.normalizer; // 20 LSK
+	var maxAmount = 100 * constants.normalizer; // 100 LSK
+	var transaction1 = lisk.transaction.transfer({
+		amount: maxAmount,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+	});
+	var transaction2 = lisk.transaction.transfer({
+		amount: minAmount,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account2.address,
+	});
 
 	// Crediting accounts
 	before(() => {

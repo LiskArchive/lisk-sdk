@@ -148,9 +148,7 @@ const connectSteps = {
 		// When error on transport layer occurs - disconnect
 		peer.socket.on('error', err => {
 			logger.debug(
-				`[Outbound socket :: error] Peer error from ${
-					peer.ip
-				} - ${err.message}`
+				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
 			);
 			peer.socket.disconnect();
 		});
