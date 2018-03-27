@@ -886,9 +886,7 @@ describe('rounds', () => {
 						'__private.loadDelegates'
 					);
 					loadDelegates(err => {
-						keypairs = library.rewiredModules.delegates.__get__(
-							'__private.keypairs'
-						);
+						keypairs = library.modules.delegates.getForgersKeyPairs();
 						done(err);
 					});
 				});

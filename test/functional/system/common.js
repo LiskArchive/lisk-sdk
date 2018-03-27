@@ -51,7 +51,7 @@ function createBlock(library, transactions, timestamp, keypair, previousBlock) {
 function createValidBlock(library, transactions, cb) {
 	var lastBlock = library.modules.blocks.lastBlock.get();
 	var slot = slots.getSlotNumber();
-	var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
+	var keypairs = library.modules.delegates.getForgersKeyPairs();
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		var block = createBlock(
 			library,
