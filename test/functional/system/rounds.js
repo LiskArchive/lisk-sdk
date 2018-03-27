@@ -599,7 +599,7 @@ describe('rounds', () => {
 				});
 			});
 
-			describe('insert to database', () => {
+			describe('after insert to database', () => {
 				describe('database block at height 1', () => {
 					it('ID should match genesis block ID', () => {
 						return expect(genesisBlock.id).to.equal(
