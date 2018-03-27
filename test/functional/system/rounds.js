@@ -455,14 +455,10 @@ describe('rounds', () => {
 				);
 			});
 
-			it('should contain all expected transactions', done => {
-				_.each(transactions, transaction => {
-					const found = _.find(tick.after.block.transactions, {
-						id: transaction.id,
-					});
-					expect(found).to.be.an('object');
-				});
-				done();
+			it('should contain all expected transactions', () => {
+				return expect(transactions.map(t => t.id).sort()).to.be.deep.equal(
+					tick.after.block.transactions.map(t => t.id).sort()
+				);
 			});
 
 			it('unconfirmed account balances should match confirmed account balances', done => {
@@ -621,17 +617,12 @@ describe('rounds', () => {
 						);
 					});
 
-					it('all transactions IDs should be present in genesis block', done => {
-						var found;
-						_.each(genesisBlock.transactions, databaseTransaction => {
-							found = _.find(library.genesisblock.block.transactions, {
-								id: databaseTransaction.id,
-							});
-							expect(found).to.be.an('object');
-							expect(found).to.have.an.own.property('id');
-							expect(found.id).to.equal(databaseTransaction.id);
-						});
-						done();
+					it('all transactions IDs should be present in genesis block', () => {
+						return expect(
+							genesisBlock.transactions.map(t => t.id).sort()
+						).to.be.deep.equal(
+							library.genesisblock.block.transactions.map(t => t.id).sort()
+						);
 					});
 				});
 
