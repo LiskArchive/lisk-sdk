@@ -17,7 +17,7 @@
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../../fixtures/accounts');
 var randomUtil = require('../../../../common/utils/random');
-var normalizer = require('../../../../common/utils/normalizer');
+var constants = require('../../../../../helpers/constants');
 var transactionTypes = require('../../../../../helpers/transaction_types.js');
 var localCommon = require('../../common');
 
@@ -25,28 +25,22 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	var library;
 
 	var account = randomUtil.account();
-	var transaction = lisk.transaction.transfer(
-		{
-			amount: 1000 * normalizer,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: account.address,
-		}
-	);
+	var transaction = lisk.transaction.transfer({
+		amount: 1000 * constants.normalizer,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+	});
 	var dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp(
-		{
-			passphrase: account.password,
-			options: dapp,
-		}
-	);
+	var dappTransaction = lisk.transaction.createDapp({
+		passphrase: account.password,
+		options: dapp,
+	});
 	dapp.id = dappTransaction.id;
 	var transactionWith;
-	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase(
-		{
-			passphrase: account.password,
-			secondPassphrase: account.secondPassword,
-		}
-	);
+	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase({
+		passphrase: account.password,
+		secondPassphrase: account.secondPassword,
+	});
 
 	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
 		library = lib;
@@ -91,13 +85,11 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					});
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
-						transactionWith = lisk.transaction.registerSecondPassphrase(
-							{
-								passphrase: account.password,
-								secondPassphrase: account.secondPassword,
-								timeOffset: -10000,
-							}
-						);
+						transactionWith = lisk.transaction.registerSecondPassphrase({
+							passphrase: account.password,
+							secondPassphrase: account.secondPassword,
+							timeOffset: -10000,
+						});
 						localCommon.addTransaction(library, transactionWith, (err, res) => {
 							expect(res).to.equal(transactionWith.id);
 							done();

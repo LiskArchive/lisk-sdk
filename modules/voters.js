@@ -14,19 +14,19 @@
 
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var apiCodes = require('../helpers/api_codes');
-var ApiError = require('../helpers/api_error');
-var constants = require('../helpers/constants');
+const _ = require('lodash');
+const async = require('async');
+const apiCodes = require('../helpers/api_codes');
+const ApiError = require('../helpers/api_error');
+const constants = require('../helpers/constants');
 
 // Private fields
-var modules;
-var library;
-var loaded = false;
+let modules;
+let library;
+let loaded = false;
 
 /**
- * Main voters methods. Initializes library with scope content and private variables:
+ * Main voters methods. Initializes library with scope content and private constiables:
  * - library
  *
  * @class
@@ -40,13 +40,15 @@ var loaded = false;
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance
  */
-function Voters(cb, scope) {
-	library = {
-		db: scope.db,
-		logger: scope.logger,
-		schema: scope.schema,
-	};
-	setImmediate(cb, null, this);
+class Voters {
+	constructor(cb, scope) {
+		library = {
+			db: scope.db,
+			logger: scope.logger,
+			schema: scope.schema,
+		};
+		setImmediate(cb, null, this);
+	}
 }
 
 /**
@@ -56,8 +58,8 @@ function Voters(cb, scope) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var getDelegate = function(query, cb) {
-	var dbQuery = _.assign({}, query, { sort: {} });
+const getDelegate = function(query, cb) {
+	const dbQuery = _.assign({}, query, { sort: {} });
 
 	delete dbQuery.limit;
 	delete dbQuery.offset;
@@ -76,7 +78,7 @@ var getDelegate = function(query, cb) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var getVotersForDelegates = function(filters, delegate, cb) {
+const getVotersForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
@@ -87,7 +89,7 @@ var getVotersForDelegates = function(filters, delegate, cb) {
 			offset: filters.offset,
 		})
 		.then(rows => {
-			var addresses = rows.map(a => a.accountId);
+			const addresses = rows.map(a => a.accountId);
 			return setImmediate(cb, null, addresses);
 		})
 		.catch(err => {
@@ -106,7 +108,7 @@ var getVotersForDelegates = function(filters, delegate, cb) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var populateVoters = function(sort, addresses, cb) {
+const populateVoters = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
 		{ address: addresses, sort },
 		['address', 'balance', 'publicKey'],
@@ -121,7 +123,7 @@ var populateVoters = function(sort, addresses, cb) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var getVotersCountForDelegates = function(delegate, cb) {
+const getVotersCountForDelegates = function(delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
@@ -145,7 +147,7 @@ var getVotersCountForDelegates = function(delegate, cb) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var getVotesCountForDelegates = function(delegate, cb) {
+const getVotesCountForDelegates = function(delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
@@ -169,7 +171,7 @@ var getVotesCountForDelegates = function(delegate, cb) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var getVotesForDelegates = function(filters, delegate, cb) {
+const getVotesForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
@@ -180,7 +182,7 @@ var getVotesForDelegates = function(filters, delegate, cb) {
 			offset: filters.offset,
 		})
 		.then(rows => {
-			var addresses = rows.map(a =>
+			const addresses = rows.map(a =>
 				modules.accounts.generateAddressByPublicKey(a.dependentId)
 			);
 			return setImmediate(cb, null, addresses);
@@ -201,7 +203,7 @@ var getVotesForDelegates = function(filters, delegate, cb) {
  * @todo Add @returns tag
  * @todo Add description of the function
  */
-var populateVotes = function(sort, addresses, cb) {
+const populateVotes = function(sort, addresses, cb) {
 	modules.accounts.getAccounts(
 		{ address: addresses, sort },
 		['address', 'balance', 'publicKey', 'username'],
@@ -304,7 +306,7 @@ Voters.prototype.shared = {
 
 // Events
 /**
- * Assigns used modules to modules variable.
+ * Assigns used modules to modules constiable.
  *
  * @param {modules} scope - Loaded modules
  */

@@ -14,16 +14,16 @@
 
 'use strict';
 
-var os = require('os');
-var crypto = require('crypto');
-var async = require('async');
-var semver = require('semver');
+const os = require('os');
+const crypto = require('crypto');
+const async = require('async');
+const semver = require('semver');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let __private = {};
+let modules;
+let library;
+let self;
 
 /**
  * Main system methods. Initializes library with scope content and private variables:
@@ -44,33 +44,35 @@ var __private = {};
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance
  */
-function System(cb, scope) {
-	library = {
-		logger: scope.logger,
-		db: scope.db,
-		config: {
-			version: scope.config.version,
-			wsPort: scope.config.wsPort,
-			httpPort: scope.config.httpPort,
-			nethash: scope.config.nethash,
-			minVersion: scope.config.minVersion,
-			nonce: scope.config.nonce,
-		},
-	};
+class System {
+	constructor(cb, scope) {
+		library = {
+			logger: scope.logger,
+			db: scope.db,
+			config: {
+				version: scope.config.version,
+				wsPort: scope.config.wsPort,
+				httpPort: scope.config.httpPort,
+				nethash: scope.config.nethash,
+				minVersion: scope.config.minVersion,
+				nonce: scope.config.nonce,
+			},
+		};
 
-	self = this;
+		self = this;
 
-	__private.os = os.platform() + os.release();
-	__private.version = library.config.version;
-	__private.wsPort = library.config.wsPort;
-	__private.httpPort = library.config.httpPort;
-	__private.height = 1;
-	__private.nethash = library.config.nethash;
-	__private.broadhash = library.config.nethash;
-	__private.minVersion = library.config.minVersion;
-	__private.nonce = library.config.nonce;
+		__private.os = os.platform() + os.release();
+		__private.version = library.config.version;
+		__private.wsPort = library.config.wsPort;
+		__private.httpPort = library.config.httpPort;
+		__private.height = 1;
+		__private.nethash = library.config.nethash;
+		__private.broadhash = library.config.nethash;
+		__private.minVersion = library.config.minVersion;
+		__private.nonce = library.config.nonce;
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 // Public methods
@@ -184,8 +186,8 @@ System.prototype.getBroadhash = function(cb) {
 			if (rows.length <= 1) {
 				return setImmediate(cb, null, __private.nethash);
 			}
-			var seed = rows.map(row => row.id).join('');
-			var hash = crypto
+			const seed = rows.map(row => row.id).join('');
+			const hash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
 				.digest();

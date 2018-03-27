@@ -195,7 +195,7 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-InTransfer.prototype.undo = function(transaction, block, sender, cb) {
+InTransfer.prototype.undo = function(transaction, block, sender, cb, tx) {
 	shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(err, res) => {
@@ -210,9 +210,11 @@ InTransfer.prototype.undo = function(transaction, block, sender, cb) {
 					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
-				err => setImmediate(cb, err)
+				err => setImmediate(cb, err),
+				tx
 			);
-		}
+		},
+		tx
 	);
 };
 

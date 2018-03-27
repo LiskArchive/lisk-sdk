@@ -906,14 +906,9 @@ describe('peers', () => {
 
 	describe('discover', () => {
 		var randomPeerStub;
-		var revertPrivateStubs;
 
 		beforeEach(done => {
-			revertPrivateStubs = PeersRewired.__set__({
-				__private: {
-					updatePeerStatus: sinonSandbox.spy(),
-				},
-			});
+			PeersRewired.__set__('__private.updatePeerStatus', sinonSandbox.spy());
 			randomPeerStub = {
 				rpc: {
 					status: sinonSandbox
@@ -924,10 +919,6 @@ describe('peers', () => {
 			};
 			peers.list = sinonSandbox.stub().callsArgWith(1, null, [randomPeerStub]);
 			done();
-		});
-
-		afterEach(() => {
-			return revertPrivateStubs();
 		});
 
 		it('should not call randomPeer.rpc.list if randomPeer.rpc.status operation has failed', done => {

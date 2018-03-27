@@ -25,15 +25,13 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		regular: new Scenarios.Multisig(),
 	};
 
-	var transactionToBeNotConfirmed = lisk.transaction.registerMultisignature(
-		{
-			passphrase: scenarios.regular.account.password,
-			keysgroup: scenarios.regular.keysgroup,
-			lifetime: scenarios.regular.lifetime,
-			minimum: scenarios.regular.minimum,
-			timeOffset: -10000,
-		}
-	);
+	var transactionToBeNotConfirmed = lisk.transaction.registerMultisignature({
+		passphrase: scenarios.regular.account.password,
+		keysgroup: scenarios.regular.keysgroup,
+		lifetime: scenarios.regular.lifetime,
+		minimum: scenarios.regular.minimum,
+		timeOffset: -10000,
+	});
 
 	scenarios.regular.multiSigTransaction.ready = true;
 	scenarios.regular.multiSigTransaction.signatures = [];

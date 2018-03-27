@@ -19,13 +19,13 @@ var lisk = require('lisk-js').default;
 var elements = {};
 
 elements.redoSignature = function(transaction, passphrase) {
-    delete transaction.signature;
-    transaction.signature = lisk.transaction.utils.signTransaction(
-        transaction,
-        passphrase
-    );
-    transaction.id = lisk.transaction.utils.getTransactionId(transaction);
-    return transaction;
+	delete transaction.signature;
+	transaction.signature = lisk.transaction.utils.signTransaction(
+		transaction,
+		passphrase
+	);
+	transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+	return transaction;
 };
 
 // Exports

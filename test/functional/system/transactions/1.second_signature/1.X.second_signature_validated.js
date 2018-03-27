@@ -17,7 +17,7 @@
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../../fixtures/accounts');
 var randomUtil = require('../../../../common/utils/random');
-var normalizer = require('../../../../common/utils/normalizer');
+var constants = require('../../../../../helpers/constants');
 var transactionTypes = require('../../../../../helpers/transaction_types.js');
 var localCommon = require('../../common');
 
@@ -25,26 +25,20 @@ describe('system test (type 1) - checking validated second signature registratio
 	var library;
 
 	var account = randomUtil.account();
-	var creditTransaction = lisk.transaction.transfer(
-		{
-			amount: 1000 * normalizer,
-			passphrase: accountFixtures.genesis.password,
-			recipientId: account.address,
-		}
-	);
-	var transaction = lisk.transaction.registerSecondPassphrase(
-		{
-			passphrase: account.password,
-			secondPassphrase: account.secondPassword,
-		}
-	);
+	var creditTransaction = lisk.transaction.transfer({
+		amount: 1000 * constants.normalizer,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+	});
+	var transaction = lisk.transaction.registerSecondPassphrase({
+		passphrase: account.password,
+		secondPassphrase: account.secondPassword,
+	});
 	var dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp(
-		{
-			passphrase: account.password,
-			options: dapp,
-		}
-	);
+	var dappTransaction = lisk.transaction.createDapp({
+		passphrase: account.password,
+		options: dapp,
+	});
 	dapp.id = dappTransaction.id;
 
 	localCommon.beforeBlock('system_1_X_second_sign_validated', lib => {

@@ -14,14 +14,14 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var async = require('async');
-var transactionTypes = require('../../helpers/transaction_types.js');
+const Promise = require('bluebird');
+const async = require('async');
+const transactionTypes = require('../../helpers/transaction_types.js');
 
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 /**
  * Main chain logic. Allows set information. Initializes library.
@@ -41,30 +41,32 @@ var __private = {};
  * @param {Sequence} balancesSequence
  * @todo Add description for the params
  */
-function Chain(
-	logger,
-	block,
-	transaction,
-	db,
-	genesisblock,
-	bus,
-	balancesSequence
-) {
-	library = {
+class Chain {
+	constructor(
 		logger,
+		block,
+		transaction,
 		db,
 		genesisblock,
 		bus,
-		balancesSequence,
-		logic: {
-			block,
-			transaction,
-		},
-	};
-	self = this;
+		balancesSequence
+	) {
+		library = {
+			logger,
+			db,
+			genesisblock,
+			bus,
+			balancesSequence,
+			logic: {
+				block,
+				transaction,
+			},
+		};
+		self = this;
 
-	library.logger.trace('Blocks->Chain: Submodule initialized.');
-	return self;
+		library.logger.trace('Blocks->Chain: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
@@ -80,7 +82,7 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 	library.db.blocks
 		.getGenesisBlockId(library.genesisblock.block.id)
 		.then(rows => {
-			var blockId = rows.length && rows[0].id;
+			const blockId = rows.length && rows[0].id;
 
 			if (!blockId) {
 				// If there is no block with genesis ID - save to database
@@ -115,7 +117,7 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 	});
 
 	function saveBlockBatch(tx) {
-		var promises = [tx.blocks.save(block)];
+		const promises = [tx.blocks.save(block)];
 
 		if (block.transactions.length) {
 			promises.push(tx.transactions.save(block.transactions));
@@ -200,20 +202,6 @@ Chain.prototype.deleteAfterBlock = function(blockId, cb) {
 };
 
 /**
- * Calls process.exit() based on entry code
- *
- * @param {number} code - ID of block to begin with
- * @param {function} cb - Callback function
- * @returns {Object} cb.err - Error if occurred
- */
-Chain.prototype.asyncProcessExit = function(code, cb) {
-	const error = `Cannot proceed after block apply/remove failed, exiting with code: ${code}`;
-	library.logger.error(error);
-	process.exit(code);
-	return setImmediate(cb, error);
-};
-
-/**
  * Apply genesis block's transactions to blockchain.
  *
  * @param {Object} block - Full normalized genesis block
@@ -230,14 +218,14 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		return 0;
 	});
 	// Initialize block progress tracker
-	var tracker = modules.blocks.utils.getBlockProgressLogger(
+	const tracker = modules.blocks.utils.getBlockProgressLogger(
 		block.transactions.length,
 		block.transactions.length / 100,
 		'Genesis block loading'
 	);
 	async.eachSeries(
 		block.transactions,
-		(transaction, cb) => {
+		(transaction, eachSeriesCb) => {
 			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
@@ -245,7 +233,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {
 					if (err) {
-						return setImmediate(cb, {
+						return setImmediate(eachSeriesCb, {
 							message: err,
 							transaction,
 							block,
@@ -253,7 +241,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 					}
 					// Apply transaction to confirmed & unconfirmed balances
 					// WARNING: DB_WRITE
-					__private.applyTransaction(block, transaction, sender, cb);
+					__private.applyTransaction(block, transaction, sender, eachSeriesCb);
 					// Update block progress tracker
 					tracker.applyNext();
 				}
@@ -262,7 +250,8 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		err => {
 			if (err) {
 				// If genesis block is invalid, kill the node...
-				return self.asyncProcessExit(0, cb);
+				process.exit(0);
+				return setImmediate(cb, err);
 			}
 			// Set genesis block as last block
 			modules.blocks.lastBlock.set(block);
@@ -552,6 +541,149 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
 };
 
 /**
+ * Loads 2nd last block from the database
+ * @param {String} secondLastBlockId - id of the second last block
+ * @param {Object} tx - database transaction
+ */
+__private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
+	return new Promise((resolve, reject) => {
+		// Load previous block from full_blocks_list table
+		// TODO: Can be inefficient, need performnce tests
+		modules.blocks.utils.loadBlocksPart(
+			{ id: secondLastBlockId },
+			(err, blocks) => {
+				if (err || !blocks.length) {
+					library.logger.error('Failed to get loadBlocksPart', err);
+					return setImmediate(reject, err || 'previousBlock is null');
+				}
+				return setImmediate(resolve, blocks[0]);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * Reverts changes on confirmed columns of mem_account for one transaction
+ * @param {Object} transaction - transaction to undo
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} tx - database transaction
+ */
+__private.undoStep = function(transaction, oldLastBlock, tx) {
+	return new Promise((resolve, reject) => {
+		// Retrieve sender by public key
+		modules.accounts.getAccount(
+			{ publicKey: transaction.senderPublicKey },
+			(accountErr, sender) => {
+				if (accountErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error(
+						'Failed to get account to undo transactions',
+						accountErr
+					);
+					return setImmediate(reject, accountErr);
+				}
+				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
+				// WARNING: DB_WRITE
+				modules.transactions.undo(
+					transaction,
+					oldLastBlock,
+					sender,
+					undoErr => {
+						if (undoErr) {
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to undo transactions', undoErr);
+							return setImmediate(reject, undoErr);
+						}
+						return setImmediate(resolve);
+					},
+					tx
+				);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * Reverts changes on unconfirmed columns of mem_account for one transaction
+ * @param {Object} transaction - transaction to undo
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} tx - database transaction
+ */
+__private.undoUnconfirmStep = function(transaction, tx) {
+	return new Promise((resolve, reject) => {
+		// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
+		// WARNING: DB_WRITE
+		modules.transactions.undoUnconfirmed(
+			transaction,
+			undoUnconfirmErr => {
+				if (undoUnconfirmErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to undo transactions', undoUnconfirmErr);
+					return setImmediate(reject, undoUnconfirmErr);
+				}
+				return setImmediate(resolve);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * Performs backward tick
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} previousBlock - block to delete
+ * @param {Object} tx - database transaction
+ */
+__private.backwardTickStep = function(oldLastBlock, previousBlock, tx) {
+	return new Promise((resolve, reject) => {
+		// Perform backward tick on rounds
+		// WARNING: DB_WRITE
+		modules.rounds.backwardTick(
+			oldLastBlock,
+			previousBlock,
+			backwardTickErr => {
+				if (backwardTickErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error(
+						'Failed to perform backwards tick',
+						backwardTickErr
+					);
+					return setImmediate(reject, backwardTickErr);
+				}
+				return setImmediate(resolve);
+			},
+			tx
+		);
+	});
+};
+
+/**
+ * deletes block and relevant transactions
+ * @param {Object} oldLastBlock - secondLastBlock
+ * @param {Object} tx - database transaction
+ */
+__private.deleteBlockStep = function(oldLastBlock, tx) {
+	return new Promise((resolve, reject) => {
+		// Delete last block from blockchain
+		// WARNING: Db_WRITE
+		self.deleteBlock(
+			oldLastBlock.id,
+			deleteBlockErr => {
+				if (deleteBlockErr) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to delete block', deleteBlockErr);
+					return setImmediate(reject, deleteBlockErr);
+				}
+				return setImmediate(resolve);
+			},
+			tx
+		);
+	});
+};
+
+/**
  * Deletes last block, undo transactions, recalculate round.
  *
  * @param  {function} cb - Callback function
@@ -560,92 +692,32 @@ Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
  * @returns {Object} cb.obj - New last block
  */
 __private.popLastBlock = function(oldLastBlock, cb) {
-	// Execute in sequence via balancesSequence
-	library.balancesSequence.add(cb => {
-		// Load previous block from full_blocks_list table
-		// TODO: Can be inefficient, need performnce tests
-		modules.blocks.utils.loadBlocksPart(
-			{ id: oldLastBlock.previousBlock },
-			(err, blocks) => {
-				if (err || !blocks.length) {
-					return setImmediate(cb, err || 'previousBlock is null');
-				}
+	let secondLastBlock;
 
-				const previousBlock = blocks[0];
-
-				// Reverse order of transactions in last blocks...
-				async.eachSeries(
-					oldLastBlock.transactions.reverse(),
-					(transaction, cb) => {
-						async.series(
-							[
-								function(cb) {
-									// Retrieve sender by public key
-									modules.accounts.getAccount(
-										{ publicKey: transaction.senderPublicKey },
-										(err, sender) => {
-											if (err) {
-												return setImmediate(cb, err);
-											}
-											// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
-											// WARNING: DB_WRITE
-											modules.transactions.undo(
-												transaction,
-												oldLastBlock,
-												sender,
-												cb
-											);
-										}
-									);
-								},
-								function(cb) {
-									// Undoing unconfirmed transaction - refresh unconfirmed balance (see: logic.transaction.undoUnconfirmed)
-									// WARNING: DB_WRITE
-									modules.transactions.undoUnconfirmed(transaction, cb);
-								},
-								function(cb) {
-									return setImmediate(cb);
-								},
-							],
-							cb
-						);
-					},
-					err => {
-						if (err) {
-							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to undo transactions', err);
-
-							return self.asyncProcessExit(0, cb);
-						}
-
-						// Perform backward tick on rounds
-						// WARNING: DB_WRITE
-						modules.rounds.backwardTick(oldLastBlock, previousBlock, err => {
-							if (err) {
-								// Fatal error, memory tables will be inconsistent
-								library.logger.error('Failed to perform backwards tick', err);
-
-								return self.asyncProcessExit(0, cb);
-							}
-
-							// Delete last block from blockchain
-							// WARNING: Db_WRITE
-							self.deleteBlock(oldLastBlock.id, err => {
-								if (err) {
-									// Fatal error, memory tables will be inconsistent
-									library.logger.error('Failed to delete block', err);
-
-									return self.asyncProcessExit(0, cb);
-								}
-
-								return setImmediate(cb, null, previousBlock);
-							});
-						});
-					}
-				);
-			}
-		);
-	}, cb);
+	library.db
+		.tx('Chain:deleteBlock', tx =>
+			__private
+				.loadSecondLastBlockStep(oldLastBlock.previousBlock, tx)
+				.then(res => {
+					secondLastBlock = res;
+					return Promise.mapSeries(
+						oldLastBlock.transactions.reverse(),
+						transaction =>
+							__private
+								.undoStep(transaction, secondLastBlock, tx)
+								.then(() => __private.undoUnconfirmStep(transaction, tx))
+					);
+				})
+				.then(() =>
+					__private.backwardTickStep(oldLastBlock, secondLastBlock, tx)
+				)
+				.then(() => __private.deleteBlockStep(oldLastBlock, tx))
+		)
+		.then(() => setImmediate(cb, null, secondLastBlock))
+		.catch(err => {
+			process.exit(1);
+			return setImmediate(cb, err);
+		});
 };
 
 /**
@@ -657,7 +729,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
  * @returns {Object} cb.obj - New last block
  */
 Chain.prototype.deleteLastBlock = function(cb) {
-	var lastBlock = modules.blocks.lastBlock.get();
+	let lastBlock = modules.blocks.lastBlock.get();
 	library.logger.warn('Deleting last block', lastBlock);
 
 	if (lastBlock.height === 1) {

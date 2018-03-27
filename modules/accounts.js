@@ -14,17 +14,17 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var bignum = require('../helpers/bignum.js');
-var BlockReward = require('../logic/block_reward.js');
-var transactionTypes = require('../helpers/transaction_types.js');
-var Vote = require('../logic/vote.js');
+const crypto = require('crypto');
+const bignum = require('../helpers/bignum.js');
+const BlockReward = require('../logic/block_reward.js');
+const transactionTypes = require('../helpers/transaction_types.js');
+const Vote = require('../logic/vote.js');
 
 // Private fields
-var modules;
-var library;
-var self;
-var __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.assetTypes = {};
 
@@ -44,26 +44,29 @@ __private.assetTypes = {};
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, null, self
  */
-function Accounts(cb, scope) {
-	library = {
-		ed: scope.ed,
-		schema: scope.schema,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			account: scope.logic.account,
-			transaction: scope.logic.transaction,
-		},
-	};
-	self = this;
-	__private.blockReward = new BlockReward();
-	__private.assetTypes[
-		transactionTypes.VOTE
-	] = library.logic.transaction.attachAssetType(
-		transactionTypes.VOTE,
-		new Vote(scope.logger, scope.schema)
-	);
 
-	setImmediate(cb, null, self);
+class Accounts {
+	constructor(cb, scope) {
+		library = {
+			ed: scope.ed,
+			schema: scope.schema,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				account: scope.logic.account,
+				transaction: scope.logic.transaction,
+			},
+		};
+		self = this;
+		__private.blockReward = new BlockReward();
+		__private.assetTypes[
+			transactionTypes.VOTE
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.VOTE,
+			new Vote(scope.logger, scope.schema)
+		);
+
+		setImmediate(cb, null, self);
+	}
 }
 
 /**
@@ -74,17 +77,17 @@ function Accounts(cb, scope) {
  * @returns {address} Generated address
  */
 Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
-	var publicKeyHash = crypto
+	const publicKeyHash = crypto
 		.createHash('sha256')
 		.update(publicKey, 'hex')
 		.digest();
-	var temp = Buffer.alloc(8);
+	const temp = Buffer.alloc(8);
 
-	for (var i = 0; i < 8; i++) {
+	for (let i = 0; i < 8; i++) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	var address = `${bignum.fromBuffer(temp).toString()}L`;
+	const address = `${bignum.fromBuffer(temp).toString()}L`;
 
 	if (!address) {
 		throw `Invalid public key: ${publicKey}`;
@@ -131,8 +134,8 @@ Accounts.prototype.getAccounts = function(filter, fields, cb, tx) {
  * @returns {function} Call to logic.account.get()
  */
 Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
-	var address = data.address || null;
-	var err;
+	let address = data.address || null;
+	let err;
 
 	if (address === null) {
 		if (data.publicKey) {
@@ -176,8 +179,8 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
  * @todo Improve public key validation try/catch
  */
 Accounts.prototype.mergeAccountAndGet = function(data, cb, tx) {
-	var address = data.address || null;
-	var err;
+	let address = data.address || null;
+	let err;
 
 	if (address === null) {
 		if (data.publicKey) {
@@ -257,7 +260,7 @@ Accounts.prototype.shared = {
 			}
 
 			accounts = accounts.map(account => {
-				var delegate = {};
+				let delegate = {};
 
 				// Only create delegate properties if account has a username
 				if (account.username) {

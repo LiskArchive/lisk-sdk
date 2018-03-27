@@ -476,21 +476,6 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('asyncProcessExit', () => {
-		it('should call process exit with code 0', done => {
-			blocksChainModule.asyncProcessExit(0, returns => {
-				expect(returns).to.equal(
-					'Cannot proceed after block apply/remove failed, exiting with code: 0'
-				);
-				expect(loggerStub.error.args[0][0]).to.equal(
-					'Cannot proceed after block apply/remove failed, exiting with code: 0'
-				);
-				expect(process.exit.callCount).to.equal(1);
-				done();
-			});
-		});
-	});
-
 	describe('applyGenesisBlock', () => {
 		let applyTransactionTemp;
 
@@ -537,13 +522,8 @@ describe('blocks/chain', () => {
 					blocksChainModule.applyGenesisBlock(blockWithTransactions, result => {
 						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
 							.true;
-						expect(loggerStub.error.args[0][0]).to.equal(
-							'Cannot proceed after block apply/remove failed, exiting with code: 0'
-						);
 						expect(process.exit.callCount).to.equal(1);
-						expect(result).to.equal(
-							'Cannot proceed after block apply/remove failed, exiting with code: 0'
-						);
+						expect(result.message).to.equal('setAccountAndGet-ERR');
 						done();
 					});
 				});
@@ -570,13 +550,7 @@ describe('blocks/chain', () => {
 								expect(
 									modules.blocks.utils.getBlockProgressLogger.callCount
 								).to.equal(1);
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Cannot proceed after block apply/remove failed, exiting with code: 0'
-								);
-								expect(process.exit.callCount).to.equal(1);
-								expect(result).to.equal(
-									'Cannot proceed after block apply/remove failed, exiting with code: 0'
-								);
+								expect(result).to.equal('applyTransaction-ERR');
 								done();
 							}
 						);
@@ -1222,19 +1196,21 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private.popLastBlock', () => {
+	describe('__private.loadSecondLastBlockStep', () => {
+		let tx;
+		beforeEach(() => {
+			tx = sinonSandbox.stub();
+			return modules.blocks.utils.loadBlocksPart.callsArgWith(
+				1,
+				'loadBlocksPart-ERR',
+				null
+			);
+		});
+
 		describe('when modules.blocks.utils.loadBlocksPart fails', () => {
 			describe('if returns error', () => {
-				beforeEach(() => {
-					return modules.blocks.utils.loadBlocksPart.callsArgWith(
-						1,
-						'loadBlocksPart-ERR',
-						null
-					);
-				});
-
 				it('should call a callback with returned error', done => {
-					__private.popLastBlock(blockReduced, err => {
+					__private.loadSecondLastBlockStep(blockReduced.id, tx).catch(err => {
 						expect(err).to.equal('loadBlocksPart-ERR');
 						done();
 					});
@@ -1247,7 +1223,7 @@ describe('blocks/chain', () => {
 				});
 
 				it('should call a callback with error "previousBlock is null"', done => {
-					__private.popLastBlock(blockReduced, err => {
+					__private.loadSecondLastBlockStep(blockReduced.id, tx).catch(err => {
 						expect(err).to.equal('previousBlock is null');
 						done();
 					});
@@ -1261,240 +1237,258 @@ describe('blocks/chain', () => {
 					{ id: 2, height: 2 },
 				]);
 			});
+		});
+	});
 
-			describe('when oldLastBlock.transactions is empty', () => {
-				describe('when modules.rounds.backwardTick fails', () => {
-					beforeEach(() => {
-						return modules.rounds.backwardTick.callsArgWith(
-							2,
-							'backwardTick-ERR',
-							null
-						);
-					});
-
-					it('should call process.exit with 0', done => {
-						__private.popLastBlock(blockWithEmptyTransactions, result => {
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to perform backwards tick'
-							);
-							expect(loggerStub.error.args[0][1]).to.equal('backwardTick-ERR');
-							expect(loggerStub.error.args[1][0]).to.equal(
-								'Cannot proceed after block apply/remove failed, exiting with code: 0'
-							);
-							expect(process.exit.callCount).to.equal(1);
-							expect(result).to.equal(
-								'Cannot proceed after block apply/remove failed, exiting with code: 0'
-							);
-							done();
-						});
-					});
+	describe('__private.undoStep', () => {
+		let tx;
+		describe('when oldLastBlock.transactions is not empty', () => {
+			describe('when modules.accounts.getAccount fails', () => {
+				beforeEach(() => {
+					return modules.accounts.getAccount.callsArgWith(
+						1,
+						'getAccount-ERR',
+						null
+					);
 				});
 
-				describe('when modules.rounds.backwardTick succeeds', () => {
-					let deleteBlockTemp;
-
-					beforeEach(done => {
-						modules.rounds.backwardTick.callsArgWith(2, null, true);
-						deleteBlockTemp = blocksChainModule.deleteBlock;
-						blocksChainModule.deleteBlock = sinonSandbox.stub();
-						done();
-					});
-
-					afterEach(done => {
-						blocksChainModule.deleteBlock = deleteBlockTemp;
-						done();
-					});
-
-					describe('when self.deleteBlock fails', () => {
-						beforeEach(() => {
-							return blocksChainModule.deleteBlock.callsArgWith(
-								1,
-								'deleteBlock-ERR',
-								null
-							);
+				it('should reject promise with "getAccount-ERR"', done => {
+					__private
+						.undoStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.catch(err => {
+							expect(err).to.equal('getAccount-ERR');
+							done();
 						});
-
-						it('should call process.exit with 0', done => {
-							__private.popLastBlock(blockWithEmptyTransactions, result => {
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to delete block'
-								);
-								expect(loggerStub.error.args[0][1]).to.equal('deleteBlock-ERR');
-								expect(loggerStub.error.args[1][0]).to.equal(
-									'Cannot proceed after block apply/remove failed, exiting with code: 0'
-								);
-								expect(process.exit.callCount).to.equal(1);
-								expect(result).to.equal(
-									'Cannot proceed after block apply/remove failed, exiting with code: 0'
-								);
-								done();
-							});
-						});
-					});
-
-					describe('when self.deleteBlock succeeds', () => {
-						beforeEach(() => {
-							return blocksChainModule.deleteBlock.callsArgWith(1, null, true);
-						});
-
-						it('should return previousBlock and no error', done => {
-							__private.popLastBlock(
-								blockWithEmptyTransactions,
-								(err, previousBlock) => {
-									expect(err).to.be.null;
-									expect(previousBlock).to.deep.equal({
-										id: 2,
-										height: 2,
-									});
-									done();
-								}
-							);
-						});
-					});
 				});
 			});
 
-			describe('when oldLastBlock.transactions is not empty', () => {
-				describe('when modules.accounts.getAccount fails', () => {
-					beforeEach(() => {
-						return modules.accounts.getAccount.callsArgWith(
-							1,
-							'getAccount-ERR',
-							null
-						);
-					});
-
-					it('should return process.exit with 0', done => {
-						__private.popLastBlock(blockWithTransactions, result => {
-							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to undo transactions'
-							);
-							expect(loggerStub.error.args[0][1]).to.equal('getAccount-ERR');
-							expect(loggerStub.error.args[1][0]).to.equal(
-								'Cannot proceed after block apply/remove failed, exiting with code: 0'
-							);
-							expect(process.exit.callCount).to.equal(1);
-							expect(result).to.equal(
-								'Cannot proceed after block apply/remove failed, exiting with code: 0'
-							);
-							done();
-						});
-					});
+			describe('when modules.accounts.getAccount succeeds', () => {
+				beforeEach(done => {
+					modules.accounts.getAccount.callsArgWith(1, null, '12ab');
+					modules.transactions.undo.callsArgWith(3, null, true);
+					done();
 				});
 
-				describe('when modules.accounts.getAccount succeeds', () => {
-					beforeEach(() => {
-						modules.accounts.getAccount.callsArgWith(1, null, '12ab');
-						modules.transactions.undo.callsArgWith(3, null, true);
-						return modules.transactions.undoUnconfirmed.callsArgWith(
-							1,
-							null,
-							true
-						);
-					});
+				it('should call modules.accounts.getAccount', done => {
+					__private
+						.undoStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.then(() => {
+							expect(modules.accounts.getAccount.callCount).to.equal(1);
+							done();
+						});
+				});
 
-					afterEach(() => {
-						return expect(
-							modules.transactions.undoUnconfirmed.callCount
-						).to.equal(3);
-					});
+				it('should call modules.transactions.undo', done => {
+					__private
+						.undoStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.then(() => {
+							expect(modules.transactions.undo.callCount).to.equal(1);
+							done();
+						});
+				});
 
-					describe('when modules.rounds.backwardTick fails', () => {
-						beforeEach(() => {
-							return modules.rounds.backwardTick.callsArgWith(
-								2,
-								'backwardTick-ERR',
-								null
+				it('should resolve the promise', done => {
+					__private
+						.undoStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.then(res => {
+							expect(res).to.not.exist;
+							done();
+						});
+				});
+			});
+		});
+	});
+
+	describe('__private.undoUnconfirmStep', () => {
+		let tx;
+		describe('when oldLastBlock.transactions is not empty', () => {
+			describe('when modules.transactions.undoUnconfirmed fails', () => {
+				beforeEach(done => {
+					modules.transactions.undoUnconfirmed.callsArgWith(
+						1,
+						'undoUnconfirmed-ERR',
+						null
+					);
+					done();
+				});
+
+				it('should reject promise with "undoUnconfirmed-ERR"', done => {
+					__private
+						.undoUnconfirmStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.catch(err => {
+							expect(err).to.equal('undoUnconfirmed-ERR');
+							done();
+						});
+				});
+			});
+
+			describe('when modules.transactions.undoUnconfirmed succeeds', () => {
+				beforeEach(done => {
+					modules.transactions.undoUnconfirmed.callsArgWith(1, null, true);
+					done();
+				});
+
+				it('should call modules.transactions.undoUnconfirmed', done => {
+					__private
+						.undoUnconfirmStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.then(() => {
+							expect(modules.transactions.undoUnconfirmed.callCount).to.equal(
+								1
 							);
-						});
-
-						it('should return process.exit with 0', done => {
-							__private.popLastBlock(blockWithTransactions, result => {
-								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to perform backwards tick'
-								);
-								expect(loggerStub.error.args[0][1]).to.equal(
-									'backwardTick-ERR'
-								);
-								expect(loggerStub.error.args[1][0]).to.equal(
-									'Cannot proceed after block apply/remove failed, exiting with code: 0'
-								);
-								expect(process.exit.callCount).to.equal(1);
-								expect(result).to.equal(
-									'Cannot proceed after block apply/remove failed, exiting with code: 0'
-								);
-								done();
-							});
-						});
-					});
-
-					describe('when modules.rounds.backwardTick succeeds', () => {
-						let deleteBlockTemp;
-						beforeEach(done => {
-							modules.rounds.backwardTick.callsArgWith(2, null, true);
-							deleteBlockTemp = blocksChainModule.deleteBlock;
-							blocksChainModule.deleteBlock = sinonSandbox.stub();
 							done();
 						});
+				});
 
-						afterEach(done => {
-							blocksChainModule.deleteBlock = deleteBlockTemp;
+				it('should resolve the promise', done => {
+					__private
+						.undoUnconfirmStep(
+							blockWithTransactions.transactions[0],
+							blockWithTransactions,
+							tx
+						)
+						.then(res => {
+							expect(res).to.not.exist;
 							done();
 						});
+				});
+			});
+		});
+	});
 
-						describe('when self.deleteBlock fails', () => {
-							beforeEach(() => {
-								return blocksChainModule.deleteBlock.callsArgWith(
-									1,
-									'deleteBlock-ERR',
-									null
-								);
-							});
+	describe('__private.backwardTickStep', () => {
+		let tx;
+		describe('when modules.rounds.backwardTick fails', () => {
+			beforeEach(() => {
+				return modules.rounds.backwardTick.callsArgWith(
+					2,
+					'backwardTick-ERR',
+					null
+				);
+			});
 
-							it('should return process.exit with 0', done => {
-								__private.popLastBlock(blockWithTransactions, result => {
-									expect(loggerStub.error.args[0][0]).to.equal(
-										'Failed to delete block'
-									);
-									expect(loggerStub.error.args[0][1]).to.equal(
-										'deleteBlock-ERR'
-									);
-									expect(loggerStub.error.args[1][0]).to.equal(
-										'Cannot proceed after block apply/remove failed, exiting with code: 0'
-									);
-									expect(process.exit.callCount).to.equal(1);
-									expect(result).to.equal(
-										'Cannot proceed after block apply/remove failed, exiting with code: 0'
-									);
-									done();
-								});
-							});
-						});
-
-						describe('when self.deleteBlock succeeds', () => {
-							beforeEach(() => {
-								return blocksChainModule.deleteBlock.callsArgWith(
-									1,
-									null,
-									true
-								);
-							});
-
-							it('should call a callback with previousBlock and no error', done => {
-								__private.popLastBlock(
-									blockWithTransactions,
-									(err, previousBlock) => {
-										expect(err).to.be.null;
-										expect(previousBlock).to.deep.equal({
-											id: 2,
-											height: 2,
-										});
-										done();
-									}
-								);
-							});
-						});
+			it('should reject the promise with "backwardTick-ERR"', done => {
+				__private
+					.backwardTickStep(
+						blockWithEmptyTransactions,
+						blockWithTransactions,
+						tx
+					)
+					.catch(err => {
+						expect(err).to.equal('backwardTick-ERR');
+						done();
 					});
+			});
+		});
+
+		describe('when modules.rounds.backwardTick succeeds', () => {
+			beforeEach(done => {
+				modules.rounds.backwardTick.callsArgWith(2, null);
+				done();
+			});
+
+			it('should resolve the promise', () => {
+				return __private.backwardTickStep(
+					blockWithTransactions,
+					blockWithTransactions,
+					tx
+				);
+			});
+		});
+	});
+
+	describe('__private.deleteBlockStep', () => {
+		let deleteBlockTemp;
+		let tx;
+		beforeEach(done => {
+			deleteBlockTemp = blocksChainModule.deleteBlock;
+			blocksChainModule.deleteBlock = sinonSandbox.stub();
+			done();
+		});
+
+		afterEach(done => {
+			blocksChainModule.deleteBlock = deleteBlockTemp;
+			done();
+		});
+
+		describe('when self.deleteBlock fails', () => {
+			beforeEach(() => {
+				return blocksChainModule.deleteBlock.callsArgWith(
+					1,
+					'deleteBlock-ERR',
+					null
+				);
+			});
+
+			it('should reject promise with "deleteBlock-ERR"', done => {
+				__private.deleteBlockStep(blockWithEmptyTransactions, tx).catch(err => {
+					expect(err).to.equal('deleteBlock-ERR');
+					done();
+				});
+			});
+		});
+
+		describe('when self.deleteBlock succeeds', () => {
+			beforeEach(() => {
+				return blocksChainModule.deleteBlock.callsArgWith(1, null, true);
+			});
+
+			it('should resolve promise', done => {
+				__private.deleteBlockStep(blockWithEmptyTransactions, tx).then(done);
+			});
+		});
+	});
+
+	describe('__private.popLastBlock', () => {
+		describe('when library.db.tx fails', () => {
+			beforeEach(done => {
+				library.db.tx.rejects('db-tx_ERR');
+				done();
+			});
+
+			it('should call process.exit with 1', done => {
+				__private.popLastBlock(blockWithTransactions, err => {
+					expect(err.name).to.eql('db-tx_ERR');
+					expect(process.exit.calledOnce).to.equal(true);
+					expect(process.exit.calledWith(1)).to.equal(true);
+					done();
+				});
+			});
+		});
+
+		describe('when library.db.tx passes', () => {
+			beforeEach(done => {
+				library.db.tx.resolves('savedBlock');
+				done();
+			});
+
+			it('should call a callback', done => {
+				__private.popLastBlock(blockWithTransactions, err => {
+					expect(err).to.be.null;
+					done();
 				});
 			});
 		});

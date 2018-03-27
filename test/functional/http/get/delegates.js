@@ -102,25 +102,19 @@ describe('GET /delegates', () => {
 		describe('secondPublicKey', () => {
 			var secondSecretAccount = randomUtil.account();
 
-			var creditTransaction = lisk.transaction.transfer(
-				{
-					amount: constants.fees.secondSignature + constants.fees.delegate,
-					passphrase: accountFixtures.genesis.password,
-					recipientId: secondSecretAccount.address,
-				}
-			);
-			var signatureTransaction = lisk.transaction.registerSecondPassphrase(
-				{
-					passphrase: secondSecretAccount.password,
-					secondPassphrase: secondSecretAccount.secondPassword,
-				}
-			);
-			var delegateTransaction = lisk.transaction.registerDelegate(
-				{
-					passphrase: secondSecretAccount.password,
-					username: secondSecretAccount.username,
-				}
-			);
+			var creditTransaction = lisk.transaction.transfer({
+				amount: constants.fees.secondSignature + constants.fees.delegate,
+				passphrase: accountFixtures.genesis.password,
+				recipientId: secondSecretAccount.address,
+			});
+			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+				passphrase: secondSecretAccount.password,
+				secondPassphrase: secondSecretAccount.secondPassword,
+			});
+			var delegateTransaction = lisk.transaction.registerDelegate({
+				passphrase: secondSecretAccount.password,
+				username: secondSecretAccount.username,
+			});
 
 			before(() => {
 				return apiHelpers
