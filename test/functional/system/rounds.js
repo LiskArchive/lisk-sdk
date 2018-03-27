@@ -1049,7 +1049,7 @@ describe('rounds', () => {
 				return expect(lastBlock.height).to.be.equal(slots.delegates);
 			});
 
-			it('should calculate rewards for round 1 correctly - all should be the same (native, rounds_rewards, mem_accounts)', () => {
+			it('should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)', () => {
 				return Promise.join(
 					getMemAccounts(),
 					Queries.getBlocks(round.current),
@@ -1068,9 +1068,9 @@ describe('rounds', () => {
 						_delegates[genesisPublicKey] = _accounts[genesisAddress];
 						_delegates[genesisPublicKey].publicKey = genesisPublicKey;
 
-						// Get expected rewards for round (native)
+						// Get expected rewards for round (calculated)
 						const expectedRewards = getExpectedRoundRewards(_blocks);
-						// Rewards from database table rounds_rewards should match native rewards
+						// Rewards from database table rounds_rewards should match calculated rewards
 						expect(_rewards).to.deep.equal(expectedRewards);
 
 						// Because first block of round 1 is genesis block - there will be always 1 outsider in first round
@@ -1089,7 +1089,7 @@ describe('rounds', () => {
 							}
 						});
 
-						// Compare mem_accounts delegates with native
+						// Compare mem_accounts delegates with calculated
 						expect(delegates).to.deep.equal(expectedRewards);
 					}
 				);
