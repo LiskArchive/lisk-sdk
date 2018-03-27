@@ -338,7 +338,7 @@ Transport.prototype.onSignature = function(signature, broadcast) {
 	if (broadcast && !__private.broadcaster.maxRelays(signature)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postSignatures', data: { signatures: [signature] } }
+			{ api: 'postSignatures', data: { signature } }
 		);
 		library.network.io.sockets.emit('signature/change', signature);
 	}
@@ -359,7 +359,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 	if (broadcast && !__private.broadcaster.maxRelays(transaction)) {
 		__private.broadcaster.enqueue(
 			{},
-			{ api: 'postTransactions', data: { transactions: [transaction] } }
+			{ api: 'postTransactions', data: { transaction } }
 		);
 		library.network.io.sockets.emit('transactions/change', transaction);
 	}
