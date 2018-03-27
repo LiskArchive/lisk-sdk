@@ -46,7 +46,7 @@ describe('rounds', () => {
 				'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
 			);
 		},
-		getDelegatesForList: () => {
+		getDelegatesOrderedByVote: () => {
 			return library.db.query(
 				`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${
 					slots.delegates
@@ -373,12 +373,14 @@ describe('rounds', () => {
 					getMemAccounts(),
 					getDelegates(),
 					generateDelegateListPromise(tick.before.block.height, null),
-					Queries.getDelegatesForList(),
-					(_accounts, _delegates, _delegatesList, _delegatesForList) => {
+					Queries.getDelegatesOrderedByVote(),
+					(_accounts, _delegates, _delegatesList, _delegatesOrderedByVote) => {
 						tick.before.accounts = _.cloneDeep(_accounts);
 						tick.before.delegates = _.cloneDeep(_delegates);
 						tick.before.delegatesList = _.cloneDeep(_delegatesList);
-						tick.before.delegatesForList = _.cloneDeep(_delegatesForList);
+						tick.before.delegatesOrderedByVote = _.cloneDeep(
+							_delegatesOrderedByVote
+						);
 					}
 				).then(() => {
 					return addTransactionsAndForgePromise(library, transactions, 0).then(
@@ -395,12 +397,19 @@ describe('rounds', () => {
 								getMemAccounts(),
 								getDelegates(),
 								generateDelegateListPromise(tick.after.block.height + 1, null),
-								Queries.getDelegatesForList(),
-								(_accounts, _delegates, _delegatesList, _delegatesForList) => {
+								Queries.getDelegatesOrderedByVote(),
+								(
+									_accounts,
+									_delegates,
+									_delegatesList,
+									_delegatesOrderedByVote
+								) => {
 									tick.after.accounts = _.cloneDeep(_accounts);
 									tick.after.delegates = _.cloneDeep(_delegates);
 									tick.after.delegatesList = _.cloneDeep(_delegatesList);
-									tick.after.delegatesForList = _.cloneDeep(_delegatesForList);
+									tick.after.delegatesOrderedByVote = _.cloneDeep(
+										_delegatesOrderedByVote
+									);
 
 									if (tick.isLastBlockOfRound) {
 										return Promise.join(
@@ -452,13 +461,13 @@ describe('rounds', () => {
 
 				it('delegates with highest weight used for generating list should be the same for same round', () => {
 					if (tick.isLastBlockOfRound) {
-						return expect(tick.before.delegatesForList).to.not.deep.equal(
-							tick.after.delegatesForList
+						return expect(tick.before.delegatesOrderedByVote).to.not.deep.equal(
+							tick.after.delegatesOrderedByVote
 						);
 					}
 
-					return expect(tick.before.delegatesForList).to.deep.equal(
-						tick.after.delegatesForList
+					return expect(tick.before.delegatesOrderedByVote).to.deep.equal(
+						tick.after.delegatesOrderedByVote
 					);
 				});
 
@@ -466,8 +475,8 @@ describe('rounds', () => {
 					if (
 						(tick.isLastBlockOfRound &&
 							!_.isEqual(
-								tick.before.delegatesForList,
-								tick.after.delegatesForList
+								tick.before.delegatesOrderedByVote,
+								tick.after.delegatesOrderedByVote
 							)) ||
 						tick.isRoundChanged
 					) {
@@ -476,7 +485,10 @@ describe('rounds', () => {
 						);
 					} else if (
 						tick.isLastBlockOfRound &&
-						_.isEqual(tick.before.delegatesForList, tick.after.delegatesForList)
+						_.isEqual(
+							tick.before.delegatesOrderedByVote,
+							tick.after.delegatesOrderedByVote
+						)
 					) {
 						return expect(tick.before.delegatesList).to.deep.equal(
 							tick.after.delegatesList
