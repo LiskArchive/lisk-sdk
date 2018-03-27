@@ -29,7 +29,6 @@ describe('blocks/process', () => {
 	var loggerStub;
 	var dummyBlock;
 	var dummyCommonBlock;
-	var dummyCommonBlockGenesis;
 	var blockStub;
 	var transactionStub;
 	var peersStub;
@@ -64,8 +63,15 @@ describe('blocks/process', () => {
 			string: 'ip:wsPort',
 		};
 
+		genesisblockStub = {
+			block: {
+				id: '6524861224470851795',
+				height: 1,
+				previousBlock: null,
+			},
+		};
+
 		dummyCommonBlock = { id: '3', previousBlock: '2', height: '3' };
-		dummyCommonBlockGenesis = { id: '3', previousBlock: '2', height: '1' };
 
 		peerStub.rpc.blocksCommon
 			.withArgs(sinonSandbox.match({ ids: 'ERR' }))
@@ -73,7 +79,7 @@ describe('blocks/process', () => {
 			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Empty' }))
 			.callsArgWith(1, null, { common: undefined })
 			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Genesis' }))
-			.callsArgWith(1, null, { common: dummyCommonBlockGenesis })
+			.callsArgWith(1, null, { common: genesisblockStub.block })
 			.withArgs(sinonSandbox.match({ ids: 'OK' }))
 			.callsArgWith(1, null, {
 				common: dummyCommonBlock,
@@ -122,13 +128,6 @@ describe('blocks/process', () => {
 
 		sequenceStub = {
 			add: sinonSandbox.stub(),
-		};
-
-		genesisblockStub = {
-			block: {
-				id: '6524861224470851795',
-				height: 1,
-			},
 		};
 
 		blocksProcessModule = new BlocksProcess(
