@@ -1263,7 +1263,7 @@ describe('transport', () => {
 								{},
 								{
 									api: 'postSignatures',
-									data: { signatures: [SAMPLE_SIGNATURE_1] },
+									data: { signature: SAMPLE_SIGNATURE_1 },
 								}
 							)
 						).to.be.true;
@@ -1322,14 +1322,14 @@ describe('transport', () => {
 						done();
 					});
 
-					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction: transaction}}', () => {
+					it('should call __private.broadcaster.enqueue with {} and {api: "postTransactions", data: {transaction}}', () => {
 						expect(__private.broadcaster.enqueue.calledOnce).to.be.true;
 						return expect(
 							__private.broadcaster.enqueue.calledWith(
 								{},
 								{
 									api: 'postTransactions',
-									data: { transactions: [transaction] },
+									data: { transaction },
 								}
 							)
 						).to.be.true;
@@ -2161,11 +2161,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTxs', () => {
+				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTransactions', () => {
 					return expect(
 						modules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
-							constants.maxSharedTxs
+							constants.maxSharedTransactions
 						)
 					).to.be.true;
 				});
@@ -2242,11 +2242,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTxs', () => {
+				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTransactions', () => {
 					return expect(
 						modules.transactions.getMergedTransactionList.calledWith(
 							true,
-							constants.maxSharedTxs
+							constants.maxSharedTransactions
 						)
 					).to.be.true;
 				});

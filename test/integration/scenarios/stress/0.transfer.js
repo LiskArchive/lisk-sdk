@@ -79,7 +79,9 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
+				var blocksToWait = Math.ceil(
+					maximum / constants.maxTransactionsPerBlock
+				);
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});
@@ -103,7 +105,9 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(maximum / constants.maxTxsPerBlock);
+				var blocksToWait = Math.ceil(
+					maximum / constants.maxTransactionsPerBlock
+				);
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});

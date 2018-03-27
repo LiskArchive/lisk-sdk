@@ -23,7 +23,6 @@ var constants = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-var normalizer = require('../../../common/utils/normalizer');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
@@ -41,7 +40,7 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * normalizer,
+			amount: 1000 * constants.normalizer,
 			passphrase: accountFixtures.genesis.password,
 			recipientId: account.address,
 		});
