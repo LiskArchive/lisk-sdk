@@ -208,38 +208,12 @@ describe('rounds', () => {
 						.toString();
 					accounts[address].blockId = lastBlock.id;
 				} else {
-					// Funds sent to new account - create object with default values
-					accounts[address] = {
+					// Funds sent to new account - create account with default values
+					accounts[address] = accountsFixtures.dbAccount({
 						address,
 						balance: new Bignum(transaction.amount).toString(),
 						blockId: lastBlock.id,
-						delegates: null,
-						fees: '0',
-						isDelegate: 0,
-						missedBlocks: 0,
-						multilifetime: 0,
-						multimin: 0,
-						multisignatures: null,
-						nameexist: 0,
-						producedBlocks: 0,
-						publicKey: null,
-						rate: '0',
-						rewards: '0',
-						secondPublicKey: null,
-						secondSignature: 0,
-						u_balance: new Bignum(transaction.amount).toString(),
-						u_delegates: null,
-						u_isDelegate: 0,
-						u_multilifetime: 0,
-						u_multimin: 0,
-						u_multisignatures: null,
-						u_nameexist: 0,
-						u_secondSignature: 0,
-						u_username: null,
-						username: null,
-						virgin: 1,
-						vote: '0',
-					};
+					});
 				}
 			}
 		});

@@ -140,6 +140,46 @@ const Account = stampit({
 	},
 });
 
+const dbAccount = stampit({
+	props: {
+		address: null,
+		balance: 0,
+		blockId: 0,
+		delegates: null,
+		fees: '0',
+		isDelegate: 0,
+		missedBlocks: 0,
+		multilifetime: 0,
+		multimin: 0,
+		multisignatures: null,
+		nameexist: 0,
+		producedBlocks: 0,
+		publicKey: null,
+		rate: '0',
+		rewards: '0',
+		secondPublicKey: null,
+		secondSignature: 0,
+		u_balance: 0,
+		u_delegates: null,
+		u_isDelegate: 0,
+		u_multilifetime: 0,
+		u_multimin: 0,
+		u_multisignatures: null,
+		u_nameexist: 0,
+		u_secondSignature: 0,
+		u_username: null,
+		username: null,
+		virgin: 1,
+		vote: '0',
+	},
+	init({ address, balance, u_balance, blockId }) {
+		this.address = address || this.address;
+		this.balance = balance || this.balance;
+		this.u_balance = u_balance || this.u_balance || this.balance;
+		this.blockId = blockId || this.blockId;
+	},
+});
+
 const Delegate = stampit(Account, {
 	props: {
 		isDelegate: true,
@@ -158,6 +198,7 @@ const Dependent = stampit({
 });
 
 accounts.Account = Account;
+accounts.dbAccount = dbAccount;
 accounts.Delegate = Delegate;
 accounts.Dependent = Dependent;
 
