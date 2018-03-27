@@ -751,25 +751,10 @@ describe('rounds', () => {
 							library.genesisblock.block.transactions[0].senderId;
 
 						// Get unique accounts from genesis block
-						genesisAccounts = _.reduce(
-							library.genesisblock.block.transactions,
-							(accounts, transaction) => {
-								if (
-									transaction.senderId &&
-									accounts.indexOf(transaction.senderId) === -1
-								) {
-									accounts.push(transaction.senderId);
-								}
-								if (
-									transaction.recipientId &&
-									accounts.indexOf(transaction.recipientId) === -1
-								) {
-									accounts.push(transaction.recipientId);
-								}
-								return accounts;
-							},
-							[]
-						);
+						genesisAccounts = _.union(
+							library.genesisblock.block.transactions.map(a => a.senderId),
+							library.genesisblock.block.transactions.map(a => a.recipientId)
+						).filter(a => a); // We call filter here to remove null values
 
 						// Get accounts from database
 						return Queries.getAccounts().then(_accounts => {
