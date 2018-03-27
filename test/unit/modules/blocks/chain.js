@@ -624,7 +624,6 @@ describe('blocks/chain', () => {
 					{ id: 1, type: 1 },
 					'a1',
 					err => {
-						expect(err).instanceOf(Error);
 						expect(err.message).to.equal('applyUnconfirmed-ERR');
 						expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
 						expect(err.block).to.deep.equal(blockWithTransactions);
@@ -654,7 +653,6 @@ describe('blocks/chain', () => {
 						{ id: 1, type: 1 },
 						'a1',
 						err => {
-							expect(err).instanceOf(Error);
 							expect(err.message).to.equal('Failed to apply transaction: 1');
 							expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
 							expect(err.block).to.deep.equal(blockWithTransactions);
