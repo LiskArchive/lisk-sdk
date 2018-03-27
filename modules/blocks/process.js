@@ -259,7 +259,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
  * @returns {Object} cb.res - Result object
  */
 Process.prototype.getCommonBlock = function(peer, height, cb) {
-	let comparisionFailed = false;
+	let comparisonFailed = false;
 
 	async.waterfall(
 		[
@@ -279,7 +279,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 						return setImmediate(waterCb, err);
 					} else if (!res.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
-						comparisionFailed = true;
+						comparisonFailed = true;
 						return setImmediate(
 							waterCb,
 							[
@@ -296,7 +296,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 			function(common, waterCb) {
 				// Check if we received genesis block - before response validation, as genesis block have previousBlock = null
 				if (common && common.height === 1) {
-					comparisionFailed = true;
+					comparisonFailed = true;
 					return setImmediate(
 						waterCb,
 						'Comparison failed - received genesis as common block'
@@ -321,7 +321,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 					.then(rows => {
 						if (!rows.length || !rows[0].count) {
 							// Block doesn't exists - comparison failed
-							comparisionFailed = true;
+							comparisonFailed = true;
 							return setImmediate(
 								waterCb,
 								[
@@ -344,7 +344,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 		],
 		(err, res) => {
 			// If comparison failed and current consensus is low - perform chain recovery
-			if (comparisionFailed && modules.transport.poorConsensus()) {
+			if (comparisonFailed && modules.transport.poorConsensus()) {
 				return modules.blocks.chain.recoverChain(cb);
 			}
 			return setImmediate(cb, err, res);
