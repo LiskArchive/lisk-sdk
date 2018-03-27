@@ -30,7 +30,7 @@ module.exports = function(params) {
 						expect(result).to.have.property('success').to.be.true;
 						expect(result)
 							.to.have.property('peers')
-							.to.be.a('array');
+							.to.be.an('array');
 						var peerPorts = result.peers.map(peer => {
 							return peer.wsPort;
 						});
@@ -173,7 +173,7 @@ module.exports = function(params) {
 
 				it('should have a networkHeight which is greater than 0 for all the peers', () => {
 					expect(nodeList)
-						.to.be.a('Array')
+						.to.be.an('array')
 						.to.have.lengthOf(peersCount);
 					return expect(networkHeight['0']).to.be.undefined;
 				});
