@@ -1,9 +1,37 @@
+def cleanUp() {
+	sh '''
+		node_modules/.bin/pm2 kill
+	'''
+}
+
+def statusFail() {
+	currentBuild.result = 'FAILURE'
+	error('Stopping build, build failed')
+	cleanUp()
+}
+
 pipeline {
 	agent { node { label 'node-06' } }
 	stages {
 		stage('Install dependencies') {
 			steps {
 				sh 'npm install --verbose'
+			}
+		}
+		stage('Prepare workspace') {
+			try {
+				deleteDir()
+				checkout scm
+
+				sh '''
+					# Cycle postgres, install deps and prepare config
+					sudo service postgresql restart
+					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/" || true
+					npm install
+					cp test/data/config.json test/data/genesis_block.json .
+				'''
+			} catch (err) {
+				statusFail()
 			}
 		}
 		stage('Run integration tests') {
@@ -20,6 +48,11 @@ pipeline {
 			steps {
 				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
+		}
+		stage('Set milestone') {
+			milestone 1
+			currentBuild.result = 'SUCCESS'
+			cleanUp()
 		}
 	}
 }
