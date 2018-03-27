@@ -88,7 +88,7 @@ function getNextForger(library, offset, cb) {
 }
 
 function forge(library, cb) {
-	var keypairs = library.rewiredModules.delegates.__get__('__private.keypairs');
+	var keypairs = library.modules.delegates.getForgersKeyPairs();
 
 	async.waterfall(
 		[
