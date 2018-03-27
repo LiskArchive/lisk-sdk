@@ -96,7 +96,7 @@ NodeController.getStatus = function(context, next) {
 
 			data = _.cloneDeep(data);
 
-			// Check if properties are null, then set it to 0
+			// Check if properties are null, then set it to lastBlock height
 			// as per schema defined for these properties in swagger
 			data.networkHeight =
 				data.networkHeight || modules.blocks.lastBlock.get().height;

@@ -143,7 +143,7 @@ module.exports = function(params) {
 				});
 			});
 
-			describe('node status after 30 seconds', () => {
+			describe('network height after 30 seconds', () => {
 				let nodeList = [];
 				let peersCount;
 				let networkHeight;
