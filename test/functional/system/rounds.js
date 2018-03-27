@@ -483,16 +483,6 @@ describe('rounds', () => {
 						return expect(tick.before.delegatesList).to.not.deep.equal(
 							tick.after.delegatesList
 						);
-					} else if (
-						tick.isLastBlockOfRound &&
-						_.isEqual(
-							tick.before.delegatesOrderedByVote,
-							tick.after.delegatesOrderedByVote
-						)
-					) {
-						return expect(tick.before.delegatesList).to.deep.equal(
-							tick.after.delegatesList
-						);
 					}
 
 					return expect(tick.before.delegatesList).to.deep.equal(
