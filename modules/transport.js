@@ -375,7 +375,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
  */
 Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	if (broadcast) {
-		modules.system.update(() => {
+		modules.system.update(block, () => {
 			if (__private.broadcaster.maxRelays(block)) {
 				return library.logger.debug(
 					'Broadcasting block aborted - max block relays exceeded'

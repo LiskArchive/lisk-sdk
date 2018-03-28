@@ -743,7 +743,7 @@ __private.sync = function(cb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
 			updateSystem(seriesCb) {
-				return modules.system.update(seriesCb);
+				return modules.system.update(null, seriesCb);
 			},
 			getPeersAfter(seriesCb) {
 				library.logger.debug('Establishing broadhash consensus after sync');

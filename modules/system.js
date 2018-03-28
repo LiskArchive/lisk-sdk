@@ -246,10 +246,11 @@ System.prototype.nonceCompatible = function(nonce) {
 /**
  * Updates private broadhash and height values.
  *
+ * @param {Object} block - block
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  */
-System.prototype.update = function(cb) {
+System.prototype.update = function(block, cb) {
 	async.series(
 		{
 			getBroadhash(seriesCb) {
@@ -262,7 +263,8 @@ System.prototype.update = function(cb) {
 				});
 			},
 			getHeight(seriesCb) {
-				__private.height = modules.blocks.lastBlock.get().height;
+				__private.height =
+					(block && block.height) || modules.blocks.lastBlock.get().height;
 				return setImmediate(seriesCb);
 			},
 		},
