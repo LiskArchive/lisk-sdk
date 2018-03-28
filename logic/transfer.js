@@ -99,9 +99,9 @@ Transfer.prototype.getBytes = function (trs) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.apply = function (trs, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
+	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (setAccountAndGetErr, recipient) {
+		if (setAccountAndGetErr) {
+			return setImmediate(cb, setAccountAndGetErr);
 		}
 
 		modules.accounts.mergeAccountAndGet({
@@ -110,8 +110,8 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
 			u_balance: trs.amount,
 			blockId: block.id,
 			round: modules.rounds.calc(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
+		}, function (mergeAccountAndGetErr) {
+			return setImmediate(cb, mergeAccountAndGetErr);
 		});
 	});
 };
@@ -129,9 +129,9 @@ Transfer.prototype.apply = function (trs, block, sender, cb) {
  * @return {setImmediateCallback} error, cb
  */
 Transfer.prototype.undo = function (trs, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
+	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (setAccountAndGetErr, recipient) {
+		if (setAccountAndGetErr) {
+			return setImmediate(cb, setAccountAndGetErr);
 		}
 
 		modules.accounts.mergeAccountAndGet({
@@ -140,8 +140,8 @@ Transfer.prototype.undo = function (trs, block, sender, cb) {
 			u_balance: -trs.amount,
 			blockId: block.id,
 			round: modules.rounds.calc(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
+		}, function (mergeAccountAndGetErr) {
+			return setImmediate(cb, mergeAccountAndGetErr);
 		});
 	});
 };

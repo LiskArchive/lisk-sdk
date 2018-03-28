@@ -246,9 +246,9 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 		multilifetime: trs.asset.multisignature.lifetime,
 		blockId: block.id,
 		round: modules.rounds.calc(block.height)
-	}, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
+	}, function (mergeErr) {
+		if (mergeErr) {
+			return setImmediate(cb, mergeErr);
 		}
 
 		// Get public keys
@@ -260,8 +260,8 @@ Multisignature.prototype.apply = function (trs, block, sender, cb) {
 			modules.accounts.setAccountAndGet({
 				address: address,
 				publicKey: key
-			}, function (err) {
-				return setImmediate(cb, err);
+			}, function (setAccountAndGetErr) {
+				return setImmediate(cb, setAccountAndGetErr);
 			});
 		}, cb);
 	});
@@ -287,8 +287,8 @@ Multisignature.prototype.undo = function (trs, block, sender, cb) {
 		multilifetime: -trs.asset.multisignature.lifetime,
 		blockId: block.id,
 		round: modules.rounds.calc(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
+	}, function (mergeErr) {
+		return setImmediate(cb, mergeErr);
 	});
 };
 
@@ -311,8 +311,8 @@ Multisignature.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		u_multisignatures: trs.asset.multisignature.keysgroup,
 		u_multimin: trs.asset.multisignature.min,
 		u_multilifetime: trs.asset.multisignature.lifetime
-	}, function (err) {
-		return setImmediate(cb, err);
+	}, function (mergeErr) {
+		return setImmediate(cb, mergeErr);
 	});
 };
 
@@ -335,8 +335,8 @@ Multisignature.prototype.undoUnconfirmed = function (trs, sender, cb) {
 		u_multisignatures: multiInvert,
 		u_multimin: -trs.asset.multisignature.min,
 		u_multilifetime: -trs.asset.multisignature.lifetime
-	}, function (err) {
-		return setImmediate(cb, err);
+	}, function (mergeErr) {
+		return setImmediate(cb, mergeErr);
 	});
 };
 
