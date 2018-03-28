@@ -212,7 +212,7 @@ class AccountsRepository {
 		if (!Array.isArray(conflictingFields) || !conflictingFields.length) {
 			return Promise.reject(
 				new TypeError(
-					'Error: db.accounts.upsert - invalid conflictingFields argument'
+					'Error: db.accounts.upsert - invalid "conflictingFields" argument.'
 				)
 			);
 		}
@@ -229,7 +229,7 @@ class AccountsRepository {
 		) {
 			return Promise.reject(
 				new Error('Unknown field provided to db.accounts.upsert')
-			); // eslint-disable-line prefer-promise-reject-errors
+			);
 		}
 
 		const conditionObject = {};
@@ -270,8 +270,8 @@ class AccountsRepository {
 	update(address, data) {
 		if (!address) {
 			return Promise.reject(
-				new TypeError('Error: db.accounts.update - invalid address argument')
-			); // eslint-disable-line prefer-promise-reject-errors
+				new TypeError('Error: db.accounts.update - invalid address argument.')
+			);
 		}
 
 		this.getImmutableFields().map(field => {
@@ -402,7 +402,9 @@ class AccountsRepository {
 			filters &&
 			_.difference(Object.keys(filters), this.getDBFields()).length
 		) {
-			return Promise.reject('Unknown filter field provided to list'); // eslint-disable-line prefer-promise-reject-errors
+			return Promise.reject(
+				new Error('Unknown filter field provided to list.')
+			);
 		}
 
 		let sql = '${fields:raw} ${conditions:raw} ';
@@ -517,7 +519,7 @@ class AccountsRepository {
 				new TypeError(
 					`Error: db.accounts.removeDependencies called with invalid argument dependency=${dependency}`
 				)
-			); // eslint-disable-line prefer-promise-reject-errors
+			);
 		}
 
 		return this.db.none(sql.removeAccountDependencies, {
@@ -549,7 +551,7 @@ class AccountsRepository {
 				new TypeError(
 					`Error: db.accounts.insertDependencies called with invalid argument dependency=${dependency}`
 				)
-			); // eslint-disable-line prefer-promise-reject-errors
+			);
 		}
 
 		const dependentTable = `${this.dbTable}2${dependency}`;

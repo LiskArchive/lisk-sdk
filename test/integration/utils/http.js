@@ -48,6 +48,9 @@ var endpoints = {
 			getHeight(ip, port) {
 				return `http://${ip}:${port}/api/node/status`;
 			},
+			getNodeStatus(ip, port) {
+				return `http://${ip}:${port}/api/node/status`;
+			},
 			postTransaction(ip, port) {
 				return `http://${ip}:${port}/api/transactions`;
 			},
@@ -100,6 +103,20 @@ module.exports = {
 			})
 			.then(res => {
 				return res.body.height;
+			});
+	},
+
+	getNodeStatus(port, ip) {
+		return popsicle
+			.get({
+				url: endpoints.versions[currentVersion].getNodeStatus(
+					ip || '127.0.0.1',
+					port || 4000
+				),
+				headers,
+			})
+			.then(res => {
+				return JSON.parse(res.body).data;
 			});
 	},
 
