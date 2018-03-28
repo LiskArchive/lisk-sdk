@@ -339,7 +339,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 							} - ${accountErr}`;
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
-							return setImmediate(reject, err);
+							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
 						modules.transactions.applyUnconfirmed(
@@ -352,7 +352,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 									} - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
-									return setImmediate(reject, err);
+									return setImmediate(reject, new Error(err));
 								}
 
 								return setImmediate(resolve);
@@ -388,7 +388,7 @@ __private.applyConfirmedStep = function(block, tx) {
 							} - ${accountErr}`;
 							library.logger.error(err);
 							library.logger.error('Transaction', transaction);
-							return setImmediate(reject, err);
+							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
 						modules.transactions.apply(
@@ -404,7 +404,7 @@ __private.applyConfirmedStep = function(block, tx) {
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 
-									return setImmediate(reject, err);
+									return setImmediate(reject, new Error(err));
 								}
 								return setImmediate(resolve);
 							},
@@ -439,7 +439,7 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 						// Fatal error, memory tables will be inconsistent
 						library.logger.error('Failed to save block...', err);
 						library.logger.error('Block', block);
-						return setImmediate(reject, 'Failed to save block');
+						return setImmediate(reject, new Error('Failed to save block'));
 					}
 
 					library.logger.debug(

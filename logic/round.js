@@ -101,10 +101,10 @@ class Round {
 				},
 				(err, account) => {
 					if (err) {
-						return reject(err);
+						reject(err);
+					} else {
+						resolve(account);
 					}
-
-					return resolve(account);
 				},
 				self.t
 			);
@@ -291,9 +291,10 @@ class Round {
 					accountData,
 					(err, account) => {
 						if (err) {
-							return reject(err);
+							reject(err);
+						} else {
+							resolve(account);
 						}
-						return resolve(account);
 					},
 					self.t
 				);
@@ -344,9 +345,10 @@ class Round {
 					},
 					(err, account) => {
 						if (err) {
-							return reject(err);
+							reject(err);
+						} else {
+							resolve(account);
 						}
-						return resolve(account);
 					},
 					self.t
 				);
