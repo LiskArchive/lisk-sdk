@@ -18,10 +18,6 @@ module.exports = {
 			publicKey: {
 				type: 'string',
 				format: 'publicKey'
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
 			}
 		},
 		required: ['secret', 'secondSecret']
