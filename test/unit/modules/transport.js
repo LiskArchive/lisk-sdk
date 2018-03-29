@@ -1059,7 +1059,7 @@ describe('transport', () => {
 						remove: sinonSandbox.stub().returns(true),
 					},
 					system: {
-						update: sinonSandbox.stub().callsArg(1),
+						update: sinonSandbox.stub().callsArg(0),
 						getBroadhash: sinonSandbox
 							.stub()
 							.returns(
