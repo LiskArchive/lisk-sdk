@@ -446,12 +446,12 @@ describe('PUT /api/dapps/transaction', function () {
 		});
 	});
 
-	it('using numeric multisigAccountPublicKey should fail', function (done) {
-		validParams.multisigAccountPublicKey = 1;
+	it('using multisigAccountPublicKey should fail', function (done) {
+		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
 
 		putTransaction(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
 			done();
 		});
 	});
@@ -749,11 +749,11 @@ describe('PUT /api/dapps/withdrawal', function () {
 	});
 
 	it('using numeric multisigAccountPublicKey should fail', function (done) {
-		validParams.multisigAccountPublicKey = 1;
+		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
 
 		putWithdrawal(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Expected type string but found type integer');
+			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
 			done();
 		});
 	});

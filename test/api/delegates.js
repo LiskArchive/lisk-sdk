@@ -266,6 +266,16 @@ describe('PUT /api/delegates with funds', function () {
 		});
 	});
 
+	it('using multisigAccountPublicKey should fail', function (done) {
+		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+
+		putDelegates(validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+			done();
+		});
+	});
+
 	it('using blank pasphrase should fail', function (done) {
 		validParams.secret = '';
 

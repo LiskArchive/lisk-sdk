@@ -91,6 +91,16 @@ describe('PUT /api/signatures', function () {
 		});
 	});
 
+	it('using multisigAccountPublicKey should fail', function (done) {
+		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+
+		putSignature(validParams, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+			done();
+		});
+	});
+	
 	it('using valid parameters should be ok', function (done) {
 		putSignature(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;

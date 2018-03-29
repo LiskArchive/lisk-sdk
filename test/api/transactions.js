@@ -672,6 +672,21 @@ describe('PUT /api/transactions', function () {
 		});
 	});
 
+	it('using multisigAccountPublicKey should fail', function (done) {
+		var amountToSend = 100000000;
+
+		putTransaction({
+			secret: account.password,
+			amount: amountToSend,
+			recipientId: account2.address,
+			multisigAccountPublicKey: node.randomAccount().publicKey
+		}, function (err, res) {
+			node.expect(res.body).to.have.property('success').to.not.be.ok;
+			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+			done();
+		});
+	});
+
 	it('using negative amount should fail', function (done) {
 		var amountToSend = -100000000;
 
