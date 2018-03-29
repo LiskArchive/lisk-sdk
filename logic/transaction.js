@@ -1048,6 +1048,14 @@ Transaction.prototype.schema = {
 			type: 'string',
 			format: 'signature'
 		},
+		signatures: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'signature'
+			},
+			uniqueItems: true
+		},
 		asset: {
 			type: 'object'
 		}
