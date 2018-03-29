@@ -6,6 +6,9 @@ var _ = require('lodash');
 describe('POST /peer/transactions', function () {
 
 	var multisigAccount = node.randomAccount();
+	var memberAccount1 = node.randomAccount();
+	var memberAccount2 = node.randomAccount();
+	var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 
 	function postTransaction (transaction, done) {
 		node.post('/peer/transactions', {
@@ -39,10 +42,6 @@ describe('POST /peer/transactions', function () {
 		describe('signatures property', function () {
 
 			it('using null inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [null];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -53,10 +52,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using undefined inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [undefined];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -67,10 +62,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using integer inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [1];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -81,10 +72,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using empty object inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [{}];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -95,10 +82,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using not empty object inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [new Buffer.from('Duppa')];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -109,10 +92,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using empty string inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [''];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -123,10 +102,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using string with invalid format inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = ['x'];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -137,11 +112,7 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using invalid signature inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
 				var signature = '3fe524c1b8d84bf7dd262f0f38287638a1babd19a5481bfa90211c79c80acd12f04f9399723b4aac59804bb6dfa5f6435bb75007d00acf2d175bcd4b24376c0f';
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [signature];
 
 				postTransaction(multiSigTx, function (err, res) {
@@ -152,10 +123,6 @@ describe('POST /peer/transactions', function () {
 			});
 
 			it('using duplicate signature inside array should fail', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
 				multiSigTx.signatures = [];
 				var signature1 = node.lisk.multisignature.signTransaction(multiSigTx, memberAccount1.password);
 				multiSigTx.signatures.push(signature1, signature1);
@@ -167,25 +134,24 @@ describe('POST /peer/transactions', function () {
 				});
 			});
 
-			it('using empty array should be ok', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
+			it('using empty array should be ok but never confirmed', function (done) {
+				var anotherMultiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.randomAccount().publicKey, '+' + node.randomAccount().publicKey], 1, 2);
+				anotherMultiSigTx.signatures = [];
 
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + node.eAccount.publicKey, '+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
-				multiSigTx.signatures = [];
-
-				postTransaction(multiSigTx, function (err, res) {
+				postTransaction(anotherMultiSigTx, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
-					node.expect(res.body).to.have.property('transactionId').to.equal(multiSigTx.id);
-					done();
+					node.expect(res.body).to.have.property('transactionId').to.equal(anotherMultiSigTx.id);
+					node.onNewBlock(function (err) {
+						node.get('/api/transactions/get?id=' + anotherMultiSigTx.id, function (err, res) {
+							node.expect(res.body).to.have.property('success').to.be.not.ok;
+							node.expect(res.body).to.have.property('error').to.equal('Transaction not found');
+							done();
+						});
+					});
 				});
 			});
 
-			it('using correct signatures should be ok', function (done) {
-				var memberAccount1 = node.randomAccount();
-				var memberAccount2 = node.randomAccount();
-
-				var multiSigTx = node.lisk.multisignature.createMultisignature(multisigAccount.password, null, ['+' + memberAccount1.publicKey, '+' + memberAccount2.publicKey], 1, 2);
+			it('using correct signatures should be ok and confirmed', function (done) {
 				multiSigTx.signatures = [];
 				var signature1 = node.lisk.multisignature.signTransaction(multiSigTx, memberAccount1.password);
 				var signature2 = node.lisk.multisignature.signTransaction(multiSigTx, memberAccount2.password);
@@ -195,7 +161,13 @@ describe('POST /peer/transactions', function () {
 				postTransaction(multiSigTx, function (err, res) {
 					node.expect(res.body).to.have.property('success').to.be.ok;
 					node.expect(res.body).to.have.property('transactionId').to.equal(multiSigTx.id);
-					done();
+					node.onNewBlock(function (err) {
+						node.get('/api/transactions/get?id=' + multiSigTx.id, function (err, res) {
+							node.expect(res.body).to.have.property('success').to.be.ok;
+							node.expect(res.body.transaction).to.have.property('id').to.equal(multiSigTx.id);
+							done();
+						});
+					});
 				});
 			});
 		});
