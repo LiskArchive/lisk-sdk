@@ -131,7 +131,7 @@ class Transaction {
 	 * Creates hash based on transaction bytes.
 	 *
 	 * @param {transaction} transaction
-	 * @returns {hash} SHA256 hash
+	 * @returns {Buffer} SHA256 hash
 	 * @todo Add description for the params
 	 */
 	getHash(transaction) {

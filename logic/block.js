@@ -167,7 +167,7 @@ class Block {
 	 * Creates hash based on block bytes.
 	 *
 	 * @param {block} block
-	 * @returns {hash} SHA256 hash
+	 * @returns {Buffer} SHA256 hash
 	 * @todo Add description for the params
 	 */
 	getHash(block) {
@@ -287,7 +287,7 @@ __private.getAddressByPublicKey = function(publicKey) {
  * @property {signature} blockSignature
  * @property {publicKey} generatorPublicKey
  * @property {number} numberOfTransactions
- * @property {hash} payloadHash
+ * @property {string} payloadHash
  * @property {number} payloadLength
  * @property {string} previousBlock - Between 1 and 20 chars
  * @property {number} timestamp
