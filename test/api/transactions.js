@@ -46,27 +46,27 @@ function sendLISK (account, amount, done) {
 
 before(function (done) {
 	setTimeout(function () {
-		sendLISK(account, node.randomLISK(), done);
+		sendLISK(account, 100 * node.normalizer, done);
 	}, 2000);
 });
 
 before(function (done) {
 	setTimeout(function () {
-		sendLISK(account2, node.randomLISK(), done);
+		sendLISK(account2, 20 * node.normalizer, done);
 	}, 2000);
 });
 
 before(function (done) {
 	setTimeout(function () {
 		// Send 20 LSK
-		sendLISK(account2, 20*100000000, done);
+		sendLISK(account2, 100 * node.normalizer, done);
 	}, 2000);
 });
 
 before(function (done) {
 	setTimeout(function () {
 		// Send 100 LSK
-		sendLISK(account2, 100*100000000, done);
+		sendLISK(account2, 100 * node.normalizer, done);
 	}, 2000);
 });
 
@@ -210,8 +210,8 @@ describe('GET /api/transactions', function () {
 		var limit = 10;
 		var offset = 0;
 		var orderBy = 'amount:asc';
-		var minAmount = 20*100000000; // 20 LSK
-		var maxAmount = 100*100000000; // 100 LSK
+		var minAmount = 20 * node.normalizer; // 20 LSK
+		var maxAmount = 100 * node.normalizer; // 100 LSK
 
 		var params = [
 			'minAmount=' + minAmount,
@@ -225,7 +225,7 @@ describe('GET /api/transactions', function () {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
 			node.expect(res.body.transactions).to.have.length.within(2, limit);
-			node.expect(res.body.transactions[0].amount).to.be.equal(minAmount);
+			node.expect(res.body.transactions[0].amount).to.equal(minAmount);
 			node.expect(res.body.transactions[res.body.transactions.length-1].amount).to.be.equal(maxAmount);
 			for (var i = 0; i < res.body.transactions.length; i++) {
 				if (res.body.transactions[i + 1]) {
@@ -373,11 +373,6 @@ describe('GET /api/transactions', function () {
 		node.get('/api/transactions', function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			for (var i = 0; i < res.body.transactions.length; i++) {
-				if (res.body.transactions[i + 1]) {
-					node.expect(res.body.transactions[i].amount).to.be.at.least(res.body.transactions[i + 1].amount);
-				}
-			}
 			done();
 		});
 	});
@@ -648,8 +643,17 @@ describe('GET /api/transactions/unconfirmed', function () {
 
 describe('PUT /api/transactions', function () {
 
+	// Sending different amounts to obtain different transaction IDs  
+	var i = 1;
+	var amountToSend;
+
+	beforeEach(function (done) {
+		amountToSend = i * node.normalizer;
+		i++;
+		done();
+	});
+
 	it('using valid parameters should be ok', function (done) {
-		var amountToSend = 100000000;
 		var expectedFee = node.expectedFee(amountToSend);
 
 		putTransaction({
@@ -672,20 +676,128 @@ describe('PUT /api/transactions', function () {
 		});
 	});
 
-	it('using multisigAccountPublicKey should fail', function (done) {
-		var amountToSend = 100000000;
+	describe('multisigAccountPublicKey', function (done) {
 
-		putTransaction({
-			secret: account.password,
-			amount: amountToSend,
-			recipientId: account2.address,
-			multisigAccountPublicKey: node.randomAccount().publicKey
-		}, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
-			done();
+		it('using null should be ok', function (done) {
+			var multisigAccountPublicKey = null;
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
 		});
-	});
+
+		it('using undefined should be ok', function (done) {
+			var multisigAccountPublicKey = undefined;
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using integer should fail', function (done) {
+			var multisigAccountPublicKey = 1;
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty array should fail', function (done) {
+			var multisigAccountPublicKey = [];
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty object should fail', function (done) {
+			var multisigAccountPublicKey = {};
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using object should fail', function (done) {
+			var multisigAccountPublicKey = new Buffer.from('dummy');
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty string should be ok', function (done) {
+			var multisigAccountPublicKey = '';
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using valid public key should fail', function (done) {
+			var multisigAccountPublicKey = node.randomAccount().publicKey;
+
+			putTransaction({
+				secret: account.password,
+				amount: amountToSend,
+				recipientId: account2.address,
+				multisigAccountPublicKey: multisigAccountPublicKey
+			}, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+	});	
 
 	it('using negative amount should fail', function (done) {
 		var amountToSend = -100000000;
@@ -811,8 +923,6 @@ describe('PUT /api/transactions', function () {
 		var recipientId = '13896491535841206186L';
 
 		it('should be ok', function (done) {
-			var amountToSend = 110000000;
-
 			putTransaction({
 				secret: node.gAccount.password,
 				amount: amountToSend,
@@ -832,11 +942,9 @@ describe('PUT /api/transactions', function () {
 		});
 
 		it('should be ok', function (done) {
-			var amountToSend = 100000000;
-
 			putTransaction({
 				secret: passphrase,
-				amount: amountToSend,
+				amount: 1,
 				recipientId: account2.address
 			}, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;

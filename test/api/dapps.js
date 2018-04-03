@@ -294,13 +294,16 @@ describe('PUT /api/dapps/transaction', function () {
 	});
 
 	var validParams;
+	// Sending different amounts to obtain different transaction IDs  
+	var i = 1;
 
 	beforeEach(function (done) {
 		validParams = {
 			secret: account.password,
 			dappId: dapp.transactionId,
-			amount: 100000000
+			amount: i * node.normalizer
 		};
+		i++;
 		done();
 	});
 
@@ -446,13 +449,86 @@ describe('PUT /api/dapps/transaction', function () {
 		});
 	});
 
-	it('using valid multisigAccountPublicKey should fail', function (done) {
-		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+	describe('multisigAccountPublicKey', function (done) {
 
-		putTransaction(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
-			done();
+		it('using null should be ok', function (done) {
+			validParams.multisigAccountPublicKey = null;
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using undefined should be ok', function (done) {
+			validParams.multisigAccountPublicKey = undefined;
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using integer should fail', function (done) {
+			validParams.multisigAccountPublicKey = 1;
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty array should fail', function (done) {
+			validParams.multisigAccountPublicKey = [];
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty object should fail', function (done) {
+			validParams.multisigAccountPublicKey = {};
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using object should fail', function (done) {
+			validParams.multisigAccountPublicKey = new Buffer.from('dummy');
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty string should be ok', function (done) {
+			validParams.multisigAccountPublicKey = '';
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using valid public key should fail', function (done) {
+			validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+
+			putTransaction(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
 		});
 	});
 
@@ -483,11 +559,11 @@ describe('PUT /api/dapps/withdrawal', function () {
 		var randomAccount = node.randomTxAccount();
 		var keys = node.lisk.crypto.getKeys(randomAccount.password);
 		var recipientId = node.lisk.crypto.getAddress(keys.publicKey);
-		var transaction = node.lisk.transaction.createTransaction(randomAccount.address, 100000000, account.password);
+		var transaction = node.lisk.transaction.createTransaction(randomAccount.address, 1 * node.normalizer, account.password);
 
 		validParams = {
 			secret: account.password,
-			amount: 100000000,
+			amount: 1 * node.normalizer,
 			dappId: dapp.transactionId,
 			transactionId: transaction.id,
 			recipientId: recipientId
@@ -748,13 +824,86 @@ describe('PUT /api/dapps/withdrawal', function () {
 		});
 	});
 
-	it('using multisigAccountPublicKey should fail', function (done) {
-		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+	describe('multisigAccountPublicKey', function (done){
 
-		putWithdrawal(validParams, function (err, res) {
-			node.expect(res.body).to.have.property('success').to.not.be.ok;
-			node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
-			done();
+		it('using null should be ok', function (done) {
+			validParams.multisigAccountPublicKey = null;
+	
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+	
+		it('using undefined should be ok', function (done) {
+			validParams.multisigAccountPublicKey = undefined;
+	
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+		
+		it('using integer should fail', function (done) {
+			validParams.multisigAccountPublicKey = 1;
+
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+		
+		it('using empty array should fail', function (done) {
+			validParams.multisigAccountPublicKey = [];
+	
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty object should fail', function (done) {
+			validParams.multisigAccountPublicKey = {};
+
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using object should fail', function (done) {
+			validParams.multisigAccountPublicKey = new Buffer.from('dummy');
+
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty string should be ok', function (done) {
+			validParams.multisigAccountPublicKey = '';
+
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactionId').to.not.be.empty;
+				done();
+			});
+		});
+	
+		it('using valid public key should fail', function (done) {
+			validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+	
+			putWithdrawal(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
 		});
 	});
 
