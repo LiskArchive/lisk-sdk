@@ -648,7 +648,7 @@ Peers.prototype.list = function(options, cb) {
 				const picked = peersList.length;
 				const accepted = peers.concat(peersList);
 				library.logger.debug('Listing peers', {
-					attempt: attemptsDescriptions[options.attempt],
+					attempt: attemptsDescriptions[attempt],
 					found,
 					matched,
 					picked,
