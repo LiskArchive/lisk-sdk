@@ -246,6 +246,7 @@ System.prototype.nonceCompatible = function(nonce) {
 /**
  * Updates private broadhash and height values.
  *
+ * @param {Object} block - block
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  */
