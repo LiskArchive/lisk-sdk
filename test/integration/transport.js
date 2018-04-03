@@ -21,14 +21,27 @@ var scenarios = require('./scenarios');
 
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
 	var configurations;
+	var broadcastingDisabled;
+	var syncingDisabled;
 
 	before(done => {
+		broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
+		syncingDisabled = process.env.SYNCING_DISABLED === 'true';
+
 		utils.http.setVersion('1.0.0');
 		configurations = _.range(10).map(index => {
 			var devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
+			if (!devConfigCopy.broadcasts) {
+				devConfigCopy.broadcasts = {};
+			}
+			devConfigCopy.broadcasts.active = !broadcastingDisabled;
+			if (!devConfigCopy.syncing) {
+				devConfigCopy.syncing = {};
+			}
+			devConfigCopy.syncing.active = !syncingDisabled;
 			return devConfigCopy;
 		});
 		done();
