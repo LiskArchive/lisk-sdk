@@ -133,7 +133,7 @@ class MigrationsRepository {
 	 * @returns {Promise} Promise object that resolves with `undefined`.
 	 */
 	applyAll() {
-		return this.db.tx('migrations:applyAll', t1 =>
+		return this.db.task('migrations:applyAll', t1 =>
 			t1.migrations
 				.hasMigrations()
 				.then(hasMigrations => (hasMigrations ? t1.migrations.getLastId() : 0))
