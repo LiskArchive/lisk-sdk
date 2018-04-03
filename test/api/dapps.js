@@ -446,7 +446,7 @@ describe('PUT /api/dapps/transaction', function () {
 		});
 	});
 
-	it('using multisigAccountPublicKey should fail', function (done) {
+	it('using valid multisigAccountPublicKey should fail', function (done) {
 		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
 
 		putTransaction(validParams, function (err, res) {
@@ -748,7 +748,7 @@ describe('PUT /api/dapps/withdrawal', function () {
 		});
 	});
 
-	it('using numeric multisigAccountPublicKey should fail', function (done) {
+	it('using multisigAccountPublicKey should fail', function (done) {
 		validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
 
 		putWithdrawal(validParams, function (err, res) {
