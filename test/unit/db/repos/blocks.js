@@ -852,48 +852,42 @@ describe('db', () => {
 			});
 		});
 
-		describe('getBlocksForTransport()', () => {
+		describe('getBlockForTransport()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'query');
 
-				yield db.blocks.getBlocksForTransport('1111');
+				yield db.blocks.getBlockForTransport('1111');
 
-				expect(db.query.firstCall.args[0]).to.eql(sql.getBlocksForTransport);
+				expect(db.query.firstCall.args[0]).to.eql(sql.getBlockForTransport);
 				expect(db.query.firstCall.args[1]).to.eql(['1111']);
 				return expect(db.query).to.be.calledOnce;
 			});
 
 			it('should get block information for transport with valid format order by height', function*() {
-				const ids = (yield db.query('SELECT id from blocks')).map(
-					row => row.id
+				const blockInfo = yield db.one(
+					'SELECT height, id, "previousBlock", timestamp from blocks ORDER BY height DESC LIMIT 1'
 				);
-				const data = yield db.blocks.getBlocksForTransport(ids);
+				const data = yield db.blocks.getBlockForTransport(blockInfo.id);
 
 				expect(data).to.be.not.empty;
-				expect(data).to.have.lengthOf(ids.length);
-				expect(data[0]).to.have.all.keys(
+				expect(data).to.be.an('Object');
+				expect(data).to.have.all.keys(
 					'height',
 					'id',
 					'previousBlock',
 					'timestamp'
 				);
-				return expect(data).to.be.eql(
-					_(data)
-						.orderBy('height', 'desc')
-						.value()
-				);
+				return expect(data.id).to.be.eql(blockInfo.id);
 			});
 
-			it('should return empty response if provided ids do not exist', function*() {
-				const data = yield db.blocks.getBlocksForTransport('111111');
-
-				return expect(data).to.be.empty;
+			it('should return empty response if provided id do not exist', function*() {
+				const data = yield db.blocks.getBlockForTransport('111111');
+				return expect(data).to.be.a('null');
 			});
 
-			it('should reject with error if required parameter "ids" is missing', () => {
-				return expect(
-					db.blocks.getBlocksForTransport()
-				).to.be.eventually.rejectedWith('syntax error at or near ")"');
+			it('should resolve with null if parameter "id" is missing', function*() {
+				const data = yield db.blocks.getBlockForTransport();
+				return expect(data).to.be.a('null');
 			});
 		});
 
