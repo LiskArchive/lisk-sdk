@@ -187,6 +187,7 @@ System.prototype.getBroadhash = function(cb) {
 				return setImmediate(cb, null, __private.nethash);
 			}
 			const seed = rows.map(row => row.id).join('');
+			const seed = rows.map(row => row.b_id).join('');
 			const hash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
