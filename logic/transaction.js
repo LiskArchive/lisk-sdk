@@ -490,12 +490,6 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	// Check requester public key
 	if (trs.requesterPublicKey) {
 		return setImmediate(cb, 'Multisig request is not allowed');
-
-		multisignatures.push(trs.senderPublicKey);
-
-		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Account does not belong to multisignature group');
-		}
 	}
 
 	// Verify signature
