@@ -806,7 +806,7 @@ Chain.prototype.onBind = function(scope) {
 		blocks: scope.blocks,
 		rounds: scope.rounds,
 		transactions: scope.transactions,
-		system: scope.system
+		system: scope.system,
 	};
 
 	// Set module as loaded
