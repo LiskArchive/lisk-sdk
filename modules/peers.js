@@ -683,12 +683,12 @@ Peers.prototype.networkHeight = function(options, cb) {
 		if (err) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupByheight = _.groupBy(peers, 'height');
-		const popularheights = Object.keys(peersGroupByheight);
+		const peersGroupByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupByHeight);
 		const networkHeight = Number(_.max(popularheights));
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
-		library.logger.trace(popularheights);
+		library.logger.trace(popularHeights);
 
 		return setImmediate(cb, null, networkHeight);
 	});
