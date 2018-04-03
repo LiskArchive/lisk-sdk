@@ -685,7 +685,7 @@ Peers.prototype.networkHeight = function(options, cb) {
 		}
 		const peersGroupByHeight = _.groupBy(peers, 'height');
 		const popularHeights = Object.keys(peersGroupByHeight);
-		const networkHeight = Number(_.max(popularheights));
+		const networkHeight = Number(_.max(popularHeights));
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
 		library.logger.trace(popularHeights);
