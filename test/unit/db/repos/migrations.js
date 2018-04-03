@@ -295,7 +295,7 @@ describe('db', () => {
 					});
 			});
 
-			it('should apply all pending migrations in a transaction', () => {
+			it('should apply all pending migrations in independent transactions', () => {
 				const t2 = {
 					none: sinonSandbox.stub().resolves(true),
 				};
@@ -318,13 +318,13 @@ describe('db', () => {
 				 * there is no way in sinon to resolve to the value returned by a callback.
 				 */
 				sinonSandbox
-					.stub(db, 'tx')
+					.stub(db, 'task')
 					.callsArgWith(1, t1)
 					.resolves(Promise.delay(2000));
 
 				return db.migrations.applyAll().then(() => {
-					expect(db.tx).to.be.calledOnce;
-					expect(db.tx.firstCall.args[0]).to.be.eql('migrations:applyAll');
+					expect(db.task).to.be.calledOnce;
+					expect(db.task.firstCall.args[0]).to.be.eql('migrations:applyAll');
 
 					expect(t1.migrations.hasMigrations).to.be.calledOnce;
 					expect(t1.tx).to.have.callCount(updates.length);
