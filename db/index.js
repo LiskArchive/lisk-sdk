@@ -24,6 +24,12 @@ const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');
 const repos = require('./repos');
 
+const inTest = process.env.NODE_ENV === 'test';
+
+Promise.config({
+	longStackTraces: inTest, // Enable Long Stack Traces
+});
+
 // TODO: Had to change below from 'const' to 'let' because of the nasty 'rewire' hacks inside DBSandbox.js.
 // eslint-disable-next-line prefer-const
 let initOptions = {
@@ -43,7 +49,7 @@ let initOptions = {
 		// API: http://vitaly-t.github.io/pg-promise/global.html#event:receive
 	},
 	// Prevent protocol locking, so we can redefine database properties in test environment
-	noLocking: process.env.NODE_ENV === 'test',
+	noLocking: inTest,
 };
 
 const pgp = pgpLib(initOptions);

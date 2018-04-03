@@ -149,7 +149,9 @@ class BlocksRepository {
 	 */
 	list(params) {
 		if (params.where && !Array.isArray(params.where)) {
-			return Promise.reject(new Error('Invalid parameter "where" provided.'));
+			return Promise.reject(
+				new TypeError('Invalid parameter "where" provided.')
+			);
 		}
 		return this.db.any(Queries.list, params);
 	}
@@ -272,16 +274,15 @@ class BlocksRepository {
 	}
 
 	/**
-	 * Get multiple blocks to be transported to peers.
+	 * Get block to be transported to peers.
 	 *
-	 * @param {string} ids - Comma separated string of ids
+	 * @param {string} id - id of the block
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 *
 	 */
-	getBlocksForTransport(ids) {
-		// TODO: Must use a result-specific method, not .query
-		return this.db.query(sql.getBlocksForTransport, [ids]);
+	getBlockForTransport(id) {
+		return this.db.oneOrNone(sql.getBlockForTransport, [id]);
 	}
 
 	/**

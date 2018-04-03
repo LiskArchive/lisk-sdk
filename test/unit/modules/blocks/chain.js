@@ -148,6 +148,10 @@ describe('blocks/chain', () => {
 			tick: sinonSandbox.stub(),
 		};
 
+		const modulesSystemStub = {
+			update: sinonSandbox.stub(),
+		};
+
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			apply: sinonSandbox.stub(),
@@ -163,6 +167,7 @@ describe('blocks/chain', () => {
 			blocks: modulesBlocksStub,
 			rounds: modulesRoundsStub,
 			transactions: modulesTransactionsStub,
+			system: modulesSystemStub,
 		};
 
 		process.exit = sinonSandbox.stub().returns(0);
@@ -705,6 +710,7 @@ describe('blocks/chain', () => {
 				__private
 					.applyUnconfirmedStep(blockWithUndefinedTransactions, dbStub.tx)
 					.catch(err => {
+						expect(err).instanceOf(Error);
 						expect(err.message).to.equal(
 							'expecting an array or an iterable object but got [object Null]'
 						);
@@ -737,7 +743,8 @@ describe('blocks/chain', () => {
 					__private
 						.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 						.catch(err => {
-							expect(err).to.equal(
+							expect(err).instanceOf(Error);
+							expect(err.message).to.equal(
 								'Failed to get account to apply unconfirmed transaction: 6 - setAccountAndGet-ERR'
 							);
 							expect(loggerStub.error.args[0][0]).to.equal(
@@ -773,7 +780,8 @@ describe('blocks/chain', () => {
 						__private
 							.applyUnconfirmedStep(blockWithTransactions, dbStub.tx)
 							.catch(err => {
-								expect(err).to.equal(
+								expect(err).instanceOf(Error);
+								expect(err.message).to.equal(
 									'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
 								);
 								expect(loggerStub.error.args[0][0]).to.equal(
@@ -824,6 +832,7 @@ describe('blocks/chain', () => {
 				__private
 					.applyConfirmedStep(blockWithUndefinedTransactions, dbStub.tx)
 					.catch(err => {
+						expect(err).instanceOf(Error);
 						expect(err.message).to.equal(
 							'expecting an array or an iterable object but got [object Null]'
 						);
@@ -857,7 +866,8 @@ describe('blocks/chain', () => {
 					__private
 						.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 						.catch(err => {
-							expect(err).to.equal(
+							expect(err).instanceOf(Error);
+							expect(err.message).to.equal(
 								'Failed to get account to apply transaction: 6 - getAccount-ERR'
 							);
 							expect(modules.accounts.getAccount.callCount).to.equal(1);
@@ -892,7 +902,8 @@ describe('blocks/chain', () => {
 						__private
 							.applyConfirmedStep(blockWithTransactions, dbStub.tx)
 							.catch(err => {
-								expect(err).to.equal(
+								expect(err).instanceOf(Error);
+								expect(err.message).to.equal(
 									'Failed to apply transaction: 6 - apply-ERR'
 								);
 								expect(modules.accounts.getAccount.callCount).to.equal(1);
@@ -969,7 +980,8 @@ describe('blocks/chain', () => {
 					__private
 						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 						.catch(err => {
-							expect(err).to.equal('Failed to save block');
+							expect(err).instanceOf(Error);
+							expect(err.message).to.equal('Failed to save block');
 							expect(loggerStub.error.args[0][0]).to.contains(
 								'Failed to save block'
 							);
@@ -1567,6 +1579,12 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions fails', () => {
 					beforeEach(() => {
+						modules.system.update.callsArgWith(
+							0,
+							null,
+							true
+						);
+
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							'receiveTransactions-ERR',
@@ -1592,6 +1610,11 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions succeeds', () => {
 					beforeEach(() => {
+						modules.system.update.callsArgWith(
+							0,
+							null,
+							true
+						);
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							null,
@@ -1684,6 +1707,7 @@ describe('blocks/chain', () => {
 			expect(modules.accounts).to.equal(modulesStub.accounts);
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 			expect(modules.rounds).to.equal(modulesStub.rounds);
+			expect(modules.system).to.equal(modulesStub.system);
 			return expect(modules.transactions).to.equal(modulesStub.transactions);
 		});
 
