@@ -1046,7 +1046,7 @@ describe('transport', () => {
 					},
 					db: {
 						blocks: {
-							getBlocksForTransport: sinonSandbox.stub().resolves(blocksList),
+							getBlockForTransport: sinonSandbox.stub().resolves(blocksList),
 						},
 					},
 				};

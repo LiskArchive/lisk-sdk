@@ -501,10 +501,8 @@ Transport.prototype.shared = {
 				}
 
 				library.db.blocks
-					.getBlocksForTransport(escapedIds)
-					.then(rows =>
-						setImmediate(cb, null, { success: true, common: rows[0] || null })
-					)
+					.getBlockForTransport(escapedIds[0])
+					.then(row => setImmediate(cb, null, { success: true, common: row }))
 					.catch(err => {
 						library.logger.error(err.stack);
 						return setImmediate(cb, 'Failed to get common block');
