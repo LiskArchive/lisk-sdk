@@ -148,6 +148,10 @@ describe('blocks/chain', () => {
 			tick: sinonSandbox.stub(),
 		};
 
+		const modulesSystemStub = {
+			update: sinonSandbox.stub(),
+		};
+
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			apply: sinonSandbox.stub(),
@@ -163,6 +167,7 @@ describe('blocks/chain', () => {
 			blocks: modulesBlocksStub,
 			rounds: modulesRoundsStub,
 			transactions: modulesTransactionsStub,
+			system: modulesSystemStub,
 		};
 
 		process.exit = sinonSandbox.stub().returns(0);
@@ -1574,6 +1579,12 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions fails', () => {
 					beforeEach(() => {
+						modules.system.update.callsArgWith(
+							0,
+							null,
+							true
+						);
+
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							'receiveTransactions-ERR',
@@ -1599,6 +1610,11 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions succeeds', () => {
 					beforeEach(() => {
+						modules.system.update.callsArgWith(
+							0,
+							null,
+							true
+						);
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							null,
@@ -1691,6 +1707,7 @@ describe('blocks/chain', () => {
 			expect(modules.accounts).to.equal(modulesStub.accounts);
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 			expect(modules.rounds).to.equal(modulesStub.rounds);
+			expect(modules.system).to.equal(modulesStub.system);
 			return expect(modules.transactions).to.equal(modulesStub.transactions);
 		});
 

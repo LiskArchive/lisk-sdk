@@ -738,7 +738,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 
 	async.waterfall(
 		[
-			function(waterCb) {
+			waterCb => {
 				// Delete last block, replace last block with previous block, undo things
 				__private.popLastBlock(lastBlock, (err, newLastBlock) => {
 					if (err) {
@@ -747,7 +747,10 @@ Chain.prototype.deleteLastBlock = function(cb) {
 					return setImmediate(waterCb, err, newLastBlock);
 				});
 			},
-			function(newLastBlock, waterCb) {
+			(newLastBlock, waterCb) => {
+				modules.system.update(() => setImmediate(waterCb, null, newLastBlock));
+			},
+			(newLastBlock, waterCb) => {
 				// Put transactions back into transaction pool
 				modules.transactions.receiveTransactions(
 					lastBlock.transactions.reverse(),
@@ -803,6 +806,7 @@ Chain.prototype.onBind = function(scope) {
 		blocks: scope.blocks,
 		rounds: scope.rounds,
 		transactions: scope.transactions,
+		system: scope.system,
 	};
 
 	// Set module as loaded
