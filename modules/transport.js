@@ -235,6 +235,10 @@ __private.receiveTransaction = function (transaction, peer, extraLogMessage, cb)
 		return setImmediate(cb, 'Invalid transaction body - ' + e.toString());
 	}
 
+	if (transaction.requesterPublicKey) {
+		return setImmediate(cb, 'Multisig request is not allowed');
+	}
+
 	library.balancesSequence.add(function (cb) {
 		library.logger.debug('Received transaction ' + transaction.id + ' from peer ' + peer.string);
 		modules.transactions.processUnconfirmedTransaction(transaction, true, function (err) {

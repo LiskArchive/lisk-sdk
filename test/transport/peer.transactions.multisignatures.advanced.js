@@ -171,5 +171,20 @@ describe('POST /peer/transactions', function () {
 				});
 			});
 		});
+
+		describe('requesterPublicKey property', function () {
+
+			it('requesting multisig group transaction from non author account', function (done) {
+				var transaction = node.lisk.transaction.createTransaction(node.randomAccount().address, 1 * node.normalizer, memberAccount1.password);
+				transaction.requesterPublicKey = multisigAccount.publicKey;
+				transaction.id = node.lisk.crypto.getId(transaction);
+
+				postTransaction(transaction, function (err, res) {
+					node.expect(res.body).to.have.property('success').to.not.be.ok;
+					node.expect(res.body).to.have.property('message').to.equal('Multisig request is not allowed');
+					done();
+				});
+			});
+		});
 	});
 });
