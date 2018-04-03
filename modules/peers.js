@@ -678,6 +678,22 @@ Peers.prototype.list = function(options, cb) {
 	);
 };
 
+Peers.prototype.networkHeight = function(options, cb) {
+	self.list(options, (err, peers) => {
+		if (err) {
+			return setImmediate(cb, err, 0);
+		}
+		const peersGroupByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupByHeight);
+		const networkHeight = Number(_.max(popularHeights));
+
+		library.logger.debug(`Network height is: ${networkHeight}`);
+		library.logger.trace(popularHeights);
+
+		return setImmediate(cb, null, networkHeight);
+	});
+};
+
 // Events
 /**
  * Assigns scope to modules constiable.

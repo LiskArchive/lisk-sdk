@@ -163,14 +163,13 @@ Node.prototype.shared = {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}
-		modules.loader.getNetwork((err, network) => {
-			network = network || { height: null };
-			return setImmediate(cb, null, {
+		modules.peers.networkHeight({ normalized: false }, (err, networkHeight) => {
+			setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
 				consensus: modules.peers.getLastConsensus() || null,
 				height: modules.blocks.lastBlock.get().height,
 				loaded: modules.loader.loaded(),
-				networkHeight: network.height,
+				networkHeight,
 				syncing: modules.loader.syncing(),
 			});
 		});
