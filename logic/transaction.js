@@ -489,11 +489,7 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 
 	// Check requester public key
 	if (trs.requesterPublicKey) {
-		multisignatures.push(trs.senderPublicKey);
-
-		if (sender.multisignatures.indexOf(trs.requesterPublicKey) < 0) {
-			return setImmediate(cb, 'Account does not belong to multisignature group');
-		}
+		return setImmediate(cb, 'Multisig request is not allowed');
 	}
 
 	// Verify signature
@@ -722,22 +718,22 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
 		balance: -amount,
 		blockId: block.id,
 		round: modules.rounds.calc(block.height)
-	}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
+	}, function (mergeErr, sender) {
+		if (mergeErr) {
+			return setImmediate(cb, mergeErr);
 		}
 		/**
 		 * calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
 		 * DApp, InTransfer or OutTransfer.
 		 */
-		__private.types[trs.type].apply.call(this, trs, block, sender, function (err) {
-			if (err) {
+		__private.types[trs.type].apply.call(this, trs, block, sender, function (applyErr) {
+			if (applyErr) {
 				this.scope.account.merge(sender.address, {
 					balance: amount,
 					blockId: block.id,
 					round: modules.rounds.calc(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
+				}, function (reverseMergeErr) {
+					return setImmediate(cb, reverseMergeErr || applyErr);
 				});
 			} else {
 				return setImmediate(cb);
@@ -767,19 +763,19 @@ Transaction.prototype.undo = function (trs, block, sender, cb) {
 		balance: amount,
 		blockId: block.id,
 		round: modules.rounds.calc(block.height)
-	}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
+	}, function (mergeErr, sender) {
+		if (mergeErr) {
+			return setImmediate(cb, mergeErr);
 		}
 
-		__private.types[trs.type].undo.call(this, trs, block, sender, function (err) {
-			if (err) {
+		__private.types[trs.type].undo.call(this, trs, block, sender, function (undoErr) {
+			if (undoErr) {
 				this.scope.account.merge(sender.address, {
 					balance: -amount,
 					blockId: block.id,
 					round: modules.rounds.calc(block.height)
-				}, function (err) {
-					return setImmediate(cb, err);
+				}, function (reverseMergeErr) {
+					return setImmediate(cb, reverseMergeErr || undoErr);
 				});
 			} else {
 				return setImmediate(cb);
@@ -818,15 +814,15 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 
 	amount = amount.toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: -amount}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
+	this.scope.account.merge(sender.address, {u_balance: -amount}, function (mergeErr, sender) {
+		if (mergeErr) {
+			return setImmediate(cb, mergeErr);
 		}
 
-		__private.types[trs.type].applyUnconfirmed.call(this, trs, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
+		__private.types[trs.type].applyUnconfirmed.call(this, trs, sender, function (applyUnconfirmedErr) {
+			if (applyUnconfirmedErr) {
+				this.scope.account.merge(sender.address, {u_balance: amount}, function (reverseMergeErr) {
+					return setImmediate(cb, reverseMergeErr || applyUnconfirmedErr);
 				});
 			} else {
 				return setImmediate(cb);
@@ -851,15 +847,15 @@ Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
-	this.scope.account.merge(sender.address, {u_balance: amount}, function (err, sender) {
-		if (err) {
-			return setImmediate(cb, err);
+	this.scope.account.merge(sender.address, {u_balance: amount}, function (mergeErr, sender) {
+		if (mergeErr) {
+			return setImmediate(cb, mergeErr);
 		}
 
-		__private.types[trs.type].undoUnconfirmed.call(this, trs, sender, function (err) {
-			if (err) {
-				this.scope.account.merge(sender.address, {u_balance: -amount}, function (err2) {
-					return setImmediate(cb, err2 || err);
+		__private.types[trs.type].undoUnconfirmed.call(this, trs, sender, function (undoUnconfirmedErr) {
+			if (undoUnconfirmedErr) {
+				this.scope.account.merge(sender.address, {u_balance: -amount}, function (reverseMergeErr) {
+					return setImmediate(cb, reverseMergeErr || undoUnconfirmedErr);
 				});
 			} else {
 				return setImmediate(cb);
@@ -1047,6 +1043,14 @@ Transaction.prototype.schema = {
 		signSignature: {
 			type: 'string',
 			format: 'signature'
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'signature'
+			},
+			uniqueItems: true
 		},
 		asset: {
 			type: 'object'

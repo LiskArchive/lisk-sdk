@@ -168,10 +168,6 @@ module.exports = {
 				format: 'id',
 				minLength: 1,
 				maxLength: 20
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
 			}
 		},
 		required: ['secret', 'amount', 'dappId']
@@ -212,10 +208,6 @@ module.exports = {
 				format: 'id',
 				minLength: 1,
 				maxLength: 20
-			},
-			multisigAccountPublicKey: {
-				type: 'string',
-				format: 'publicKey'
 			}
 		},
 		required: ['secret', 'recipientId', 'amount', 'dappId', 'transactionId']
