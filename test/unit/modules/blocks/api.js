@@ -313,6 +313,7 @@ describe('blocks/api', () => {
 				});
 				it('should call callback with error', done => {
 					blocksApiModule.getBlocks({ sort: 'invalidField:desc' }, err => {
+						expect(err).instanceOf(Error);
 						expect(err.message).to.equal('list-ERR');
 						expect(err.code).to.equal(500);
 						done();

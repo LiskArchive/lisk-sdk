@@ -173,8 +173,8 @@ describe('Broadcaster', () => {
 		it('should return error when getting peers list', done => {
 			modulesStub.peers.list.callsArgWith(1, new Error('getPeers failed'));
 			broadcaster.getPeers(params, (err, peers) => {
-				expect(err).to.be.not.null;
-				expect(err.message).to.deep.eql('getPeers failed');
+				expect(err).instanceOf(Error);
+				expect(err.message).to.be.eql('getPeers failed');
 				expect(loggerStub.info.called).to.be.false;
 				expect(peers).to.be.undefined;
 				done();
