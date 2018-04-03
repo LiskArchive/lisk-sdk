@@ -799,12 +799,13 @@ Delegates.prototype.getForgers = function(query, cb) {
 			library.db.delegates
 				.getDelegatesByPublicKeys(forgerKeys)
 				.then(rows => {
-					rows.map(forger => {
+					rows.forEach(forger => {
 						forger.nextSlot =
 							activeDelegates.indexOf(forger.publicKey) + currentSlot + 1;
 
 						return forger;
 					});
+					rows = _.sortBy(rows, 'nextSlot');
 					return setImmediate(cb, null, rows);
 				})
 				.catch(error => setImmediate(cb, error));
