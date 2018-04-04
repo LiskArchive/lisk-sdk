@@ -27,8 +27,8 @@ const description = `Creates a transaction which will cast votes (or unvotes) fo
 	- create transaction 3 --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba
 `;
 
-const processInputs = votes => ({ passphrase, secondPassphrase }) =>
-	transactions.castVotes({ passphrase, delegates: votes, secondPassphrase });
+const processInputs = (votes, unvotes) => ({ passphrase, secondPassphrase }) =>
+	transactions.castVotes({ passphrase, votes, unvotes, secondPassphrase });
 
 const processVotesInput = async votes =>
 	votes.includes(':') ? getData(votes) : votes;
@@ -75,8 +75,7 @@ export const actionCreator = vorpal => async ({ options }) => {
 		? validatePublicKeys(processVotes(processedUnvotesInput))
 		: [];
 
-	const allVotes = [...validatedVotes, ...validatedUnvotes];
-	const processFunction = processInputs(allVotes);
+	const processFunction = processInputs(validatedVotes, validatedUnvotes);
 
 	return signature === false
 		? processFunction({ passphrase: null, secondPassphrase: null })
