@@ -300,11 +300,8 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
 TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
 	const that = self;
 
+	// FIXME: This check should be changed like in queueTransaction(), but then first block forge always fails in funcitonal/system/rounds tests.
 	// __private.isMultisigTransaction(transaction, (isMulti) => {
-
-	/* if (Array.isArray(transaction.signatures)) {
-		console.log('<<<=======||||||||||||||||||||       Array.isArray(transaction.signatures)         ||||||||||||||=============>>>');
-	} */
 
 	if (
 		transaction.type === transactionTypes.MULTI ||
@@ -322,6 +319,7 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
 		const index = that.unconfirmed.transactions.indexOf(transaction);
 		that.unconfirmed.index[transaction.id] = index;
 	}
+
 	// });
 };
 
@@ -835,7 +833,7 @@ __private.isMultisigTransaction = function(transaction, cb) {
 		],
 		(err, isMulti) => {
 			if (err) {
-				library.bus.message('error on multisig check', transaction);
+				library.logger.info('error on multisig check', transaction);
 			}
 			return setImmediate(cb, isMulti);
 		}
