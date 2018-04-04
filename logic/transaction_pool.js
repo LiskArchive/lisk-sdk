@@ -298,20 +298,31 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
  * @param {Object} transaction - Transaction object
  */
 TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
+	const that = self;
+
+	// __private.isMultisigTransaction(transaction, (isMulti) => {
+
+	/* if (Array.isArray(transaction.signatures)) {
+		console.log('<<<=======||||||||||||||||||||       Array.isArray(transaction.signatures)         ||||||||||||||=============>>>');
+	} */
+
 	if (
 		transaction.type === transactionTypes.MULTI ||
 		Array.isArray(transaction.signatures)
+
+		// isMulti
 	) {
-		self.removeMultisignatureTransaction(transaction.id);
+		that.removeMultisignatureTransaction(transaction.id);
 	} else {
-		self.removeQueuedTransaction(transaction.id);
+		that.removeQueuedTransaction(transaction.id);
 	}
 
-	if (self.unconfirmed.index[transaction.id] === undefined) {
-		self.unconfirmed.transactions.push(transaction);
-		const index = self.unconfirmed.transactions.indexOf(transaction);
-		self.unconfirmed.index[transaction.id] = index;
+	if (that.unconfirmed.index[transaction.id] === undefined) {
+		that.unconfirmed.transactions.push(transaction);
+		const index = that.unconfirmed.transactions.indexOf(transaction);
+		that.unconfirmed.index[transaction.id] = index;
 	}
+	// });
 };
 
 /**
@@ -596,30 +607,29 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 	transaction.receivedAt = new Date();
 
-	if (transaction.bundled) {
-		if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
-			return setImmediate(cb, 'Transaction pool is full');
-		}
-		self.addBundledTransaction(transaction);
-	} else if (
-		transaction.type === transactionTypes.MULTI ||
-		Array.isArray(transaction.signatures)
-	) {
-		if (
-			self.countMultisignature() >= config.transactions.maxTransactionsPerQueue
+	__private.isMultisigTransaction(transaction, isMulti => {
+		if (transaction.bundled) {
+			if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
+				return setImmediate(cb, 'Transaction pool is full');
+			}
+			self.addBundledTransaction(transaction);
+		} else if (transaction.type === transactionTypes.MULTI || isMulti) {
+			if (
+				self.countMultisignature() >=
+				config.transactions.maxTransactionsPerQueue
+			) {
+				return setImmediate(cb, 'Transaction pool is full');
+			}
+			self.addMultisignatureTransaction(transaction);
+		} else if (
+			self.countQueued() >= config.transactions.maxTransactionsPerQueue
 		) {
 			return setImmediate(cb, 'Transaction pool is full');
+		} else {
+			self.addQueuedTransaction(transaction);
 		}
-		self.addMultisignatureTransaction(transaction);
-	} else if (
-		self.countQueued() >= config.transactions.maxTransactionsPerQueue
-	) {
-		return setImmediate(cb, 'Transaction pool is full');
-	} else {
-		self.addQueuedTransaction(transaction);
-	}
-
-	return setImmediate(cb);
+		return setImmediate(cb);
+	});
 };
 
 /**
@@ -788,13 +798,60 @@ __private.isTransactionInUnconfirmedQueue = function(transaction) {
 };
 
 /**
+ * Check if transaction is from multisig account.
+ *
+ * @private
+ * @param {Object} transaction - Transaction object
+ * @returns {Boolean}
+ */
+__private.isMultisigTransaction = function(transaction, cb) {
+	let hasSender;
+
+	async.waterfall(
+		[
+			function getAccount(waterCb) {
+				if (transaction.senderPublicKey) {
+					hasSender = true;
+					modules.accounts.getAccount(
+						{ publicKey: transaction.senderPublicKey },
+						waterCb
+					);
+				} else {
+					hasSender = false;
+					library.bus.message(
+						'error: sender publickey is missing',
+						transaction
+					);
+				}
+			},
+			function checkMulti(sender, waterCb) {
+				const isMultisignature =
+					hasSender &&
+					Array.isArray(sender.multisignatures) &&
+					sender.multisignatures.length;
+
+				setImmediate(waterCb, null, isMultisignature);
+			},
+		],
+		(err, isMulti) => {
+			if (err) {
+				library.bus.message('error on multisig check', transaction);
+			}
+			return setImmediate(cb, isMulti);
+		}
+	);
+};
+
+/**
  * Processes and verifies a transaction.
  *
  * @private
  * @param {Object} transaction - Transaction object
  * @param {Object} broadcast - Broadcast flag
  * @param {function} cb - Callback function
+ * @param {Object} tx
  * @returns {SetImmediate} errors, sender
+ * @todo Add description for tx parameter
  */
 __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 	if (!transaction) {
