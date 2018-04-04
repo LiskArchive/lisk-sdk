@@ -544,8 +544,8 @@ describe('create transaction cast votes', () => {
 																					then.itShouldNotGetTheDataUsingTheUnvotesSource,
 																				);
 																				Then(
-																					'it should create a cast votes transaction with the passphrase and the public keys prepended with the correct modifier',
-																					then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier,
+																					'it should create a cast votes transaction with the passphrase and the public keys to corresponding vote keys',
+																					then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysToCorrespondingVoteKeys,
 																				);
 																				Then(
 																					'it should resolve to the created transaction',
@@ -592,8 +592,8 @@ describe('create transaction cast votes', () => {
 																									then.itShouldGetTheDataUsingTheUnvotesSource,
 																								);
 																								Then(
-																									'it should create a cast votes transaction with the passphrase and the public keys prepended with the correct modifier',
-																									then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier,
+																									'it should create a cast votes transaction with the passphrase and the public keys to corresponding vote keys',
+																									then.itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysToCorrespondingVoteKeys,
 																								);
 																								Then(
 																									'it should resolve to the created transaction',

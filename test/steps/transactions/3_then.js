@@ -36,7 +36,7 @@ export function itShouldCreateACastVotesTransactionWithThePassphraseTheSecondPas
 	});
 }
 
-export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysPrependedWithTheCorrectModifier() {
+export function itShouldCreateACastVoteTransactionWithThePassphraseAndThePublicKeysToCorrespondingVoteKeys() {
 	const { passphrase, votePublicKeys, unvotePublicKeys } = this.test.ctx;
 	return expect(transactions.castVotes).to.be.calledWithExactly({
 		passphrase,
