@@ -80,32 +80,32 @@ const setUpReadlineStubs = () => {
 };
 
 function setUpLiskJSAPIStubs() {
-	const sendRequestDefaultResult = { success: true };
+	const queryDefaultResult = { success: true };
 	const broadcastTransactionResponse = {
 		message: 'Transaction accepted by the node for processing',
 	};
 	const broadcastSignaturesResponse = {
 		message: 'Signature is accepted by the node for processing',
 	};
-	this.test.ctx.sendRequestResult = sendRequestDefaultResult;
+	this.test.ctx.queryResult = queryDefaultResult;
 	this.test.ctx.broadcastTransactionResponse = broadcastTransactionResponse;
 	this.test.ctx.broadcastSignaturesResponse = broadcastSignaturesResponse;
 	sandbox.stub(getAPIClient, 'default').returns({
 		delegates: {
-			get: sandbox.stub().resolves(sendRequestDefaultResult),
+			get: sandbox.stub().resolves(queryDefaultResult),
 		},
 		blocks: {
-			get: sandbox.stub().resolves(sendRequestDefaultResult),
+			get: sandbox.stub().resolves(queryDefaultResult),
 		},
 		accounts: {
-			get: sandbox.stub().resolves(sendRequestDefaultResult),
+			get: sandbox.stub().resolves(queryDefaultResult),
 		},
 		transactions: {
-			get: sandbox.stub().resolves(sendRequestDefaultResult),
+			get: sandbox.stub().resolves(queryDefaultResult),
 			broadcast: sandbox.stub().resolves(broadcastTransactionResponse),
 		},
 		signatures: {
-			get: sandbox.stub().resolves(sendRequestDefaultResult),
+			get: sandbox.stub().resolves(queryDefaultResult),
 			broadcast: sandbox.stub().resolves(broadcastSignaturesResponse),
 		},
 	});

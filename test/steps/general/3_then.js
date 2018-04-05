@@ -31,11 +31,6 @@ export function theErrorShouldHaveTheName() {
 	return expect(name).to.equal(errorName);
 }
 
-export function itShouldReturnTheResult() {
-	const { returnValue, result } = this.test.ctx;
-	return expect(returnValue).to.equal(result);
-}
-
 export function itShouldThrowValidationError() {
 	const { testFunction } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
@@ -69,11 +64,6 @@ export function itShouldExitWithCode() {
 export function itShouldResolveToAnObject() {
 	const { returnValue } = this.test.ctx;
 	return expect(returnValue).to.eventually.be.an('object');
-}
-
-export function itShouldResolveToAnEmptyObject() {
-	const { returnValue } = this.test.ctx;
-	return expect(returnValue).to.eventually.be.eql({});
 }
 
 export function itShouldResolveToTheErrorObject() {
@@ -135,11 +125,6 @@ export function itShouldRejectWithMessage() {
 	const { returnValue } = this.test.ctx;
 	const message = getFirstQuotedString(this.test.title);
 	return expect(returnValue).to.be.rejectedWith(message);
-}
-
-export function itShouldRejectWithTheOriginalRejection() {
-	const { returnValue, rejection } = this.test.ctx;
-	return expect(returnValue).to.be.rejectedWith(rejection);
 }
 
 export function itShouldReturnAnEmptyObject() {
