@@ -835,6 +835,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
  * - blocks
  * - delegates
  * - transactions
+ * - system
+ * - transport
  *
  * @param {Object} scope - Exposed modules
  */
@@ -845,6 +847,8 @@ Verify.prototype.onBind = function(scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		transactions: scope.transactions,
+		system: scope.system,
+		transport: scope.transport,
 	};
 
 	// Set module as loaded
