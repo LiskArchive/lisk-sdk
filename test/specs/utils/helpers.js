@@ -88,42 +88,6 @@ describe('utils helpers', () => {
 			},
 		);
 	});
-	describe('#prependPlusToPublicKeys', () => {
-		Given(
-			'public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"',
-			given.publicKeys,
-			() => {
-				When(
-					'prependPlusToPublicKeys is called with the public keys',
-					when.prependPlusToPublicKeysIsCalledWithThePublicKeys,
-					() => {
-						Then(
-							'it should return the public keys prepended with a plus',
-							then.itShouldReturnThePublicKeyPrependedWithAPlus,
-						);
-					},
-				);
-			},
-		);
-	});
-	describe('#prependMinusToPublicKeys', () => {
-		Given(
-			'public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"',
-			given.publicKeys,
-			() => {
-				When(
-					'prependMinusToPublicKeys is called with the public keys',
-					when.prependMinusToPublicKeysIsCalledWithThePublicKeys,
-					() => {
-						Then(
-							'it should return the public keys prepended with a minus',
-							then.itShouldReturnThePublicKeyPrependedWithAMinus,
-						);
-					},
-				);
-			},
-		);
-	});
 	describe('#validateLifetime', () => {
 		Given(
 			'a string lifetime of "1234567890" hours',
@@ -305,15 +269,19 @@ describe('utils helpers', () => {
 		});
 	});
 	describe('#deAlias', () => {
-		Given('a type "address" with alias "account"', given.aTypeWithAlias, () => {
-			When(
-				'deAlias is called on the type',
-				when.deAliasIsCalledOnTheType,
-				() => {
-					Then('it should return the alias', then.itShouldReturnTheAlias);
-				},
-			);
-		});
+		Given(
+			'a type "addresses" with alias "accounts"',
+			given.aTypeWithAlias,
+			() => {
+				When(
+					'deAlias is called on the type',
+					when.deAliasIsCalledOnTheType,
+					() => {
+						Then('it should return the alias', then.itShouldReturnTheAlias);
+					},
+				);
+			},
+		);
 		Given('a type "block" with no alias', given.aTypeWithNoAlias, () => {
 			When(
 				'deAlias is called on the type',
@@ -322,32 +290,6 @@ describe('utils helpers', () => {
 					Then('it should return the type', then.itShouldReturnTheType);
 				},
 			);
-		});
-	});
-	describe('#processQueryResult', () => {
-		Given('a type "block"', given.aType, () => {
-			Given(
-				'a result with error "The block could not be found."',
-				given.aResultWithError,
-				() => {
-					When(
-						'processQueryResult is called with the type then the result',
-						when.processQueryResultIsCalledWithTheTypeThenTheResult,
-						() => {
-							Then('it should return the result', then.itShouldReturnTheResult);
-						},
-					);
-				},
-			);
-			Given('a result with a block', given.aResultWithABlock, () => {
-				When(
-					'processQueryResult is called with the type then the result',
-					when.processQueryResultIsCalledWithTheTypeThenTheResult,
-					() => {
-						Then('it should return the block', then.itShouldReturnTheBlock);
-					},
-				);
-			});
 		});
 	});
 	describe('#prepareOptions', () => {

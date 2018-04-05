@@ -18,7 +18,6 @@ import fs from 'fs';
 import readline from 'readline';
 import lockfile from 'lockfile';
 import lisk from 'lisk-js';
-import liskAPIInstance from '../../src/utils/api';
 import cryptography from '../../src/utils/cryptography';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
@@ -26,8 +25,10 @@ import * as input from '../../src/utils/input';
 import * as inputUtils from '../../src/utils/input/utils';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import * as print from '../../src/utils/print';
-import queryInstance from '../../src/utils/query';
 import transactions from '../../src/utils/transactions';
+// Use require for stubbing
+const getAPIClient = require('../../src/utils/api');
+const query = require('../../src/utils/query');
 
 const NON_INTERACTIVE_MODE = 'NON_INTERACTIVE_MODE';
 const EXEC_FILE_CHILD = 'EXEC_FILE_CHILD';
@@ -79,27 +80,35 @@ const setUpReadlineStubs = () => {
 };
 
 function setUpLiskJSAPIStubs() {
-	const sendRequestDefaultResult = { success: true };
+	const queryDefaultResult = { success: true };
 	const broadcastTransactionResponse = {
 		message: 'Transaction accepted by the node for processing',
 	};
 	const broadcastSignaturesResponse = {
 		message: 'Signature is accepted by the node for processing',
 	};
-	this.test.ctx.sendRequestResult = sendRequestDefaultResult;
+	this.test.ctx.queryResult = queryDefaultResult;
 	this.test.ctx.broadcastTransactionResponse = broadcastTransactionResponse;
 	this.test.ctx.broadcastSignaturesResponse = broadcastSignaturesResponse;
-
-	sandbox
-		.stub(liskAPIInstance, 'sendRequest')
-		.resolves(sendRequestDefaultResult);
-	sandbox.stub(liskAPIInstance, 'setTestnet');
-	sandbox
-		.stub(liskAPIInstance, 'broadcastTransaction')
-		.returns(broadcastTransactionResponse);
-	sandbox
-		.stub(liskAPIInstance, 'broadcastSignatures')
-		.returns(broadcastSignaturesResponse);
+	sandbox.stub(getAPIClient, 'default').returns({
+		delegates: {
+			get: sandbox.stub().resolves(queryDefaultResult),
+		},
+		blocks: {
+			get: sandbox.stub().resolves(queryDefaultResult),
+		},
+		accounts: {
+			get: sandbox.stub().resolves(queryDefaultResult),
+		},
+		transactions: {
+			get: sandbox.stub().resolves(queryDefaultResult),
+			broadcast: sandbox.stub().resolves(broadcastTransactionResponse),
+		},
+		signatures: {
+			get: sandbox.stub().resolves(queryDefaultResult),
+			broadcast: sandbox.stub().resolves(broadcastSignaturesResponse),
+		},
+	});
 }
 
 const setUpLiskJSCryptoStubs = () => {
@@ -112,7 +121,7 @@ const setUpLiskJSCryptoStubs = () => {
 		'getAddressFromPublicKey',
 		'signMessageWithPassphrase',
 		'verifyMessageWithPublicKey',
-	].forEach(methodName => sandbox.stub(lisk.crypto, methodName));
+	].forEach(methodName => sandbox.stub(lisk.cryptography, methodName));
 };
 
 const setUpCryptoStubs = () => {
@@ -142,10 +151,7 @@ const setUpMnemonicStubs = () => {
 };
 
 const setUpQueryStubs = () => {
-	sandbox.stub(queryInstance, 'getAccount');
-	sandbox.stub(queryInstance, 'getBlock');
-	sandbox.stub(queryInstance, 'getDelegate');
-	sandbox.stub(queryInstance, 'getTransaction');
+	sandbox.stub(query, 'default');
 };
 
 const setUpTransactionsStubs = () => {
