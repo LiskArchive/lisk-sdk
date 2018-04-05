@@ -152,6 +152,10 @@ describe('blocks/chain', () => {
 			update: sinonSandbox.stub(),
 		};
 
+		const modulesTransportStub = {
+			broadcastHeaders: sinonSandbox.stub(),
+		};
+
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			apply: sinonSandbox.stub(),
@@ -168,6 +172,7 @@ describe('blocks/chain', () => {
 			rounds: modulesRoundsStub,
 			transactions: modulesTransactionsStub,
 			system: modulesSystemStub,
+			transport: modulesTransportStub,
 		};
 
 		process.exit = sinonSandbox.stub().returns(0);
@@ -1512,6 +1517,8 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
+			modules.system.update.callsArgWith(0, null, true);
+			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -1542,6 +1549,7 @@ describe('blocks/chain', () => {
 
 		describe('when lastBlock.height != 1', () => {
 			beforeEach(() => {
+				modules.blocks.lastBlock.set.returns(blockWithTransactions);
 				return modules.blocks.lastBlock.get.returns(blockWithTransactions);
 			});
 
@@ -1579,12 +1587,6 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions fails', () => {
 					beforeEach(() => {
-						modules.system.update.callsArgWith(
-							0,
-							null,
-							true
-						);
-
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							'receiveTransactions-ERR',
@@ -1603,6 +1605,8 @@ describe('blocks/chain', () => {
 								'receiveTransactions-ERR'
 							);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
 					});
@@ -1610,11 +1614,6 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions succeeds', () => {
 					beforeEach(() => {
-						modules.system.update.callsArgWith(
-							0,
-							null,
-							true
-						);
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							null,
@@ -1627,6 +1626,8 @@ describe('blocks/chain', () => {
 							expect(err).to.be.null;
 							expect(newLastBlock).to.deep.equal(blockWithTransactions);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
 					});
@@ -1708,6 +1709,7 @@ describe('blocks/chain', () => {
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 			expect(modules.rounds).to.equal(modulesStub.rounds);
 			expect(modules.system).to.equal(modulesStub.system);
+			expect(modules.transport).to.equal(modulesStub.transport);
 			return expect(modules.transactions).to.equal(modulesStub.transactions);
 		});
 

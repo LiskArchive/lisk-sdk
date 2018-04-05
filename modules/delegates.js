@@ -801,9 +801,7 @@ Delegates.prototype.getForgers = function(query, cb) {
 				.then(rows => {
 					rows.forEach(forger => {
 						forger.nextSlot =
-							activeDelegates.indexOf(forger.publicKey) + currentSlot + 1;
-
-						return forger;
+							forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
 					});
 					rows = _.sortBy(rows, 'nextSlot');
 					return setImmediate(cb, null, rows);
