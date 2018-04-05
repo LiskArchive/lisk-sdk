@@ -807,19 +807,19 @@ __private.isMultisignatureTransaction = function(transaction, cb) {
 						waterCb
 					);
 				} else {
-					return setImmediate(waterCb);
+					return setImmediate(waterCb, null, null);
 				}
 			},
 			function checkMulti(sender, waterCb) {
 				const isMultisignature =
-					transaction.senderPublicKey &&
+					sender &&
 					Array.isArray(sender.multisignatures) &&
 					sender.multisignatures.length;
 
-				return setImmediate(waterCb, isMultisignature);
+				return setImmediate(waterCb, null, isMultisignature);
 			},
 		],
-		isMultisignature => setImmediate(cb, isMultisignature)
+		(err, isMultisignature) => setImmediate(cb, isMultisignature)
 	);
 };
 
