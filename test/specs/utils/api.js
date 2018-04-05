@@ -22,33 +22,44 @@ describe('API util', () => {
 		'a config with "liskJS.testnet" set to true',
 		given.aConfigWithLiskJSTestnetSetTo,
 		() => {
-			When('a API Client instance is created', when.aLiskAPIInstanceIsCreated, () => {
-				Then(
-					'the lisk instance should be a lisk-js API instance',
-					then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
-				);
-				Then(
-					'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
-					then.theLiskAPIInstanceShouldHaveNethashEqualTo,
-				);
-			});
+			When(
+				'a API Client instance is created',
+				when.aLiskAPIInstanceIsCreated,
+				() => {
+					Then(
+						'the lisk instance should be a lisk-js API instance',
+						then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
+						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
+					);
+				},
+			);
 		},
 	);
 	Given(
 		'a config with "liskJS.testnet" set to false',
 		given.aConfigWithLiskJSTestnetSetTo,
 		() => {
-			When('a API Client instance is created', when.aLiskAPIInstanceIsCreated, () => {
-				Then(
-					'the lisk instance should be a lisk-js API instance',
-					then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
-				);
-				Then(
-					'the lisk instance should have nethash equal to "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"',
-					then.theLiskAPIInstanceShouldHaveNethashEqualTo,
-				);
-			});
-			When('a API Client instance is created with an input of "notboolean"', when.aLiskAPIInstanceIsCreatedWithAnInputOf, () => {
+			When(
+				'a API Client instance is created',
+				when.aLiskAPIInstanceIsCreated,
+				() => {
+					Then(
+						'the lisk instance should be a lisk-js API instance',
+						then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"',
+						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
+					);
+				},
+			);
+			When(
+				'a API Client instance is created with an input of "notboolean"',
+				when.aLiskAPIInstanceIsCreatedWithAnInputOf,
+				() => {
 					Then(
 						'the lisk instance should be a lisk-js API instance',
 						then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
@@ -61,7 +72,10 @@ describe('API util', () => {
 			);
 		},
 	);
-		When('a API Client instance is created with an input boolean of "true"', when.aLiskAPIInstanceIsCreatedWithAnInputBooleanOf, () => {
+	When(
+		'a API Client instance is created with an input boolean of "true"',
+		when.aLiskAPIInstanceIsCreatedWithAnInputBooleanOf,
+		() => {
 			Then(
 				'the lisk instance should be a lisk-js API instance',
 				then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
@@ -72,7 +86,10 @@ describe('API util', () => {
 			);
 		},
 	);
-		When('a API Client instance is created with an input boolean of "false"', when.aLiskAPIInstanceIsCreatedWithAnInputBooleanOf, () => {
+	When(
+		'a API Client instance is created with an input boolean of "false"',
+		when.aLiskAPIInstanceIsCreatedWithAnInputBooleanOf,
+		() => {
 			Then(
 				'the lisk instance should be a lisk-js API instance',
 				then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
