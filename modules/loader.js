@@ -714,7 +714,9 @@ __private.loadBlocksFromNetwork = function(cb) {
  * Performs sync operation:
  * - Undoes unconfirmed transactions.
  * - Establishes broadhash consensus before sync.
- * - Performs sync operation: loads blocks from network, updates system.
+ * - Performs sync operation: loads blocks from network.
+ * - Update headers: broadhash and height
+ * - Notify remote peers about our new headers
  * - Establishes broadhash consensus after sync.
  * - Applies unconfirmed transactions.
  *
