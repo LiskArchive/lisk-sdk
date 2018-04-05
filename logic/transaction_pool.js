@@ -297,22 +297,24 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
  *
  * @param {Object} transaction - Transaction object
  */
-TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
-	// FIXME: This check should be changed like in queueTransaction()
-	if (
-		transaction.type === transactionTypes.MULTI ||
-		Array.isArray(transaction.signatures)
-	) {
-		self.removeMultisignatureTransaction(transaction.id);
-	} else {
-		self.removeQueuedTransaction(transaction.id);
-	}
+TransactionPool.prototype.addUnconfirmedTransaction = function(
+	transaction,
+	cb
+) {
+	__private.isMultisignatureTransaction(transaction, isMulti => {
+		if (transaction.type === transactionTypes.MULTI || isMulti) {
+			self.removeMultisignatureTransaction(transaction.id);
+		} else {
+			self.removeQueuedTransaction(transaction.id);
+		}
 
-	if (self.unconfirmed.index[transaction.id] === undefined) {
-		self.unconfirmed.transactions.push(transaction);
-		const index = self.unconfirmed.transactions.indexOf(transaction);
-		self.unconfirmed.index[transaction.id] = index;
-	}
+		if (self.unconfirmed.index[transaction.id] === undefined) {
+			self.unconfirmed.transactions.push(transaction);
+			const index = self.unconfirmed.transactions.indexOf(transaction);
+			self.unconfirmed.index[transaction.id] = index;
+		}
+		setImmediate(cb);
+	});
 };
 
 /**
@@ -805,7 +807,7 @@ __private.isMultisignatureTransaction = function(transaction, cb) {
 						waterCb
 					);
 				} else {
-					setImmediate(waterCb);
+					return setImmediate(waterCb);
 				}
 			},
 			function checkMulti(sender, waterCb) {
@@ -814,7 +816,7 @@ __private.isMultisignatureTransaction = function(transaction, cb) {
 					Array.isArray(sender.multisignatures) &&
 					sender.multisignatures.length;
 
-				setImmediate(waterCb, isMultisignature);
+				return setImmediate(waterCb, isMultisignature);
 			},
 		],
 		isMultisignature => setImmediate(cb, isMultisignature)
@@ -965,11 +967,10 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 											applyUnconfirmErr
 										);
 										self.removeQueuedTransaction(transaction.id);
-									} else {
-										// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
-										self.addUnconfirmedTransaction(transaction);
+										return setImmediate(eachSeriesCb);
 									}
-									return setImmediate(eachSeriesCb);
+									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
+									self.addUnconfirmedTransaction(transaction, eachSeriesCb);
 								},
 								tx
 							);
