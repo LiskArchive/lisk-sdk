@@ -814,15 +814,10 @@ __private.isMultisignatureTransaction = function(transaction, cb) {
 					Array.isArray(sender.multisignatures) &&
 					sender.multisignatures.length;
 
-				setImmediate(waterCb, null, isMultisignature);
+				setImmediate(waterCb, isMultisignature);
 			},
 		],
-		(err, isMultisignature) => {
-			if (err) {
-				library.logger.info('Error on multisignature check', transaction);
-			}
-			return setImmediate(cb, isMultisignature);
-		}
+		isMultisignature => setImmediate(cb, isMultisignature)
 	);
 };
 
