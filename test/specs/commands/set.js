@@ -26,11 +26,11 @@ describe('set command', () => {
 		given.aDirectoryPath,
 		() => {
 			Given('a config file name "config.json"', given.aConfigFileName, () => {
-				Given(
-					'a config with unknown properties',
-					given.aConfigWithUnknownProperties,
-					() => {
-						Given('an action "set"', given.anAction, () => {
+				Given('an action "set"', given.anAction, () => {
+					Given(
+						'a config with unknown properties',
+						given.aConfigWithUnknownProperties,
+						() => {
 							Given('a variable "api.node"', given.aVariable, () => {
 								Given('a value "true"', given.aValue, () => {
 									When(
@@ -45,19 +45,9 @@ describe('set command', () => {
 									);
 								});
 							});
-						});
-					},
-				);
-			});
-		},
-	);
-	Given('a config', given.aConfig, () => {
-		Given(
-			`a directory path "${process.env.LISKY_CONFIG_DIR}"`,
-			given.aDirectoryPath,
-			() => {
-				Given('a config file name "config.json"', given.aConfigFileName, () => {
-					Given('an action "set"', given.anAction, () => {
+						},
+					);
+					Given('a config', given.aConfig, () => {
 						Given('an unknown variable "xxx"', given.anUnknownVariable, () => {
 							Given('a value "true"', given.aValue, () => {
 								When(
@@ -832,7 +822,7 @@ describe('set command', () => {
 						});
 					});
 				});
-			},
-		);
-	});
+			});
+		},
+	);
 });
