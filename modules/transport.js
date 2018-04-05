@@ -366,60 +366,81 @@ Transport.prototype.onUnconfirmedTransaction = function(
 };
 
 /**
- * Calls broadcast blocks and emits a 'blocks/change' socket message.
+ * Update all remote peers with our headers
  *
- * @param {block} block
- * @param {Object} broadcast
- * @emits blocks/change
- * @todo Add description for the params
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb
  */
-Transport.prototype.onBroadcastBlock = function(block, broadcast) {
-	if (broadcast) {
-		modules.system.update(() => {
-			if (__private.broadcaster.maxRelays(block)) {
-				return library.logger.debug(
-					'Broadcasting block aborted - max block relays exceeded'
-				);
-			} else if (modules.loader.syncing()) {
-				return library.logger.debug(
-					'Broadcasting block aborted - blockchain synchronization in progress'
-				);
-			}
-			modules.peers.list({ normalized: false }, (err, peers) => {
-				if (!peers || peers.length === 0) {
-					return library.logger.debug(
-						'Broadcasting block aborted - active peer list empty'
-					);
-				}
-				async.each(
-					peers,
-					(peer, cb) => {
-						peer.rpc.updateMyself(library.logic.peers.me(), err => {
-							if (err) {
-								library.logger.debug('Failed to notify peer about self', err);
-							} else {
-								library.logger.debug(
-									'Successfully notified peer about self',
-									peer.string
-								);
-							}
-							return cb();
-						});
-					},
-					() => {
-						__private.broadcaster.broadcast(
-							{
-								limit: constants.maxPeers,
-								broadhash: modules.system.getBroadhash(),
-							},
-							{ api: 'postBlock', data: { block }, immediate: true }
+Transport.prototype.broadcastHeaders = cb => {
+	// Grab list of all connected peers
+	modules.peers.list({ normalized: false }, (err, peers) => {
+		if (!peers || peers.length === 0) {
+			library.logger.debug('Transport->broadcastHeaders: No peers found');
+			return setImmediate(cb);
+		}
+
+		library.logger.debug(
+			'Transport->broadcastHeaders: Broadcasting headers to remote peers',
+			{ count: peers.length }
+		);
+
+		// Execute remote procedure updateMyself for every peer
+		async.each(
+			peers,
+			(peer, eachCb) => {
+				peer.rpc.updateMyself(library.logic.peers.me(), err => {
+					if (err) {
+						library.logger.debug(
+							'Transport->broadcastHeaders: Failed to notify peer about self',
+							{ peer: peer.string, err }
+						);
+					} else {
+						library.logger.debug(
+							'Transport->broadcastHeaders: Successfully notified peer about self',
+							{ peer: peer.string }
 						);
 					}
-				);
-			});
-		});
-		library.network.io.sockets.emit('blocks/change', block);
+					return eachCb();
+				});
+			},
+			() => setImmediate(cb)
+		);
+	});
+};
+
+/**
+ * Calls broadcast blocks and emits a 'blocks/change' socket message.
+ *
+ * @param {Object} block - Reduced block object
+ * @param {boolean} broadcast - Signal flag for broadcast
+ * @emits blocks/change
+ */
+Transport.prototype.onBroadcastBlock = function(block, broadcast) {
+	// Exit immediately when 'broadcast' flag is not set
+	if (!broadcast) return;
+
+	// Check if we are free to broadcast
+	if (__private.broadcaster.maxRelays(block)) {
+		return library.logger.debug(
+			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
+		);
+	} else if (modules.loader.syncing()) {
+		return library.logger.debug(
+			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
+		);
 	}
+
+	// Perform actual broadcast operation
+	__private.broadcaster.broadcast(
+		{
+			limit: constants.maxPeers,
+			broadhash: modules.system.getBroadhash(),
+		},
+		{ api: 'postBlock', data: { block }, immediate: true }
+	);
+
+	// Emit notification
+	library.network.io.sockets.emit('blocks/change', block);
 };
 
 /**
