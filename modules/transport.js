@@ -403,7 +403,7 @@ Transport.prototype.broadcastHeaders = cb => {
 					return eachCb();
 				});
 			},
-			setImmediate(cb)
+			() => setImmediate(cb)
 		);
 	});
 };
