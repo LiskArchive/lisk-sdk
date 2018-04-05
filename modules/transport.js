@@ -374,52 +374,31 @@ Transport.prototype.onUnconfirmedTransaction = function(
  * @todo Add description for the params
  */
 Transport.prototype.onBroadcastBlock = function(block, broadcast) {
-	if (broadcast) {
-		modules.system.update(() => {
-			if (__private.broadcaster.maxRelays(block)) {
-				return library.logger.debug(
-					'Broadcasting block aborted - max block relays exceeded'
-				);
-			} else if (modules.loader.syncing()) {
-				return library.logger.debug(
-					'Broadcasting block aborted - blockchain synchronization in progress'
-				);
-			}
-			modules.peers.list({ normalized: false }, (err, peers) => {
-				if (!peers || peers.length === 0) {
-					return library.logger.debug(
-						'Broadcasting block aborted - active peer list empty'
-					);
-				}
-				async.each(
-					peers,
-					(peer, cb) => {
-						peer.rpc.updateMyself(library.logic.peers.me(), err => {
-							if (err) {
-								library.logger.debug('Failed to notify peer about self', err);
-							} else {
-								library.logger.debug(
-									'Successfully notified peer about self',
-									peer.string
-								);
-							}
-							return cb();
-						});
-					},
-					() => {
-						__private.broadcaster.broadcast(
-							{
-								limit: constants.maxPeers,
-								broadhash: modules.system.getBroadhash(),
-							},
-							{ api: 'postBlock', data: { block }, immediate: true }
-						);
-					}
-				);
-			});
-		});
-		library.network.io.sockets.emit('blocks/change', block);
+	// Exit immediately when 'broadcast' flag is not set
+	if (!broadcast) return;
+
+	// Check if we are free to broadcast
+	if (__private.broadcaster.maxRelays(block)) {
+		return library.logger.debug(
+			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
+		);
+	} else if (modules.loader.syncing()) {
+		return library.logger.debug(
+			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
+		);
 	}
+
+	// Perform actual broadcast operation
+	__private.broadcaster.broadcast(
+		{
+			limit: constants.maxPeers,
+			broadhash: modules.system.getBroadhash(),
+		},
+		{ api: 'postBlock', data: { block }, immediate: true }
+	);
+
+	// Emit notification
+	library.network.io.sockets.emit('blocks/change', block);
 };
 
 /**
