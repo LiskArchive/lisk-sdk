@@ -526,19 +526,9 @@ class Transaction {
 			}
 		}
 
-		// Check requester public key
+		// Reject if transaction has requester public key
 		if (transaction.requesterPublicKey) {
-			multisignatures.push(transaction.senderPublicKey);
-
-			if (
-				!Array.isArray(sender.multisignatures) ||
-				sender.multisignatures.indexOf(transaction.requesterPublicKey) < 0
-			) {
-				return setImmediate(
-					cb,
-					'Account does not belong to multisignature group'
-				);
-			}
+			return setImmediate(cb, 'Multisig request is not allowed');
 		}
 
 		// Verify signature
