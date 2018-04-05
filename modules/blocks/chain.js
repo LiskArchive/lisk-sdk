@@ -775,12 +775,12 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						if (err) {
 							library.logger.error('Error adding transactions', err);
 						}
-						return setImmediate(seriesCb, null, lastBlock);
+						return setImmediate(seriesCb);
 					}
 				);
 			},
 		},
-		cb
+		err => setImmediate(cb, err, lastBlock)
 	);
 };
 
