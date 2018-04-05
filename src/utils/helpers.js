@@ -86,10 +86,7 @@ export const validateAmount = amount => {
 	return true;
 };
 
-export const deAlias = type => (type === 'address' ? 'account' : type);
-
-export const processQueryResult = type => result =>
-	result.error ? result : result[deAlias(type)];
+export const deAlias = type => (type === 'addresses' ? 'accounts' : type);
 
 export const shouldUseJSONOutput = (config = {}, options = {}) => {
 	if (!!options.json === options.json) return options.json;

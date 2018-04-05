@@ -13,9 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { COMMAND_TYPES } from '../utils/constants';
+import { COMMAND_TYPES, PLURALS, QUERY_INPUT_MAP } from '../utils/constants';
 import { ValidationError } from '../utils/error';
-import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
+import { createCommand, deAlias } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import query from '../utils/query';
 
@@ -31,13 +31,21 @@ export const actionCreator = () => async ({
 	input,
 	options: { testnet },
 }) => {
-	if (!COMMAND_TYPES.includes(type)) {
+	const pluralType = Object.keys(PLURALS).includes(type) ? PLURALS[type] : type;
+
+	if (!COMMAND_TYPES.includes(pluralType)) {
 		throw new ValidationError('Unsupported type.');
 	}
 
-	return query.handlers[deAlias(type)](input, { testnet }).then(
-		processQueryResult(type),
-	);
+	const endpoint = deAlias(pluralType);
+	const req = {
+		limit: 1,
+		[QUERY_INPUT_MAP[endpoint]]: input,
+	};
+
+	return query(endpoint, req, {
+		testnet,
+	});
 };
 
 const get = createCommand({

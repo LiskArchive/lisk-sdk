@@ -66,6 +66,16 @@ export function itShouldExitWithCode() {
 	return expect(exit).to.be.calledWithExactly(code);
 }
 
+export function itShouldResolveToAnObject() {
+	const { returnValue } = this.test.ctx;
+	return expect(returnValue).to.eventually.be.an('object');
+}
+
+export function itShouldResolveToAnEmptyObject() {
+	const { returnValue } = this.test.ctx;
+	return expect(returnValue).to.eventually.be.eql({});
+}
+
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
 	return expect(returnValue).to.eventually.eql(errorObject);
@@ -97,6 +107,12 @@ export function theProcessShouldExitWithErrorCode() {
 export function itShouldRejectWithTheErrorMessage() {
 	const { returnValue, errorMessage } = this.test.ctx;
 	return expect(returnValue).to.be.rejectedWith(errorMessage);
+}
+
+export function itShouldRejectWithErrorAndMessage() {
+	const { returnValue } = this.test.ctx;
+	const message = getFirstQuotedString(this.test.title);
+	return expect(returnValue).to.be.rejectedWith(message);
 }
 
 export function itShouldRejectWithFileSystemErrorAndMessage() {

@@ -102,14 +102,17 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 		publicKey,
 	};
 
-	if (typeof lisk.crypto.getKeys.returns === 'function') {
-		lisk.crypto.getKeys.returns(keys);
+	if (typeof lisk.cryptography.getKeys.returns === 'function') {
+		lisk.cryptography.getKeys.returns(keys);
 	}
-	if (typeof lisk.crypto.decryptPassphraseWithPassword.returns === 'function') {
-		lisk.crypto.decryptPassphraseWithPassword.returns(passphrase);
+	if (
+		typeof lisk.cryptography.decryptPassphraseWithPassword.returns ===
+		'function'
+	) {
+		lisk.cryptography.decryptPassphraseWithPassword.returns(passphrase);
 	}
-	if (typeof lisk.crypto.getAddressFromPublicKey.returns === 'function') {
-		lisk.crypto.getAddressFromPublicKey.returns(address);
+	if (typeof lisk.cryptography.getAddressFromPublicKey.returns === 'function') {
+		lisk.cryptography.getAddressFromPublicKey.returns(address);
 	}
 
 	if (typeof cryptography.getKeys.returns === 'function') {
@@ -138,8 +141,11 @@ export function anEncryptedPassphraseWithAnIV() {
 		cipher: encryptedPassphrase,
 		iv,
 	};
-	if (typeof lisk.crypto.encryptPassphraseWithPassword.returns === 'function') {
-		lisk.crypto.encryptPassphraseWithPassword.returns(cipherAndIv);
+	if (
+		typeof lisk.cryptography.encryptPassphraseWithPassword.returns ===
+		'function'
+	) {
+		lisk.cryptography.encryptPassphraseWithPassword.returns(cipherAndIv);
 	}
 
 	this.test.ctx.cipherAndIv = cipherAndIv;
@@ -148,8 +154,10 @@ export function anEncryptedPassphraseWithAnIV() {
 export function aMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
 
-	if (typeof lisk.crypto.decryptMessageWithPassphrase.returns === 'function') {
-		lisk.crypto.decryptMessageWithPassphrase.returns(message);
+	if (
+		typeof lisk.cryptography.decryptMessageWithPassphrase.returns === 'function'
+	) {
+		lisk.cryptography.decryptMessageWithPassphrase.returns(message);
 	}
 
 	this.test.ctx.message = message;
@@ -178,7 +186,7 @@ export function anEncryptedMessageWithANonce() {
 		nonce,
 	};
 
-	lisk.crypto.encryptMessageWithPassphrase.returns(cipherAndNonce);
+	lisk.cryptography.encryptMessageWithPassphrase.returns(cipherAndNonce);
 
 	this.test.ctx.cipherAndNonce = cipherAndNonce;
 }

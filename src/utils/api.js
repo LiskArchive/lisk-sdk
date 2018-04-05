@@ -13,9 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskJS from 'lisk-js';
+import lisk from 'lisk-js';
 import config from './config';
 
-const { api: LiskAPI } = liskJS;
+const { APIClient } = lisk;
 
-export default new LiskAPI(config.liskJS);
+const getAPIClient = testnet => {
+	const testnetOverrideValue =
+		typeof testnet === 'boolean' ? testnet : config.liskJS.testnet;
+	return testnetOverrideValue === true
+		? APIClient.createTestnetAPIClient(config.liskJS)
+		: APIClient.createMainnetAPIClient(config.liskJS);
+};
+
+export default getAPIClient;

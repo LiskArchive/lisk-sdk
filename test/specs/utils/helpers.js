@@ -305,15 +305,19 @@ describe('utils helpers', () => {
 		});
 	});
 	describe('#deAlias', () => {
-		Given('a type "address" with alias "account"', given.aTypeWithAlias, () => {
-			When(
-				'deAlias is called on the type',
-				when.deAliasIsCalledOnTheType,
-				() => {
-					Then('it should return the alias', then.itShouldReturnTheAlias);
-				},
-			);
-		});
+		Given(
+			'a type "addresses" with alias "accounts"',
+			given.aTypeWithAlias,
+			() => {
+				When(
+					'deAlias is called on the type',
+					when.deAliasIsCalledOnTheType,
+					() => {
+						Then('it should return the alias', then.itShouldReturnTheAlias);
+					},
+				);
+			},
+		);
 		Given('a type "block" with no alias', given.aTypeWithNoAlias, () => {
 			When(
 				'deAlias is called on the type',
@@ -322,32 +326,6 @@ describe('utils helpers', () => {
 					Then('it should return the type', then.itShouldReturnTheType);
 				},
 			);
-		});
-	});
-	describe('#processQueryResult', () => {
-		Given('a type "block"', given.aType, () => {
-			Given(
-				'a result with error "The block could not be found."',
-				given.aResultWithError,
-				() => {
-					When(
-						'processQueryResult is called with the type then the result',
-						when.processQueryResultIsCalledWithTheTypeThenTheResult,
-						() => {
-							Then('it should return the result', then.itShouldReturnTheResult);
-						},
-					);
-				},
-			);
-			Given('a result with a block', given.aResultWithABlock, () => {
-				When(
-					'processQueryResult is called with the type then the result',
-					when.processQueryResultIsCalledWithTheTypeThenTheResult,
-					() => {
-						Then('it should return the block', then.itShouldReturnTheBlock);
-					},
-				);
-			});
 		});
 	});
 	describe('#prepareOptions', () => {

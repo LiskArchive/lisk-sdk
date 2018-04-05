@@ -14,19 +14,26 @@
  *
  */
 export const COMMAND_TYPES = [
-	'account',
-	'address',
-	'block',
-	'delegate',
-	'transaction',
+	'accounts',
+	'addresses',
+	'blocks',
+	'delegates',
+	'transactions',
 ];
 
-export const SINGULARS = {
-	accounts: 'account',
-	addresses: 'address',
-	blocks: 'block',
-	delegates: 'delegate',
-	transactions: 'transaction',
+export const PLURALS = {
+	account: 'accounts',
+	address: 'addresses',
+	block: 'blocks',
+	delegate: 'delegates',
+	transaction: 'transactions',
+};
+
+export const QUERY_INPUT_MAP = {
+	accounts: 'address',
+	blocks: 'id',
+	delegates: 'username',
+	transactions: 'id',
 };
 
 export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];
