@@ -22,11 +22,11 @@ export default (endpoint, parameters, { testnet } = {}) =>
 			if (res.data) {
 				if (Array.isArray(res.data)) {
 					if (res.data.length === 0) {
-						throw new Error('Data was not found with specified parameters.');
+						throw new Error(`No ${endpoint} found using specified parameters.`);
 					}
 					return res.data[0];
 				}
 				return res.data;
 			}
-			throw new Error('Data was not found with specified parameters.');
+			throw new Error(`No ${endpoint} found using specified parameters.`);
 		});

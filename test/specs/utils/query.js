@@ -102,7 +102,7 @@ describe('Query function', () => {
 											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
 										);
 										Then(
-											'it should reject with the error and message "Data was not found with specified parameters."',
+											'it should reject with the error and message "No accounts found using specified parameters."',
 											then.itShouldRejectWithErrorAndMessage,
 										);
 									},
@@ -116,7 +116,7 @@ describe('Query function', () => {
 											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
 										);
 										Then(
-											'it should reject with the error and message "Data was not found with specified parameters."',
+											'it should reject with the error and message "No accounts found using specified parameters."',
 											then.itShouldRejectWithErrorAndMessage,
 										);
 									},
