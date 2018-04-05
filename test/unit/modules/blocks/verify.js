@@ -2010,7 +2010,7 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.system.update.calledOnce).to.be.false;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							done();
 						}
@@ -2028,7 +2028,7 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.system.update.calledOnce).to.be.false;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							done();
 						}
