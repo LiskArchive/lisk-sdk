@@ -19,11 +19,6 @@ export function itShouldReturnThePublicKeys() {
 	return expect(returnValue).to.eql(publicKeys);
 }
 
-export function itShouldReturnTheBlock() {
-	const { returnValue, block } = this.test.ctx;
-	return expect(returnValue).to.equal(block);
-}
-
 export function itShouldReturnAnObjectWithTheAddress() {
 	const { returnValue, address } = this.test.ctx;
 	return expect(returnValue).to.eql({ address });

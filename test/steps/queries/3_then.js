@@ -14,19 +14,14 @@
  *
  */
 
-export function itShouldResolveToTheResultOfSendingTheRequest() {
-	const { returnValue, sendRequestResult } = this.test.ctx;
-	return expect(returnValue).to.eventually.equal(sendRequestResult);
-}
-
 export function itShouldResolveToTheDataOfTheResponse() {
-	const { returnValue, sendRequestResult } = this.test.ctx;
-	return expect(returnValue).to.eventually.equal(sendRequestResult.data);
+	const { returnValue, queryResult } = this.test.ctx;
+	return expect(returnValue).to.eventually.equal(queryResult.data);
 }
 
 export function itShouldResolveToTheFirstElementOfDataOfTheResponse() {
-	const { returnValue, sendRequestResult } = this.test.ctx;
-	return expect(returnValue).to.eventually.equal(sendRequestResult.data[0]);
+	const { returnValue, queryResult } = this.test.ctx;
+	return expect(returnValue).to.eventually.equal(queryResult.data[0]);
 }
 
 export function itShouldResolveToTheResultOfTheQuery() {

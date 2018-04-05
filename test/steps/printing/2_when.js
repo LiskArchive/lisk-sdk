@@ -68,15 +68,9 @@ export function theObjectIsTablified() {
 
 export function theArrayIsTablified() {
 	const { testArray } = this.test.ctx;
-	try {
-		const returnValue = tablify(testArray);
-		this.test.ctx.returnValue = returnValue;
-		return returnValue;
-	} catch (error) {
-		const testFunction = tablify.bind(null, testArray);
-		this.test.ctx.testFunction = testFunction;
-		return testFunction;
-	}
+	const returnValue = tablify(testArray);
+	this.test.ctx.returnValue = returnValue;
+	return returnValue;
 }
 
 export function shouldUseJSONOutputIsCalledWithTheConfigAndOptions() {

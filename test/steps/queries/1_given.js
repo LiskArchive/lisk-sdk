@@ -28,17 +28,3 @@ export function anEndpoint() {
 	const endpoint = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.endpoint = endpoint;
 }
-
-export function aResultWithError() {
-	const error = getFirstQuotedString(this.test.parent.title);
-	const result = { error };
-	this.test.ctx.result = result;
-}
-
-export function aResultWithABlock() {
-	const block = { height: 123 };
-	const result = { block };
-
-	this.test.ctx.block = block;
-	this.test.ctx.result = result;
-}
