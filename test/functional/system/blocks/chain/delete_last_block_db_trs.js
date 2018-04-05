@@ -57,13 +57,11 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 
 	beforeEach('send funds to accounts', done => {
 		blockAccount1 = randomUtil.account();
-		fundTrsForAccount1 = lisk.transaction.transfer(
-			{
-				amount: transferAmount,
-				passphrase: accountFixtures.genesis.password,
-				recipientId: blockAccount1.address,
-			}
-		);
+		fundTrsForAccount1 = lisk.transaction.transfer({
+			amount: transferAmount,
+			passphrase: accountFixtures.genesis.password,
+			recipientId: blockAccount1.address,
+		});
 		fundTrsForAccount1.amount = parseInt(fundTrsForAccount1.amount);
 		fundTrsForAccount1.fee = parseInt(fundTrsForAccount1.fee);
 		fundTrsForAccount1.senderId = accountFixtures.genesis.address;

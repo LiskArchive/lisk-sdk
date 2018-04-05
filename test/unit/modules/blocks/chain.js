@@ -1579,11 +1579,7 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions fails', () => {
 					beforeEach(() => {
-						modules.system.update.callsArgWith(
-							0,
-							null,
-							true
-						);
+						modules.system.update.callsArgWith(0, null, true);
 
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
@@ -1610,11 +1606,7 @@ describe('blocks/chain', () => {
 
 				describe('when modules.transactions.receiveTransactions succeeds', () => {
 					beforeEach(() => {
-						modules.system.update.callsArgWith(
-							0,
-							null,
-							true
-						);
+						modules.system.update.callsArgWith(0, null, true);
 						return modules.transactions.receiveTransactions.callsArgWith(
 							2,
 							null,
