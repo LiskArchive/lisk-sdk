@@ -223,6 +223,162 @@ describe('print utils', () => {
 						},
 					);
 				});
+				Given(
+					'there are results to print',
+					given.thereAreResultsToPrint,
+					() => {
+						Given(
+							'a config with json set to true',
+							given.aConfigWithJsonSetTo,
+							() => {
+								Given(
+									'an options object with json set to false',
+									given.anOptionsObjectWithJsonSetTo,
+									() => {
+										Given(
+											'JSON should be printed',
+											given.jsonShouldBePrinted,
+											() => {
+												Given(
+													'output should not be pretty',
+													given.outputShouldNotBePretty,
+													() => {
+														When(
+															'the results are printed',
+															when.theResultsArePrinted,
+															() => {
+																Then(
+																	'shouldUseJSONOutput should be called with the config and the options',
+																	then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'shouldUsePrettyOutput should be called with the config and the options',
+																	then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'JSON outputs should be logged without ANSI codes',
+																	then.jsonOutputsShouldBeLoggedWithoutANSICodes,
+																);
+															},
+														);
+													},
+												);
+												Given(
+													'the options object has key "pretty" set to boolean true',
+													given.theOptionsObjectHasKeySetToBoolean,
+													() => {
+														Given(
+															'output should be pretty',
+															given.outputShouldBePretty,
+															() => {
+																When(
+																	'the results are printed',
+																	when.theResultsArePrinted,
+																	() => {
+																		Then(
+																			'shouldUseJSONOutput should be called with the config and the options',
+																			then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																		);
+																		Then(
+																			'shouldUsePrettyOutput should be called with the config and the options',
+																			then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																		);
+																		Then(
+																			'pretty JSON outputs should be logged without ANSI codes',
+																			then.prettyJSONOutputsShouldBeLoggedWithoutANSICodes,
+																		);
+																	},
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							},
+						);
+						Given(
+							'a config with json set to true and pretty set to true',
+							given.aConfigWithJsonSetToAndPrettySetTo,
+							() => {
+								Given(
+									'an empty options object',
+									given.anEmptyOptionsObject,
+									() => {
+										Given(
+											'JSON should be printed',
+											given.jsonShouldBePrinted,
+											() => {
+												Given(
+													'output should be pretty',
+													given.outputShouldBePretty,
+													() => {
+														When(
+															'the results are printed',
+															when.theResultsArePrinted,
+															() => {
+																Then(
+																	'shouldUseJSONOutput should be called with the config and the options',
+																	then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'shouldUsePrettyOutput should be called with the config and the options',
+																	then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'pretty JSON outputs should be logged without ANSI codes',
+																	then.prettyJSONOutputsShouldBeLoggedWithoutANSICodes,
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+								Given(
+									'an options object with key "pretty" set to boolean false',
+									given.anOptionsObjectWithKeySetToBoolean,
+									() => {
+										Given(
+											'JSON should be printed',
+											given.jsonShouldBePrinted,
+											() => {
+												Given(
+													'output should not be pretty',
+													given.outputShouldNotBePretty,
+													() => {
+														When(
+															'the results are printed',
+															when.theResultsArePrinted,
+															() => {
+																Then(
+																	'shouldUseJSONOutput should be called with the config and the options',
+																	then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'shouldUsePrettyOutput should be called with the config and the options',
+																	then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'JSON outputs should be logged without ANSI codes',
+																	then.jsonOutputsShouldBeLoggedWithoutANSICodes,
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							},
+						);
+					},
+				);
 			},
 		);
 	});

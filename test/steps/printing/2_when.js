@@ -45,6 +45,11 @@ export function theResultIsPrinted() {
 	this.test.ctx.returnValue = printResult(vorpal, options)(result);
 }
 
+export function theResultsArePrinted() {
+	const { vorpal, results, options } = this.test.ctx;
+	this.test.ctx.returnValue = printResult(vorpal, options)(results);
+}
+
 export function theResultIsPrintedUsingTheActiveCommandContext() {
 	const { vorpal, result, options, activeCommand } = this.test.ctx;
 	this.test.ctx.returnValue = printResult(vorpal, options).call(

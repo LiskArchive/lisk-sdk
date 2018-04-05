@@ -19,12 +19,17 @@ import config from './config';
 import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-const removeANSI = result =>
+const removeANSIFromObject = result =>
 	Object.entries(result).reduce(
 		(strippedResult, [key, value]) =>
 			Object.assign({}, strippedResult, { [key]: stripANSI(value) }),
 		{},
 	);
+
+const removeANSI = result =>
+	Array.isArray(result)
+		? result.map(object => removeANSIFromObject(object))
+		: removeANSIFromObject(result);
 
 export const printResult = (vorpal, options = {}) =>
 	function print(result) {
