@@ -18,7 +18,7 @@ import * as given from '../steps/1_given';
 import * as when from '../steps/2_when';
 import * as then from '../steps/3_then';
 
-const validFileContents = `#!/usr/bin/env lisk-commander
+const validFileContents = `#!/usr/bin/env lisk
 
 # some comment
 get delegate lightcurve
