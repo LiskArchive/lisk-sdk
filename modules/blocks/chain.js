@@ -722,6 +722,9 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 
 /**
  * Deletes last block.
+ * - Apply the block to database if both verifications are ok
+ * - Update headers: broadhash and height
+ * - Put transactions from deleted block back into transaction pool
  *
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
