@@ -810,19 +810,16 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// Also that function set new block as our last block
 				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
 			},
+			// Perform next two steps only when 'broadcast' flag is set, it can be:
+			// 'true' if block comes from generation or receiving process
+			// 'false' if block comes from chain synchronisation process
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				modules.system.update(seriesCb);
+				broadcast ? modules.system.update(seriesCb) : seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
-				// Notify all remote peers about our new headers, we perform that step only when 'broadcast' flag is set, it can be:
-				// 'true' if block comes from generation or receiving process
-				// 'false' if block comes from chain synchronisation process
-				if (broadcast) {
-					modules.transport.broadcastHeaders(seriesCb);
-				} else {
-					seriesCb();
-				}
+				// Notify all remote peers about our new headers
+				broadcast ? modules.transport.broadcastHeaders(seriesCb) : seriesCb();
 			},
 		},
 		err => setImmediate(cb, err)
