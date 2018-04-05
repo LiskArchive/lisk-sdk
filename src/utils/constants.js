@@ -37,11 +37,9 @@ export const QUERY_INPUT_MAP = {
 };
 
 export const CONFIG_VARIABLES = [
+	'api.node',
+	'api.testnet',
 	'json',
 	'name',
 	'pretty',
-	'api.testnet',
-	'api.ssl',
-	'api.node',
-	'api.port',
 ];

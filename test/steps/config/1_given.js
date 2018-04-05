@@ -34,8 +34,6 @@ export function aConfig() {
 		api: {
 			testnet: false,
 			node: 'localhost',
-			port: 7357,
-			ssl: true,
 		},
 		pretty: true,
 	};

@@ -99,13 +99,11 @@ const setString = (dotNotation, value) => {
 };
 
 const handlers = {
+	'api.node': setString,
+	'api.testnet': setBoolean,
 	json: setBoolean,
 	name: setString,
 	pretty: setBoolean,
-	'api.testnet': setBoolean,
-	'api.ssl': setBoolean,
-	'api.node': setString,
-	'api.port': setString,
 };
 
 export const actionCreator = () => async ({ variable, value }) => {

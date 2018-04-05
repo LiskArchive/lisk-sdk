@@ -184,8 +184,6 @@ export function theFileIsValidJSON() {
 		api: {
 			testnet: true,
 			node: 'my-node',
-			port: 7357,
-			ssl: true,
 		},
 	};
 

@@ -3,9 +3,7 @@
 	"json": false,
 	"api": {
 		"testnet": false,
-		"node": "",
-		"port": "",
-		"ssl": true
+		"node": ""
 	},
 	"pretty": false
 }
