@@ -775,6 +775,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 						if (err) {
 							library.logger.error('Error adding transactions', err);
 						}
+						deletedBlockTransactions = null;
 						return setImmediate(seriesCb);
 					}
 				);
