@@ -61,11 +61,10 @@ export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAF
 	return returnValue.catch(e => e);
 }
 
-export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponseOfEmptyArray() {
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulEmptyArrayDataResponse() {
 	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
 
 	const sendRequestResult = {
-		success: true,
 		data: [],
 	};
 	liskAPIInstance[endpoint].get.resolves(sendRequestResult);

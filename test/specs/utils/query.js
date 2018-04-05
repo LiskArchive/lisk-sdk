@@ -24,7 +24,7 @@ describe('Query function', () => {
 		Given('an endpoint "accounts"', given.anEndpoint, () => {
 			Given('a parameters object', given.aParametersObject, () => {
 				Given(
-					'the parameters object has key set to key="address" value="new-address"',
+					'the parameters object has key "address" set to "new-address""',
 					given.theParametersObjectHasKeySetTo,
 					() => {
 						When(
@@ -37,7 +37,7 @@ describe('Query function', () => {
 								);
 								Then(
 									'it should resolve to the first element of data of the response',
-									then.itShouldResolveToTheFirstElementOfDataKeyOfTheResponse,
+									then.itShouldResolveToTheFirstElementOfDataOfTheResponse,
 								);
 								Then(
 									'it should use the lisk api instance to send a request to the endpoint using the parameters',
@@ -59,7 +59,7 @@ describe('Query function', () => {
 										);
 										Then(
 											'it should resolve to the first element of data of the response',
-											then.itShouldResolveToTheFirstElementOfDataKeyOfTheResponse,
+											then.itShouldResolveToTheFirstElementOfDataOfTheResponse,
 										);
 										Then(
 											'it should use the lisk api instance to send a request to the endpoint using the parameters',
@@ -81,7 +81,7 @@ describe('Query function', () => {
 										);
 										Then(
 											'it should resolve to the data of the response',
-											then.itShouldResolveToTheDataKeyOfTheResponse,
+											then.itShouldResolveToTheDataOfTheResponse,
 										);
 										Then(
 											'it should use the lisk api instance to send a request to the endpoint using the parameters',
@@ -102,14 +102,14 @@ describe('Query function', () => {
 											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
 										);
 										Then(
-											'it should reject with the error and message "No accounts found using specified parameters."',
+											'it should reject with the error and message "No data was returned."',
 											then.itShouldRejectWithErrorAndMessage,
 										);
 									},
 								);
 								When(
 									'the query instance sends a request and the lisk api instance resolves with a successful response of empty array',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulResponseOfEmptyArray,
+									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulEmptyArrayDataResponse,
 									() => {
 										Then(
 											'it should use the lisk api instance to send a request to the endpoint using the parameters',

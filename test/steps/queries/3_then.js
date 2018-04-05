@@ -19,22 +19,12 @@ export function itShouldResolveToTheResultOfSendingTheRequest() {
 	return expect(returnValue).to.eventually.equal(sendRequestResult);
 }
 
-export function itShouldResolveToAnObject() {
-	const { returnValue } = this.test.ctx;
-	return expect(returnValue).to.eventually.be.an('object');
-}
-
-export function itShouldResolveToAnEmptyObject() {
-	const { returnValue } = this.test.ctx;
-	return expect(returnValue).to.eventually.be.eql({});
-}
-
-export function itShouldResolveToTheDataKeyOfTheResponse() {
+export function itShouldResolveToTheDataOfTheResponse() {
 	const { returnValue, sendRequestResult } = this.test.ctx;
 	return expect(returnValue).to.eventually.equal(sendRequestResult.data);
 }
 
-export function itShouldResolveToTheFirstElementOfDataKeyOfTheResponse() {
+export function itShouldResolveToTheFirstElementOfDataOfTheResponse() {
 	const { returnValue, sendRequestResult } = this.test.ctx;
 	return expect(returnValue).to.eventually.equal(sendRequestResult.data[0]);
 }

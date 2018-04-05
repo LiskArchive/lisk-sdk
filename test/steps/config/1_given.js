@@ -46,8 +46,8 @@ export function aConfigWithJsonSetTo() {
 }
 
 export function aConfigWithLiskJSTestnetSetTo() {
-	const bool = getFirstBoolean(this.test.parent.title);
-	const config = { liskJS: { testnet: bool } };
+	const testnet = getFirstBoolean(this.test.parent.title);
+	const config = { liskJS: { testnet } };
 
 	currentConfig.default = config;
 	this.test.ctx.config = config;

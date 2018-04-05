@@ -66,6 +66,16 @@ export function itShouldExitWithCode() {
 	return expect(exit).to.be.calledWithExactly(code);
 }
 
+export function itShouldResolveToAnObject() {
+	const { returnValue } = this.test.ctx;
+	return expect(returnValue).to.eventually.be.an('object');
+}
+
+export function itShouldResolveToAnEmptyObject() {
+	const { returnValue } = this.test.ctx;
+	return expect(returnValue).to.eventually.be.eql({});
+}
+
 export function itShouldResolveToTheErrorObject() {
 	const { returnValue, errorObject } = this.test.ctx;
 	return expect(returnValue).to.eventually.eql(errorObject);
