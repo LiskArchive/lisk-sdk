@@ -53,9 +53,9 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
-export function aConfigWithLiskJSTestnetSetTo() {
+export function aConfigWithAPITestnetSetTo() {
 	const testnet = getFirstBoolean(this.test.parent.title);
-	const config = { liskJS: { testnet } };
+	const config = { api: { testnet } };
 
 	currentConfig.default = config;
 	this.test.ctx.config = config;
