@@ -714,7 +714,9 @@ __private.loadBlocksFromNetwork = function(cb) {
  * Performs sync operation:
  * - Undoes unconfirmed transactions.
  * - Establishes broadhash consensus before sync.
- * - Performs sync operation: loads blocks from network, updates system.
+ * - Performs sync operation: loads blocks from network.
+ * - Update headers: broadhash and height
+ * - Notify remote peers about our new headers
  * - Establishes broadhash consensus after sync.
  * - Applies unconfirmed transactions.
  *
@@ -742,8 +744,13 @@ __private.sync = function(cb) {
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
 			},
-			updateSystem(seriesCb) {
-				return modules.system.update(seriesCb);
+			updateSystemHeaders(seriesCb) {
+				// Update our own headers: broadhash and height
+				modules.system.update(seriesCb);
+			},
+			broadcastHeaders(seriesCb) {
+				// Notify all remote peers about our new headers
+				modules.transport.broadcastHeaders(seriesCb);
 			},
 			getPeersAfter(seriesCb) {
 				library.logger.debug('Establishing broadhash consensus after sync');

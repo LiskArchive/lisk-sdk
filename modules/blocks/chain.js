@@ -722,6 +722,9 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 
 /**
  * Deletes last block.
+ * - Apply the block to database if both verifications are ok
+ * - Update headers: broadhash and height
+ * - Put transactions from deleted block back into transaction pool
  *
  * @param  {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
@@ -736,37 +739,49 @@ Chain.prototype.deleteLastBlock = function(cb) {
 		return setImmediate(cb, 'Cannot delete genesis block');
 	}
 
-	async.waterfall(
-		[
-			waterCb => {
-				// Delete last block, replace last block with previous block, undo things
-				__private.popLastBlock(lastBlock, (err, newLastBlock) => {
+	let deletedBlockTransactions;
+
+	async.series(
+		{
+			popLastBlock(seriesCb) {
+				// Perform actual delete of last block
+				__private.popLastBlock(lastBlock, (err, previousBlock) => {
 					if (err) {
 						library.logger.error('Error deleting last block', lastBlock);
+					} else {
+						// Store actual lastBlock transactions in reverse order
+						deletedBlockTransactions = lastBlock.transactions.reverse();
+
+						// Set previous block as our new last block
+						lastBlock = modules.blocks.lastBlock.set(previousBlock);
 					}
-					return setImmediate(waterCb, err, newLastBlock);
+					return setImmediate(seriesCb, err);
 				});
 			},
-			(newLastBlock, waterCb) => {
-				modules.system.update(() => setImmediate(waterCb, null, newLastBlock));
+			updateSystemHeaders(seriesCb) {
+				// Update our own headers: broadhash and height
+				modules.system.update(seriesCb);
 			},
-			(newLastBlock, waterCb) => {
+			broadcastHeaders(seriesCb) {
+				// Notify all remote peers about our new headers
+				modules.transport.broadcastHeaders(seriesCb);
+			},
+			receiveTransactions(seriesCb) {
 				// Put transactions back into transaction pool
 				modules.transactions.receiveTransactions(
-					lastBlock.transactions.reverse(),
+					deletedBlockTransactions,
 					false,
 					err => {
 						if (err) {
 							library.logger.error('Error adding transactions', err);
 						}
-						// Replace last block with previous
-						lastBlock = modules.blocks.lastBlock.set(newLastBlock);
-						return setImmediate(waterCb, null, newLastBlock);
+						deletedBlockTransactions = null;
+						return setImmediate(seriesCb);
 					}
 				);
 			},
-		],
-		cb
+		},
+		err => setImmediate(cb, err, lastBlock)
 	);
 };
 
@@ -807,6 +822,7 @@ Chain.prototype.onBind = function(scope) {
 		rounds: scope.rounds,
 		transactions: scope.transactions,
 		system: scope.system,
+		transport: scope.transport,
 	};
 
 	// Set module as loaded
