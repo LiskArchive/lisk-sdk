@@ -368,10 +368,9 @@ Transport.prototype.onUnconfirmedTransaction = function(
 /**
  * Calls broadcast blocks and emits a 'blocks/change' socket message.
  *
- * @param {block} block
- * @param {Object} broadcast
+ * @param {Object} block - Reduced block object
+ * @param {boolean} broadcast - Signal flag for broadcast
  * @emits blocks/change
- * @todo Add description for the params
  */
 Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Exit immediately when 'broadcast' flag is not set
