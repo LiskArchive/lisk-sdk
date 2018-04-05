@@ -86,6 +86,14 @@ describe('blocks/verify', () => {
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
 		};
 
+		const modulesSystemStub = {
+			update: sinonSandbox.stub(),
+		};
+
+		const modulesTransportStub = {
+			broadcastHeaders: sinonSandbox.stub(),
+		};
+
 		const modulesBlocksStub = {
 			lastBlock: {
 				get: sinonSandbox.stub(),
@@ -104,6 +112,8 @@ describe('blocks/verify', () => {
 			blocks: modulesBlocksStub,
 			delegates: modulesDelegatesStub,
 			transactions: modulesTransactionsStub,
+			system: modulesSystemStub,
+			transport: modulesTransportStub,
 		};
 
 		blocksVerifyModule.onBind(modulesStub);
@@ -1923,6 +1933,8 @@ describe('blocks/verify', () => {
 				.stub()
 				.callsArgWith(1, null, true);
 			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
+			modules.system.update.callsArgWith(0, null, true);
+			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -1960,6 +1972,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						}
 					);
@@ -1976,6 +1990,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						}
 					);
@@ -1994,6 +2010,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							done();
 						}
 					);
@@ -2010,6 +2028,8 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							done();
 						}
 					);
@@ -2037,6 +2057,8 @@ describe('blocks/verify', () => {
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 			expect(modules.delegates).to.equal(modulesStub.delegates);
 			expect(modules.transactions).to.equal(modulesStub.transactions);
+			expect(modules.system).to.equal(modulesStub.system);
+			expect(modules.transport).to.equal(modulesStub.transport);
 			done();
 		});
 
