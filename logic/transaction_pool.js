@@ -298,29 +298,21 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
  * @param {Object} transaction - Transaction object
  */
 TransactionPool.prototype.addUnconfirmedTransaction = function(transaction) {
-	const that = self;
-
-	// FIXME: This check should be changed like in queueTransaction(), but then first block forge always fails in funcitonal/system/rounds tests.
-	// __private.isMultisigTransaction(transaction, (isMulti) => {
-
+	// FIXME: This check should be changed like in queueTransaction()
 	if (
 		transaction.type === transactionTypes.MULTI ||
 		Array.isArray(transaction.signatures)
-
-		// isMulti
 	) {
-		that.removeMultisignatureTransaction(transaction.id);
+		self.removeMultisignatureTransaction(transaction.id);
 	} else {
-		that.removeQueuedTransaction(transaction.id);
+		self.removeQueuedTransaction(transaction.id);
 	}
 
-	if (that.unconfirmed.index[transaction.id] === undefined) {
-		that.unconfirmed.transactions.push(transaction);
-		const index = that.unconfirmed.transactions.indexOf(transaction);
-		that.unconfirmed.index[transaction.id] = index;
+	if (self.unconfirmed.index[transaction.id] === undefined) {
+		self.unconfirmed.transactions.push(transaction);
+		const index = self.unconfirmed.transactions.indexOf(transaction);
+		self.unconfirmed.index[transaction.id] = index;
 	}
-
-	// });
 };
 
 /**
@@ -605,7 +597,7 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 	transaction.receivedAt = new Date();
 
-	__private.isMultisigTransaction(transaction, isMulti => {
+	__private.isMultisignatureTransaction(transaction, isMulti => {
 		if (transaction.bundled) {
 			if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
 				return setImmediate(cb, 'Transaction pool is full');
@@ -796,46 +788,40 @@ __private.isTransactionInUnconfirmedQueue = function(transaction) {
 };
 
 /**
- * Check if transaction is from multisig account.
+ * Check if a transaction is sent from multisignature account.
  *
  * @private
  * @param {Object} transaction - Transaction object
- * @returns {Boolean}
+ * @param {function} cb - Callback
+ * @returns {Boolean} True if the transaction is type 4 or sent from a multisig account
  */
-__private.isMultisigTransaction = function(transaction, cb) {
-	let hasSender;
-
+__private.isMultisignatureTransaction = function(transaction, cb) {
 	async.waterfall(
 		[
 			function getAccount(waterCb) {
 				if (transaction.senderPublicKey) {
-					hasSender = true;
 					modules.accounts.getAccount(
 						{ publicKey: transaction.senderPublicKey },
 						waterCb
 					);
 				} else {
-					hasSender = false;
-					library.bus.message(
-						'error: sender publickey is missing',
-						transaction
-					);
+					setImmediate(waterCb);
 				}
 			},
 			function checkMulti(sender, waterCb) {
 				const isMultisignature =
-					hasSender &&
+					transaction.senderPublicKey &&
 					Array.isArray(sender.multisignatures) &&
 					sender.multisignatures.length;
 
 				setImmediate(waterCb, null, isMultisignature);
 			},
 		],
-		(err, isMulti) => {
+		(err, isMultisignature) => {
 			if (err) {
-				library.logger.info('error on multisig check', transaction);
+				library.logger.info('Error on multisignature check', transaction);
 			}
-			return setImmediate(cb, isMulti);
+			return setImmediate(cb, isMultisignature);
 		}
 	);
 };
