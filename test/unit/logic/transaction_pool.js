@@ -234,12 +234,17 @@ describe('transactionPool', () => {
 		const multiSigTx = { id: 'multiSigTx', receivedAt };
 		const queuedTx = { id: 'queuedTx', receivedAt };
 
-		it('should expire all the transaction', done => {
-			transactionPool.addUnconfirmedTransaction(unconfirmedTx);
-			transactionPool.addUnconfirmedTransaction(unconfirmedTx2);
-			transactionPool.addMultisignatureTransaction(multiSigTx);
-			transactionPool.addQueuedTransaction(queuedTx);
+		before(done => {
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx, () => {
+				transactionPool.addUnconfirmedTransaction(unconfirmedTx2, () => {
+					transactionPool.addMultisignatureTransaction(multiSigTx);
+					transactionPool.addQueuedTransaction(queuedTx);
+					done();
+				});
+			});
+		});
 
+		it('should expire all the transaction', done => {
 			expect(transactionPool.countUnconfirmed()).to.deep.eql(2);
 			expect(transactionPool.countQueued()).to.deep.eql(1);
 			expect(transactionPool.countMultisignature()).to.deep.eql(1);
@@ -351,8 +356,8 @@ describe('transactionPool', () => {
 
 	describe('getUnconfirmedTransaction', () => {
 		const validTransaction = { id: '123' };
-		beforeEach(() => {
-			return transactionPool.addUnconfirmedTransaction(validTransaction);
+		beforeEach(done => {
+			transactionPool.addUnconfirmedTransaction(validTransaction, done);
 		});
 
 		it('should return undefined for invalid transaction id', () => {
@@ -502,20 +507,26 @@ describe('transactionPool', () => {
 	});
 
 	describe('addUnconfirmedTransaction', () => {
+		const unconfirmedTransaction = { id: '1123' };
+		const unconfirmedTransaction2 = {
+			id: '104568989234234L',
+			type: transactionTypes.MULTI,
+		};
+		before(done => {
+			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction, () => {
+				transactionPool.addUnconfirmedTransaction(
+					unconfirmedTransaction2,
+					done
+				);
+			});
+		});
 		it('should add unconfirmed transaction if not exists', () => {
-			const unconfirmedTransaction = { id: '1123' };
-			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
 			return expect(transactionPool.unconfirmed.transactions).that.does.include(
 				unconfirmedTransaction
 			);
 		});
 
 		it('should remove multi transaction type and add unconfirmed transaction if not exists', () => {
-			const unconfirmedTransaction = {
-				id: '104568989234234L',
-				type: transactionTypes.MULTI,
-			};
-			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
 			return expect(transactionPool.unconfirmed.transactions).that.does.include(
 				unconfirmedTransaction
 			);
@@ -527,8 +538,8 @@ describe('transactionPool', () => {
 			id: '104568989234234L',
 			type: transactionTypes.MULTI,
 		};
-		beforeEach(() => {
-			return transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
+		beforeEach(done => {
+			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction, done);
 		});
 
 		it('should remove unconfirmed transactions', () => {
@@ -931,14 +942,14 @@ describe('transactionPool', () => {
 	});
 
 	describe('reindexQueues', () => {
-		before(() => {
+		before(done => {
 			transactionPool.addBundledTransaction({ id: '12345L', bundled: true });
 			transactionPool.addQueuedTransaction({ id: '126785L' });
 			transactionPool.addMultisignatureTransaction({
 				id: '123445L',
 				type: transactionTypes.MULTI,
 			});
-			return transactionPool.addUnconfirmedTransaction({ id: '129887L' });
+			transactionPool.addUnconfirmedTransaction({ id: '129887L' }, done);
 		});
 
 		it('should reindex previously removed/falsified transactions', () => {
@@ -1082,15 +1093,16 @@ describe('transactionPool', () => {
 					const transactions = [validTransaction];
 
 					before(done => {
-						transactionPool.addUnconfirmedTransaction(validTransaction);
-						transactionPool.getUnconfirmedTransactionList = function() {
-							return transactions;
-						};
+						transactionPool.addUnconfirmedTransaction(validTransaction, () => {
+							transactionPool.getUnconfirmedTransactionList = function() {
+								return transactions;
+							};
 
-						undoUnconfirmedList((err, ids) => {
-							lastError = err;
-							lastIds = ids;
-							done();
+							undoUnconfirmedList((err, ids) => {
+								lastError = err;
+								lastIds = ids;
+								done();
+							});
 						});
 					});
 
@@ -1173,15 +1185,16 @@ describe('transactionPool', () => {
 							dummyUndoUnconfirmed
 						);
 
-						transactionPool.addUnconfirmedTransaction(badTransaction);
-						transactionPool.getUnconfirmedTransactionList = function() {
-							return transactions;
-						};
+						transactionPool.addUnconfirmedTransaction(badTransaction, () => {
+							transactionPool.getUnconfirmedTransactionList = function() {
+								return transactions;
+							};
 
-						undoUnconfirmedList((err, ids) => {
-							lastError = err;
-							lastIds = ids;
-							done();
+							undoUnconfirmedList((err, ids) => {
+								lastError = err;
+								lastIds = ids;
+								done();
+							});
 						});
 					});
 
@@ -1695,12 +1708,13 @@ describe('transactionPool', () => {
 			});
 
 			it('should return error when transaction is in unconfirmed queue', done => {
-				transactionPool.addUnconfirmedTransaction(transaction);
-				_processVerifyTransaction(transaction, true, err => {
-					expect(err).to.deep.eql(
-						'Transaction is already in unconfirmed state'
-					);
-					done();
+				transactionPool.addUnconfirmedTransaction(transaction, () => {
+					_processVerifyTransaction(transaction, true, err => {
+						expect(err).to.deep.eql(
+							'Transaction is already in unconfirmed state'
+						);
+						done();
+					});
 				});
 			});
 
