@@ -120,7 +120,7 @@ describe('POST /peer/transactions @slow', function () {
 						var voteTransaction = node.lisk.vote.createVote(
 							account.password,
 							_(33).range().map(function () {
-								return '+' + genesisDelegates.delegates[_.random(0, 100)].publicKey
+								return '+' + genesisDelegates.delegates[_.random(0, 100)].publicKey;
 							}).uniq().value()
 						);
 						postTransaction(voteTransaction, function (err, res) {

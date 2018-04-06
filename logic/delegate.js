@@ -216,6 +216,11 @@ Delegate.prototype.checkConfirmed = function (trs, cb) {
  */
 Delegate.prototype.checkUnconfirmed = function (trs, cb) {
 	self.checkDuplicates(trs, 'u_username', 'u_isDelegate', function (err) {
+		if (err && exceptions.delegates.indexOf(trs.id) > -1) {
+			library.logger.debug(err);
+			library.logger.debug(JSON.stringify(trs));
+			err = null;
+		}
 		return setImmediate(cb, err, trs);
 	});
 };

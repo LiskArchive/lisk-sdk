@@ -279,6 +279,24 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
           '''
         }
       },
+      "Functional Transport - Peer - Transactions Multisignatures" : {
+        node('node-02') {
+          sh '''
+          export TEST=test/transport/peer.transactions.multisignatures.js  TEST_TYPE='FUNC'
+          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+          npm run jenkins
+          '''
+        }
+      },
+      "Functional Transport - Peer - Transactions Multisignatures Advanced" : {
+        node('node-02') {
+          sh '''
+          export TEST=test/transport/peer.transactions.multisignatures.advanced.js  TEST_TYPE='FUNC'
+          cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+          npm run jenkins
+          '''
+        }
+      },
       "Functional Transport - Peer - Transactions Signatures" : {
         node('node-02') {
           sh '''

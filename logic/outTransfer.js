@@ -177,9 +177,9 @@ OutTransfer.prototype.getBytes = function (trs) {
 OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 	__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = false;
 
-	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
+	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (setAccountAndGetErr, recipient) {
+		if (setAccountAndGetErr) {
+			return setImmediate(cb, setAccountAndGetErr);
 		}
 
 		modules.accounts.mergeAccountAndGet({
@@ -188,8 +188,8 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 			u_balance: trs.amount,
 			blockId: block.id,
 			round: modules.rounds.calc(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
+		}, function (mergeAccountAndGetErr) {
+			return setImmediate(cb, mergeAccountAndGetErr);
 		});
 	});
 };
@@ -210,9 +210,9 @@ OutTransfer.prototype.apply = function (trs, block, sender, cb) {
 OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 	__private.unconfirmedOutTansfers[trs.asset.outTransfer.transactionId] = true;
 
-	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (err, recipient) {
-		if (err) {
-			return setImmediate(cb, err);
+	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (setAccountAndGetErr, recipient) {
+		if (setAccountAndGetErr) {
+			return setImmediate(cb, setAccountAndGetErr);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: trs.recipientId,
@@ -220,8 +220,8 @@ OutTransfer.prototype.undo = function (trs, block, sender, cb) {
 			u_balance: -trs.amount,
 			blockId: block.id,
 			round: modules.rounds.calc(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
+		}, function (mergeAccountAndGetErr) {
+			return setImmediate(cb, mergeAccountAndGetErr);
 		});
 	});
 };
