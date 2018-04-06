@@ -49,15 +49,17 @@ describe('lisk-constants', () => {
 		return expect(TESTNET_NETHASH).to.be.a('string');
 	});
 
-	it('TESTNET_NODES should be a string', () => {
-		return expect(TESTNET_NODES).to.be.an('array');
+	it('TESTNET_NODES should be an array of strings', () => {
+		expect(TESTNET_NODES).to.be.an('array');
+		return TESTNET_NODES.forEach(node => expect(node).to.be.a('string'));
 	});
 
 	it('MAINNET_NETHASH should be a string', () => {
 		return expect(MAINNET_NETHASH).to.be.a('string');
 	});
 
-	it('MAINNET_NODES should be a string', () => {
-		return expect(MAINNET_NODES).to.be.an('array');
+	it('MAINNET_NODES should be an array of strings', () => {
+		expect(MAINNET_NODES).to.be.an('array');
+		return MAINNET_NODES.forEach(node => expect(node).to.be.a('string'));
 	});
 });
