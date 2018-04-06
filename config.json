@@ -1,12 +1,12 @@
 {
-	"wsPort": 8001,
-	"httpPort": 8000,
+	"wsPort": 6001,
+	"httpPort": 6000,
 	"address": "0.0.0.0",
-	"version": "0.9.8",
-	"minVersion": ">=0.9.5",
-	"fileLogLevel": "info",
+	"version": "0.0.0",
+	"minVersion": ">=0.0.0",
+	"fileLogLevel": "debug",
 	"logFileName": "logs/lisk.log",
-	"consoleLogLevel": "none",
+	"consoleLogLevel": "debug",
 	"trustProxy": false,
 	"topAccounts": false,
 	"cacheEnabled": false,
@@ -14,7 +14,7 @@
 	"db": {
 		"host": "localhost",
 		"port": 5432,
-		"database": "lisk_main",
+		"database": "lisk_beta",
 		"user": "",
 		"password": "password",
 		"min": 10,
@@ -49,44 +49,24 @@
 		"enabled": true,
 		"list": [
 			{
-				"ip": "83.136.254.92",
-				"wsPort": 8000
+				"ip": "94.237.41.99",
+				"wsPort": 6001
 			},
 			{
-				"ip": "83.136.249.76",
-				"wsPort": 8000
+				"ip": "209.50.52.217",
+				"wsPort": 6001
 			},
 			{
-				"ip": "94.237.28.66",
-				"wsPort": 8000
+				"ip": "94.237.26.150",
+				"wsPort": 6001
 			},
 			{
-				"ip": "94.237.24.199",
-				"wsPort": 8000
+				"ip": "83.136.249.102",
+				"wsPort": 6001
 			},
 			{
-				"ip": "209.50.49.23",
-				"wsPort": 8000
-			},
-			{
-				"ip": "209.50.49.40",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.64.70",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.64.73",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.40.140",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.40.141",
-				"wsPort": 8000
+				"ip": "94.237.65.179",
+				"wsPort": 6001
 			}
 		],
 		"access": {
@@ -130,5 +110,5 @@
 			"cert": "./ssl/lisk.crt"
 		}
 	},
-	"nethash": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"
+	"nethash": "ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c"
 }
