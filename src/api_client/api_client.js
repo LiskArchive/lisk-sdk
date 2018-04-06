@@ -13,6 +13,8 @@
  *
  */
 import {
+	BETANET_NETHASH,
+	BETANET_NODES,
 	TESTNET_NETHASH,
 	TESTNET_NODES,
 	MAINNET_NETHASH,
@@ -72,6 +74,10 @@ export default class APIClient {
 
 	static createTestnetAPIClient(options) {
 		return new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);
+	}
+
+	static createBetanetAPIClient(options) {
+		return new APIClient(BETANET_NODES, BETANET_NETHASH, options);
 	}
 
 	initialize(nodes, nethash, providedOptions = {}) {

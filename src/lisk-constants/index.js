@@ -21,6 +21,15 @@ export const MAX_ADDRESS_NUMBER = '18446744073709551615';
 // Largest possible amount. Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
 export const MAX_TRANSACTION_AMOUNT = '18446744073709551615';
 
+export const BETANET_NETHASH =
+	'ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c';
+export const BETANET_NODES = [
+	'http://94.237.41.99:5000',
+	'http://209.50.52.217:5000',
+	'http://94.237.26.150:5000',
+	'http://83.136.249.102:5000',
+	'http://94.237.65.179:5000',
+];
 export const TESTNET_NETHASH =
 	'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 export const TESTNET_NODES = ['http://testnet.lisk.io:7000'];
