@@ -19,8 +19,8 @@ import config from './config';
 import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
-const removeANSIFromObject = result =>
-	Object.entries(result).reduce(
+const removeANSIFromObject = object =>
+	Object.entries(object).reduce(
 		(strippedResult, [key, value]) =>
 			Object.assign({}, strippedResult, { [key]: stripANSI(value) }),
 		{},
@@ -28,7 +28,7 @@ const removeANSIFromObject = result =>
 
 const removeANSI = result =>
 	Array.isArray(result)
-		? result.map(object => removeANSIFromObject(object))
+		? result.map(removeANSIFromObject)
 		: removeANSIFromObject(result);
 
 export const printResult = (vorpal, options = {}) =>
