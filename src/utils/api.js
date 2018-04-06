@@ -20,10 +20,10 @@ const { APIClient } = lisk;
 
 const getAPIClient = testnet => {
 	const testnetOverrideValue =
-		typeof testnet === 'boolean' ? testnet : config.liskJS.testnet;
+		typeof testnet === 'boolean' ? testnet : config.api.testnet;
 	return testnetOverrideValue === true
-		? APIClient.createTestnetAPIClient(config.liskJS)
-		: APIClient.createMainnetAPIClient(config.liskJS);
+		? APIClient.createTestnetAPIClient(config.api)
+		: APIClient.createMainnetAPIClient(config.api);
 };
 
 export default getAPIClient;

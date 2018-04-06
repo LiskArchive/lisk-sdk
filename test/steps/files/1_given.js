@@ -181,11 +181,9 @@ export function theFileIsValidJSON() {
 	const userConfig = {
 		name: 'custom-name',
 		json: true,
-		liskJS: {
+		api: {
 			testnet: true,
 			node: 'my-node',
-			port: 7357,
-			ssl: true,
 		},
 	};
 

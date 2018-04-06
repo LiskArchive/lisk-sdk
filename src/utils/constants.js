@@ -36,4 +36,10 @@ export const QUERY_INPUT_MAP = {
 	transactions: 'id',
 };
 
-export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];
+export const CONFIG_VARIABLES = [
+	'api.node',
+	'api.testnet',
+	'json',
+	'name',
+	'pretty',
+];

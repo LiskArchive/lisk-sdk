@@ -19,8 +19,8 @@ import * as then from '../../steps/3_then';
 
 describe('API util', () => {
 	Given(
-		'a config with "liskJS.testnet" set to true',
-		given.aConfigWithLiskJSTestnetSetTo,
+		'a config with "api.testnet" set to true',
+		given.aConfigWithAPITestnetSetTo,
 		() => {
 			When(
 				'a API Client instance is created',
@@ -39,8 +39,8 @@ describe('API util', () => {
 		},
 	);
 	Given(
-		'a config with "liskJS.testnet" set to false',
-		given.aConfigWithLiskJSTestnetSetTo,
+		'a config with "api.testnet" set to false',
+		given.aConfigWithAPITestnetSetTo,
 		() => {
 			When(
 				'a API Client instance is created',
@@ -73,7 +73,7 @@ describe('API util', () => {
 		},
 	);
 	When(
-		'a API Client instance is created with an input boolean of "true"',
+		'a Lisk API Client instance is created with an input boolean of "true"',
 		when.aLiskAPIInstanceIsCreatedWithAnInputBooleanOf,
 		() => {
 			Then(
@@ -87,7 +87,7 @@ describe('API util', () => {
 		},
 	);
 	When(
-		'a API Client instance is created with an input boolean of "false"',
+		'a Lisk API Client instance is created with an input boolean of "false"',
 		when.aLiskAPIInstanceIsCreatedWithAnInputBooleanOf,
 		() => {
 			Then(
