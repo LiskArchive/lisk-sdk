@@ -15,15 +15,21 @@
  */
 import lisk from 'lisk-js';
 import config from './config';
+import { NETHASHES } from './constants';
 
-const { APIClient } = lisk;
+const { APIClient, constants } = lisk;
 
-const getAPIClient = testnet => {
-	const testnetOverrideValue =
-		typeof testnet === 'boolean' ? testnet : config.api.testnet;
-	return testnetOverrideValue === true
-		? APIClient.createTestnetAPIClient(config.api)
-		: APIClient.createMainnetAPIClient(config.api);
+const addresses = {
+	main: constants.MAINNET_NODES,
+	test: constants.TESTNET_NODES,
+	beta: constants.BETANET_NODES,
+};
+
+const getAPIClient = () => {
+	const { node, network } = config.api;
+	const nethash = NETHASHES[network] || network;
+	const nodes = node ? [node] : addresses[network];
+	return new APIClient(nodes, nethash);
 };
 
 export default getAPIClient;
