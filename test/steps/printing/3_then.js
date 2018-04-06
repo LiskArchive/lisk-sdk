@@ -90,6 +90,18 @@ export function jsonOutputShouldBeLoggedWithoutANSICodes() {
 	return expect(vorpal.log).to.be.calledWithExactly(jsonOutput);
 }
 
+export function prettyJSONOutputsShouldBeLoggedWithoutANSICodes() {
+	const { resultsWithoutANSICodes, vorpal } = this.test.ctx;
+	const prettyJSONOutput = JSON.stringify(resultsWithoutANSICodes, null, '\t');
+	return expect(vorpal.log).to.be.calledWithExactly(prettyJSONOutput);
+}
+
+export function jsonOutputsShouldBeLoggedWithoutANSICodes() {
+	const { resultsWithoutANSICodes, vorpal } = this.test.ctx;
+	const jsonOutput = JSON.stringify(resultsWithoutANSICodes);
+	return expect(vorpal.log).to.be.calledWithExactly(jsonOutput);
+}
+
 export function shouldUseJSONOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
 	return expect(shouldUseJSONOutput).to.be.calledWithExactly(config, {});
