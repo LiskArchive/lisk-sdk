@@ -15,7 +15,7 @@
 		"url": "https://github.com/LiskHQ/lisky/issues"
 	},
 	"engines": {
-		"node": "=6.12.3",
+		"node": "=6.14.1",
 		"npm": "=3.10.10"
 	},
 	"directories": {
