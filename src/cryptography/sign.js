@@ -172,11 +172,18 @@ export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
 	return printSignedMessage(signedMessage);
 };
 
-export const signData = (data, passphrase) => {
+export const signDataWithPassphrase = (data, passphrase) => {
 	const { privateKey } = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const signature = naclInstance.crypto_sign_detached(data, privateKey);
 	return bufferToHex(signature);
 };
+
+export const signDataWithPrivateKey = (data, privateKey) => {
+	const signature = naclInstance.crypto_sign_detached(data, privateKey);
+	return bufferToHex(signature);
+};
+
+export const signData = signDataWithPassphrase;
 
 export const verifyData = (data, signature, publicKey) =>
 	naclInstance.crypto_sign_verify_detached(
