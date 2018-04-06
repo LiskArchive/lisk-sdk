@@ -33,11 +33,8 @@ describe('APIClient module', () => {
 	const betanetHash =
 		'ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c';
 	const betanetNodes = [
-		'http://94.237.41.99:5000',
-		'http://209.50.52.217:5000',
-		'http://94.237.26.150:5000',
-		'http://83.136.249.102:5000',
-		'http://94.237.65.179:5000',
+		'http://94.237.42.109:5000',
+		'http://83.136.252.99:5000',
 	];
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
