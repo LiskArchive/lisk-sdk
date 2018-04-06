@@ -18,6 +18,8 @@ import {
 	EPOCH_TIME_MILLISECONDS,
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
+	BETANET_NETHASH,
+	BETANET_NODES,
 	TESTNET_NETHASH,
 	TESTNET_NODES,
 	MAINNET_NETHASH,
@@ -43,6 +45,15 @@ describe('lisk-constants', () => {
 
 	it('MAX_TRANSACTION_AMOUNT should be a string', () => {
 		return expect(MAX_TRANSACTION_AMOUNT).to.be.a('string');
+	});
+
+	it('BETANET_NETHASH should be a string', () => {
+		return expect(BETANET_NETHASH).to.be.a('string');
+	});
+
+	it('BETANET_NODES should be an array of strings', () => {
+		expect(BETANET_NODES).to.be.an('array');
+		return BETANET_NODES.forEach(node => expect(node).to.be.a('string'));
 	});
 
 	it('TESTNET_NETHASH should be a string', () => {
