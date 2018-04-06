@@ -18,16 +18,24 @@ import defaultConfig from '../../../default_config.json';
 import * as currentConfig from '../../../src/utils/config';
 import { getFirstBoolean, getBooleans } from '../utils';
 
+export function aConfigWithUnknownProperties() {
+	const config = {
+		corrupted: 'config',
+		invalid: 'names',
+	};
+	currentConfig.default = config;
+	this.test.ctx.config = config;
+}
+
 export function aConfig() {
 	const config = {
 		name: 'testy',
 		json: true,
-		liskJS: {
+		api: {
 			testnet: false,
 			node: 'localhost',
-			port: 7357,
-			ssl: true,
 		},
+		pretty: true,
 	};
 	currentConfig.default = config;
 	this.test.ctx.config = config;
@@ -45,9 +53,9 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
-export function aConfigWithLiskJSTestnetSetTo() {
+export function aConfigWithAPITestnetSetTo() {
 	const testnet = getFirstBoolean(this.test.parent.title);
-	const config = { liskJS: { testnet } };
+	const config = { api: { testnet } };
 
 	currentConfig.default = config;
 	this.test.ctx.config = config;

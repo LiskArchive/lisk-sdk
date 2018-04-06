@@ -19,11 +19,13 @@ import { FileSystemError, ValidationError } from '../utils/error';
 import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 
-const description = `Sets configuration <variable> to <value>. Variables available: json, name, testnet. Configuration is persisted in \`${configFilePath}\`.
+const availableVariables = CONFIG_VARIABLES.join(', ');
+const description = `Sets configuration <variable> to <value>. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath}\`.
 
 	Examples:
 	- set json true
 	- set name my_custom_lisky
+	- set api.testnet true
 `;
 
 const WRITE_FAIL_WARNING =
@@ -40,8 +42,20 @@ const writeConfigToFile = newConfig => {
 
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
-	if (i === path.length - 1) {
+const setNestedConfigProperty = newValue => (
+	obj,
+	pathComponent,
+	i,
+	dotNotationArray,
+) => {
+	if (i === dotNotationArray.length - 1) {
+		if (obj === undefined) {
+			throw new ValidationError(
+				`Config file could not be written: property '${dotNotationArray.join(
+					'.',
+				)}' was not found. It looks like your configuration file is corrupted. Please check the file or run 'lisky clean' to remove it (a fresh default configuration file will be created when you run Lisky again).`,
+			);
+		}
 		// eslint-disable-next-line no-param-reassign
 		obj[pathComponent] = newValue;
 		return config;
@@ -49,7 +63,7 @@ const setNestedConfigProperty = newValue => (obj, pathComponent, i, path) => {
 	return obj[pathComponent];
 };
 
-const attemptWriteToFile = (variable, value) => {
+const attemptWriteToFile = (value, dotNotation) => {
 	const writeSuccess = writeConfigToFile(config);
 
 	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
@@ -57,7 +71,7 @@ const attemptWriteToFile = (variable, value) => {
 	}
 
 	const result = {
-		message: `Successfully set ${variable} to ${value}.`,
+		message: `Successfully set ${dotNotation} to ${value}.`,
 	};
 
 	if (!writeSuccess) {
@@ -67,27 +81,29 @@ const attemptWriteToFile = (variable, value) => {
 	return result;
 };
 
-const setBoolean = (variable, path) => value => {
+const setBoolean = (dotNotation, value) => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
-
+	const dotNotationArray = dotNotation.split('.');
 	const newValue = value === 'true';
-	path.reduce(setNestedConfigProperty(newValue), config);
+	dotNotationArray.reduce(setNestedConfigProperty(newValue), config);
 
-	return attemptWriteToFile(variable, value);
+	return attemptWriteToFile(value, dotNotation);
 };
 
-const setString = (variable, path) => value => {
-	path.reduce(setNestedConfigProperty(value), config);
-	return attemptWriteToFile(variable, value);
+const setString = (dotNotation, value) => {
+	const dotNotationArray = dotNotation.split('.');
+	dotNotationArray.reduce(setNestedConfigProperty(value), config);
+	return attemptWriteToFile(value, dotNotation);
 };
 
 const handlers = {
-	json: setBoolean('json', ['json']),
-	name: setString('name', ['name']),
-	pretty: setBoolean('pretty', ['pretty']),
-	testnet: setBoolean('testnet', ['liskJS', 'testnet']),
+	'api.node': setString,
+	'api.testnet': setBoolean,
+	json: setBoolean,
+	name: setString,
+	pretty: setBoolean,
 };
 
 export const actionCreator = () => async ({ variable, value }) => {
@@ -95,7 +111,7 @@ export const actionCreator = () => async ({ variable, value }) => {
 		throw new ValidationError('Unsupported variable name.');
 	}
 
-	return handlers[variable](value);
+	return handlers[variable](variable, value);
 };
 
 const set = createCommand({
