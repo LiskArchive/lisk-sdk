@@ -55,7 +55,7 @@
 		"bip39": "=2.4.0",
 		"chalk": "=2.3.0",
 		"cli-table2": "=0.2.0",
-		"lisk-js": "LiskHQ/lisk-js#lisk-elements-1.0.0-RC3",
+		"lisk-js": "LiskHQ/lisk-js#lisk-elements-1.0.0-beta.1",
 		"lockfile": "=1.0.3",
 		"semver": "=5.5.0",
 		"strip-ansi": "=4.0.0",

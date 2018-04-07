@@ -45,81 +45,53 @@ describe('Query function', () => {
 								);
 							},
 						);
-						Given(
-							'an options object with key "testnet" set to boolean "true"',
-							given.anOptionsObjectWithKeySetToBoolean,
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a successful object data response',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulObjectDataResponse,
 							() => {
-								When(
-									'the query instance sends a request and the lisk api instance resolves with a successful array data response',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulArrayDataResponse,
-									() => {
-										Then(
-											'it should resolve to an object',
-											then.itShouldResolveToAnObject,
-										);
-										Then(
-											'it should resolve to the first element of data of the response',
-											then.itShouldResolveToTheFirstElementOfDataOfTheResponse,
-										);
-										Then(
-											'it should use the lisk api instance to send a request to the endpoint using the parameters',
-											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
-										);
-										Then(
-											'the "getAPIClient" should be called with the testnet option',
-											then.theGetAPIClientShouldBeCalledWithTestnetOption,
-										);
-									},
+								Then(
+									'it should resolve to an object',
+									then.itShouldResolveToAnObject,
 								);
-								When(
-									'the query instance sends a request and the lisk api instance resolves with a successful object data response',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulObjectDataResponse,
-									() => {
-										Then(
-											'it should resolve to an object',
-											then.itShouldResolveToAnObject,
-										);
-										Then(
-											'it should resolve to the data of the response',
-											then.itShouldResolveToTheDataOfTheResponse,
-										);
-										Then(
-											'it should use the lisk api instance to send a request to the endpoint using the parameters',
-											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
-										);
-										Then(
-											'the "getAPIClient" should be called with the testnet option',
-											then.theGetAPIClientShouldBeCalledWithTestnetOption,
-										);
-									},
+								Then(
+									'it should resolve to the data of the response',
+									then.itShouldResolveToTheDataOfTheResponse,
 								);
-								When(
-									'the query instance sends a request and the lisk api instance resolves with a failed response',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAFailedResponse,
-									() => {
-										Then(
-											'it should use the lisk api instance to send a request to the endpoint using the parameters',
-											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
-										);
-										Then(
-											'it should reject with the error and message "No data was returned."',
-											then.itShouldRejectWithErrorAndMessage,
-										);
-									},
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
 								);
-								When(
-									'the query instance sends a request and the lisk api instance resolves with a successful response of empty array',
-									when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulEmptyArrayDataResponse,
-									() => {
-										Then(
-											'it should use the lisk api instance to send a request to the endpoint using the parameters',
-											then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
-										);
-										Then(
-											'it should reject with the error and message "No accounts found using specified parameters."',
-											then.itShouldRejectWithErrorAndMessage,
-										);
-									},
+								Then(
+									'the "getAPIClient" should be called',
+									then.theGetAPIClientShouldBeCalled,
+								);
+							},
+						);
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a failed response',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAFailedResponse,
+							() => {
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+								Then(
+									'it should reject with the error and message "No data was returned."',
+									then.itShouldRejectWithErrorAndMessage,
+								);
+							},
+						);
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a successful response of empty array',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulEmptyArrayDataResponse,
+							() => {
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+								Then(
+									'it should reject with the error and message "No accounts found using specified parameters."',
+									then.itShouldRejectWithErrorAndMessage,
 								);
 							},
 						);
