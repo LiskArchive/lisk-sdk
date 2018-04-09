@@ -32,6 +32,9 @@ const description = `Sets configuration <variable> to <value>. Variables availab
 const WRITE_FAIL_WARNING =
 	'Config file could not be written: your changes will not be persisted.';
 
+const NETHASH_ERROR_MESSAGE =
+	'Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used.';
+
 const writeConfigToFile = newConfig => {
 	try {
 		writeJSONSync(configFilePath, newConfig);
@@ -105,16 +108,12 @@ const setNethash = (dotNotation, value) => {
 		!Object.keys(NETHASHES).includes(value)
 	) {
 		if (value.length !== 64) {
-			throw new ValidationError(
-				'Value must be a hex string with 64 characters.',
-			);
+			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 		try {
 			lisk.cryptography.hexToBuffer(value, 'utf8');
 		} catch (error) {
-			throw new ValidationError(
-				'Value must be a hex string with 64 characters.',
-			);
+			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 	}
 	return setString(dotNotation, value);

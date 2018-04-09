@@ -609,7 +609,7 @@ describe('set command', () => {
 									when.theActionIsCalledWithTheVariableAndTheValue,
 									() => {
 										Then(
-											'it should reject with validation error and message "Value must be a hex string with 64 characters."',
+											'it should reject with validation error and message "Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used."',
 											then.itShouldRejectWithValidationErrorAndMessage,
 										);
 									},
@@ -624,7 +624,7 @@ describe('set command', () => {
 										when.theActionIsCalledWithTheVariableAndTheValue,
 										() => {
 											Then(
-												'it should reject with validation error and message "Value must be a hex string with 64 characters."',
+												'it should reject with validation error and message "Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used."',
 												then.itShouldRejectWithValidationErrorAndMessage,
 											);
 										},
@@ -640,7 +640,7 @@ describe('set command', () => {
 										when.theActionIsCalledWithTheVariableAndTheValue,
 										() => {
 											Then(
-												'it should reject with validation error and message "Value must be a hex string with 64 characters."',
+												'it should reject with validation error and message "Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used."',
 												then.itShouldRejectWithValidationErrorAndMessage,
 											);
 										},
@@ -816,7 +816,7 @@ describe('set command', () => {
 								);
 							});
 							Given(
-								'a value "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2500"',
+								'a value "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"',
 								given.aValue,
 								() => {
 									Given(
@@ -856,7 +856,7 @@ describe('set command', () => {
 																then.itShouldResolveToAnObjectWithWarning,
 															);
 															Then(
-																'it should resolve to an object with message "Successfully set api.network to ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2500."',
+																'it should resolve to an object with message "Successfully set api.network to aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."',
 																then.itShouldResolveToAnObjectWithMessage,
 															);
 														},
@@ -886,7 +886,7 @@ describe('set command', () => {
 																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 															);
 															Then(
-																'it should resolve to an object with message "Successfully set api.network to ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2500."',
+																'it should resolve to an object with message "Successfully set api.network to aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."',
 																then.itShouldResolveToAnObjectWithMessage,
 															);
 														},
@@ -910,7 +910,7 @@ describe('set command', () => {
 																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 															);
 															Then(
-																'it should resolve to an object with message "Successfully set api.network to ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2500."',
+																'it should resolve to an object with message "Successfully set api.network to aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."',
 																then.itShouldResolveToAnObjectWithMessage,
 															);
 														},
