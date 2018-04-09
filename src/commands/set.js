@@ -33,7 +33,7 @@ const WRITE_FAIL_WARNING =
 	'Config file could not be written: your changes will not be persisted.';
 
 const NETHASH_ERROR_MESSAGE =
-	'Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used.';
+	'Value must be a hex string with 64 characters, or one of main, test or beta.';
 
 const writeConfigToFile = newConfig => {
 	try {

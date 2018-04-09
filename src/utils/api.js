@@ -19,7 +19,7 @@ import { NETHASHES } from './constants';
 
 const { APIClient, constants } = lisk;
 
-const addresses = {
+const seedNodes = {
 	main: constants.MAINNET_NODES,
 	test: constants.TESTNET_NODES,
 	beta: constants.BETANET_NODES,
@@ -28,7 +28,7 @@ const addresses = {
 const getAPIClient = () => {
 	const { node, network } = config.api;
 	const nethash = NETHASHES[network] || network;
-	const nodes = node ? [node] : addresses[network];
+	const nodes = node ? [node] : seedNodes[network];
 	return new APIClient(nodes, nethash);
 };
 

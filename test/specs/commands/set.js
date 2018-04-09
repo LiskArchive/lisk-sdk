@@ -609,7 +609,7 @@ describe('set command', () => {
 									when.theActionIsCalledWithTheVariableAndTheValue,
 									() => {
 										Then(
-											'it should reject with validation error and message "Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used."',
+											'it should reject with validation error and message "Value must be a hex string with 64 characters, or one of main, test or beta."',
 											then.itShouldRejectWithValidationErrorAndMessage,
 										);
 									},
@@ -624,7 +624,7 @@ describe('set command', () => {
 										when.theActionIsCalledWithTheVariableAndTheValue,
 										() => {
 											Then(
-												'it should reject with validation error and message "Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used."',
+												'it should reject with validation error and message "Value must be a hex string with 64 characters, or one of main, test or beta."',
 												then.itShouldRejectWithValidationErrorAndMessage,
 											);
 										},
@@ -640,7 +640,7 @@ describe('set command', () => {
 										when.theActionIsCalledWithTheVariableAndTheValue,
 										() => {
 											Then(
-												'it should reject with validation error and message "Value must be a hex string with 64 characters. Alternatively, main, test and beta can be used."',
+												'it should reject with validation error and message "Value must be a hex string with 64 characters, or one of main, test or beta."',
 												then.itShouldRejectWithValidationErrorAndMessage,
 											);
 										},
