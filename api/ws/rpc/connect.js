@@ -62,6 +62,8 @@ const connectSteps = {
 			// destroy the exisiting connection
 			// to avoid too many socket connections
 			peer.socket.destroy();
+			delete peer.socket;
+			peer.socket = null;
 		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 		return peer;
