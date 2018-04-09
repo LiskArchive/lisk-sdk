@@ -169,9 +169,6 @@ SCWorker.create({
 				scServer.on('connection', socket => {
 					scope.slaveWAMPServer.upgradeToWAMP(socket);
 					socket.on('disconnect', removePeerConnection.bind(null, socket));
-					socket.on('error', err => {
-						socket.disconnect(err.code, err.message);
-					});
 				});
 
 				function removePeerConnection(socket, code) {
