@@ -132,6 +132,38 @@ export function anArrayOfObjectsWithTheSameKeys() {
 	];
 }
 
+export function anArrayOfObjectsWithNestedKeys() {
+	this.test.ctx.testArray = [
+		{
+			lisk: 'js',
+			version: 1,
+			assets: {
+				type: 0,
+			},
+		},
+		{
+			lisk: 'ts',
+			version: 2,
+			assets: {
+				type: 1,
+			},
+		},
+		{
+			lisk: 'jsx',
+			version: 3,
+			assets: {
+				type: 3,
+			},
+		},
+	];
+	this.test.ctx.testArrayKeysResult = ['lisk', 'version', 'assets.type'];
+	this.test.ctx.testArrayValuesResult = [
+		['js', 1, 0],
+		['ts', 2, 1],
+		['jsx', 3, 3],
+	];
+}
+
 export function anArrayOfObjectsWithDivergentKeys() {
 	this.test.ctx.testArray = [
 		{
