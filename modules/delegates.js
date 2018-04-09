@@ -385,7 +385,10 @@ const getKeyFromPassword = (password, salt, iterations) =>
  * Returns the decrypted secret by deciphering encrypted secret with the password provided using aes-256-gcm algorithm.
  *
  * @private
- * @param {string} encryptedSecret
+ * @param {string} encryptedItem.encryptedSecret
+ * @param {string} encryptedItem.iv
+ * @param {string} encryptedItem.salt
+ * @param {string} encryptedItem.tag
  * @param {string} password
  * @throws {error} If unable to decrypt using password.
  * @returns {string} decryptedSecret
