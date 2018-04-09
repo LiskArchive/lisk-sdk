@@ -57,10 +57,10 @@ const connectSteps = {
 
 	addSocket: peer => {
 		if (peer.socket) {
-			// if a socket connect exisits
+			// If a socket connection exists,
 			// before issuing a new connection
 			// destroy the exisiting connection
-			// to avoid too many socket connections
+			// to avoid too many socket connections.
 			peer.socket.destroy();
 			delete peer.socket;
 			peer.socket = null;
