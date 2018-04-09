@@ -16,7 +16,6 @@
 import { COMMAND_TYPES, PLURALS, QUERY_INPUT_MAP } from '../utils/constants';
 import { ValidationError } from '../utils/error';
 import { createCommand, deAlias } from '../utils/helpers';
-import commonOptions from '../utils/options';
 import query from '../utils/query';
 
 const description = `Gets information from the blockchain. Types available: account, address, block, delegate, transaction.
@@ -26,11 +25,7 @@ const description = `Gets information from the blockchain. Types available: acco
 	- get block 5510510593472232540
 `;
 
-export const actionCreator = () => async ({
-	type,
-	input,
-	options: { testnet },
-}) => {
+export const actionCreator = () => async ({ type, input }) => {
 	const pluralType = Object.keys(PLURALS).includes(type) ? PLURALS[type] : type;
 
 	if (!COMMAND_TYPES.includes(pluralType)) {
@@ -43,9 +38,7 @@ export const actionCreator = () => async ({
 		[QUERY_INPUT_MAP[endpoint]]: input,
 	};
 
-	return query(endpoint, req, {
-		testnet,
-	});
+	return query(endpoint, req);
 };
 
 const get = createCommand({
@@ -53,7 +46,6 @@ const get = createCommand({
 	autocomplete: COMMAND_TYPES,
 	description,
 	actionCreator,
-	options: [commonOptions.testnet],
 	errorPrefix: 'Could not get',
 });
 

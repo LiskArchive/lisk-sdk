@@ -58,13 +58,18 @@ export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {
 	return expect(liskAPIInstance).to.be.instanceOf(lisk.APIClient);
 }
 
+export function theGetAPIClientShouldBeCalled() {
+	return expect(getAPIClient).to.be.called;
+}
+
 export function theLiskAPIInstanceShouldHaveNethashEqualTo() {
 	const { liskAPIInstance } = this.test.ctx;
 	const nethash = getFirstQuotedString(this.test.title);
 	return expect(liskAPIInstance.headers.nethash).to.equal(nethash);
 }
 
-export function theGetAPIClientShouldBeCalledWithTestnetOption() {
-	const { options } = this.test.ctx;
-	return expect(getAPIClient).to.be.calledWithExactly(options.testnet);
+export function theLiskAPIInstanceShouldHaveCurrentNodeEqualTo() {
+	const { liskAPIInstance } = this.test.ctx;
+	const node = getFirstQuotedString(this.test.title);
+	return expect(liskAPIInstance.currentNode).to.equal(node);
 }

@@ -13,6 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import lisk from 'lisk-js';
+
+const { constants } = lisk;
+
 export const COMMAND_TYPES = [
 	'accounts',
 	'addresses',
@@ -38,8 +42,14 @@ export const QUERY_INPUT_MAP = {
 
 export const CONFIG_VARIABLES = [
 	'api.node',
-	'api.testnet',
+	'api.network',
 	'json',
 	'name',
 	'pretty',
 ];
+
+export const NETHASHES = {
+	main: constants.MAINNET_NETHASH,
+	test: constants.TESTNET_NETHASH,
+	beta: constants.BETANET_NETHASH,
+};
