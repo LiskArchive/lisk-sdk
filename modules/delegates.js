@@ -321,21 +321,97 @@ __private.forge = function(cb) {
 	);
 };
 
+const parseEncryptedSecret = encryptedSecret => {
+	const delimiter = '$';
+	const roundsRegExp = /^rounds=(\d+)$/;
+	const ivRegExp = /^iv=(.+)$/;
+	const tagRegExp = /^tag=(.+)$/;
+
+	const getAdditionalParameter = (parameters, regExp) => {
+		const parameter = parameters.find(parameter => regExp.test(parameter));
+		const match = parameter ? parameter.match(regExp) : null;
+		return match && match[1];
+	};
+
+	const [id, ...encryptedSecretWithoutID] = encryptedSecret
+		.split(delimiter)
+		.slice(1);
+	if (id !== '5') {
+		throw new Error(
+			`Tried to decrypt secret using encryption method with ID ${id}, but currently only ID 5 (SHA-256) is supported.`
+		);
+	}
+	const iterationsMatch = encryptedSecretWithoutID[0].match(roundsRegExp);
+	const iterations = iterationsMatch ? parseInt(iterationsMatch[1], 10) : null;
+	const [salt, cipherText, ...additionalParameters] =
+		iterations === null
+			? encryptedSecretWithoutID
+			: encryptedSecretWithoutID.slice(1);
+
+	const iv = getAdditionalParameter(additionalParameters, ivRegExp);
+	const tag = getAdditionalParameter(additionalParameters, tagRegExp);
+
+	return {
+		iterations,
+		salt,
+		cipherText,
+		iv,
+		tag,
+	};
+};
+
+const getTagBuffer = tag => {
+	const tagBuffer = Buffer.from(tag, 'hex');
+	if (tagBuffer.length !== 16) {
+		throw new Error('Tag must be 16 bytes.');
+	}
+	return tagBuffer;
+};
+
+const PBKDF2_ITERATIONS = 1e6;
+const PBKDF2_KEYLEN = 32;
+const PBKDF2_HASH_FUNCTION = 'sha256';
+
+const getKeyFromPassword = (password, salt, iterations) =>
+	crypto.pbkdf2Sync(
+		password,
+		salt,
+		iterations || PBKDF2_ITERATIONS,
+		PBKDF2_KEYLEN,
+		PBKDF2_HASH_FUNCTION
+	);
+
 /**
- * Returns the decrypted secret by deciphering encrypted secret with the key provided using aes-256-cbc algorithm.
+ * Returns the decrypted secret by deciphering encrypted secret with the password provided using aes-256-gcm algorithm.
  *
  * @private
  * @param {string} encryptedSecret
- * @param {string} key
- * @throws {error} If unable to decrypt using key.
+ * @param {string} password
+ * @throws {error} If unable to decrypt using password.
  * @returns {string} decryptedSecret
  * @todo Add description for the params
  */
-__private.decryptSecret = function(encryptedSecret, key) {
-	const decipher = crypto.createDecipher('aes-256-cbc', key);
-	let decryptedSecret = decipher.update(encryptedSecret, 'hex', 'utf8');
-	decryptedSecret += decipher.final('utf8');
-	return decryptedSecret;
+__private.decryptSecret = function({ encryptedSecret }, password) {
+	// const { tag, salt, iv, iterations, cipherText } = parseEncryptedSecret(encryptedSecret);
+	const parsed = parseEncryptedSecret(encryptedSecret);
+	const { tag, salt, iv, iterations, cipherText } = parsed;
+	const tagBuffer = getTagBuffer(tag);
+	const key = getKeyFromPassword(
+		password,
+		Buffer.from(salt, 'hex'),
+		iterations
+	);
+
+	const decipher = crypto.createDecipheriv(
+		'aes-256-gcm',
+		key,
+		Buffer.from(iv, 'hex')
+	);
+	decipher.setAuthTag(tagBuffer);
+	const firstBlock = decipher.update(Buffer.from(cipherText, 'hex'));
+	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
+
+	return decrypted.toString();
 };
 
 /**
@@ -492,7 +568,7 @@ __private.loadDelegates = function(cb) {
 			let secret;
 			try {
 				secret = __private.decryptSecret(
-					encryptedItem.encryptedSecret,
+					encryptedItem,
 					library.config.forging.defaultKey
 				);
 			} catch (e) {
@@ -583,10 +659,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 
 	if (encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptSecret(
-				encryptedItem.encryptedSecret,
-				secretKey
-			);
+			decryptedSecret = __private.decryptSecret(encryptedItem, secretKey);
 		} catch (e) {
 			return setImmediate(cb, 'Invalid key and public key combination');
 		}
