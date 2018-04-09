@@ -50,19 +50,19 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'19e9f8eee5d9516234a10953669518bf23371d34e114713c8043a98378fd866834946380c4cc0e40f23305643206c1c5be496074f350d09d87735c42eae30c604cabea9862f4fe8f906313c67a7146d54fa844171e6cf925b7c953987082cdd6',
+						'$5$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
 				},
 				{
 					publicKey:
 						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedSecret:
-						'14ac6a589c2d3690dd1638eeccfa5ea6f88bfcf01bdcd65665ede305260f63f3d4ee87cb35ade7c237255a898f080fb160110ab2900108bb99cb9215771b1aaa6892ae48789f6a985b3cedf7ad42e94c',
+						'$5$rounds=1$f8f2c6b925f76f8b23b2aeb7973c73df$1f555db5bf44d505bcb0f6ef0b659da8fa81c2e0855ef519855936f7b72448156ace3cb60f65866f936ca3e503b296764168101db8e45b33579b8af35b4dea269efed2f3e0ec2a3a91c07592$iv=99da43bd3ac4c541059fce74024a945b$tag=45af72fcb5040d525521b839dab5580b$version=1.0.0',
 				},
 				{
 					publicKey:
 						'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 					encryptedSecret:
-						'2df503fb168552063136a479fe5598a28e90261b8ba6c16a8a27ff3ac9b3398aeebe6cf7afe6e84279f204bfcd2a62a18d71e08b14792a456bd3b78e60e215263a3aa2ed401346016e72c2a841e0d236',
+						'$5$rounds=1$4fe5555adfae3b7dbe740c72dc355929$9ea3d061ada369a30777ebbca2b844f960b486a43375096b7d42cd1adaf8c879e5f4516770f43419fbb9c02b8a848de02cc6916fe932f1b5268f70329604b3476bf88a1b499614130b8c0c664dac$iv=01f3eb51c0de8a8e58525c7c2fef777b$tag=8a088c96970567e05dbfa65b7478ea39$version=1.0.0',
 				},
 			];
 
@@ -113,12 +113,133 @@ describe('delegates', () => {
 				});
 			});
 
+			it('should return error if encrypted secret uses unsupported hash algorithm', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// method is set to 1: MD5
+					encryptedSecret:
+						'$1$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if number of rounds is incorrect', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// rounds is set to 2 instead of 1
+					encryptedSecret:
+						'$5$rounds=2$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if number of rounds is omitted', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// rounds is removed
+					encryptedSecret:
+						'$5$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
 			it('should return error if encrypted secret does not decrypt with default secret', done => {
 				var accountDetails = {
-					encryptedSecret:
-						'1cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
 					publicKey:
-						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// cipher text is one character short
+					encryptedSecret:
+						'$5$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef7851$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has invalid iv', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// iv is 1 character different
+					encryptedSecret:
+						'$5$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d7$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has invalid tag', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// tag is 1 character different
+					encryptedSecret:
+						'$5$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539f$version=1.0.0',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has shortened tag', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// tag is 4 characters shorter
+					encryptedSecret:
+						'$5$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20$version=1.0.0',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -134,9 +255,10 @@ describe('delegates', () => {
 
 			it('should return error if publicKeys do not match', done => {
 				var accountDetails = {
+					publicKey:
+						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedSecret:
-						'60cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
-					publicKey: 'randomKey',
+						'$5$rounds=1$5d502e8156eeeaf2acf23d801351dda7$f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519$iv=4a500624cba9c3cb3b6e380556e197d6$tag=24a118a1abab32d256a5de013c20539e$version=1.0.0',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -150,13 +272,12 @@ describe('delegates', () => {
 
 			it('should return error if account does not exist', done => {
 				var randomAccount = {
-					publicKey:
-						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 					secret:
 						'robust swift deputy enable forget peasant grocery road convince',
+					publicKey:
+						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 					encryptedSecret:
-						'60cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
-					key: 'elephant tree paris dragon chair galaxy',
+						'$5$rounds=1$9fa6f33b0ec75f625e7966e89a9e6f5f$d29a48a96de16df8206dcd26fa95e5692cebbc6bf5a752d9b13a85e83338258297a7432ef28b75dffcc983454bc36cadfa5641f6b8d5eca7f789e08ea5875c$iv=422495961ff94f75d41bc1feccb175dd$tag=ef9295c93120457e0811d62b86f3b736$version=1.0.0',
 				};
 				var accountDetails = {
 					encryptedSecret: randomAccount.encryptedSecret,
@@ -206,12 +327,10 @@ describe('delegates', () => {
 			});
 
 			it('should load all 101 delegates', done => {
-				config.forging.secret = genesisDelegates.delegates.map(delegate => {
-					return {
-						encryptedSecret: delegate.encryptedSecret,
-						publicKey: delegate.publicKey,
-					};
-				});
+				config.forging.secret = genesisDelegates.delegates.map(delegate => ({
+					encryptedSecret: delegate.encryptedSecret,
+					publicKey: delegate.publicKey,
+				}));
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;
