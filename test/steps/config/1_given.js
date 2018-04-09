@@ -16,7 +16,7 @@
 import lockfile from 'lockfile';
 import defaultConfig from '../../../default_config.json';
 import * as currentConfig from '../../../src/utils/config';
-import { getFirstBoolean, getBooleans } from '../utils';
+import { getFirstBoolean, getBooleans, getQuotedStrings } from '../utils';
 
 export function aConfigWithUnknownProperties() {
 	const config = {
@@ -53,9 +53,21 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
-export function aConfigWithAPITestnetSetTo() {
-	const testnet = getFirstBoolean(this.test.parent.title);
-	const config = { api: { testnet } };
+export function aConfigWithAPINodeSetTo() {
+	const node = getQuotedStrings(this.test.parent.title)[1];
+	const { api } = currentConfig.default || {};
+	api.node = node;
+	const config = { api };
+
+	currentConfig.default = config;
+	this.test.ctx.config = config;
+}
+
+export function aConfigWithAPINetworkSetTo() {
+	const network = getQuotedStrings(this.test.parent.title)[1];
+	const { api } = currentConfig.default || {};
+	api.network = network;
+	const config = { api };
 
 	currentConfig.default = config;
 	this.test.ctx.config = config;

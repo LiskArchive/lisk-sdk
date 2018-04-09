@@ -13,7 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { CONFIG_VARIABLES } from '../utils/constants';
+import lisk from 'lisk-js';
+import { CONFIG_VARIABLES, NETHASHES } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
 import { writeJSONSync } from '../utils/fs';
@@ -25,11 +26,14 @@ const description = `Sets configuration <variable> to <value>. Variables availab
 	Examples:
 	- set json true
 	- set name my_custom_lisky
-	- set api.testnet true
+	- set api.network main
 `;
 
 const WRITE_FAIL_WARNING =
 	'Config file could not be written: your changes will not be persisted.';
+
+const NETHASH_ERROR_MESSAGE =
+	'Value must be a hex string with 64 characters, or one of main, test or beta.';
 
 const writeConfigToFile = newConfig => {
 	try {
@@ -98,9 +102,26 @@ const setString = (dotNotation, value) => {
 	return attemptWriteToFile(value, dotNotation);
 };
 
+const setNethash = (dotNotation, value) => {
+	if (
+		dotNotation === 'api.network' &&
+		!Object.keys(NETHASHES).includes(value)
+	) {
+		if (value.length !== 64) {
+			throw new ValidationError(NETHASH_ERROR_MESSAGE);
+		}
+		try {
+			lisk.cryptography.hexToBuffer(value, 'utf8');
+		} catch (error) {
+			throw new ValidationError(NETHASH_ERROR_MESSAGE);
+		}
+	}
+	return setString(dotNotation, value);
+};
+
 const handlers = {
 	'api.node': setString,
-	'api.testnet': setBoolean,
+	'api.network': setNethash,
 	json: setBoolean,
 	name: setString,
 	pretty: setBoolean,

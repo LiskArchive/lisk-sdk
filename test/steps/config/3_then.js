@@ -24,15 +24,14 @@ export function itShouldUpdateTheConfigVariableToTheValue() {
 		.equal(value);
 }
 
-export function itShouldUpdateTheConfigNestedVariableToBoolean() {
-	const { config } = this.test.ctx;
+export function itShouldUpdateTheConfigNestedVariableToTheValue() {
+	const { value, config } = this.test.ctx;
 	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
-	const boolean = getFirstBoolean(this.test.title);
-	const value = nestedVariable.reduce(
+	const configValue = nestedVariable.reduce(
 		(currentObject, nextKey) => currentObject[nextKey],
 		config,
 	);
-	return expect(value).to.equal(boolean);
+	return expect(configValue).to.equal(value);
 }
 
 export function itShouldUpdateTheConfigVariableToBoolean() {

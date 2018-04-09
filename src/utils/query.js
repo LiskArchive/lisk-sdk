@@ -15,9 +15,9 @@
  */
 import getAPIClient from './api';
 
-export default (endpoint, parameters, { testnet } = {}) =>
+export default (endpoint, parameters) =>
 	// prettier-ignore
-	getAPIClient(testnet)[endpoint].get(parameters)
+	getAPIClient()[endpoint].get(parameters)
 		.then(res => {
 			if (res.data) {
 				if (Array.isArray(res.data)) {
