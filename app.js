@@ -368,6 +368,14 @@ d.run(() => {
 						scope.logger.info('Socket Cluster ready for incoming connections');
 						cb();
 					});
+
+					scope.socketCluster.on('workerExit', workerInfo => {
+						var exitMessage = `Worker with pid ${workerInfo.pid} exited`;
+						if (workerInfo.signal) {
+							exitMessage += ` due to signal: '${workerInfo.signal}'`;
+						}
+						scope.logger.error(exitMessage);
+					});
 				},
 			],
 

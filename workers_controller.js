@@ -214,6 +214,8 @@ SCWorker.create({
 						}
 					);
 				}
+
+				scope.logger.debug(`Worker pid ${process.pid} started`);
 			}
 		);
 	},
