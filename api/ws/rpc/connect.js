@@ -180,6 +180,7 @@ const connectSteps = {
 					peer.ip
 				} failed with code ${code} and reason - ${reason}`
 			);
+			socket.destroy();
 			onDisconnectCb();
 		});
 
