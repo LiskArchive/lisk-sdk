@@ -37,7 +37,7 @@ accounts.genesis = {
 		'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
 	balance: '10000000000000000',
 	encryptedSecret:
-		'ddbb37d465228d52a78ad13555e609750ec30e8f5912a1b8fbdb091f50e269cbcc3875dad032115e828976f0c7f5ed71ce925e16974233152149e902b48cec51d93c2e40a6c95de75c1c5a2c369e6d24',
+		'$5$rounds=1$21f2e758cb35138d83853af73ade3069$e7a4fb32f361818d30c69c600bde918963cd863a51b87bbd8a7434c59ef15709226ead94aa661bd376e312ab65b333f48dcdac51077d111ae93d6a677cef28a84ef5a890317d9f7146a0c8dd$iv=024bcdca40bc8cad9c5c14ada04e988f$tag=b19c49061e161c2e26240f54de5153e7$version=1.0.0',
 	key: 'elephant tree paris dragon chair galaxy',
 };
 
