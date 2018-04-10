@@ -56,6 +56,15 @@ const connectSteps = {
 	},
 
 	addSocket: peer => {
+		if (peer.socket) {
+			// If a socket connection exists,
+			// before issuing a new connection
+			// destroy the exisiting connection
+			// to avoid too many socket connections.
+			peer.socket.destroy();
+			delete peer.socket;
+			peer.socket = null;
+		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 		return peer;
 	},
@@ -124,47 +133,57 @@ const connectSteps = {
 
 	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
 		// Unregister all the events just in case
-		peer.socket.off('connect');
-		peer.socket.off('connectAbort');
-		peer.socket.off('error');
-		peer.socket.off('close');
-		peer.socket.off('message');
+		const socket = peer.socket;
+		socket.off('connect');
+		socket.off('connectAbort');
+		socket.off('error');
+		socket.off('close');
+		socket.off('message');
 
-		peer.socket.on('connect', () => {
+		socket.on('connect', () => {
 			logger.trace(
 				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
 			);
 		});
 
+		socket.on('disconnect', () => {
+			logger.trace(
+				`[Outbound socket :: disconnect] Peer connection to ${
+					peer.ip
+				} disconnected`
+			);
+		});
+
 		// When handshake process will fail - disconnect
 		// ToDo: Use parameters code and description returned while handshake fails
-		peer.socket.on('connectAbort', () => {
-			peer.socket.disconnect(
+		socket.on('connectAbort', () => {
+			socket.disconnect(
 				failureCodes.HANDSHAKE_ERROR,
 				failureCodes.errorMessages[failureCodes.HANDSHAKE_ERROR]
 			);
 		});
 
 		// When error on transport layer occurs - disconnect
-		peer.socket.on('error', err => {
+		socket.on('error', err => {
 			logger.debug(
 				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
 			);
-			peer.socket.disconnect();
+			socket.disconnect();
 		});
 
 		// When WS connection ends - remove peer
-		peer.socket.on('close', (code, reason) => {
+		socket.on('close', (code, reason) => {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
 					peer.ip
 				} failed with code ${code} and reason - ${reason}`
 			);
+			socket.destroy();
 			onDisconnectCb();
 		});
 
 		// The 'message' event can be used to log all low-level WebSocket messages.
-		peer.socket.on('message', message => {
+		socket.on('message', message => {
 			logger.trace(
 				`[Outbound socket :: message] Peer message from ${
 					peer.ip
