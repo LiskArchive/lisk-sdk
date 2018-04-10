@@ -35,7 +35,9 @@ const chars = {
 };
 
 const getNestedValue = data => keyString =>
-	keyString.split('.').reduce((accumulated, key) => accumulated[key], data);
+	keyString
+		.split('.')
+		.reduce((accumulated, key) => (accumulated ? accumulated[key] : ''), data);
 
 const addValuesToTable = (table, data) => {
 	const nestedValues = table.options.head.map(getNestedValue(data));
