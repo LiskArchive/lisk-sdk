@@ -15,6 +15,7 @@
  */
 import {
 	deAlias,
+	normalizeAmount,
 	validateAddress,
 	validateAmount,
 	validateLifetime,
@@ -72,6 +73,12 @@ export function validateAmountIsCalledOnTheAmount() {
 		this.test.ctx.testFunction = testFunction;
 		return testFunction;
 	}
+}
+
+export function normalizeAmountIsCalledOnTheAmount() {
+	const { amount } = this.test.ctx;
+	const returnValue = normalizeAmount(amount);
+	this.test.ctx.returnValue = returnValue;
 }
 
 export function deAliasIsCalledOnTheType() {
