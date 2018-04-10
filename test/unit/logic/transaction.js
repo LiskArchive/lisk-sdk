@@ -556,7 +556,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should return error when Account does not belong to multisignature group', function (done) {
+		it('should return error when transaction has requester', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			var vs = _.cloneDeep(validSender);
 			// Different publicKey for multisignature account
@@ -565,7 +565,7 @@ describe('transaction', function () {
 			delete trs.signature;
 			trs.signature = transaction.sign(validKeypair, trs);
 			transaction.verify(trs, vs, {}, function (err) {
-				expect(err).to.equal('Account does not belong to multisignature group');
+				expect(err).to.equal('Multisig request is not allowed');
 				done();
 			});
 		});
@@ -589,21 +589,6 @@ describe('transaction', function () {
 			trs.signature = transaction.sign(senderKeypair, trs);
 			transaction.verify(trs, vs, {}, function (err) {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
-				done();
-			});
-		});
-
-		it('should return error when failed to verify multisignature', function (done) {
-			var trs = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(validSender);
-			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
-			trs.requesterPublicKey = validKeypair.publicKey.toString('hex');
-			delete trs.signature;
-			// using validKeypair as opposed to senderKeypair
-			trs.signatures = [transaction.sign(validKeypair, trs)];
-			trs.signature = transaction.sign(validKeypair, trs);
-			transaction.verify(trs, vs, {}, function (err) {
-				expect(err).to.equal('Failed to verify multisignature');
 				done();
 			});
 		});

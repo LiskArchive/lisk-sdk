@@ -1050,7 +1050,7 @@ DApps.prototype.isLoaded = function () {
  * - Shared API
  */
 DApps.prototype.internal = {
-	put: function (dapp, cb) {
+	put: function (dapp, cb) {		
 		var hash = crypto.createHash('sha256').update(dapp.secret, 'utf8').digest();
 		var keypair = library.ed.makeKeypair(hash);
 
@@ -1445,6 +1445,10 @@ DApps.prototype.internal = {
 				return setImmediate(cb, err[0].message);
 			}
 
+			if (req.body.multisigAccountPublicKey || req.body.requesterPublicKey) {
+				return setImmediate(cb, 'Multisig request is not allowed');
+			}
+
 			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 			var keypair = library.ed.makeKeypair(hash);
 
@@ -1572,7 +1576,11 @@ DApps.prototype.internal = {
 			if (err) {
 				return setImmediate(cb, err[0].message);
 			}
-
+			
+			if (req.body.multisigAccountPublicKey || req.body.requesterPublicKey) {
+				return setImmediate(cb, 'Multisig request is not allowed');
+			}
+			
 			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 			var keypair = library.ed.makeKeypair(hash);
 			var query = {};
