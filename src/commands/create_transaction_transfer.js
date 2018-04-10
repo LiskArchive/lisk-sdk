@@ -16,6 +16,7 @@
 import getInputsFromSources from '../utils/input';
 import {
 	createCommand,
+	normalizeAmount,
 	validateAddress,
 	validateAmount,
 } from '../utils/helpers';
@@ -47,7 +48,8 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 	validateAmount(amount);
 	validateAddress(address);
 
-	const processFunction = processInputs(amount, address);
+	const normalizedAmount = normalizeAmount(amount);
+	const processFunction = processInputs(normalizedAmount, address);
 
 	return signature === false
 		? processFunction({
