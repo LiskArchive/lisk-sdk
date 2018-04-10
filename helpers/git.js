@@ -15,6 +15,7 @@
 'use strict';
 
 var childProcess = require('child_process');
+var fs = require('fs');
 
 /**
  * Helper module for parsing git commit information.
@@ -34,10 +35,19 @@ function getLastCommit() {
 	var spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
 	var err = spawn.stderr.toString().trim();
 
-	if (err) {
-		throw new Error(err);
-	} else {
+	// If there is git tool available and current directory is a git owned directory
+	if (!err) {
 		return spawn.stdout.toString().trim();
+	}
+
+	// Try looking for a file REVISION for a compiled build
+	try {
+		return fs
+			.readFileSync('REVISION')
+			.toString()
+			.trim();
+	} catch (error) {
+		throw error;
 	}
 }
 
