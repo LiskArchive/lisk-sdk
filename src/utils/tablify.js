@@ -35,7 +35,9 @@ const chars = {
 };
 
 const getNestedValue = data => keyString =>
-	keyString.split('.').reduce((obj, key) => obj[key], data);
+	keyString
+		.split('.')
+		.reduce((accumulated, key) => (accumulated ? accumulated[key] : ''), data);
 
 const addValuesToTable = (table, data) => {
 	const nestedValues = table.options.head.map(getNestedValue(data));
@@ -43,16 +45,6 @@ const addValuesToTable = (table, data) => {
 		value => (Array.isArray(value) ? value.join('\n') : value),
 	);
 	return valuesToPush.length && table.push(valuesToPush);
-};
-
-const reduceKeys = (keys, row) => {
-	const newKeys = Object.keys(row).filter(
-		key =>
-			!keys.includes(key) &&
-			row[key] !== undefined &&
-			!(row[key] instanceof Error),
-	);
-	return keys.concat(newKeys);
 };
 
 const getKeys = (data, limit = 3, loop = 1) => {
@@ -81,6 +73,21 @@ const getKeys = (data, limit = 3, loop = 1) => {
 			],
 			[],
 		);
+};
+
+const reduceKeys = (keys, row) => {
+	const newKeys = Object.entries(row).flatMap(([key, value]) => {
+		if (keys.includes(key) || value === undefined || value instanceof Error) {
+			return [];
+		}
+		if (typeof value === 'object' && !Array.isArray(value)) {
+			return getKeys(value)
+				.map(nestedKey => `${key}.${nestedKey}`)
+				.filter(nestedKey => !keys.includes(nestedKey));
+		}
+		return key;
+	});
+	return keys.concat(newKeys);
 };
 
 const tablify = data => {
