@@ -232,8 +232,8 @@ Vote.prototype.apply = function (trs, block, sender, cb) {
 				delegates: trs.asset.votes,
 				blockId: block.id,
 				round: modules.rounds.calc(block.height)
-			}, function (err) {
-				return setImmediate(cb, err);
+			}, function (mergeErr) {
+				return setImmediate(seriesCb, mergeErr);
 			});
 		}
 	], cb);
@@ -260,8 +260,8 @@ Vote.prototype.undo = function (trs, block, sender, cb) {
 		delegates: votesInvert,
 		blockId: block.id,
 		round: modules.rounds.calc(block.height)
-	}, function (err) {
-		return setImmediate(cb, err);
+	}, function (mergeErr) {
+		return setImmediate(cb, mergeErr);
 	});
 };
 
@@ -285,8 +285,8 @@ Vote.prototype.applyUnconfirmed = function (trs, sender, cb) {
 		function (seriesCb) {
 			parent.scope.account.merge(sender.address, {
 				u_delegates: trs.asset.votes
-			}, function (err) {
-				return setImmediate(seriesCb, err);
+			}, function (mergeErr) {
+				return setImmediate(seriesCb, mergeErr);
 			});
 		}
 	], cb);
@@ -308,8 +308,8 @@ Vote.prototype.undoUnconfirmed = function (trs, sender, cb) {
 
 	var votesInvert = Diff.reverse(trs.asset.votes);
 
-	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (err) {
-		return setImmediate(cb, err);
+	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (mergeErr) {
+		return setImmediate(cb, mergeErr);
 	});
 };
 

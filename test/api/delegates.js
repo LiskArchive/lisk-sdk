@@ -362,6 +362,89 @@ describe('PUT /api/delegates with funds', function () {
 			});
 		});
 	});
+
+	describe('multisigAccountPublicKey', function (done) {
+
+		it('using null should be ok', function (done) {
+			validParams.multisigAccountPublicKey = null;
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using undefined should be ok', function (done) {
+			validParams.multisigAccountPublicKey = undefined;
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using integer should fail', function (done) {
+			validParams.multisigAccountPublicKey = 1;
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty array should fail', function (done) {
+			validParams.multisigAccountPublicKey = [];
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty object should fail', function (done) {
+			validParams.multisigAccountPublicKey = {};
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using object should fail', function (done) {
+			validParams.multisigAccountPublicKey = new Buffer.from('dummy');
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty string should be ok', function (done) {
+			validParams.multisigAccountPublicKey = '';
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using valid public key should fail', function (done) {
+			validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+
+			putDelegates(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+	});
 });
 
 describe('PUT /api/delegates double registration', function () {

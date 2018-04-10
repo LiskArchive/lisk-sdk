@@ -1,10 +1,17 @@
 'use strict';
 
+var async = require('async');
+
 var node = require('./../node.js');
 
-var account = node.randomTxAccount();
-var account2 = node.randomTxAccount();
-var account3 = node.randomTxAccount();
+var account = node.randomAccount();
+var account1 = node.randomAccount();
+var account2 = node.randomAccount();
+var account3 = node.randomAccount();
+var accountNoFunds = node.randomAccount();
+
+var accounts = [];
+accounts.push(account, account1, account2, account3);
 
 function putSignature (params, done) {
 	node.put('/api/signatures', params, done);
@@ -18,30 +25,17 @@ function putDelegate (params, done) {
 	node.put('/api/delegates', params, done);
 }
 
-function sendLISK (account, done) {
-	var randomLISK = node.randomLISK();
-	var expectedFee = node.expectedFee(randomLISK);
-
-	putTransaction({
-		secret: node.gAccount.password,
-		amount: randomLISK,
-		recipientId: account.address
-	}, function (err, res) {
-		node.expect(res.body).to.have.property('success').to.be.ok;
-		done(err, res);
+before(function (done) {
+	var crediting = accounts;
+	async.eachSeries(crediting, function (account, eachCb) {
+		putTransaction({
+			secret: node.gAccount.password,
+			amount: 100 * node.normalizer,
+			recipientId: account.address
+		}, eachCb);
+	}, function (err) {
+		return done(err);
 	});
-}
-
-before(function (done) {
-	setTimeout(function () {
-		sendLISK(account, done);
-	}, 2000);
-});
-
-before(function (done) {
-	setTimeout(function () {
-		sendLISK(account2, done);
-	}, 2000);
 });
 
 describe('PUT /api/signatures', function () {
@@ -51,7 +45,7 @@ describe('PUT /api/signatures', function () {
 	});
 
 	var validParams;
-
+	
 	beforeEach(function (done) {
 		validParams = {
 			secret: account.password,
@@ -61,8 +55,8 @@ describe('PUT /api/signatures', function () {
 	});
 
 	it('when account has no funds should fail', function (done) {
-		validParams.secret = account3.password;
-		validParams.secondSecret = account3.password;
+		validParams.secret = accountNoFunds.password;
+		validParams.secondSecret = accountNoFunds.password;
 
 		putSignature(validParams, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.not.ok;
@@ -102,6 +96,96 @@ describe('PUT /api/signatures', function () {
 			done();
 		});
 	});
+
+	describe('multisigAccountPublicKey', function (done) {
+
+		it('using null should be ok', function (done) {
+			validParams.secret =  account1.password,
+			validParams.secondSecret = account1.secondPassword;
+			
+			validParams.multisigAccountPublicKey = null;
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using undefined should be ok', function (done) {
+			validParams.secret = account2.password,
+			validParams.secondSecret = account2.secondPassword;
+			validParams.multisigAccountPublicKey = undefined;
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using integer should fail', function (done) {
+			validParams.multisigAccountPublicKey = 1;
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty array should fail', function (done) {
+			validParams.multisigAccountPublicKey = [];
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty object should fail', function (done) {
+			validParams.multisigAccountPublicKey = {};
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using object should fail', function (done) {
+			validParams.multisigAccountPublicKey = new Buffer.from('dummy');
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+
+		it('using empty string should be ok', function (done) {
+			validParams.secret = account3.password,
+			validParams.secondSecret = account3.secondPassword;
+			validParams.multisigAccountPublicKey = '';
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transaction').to.not.be.empty;
+				done();
+			});
+		});
+
+		it('using valid public key should fail', function (done) {
+			validParams.multisigAccountPublicKey = node.randomAccount().publicKey;
+
+			putSignature(validParams, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.not.be.ok;
+				node.expect(res.body).to.have.property('error').to.equal('Multisig request is not allowed');
+				done();
+			});
+		});
+	});
 });
 
 describe('PUT /api/transactions from account with second signature enabled', function () {
@@ -117,7 +201,7 @@ describe('PUT /api/transactions from account with second signature enabled', fun
 			secret: account.password,
 			secondSecret: account.password,
 			recipientId: account2.address,
-			amount: 100000000
+			amount: 1 * node.normalizer
 		};
 		done();
 	});

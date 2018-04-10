@@ -951,6 +951,10 @@ Delegates.prototype.shared = {
 				return setImmediate(cb, err[0].message);
 			}
 
+			if (req.body.multisigAccountPublicKey || req.body.requesterPublicKey) {
+				return setImmediate(cb, 'Multisig request is not allowed');
+			}
+			
 			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
 			var keypair = library.ed.makeKeypair(hash);
 

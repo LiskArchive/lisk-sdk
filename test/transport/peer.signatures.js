@@ -230,7 +230,7 @@ describe('POST /peer/signatures', function () {
 
 		// Send transaction
 		before(function (done) {
-			transaction = node.lisk.multisignature.createTransaction('1L', 1, owner.password);
+			transaction = node.lisk.transaction.createTransaction('1L', 1, owner.password);
 
 			postTransaction(transaction, function (err, res) {
 				node.expect(res.body).to.have.property('success').to.be.ok;

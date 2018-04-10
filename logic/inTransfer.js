@@ -145,9 +145,9 @@ InTransfer.prototype.getBytes = function (trs) {
  * @return {setImmediateCallback} error, cb
  */
 InTransfer.prototype.apply = function (trs, block, sender, cb) {
-	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, err);
+	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (getGenesisErr, res) {
+		if (getGenesisErr) {
+			return setImmediate(cb, getGenesisErr);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: res.authorId,
@@ -155,8 +155,8 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
 			u_balance: trs.amount,
 			blockId: block.id,
 			round: modules.rounds.calc(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
+		}, function (mergeAccountAndGetErr) {
+			return setImmediate(cb, mergeAccountAndGetErr);
 		});
 	});
 };
@@ -175,9 +175,9 @@ InTransfer.prototype.apply = function (trs, block, sender, cb) {
  * @return {setImmediateCallback} error, cb
  */
 InTransfer.prototype.undo = function (trs, block, sender, cb) {
-	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (err, res) {
-		if (err) {
-			return setImmediate(cb, err);
+	shared.getGenesis({dappid: trs.asset.inTransfer.dappId}, function (getGenesisErr, res) {
+		if (getGenesisErr) {
+			return setImmediate(cb, getGenesisErr);
 		}
 		modules.accounts.mergeAccountAndGet({
 			address: res.authorId,
@@ -185,8 +185,8 @@ InTransfer.prototype.undo = function (trs, block, sender, cb) {
 			u_balance: -trs.amount,
 			blockId: block.id,
 			round: modules.rounds.calc(block.height)
-		}, function (err) {
-			return setImmediate(cb, err);
+		}, function (mergeAccountAndGetErr) {
+			return setImmediate(cb, mergeAccountAndGetErr);
 		});
 	});
 };
