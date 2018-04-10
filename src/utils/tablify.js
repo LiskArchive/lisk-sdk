@@ -80,7 +80,7 @@ const reduceKeys = (keys, row) => {
 		if (keys.includes(key) || value === undefined || value instanceof Error) {
 			return [];
 		}
-		if (typeof value === 'object') {
+		if (typeof value === 'object' && !Array.isArray(value)) {
 			return getKeys(value)
 				.map(nestedKey => `${key}.${nestedKey}`)
 				.filter(nestedKey => !keys.includes(nestedKey));

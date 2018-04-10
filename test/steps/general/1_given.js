@@ -140,6 +140,7 @@ export function anArrayOfObjectsWithNestedKeys() {
 			assets: {
 				type: 0,
 			},
+			signatures: ['publicKey1', 'publicKey2'],
 		},
 		{
 			lisk: 'ts',
@@ -157,18 +158,20 @@ export function anArrayOfObjectsWithNestedKeys() {
 			assets: {
 				type: 3,
 			},
+			signatures: [],
 		},
 	];
 	this.test.ctx.testArrayKeysResult = [
 		'lisk',
 		'version',
 		'assets.type',
+		'signatures',
 		'data.testing',
 	];
 	this.test.ctx.testArrayValuesResult = [
-		['js', 1, 0, ''],
-		['ts', 2, 1, 'test-string'],
-		['jsx', 3, 3, ''],
+		['js', 1, 0, 'publicKey1\npublicKey2', ''],
+		['ts', 2, 1, undefined, 'test-string'],
+		['jsx', 3, 3, '', ''],
 	];
 }
 
