@@ -176,11 +176,25 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 		.eql(keys);
 }
 
+export function theReturnedTableShouldHaveAHeadWithTheObjectsNestedKeys() {
+	const { returnValue, testArrayKeysResult } = this.test.ctx;
+	return expect(returnValue.options)
+		.to.have.property('head')
+		.eql(testArrayKeysResult);
+}
+
 export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
 	const { returnValue, testArray } = this.test.ctx;
 	return testArray.forEach((testObject, i) => {
 		const values = Object.values(testObject);
 		return expect(returnValue[i]).to.eql(values);
+	});
+}
+
+export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectNestedValues() {
+	const { returnValue, testArray, testArrayValuesResult } = this.test.ctx;
+	return testArray.forEach((testObject, i) => {
+		return expect(returnValue[i]).to.eql(testArrayValuesResult[i]);
 	});
 }
 

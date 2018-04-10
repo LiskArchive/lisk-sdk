@@ -102,4 +102,20 @@ describe('tablify util', () => {
 			});
 		},
 	);
+	Given(
+		'an array of objects with nested keys',
+		given.anArrayOfObjectsWithNestedKeys,
+		() => {
+			When('the array is tablified', when.theArrayIsTablified, () => {
+				Then(
+					'the returned table should have a head with the objects’ nested keys',
+					then.theReturnedTableShouldHaveAHeadWithTheObjectsNestedKeys,
+				);
+				Then(
+					'the returned table should have a row for each object with the object’s values',
+					then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectNestedValues,
+				);
+			});
+		},
+	);
 });
