@@ -25,7 +25,7 @@ var sendTransactionsPromise = require('../../../common/helpers/api')
 var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function(params) {
-	describe('stress test for type 3 transactions', () => {
+	describe('stress test for type 3 transactions @slow', () => {
 		var accounts = [];
 		var transactions = [];
 		var maximum = 1000;
