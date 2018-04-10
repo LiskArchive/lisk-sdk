@@ -46,8 +46,14 @@ module.exports = function(grunt) {
 				cmd(tag, suite, section) {
 					if (suite === 'integration') {
 						var slowTag = '';
-						if (tag !== 'slow') {
+						if (tag === 'untagged') {
 							slowTag = '--grep @slow --invert';
+						} else if (tag === 'extensive') {
+							slowTag = '--grep @unstable --invert';
+						} else if (tag === 'slow') {
+							slowTag = '--grep @slow';
+						} else if (tag === '@unstable') {
+							slowTag = '--grep @unstable';
 						}
 						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
 					}
