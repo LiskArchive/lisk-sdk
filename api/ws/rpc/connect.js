@@ -147,13 +147,11 @@ const connectSteps = {
 		});
 
 		socket.on('disconnect', () => {
-			logger.error(
+			logger.trace(
 				`[Outbound socket :: disconnect] Peer connection to ${
 					peer.ip
 				} disconnected`
 			);
-
-			logger.error(socket.clientId);
 		});
 
 		// When handshake process will fail - disconnect
