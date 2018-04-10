@@ -42,6 +42,7 @@ export const validatePublicKeys = publicKeys =>
 
 const regExpAddress = /^\d{1,21}[L|l]$/;
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
+const DECIMAL_PLACES = 8;
 
 const isStringInteger = n => {
 	const parsed = parseInt(n, 10);
@@ -78,6 +79,16 @@ export const validateAmount = amount => {
 		);
 	}
 	return true;
+};
+
+export const normalizeAmount = amount => {
+	const [preString, postString = ''] = amount.split('.');
+	const [preArray, postArray] = [preString, postString].map(n => Array.from(n));
+	const pad = new Array(DECIMAL_PLACES - postArray.length).fill('0');
+	const combinedArray = [...preArray, ...postArray, ...pad];
+	const combinedString = combinedArray.join('');
+	const trimmed = combinedString.replace(/^0+/, '') || '0';
+	return trimmed;
 };
 
 export const deAlias = type => (type === 'addresses' ? 'accounts' : type);
