@@ -83,7 +83,7 @@
 		"valid-url": "=1.0.9",
 		"validator": "=7.0.0",
 		"validator.js": "=2.0.3",
-		"wamp-socket-cluster": "=2.0.0-beta.1",
+		"wamp-socket-cluster": "=2.0.0-beta.2",
 		"z-schema": "=3.18.2"
 	},
 	"devDependencies": {
