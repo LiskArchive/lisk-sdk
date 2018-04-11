@@ -77,8 +77,15 @@ export function validateAmountIsCalledOnTheAmount() {
 
 export function normalizeAmountIsCalledOnTheAmount() {
 	const { amount } = this.test.ctx;
-	const returnValue = normalizeAmount(amount);
-	this.test.ctx.returnValue = returnValue;
+	try {
+		const returnValue = normalizeAmount(amount);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = normalizeAmount.bind(null, amount);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
 }
 
 export function deAliasIsCalledOnTheType() {

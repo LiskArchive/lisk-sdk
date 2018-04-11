@@ -333,6 +333,18 @@ describe('utils helpers', () => {
 				);
 			},
 		);
+		Given('an invalid amount "0.123456789"', given.anInvalidAmount, () => {
+			When(
+				'normalizeAmount is called on the amount',
+				when.normalizeAmountIsCalledOnTheAmount,
+				() => {
+					Then(
+						'it should throw validation error "Amount must be a number with no more than 8 decimal places."',
+						then.itShouldThrowValidationError,
+					);
+				},
+			);
+		});
 	});
 	describe('#deAlias', () => {
 		Given(

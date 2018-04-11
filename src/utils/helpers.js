@@ -82,6 +82,7 @@ export const validateAmount = amount => {
 };
 
 export const normalizeAmount = amount => {
+	validateAmount(amount);
 	const [preString, postString = ''] = amount.split('.');
 	const [preArray, postArray] = [preString, postString].map(n => Array.from(n));
 	const pad = new Array(DECIMAL_PLACES - postArray.length).fill('0');
