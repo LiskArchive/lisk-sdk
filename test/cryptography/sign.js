@@ -20,6 +20,8 @@ import {
 	printSignedMessage,
 	signAndPrintMessage,
 	signData,
+	signDataWithPassphrase,
+	signDataWithPrivateKey,
 	verifyData,
 } from 'cryptography/sign';
 // Require is used for stubbing
@@ -293,6 +295,35 @@ ${defaultSecondSignature}
 
 		beforeEach(() => {
 			signature = signData(defaultData, defaultPassphrase);
+			return Promise.resolve();
+		});
+
+		it('should sign a transaction', () => {
+			return expect(signature).to.be.equal(defaultDataSignature);
+		});
+	});
+
+	describe('#signDataWithPassphrase', () => {
+		let signature;
+
+		beforeEach(() => {
+			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
+			return Promise.resolve();
+		});
+
+		it('should sign a transaction', () => {
+			return expect(signature).to.be.equal(defaultDataSignature);
+		});
+	});
+
+	describe('#signDataWithPrivateKey', () => {
+		let signature;
+
+		beforeEach(() => {
+			signature = signDataWithPrivateKey(
+				defaultData,
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
 			return Promise.resolve();
 		});
 
