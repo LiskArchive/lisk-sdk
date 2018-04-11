@@ -75,6 +75,15 @@ random.applicationName = function() {
 	});
 };
 
+random.dataField = function(bytes) {
+	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	return randomstring.generate({
+		length: bytes,
+		charset: custom,
+	});
+};
+
 // Test random application
 random.application = function() {
 	var application = {
