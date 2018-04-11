@@ -163,9 +163,9 @@ InTransfer.prototype.getBytes = function(transaction) {
 InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 	shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
-		(err, res) => {
-			if (err) {
-				return setImmediate(cb, err);
+		(getGenesisErr, res) => {
+			if (getGenesisErr) {
+				return setImmediate(cb, getGenesisErr);
 			}
 			modules.accounts.mergeAccountAndGet(
 				{
@@ -175,7 +175,7 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
-				err => setImmediate(cb, err),
+				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
 				tx
 			);
 		},
@@ -198,9 +198,9 @@ InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 InTransfer.prototype.undo = function(transaction, block, sender, cb, tx) {
 	shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
-		(err, res) => {
-			if (err) {
-				return setImmediate(cb, err);
+		(getGenesisErr, res) => {
+			if (getGenesisErr) {
+				return setImmediate(cb, getGenesisErr);
 			}
 			modules.accounts.mergeAccountAndGet(
 				{
@@ -210,7 +210,7 @@ InTransfer.prototype.undo = function(transaction, block, sender, cb, tx) {
 					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
-				err => setImmediate(cb, err),
+				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
 				tx
 			);
 		},
