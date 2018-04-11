@@ -8,6 +8,9 @@ release/
 ssl/
 tmp/
 
+# Build revision file generated while building a release
+REVISION
+
 # Dependency directories
 node_modules/
 
