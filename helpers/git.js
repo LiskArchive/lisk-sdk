@@ -47,7 +47,7 @@ function getLastCommit() {
 			.toString()
 			.trim();
 	} catch (error) {
-		throw error;
+		throw new Error('Not a git repository and no revision file found.');
 	}
 }
 
