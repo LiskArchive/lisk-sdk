@@ -268,6 +268,84 @@ describe('utils helpers', () => {
 			);
 		});
 	});
+	describe('#normalizeAmount', () => {
+		Given(
+			'an amount "120" with normalized amount "12000000000"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an amount "123.456" with normalized amount "12345600000"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an amount "0" with normalized amount "0"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an amount "0.00000123" with normalized amount "123"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given('an invalid amount "0.123456789"', given.anInvalidAmount, () => {
+			When(
+				'normalizeAmount is called on the amount',
+				when.normalizeAmountIsCalledOnTheAmount,
+				() => {
+					Then(
+						'it should throw validation error "Amount must be a number with no more than 8 decimal places."',
+						then.itShouldThrowValidationError,
+					);
+				},
+			);
+		});
+	});
 	describe('#deAlias', () => {
 		Given(
 			'a type "addresses" with alias "accounts"',

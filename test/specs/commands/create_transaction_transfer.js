@@ -75,246 +75,250 @@ describe('create transaction transfer command', () => {
 												);
 											},
 										);
-										Given('an amount "100.123"', given.anAmount, () => {
-											Given(
-												'an invalid address "1234567890LL"',
-												given.anInvalidAddress,
-												() => {
-													When(
-														'the action is called with the amount, the address and the options',
-														when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-														() => {
-															Then(
-																'it should reject with validation error and message "1234567890LL is not a valid address."',
-																then.itShouldRejectWithValidationErrorAndMessage,
-															);
-														},
-													);
-												},
-											);
-											Given(
-												'an address "13356260975429434553L"',
-												given.anAddress,
-												() => {
-													Given(
-														'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-														given.anErrorOccursRetrievingTheInputsFromTheirSources,
-														() => {
-															When(
-																'the action is called with the amount, the address and the options',
-																when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																() => {
-																	Then(
-																		'it should reject with the error message',
-																		then.itShouldRejectWithTheErrorMessage,
-																	);
-																},
-															);
-														},
-													);
-													Given(
-														'the passphrase can be retrieved from its source',
-														given.thePassphraseCanBeRetrievedFromItsSource,
-														() => {
-															When(
-																'the action is called with the amount, the address and the options',
-																when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																() => {
-																	Then(
-																		'it should get the inputs from sources using the Vorpal instance',
-																		then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
-																	);
-																	Then(
-																		'it should get the inputs from sources using the passphrase source with a repeating prompt',
-																		then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
-																	);
-																	Then(
-																		'it should not get the inputs from sources using the second passphrase source',
-																		then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource,
-																	);
-																	Then(
-																		'it should create a transfer transaction using the address, the amount and the passphrase',
-																		then.itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase,
-																	);
-																	Then(
-																		'it should resolve to the created transaction',
-																		then.itShouldResolveToTheCreatedTransaction,
-																	);
-																},
-															);
-														},
-													);
-													Given(
-														'an options object with passphrase set to "passphraseSource"',
-														given.anOptionsObjectWithPassphraseSetTo,
-														() => {
-															Given(
-																'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-																given.anErrorOccursRetrievingTheInputsFromTheirSources,
-																() => {
-																	When(
-																		'the action is called with the amount, the address and the options',
-																		when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																		() => {
-																			Then(
-																				'it should reject with the error message',
-																				then.itShouldRejectWithTheErrorMessage,
-																			);
-																		},
-																	);
-																},
-															);
-															Given(
-																'the passphrase can be retrieved from its source',
-																given.thePassphraseCanBeRetrievedFromItsSource,
-																() => {
-																	When(
-																		'the action is called with the amount, the address and the options',
-																		when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																		() => {
-																			Then(
-																				'it should get the inputs from sources using the Vorpal instance',
-																				then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
-																			);
-																			Then(
-																				'it should get the inputs from sources using the passphrase source with a repeating prompt',
-																				then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
-																			);
-																			Then(
-																				'it should not get the inputs from sources using the second passphrase source',
-																				then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource,
-																			);
-																			Then(
-																				'it should create a transfer transaction using the address, the amount and the passphrase',
-																				then.itShouldCreateATransferTransactionUsingTheAddressTheAmountAndThePassphrase,
-																			);
-																			Then(
-																				'it should resolve to the created transaction',
-																				then.itShouldResolveToTheCreatedTransaction,
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-													Given(
-														'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
-														given.aSecondPassphrase,
-														() => {
-															Given(
-																'an options object with second passphrase set to "secondPassphraseSource"',
-																given.anOptionsObjectWithSecondPassphraseSetTo,
-																() => {
-																	Given(
-																		'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-																		given.anErrorOccursRetrievingTheInputsFromTheirSources,
-																		() => {
-																			When(
-																				'the action is called with the amount, the address and the options',
-																				when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																				() => {
-																					Then(
-																						'it should reject with the error message',
-																						then.itShouldRejectWithTheErrorMessage,
-																					);
-																				},
-																			);
-																		},
-																	);
-																	Given(
-																		'the passphrase and second passphrase can be retrieved from their sources',
-																		given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources,
-																		() => {
-																			When(
-																				'the action is called with the amount, the address and the options',
-																				when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																				() => {
-																					Then(
-																						'it should get the inputs from sources using the Vorpal instance',
-																						then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
-																					);
-																					Then(
-																						'it should get the inputs from sources using the passphrase source with a repeating prompt',
-																						then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
-																					);
-																					Then(
-																						'it should get the inputs from sources using the second passphrase source with a repeating prompt',
-																						then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt,
-																					);
-																					Then(
-																						'it should create a transfer transaction using the address, the amount, the passphrase and the second passphrase',
-																						then.itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase,
-																					);
-																					Then(
-																						'it should resolve to the created transaction',
-																						then.itShouldResolveToTheCreatedTransaction,
-																					);
-																				},
-																			);
-																		},
-																	);
-																},
-															);
-															Given(
-																'an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"',
-																given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo,
-																() => {
-																	Given(
-																		'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-																		given.anErrorOccursRetrievingTheInputsFromTheirSources,
-																		() => {
-																			When(
-																				'the action is called with the amount, the address and the options',
-																				when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																				() => {
-																					Then(
-																						'it should reject with the error message',
-																						then.itShouldRejectWithTheErrorMessage,
-																					);
-																				},
-																			);
-																		},
-																	);
-																	Given(
-																		'the passphrase and second passphrase can be retrieved from their sources',
-																		given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources,
-																		() => {
-																			When(
-																				'the action is called with the amount, the address and the options',
-																				when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-																				() => {
-																					Then(
-																						'it should get the inputs from sources using the Vorpal instance',
-																						then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
-																					);
-																					Then(
-																						'it should get the inputs from sources using the passphrase source with a repeating prompt',
-																						then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
-																					);
-																					Then(
-																						'it should get the inputs from sources using the second passphrase source with a repeating prompt',
-																						then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt,
-																					);
-																					Then(
-																						'it should create a transfer transaction using the address, the amount, the passphrase and the second passphrase',
-																						then.itShouldCreateATransferTransactionUsingTheAddressTheAmountThePassphraseAndTheSecondPassphrase,
-																					);
-																					Then(
-																						'it should resolve to the created transaction',
-																						then.itShouldResolveToTheCreatedTransaction,
-																					);
-																				},
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-												},
-											);
-										});
+										Given(
+											'an amount "100.123" with normalized amount "10012300000"',
+											given.anAmountWithNormalizedAmount,
+											() => {
+												Given(
+													'an invalid address "1234567890LL"',
+													given.anInvalidAddress,
+													() => {
+														When(
+															'the action is called with the amount, the address and the options',
+															when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+															() => {
+																Then(
+																	'it should reject with validation error and message "1234567890LL is not a valid address."',
+																	then.itShouldRejectWithValidationErrorAndMessage,
+																);
+															},
+														);
+													},
+												);
+												Given(
+													'an address "13356260975429434553L"',
+													given.anAddress,
+													() => {
+														Given(
+															'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+															given.anErrorOccursRetrievingTheInputsFromTheirSources,
+															() => {
+																When(
+																	'the action is called with the amount, the address and the options',
+																	when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																	() => {
+																		Then(
+																			'it should reject with the error message',
+																			then.itShouldRejectWithTheErrorMessage,
+																		);
+																	},
+																);
+															},
+														);
+														Given(
+															'the passphrase can be retrieved from its source',
+															given.thePassphraseCanBeRetrievedFromItsSource,
+															() => {
+																When(
+																	'the action is called with the amount, the address and the options',
+																	when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																	() => {
+																		Then(
+																			'it should get the inputs from sources using the Vorpal instance',
+																			then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
+																		);
+																		Then(
+																			'it should get the inputs from sources using the passphrase source with a repeating prompt',
+																			then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
+																		);
+																		Then(
+																			'it should not get the inputs from sources using the second passphrase source',
+																			then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource,
+																		);
+																		Then(
+																			'it should create a transfer transaction using the address, the normalized amount and the passphrase',
+																			then.itShouldCreateATransferTransactionUsingTheAddressTheNormalizedAmountAndThePassphrase,
+																		);
+																		Then(
+																			'it should resolve to the created transaction',
+																			then.itShouldResolveToTheCreatedTransaction,
+																		);
+																	},
+																);
+															},
+														);
+														Given(
+															'an options object with passphrase set to "passphraseSource"',
+															given.anOptionsObjectWithPassphraseSetTo,
+															() => {
+																Given(
+																	'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+																	given.anErrorOccursRetrievingTheInputsFromTheirSources,
+																	() => {
+																		When(
+																			'the action is called with the amount, the address and the options',
+																			when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																			() => {
+																				Then(
+																					'it should reject with the error message',
+																					then.itShouldRejectWithTheErrorMessage,
+																				);
+																			},
+																		);
+																	},
+																);
+																Given(
+																	'the passphrase can be retrieved from its source',
+																	given.thePassphraseCanBeRetrievedFromItsSource,
+																	() => {
+																		When(
+																			'the action is called with the amount, the address and the options',
+																			when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																			() => {
+																				Then(
+																					'it should get the inputs from sources using the Vorpal instance',
+																					then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
+																				);
+																				Then(
+																					'it should get the inputs from sources using the passphrase source with a repeating prompt',
+																					then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
+																				);
+																				Then(
+																					'it should not get the inputs from sources using the second passphrase source',
+																					then.itShouldNotGetTheInputsFromSourcesUsingTheSecondPassphraseSource,
+																				);
+																				Then(
+																					'it should create a transfer transaction using the address, the normalized amount and the passphrase',
+																					then.itShouldCreateATransferTransactionUsingTheAddressTheNormalizedAmountAndThePassphrase,
+																				);
+																				Then(
+																					'it should resolve to the created transaction',
+																					then.itShouldResolveToTheCreatedTransaction,
+																				);
+																			},
+																		);
+																	},
+																);
+															},
+														);
+														Given(
+															'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
+															given.aSecondPassphrase,
+															() => {
+																Given(
+																	'an options object with second passphrase set to "secondPassphraseSource"',
+																	given.anOptionsObjectWithSecondPassphraseSetTo,
+																	() => {
+																		Given(
+																			'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+																			given.anErrorOccursRetrievingTheInputsFromTheirSources,
+																			() => {
+																				When(
+																					'the action is called with the amount, the address and the options',
+																					when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																					() => {
+																						Then(
+																							'it should reject with the error message',
+																							then.itShouldRejectWithTheErrorMessage,
+																						);
+																					},
+																				);
+																			},
+																		);
+																		Given(
+																			'the passphrase and second passphrase can be retrieved from their sources',
+																			given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources,
+																			() => {
+																				When(
+																					'the action is called with the amount, the address and the options',
+																					when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																					() => {
+																						Then(
+																							'it should get the inputs from sources using the Vorpal instance',
+																							then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
+																						);
+																						Then(
+																							'it should get the inputs from sources using the passphrase source with a repeating prompt',
+																							then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
+																						);
+																						Then(
+																							'it should get the inputs from sources using the second passphrase source with a repeating prompt',
+																							then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt,
+																						);
+																						Then(
+																							'it should create a transfer transaction using the address, the normalized amount, the passphrase and the second passphrase',
+																							then.itShouldCreateATransferTransactionUsingTheAddressTheNormalizedAmountThePassphraseAndTheSecondPassphrase,
+																						);
+																						Then(
+																							'it should resolve to the created transaction',
+																							then.itShouldResolveToTheCreatedTransaction,
+																						);
+																					},
+																				);
+																			},
+																		);
+																	},
+																);
+																Given(
+																	'an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"',
+																	given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo,
+																	() => {
+																		Given(
+																			'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+																			given.anErrorOccursRetrievingTheInputsFromTheirSources,
+																			() => {
+																				When(
+																					'the action is called with the amount, the address and the options',
+																					when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																					() => {
+																						Then(
+																							'it should reject with the error message',
+																							then.itShouldRejectWithTheErrorMessage,
+																						);
+																					},
+																				);
+																			},
+																		);
+																		Given(
+																			'the passphrase and second passphrase can be retrieved from their sources',
+																			given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources,
+																			() => {
+																				When(
+																					'the action is called with the amount, the address and the options',
+																					when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+																					() => {
+																						Then(
+																							'it should get the inputs from sources using the Vorpal instance',
+																							then.itShouldGetTheInputsFromSourcesUsingTheVorpalInstance,
+																						);
+																						Then(
+																							'it should get the inputs from sources using the passphrase source with a repeating prompt',
+																							then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
+																						);
+																						Then(
+																							'it should get the inputs from sources using the second passphrase source with a repeating prompt',
+																							then.itShouldGetTheInputsFromSourcesUsingTheSecondPassphraseSourceWithARepeatingPrompt,
+																						);
+																						Then(
+																							'it should create a transfer transaction using the address, the normalized amount, the passphrase and the second passphrase',
+																							then.itShouldCreateATransferTransactionUsingTheAddressTheNormalizedAmountThePassphraseAndTheSecondPassphrase,
+																						);
+																						Then(
+																							'it should resolve to the created transaction',
+																							then.itShouldResolveToTheCreatedTransaction,
+																						);
+																					},
+																				);
+																			},
+																		);
+																	},
+																);
+															},
+														);
+													},
+												);
+											},
+										);
 									},
 								);
 							},
@@ -327,22 +331,26 @@ describe('create transaction transfer command', () => {
 									'an address "13356260975429434553L"',
 									given.anAddress,
 									() => {
-										Given('an amount "123"', given.anAmount, () => {
-											When(
-												'the action is called with the amount, the address and the options',
-												when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
-												() => {
-													Then(
-														'it should create a transfer transaction using the address and the amount',
-														then.itShouldCreateATransferTransactionUsingTheAddressAndTheAmount,
-													);
-													Then(
-														'it should resolve to the created transaction',
-														then.itShouldResolveToTheCreatedTransaction,
-													);
-												},
-											);
-										});
+										Given(
+											'an amount "123" with normalized amount "12300000000"',
+											given.anAmountWithNormalizedAmount,
+											() => {
+												When(
+													'the action is called with the amount, the address and the options',
+													when.theActionIsCalledWithTheAmountTheAddressAndTheOptions,
+													() => {
+														Then(
+															'it should create a transfer transaction using the address and the normalized amount',
+															then.itShouldCreateATransferTransactionUsingTheAddressAndTheNormalizedAmount,
+														);
+														Then(
+															'it should resolve to the created transaction',
+															then.itShouldResolveToTheCreatedTransaction,
+														);
+													},
+												);
+											},
+										);
 									},
 								);
 							},
