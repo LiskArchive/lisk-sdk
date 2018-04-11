@@ -16,8 +16,8 @@
 import getInputsFromSources from '../utils/input';
 import {
 	createCommand,
+	normalizeAmount,
 	validateAddress,
-	validateAmount,
 } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import transactions from '../utils/transactions';
@@ -44,10 +44,9 @@ export const actionCreator = vorpal => async ({ amount, address, options }) => {
 		signature,
 	} = options;
 
-	validateAmount(amount);
 	validateAddress(address);
-
-	const processFunction = processInputs(amount, address);
+	const normalizedAmount = normalizeAmount(amount);
+	const processFunction = processInputs(normalizedAmount, address);
 
 	return signature === false
 		? processFunction({

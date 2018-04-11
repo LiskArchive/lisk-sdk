@@ -24,12 +24,17 @@ export function itShouldReturnAnObjectWithTheAddress() {
 	return expect(returnValue).to.eql({ address });
 }
 
+export function itShouldReturnTheNormalizedAmount() {
+	const { returnValue, normalizedAmount } = this.test.ctx;
+	return expect(returnValue).to.equal(normalizedAmount);
+}
+
 export function itShouldReturnTheAlias() {
 	const { returnValue, alias } = this.test.ctx;
-	return expect(returnValue).to.be.equal(alias);
+	return expect(returnValue).to.equal(alias);
 }
 
 export function itShouldReturnTheType() {
 	const { returnValue, type } = this.test.ctx;
-	return expect(returnValue).to.be.equal(type);
+	return expect(returnValue).to.equal(type);
 }
