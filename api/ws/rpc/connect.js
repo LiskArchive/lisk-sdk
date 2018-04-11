@@ -68,28 +68,31 @@ const connectSteps = {
 		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 
-		const hostname = peer.socket.options.hostname;
-		if (!socketConnections[hostname]) {
-			socketConnections[hostname] = { closed: 0, open: 0, disconnect: 0 };
+		if (peer.socket) {
+			const hostname = peer.socket.options.hostname;
+			if (!socketConnections[hostname]) {
+				socketConnections[hostname] = { closed: 0, open: 0, disconnect: 0 };
+			}
+
+			if (peer.socket.state === 'closed') {
+				socketConnections[hostname].closed += 1;
+			} else if (peer.socket.state === 'open') {
+				socketConnections[hostname].open += 1;
+			} else if (peer.socket.state === 'disconnect') {
+				socketConnections[hostname].disconnect += 1;
+			}
+
+			logger.trace(
+				`${socketConnections[hostname].closed}:closed, ${
+					socketConnections[hostname].open
+				}:open and ${
+					socketConnections[hostname].disconnect
+				}:disconnect websocket connection to peer ${
+					peer.socket.options.hostname
+				}.`
+			);
 		}
 
-		if (peer.socket.state === 'closed') {
-			socketConnections[hostname].closed += 1;
-		} else if (peer.socket.state === 'open') {
-			socketConnections[hostname].open += 1;
-		} else if (peer.socket.state === 'disconnect') {
-			socketConnections[hostname].disconnect += 1;
-		}
-
-		logger.trace(
-			`${socketConnections[hostname].closed}:closed, ${
-				socketConnections[hostname].open
-			}:open and ${
-				socketConnections[hostname].disconnect
-			}:disconnect websocket connection to peer ${
-				peer.socket.options.hostname
-			}.`
-		);
 		return peer;
 	},
 
