@@ -39,6 +39,12 @@ export function anAmount() {
 	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
 }
 
+export function anAmountWithNormalizedAmount() {
+	const [amount, normalizedAmount] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.amount = amount;
+	this.test.ctx.normalizedAmount = normalizedAmount;
+}
+
 export const anInvalidAmount = anAmount;
 
 export function aKeysgroupWithKeys() {
