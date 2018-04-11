@@ -369,6 +369,11 @@ d.run(() => {
 						cb();
 					});
 
+					// The 'fail' event aggregates errors from all SocketCluster processes.
+					scope.socketCluster.on('fail', err => {
+						scope.logger.error(err);
+					});
+
 					scope.socketCluster.on('workerExit', workerInfo => {
 						var exitMessage = `Worker with pid ${workerInfo.pid} exited`;
 						if (workerInfo.signal) {
