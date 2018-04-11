@@ -53,10 +53,10 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
-export function aConfigWithAPINodeSetTo() {
-	const node = getQuotedStrings(this.test.parent.title)[1];
+export function aConfigWithAPINodesSetTo() {
+	const nodes = getQuotedStrings(this.test.parent.title).slice(1);
 	const { api } = currentConfig.default || {};
-	api.node = node;
+	api.nodes = nodes;
 	const config = { api };
 
 	currentConfig.default = config;

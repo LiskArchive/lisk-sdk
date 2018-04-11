@@ -21,7 +21,7 @@ import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
-const description = `Sets configuration <variable> to <value>. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath}\`.
+const description = `Sets configuration <variable> to <inputs...>. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath}\`.
 
 	Examples:
 	- set json true
@@ -96,11 +96,14 @@ const setBoolean = (dotNotation, value) => {
 	return attemptWriteToFile(value, dotNotation);
 };
 
-const setString = (dotNotation, value) => {
+const setValue = (dotNotation, value) => {
 	const dotNotationArray = dotNotation.split('.');
 	dotNotationArray.reduce(setNestedConfigProperty(value), config);
 	return attemptWriteToFile(value, dotNotation);
 };
+
+const setArrayString = (dotNotation, value, inputs) =>
+	setValue(dotNotation, inputs);
 
 const setNethash = (dotNotation, value) => {
 	if (
@@ -116,27 +119,28 @@ const setNethash = (dotNotation, value) => {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 	}
-	return setString(dotNotation, value);
+	return setValue(dotNotation, value);
 };
 
 const handlers = {
-	'api.node': setString,
+	'api.nodes': setArrayString,
 	'api.network': setNethash,
 	json: setBoolean,
-	name: setString,
+	name: setValue,
 	pretty: setBoolean,
 };
 
-export const actionCreator = () => async ({ variable, value }) => {
+export const actionCreator = () => async ({ variable, inputs }) => {
 	if (!CONFIG_VARIABLES.includes(variable)) {
 		throw new ValidationError('Unsupported variable name.');
 	}
-
-	return handlers[variable](variable, value);
+	const safeInputs = inputs || [];
+	const safeValue = safeInputs[0] || '';
+	return handlers[variable](variable, safeValue, safeInputs);
 };
 
 const set = createCommand({
-	command: 'set <variable> <value>',
+	command: 'set <variable> [inputs...]',
 	autocomplete: CONFIG_VARIABLES,
 	description,
 	actionCreator,
