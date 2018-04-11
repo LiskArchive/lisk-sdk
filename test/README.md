@@ -35,8 +35,8 @@ describe('create account command', () => {
 						Given('an action "create account"', given.anAction, () => {
 							When('the action is called', when.theActionIsCalled, () => {
 								Then(
-									'it should resolve to an object with the passphrase and the publicKey and the address',
-									then.itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress,
+									'it should resolve to an object with the passphrase, the private key, the public key and the address',
+									then.itShouldResolveToAnObjectWithThePassphraseThePrivateKeyThePublicKeyAndTheAddress,
 								);
 							});
 						});
@@ -119,15 +119,16 @@ export function theActionIsCalled() {
 ```js
 // test/steps/.../3_then.js
 
-export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
+export function itShouldResolveToAnObjectWithThePassphraseThePrivateKeyThePublicKeyAndTheAddress() {
 	const {
 		returnValue,
 		passphrase,
-		keys: { publicKey },
+		keys: { privateKey, publicKey },
 		address,
 	} = this.test.ctx;
 	const expectedObject = {
 		passphrase,
+		privateKey,
 		publicKey,
 		address,
 	};
