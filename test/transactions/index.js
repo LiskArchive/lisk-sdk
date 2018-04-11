@@ -46,6 +46,12 @@ describe('expect(transaction)s', () => {
 				.and.be.a('function');
 		});
 
+		it('to have the sign multisignature expect(transaction) function', () => {
+			return expect(transaction)
+				.to.have.property('signMultisignature')
+				.and.be.a('function');
+		});
+
 		it('to have the create dapp expect(transaction) function', () => {
 			return expect(transaction)
 				.to.have.property('createDapp')
