@@ -348,9 +348,9 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		},
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
+		mergeErr => {
+			if (mergeErr) {
+				return setImmediate(cb, mergeErr);
 			}
 
 			// Get public keys
@@ -366,7 +366,7 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 							address,
 							publicKey: key,
 						},
-						err => setImmediate(cb, err),
+						setAccountAndGetErr => setImmediate(cb, setAccountAndGetErr),
 						tx
 					);
 				},
@@ -402,7 +402,7 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb, tx) {
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		},
-		err => setImmediate(cb, err),
+		mergeErr => setImmediate(cb, mergeErr),
 		tx
 	);
 };
@@ -439,7 +439,7 @@ Multisignature.prototype.applyUnconfirmed = function(
 			u_multimin: transaction.asset.multisignature.min,
 			u_multilifetime: transaction.asset.multisignature.lifetime,
 		},
-		err => setImmediate(cb, err),
+		mergeErr => setImmediate(cb, mergeErr),
 		tx
 	);
 };

@@ -357,9 +357,11 @@ describe('PeersManager', () => {
 			beforeEach(done => {
 				peersManagerInstanceA = new PeersManager({
 					debug: sinonSandbox.stub(),
+					trace: sinonSandbox.stub(),
 				});
 				peersManagerInstanceB = new PeersManager({
 					debug: sinonSandbox.stub(),
+					trace: sinonSandbox.stub(),
 				});
 				done();
 			});
