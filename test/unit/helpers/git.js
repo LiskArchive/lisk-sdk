@@ -15,50 +15,66 @@
 'use strict';
 
 var childProcess = require('child_process');
+var fs = require('fs');
 var git = require('../../../helpers/git');
 
 describe('git', () => {
+	afterEach(done => {
+		sinonSandbox.restore();
+		done();
+	});
+
 	describe('getLastCommit', () => {
-		describe('when "git rev-parse HEAD" command fails', () => {
-			var validErrorMessage = 'Not a git repository';
-			var spawnSyncStub;
-
-			beforeEach(done => {
-				spawnSyncStub = sinonSandbox
-					.stub(childProcess, 'spawnSync')
-					.returns({ stderr: validErrorMessage });
-				done();
-			});
-
-			afterEach(done => {
-				spawnSyncStub.restore();
-				done();
-			});
-
-			it('should throw an error', done => {
-				expect(git.getLastCommit).throws(Error, validErrorMessage);
-				done();
-			});
-		});
-
 		describe('when "git rev-parse HEAD" command succeeds', () => {
 			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
-			var spawnSyncStub;
 
 			beforeEach(done => {
-				spawnSyncStub = sinonSandbox
+				sinonSandbox
 					.stub(childProcess, 'spawnSync')
 					.returns({ stderr: '', stdout: validCommitHash });
 				done();
 			});
 
-			afterEach(done => {
-				spawnSyncStub.restore();
+			it('should return a commit hash', done => {
+				expect(git.getLastCommit()).equal(validCommitHash);
+				done();
+			});
+		});
+
+		describe('when "git rev-parse HEAD" command failed and a revision file found', () => {
+			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
+
+			beforeEach(done => {
+				sinonSandbox
+					.stub(childProcess, 'spawnSync')
+					.returns({ stderr: 'Not a git repository' });
+
+				sinonSandbox.stub(fs, 'readFileSync').returns(validCommitHash);
 				done();
 			});
 
 			it('should return a commit hash', done => {
 				expect(git.getLastCommit()).equal(validCommitHash);
+				expect(childProcess.spawnSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledWith('REVISION');
+				done();
+			});
+		});
+
+		describe('when "git rev-parse HEAD" command failed and no revision file found', () => {
+			var validErrorMessage =
+				'Not a git repository and no revision file found.';
+
+			beforeEach(done => {
+				sinonSandbox
+					.stub(childProcess, 'spawnSync')
+					.returns({ stderr: validErrorMessage });
+				done();
+			});
+
+			it('should throw an error', done => {
+				expect(git.getLastCommit).throws(Error, validErrorMessage);
 				done();
 			});
 		});

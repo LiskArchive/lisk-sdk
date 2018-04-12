@@ -30,6 +30,10 @@ module.exports = function(grunt) {
 				command: `cd ${__dirname}/ && echo "v${today}" > build`,
 			},
 
+			revision: {
+				command: `cd ${__dirname}/ && git rev-parse HEAD > REVISION`,
+			},
+
 			pack: {
 				command: 'npm pack',
 			},
@@ -74,6 +78,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.registerTask('release', [
 		'exec:build',
+		'exec:revision',
 		'exec:pack',
 		'exec:folder',
 		'exec:copy',
