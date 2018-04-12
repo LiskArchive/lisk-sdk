@@ -68,7 +68,7 @@ const connectSteps = {
 		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 
-		if (peer.socket) {
+		if (peer.socket && Object.keys(socketConnections).length < 1000) {
 			const hostname = peer.socket.options.hostname;
 			if (!socketConnections[hostname]) {
 				socketConnections[hostname] = { closed: 0, open: 0, disconnect: 0 };
