@@ -26,5 +26,9 @@ module.exports = {
 		transfer: require('./stress/0.transfer'),
 		register: require('./stress/2.register_delegate'),
 		vote: require('./stress/3.cast_vote'),
+		data: require('./stress/0.data'),
+		second_passphrase: require('./stress/1.second_passphrase'),
+		multisignature: require('./stress/4.register_multisignature'),
+		dapp: require('./stress/5.register_dapp'),
 	},
 };
