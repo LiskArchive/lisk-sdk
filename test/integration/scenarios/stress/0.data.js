@@ -26,9 +26,9 @@ var sendTransactionsPromise = require('../../../common/helpers/api')
 var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function(params) {
-	describe('postTransactions @slow', () => {
+	describe('stress test for type 0 transactions with data @slow', () => {
 		var transactions = [];
-		var maximum = 10;
+		var maximum = 1000;
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
@@ -80,9 +80,8 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});
@@ -107,9 +106,8 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes().then(done);
 				});
