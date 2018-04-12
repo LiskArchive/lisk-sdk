@@ -22,13 +22,33 @@ var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
+var getUnsignedTransaction = require('../../utils/http').getUnsignedTransaction;
 var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function(params) {
-	describe('stress test for type 4 transactions', () => {
+	describe('stress test for type 4 transactions @slow', () => {
 		var transactions = [];
 		var accounts = [];
-		var maximum = 10;
+		var maximum = 1000;
+
+		function confirmUnsignedTransactionsOnAllNodes() {
+			return Promise.all(
+				_.flatMap(params.configurations, configuration => {
+					return transactions.map(transaction => {
+						return getUnsignedTransaction(
+							transaction.id,
+							configuration.httpPort
+						);
+					});
+				})
+			).then(results => {
+				results.forEach(transaction => {
+					expect(transaction)
+						.to.have.property('id')
+						.that.is.an('string');
+				});
+			});
+		}
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
@@ -39,8 +59,6 @@ module.exports = function(params) {
 				})
 			).then(results => {
 				results.forEach(transaction => {
-					// eslint-disable-next-line no-console
-					console.log('transaction: ', transaction);
 					expect(transaction)
 						.to.have.property('id')
 						.that.is.an('string');
@@ -97,7 +115,7 @@ module.exports = function(params) {
 				var blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmUnsignedTransactionsOnAllNodes().then(done);
 				});
 			});
 		});
