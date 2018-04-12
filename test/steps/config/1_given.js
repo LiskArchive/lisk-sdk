@@ -55,7 +55,7 @@ export function aConfigWithJsonSetTo() {
 
 export function aConfigWithAPINodesSetTo() {
 	const nodes = getQuotedStrings(this.test.parent.title).slice(1);
-	const { api } = currentConfig.default || {};
+	const { api } = currentConfig.default;
 	api.nodes = nodes;
 	const config = { api };
 
@@ -65,7 +65,7 @@ export function aConfigWithAPINodesSetTo() {
 
 export function aConfigWithAPINetworkSetTo() {
 	const network = getQuotedStrings(this.test.parent.title)[1];
-	const { api } = currentConfig.default || {};
+	const { api } = currentConfig.default;
 	api.network = network;
 	const config = { api };
 
