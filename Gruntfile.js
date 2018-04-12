@@ -47,7 +47,7 @@ module.exports = function(grunt) {
 					if (suite === 'integration') {
 						var slowTag = '';
 						if (tag === 'untagged') {
-							slowTag = '--grep @slow --invert';
+							slowTag = "--grep '@slow|@unstable' --invert";
 						} else if (tag === 'extensive') {
 							slowTag = '--grep @unstable --invert';
 						} else if (tag === 'slow') {
@@ -56,7 +56,7 @@ module.exports = function(grunt) {
 							slowTag = '--grep @unstable';
 						} else {
 							grunt.fail.fatal(
-								'Please specify a test suite to run.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
+								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
 							);
 						}
 						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
