@@ -219,6 +219,13 @@ export function theActionIsCalledWithTheVariableAndTheInputs() {
 	return returnValue.catch(e => e);
 }
 
+export function theActionIsCalledWithTheVariableAndTheValues() {
+	const { action, variable, values } = this.test.ctx;
+	const returnValue = action({ variable, values });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheOptions() {
 	const { action, options } = this.test.ctx;
 	const returnValue = action({ options });

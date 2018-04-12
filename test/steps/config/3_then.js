@@ -16,32 +16,42 @@
 import { getFirstQuotedString, getFirstBoolean } from '../utils';
 import { logError, logWarning } from '../../../src/utils/print';
 
-export function itShouldUpdateTheConfigVariableToTheFirstInputs() {
-	const { config, inputs } = this.test.ctx;
+export function itShouldUpdateTheConfigVariableToTheFirstValue() {
+	const { config, values } = this.test.ctx;
 	const variable = getFirstQuotedString(this.test.title);
 	return expect(config)
 		.to.have.property(variable)
-		.equal(inputs[0]);
+		.equal(values[0]);
 }
 
-export function itShouldUpdateTheConfigNestedVariableToTheFirstInputs() {
-	const { config, inputs } = this.test.ctx;
+export function itShouldUpdateTheConfigNestedVariableToTheFirstValue() {
+	const { config, values } = this.test.ctx;
 	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
 	const configValue = nestedVariable.reduce(
 		(currentObject, nextKey) => currentObject[nextKey],
 		config,
 	);
-	return expect(configValue).to.equal(inputs[0]);
+	return expect(configValue).to.equal(values[0]);
 }
 
-export function itShouldUpdateTheConfigNestedVariableToTheInputs() {
-	const { config, inputs } = this.test.ctx;
+export function itShouldUpdateTheConfigNestedVariableToTheValues() {
+	const { config, values } = this.test.ctx;
 	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
 	const configValue = nestedVariable.reduce(
 		(currentObject, nextKey) => currentObject[nextKey],
 		config,
 	);
-	return expect(configValue).to.equal(inputs);
+	return expect(configValue).to.equal(values);
+}
+
+export function itShouldUpdateTheConfigNestedVariableToEmptyArray() {
+	const { config } = this.test.ctx;
+	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
+	const configValue = nestedVariable.reduce(
+		(currentObject, nextKey) => currentObject[nextKey],
+		config,
+	);
+	return expect(configValue).to.eql([]);
 }
 
 export function itShouldUpdateTheConfigVariableToBoolean() {
