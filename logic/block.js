@@ -186,19 +186,19 @@ class Block {
 	 * @todo Add description for the params
 	 */
 	verifySignature(block) {
-		const remove = 64;
+		const signatureLength = 64;
 		let res;
 
 		try {
 			const data = this.getBytes(block);
-			const data2 = Buffer.alloc(data.length - remove);
+			const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
-			for (let i = 0; i < data2.length; i++) {
-				data2[i] = data[i];
+			for (let i = 0; i < dataWithoutSignature.length; i++) {
+				dataWithoutSignature[i] = data[i];
 			}
 			const hash = crypto
 				.createHash('sha256')
-				.update(data2)
+				.update(dataWithoutSignature)
 				.digest();
 			const blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
 			const generatorPublicKeyBuffer = Buffer.from(
