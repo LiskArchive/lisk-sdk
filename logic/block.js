@@ -382,7 +382,20 @@ Block.prototype.schema = {
  * @todo Add description for the function and the params
  */
 Block.prototype.getBytes = function(block) {
-	const size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
+	const size =
+		4 + // version (int)
+		4 + // timestamp (int)
+		8 + // previousBlock
+		4 + // numberOfTransactions (int)
+		4 + // totalAmount (long)
+		8 + // totalFee (long)
+		8 + // reward (long)
+		4 + // payloadLength (int)
+		4 +
+		4 +
+		32 + // payloadHash
+		32 + // generatorPublicKey
+		64; // blockSignature or unused
 	let bytes;
 
 	try {
