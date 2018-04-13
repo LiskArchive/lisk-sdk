@@ -382,7 +382,7 @@ Block.prototype.schema = {
  * @todo Add description for the function and the params
  */
 Block.prototype.getBytes = function(block) {
-	const size =
+	const capacity =
 		4 + // version (int)
 		4 + // timestamp (int)
 		8 + // previousBlock
@@ -398,7 +398,7 @@ Block.prototype.getBytes = function(block) {
 	let bytes;
 
 	try {
-		const byteBuffer = new ByteBuffer(size, true);
+		const byteBuffer = new ByteBuffer(capacity, true);
 		byteBuffer.writeInt(block.version);
 		byteBuffer.writeInt(block.timestamp);
 
