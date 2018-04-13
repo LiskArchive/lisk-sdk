@@ -52,6 +52,7 @@ const connectSteps = {
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: System.getHeaders(),
+			multiplex: false
 		};
 		return peer;
 	},
@@ -62,9 +63,9 @@ const connectSteps = {
 			// before issuing a new connection
 			// destroy the exisiting connection
 			// to avoid too many socket connections
+			peer.socket.off();
 			peer.socket.destroy();
 			delete peer.socket;
-			peer.socket = null;
 		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 
@@ -159,13 +160,7 @@ const connectSteps = {
 	},
 
 	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
-		// Unregister all the events just in case
 		const socket = peer.socket;
-		socket.off('connect');
-		socket.off('connectAbort');
-		socket.off('error');
-		socket.off('close');
-		socket.off('message');
 
 		socket.on('connect', () => {
 			logger.trace(

@@ -16,7 +16,8 @@
 
 const disconnect = peer => {
 	if (peer.socket) {
-		peer.socket.disconnect();
+		peer.socket.off();
+		peer.socket.destroy();
 	}
 	return peer;
 };
