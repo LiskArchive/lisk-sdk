@@ -16,7 +16,6 @@ module.exports = {
 		'5714016151987080352'   // 2162
 	],
 	delegates: [
-		'12298100805070303137'  // 3057955
 	],
 	genesisPublicKey: {
 		mainnet: 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4',
@@ -43,7 +42,7 @@ module.exports = {
 		'18231026627962552928'  // 917323
 	],
 	inertTransactions: [
-		'16394286522174687330', // 1318685
-		'14838632568022343493'  // 1318693
+		'16394286522174687330', // 1318685 - Vote transaction
+		'12298100805070303137', // 3057955 - Delegate transaction
 	]
 };

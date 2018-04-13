@@ -699,7 +699,6 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.apply = function (trs, block, sender, cb) {
-
 	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
 		this.scope.logger.debug('Inert transaction encountered');
 		this.scope.logger.debug(JSON.stringify(trs));
