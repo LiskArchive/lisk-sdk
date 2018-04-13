@@ -562,8 +562,77 @@ describe('block', () => {
 			}).to.throw();
 		});
 
-		it('should return verification response for a given block', () => {
+		it('should return true for a good block', () => {
 			return expect(block.verifySignature(blockData)).to.be.true;
+		});
+
+		it('should return false for a block with modified version', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.version += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified timestamp', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.timestamp += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified previousBlock', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.previousBlock = '1111112222333333';
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified numberOfTransactions', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.numberOfTransactions += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified totalAmount', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.totalAmount += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified totalFee', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.totalFee += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified reward', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.reward += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified payloadLength', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.payloadLength += 1;
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified payloadHash', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.payloadHash =
+				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified generatorPublicKey', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.generatorPublicKey =
+				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
+			return expect(block.verifySignature(blockCopy)).to.be.false;
+		});
+
+		it('should return false for a block with modified blockSignature', () => {
+			const blockCopy = Object.assign({}, blockData);
+			blockCopy.blockSignature =
+				'aabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccddaabbccdd';
+			return expect(block.verifySignature(blockCopy)).to.be.false;
 		});
 	});
 
