@@ -23,8 +23,8 @@ describe('API util', () => {
 		given.aConfigWithAPINetworkSetTo,
 		() => {
 			Given(
-				'a config with "api.node" set to "http://localhost:4000"',
-				given.aConfigWithAPINodeSetTo,
+				'a config with "api.nodes" set to "http://localhost:4000"',
+				given.aConfigWithAPINodesSetTo,
 				() => {
 					When(
 						'a API Client instance is created',
@@ -53,8 +53,8 @@ describe('API util', () => {
 		given.aConfigWithAPINetworkSetTo,
 		() => {
 			Given(
-				'a config with "api.node" set to "http://localhost:4000"',
-				given.aConfigWithAPINodeSetTo,
+				'a config with "api.nodes" set to "http://localhost:4000"',
+				given.aConfigWithAPINodesSetTo,
 				() => {
 					When(
 						'a API Client instance is created',
@@ -77,8 +77,8 @@ describe('API util', () => {
 				},
 			);
 			Given(
-				'a config with "api.node" set to ""',
-				given.aConfigWithAPINodeSetTo,
+				'a config with "api.nodes" set to ""',
+				given.aConfigWithAPINodesSetTo,
 				() => {
 					When(
 						'a API Client instance is created',
@@ -107,8 +107,8 @@ describe('API util', () => {
 		given.aConfigWithAPINetworkSetTo,
 		() => {
 			Given(
-				'a config with "api.node" set to "http://localhost:4000"',
-				given.aConfigWithAPINodeSetTo,
+				'a config with "api.nodes" set to "http://localhost:4000"',
+				given.aConfigWithAPINodesSetTo,
 				() => {
 					When(
 						'a API Client instance is created',

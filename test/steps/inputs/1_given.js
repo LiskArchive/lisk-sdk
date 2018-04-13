@@ -163,6 +163,10 @@ export function inputs() {
 	this.test.ctx.inputs = getQuotedStrings(this.test.parent.title);
 }
 
+export function values() {
+	this.test.ctx.values = getQuotedStrings(this.test.parent.title);
+}
+
 export function anInput() {
 	const input = getFirstQuotedString(this.test.parent.title);
 	this.test.ctx.input = input;

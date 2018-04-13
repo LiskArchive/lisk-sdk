@@ -14,18 +14,7 @@
  *
  */
 import getAPIClient from '../../../src/utils/api';
-import { getFirstBoolean, getFirstQuotedString } from '../utils';
 
 export function aLiskAPIInstanceIsCreated() {
 	this.test.ctx.liskAPIInstance = getAPIClient();
-}
-
-export function aLiskAPIInstanceIsCreatedWithAnInputBooleanOf() {
-	const override = getFirstBoolean(this.test.parent.title);
-	this.test.ctx.liskAPIInstance = getAPIClient(override);
-}
-
-export function aLiskAPIInstanceIsCreatedWithAnInputOf() {
-	const override = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.liskAPIInstance = getAPIClient(override);
 }

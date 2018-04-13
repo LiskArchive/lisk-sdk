@@ -21,7 +21,7 @@ import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
-const description = `Sets configuration <variable> to <value>. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath}\`.
+const description = `Sets configuration <variable> to [value(s)...]. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath}\`.
 
 	Examples:
 	- set json true
@@ -74,8 +74,13 @@ const attemptWriteToFile = (value, dotNotation) => {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
 	}
 
+	const message =
+		value === '' || (Array.isArray(value) && value.length === 0)
+			? `Successfully reset ${dotNotation}.`
+			: `Successfully set ${dotNotation} to ${value}.`;
+
 	const result = {
-		message: `Successfully set ${dotNotation} to ${value}.`,
+		message,
 	};
 
 	if (!writeSuccess) {
@@ -85,22 +90,22 @@ const attemptWriteToFile = (value, dotNotation) => {
 	return result;
 };
 
-const setBoolean = (dotNotation, value) => {
-	if (!checkBoolean(value)) {
-		throw new ValidationError('Value must be a boolean.');
-	}
-	const dotNotationArray = dotNotation.split('.');
-	const newValue = value === 'true';
-	dotNotationArray.reduce(setNestedConfigProperty(newValue), config);
-
-	return attemptWriteToFile(value, dotNotation);
-};
-
-const setString = (dotNotation, value) => {
+const setValue = (dotNotation, value) => {
 	const dotNotationArray = dotNotation.split('.');
 	dotNotationArray.reduce(setNestedConfigProperty(value), config);
 	return attemptWriteToFile(value, dotNotation);
 };
+
+const setBoolean = (dotNotation, value) => {
+	if (!checkBoolean(value)) {
+		throw new ValidationError('Value must be a boolean.');
+	}
+	const newValue = value === 'true';
+	return setValue(dotNotation, newValue);
+};
+
+const setArrayString = (dotNotation, value, inputs) =>
+	setValue(dotNotation, inputs);
 
 const setNethash = (dotNotation, value) => {
 	if (
@@ -116,27 +121,28 @@ const setNethash = (dotNotation, value) => {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 	}
-	return setString(dotNotation, value);
+	return setValue(dotNotation, value);
 };
 
 const handlers = {
-	'api.node': setString,
+	'api.nodes': setArrayString,
 	'api.network': setNethash,
 	json: setBoolean,
-	name: setString,
+	name: setValue,
 	pretty: setBoolean,
 };
 
-export const actionCreator = () => async ({ variable, value }) => {
+export const actionCreator = () => async ({ variable, values }) => {
 	if (!CONFIG_VARIABLES.includes(variable)) {
 		throw new ValidationError('Unsupported variable name.');
 	}
-
-	return handlers[variable](variable, value);
+	const safeValues = values || [];
+	const safeValue = safeValues[0] || '';
+	return handlers[variable](variable, safeValue, safeValues);
 };
 
 const set = createCommand({
-	command: 'set <variable> <value>',
+	command: 'set <variable> [values...]',
 	autocomplete: CONFIG_VARIABLES,
 	description,
 	actionCreator,
