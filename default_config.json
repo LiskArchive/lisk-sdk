@@ -3,7 +3,7 @@
 	"json": false,
 	"api": {
 		"nodes": [],
-		"network": ""
+		"network": "main"
 	},
 	"pretty": false
 }

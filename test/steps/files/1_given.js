@@ -183,7 +183,7 @@ export function theFileIsValidJSON() {
 		json: true,
 		api: {
 			network: 'beta',
-			node: ['http://localhost:4000'],
+			nodes: ['http://localhost:4000'],
 		},
 	};
 

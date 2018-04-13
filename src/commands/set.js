@@ -136,9 +136,9 @@ export const actionCreator = () => async ({ variable, values }) => {
 	if (!CONFIG_VARIABLES.includes(variable)) {
 		throw new ValidationError('Unsupported variable name.');
 	}
-	const safeInputs = values || [];
-	const safeValue = safeInputs[0] || '';
-	return handlers[variable](variable, safeValue, safeInputs);
+	const safeValues = values || [];
+	const safeValue = safeValues[0] || '';
+	return handlers[variable](variable, safeValue, safeValues);
 };
 
 const set = createCommand({
