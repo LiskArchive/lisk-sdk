@@ -426,6 +426,11 @@ class Transaction {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
 		}
 
+		// Reject if transaction has requester public key
+		if (transaction.requesterPublicKey) {
+			return setImmediate(cb, 'Multisig request is not allowed');
+		}
+
 		// Check for missing sender second signature
 		if (
 			!transaction.requesterPublicKey &&
@@ -524,11 +529,6 @@ class Transaction {
 					multisignatures.push(key.slice(1));
 				}
 			}
-		}
-
-		// Reject if transaction has requester public key
-		if (transaction.requesterPublicKey) {
-			return setImmediate(cb, 'Multisig request is not allowed');
 		}
 
 		// Verify signature
