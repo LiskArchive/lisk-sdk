@@ -528,7 +528,7 @@ describe('transaction', () => {
 				'839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
 
 			transactionLogic.verify(transaction, sender, dummyRequester, err => {
-				expect(err).to.include('Missing requester second signature');
+				expect(err).to.include('Multisig request is not allowed');
 				done();
 			});
 		});
