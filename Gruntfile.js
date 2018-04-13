@@ -30,6 +30,10 @@ module.exports = function(grunt) {
 				command: `cd ${__dirname}/ && echo "v${today}" > build`,
 			},
 
+			revision: {
+				command: `cd ${__dirname}/ && git rev-parse HEAD > REVISION`,
+			},
+
 			pack: {
 				command: 'npm pack',
 			},
@@ -46,8 +50,18 @@ module.exports = function(grunt) {
 				cmd(tag, suite, section) {
 					if (suite === 'integration') {
 						var slowTag = '';
-						if (tag !== 'slow') {
-							slowTag = '--grep @slow --invert';
+						if (tag === 'untagged') {
+							slowTag = "--grep '@slow|@unstable' --invert";
+						} else if (tag === 'extensive') {
+							slowTag = '--grep @unstable --invert';
+						} else if (tag === 'slow') {
+							slowTag = '--grep @slow';
+						} else if (tag === 'unstable') {
+							slowTag = '--grep @unstable';
+						} else {
+							grunt.fail.fatal(
+								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
+							);
 						}
 						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
 					}
@@ -74,6 +88,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.registerTask('release', [
 		'exec:build',
+		'exec:revision',
 		'exec:pack',
 		'exec:folder',
 		'exec:copy',

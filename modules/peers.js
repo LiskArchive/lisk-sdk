@@ -121,20 +121,50 @@ __private.getByFilter = function(filter, cb) {
 	 */
 	const sortPeers = function(field, asc) {
 		return function(a, b) {
-			const sortedPeers =
-				// Nulls last
-				a[field] === b[field]
-					? 0
-					: a[field] === null
-						? 1
-						: b[field] === null
-							? -1
-							: // Ascending
-								asc
-								? a[field] < b[field] ? -1 : 1
-								: // Descending
-									a[field] < b[field] ? 1 : -1;
-			return sortedPeers;
+			// Match the default JavaScript sort order.
+			if (a[field] === b[field]) {
+				return 0;
+			}
+			// Ascending
+			if (asc) {
+				// Undefined last
+				if (a[field] === undefined) {
+					return 1;
+				}
+				if (b[field] === undefined) {
+					return -1;
+				}
+				// Null second last
+				if (a[field] === null) {
+					return 1;
+				}
+				if (b[field] === null) {
+					return -1;
+				}
+				if (a[field] < b[field]) {
+					return -1;
+				}
+				return 1;
+			}
+			// Descending
+			// Undefined first
+			if (a[field] === undefined) {
+				return -1;
+			}
+			if (b[field] === undefined) {
+				return 1;
+			}
+			// Null second
+			if (a[field] === null) {
+				return -1;
+			}
+			if (b[field] === null) {
+				return 1;
+			}
+			if (a[field] < b[field]) {
+				return 1;
+			}
+			return -1;
 		};
 	};
 

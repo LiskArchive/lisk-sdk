@@ -145,6 +145,17 @@ SCWorker.create({
 						return socket.disconnect(handshakeFailedCode, handshakeFailedDesc);
 					}
 
+					if (!socket.request.peerObject) {
+						var handshakeErrorCode = failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
+						var handshakeErrorDesc = 'Could not find the peerObject property on the handshake request';
+						scope.logger.error(
+							`[Inbound socket :: handshake] WebSocket handshake from ${
+								socket.request.remoteAddress
+							} failed with code ${handshakeErrorCode} - ${handshakeErrorDesc}`
+						);
+						return socket.disconnect(handshakeErrorCode, handshakeErrorDesc);
+					}
+
 					scope.logger.trace(
 						`[Inbound socket :: handshake] WebSocket handshake from ${
 							socket.request.remoteAddress
@@ -169,9 +180,6 @@ SCWorker.create({
 				scServer.on('connection', socket => {
 					scope.slaveWAMPServer.upgradeToWAMP(socket);
 					socket.on('disconnect', removePeerConnection.bind(null, socket));
-					socket.on('error', err => {
-						socket.disconnect(err.code, err.message);
-					});
 				});
 
 				function removePeerConnection(socket, code) {
@@ -214,6 +222,8 @@ SCWorker.create({
 						}
 					);
 				}
+
+				scope.logger.debug(`Worker pid ${process.pid} started`);
 			}
 		);
 	},

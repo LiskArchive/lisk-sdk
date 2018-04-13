@@ -24,10 +24,6 @@
  * @typedef {string} address
  */
 /**
- * Crypto hash hex
- * @typedef {string} hash
- */
-/**
  * publicKey, privateKey
  * @typedef {Object} keypair
  */
