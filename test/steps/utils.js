@@ -49,7 +49,9 @@ export const getFirstQuotedString = title => title.match(regExpQuotes)[1];
 
 export const getQuotedStrings = title => {
 	const globalRegExp = new RegExp(regExpQuotes, 'g');
-	return title.match(globalRegExp).map(match => match.match(regExpQuotes)[1]);
+	return (title.match(globalRegExp) || []).map(
+		match => match.match(regExpQuotes)[1],
+	);
 };
 
 export const getFirstNumber = title => Number(title.match(regExpNumbers)[0]);

@@ -26,10 +26,10 @@ const seedNodes = {
 };
 
 const getAPIClient = () => {
-	const { node, network } = config.api;
+	const { nodes, network } = config.api;
 	const nethash = NETHASHES[network] || network;
-	const nodes = node ? [node] : seedNodes[network];
-	return new APIClient(nodes, nethash);
+	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
+	return new APIClient(clientNodes, nethash);
 };
 
 export default getAPIClient;

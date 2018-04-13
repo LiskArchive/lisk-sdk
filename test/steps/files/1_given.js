@@ -182,8 +182,8 @@ export function theFileIsValidJSON() {
 		name: 'custom-name',
 		json: true,
 		api: {
-			testnet: true,
-			node: 'my-node',
+			network: 'beta',
+			nodes: ['http://localhost:4000'],
 		},
 	};
 

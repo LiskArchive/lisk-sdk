@@ -2,8 +2,8 @@
 	"name": "lisky",
 	"json": false,
 	"api": {
-		"node": "",
-		"network": ""
+		"nodes": [],
+		"network": "main"
 	},
 	"pretty": false
 }

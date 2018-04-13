@@ -41,7 +41,7 @@ export const QUERY_INPUT_MAP = {
 };
 
 export const CONFIG_VARIABLES = [
-	'api.node',
+	'api.nodes',
 	'api.network',
 	'json',
 	'name',
