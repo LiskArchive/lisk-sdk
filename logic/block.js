@@ -387,15 +387,14 @@ Block.prototype.getBytes = function(block) {
 		4 + // timestamp (int)
 		8 + // previousBlock
 		4 + // numberOfTransactions (int)
-		4 + // totalAmount (long)
+		8 + // totalAmount (long)
 		8 + // totalFee (long)
 		8 + // reward (long)
 		4 + // payloadLength (int)
-		4 +
-		4 +
 		32 + // payloadHash
 		32 + // generatorPublicKey
-		64; // blockSignature or unused
+		64 + // blockSignature or unused
+		4; // unused
 	let bytes;
 
 	try {
