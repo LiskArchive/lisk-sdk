@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { bufferToHex, getAddress } from './convert';
+import { bufferToHex, getAddressFromPublicKey } from './convert';
 import hash from './hash';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
@@ -41,7 +41,7 @@ export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
 export const getAddressAndPublicKeyFromPassphrase = passphrase => {
 	const accountKeys = getKeys(passphrase);
-	const accountAddress = getAddress(accountKeys.publicKey);
+	const accountAddress = getAddressFromPublicKey(accountKeys.publicKey);
 
 	return {
 		address: accountAddress,
