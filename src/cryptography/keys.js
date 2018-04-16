@@ -17,7 +17,6 @@ import hash from './hash';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
-
 	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(hashed);
 
 	return {
@@ -40,11 +39,16 @@ export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
 export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
 export const getAddressAndPublicKeyFromPassphrase = passphrase => {
-	const accountKeys = getKeys(passphrase);
-	const accountAddress = getAddressFromPublicKey(accountKeys.publicKey);
+	const { publicKey } = getKeys(passphrase);
+	const address = getAddressFromPublicKey(publicKey);
 
 	return {
-		address: accountAddress,
-		publicKey: accountKeys.publicKey,
+		address,
+		publicKey,
 	};
+};
+
+export const getAddressFromPassphrase = passphrase => {
+	const { publicKey } = getKeys(passphrase);
+	return getAddressFromPublicKey(publicKey);
 };
