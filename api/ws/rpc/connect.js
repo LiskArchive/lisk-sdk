@@ -52,7 +52,7 @@ const connectSteps = {
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: System.getHeaders(),
-			multiplex: false
+			multiplex: false,
 		};
 		return peer;
 	},
@@ -63,7 +63,6 @@ const connectSteps = {
 			// before issuing a new connection
 			// destroy the exisiting connection
 			// to avoid too many socket connections
-			peer.socket.off();
 			peer.socket.destroy();
 			delete peer.socket;
 		}
