@@ -1129,4 +1129,54 @@ describe('rounds', () => {
 			});
 		});
 	});
+
+	describe('round 3', () => {
+		describe('should forge 101 blocks with 1 TRANSFER transaction each to random account', () => {
+			const blocksToForge = 101;
+			let blocksProcessed = 0;
+			const transactionsPerBlock = 1;
+
+			before(done => {
+				const transactionPool = library.rewiredModules.transactions.__get__(
+					'__private.transactionPool'
+				);
+				transactionPool.queued.transactions = [];
+
+				done();
+			});
+
+			async.doUntil(
+				untilCb => {
+					++blocksProcessed;
+					const transactions = [];
+					for (let t = transactionsPerBlock - 1; t >= 0; t--) {
+						const transaction = elements.transaction.transfer({
+							recipientId: randomUtil.account().address,
+							amount: randomUtil.number(100000000, 1000000000),
+							passphrase: accountsFixtures.genesis.password,
+						});
+						transactions.push(transaction);
+					}
+
+					__testContext.debug(
+						`	Processing block ${blocksProcessed} of ${blocksToForge} with ${
+							transactions.length
+							} transactions`
+					);
+					tickAndValidate(transactions);
+					untilCb();
+				},
+				err => {
+					return err || blocksProcessed >= blocksToForge;
+				}
+			);
+		});
+
+		describe('after finish round', () => {
+			it('last block height should be at height 303', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return expect(lastBlock.height).to.equal(303);
+			});
+		});
+	});
 });
