@@ -39,8 +39,6 @@ module.exports = function(params) {
 				})
 			).then(results => {
 				results.forEach(transaction => {
-					// eslint-disable-next-line no-console
-					console.log('transaction: ', transaction);
 					expect(transaction)
 						.to.have.property('id')
 						.that.is.an('string');
