@@ -715,7 +715,6 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 		)
 		.then(() => setImmediate(cb, null, secondLastBlock))
 		.catch(err => {
-			process.exit(1);
 			return setImmediate(cb, err);
 		});
 };
