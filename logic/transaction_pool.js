@@ -302,7 +302,7 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(
 	cb
 ) {
 	__private.isMultisignatureTransaction(transaction, isMulti => {
-		if (transaction.type === transactionTypes.MULTI || isMulti) {
+		if (isMulti) {
 			self.removeMultisignatureTransaction(transaction.id);
 		} else {
 			self.removeQueuedTransaction(transaction.id);
@@ -599,29 +599,31 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 	transaction.receivedAt = new Date();
 
-	__private.isMultisignatureTransaction(transaction, isMulti => {
-		if (transaction.bundled) {
-			if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
-				return setImmediate(cb, 'Transaction pool is full');
-			}
-			self.addBundledTransaction(transaction);
-		} else if (transaction.type === transactionTypes.MULTI || isMulti) {
-			if (
-				self.countMultisignature() >=
-				config.transactions.maxTransactionsPerQueue
+	if (transaction.bundled) {
+		if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
+			return setImmediate(cb, 'Transaction pool is full');
+		}
+		self.addBundledTransaction(transaction);
+	} else {
+		__private.isMultisignatureTransaction(transaction, isMulti => {
+			if (isMulti) {
+				if (
+					self.countMultisignature() >=
+					config.transactions.maxTransactionsPerQueue
+				) {
+					return setImmediate(cb, 'Transaction pool is full');
+				}
+				self.addMultisignatureTransaction(transaction);
+			} else if (
+				self.countQueued() >= config.transactions.maxTransactionsPerQueue
 			) {
 				return setImmediate(cb, 'Transaction pool is full');
+			} else {
+				self.addQueuedTransaction(transaction);
 			}
-			self.addMultisignatureTransaction(transaction);
-		} else if (
-			self.countQueued() >= config.transactions.maxTransactionsPerQueue
-		) {
-			return setImmediate(cb, 'Transaction pool is full');
-		} else {
-			self.addQueuedTransaction(transaction);
-		}
-		return setImmediate(cb);
-	});
+			return setImmediate(cb);
+		});
+	}
 };
 
 /**
@@ -790,7 +792,7 @@ __private.isTransactionInUnconfirmedQueue = function(transaction) {
 };
 
 /**
- * Check if a transaction is sent from multisignature account.
+ * Checks, if a transaction is sent from multisignature account or if it is a multisignature account registration.
  *
  * @private
  * @param {Object} transaction - Transaction object
@@ -798,29 +800,33 @@ __private.isTransactionInUnconfirmedQueue = function(transaction) {
  * @returns {Boolean} True if the transaction is type 4 or sent from a multisig account
  */
 __private.isMultisignatureTransaction = function(transaction, cb) {
-	async.waterfall(
-		[
-			function getAccount(waterCb) {
-				if (transaction.senderPublicKey) {
-					modules.accounts.getAccount(
-						{ publicKey: transaction.senderPublicKey },
-						waterCb
-					);
-				} else {
-					return setImmediate(waterCb, null, null);
-				}
-			},
-			function checkMulti(sender, waterCb) {
-				const isMultisignature =
-					sender &&
-					Array.isArray(sender.multisignatures) &&
-					sender.multisignatures.length;
+	if (transaction.type === transactionTypes.MULTI) {
+		setImmediate(cb, true);
+	} else {
+		async.waterfall(
+			[
+				function getAccount(waterCb) {
+					if (transaction.senderPublicKey) {
+						modules.accounts.getAccount(
+							{ publicKey: transaction.senderPublicKey },
+							waterCb
+						);
+					} else {
+						return setImmediate(waterCb, null, null);
+					}
+				},
+				function checkMulti(sender, waterCb) {
+					const isMultisignature =
+						sender &&
+						Array.isArray(sender.multisignatures) &&
+						sender.multisignatures.length;
 
-				return setImmediate(waterCb, null, isMultisignature);
-			},
-		],
-		(err, isMultisignature) => setImmediate(cb, isMultisignature)
-	);
+					return setImmediate(waterCb, null, isMultisignature);
+				},
+			],
+			(err, isMultisignature) => setImmediate(cb, isMultisignature)
+		);
+	}
 };
 
 /**
