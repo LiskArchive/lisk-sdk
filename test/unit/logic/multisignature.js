@@ -239,7 +239,7 @@ describe('multisignature', function () {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '-' + multiSigAccount2.publicKey], 1, 2);
 				trs.senderId = node.gAccount.address;
 
-				transaction.verify(trs, node.gAccount, function (err, trs) {
+				transaction.verify(trs, node.gAccount, null, true, function (err, trs) {
 					expect(err).to.equal('Invalid math operator in multisignature keysgroup');
 					done();
 				});
@@ -249,7 +249,7 @@ describe('multisignature', function () {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, null], 1, 2);
 				trs.senderId = node.gAccount.address;
 
-				transaction.verify(trs, node.gAccount, function (err, trs) {
+				transaction.verify(trs, node.gAccount,  null, true, function (err, trs) {
 					expect(err).to.equal('Invalid member in keysgroup');
 					done();
 				});
@@ -259,7 +259,7 @@ describe('multisignature', function () {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, undefined], 1, 2);
 				trs.senderId = node.gAccount.address;
 
-				transaction.verify(trs, node.gAccount, function (err, trs) {
+				transaction.verify(trs, node.gAccount,  null, true, function (err, trs) {
 					expect(err).to.equal('Invalid member in keysgroup');
 					done();
 				});
@@ -269,17 +269,17 @@ describe('multisignature', function () {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, 12], 1, 2);
 				trs.senderId = node.gAccount.address;
 
-				transaction.verify(trs, node.gAccount, function (err, trs) {
+				transaction.verify(trs, node.gAccount,  null, true, function (err, trs) {
 					expect(err).to.equal('Invalid member in keysgroup');
 					done();
 				});
 			});
 
-			it('should be okay for valid transaction', function (done) {
+			it('should be okay for valid transaction',  null, true, function (done) {
 				var trs	= node.lisk.multisignature.createMultisignature(node.gAccount.password, null, ['+' + multiSigAccount1.publicKey, '+' + multiSigAccount2.publicKey], 1, 2);
 				trs.senderId = node.gAccount.address;
 
-				transaction.verify(trs, node.gAccount, function (err, trs) {
+				transaction.verify(trs, node.gAccount,  null, true, function (err, trs) {
 					expect(err).to.not.exist;
 					done();
 				});
