@@ -30,6 +30,7 @@ describe('rounds', () => {
 	let Queries;
 	let generateDelegateListPromise;
 	let addTransactionsAndForgePromise;
+	let deleteLastBlockPromise;
 
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
@@ -44,6 +45,10 @@ describe('rounds', () => {
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge
+		);
+
+		deleteLastBlockPromise = Promise.promisify(
+			library.modules.blocks.chain.deleteLastBlock
 		);
 	});
 
@@ -487,7 +492,6 @@ describe('rounds', () => {
 	}
 
 	describe('round 1', () => {
-		let deleteLastBlockPromise;
 		const round = {
 			current: 1,
 			outsiderPublicKey:
@@ -496,10 +500,6 @@ describe('rounds', () => {
 
 		before(() => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
-
-			deleteLastBlockPromise = Promise.promisify(
-				library.modules.blocks.chain.deleteLastBlock
-			);
 
 			// Copy initial states for later comparison
 			return Promise.join(
