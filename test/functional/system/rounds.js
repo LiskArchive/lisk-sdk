@@ -1130,12 +1130,27 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('rollback more than 1 round of blocks', () => {
+		let lastBlock;
 
+		before(() => {
+			return Promise.mapSeries([...Array(101)], () => {
+				return deleteLastBlockPromise();
 			});
-
-
 		});
 
+		it('last block height should be at height 101', () => {
+			lastBlock = library.modules.blocks.lastBlock.get();
+			return expect(lastBlock.height).to.equal(101);
+		});
+
+		it('should fail when try to delete one more block (last block of round 1)', () => {
+			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith('relation "mem_round_snapshot" does not exist');
+		});
+
+		it('last block height should be still at height 101', () => {
+			lastBlock = library.modules.blocks.lastBlock.get();
+			return expect(lastBlock.height).to.equal(101);
 		});
 	});
 });
