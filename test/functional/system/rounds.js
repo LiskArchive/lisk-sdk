@@ -1145,7 +1145,9 @@ describe('rounds', () => {
 		});
 
 		it('should fail when try to delete one more block (last block of round 1)', () => {
-			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith('relation "mem_round_snapshot" does not exist');
+			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist'
+			);
 		});
 
 		it('last block height should be still at height 101', () => {
