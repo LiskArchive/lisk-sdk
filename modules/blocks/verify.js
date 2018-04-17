@@ -82,7 +82,7 @@ __private.checkTransaction = function (block, transaction, checkConfirmed, cb) {
 				return setImmediate(cb, err2 || err);
 			});
 		} else {
-			return setImmediate(cb);
+			return setImmediate(cb, err);
 		}
 	});
 };
