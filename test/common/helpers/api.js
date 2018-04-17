@@ -207,10 +207,10 @@ function sendTransactionsPromise(transactions, expectedStatusCode) {
 	});
 }
 
-function sendSignature(signature, transaction, cb) {
+function sendSignature(signature, cb) {
 	http.post(
 		'/api/signatures',
-		{ signature: { signature, transaction: transaction.id } },
+		signature,
 		httpResponseCallbackHelper.bind(null, cb)
 	);
 }
