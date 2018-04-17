@@ -14,7 +14,7 @@
  */
 import transaction from 'transactions';
 
-describe('expect(transaction)s', () => {
+describe('transaction', () => {
 	describe('exports', () => {
 		it('should have #transfer', () => {
 			return expect(transaction)

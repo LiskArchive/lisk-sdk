@@ -35,6 +35,8 @@ describe('#createSignatureObject', () => {
 		publicKey:
 			'87696cfc48f5f5bd4ec2473615ac1618ffedfdc20005ae71a3d0dba209471c04',
 	};
+	const generatedSignature =
+		'8222dc7c26cc0ed649af71ebef5d292deb6ad029dadec0cf061b40e2ea9572d1b691e92302ac8cb64e5ea5f8fd846410c8fa033236c8930203ae3b7f3c6bd30c';
 
 	describe('when invalid transaction is used', () => {
 		it('should throw an Error when sender public key is mutated', () => {
@@ -81,7 +83,7 @@ describe('#createSignatureObject', () => {
 		let signatureObject;
 		beforeEach(() => {
 			signatureObject = createSignatureObject(transaction, account.passphrase);
-			return Promise.resolve(true);
+			return Promise.resolve();
 		});
 
 		it('should have the same transaction id as the input', () => {
@@ -93,8 +95,7 @@ describe('#createSignatureObject', () => {
 		});
 
 		it('should have non-empty hex string signature', () => {
-			expect(signatureObject.signature).not.to.be.empty;
-			return expect(signatureObject.signature).to.be.hexString;
+			return expect(signatureObject.signature).to.equal(generatedSignature);
 		});
 	});
 });
