@@ -604,26 +604,26 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 			return setImmediate(cb, 'Transaction pool is full');
 		}
 		self.addBundledTransaction(transaction);
-	} else {
-		__private.isMultisignatureTransaction(transaction, isMulti => {
-			if (isMulti) {
-				if (
-					self.countMultisignature() >=
-					config.transactions.maxTransactionsPerQueue
-				) {
-					return setImmediate(cb, 'Transaction pool is full');
-				}
-				self.addMultisignatureTransaction(transaction);
-			} else if (
-				self.countQueued() >= config.transactions.maxTransactionsPerQueue
+		return setImmediate(cb);
+	}
+	__private.isMultisignatureTransaction(transaction, isMulti => {
+		if (isMulti) {
+			if (
+				self.countMultisignature() >=
+				config.transactions.maxTransactionsPerQueue
 			) {
 				return setImmediate(cb, 'Transaction pool is full');
-			} else {
-				self.addQueuedTransaction(transaction);
 			}
-			return setImmediate(cb);
-		});
-	}
+			self.addMultisignatureTransaction(transaction);
+		} else if (
+			self.countQueued() >= config.transactions.maxTransactionsPerQueue
+		) {
+			return setImmediate(cb, 'Transaction pool is full');
+		} else {
+			self.addQueuedTransaction(transaction);
+		}
+		return setImmediate(cb);
+	});
 };
 
 /**
