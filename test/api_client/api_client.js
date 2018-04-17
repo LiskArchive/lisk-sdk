@@ -38,18 +38,11 @@ describe('APIClient module', () => {
 	];
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
-		nethash: mainnetHash,
-		os: 'lisk-js-api',
-		version: '1.0.0',
-		minVersion: '>=1.0.0',
 	};
 
 	const customHeaders = {
 		'Content-Type': 'application/json',
 		nethash: testnetHash,
-		os: 'lisk-js-api',
-		version: '0.5.0',
-		minVersion: '>=0.1.0',
 	};
 
 	const localNode = 'http://localhost:7000';
@@ -62,7 +55,7 @@ describe('APIClient module', () => {
 	let apiClient;
 
 	beforeEach(() => {
-		apiClient = new APIClient(defaultNodes, mainnetHash);
+		apiClient = new APIClient(defaultNodes);
 		return Promise.resolve();
 	});
 
@@ -81,7 +74,7 @@ describe('APIClient module', () => {
 		});
 
 		it('should call initialize', () => {
-			apiClient = new APIClient(defaultNodes, mainnetHash);
+			apiClient = new APIClient(defaultNodes);
 			return expect(initializeStub).to.be.calledOnce;
 		});
 	});
@@ -168,24 +161,6 @@ describe('APIClient module', () => {
 			);
 		});
 
-		it('should throw an error if no second argument is passed to constructor', () => {
-			return expect(
-				apiClient.initialize.bind(apiClient, defaultNodes),
-			).to.throw(Error, 'APIClient requires nethash for initialization.');
-		});
-
-		it('should throw an error if second argument passed to constructor is not string', () => {
-			return expect(
-				apiClient.initialize.bind(apiClient, defaultNodes, 123),
-			).to.throw(Error, 'APIClient requires nethash for initialization.');
-		});
-
-		it('should throw an error if second argument passed to constructor is empty string', () => {
-			return expect(
-				apiClient.initialize.bind(apiClient, defaultNodes, ''),
-			).to.throw(Error, 'APIClient requires nethash for initialization.');
-		});
-
 		describe('headers', () => {
 			it('should set with passed nethash, with default options', () => {
 				return expect(apiClient)
@@ -194,9 +169,9 @@ describe('APIClient module', () => {
 			});
 
 			it('should set custom headers with supplied options', () => {
-				apiClient = new APIClient(defaultNodes, testnetHash, {
+				apiClient = new APIClient(defaultNodes, {
 					version: customHeaders.version,
-					minVersion: customHeaders.minVersion,
+					nethash: testnetHash,
 				});
 				return expect(apiClient)
 					.to.have.property('headers')
@@ -221,7 +196,7 @@ describe('APIClient module', () => {
 
 			it('should set bannedNodes when passed as an option', () => {
 				const bannedNodes = ['a', 'b'];
-				apiClient = new APIClient(defaultNodes, mainnetHash, { bannedNodes });
+				apiClient = new APIClient(defaultNodes, { bannedNodes });
 				return expect(apiClient)
 					.to.have.property('bannedNodes')
 					.be.eql(bannedNodes);
@@ -235,7 +210,7 @@ describe('APIClient module', () => {
 			});
 
 			it('should set with supplied node if node is specified by options', () => {
-				apiClient = new APIClient(defaultNodes, mainnetHash, {
+				apiClient = new APIClient(defaultNodes, {
 					node: externalTestnetNode,
 				});
 				return expect(apiClient)
@@ -246,21 +221,21 @@ describe('APIClient module', () => {
 
 		describe('randomizeNodes', () => {
 			it('should set randomizeNodes to true when randomizeNodes not explicitly set', () => {
-				apiClient = new APIClient(defaultNodes, mainnetHash, {
+				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: undefined,
 				});
 				return expect(apiClient).to.have.property('randomizeNodes').be.true;
 			});
 
 			it('should set randomizeNodes to true on initialization when passed as an option', () => {
-				apiClient = new APIClient(defaultNodes, mainnetHash, {
+				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: true,
 				});
 				return expect(apiClient).to.have.property('randomizeNodes').be.true;
 			});
 
 			it('should set randomizeNodes to false on initialization when passed as an option', () => {
-				apiClient = new APIClient(defaultNodes, mainnetHash, {
+				apiClient = new APIClient(defaultNodes, {
 					randomizeNodes: false,
 				});
 				return expect(apiClient).to.have.property('randomizeNodes').be.false;

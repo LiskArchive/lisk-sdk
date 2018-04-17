@@ -35,26 +35,16 @@ import {
 
 const defaultOptions = {
 	bannedNode: [],
-	version: '1.0.0',
-	minVersion: '>=1.0.0',
 	randomizeNode: true,
 };
 
 const commonHeaders = {
 	'Content-Type': 'application/json',
-	os: 'lisk-js-api',
 };
 
-const getHeaders = (nethash, version, minVersion) =>
-	Object.assign({}, commonHeaders, {
-		nethash,
-		version,
-		minVersion,
-	});
-
 export default class APIClient {
-	constructor(nodes, nethash, providedOptions = {}) {
-		this.initialize(nodes, nethash, providedOptions);
+	constructor(nodes, providedOptions = {}) {
+		this.initialize(nodes, providedOptions);
 
 		this.accounts = new AccountsResource(this);
 		this.blocks = new BlocksResource(this);
@@ -69,29 +59,36 @@ export default class APIClient {
 	}
 
 	static createMainnetAPIClient(options) {
-		return new APIClient(MAINNET_NODES, MAINNET_NETHASH, options);
+		return new APIClient(
+			MAINNET_NODES,
+			Object.assign({}, options, { nethash: MAINNET_NETHASH }),
+		);
 	}
 
 	static createTestnetAPIClient(options) {
-		return new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);
+		return new APIClient(
+			TESTNET_NODES,
+			Object.assign({}, options, { nethash: TESTNET_NETHASH }),
+		);
 	}
 
 	static createBetanetAPIClient(options) {
-		return new APIClient(BETANET_NODES, BETANET_NETHASH, options);
+		return new APIClient(
+			BETANET_NODES,
+			Object.assign({}, options, { nethash: BETANET_NETHASH }),
+		);
 	}
 
-	initialize(nodes, nethash, providedOptions = {}) {
+	initialize(nodes, providedOptions = {}) {
 		if (!Array.isArray(nodes) || nodes.length <= 0) {
 			throw new Error('APIClient requires nodes for initialization.');
 		}
 
-		if (typeof nethash !== 'string' || nethash === '') {
-			throw new Error('APIClient requires nethash for initialization.');
-		}
-
 		const options = Object.assign({}, defaultOptions, providedOptions);
 
-		this.headers = getHeaders(nethash, options.version, options.minVersion);
+		this.headers = options.nethash
+			? Object.assign({}, commonHeaders, { nethash: options.nethash })
+			: commonHeaders;
 		this.nodes = nodes;
 		this.bannedNodes = [...(options.bannedNodes || [])];
 		this.currentNode = options.node || this.getNewNode();
