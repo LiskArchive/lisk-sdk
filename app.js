@@ -167,9 +167,10 @@ if (
 ) {
 	dbLogger = logger;
 } else {
+	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
 	dbLogger = new Logger({
-		echo: process.env.DB_LOG_LEVEL || appConfig.db.consoleLogLevel,
-		errorLevel: process.env.FILE_LOG_LEVEL || appConfig.db.fileLogLevel,
+		echo: process.env.DB_LOG_LEVEL || 'log',
+		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
 	});
 }
@@ -543,9 +544,9 @@ d.run(() => {
 			db(cb) {
 				var db = require('./db');
 				db
-					.connect(config.db, dbLogger)
+					.connect(config.db, dbLogger, logger)
 					.then(db => cb(null, db))
-					.catch(err => cb(err));
+					.catch(cb);
 			},
 
 			/**
