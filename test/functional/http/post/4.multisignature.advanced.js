@@ -15,12 +15,15 @@
 'use strict';
 
 require('../../functional.js');
+
+var lisk = require('lisk-js').default;
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var waitFor = require('../../../common/utils/wait_for');
 var randomUtil = require('../../../common/utils/random');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
+var constants = require('../../../../helpers/constants.js');
 
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -34,6 +37,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
         duplicated_signature: new Scenarios.Multisig(),
         extra_signature: new Scenarios.Multisig(),
         unknown_signature: new Scenarios.Multisig(),
+        requesterPublicKey: new Scenarios.Multisig(),
     };
 
     var transactionsToWaitFor = [];
@@ -295,6 +299,51 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
                         expect(res.body.message).to.match(/^Invalid transaction body - Failed to validate transaction schema: Array items are not unique \(indexes/);
                         badTransactions.push(scenario.multiSigTransaction);
                     });
+                });
+            });
+        });
+
+        describe('requesterPublicKey property', () => {
+            it('sending multisig transaction offline signed should be ok and confirmed', () => {
+                var scenario = scenarios.requesterPublicKey;
+
+                scenario.multiSigTransaction.signatures = _.map(scenario.members, member => {
+                    var signatureObject = apiHelpers.createSignatureObject(
+                        scenario.multiSigTransaction,
+                        member
+                    );
+                    return signatureObject.signature;
+                });
+
+                scenario.multiSigTransaction.ready = true;
+
+                return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
+                    expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+
+                    transactionsToWaitFor.push(scenario.multiSigTransaction.id);
+                    return waitFor.confirmations(transactionsToWaitFor);
+                });
+            });
+
+            it('requesting multisig group transaction from non author account', () => {
+                var scenario = scenarios.requesterPublicKey;
+
+                var transaction = lisk.transaction.transfer(
+                    {
+                        amount: 1 * constants.normalizer,
+                        passphrase: scenario.members[0].password,
+                        recipientId: randomUtil.account().address,
+                    }
+                );
+                transaction.requesterPublicKey = scenario.account.publicKey;
+                transaction.id = lisk.transaction.utils.getTransactionId(transaction);
+
+                return sendTransactionPromise(
+                    transaction,
+                    errorCodes.PROCESSING_ERROR
+                ).then(res => {
+                    expect(res.body.message).to.equal('Multisig request is not allowed');
+                    badTransactions.push(transaction);
                 });
             });
         });
