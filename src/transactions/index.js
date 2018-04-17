@@ -18,8 +18,6 @@ import registerDelegate from './2_register_delegate';
 import castVotes from './3_cast_votes';
 import registerMultisignature from './4_register_multisignature_account';
 import createDapp from './5_create_dapp';
-import transferIntoDapp from './6_transfer_into_dapp';
-import transferOutOfDapp from './7_transfer_out_of_dapp';
 import * as utils from './utils';
 
 export default {
@@ -29,7 +27,5 @@ export default {
 	castVotes,
 	registerMultisignature,
 	createDapp,
-	transferIntoDapp,
-	transferOutOfDapp,
 	utils,
 };
