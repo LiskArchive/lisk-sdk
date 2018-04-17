@@ -51,17 +51,5 @@ describe('expect(transaction)s', () => {
 				.to.have.property('createDapp')
 				.and.be.a('function');
 		});
-
-		it('to have the transfer into dapp expect(transaction) function', () => {
-			return expect(transaction)
-				.to.have.property('transferIntoDapp')
-				.and.be.a('function');
-		});
-
-		it('to have the transfer out of dapp expect(transaction) function', () => {
-			return expect(transaction)
-				.to.have.property('transferOutOfDapp')
-				.and.be.a('function');
-		});
 	});
 });
