@@ -18,7 +18,6 @@ import {
 	getFirstEightBytesReversed,
 	toAddress,
 	getAddressFromPublicKey,
-	getAddress,
 	convertPublicKeyEd2Curve,
 	convertPrivateKeyEd2Curve,
 	bigNumberToBuffer,
@@ -159,17 +158,6 @@ describe('convert', () => {
 
 		it('should generate address from publicKey', () => {
 			const address = getAddressFromPublicKey(defaultPublicKey);
-			return expect(address).to.be.equal(defaultAddress);
-		});
-	});
-
-	describe('#getAddress', () => {
-		beforeEach(() => {
-			return sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
-		});
-
-		it('should generate address from publicKey', () => {
-			const address = getAddress(defaultPublicKey);
 			return expect(address).to.be.equal(defaultAddress);
 		});
 	});

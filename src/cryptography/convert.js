@@ -65,8 +65,6 @@ export const getAddressFromPublicKey = publicKey => {
 	return address;
 };
 
-export const getAddress = getAddressFromPublicKey;
-
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 
 export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
