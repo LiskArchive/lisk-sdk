@@ -20,35 +20,19 @@ var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-var sendTransactionsPromise = require('../../../common/helpers/api')
-	.sendTransactionsPromise;
-var getUnsignedTransaction = require('../../utils/http').getUnsignedTransaction;
+var createSignatureObject = require('../../../common/helpers/api')
+	.createSignatureObject;
+var sendSignaturePromise = require('../../../common/helpers/api')
+	.sendSignaturePromise;
+var sendTransactionPromise = require('../../../common/helpers/api')
+	.sendTransactionPromise;
 var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function(params) {
-	describe('stress test for type 4 transactions @slow', () => {
+	describe('stress test for type 4 transactions', () => {
 		var transactions = [];
 		var accounts = [];
-		var maximum = 1000;
-
-		function confirmUnsignedTransactionsOnAllNodes() {
-			return Promise.all(
-				_.flatMap(params.configurations, configuration => {
-					return transactions.map(transaction => {
-						return getUnsignedTransaction(
-							transaction.id,
-							configuration.httpPort
-						);
-					});
-				})
-			).then(results => {
-				results.forEach(transaction => {
-					expect(transaction)
-						.to.have.property('id')
-						.that.is.an('string');
-				});
-			});
-		}
+		var maximum = 10;
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
@@ -79,7 +63,7 @@ module.exports = function(params) {
 						});
 						accounts.push(tmpAccount);
 						transactions.push(transaction);
-						return sendTransactionsPromise([transaction]);
+						return sendTransactionPromise(transaction);
 					})
 				);
 			});
@@ -94,19 +78,41 @@ module.exports = function(params) {
 		});
 
 		describe('sending multisignature registrations', () => {
+			var signatures = [];
+			var agreements = [];
+			var numbers = _.range(maximum);
+			var i = 0;
+			var j = 0;
+
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(num => {
-						var i = num === 0 ? maximum - 1 : num - 1;
+					numbers.map(num => {
+						i = (num + 1) % numbers.length;
+						j = (num + 2) % numbers.length;
 						var transaction = lisk.transaction.registerMultisignature({
-							keysgroup: [accounts[i].publicKey],
+							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
 							passphrase: accounts[num].password,
 						});
 						transactions.push(transaction);
-						return sendTransactionsPromise([transaction]);
+						agreements = [
+							createSignatureObject(transaction, accounts[i]),
+							createSignatureObject(transaction, accounts[j]),
+						];
+						signatures.push(agreements);
+						return sendTransactionPromise(transaction).then(res => {
+							expect(res.statusCode).to.be.eql(200);
+							return sendSignaturePromise(signatures[num][0])
+								.then(res => {
+									expect(res.statusCode).to.be.eql(200);
+									return sendSignaturePromise(signatures[num][1]);
+								})
+								.then(res => {
+									expect(res.statusCode).to.be.eql(200);
+								});
+						});
 					})
 				);
 			});
@@ -115,7 +121,7 @@ module.exports = function(params) {
 				var blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
-					confirmUnsignedTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes().then(done);
 				});
 			});
 		});
