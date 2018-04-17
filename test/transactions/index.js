@@ -16,45 +16,45 @@ import transaction from 'transactions';
 
 describe('expect(transaction)s', () => {
 	describe('exports', () => {
-		it('to have the create transfer expect(transaction) function', () => {
+		it('should have #transfer', () => {
 			return expect(transaction)
 				.to.have.property('transfer')
 				.and.be.a('function');
 		});
 
-		it('to have the register second passphrase expect(transaction) function', () => {
+		it('should have #registerSecondPassphrase', () => {
 			return expect(transaction)
 				.to.have.property('registerSecondPassphrase')
 				.and.be.a('function');
 		});
 
-		it('to have the register delegate expect(transaction) function', () => {
+		it('should have #registerDelegate', () => {
 			return expect(transaction)
 				.to.have.property('registerDelegate')
 				.and.be.a('function');
 		});
 
-		it('to have the cast votes expect(transaction) function', () => {
+		it('should have #castVotes', () => {
 			return expect(transaction)
 				.to.have.property('castVotes')
 				.and.be.a('function');
 		});
 
-		it('to have the register multisignature expect(transaction) function', () => {
+		it('should have #registerMultisignature', () => {
 			return expect(transaction)
 				.to.have.property('registerMultisignature')
 				.and.be.a('function');
 		});
 
-		it('to have the sign multisignature expect(transaction) function', () => {
+		it('should have #createDapp', () => {
 			return expect(transaction)
-				.to.have.property('signMultisignature')
+				.to.have.property('createDapp')
 				.and.be.a('function');
 		});
 
-		it('to have the create dapp expect(transaction) function', () => {
+		it('should have #createSignatureObject', () => {
 			return expect(transaction)
-				.to.have.property('createDapp')
+				.to.have.property('createSignatureObject')
 				.and.be.a('function');
 		});
 	});

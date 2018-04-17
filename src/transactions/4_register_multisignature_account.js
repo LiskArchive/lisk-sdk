@@ -12,14 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'cryptography';
 import { MULTISIGNATURE_FEE } from './constants';
 import {
 	prependPlusToPublicKeys,
 	validateKeysgroup,
 	wrapTransactionCreator,
-	verifyTransaction,
-	multiSignTransaction,
 } from './utils';
 
 const registerMultisignatureAccount = ({ keysgroup, lifetime, minimum }) => {
@@ -38,21 +35,6 @@ const registerMultisignatureAccount = ({ keysgroup, lifetime, minimum }) => {
 				keysgroup: plusPrependedKeysgroup,
 			},
 		},
-	};
-};
-
-export const signMultisignature = (transaction, passphrase) => {
-	if (!verifyTransaction(transaction)) {
-		throw new Error('Invalid transaction.');
-	}
-
-	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
-		passphrase,
-	);
-	return {
-		transactionId: transaction.id,
-		publicKey,
-		signature: multiSignTransaction(transaction, passphrase),
 	};
 };
 

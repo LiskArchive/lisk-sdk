@@ -16,10 +16,14 @@ import transfer from './0_transfer';
 import registerSecondPassphrase from './1_register_second_passphrase';
 import registerDelegate from './2_register_delegate';
 import castVotes from './3_cast_votes';
-import registerMultisignature, {
-	signMultisignature,
-} from './4_register_multisignature_account';
+import registerMultisignature from './4_register_multisignature_account';
 import createDapp from './5_create_dapp';
+<<<<<<< HEAD
+=======
+import transferIntoDapp from './6_transfer_into_dapp';
+import transferOutOfDapp from './7_transfer_out_of_dapp';
+import createSignatureObject from './create_signature_object';
+>>>>>>> :recycle: Change to have separate file and fix test
 import * as utils from './utils';
 
 export default {
@@ -28,7 +32,7 @@ export default {
 	registerDelegate,
 	castVotes,
 	registerMultisignature,
-	signMultisignature,
+	createSignatureObject,
 	createDapp,
 	utils,
 };
