@@ -75,11 +75,12 @@ module.exports.pgp = pgp;
  *
  * @function connect
  * @param {Object} config
- * @param {function} logger
+ * @param {Object} dbLogger - logger for database log file
+ * @param {Object} logger - logger for application
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
-module.exports.connect = (config, logger) => {
+module.exports.connect = (config, dbLogger, logger) => {
 	if (monitor.isAttached()) {
 		monitor.detach();
 	}
@@ -88,7 +89,7 @@ module.exports.connect = (config, logger) => {
 	monitor.setTheme('matrix');
 
 	monitor.log = (msg, info) => {
-		logger.log(info.event, info.text);
+		dbLogger.log(info.event, info.text);
 		info.display = false;
 	};
 
