@@ -258,7 +258,14 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 		transaction,
 		'u_username',
 		'u_isDelegate',
-		err => setImmediate(cb, err, transaction),
+		err => {
+			if (err && exceptions.delegates.indexOf(transaction.id) > -1) {
+				library.logger.debug(err);
+				library.logger.debug(JSON.stringify(transaction));
+				err = null;
+			}
+			return setImmediate(cb, err, transaction);
+		},
 		tx
 	);
 };

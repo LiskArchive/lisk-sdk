@@ -45,6 +45,8 @@ function Config(packageJson) {
 		.option('-x, --peers [peers...]', 'peers list')
 		.option('-l, --log <level>', 'log level')
 		.option('-s, --snapshot <round>', 'verify snapshot')
+		.option('--inspect-workers', 'inspect worker processes')
+		.option('--inspect-brokers', 'inspect broker processes')
 		.parse(process.argv);
 
 	var configPath = program.config;
