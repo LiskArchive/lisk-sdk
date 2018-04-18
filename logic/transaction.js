@@ -699,6 +699,12 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.apply = function (trs, block, sender, cb) {
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	if (!this.ready(trs, sender)) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
@@ -755,6 +761,12 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.undo = function (trs, block, sender, cb) {
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
@@ -804,6 +816,12 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	// Check unconfirmed sender balance
 	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
@@ -844,6 +862,12 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
