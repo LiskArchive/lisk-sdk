@@ -57,7 +57,7 @@ const setNestedConfigProperty = newValue => (
 			throw new ValidationError(
 				`Config file could not be written: property '${dotNotationArray.join(
 					'.',
-				)}' was not found. It looks like your configuration file is corrupted. Please check the file or run 'lisky clean' to remove it (a fresh default configuration file will be created when you run Lisky again).`,
+				)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath} or remove it (a fresh default configuration file will be created when you run Lisky again).`,
 			);
 		}
 		// eslint-disable-next-line no-param-reassign
