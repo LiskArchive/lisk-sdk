@@ -155,6 +155,28 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	encryptedSecret(str) {
+		// Explanation of regex structure:
+		// - $5 => hash algorithm
+		// - $rounds=n (optional) => number of rounds to be used in key derivation function
+		// - $HEX_SALT => salt used in key derivation function
+		// - $HEX_CIPHERTEXT => encrypted secret
+		// - Optional additional parameters (order and number is unimportant):
+		//   - $iv=HEX_IV => IV used for encryption
+		//   - $tag=HEX_TAG => tag used to authenticate when decrypting
+		//   - $version=SEMVER_VERSION => version check for future proofing
+		// NOTE: Maximum lengths chosen here are arbitrary
+		return /^\$\d(\$rounds=\d{1,32})?\$[a-f0-9]{32}\$[a-f0-9]{2,1024}(\$((iv|tag)=[a-f0-9]{32}|version=\d{1,4}\.\d{1,4}\.\d{1,4})){0,3}$/i.test(
+			str
+		);
+	},
+	/**
+	 * Description of the function.
+	 *
 	 * @param {Object} obj
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value
