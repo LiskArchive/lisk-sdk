@@ -38,7 +38,9 @@ describe('set command', () => {
 										when.theActionIsCalledWithTheVariableAndTheValues,
 										() => {
 											Then(
-												"it should reject with validation error and message \"Config file could not be written: property 'api.nodes' was not found. It looks like your configuration file is corrupted. Please check the file or run 'lisky clean' to remove it (a fresh default configuration file will be created when you run Lisky again).\"",
+												`it should reject with validation error and message "Config file could not be written: property 'api.nodes' was not found. It looks like your configuration file is corrupted. Please check the file at ${
+													process.env.LISKY_CONFIG_DIR
+												}/config.json or remove it (a fresh default configuration file will be created when you run Lisky again)."`,
 												then.itShouldRejectWithValidationErrorAndMessage,
 											);
 										},
