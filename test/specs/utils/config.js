@@ -132,30 +132,6 @@ describe('config util', () => {
 								given.theFileDoesExist,
 								() => {
 									Given(
-										'the config file is not readable',
-										given.theFileCannotBeRead,
-										() => {
-											When(
-												'the config is loaded',
-												when.theConfigIsLoaded,
-												() => {
-													Then(
-														'the user should be informed that the config file permissions are incorrect',
-														then.theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect,
-													);
-													Then(
-														'the process should exit with error code "1"',
-														then.theProcessShouldExitWithErrorCode,
-													);
-													Then(
-														'the config file should not be written',
-														then.theConfigFileShouldNotBeWritten,
-													);
-												},
-											);
-										},
-									);
-									Given(
 										'there is a config lockfile',
 										given.thereIsAConfigLockfile,
 										() => {
@@ -170,7 +146,7 @@ describe('config util', () => {
 														then.theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath,
 													);
 													Then(
-														'the process should exit with error code "3"',
+														'the process should exit with error code "2"',
 														then.theProcessShouldExitWithErrorCode,
 													);
 													Then(
@@ -196,11 +172,11 @@ describe('config util', () => {
 																		when.theConfigIsLoaded,
 																		() => {
 																			Then(
-																				'the user should be informed that the config file is not valid JSON',
-																				then.theUserShouldBeInformedThatTheConfigFileIsNotValidJSON,
+																				'the user should be informed that the config file cannot be read or is not valid JSON',
+																				then.theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValidJSON,
 																			);
 																			Then(
-																				'the process should exit with error code "2"',
+																				'the process should exit with error code "1"',
 																				then.theProcessShouldExitWithErrorCode,
 																			);
 																			Then(
@@ -268,6 +244,30 @@ describe('config util', () => {
 										given.thereIsNoConfigLockfile,
 										() => {
 											Given(
+												'the config file cannot be read',
+												given.theFileCannotBeRead,
+												() => {
+													When(
+														'the config is loaded',
+														when.theConfigIsLoaded,
+														() => {
+															Then(
+																'the user should be informed that the config file cannot be read or is not valid JSON',
+																then.theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValidJSON,
+															);
+															Then(
+																'the process should exit with error code "1"',
+																then.theProcessShouldExitWithErrorCode,
+															);
+															Then(
+																'the config file should not be written',
+																then.theConfigFileShouldNotBeWritten,
+															);
+														},
+													);
+												},
+											);
+											Given(
 												'the config file can be read',
 												given.theFileCanBeRead,
 												() => {
@@ -280,11 +280,11 @@ describe('config util', () => {
 																when.theConfigIsLoaded,
 																() => {
 																	Then(
-																		'the user should be informed that the config file is not valid JSON',
-																		then.theUserShouldBeInformedThatTheConfigFileIsNotValidJSON,
+																		'the user should be informed that the config file cannot be read or is not valid JSON',
+																		then.theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValidJSON,
 																	);
 																	Then(
-																		'the process should exit with error code "2"',
+																		'the process should exit with error code "1"',
 																		then.theProcessShouldExitWithErrorCode,
 																	);
 																	Then(

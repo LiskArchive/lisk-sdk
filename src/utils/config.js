@@ -57,24 +57,17 @@ const attemptToCreateFile = path => {
 	return attemptCallWithWarning(fn, path);
 };
 
-const checkReadAccess = path => {
-	const fn = fs.accessSync.bind(null, path, fs.constants.R_OK);
-	const errorCode = 1;
-	const errorMessage = `Could not read config file. Please check permissions for ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
-};
-
 const checkLockfile = path => {
 	const fn = lockfile.lockSync.bind(null, path);
-	const errorCode = 3;
+	const errorCode = 2;
 	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
 	return attemptCallWithError(fn, errorCode, errorMessage);
 };
 
 const attemptToReadJSONFile = path => {
 	const fn = readJSONSync.bind(null, path);
-	const errorCode = 2;
-	const errorMessage = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	const errorCode = 1;
+	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
 	return attemptCallWithError(fn, errorCode, errorMessage);
 };
 
@@ -91,8 +84,6 @@ const getConfig = () => {
 	if (!process.env.EXEC_FILE_CHILD) {
 		checkLockfile(lockfilePath);
 	}
-
-	checkReadAccess(configFilePath);
 
 	return attemptToReadJSONFile(configFilePath);
 };

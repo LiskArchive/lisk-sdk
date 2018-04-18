@@ -84,17 +84,10 @@ export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
 	);
 }
 
-export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
+export function theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
 	return expect(logger.error).to.be.calledWithExactly(
-		`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`,
-	);
-}
-
-export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
-	const { filePath } = this.test.ctx;
-	return expect(logger.error).to.be.calledWithExactly(
-		`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`,
+		`Config file cannot be read or is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`,
 	);
 }
 
