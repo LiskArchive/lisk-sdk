@@ -191,7 +191,7 @@ const connectSteps = {
 			logger.debug(
 				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
 			);
-			socket.disconnect();
+			socket.disconnect(1000, 'Intentionally disconnected from peer because of error');
 		});
 
 		// When WS connection ends - remove peer
@@ -199,7 +199,7 @@ const connectSteps = {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
 					peer.ip
-				} failed with code ${code} and reason - ${reason}`
+				} closed with code ${code} and reason - ${reason}`
 			);
 			socket.destroy();
 			onDisconnectCb();
