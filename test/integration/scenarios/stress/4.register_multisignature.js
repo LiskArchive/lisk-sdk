@@ -29,10 +29,10 @@ var sendTransactionPromise = require('../../../common/helpers/api')
 var getTransaction = require('../../utils/http').getTransaction;
 
 module.exports = function(params) {
-	describe('stress test for type 4 transactions', () => {
+	describe('stress test for type 4 transactions @slow', () => {
 		var transactions = [];
 		var accounts = [];
-		var maximum = 10;
+		var maximum = 1000;
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
