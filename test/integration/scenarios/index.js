@@ -24,11 +24,11 @@ module.exports = {
 	},
 	stress: {
 		transfer: require('./stress/0.transfer'),
-		register: require('./stress/2.register_delegate'),
-		vote: require('./stress/3.cast_vote'),
-		data: require('./stress/0.data'),
+		transfer_with_data: require('./stress/0.transfer_with_data.js'),
 		second_passphrase: require('./stress/1.second_passphrase'),
-		multisignature: require('./stress/4.register_multisignature'),
-		dapp: require('./stress/5.register_dapp'),
+		register_delegate: require('./stress/2.register_delegate'),
+		cast_vote: require('./stress/3.cast_vote'),
+		register_multisignature: require('./stress/4.register_multisignature'),
+		register_dapp: require('./stress/5.register_dapp'),
 	},
 };
