@@ -38,14 +38,14 @@ function Verify (logger, block, transaction, db) {
  * @method checkTransaction
  * @param  {Object}   block Block object
  * @param  {Object}   transaction Transaction object
- * @param  {boolean} checkConfirmed Check for confirmed transactions
+ * @param  {boolean} checkPersistent - Check for confirmed transactions persisted state
  * @param  {Function} cb Callback function
  * @return {Function} cb Callback function from params (through setImmediate)
  * @return {Object}   cb.err Error if occurred
  */
-__private.checkTransaction = function (block, transaction, checkConfirmed, cb) {
-	if(checkConfirmed === undefined) {
-		checkConfirmed = true;
+__private.checkTransaction = function (block, transaction, checkPersistent, cb) {
+	if(checkPersistent === undefined) {
+		checkPersistent = true;
 	}
 	async.waterfall([
 		function (waterCb) {
@@ -68,7 +68,7 @@ __private.checkTransaction = function (block, transaction, checkConfirmed, cb) {
 		function (sender, waterCb) {
 			// Check if transaction id valid against database state (mem_* tables).
 			// DATABASE: read only
-			library.logic.transaction.verify(transaction, sender, null, checkConfirmed, waterCb);
+			library.logic.transaction.verify(transaction, sender, null, checkPersistent, waterCb);
 		}
 	], function (err) {
 
