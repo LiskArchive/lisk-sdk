@@ -35,8 +35,6 @@ import {
 
 const defaultOptions = {
 	bannedNode: [],
-	version: '1.0.0',
-	minVersion: '>=1.0.0',
 	randomizeNode: true,
 };
 
@@ -45,16 +43,9 @@ const commonHeaders = {
 	os: 'lisk-js-api',
 };
 
-const getHeaders = (nethash, version, minVersion) =>
-	Object.assign({}, commonHeaders, {
-		nethash,
-		version,
-		minVersion,
-	});
-
 export default class APIClient {
-	constructor(nodes, nethash, providedOptions = {}) {
-		this.initialize(nodes, nethash, providedOptions);
+	constructor(nodes, providedOptions = {}) {
+		this.initialize(nodes, providedOptions);
 
 		this.accounts = new AccountsResource(this);
 		this.blocks = new BlocksResource(this);
@@ -69,29 +60,42 @@ export default class APIClient {
 	}
 
 	static createMainnetAPIClient(options) {
-		return new APIClient(MAINNET_NODES, MAINNET_NETHASH, options);
+		return new APIClient(
+			MAINNET_NODES,
+			Object.assign({}, { nethash: MAINNET_NETHASH }, options),
+		);
 	}
 
 	static createTestnetAPIClient(options) {
-		return new APIClient(TESTNET_NODES, TESTNET_NETHASH, options);
+		return new APIClient(
+			TESTNET_NODES,
+			Object.assign({}, { nethash: TESTNET_NETHASH }, options),
+		);
 	}
 
 	static createBetanetAPIClient(options) {
-		return new APIClient(BETANET_NODES, BETANET_NETHASH, options);
+		return new APIClient(
+			BETANET_NODES,
+			Object.assign({}, { nethash: BETANET_NETHASH }, options),
+		);
 	}
 
-	initialize(nodes, nethash, providedOptions = {}) {
+	initialize(nodes, providedOptions = {}) {
 		if (!Array.isArray(nodes) || nodes.length <= 0) {
 			throw new Error('APIClient requires nodes for initialization.');
 		}
 
-		if (typeof nethash !== 'string' || nethash === '') {
-			throw new Error('APIClient requires nethash for initialization.');
+		if (typeof providedOptions !== 'object' || Array.isArray(providedOptions)) {
+			throw new Error(
+				'APIClient takes an optional object as the second parameter.',
+			);
 		}
 
 		const options = Object.assign({}, defaultOptions, providedOptions);
 
-		this.headers = getHeaders(nethash, options.version, options.minVersion);
+		this.headers = options.nethash
+			? Object.assign({}, commonHeaders, { nethash: options.nethash })
+			: Object.assign({}, commonHeaders);
 		this.nodes = nodes;
 		this.bannedNodes = [...(options.bannedNodes || [])];
 		this.currentNode = options.node || this.getNewNode();
