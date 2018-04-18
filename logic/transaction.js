@@ -407,22 +407,20 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
  * @param {transaction} trs
  * @param {account} sender
  * @param {account} requester
- * @param {boolean} checkConfirmed - Check if trs already persisted in database
+ * @param {boolean} checkPersistent - Check if trs already persisted in database
  * @param {function} cb
  * @return {setImmediateCallback} validation errors | trs
  */
-Transaction.prototype.verify = function (trs, sender, requester, checkConfirmed, cb) {
+Transaction.prototype.verify = function (trs, sender, requester, checkPersistent, cb) {
 	var valid = false;
 	var err = null;
 
-	if (typeof requester === 'function') {
-		cb = requester;
-		requester = {};
+	// Set default value of param if not provided
+	if(checkPersistent === undefined || checkPersistent === null) {
+		checkPersistent = true;
 	}
 
-	if(checkConfirmed === undefined || checkConfirmed === null) {
-		checkConfirmed = true;
-	}
+	// Set default value of param if not provided
 	if(requester === undefined || requester === null) {
 		requester = {};
 	}
@@ -600,7 +598,7 @@ Transaction.prototype.verify = function (trs, sender, requester, checkConfirmed,
 			return setImmediate(cb, err);
 		} else {
 			// Check for already confirmed transaction
-			if(checkConfirmed) {
+			if(checkPersistent) {
 				return self.checkConfirmed(trs, cb);
 			} else {
 				return setImmediate(cb);
