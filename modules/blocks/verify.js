@@ -44,9 +44,6 @@ function Verify (logger, block, transaction, db) {
  * @return {Object}   cb.err Error if occurred
  */
 __private.checkTransaction = function (block, transaction, checkPersistent, cb) {
-	if(checkPersistent === undefined) {
-		checkPersistent = true;
-	}
 	async.waterfall([
 		function (waterCb) {
 			try {
@@ -526,7 +523,9 @@ Verify.prototype.processBlock = function (block, broadcast, saveBlock, cb) {
 		checkTransactions: function (seriesCb) {
 			// Check against the mem_* tables that we can perform the transactions included in the block
 			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
-				__private.checkTransaction(block, transaction, false, eachSeriesCb);
+
+				// Verify transaction and check persisted state only if saving block
+				__private.checkTransaction(block, transaction, saveBlock, eachSeriesCb);
 			}, function (err) {
 				return setImmediate(seriesCb, err);
 			});
