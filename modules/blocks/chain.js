@@ -358,13 +358,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 		},
 		// Apply transactions to unconfirmed mem_accounts fields.
 		applyUnconfirmed: function (seriesCb) {
-
-			// If block is not to be saved, then we don't need to process unconfirmed state
-			// that block must be restored from the database for snapshot process
-			if(!saveBlock) {
-				return setImmediate(seriesCb);
-			}
-
 			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
 				// DATABASE write
 				modules.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, sender) {
