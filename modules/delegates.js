@@ -338,7 +338,7 @@ const parseEncryptedSecret = encryptedSecret => {
 		.slice(1);
 	if (id !== '5') {
 		throw new Error(
-			`Tried to decrypt secret using encryption method with ID ${id}, but currently only ID 5 (SHA-256) is supported.`
+			`Invalid encryption method ${id}: currently only method 5 (SHA-256) is supported.`
 		);
 	}
 	const iterationsMatch = encryptedSecretWithoutID[0].match(roundsRegExp);
@@ -395,9 +395,9 @@ const getKeyFromPassword = (password, salt, iterations) =>
  * @todo Add description for the params
  */
 __private.decryptSecret = function({ encryptedSecret }, password) {
-	// const { tag, salt, iv, iterations, cipherText } = parseEncryptedSecret(encryptedSecret);
-	const parsed = parseEncryptedSecret(encryptedSecret);
-	const { tag, salt, iv, iterations, cipherText } = parsed;
+	const { tag, salt, iv, iterations, cipherText } = parseEncryptedSecret(
+		encryptedSecret
+	);
 	const tagBuffer = getTagBuffer(tag);
 	const key = getKeyFromPassword(
 		password,
@@ -574,13 +574,15 @@ __private.loadDelegates = function(cb) {
 					encryptedItem,
 					library.config.forging.defaultKey
 				);
-			} catch (e) {
+			} catch (error) {
+				const errorMessage = error.message.endsWith('.')
+					? error.message
+					: `${error.message}.`;
 				return setImmediate(
 					seriesCb,
-					[
-						'Invalid encryptedSecret for publicKey:',
-						encryptedItem.publicKey,
-					].join(' ')
+					`Invalid encryptedSecret for publicKey: ${
+						encryptedItem.publicKey
+					}. ${errorMessage}`
 				);
 			}
 
@@ -592,7 +594,12 @@ __private.loadDelegates = function(cb) {
 			);
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
-				return setImmediate(seriesCb, 'Public keys do not match');
+				return setImmediate(
+					seriesCb,
+					`Invalid encryptedSecret for publicKey: ${
+						encryptedItem.publicKey
+					}. Public keys do not match.`
+				);
 			}
 
 			modules.accounts.getAccount(
