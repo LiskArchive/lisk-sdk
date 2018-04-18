@@ -38,10 +38,12 @@ describe('APIClient module', () => {
 	];
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
+		os: 'lisk-js-api',
 	};
 
 	const customHeaders = {
 		'Content-Type': 'application/json',
+		os: 'lisk-js-api',
 		nethash: testnetHash,
 	};
 
@@ -158,6 +160,24 @@ describe('APIClient module', () => {
 			return expect(apiClient.initialize.bind(apiClient, [])).to.throw(
 				Error,
 				'APIClient requires nodes for initialization.',
+			);
+		});
+
+		it('should throw an error if second argument passed to constructor is a string', () => {
+			return expect(
+				apiClient.initialize.bind(apiClient, defaultNodes, 'option string'),
+			).to.throw(
+				Error,
+				'APIClient requires the second parameter to be an object.',
+			);
+		});
+
+		it('should throw an error if second argument passed to constructor is an array', () => {
+			return expect(
+				apiClient.initialize.bind(apiClient, defaultNodes, []),
+			).to.throw(
+				Error,
+				'APIClient requires the second parameter to be an object.',
 			);
 		});
 

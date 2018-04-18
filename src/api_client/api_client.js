@@ -40,6 +40,7 @@ const defaultOptions = {
 
 const commonHeaders = {
 	'Content-Type': 'application/json',
+	os: 'lisk-js-api',
 };
 
 export default class APIClient {
@@ -61,21 +62,21 @@ export default class APIClient {
 	static createMainnetAPIClient(options) {
 		return new APIClient(
 			MAINNET_NODES,
-			Object.assign({}, options, { nethash: MAINNET_NETHASH }),
+			Object.assign({}, { nethash: MAINNET_NETHASH }, options),
 		);
 	}
 
 	static createTestnetAPIClient(options) {
 		return new APIClient(
 			TESTNET_NODES,
-			Object.assign({}, options, { nethash: TESTNET_NETHASH }),
+			Object.assign({}, { nethash: TESTNET_NETHASH }, options),
 		);
 	}
 
 	static createBetanetAPIClient(options) {
 		return new APIClient(
 			BETANET_NODES,
-			Object.assign({}, options, { nethash: BETANET_NETHASH }),
+			Object.assign({}, { nethash: BETANET_NETHASH }, options),
 		);
 	}
 
@@ -84,11 +85,17 @@ export default class APIClient {
 			throw new Error('APIClient requires nodes for initialization.');
 		}
 
+		if (typeof providedOptions !== 'object' || Array.isArray(providedOptions)) {
+			throw new Error(
+				'APIClient requires the second parameter to be an object.',
+			);
+		}
+
 		const options = Object.assign({}, defaultOptions, providedOptions);
 
 		this.headers = options.nethash
 			? Object.assign({}, commonHeaders, { nethash: options.nethash })
-			: commonHeaders;
+			: Object.assign({}, commonHeaders);
 		this.nodes = nodes;
 		this.bannedNodes = [...(options.bannedNodes || [])];
 		this.currentNode = options.node || this.getNewNode();
