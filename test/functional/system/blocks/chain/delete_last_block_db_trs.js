@@ -74,18 +74,6 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 	});
 
 	describe('popLastBlock', () => {
-		let processExit;
-
-		beforeEach(done => {
-			processExit = sinonSandbox.stub(process, 'exit');
-			return done();
-		});
-
-		afterEach(done => {
-			processExit.restore();
-			done();
-		});
-
 		describe('when popLastBlock fails', () => {
 			describe('when loadBlockSecondLastBlockStep fails', () => {
 				beforeEach(done => {
@@ -94,11 +82,10 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					return done();
 				});
 
-				it('it should call process.exit(1)', done => {
+				it('should fail with proper error', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
-						expect(process.exit.calledWith(1)).to.equal(true);
+						expect(err).to.eql('previousBlock is null');
 						done();
 					});
 				});
@@ -123,20 +110,17 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					library.modules.accounts.setAccountAndGet = setAccountAndGet;
 					done();
 				});
-				// ToDo: Unskip when #1726 done
-				it.skip('it should call process.exit(1)', done => {
+				it('should fail with proper error', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
-						expect(process.exit.calledWith(1)).to.equal(true);
+						expect(err).to.eql('err');
 						done();
 					});
 				});
-				// ToDo: Unskip when #1726 done
-				it.skip('should not have perform undoStep on transactions of block', done => {
+				it('should not have perform undoStep on transactions of block', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -170,11 +154,10 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					done();
 				});
 
-				it('it should call process.exit(1)', done => {
+				it('should fail with proper error', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
-						expect(process.exit.calledWith(1)).to.equal(true);
+						expect(err).to.eql('err');
 						done();
 					});
 				});
@@ -182,6 +165,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not change balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -196,7 +180,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -228,11 +212,10 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					done();
 				});
 
-				it('it should call process.exit(1)', done => {
+				it('should fail with proper error message', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
-						expect(process.exit.calledWith(1)).to.equal(true);
+						expect(err).to.eql('err');
 						done();
 					});
 				});
@@ -240,7 +223,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('modules.rounds.backwardTick stub should be called once', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						expect(library.modules.rounds.backwardTick.calledOnce).to.equal(
 							true
 						);
@@ -251,7 +234,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not change balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -266,7 +249,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -298,11 +281,10 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					done();
 				});
 
-				it('it should call process.exit(1)', done => {
+				it('should fail with proper error message', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
-						expect(process.exit.calledWith(1)).to.equal(true);
+						expect(err).to.eql('err');
 						done();
 					});
 				});
@@ -310,6 +292,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('modules.blocks.chain.deleteBlock should be called once', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
+						expect(err).to.eql('err');
 						expect(
 							library.modules.blocks.chain.deleteBlock.calledOnce
 						).to.equal(true);
@@ -320,7 +303,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not change balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -335,7 +318,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not change u_balance in mem_accounts table', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(library, fundTrsForAccount1.recipientId)
 							.then(account => {
@@ -350,7 +333,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				it('should not perform backwardTick', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
-						expect(process.exit.calledOnce).to.equal(true);
+						expect(err).to.eql('err');
 						localCommon
 							.getAccountFromDb(
 								library,
@@ -368,10 +351,9 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 		});
 
 		describe('when deleteLastBlock succeeds', () => {
-			it('should not call process.exit', done => {
+			it('should not return an error', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
-					expect(process.exit.calledOnce).to.equal(false);
 					done();
 				});
 			});
