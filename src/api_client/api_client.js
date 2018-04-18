@@ -87,7 +87,7 @@ export default class APIClient {
 
 		if (typeof providedOptions !== 'object' || Array.isArray(providedOptions)) {
 			throw new Error(
-				'APIClient requires the second parameter to be an object.',
+				'APIClient takes an optional object as the second parameter.',
 			);
 		}
 

@@ -168,7 +168,7 @@ describe('APIClient module', () => {
 				apiClient.initialize.bind(apiClient, defaultNodes, 'option string'),
 			).to.throw(
 				Error,
-				'APIClient requires the second parameter to be an object.',
+				'APIClient takes an optional object as the second parameter.',
 			);
 		});
 
@@ -177,7 +177,7 @@ describe('APIClient module', () => {
 				apiClient.initialize.bind(apiClient, defaultNodes, []),
 			).to.throw(
 				Error,
-				'APIClient requires the second parameter to be an object.',
+				'APIClient takes an optional object as the second parameter.',
 			);
 		});
 
