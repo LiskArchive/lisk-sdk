@@ -524,7 +524,7 @@ Verify.prototype.processBlock = function (block, broadcast, saveBlock, cb) {
 			// Check against the mem_* tables that we can perform the transactions included in the block
 			async.eachSeries(block.transactions, function (transaction, eachSeriesCb) {
 
-				// Verify transaction and check persisted state only if saving block
+				// Verify transaction, check for transaction exists in database is performed only when saving block
 				__private.checkTransaction(block, transaction, saveBlock, eachSeriesCb);
 			}, function (err) {
 				return setImmediate(seriesCb, err);
