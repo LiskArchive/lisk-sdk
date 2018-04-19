@@ -128,7 +128,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Invalid encryption method 1: currently only method 5 (SHA-256) is supported.`
+						}. Invalid encryption method 1: currently only pbkdf2-sha256 is supported`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -150,7 +150,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data.`
+						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -172,7 +172,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data.`
+						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -194,7 +194,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data.`
+						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -216,7 +216,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data.`
+						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -238,7 +238,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Unsupported state or unable to authenticate data.`
+						}. Unsupported state or unable to authenticate data`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -260,7 +260,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Tag must be 16 bytes.`
+						}. Tag must be 16 bytes`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -281,7 +281,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
-						}. Public keys do not match.`
+						}. Public keys do not match`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();

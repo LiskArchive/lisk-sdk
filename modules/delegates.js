@@ -338,7 +338,7 @@ const parseEncryptedSecret = encryptedSecret => {
 		.slice(1);
 	if (id !== 'pbkdf2-sha256') {
 		throw new Error(
-			`Invalid encryption method ${id}: currently only method 5 (SHA-256) is supported.`
+			`Invalid encryption method ${id}: currently only pbkdf2-sha256 is supported`
 		);
 	}
 	const iterationsMatch = encryptedSecretWithoutID[0].match(roundsRegExp);
@@ -363,7 +363,7 @@ const parseEncryptedSecret = encryptedSecret => {
 const getTagBuffer = tag => {
 	const tagBuffer = Buffer.from(tag, 'hex');
 	if (tagBuffer.length !== 16) {
-		throw new Error('Tag must be 16 bytes.');
+		throw new Error('Tag must be 16 bytes');
 	}
 	return tagBuffer;
 };
@@ -574,14 +574,11 @@ __private.loadDelegates = function(cb) {
 					library.config.forging.defaultKey
 				);
 			} catch (error) {
-				const errorMessage = error.message.endsWith('.')
-					? error.message
-					: `${error.message}.`;
 				return setImmediate(
 					seriesCb,
-					`Invalid encryptedSecret for publicKey: ${
-						encryptedItem.publicKey
-					}. ${errorMessage}`
+					`Invalid encryptedSecret for publicKey: ${encryptedItem.publicKey}. ${
+						error.message
+					}`
 				);
 			}
 
@@ -597,7 +594,7 @@ __private.loadDelegates = function(cb) {
 					seriesCb,
 					`Invalid encryptedSecret for publicKey: ${
 						encryptedItem.publicKey
-					}. Public keys do not match.`
+					}. Public keys do not match`
 				);
 			}
 
