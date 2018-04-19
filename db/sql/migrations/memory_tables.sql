@@ -41,7 +41,6 @@ CREATE TABLE IF NOT EXISTS "mem_accounts"(
   "u_multimin" BIGINT DEFAULT 0,
   "multilifetime" BIGINT DEFAULT 0,
   "u_multilifetime" BIGINT DEFAULT 0,
-  "blockId" VARCHAR(20),
   "nameexist" SMALLINT DEFAULT 0,
   "u_nameexist" SMALLINT DEFAULT 0,
   "producedBlocks" int DEFAULT 0,
@@ -57,7 +56,6 @@ CREATE TABLE IF NOT EXISTS "mem_round"(
   "address" VARCHAR(22),
   "amount" BIGINT,
   "delegate" VARCHAR(64),
-  "blockId" VARCHAR(20),
   "round" BIGINT
 );
 

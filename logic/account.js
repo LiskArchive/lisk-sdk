@@ -646,7 +646,6 @@ class Account {
  * @property {number} u_multimin - Between 0 and 17
  * @property {number} multilifetime - Between 1 and 72
  * @property {number} u_multilifetime - Between 1 and 72
- * @property {string} blockId
  * @property {boolean} nameexist
  * @property {boolean} u_nameexist
  * @property {number} producedBlocks
@@ -763,11 +762,6 @@ Account.prototype.model = [
 		name: 'u_multilifetime',
 		type: 'SmallInt',
 		conv: Number,
-	},
-	{
-		name: 'blockId',
-		type: 'String',
-		conv: String,
 	},
 	{
 		name: 'nameexist',
@@ -963,12 +957,6 @@ Account.prototype.schema = {
 			type: 'integer',
 			minimum: 0,
 			maximum: constants.multisigConstraints.lifetime.maximum,
-		},
-		blockId: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
 		},
 		nameexist: {
 			type: 'integer',

@@ -35,7 +35,6 @@ const normalFields = [
 	{ name: 'u_multimin', def: 0, skip: ifNotExists },
 	{ name: 'multilifetime', def: 0, skip: ifNotExists },
 	{ name: 'u_multilifetime', def: 0, skip: ifNotExists },
-	{ name: 'blockId', def: null, skip: ifNotExists },
 	{ name: 'nameexist', def: 0, skip: ifNotExists },
 	{ name: 'u_nameexist', def: 0, skip: ifNotExists },
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },

@@ -96,7 +96,6 @@ class Round {
 				{
 					publicKey: self.scope.block.generatorPublicKey,
 					producedBlocks: self.scope.backwards ? -1 : 1,
-					blockId: self.scope.block.id,
 					round: self.scope.round,
 				},
 				(err, account) => {
@@ -264,7 +263,6 @@ class Round {
 				publicKey: delegate,
 				balance: self.scope.backwards ? -changes.balance : changes.balance,
 				u_balance: self.scope.backwards ? -changes.balance : changes.balance,
-				blockId: self.scope.block.id,
 				round: self.scope.round,
 				fees: self.scope.backwards ? -changes.fees : changes.fees,
 				rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
@@ -323,7 +321,6 @@ class Round {
 						publicKey: remainderDelegate,
 						balance: feesRemaining,
 						u_balance: feesRemaining,
-						blockId: self.scope.block.id,
 						round: self.scope.round,
 						fees: feesRemaining,
 					},
