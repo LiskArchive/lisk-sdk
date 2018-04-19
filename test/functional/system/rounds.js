@@ -153,8 +153,6 @@ describe('rounds', () => {
 
 	function applyRoundRewards(_accounts, blocks) {
 		const accounts = _.cloneDeep(_accounts);
-		const lastBlock = library.modules.blocks.lastBlock.get();
-
 		const expectedRewards = getExpectedRoundRewards(blocks);
 		_.each(expectedRewards, reward => {
 			const found = _.find(accounts, {
