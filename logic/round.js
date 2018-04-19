@@ -162,22 +162,6 @@ class Round {
 	}
 
 	/**
-	 * For backwards option calls sql updateBlockId with newID: 0.
-	 *
-	 * @returns {function} Promise
-	 * @todo Check type and description of the return value
-	 */
-	markBlockId() {
-		if (this.scope.backwards) {
-			return (this.t || this.scope.library.db).rounds.updateBlockId(
-				this.scope.block.id,
-				'0'
-			);
-		}
-		return this.t;
-	}
-
-	/**
 	 * Calls sql flush:
 	 * - Deletes round from `mem_round` table.
 	 *

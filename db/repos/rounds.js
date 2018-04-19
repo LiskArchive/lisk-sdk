@@ -107,19 +107,6 @@ class RoundsRepository {
 		return this.db.none(sql.updateVotes, [amount, address]);
 	}
 
-	// TODO: Move usage of RoundsRepository#updateBlockId to db/accounts
-	/**
-	 * Update the blockId attribute for an account.
-	 *
-	 * @param {string} newId
-	 * @param {string} oldId
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	updateBlockId(newId, oldId) {
-		return this.db.none(sql.updateBlockId, [newId, oldId]);
-	}
-
 	/**
 	 * Summarize the results for a round.
 	 *

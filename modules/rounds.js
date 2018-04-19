@@ -139,9 +139,9 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 
 		return promised.mergeBlockGenerator().then(() => {
 			if (scope.finishRound) {
-				return promised.backwardLand().then(() => promised.markBlockId());
+				return promised.backwardLand();
 			}
-			return promised.markBlockId();
+			return t;
 		});
 	}
 
