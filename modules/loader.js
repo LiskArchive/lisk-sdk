@@ -463,7 +463,6 @@ __private.loadBlockChain = function() {
 		const promises = [
 			t.blocks.count(),
 			t.blocks.getGenesisBlock(),
-			t.accounts.countMemAccounts(),
 			t.rounds.getMemRounds(),
 			t.delegates.countDuplicatedDelegates(),
 		];
@@ -533,7 +532,6 @@ __private.loadBlockChain = function() {
 			(
 				blocksCount,
 				getGenesisBlock,
-				memAccountsCount,
 				getMemRounds,
 				duplicatedDelegatesCount
 			) => {
@@ -551,12 +549,6 @@ __private.loadBlockChain = function() {
 
 				if (verify) {
 					return reload(blocksCount, 'Blocks verification enabled');
-				}
-
-				const missed = !memAccountsCount;
-
-				if (missed) {
-					return reload(blocksCount, 'Detected missed blocks in mem_accounts');
 				}
 
 				const unapplied = getMemRounds.filter(

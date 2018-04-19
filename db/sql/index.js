@@ -31,7 +31,6 @@ const { link } = require('./config');
 module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
-		countMemAccounts: link('accounts/count_mem_accounts.sql'),
 		updateMemAccounts: link('accounts/update_mem_accounts.sql'),
 		getOrphanedMemAccounts: link('accounts/get_orphaned_mem_accounts.sql'),
 		getDelegates: link('accounts/get_delegates.sql'),

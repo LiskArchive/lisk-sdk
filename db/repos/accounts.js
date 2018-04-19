@@ -155,16 +155,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Counts memory accounts by blocks.
-	 *
-	 * @returns {Promise<number>}
-	 * @todo Add description for the return value
-	 */
-	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts, []).then(a => +a.count);
-	}
-
-	/**
 	 * Update mem_accounts.
 	 *
 	 * @returns {Promise}
