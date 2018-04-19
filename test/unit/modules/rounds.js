@@ -1095,14 +1095,12 @@ describe('rounds', () => {
 		// Init stubs
 		var mergeBlockGenerator_stub = sinon.stub().resolves();
 		var backwardLand_stub = sinon.stub().resolves();
-		var markBlockId_stub = sinon.stub().resolves();
 		var sumRound_stub = sinon.stub().callsArg(1);
 		var getOutsiders_stub = sinon.stub().callsArg(1);
 
 		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
 			backwardLand_stub.resetHistory();
-			markBlockId_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
 		}
@@ -1114,7 +1112,6 @@ describe('rounds', () => {
 			}
 			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 			Round.prototype.backwardLand = backwardLand_stub;
-			Round.prototype.markBlockId = markBlockId_stub;
 			Rounds.__set__('Round', Round);
 
 			// Set more stubs
@@ -1204,10 +1201,6 @@ describe('rounds', () => {
 					return expect(backwardLand_stub.calledOnce).to.be.true;
 				});
 
-				it('scope.markBlockId should be called once', () => {
-					return expect(markBlockId_stub.calledOnce).to.be.true;
-				});
-
 				it('scope.sumRound should be called once', () => {
 					return expect(sumRound_stub.calledOnce).to.be.true;
 				});
@@ -1238,10 +1231,6 @@ describe('rounds', () => {
 
 				it('scope.backwardLand should be not called', () => {
 					return expect(backwardLand_stub.called).to.be.false;
-				});
-
-				it('scope.markBlockId should be called once', () => {
-					return expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.sumRound should be not called', () => {
