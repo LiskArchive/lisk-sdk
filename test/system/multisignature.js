@@ -156,7 +156,7 @@ describe('multisignature', function () {
 						});
 
 						it('should verify transaction', function (done) {
-							library.logic.transaction.verify(multisigTransaction2, multisigSender, done);
+							library.logic.transaction.verify(multisigTransaction2, multisigSender, null, true, done);
 						});
 					});
 				});

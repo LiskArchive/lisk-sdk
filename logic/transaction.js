@@ -407,15 +407,17 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
  * @param {transaction} trs
  * @param {account} sender
  * @param {account} requester
+ * @param {boolean} checkExists - Check if transaction already exists in database
  * @param {function} cb
  * @return {setImmediateCallback} validation errors | trs
  */
-Transaction.prototype.verify = function (trs, sender, requester, cb) {
+Transaction.prototype.verify = function (trs, sender, requester, checkExists, cb) {
 	var valid = false;
 	var err = null;
 
-	if (typeof requester === 'function') {
-		cb = requester;
+	// Set default value of param if not provided
+	if (requester === undefined || requester === null) {
+		requester = {};
 	}
 
 	// Check sender
@@ -589,10 +591,11 @@ Transaction.prototype.verify = function (trs, sender, requester, cb) {
 	__private.types[trs.type].verify.call(this, trs, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
-		} else {
+		} else if (checkExists) {
 			// Check for already confirmed transaction
 			return self.checkConfirmed(trs, cb);
 		}
+		return setImmediate(cb);
 	});
 };
 
@@ -699,6 +702,12 @@ Transaction.prototype.verifyBytes = function (bytes, publicKey, signature) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.apply = function (trs, block, sender, cb) {
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	if (!this.ready(trs, sender)) {
 		return setImmediate(cb, 'Transaction is not ready');
 	}
@@ -755,6 +764,12 @@ Transaction.prototype.apply = function (trs, block, sender, cb) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.undo = function (trs, block, sender, cb) {
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 
@@ -804,6 +819,12 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
 		cb = requester;
 	}
 
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	// Check unconfirmed sender balance
 	var amount = new bignum(trs.amount.toString()).plus(trs.fee.toString());
 	var senderBalance = this.checkBalance(amount, 'u_balance', trs, sender);
@@ -844,6 +865,12 @@ Transaction.prototype.applyUnconfirmed = function (trs, sender, requester, cb) {
  * @return {setImmediateCallback} for errors | cb
  */
 Transaction.prototype.undoUnconfirmed = function (trs, sender, cb) {
+	if (exceptions.inertTransactions.indexOf(trs.id) > -1) {
+		this.scope.logger.debug('Inert transaction encountered');
+		this.scope.logger.debug(JSON.stringify(trs));
+		return setImmediate(cb);
+	}
+
 	var amount = new bignum(trs.amount.toString());
 	    amount = amount.plus(trs.fee.toString()).toNumber();
 

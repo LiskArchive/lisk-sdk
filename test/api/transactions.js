@@ -432,16 +432,27 @@ describe('GET /api/transactions', function () {
 	});
 
 	it('using offset == 1 should be ok', function (done) {
-		var offset = 1;
-		var params = 'offset=' + offset;
+		var offset = 0;
+		var params = 'offset=' + offset + '&orderBy=id:asc';
+		var firstTransactionId;
 
+		// Get all transactions sorted by ID
 		node.get('/api/transactions?' + params, function (err, res) {
 			node.expect(res.body).to.have.property('success').to.be.ok;
 			node.expect(res.body).to.have.property('transactions').that.is.an('array');
-			if (res.body.transactions.length > 0) {
-				node.expect(res.body.transactions[0].timestamp).to.be.equal(offsetTimestamp);
-			}
-			done();
+
+			firstTransactionId = res.body.transactions[0].id;
+
+			offset = 1;
+			params = 'offset=' + offset + '&orderBy=id:asc';
+
+			// Get all transactions sorted by ID, with offset
+			node.get('/api/transactions?' + params, function (err, res) {
+				node.expect(res.body).to.have.property('success').to.be.ok;
+				node.expect(res.body).to.have.property('transactions').that.is.an('array');
+				node.expect(res.body.transactions[0].id).to.not.eql(firstTransactionId);
+				done();
+			});
 		});
 	});
 
