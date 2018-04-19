@@ -396,7 +396,7 @@ const CIPHER_ALGORITHM = 'aes-256-gcm';
  * @returns {string} decryptedSecret
  * @todo Add description for the params
  */
-__private.decryptSecret = function({ encryptedSecret }, password) {
+__private.decryptSecret = function(encryptedSecret, password) {
 	const { tag, salt, iv, iterations, cipherText } = parseEncryptedSecret(
 		encryptedSecret
 	);
@@ -573,7 +573,7 @@ __private.loadDelegates = function(cb) {
 			let secret;
 			try {
 				secret = __private.decryptSecret(
-					encryptedItem,
+					encryptedItem.encryptedSecret,
 					library.config.forging.defaultKey
 				);
 			} catch (error) {
@@ -671,7 +671,10 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 
 	if (encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptSecret(encryptedItem, secretKey);
+			decryptedSecret = __private.decryptSecret(
+				encryptedItem.encryptedSecret,
+				secretKey
+			);
 		} catch (e) {
 			return setImmediate(cb, 'Invalid key and public key combination');
 		}
