@@ -188,8 +188,8 @@ describe('config util', () => {
 																},
 															);
 															Given(
-																'the config file is valid JSON',
-																given.theFileIsValidJSON,
+																'the config file is valid',
+																given.theFileIsValid,
 																() => {
 																	Given(
 																		'the config file cannot be written',
@@ -296,46 +296,46 @@ describe('config util', () => {
 														},
 													);
 													Given(
-														'the config file is valid JSON',
-														given.theFileIsValidJSON,
+														'the config file is missing required keys',
+														given.theFileIsMissingRequiredKeys,
 														() => {
-															Given(
-																'the config file cannot be written',
-																given.theFileCannotBeWritten,
+															When(
+																'the config is loaded',
+																when.theConfigIsLoaded,
 																() => {
-																	When(
-																		'the config is loaded',
-																		when.theConfigIsLoaded,
-																		() => {
-																			Then(
-																				'the config file should not be written',
-																				then.theConfigFileShouldNotBeWritten,
-																			);
-																			Then(
-																				'the user’s config should be exported',
-																				then.theUsersConfigShouldBeExported,
-																			);
-																		},
+																	Then(
+																		`the user should be informed that the config file at "${
+																			process.env.LISKY_CONFIG_DIR
+																		}/config.json" is corrupted`,
+																		then.theUserShouldBeInformedThatTheConfigFileIsCorrupted,
+																	);
+																	Then(
+																		'the process should exit with error code "3"',
+																		then.theProcessShouldExitWithErrorCode,
+																	);
+																	Then(
+																		'the config file should not be written',
+																		then.theConfigFileShouldNotBeWritten,
 																	);
 																},
 															);
-															Given(
-																'the config file can be written',
-																given.theFileCanBeWritten,
+														},
+													);
+													Given(
+														'the config file is valid',
+														given.theFileIsValid,
+														() => {
+															When(
+																'the config is loaded',
+																when.theConfigIsLoaded,
 																() => {
-																	When(
-																		'the config is loaded',
-																		when.theConfigIsLoaded,
-																		() => {
-																			Then(
-																				'the config file should not be written',
-																				then.theConfigFileShouldNotBeWritten,
-																			);
-																			Then(
-																				'the user’s config should be exported',
-																				then.theUsersConfigShouldBeExported,
-																			);
-																		},
+																	Then(
+																		'the config file should not be written',
+																		then.theConfigFileShouldNotBeWritten,
+																	);
+																	Then(
+																		'the user’s config should be exported',
+																		then.theUsersConfigShouldBeExported,
 																	);
 																},
 															);

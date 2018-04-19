@@ -97,3 +97,10 @@ export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 		`Config lockfile at ${path} found. Are you running Lisky in another process?`,
 	);
 }
+
+export function theUserShouldBeInformedThatTheConfigFileIsCorrupted() {
+	const path = getFirstQuotedString(this.test.title);
+	return expect(logger.error).to.be.calledWithExactly(
+		`Config file seems to be corrupted: missing required keys. Please check ${path} or delete the file so we can create a new one from defaults.`,
+	);
+}

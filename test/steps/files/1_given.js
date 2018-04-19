@@ -177,7 +177,18 @@ export function theFileIsNotValidJSON() {
 	fsUtils.readJSONSync.throws('Invalid JSON');
 }
 
-export function theFileIsValidJSON() {
+export function theFileIsMissingRequiredKeys() {
+	const userConfig = {
+		name: 'custom-name',
+		json: true,
+	};
+
+	this.test.ctx.userConfig = userConfig;
+
+	fsUtils.readJSONSync.returns(userConfig);
+}
+
+export function theFileIsValid() {
 	const userConfig = {
 		name: 'custom-name',
 		json: true,
