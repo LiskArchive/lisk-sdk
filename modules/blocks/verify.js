@@ -495,7 +495,7 @@ Verify.prototype.processBlock = function (block, broadcast, saveBlock, cb) {
 			// DATABASE: read only
 
 			// Skip checking for existing block id if we don't need to save that block
-			if(!saveBlock) {
+			if (!saveBlock) {
 				return setImmediate(seriesCb);
 			}
 

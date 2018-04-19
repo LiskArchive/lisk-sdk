@@ -416,7 +416,7 @@ Transaction.prototype.verify = function (trs, sender, requester, checkExists, cb
 	var err = null;
 
 	// Set default value of param if not provided
-	if(requester === undefined || requester === null) {
+	if (requester === undefined || requester === null) {
 		requester = {};
 	}
 
@@ -593,7 +593,7 @@ Transaction.prototype.verify = function (trs, sender, requester, checkExists, cb
 			return setImmediate(cb, err);
 		} else {
 			// Check for already confirmed transaction
-			if(checkExists) {
+			if (checkExists) {
 				return self.checkConfirmed(trs, cb);
 			} else {
 				return setImmediate(cb);
