@@ -20,6 +20,7 @@ import registerMultisignature from './4_register_multisignature_account';
 import createDapp from './5_create_dapp';
 import createSignatureObject from './create_signature_object';
 import * as utils from './utils';
+import * as constants from './constants';
 
 export default {
 	transfer,
@@ -30,4 +31,5 @@ export default {
 	createSignatureObject,
 	createDapp,
 	utils,
+	constants,
 };

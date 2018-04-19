@@ -57,5 +57,17 @@ describe('transaction', () => {
 				.to.have.property('createSignatureObject')
 				.and.be.a('function');
 		});
+
+		it('should have #utils', () => {
+			return expect(transaction)
+				.to.have.property('utils')
+				.and.be.an('object');
+		});
+
+		it('should have #constants', () => {
+			return expect(transaction)
+				.to.have.property('constants')
+				.and.be.an('object');
+		});
 	});
 });

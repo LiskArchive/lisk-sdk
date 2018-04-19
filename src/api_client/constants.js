@@ -16,3 +16,25 @@ export const GET = 'GET';
 export const POST = 'POST';
 export const PUT = 'PUT';
 export const API_RECONNECT_MAX_RETRY_COUNT = 3;
+
+export const BETANET_NETHASH =
+	'ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c';
+export const BETANET_NODES = [
+	'http://94.237.42.109:5000',
+	'http://83.136.252.99:5000',
+];
+export const TESTNET_NETHASH =
+	'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
+export const TESTNET_NODES = ['http://testnet.lisk.io:7000'];
+export const MAINNET_NETHASH =
+	'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
+export const MAINNET_NODES = [
+	'https://node01.lisk.io:443',
+	'https://node02.lisk.io:443',
+	'https://node03.lisk.io:443',
+	'https://node04.lisk.io:443',
+	'https://node05.lisk.io:443',
+	'https://node06.lisk.io:443',
+	'https://node07.lisk.io:443',
+	'https://node08.lisk.io:443',
+];
