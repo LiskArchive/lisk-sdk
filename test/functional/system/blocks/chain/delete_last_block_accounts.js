@@ -59,12 +59,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			describe('(type 0) transfer funds', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'u_balance',
-						'virgin',
-						'publicKey',
-					];
+					fieldsToCompare = ['balance', 'u_balance', 'virgin', 'publicKey'];
 				});
 
 				it('should validate account data from sender after account creation', done => {
@@ -698,12 +693,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			describe('dapps', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'u_balance',
-						'virgin',
-						'publicKey',
-					];
+					fieldsToCompare = ['balance', 'u_balance', 'virgin', 'publicKey'];
 				});
 
 				describe('(type 5) register dapp', () => {

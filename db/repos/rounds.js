@@ -218,12 +218,7 @@ class RoundsRepository {
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
-	insertRoundInformationWithDelegate(
-		address,
-		round,
-		delegateId,
-		mode
-	) {
+	insertRoundInformationWithDelegate(address, round, delegateId, mode) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
 			address,
 			round,
