@@ -296,25 +296,30 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
  * Adds a transaction to the unconfirmed index, removing it from the multisignature or queued indexes.
  *
  * @param {Object} transaction - Transaction object
+ * @param {Object} sender - Sender object
+ * @param {Object} cb - Callback function
  */
 TransactionPool.prototype.addUnconfirmedTransaction = function(
 	transaction,
+	sender,
 	cb
 ) {
-	__private.isMultisignatureTransaction(transaction, isMulti => {
-		if (isMulti) {
-			self.removeMultisignatureTransaction(transaction.id);
-		} else {
-			self.removeQueuedTransaction(transaction.id);
-		}
+	const isMultisignature =
+		sender &&
+		Array.isArray(sender.multisignatures) &&
+		sender.multisignatures.length;
+	if (isMultisignature) {
+		self.removeMultisignatureTransaction(transaction.id);
+	} else {
+		self.removeQueuedTransaction(transaction.id);
+	}
 
-		if (self.unconfirmed.index[transaction.id] === undefined) {
-			self.unconfirmed.transactions.push(transaction);
-			const index = self.unconfirmed.transactions.indexOf(transaction);
-			self.unconfirmed.index[transaction.id] = index;
-		}
-		setImmediate(cb);
-	});
+	if (self.unconfirmed.index[transaction.id] === undefined) {
+		self.unconfirmed.transactions.push(transaction);
+		const index = self.unconfirmed.transactions.indexOf(transaction);
+		self.unconfirmed.index[transaction.id] = index;
+	}
+	setImmediate(cb);
 };
 
 /**
@@ -509,7 +514,7 @@ TransactionPool.prototype.processBundled = function(cb) {
 					__private.processVerifyTransaction(
 						transaction,
 						true,
-						processVerifyErr => {
+						(processVerifyErr, sender) => {
 							// Remove bundled transaction after asynchronous processVerifyTransaction to avoid race conditions
 							self.removeBundledTransaction(transaction.id);
 							// Delete bundled flag from transaction so it is qualified as "queued" in queueTransaction
@@ -524,7 +529,7 @@ TransactionPool.prototype.processBundled = function(cb) {
 								);
 								return setImmediate(eachSeriesCb);
 							}
-							self.queueTransaction(transaction, queueErr => {
+							self.queueTransaction(transaction, sender, queueErr => {
 								if (queueErr) {
 									library.logger.debug(
 										`Failed to queue bundled transaction: ${transaction.id}`,
@@ -573,15 +578,15 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 	}
 
 	if (transaction.bundled) {
-		return self.queueTransaction(transaction, cb);
+		return self.queueTransaction(transaction, null, cb);
 	}
 
 	__private.processVerifyTransaction(
 		transaction,
 		broadcast,
-		err => {
+		(err, sender) => {
 			if (!err) {
-				return self.queueTransaction(transaction, cb);
+				return self.queueTransaction(transaction, sender, cb);
 			}
 			return setImmediate(cb, err);
 		},
@@ -593,10 +598,11 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
  * Places a transaction onto the bundled, multisignature, or queued index.
  *
  * @param {Object} transaction - Transaction object
+ * @param {Object} sender - Sender object
  * @param {function} cb - Callback function
  * @returns {SetImmediate} error
  */
-TransactionPool.prototype.queueTransaction = function(transaction, cb) {
+TransactionPool.prototype.queueTransaction = function(transaction, sender, cb) {
 	transaction.receivedAt = new Date();
 
 	if (transaction.bundled) {
@@ -606,24 +612,25 @@ TransactionPool.prototype.queueTransaction = function(transaction, cb) {
 		self.addBundledTransaction(transaction);
 		return setImmediate(cb);
 	}
-	__private.isMultisignatureTransaction(transaction, isMulti => {
-		if (isMulti) {
-			if (
-				self.countMultisignature() >=
-				config.transactions.maxTransactionsPerQueue
-			) {
-				return setImmediate(cb, 'Transaction pool is full');
-			}
-			self.addMultisignatureTransaction(transaction);
-		} else if (
-			self.countQueued() >= config.transactions.maxTransactionsPerQueue
+	const isMultisignature =
+		sender &&
+		Array.isArray(sender.multisignatures) &&
+		sender.multisignatures.length;
+	if (isMultisignature) {
+		if (
+			self.countMultisignature() >= config.transactions.maxTransactionsPerQueue
 		) {
 			return setImmediate(cb, 'Transaction pool is full');
-		} else {
-			self.addQueuedTransaction(transaction);
 		}
-		return setImmediate(cb);
-	});
+		self.addMultisignatureTransaction(transaction);
+	} else if (
+		self.countQueued() >= config.transactions.maxTransactionsPerQueue
+	) {
+		return setImmediate(cb, 'Transaction pool is full');
+	} else {
+		self.addQueuedTransaction(transaction);
+	}
+	return setImmediate(cb);
 };
 
 /**
@@ -792,44 +799,6 @@ __private.isTransactionInUnconfirmedQueue = function(transaction) {
 };
 
 /**
- * Checks, if a transaction is sent from multisignature account or if it is a multisignature account registration.
- *
- * @private
- * @param {Object} transaction - Transaction object
- * @param {function} cb - Callback
- * @returns {Boolean} True if the transaction is type 4 or sent from a multisig account
- */
-__private.isMultisignatureTransaction = function(transaction, cb) {
-	if (transaction.type === transactionTypes.MULTI) {
-		setImmediate(cb, true);
-	} else {
-		async.waterfall(
-			[
-				function getAccount(waterCb) {
-					if (transaction.senderPublicKey) {
-						modules.accounts.getAccount(
-							{ publicKey: transaction.senderPublicKey },
-							waterCb
-						);
-					} else {
-						return setImmediate(waterCb, null, null);
-					}
-				},
-				function checkMulti(sender, waterCb) {
-					const isMultisignature =
-						sender &&
-						Array.isArray(sender.multisignatures) &&
-						sender.multisignatures.length;
-
-					return setImmediate(waterCb, null, isMultisignature);
-				},
-			],
-			(err, isMultisignature) => setImmediate(cb, isMultisignature)
-		);
-	}
-};
-
-/**
  * Processes and verifies a transaction.
  *
  * @private
@@ -976,7 +945,11 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 										return setImmediate(eachSeriesCb);
 									}
 									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
-									self.addUnconfirmedTransaction(transaction, eachSeriesCb);
+									self.addUnconfirmedTransaction(
+										transaction,
+										sender,
+										eachSeriesCb
+									);
 								},
 								tx
 							);
