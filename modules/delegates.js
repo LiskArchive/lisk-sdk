@@ -381,6 +381,8 @@ const getKeyFromPassword = (password, salt, iterations) =>
 		PBKDF2_HASH_FUNCTION
 	);
 
+const CIPHER_ALGORITHM = 'aes-256-gcm';
+
 /**
  * Returns the decrypted secret by deciphering encrypted secret with the password provided using aes-256-gcm algorithm.
  *
@@ -406,7 +408,7 @@ __private.decryptSecret = function({ encryptedSecret }, password) {
 	);
 
 	const decipher = crypto.createDecipheriv(
-		'aes-256-gcm',
+		CIPHER_ALGORITHM,
 		key,
 		Buffer.from(iv, 'hex')
 	);
