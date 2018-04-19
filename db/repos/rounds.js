@@ -195,17 +195,15 @@ class RoundsRepository {
 	 * Insert round information record into mem_rounds.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {Number} amount - Amount updated on account
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
-	insertRoundInformationWithAmount(address, blockId, round, amount) {
+	insertRoundInformationWithAmount(address, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
 			address,
 			amount,
-			blockId,
 			round,
 		});
 	}
@@ -214,7 +212,6 @@ class RoundsRepository {
 	 * Insert round information record into mem_rounds.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {string} delegateId - Associated delegate id
 	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
@@ -223,14 +220,12 @@ class RoundsRepository {
 	 */
 	insertRoundInformationWithDelegate(
 		address,
-		blockId,
 		round,
 		delegateId,
 		mode
 	) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
 			address,
-			blockId,
 			round,
 			delegate: delegateId,
 			balanceMode: mode === '-' ? '-' : '',

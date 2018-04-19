@@ -451,7 +451,7 @@ class Account {
 
 	/**
 	 * Updates account from mem_account with diff data belonging to an editable field.
-	 * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
+	 * Inserts into mem_round "address", "amount", "delegate", "round" based on balance or delegates fields.
 	 *
 	 * @param {address} address
 	 * @param {Object} diff - Must contains only mem_account editable fields
@@ -532,7 +532,6 @@ class Account {
 							promises.push(
 								dbTx.rounds.insertRoundInformationWithAmount(
 									address,
-									diff.blockId,
 									diff.round,
 									updatedValue
 								)
@@ -578,7 +577,6 @@ class Account {
 									promises.push(
 										dbTx.rounds.insertRoundInformationWithDelegate(
 											address,
-											diff.blockId,
 											diff.round,
 											dependentId,
 											mode
