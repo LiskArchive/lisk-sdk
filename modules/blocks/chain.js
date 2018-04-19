@@ -714,10 +714,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 				.then(() => __private.deleteBlockStep(oldLastBlock, tx))
 		)
 		.then(() => setImmediate(cb, null, secondLastBlock))
-		.catch(err => {
-			process.exit(1);
-			return setImmediate(cb, err);
-		});
+		.catch(err => setImmediate(cb, err));
 };
 
 /**
