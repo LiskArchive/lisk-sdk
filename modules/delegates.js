@@ -413,8 +413,8 @@ __private.decryptSecret = function({ encryptedSecret }, password) {
 		Buffer.from(iv, 'hex')
 	);
 	decipher.setAuthTag(tagBuffer);
-	const firstBlock = decipher.update(Buffer.from(cipherText, 'hex'));
-	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
+	const firstChunk = decipher.update(Buffer.from(cipherText, 'hex'));
+	const decrypted = Buffer.concat([firstChunk, decipher.final()]);
 
 	return decrypted.toString();
 };
