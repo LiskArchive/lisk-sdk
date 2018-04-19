@@ -591,14 +591,11 @@ Transaction.prototype.verify = function (trs, sender, requester, checkExists, cb
 	__private.types[trs.type].verify.call(this, trs, sender, function (err) {
 		if (err) {
 			return setImmediate(cb, err);
-		} else {
+		} else if (checkExists) {
 			// Check for already confirmed transaction
-			if (checkExists) {
-				return self.checkConfirmed(trs, cb);
-			} else {
-				return setImmediate(cb);
-			}
+			return self.checkConfirmed(trs, cb);
 		}
+		return setImmediate(cb);
 	});
 };
 
