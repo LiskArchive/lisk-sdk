@@ -17,6 +17,8 @@ import os from 'os';
 import fs from 'fs';
 import lockfile from 'lockfile';
 import defaultConfig from '../../default_config.json';
+import { CONFIG_VARIABLES } from './constants';
+import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
 import logger from './logger';
 
@@ -71,6 +73,19 @@ const attemptToReadJSONFile = path => {
 	return attemptCallWithError(fn, errorCode, errorMessage);
 };
 
+const attemptToValidateConfig = (config, path) => {
+	const rootKeys = CONFIG_VARIABLES.map(key => key.split('.')[0]);
+	const fn = () =>
+		rootKeys.forEach(key => {
+			if (!Object.keys(config).includes(key)) {
+				throw new ValidationError(`Key ${key} not found in config file.`);
+			}
+		});
+	const errorCode = 3;
+	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorCode, errorMessage);
+};
+
 const getConfig = () => {
 	if (!fs.existsSync(configDirPath)) {
 		attemptToCreateDir(configDirPath);
@@ -85,7 +100,10 @@ const getConfig = () => {
 		checkLockfile(lockfilePath);
 	}
 
-	return attemptToReadJSONFile(configFilePath);
+	const config = attemptToReadJSONFile(configFilePath);
+	attemptToValidateConfig(config, configFilePath);
+
+	return config;
 };
 
 export default getConfig();
