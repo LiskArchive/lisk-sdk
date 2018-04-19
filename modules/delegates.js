@@ -336,7 +336,7 @@ const parseEncryptedSecret = encryptedSecret => {
 	const [id, ...encryptedSecretWithoutID] = encryptedSecret
 		.split(delimiter)
 		.slice(1);
-	if (id !== '5') {
+	if (id !== 'pbkdf2-sha256') {
 		throw new Error(
 			`Invalid encryption method ${id}: currently only method 5 (SHA-256) is supported.`
 		);

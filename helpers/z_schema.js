@@ -161,7 +161,7 @@ var liskFormats = {
 	 */
 	encryptedSecret(str) {
 		// Explanation of regex structure:
-		// - $5 => hash algorithm
+		// - $pbkdf2-sha256 => hash algorithm
 		// - $rounds=n (optional) => number of rounds to be used in key derivation function
 		// - $HEX_SALT => salt used in key derivation function
 		// - $HEX_CIPHERTEXT => encrypted secret
@@ -170,10 +170,10 @@ var liskFormats = {
 		//   - $tag=HEX_TAG => tag used to authenticate when decrypting
 		//   - $version=SEMVER_VERSION => version check for future proofing
 		// Examples:
-		// - $5$rounds=1$e33b33c7621fc33d361ff26d1b9611b4$aedfce0b845f7c962ea57a76f7bb7e48228273356fdab39ce71c9c385e105f7660101a7ffbee14ef5aa9dc8d03d6715e0828acae8d8625bbec9a167839d0f935445d14a874e18cbed8b01f7da74d990e$iv=51b98dbc815996de7821e56fcc985fbb$tag=75a9571b9018e59255f5ed8ac8f7db75$version=1.0.0
-		// - $5$e33b33c7621fc33d361ff26d1b9611b4$aedfce0b845f7c962ea57a76f7bb7e48228273356fdab39ce71c9c385e105f7660101a7ffbee14ef5aa9dc8d03d6715e0828acae8d8625bbec9a167839d0f935445d14a874e18cbed8b01f7da74d990e
+		// - $pbkdf2-sha256$rounds=1$e33b33c7621fc33d361ff26d1b9611b4$aedfce0b845f7c962ea57a76f7bb7e48228273356fdab39ce71c9c385e105f7660101a7ffbee14ef5aa9dc8d03d6715e0828acae8d8625bbec9a167839d0f935445d14a874e18cbed8b01f7da74d990e$iv=51b98dbc815996de7821e56fcc985fbb$tag=75a9571b9018e59255f5ed8ac8f7db75$version=1.0.0
+		// - $pbkdf2-sha256$e33b33c7621fc33d361ff26d1b9611b4$aedfce0b845f7c962ea57a76f7bb7e48228273356fdab39ce71c9c385e105f7660101a7ffbee14ef5aa9dc8d03d6715e0828acae8d8625bbec9a167839d0f935445d14a874e18cbed8b01f7da74d990e
 		// NOTE: Maximum lengths chosen here are arbitrary
-		return /^\$\d(\$rounds=\d{1,32})?\$[a-f0-9]{32}\$[a-f0-9]{2,1024}(\$((iv|tag)=[a-f0-9]{32}|version=\d{1,4}\.\d{1,4}\.\d{1,4})){0,3}$/i.test(
+		return /^\$pbkdf2-sha256(\$rounds=\d{1,32})?\$[a-f0-9]{32}\$[a-f0-9]{2,1024}(\$((iv|tag)=[a-f0-9]{32}|version=\d{1,4}\.\d{1,4}\.\d{1,4})){0,3}$/i.test(
 			str
 		);
 	},
