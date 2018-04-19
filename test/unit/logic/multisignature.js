@@ -520,7 +520,6 @@ describe('multisignature', () => {
 				multisignatures: transaction.asset.multisignature.keysgroup,
 				multimin: transaction.asset.multisignature.min,
 				multilifetime: transaction.asset.multisignature.lifetime,
-				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
@@ -671,7 +670,6 @@ describe('multisignature', () => {
 				),
 				multimin: -transaction.asset.multisignature.min,
 				multilifetime: -transaction.asset.multisignature.lifetime,
-				blockId: dummyBlock.id,
 				round: slots.calcRound(dummyBlock.height),
 			};
 			return expect(accountMock.merge.args[0][1]).to.eql(expectedParams);
