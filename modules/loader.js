@@ -569,7 +569,6 @@ __private.loadBlockChain = function() {
 				function updateMemAccounts(t) {
 					const promises = [
 						t.accounts.updateMemAccounts(),
-						t.accounts.getOrphanedMemAccounts(),
 						t.accounts.getDelegates(),
 					];
 					return t.batch(promises);
@@ -577,14 +576,7 @@ __private.loadBlockChain = function() {
 
 				return library.db
 					.task(updateMemAccounts)
-					.spread((updateMemAccounts, getOrphanedMemAccounts, getDelegates) => {
-						if (getOrphanedMemAccounts.length > 0) {
-							return reload(
-								blocksCount,
-								'Detected orphaned blocks in mem_accounts'
-							);
-						}
-
+					.spread((updateMemAccounts, getDelegates) => {
 						if (getDelegates.length === 0) {
 							return reload(blocksCount, 'No delegates found');
 						}

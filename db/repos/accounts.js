@@ -165,16 +165,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Get orphan mem_accounts.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getOrphanedMemAccounts() {
-		return this.db.any(sql.getOrphanedMemAccounts);
-	}
-
-	/**
 	 * Get delegates.
 	 *
 	 * @returns {Promise}
