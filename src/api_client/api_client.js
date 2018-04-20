@@ -12,6 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	MAINNET_NETHASH,
+	TESTNET_NETHASH,
+	BETANET_NETHASH,
+} from 'lisk-constants';
 import * as constants from './constants';
 import {
 	AccountsResource,
@@ -55,21 +60,21 @@ export default class APIClient {
 	static createMainnetAPIClient(options) {
 		return new APIClient(
 			constants.MAINNET_NODES,
-			Object.assign({}, { nethash: constants.MAINNET_NETHASH }, options),
+			Object.assign({}, { nethash: MAINNET_NETHASH }, options),
 		);
 	}
 
 	static createTestnetAPIClient(options) {
 		return new APIClient(
 			constants.TESTNET_NODES,
-			Object.assign({}, { nethash: constants.TESTNET_NETHASH }, options),
+			Object.assign({}, { nethash: TESTNET_NETHASH }, options),
 		);
 	}
 
 	static createBetanetAPIClient(options) {
 		return new APIClient(
 			constants.BETANET_NODES,
-			Object.assign({}, { nethash: constants.BETANET_NETHASH }, options),
+			Object.assign({}, { nethash: BETANET_NETHASH }, options),
 		);
 	}
 

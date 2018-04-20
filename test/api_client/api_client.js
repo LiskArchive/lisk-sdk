@@ -142,7 +142,7 @@ describe('APIClient module', () => {
 	});
 
 	describe('#constants', () => {
-		it('should return APIClient instance', () => {
+		it('should expose API constants', () => {
 			return expect(APIClient.constants).to.be.an('object');
 		});
 	});
