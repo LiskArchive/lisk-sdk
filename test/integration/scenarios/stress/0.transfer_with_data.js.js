@@ -27,9 +27,9 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 0 transactions with data', () => {
+	describe('stress test for type 0 transactions with data @slow', () => {
 		var transactions = [];
-		var maximum = 10;
+		var maximum = 1000;
 
 		describe('sending 1000 bundled transfers to random addresses', () => {
 			var count = 1;

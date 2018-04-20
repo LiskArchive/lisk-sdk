@@ -77,11 +77,9 @@ random.applicationName = function() {
 
 // Returns a random string of a given size
 random.dataField = function(bytes) {
-	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
 	return randomstring.generate({
 		length: bytes,
-		charset: custom,
+		charset: 'alphanumeric',
 	});
 };
 
