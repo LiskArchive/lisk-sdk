@@ -50,19 +50,19 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				},
 				{
 					publicKey:
 						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedSecret:
-						'iterations=1&salt=f8f2c6b925f76f8b23b2aeb7973c73df&cipherText=1f555db5bf44d505bcb0f6ef0b659da8fa81c2e0855ef519855936f7b72448156ace3cb60f65866f936ca3e503b296764168101db8e45b33579b8af35b4dea269efed2f3e0ec2a3a91c07592&iv=99da43bd3ac4c541059fce74024a945b&tag=45af72fcb5040d525521b839dab5580b&version=1',
+						'iterations=1&salt=5c709afdae35d43d4090e9ef31d14d85&cipherText=c205189b91f797c3914f5d82ccc7cccfb3c620cef512c3bf8f50cd280bd5ff1450e8b9be997179582e62bec0cb655ca2eb8ff6833892f9e350dc5182b61bd648cd02f7f95468c7ec51aa3b43&iv=bfae7a255077c6de61a1ec59&tag=59cfd0a55d39a765a84725f4be464179&version=1',
 				},
 				{
 					publicKey:
 						'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 					encryptedSecret:
-						'iterations=1&salt=4fe5555adfae3b7dbe740c72dc355929&cipherText=9ea3d061ada369a30777ebbca2b844f960b486a43375096b7d42cd1adaf8c879e5f4516770f43419fbb9c02b8a848de02cc6916fe932f1b5268f70329604b3476bf88a1b499614130b8c0c664dac&iv=01f3eb51c0de8a8e58525c7c2fef777b&tag=8a088c96970567e05dbfa65b7478ea39&version=1',
+						'iterations=1&salt=588600600cd7660cf2346cd390093900&cipherText=6469aca1fe386e709c89c9a1d644abd969e64326f0f27f7be25248727892ec860e1e2dae54d283e65b1d21657a74047fb46ba732d1c83b93c8e2c0c96e98c2a9c4d87d0ac23db6dec9e3728426e3&iv=357d723a607f5baaf1fb218a&tag=f42bc3722b2964806d83a8ca3da2f94d&version=1',
 				},
 			];
 
@@ -119,7 +119,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// iterations is removed but should be set to 1
 					encryptedSecret:
-						'salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -141,7 +141,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// iterations is set to 2 instead of 1
 					encryptedSecret:
-						'iterations=2&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=2&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -162,7 +162,7 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'iterations=1&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -184,7 +184,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// salt is 1 character different
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda8&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bc&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -205,7 +205,7 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -227,7 +227,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// cipher text is 1 character different
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78510&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d05&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -248,7 +248,7 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -270,7 +270,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// iv is 1 character different
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d7&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c933&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -291,7 +291,7 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -313,7 +313,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// tag is 1 character different
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539f&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967cb&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -335,7 +335,7 @@ describe('delegates', () => {
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// tag is 4 characters shorter
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b35859&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -356,7 +356,7 @@ describe('delegates', () => {
 					publicKey:
 						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedSecret:
-						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -379,7 +379,7 @@ describe('delegates', () => {
 					publicKey:
 						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 					encryptedSecret:
-						'iterations=1&salt=9fa6f33b0ec75f625e7966e89a9e6f5f&cipherText=d29a48a96de16df8206dcd26fa95e5692cebbc6bf5a752d9b13a85e83338258297a7432ef28b75dffcc983454bc36cadfa5641f6b8d5eca7f789e08ea5875c&iv=422495961ff94f75d41bc1feccb175dd&tag=ef9295c93120457e0811d62b86f3b736&version=1',
+						'iterations=1&salt=b51aba5a50cc44a8badd26bb89eb19c9&cipherText=9e345573201d8d064409deaa9d4125f85974c1309f7bd5087ea84b77cb0d46f1fc71b6f317bcd14de0f1cf76fd25293671273f57266876dc6afd4732b24db6&iv=ecc42c613ad6a72e4320231a&tag=7febd325fbcd7f81f3cd39f055ef356a&version=1',
 				};
 				var accountDetails = {
 					encryptedSecret: randomAccount.encryptedSecret,
