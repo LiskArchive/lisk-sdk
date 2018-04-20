@@ -25,5 +25,7 @@ module.exports = {
 	},
 	stress: {
 		transfer: require('./stress/0.transfer'),
+		register: require('./stress/2.register_delegate'),
+		vote: require('./stress/3.cast_vote'),
 	},
 };

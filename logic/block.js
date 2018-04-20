@@ -186,19 +186,19 @@ class Block {
 	 * @todo Add description for the params
 	 */
 	verifySignature(block) {
-		const remove = 64;
+		const signatureLength = 64;
 		let res;
 
 		try {
 			const data = this.getBytes(block);
-			const data2 = Buffer.alloc(data.length - remove);
+			const dataWithoutSignature = Buffer.alloc(data.length - signatureLength);
 
-			for (let i = 0; i < data2.length; i++) {
-				data2[i] = data[i];
+			for (let i = 0; i < dataWithoutSignature.length; i++) {
+				dataWithoutSignature[i] = data[i];
 			}
 			const hash = crypto
 				.createHash('sha256')
-				.update(data2)
+				.update(dataWithoutSignature)
 				.digest();
 			const blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
 			const generatorPublicKeyBuffer = Buffer.from(
@@ -382,11 +382,23 @@ Block.prototype.schema = {
  * @todo Add description for the function and the params
  */
 Block.prototype.getBytes = function(block) {
-	const size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
+	const capacity =
+		4 + // version (int)
+		4 + // timestamp (int)
+		8 + // previousBlock
+		4 + // numberOfTransactions (int)
+		8 + // totalAmount (long)
+		8 + // totalFee (long)
+		8 + // reward (long)
+		4 + // payloadLength (int)
+		32 + // payloadHash
+		32 + // generatorPublicKey
+		64 + // blockSignature or unused
+		4; // unused
 	let bytes;
 
 	try {
-		const byteBuffer = new ByteBuffer(size, true);
+		const byteBuffer = new ByteBuffer(capacity, true);
 		byteBuffer.writeInt(block.version);
 		byteBuffer.writeInt(block.timestamp);
 
