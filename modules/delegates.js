@@ -322,34 +322,19 @@ __private.forge = function(cb) {
 };
 
 const parseEncryptedSecret = encryptedSecret => {
-	const delimiter = '$';
-	const roundsRegExp = /^rounds=(\d+)$/;
-	const ivRegExp = /^iv=(.+)$/;
-	const tagRegExp = /^tag=(.+)$/;
-
-	const getAdditionalParameter = (parameters, regExp) => {
-		const parameter = parameters.find(parameter => regExp.test(parameter));
-		const match = parameter ? parameter.match(regExp) : null;
-		return match && match[1];
-	};
-
-	const [id, ...encryptedSecretWithoutID] = encryptedSecret
-		.split(delimiter)
-		.slice(1);
-	if (id !== 'pbkdf2-sha256') {
-		throw new Error(
-			`Invalid encryption method ${id}: currently only pbkdf2-sha256 is supported`
+	const keyValuePairs = encryptedSecret
+		.split('&')
+		.map(pair => pair.split('='))
+		.reduce(
+			(obj, [key, value]) => Object.assign({}, obj, { [key]: value }),
+			{}
 		);
-	}
-	const iterationsMatch = encryptedSecretWithoutID[0].match(roundsRegExp);
-	const iterations = iterationsMatch ? parseInt(iterationsMatch[1], 10) : null;
-	const [salt, cipherText, ...additionalParameters] =
-		iterations === null
-			? encryptedSecretWithoutID
-			: encryptedSecretWithoutID.slice(1);
 
-	const iv = getAdditionalParameter(additionalParameters, ivRegExp);
-	const tag = getAdditionalParameter(additionalParameters, tagRegExp);
+	const { salt, cipherText, iv, tag } = keyValuePairs;
+	const iterations =
+		keyValuePairs.iterations !== undefined
+			? parseInt(keyValuePairs.iterations, 10)
+			: null;
 
 	return {
 		iterations,
@@ -371,6 +356,7 @@ const getTagBuffer = tag => {
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
+const CIPHER_ALGORITHM = 'aes-256-gcm';
 
 const getKeyFromPassword = (password, salt, iterations) =>
 	crypto.pbkdf2Sync(
@@ -380,8 +366,6 @@ const getKeyFromPassword = (password, salt, iterations) =>
 		PBKDF2_KEYLEN,
 		PBKDF2_HASH_FUNCTION
 	);
-
-const CIPHER_ALGORITHM = 'aes-256-gcm';
 
 /**
  * Returns the decrypted secret by deciphering encrypted secret with the password provided using aes-256-gcm algorithm.
