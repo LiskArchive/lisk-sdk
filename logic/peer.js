@@ -154,7 +154,7 @@ class Peer {
  * @property {number} state - Between 0 and 2. (banned = 0, unbanned = 1, active = 2)
  * @property {string} os - Between 1 and 64 chars
  * @property {string} version - Between 5 and 12 chars
- * @property {hash} broadhash
+ * @property {string} broadhash
  * @property {number} height - Minimum 1
  * @property {Date} clock
  * @property {Date} updated

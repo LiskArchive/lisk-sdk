@@ -131,7 +131,7 @@ class Transaction {
 	 * Creates hash based on transaction bytes.
 	 *
 	 * @param {transaction} transaction
-	 * @returns {hash} SHA256 hash
+	 * @returns {Buffer} SHA256 hash
 	 * @todo Add description for the params
 	 */
 	getHash(transaction) {
@@ -426,6 +426,11 @@ class Transaction {
 			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
 		}
 
+		// Reject if transaction has requester public key
+		if (transaction.requesterPublicKey) {
+			return setImmediate(cb, 'Multisig request is not allowed');
+		}
+
 		// Check for missing sender second signature
 		if (
 			!transaction.requesterPublicKey &&
@@ -523,21 +528,6 @@ class Transaction {
 
 					multisignatures.push(key.slice(1));
 				}
-			}
-		}
-
-		// Check requester public key
-		if (transaction.requesterPublicKey) {
-			multisignatures.push(transaction.senderPublicKey);
-
-			if (
-				!Array.isArray(sender.multisignatures) ||
-				sender.multisignatures.indexOf(transaction.requesterPublicKey) < 0
-			) {
-				return setImmediate(
-					cb,
-					'Account does not belong to multisignature group'
-				);
 			}
 		}
 
@@ -828,9 +818,9 @@ class Transaction {
 				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
-			(err, sender) => {
-				if (err) {
-					return setImmediate(cb, err);
+			(mergeErr, sender) => {
+				if (mergeErr) {
+					return setImmediate(cb, mergeErr);
 				}
 				/**
 				 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
@@ -841,8 +831,8 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					err => {
-						if (err) {
+					applyErr => {
+						if (applyErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -850,7 +840,8 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								err => setImmediate(cb, err),
+								reverseMergeErr =>
+									setImmediate(cb, reverseMergeErr || applyErr),
 								tx
 							);
 						} else {
@@ -893,9 +884,9 @@ class Transaction {
 				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
-			(err, sender) => {
-				if (err) {
-					return setImmediate(cb, err);
+			(mergeErr, sender) => {
+				if (mergeErr) {
+					return setImmediate(cb, mergeErr);
 				}
 
 				__private.types[transaction.type].undo.call(
@@ -903,8 +894,8 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					err => {
-						if (err) {
+					undoErr => {
+						if (undoErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -912,7 +903,7 @@ class Transaction {
 									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
-								err => setImmediate(cb, err),
+								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),
 								tx
 							);
 						} else {
@@ -968,21 +959,22 @@ class Transaction {
 		this.scope.account.merge(
 			sender.address,
 			{ u_balance: -amount },
-			(err, sender) => {
-				if (err) {
-					return setImmediate(cb, err);
+			(mergeErr, sender) => {
+				if (mergeErr) {
+					return setImmediate(cb, mergeErr);
 				}
 
 				__private.types[transaction.type].applyUnconfirmed.call(
 					this,
 					transaction,
 					sender,
-					err => {
-						if (err) {
+					applyUnconfirmedErr => {
+						if (applyUnconfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{ u_balance: amount },
-								err2 => setImmediate(cb, err2 || err),
+								reverseMergeErr =>
+									setImmediate(cb, reverseMergeErr || applyUnconfirmedErr),
 								tx
 							);
 						} else {
@@ -1015,21 +1007,22 @@ class Transaction {
 		this.scope.account.merge(
 			sender.address,
 			{ u_balance: amount },
-			(err, sender) => {
-				if (err) {
-					return setImmediate(cb, err);
+			(mergeErr, sender) => {
+				if (mergeErr) {
+					return setImmediate(cb, mergeErr);
 				}
 
 				__private.types[transaction.type].undoUnconfirmed.call(
 					this,
 					transaction,
 					sender,
-					err => {
-						if (err) {
+					undoUnconfirmedErr => {
+						if (undoUnconfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{ u_balance: -amount },
-								err2 => setImmediate(cb, err2 || err),
+								reverseMergeErr =>
+									setImmediate(cb, reverseMergeErr || undoUnconfirmedErr),
 								tx
 							);
 						} else {
@@ -1288,6 +1281,14 @@ Transaction.prototype.schema = {
 		signSignature: {
 			type: 'string',
 			format: 'signature',
+		},
+		signatures: {
+			type: 'array',
+			items: {
+				type: 'string',
+				format: 'signature',
+			},
+			uniqueItems: true,
 		},
 		asset: {
 			type: 'object',

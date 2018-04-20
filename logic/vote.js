@@ -77,7 +77,7 @@ class Vote {
 				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
-			err => setImmediate(cb, err),
+			mergeErr => setImmediate(cb, mergeErr),
 			tx
 		);
 	}
@@ -102,7 +102,7 @@ class Vote {
 		this.scope.account.merge(
 			sender.address,
 			{ u_delegates: votesInvert },
-			err => setImmediate(cb, err),
+			mergeErr => setImmediate(cb, mergeErr),
 			tx
 		);
 	}
@@ -346,7 +346,7 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
 						blockId: block.id,
 						round: slots.calcRound(block.height),
 					},
-					err => setImmediate(cb, err),
+					mergeErr => setImmediate(cb, mergeErr),
 					tx
 				);
 			},
@@ -379,7 +379,7 @@ Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 					{
 						u_delegates: transaction.asset.votes,
 					},
-					err => setImmediate(seriesCb, err),
+					mergeErr => setImmediate(seriesCb, mergeErr),
 					tx
 				);
 			},

@@ -16,7 +16,7 @@
 		"url": "https://github.com/LiskHQ/lisk/issues"
 	},
 	"engines": {
-		"node": "=6.12.3",
+		"node": "=6.14.1",
 		"npm": "=3.10.10"
 	},
 	"main": "app.js",
@@ -83,8 +83,7 @@
 		"valid-url": "=1.0.9",
 		"validator": "=7.0.0",
 		"validator.js": "=2.0.3",
-		"wamp-socket-cluster":
-			"LiskHQ/wamp-socket-cluster#b068f39b3335c4ccc29f4635711a2e1e9e26a6e3",
+		"wamp-socket-cluster": "=2.0.0-beta.2",
 		"z-schema": "=3.18.2"
 	},
 	"devDependencies": {
@@ -110,7 +109,7 @@
 		"jsdoc": "=3.4.3",
 		"jsdox": "=0.4.10",
 		"lint-staged": "=6.1.0",
-		"lisk-js": "LiskHQ/lisk-js#lisk-elements-1.0.0-RC2",
+		"lisk-js": "beta",
 		"mocha": "=4.0.1",
 		"moment": "=2.18.1",
 		"node-mocks-http": "^1.6.6",

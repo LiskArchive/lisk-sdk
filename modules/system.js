@@ -184,15 +184,17 @@ System.prototype.getBroadhash = function(cb) {
 		.list({ offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC' })
 		.then(rows => {
 			if (rows.length <= 1) {
+				// In case that we have only genesis block in database (query returns 1 row) - skip broadhash update
 				return setImmediate(cb, null, __private.nethash);
 			}
-			const seed = rows.map(row => row.id).join('');
-			const hash = crypto
+			const seed = rows.map(row => row.b_id).join('');
+			const broadhash = crypto
 				.createHash('sha256')
 				.update(seed, 'utf8')
-				.digest();
+				.digest()
+				.toString('hex');
 
-			return setImmediate(cb, null, hash.toString('hex'));
+			return setImmediate(cb, null, broadhash);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -246,6 +248,7 @@ System.prototype.nonceCompatible = function(nonce) {
 /**
  * Updates private broadhash and height values.
  *
+ * @param {Object} block - block
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  */

@@ -758,7 +758,10 @@ __private.checkTransactions = function(block, cb) {
  * Main function to process a block:
  * - Verify the block looks ok
  * - Verify the block is compatible with database state (DATABASE readonly)
+ * - Broadcast the block to remote peers
  * - Apply the block to database if both verifications are ok
+ * - Update headers: broadhash and height
+ * - Notify remote peers about our new headers
  *
  * @param {Object} block - Full block
  * @param {boolean} broadcast - Indicator that block needs to be broadcasted
@@ -799,17 +802,27 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			checkTransactions(seriesCb) {
 				__private.checkTransactions(block, seriesCb);
 			},
+			applyBlock(seriesCb) {
+				// The block and the transactions are OK i.e:
+				// * Block and transactions have valid values (signatures, block slots, etc...)
+				// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
+				// We thus update the database with the transactions values, save the block and tick it.
+				// Also that function set new block as our last block
+				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
+			},
+			// Perform next two steps only when 'broadcast' flag is set, it can be:
+			// 'true' if block comes from generation or receiving process
+			// 'false' if block comes from chain synchronisation process
+			updateSystemHeaders(seriesCb) {
+				// Update our own headers: broadhash and height
+				broadcast ? modules.system.update(seriesCb) : seriesCb();
+			},
+			broadcastHeaders(seriesCb) {
+				// Notify all remote peers about our new headers
+				broadcast ? modules.transport.broadcastHeaders(seriesCb) : seriesCb();
+			},
 		},
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			// The block and the transactions are OK i.e:
-			// * Block and transactions have valid values (signatures, block slots, etc...)
-			// * The check against database state passed (for instance sender has enough LSK, votes are under 101, etc...)
-			// We thus update the database with the transactions values, save the block and tick it.
-			modules.blocks.chain.applyBlock(block, saveBlock, cb);
-		}
+		err => setImmediate(cb, err)
 	);
 };
 
@@ -819,6 +832,8 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
  * - blocks
  * - delegates
  * - transactions
+ * - system
+ * - transport
  *
  * @param {Object} scope - Exposed modules
  */
@@ -829,6 +844,8 @@ Verify.prototype.onBind = function(scope) {
 		blocks: scope.blocks,
 		delegates: scope.delegates,
 		transactions: scope.transactions,
+		system: scope.system,
+		transport: scope.transport,
 	};
 
 	// Set module as loaded

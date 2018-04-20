@@ -1046,7 +1046,7 @@ describe('transport', () => {
 					},
 					db: {
 						blocks: {
-							getBlocksForTransport: sinonSandbox.stub().resolves(blocksList),
+							getBlockForTransport: sinonSandbox.stub().resolves(blocksList),
 						},
 					},
 				};
@@ -1348,6 +1348,108 @@ describe('transport', () => {
 			});
 		});
 
+		describe('broadcastHeaders', () => {
+			beforeEach(done => {
+				transportInstance.broadcastHeaders(done);
+			});
+
+			it('should call modules.peers.list with {normalized: false}', () => {
+				expect(modules.peers.list.calledOnce).to.be.true;
+				return expect(modules.peers.list.calledWith({ normalized: false })).to
+					.be.true;
+			});
+
+			describe('when peers = undefined', () => {
+				beforeEach(done => {
+					modules.peers.list = sinonSandbox
+						.stub()
+						.callsArgWith(1, null, undefined);
+					transportInstance.broadcastHeaders(done);
+				});
+
+				it('should call library.logger.debug with proper message', () => {
+					return expect(
+						library.logger.debug.calledWith(
+							'Transport->broadcastHeaders: No peers found'
+						)
+					).to.be.true;
+				});
+			});
+
+			describe('when peers.length = 0', () => {
+				beforeEach(done => {
+					modules.peers.list = sinonSandbox.stub().callsArgWith(1, null, []);
+					transportInstance.broadcastHeaders(done);
+				});
+
+				it('should call library.logger.debug with proper message', () => {
+					return expect(
+						library.logger.debug.calledWith(
+							'Transport->broadcastHeaders: No peers found'
+						)
+					).to.be.true;
+				});
+			});
+
+			describe('for every filtered peer in peers', () => {
+				it('should call peer.rpc.updateMyself with the result of library.logic.peers.me()', () => {
+					return peersList.forEach(peer => {
+						expect(peer.rpc.updateMyself.calledOnce).to.be.true;
+						expect(peer.rpc.updateMyself.calledWith(library.logic.peers.me()))
+							.to.be.true;
+					});
+				});
+
+				describe('when peer.rpc.updateMyself fails', () => {
+					const error = 'RPC failure';
+
+					beforeEach(done => {
+						peerMock = generateRandomActivePeer();
+						peerMock.rpc = {
+							updateMyself: sinonSandbox.stub().callsArgWith(1, error),
+						};
+						modules.peers.list = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, [peerMock]);
+						__private.removePeer = sinonSandbox.stub();
+						transportInstance.broadcastHeaders(done);
+					});
+
+					it('should call library.logger.debug with proper message', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Transport->broadcastHeaders: Failed to notify peer about self',
+								{ peer: peerMock.string, err: error }
+							)
+						).to.be.true;
+					});
+				});
+
+				describe('when peer.rpc.updateMyself succeeds', () => {
+					beforeEach(done => {
+						peerMock = generateRandomActivePeer();
+						peerMock.rpc = {
+							updateMyself: sinonSandbox.stub().callsArg(1),
+						};
+						modules.peers.list = sinonSandbox
+							.stub()
+							.callsArgWith(1, null, [peerMock]);
+						__private.removePeer = sinonSandbox.stub();
+						transportInstance.broadcastHeaders(done);
+					});
+
+					it('should call library.logger.debug with proper message', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Transport->broadcastHeaders: Successfully notified peer about self',
+								{ peer: peerMock.string }
+							)
+						).to.be.true;
+					});
+				});
+			});
+		});
+
 		describe('onBroadcastBlock', () => {
 			describe('when broadcast is defined', () => {
 				beforeEach(done => {
@@ -1372,158 +1474,55 @@ describe('transport', () => {
 					done();
 				});
 
-				it('should call modules.system.update', () => {
-					return expect(modules.system.update.calledOnce).to.be.true;
+				it('should call __private.broadcaster.maxRelays with block', () => {
+					expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
+					return expect(__private.broadcaster.maxRelays.calledWith(block)).to.be
+						.true;
 				});
 
-				describe('when modules.system.update succeeds', () => {
-					it('should call __private.broadcaster.maxRelays with block', () => {
-						expect(__private.broadcaster.maxRelays.calledOnce).to.be.true;
-						return expect(__private.broadcaster.maxRelays.calledWith(block)).to
-							.be.true;
+				describe('when __private.broadcaster.maxRelays returns true', () => {
+					beforeEach(done => {
+						__private.broadcaster.maxRelays = sinonSandbox.stub().returns(true);
+						transportInstance.onBroadcastBlock(block, true);
+						done();
 					});
 
-					describe('when __private.broadcaster.maxRelays returns true', () => {
-						beforeEach(done => {
-							__private.broadcaster.maxRelays = sinonSandbox
-								.stub()
-								.returns(true);
-							transportInstance.onBroadcastBlock(block, true);
-							done();
-						});
+					it('should call library.logger.debug with proper error message', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
+							)
+						).to.be.true;
+					});
+				});
 
-						it('should call library.logger.debug with "Broadcasting block aborted - max block relays exceeded"', () => {
-							return expect(
-								library.logger.debug.calledWith(
-									'Broadcasting block aborted - max block relays exceeded'
-								)
-							).to.be.true;
-						});
+				describe('when modules.loader.syncing = true', () => {
+					beforeEach(done => {
+						modules.loader.syncing = sinonSandbox.stub().returns(true);
+						transportInstance.onBroadcastBlock(block, true);
+						done();
 					});
 
-					describe('when modules.loader.syncing = true', () => {
-						beforeEach(done => {
-							modules.loader.syncing = sinonSandbox.stub().returns(true);
-							transportInstance.onBroadcastBlock(block, true);
-							done();
-						});
-
-						it('should call library.logger.debug with "Broadcasting block aborted - blockchain synchronization in progress"', () => {
-							return expect(
-								library.logger.debug.calledWith(
-									'Broadcasting block aborted - blockchain synchronization in progress'
-								)
-							).to.be.true;
-						});
+					it('should call library.logger.debug with proper error message', () => {
+						return expect(
+							library.logger.debug.calledWith(
+								'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
+							)
+						).to.be.true;
 					});
+				});
 
-					it('should call modules.peers.list with {normalized: false}', () => {
-						expect(modules.peers.list.calledOnce).to.be.true;
-						return expect(modules.peers.list.calledWith({ normalized: false }))
-							.to.be.true;
-					});
-
-					describe('when peers = undefined', () => {
-						beforeEach(done => {
-							modules.peers.list = sinonSandbox
-								.stub()
-								.callsArgWith(1, null, undefined);
-							transportInstance.onBroadcastBlock(block, true);
-							done();
-						});
-
-						it('should call library.logger.debug with "Broadcasting block aborted - active peer list empty"', () => {
-							return expect(
-								library.logger.debug.calledWith(
-									'Broadcasting block aborted - active peer list empty'
-								)
-							).to.be.true;
-						});
-					});
-
-					describe('when peers.length = 0', () => {
-						beforeEach(done => {
-							modules.peers.list = sinonSandbox
-								.stub()
-								.callsArgWith(1, null, []);
-							transportInstance.onBroadcastBlock(block, true);
-							done();
-						});
-
-						it('should call library.logger.debug with "Broadcasting block aborted - active peer list empty"', () => {
-							return expect(
-								library.logger.debug.calledWith(
-									'Broadcasting block aborted - active peer list empty'
-								)
-							).to.be.true;
-						});
-					});
-
-					describe('for every filtered peer in peers', () => {
-						it('should call peer.rpc.updateMyself with the result of library.logic.peers.me()', () => {
-							return peersList.forEach(peer => {
-								expect(peer.rpc.updateMyself.calledOnce).to.be.true;
-								expect(
-									peer.rpc.updateMyself.calledWith(library.logic.peers.me())
-								).to.be.true;
-							});
-						});
-
-						describe('when peer.rpc.updateMyself fails', () => {
-							beforeEach(done => {
-								var err = 'RPC failure';
-								peerMock = generateRandomActivePeer();
-								peerMock.rpc = {
-									updateMyself: sinonSandbox.stub().callsArgWith(1, err),
-								};
-								modules.peers.list = sinonSandbox
-									.stub()
-									.callsArgWith(1, null, [peerMock]);
-								__private.removePeer = sinonSandbox.stub();
-								transportInstance.onBroadcastBlock(block, true);
-								done();
-							});
-						});
-
-						describe('when peer.rpc.updateMyself succeeds', () => {
-							beforeEach(done => {
-								peerMock = generateRandomActivePeer();
-								peerMock.rpc = {
-									updateMyself: sinonSandbox.stub().callsArg(1),
-								};
-								modules.peers.list = sinonSandbox
-									.stub()
-									.callsArgWith(1, null, [peerMock]);
-								__private.removePeer = sinonSandbox.stub();
-								transportInstance.onBroadcastBlock(block, true);
-								done();
-							});
-
-							it('should call library.logger.debug', () => {
-								return expect(
-									library.logger.debug.calledWith(
-										'Successfully notified peer about self',
-										peerMock.string
-									)
-								).to.be.true;
-							});
-						});
-					});
-
-					describe('when async.each succeeds', () => {
-						it('should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}', () => {
-							return expect(
-								__private.broadcaster.broadcast.calledWith(
-									{
-										limit: constants.maxPeers,
-										broadhash:
-											'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
-									},
-									{ api: 'postBlock', data: { block }, immediate: true }
-								)
-							).to.be.true;
-						});
-					});
+				it('should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}', () => {
+					return expect(
+						__private.broadcaster.broadcast.calledWith(
+							{
+								limit: constants.maxPeers,
+								broadhash:
+									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
+							},
+							{ api: 'postBlock', data: { block }, immediate: true }
+						)
+					).to.be.true;
 				});
 
 				it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {

@@ -121,20 +121,50 @@ __private.getByFilter = function(filter, cb) {
 	 */
 	const sortPeers = function(field, asc) {
 		return function(a, b) {
-			const sortedPeers =
-				// Nulls last
-				a[field] === b[field]
-					? 0
-					: a[field] === null
-						? 1
-						: b[field] === null
-							? -1
-							: // Ascending
-								asc
-								? a[field] < b[field] ? -1 : 1
-								: // Descending
-									a[field] < b[field] ? 1 : -1;
-			return sortedPeers;
+			// Match the default JavaScript sort order.
+			if (a[field] === b[field]) {
+				return 0;
+			}
+			// Ascending
+			if (asc) {
+				// Undefined last
+				if (a[field] === undefined) {
+					return 1;
+				}
+				if (b[field] === undefined) {
+					return -1;
+				}
+				// Null second last
+				if (a[field] === null) {
+					return 1;
+				}
+				if (b[field] === null) {
+					return -1;
+				}
+				if (a[field] < b[field]) {
+					return -1;
+				}
+				return 1;
+			}
+			// Descending
+			// Undefined first
+			if (a[field] === undefined) {
+				return -1;
+			}
+			if (b[field] === undefined) {
+				return 1;
+			}
+			// Null second
+			if (a[field] === null) {
+				return -1;
+			}
+			if (b[field] === null) {
+				return 1;
+			}
+			if (a[field] < b[field]) {
+				return 1;
+			}
+			return -1;
 		};
 	};
 
@@ -648,7 +678,7 @@ Peers.prototype.list = function(options, cb) {
 				const picked = peersList.length;
 				const accepted = peers.concat(peersList);
 				library.logger.debug('Listing peers', {
-					attempt: attemptsDescriptions[options.attempt],
+					attempt: attemptsDescriptions[attempt],
 					found,
 					matched,
 					picked,
@@ -676,6 +706,22 @@ Peers.prototype.list = function(options, cb) {
 		],
 		cb
 	);
+};
+
+Peers.prototype.networkHeight = function(options, cb) {
+	self.list(options, (err, peers) => {
+		if (err) {
+			return setImmediate(cb, err, 0);
+		}
+		const peersGroupByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupByHeight);
+		const networkHeight = Number(_.max(popularHeights));
+
+		library.logger.debug(`Network height is: ${networkHeight}`);
+		library.logger.trace(popularHeights);
+
+		return setImmediate(cb, null, networkHeight);
+	});
 };
 
 // Events

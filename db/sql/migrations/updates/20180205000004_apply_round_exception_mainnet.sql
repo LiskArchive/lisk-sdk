@@ -33,12 +33,12 @@ DO $$
 				round AS (
 					SELECT
 						b.timestamp, b.height, b."generatorPublicKey" AS "publicKey", b."totalFee" * 2 AS fees,
-						b.reward * 2 AS reward, 10000000 AS fb
+						b.reward * 2 AS reward, 10000000 AS fees_bonus
 					FROM blocks b
 					WHERE ceil(b.height / 101::float)::int = 27040
 				),
 				-- Calculating total fees of round, apply exception fees bonus
-				fees AS (SELECT sum(fees) + fb AS total, floor((sum(fees) + fb) / 101) AS single FROM round GROUP BY fb),
+				fees AS (SELECT sum(fees) + fees_bonus AS total, floor((sum(fees) + fees_bonus) / 101) AS single FROM round GROUP BY fees_bonus),
 				-- Get last delegate and timestamp of round's last block
 				last AS (SELECT "publicKey", timestamp FROM round ORDER BY height DESC LIMIT 1)
 			UPDATE rounds_rewards r SET fees = fix.fees, reward = fix.reward
@@ -52,13 +52,13 @@ DO $$
 					-- Block reward
 					round.reward,
 					-- Round
-					ceil(round.height / 101::float)::int,
+					ceil(round.height / 101::float)::int as round,
 					-- Delegate public key
 					round."publicKey"
 				FROM last, fees, round
 					-- Sort fees by block height
 				ORDER BY round.height ASC
 			) AS fix
-			WHERE r.height = fix.height AND r."publicKey" = fix."publicKey";
+			WHERE r.round = fix.round AND r."publicKey" = fix."publicKey";
 		END IF;
 END $$;

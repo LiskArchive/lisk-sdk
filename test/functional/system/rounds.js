@@ -30,6 +30,7 @@ describe('rounds', () => {
 	let Queries;
 	let generateDelegateListPromise;
 	let addTransactionsAndForgePromise;
+	let deleteLastBlockPromise;
 
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
@@ -44,6 +45,10 @@ describe('rounds', () => {
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge
+		);
+
+		deleteLastBlockPromise = Promise.promisify(
+			library.modules.blocks.chain.deleteLastBlock
 		);
 	});
 
@@ -487,7 +492,6 @@ describe('rounds', () => {
 	}
 
 	describe('round 1', () => {
-		let deleteLastBlockPromise;
 		const round = {
 			current: 1,
 			outsiderPublicKey:
@@ -496,10 +500,6 @@ describe('rounds', () => {
 
 		before(() => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
-
-			deleteLastBlockPromise = Promise.promisify(
-				library.modules.blocks.chain.deleteLastBlock
-			);
 
 			// Copy initial states for later comparison
 			return Promise.join(
@@ -1137,6 +1137,32 @@ describe('rounds', () => {
 					);
 				});
 			});
+		});
+	});
+
+	describe('rollback more than 1 round of blocks', () => {
+		let lastBlock;
+
+		before(() => {
+			return Promise.mapSeries([...Array(101)], () => {
+				return deleteLastBlockPromise();
+			});
+		});
+
+		it('last block height should be at height 101', () => {
+			lastBlock = library.modules.blocks.lastBlock.get();
+			return expect(lastBlock.height).to.equal(101);
+		});
+
+		it('should fail when try to delete one more block (last block of round 1)', () => {
+			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith(
+				'relation "mem_round_snapshot" does not exist'
+			);
+		});
+
+		it('last block height should be still at height 101', () => {
+			lastBlock = library.modules.blocks.lastBlock.get();
+			return expect(lastBlock.height).to.equal(101);
 		});
 	});
 });

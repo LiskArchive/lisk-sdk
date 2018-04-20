@@ -148,6 +148,14 @@ describe('blocks/chain', () => {
 			tick: sinonSandbox.stub(),
 		};
 
+		const modulesSystemStub = {
+			update: sinonSandbox.stub(),
+		};
+
+		const modulesTransportStub = {
+			broadcastHeaders: sinonSandbox.stub(),
+		};
+
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
 			apply: sinonSandbox.stub(),
@@ -163,6 +171,8 @@ describe('blocks/chain', () => {
 			blocks: modulesBlocksStub,
 			rounds: modulesRoundsStub,
 			transactions: modulesTransactionsStub,
+			system: modulesSystemStub,
+			transport: modulesTransportStub,
 		};
 
 		process.exit = sinonSandbox.stub().returns(0);
@@ -543,7 +553,7 @@ describe('blocks/chain', () => {
 						);
 					});
 
-					it('should call process.exit with 0', done => {
+					it('should call a callback with proper error message', done => {
 						blocksChainModule.applyGenesisBlock(
 							blockWithTransactions,
 							result => {
@@ -1476,11 +1486,9 @@ describe('blocks/chain', () => {
 				done();
 			});
 
-			it('should call process.exit with 1', done => {
+			it('should call a callback with proper error message', done => {
 				__private.popLastBlock(blockWithTransactions, err => {
 					expect(err.name).to.eql('db-tx_ERR');
-					expect(process.exit.calledOnce).to.equal(true);
-					expect(process.exit.calledWith(1)).to.equal(true);
 					done();
 				});
 			});
@@ -1507,6 +1515,8 @@ describe('blocks/chain', () => {
 		beforeEach(done => {
 			popLastBlockTemp = __private.popLastBlock;
 			__private.popLastBlock = sinonSandbox.stub();
+			modules.system.update.callsArgWith(0, null, true);
+			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
 		});
 
@@ -1537,6 +1547,7 @@ describe('blocks/chain', () => {
 
 		describe('when lastBlock.height != 1', () => {
 			beforeEach(() => {
+				modules.blocks.lastBlock.set.returns(blockWithTransactions);
 				return modules.blocks.lastBlock.get.returns(blockWithTransactions);
 			});
 
@@ -1592,6 +1603,8 @@ describe('blocks/chain', () => {
 								'receiveTransactions-ERR'
 							);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
 					});
@@ -1611,6 +1624,8 @@ describe('blocks/chain', () => {
 							expect(err).to.be.null;
 							expect(newLastBlock).to.deep.equal(blockWithTransactions);
 							expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
+							expect(modules.system.update.calledOnce).to.be.true;
+							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							done();
 						});
 					});
@@ -1691,6 +1706,8 @@ describe('blocks/chain', () => {
 			expect(modules.accounts).to.equal(modulesStub.accounts);
 			expect(modules.blocks).to.equal(modulesStub.blocks);
 			expect(modules.rounds).to.equal(modulesStub.rounds);
+			expect(modules.system).to.equal(modulesStub.system);
+			expect(modules.transport).to.equal(modulesStub.transport);
 			return expect(modules.transactions).to.equal(modulesStub.transactions);
 		});
 

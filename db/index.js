@@ -92,6 +92,15 @@ module.exports.connect = (config, logger) => {
 		info.display = false;
 	};
 
+	initOptions.error = (error, e) => {
+		logger.error(error);
+		// e.cn corresponds to an object, which exists only when there is a connection related error.
+		// https://vitaly-t.github.io/pg-promise/global.html#event:error
+		if (e.cn) {
+			process.emit('cleanup');
+		}
+	};
+
 	config.user = config.user || process.env.USER;
 
 	pgp.end();
