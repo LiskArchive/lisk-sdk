@@ -345,6 +345,20 @@ const parseEncryptedSecret = encryptedSecret => {
 	};
 };
 
+const validateEncryptedSecret = encryptedSecret => {
+	const humanReadableKeys = {
+		cipherText: 'cipher text',
+		iv: 'IV',
+	};
+	return ['salt', 'cipherText', 'iv', 'tag'].every(key => {
+		if (!encryptedSecret[key]) {
+			const humanReadableKey = humanReadableKeys[key] || key;
+			throw new Error(`No ${humanReadableKey} provided`);
+		}
+		return true;
+	});
+};
+
 const getTagBuffer = tag => {
 	const tagBuffer = Buffer.from(tag, 'hex');
 	if (tagBuffer.length !== 16) {
@@ -378,9 +392,9 @@ const getKeyFromPassword = (password, salt, iterations) =>
  * @todo Add description for the params
  */
 __private.decryptSecret = function(encryptedSecret, password) {
-	const { tag, salt, iv, iterations, cipherText } = parseEncryptedSecret(
-		encryptedSecret
-	);
+	const parsedSecret = parseEncryptedSecret(encryptedSecret);
+	validateEncryptedSecret(parsedSecret);
+	const { tag, salt, iv, iterations, cipherText } = parsedSecret;
 	const tagBuffer = getTagBuffer(tag);
 	const key = getKeyFromPassword(
 		password,

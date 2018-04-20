@@ -113,11 +113,33 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return error if number of rounds is incorrect', done => {
+			it('should return error if number of iterations is omitted', done => {
 				var accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					// rounds is set to 2 instead of 1
+					// iterations is removed but should be set to 1
+					encryptedSecret:
+						'salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if number of iterations is incorrect', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// iterations is set to 2 instead of 1
 					encryptedSecret:
 						'iterations=2&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
 				};
@@ -135,13 +157,34 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return error if number of rounds is omitted', done => {
+			it('should return error if encrypted secret has no salt', done => {
 				var accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					// rounds is removed but should be set to 1
 					encryptedSecret:
-						'salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+						'iterations=1&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No salt provided`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has a modified salt', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// salt is 1 character different
+					encryptedSecret:
+						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda8&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
@@ -151,6 +194,27 @@ describe('delegates', () => {
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has no cipher text', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&iv=4a500624cba9c3cb3b6e380556e197d6&tag=24a118a1abab32d256a5de013c20539e&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No cipher text provided`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -179,7 +243,28 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return error if encrypted secret has invalid iv hex string', done => {
+			it('should return error if encrypted secret has no iv', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&tag=24a118a1abab32d256a5de013c20539e&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No IV provided`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has a modified iv', done => {
 				var accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -195,6 +280,27 @@ describe('delegates', () => {
 						`Invalid encryptedSecret for publicKey: ${
 							accountDetails.publicKey
 						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has no tag', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&salt=5d502e8156eeeaf2acf23d801351dda7&cipherText=f856ab7731c046da5bf7b9f11fdf20fbc1870845633627b82f84151e432d4e4ca5f69a9c40f15bc2a749e28a66c2e11bbdc45049e0a1f53087fbdd542536c19059e294d231f7aaf30a0600a79ef78519&iv=4a500624cba9c3cb3b6e380556e197d6&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No tag provided`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -322,7 +428,7 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should load secrets in encrypted format with the key with default 1e6 rounds if not set', done => {
+			it('should load secrets in encrypted format with the key with default 1e6 iterations if not set', done => {
 				config.forging.secret = [
 					{
 						publicKey:
