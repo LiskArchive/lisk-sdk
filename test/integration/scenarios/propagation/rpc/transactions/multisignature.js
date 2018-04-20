@@ -14,59 +14,136 @@
 
 'use strict';
 
+const Promise = require('bluebird');
 const lisk = require('lisk-js').default;
-const Scenarios = require('../../../../../functional/common/scenarios');
+const getTransaction = require('../../../../utils/http').getTransaction;
+const waitFor = require('../../../../../common/utils/wait_for');
+const constants = require('../../../../../../helpers/constants');
+const accountFixtures = require('../../../../../fixtures/accounts');
+const randomUtil = require('../../../../../common/utils/random');
+const {
+	createSignatureObject,
+	sendTransactionPromise,
+	getPendingMultisignaturesPromise,
+} = require('../../../../../common/helpers/api');
 
 module.exports = function multisignature(params) {
 	describe('RPC /postSignatures', () => {
-		let scenarios;
-		let multisigAccount;
-		before(done => {
-			scenarios = {
-				regular: new Scenarios.Multisig(),
+		let transactions = [];
+		const accounts = [];
+		const MAXIMUM = 3;
+
+		const validateTransactionsOnAllNodes = () => {
+			return Promise.all(
+				_.flatMap(params.configurations, configuration => {
+					return transactions.map(transaction => {
+						return getTransaction(transaction.id, configuration.httpPort);
+					});
+				})
+			).then(results => {
+				results.forEach(transaction => {
+					expect(transaction)
+						.to.have.property('id')
+						.that.is.an('string');
+				});
+			});
+		};
+
+		const emitSignatureToRandomPeer = signature => {
+			const randomePeer = _.take(params.sockets)[0];
+			const postSignatures = {
+				nonce: randomePeer.options.query.nonce,
+				signatures: [signature],
 			};
-			done();
-		});
+			randomePeer.emit('postSignatures', postSignatures);
+		};
 
-		describe('Create multisignature request for an account upgrade', () => {
-			it('should create account with type 4', done => {
-				multisigAccount = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
-					keysgroup: scenarios.regular.keysgroup,
-					lifetime: scenarios.regular.lifetime,
-					minimum: scenarios.regular.minimum,
-					timeOffset: -10000,
-				});
-				multisigAccount.signatures = [];
-				expect(multisigAccount).to.include({ type: 4 });
-				done();
-			});
-		});
-
-		describe('Post required signature transactions', () => {
-			it('should create signatures for the multisigAccount', () => {
-				return scenarios.regular.members.map(member => {
-					var signatureToBeNotconfirmed = lisk.transaction.utils.multiSignTransaction(
-						multisigAccount,
-						member.password
-					);
-					multisigAccount.signatures.push(signatureToBeNotconfirmed);
-				});
+		describe('prepare accounts', () => {
+			before(() => {
+				transactions = [];
+				return Promise.all(
+					_.range(MAXIMUM).map(() => {
+						var tmpAccount = randomUtil.account();
+						var transaction = lisk.transaction.transfer({
+							amount: 2500000000,
+							passphrase: accountFixtures.genesis.password,
+							recipientId: tmpAccount.address,
+						});
+						accounts.push(tmpAccount);
+						transactions.push(transaction);
+						return sendTransactionPromise(transaction);
+					})
+				);
 			});
 
-			describe('Check transaction pool for posted signatures', () => {
-				it('should return multisignature transaction in pool', done => {
-					done();
+			it('should confirm all transactions on all nodes', done => {
+				var blocksToWait =
+					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 2;
+				waitFor.blocks(blocksToWait, () => {
+					validateTransactionsOnAllNodes().then(done);
 				});
 			});
 		});
 
-		describe('Verify multisignatures transaction was added to block', () => {});
+		describe('sending multisignature registrations', () => {
+			const signatures = [];
+			let agreements = [];
+			const numbers = _.range(MAXIMUM);
+			let i = 0;
+			let j = 0;
 
-		after(done => {
-			scenarios = null;
-			multisigAccount = null;
-			done();
+			before(() => {
+				transactions = [];
+				return Promise.all(
+					numbers.map(num => {
+						i = (num + 1) % numbers.length;
+						j = (num + 2) % numbers.length;
+						var transaction = lisk.transaction.registerMultisignature({
+							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
+							lifetime: 24,
+							minimum: 1,
+							passphrase: accounts[num].password,
+						});
+						transactions.push(transaction);
+						agreements = [
+							createSignatureObject(transaction, accounts[i]),
+							createSignatureObject(transaction, accounts[j]),
+						];
+						signatures.push(agreements);
+						return sendTransactionPromise(transaction).then(res => {
+							expect(res.statusCode).to.be.eql(200);
+						});
+					})
+				);
+			});
+
+			it('pending multisignatures should remain in the pending queue', () => {
+				return Promise.map(transactions, transaction => {
+					var params = [`id=${transaction.id}`];
+
+					return getPendingMultisignaturesPromise(params).then(res => {
+						expect(res.body.data).to.have.length(1);
+						expect(res.body.data[0].id).to.be.equal(transaction.id);
+					});
+				});
+			});
+
+			it('sending the required signatures in the keysgroup agreement', () => {
+				return Promise.all(
+					numbers.map(member => {
+						emitSignatureToRandomPeer(signatures[member][0]);
+						return emitSignatureToRandomPeer(signatures[member][1]);
+					})
+				);
+			});
+
+			it('check all the nodes received the transactions', done => {
+				const blocksToWait =
+					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 1;
+				waitFor.blocks(blocksToWait, () => {
+					validateTransactionsOnAllNodes().then(done);
+				});
+			});
 		});
 	});
 };
