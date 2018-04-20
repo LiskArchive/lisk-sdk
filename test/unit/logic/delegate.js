@@ -41,7 +41,7 @@ var validSender = {
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	username: 'genesis_100',
 	encryptedSecret:
-		'$pbkdf2-sha256$rounds=1$a28dcca357885edf4635c3925f33265d$422aca53f93a1713e9e1e8bee0798ac32bcbf1d7e2303a99e02bc78865e0ab016922eff032d24fa61eea9ca9ccd631ab9218eb11a173098dc33fc850fb6a91aa4a6ee5dc3b073e845fc7ddb896d3bcef457259$iv=2d79eddb178d522a2b2ca9e1f4c0cca3$tag=988212672f16226273912456771bc200$version=1.0.0',
+		'iterations=1&salt=a28dcca357885edf4635c3925f33265d&cipherText=422aca53f93a1713e9e1e8bee0798ac32bcbf1d7e2303a99e02bc78865e0ab016922eff032d24fa61eea9ca9ccd631ab9218eb11a173098dc33fc850fb6a91aa4a6ee5dc3b073e845fc7ddb896d3bcef457259&iv=2d79eddb178d522a2b2ca9e1f4c0cca3&tag=988212672f16226273912456771bc200&version=1',
 	key: 'elephant tree paris dragon chair galaxy',
 	nameexist: 1,
 };
