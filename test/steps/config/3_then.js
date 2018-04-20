@@ -14,7 +14,7 @@
  *
  */
 import { getFirstQuotedString, getFirstBoolean } from '../utils';
-import { logError, logWarning } from '../../../src/utils/log';
+import logger from '../../../src/utils/logger';
 
 export function itShouldUpdateTheConfigVariableToTheFirstValue() {
 	const { config, values } = this.test.ctx;
@@ -79,28 +79,28 @@ export function theUsersConfigShouldBeExported() {
 }
 
 export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
-	return expect(logWarning).to.be.calledWithMatch(
+	return expect(logger.warn).to.be.calledWithMatch(
 		/Your configuration will not be persisted\./,
 	);
 }
 
 export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
 	const { filePath } = this.test.ctx;
-	return expect(logError).to.be.calledWithExactly(
+	return expect(logger.error).to.be.calledWithExactly(
 		`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`,
 	);
 }
 
 export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
-	return expect(logError).to.be.calledWithExactly(
+	return expect(logger.error).to.be.calledWithExactly(
 		`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`,
 	);
 }
 
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
-	return expect(logError).to.be.calledWithExactly(
+	return expect(logger.error).to.be.calledWithExactly(
 		`Config lockfile at ${path} found. Are you running Lisky in another process?`,
 	);
 }

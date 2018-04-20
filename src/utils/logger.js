@@ -34,5 +34,9 @@ const wrapLogFunction = (fn, colour) => (...args) => {
 		: fn(...args.map(colourArg));
 };
 
-export const logWarning = wrapLogFunction(console.warn, 'yellow');
-export const logError = wrapLogFunction(console.error, 'red');
+const logger = {
+	warn: wrapLogFunction(console.warn, 'yellow'),
+	error: wrapLogFunction(console.error, 'red'),
+};
+
+export default logger;

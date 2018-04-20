@@ -20,14 +20,14 @@ import * as then from '../../steps/3_then';
 
 describe('log utils', () => {
 	beforeEach(setUpUtilLog);
-	describe('logWarning', () => {
+	describe('logger.warn', () => {
 		Given(
 			'string arguments "Something to be warned about" and "Something else"',
 			given.stringArguments,
 			() => {
 				When(
-					'logWarning is called with the arguments',
-					when.logWarningIsCalledWithTheArguments,
+					'logger.warn is called with the arguments',
+					when.loggerWarnIsCalledWithTheArguments,
 					() => {
 						Then(
 							'console.warn should be called with the strings in yellow',
@@ -42,8 +42,8 @@ describe('log utils', () => {
 			given.stringArguments,
 			() => {
 				When(
-					'logWarning is called with the arguments',
-					when.logWarningIsCalledWithTheArguments,
+					'logger.warn is called with the arguments',
+					when.loggerWarnIsCalledWithTheArguments,
 					() => {
 						Then(
 							'console.warn should be called with the first string in yellow and the other arguments',
@@ -60,8 +60,8 @@ describe('log utils', () => {
 			given.stringArguments,
 			() => {
 				When(
-					'logError is called with the arguments',
-					when.logErrorIsCalledWithTheArguments,
+					'logger.error is called with the arguments',
+					when.loggerErrorIsCalledWithTheArguments,
 					() => {
 						Then(
 							'console.error should be called with the strings in red',
@@ -76,8 +76,8 @@ describe('log utils', () => {
 			given.stringArguments,
 			() => {
 				When(
-					'logError is called with the arguments',
-					when.logErrorIsCalledWithTheArguments,
+					'logger.error is called with the arguments',
+					when.loggerErrorIsCalledWithTheArguments,
 					() => {
 						Then(
 							'console.error should be called with the first string in red and the other arguments',

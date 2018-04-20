@@ -20,23 +20,23 @@ import {
 import print from '../../../src/utils/print';
 import tablify from '../../../src/utils/tablify';
 
-export function logErrorIsCalledWithTheArguments() {
+export function loggerErrorIsCalledWithTheArguments() {
 	const { testArguments } = this.test.ctx;
 	// NOTE: This dynamic require is necessary because otherwise the log
 	// function is created with a bound console method rather than the stub.
 	// eslint-disable-next-line global-require
-	const { logError } = require('../../../src/utils/log');
-	const returnValue = logError(...testArguments);
+	const logger = require('../../../src/utils/logger').default;
+	const returnValue = logger.error(...testArguments);
 	this.test.ctx.returnValue = returnValue;
 }
 
-export function logWarningIsCalledWithTheArguments() {
+export function loggerWarnIsCalledWithTheArguments() {
 	const { testArguments } = this.test.ctx;
 	// NOTE: This dynamic require is necessary because otherwise the log
 	// function is created with a bound console method rather than the stub.
 	// eslint-disable-next-line global-require
-	const { logWarning } = require('../../../src/utils/log');
-	const returnValue = logWarning(...testArguments);
+	const logger = require('../../../src/utils/logger').default;
+	const returnValue = logger.warn(...testArguments);
 	this.test.ctx.returnValue = returnValue;
 }
 

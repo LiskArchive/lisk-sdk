@@ -23,7 +23,7 @@ import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as input from '../../src/utils/input';
 import * as inputUtils from '../../src/utils/input/utils';
-import * as log from '../../src/utils/log';
+import logger from '../../src/utils/logger';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import transactions from '../../src/utils/transactions';
 // Use require for stubbing
@@ -177,9 +177,7 @@ const setUpInputUtilsStubs = () => {
 };
 
 function setUpLogStubs() {
-	['logError', 'logWarning'].forEach(methodName =>
-		sandbox.stub(log, methodName),
-	);
+	['warn', 'error'].forEach(methodName => sandbox.stub(logger, methodName));
 }
 
 function setUpPrintStubs() {
@@ -346,7 +344,7 @@ export function setUpUtilQuery() {
 }
 
 export function setUpUtilLog() {
-	delete require.cache[require.resolve('../../src/utils/log')];
+	delete require.cache[require.resolve('../../src/utils/logger')];
 	setUpConsoleStubs();
 }
 
