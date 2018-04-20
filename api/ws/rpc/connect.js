@@ -127,14 +127,20 @@ const connectSteps = {
 						data
 					);
 
-					peer.socket
-						.call(rpcProcedureName, data)
-						.then(res => {
-							setImmediate(rpcCallback, null, res);
-						})
-						.catch(err => {
-							setImmediate(rpcCallback, err);
-						});
+					if (peer.socket) {
+						peer.socket
+							.call(rpcProcedureName, data)
+							.then(res => {
+								setImmediate(rpcCallback, null, res);
+							})
+							.catch(err => {
+								setImmediate(rpcCallback, err);
+							});
+					} else {
+						logger.debug(
+							'Tried to call RPC function on outbound peer socket which no longer exists'
+						);
+					}
 				};
 				return peerExtendedWithRPC;
 			},
@@ -203,6 +209,14 @@ const connectSteps = {
 				} closed with code ${code} and reason - ${reason}`
 			);
 			socket.destroy();
+			if (socket == peer.socket) {
+				delete peer.socket;
+			} else {
+				// This condition should never happen but log it in order to catch regressions.
+				logger.error(
+					'The socket which closed did not match the current peer socket'
+				);
+			}
 			onDisconnectCb();
 		});
 
