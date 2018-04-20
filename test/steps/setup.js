@@ -23,11 +23,12 @@ import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
 import * as input from '../../src/utils/input';
 import * as inputUtils from '../../src/utils/input/utils';
+import * as log from '../../src/utils/log';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
-import * as print from '../../src/utils/print';
 import transactions from '../../src/utils/transactions';
 // Use require for stubbing
 const getAPIClient = require('../../src/utils/api');
+const print = require('../../src/utils/print');
 const query = require('../../src/utils/query');
 
 const NON_INTERACTIVE_MODE = 'NON_INTERACTIVE_MODE';
@@ -175,13 +176,15 @@ const setUpInputUtilsStubs = () => {
 	inputUtils.getStdIn.resolves({});
 };
 
-function setUpPrintStubs() {
+function setUpLogStubs() {
 	['logError', 'logWarning'].forEach(methodName =>
-		sandbox.stub(print, methodName),
+		sandbox.stub(log, methodName),
 	);
+}
 
+function setUpPrintStubs() {
 	const printFunction = sandbox.spy();
-	sandbox.stub(print, 'printResult').returns(printFunction);
+	sandbox.stub(print, 'default').returns(printFunction);
 	this.test.ctx.printFunction = printFunction;
 }
 
@@ -298,6 +301,7 @@ export function setUpUtilConfig() {
 	setUpFsUtilsStubs();
 	setUpConsoleStubs();
 	setUpLockfileStubs();
+	setUpLogStubs();
 	setUpPrintStubs.call(this);
 	setUpProcessStubs();
 	delete require.cache[require.resolve(CONFIG_PATH)];
@@ -341,9 +345,12 @@ export function setUpUtilQuery() {
 	setUpLiskJSAPIStubs.call(this);
 }
 
-export function setUpUtilPrint() {
-	delete require.cache[require.resolve('../../src/utils/print')];
+export function setUpUtilLog() {
+	delete require.cache[require.resolve('../../src/utils/log')];
 	setUpConsoleStubs();
+}
+
+export function setUpUtilPrint() {
 	setUpHelperStubs();
 }
 

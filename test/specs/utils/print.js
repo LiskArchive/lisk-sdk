@@ -18,9 +18,9 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('print utils', () => {
+describe('print util', () => {
 	beforeEach(setUpUtilPrint);
-	describe('printResult', () => {
+	describe('print', () => {
 		Given(
 			'a Vorpal instance that can log',
 			given.aVorpalInstanceThatCanLog,
@@ -376,74 +376,6 @@ describe('print utils', () => {
 									},
 								);
 							},
-						);
-					},
-				);
-			},
-		);
-	});
-	describe('logWarning', () => {
-		Given(
-			'string arguments "Something to be warned about" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logWarning is called with the arguments',
-					when.logWarningIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.warn should be called with the strings in yellow',
-							then.consoleWarnShouldBeCalledWithTheStringsInYellow,
-						);
-					},
-				);
-			},
-		);
-		Given(
-			'string arguments "This has %s substitution", "a string" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logWarning is called with the arguments',
-					when.logWarningIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.warn should be called with the first string in yellow and the other arguments',
-							then.consoleWarnShouldBeCalledWithTheFirstStringInYellowAndTheOtherArguments,
-						);
-					},
-				);
-			},
-		);
-	});
-	describe('logError', () => {
-		Given(
-			'string arguments "Something to be warned about" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logError is called with the arguments',
-					when.logErrorIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.error should be called with the strings in red',
-							then.consoleErrorShouldBeCalledWithTheStringsInRed,
-						);
-					},
-				);
-			},
-		);
-		Given(
-			'string arguments "This has %s substitution", "a string" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logError is called with the arguments',
-					when.logErrorIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.error should be called with the first string in red and the other arguments',
-							then.consoleErrorShouldBeCalledWithTheFirstStringInRedAndTheOtherArguments,
 						);
 					},
 				);

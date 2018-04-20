@@ -17,7 +17,7 @@ import {
 	shouldUseJSONOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
-import { printResult } from '../../../src/utils/print';
+import print from '../../../src/utils/print';
 import tablify from '../../../src/utils/tablify';
 
 export function logErrorIsCalledWithTheArguments() {
@@ -25,7 +25,7 @@ export function logErrorIsCalledWithTheArguments() {
 	// NOTE: This dynamic require is necessary because otherwise the log
 	// function is created with a bound console method rather than the stub.
 	// eslint-disable-next-line global-require
-	const { logError } = require('../../../src/utils/print');
+	const { logError } = require('../../../src/utils/log');
 	const returnValue = logError(...testArguments);
 	this.test.ctx.returnValue = returnValue;
 }
@@ -35,24 +35,24 @@ export function logWarningIsCalledWithTheArguments() {
 	// NOTE: This dynamic require is necessary because otherwise the log
 	// function is created with a bound console method rather than the stub.
 	// eslint-disable-next-line global-require
-	const { logWarning } = require('../../../src/utils/print');
+	const { logWarning } = require('../../../src/utils/log');
 	const returnValue = logWarning(...testArguments);
 	this.test.ctx.returnValue = returnValue;
 }
 
 export function theResultIsPrinted() {
 	const { vorpal, result, options } = this.test.ctx;
-	this.test.ctx.returnValue = printResult(vorpal, options)(result);
+	this.test.ctx.returnValue = print(vorpal, options)(result);
 }
 
 export function theResultsArePrinted() {
 	const { vorpal, results, options } = this.test.ctx;
-	this.test.ctx.returnValue = printResult(vorpal, options)(results);
+	this.test.ctx.returnValue = print(vorpal, options)(results);
 }
 
 export function theResultIsPrintedUsingTheActiveCommandContext() {
 	const { vorpal, result, options, activeCommand } = this.test.ctx;
-	this.test.ctx.returnValue = printResult(vorpal, options).call(
+	this.test.ctx.returnValue = print(vorpal, options).call(
 		activeCommand,
 		result,
 	);

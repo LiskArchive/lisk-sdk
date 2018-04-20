@@ -14,7 +14,7 @@
  *
  */
 import { getFirstQuotedString, getFirstBoolean } from '../utils';
-import { logError, logWarning } from '../../../src/utils/print';
+import { logError, logWarning } from '../../../src/utils/log';
 
 export function itShouldUpdateTheConfigVariableToTheFirstValue() {
 	const { config, values } = this.test.ctx;
