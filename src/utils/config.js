@@ -18,7 +18,7 @@ import fs from 'fs';
 import lockfile from 'lockfile';
 import defaultConfig from '../../default_config.json';
 import { readJSONSync, writeJSONSync } from './fs';
-import { logWarning, logError } from './print';
+import { logWarning, logError } from './log';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';

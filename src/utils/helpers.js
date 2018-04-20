@@ -15,7 +15,7 @@
  */
 import { ValidationError } from '../utils/error';
 import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
+import print from '../utils/print';
 
 export const validatePublicKeys = publicKeys =>
 	publicKeys.map(publicKey => {
@@ -137,7 +137,7 @@ export const wrapActionCreator = (vorpal, actionCreator, errorPrefix) =>
 		return prepareOptions(parameters.options)
 			.then(() => actionCreator(vorpal).call(this, parameters))
 			.catch(createErrorHandler(errorPrefix))
-			.then(printResult(vorpal, parameters.options).bind(this));
+			.then(print(vorpal, parameters.options).bind(this));
 	};
 
 const OPTION_TYPES = {

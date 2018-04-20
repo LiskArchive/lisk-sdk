@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import chalk from 'chalk';
 import stripANSI from 'strip-ansi';
 import config from './config';
 import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
@@ -31,8 +30,8 @@ const removeANSI = result =>
 		? result.map(removeANSIFromObject)
 		: removeANSIFromObject(result);
 
-export const printResult = (vorpal, options = {}) =>
-	function print(result) {
+const print = (vorpal, options = {}) =>
+	function printResult(result) {
 		const useJSONOutput = shouldUseJSONOutput(config, options);
 		const prettifyOutput = shouldUsePrettyOutput(config, options);
 		const resultToPrint = useJSONOutput ? removeANSI(result) : result;
@@ -45,24 +44,4 @@ export const printResult = (vorpal, options = {}) =>
 		logger.log(output);
 	};
 
-// TODO: Include commented placeholders when we support Node 8
-const PLACEHOLDERS = [
-	'%s',
-	'%d',
-	// '%i',
-	// '%f',
-	'%j',
-	// '%o',
-	// '%O',
-];
-
-const wrapLogFunction = (fn, colour) => (...args) => {
-	const colourArg = arg => chalk[colour](arg);
-	const isPlaceholderPresent = placeholder => args[0].includes(placeholder);
-	return PLACEHOLDERS.some(isPlaceholderPresent)
-		? fn(colourArg(args[0]), ...args.slice(1))
-		: fn(...args.map(colourArg));
-};
-
-export const logWarning = wrapLogFunction(console.warn, 'yellow');
-export const logError = wrapLogFunction(console.error, 'red');
+export default print;
