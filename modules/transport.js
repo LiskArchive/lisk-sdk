@@ -233,6 +233,10 @@ __private.receiveTransaction = function(
 		return setImmediate(cb, `Invalid transaction body - ${e.toString()}`);
 	}
 
+	if (transaction.requesterPublicKey) {
+		return setImmediate(cb, 'Multisig request is not allowed');
+	}
+
 	library.balancesSequence.add(balancesSequenceCb => {
 		if (!nonce) {
 			library.logger.debug(
