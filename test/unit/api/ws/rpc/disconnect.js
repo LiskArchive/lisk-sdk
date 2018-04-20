@@ -33,6 +33,7 @@ describe('disconnect', () => {
 	describe('when peer contains socket with destroy function', () => {
 		beforeEach(done => {
 			validPeer.socket = {
+				disconnect: sinon.spy(),
 				destroy: sinon.spy(),
 			};
 			done();
