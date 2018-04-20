@@ -18,7 +18,7 @@ import fs from 'fs';
 import lockfile from 'lockfile';
 import defaultConfig from '../../default_config.json';
 import { readJSONSync, writeJSONSync } from './fs';
-import { logWarning, logError } from './print';
+import logger from './logger';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
@@ -34,7 +34,7 @@ const attemptCallWithWarning = (fn, path) => {
 		return fn();
 	} catch (_) {
 		const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
-		return logWarning(warning);
+		return logger.warn(warning);
 	}
 };
 
@@ -42,7 +42,7 @@ const attemptCallWithError = (fn, errorCode, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		logError(errorMessage);
+		logger.error(errorMessage);
 		return process.exit(errorCode);
 	}
 };
