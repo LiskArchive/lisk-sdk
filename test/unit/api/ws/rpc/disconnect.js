@@ -31,7 +31,7 @@ describe('disconnect', () => {
 		return expect(disconnect(validPeer)).equal(validPeer);
 	});
 
-	describe('when peer contains socket with destroy function', () => {
+	describe('when peer contains socket with disconnect function', () => {
 		beforeEach(done => {
 			socket = {
 				disconnect: sinon.spy(),
@@ -45,7 +45,7 @@ describe('disconnect', () => {
 			disconnect(validPeer);
 			// The socket should be deleted.
 			expect(validPeer.socket, undefined);
-			return expect(socket.destroy).calledOnce;
+			return expect(socket.disconnect).calledOnce;
 		});
 	});
 });

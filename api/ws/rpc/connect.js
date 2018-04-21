@@ -21,13 +21,16 @@ const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const Peer = require('../../../logic/peer');
 
 const TIMEOUT = 2000;
+const INITIAL_PING_TIMEOUT = 8000;
+const SOCKET_DESTROY_CLOSE_COUNT = 20;
 
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
-const connect = (peer, logger, onDisconnectCb) => {
+const connect = (peer, logger) => {
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer, logger);
 
@@ -36,7 +39,7 @@ const connect = (peer, logger, onDisconnectCb) => {
 			connectSteps.upgradeSocket(peer);
 			connectSteps.registerRPC(peer, logger);
 		},
-		() => connectSteps.registerSocketListeners(peer, logger, onDisconnectCb),
+		() => connectSteps.registerSocketListeners(peer, logger),
 	]);
 	return peer;
 };
@@ -52,21 +55,14 @@ const connectSteps = {
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: System.getHeaders(),
-			multiplex: false,
+			multiplex: true,
 		};
 		return peer;
 	},
 
 	addSocket: (peer, logger) => {
-		if (peer.socket) {
-			// If a socket connection exists,
-			// before issuing a new connection
-			// destroy the exisiting connection
-			// to avoid too many socket connections
-			peer.socket.destroy();
-			delete peer.socket;
-		}
 		peer.socket = scClient.connect(peer.connectionOptions);
+		peer.socket.closeCount = 0;
 
 		if (peer.socket && Object.keys(socketConnections).length < 1000) {
 			const hostname = peer.socket.options.hostname;
@@ -164,7 +160,7 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
+	registerSocketListeners: (peer, logger) => {
 		const socket = peer.socket;
 
 		socket.on('connect', () => {
@@ -208,16 +204,14 @@ const connectSteps = {
 					peer.ip
 				} closed with code ${code} and reason - ${reason}`
 			);
-			socket.destroy();
-			if (socket == peer.socket) {
-				delete peer.socket;
-			} else {
-				// This condition should never happen but log it in order to catch regressions.
-				logger.error(
-					'The socket which closed did not match the current peer socket'
-				);
+
+			if (peer.socket && peer.socket.state === peer.socket.CLOSED) {
+				peer.state = Peer.STATE.DISCONNECTED;
 			}
-			onDisconnectCb();
+			if (++socket.closeCount >= SOCKET_DESTROY_CLOSE_COUNT) {
+				socket.destroy();
+				socket.closeCount = 0;
+			}
 		});
 
 		// The 'message' event can be used to log all low-level WebSocket messages.

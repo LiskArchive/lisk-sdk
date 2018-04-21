@@ -161,39 +161,42 @@ describe('connect', () => {
 		});
 
 		describe('addSocket', () => {
-			let scClientConnectSpy;
+			let scClientConnectStub;
 			let validConnectionOptions;
 			before(done => {
 				validConnectionOptions = {
 					validProperty: 'validString',
 				};
-				scClientConnectSpy = sinon.stub(
+				scClientConnectStub = sinon.stub(
 					connectRewired.__get__('scClient'),
 					'connect'
 				);
 				done();
 			});
 			beforeEach(done => {
+				scClientConnectStub.callsFake(() => {
+					return { options: {} };
+				});
 				const addSocket = connectRewired.__get__('connectSteps.addSocket');
 				validPeer.connectionOptions = validConnectionOptions;
-				peerAsResult = addSocket(validPeer);
+				peerAsResult = addSocket(validPeer, loggerMock);
 				done();
 			});
 			afterEach(done => {
-				scClientConnectSpy.reset();
+				scClientConnectStub.reset();
 				done();
 			});
 			after(done => {
-				scClientConnectSpy.restore();
+				scClientConnectStub.restore();
 				done();
 			});
 
 			it('should call scClient.connect', () => {
-				return expect(scClientConnectSpy).to.be.calledOnce;
+				return expect(scClientConnectStub).to.be.calledOnce;
 			});
 
 			it('should call scClient.connect with [peer.connectionOptions]', () => {
-				return expect(scClientConnectSpy).to.be.calledWithExactly(
+				return expect(scClientConnectStub).to.be.calledWithExactly(
 					validPeer.connectionOptions
 				);
 			});
