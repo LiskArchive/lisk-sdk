@@ -451,7 +451,7 @@ describe('schema - custom formats', () => {
 				'11.11.22-alpha.',
 				'11.11.22-abcd.0',
 				'11.11.22-',
-				'1.0.0-beta.6.10',
+				'1.0.0-beta.6.1000',
 			];
 
 			return invalidData.forEach(function(item) {
