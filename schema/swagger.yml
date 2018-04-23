@@ -859,6 +859,7 @@ paths:
         - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/senderIdOrRecipientId'
         - $ref: '#/parameters/transactionType'
         - $ref: '#/parameters/height'
         - $ref: '#/parameters/minAmount'
@@ -1086,6 +1087,14 @@ parameters:
     type: string
     format: publicKey
     minLength: 1
+  senderIdOrRecipientId:
+  	name: senderIdOrRecipientId
+  	in: query
+  	description: Sender or Recipient address to query
+  	type: string
+  	format: address
+  	minLength: 1
+  	maxLength: 22
   transactionType:
     name: type
     in: query
@@ -1563,6 +1572,7 @@ definitions:
       - fee
       - senderPublicKey
       - recipientId
+      - senderIdOrRecipientId
       - timestamp
       - asset
       - signature
@@ -1615,6 +1625,10 @@ definitions:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+      senderIdOrRecipientId:
+        type: string
+      	format: address
+      	example: 12668885769632475474L
       signature:
         type: string
         format: signature
