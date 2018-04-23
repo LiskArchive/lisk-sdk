@@ -78,7 +78,7 @@ describe('db', () => {
 				expect(db.accounts.dbTable).to.be.eql('mem_accounts');
 
 				expect(db.accounts.dbFields).to.an('array');
-				expect(db.accounts.dbFields).to.have.lengthOf(30);
+				expect(db.accounts.dbFields).to.have.lengthOf(29);
 
 				expect(db.accounts.cs).to.an('object');
 				expect(db.accounts.cs).to.not.empty;
@@ -95,7 +95,6 @@ describe('db', () => {
 					'u_multimin',
 					'multilifetime',
 					'u_multilifetime',
-					'blockId',
 					'nameexist',
 					'u_nameexist',
 					'fees',
@@ -127,7 +126,6 @@ describe('db', () => {
 					'u_multimin',
 					'multilifetime',
 					'u_multilifetime',
-					'blockId',
 					'nameexist',
 					'u_nameexist',
 					'fees',
@@ -155,7 +153,6 @@ describe('db', () => {
 						'u_multimin',
 						'multilifetime',
 						'u_multilifetime',
-						'blockId',
 						'nameexist',
 						'u_nameexist',
 						'fees',
@@ -186,45 +183,6 @@ describe('db', () => {
 				const immutableFields = db.accounts.getImmutableFields();
 
 				return expect(immutableFields).to.eql(['address', 'virgin']);
-			});
-		});
-
-		describe('countMemAccounts()', () => {
-			it('should use the correct SQL to fetch the count', function*() {
-				sinonSandbox.spy(db, 'one');
-				yield db.accounts.countMemAccounts();
-
-				return expect(db.one.firstCall.args[0]).to.eql(
-					accountsSQL.countMemAccounts
-				);
-			});
-
-			it('should pass no params to the SQL file', function*() {
-				sinonSandbox.spy(db, 'one');
-				yield db.accounts.countMemAccounts();
-
-				return expect(db.one.firstCall.args[1]).to.eql([]);
-			});
-
-			it('should execute only one query', function*() {
-				sinonSandbox.spy(db, 'one');
-				yield db.accounts.countMemAccounts();
-
-				return expect(db.one.calledOnce).to.be.true;
-			});
-
-			it('should parse the db output and return the integer count', function*() {
-				sinonSandbox.stub(db, 'one').resolves({ count: '1' });
-
-				const count = yield db.accounts.countMemAccounts();
-
-				return expect(count).to.eql(1);
-			});
-
-			it('should throw error if something wrong in the SQL execution', () => {
-				sinonSandbox.stub(db, 'one').rejects();
-
-				return expect(db.accounts.countMemAccounts()).to.be.rejected;
 			});
 		});
 
@@ -349,52 +307,6 @@ describe('db', () => {
 				);
 
 				return expect(result.count).to.be.equal('0');
-			});
-		});
-
-		describe('getOrphanedMemAccounts()', () => {
-			it('should use the correct SQL', function*() {
-				sinonSandbox.spy(db, 'any');
-				yield db.accounts.getOrphanedMemAccounts();
-
-				return expect(db.any.firstCall.args[0]).to.eql(
-					accountsSQL.getOrphanedMemAccounts
-				);
-			});
-
-			it('should yield orphan db.accounts if associated blockId does not exist', function*() {
-				const firstAccount = (yield db.accounts.list({}, ['address']))[0];
-
-				//  Make an orphan account
-				yield db.none(
-					`UPDATE mem_accounts SET "blockId" = 'unknownId' WHERE address = '${
-						firstAccount.address
-					}'`
-				);
-
-				const orphanAccounts = yield db.accounts.getOrphanedMemAccounts();
-				const totalAccounts = yield db.one(
-					'SELECT count(*)::int FROM mem_accounts'
-				);
-
-				// Check there are some accounts to test
-				expect(totalAccounts.count).to.above(0);
-
-				expect(orphanAccounts).to.lengthOf(1);
-				return expect(orphanAccounts[0].address).to.eql(firstAccount.address);
-			});
-
-			it('should yield orphan db.accounts with address, blockId and id attribute', function*() {
-				//  Make an orphan account
-				yield db.none('UPDATE mem_accounts SET "blockId" = \'unknownId\'');
-
-				const orphanAccounts = yield db.accounts.getOrphanedMemAccounts();
-
-				expect(orphanAccounts).to.lengthOf.above(0);
-
-				return orphanAccounts.forEach(orphanAccount => {
-					expect(orphanAccount).to.have.all.keys('address', 'blockId', 'id');
-				});
 			});
 		});
 
@@ -1365,8 +1277,8 @@ describe('db', () => {
 						yield db.accounts.insert(account);
 
 						const accounts = yield db.accounts.list({}, ['address'], {
-							extraCondition: `"username" = 'AlphaBravo' AND "blockId" = '${
-								account.blockId
+							extraCondition: `"username" = 'AlphaBravo' AND "address" = '${
+								account.address
 							}'`,
 						});
 

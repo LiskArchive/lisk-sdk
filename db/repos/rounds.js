@@ -107,19 +107,6 @@ class RoundsRepository {
 		return this.db.none(sql.updateVotes, [amount, address]);
 	}
 
-	// TODO: Move usage of RoundsRepository#updateBlockId to db/accounts
-	/**
-	 * Update the blockId attribute for an account.
-	 *
-	 * @param {string} newId
-	 * @param {string} oldId
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	updateBlockId(newId, oldId) {
-		return this.db.none(sql.updateBlockId, [newId, oldId]);
-	}
-
 	/**
 	 * Summarize the results for a round.
 	 *
@@ -208,17 +195,15 @@ class RoundsRepository {
 	 * Insert round information record into mem_rounds.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {Number} amount - Amount updated on account
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
-	insertRoundInformationWithAmount(address, blockId, round, amount) {
+	insertRoundInformationWithAmount(address, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
 			address,
 			amount,
-			blockId,
 			round,
 		});
 	}
@@ -227,23 +212,15 @@ class RoundsRepository {
 	 * Insert round information record into mem_rounds.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {string} delegateId - Associated delegate id
 	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
-	insertRoundInformationWithDelegate(
-		address,
-		blockId,
-		round,
-		delegateId,
-		mode
-	) {
+	insertRoundInformationWithDelegate(address, round, delegateId, mode) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
 			address,
-			blockId,
 			round,
 			delegate: delegateId,
 			balanceMode: mode === '-' ? '-' : '',

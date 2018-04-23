@@ -63,7 +63,6 @@ accounts.mem_accountsFields = [
 	'u_multimin',
 	'multilifetime',
 	'u_multilifetime',
-	'blockId',
 	'nameexist',
 	'u_nameexist',
 	'producedBlocks',
@@ -96,7 +95,6 @@ const Account = stampit({
 		u_multimin: 0,
 		multilifetime: 0,
 		u_multilifetime: 0,
-		blockId: '',
 		nameexist: 0,
 		u_nameexist: 0,
 		producedBlocks: '9',
@@ -111,7 +109,6 @@ const Account = stampit({
 		u_username,
 		address,
 		publicKey,
-		blockId,
 		missedBlocks,
 		balance,
 	}) {
@@ -126,8 +123,6 @@ const Account = stampit({
 			randomstring
 				.generate({ charset: '0123456789ABCDE', length: 32 })
 				.toLowerCase();
-		this.blockId =
-			blockId || randomstring.generate({ charset: 'numeric', length: 20 });
 
 		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
 
@@ -144,7 +139,6 @@ const dbAccount = stampit({
 	props: {
 		address: null,
 		balance: 0,
-		blockId: 0,
 		delegates: null,
 		fees: '0',
 		isDelegate: 0,
@@ -172,11 +166,10 @@ const dbAccount = stampit({
 		virgin: 1,
 		vote: '0',
 	},
-	init({ address, balance, u_balance, blockId }) {
+	init({ address, balance, u_balance }) {
 		this.address = address || this.address;
 		this.balance = balance || this.balance;
 		this.u_balance = u_balance || this.u_balance || this.balance;
-		this.blockId = blockId || this.blockId;
 	},
 });
 

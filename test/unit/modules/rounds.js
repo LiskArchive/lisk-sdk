@@ -1095,14 +1095,12 @@ describe('rounds', () => {
 		// Init stubs
 		var mergeBlockGenerator_stub = sinon.stub().resolves();
 		var backwardLand_stub = sinon.stub().resolves();
-		var markBlockId_stub = sinon.stub().resolves();
 		var sumRound_stub = sinon.stub().callsArg(1);
 		var getOutsiders_stub = sinon.stub().callsArg(1);
 
 		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
 			backwardLand_stub.resetHistory();
-			markBlockId_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
 		}
@@ -1114,7 +1112,6 @@ describe('rounds', () => {
 			}
 			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 			Round.prototype.backwardLand = backwardLand_stub;
-			Round.prototype.markBlockId = markBlockId_stub;
 			Rounds.__set__('Round', Round);
 
 			// Set more stubs
@@ -1133,11 +1130,16 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 1 };
 							previousBlock = { height: 1 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.true;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.true;
+									done();
+								},
+								db
+							);
 						});
 					});
 
@@ -1145,11 +1147,16 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 101 };
 							previousBlock = { height: 1 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.true;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.true;
+									done();
+								},
+								db
+							);
 						});
 					});
 
@@ -1157,11 +1164,16 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 202 };
 							previousBlock = { height: 202 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.true;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.true;
+									done();
+								},
+								db
+							);
 						});
 					});
 
@@ -1169,11 +1181,16 @@ describe('rounds', () => {
 						it('should be set to false', done => {
 							block = { height: 203 };
 							previousBlock = { height: 203 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.false;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.false;
+									done();
+								},
+								db
+							);
 						});
 					});
 				});
@@ -1185,11 +1202,16 @@ describe('rounds', () => {
 				before(done => {
 					block = { height: 1 };
 					previousBlock = { height: 1 };
-					rounds.backwardTick(block, previousBlock, err => {
-						expect(err).to.not.exist;
-						expect(roundScope.finishRound).to.be.true;
-						done();
-					});
+					rounds.backwardTick(
+						block,
+						previousBlock,
+						err => {
+							expect(err).to.not.exist;
+							expect(roundScope.finishRound).to.be.true;
+							done();
+						},
+						db
+					);
 				});
 
 				after(() => {
@@ -1202,10 +1224,6 @@ describe('rounds', () => {
 
 				it('scope.backwardLand should be called once', () => {
 					return expect(backwardLand_stub.calledOnce).to.be.true;
-				});
-
-				it('scope.markBlockId should be called once', () => {
-					return expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.sumRound should be called once', () => {
@@ -1221,11 +1239,16 @@ describe('rounds', () => {
 				before(done => {
 					block = { height: 5 };
 					previousBlock = { height: 5 };
-					rounds.backwardTick(block, previousBlock, err => {
-						expect(err).to.not.exist;
-						expect(roundScope.finishRound).to.be.false;
-						done();
-					});
+					rounds.backwardTick(
+						block,
+						previousBlock,
+						err => {
+							expect(err).to.not.exist;
+							expect(roundScope.finishRound).to.be.false;
+							done();
+						},
+						db
+					);
 				});
 
 				after(() => {
@@ -1238,10 +1261,6 @@ describe('rounds', () => {
 
 				it('scope.backwardLand should be not called', () => {
 					return expect(backwardLand_stub.called).to.be.false;
-				});
-
-				it('scope.markBlockId should be called once', () => {
-					return expect(markBlockId_stub.calledOnce).to.be.true;
 				});
 
 				it('scope.sumRound should be not called', () => {

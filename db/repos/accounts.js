@@ -35,7 +35,6 @@ const normalFields = [
 	{ name: 'u_multimin', def: 0, skip: ifNotExists },
 	{ name: 'multilifetime', def: 0, skip: ifNotExists },
 	{ name: 'u_multilifetime', def: 0, skip: ifNotExists },
-	{ name: 'blockId', def: null, skip: ifNotExists },
 	{ name: 'nameexist', def: 0, skip: ifNotExists },
 	{ name: 'u_nameexist', def: 0, skip: ifNotExists },
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
@@ -155,16 +154,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Counts memory accounts by blocks.
-	 *
-	 * @returns {Promise<number>}
-	 * @todo Add description for the return value
-	 */
-	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts, []).then(a => +a.count);
-	}
-
-	/**
 	 * Update mem_accounts.
 	 *
 	 * @returns {Promise}
@@ -172,16 +161,6 @@ class AccountsRepository {
 	 */
 	updateMemAccounts() {
 		return this.db.none(sql.updateMemAccounts);
-	}
-
-	/**
-	 * Get orphan mem_accounts.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getOrphanedMemAccounts() {
-		return this.db.any(sql.getOrphanedMemAccounts);
 	}
 
 	/**
