@@ -221,7 +221,6 @@
 			"missedBlocks",
 			"fees",
 			"rewards",
-			"virgin"
 		],
 		"data": [
 			{
@@ -253,7 +252,6 @@
 				"missedBlocks": 0,
 				"fees": "0",
 				"rewards": "0",
-				"virgin": 0
 			},
 			{
 				"username": "test_blk_process_2",
@@ -284,7 +282,6 @@
 				"missedBlocks": 0,
 				"fees": "0",
 				"rewards": "0",
-				"virgin": 0
 			}
 		]
 	},
