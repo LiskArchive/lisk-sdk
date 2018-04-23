@@ -49,13 +49,15 @@ module.exports = function multisignature(params) {
 			});
 		};
 
-		const emitSignatureToRandomPeer = signature => {
-			const randomePeer = _.take(params.sockets)[0];
+		const postSignatures = signature => {
 			const postSignatures = {
-				nonce: randomePeer.options.query.nonce,
 				signatures: [signature],
 			};
-			randomePeer.emit('postSignatures', postSignatures);
+			return Promise.all(
+				params.sockets.map(socket => {
+					return socket.emit('postSignatures', postSignatures);
+				})
+			);
 		};
 
 		describe('prepare accounts', () => {
@@ -68,6 +70,7 @@ module.exports = function multisignature(params) {
 							amount: 2500000000,
 							passphrase: accountFixtures.genesis.password,
 							recipientId: tmpAccount.address,
+							ready: true,
 						});
 						accounts.push(tmpAccount);
 						transactions.push(transaction);
@@ -78,7 +81,7 @@ module.exports = function multisignature(params) {
 
 			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 1;
 				waitFor.blocks(blocksToWait, () => {
 					validateTransactionsOnAllNodes().then(done);
 				});
@@ -129,8 +132,9 @@ module.exports = function multisignature(params) {
 			it('sending the required signatures in the keysgroup agreement', () => {
 				return Promise.all(
 					numbers.map(member => {
-						emitSignatureToRandomPeer(signatures[member][0]);
-						return emitSignatureToRandomPeer(signatures[member][1]);
+						postSignatures(signatures[member][0]).then(() => {
+							return postSignatures(signatures[member][1]);
+						});
 					})
 				);
 			});
