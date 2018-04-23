@@ -104,6 +104,7 @@ Rounds.prototype.flush = function(round, cb) {
  * @param {block} block - Current block
  * @param {block} previousBlock - Previous block
  * @param {function} done - Callback function
+ * @param {function} tx - SQL transaction
  * @returns {function} Calling done with error if any
  */
 Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
@@ -125,24 +126,21 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 		(block.height === 1 || block.height === 101);
 
 	/**
-	 * Description of BackwardTick.
+	 * Description of backwardTick.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function BackwardTick(t) {
-		const promised = new Round(scope, t);
+	function backwardTick(tx) {
+		const round = new Round(scope, tx);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
 
-		return promised.mergeBlockGenerator().then(() => {
-			if (scope.finishRound) {
-				return promised.backwardLand();
-			}
-			return t;
-		});
+		return round
+			.mergeBlockGenerator()
+			.then(() => (scope.finishRound ? round.backwardLand() : round));
 	}
 
 	async.series(
