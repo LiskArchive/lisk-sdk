@@ -87,7 +87,6 @@ module.exports = function multisignature(params) {
 
 		describe('sending multisignature registrations', () => {
 			const signatures = [];
-			let agreements = [];
 			const numbers = _.range(MAXIMUM);
 			let i = 0;
 			let j = 0;
@@ -105,11 +104,10 @@ module.exports = function multisignature(params) {
 							passphrase: accounts[num].password,
 						});
 						transactions.push(transaction);
-						agreements = [
+						signatures.push([
 							createSignatureObject(transaction, accounts[i]),
 							createSignatureObject(transaction, accounts[j]),
-						];
-						signatures.push(agreements);
+						]);
 						return sendTransactionPromise(transaction).then(res => {
 							expect(res.statusCode).to.be.eql(200);
 						});
