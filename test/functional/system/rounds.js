@@ -107,7 +107,6 @@ describe('rounds', () => {
 						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
 					)
 					.toString();
-				accounts[address].virgin = 0;
 
 				// Set public key if not present
 				if (!accounts[address].publicKey) {
@@ -701,10 +700,14 @@ describe('rounds', () => {
 				).to.eventually.deep.equal({});
 			});
 
-			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1781 is closed
-			// eslint-disable-next-line
-			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+			it('mem_accounts table should be equal to one generated before last block of round deletion', () => {
 				return getMemAccounts().then(_accounts => {
+					// Add back empty account, created accounts are never deleted
+					const address = lastBlock.transactions[0].recipientId;
+					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
+						address, balance: '0',
+					});
+
 					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
 				});
 			});
