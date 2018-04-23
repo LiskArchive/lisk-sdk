@@ -235,13 +235,11 @@ describe('transactionPool', () => {
 		const queuedTx = { id: 'queuedTx', receivedAt };
 
 		before(done => {
-			transactionPool.addUnconfirmedTransaction(unconfirmedTx, () => {
-				transactionPool.addUnconfirmedTransaction(unconfirmedTx2, () => {
-					transactionPool.addMultisignatureTransaction(multiSigTx);
-					transactionPool.addQueuedTransaction(queuedTx);
-					done();
-				});
-			});
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx);
+			transactionPool.addUnconfirmedTransaction(unconfirmedTx2);
+			transactionPool.addMultisignatureTransaction(multiSigTx);
+			transactionPool.addQueuedTransaction(queuedTx);
+			done();
 		});
 
 		it('should expire all the transaction', done => {
@@ -357,7 +355,8 @@ describe('transactionPool', () => {
 	describe('getUnconfirmedTransaction', () => {
 		const validTransaction = { id: '123' };
 		beforeEach(done => {
-			transactionPool.addUnconfirmedTransaction(validTransaction, done);
+			transactionPool.addUnconfirmedTransaction(validTransaction);
+			done();
 		});
 
 		it('should return undefined for invalid transaction id', () => {
@@ -513,12 +512,9 @@ describe('transactionPool', () => {
 			type: transactionTypes.MULTI,
 		};
 		before(done => {
-			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction, () => {
-				transactionPool.addUnconfirmedTransaction(
-					unconfirmedTransaction2,
-					done
-				);
-			});
+			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
+			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction2);
+			done();
 		});
 		it('should add unconfirmed transaction if not exists', () => {
 			return expect(transactionPool.unconfirmed.transactions).that.does.include(
@@ -539,7 +535,8 @@ describe('transactionPool', () => {
 			type: transactionTypes.MULTI,
 		};
 		beforeEach(done => {
-			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction, done);
+			transactionPool.addUnconfirmedTransaction(unconfirmedTransaction);
+			done();
 		});
 
 		it('should remove unconfirmed transactions', () => {
@@ -710,7 +707,7 @@ describe('transactionPool', () => {
 				bundled: true,
 			};
 			transactionPool.countBundled = sinonSandbox.stub().returns(10000);
-			transactionPool.queueTransaction(transaction, res => {
+			transactionPool.queueTransaction(transaction, null, res => {
 				expect(res).to.deep.eql('Transaction pool is full');
 				expect(transactionPool.getBundledTransaction(transaction.id)).to.be
 					.undefined;
@@ -732,7 +729,7 @@ describe('transactionPool', () => {
 					type: transactionTypes.MULTI,
 				};
 				transactionPool.countMultisignature = sinonSandbox.stub().returns(1001);
-				transactionPool.queueTransaction(transaction, res => {
+				transactionPool.queueTransaction(transaction, null, res => {
 					expect(res).to.deep.eql('Transaction pool is full');
 					expect(transactionPool.getMultisignatureTransaction(transaction.id))
 						.to.be.undefined;
@@ -747,7 +744,7 @@ describe('transactionPool', () => {
 					type: transactionTypes.MULTI,
 				};
 				transactionPool.countMultisignature = sinonSandbox.stub().returns(100);
-				transactionPool.queueTransaction(transaction, res => {
+				transactionPool.queueTransaction(transaction, null, res => {
 					expect(res).to.be.undefined;
 					expect(transactionPool.getMultisignatureTransaction(transaction.id))
 						.to.be.an('object')
@@ -763,7 +760,7 @@ describe('transactionPool', () => {
 				id: '13118423423423L',
 				bundled: true,
 			};
-			transactionPool.queueTransaction(transaction, () => {
+			transactionPool.queueTransaction(transaction, null, () => {
 				expect(transactionPool.getBundledTransaction(transaction.id))
 					.to.be.an('object')
 					.to.have.keys(['id', 'receivedAt', 'bundled'])
@@ -776,7 +773,7 @@ describe('transactionPool', () => {
 			const transaction = {
 				id: '1311188423423423L',
 			};
-			transactionPool.queueTransaction(transaction, () => {
+			transactionPool.queueTransaction(transaction, null, () => {
 				expect(transactionPool.getQueuedTransaction(transaction.id))
 					.to.be.an('object')
 					.to.have.keys(['id', 'receivedAt'])
@@ -828,7 +825,7 @@ describe('transactionPool', () => {
 			};
 			sinonSandbox
 				.stub(transactionPool, 'queueTransaction')
-				.callsArgWith(1, 'Failed to queue bundled transaction');
+				.callsArgWith(2, 'Failed to queue bundled transaction');
 			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
 				expect(res).to.deep.eql('Failed to queue bundled transaction');
 				done();
@@ -841,7 +838,7 @@ describe('transactionPool', () => {
 				type: transactionTypes.MULTI,
 				bundled: true,
 			};
-			transactionPool.queueTransaction.callsArgWith(1, transaction);
+			transactionPool.queueTransaction.callsArgWith(2, transaction);
 			transactionPool.processUnconfirmedTransaction(transaction, true, res => {
 				expect(res).to.deep.eql(transaction);
 				done();
@@ -949,7 +946,8 @@ describe('transactionPool', () => {
 				id: '123445L',
 				type: transactionTypes.MULTI,
 			});
-			transactionPool.addUnconfirmedTransaction({ id: '129887L' }, done);
+			transactionPool.addUnconfirmedTransaction({ id: '129887L' });
+			done();
 		});
 
 		it('should reindex previously removed/falsified transactions', () => {
@@ -1024,7 +1022,7 @@ describe('transactionPool', () => {
 				processVerifyTransactionStub
 			);
 			transactionPool.queueTransaction.callsArgWith(
-				1,
+				2,
 				'Failed to queue bundled transaction'
 			);
 			transactionPool.processBundled(() => {
@@ -1093,16 +1091,16 @@ describe('transactionPool', () => {
 					const transactions = [validTransaction];
 
 					before(done => {
-						transactionPool.addUnconfirmedTransaction(validTransaction, () => {
-							transactionPool.getUnconfirmedTransactionList = function() {
-								return transactions;
-							};
+						transactionPool.addUnconfirmedTransaction(validTransaction);
 
-							undoUnconfirmedList((err, ids) => {
-								lastError = err;
-								lastIds = ids;
-								done();
-							});
+						transactionPool.getUnconfirmedTransactionList = function() {
+							return transactions;
+						};
+
+						undoUnconfirmedList((err, ids) => {
+							lastError = err;
+							lastIds = ids;
+							done();
 						});
 					});
 
@@ -1185,16 +1183,15 @@ describe('transactionPool', () => {
 							dummyUndoUnconfirmed
 						);
 
-						transactionPool.addUnconfirmedTransaction(badTransaction, () => {
-							transactionPool.getUnconfirmedTransactionList = function() {
-								return transactions;
-							};
+						transactionPool.addUnconfirmedTransaction(badTransaction);
+						transactionPool.getUnconfirmedTransactionList = function() {
+							return transactions;
+						};
 
-							undoUnconfirmedList((err, ids) => {
-								lastError = err;
-								lastIds = ids;
-								done();
-							});
+						undoUnconfirmedList((err, ids) => {
+							lastError = err;
+							lastIds = ids;
+							done();
 						});
 					});
 
@@ -1708,13 +1705,12 @@ describe('transactionPool', () => {
 			});
 
 			it('should return error when transaction is in unconfirmed queue', done => {
-				transactionPool.addUnconfirmedTransaction(transaction, () => {
-					_processVerifyTransaction(transaction, true, err => {
-						expect(err).to.deep.eql(
-							'Transaction is already in unconfirmed state'
-						);
-						done();
-					});
+				transactionPool.addUnconfirmedTransaction(transaction);
+				_processVerifyTransaction(transaction, true, err => {
+					expect(err).to.deep.eql(
+						'Transaction is already in unconfirmed state'
+					);
+					done();
 				});
 			});
 
