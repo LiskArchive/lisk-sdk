@@ -45,7 +45,6 @@ var MemAccounts = {
 		'"u_multimin",' +
 		'"multilifetime",' +
 		'"u_multilifetime",' +
-		'"blockId",' +
 		'"nameexist",' +
 		'"u_nameexist",' +
 		'"producedBlocks",' +
@@ -75,7 +74,6 @@ var MemAccounts = {
 		'${u_multimin}, ' +
 		'${multilifetime}, ' +
 		'${u_multilifetime}, ' +
-		'${blockId}, ' +
 		'${nameexist}, ' +
 		'${u_nameexist}, ' +
 		'${producedBlocks}, ' +

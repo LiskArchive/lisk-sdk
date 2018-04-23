@@ -815,7 +815,6 @@ class Transaction {
 			sender.address,
 			{
 				balance: -amount,
-				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
 			(mergeErr, sender) => {
@@ -837,7 +836,6 @@ class Transaction {
 								sender.address,
 								{
 									balance: amount,
-									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
 								reverseMergeErr =>
@@ -881,7 +879,6 @@ class Transaction {
 			sender.address,
 			{
 				balance: amount,
-				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
 			(mergeErr, sender) => {
@@ -900,7 +897,6 @@ class Transaction {
 								sender.address,
 								{
 									balance: -amount,
-									blockId: block.id,
 									round: slots.calcRound(block.height),
 								},
 								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),

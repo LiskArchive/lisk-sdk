@@ -334,37 +334,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('updateBlockId()', () => {
-			it('should use the correct SQL file with two parameters', function*() {
-				sinonSandbox.spy(db, 'none');
-				yield db.rounds.updateBlockId('456', '123');
-
-				expect(db.none.firstCall.args[0]).to.eql(roundsSQL.updateBlockId);
-				expect(db.none.firstCall.args[1]).to.eql(['456', '123']);
-				return expect(db.none).to.be.calledOnce;
-			});
-
-			it('should update block id for a given account', function*() {
-				const account = accountsFixtures.Account();
-				yield db.accounts.insert(account);
-
-				yield db.rounds.updateBlockId('12345678', account.blockId);
-				const result = (yield db.accounts.list({
-					address: account.address,
-				}))[0];
-
-				return expect(result.blockId).to.be.eql('12345678');
-			});
-
-			it('should resolve without error if parameter "newId" is not provided', () => {
-				return expect(db.rounds.updateBlockId(null, '123')).to.be.fulfilled;
-			});
-
-			it('should resolve without error if parameter "oldId" is not provided', () => {
-				return expect(db.rounds.updateBlockId('123L')).to.be.fulfilled;
-			});
-		});
-
 		describe('summedRound()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'query');
@@ -791,12 +760,10 @@ describe('db', () => {
 				const params = {
 					address: '123L',
 					amount: '456',
-					blockId: '11111',
 					round: '1',
 				};
 				yield db.rounds.insertRoundInformationWithAmount(
 					params.address,
-					params.blockId,
 					params.round,
 					params.amount
 				);
@@ -812,12 +779,10 @@ describe('db', () => {
 				const params = {
 					address: '123L',
 					amount: '456',
-					blockId: '11111',
 					round: '1',
 				};
 				yield db.rounds.insertRoundInformationWithAmount(
 					params.address,
-					params.blockId,
 					params.round,
 					params.amount
 				);
@@ -841,12 +806,10 @@ describe('db', () => {
 				const params = {
 					address: account.address,
 					amount: '456',
-					blockId: '11111',
 					round: '1',
 				};
 				yield db.rounds.insertRoundInformationWithAmount(
 					params.address,
-					params.blockId,
 					params.round,
 					params.amount
 				);
@@ -864,14 +827,12 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				const params = {
 					address: '123L',
-					blockId: '11111',
 					round: '1',
 					delegate: '456',
 					balanceMode: '-',
 				};
 				yield db.rounds.insertRoundInformationWithDelegate(
 					params.address,
-					params.blockId,
 					params.round,
 					params.delegate,
 					params.balanceMode
@@ -887,14 +848,12 @@ describe('db', () => {
 			it('should not insert any record for an invalid address', function*() {
 				const params = {
 					address: '123L',
-					blockId: '11111',
 					round: '1',
 					delegate: '456',
 					balanceMode: '-',
 				};
 				yield db.rounds.insertRoundInformationWithDelegate(
 					params.address,
-					params.blockId,
 					params.round,
 					params.delegate,
 					params.balanceMode
@@ -912,14 +871,12 @@ describe('db', () => {
 					balance: '100',
 				});
 				yield db.accounts.insert(account);
-				const blockId = '11111';
 				const round = '1';
 				const delegate = '4567';
 				const balanceMode = '-';
 
 				yield db.rounds.insertRoundInformationWithDelegate(
 					account.address,
-					blockId,
 					round,
 					delegate,
 					balanceMode
@@ -930,7 +887,6 @@ describe('db', () => {
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql({
 					address: account.address,
-					blockId,
 					round,
 					delegate,
 					amount: balanceMode + account.balance,
@@ -944,14 +900,12 @@ describe('db', () => {
 					balance: '100',
 				});
 				yield db.accounts.insert(account);
-				const blockId = '11111';
 				const round = '1';
 				const delegate = '4567';
 				const balanceMode = '+';
 
 				yield db.rounds.insertRoundInformationWithDelegate(
 					account.address,
-					blockId,
 					round,
 					delegate,
 					balanceMode
@@ -962,7 +916,6 @@ describe('db', () => {
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql({
 					address: account.address,
-					blockId,
 					round,
 					delegate,
 					amount: account.balance,
@@ -976,14 +929,12 @@ describe('db', () => {
 					balance: '100',
 				});
 				yield db.accounts.insert(account);
-				const blockId = '11111';
 				const round = '1';
 				const delegate = '4567';
 				const balanceMode = null;
 
 				yield db.rounds.insertRoundInformationWithDelegate(
 					account.address,
-					blockId,
 					round,
 					delegate,
 					balanceMode
@@ -994,7 +945,6 @@ describe('db', () => {
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql({
 					address: account.address,
-					blockId,
 					round,
 					delegate,
 					amount: account.balance,

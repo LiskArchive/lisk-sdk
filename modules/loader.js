@@ -463,7 +463,6 @@ __private.loadBlockChain = function() {
 		const promises = [
 			t.blocks.count(),
 			t.blocks.getGenesisBlock(),
-			t.accounts.countMemAccounts(),
 			t.rounds.getMemRounds(),
 			t.delegates.countDuplicatedDelegates(),
 		];
@@ -533,7 +532,6 @@ __private.loadBlockChain = function() {
 			(
 				blocksCount,
 				getGenesisBlock,
-				memAccountsCount,
 				getMemRounds,
 				duplicatedDelegatesCount
 			) => {
@@ -551,12 +549,6 @@ __private.loadBlockChain = function() {
 
 				if (verify) {
 					return reload(blocksCount, 'Blocks verification enabled');
-				}
-
-				const missed = !memAccountsCount;
-
-				if (missed) {
-					return reload(blocksCount, 'Detected missed blocks in mem_accounts');
 				}
 
 				const unapplied = getMemRounds.filter(
@@ -577,7 +569,6 @@ __private.loadBlockChain = function() {
 				function updateMemAccounts(t) {
 					const promises = [
 						t.accounts.updateMemAccounts(),
-						t.accounts.getOrphanedMemAccounts(),
 						t.accounts.getDelegates(),
 					];
 					return t.batch(promises);
@@ -585,14 +576,7 @@ __private.loadBlockChain = function() {
 
 				return library.db
 					.task(updateMemAccounts)
-					.spread((updateMemAccounts, getOrphanedMemAccounts, getDelegates) => {
-						if (getOrphanedMemAccounts.length > 0) {
-							return reload(
-								blocksCount,
-								'Detected orphaned blocks in mem_accounts'
-							);
-						}
-
+					.spread((updateMemAccounts, getDelegates) => {
 						if (getDelegates.length === 0) {
 							return reload(blocksCount, 'No delegates found');
 						}

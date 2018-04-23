@@ -574,14 +574,6 @@ describe('outTransfer', () => {
 				).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', () => {
-				return expect(
-					accountsStub.mergeAccountAndGet.calledWith(
-						sinonSandbox.match({ blockId: dummyBlock.id })
-					)
-				).to.be.true;
-			});
-
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', () => {
 				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
@@ -697,14 +689,6 @@ describe('outTransfer', () => {
 				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -transaction.amount })
-					)
-				).to.be.true;
-			});
-
-			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', () => {
-				return expect(
-					accountsStub.mergeAccountAndGet.calledWith(
-						sinonSandbox.match({ blockId: dummyBlock.id })
 					)
 				).to.be.true;
 			});

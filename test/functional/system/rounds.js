@@ -83,7 +83,6 @@ describe('rounds', () => {
 		});
 		if (found) {
 			found.producedBlocks += 1;
-			found.blockId = lastBlock.id;
 		}
 
 		// Mutate states - apply every transaction to expected states
@@ -108,7 +107,6 @@ describe('rounds', () => {
 						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
 					)
 					.toString();
-				accounts[address].blockId = lastBlock.id;
 				accounts[address].virgin = 0;
 
 				// Set public key if not present
@@ -141,13 +139,11 @@ describe('rounds', () => {
 					accounts[address].u_balance = new Bignum(accounts[address].u_balance)
 						.plus(new Bignum(transaction.amount))
 						.toString();
-					accounts[address].blockId = lastBlock.id;
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
 						balance: new Bignum(transaction.amount).toString(),
-						blockId: lastBlock.id,
 					});
 				}
 			}
@@ -157,15 +153,12 @@ describe('rounds', () => {
 
 	function applyRoundRewards(_accounts, blocks) {
 		const accounts = _.cloneDeep(_accounts);
-		const lastBlock = library.modules.blocks.lastBlock.get();
-
 		const expectedRewards = getExpectedRoundRewards(blocks);
 		_.each(expectedRewards, reward => {
 			const found = _.find(accounts, {
 				publicKey: Buffer.from(reward.publicKey, 'hex'),
 			});
 			if (found) {
-				found.blockId = lastBlock.id;
 				found.fees = new Bignum(found.fees)
 					.plus(new Bignum(reward.fees))
 					.toString();

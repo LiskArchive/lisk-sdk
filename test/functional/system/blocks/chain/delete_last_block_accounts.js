@@ -59,13 +59,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			describe('(type 0) transfer funds', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'u_balance',
-						'blockId',
-						'virgin',
-						'publicKey',
-					];
+					fieldsToCompare = ['balance', 'u_balance', 'virgin', 'publicKey'];
 				});
 
 				it('should validate account data from sender after account creation', done => {
@@ -136,7 +130,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						(err, res) => {
 							expect(res.balance).to.equal(testAccountData.balance);
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
-							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1 (account without outgoing transaction)
 							done();
@@ -152,7 +145,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.balance).to.equal('0');
 							expect(res.u_balance).to.equal('0');
 							// CHECKME: virgin should be 1
-							// FIXME: Incorrect blockId, or this address should not be inserted into mem_accounts
+							// FIXME: Maybe this address should not be inserted into mem_accounts
 							done();
 						}
 					);
@@ -175,7 +168,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 								testAccountDataAfterBlock.publicKey
 							);
 							expect(res.virgin).to.equal(false);
-							// TODO: blockId is ok because timestamp is not been included in signature and is not new tx
 							done();
 						}
 					);
@@ -189,7 +181,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.balance).to.equal(testReceiptData.balance);
 							expect(res.u_balance).to.equal(testReceiptData.u_balance);
 							// FIXME: virgin should be 1 (account without outgoing transaction)
-							// TODO: blockId is ok because timestamp is not been included in signature and is not new tx
 							done();
 						}
 					);
@@ -202,7 +193,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					fieldsToCompare = [
 						'balance',
 						'u_balance',
-						'blockId',
 						'virgin',
 						'publicKey',
 						'secondPublicKey',
@@ -273,7 +263,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.secondPublicKey).to.be.null;
 							expect(res.secondSignature).to.equal(false);
 							expect(res.u_secondSignature).to.equal(false);
-							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();
@@ -302,7 +291,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							);
 							expect(res.secondSignature).to.equal(true);
 							expect(res.virgin).to.equal(false);
-							// CHECKME: blockId
 							done();
 						}
 					);
@@ -315,7 +303,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					fieldsToCompare = [
 						'balance',
 						'u_balance',
-						'blockId',
 						'virgin',
 						'publicKey',
 						'isDelegate',
@@ -411,7 +398,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.rank).to.be.null;
 							expect(res.rewards).to.equal('0');
 							expect(res.vote).to.equal('0');
-							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();
@@ -449,7 +435,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.rank).to.equal('102');
 							expect(res.rewards).to.equal('0');
 							expect(res.vote).to.equal('0');
-							// CHECKME: blockId
 							done();
 						}
 					);
@@ -462,7 +447,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					fieldsToCompare = [
 						'balance',
 						'u_balance',
-						'blockId',
 						'virgin',
 						'publicKey',
 						'delegates',
@@ -529,7 +513,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.u_balance).to.equal(testAccountData.u_balance);
 							expect(res.delegates).to.be.null;
 							expect(res.u_delegates).to.be.null;
-							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();
@@ -560,7 +543,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 								accountFixtures.existingDelegate.publicKey
 							);
 							expect(res.virgin).to.equal(false);
-							// CHECKME: blockId
 							done();
 						}
 					);
@@ -573,7 +555,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					fieldsToCompare = [
 						'balance',
 						'u_balance',
-						'blockId',
 						'virgin',
 						'publicKey',
 						'multilifetime',
@@ -669,7 +650,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.u_multimin).to.equal(0);
 							expect(res.multisignatures).to.be.null;
 							expect(res.u_multisignatures).to.be.null;
-							// FIXME: Incorrect blockId
 							// CHECKME: publicKey should be null
 							// CHECKME: virgin should be 1
 							done();
@@ -704,7 +684,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 								accountFixtures.existingDelegate.publicKey
 							);
 							expect(res.virgin).to.equal(false);
-							// CHECKME: blockId
 							done();
 						}
 					);
@@ -714,13 +693,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 			describe('dapps', () => {
 				before('create account with funds', done => {
 					createAccountWithFunds(done);
-					fieldsToCompare = [
-						'balance',
-						'u_balance',
-						'blockId',
-						'virgin',
-						'publicKey',
-					];
+					fieldsToCompare = ['balance', 'u_balance', 'virgin', 'publicKey'];
 				});
 
 				describe('(type 5) register dapp', () => {
@@ -778,7 +751,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
 								expect(res.u_balance).to.equal(testAccountData.u_balance);
-								// FIXME: Incorrect blockId
 								// CHECKME: publicKey should be null
 								// CHECKME: virgin should be 1
 								done();
@@ -803,7 +775,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 									testAccountDataAfterBlock.publicKey
 								);
 								expect(res.virgin).to.equal(false);
-								// CHECKME: blockId
 								done();
 							}
 						);
@@ -865,7 +836,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
 								expect(res.u_balance).to.equal(testAccountData.u_balance);
-								// FIXME: Incorrect blockId
 								// CHECKME: publicKey should be null
 								// CHECKME: virgin should be 1
 								done();
@@ -890,7 +860,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 									testAccountDataAfterBlock.publicKey
 								);
 								expect(res.virgin).to.equal(false);
-								// CHECKME: blockId
 								done();
 							}
 						);
@@ -957,7 +926,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							(err, res) => {
 								expect(res.balance).to.equal(testAccountData.balance);
 								expect(res.u_balance).to.equal(testAccountData.u_balance);
-								// FIXME: Incorrect blockId
 								// CHECKME: publicKey should be null
 								// CHECKME: virgin should be 1
 								done();
@@ -982,7 +950,6 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 									testAccountDataAfterBlock.publicKey
 								);
 								expect(res.virgin).to.equal(false);
-								// CHECKME: blockId
 								done();
 							}
 						);
