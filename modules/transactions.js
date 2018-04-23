@@ -102,7 +102,7 @@ __private.list = function(filter, cb) {
 	const params = {};
 	const where = [];
 	const allowedFieldsMap = {
-		address:
+		senderIdOrRecipientId:
 			't_senderId" IN (${senderId:csv}) OR t_recipientId" IN (${recipientId:csv})',
 		id: '"t_id" = ${id}',
 		blockId: '"t_blockId" = ${blockId}',
