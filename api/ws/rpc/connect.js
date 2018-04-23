@@ -23,6 +23,8 @@ const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
 const TIMEOUT = 2000;
+const INITIAL_PING_TIMEOUT = 8000;
+
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
@@ -47,7 +49,7 @@ const connectSteps = {
 			autoReconnect: false,
 			connectTimeout: TIMEOUT,
 			ackTimeout: TIMEOUT,
-			pingTimeout: TIMEOUT,
+			pingTimeout: INITIAL_PING_TIMEOUT,
 			connectAttempts: 1,
 			port: peer.wsPort,
 			hostname: peer.ip,
@@ -189,7 +191,7 @@ const connectSteps = {
 			logger.debug(
 				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
 			);
-			socket.disconnect();
+			socket.disconnect(1000, 'Intentionally disconnected from peer because of error');
 		});
 
 		// When WS connection ends - remove peer
@@ -197,7 +199,7 @@ const connectSteps = {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
 					peer.ip
-				} failed with code ${code} and reason - ${reason}`
+				} closed with code ${code} and reason - ${reason}`
 			);
 			socket.destroy();
 			onDisconnectCb();

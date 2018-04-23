@@ -14,7 +14,6 @@
 
 'use strict';
 
-var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
@@ -27,61 +26,46 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 0 transactions @slow', () => {
+	describe('stress test for type 1 transactions @slow', () => {
 		var transactions = [];
+		var accounts = [];
 		var maximum = 1000;
 
-		describe('sending 1000 bundled transfers to random addresses', () => {
-			var count = 1;
-
-			before(done => {
-				async.doUntil(
-					next => {
-						var bundled = [];
-						for (
-							var i = 0;
-							i < params.configurations[0].broadcasts.releaseLimit;
-							i++
-						) {
-							var transaction = lisk.transaction.transfer({
-								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.password,
-								recipientId: randomUtil.account().address,
-							});
-							transactions.push(transaction);
-							bundled.push(transaction);
-							count++;
-						}
-						sendTransactionsPromise(bundled).then(next);
-					},
-					() => {
-						return count >= maximum;
-					},
-					() => {
-						done();
-					}
+		describe('prepare accounts', () => {
+			before(() => {
+				transactions = [];
+				return Promise.all(
+					_.range(maximum).map(() => {
+						var tmpAccount = randomUtil.account();
+						var transaction = lisk.transaction.transfer({
+							amount: 2500000000,
+							passphrase: accountFixtures.genesis.password,
+							recipientId: tmpAccount.address,
+						});
+						accounts.push(tmpAccount);
+						transactions.push(transaction);
+						return sendTransactionsPromise([transaction]);
+					})
 				);
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});
 			});
 		});
 
-		describe('sending 1000 single transfers to random addresses', () => {
+		describe('sending second passphrase registrations', () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(() => {
-						var transaction = lisk.transaction.transfer({
-							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountFixtures.genesis.password,
-							recipientId: randomUtil.account().address,
+					_.range(maximum).map(num => {
+						var transaction = lisk.transaction.registerSecondPassphrase({
+							passphrase: accounts[num].password,
+							secondPassphrase: randomUtil.password(),
 						});
 						transactions.push(transaction);
 						return sendTransactionsPromise([transaction]);
@@ -90,9 +74,8 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});

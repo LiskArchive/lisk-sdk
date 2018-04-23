@@ -16,6 +16,7 @@
 
 const disconnect = peer => {
 	if (peer.socket) {
+		peer.socket.disconnect(1000, 'Intentionally disconnected from peer because of disconnect call');
 		peer.socket.destroy();
 	}
 	return peer;
