@@ -61,7 +61,6 @@ const normalFields = [
 // Only used in SELECT and INSERT queries
 const immutableFields = [
 	{ name: 'address' },
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
 ];
 
 // Only used in SELECT queries
@@ -125,7 +124,6 @@ class AccountsRepository {
 
 			cs.insert = cs.update.merge([
 				{ name: 'address' },
-				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
 			]);
 		}
 	}
