@@ -305,9 +305,10 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(
 	cb
 ) {
 	const isMultisignature =
-		sender &&
-		Array.isArray(sender.multisignatures) &&
-		sender.multisignatures.length;
+		transaction.type === transactionTypes.MULTI ||
+		(sender &&
+			Array.isArray(sender.multisignatures) &&
+			sender.multisignatures.length);
 	if (isMultisignature) {
 		self.removeMultisignatureTransaction(transaction.id);
 	} else {
@@ -613,9 +614,10 @@ TransactionPool.prototype.queueTransaction = function(transaction, sender, cb) {
 		return setImmediate(cb);
 	}
 	const isMultisignature =
-		sender &&
-		Array.isArray(sender.multisignatures) &&
-		sender.multisignatures.length;
+		transaction.type === transactionTypes.MULTI ||
+		(sender &&
+			Array.isArray(sender.multisignatures) &&
+			sender.multisignatures.length);
 	if (isMultisignature) {
 		if (
 			self.countMultisignature() >= config.transactions.maxTransactionsPerQueue
