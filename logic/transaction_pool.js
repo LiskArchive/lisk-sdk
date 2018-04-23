@@ -297,12 +297,10 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
  *
  * @param {Object} transaction - Transaction object
  * @param {Object} sender - Sender object
- * @param {Object} cb - Callback function
  */
 TransactionPool.prototype.addUnconfirmedTransaction = function(
 	transaction,
-	sender,
-	cb
+	sender
 ) {
 	const isMultisignature =
 		transaction.type === transactionTypes.MULTI ||
@@ -320,7 +318,6 @@ TransactionPool.prototype.addUnconfirmedTransaction = function(
 		const index = self.unconfirmed.transactions.indexOf(transaction);
 		self.unconfirmed.index[transaction.id] = index;
 	}
-	setImmediate(cb);
 };
 
 /**
@@ -947,11 +944,8 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 										return setImmediate(eachSeriesCb);
 									}
 									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list
-									self.addUnconfirmedTransaction(
-										transaction,
-										sender,
-										eachSeriesCb
-									);
+									self.addUnconfirmedTransaction(transaction, sender);
+									return setImmediate(eachSeriesCb);
 								},
 								tx
 							);
