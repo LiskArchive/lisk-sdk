@@ -547,16 +547,6 @@ class AccountsRepository {
 
 		return this.db.none(query);
 	}
-
-	/**
-	 * Convert an account to be non-virgin account.
-	 *
-	 * @param {string} address - Account address
-	 * @return {Promise<null>}
-	 */
-	convertToNonVirgin(address) {
-		return this.db.none(sql.convertToNonVirgin, { address });
-	}
 }
 
 /**
