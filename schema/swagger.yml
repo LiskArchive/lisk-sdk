@@ -1176,6 +1176,10 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+      senderIdOrRecipientId:
+        type: string
+        format: address
+        example: 12668885769632475474L
       signature:
         type: string
         format: signature
@@ -1572,7 +1576,6 @@ definitions:
       - fee
       - senderPublicKey
       - recipientId
-      - senderIdOrRecipientId
       - timestamp
       - asset
       - signature
