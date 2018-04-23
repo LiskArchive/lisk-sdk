@@ -17,57 +17,31 @@ pipeline {
 		stage("Prepare workspace") {
 			steps {
 				deleteDir()
+				dir("lisk-build") {
+					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "master"
+				}
 				dir(params.MIGRATE_FROM) {
-					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_FROM
+					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
 				}
 				dir(params.MIGRATE_TO) {
 					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
 				}
+			}
+		}
+		stage("Create source releases") {
+			steps {
 				sh """
-				json_files_copy() {
-					case \$1 in
-						0* | master)
-							cp test/config.json .
-							cp test/genesisBlock.json .
-							;;
-						*)
-							cp test/data/config.json .
-							cp test/data/genesis_block.json .
-							;;
-					esac
+				generate_src_release() {
+					cd \$1
+					npm install
+					node ./node_modules/.bin/grunt release
+					cd \$WORKSPACE
 				}
 
+				generate_src_release "${params.MIGRATE_FROM}"
+				generate_src_release "${params.MIGRATE_TO}"
 				dropdb lisk_test || true
 				createdb lisk_test
-				cd "${params.MIGRATE_FROM}"
-				json_files_copy "${params.MIGRATE_FROM}"
-				npm install
-				cd "../${params.MIGRATE_TO}"
-				json_files_copy "${params.MIGRATE_TO}"
-				npm install
-				sudo service postgresql restart
-				"""
-			}
-		}
-		stage("Start old Lisk") {
-			steps {
-				sh """
-				cd "${params.MIGRATE_FROM}"
-				pm2 start --name lisk app.js
-				sleep 20
-				pm2 kill
-				"""
-			}
-		}
-		stage("Start new Lisk") {
-			steps {
-				sh """
-				cd "${params.MIGRATE_TO}"
-				pm2 start --name lisk app.js
-				sleep 30
-				if grep "error" logs/lisk.log; then
-					exit 1;
-				fi
 				"""
 			}
 		}
