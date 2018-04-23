@@ -321,6 +321,13 @@ __private.forge = function(cb) {
 	);
 };
 
+/**
+ * Parses an encrypted secret string into its component parts.
+ *
+ * @private
+ * @param {string} encryptedSecret - String containing components of the encrypted secret
+ * @returns {object} Parsed encrypted secret
+ */
 const parseEncryptedSecret = encryptedSecret => {
 	const keyValuePairs = encryptedSecret
 		.split('&')
@@ -345,6 +352,14 @@ const parseEncryptedSecret = encryptedSecret => {
 	};
 };
 
+/**
+ * Validates an encrypted secret string, ensuring that all expected keys are present.
+ *
+ * @private
+ * @param {string} encryptedSecret - String containing components of the encrypted secret
+ * @throws {Error} If a required key is missing.
+ * @returns {boolean} true
+ */
 const validateEncryptedSecret = encryptedSecret => {
 	const humanReadableKeys = {
 		cipherText: 'cipher text',
@@ -359,6 +374,14 @@ const validateEncryptedSecret = encryptedSecret => {
 	});
 };
 
+/**
+ * Converts a tag to a Buffer, throwing an error if the tag is the wrong length.
+ *
+ * @private
+ * @param {string} tag - Hex string-formatted tag
+ * @throws {Error} If tag has been shortened or is otherwise the wrong length.
+ * @returns {Buffer} Tag
+ */
 const getTagBuffer = tag => {
 	const tagBuffer = Buffer.from(tag, 'hex');
 	if (tagBuffer.length !== 16) {
@@ -372,6 +395,15 @@ const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 const CIPHER_ALGORITHM = 'aes-256-gcm';
 
+/**
+ * Derives the key to be used in the decryption from the provided password using the salt and optional number of iterations.
+ *
+ * @private
+ * @param {string} password - Password used to derive the key
+ * @param {Buffer} salt - Salt used when deriving the key
+ * @param {number} iterations - Optional number of iterations to use (default 1,000,000)
+ * @returns {Buffer} Key derived from the password
+ */
 const getKeyFromPassword = (password, salt, iterations) =>
 	crypto.pbkdf2Sync(
 		password,
@@ -388,7 +420,7 @@ const getKeyFromPassword = (password, salt, iterations) =>
  * @param {string} encryptedSecret
  * @param {string} password
  * @throws {error} If unable to decrypt using password.
- * @returns {string} decryptedSecret
+ * @returns {string} Decrypted secret
  * @todo Add description for the params
  */
 __private.decryptSecret = function(encryptedSecret, password) {
