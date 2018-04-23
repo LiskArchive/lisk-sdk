@@ -17,6 +17,9 @@ import {
 	POST,
 	PUT,
 	API_RECONNECT_MAX_RETRY_COUNT,
+	BETANET_NODES,
+	TESTNET_NODES,
+	MAINNET_NODES,
 } from 'api_client/constants';
 
 describe('api constants module', () => {
@@ -34,5 +37,20 @@ describe('api constants module', () => {
 
 	it('API_RECONNECT_MAX_RETRY_COUNT should be an integer', () => {
 		return expect(API_RECONNECT_MAX_RETRY_COUNT).to.be.an.integer;
+	});
+
+	it('BETANET_NODES should be an array of strings', () => {
+		expect(BETANET_NODES).to.be.an('array');
+		return BETANET_NODES.forEach(node => expect(node).to.be.a('string'));
+	});
+
+	it('TESTNET_NODES should be an array of strings', () => {
+		expect(TESTNET_NODES).to.be.an('array');
+		return TESTNET_NODES.forEach(node => expect(node).to.be.a('string'));
+	});
+
+	it('MAINNET_NODES should be an array of strings', () => {
+		expect(MAINNET_NODES).to.be.an('array');
+		return MAINNET_NODES.forEach(node => expect(node).to.be.a('string'));
 	});
 });

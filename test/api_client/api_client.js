@@ -141,6 +141,12 @@ describe('APIClient module', () => {
 		});
 	});
 
+	describe('#constants', () => {
+		it('should expose API constants', () => {
+			return expect(APIClient.constants).to.be.an('object');
+		});
+	});
+
 	describe('#initialize', () => {
 		it('should throw an error if no arguments are passed to constructor', () => {
 			return expect(apiClient.initialize.bind(apiClient)).to.throw(

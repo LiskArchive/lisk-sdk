@@ -19,11 +19,8 @@ import {
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
 	BETANET_NETHASH,
-	BETANET_NODES,
 	TESTNET_NETHASH,
-	TESTNET_NODES,
 	MAINNET_NETHASH,
-	MAINNET_NODES,
 } from 'lisk-constants';
 
 describe('lisk-constants', () => {
@@ -51,26 +48,11 @@ describe('lisk-constants', () => {
 		return expect(BETANET_NETHASH).to.be.a('string');
 	});
 
-	it('BETANET_NODES should be an array of strings', () => {
-		expect(BETANET_NODES).to.be.an('array');
-		return BETANET_NODES.forEach(node => expect(node).to.be.a('string'));
-	});
-
 	it('TESTNET_NETHASH should be a string', () => {
 		return expect(TESTNET_NETHASH).to.be.a('string');
 	});
 
-	it('TESTNET_NODES should be an array of strings', () => {
-		expect(TESTNET_NODES).to.be.an('array');
-		return TESTNET_NODES.forEach(node => expect(node).to.be.a('string'));
-	});
-
 	it('MAINNET_NETHASH should be a string', () => {
 		return expect(MAINNET_NETHASH).to.be.a('string');
-	});
-
-	it('MAINNET_NODES should be an array of strings', () => {
-		expect(MAINNET_NODES).to.be.an('array');
-		return MAINNET_NODES.forEach(node => expect(node).to.be.a('string'));
 	});
 });

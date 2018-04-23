@@ -13,13 +13,11 @@
  *
  */
 import {
-	BETANET_NETHASH,
-	BETANET_NODES,
-	TESTNET_NETHASH,
-	TESTNET_NODES,
 	MAINNET_NETHASH,
-	MAINNET_NODES,
+	TESTNET_NETHASH,
+	BETANET_NETHASH,
 } from 'lisk-constants';
+import * as constants from './constants';
 import {
 	AccountsResource,
 	BlocksResource,
@@ -61,23 +59,27 @@ export default class APIClient {
 
 	static createMainnetAPIClient(options) {
 		return new APIClient(
-			MAINNET_NODES,
+			constants.MAINNET_NODES,
 			Object.assign({}, { nethash: MAINNET_NETHASH }, options),
 		);
 	}
 
 	static createTestnetAPIClient(options) {
 		return new APIClient(
-			TESTNET_NODES,
+			constants.TESTNET_NODES,
 			Object.assign({}, { nethash: TESTNET_NETHASH }, options),
 		);
 	}
 
 	static createBetanetAPIClient(options) {
 		return new APIClient(
-			BETANET_NODES,
+			constants.BETANET_NODES,
 			Object.assign({}, { nethash: BETANET_NETHASH }, options),
 		);
+	}
+
+	static get constants() {
+		return constants;
 	}
 
 	initialize(nodes, providedOptions = {}) {
