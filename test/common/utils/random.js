@@ -75,6 +75,14 @@ random.applicationName = function() {
 	});
 };
 
+// Returns a random string of a given size
+random.dataField = function(bytes) {
+	return randomstring.generate({
+		length: bytes,
+		charset: 'alphanumeric',
+	});
+};
+
 // Test random application
 random.application = function() {
 	var application = {

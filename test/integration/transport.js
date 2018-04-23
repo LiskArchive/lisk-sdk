@@ -130,8 +130,12 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.propagation.transactions(params);
 
 						scenarios.stress.transfer(params);
-						scenarios.stress.register(params);
-						scenarios.stress.vote(params);
+						scenarios.stress.transfer_with_data(params);
+						scenarios.stress.register_multisignature(params);
+						scenarios.stress.second_passphrase(params);
+						scenarios.stress.register_dapp(params);
+						scenarios.stress.register_delegate(params);
+						scenarios.stress.cast_vote(params);
 					});
 				});
 			});
