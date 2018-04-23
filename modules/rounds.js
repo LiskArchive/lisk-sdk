@@ -164,8 +164,8 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			},
 			function(cb) {
 				// Perform round tick
-				(tx || library.db)
-					.task(BackwardTick)
+				tx
+					.task(backwardTick)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
