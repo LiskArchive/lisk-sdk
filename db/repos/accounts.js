@@ -59,9 +59,7 @@ const normalFields = [
 ];
 
 // Only used in SELECT and INSERT queries
-const immutableFields = [
-	{ name: 'address' },
-];
+const immutableFields = [{ name: 'address' }];
 
 // Only used in SELECT queries
 const dynamicFields = [
@@ -122,9 +120,7 @@ class AccountsRepository {
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 			]);
 
-			cs.insert = cs.update.merge([
-				{ name: 'address' },
-			]);
+			cs.insert = cs.update.merge([{ name: 'address' }]);
 		}
 	}
 

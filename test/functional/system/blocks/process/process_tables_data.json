@@ -220,7 +220,7 @@
 			"producedBlocks",
 			"missedBlocks",
 			"fees",
-			"rewards",
+			"rewards"
 		],
 		"data": [
 			{
@@ -251,7 +251,7 @@
 				"producedBlocks": 0,
 				"missedBlocks": 0,
 				"fees": "0",
-				"rewards": "0",
+				"rewards": "0"
 			},
 			{
 				"username": "test_blk_process_2",
@@ -281,7 +281,7 @@
 				"producedBlocks": 0,
 				"missedBlocks": 0,
 				"fees": "0",
-				"rewards": "0",
+				"rewards": "0"
 			}
 		]
 	},

@@ -705,7 +705,8 @@ describe('rounds', () => {
 					// Add back empty account, created accounts are never deleted
 					const address = lastBlock.transactions[0].recipientId;
 					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
-						address, balance: '0',
+						address,
+						balance: '0',
 					});
 
 					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
