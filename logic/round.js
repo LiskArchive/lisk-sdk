@@ -120,7 +120,7 @@ class Round {
 			return this.t;
 		}
 
-		return (this.t || this.scope.library.db).rounds.updateMissedBlocks(
+		return this.t.rounds.updateMissedBlocks(
 			this.scope.backwards,
 			this.scope.roundOutsiders
 		);
@@ -133,7 +133,7 @@ class Round {
 	 * @todo Add @returns tag
 	 */
 	getVotes() {
-		return (this.t || this.scope.library.db).rounds.getVotes(this.scope.round);
+		return this.t.rounds.getVotes(this.scope.round);
 	}
 
 	/**
@@ -168,7 +168,7 @@ class Round {
 	 * @todo Check type and description of the return value
 	 */
 	flushRound() {
-		return (this.t || this.scope.library.db).rounds.flush(this.scope.round);
+		return this.t.rounds.flush(this.scope.round);
 	}
 
 	/**
@@ -179,9 +179,7 @@ class Round {
 	 * @todo Check type and description of the return value
 	 */
 	truncateBlocks() {
-		return (this.t || this.scope.library.db).rounds.truncateBlocks(
-			this.scope.block.height
-		);
+		return this.t.rounds.truncateBlocks(this.scope.block.height);
 	}
 
 	/**
@@ -194,7 +192,7 @@ class Round {
 	 */
 	restoreRoundSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_round snapshot...');
-		return (this.t || this.scope.library.db).rounds.restoreRoundSnapshot();
+		return this.t.rounds.restoreRoundSnapshot();
 	}
 
 	/**
@@ -207,7 +205,7 @@ class Round {
 	 */
 	restoreVotesSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
-		return (this.t || this.scope.library.db).rounds.restoreVotesSnapshot();
+		return this.t.rounds.restoreVotesSnapshot();
 	}
 
 	/**
@@ -220,9 +218,7 @@ class Round {
 		this.scope.library.logger.debug(
 			`Deleting rewards for round ${this.scope.round}`
 		);
-		return (this.t || this.scope.library.db).rounds.deleteRoundRewards(
-			this.scope.round
-		);
+		return this.t.rounds.deleteRoundRewards(this.scope.round);
 	}
 
 	/**
