@@ -129,6 +129,7 @@ class Account {
 	 * - mem_accounts2u_delegates
 	 * - mem_accounts2multisignatures
 	 * - mem_accounts2u_multisignatures
+	 * - rounds_rewards
 	 *
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediate} error

@@ -752,10 +752,8 @@ describe('rounds', () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
 				return expect(lastBlock.height).to.equal(99);
 			});
-
-			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1782 is closed
 			// eslint-disable-next-line
-			it.skip('transactions from deleted block should be added back to transaction pool', done => {
+			it('transactions from deleted block should be added back to transaction pool', done => {
 				const transactionPool = library.rewiredModules.transactions.__get__(
 					'__private.transactionPool'
 				);
@@ -888,10 +886,22 @@ describe('rounds', () => {
 					});
 					transactions.vote.push(transaction);
 
+					const transactionPool = library.rewiredModules.transactions.__get__(
+						'__private.transactionPool'
+					);
 					// Delete two blocks more
+					lastBlock = library.modules.blocks.lastBlock.get();
 					deleteLastBlockPromise().then(() => {
-						// done();
+						_.each(lastBlock.transactions, transaction => {
+							// Remove transaction from pool
+							transactionPool.removeUnconfirmedTransaction(transaction.id);
+						});
+						lastBlock = library.modules.blocks.lastBlock.get();
 						deleteLastBlockPromise().then(() => {
+							_.each(lastBlock.transactions, transaction => {
+								// Remove transaction from pool
+								transactionPool.removeUnconfirmedTransaction(transaction.id);
+							});
 							done();
 						});
 					});
