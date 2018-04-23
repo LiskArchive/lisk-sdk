@@ -50,18 +50,23 @@ PeersManager.prototype.add = function(peer) {
 	) {
 		return false;
 	}
+
 	this.peers[peer.string] = peer;
-	if (!this.addressToNonceMap[peer.string] && !peer.socket) {
-		// Create client WS connection to peer
-		connect(peer, this.logger);
-	} else {
+
+	if (peer.socket) {
 		// Reconnect existing socket
 		peer.socket.connect();
+	} else {
+		// Create client WS connection to peer
+		connect(peer, this.logger);
 	}
 	if (peer.nonce) {
 		this.addressToNonceMap[peer.string] = peer.nonce;
 		this.nonceToAddressMap[peer.nonce] = peer.string;
+	} else if (this.addressToNonceMap[peer.string]) {
+		delete this.addressToNonceMap[peer.string];
 	}
+
 	return true;
 };
 
