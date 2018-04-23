@@ -183,6 +183,12 @@ SCWorker.create({
 				});
 
 				function removePeerConnection(socket, code) {
+					scope.logger.trace(
+						`[Inbound socket :: disconnect] Peer socket from ${
+							socket.request.remoteAddress
+						} disconnected`
+					);
+
 					if (failureCodes.errorMessages[code]) {
 						return;
 					}
