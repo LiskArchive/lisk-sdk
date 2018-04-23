@@ -1088,13 +1088,13 @@ parameters:
     format: publicKey
     minLength: 1
   senderIdOrRecipientId:
-  	name: senderIdOrRecipientId
-  	in: query
-  	description: Sender or Recipient address to query
-  	type: string
-  	format: address
-  	minLength: 1
-  	maxLength: 22
+    name: senderIdOrRecipientId
+    in: query
+    description: Public key to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
   transactionType:
     name: type
     in: query
