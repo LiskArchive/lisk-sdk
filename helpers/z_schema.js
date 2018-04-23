@@ -164,7 +164,7 @@ var liskFormats = {
 		// - 1 or more 'key=value' pairs delimited with '&'
 		// Examples:
 		// - encryptedSecret=abcd1234
-		// - encryptedSecret=abcd1234&rounds=10000&iv=ef012345
+		// - encryptedSecret=abcd1234&iterations=10000&iv=ef012345
 		// NOTE: Maximum lengths chosen here are arbitrary
 		const keyRegExp = /[a-zA-Z0-9]{2,15}/;
 		const valueRegExp = /[a-f0-9]{1,256}/;
