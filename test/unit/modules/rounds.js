@@ -1130,11 +1130,16 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 1 };
 							previousBlock = { height: 1 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.true;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.true;
+									done();
+								},
+								db
+							);
 						});
 					});
 
@@ -1142,11 +1147,16 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 101 };
 							previousBlock = { height: 1 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.true;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.true;
+									done();
+								},
+								db
+							);
 						});
 					});
 
@@ -1154,11 +1164,16 @@ describe('rounds', () => {
 						it('should be set to true', done => {
 							block = { height: 202 };
 							previousBlock = { height: 202 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.true;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.true;
+									done();
+								},
+								db
+							);
 						});
 					});
 
@@ -1166,11 +1181,16 @@ describe('rounds', () => {
 						it('should be set to false', done => {
 							block = { height: 203 };
 							previousBlock = { height: 203 };
-							rounds.backwardTick(block, previousBlock, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.finishRound).to.be.false;
-								done();
-							});
+							rounds.backwardTick(
+								block,
+								previousBlock,
+								err => {
+									expect(err).to.not.exist;
+									expect(roundScope.finishRound).to.be.false;
+									done();
+								},
+								db
+							);
 						});
 					});
 				});
@@ -1182,11 +1202,16 @@ describe('rounds', () => {
 				before(done => {
 					block = { height: 1 };
 					previousBlock = { height: 1 };
-					rounds.backwardTick(block, previousBlock, err => {
-						expect(err).to.not.exist;
-						expect(roundScope.finishRound).to.be.true;
-						done();
-					});
+					rounds.backwardTick(
+						block,
+						previousBlock,
+						err => {
+							expect(err).to.not.exist;
+							expect(roundScope.finishRound).to.be.true;
+							done();
+						},
+						db
+					);
 				});
 
 				after(() => {
@@ -1214,11 +1239,16 @@ describe('rounds', () => {
 				before(done => {
 					block = { height: 5 };
 					previousBlock = { height: 5 };
-					rounds.backwardTick(block, previousBlock, err => {
-						expect(err).to.not.exist;
-						expect(roundScope.finishRound).to.be.false;
-						done();
-					});
+					rounds.backwardTick(
+						block,
+						previousBlock,
+						err => {
+							expect(err).to.not.exist;
+							expect(roundScope.finishRound).to.be.false;
+							done();
+						},
+						db
+					);
 				});
 
 				after(() => {
