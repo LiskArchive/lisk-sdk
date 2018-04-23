@@ -1176,10 +1176,6 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
-      senderIdOrRecipientId:
-        type: string
-        format: address
-        example: 12668885769632475474L
       signature:
         type: string
         format: signature
@@ -1628,10 +1624,6 @@ definitions:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
-      senderIdOrRecipientId:
-        type: string
-      	format: address
-      	example: 12668885769632475474L
       signature:
         type: string
         format: signature
