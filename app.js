@@ -906,8 +906,8 @@ d.run(() => {
 
 				// Process monitoring
 				const monitor = require('./monitor');
-				const monitorInterval = 2000;
-				monitor.init(scope.logger, monitorInterval);
+				const monitorInterval = 5000;
+				monitor.init(monitorInterval);
 				// Receives a 'cleanup' signal and cleans all modules
 				process.once('cleanup', () => {
 					scope.logger.info('Cleaning up...');

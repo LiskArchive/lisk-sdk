@@ -19,14 +19,20 @@ const Util = require('util');
 const v8 = require('v8');
 const profiler = require('v8-profiler');
 const Memwatch = require('memwatch-next');
+const Logger = require('./logger.js');
 
 let memoryCount = 0;
 let firstRound = null;
 
-let nextMBThreshold = 0;
+let nextMBThreshold = 100;
 let hd = null;
 
-module.exports.init = (logger, snapShotInterval) => {
+module.exports.init = snapShotInterval => {
+	const logger = new Logger({
+		errorLevel: 'debug',
+		filename: 'logs/monitor.log',
+	});
+
 	logger.info('Monitoring initialized');
 	Memwatch.on('leak', info => {
 		logger.info('memwatch::leak');
@@ -72,15 +78,14 @@ const startMonitoringMemory = (logger, miliSecondsInterval) => {
 };
 
 const heapDump = logger => {
-	if (process.env.FORCE_GC === 'true') {
-		global.gc();
-	}
 	const used = process.memoryUsage();
 	const heapUsedMB = convertToMbs(used.heapUsed);
-	const threshold = nextMBThreshold + 50;
+	const threshold = Number(nextMBThreshold + 50);
 
 	if (heapUsedMB > threshold) {
-		logger.debug(`${heapUsedMB} > ${threshold}`);
+		logger.debug(
+			`Heap usage is ${heapUsedMB} MB, increased from the threshold ${threshold}MB`
+		);
 		nextMBThreshold = heapUsedMB;
 		var snap = profiler.takeSnapshot('profile');
 		const dumpPath = process.env.HEAP_DUMP_PATH || 'logs';
