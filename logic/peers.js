@@ -193,7 +193,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	let cnt_empty_height = 0;
 	let cnt_empty_broadhash = 0;
 
-	_.each(__private.peers, peer => {
+	_.each(self.peersManager.peers, peer => {
 		++cnt_total;
 		if (peer.state === Peer.STATE.CONNECTED) {
 			++cnt_active;
