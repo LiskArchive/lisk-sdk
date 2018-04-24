@@ -21,7 +21,6 @@ const System = require('../modules/system.js');
 const PeersManager = require('../helpers/peers_manager.js');
 
 // Private fields
-const __private = {};
 let self;
 let library;
 let modules;
@@ -48,7 +47,6 @@ class Peers {
 			logger,
 		};
 		self = this;
-		__private.me = null;
 
 		this.peersManager = new PeersManager(logger);
 
