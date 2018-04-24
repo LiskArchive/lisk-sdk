@@ -60,7 +60,6 @@ var validAccount = {
 	missedBlocks: 0,
 	fees: '0',
 	rewards: '0',
-	virgin: 1,
 };
 
 var queries = {

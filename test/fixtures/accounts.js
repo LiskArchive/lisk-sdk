@@ -69,7 +69,6 @@ accounts.mem_accountsFields = [
 	'missedBlocks',
 	'fees',
 	'rewards',
-	'virgin',
 ];
 
 const Account = stampit({
@@ -101,7 +100,6 @@ const Account = stampit({
 		missedBlocks: '0',
 		fees: '0',
 		rewards: '0',
-		virgin: true,
 	},
 	init({
 		isDelegate,
@@ -128,10 +126,6 @@ const Account = stampit({
 
 		this.missedBlocks = missedBlocks || '0';
 		this.balance = balance || '0';
-
-		if (this.isDelegate) {
-			this.virgin = false;
-		}
 	},
 });
 
@@ -163,7 +157,6 @@ const dbAccount = stampit({
 		u_secondSignature: 0,
 		u_username: null,
 		username: null,
-		virgin: 1,
 		vote: '0',
 	},
 	init({ address, balance, u_balance }) {

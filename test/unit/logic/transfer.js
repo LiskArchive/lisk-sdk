@@ -58,7 +58,6 @@ var validSender = {
 	missedBlocks: 0,
 	fees: 0,
 	rewards: 0,
-	virgin: 0,
 };
 
 var validTransaction = {

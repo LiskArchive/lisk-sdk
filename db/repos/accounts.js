@@ -59,10 +59,7 @@ const normalFields = [
 ];
 
 // Only used in SELECT and INSERT queries
-const immutableFields = [
-	{ name: 'address' },
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
-];
+const immutableFields = [{ name: 'address' }];
 
 // Only used in SELECT queries
 const dynamicFields = [
@@ -123,10 +120,7 @@ class AccountsRepository {
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 			]);
 
-			cs.insert = cs.update.merge([
-				{ name: 'address' },
-				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
-			]);
+			cs.insert = cs.update.merge(immutableFields);
 		}
 	}
 
@@ -546,16 +540,6 @@ class AccountsRepository {
 			);
 
 		return this.db.none(query);
-	}
-
-	/**
-	 * Convert an account to be non-virgin account.
-	 *
-	 * @param {string} address - Account address
-	 * @return {Promise<null>}
-	 */
-	convertToNonVirgin(address) {
-		return this.db.none(sql.convertToNonVirgin, { address });
 	}
 }
 

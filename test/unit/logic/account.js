@@ -50,7 +50,6 @@ const validAccount = {
 	vote: 10000000000000000,
 	producedBlocks: 0,
 	missedBlocks: 0,
-	virgin: 1,
 	approval: 100,
 	productivity: 0,
 };

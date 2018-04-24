@@ -50,8 +50,7 @@ var MemAccounts = {
 		'"producedBlocks",' +
 		'"missedBlocks",' +
 		'"fees",' +
-		'"rewards",' +
-		'"virgin"' +
+		'"rewards"' +
 		') VALUES (' +
 		'${username}, ' +
 		'${isDelegate}, ' +
@@ -79,8 +78,7 @@ var MemAccounts = {
 		'${producedBlocks}, ' +
 		'${missedBlocks}, ' +
 		'${fees}, ' +
-		'${rewards}, ' +
-		'${virgin}' +
+		'${rewards}' +
 		');',
 
 	delete: 'DELETE FROM mem_accounts WHERE address = ${address}',
