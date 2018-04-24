@@ -141,7 +141,7 @@ describe('app', () => {
 							done();
 						});
 
-						it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate, virgin should be valid', done => {
+						it('fields vote, blocks_forged_count, blocks_missed_count, isDelegate should be valid', done => {
 							_.each(delegates, delegate => {
 								// Find accounts that vote for delegate
 								const voters = _.filter(
@@ -181,7 +181,6 @@ describe('app', () => {
 								expect(delegate.missedBlocks).to.equal(0);
 								expect(delegate.isDelegate).to.equal(1);
 								expect(delegate.u_isDelegate).to.equal(1);
-								expect(delegate.virgin).to.equal(1);
 							});
 							done();
 						});

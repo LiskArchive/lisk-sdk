@@ -47,7 +47,6 @@ var validAccount = {
 	missedBlocks: 1,
 	fees: '231386135',
 	rewards: '0',
-	virgin: 1,
 };
 
 describe('accounts', () => {

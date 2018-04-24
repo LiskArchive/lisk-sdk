@@ -78,7 +78,7 @@ describe('db', () => {
 				expect(db.accounts.dbTable).to.be.eql('mem_accounts');
 
 				expect(db.accounts.dbFields).to.an('array');
-				expect(db.accounts.dbFields).to.have.lengthOf(29);
+				expect(db.accounts.dbFields).to.have.lengthOf(28);
 
 				expect(db.accounts.cs).to.an('object');
 				expect(db.accounts.cs).to.not.empty;
@@ -107,7 +107,6 @@ describe('db', () => {
 					'publicKey',
 					'secondPublicKey',
 					'address',
-					'virgin',
 					'rank',
 					'delegates',
 					'u_delegates',
@@ -138,7 +137,6 @@ describe('db', () => {
 					'publicKey',
 					'secondPublicKey',
 					'address',
-					'virgin',
 				]);
 				return expect(db.accounts.cs.update.columns.map(c => c.name)).to.be.eql(
 					[
@@ -182,7 +180,7 @@ describe('db', () => {
 			it('should return only immutable account fields', () => {
 				const immutableFields = db.accounts.getImmutableFields();
 
-				return expect(immutableFields).to.eql(['address', 'virgin']);
+				return expect(immutableFields).to.eql(['address']);
 			});
 		});
 
@@ -412,6 +410,7 @@ describe('db', () => {
 
 								const omittedFields = db.accounts.getImmutableFields();
 								omittedFields.push('rank');
+								omittedFields.push('publicKey');
 
 								expect(_.omit(result[0], omittedFields)).to.be.eql(
 									_.omit(account2, omittedFields)
@@ -452,6 +451,7 @@ describe('db', () => {
 									expect(result.length).to.eql(1);
 
 									const immutableFields = db.accounts.getImmutableFields();
+									immutableFields.push('publicKey');
 
 									Object.keys(_.omit(result[0], 'rank')).forEach(field => {
 										if (immutableFields.indexOf(field) !== -1) {
@@ -489,6 +489,7 @@ describe('db', () => {
 								expect(result.length).to.eql(1);
 
 								const immutableFields = db.accounts.getImmutableFields();
+								immutableFields.push('publicKey');
 
 								Object.keys(_.omit(result[0], 'rank')).forEach(field => {
 									if (immutableFields.indexOf(field) !== -1) {
@@ -653,9 +654,10 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 				const updateAccount = accountFixtures.Account();
 
-				// Since DB trigger protects from updating username only if it was null before
+				// Since DB trigger protects from updating username/publicKey only if it was null before
 				delete account.username;
 				delete account.u_username;
+				delete account.publicKey;
 
 				return db.accounts.insert(account).then(() => {
 					return db.accounts.update(account.address, updateAccount).then(() => {
@@ -1072,12 +1074,6 @@ describe('db', () => {
 								expect(data[0].missedBlocks).to.be.a('string');
 							});
 					});
-
-					it('should return "virgin" as "boolean"', () => {
-						return db.accounts.list({}, ['virgin'], { limit: 1 }).then(data => {
-							expect(data[0].virgin).to.be.a('boolean');
-						});
-					});
 				});
 
 				describe('functions', () => {
@@ -1457,35 +1453,6 @@ describe('db', () => {
 						return expect(after.count).to.eql('1');
 					});
 				});
-			});
-		});
-
-		describe('convertToNonVirgin()', () => {
-			it('should use the correct SQL', function*() {
-				const account = accountFixtures.Account();
-				yield db.accounts.insert(account);
-
-				sinonSandbox.spy(db, 'none');
-				yield db.accounts.convertToNonVirgin(account.address);
-				return expect(db.none.firstCall.args[0]).to.eql(
-					accountsSQL.convertToNonVirgin
-				);
-			});
-
-			it('should convert a virgin account to a non virgin account', function*() {
-				const account = accountFixtures.Account();
-				let result = null;
-
-				yield db.accounts.insert(account);
-				result = yield db.accounts.list({ address: account.address });
-
-				expect(result[0].address).to.eql(account.address);
-				expect(result[0].virgin).to.eql(true);
-
-				yield db.accounts.convertToNonVirgin(account.address);
-				result = yield db.accounts.list({ address: account.address });
-				expect(result[0].address).to.eql(account.address);
-				return expect(result[0].virgin).to.eql(false);
 			});
 		});
 	});

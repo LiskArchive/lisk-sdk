@@ -522,11 +522,6 @@ class Account {
 									Math.floor(Math.abs(updatedValue))
 								)
 							);
-
-							// Withdrawal, therefore convert to non-virgin account
-							if (updatedField === 'u_balance') {
-								promises.push(dbTx.accounts.convertToNonVirgin(address));
-							}
 						}
 
 						if (updatedField === 'balance') {
@@ -653,7 +648,6 @@ class Account {
  * @property {number} missedBlocks
  * @property {number} fees
  * @property {number} rewards
- * @property {boolean} virgin
  */
 // TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 Account.prototype.table = 'mem_accounts';
@@ -803,12 +797,6 @@ Account.prototype.model = [
 		name: 'missedBlocks',
 		type: 'BigInt',
 		conv: Number,
-	},
-	{
-		name: 'virgin',
-		type: 'SmallInt',
-		conv: Boolean,
-		immutable: true,
 	},
 	{
 		name: 'approval',
@@ -986,10 +974,6 @@ Account.prototype.schema = {
 		},
 		missedBlocks: {
 			type: 'integer',
-		},
-		virgin: {
-			type: 'integer',
-			maximum: 32767,
 		},
 		approval: {
 			type: 'integer',
