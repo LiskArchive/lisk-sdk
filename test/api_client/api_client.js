@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import APIClient from 'api_client/api_client';
 
 describe('APIClient module', () => {
@@ -36,14 +37,22 @@ describe('APIClient module', () => {
 		'http://94.237.42.109:5000',
 		'http://83.136.252.99:5000',
 	];
+	const locale =
+		process.env.LC_ALL ||
+		process.env.LC_MESSAGES ||
+		process.env.LANG ||
+		process.env.LANGUAGE;
+	const userAgent = `LiskJS/1.0 (${os.platform()} ${os.release()}; ${os.arch()}${
+		locale ? `; ${locale}` : ''
+	})`;
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
-		'User-Agent': 'lisk-js/1.0',
+		'User-Agent': userAgent,
 	};
 
 	const customHeaders = {
 		'Content-Type': 'application/json',
-		'User-Agent': 'lisk-js/1.0',
+		'User-Agent': userAgent,
 		nethash: testnetHash,
 	};
 
