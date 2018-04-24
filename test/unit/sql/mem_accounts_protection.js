@@ -11,16 +11,18 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var randomstring = require('randomstring');
 
 var sql = require('../common/sql/mem_accounts.js');
 var modulesLoader = require('../../common/modules_loader');
+
 var db;
 
-before(function(done) {
-	modulesLoader.getDbConnection(function(err, __db) {
+before(done => {
+	modulesLoader.getDbConnection((err, __db) => {
 		if (err) {
 			return done(err);
 		}
@@ -38,7 +40,7 @@ var validAccount = {
 	secondSignature: 0,
 	u_secondSignature: 0,
 	u_username: validUsername,
-	address: randomstring.generate({ charset: 'numeric', length: 20 }) + 'L',
+	address: `${randomstring.generate({ charset: 'numeric', length: 20 })}L`,
 	publicKey: randomstring.generate({ charset: '0123456789ABCDE', length: 32 }),
 	secondPublicKey: null,
 	balance: '0',
@@ -64,89 +66,89 @@ var validAccount = {
 };
 
 var queries = {
-	getAccountByAddress: function(address, cb) {
+	getAccountByAddress(address, cb) {
 		db
-			.query(sql.getAccountByAddress, { address: address })
-			.then(function(accountRows) {
+			.query(sql.getAccountByAddress, { address })
+			.then(accountRows => {
 				return cb(null, accountRows[0]);
 			})
 			.catch(cb);
 	},
-	updateUsername: function(account, newUsername, cb) {
+	updateUsername(account, newUsername, cb) {
 		db
 			.query(sql.updateUsername, {
 				address: account.address,
-				newUsername: newUsername,
+				newUsername,
 			})
-			.then(function(accountRows) {
+			.then(accountRows => {
 				return cb(null, accountRows[0]);
 			})
 			.catch(cb);
 	},
-	updateU_username: function(account, newUsername, cb) {
+	updateU_username(account, newUsername, cb) {
 		db
 			.query(sql.updateU_username, {
 				address: account.address,
-				newUsername: newUsername,
+				newUsername,
 			})
-			.then(function(accountRows) {
+			.then(accountRows => {
 				return cb(null, accountRows[0]);
 			})
 			.catch(cb);
 	},
-	insertAccount: function(account, cb) {
+	insertAccount(account, cb) {
 		db
 			.query(sql.insert, account)
-			.then(function(accountRows) {
+			.then(accountRows => {
 				return cb(null, accountRows[0]);
 			})
 			.catch(cb);
 	},
-	deleteAccount: function(account, cb) {
+	deleteAccount(account, cb) {
 		db
 			.query(sql.delete, account)
-			.then(function(accountRows) {
+			.then(accountRows => {
 				return cb(null, accountRows[0]);
 			})
 			.catch(cb);
 	},
 };
 
-before(function(done) {
+before(done => {
 	queries.insertAccount(validAccount, done);
 });
 
-after(function(done) {
+after(done => {
 	queries.deleteAccount(validAccount, done);
 });
 
-describe('mem_accounts protection', function() {
-	describe('username update', function() {
-		describe('when account with username exists', function() {
-			before(function(done) {
-				queries.getAccountByAddress(validAccount.address, function(
+describe('mem_accounts protection', () => {
+	describe('username update', () => {
+		describe('when account with username exists', () => {
+			before(done => {
+				queries.getAccountByAddress(validAccount.address, (
 					err,
 					account
-				) {
+				) => {
 					expect(account).to.be.an('object').and.to.be.not.empty;
 					validAccount = account;
 					done(err);
 				});
 			});
 
-			describe('for value != null', function() {
+			describe('for value != null', () => {
 				var nonNullValidUsername =
 					validAccount.username + randomstring.generate(1).toLowerCase();
 
-				before(function(done) {
+				before(done => {
 					queries.updateUsername(validAccount, nonNullValidUsername, done);
 				});
 
-				it('should leave the old username', function(done) {
-					queries.getAccountByAddress(validAccount.address, function(
+				it('should leave the old username', done => {
+					queries.getAccountByAddress(validAccount.address, (
 						err,
 						updatedAccount
-					) {
+					) => {
 						expect(updatedAccount)
 							.to.have.property('username')
 							.equal(validAccount.username);
@@ -155,16 +157,16 @@ describe('mem_accounts protection', function() {
 				});
 			});
 
-			describe('for value = null', function() {
-				before(function(done) {
+			describe('for value = null', () => {
+				before(done => {
 					queries.updateUsername(validAccount, null, done);
 				});
 
-				it('should set username = null', function(done) {
-					queries.getAccountByAddress(validAccount.address, function(
+				it('should set username = null', done => {
+					queries.getAccountByAddress(validAccount.address, (
 						err,
 						updatedAccount
-					) {
+					) => {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('username').to.be.null;
 						done();
@@ -173,13 +175,13 @@ describe('mem_accounts protection', function() {
 			});
 		});
 
-		describe('when account with username = null exists', function() {
+		describe('when account with username = null exists', () => {
 			var noUsernameAccount;
 
-			before(function(done) {
+			before(done => {
 				noUsernameAccount = _.clone(validAccount);
 				noUsernameAccount.address =
-					randomstring.generate({ charset: 'numeric', length: 20 }) + 'L';
+					`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
 				noUsernameAccount.publicKey = randomstring.generate({
 					charset: '0123456789ABCDE',
 					length: 32,
@@ -188,22 +190,22 @@ describe('mem_accounts protection', function() {
 				queries.insertAccount(noUsernameAccount, done);
 			});
 
-			after(function(done) {
+			after(done => {
 				queries.deleteAccount(noUsernameAccount, done);
 			});
 
-			describe('for valid username', function() {
+			describe('for valid username', () => {
 				var validUsername = randomstring.generate(10).toLowerCase();
 
-				before(function(done) {
+				before(done => {
 					queries.updateUsername(noUsernameAccount, validUsername, done);
 				});
 
-				it('should set the new value', function(done) {
-					queries.getAccountByAddress(noUsernameAccount.address, function(
+				it('should set the new value', done => {
+					queries.getAccountByAddress(noUsernameAccount.address, (
 						err,
 						updatedAccount
-					) {
+					) => {
 						expect(err).to.be.null;
 						expect(updatedAccount)
 							.to.have.property('username')
@@ -215,32 +217,32 @@ describe('mem_accounts protection', function() {
 		});
 	});
 
-	describe('u_username update', function() {
-		describe('when account with u_username exists', function() {
-			before(function(done) {
-				queries.getAccountByAddress(validAccount.address, function(
+	describe('u_username update', () => {
+		describe('when account with u_username exists', () => {
+			before(done => {
+				queries.getAccountByAddress(validAccount.address, (
 					err,
 					account
-				) {
+				) => {
 					expect(account).to.be.an('object').and.to.be.not.empty;
 					validAccount = account;
 					done(err);
 				});
 			});
 
-			describe('for value != null', function() {
+			describe('for value != null', () => {
 				var nonNullValidUsername =
 					validAccount.username + randomstring.generate(1).toLowerCase();
 
-				before(function(done) {
+				before(done => {
 					queries.updateU_username(validAccount, nonNullValidUsername, done);
 				});
 
-				it('should leave the old username', function(done) {
-					queries.getAccountByAddress(validAccount.address, function(
+				it('should leave the old username', done => {
+					queries.getAccountByAddress(validAccount.address, (
 						err,
 						updatedAccount
-					) {
+					) => {
 						expect(err).to.be.null;
 						expect(updatedAccount)
 							.to.have.property('u_username')
@@ -250,16 +252,16 @@ describe('mem_accounts protection', function() {
 				});
 			});
 
-			describe('for value = null', function() {
-				before(function(done) {
+			describe('for value = null', () => {
+				before(done => {
 					queries.updateU_username(validAccount, null, done);
 				});
 
-				it('should set u_username = null', function(done) {
-					queries.getAccountByAddress(validAccount.address, function(
+				it('should set u_username = null', done => {
+					queries.getAccountByAddress(validAccount.address, (
 						err,
 						updatedAccount
-					) {
+					) => {
 						expect(err).to.be.null;
 						expect(updatedAccount).to.have.property('u_username').to.be.null;
 						done();
@@ -268,13 +270,13 @@ describe('mem_accounts protection', function() {
 			});
 		});
 
-		describe('when account with u_username = null exists', function() {
+		describe('when account with u_username = null exists', () => {
 			var noU_usernameAccount;
 
-			before(function(done) {
+			before(done => {
 				noU_usernameAccount = _.clone(validAccount);
 				noU_usernameAccount.address =
-					randomstring.generate({ charset: 'numeric', length: 20 }) + 'L';
+					`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
 				noU_usernameAccount.publicKey = randomstring.generate({
 					charset: '0123456789ABCDE',
 					length: 32,
@@ -283,22 +285,22 @@ describe('mem_accounts protection', function() {
 				queries.insertAccount(noU_usernameAccount, done);
 			});
 
-			after(function(done) {
+			after(done => {
 				queries.deleteAccount(noU_usernameAccount, done);
 			});
 
-			describe('for valid u_username', function() {
+			describe('for valid u_username', () => {
 				var validU_username = randomstring.generate(10).toLowerCase();
 
-				before(function(done) {
+				before(done => {
 					queries.updateU_username(noU_usernameAccount, validU_username, done);
 				});
 
-				it('should set the new value', function(done) {
-					queries.getAccountByAddress(noU_usernameAccount.address, function(
+				it('should set the new value', done => {
+					queries.getAccountByAddress(noU_usernameAccount.address, (
 						err,
 						updatedAccount
-					) {
+					) => {
 						expect(err).to.be.null;
 						expect(updatedAccount)
 							.to.have.property('u_username')
