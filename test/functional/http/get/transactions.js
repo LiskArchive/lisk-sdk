@@ -47,16 +47,31 @@ describe('GET /api/transactions', () => {
 		passphrase: accountFixtures.genesis.password,
 		recipientId: account2.address,
 	});
+	var transaction3 = lisk.transaction.transfer({
+		amount: 10 * constants.normalizer, // 10 LSK
+		passphrase: account.password,
+		recipientId: account2.address,
+	});
 
 	// Crediting accounts
 	before(() => {
 		var promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
+
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
-			return waitFor.confirmations(_.map(transactionList, 'id'));
+
+			return waitFor
+				.confirmations(_.map(transactionList, 'id'))
+				.then(() => {
+					return apiHelpers.sendTransactionPromise(transaction3);
+				})
+				.then(() => {
+					transactionList.push(transaction3);
+					return waitFor.confirmations([transaction3.id]);
+				});
 		});
 	});
 
@@ -383,6 +398,52 @@ describe('GET /api/transactions', () => {
 			});
 		});
 
+		describe('senderIdOrRecipientId', () => {
+			it('using invalid senderIdOrRecipientId should fail', () => {
+				return transactionsEndpoint
+					.makeRequest({ senderIdOrRecipientId: '' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'senderIdOrRecipientId');
+					});
+			});
+
+			it('using one senderIdOrRecipientId should return incoming and outgoing transaction of an account', () => {
+				var sender = [];
+				var recipient = [];
+				var accountId = account.address;
+				return transactionsEndpoint
+					.makeRequest({ senderIdOrRecipientId: accountId }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							if (accountId === transaction.recipientId) {
+								recipient.push(transaction);
+							} else if (accountId === transaction.senderId) {
+								sender.push(transaction);
+							}
+						});
+						expect(sender).to.have.length(1);
+						expect(recipient).to.have.length(1);
+					});
+			});
+
+			it('using multiple senderIdOrRecipientId should fail', () => {
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							senderIdOrRecipientId: [
+								accountFixtures.genesis.address,
+								accountFixtures.existingDelegate.address,
+							],
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'senderIdOrRecipientId');
+					});
+			});
+		});
+
 		describe('recipientPublicKey', () => {
 			it('using invalid recipientPublicKey should fail', () => {
 				return transactionsEndpoint
@@ -575,11 +636,14 @@ describe('GET /api/transactions', () => {
 				var firstTransaction = null;
 
 				return transactionsEndpoint
-					.makeRequest({ offset: 0 }, 200)
+					.makeRequest({ offset: 0, limit: 1 }, 200)
 					.then(res => {
 						firstTransaction = res.body.data[0];
 
-						return transactionsEndpoint.makeRequest({ offset: 1 }, 200);
+						return transactionsEndpoint.makeRequest(
+							{ offset: 1, limit: 1 },
+							200
+						);
 					})
 					.then(res => {
 						res.body.data.forEach(transaction => {
