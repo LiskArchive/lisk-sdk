@@ -68,3 +68,42 @@ export const getAddressFromPublicKey = publicKey => {
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 
 export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
+
+export const stringifyEncryptedPassphrase = ({
+	iterations,
+	salt,
+	cipherText,
+	iv,
+	tag,
+	version,
+}) => {
+	const iterationsString = iterations ? `iterations=${iterations}&` : '';
+	return `${iterationsString}salt=${salt}&cipherText=${cipherText}&iv=${
+		iv
+	}&tag=${tag}&version=${version}`;
+};
+
+export const parseEncryptedPassphrase = encryptedPassphrase => {
+	const keyValuePairs = encryptedPassphrase
+		.split('&')
+		.map(pair => pair.split('='))
+		.reduce(
+			(obj, [key, value]) => Object.assign({}, obj, { [key]: value }),
+			{},
+		);
+
+	const { salt, cipherText, iv, tag, version } = keyValuePairs;
+	const iterations =
+		keyValuePairs.iterations !== undefined
+			? parseInt(keyValuePairs.iterations, 10)
+			: null;
+
+	return {
+		iterations,
+		salt,
+		cipherText,
+		iv,
+		tag,
+		version,
+	};
+};
