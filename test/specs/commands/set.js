@@ -619,7 +619,7 @@ describe('set command', () => {
 													when.theActionIsCalledWithTheVariableAndTheValues,
 													() => {
 														Then(
-															'it should reject with validation error and message "Value must have protocol and hostname, such as http://localhost:4000"',
+															'it should reject with validation error and message "Node URLs must include a protocol and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
 															then.itShouldRejectWithValidationErrorAndMessage,
 														);
 													},
@@ -635,7 +635,47 @@ describe('set command', () => {
 													when.theActionIsCalledWithTheVariableAndTheValues,
 													() => {
 														Then(
-															'it should reject with validation error and message "Value must have protocol and hostname, such as http://localhost:4000"',
+															'it should reject with validation error and message "Node URLs must include a protocol and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															then.itShouldRejectWithValidationErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							});
+							Given('values "localhost:4000"', given.values, () => {
+								Given(
+									'the config file can be written',
+									given.theConfigFileCanBeWritten,
+									() => {
+										Given(
+											'Vorpal is in non-interactive mode',
+											given.vorpalIsInNonInteractiveMode,
+											() => {
+												When(
+													'the action is called with the variable and the values',
+													when.theActionIsCalledWithTheVariableAndTheValues,
+													() => {
+														Then(
+															'it should reject with validation error and message "Node URLs must include a protocol and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															then.itShouldRejectWithValidationErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+										Given(
+											'Vorpal is in interactive mode',
+											given.vorpalIsInInteractiveMode,
+											() => {
+												When(
+													'the action is called with the variable and the values',
+													when.theActionIsCalledWithTheVariableAndTheValues,
+													() => {
+														Then(
+															'it should reject with validation error and message "Node URLs must include a protocol and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
 															then.itShouldRejectWithValidationErrorAndMessage,
 														);
 													},

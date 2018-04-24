@@ -15,7 +15,7 @@
  */
 import url from 'url';
 import lisk from 'lisk-js';
-import { CONFIG_VARIABLES, NETHASHES } from '../utils/constants';
+import { CONFIG_VARIABLES, NETHASHES, API_PROTOCOLS } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
 import { writeJSONSync } from '../utils/fs';
@@ -37,7 +37,7 @@ const NETHASH_ERROR_MESSAGE =
 	'Value must be a hex string with 64 characters, or one of main, test or beta.';
 
 const URL_ERROR_MESSAGE =
-	'Value must have protocol and hostname, such as http://localhost:4000';
+	'Node URLs must include a protocol and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.';
 const writeConfigToFile = newConfig => {
 	try {
 		writeJSONSync(configFilePath, newConfig);
@@ -110,7 +110,7 @@ const setBoolean = (dotNotation, value) => {
 const setArrayURL = (dotNotation, value, inputs) => {
 	inputs.forEach(input => {
 		const parsedURL = url.parse(input);
-		if (!parsedURL.protocol || !parsedURL.hostname) {
+		if (!API_PROTOCOLS.includes(parsedURL.protocol) || !parsedURL.hostname) {
 			throw new ValidationError(URL_ERROR_MESSAGE);
 		}
 	});
