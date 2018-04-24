@@ -146,7 +146,7 @@ describe('config util', () => {
 														then.theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath,
 													);
 													Then(
-														'the process should exit with error code "2"',
+														'the process should exit with error code "1"',
 														then.theProcessShouldExitWithErrorCode,
 													);
 													Then(
@@ -310,7 +310,7 @@ describe('config util', () => {
 																		then.theUserShouldBeInformedThatTheConfigFileIsCorrupted,
 																	);
 																	Then(
-																		'the process should exit with error code "3"',
+																		'the process should exit with error code "1"',
 																		then.theProcessShouldExitWithErrorCode,
 																	);
 																	Then(

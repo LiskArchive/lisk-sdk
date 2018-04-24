@@ -40,12 +40,12 @@ const attemptCallWithWarning = (fn, path) => {
 	}
 };
 
-const attemptCallWithError = (fn, errorCode, errorMessage) => {
+const attemptCallWithError = (fn, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
 		logger.error(errorMessage);
-		return process.exit(errorCode);
+		return process.exit(1);
 	}
 };
 
@@ -61,16 +61,14 @@ const attemptToCreateFile = path => {
 
 const checkLockfile = path => {
 	const fn = lockfile.lockSync.bind(null, path);
-	const errorCode = 2;
 	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+	return attemptCallWithError(fn, errorMessage);
 };
 
 const attemptToReadJSONFile = path => {
 	const fn = readJSONSync.bind(null, path);
-	const errorCode = 1;
 	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+	return attemptCallWithError(fn, errorMessage);
 };
 
 const attemptToValidateConfig = (config, path) => {
@@ -81,9 +79,8 @@ const attemptToValidateConfig = (config, path) => {
 				throw new ValidationError(`Key ${key} not found in config file.`);
 			}
 		});
-	const errorCode = 3;
 	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+	return attemptCallWithError(fn, errorMessage);
 };
 
 const getConfig = () => {
