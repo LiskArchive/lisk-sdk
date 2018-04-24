@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import {
 	MAINNET_NETHASH,
 	TESTNET_NETHASH,
@@ -36,9 +37,17 @@ const defaultOptions = {
 	randomizeNode: true,
 };
 
+const locale =
+	process.env.LC_ALL ||
+	process.env.LC_MESSAGES ||
+	process.env.LANG ||
+	process.env.LANGUAGE;
+
 const commonHeaders = {
 	'Content-Type': 'application/json',
-	'User-Agent': 'lisk-js/1.0',
+	'User-Agent': `LiskJS/1.0 (${os.platform()} ${os.release()}; ${os.arch()}${
+		locale ? `; ${locale}` : ''
+	})`,
 };
 
 export default class APIClient {
