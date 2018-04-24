@@ -126,9 +126,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						});
 
 						scenarios.propagation.blocks(params);
-
 						scenarios.propagation.transactions(params);
-
+						scenarios.propagation.multisignature(params);
 						scenarios.stress.transfer(params);
 						scenarios.stress.transfer_with_data(params);
 						scenarios.stress.register_multisignature(params);
