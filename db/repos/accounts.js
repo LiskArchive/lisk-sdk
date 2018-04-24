@@ -120,7 +120,7 @@ class AccountsRepository {
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 			]);
 
-			cs.insert = cs.update.merge([{ name: 'address' }]);
+			cs.insert = cs.update.merge(immutableFields);
 		}
 	}
 
