@@ -11,6 +11,17 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+def generateSrcCodeRelease(directory) {
+	dir(directory) {
+		sh """
+		npm install
+		node ./node_modules/.bin/grunt release
+		jq -r '.version' config.json > "/tmp/${directory}-version"
+		"""
+	}
+	return readFile("/tmp/${directory}-version").trim()
+}
 pipeline {
 	agent { node { label "node-07" } }
 	stages {
@@ -19,6 +30,7 @@ pipeline {
 				deleteDir()
 				dir("lisk-build") {
 					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "master"
+					sh "bash toolchains/install_linux.sh"
 				}
 				dir(params.MIGRATE_FROM) {
 					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
@@ -26,23 +38,52 @@ pipeline {
 				dir(params.MIGRATE_TO) {
 					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
 				}
-			}
-		}
-		stage("Create source releases") {
-			steps {
 				sh """
-				generate_src_release() {
-					cd \$1
-					npm install
-					node ./node_modules/.bin/grunt release
-					cd \$WORKSPACE
-				}
-
-				generate_src_release "${params.MIGRATE_FROM}"
-				generate_src_release "${params.MIGRATE_TO}"
 				dropdb lisk_test || true
 				createdb lisk_test
 				"""
+			}
+		}
+		stage("Create code releases") {
+			parallel {
+				stage('Create source release') {
+					steps {
+						script {
+							env.MIGRATE_FROM_VERSION = generateSrcCodeRelease(params.MIGRATE_FROM)
+							env.MIGRATE_FROM_SRC = "${params.MIGRATE_FROM}/release/lisk-${env.MIGRATE_FROM_VERSION}.tgz"
+						}
+					}
+				}
+				stage('Create destination release') {
+					steps {
+						script {
+							env.MIGRATE_TO_VERSION = generateSrcCodeRelease(params.MIGRATE_TO)
+							env.MIGRATE_TO_SRC = "${params.MIGRATE_TO}/release/lisk-${env.MIGRATE_TO_VERSION}.tgz"
+						}
+					}
+				}
+			}
+		}
+		stage("Create binary releases") {
+			parallel {
+				stage('Create source binary release') {
+					steps {
+						sh """
+						cp "${env.MIGRATE_FROM_SRC}" "lisk-build/src/${params.MIGRATE_FROM}.tar.gz"
+						cd lisk-build
+						bash build.sh -n dev -v "${params.MIGRATE_FROM}"
+						"""
+					}
+				}
+				stage('Create destination binary release') {
+					steps {
+						sh """
+						cp "${env.MIGRATE_TO_SRC}" "lisk-build/src/${params.MIGRATE_TO}.tar.gz"
+						cd lisk-build
+						bash build.sh -n dev -v "${params.MIGRATE_TO}"
+						"""
+					}
+				}
 			}
 		}
 	}
