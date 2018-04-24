@@ -1090,7 +1090,7 @@ parameters:
   senderIdOrRecipientId:
     name: senderIdOrRecipientId
     in: query
-    description: Public key to query
+    description: Sender Id or Recipient Id to query
     type: string
     format: address
     minLength: 1
