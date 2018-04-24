@@ -21,6 +21,7 @@ module.exports = {
 	propagation: {
 		blocks: require('./propagation/blocks'),
 		transactions: require('./propagation/transactions'),
+		multisignature: require('./propagation/rpc/transactions/multisignature'),
 	},
 	stress: {
 		transfer: require('./stress/0.transfer'),
