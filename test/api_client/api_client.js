@@ -38,12 +38,12 @@ describe('APIClient module', () => {
 	];
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
-		os: 'lisk-js-api',
+		'User-Agent': 'lisk-js/1.0',
 	};
 
 	const customHeaders = {
 		'Content-Type': 'application/json',
-		os: 'lisk-js-api',
+		'User-Agent': 'lisk-js/1.0',
 		nethash: testnetHash,
 	};
 

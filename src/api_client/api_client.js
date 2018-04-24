@@ -38,7 +38,7 @@ const defaultOptions = {
 
 const commonHeaders = {
 	'Content-Type': 'application/json',
-	os: 'lisk-js-api',
+	'User-Agent': 'lisk-js/1.0',
 };
 
 export default class APIClient {
