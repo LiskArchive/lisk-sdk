@@ -15,21 +15,10 @@
 'use strict';
 
 var randomstring = require('randomstring');
-
 var sql = require('../common/sql/mem_accounts.js');
 var modulesLoader = require('../../common/modules_loader');
 
 var db;
-
-before(done => {
-	modulesLoader.getDbConnection((err, __db) => {
-		if (err) {
-			return done(err);
-		}
-		db = __db;
-		done();
-	});
-});
 
 var validUsername = randomstring.generate(10).toLowerCase();
 
@@ -114,22 +103,25 @@ var queries = {
 	},
 };
 
-before(done => {
-	queries.insertAccount(validAccount, done);
-});
-
-after(done => {
-	queries.deleteAccount(validAccount, done);
-});
-
 describe('mem_accounts protection', () => {
+	before(done => {
+		modulesLoader.getDbConnection((err, __db) => {
+			if (err) {
+				return done(err);
+			}
+			db = __db;
+			queries.insertAccount(validAccount, done);
+		});
+	});
+
+	after(done => {
+		queries.deleteAccount(validAccount, done);
+	});
+
 	describe('username update', () => {
 		describe('when account with username exists', () => {
 			before(done => {
-				queries.getAccountByAddress(validAccount.address, (
-					err,
-					account
-				) => {
+				queries.getAccountByAddress(validAccount.address, (err, account) => {
 					expect(account).to.be.an('object').and.to.be.not.empty;
 					validAccount = account;
 					done(err);
@@ -145,15 +137,15 @@ describe('mem_accounts protection', () => {
 				});
 
 				it('should leave the old username', done => {
-					queries.getAccountByAddress(validAccount.address, (
-						err,
-						updatedAccount
-					) => {
-						expect(updatedAccount)
-							.to.have.property('username')
-							.equal(validAccount.username);
-						return done(err);
-					});
+					queries.getAccountByAddress(
+						validAccount.address,
+						(err, updatedAccount) => {
+							expect(updatedAccount)
+								.to.have.property('username')
+								.equal(validAccount.username);
+							return done(err);
+						}
+					);
 				});
 			});
 
@@ -163,14 +155,14 @@ describe('mem_accounts protection', () => {
 				});
 
 				it('should set username = null', done => {
-					queries.getAccountByAddress(validAccount.address, (
-						err,
-						updatedAccount
-					) => {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('username').to.be.null;
-						done();
-					});
+					queries.getAccountByAddress(
+						validAccount.address,
+						(err, updatedAccount) => {
+							expect(err).to.be.null;
+							expect(updatedAccount).to.have.property('username').to.be.null;
+							done();
+						}
+					);
 				});
 			});
 		});
@@ -180,8 +172,10 @@ describe('mem_accounts protection', () => {
 
 			before(done => {
 				noUsernameAccount = _.clone(validAccount);
-				noUsernameAccount.address =
-					`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
+				noUsernameAccount.address = `${randomstring.generate({
+					charset: 'numeric',
+					length: 20,
+				})}L`;
 				noUsernameAccount.publicKey = randomstring.generate({
 					charset: '0123456789ABCDE',
 					length: 32,
@@ -202,16 +196,16 @@ describe('mem_accounts protection', () => {
 				});
 
 				it('should set the new value', done => {
-					queries.getAccountByAddress(noUsernameAccount.address, (
-						err,
-						updatedAccount
-					) => {
-						expect(err).to.be.null;
-						expect(updatedAccount)
-							.to.have.property('username')
-							.equal(validUsername);
-						done();
-					});
+					queries.getAccountByAddress(
+						noUsernameAccount.address,
+						(err, updatedAccount) => {
+							expect(err).to.be.null;
+							expect(updatedAccount)
+								.to.have.property('username')
+								.equal(validUsername);
+							done();
+						}
+					);
 				});
 			});
 		});
@@ -220,10 +214,7 @@ describe('mem_accounts protection', () => {
 	describe('u_username update', () => {
 		describe('when account with u_username exists', () => {
 			before(done => {
-				queries.getAccountByAddress(validAccount.address, (
-					err,
-					account
-				) => {
+				queries.getAccountByAddress(validAccount.address, (err, account) => {
 					expect(account).to.be.an('object').and.to.be.not.empty;
 					validAccount = account;
 					done(err);
@@ -239,16 +230,16 @@ describe('mem_accounts protection', () => {
 				});
 
 				it('should leave the old username', done => {
-					queries.getAccountByAddress(validAccount.address, (
-						err,
-						updatedAccount
-					) => {
-						expect(err).to.be.null;
-						expect(updatedAccount)
-							.to.have.property('u_username')
-							.equal(validAccount.u_username);
-						done();
-					});
+					queries.getAccountByAddress(
+						validAccount.address,
+						(err, updatedAccount) => {
+							expect(err).to.be.null;
+							expect(updatedAccount)
+								.to.have.property('u_username')
+								.equal(validAccount.u_username);
+							done();
+						}
+					);
 				});
 			});
 
@@ -258,14 +249,14 @@ describe('mem_accounts protection', () => {
 				});
 
 				it('should set u_username = null', done => {
-					queries.getAccountByAddress(validAccount.address, (
-						err,
-						updatedAccount
-					) => {
-						expect(err).to.be.null;
-						expect(updatedAccount).to.have.property('u_username').to.be.null;
-						done();
-					});
+					queries.getAccountByAddress(
+						validAccount.address,
+						(err, updatedAccount) => {
+							expect(err).to.be.null;
+							expect(updatedAccount).to.have.property('u_username').to.be.null;
+							done();
+						}
+					);
 				});
 			});
 		});
@@ -275,8 +266,10 @@ describe('mem_accounts protection', () => {
 
 			before(done => {
 				noU_usernameAccount = _.clone(validAccount);
-				noU_usernameAccount.address =
-					`${randomstring.generate({ charset: 'numeric', length: 20 })}L`;
+				noU_usernameAccount.address = `${randomstring.generate({
+					charset: 'numeric',
+					length: 20,
+				})}L`;
 				noU_usernameAccount.publicKey = randomstring.generate({
 					charset: '0123456789ABCDE',
 					length: 32,
@@ -297,16 +290,16 @@ describe('mem_accounts protection', () => {
 				});
 
 				it('should set the new value', done => {
-					queries.getAccountByAddress(noU_usernameAccount.address, (
-						err,
-						updatedAccount
-					) => {
-						expect(err).to.be.null;
-						expect(updatedAccount)
-							.to.have.property('u_username')
-							.equal(validU_username);
-						done();
-					});
+					queries.getAccountByAddress(
+						noU_usernameAccount.address,
+						(err, updatedAccount) => {
+							expect(err).to.be.null;
+							expect(updatedAccount)
+								.to.have.property('u_username')
+								.equal(validU_username);
+							done();
+						}
+					);
 				});
 			});
 		});
