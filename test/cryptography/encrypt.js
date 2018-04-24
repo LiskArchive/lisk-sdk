@@ -18,13 +18,13 @@ import {
 	encryptPassphraseWithPassword,
 	decryptPassphraseWithPassword,
 } from 'cryptography/encrypt';
-import { version } from '../../package.json';
 // Require is used for stubbing
 const convert = require('cryptography/convert');
 const keys = require('cryptography/keys');
 const hash = require('cryptography/hash');
 
 describe('encrypt', () => {
+	const ENCRYPTION_VERSION = '1';
 	const defaultPassphrase =
 		'minute omit local rare sword knee banner pair rib museum shadow juice';
 	const defaultPrivateKey =
@@ -38,6 +38,7 @@ describe('encrypt', () => {
 		'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 	const defaultMessage = 'Some default text.';
 	const defaultPassword = 'myTotal53cr3t%&';
+	const customIterations = 12;
 
 	let defaultEncryptedMessageWithNonce;
 
@@ -171,11 +172,11 @@ describe('encrypt', () => {
 
 		describe('#encryptPassphraseWithPassword', () => {
 			let startTime;
-			let cipher;
+			let encryptedPassphrase;
 
 			beforeEach(() => {
 				startTime = Date.now();
-				cipher = encryptPassphraseWithPassword(
+				encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 				);
@@ -183,31 +184,37 @@ describe('encrypt', () => {
 			});
 
 			it('should encrypt a passphrase', () => {
-				return expect(cipher).to.have.property('cipher').and.be.hexString;
+				return expect(encryptedPassphrase).to.have.property('cipherText').and.be
+					.hexString;
 			});
 
 			it('should output the IV', () => {
-				return expect(cipher)
+				return expect(encryptedPassphrase)
 					.to.have.property('iv')
-					.and.be.hexString.and.have.length(32);
+					.and.be.hexString.and.have.length(24);
 			});
 
 			it('should output the salt', () => {
-				return expect(cipher)
+				return expect(encryptedPassphrase)
 					.to.have.property('salt')
 					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the tag', () => {
-				return expect(cipher)
+				return expect(encryptedPassphrase)
 					.to.have.property('tag')
 					.and.be.hexString.and.have.length(32);
 			});
 
 			it('should output the current version of LiskJS', () => {
-				return expect(cipher)
+				return expect(encryptedPassphrase)
 					.to.have.property('version')
-					.which.is.equal(version);
+					.which.is.equal(ENCRYPTION_VERSION);
+			});
+
+			it('should not output the default number of iterations', () => {
+				return expect(encryptedPassphrase).to.have.property('iterations').be
+					.null;
 			});
 
 			it('should take more than 0.5 seconds @node-only', () => {
@@ -219,97 +226,129 @@ describe('encrypt', () => {
 				const endTime = Date.now();
 				return expect(endTime - startTime).to.be.below(2e3);
 			});
+
+			it('should accept and output a custom number of iterations', () => {
+				encryptedPassphrase = encryptPassphraseWithPassword(
+					defaultPassphrase,
+					defaultPassword,
+					customIterations,
+				);
+				return expect(encryptedPassphrase)
+					.to.have.property('iterations')
+					.and.equal(customIterations);
+			});
 		});
 
 		describe('#decryptPassphraseWithPassword', () => {
-			let cipherIvSaltTagAndVersion;
+			let encryptedPassphrase;
 
 			beforeEach(() => {
-				cipherIvSaltTagAndVersion = {
-					cipher:
-						'c3b3a101f1c2a09c7ffd0ea207a7802d728e74027836de195be665e8e41c27ffe1fe1eebdf40874447c26cf8942c72db3252c2d76168137f2fc99c84b8ac353af4a64392a1',
-					iv: '8be18e58b5a0ca8d56d84db439041167',
-					salt: '598e2f237bf7b58ae00bc6fc006c6963',
-					tag: '7498e143aba4335b942c7c5f68f90402',
-					version,
+				encryptedPassphrase = {
+					iterations: null,
+					cipherText:
+						'5cfd7bcc13022a482e7c8bd250cd73ef3eb7c49c849d5e761ce717608293f777cca8e0e18587ee307beab65bcc1b273caeb23d4985010b675391b354c38f8e84e342c1e7aa',
+					iv: '7b820ad6936a63152d13ffa2',
+					salt: 'b60036ab30da7af68c6ecf370471ce1b',
+					tag: '336c68fa92d414c229e5638249847774',
+					version: '1',
 				};
 				return Promise.resolve();
 			});
 
-			it('should decrypt a text with a password', () => {
+			it('should decrypt a passphrase with a password', () => {
 				const decrypted = decryptPassphraseWithPassword(
-					cipherIvSaltTagAndVersion,
+					encryptedPassphrase,
 					defaultPassword,
 				);
-				return expect(decrypted).to.be.eql(defaultPassphrase);
+				return expect(decrypted).to.be.equal(defaultPassphrase);
 			});
 
 			it('should inform the user if the salt has been altered', () => {
-				cipherIvSaltTagAndVersion.salt = `00${cipherIvSaltTagAndVersion.salt.slice(
-					2,
-				)}`;
+				encryptedPassphrase.salt = `00${encryptedPassphrase.salt.slice(2)}`;
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						cipherIvSaltTagAndVersion,
+						encryptedPassphrase,
 						defaultPassword,
 					),
 				).to.throw('Unsupported state or unable to authenticate data');
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
-				cipherIvSaltTagAndVersion.tag = cipherIvSaltTagAndVersion.tag.slice(
-					0,
-					30,
-				);
+				encryptedPassphrase.tag = encryptedPassphrase.tag.slice(0, 30);
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						cipherIvSaltTagAndVersion,
+						encryptedPassphrase,
 						defaultPassword,
 					),
 				).to.throw('Tag must be 16 bytes.');
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
-				cipherIvSaltTagAndVersion.tag = `${cipherIvSaltTagAndVersion.tag.slice(
-					0,
-					30,
-				)}gg`;
+				encryptedPassphrase.tag = `${encryptedPassphrase.tag.slice(0, 30)}gg`;
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						cipherIvSaltTagAndVersion,
+						encryptedPassphrase,
 						defaultPassword,
 					),
 				).to.throw('Argument must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
-				cipherIvSaltTagAndVersion.tag = `00${cipherIvSaltTagAndVersion.tag.slice(
-					2,
-				)}`;
+				encryptedPassphrase.tag = `00${encryptedPassphrase.tag.slice(2)}`;
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
-						cipherIvSaltTagAndVersion,
+						encryptedPassphrase,
 						defaultPassword,
 					),
 				).to.throw('Unsupported state or unable to authenticate data');
+			});
+
+			it('should decrypt a passphrase with a password and a custom number of iterations', () => {
+				encryptedPassphrase = {
+					iterations: 12,
+					cipherText:
+						'1f06671e13c0329aee057fee995e08a516bdacd287c7ff2714a74be6099713c87bbc3e005c63d4d3d02f8ba89b42810a5854444ad2b76855007a0925fafa7d870875beb010',
+					iv: '3a583b21bbac609c7df3e7e0',
+					salt: '245c6859a96339a7735a6cac78ccf625',
+					tag: '63653f1d4e8d422a42d98b25d3844792',
+					version: '1',
+				};
+				const decrypted = decryptPassphraseWithPassword(
+					encryptedPassphrase,
+					defaultPassword,
+				);
+				return expect(decrypted).to.be.equal(defaultPassphrase);
 			});
 		});
 
 		describe('integration test', () => {
 			it('should encrypt a given passphrase with a password and decrypt it back to the original passphrase @node-only', () => {
-				const cipher = encryptPassphraseWithPassword(
+				const encryptedPassphrase = encryptPassphraseWithPassword(
 					defaultPassphrase,
 					defaultPassword,
 				);
 				const decryptedString = decryptPassphraseWithPassword(
-					cipher,
+					encryptedPassphrase,
 					defaultPassword,
 				);
-				return expect(decryptedString).to.be.eql(defaultPassphrase);
+				return expect(decryptedString).to.be.equal(defaultPassphrase);
+			});
+
+			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase @node-only', () => {
+				const encryptedPassphrase = encryptPassphraseWithPassword(
+					defaultPassphrase,
+					defaultPassword,
+					customIterations,
+				);
+				const decryptedString = decryptPassphraseWithPassword(
+					encryptedPassphrase,
+					defaultPassword,
+				);
+				return expect(decryptedString).to.equal(defaultPassphrase);
 			});
 		});
 	});
