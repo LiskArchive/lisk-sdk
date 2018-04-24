@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import url from 'url';
 import lisk from 'lisk-js';
 import { CONFIG_VARIABLES, NETHASHES } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
@@ -35,6 +36,8 @@ const WRITE_FAIL_WARNING =
 const NETHASH_ERROR_MESSAGE =
 	'Value must be a hex string with 64 characters, or one of main, test or beta.';
 
+const URL_ERROR_MESSAGE =
+	'Value must have protocol and hostname, such as http://localhost:4000';
 const writeConfigToFile = newConfig => {
 	try {
 		writeJSONSync(configFilePath, newConfig);
@@ -104,8 +107,15 @@ const setBoolean = (dotNotation, value) => {
 	return setValue(dotNotation, newValue);
 };
 
-const setArrayString = (dotNotation, value, inputs) =>
-	setValue(dotNotation, inputs);
+const setArrayURL = (dotNotation, value, inputs) => {
+	inputs.forEach(input => {
+		const parsedURL = url.parse(input);
+		if (!parsedURL.protocol || !parsedURL.hostname) {
+			throw new ValidationError(URL_ERROR_MESSAGE);
+		}
+	});
+	return setValue(dotNotation, inputs);
+};
 
 const setNethash = (dotNotation, value) => {
 	if (
@@ -125,7 +135,7 @@ const setNethash = (dotNotation, value) => {
 };
 
 const handlers = {
-	'api.nodes': setArrayString,
+	'api.nodes': setArrayURL,
 	'api.network': setNethash,
 	json: setBoolean,
 	name: setValue,
