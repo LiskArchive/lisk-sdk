@@ -155,6 +155,30 @@ var liskFormats = {
 	/**
 	 * Description of the function.
 	 *
+	 * @param {string} str
+	 * @returns {boolean}
+	 * @todo Add description for the function, the params and the return value
+	 */
+	encryptedSecret(str) {
+		// Explanation of regex structure:
+		// - 1 or more 'key=value' pairs delimited with '&'
+		// Examples:
+		// - encryptedSecret=abcd1234
+		// - encryptedSecret=abcd1234&iterations=10000&iv=ef012345
+		// NOTE: Maximum lengths chosen here are arbitrary
+		const keyRegExp = /[a-zA-Z0-9]{2,15}/;
+		const valueRegExp = /[a-f0-9]{1,256}/;
+		const keyValueRegExp = new RegExp(
+			`${keyRegExp.source}=${valueRegExp.source}`
+		);
+		const encryptedSecretRegExp = new RegExp(
+			`^(${keyValueRegExp.source})(?:&(${keyValueRegExp.source})){0,10}$`
+		);
+		return encryptedSecretRegExp.test(str);
+	},
+	/**
+	 * Description of the function.
+	 *
 	 * @param {Object} obj
 	 * @returns {boolean}
 	 * @todo Add description for the function, the params and the return value

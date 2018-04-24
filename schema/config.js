@@ -273,6 +273,18 @@ module.exports = {
 					},
 					secret: {
 						type: 'array',
+						items: {
+							properties: {
+								encryptedSecret: {
+									type: 'string',
+									format: 'encryptedSecret',
+								},
+								publicKey: {
+									type: 'string',
+									format: 'publicKey',
+								},
+							},
+						},
 					},
 					access: {
 						type: 'object',

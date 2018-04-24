@@ -50,19 +50,19 @@ describe('delegates', () => {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedSecret:
-						'19e9f8eee5d9516234a10953669518bf23371d34e114713c8043a98378fd866834946380c4cc0e40f23305643206c1c5be496074f350d09d87735c42eae30c604cabea9862f4fe8f906313c67a7146d54fa844171e6cf925b7c953987082cdd6',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				},
 				{
 					publicKey:
 						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedSecret:
-						'14ac6a589c2d3690dd1638eeccfa5ea6f88bfcf01bdcd65665ede305260f63f3d4ee87cb35ade7c237255a898f080fb160110ab2900108bb99cb9215771b1aaa6892ae48789f6a985b3cedf7ad42e94c',
+						'iterations=1&salt=5c709afdae35d43d4090e9ef31d14d85&cipherText=c205189b91f797c3914f5d82ccc7cccfb3c620cef512c3bf8f50cd280bd5ff1450e8b9be997179582e62bec0cb655ca2eb8ff6833892f9e350dc5182b61bd648cd02f7f95468c7ec51aa3b43&iv=bfae7a255077c6de61a1ec59&tag=59cfd0a55d39a765a84725f4be464179&version=1',
 				},
 				{
 					publicKey:
 						'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
 					encryptedSecret:
-						'2df503fb168552063136a479fe5598a28e90261b8ba6c16a8a27ff3ac9b3398aeebe6cf7afe6e84279f204bfcd2a62a18d71e08b14792a456bd3b78e60e215263a3aa2ed401346016e72c2a841e0d236',
+						'iterations=1&salt=588600600cd7660cf2346cd390093900&cipherText=6469aca1fe386e709c89c9a1d644abd969e64326f0f27f7be25248727892ec860e1e2dae54d283e65b1d21657a74047fb46ba732d1c83b93c8e2c0c96e98c2a9c4d87d0ac23db6dec9e3728426e3&iv=357d723a607f5baaf1fb218a&tag=f42bc3722b2964806d83a8ca3da2f94d&version=1',
 				},
 			];
 
@@ -113,19 +113,238 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return error if encrypted secret does not decrypt with default secret', done => {
+			it('should return error if number of iterations is omitted', done => {
 				var accountDetails = {
-					encryptedSecret:
-						'1cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
 					publicKey:
-						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// iterations is removed but should be set to 1
+					encryptedSecret:
+						'salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
-						`Invalid encryptedSecret for publicKey: ${accountDetails.publicKey}`
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if number of iterations is incorrect', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// iterations is set to 2 instead of 1
+					encryptedSecret:
+						'iterations=2&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has no salt', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No salt provided`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has a modified salt', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// salt is 1 character different
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bc&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has no cipher text', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No cipher text provided`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has a modified ciphertext', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// cipher text is 1 character different
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d05&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has no iv', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No IV provided`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has a modified iv', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// iv is 1 character different
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c933&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has no tag', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. No tag provided`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has invalid tag', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// tag is 1 character different
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967cb&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Unsupported state or unable to authenticate data`
+					);
+					expect(Object.keys(__private.keypairs).length).to.equal(0);
+					done();
+				});
+			});
+
+			it('should return error if encrypted secret has shortened tag', done => {
+				var accountDetails = {
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					// tag is 4 characters shorter
+					encryptedSecret:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b35859&version=1',
+				};
+
+				config.forging.secret = [accountDetails];
+
+				loadDelegates(err => {
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Tag must be 16 bytes`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -134,15 +353,20 @@ describe('delegates', () => {
 
 			it('should return error if publicKeys do not match', done => {
 				var accountDetails = {
+					publicKey:
+						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedSecret:
-						'60cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
-					publicKey: 'randomKey',
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
 				config.forging.secret = [accountDetails];
 
 				loadDelegates(err => {
-					expect(err).to.equal('Public keys do not match');
+					expect(err).to.equal(
+						`Invalid encryptedSecret for publicKey: ${
+							accountDetails.publicKey
+						}. Public keys do not match`
+					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
 				});
@@ -150,13 +374,12 @@ describe('delegates', () => {
 
 			it('should return error if account does not exist', done => {
 				var randomAccount = {
-					publicKey:
-						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 					secret:
 						'robust swift deputy enable forget peasant grocery road convince',
+					publicKey:
+						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
 					encryptedSecret:
-						'60cc653f6bc2a458ae758dcd618b310e31e1598f237c4c4d96321173050e49c3652876808c73ebc2aa75f49044375077108ca7b8594efc6ae4ce0aa239d7e11f',
-					key: 'elephant tree paris dragon chair galaxy',
+						'iterations=1&salt=b51aba5a50cc44a8badd26bb89eb19c9&cipherText=9e345573201d8d064409deaa9d4125f85974c1309f7bd5087ea84b77cb0d46f1fc71b6f317bcd14de0f1cf76fd25293671273f57266876dc6afd4732b24db6&iv=ecc42c613ad6a72e4320231a&tag=7febd325fbcd7f81f3cd39f055ef356a&version=1',
 				};
 				var accountDetails = {
 					encryptedSecret: randomAccount.encryptedSecret,
@@ -205,13 +428,42 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should load all 101 delegates', done => {
-				config.forging.secret = genesisDelegates.delegates.map(delegate => {
-					return {
-						encryptedSecret: delegate.encryptedSecret,
-						publicKey: delegate.publicKey,
-					};
+			it('should load secrets in encrypted format with the key with default 1e6 iterations if not set', done => {
+				config.forging.secret = [
+					{
+						publicKey:
+							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+						encryptedSecret:
+							'salt=2a9e020d122c1209024b6e8403caf19c&cipherText=d284aeb944666a50acf2bd305b8c7079e20501604529cf89ccf58f5b26f266c5d82f164bc811d39c027bd88aed7e770ce921cf3f362ed3ff0f15a58b48a5646690fab5e9a23a21a799013618b7c59fbd&iv=4e539dfb9a44be708aa17837&tag=8edbb37ca097b772373da97ad00c33b3&version=1',
+					},
+					{
+						publicKey:
+							'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+						encryptedSecret:
+							'salt=ef9a589ad0a075ac193430695cc232d6&cipherText=67065a7f32cc2fda559c49c34d1263b90571adb36ddf6b733daa52bd6b69e406a302e04b8a48246bf7d617be0145a020c1d50e58bd9db1f825bf363699fe49148038d10d1b74bf42f8de6423&iv=fd598c901751805b524fd33f&tag=90bd6525ba1d23ea2983ccbbb3d87a10&version=1',
+					},
+					{
+						publicKey:
+							'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+						encryptedSecret:
+							'salt=bed21effed5c283bb137a97077bfd7bf&cipherText=be1937d2aacf07a1f2134ad41d6e2eb0cced3c43ae34b04fba8104a3b19b0a9acf3228fbf1807f21d6ddce32fee226889e1f49f4e7a7b316395b09db7bb36b3aef34f4beef5ac519a2f2a9366227&iv=c22c6fd26486de0de00e5ad9&tag=82bea097c4f4f5fab5fe64c62a92ed89&version=1',
+					},
+				];
+
+				loadDelegates(err => {
+					expect(err).to.not.exist;
+					expect(Object.keys(__private.keypairs).length).to.equal(
+						encryptedSecret.length
+					);
+					done();
 				});
+			});
+
+			it('should load all 101 delegates', done => {
+				config.forging.secret = genesisDelegates.delegates.map(delegate => ({
+					encryptedSecret: delegate.encryptedSecret,
+					publicKey: delegate.publicKey,
+				}));
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;
