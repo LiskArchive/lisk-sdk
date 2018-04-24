@@ -276,7 +276,11 @@ __private.updatePeerStatus = function(err, status, peer) {
 			library.logic.peers.remove(peer);
 		}
 	} else if (!modules.system.versionCompatible(status.version)) {
-		library.logger.debug(`Peers->updatePeerStatus Incompatible version, rejecting peer: ${peer.string}, version: ${status.version}`);
+		library.logger.debug(
+			`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
+				peer.string
+			}, version: ${status.version}`
+		);
 		library.logic.peers.remove(peer);
 	} else {
 		peer.applyHeaders({
