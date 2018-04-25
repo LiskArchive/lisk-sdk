@@ -103,7 +103,7 @@ __private.list = function(filter, cb) {
 	const where = [];
 	const allowedFieldsMap = {
 		senderIdOrRecipientId:
-			'"t_senderId" IN ${senderIdOrRecipientId} OR "t_recipientId" IN ${senderIdOrRecipientId}',
+			'"t_senderId" IN (${senderIdOrRecipientId}) OR "t_recipientId" IN (${senderIdOrRecipientId})',
 		id: '"t_id" = ${id}',
 		blockId: '"t_blockId" = ${blockId}',
 		fromHeight: '"b_height" >= ${fromHeight}',

@@ -399,47 +399,31 @@ describe('GET /api/transactions', () => {
 		});
 
 		describe('senderIdOrRecipientId', () => {
-			it('using invalid senderIdOrRecipientId should fail', () => {
+			it('using empty senderIdOrRecipientId should fail', () => {
 				return transactionsEndpoint
 					.makeRequest({ senderIdOrRecipientId: '' }, 400)
 					.then(res => {
 						expectSwaggerParamError(res, 'senderIdOrRecipientId');
 					});
 			});
-
-			it('using one senderIdOrRecipientId should return incoming and outgoing transaction of an account', () => {
-				var sender = [];
-				var recipient = [];
+			it('using invalid senderIdOrRecipientId should fail', () => {
+				return transactionsEndpoint
+					.makeRequest(
+						{ senderIdOrRecipientId: '1234567890123456789012L' },
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'senderIdOrRecipientId');
+					});
+			});
+			it('using senderIdOrRecipientId should return incoming and outgoing transactions of an account', () => {
 				var accountId = account.address;
 				return transactionsEndpoint
 					.makeRequest({ senderIdOrRecipientId: accountId }, 200)
 					.then(res => {
 						expect(res.body.data).to.not.empty;
-						res.body.data.map(transaction => {
-							if (accountId === transaction.recipientId) {
-								recipient.push(transaction);
-							} else if (accountId === transaction.senderId) {
-								sender.push(transaction);
-							}
-						});
-						expect(sender).to.have.length(1);
-						expect(recipient).to.have.length(1);
-					});
-			});
-
-			it('using multiple senderIdOrRecipientId should fail', () => {
-				return transactionsEndpoint
-					.makeRequest(
-						{
-							senderIdOrRecipientId: [
-								accountFixtures.genesis.address,
-								accountFixtures.existingDelegate.address,
-							],
-						},
-						400
-					)
-					.then(res => {
-						expectSwaggerParamError(res, 'senderIdOrRecipientId');
+						expect(res.body.data[0].senderId).to.be.eql(accountId);
+						expect(res.body.data[1].recipientId).to.be.eql(accountId);
 					});
 			});
 		});
