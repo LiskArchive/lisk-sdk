@@ -23,7 +23,6 @@ const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
 const TIMEOUT = 2000;
-const INITIAL_PING_TIMEOUT = 8000;
 
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
@@ -49,8 +48,7 @@ const connectSteps = {
 			autoReconnect: false,
 			connectTimeout: TIMEOUT,
 			ackTimeout: TIMEOUT,
-			pingTimeout: INITIAL_PING_TIMEOUT,
-			connectAttempts: 1,
+			pingTimeoutDisabled: true,
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: System.getHeaders(),
