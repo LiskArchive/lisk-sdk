@@ -1,0 +1,84 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+import java.text.SimpleDateFormat
+
+properties([pipelineTriggers([cron('15 2 * * *')])])
+
+def dateFormat = new SimpleDateFormat("yyyyMMdd")
+def date = new Date()
+def timestamp = dateFormat.format(date)
+
+def generateSrcCodeRelease() {
+		sh """
+		npm install
+		node ./node_modules/.bin/grunt release
+		jq -r '.version' config.json > "/tmp/version"
+		"""
+	return readFile("/tmp/version").trim()
+}
+
+pipeline {
+	agent { 
+		node { 
+			label 'node-07'
+			customWorkspace "workspace/${URLDecoder.decode(JOB_NAME)}/${BUILD_NUMBER}"
+			}
+	}
+	stages {
+		stage('Generate release') {
+			steps {
+				script {
+					env.LISK_VERSION = generateSrcCodeRelease()
+				}
+			}
+		}
+		stage('Prepare build environment') {
+			steps {
+				dir('lisk-build') {
+					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "${env.BRANCH_NAME}"
+				}
+				sh """
+				cp release/lisk-${env.LISK_VERSION}.tgz lisk-build/src
+				"""
+			}
+		}
+		stage('Build release') {
+			steps {
+				dir('lisk-build') {
+					sh """
+					bash build.sh -n dev -v ${env.LISK_VERSION}
+					mv release/lisk-${env.LISK_VERSION}-Linux-x86_64.tar.gz release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
+					sha256sum release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz > release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
+					"""
+				}
+			}
+		}
+		stage('Upload nightly release.') {
+			steps {
+				dir('lisk-build') {
+					sh """
+					s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz s3:///lisk/nightly/lisk/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
+					s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256 s3:///lisk/nightly/lisk/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
+					"""
+				}
+			}
+		}
+	}
+	post {
+		always {
+			cleanWs()
+		}
+	}
+}
