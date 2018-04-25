@@ -45,9 +45,9 @@ const locale =
 
 const commonHeaders = {
 	'Content-Type': 'application/json',
-	'User-Agent': `LiskJS/1.0 (${os.platform()} ${os.release()}; ${os.arch()}${
+	'User-Agent': `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
-	})`,
+	}`,
 };
 
 export default class APIClient {
@@ -104,9 +104,14 @@ export default class APIClient {
 
 		const options = Object.assign({}, defaultOptions, providedOptions);
 
-		this.headers = options.nethash
-			? Object.assign({}, commonHeaders, { nethash: options.nethash })
-			: Object.assign({}, commonHeaders);
+		this.headers = Object.assign({}, commonHeaders);
+		if (options.nethash) this.headers.nethash = options.nethash;
+		if (options.client) {
+			this.headers['User-Agent'] = `${options.client.name}/${
+				options.client.version
+			} (${options.client.engine}) ${this.headers['User-Agent']}`;
+		}
+
 		this.nodes = nodes;
 		this.bannedNodes = [...(options.bannedNodes || [])];
 		this.currentNode = options.node || this.getNewNode();

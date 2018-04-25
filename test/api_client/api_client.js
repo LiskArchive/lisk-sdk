@@ -42,17 +42,23 @@ describe('APIClient module', () => {
 		process.env.LC_MESSAGES ||
 		process.env.LANG ||
 		process.env.LANGUAGE;
-	const userAgent = `LiskJS/1.0 (${os.platform()} ${os.release()}; ${os.arch()}${
+	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
-	})`;
+	}`;
+	const defaultUserAgent = `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${
+		platformInfo
+	}`;
+	const customUserAgent = `LiskHub/5.0 (+https://github.com/LiskHQ/lisk-hub) ${
+		defaultUserAgent
+	}`;
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
-		'User-Agent': userAgent,
+		'User-Agent': defaultUserAgent,
 	};
 
 	const customHeaders = {
 		'Content-Type': 'application/json',
-		'User-Agent': userAgent,
+		'User-Agent': customUserAgent,
 		nethash: testnetHash,
 	};
 
@@ -84,9 +90,23 @@ describe('APIClient module', () => {
 				.and.be.instanceof(APIClient);
 		});
 
-		it('should call initialize', () => {
+		it('should call initialize with the nodes and default options', () => {
 			apiClient = new APIClient(defaultNodes);
-			return expect(initializeStub).to.be.calledOnce;
+			return expect(initializeStub).to.be.calledWithExactly(defaultNodes, {});
+		});
+
+		it('should call initialize with the nodes and provided options', () => {
+			const providedOptions = {
+				headers: {
+					nethash:
+						'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+				},
+			};
+			apiClient = new APIClient(defaultNodes, providedOptions);
+			return expect(initializeStub).to.be.calledWithExactly(
+				defaultNodes,
+				providedOptions,
+			);
 		});
 	});
 
@@ -207,6 +227,11 @@ describe('APIClient module', () => {
 				apiClient = new APIClient(defaultNodes, {
 					version: customHeaders.version,
 					nethash: testnetHash,
+					client: {
+						name: 'LiskHub',
+						version: '5.0',
+						engine: '+https://github.com/LiskHQ/lisk-hub',
+					},
 				});
 				return expect(apiClient)
 					.to.have.property('headers')
