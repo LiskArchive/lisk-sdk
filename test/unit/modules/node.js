@@ -21,7 +21,7 @@ var application = require('../../common/application');
 
 describe('node', () => {
 	var testDelegate = genesisDelegates.delegates[0];
-	var defaultKey;
+	var defaultPassword;
 	var library;
 
 	before(done => {
@@ -97,7 +97,7 @@ describe('node', () => {
 
 		describe('toggleForgingStatus', () => {
 			before(done => {
-				defaultKey = library.config.forging.defaultKey;
+				defaultPassword = library.config.forging.defaultPassword;
 				done();
 			});
 
@@ -118,7 +118,7 @@ describe('node', () => {
 
 				node_module.internal.toggleForgingStatus(
 					invalidPublicKey,
-					defaultKey,
+					defaultPassword,
 					err => {
 						expect(err).equal(
 							'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
@@ -147,7 +147,7 @@ describe('node', () => {
 
 					node_module.internal.toggleForgingStatus(
 						testDelegate.publicKey,
-						defaultKey,
+						defaultPassword,
 						(err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.eql({
@@ -166,7 +166,7 @@ describe('node', () => {
 
 					node_module.internal.toggleForgingStatus(
 						testDelegate.publicKey,
-						defaultKey,
+						defaultPassword,
 						(err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.eql({
@@ -211,7 +211,7 @@ describe('node', () => {
 			it('should return delegate status when publicKey is provided and toggle forging from enabled to disabled', done => {
 				node_module.internal.toggleForgingStatus(
 					testDelegate.publicKey,
-					defaultKey,
+					defaultPassword,
 					(err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.eql({
