@@ -22,21 +22,35 @@ def generateSrcCodeRelease(directory) {
 	}
 	return readFile("/tmp/${directory}-version").trim()
 }
+
+def getBuildBranch(liskDirectory) {
+	if(fileExists("${env.WORKSPACE}/${liskDirectory}/genesisBlock.json")) {
+		return "master"
+	} else {
+		return "1.0.0"
+	}
+}
 pipeline {
 	agent { node { label "node-07" } }
 	stages {
 		stage("Prepare workspace") {
 			steps {
 				deleteDir()
-				dir("lisk-build") {
-					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "master"
-					sh "bash toolchains/install_linux.sh"
-				}
 				dir(params.MIGRATE_FROM) {
-					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
+					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_FROM
 				}
 				dir(params.MIGRATE_TO) {
 					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
+				}
+				script {
+					env.MIGRATE_FROM_BUILD_BRANCH = getBuildBranch(params.MIGRATE_FROM)
+					env.MIGRATE_TO_BUILD_BRANCH = getBuildBranch(params.MIGRATE_TO)
+				}
+				dir("lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}") {
+					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "${env.MIGRATE_FROM_BUILD_BRANCH}"
+				}
+				dir("lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}") {
+					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "${env.MIGRATE_TO_BUILD_BRANCH}"
 				}
 				sh """
 				dropdb lisk_test || true
@@ -69,8 +83,8 @@ pipeline {
 				stage('Create source binary release') {
 					steps {
 						sh """
-						cp "${env.MIGRATE_FROM_SRC}" "lisk-build/src/${params.MIGRATE_FROM}.tar.gz"
-						cd lisk-build
+						cp "${env.MIGRATE_FROM_SRC}" "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}/src/${params.MIGRATE_FROM}.tar.gz"
+						cd "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}"
 						bash build.sh -n dev -v "${params.MIGRATE_FROM}"
 						"""
 					}
@@ -78,8 +92,8 @@ pipeline {
 				stage('Create destination binary release') {
 					steps {
 						sh """
-						cp "${env.MIGRATE_TO_SRC}" "lisk-build/src/${params.MIGRATE_TO}.tar.gz"
-						cd lisk-build
+						cp "${env.MIGRATE_TO_SRC}" "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}/src/${params.MIGRATE_TO}.tar.gz"
+						cd "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}"
 						bash build.sh -n dev -v "${params.MIGRATE_TO}"
 						"""
 					}
