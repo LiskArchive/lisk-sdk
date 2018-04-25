@@ -39,12 +39,12 @@ describe('GET /api/transactions', () => {
 	var maxAmount = 100 * constants.normalizer; // 100 LSK
 	var transaction1 = lisk.transaction.transfer({
 		amount: maxAmount,
-		passphrase: accountFixtures.genesis.secret,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var transaction2 = lisk.transaction.transfer({
 		amount: minAmount,
-		passphrase: accountFixtures.genesis.secret,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 	});
 

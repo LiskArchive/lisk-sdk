@@ -23,7 +23,7 @@ const accounts = {};
 accounts.existingDelegate = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-	secret:
+	passphrase:
 		'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
 	balance: '0',
 	delegateName: 'genesis_100',
@@ -33,7 +33,7 @@ accounts.existingDelegate = {
 accounts.genesis = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	secret:
+	passphrase:
 		'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
 	balance: '10000000000000000',
 	encryptedSecret:

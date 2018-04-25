@@ -38,7 +38,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction2;
 			transaction = lisk.transaction.transfer({
 				amount: 1000 * constants.normalizer,
-				passphrase: accountFixtures.genesis.secret,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
 
@@ -53,7 +53,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 				before(done => {
 					transaction = lisk.transaction.transfer({
 						amount: 1000 * constants.normalizer,
-						passphrase: accountFixtures.genesis.secret,
+						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});
 					localCommon.addTransactionsAndForge(library, [transaction], done);

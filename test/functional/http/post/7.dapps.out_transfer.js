@@ -43,12 +43,12 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.secret,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
 			amount: constants.fees.dappRegistration,
-			passphrase: accountFixtures.genesis.secret,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var promises = [];

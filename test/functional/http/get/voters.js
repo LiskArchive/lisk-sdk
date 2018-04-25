@@ -245,7 +245,7 @@ describe('GET /api/voters', () => {
 						constants.fees.delegate +
 						constants.fees.vote +
 						constants.fees.secondSignature,
-					passphrase: accountFixtures.genesis.secret,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: validExtraDelegateVoter.address,
 				});
 

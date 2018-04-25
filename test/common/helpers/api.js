@@ -218,7 +218,7 @@ function sendSignature(signature, transaction, cb) {
 function creditAccount(address, amount, cb) {
 	var transaction = lisk.transaction.transfer({
 		amount,
-		passphrase: accountFixtures.genesis.secret,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: address,
 	});
 	sendTransactionPromise(transaction).then(cb);

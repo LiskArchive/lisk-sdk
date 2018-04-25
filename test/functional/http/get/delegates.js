@@ -104,7 +104,7 @@ describe('GET /delegates', () => {
 
 			var creditTransaction = lisk.transaction.transfer({
 				amount: constants.fees.secondSignature + constants.fees.delegate,
-				passphrase: accountFixtures.genesis.secret,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondSecretAccount.address,
 			});
 			var signatureTransaction = lisk.transaction.registerSecondPassphrase({

@@ -43,12 +43,12 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.secret,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
 			amount: constants.fees.dappRegistration,
-			passphrase: accountFixtures.genesis.secret,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var promises = [];
@@ -103,7 +103,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 				delete transaction.asset.inTransfer.dappId;
 
@@ -122,7 +122,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 				transaction.asset.inTransfer.dappId = 1;
 
@@ -141,7 +141,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 				transaction.asset.inTransfer.dappId = 1.2;
 
@@ -160,7 +160,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 				transaction.asset.inTransfer.dappId = [];
 
@@ -179,7 +179,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					Date.now(),
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 				transaction.asset.inTransfer.dappId = {};
 
@@ -217,7 +217,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					invalidDappId,
 					1,
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -237,7 +237,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					-1,
-					accountFixtures.genesis.secret
+					accountFixtures.genesis.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -288,7 +288,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = lisk.transfer.createInTransfer(
 				unknownDappId,
 				1,
-				accountFixtures.genesis.secret
+				accountFixtures.genesis.passphrase
 			);
 
 			return sendTransactionPromise(
@@ -325,7 +325,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = lisk.transfer.createInTransfer(
 				transactionsToWaitFor[0],
 				1,
-				accountFixtures.genesis.secret
+				accountFixtures.genesis.passphrase
 			);
 
 			return sendTransactionPromise(
@@ -343,7 +343,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = lisk.transfer.createInTransfer(
 				randomUtil.guestbookDapp.id,
 				10 * constants.normalizer,
-				accountFixtures.genesis.secret
+				accountFixtures.genesis.passphrase
 			);
 
 			return sendTransactionPromise(transaction).then(res => {
@@ -393,7 +393,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
 			transaction = lisk.transaction.transferIntoDapp({
-				passphrase: accountFixtures.genesis.secret,
+				passphrase: accountFixtures.genesis.passphrase,
 				amount: 10 * constants.normalizer,
 				dappId: randomUtil.guestbookDapp.id,
 			});

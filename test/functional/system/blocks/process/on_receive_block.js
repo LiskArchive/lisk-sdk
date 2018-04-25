@@ -264,7 +264,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					beforeEach(done => {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						var slot = slots.getSlotNumber();
-						var nonDelegateKeypair = getKeypair(accountFixtures.genesis.secret);
+						var nonDelegateKeypair = getKeypair(accountFixtures.genesis.passphrase);
 						block = createBlock(
 							[],
 							slots.getSlotTime(slot),

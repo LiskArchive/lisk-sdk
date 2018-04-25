@@ -523,7 +523,7 @@ describe('rounds', () => {
 				const transaction = elements.transaction.transfer({
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000),
-					passphrase: accountsFixtures.genesis.secret,
+					passphrase: accountsFixtures.genesis.passphrase,
 				});
 				transactions.push(transaction);
 				done();
@@ -542,7 +542,7 @@ describe('rounds', () => {
 					const transaction = elements.transaction.transfer({
 						recipientId: randomUtil.account().address,
 						amount: randomUtil.number(100000000, 1000000000),
-						passphrase: accountsFixtures.genesis.secret,
+						passphrase: accountsFixtures.genesis.passphrase,
 					});
 					transactions.push(transaction);
 				}
@@ -565,7 +565,7 @@ describe('rounds', () => {
 						const transaction = elements.transaction.transfer({
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountsFixtures.genesis.secret,
+							passphrase: accountsFixtures.genesis.passphrase,
 						});
 						transactions.push(transaction);
 					}
@@ -591,7 +591,7 @@ describe('rounds', () => {
 				const transaction = elements.transaction.transfer({
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000),
-					passphrase: accountsFixtures.genesis.secret,
+					passphrase: accountsFixtures.genesis.passphrase,
 				});
 				transactions.push(transaction);
 
@@ -735,7 +735,7 @@ describe('rounds', () => {
 
 					// Create unvote transaction
 					const transaction = elements.transaction.castVotes({
-						passphrase: accountsFixtures.genesis.secret,
+						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 					});
 					transactions.push(transaction);
@@ -868,7 +868,7 @@ describe('rounds', () => {
 					let transaction = elements.transaction.transfer({
 						recipientId: tmpAccount.address,
 						amount: 5000000000,
-						passphrase: accountsFixtures.genesis.secret,
+						passphrase: accountsFixtures.genesis.passphrase,
 					});
 					transactions.transfer.push(transaction);
 
@@ -880,7 +880,7 @@ describe('rounds', () => {
 					transactions.delegate.push(transaction);
 
 					transaction = elements.transaction.castVotes({
-						passphrase: accountsFixtures.genesis.secret,
+						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 						votes: [tmpAccount.publicKey],
 					});
@@ -1036,7 +1036,7 @@ describe('rounds', () => {
 							const transaction = elements.transaction.transfer({
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountsFixtures.genesis.secret,
+								passphrase: accountsFixtures.genesis.passphrase,
 							});
 							transactions.push(transaction);
 						}
@@ -1091,7 +1091,7 @@ describe('rounds', () => {
 							const transaction = elements.transaction.transfer({
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountsFixtures.genesis.secret,
+								passphrase: accountsFixtures.genesis.passphrase,
 							});
 							transactions.push(transaction);
 						}

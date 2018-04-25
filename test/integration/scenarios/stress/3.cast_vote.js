@@ -54,7 +54,7 @@ module.exports = function(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 500000000,
-							passphrase: accountFixtures.genesis.secret,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 						});
 						accounts.push(tmpAccount);

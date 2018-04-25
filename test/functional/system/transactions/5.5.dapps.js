@@ -27,7 +27,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.transfer({
 		amount: 1000 * constants.normalizer,
-		passphrase: accountFixtures.genesis.secret,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var dapp = randomUtil.application();

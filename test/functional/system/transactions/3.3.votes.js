@@ -41,7 +41,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 			account = randomUtil.account();
 			transaction = lisk.transaction.transfer({
 				amount: 1000 * constants.normalizer,
-				passphrase: accountFixtures.genesis.secret,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
 

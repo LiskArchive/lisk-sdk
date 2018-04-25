@@ -131,7 +131,7 @@ describe('node', () => {
 			it('should return error with non delegate account', done => {
 				node_module.internal.toggleForgingStatus(
 					accountFixtures.genesis.publicKey,
-					accountFixtures.genesis.secret,
+					accountFixtures.genesis.passphrase,
 					err => {
 						expect(err).equal(
 							'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
