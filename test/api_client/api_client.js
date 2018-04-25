@@ -45,11 +45,12 @@ describe('APIClient module', () => {
 	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	const defaultUserAgent = `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${
+	const baseUserAgent = `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${
 		platformInfo
 	}`;
+	const defaultUserAgent = `????/???? (????) ${baseUserAgent}`;
 	const customUserAgent = `LiskHub/5.0 (+https://github.com/LiskHQ/lisk-hub) ${
-		defaultUserAgent
+		baseUserAgent
 	}`;
 	const defaultHeaders = {
 		'Content-Type': 'application/json',

@@ -37,17 +37,25 @@ const defaultOptions = {
 	randomizeNode: true,
 };
 
-const locale =
-	process.env.LC_ALL ||
-	process.env.LC_MESSAGES ||
-	process.env.LANG ||
-	process.env.LANGUAGE;
-
 const commonHeaders = {
 	'Content-Type': 'application/json',
-	'User-Agent': `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${os.platform()} ${os.release()}; ${os.arch()}${
+};
+
+const getUserAgent = (
+	{ name = '????', version = '????', engine = '????' } = {},
+) => {
+	const liskJSInformation = 'LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js)';
+	const locale =
+		process.env.LC_ALL ||
+		process.env.LC_MESSAGES ||
+		process.env.LANG ||
+		process.env.LANGUAGE;
+	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
-	}`,
+	}`;
+	return `${name}/${version} (${engine}) ${liskJSInformation} ${
+		systemInformation
+	}`;
 };
 
 export default class APIClient {
@@ -104,13 +112,14 @@ export default class APIClient {
 
 		const options = Object.assign({}, defaultOptions, providedOptions);
 
-		this.headers = Object.assign({}, commonHeaders);
-		if (options.nethash) this.headers.nethash = options.nethash;
-		if (options.client) {
-			this.headers['User-Agent'] = `${options.client.name}/${
-				options.client.version
-			} (${options.client.engine}) ${this.headers['User-Agent']}`;
-		}
+		this.headers = Object.assign(
+			{},
+			commonHeaders,
+			options.nethash ? { nethash: options.nethash } : {},
+			{
+				'User-Agent': getUserAgent(options.client),
+			},
+		);
 
 		this.nodes = nodes;
 		this.bannedNodes = [...(options.bannedNodes || [])];
