@@ -76,17 +76,17 @@ describe('PUT /node/status/forging', () => {
 			});
 	});
 
-	it('using invalid key should fail', () => {
+	it('using invalid password should fail', () => {
 		var params = {
 			publicKey: validDelegate.publicKey,
-			password: 'invalid key',
+			password: 'invalid password',
 		};
 
 		return toggleForgingEndpoint
 			.makeRequest({ data: params }, 404)
 			.then(res => {
 				expect(res.body.message).to.contain(
-					'Invalid key and public key combination'
+					'Invalid password and public key combination'
 				);
 			});
 	});

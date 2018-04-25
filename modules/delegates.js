@@ -700,7 +700,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 				secretKey
 			);
 		} catch (e) {
-			return setImmediate(cb, 'Invalid key and public key combination');
+			return setImmediate(cb, 'Invalid password and public key combination');
 		}
 
 		keypair = library.ed.makeKeypair(
@@ -717,7 +717,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
-		return setImmediate(cb, 'Invalid key and public key combination');
+		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
 	if (__private.keypairs[keypair.publicKey.toString('hex')]) {

@@ -104,9 +104,9 @@ describe('node', () => {
 			it('should return error with invalid key', done => {
 				node_module.internal.toggleForgingStatus(
 					testDelegate.publicKey,
-					'Invalid key',
+					'Invalid password',
 					err => {
-						expect(err).to.equal('Invalid key and public key combination');
+						expect(err).to.equal('Invalid password and public key combination');
 						done();
 					}
 				);
