@@ -582,7 +582,7 @@ d.run(() => {
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
-						wsEngine: 'uws',
+						wsEngine: 'sc-uws',
 						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
