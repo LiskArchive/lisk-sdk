@@ -88,7 +88,7 @@ describe('node', () => {
 					} else {
 						cb(err, {
 							publicKey: testDelegate.publicKey,
-							key: testDelegate.password,
+							password: testDelegate.password,
 						});
 					}
 				}
@@ -101,7 +101,7 @@ describe('node', () => {
 				done();
 			});
 
-			it('should return error with invalid key', done => {
+			it('should return error with invalid password', done => {
 				node_module.internal.toggleForgingStatus(
 					testDelegate.publicKey,
 					'Invalid password',
