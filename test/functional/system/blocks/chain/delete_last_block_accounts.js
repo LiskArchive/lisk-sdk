@@ -50,7 +50,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				testAccount = randomUtil.account();
 				var sendTransaction = lisk.transaction.transfer({
 					amount: 100000000 * 100,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.secret,
 					recipientId: testAccount.address,
 				});
 				localCommon.addTransactionsAndForge(library, [sendTransaction], done);
@@ -570,7 +570,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 					var signature = lisk.transaction.utils.multiSignTransaction(
 						multisigTransaction,
-						accountFixtures.existingDelegate.password
+						accountFixtures.existingDelegate.secret
 					);
 					multisigTransaction.signatures = [signature];
 					multisigTransaction.ready = true;

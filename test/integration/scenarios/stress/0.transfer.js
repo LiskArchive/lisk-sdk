@@ -60,7 +60,7 @@ module.exports = function(params) {
 						) {
 							var transaction = lisk.transaction.transfer({
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.password,
+								passphrase: accountFixtures.genesis.secret,
 								recipientId: randomUtil.account().address,
 							});
 							transactions.push(transaction);
@@ -95,7 +95,7 @@ module.exports = function(params) {
 					_.range(maximum).map(() => {
 						var transaction = lisk.transaction.transfer({
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.secret,
 							recipientId: randomUtil.account().address,
 						});
 						transactions.push(transaction);

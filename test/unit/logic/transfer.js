@@ -35,7 +35,7 @@ var validKeypair = ed.makeKeypair(
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(accountFixtures.genesis.password, 'utf8')
+	.update(accountFixtures.genesis.secret, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 

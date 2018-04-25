@@ -50,7 +50,7 @@ function Multisig(options) {
 	});
 	this.creditTransaction = lisk.transaction.transfer({
 		amount: this.amount,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.secret,
 		recipientId: this.account.address,
 	});
 	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
