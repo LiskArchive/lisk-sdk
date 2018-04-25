@@ -76,7 +76,7 @@ class Delegates {
 				forging: {
 					secret: scope.config.forging.secret,
 					force: scope.config.forging.force,
-					defaultKey: scope.config.forging.defaultKey,
+					defaultPassword: scope.config.forging.defaultPassword,
 					access: {
 						whiteList: scope.config.forging.access.whiteList,
 					},
@@ -582,7 +582,7 @@ __private.loadDelegates = function(cb) {
 		!secretsList ||
 		!secretsList.length ||
 		!library.config.forging.force ||
-		!library.config.forging.defaultKey
+		!library.config.forging.defaultPassword
 	) {
 		return setImmediate(cb);
 	}
@@ -601,7 +601,7 @@ __private.loadDelegates = function(cb) {
 			try {
 				secret = __private.decryptSecret(
 					encryptedItem.encryptedSecret,
-					library.config.forging.defaultKey
+					library.config.forging.defaultPassword
 				);
 			} catch (error) {
 				return setImmediate(
