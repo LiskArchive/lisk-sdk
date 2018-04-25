@@ -544,7 +544,7 @@ d.run(() => {
 			db(cb) {
 				var db = require('./db');
 				db
-					.connect(config.db, dbLogger, logger)
+					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
 					.catch(cb);
 			},
