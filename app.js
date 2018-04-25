@@ -902,7 +902,10 @@ d.run(() => {
 		},
 		(err, scope) => {
 			// Receives a 'cleanup' signal and cleans all modules
-			process.once('cleanup', () => {
+			process.once('cleanup', error => {
+				if (error) {
+					scope.logger.fatal(error.toString());
+				}
 				scope.logger.info('Cleaning up...');
 				scope.socketCluster.destroy();
 				async.eachSeries(
