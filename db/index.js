@@ -75,32 +75,33 @@ module.exports.pgp = pgp;
  *
  * @function connect
  * @param {Object} config
- * @param {Object} dbLogger - logger for database log file
- * @param {Object} logger - logger for application
+ * @param {Object} logger - logger for database log file
  * @returns {Promise}
  * @todo Add description for the params and the return value
  */
-module.exports.connect = (config, dbLogger, logger) => {
+module.exports.connect = (config, logger) => {
 	if (monitor.isAttached()) {
 		monitor.detach();
 	}
 
-	monitor.attach(initOptions, config.logEvents);
+	const options = {
+		error: (error, e) => {
+			logger.error(error);
+
+			// e.cn corresponds to an object, which exists only when there is a connection related error.
+			// https://vitaly-t.github.io/pg-promise/global.html#event:error
+			if (e.cn) {
+				process.emit('cleanup', new Error('DB Connection Error'));
+			}
+		},
+		log: (msg, info) => {
+			logger.log(info.event, info.text);
+			info.display = false;
+		},
+	};
+
+	monitor.attach(Object.assign(initOptions, options), config.logEvents);
 	monitor.setTheme('matrix');
-
-	monitor.log = (msg, info) => {
-		dbLogger.log(info.event, info.text);
-		info.display = false;
-	};
-
-	initOptions.error = (error, e) => {
-		logger.error(error);
-		// e.cn corresponds to an object, which exists only when there is a connection related error.
-		// https://vitaly-t.github.io/pg-promise/global.html#event:error
-		if (e.cn) {
-			process.emit('cleanup');
-		}
-	};
 
 	config.user = config.user || process.env.USER;
 
