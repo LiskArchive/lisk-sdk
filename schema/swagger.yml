@@ -398,10 +398,10 @@ paths:
           schema:
             type: object
             required:
-              - decryptionKey
+              - password
               - publicKey
             properties:
-              decryptionKey:
+              password:
                 type: string
                 example: "happy tree friends"
                 minLength: 5
