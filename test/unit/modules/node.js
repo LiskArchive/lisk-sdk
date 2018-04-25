@@ -82,13 +82,13 @@ describe('node', () => {
 					) {
 						node_module.internal.toggleForgingStatus(
 							testDelegate.publicKey,
-							testDelegate.key,
+							testDelegate.password,
 							cb
 						);
 					} else {
 						cb(err, {
 							publicKey: testDelegate.publicKey,
-							key: testDelegate.key,
+							key: testDelegate.password,
 						});
 					}
 				}
