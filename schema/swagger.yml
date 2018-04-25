@@ -385,7 +385,7 @@ paths:
       summary: Toggles the forging status of a delegate
       operationId: updateForgingStatus
       description:
-        Upon passing the correct key and publicKey, forging will be enabled or disabled
+        Upon passing the correct password and publicKey, forging will be enabled or disabled
       produces:
         - application/json
       consumes:
@@ -393,7 +393,7 @@ paths:
       parameters:
         - in: body
           name: data
-          description: Secret key for the delegate account
+          description: Password for decrypting passphrase of delegate with corresponding public key
           required: true
           schema:
             type: object
