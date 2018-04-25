@@ -583,15 +583,14 @@ d.run(() => {
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
-						wsEngine: 'uws',
+						wsEngine: 'sc-uws',
 						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
 						secretKey: 'liskSecretKey',
-						pingInterval: 5000,
-						// How many milliseconds to wait without receiving a ping
-						// before closing the socket
-						pingTimeout: 60000,
+						// Because our node is constantly sending messages, we don't
+						// need to use the ping feature to detect bad connections.
+						pingTimeoutDisabled: true,
 						// Maximum amount of milliseconds to wait before force-killing
 						// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
 						processTermTimeout: 10000,
