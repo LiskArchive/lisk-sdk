@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import querystring from 'querystring';
 import bignum from 'browserify-bignum';
 import ed2curve from 'ed2curve';
 import hash from './hash';
@@ -69,29 +70,21 @@ export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 
 export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
 
-export const stringifyEncryptedPassphrase = ({
-	iterations,
-	salt,
-	cipherText,
-	iv,
-	tag,
-	version,
-}) => {
-	const iterationsString = iterations ? `iterations=${iterations}&` : '';
-	return `${iterationsString}salt=${salt}&cipherText=${cipherText}&iv=${
-		iv
-	}&tag=${tag}&version=${version}`;
+export const stringifyEncryptedPassphrase = encryptedPassphrase => {
+	const objectToStringify = encryptedPassphrase.iterations
+		? encryptedPassphrase
+		: {
+				salt: encryptedPassphrase.salt,
+				cipherText: encryptedPassphrase.cipherText,
+				iv: encryptedPassphrase.iv,
+				tag: encryptedPassphrase.tag,
+				version: encryptedPassphrase.version,
+			};
+	return querystring.stringify(objectToStringify);
 };
 
 export const parseEncryptedPassphrase = encryptedPassphrase => {
-	const keyValuePairs = encryptedPassphrase
-		.split('&')
-		.map(pair => pair.split('='))
-		.reduce(
-			(obj, [key, value]) => Object.assign({}, obj, { [key]: value }),
-			{},
-		);
-
+	const keyValuePairs = querystring.parse(encryptedPassphrase);
 	const { salt, cipherText, iv, tag, version } = keyValuePairs;
 	const iterations =
 		keyValuePairs.iterations !== undefined
