@@ -53,11 +53,13 @@ describe('APIClient module', () => {
 		baseUserAgent
 	}`;
 	const defaultHeaders = {
+		Accept: 'application/json',
 		'Content-Type': 'application/json',
 		'User-Agent': defaultUserAgent,
 	};
 
 	const customHeaders = {
+		Accept: 'application/json',
 		'Content-Type': 'application/json',
 		'User-Agent': customUserAgent,
 		nethash: testnetHash,
