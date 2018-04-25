@@ -136,7 +136,9 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 					it('adding to pool delegate registration from same account should fail', done => {
 						localCommon.addTransaction(library, transaction2, err => {
-							expect(err).to.equal('Account is already a delegate');
+							expect(err).to.equal(
+								`Transaction is already confirmed: ${transaction2.id}`
+							);
 							done();
 						});
 					});

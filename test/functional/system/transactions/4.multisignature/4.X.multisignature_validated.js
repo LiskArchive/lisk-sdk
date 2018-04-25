@@ -101,7 +101,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 				library,
 				scenarios.regular.multiSigTransaction,
 				err => {
-					expect(err).to.equal('Account already has multisignatures enabled');
+					expect(err).to.have.string('Transaction is already confirmed');
 					done();
 				}
 			);

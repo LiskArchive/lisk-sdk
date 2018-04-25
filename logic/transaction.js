@@ -409,277 +409,285 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	verify(transaction, sender, requester, cb, tx) {
-		let valid = false;
-		let err = null;
-
 		if (typeof requester === 'function') {
 			cb = requester;
 		}
 
-		// Check sender
-		if (!sender) {
-			return setImmediate(cb, 'Missing sender');
-		}
-
-		// Check transaction type
-		if (!__private.types[transaction.type]) {
-			return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
-		}
-
-		// Reject if transaction has requester public key
-		if (transaction.requesterPublicKey) {
-			return setImmediate(cb, 'Multisig request is not allowed');
-		}
-
-		// Check for missing sender second signature
-		if (
-			!transaction.requesterPublicKey &&
-			sender.secondSignature &&
-			!transaction.signSignature &&
-			transaction.blockId !== this.scope.genesisblock.block.id
-		) {
-			return setImmediate(cb, 'Missing sender second signature');
-		}
-
-		// If second signature provided, check if sender has one enabled
-		if (
-			!transaction.requesterPublicKey &&
-			!sender.secondSignature &&
-			(transaction.signSignature && transaction.signSignature.length > 0)
-		) {
-			return setImmediate(cb, 'Sender does not have a second signature');
-		}
-
-		// Check for missing requester second signature
-		if (
-			transaction.requesterPublicKey &&
-			requester.secondSignature &&
-			!transaction.signSignature
-		) {
-			return setImmediate(cb, 'Missing requester second signature');
-		}
-
-		// If second signature provided, check if requester has one enabled
-		if (
-			transaction.requesterPublicKey &&
-			!requester.secondSignature &&
-			(transaction.signSignature && transaction.signSignature.length > 0)
-		) {
-			return setImmediate(cb, 'Requester does not have a second signature');
-		}
-
-		// Check sender public key
-		if (sender.publicKey && sender.publicKey !== transaction.senderPublicKey) {
-			err = [
-				'Invalid sender public key:',
-				transaction.senderPublicKey,
-				'expected:',
-				sender.publicKey,
-			].join(' ');
-
-			if (exceptions.senderPublicKey.indexOf(transaction.id) > -1) {
-				this.scope.logger.error(err);
-				this.scope.logger.debug(JSON.stringify(transaction));
-			} else {
-				return setImmediate(cb, err);
+		// Check for already confirmed transaction
+		this.checkConfirmed(transaction, checkConfirmedErr => {
+			if (checkConfirmedErr) {
+				return setImmediate(cb, checkConfirmedErr);
 			}
-		}
+			let valid = false;
+			let err = null;
 
-		// Check sender is not genesis account unless block id equals genesis
-		if (
-			[
-				exceptions.genesisPublicKey.mainnet,
-				exceptions.genesisPublicKey.testnet,
-			].indexOf(sender.publicKey) !== -1 &&
-			transaction.blockId !== this.scope.genesisblock.block.id
-		) {
-			return setImmediate(
-				cb,
-				'Invalid sender. Can not send from genesis account'
-			);
-		}
+			// Check sender
+			if (!sender) {
+				return setImmediate(cb, 'Missing sender');
+			}
 
-		// Check sender address
-		if (
-			String(transaction.senderId).toUpperCase() !==
-			String(sender.address).toUpperCase()
-		) {
-			return setImmediate(cb, 'Invalid sender address');
-		}
+			// Check transaction type
+			if (!__private.types[transaction.type]) {
+				return setImmediate(cb, `Unknown transaction type ${transaction.type}`);
+			}
 
-		// Determine multisignatures from sender or transaction asset
-		const multisignatures = sender.multisignatures || [];
-		if (multisignatures.length === 0) {
+			// Reject if transaction has requester public key
+			if (transaction.requesterPublicKey) {
+				return setImmediate(cb, 'Multisig request is not allowed');
+			}
+
+			// Check for missing sender second signature
 			if (
-				transaction.asset &&
-				transaction.asset.multisignature &&
-				transaction.asset.multisignature.keysgroup
+				!transaction.requesterPublicKey &&
+				sender.secondSignature &&
+				!transaction.signSignature &&
+				transaction.blockId !== this.scope.genesisblock.block.id
 			) {
-				for (
-					let i = 0;
-					i < transaction.asset.multisignature.keysgroup.length;
-					i++
-				) {
-					const key = transaction.asset.multisignature.keysgroup[i];
+				return setImmediate(cb, 'Missing sender second signature');
+			}
 
-					if (!key || typeof key !== 'string') {
-						return setImmediate(cb, 'Invalid member in keysgroup');
-					}
+			// If second signature provided, check if sender has one enabled
+			if (
+				!transaction.requesterPublicKey &&
+				!sender.secondSignature &&
+				(transaction.signSignature && transaction.signSignature.length > 0)
+			) {
+				return setImmediate(cb, 'Sender does not have a second signature');
+			}
 
-					multisignatures.push(key.slice(1));
+			// Check for missing requester second signature
+			if (
+				transaction.requesterPublicKey &&
+				requester.secondSignature &&
+				!transaction.signSignature
+			) {
+				return setImmediate(cb, 'Missing requester second signature');
+			}
+
+			// If second signature provided, check if requester has one enabled
+			if (
+				transaction.requesterPublicKey &&
+				!requester.secondSignature &&
+				(transaction.signSignature && transaction.signSignature.length > 0)
+			) {
+				return setImmediate(cb, 'Requester does not have a second signature');
+			}
+
+			// Check sender public key
+			if (
+				sender.publicKey &&
+				sender.publicKey !== transaction.senderPublicKey
+			) {
+				err = [
+					'Invalid sender public key:',
+					transaction.senderPublicKey,
+					'expected:',
+					sender.publicKey,
+				].join(' ');
+
+				if (exceptions.senderPublicKey.indexOf(transaction.id) > -1) {
+					this.scope.logger.error(err);
+					this.scope.logger.debug(JSON.stringify(transaction));
+				} else {
+					return setImmediate(cb, err);
 				}
 			}
-		}
 
-		// Verify signature
-		try {
-			valid = false;
-			valid = this.verifySignature(
-				transaction,
-				transaction.requesterPublicKey || transaction.senderPublicKey,
-				transaction.signature
-			);
-		} catch (e) {
-			this.scope.logger.error(e.stack);
-			return setImmediate(cb, e.toString());
-		}
-
-		if (!valid) {
-			err = 'Failed to verify signature';
-
-			if (exceptions.signatures.indexOf(transaction.id) > -1) {
-				this.scope.logger.error(err);
-				this.scope.logger.debug(JSON.stringify(transaction));
-				valid = true;
-				err = null;
-			} else {
-				return setImmediate(cb, err);
+			// Check sender is not genesis account unless block id equals genesis
+			if (
+				[
+					exceptions.genesisPublicKey.mainnet,
+					exceptions.genesisPublicKey.testnet,
+				].indexOf(sender.publicKey) !== -1 &&
+				transaction.blockId !== this.scope.genesisblock.block.id
+			) {
+				return setImmediate(
+					cb,
+					'Invalid sender. Can not send from genesis account'
+				);
 			}
-		}
 
-		// Verify second signature
-		if (requester.secondSignature || sender.secondSignature) {
+			// Check sender address
+			if (
+				String(transaction.senderId).toUpperCase() !==
+				String(sender.address).toUpperCase()
+			) {
+				return setImmediate(cb, 'Invalid sender address');
+			}
+
+			// Determine multisignatures from sender or transaction asset
+			const multisignatures = sender.multisignatures || [];
+			if (multisignatures.length === 0) {
+				if (
+					transaction.asset &&
+					transaction.asset.multisignature &&
+					transaction.asset.multisignature.keysgroup
+				) {
+					for (
+						let i = 0;
+						i < transaction.asset.multisignature.keysgroup.length;
+						i++
+					) {
+						const key = transaction.asset.multisignature.keysgroup[i];
+
+						if (!key || typeof key !== 'string') {
+							return setImmediate(cb, 'Invalid member in keysgroup');
+						}
+
+						multisignatures.push(key.slice(1));
+					}
+				}
+			}
+
+			// Verify signature
 			try {
 				valid = false;
-				valid = this.verifySecondSignature(
+				valid = this.verifySignature(
 					transaction,
-					requester.secondPublicKey || sender.secondPublicKey,
-					transaction.signSignature
+					transaction.requesterPublicKey || transaction.senderPublicKey,
+					transaction.signature
 				);
 			} catch (e) {
+				this.scope.logger.error(e.stack);
 				return setImmediate(cb, e.toString());
 			}
 
 			if (!valid) {
-				return setImmediate(cb, 'Failed to verify second signature');
-			}
-		}
+				err = 'Failed to verify signature';
 
-		// Check that signatures are unique
-		if (transaction.signatures && transaction.signatures.length) {
-			const signatures = transaction.signatures.reduce((p, c) => {
-				if (p.indexOf(c) < 0) {
-					p.push(c);
+				if (exceptions.signatures.indexOf(transaction.id) > -1) {
+					this.scope.logger.error(err);
+					this.scope.logger.debug(JSON.stringify(transaction));
+					valid = true;
+					err = null;
+				} else {
+					return setImmediate(cb, err);
 				}
-				return p;
-			}, []);
-
-			if (signatures.length !== transaction.signatures.length) {
-				return setImmediate(
-					cb,
-					'Encountered duplicate signature in transaction'
-				);
 			}
-		}
 
-		// Verify multisignatures
-		if (transaction.signatures) {
-			for (let d = 0; d < transaction.signatures.length; d++) {
-				valid = false;
-
-				for (let s = 0; s < multisignatures.length; s++) {
-					if (
-						transaction.requesterPublicKey &&
-						multisignatures[s] === transaction.requesterPublicKey
-					) {
-						continue; // eslint-disable-line no-continue
-					}
-
-					if (
-						this.verifySignature(
-							transaction,
-							multisignatures[s],
-							transaction.signatures[d]
-						)
-					) {
-						valid = true;
-					}
+			// Verify second signature
+			if (requester.secondSignature || sender.secondSignature) {
+				try {
+					valid = false;
+					valid = this.verifySecondSignature(
+						transaction,
+						requester.secondPublicKey || sender.secondPublicKey,
+						transaction.signSignature
+					);
+				} catch (e) {
+					return setImmediate(cb, e.toString());
 				}
 
 				if (!valid) {
-					return setImmediate(cb, 'Failed to verify multisignature');
+					return setImmediate(cb, 'Failed to verify second signature');
 				}
 			}
-		}
 
-		// Calculate fee
-		const fee =
-			__private.types[transaction.type].calculateFee.call(
-				this,
+			// Check that signatures are unique
+			if (transaction.signatures && transaction.signatures.length) {
+				const signatures = transaction.signatures.reduce((p, c) => {
+					if (p.indexOf(c) < 0) {
+						p.push(c);
+					}
+					return p;
+				}, []);
+
+				if (signatures.length !== transaction.signatures.length) {
+					return setImmediate(
+						cb,
+						'Encountered duplicate signature in transaction'
+					);
+				}
+			}
+
+			// Verify multisignatures
+			if (transaction.signatures) {
+				for (let d = 0; d < transaction.signatures.length; d++) {
+					valid = false;
+
+					for (let s = 0; s < multisignatures.length; s++) {
+						if (
+							transaction.requesterPublicKey &&
+							multisignatures[s] === transaction.requesterPublicKey
+						) {
+							continue; // eslint-disable-line no-continue
+						}
+
+						if (
+							this.verifySignature(
+								transaction,
+								multisignatures[s],
+								transaction.signatures[d]
+							)
+						) {
+							valid = true;
+						}
+					}
+
+					if (!valid) {
+						return setImmediate(cb, 'Failed to verify multisignature');
+					}
+				}
+			}
+
+			// Calculate fee
+			const fee =
+				__private.types[transaction.type].calculateFee.call(
+					this,
+					transaction,
+					sender
+				) || false;
+			if (!fee || transaction.fee !== fee) {
+				return setImmediate(cb, 'Invalid transaction fee');
+			}
+
+			// Check amount
+			if (
+				transaction.amount < 0 ||
+				transaction.amount > constants.totalAmount ||
+				String(transaction.amount).indexOf('.') >= 0 ||
+				transaction.amount.toString().indexOf('e') >= 0
+			) {
+				return setImmediate(cb, 'Invalid transaction amount');
+			}
+
+			// Check confirmed sender balance
+			const amount = new bignum(transaction.amount.toString()).plus(
+				transaction.fee.toString()
+			);
+			const senderBalance = this.checkBalance(
+				amount,
+				'balance',
 				transaction,
 				sender
-			) || false;
-		if (!fee || transaction.fee !== fee) {
-			return setImmediate(cb, 'Invalid transaction fee');
-		}
-
-		// Check amount
-		if (
-			transaction.amount < 0 ||
-			transaction.amount > constants.totalAmount ||
-			String(transaction.amount).indexOf('.') >= 0 ||
-			transaction.amount.toString().indexOf('e') >= 0
-		) {
-			return setImmediate(cb, 'Invalid transaction amount');
-		}
-
-		// Check confirmed sender balance
-		const amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
-		const senderBalance = this.checkBalance(
-			amount,
-			'balance',
-			transaction,
-			sender
-		);
-
-		if (senderBalance.exceeded) {
-			return setImmediate(cb, senderBalance.error);
-		}
-
-		// Check timestamp
-		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
-			return setImmediate(
-				cb,
-				'Invalid transaction timestamp. Timestamp is in the future'
 			);
-		}
 
-		// Call verify on transaction type
-		__private.types[transaction.type].verify.call(
-			this,
-			transaction,
-			sender,
-			err => {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				// Check for already confirmed transaction
-				return this.checkConfirmed(transaction, cb);
-			},
-			tx
-		);
+			if (senderBalance.exceeded) {
+				return setImmediate(cb, senderBalance.error);
+			}
+
+			// Check timestamp
+			if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
+				return setImmediate(
+					cb,
+					'Invalid transaction timestamp. Timestamp is in the future'
+				);
+			}
+
+			// Call verify on transaction type
+			__private.types[transaction.type].verify.call(
+				this,
+				transaction,
+				sender,
+				err => {
+					if (err) {
+						return setImmediate(cb, err);
+					}
+					return setImmediate(cb);
+				},
+				tx
+			);
+		});
 	}
 
 	/**
