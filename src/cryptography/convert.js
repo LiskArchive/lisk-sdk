@@ -71,6 +71,9 @@ export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
 
 export const stringifyEncryptedPassphrase = encryptedPassphrase => {
+	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
+		throw new Error('Encrypted passphrase to stringify must be an object.');
+	}
 	const objectToStringify = encryptedPassphrase.iterations
 		? encryptedPassphrase
 		: {
@@ -84,6 +87,9 @@ export const stringifyEncryptedPassphrase = encryptedPassphrase => {
 };
 
 export const parseEncryptedPassphrase = encryptedPassphrase => {
+	if (typeof encryptedPassphrase !== 'string') {
+		throw new Error('Encrypted passphrase to parse must be a string.');
+	}
 	const keyValuePairs = querystring.parse(encryptedPassphrase);
 	const { salt, cipherText, iv, tag, version } = keyValuePairs;
 	const iterations =
