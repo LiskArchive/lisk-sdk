@@ -167,9 +167,10 @@ if (
 ) {
 	dbLogger = logger;
 } else {
+	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
 	dbLogger = new Logger({
-		echo: process.env.DB_LOG_LEVEL || appConfig.db.consoleLogLevel,
-		errorLevel: process.env.FILE_LOG_LEVEL || appConfig.db.fileLogLevel,
+		echo: process.env.DB_LOG_LEVEL || 'log',
+		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
 	});
 }
@@ -301,85 +302,6 @@ d.run(() => {
 						io,
 						https,
 						https_io,
-					});
-				},
-			],
-
-			webSocket: [
-				'config',
-				'connect',
-				'logger',
-				'network',
-				/**
-				 * Description of the function.
-				 *
-				 * @func webSocket[4]
-				 * @memberof! app
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
-				 * @todo Add description for the function and its params
-				 */
-				function(scope, cb) {
-					var webSocketConfig = {
-						workers: scope.config.wsWorkers,
-						port: scope.config.wsPort,
-						wsEngine: 'uws',
-						appName: 'lisk',
-						workerController: workersControllerPath,
-						perMessageDeflate: false,
-						secretKey: 'liskSecretKey',
-						pingInterval: 5000,
-						// How many milliseconds to wait without receiving a ping
-						// before closing the socket
-						pingTimeout: 60000,
-						// Maximum amount of milliseconds to wait before force-killing
-						// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
-						processTermTimeout: 10000,
-						logLevel: 0,
-					};
-
-					if (scope.config.ssl.enabled) {
-						extend(webSocketConfig, {
-							protocol: 'https',
-							protocolOptions: {
-								key: fs.readFileSync(scope.config.ssl.options.key),
-								cert: fs.readFileSync(scope.config.ssl.options.cert),
-								ciphers:
-									'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA',
-							},
-						});
-					}
-
-					var childProcessOptions = {
-						version: scope.config.version,
-						minVersion: scope.config.minVersion,
-						nethash: scope.config.nethash,
-						port: scope.config.wsPort,
-						nonce: scope.config.nonce,
-					};
-
-					scope.socketCluster = new SocketCluster(webSocketConfig);
-					var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-					scope.network.app.rpc = wsRPC.setServer(
-						new MasterWAMPServer(scope.socketCluster, childProcessOptions)
-					);
-
-					scope.socketCluster.on('ready', () => {
-						scope.logger.info('Socket Cluster ready for incoming connections');
-						cb();
-					});
-
-					// The 'fail' event aggregates errors from all SocketCluster processes.
-					scope.socketCluster.on('fail', err => {
-						scope.logger.error(err);
-					});
-
-					scope.socketCluster.on('workerExit', workerInfo => {
-						var exitMessage = `Worker with pid ${workerInfo.pid} exited`;
-						if (workerInfo.signal) {
-							exitMessage += ` due to signal: '${workerInfo.signal}'`;
-						}
-						scope.logger.error(exitMessage);
 					});
 				},
 			],
@@ -624,7 +546,7 @@ d.run(() => {
 				db
 					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
-					.catch(err => cb(err));
+					.catch(cb);
 			},
 
 			/**
@@ -641,6 +563,85 @@ d.run(() => {
 				);
 				cache.connect(config.cacheEnabled, config.cache, logger, cb);
 			},
+
+			webSocket: [
+				'config',
+				'connect',
+				'logger',
+				'network',
+				'db',
+				/**
+				 * Description of the function.
+				 *
+				 * @func webSocket[5]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
+				function(scope, cb) {
+					var webSocketConfig = {
+						workers: scope.config.wsWorkers,
+						port: scope.config.wsPort,
+						wsEngine: 'sc-uws',
+						appName: 'lisk',
+						workerController: workersControllerPath,
+						perMessageDeflate: false,
+						secretKey: 'liskSecretKey',
+						// Because our node is constantly sending messages, we don't
+						// need to use the ping feature to detect bad connections.
+						pingTimeoutDisabled: true,
+						// Maximum amount of milliseconds to wait before force-killing
+						// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
+						processTermTimeout: 10000,
+						logLevel: 0,
+					};
+
+					if (scope.config.ssl.enabled) {
+						extend(webSocketConfig, {
+							protocol: 'https',
+							protocolOptions: {
+								key: fs.readFileSync(scope.config.ssl.options.key),
+								cert: fs.readFileSync(scope.config.ssl.options.cert),
+								ciphers:
+									'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA',
+							},
+						});
+					}
+
+					var childProcessOptions = {
+						version: scope.config.version,
+						minVersion: scope.config.minVersion,
+						nethash: scope.config.nethash,
+						port: scope.config.wsPort,
+						nonce: scope.config.nonce,
+					};
+
+					scope.socketCluster = new SocketCluster(webSocketConfig);
+					var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+					scope.network.app.rpc = wsRPC.setServer(
+						new MasterWAMPServer(scope.socketCluster, childProcessOptions)
+					);
+
+					scope.socketCluster.on('ready', () => {
+						scope.logger.info('Socket Cluster ready for incoming connections');
+						cb();
+					});
+
+					// The 'fail' event aggregates errors from all SocketCluster processes.
+					scope.socketCluster.on('fail', err => {
+						scope.logger.error(err);
+					});
+
+					scope.socketCluster.on('workerExit', workerInfo => {
+						var exitMessage = `Worker with pid ${workerInfo.pid} exited`;
+						if (workerInfo.signal) {
+							exitMessage += ` due to signal: '${workerInfo.signal}'`;
+						}
+						scope.logger.error(exitMessage);
+					});
+				},
+			],
 
 			logic: [
 				'db',
@@ -932,17 +933,23 @@ d.run(() => {
 					);
 				});
 
-				process.once('SIGTERM', () => {
-					process.emit('cleanup');
-				});
+			process.once('SIGTERM', () => {
+				process.emit('cleanup');
+			});
 
-				process.once('exit', () => {
-					process.emit('cleanup');
-				});
+			process.once('exit', () => {
+				process.emit('cleanup');
+			});
 
-				process.once('SIGINT', () => {
-					process.emit('cleanup');
-				});
+			process.once('SIGINT', () => {
+				process.emit('cleanup');
+			});
+
+			if (err) {
+				logger.fatal(err);
+				process.emit('cleanup');
+			} else {
+				scope.logger.info('Modules ready and launched');
 			}
 		}
 	);

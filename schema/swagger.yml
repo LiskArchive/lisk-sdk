@@ -859,6 +859,7 @@ paths:
         - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/senderIdOrRecipientId'
         - $ref: '#/parameters/transactionType'
         - $ref: '#/parameters/height'
         - $ref: '#/parameters/minAmount'
@@ -1086,6 +1087,14 @@ parameters:
     type: string
     format: publicKey
     minLength: 1
+  senderIdOrRecipientId:
+    name: senderIdOrRecipientId
+    in: query
+    description: Sender Id or Recipient Id to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
   transactionType:
     name: type
     in: query

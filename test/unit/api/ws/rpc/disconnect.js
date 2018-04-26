@@ -20,6 +20,7 @@ const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
 
 describe('disconnect', () => {
 	let validPeer;
+	let socket;
 
 	beforeEach('provide non-mutated peer each time', done => {
 		validPeer = Object.assign({}, prefixedPeer);
@@ -30,17 +31,21 @@ describe('disconnect', () => {
 		return expect(disconnect(validPeer)).equal(validPeer);
 	});
 
-	describe('when peer contains socket with destroy function', () => {
+	describe('when peer contains socket with disconnect function', () => {
 		beforeEach(done => {
-			validPeer.socket = {
+			socket = {
+				disconnect: sinon.spy(),
 				destroy: sinon.spy(),
 			};
+			validPeer.socket = socket;
 			done();
 		});
 
 		it('should call peer.socket.disconnect', () => {
 			disconnect(validPeer);
-			return expect(validPeer.socket.destroy).calledOnce;
+			// The socket should be deleted.
+			expect(validPeer.socket, undefined);
+			return expect(socket.disconnect).calledOnce;
 		});
 	});
 });
