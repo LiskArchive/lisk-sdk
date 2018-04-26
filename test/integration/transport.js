@@ -194,7 +194,9 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.stress.register_delegate(params);
 						scenarios.stress.cast_vote(params);
 
-						it('there should exactly 180 established connections from 500[0-9] ports', done => {
+						// Have to skip due to issue https://github.com/LiskHQ/lisk/issues/1954
+						// eslint-disable-next-line mocha/no-skipped-tests
+						it.skip('there should exactly 180 established connections from 500[0-9] ports', done => {
 							// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 							var expectedOutgoingConnections =
 								(totalPeers - 1) * totalPeers * 2;
