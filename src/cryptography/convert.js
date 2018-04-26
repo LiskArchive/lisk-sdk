@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import querystring from 'querystring';
 import bignum from 'browserify-bignum';
 import ed2curve from 'ed2curve';
 import hash from './hash';
@@ -68,3 +69,40 @@ export const getAddressFromPublicKey = publicKey => {
 export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 
 export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
+
+export const stringifyEncryptedPassphrase = encryptedPassphrase => {
+	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
+		throw new Error('Encrypted passphrase to stringify must be an object.');
+	}
+	const objectToStringify = encryptedPassphrase.iterations
+		? encryptedPassphrase
+		: {
+				salt: encryptedPassphrase.salt,
+				cipherText: encryptedPassphrase.cipherText,
+				iv: encryptedPassphrase.iv,
+				tag: encryptedPassphrase.tag,
+				version: encryptedPassphrase.version,
+			};
+	return querystring.stringify(objectToStringify);
+};
+
+export const parseEncryptedPassphrase = encryptedPassphrase => {
+	if (typeof encryptedPassphrase !== 'string') {
+		throw new Error('Encrypted passphrase to parse must be a string.');
+	}
+	const keyValuePairs = querystring.parse(encryptedPassphrase);
+	const { salt, cipherText, iv, tag, version } = keyValuePairs;
+	const iterations =
+		keyValuePairs.iterations !== undefined
+			? parseInt(keyValuePairs.iterations, 10)
+			: null;
+
+	return {
+		iterations,
+		salt,
+		cipherText,
+		iv,
+		tag,
+		version,
+	};
+};
