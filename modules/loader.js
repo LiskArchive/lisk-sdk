@@ -512,8 +512,6 @@ __private.loadBlockChain = function() {
 				if (count === 1 || count % constants.activeDelegates > 0) {
 					library.config.loading.snapshot = round > 1 ? round - 1 : 1;
 				}
-
-				modules.rounds.setSnapshotRound(library.config.loading.snapshot);
 			}
 
 			library.logger.info(
