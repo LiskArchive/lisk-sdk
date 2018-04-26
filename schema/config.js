@@ -307,7 +307,7 @@ module.exports = {
 						maximum: 5000,
 					},
 				},
-				required: ['verifyOnLoading', 'loadPerIteration'],
+				required: ['loadPerIteration'],
 			},
 			ssl: {
 				type: 'object',

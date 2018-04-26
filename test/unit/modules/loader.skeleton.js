@@ -43,8 +43,6 @@ describe('loader', () => {
 			});
 
 			describe('config', () => {
-				it('should assign config.loading.verifyOnLoading');
-
 				it('should assign config.loading.snapshot');
 			});
 		});
