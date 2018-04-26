@@ -27,8 +27,9 @@ module.exports = {
 	}),
 	getOpenConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n | wc -l
+		// tail -n +2 to strip the headers of lsof so we can count the rows
 		childProcess.exec(
-			`lsof ${ports.map(p => `-i :${p}`).join(' ')} -P -n | wc -l`,
+			`lsof ${ports.map(p => `-i :${p}`).join(' ')} -P -n | tail -n +2 | wc -l`,
 			(err, stdout) => {
 				cb(err, parseInt(stdout.toString().trim()));
 			}
@@ -36,11 +37,11 @@ module.exports = {
 	},
 	getListeningConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:LISTEN -t | wc -l
-		// -t to strip the headers of lsof so we can count the rows
+		// tail -n +2 to strip the headers of lsof so we can count the rows
 		childProcess.exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:LISTEN -t | wc -l`,
+				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`,
 			(err, stdout) => {
 				cb(err, parseInt(stdout.toString().trim()));
 			}
@@ -48,11 +49,11 @@ module.exports = {
 	},
 	getEstablishedConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:ESTABLISHED  -t | wc -l
-		// -t to strip the headers of lsof so we can count the rows
+		// tail -n +2 to strip the headers of lsof so we can count the rows
 		childProcess.exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:ESTABLISHED -t | wc -l`,
+				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`,
 			(err, stdout) => {
 				cb(err, parseInt(stdout.toString().trim()));
 			}
