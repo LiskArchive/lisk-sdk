@@ -788,15 +788,37 @@ d.run(() => {
 				},
 			],
 
-			api: [
+			ready: [
+				'swagger',
 				'modules',
-				'logger',
-				'network',
-				'webSocket',
+				'bus',
+				'logic',
 				/**
 				 * Description of the function.
 				 *
-				 * @func api[4]
+				 * @func ready[4]
+				 * @memberof! app
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 * @todo Add description for the function and its params
+				 */
+				function(scope, cb) {
+					scope.modules.swagger = scope.swagger;
+
+					// Fire onBind event in every module
+					scope.bus.message('bind', scope.modules);
+
+					scope.logic.peers.bindModules(scope.modules);
+					cb();
+				},
+			],
+
+			wsListen: [
+				'ready',
+				/**
+				 * Description of the function.
+				 *
+				 * @func api[1]
 				 * @param {Object} scope
 				 * @param {function} cb - Callback function
 				 */
@@ -829,32 +851,7 @@ d.run(() => {
 				},
 			],
 
-			ready: [
-				'swagger',
-				'modules',
-				'bus',
-				'logic',
-				/**
-				 * Description of the function.
-				 *
-				 * @func ready[4]
-				 * @memberof! app
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
-				 * @todo Add description for the function and its params
-				 */
-				function(scope, cb) {
-					scope.modules.swagger = scope.swagger;
-
-					// Fire onBind event in every module
-					scope.bus.message('bind', scope.modules);
-
-					scope.logic.peers.bindModules(scope.modules);
-					cb();
-				},
-			],
-
-			listen: [
+			httplisten: [
 				'ready',
 				/**
 				 * Description of the function.
