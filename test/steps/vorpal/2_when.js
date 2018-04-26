@@ -126,19 +126,8 @@ export function theActionIsCalledWithTheDelegateUsernameAndTheOptions() {
 	return returnValue.catch(e => e);
 }
 
-export function theActionIsCalledWithTheIVAndTheOptions() {
-	const { action, cipherAndIv: { iv }, options } = this.test.ctx;
-	const returnValue = action({ iv, options });
-	this.test.ctx.returnValue = returnValue;
-	return returnValue.catch(e => e);
-}
-
 export function theActionIsCalledWithTheEncryptedPassphraseAndTheOptions() {
-	const {
-		action,
-		encryptedPassphrase,
-		options,
-	} = this.test.ctx;
+	const { action, encryptedPassphrase, options } = this.test.ctx;
 
 	const returnValue = action({ encryptedPassphrase, options });
 	this.test.ctx.returnValue = returnValue;

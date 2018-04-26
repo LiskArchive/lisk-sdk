@@ -128,16 +128,15 @@ export function anErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
 }
 
 export function noErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
-	const { cryptography, cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+	const { cryptography, encryptedPassphrase, password } = this.test.ctx;
 	this.test.ctx.returnValue = cryptography.decryptPassphrase({
-		cipher,
-		iv,
+		encryptedPassphrase,
 		password,
 	});
 }
 
 export function anErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
-	const { cryptography, cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+	const { cryptography, encryptedPassphrase, password } = this.test.ctx;
 
 	lisk.cryptography.decryptPassphraseWithPassword.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
@@ -145,8 +144,7 @@ export function anErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptography.decryptPassphrase({
-		cipher,
-		iv,
+		encryptedPassphrase,
 		password,
 	});
 }
