@@ -29,6 +29,8 @@ let self;
 const __private = {};
 let definitions;
 
+const peerDiscoveryFrequency = 30000;
+
 /**
  * Main peers methods. Initializes library with scope content.
  *
@@ -851,8 +853,12 @@ Peers.prototype.onPeersReady = function() {
 			() => setImmediate(cb)
 		);
 	}
-	// Loop in 10 sec intervals (5 sec + 5 sec connection timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
+	// Loop in 30 sec intervals for less new insertion after removal
+	jobsQueue.register(
+		'peersDiscoveryAndUpdate',
+		peersDiscoveryAndUpdate,
+		peerDiscoveryFrequency
+	);
 };
 
 /**
