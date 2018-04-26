@@ -33,18 +33,20 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 		- --passphrase stdin (takes the first line only)
 `;
 
-const processInputs = (iv, passphrase) => ({ password, data }) =>
+const processInputs = encryptedPassphrase => ({ password, data }) =>
 	cryptography.decryptPassphrase({
-		cipher: passphrase || getFirstLineFromString(data),
-		iv,
+		encryptedPassphrase: encryptedPassphrase || getFirstLineFromString(data),
 		password,
 	});
 
-export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
+export const actionCreator = vorpal => async ({
+	encryptedPassphrase,
+	options,
+}) => {
 	const passphraseSource = options.passphrase;
 	const passwordSource = options.password;
 
-	if (!passphrase && !passphraseSource) {
+	if (!encryptedPassphrase && !passphraseSource) {
 		throw new ValidationError('No encrypted passphrase was provided.');
 	}
 
@@ -52,16 +54,16 @@ export const actionCreator = vorpal => async ({ iv, passphrase, options }) => {
 		password: {
 			source: passwordSource,
 		},
-		data: passphrase
+		data: encryptedPassphrase
 			? null
 			: {
 					source: passphraseSource,
 				},
-	}).then(processInputs(iv, passphrase));
+	}).then(processInputs(encryptedPassphrase));
 };
 
 const decryptPassphrase = createCommand({
-	command: 'decrypt passphrase <iv> [passphrase]',
+	command: 'decrypt passphrase [encryptedPassphrase]',
 	description,
 	actionCreator,
 	options: [
