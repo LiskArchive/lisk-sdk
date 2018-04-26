@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import APIClient from 'api_client/api_client';
 
 describe('APIClient module', () => {
@@ -36,14 +37,31 @@ describe('APIClient module', () => {
 		'http://94.237.42.109:5000',
 		'http://83.136.252.99:5000',
 	];
+	const locale =
+		process.env.LC_ALL ||
+		process.env.LC_MESSAGES ||
+		process.env.LANG ||
+		process.env.LANGUAGE;
+	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
+		locale ? `; ${locale}` : ''
+	}`;
+	const baseUserAgent = `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${
+		platformInfo
+	}`;
+	const defaultUserAgent = `????/???? (????) ${baseUserAgent}`;
+	const customUserAgent = `LiskHub/5.0 (+https://github.com/LiskHQ/lisk-hub) ${
+		baseUserAgent
+	}`;
 	const defaultHeaders = {
+		Accept: 'application/json',
 		'Content-Type': 'application/json',
-		os: 'lisk-js-api',
+		'User-Agent': defaultUserAgent,
 	};
 
 	const customHeaders = {
+		Accept: 'application/json',
 		'Content-Type': 'application/json',
-		os: 'lisk-js-api',
+		'User-Agent': customUserAgent,
 		nethash: testnetHash,
 	};
 
@@ -75,9 +93,23 @@ describe('APIClient module', () => {
 				.and.be.instanceof(APIClient);
 		});
 
-		it('should call initialize', () => {
+		it('should call initialize with the nodes and default options', () => {
 			apiClient = new APIClient(defaultNodes);
-			return expect(initializeStub).to.be.calledOnce;
+			return expect(initializeStub).to.be.calledWithExactly(defaultNodes, {});
+		});
+
+		it('should call initialize with the nodes and provided options', () => {
+			const providedOptions = {
+				headers: {
+					nethash:
+						'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+				},
+			};
+			apiClient = new APIClient(defaultNodes, providedOptions);
+			return expect(initializeStub).to.be.calledWithExactly(
+				defaultNodes,
+				providedOptions,
+			);
 		});
 	});
 
@@ -198,6 +230,11 @@ describe('APIClient module', () => {
 				apiClient = new APIClient(defaultNodes, {
 					version: customHeaders.version,
 					nethash: testnetHash,
+					client: {
+						name: 'LiskHub',
+						version: '5.0',
+						engine: '+https://github.com/LiskHQ/lisk-hub',
+					},
 				});
 				return expect(apiClient)
 					.to.have.property('headers')
