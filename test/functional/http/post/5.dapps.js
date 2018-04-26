@@ -710,4 +710,17 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
+
+	describe('verification', () => {
+		it('sending already confirmed multisignature transaction should fail', () => {
+			return sendTransactionPromise(
+				goodTransactions[0],
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Transaction is already confirmed: ${goodTransactions[0].id}`
+				);
+			});
+		});
+	});
 });
