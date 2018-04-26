@@ -62,16 +62,25 @@ class Crypto {
 	}
 
 	encryptPassphrase({ passphrase, password }) {
-		return this.liskCrypto.encryptPassphraseWithPassword(passphrase, password);
+		const encryptedPassphraseObject = this.liskCrypto.encryptPassphraseWithPassword(
+			passphrase,
+			password,
+		);
+		const encryptedPassphrase = this.liskCrypto.stringifyEncryptedPassphrase(
+			encryptedPassphraseObject,
+		);
+		return { encryptedPassphrase };
 	}
 
-	decryptPassphrase({ cipher, iv, password }) {
-		return {
-			passphrase: this.liskCrypto.decryptPassphraseWithPassword(
-				{ cipher, iv },
-				password,
-			),
-		};
+	decryptPassphrase({ encryptedPassphrase, password }) {
+		const encryptedPassphraseObject = this.liskCrypto.parseEncryptedPassphrase(
+			encryptedPassphrase,
+		);
+		const passphrase = this.liskCrypto.decryptPassphraseWithPassword(
+			encryptedPassphraseObject,
+			password,
+		);
+		return { passphrase };
 	}
 
 	getKeys(passphrase) {
