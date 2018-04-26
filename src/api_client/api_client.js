@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import os from 'os';
 import {
 	MAINNET_NETHASH,
 	TESTNET_NETHASH,
@@ -37,8 +38,25 @@ const defaultOptions = {
 };
 
 const commonHeaders = {
+	Accept: 'application/json',
 	'Content-Type': 'application/json',
-	os: 'lisk-js-api',
+};
+
+const getUserAgent = (
+	{ name = '????', version = '????', engine = '????' } = {},
+) => {
+	const liskJSInformation = 'LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js)';
+	const locale =
+		process.env.LC_ALL ||
+		process.env.LC_MESSAGES ||
+		process.env.LANG ||
+		process.env.LANGUAGE;
+	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
+		locale ? `; ${locale}` : ''
+	}`;
+	return `${name}/${version} (${engine}) ${liskJSInformation} ${
+		systemInformation
+	}`;
 };
 
 export default class APIClient {
@@ -95,9 +113,15 @@ export default class APIClient {
 
 		const options = Object.assign({}, defaultOptions, providedOptions);
 
-		this.headers = options.nethash
-			? Object.assign({}, commonHeaders, { nethash: options.nethash })
-			: Object.assign({}, commonHeaders);
+		this.headers = Object.assign(
+			{},
+			commonHeaders,
+			options.nethash ? { nethash: options.nethash } : {},
+			{
+				'User-Agent': getUserAgent(options.client),
+			},
+		);
+
 		this.nodes = nodes;
 		this.bannedNodes = [...(options.bannedNodes || [])];
 		this.currentNode = options.node || this.getNewNode();
