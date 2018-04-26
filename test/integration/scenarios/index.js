@@ -21,10 +21,15 @@ module.exports = {
 	propagation: {
 		blocks: require('./propagation/blocks'),
 		transactions: require('./propagation/transactions'),
+		multisignature: require('./propagation/rpc/transactions/multisignature'),
 	},
 	stress: {
 		transfer: require('./stress/0.transfer'),
-		register: require('./stress/2.register_delegate'),
-		vote: require('./stress/3.cast_vote'),
+		transfer_with_data: require('./stress/0.transfer_with_data.js'),
+		second_passphrase: require('./stress/1.second_passphrase'),
+		register_delegate: require('./stress/2.register_delegate'),
+		cast_vote: require('./stress/3.cast_vote'),
+		register_multisignature: require('./stress/4.register_multisignature'),
+		register_dapp: require('./stress/5.register_dapp'),
 	},
 };

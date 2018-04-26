@@ -20,13 +20,17 @@ var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-var sendTransactionsPromise = require('../../../common/helpers/api')
-	.sendTransactionsPromise;
+var createSignatureObject = require('../../../common/helpers/api')
+	.createSignatureObject;
+var sendSignaturePromise = require('../../../common/helpers/api')
+	.sendSignaturePromise;
+var sendTransactionPromise = require('../../../common/helpers/api')
+	.sendTransactionPromise;
 var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 2 transactions @slow', () => {
+	describe('stress test for type 4 transactions @slow', () => {
 		var transactions = [];
 		var accounts = [];
 		var maximum = 1000;
@@ -44,7 +48,7 @@ module.exports = function(params) {
 						});
 						accounts.push(tmpAccount);
 						transactions.push(transaction);
-						return sendTransactionsPromise([transaction]);
+						return sendTransactionPromise(transaction);
 					})
 				);
 			});
@@ -58,17 +62,42 @@ module.exports = function(params) {
 			});
 		});
 
-		describe('sending delegate registrations', () => {
+		describe('sending multisignature registrations', () => {
+			var signatures = [];
+			var agreements = [];
+			var numbers = _.range(maximum);
+			var i = 0;
+			var j = 0;
+
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(num => {
-						var transaction = lisk.transaction.registerDelegate({
-							username: randomUtil.username(),
+					numbers.map(num => {
+						i = (num + 1) % numbers.length;
+						j = (num + 2) % numbers.length;
+						var transaction = lisk.transaction.registerMultisignature({
+							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
+							lifetime: 24,
+							minimum: 1,
 							passphrase: accounts[num].password,
 						});
 						transactions.push(transaction);
-						return sendTransactionsPromise([transaction]);
+						agreements = [
+							createSignatureObject(transaction, accounts[i]),
+							createSignatureObject(transaction, accounts[j]),
+						];
+						signatures.push(agreements);
+						return sendTransactionPromise(transaction).then(res => {
+							expect(res.statusCode).to.be.eql(200);
+							return sendSignaturePromise(signatures[num][0])
+								.then(res => {
+									expect(res.statusCode).to.be.eql(200);
+									return sendSignaturePromise(signatures[num][1]);
+								})
+								.then(res => {
+									expect(res.statusCode).to.be.eql(200);
+								});
+						});
 					})
 				);
 			});
