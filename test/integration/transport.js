@@ -117,8 +117,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 				});
 
-				it('there should exactly 10 incoming connections for 500[0-9] ports', done => {
-					utils.getIncomingConnections(wsPorts, (err, numOfConnections) => {
+				it('there should exactly 10 listening connections for 500[0-9] ports', done => {
+					utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
 						if (err) {
 							return done(err);
 						}
@@ -127,25 +127,26 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 							done();
 						} else {
 							done(
-								`There are ${numOfConnections} incoming connections on web socket ports.`
+								`There are ${numOfConnections} listening connections on web socket ports.`
 							);
 						}
 					});
 				});
 
-				it('there should maximum 90 outgoing connections from 500[0-9] ports', done => {
+				it('there should maximum 90 established connections from 500[0-9] ports', done => {
 					var expectedOutgoingConnections = (totalPeers - 1) * totalPeers;
 
-					utils.getOutgoingConnections(wsPorts, (err, numOfConnections) => {
+					utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
 						if (err) {
 							return done(err);
 						}
 
+						// It should be less than 90, as nodes are just started and establishing the connections
 						if (numOfConnections <= expectedOutgoingConnections) {
 							done();
 						} else {
 							done(
-								`There are ${numOfConnections} outgoing connections on web socket ports.`
+								`There are ${numOfConnections} established connections on web socket ports.`
 							);
 						}
 					});
@@ -189,22 +190,25 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.stress.register(params);
 						scenarios.stress.vote(params);
 
-						it('there should maximum 90 outgoing connections from 500[0-9] ports', done => {
+						it('there should exactly 90 established connections from 500[0-9] ports', done => {
 							var expectedOutgoingConnections = (totalPeers - 1) * totalPeers;
 
-							utils.getOutgoingConnections(wsPorts, (err, numOfConnections) => {
-								if (err) {
-									return done(err);
-								}
+							utils.getEstablishedConnections(
+								wsPorts,
+								(err, numOfConnections) => {
+									if (err) {
+										return done(err);
+									}
 
-								if (numOfConnections <= expectedOutgoingConnections) {
-									done();
-								} else {
-									done(
-										`There are ${numOfConnections} outgoing connections on web socket ports.`
-									);
+									if (numOfConnections === expectedOutgoingConnections) {
+										done();
+									} else {
+										done(
+											`There are ${numOfConnections} established connections on web socket ports.`
+										);
+									}
 								}
-							});
+							);
 						});
 					});
 				});

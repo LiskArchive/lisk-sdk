@@ -34,7 +34,7 @@ module.exports = {
 			}
 		);
 	},
-	getIncomingConnections: (ports, cb) => {
+	getListeningConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:LISTEN -t | wc -l
 		// -t to strip the headers of lsof so we can count the rows
 		childProcess.exec(
@@ -46,7 +46,7 @@ module.exports = {
 			}
 		);
 	},
-	getOutgoingConnections: (ports, cb) => {
+	getEstablishedConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:ESTABLISHED  -t | wc -l
 		// -t to strip the headers of lsof so we can count the rows
 		childProcess.exec(
