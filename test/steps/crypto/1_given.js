@@ -135,20 +135,16 @@ export function aPassword() {
 	this.test.ctx.password = password;
 }
 
-export function anEncryptedPassphraseWithAnIV() {
-	const [encryptedPassphrase, iv] = getQuotedStrings(this.test.parent.title);
-	const cipherAndIv = {
-		cipher: encryptedPassphrase,
-		iv,
-	};
+export function anEncryptedPassphrase() {
+	const encryptedPassphrase = getFirstQuotedString(this.test.parent.title);
 	if (
 		typeof lisk.cryptography.encryptPassphraseWithPassword.returns ===
 		'function'
 	) {
-		lisk.cryptography.encryptPassphraseWithPassword.returns(cipherAndIv);
+		lisk.cryptography.encryptPassphraseWithPassword.returns(encryptedPassphrase);
 	}
 
-	this.test.ctx.cipherAndIv = cipherAndIv;
+	this.test.ctx.encryptedPassphrase = encryptedPassphrase;
 }
 
 export function aMessage() {

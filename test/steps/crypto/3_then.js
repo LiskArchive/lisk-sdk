@@ -57,11 +57,10 @@ export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
-export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
-	const { cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+export function itShouldDecryptThePassphraseUsingThePassword() {
+	const { encryptedPassphrase, password } = this.test.ctx;
 	return expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
-		cipher,
-		iv,
+		encryptedPassphrase,
 		password,
 	});
 }

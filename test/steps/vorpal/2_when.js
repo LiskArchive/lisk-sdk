@@ -133,14 +133,14 @@ export function theActionIsCalledWithTheIVAndTheOptions() {
 	return returnValue.catch(e => e);
 }
 
-export function theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions() {
+export function theActionIsCalledWithTheEncryptedPassphraseAndTheOptions() {
 	const {
 		action,
-		cipherAndIv: { cipher: passphrase, iv },
+		encryptedPassphrase,
 		options,
 	} = this.test.ctx;
 
-	const returnValue = action({ iv, passphrase, options });
+	const returnValue = action({ encryptedPassphrase, options });
 	this.test.ctx.returnValue = returnValue;
 	return returnValue.catch(e => e);
 }

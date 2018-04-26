@@ -96,12 +96,12 @@ export function thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources()
 }
 
 export function thePasswordAndEncryptedPassphraseCanBeRetrievedFromTheirSources() {
-	const { password, cipherAndIv: { cipher } } = this.test.ctx;
+	const { password, encryptedPassphrase } = this.test.ctx;
 	getInputsFromSources.resolves({
 		passphrase: null,
 		secondPassphrase: null,
 		password,
-		data: cipher,
+		data: encryptedPassphrase,
 	});
 }
 
