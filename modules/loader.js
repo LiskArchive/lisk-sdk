@@ -72,6 +72,7 @@ class Loader {
 			},
 			config: {
 				loading: {
+					loadPerIteration: scope.config.loading.loadPerIteration,
 					verifyOnLoading: scope.config.loading.verifyOnLoading,
 					snapshot: scope.config.loading.snapshot,
 				},
