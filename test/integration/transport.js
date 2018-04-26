@@ -19,6 +19,9 @@ var utils = require('./utils');
 var setup = require('./setup');
 var scenarios = require('./scenarios');
 
+const totalPeers = 10;
+var wsPorts = [];
+
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
 	var configurations;
 	var broadcastingDisabled;
@@ -29,7 +32,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 		syncingDisabled = process.env.SYNCING_DISABLED === 'true';
 
 		utils.http.setVersion('1.0.0');
-		configurations = _.range(10).map(index => {
+		configurations = _.range(totalPeers).map(index => {
 			var devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
 			devConfigCopy.wsPort = 5000 + index;
@@ -42,6 +45,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				devConfigCopy.syncing = {};
 			}
 			devConfigCopy.syncing.active = !syncingDisabled;
+			wsPorts.push(devConfigCopy.wsPort);
 			return devConfigCopy;
 		});
 		done();
@@ -76,6 +80,24 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				});
 			});
 
+			describe('before network is setup', () => {
+				it('there should be no active connections on 500[0-9] ports', done => {
+					utils.getOpenConnections(wsPorts, (err, numOfConnections) => {
+						if (err) {
+							return done(err);
+						}
+
+						if (numOfConnections === 0) {
+							done();
+						} else {
+							done(
+								`There is ${numOfConnections} open connections on web socket ports.`
+							);
+						}
+					});
+				});
+			});
+
 			describe('when network is set up', () => {
 				before(done => {
 					setup.setupNetwork(configurations, done);
@@ -92,6 +114,40 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				after(done => {
 					setup.exit(() => {
 						done(testFailedError);
+					});
+				});
+
+				it('there should exactly 10 incoming connections for 500[0-9] ports', done => {
+					utils.getIncomingConnections(wsPorts, (err, numOfConnections) => {
+						if (err) {
+							return done(err);
+						}
+
+						if (numOfConnections === totalPeers) {
+							done();
+						} else {
+							done(
+								`There are ${numOfConnections} incoming connections on web socket ports.`
+							);
+						}
+					});
+				});
+
+				it('there should maximum 90 outgoing connections from 500[0-9] ports', done => {
+					var expectedOutgoingConnections = (totalPeers - 1) * totalPeers;
+
+					utils.getOutgoingConnections(wsPorts, (err, numOfConnections) => {
+						if (err) {
+							return done(err);
+						}
+
+						if (numOfConnections <= expectedOutgoingConnections) {
+							done();
+						} else {
+							done(
+								`There are ${numOfConnections} outgoing connections on web socket ports.`
+							);
+						}
 					});
 				});
 
@@ -132,6 +188,24 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.stress.transfer(params);
 						scenarios.stress.register(params);
 						scenarios.stress.vote(params);
+
+						it('there should maximum 90 outgoing connections from 500[0-9] ports', done => {
+							var expectedOutgoingConnections = (totalPeers - 1) * totalPeers;
+
+							utils.getOutgoingConnections(wsPorts, (err, numOfConnections) => {
+								if (err) {
+									return done(err);
+								}
+
+								if (numOfConnections <= expectedOutgoingConnections) {
+									done();
+								} else {
+									done(
+										`There are ${numOfConnections} outgoing connections on web socket ports.`
+									);
+								}
+							});
+						});
 					});
 				});
 			});
