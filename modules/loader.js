@@ -73,7 +73,6 @@ class Loader {
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					verifyOnLoading: scope.config.loading.verifyOnLoading,
 					snapshot: scope.config.loading.snapshot,
 				},
 				syncing: {
@@ -370,7 +369,6 @@ __private.loadTransactions = function(cb) {
 __private.loadBlockChain = function() {
 	let offset = 0;
 	const limit = Number(library.config.loading.loadPerIteration) || 1000;
-	let verify = Boolean(library.config.loading.verifyOnLoading);
 
 	/**
 	 * Description of load.
@@ -379,7 +377,6 @@ __private.loadBlockChain = function() {
 	 * @todo Add description for the function
 	 */
 	function load(count) {
-		verify = true;
 		__private.total = count;
 		async.series(
 			{
@@ -404,7 +401,7 @@ __private.loadBlockChain = function() {
 							modules.blocks.process.loadBlocksOffset(
 								limit,
 								offset,
-								verify,
+								true,
 								(err, lastBlock) => {
 									if (err) {
 										return setImmediate(cb, err);
