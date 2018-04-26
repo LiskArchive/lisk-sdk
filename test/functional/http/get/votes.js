@@ -328,6 +328,16 @@ describe('GET /api/votes', () => {
 				});
 			});
 
+			describe('limit=101', () => {
+				it('should return 101 voters', () => {
+					return votesEndpoint
+						.makeRequest({ limit: 101, publicKey: voterDelegate.publicKey }, 200)
+						.then(res => {
+							expect(res.body.data.votes).to.have.length(101);
+						});
+				});
+			});
+
 			describe('limit=2 & offset=1', () => {
 				it('should return 2 voters, containing 1 from the previous result', () => {
 					var votes = null;

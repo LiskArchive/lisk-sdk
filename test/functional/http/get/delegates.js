@@ -553,6 +553,14 @@ describe('GET /delegates', () => {
 				});
 		});
 
+		it('using limit=101 should be ok', () => {
+			return forgersEndpoint
+				.makeRequest({ limit: 101 }, 200)
+				.then(res => {
+					expect(res.body.data).to.have.length(101);
+				});
+		});
+
 		describe('slot numbers are correct', () => {
 			var forgersData;
 
