@@ -181,10 +181,10 @@ describe('PeersManager', () => {
 					done();
 				});
 
-				it('should add an entry [validPeer.string] = undefined in addressToNonce map', () => {
+				it('should not create any entry in addressToNonce map', () => {
 					return expect(
 						peersManagerInstance.addressToNonceMap
-					).to.have.property(validPeer.string).to.be.undefined;
+					).not.to.have.property(validPeer.string);
 				});
 
 				it('should not create any entry in nonceToAddress map', () => {

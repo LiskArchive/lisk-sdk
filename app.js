@@ -167,9 +167,10 @@ if (
 ) {
 	dbLogger = logger;
 } else {
+	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
 	dbLogger = new Logger({
-		echo: process.env.DB_LOG_LEVEL || appConfig.db.consoleLogLevel,
-		errorLevel: process.env.FILE_LOG_LEVEL || appConfig.db.fileLogLevel,
+		echo: process.env.DB_LOG_LEVEL || 'log',
+		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
 	});
 }
@@ -545,7 +546,7 @@ d.run(() => {
 				db
 					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
-					.catch(err => cb(err));
+					.catch(cb);
 			},
 
 			/**
@@ -582,15 +583,14 @@ d.run(() => {
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
-						wsEngine: 'uws',
+						wsEngine: 'sc-uws',
 						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
 						secretKey: 'liskSecretKey',
-						pingInterval: 5000,
-						// How many milliseconds to wait without receiving a ping
-						// before closing the socket
-						pingTimeout: 60000,
+						// Because our node is constantly sending messages, we don't
+						// need to use the ping feature to detect bad connections.
+						pingTimeoutDisabled: true,
 						// Maximum amount of milliseconds to wait before force-killing
 						// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
 						processTermTimeout: 10000,
@@ -901,7 +901,10 @@ d.run(() => {
 		},
 		(err, scope) => {
 			// Receives a 'cleanup' signal and cleans all modules
-			process.once('cleanup', () => {
+			process.once('cleanup', error => {
+				if (error) {
+					scope.logger.fatal(error.toString());
+				}
 				scope.logger.info('Cleaning up...');
 				scope.socketCluster.destroy();
 				async.eachSeries(

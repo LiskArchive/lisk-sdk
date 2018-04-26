@@ -184,12 +184,15 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						});
 
 						scenarios.propagation.blocks(params);
-
 						scenarios.propagation.transactions(params);
-
+						scenarios.propagation.multisignature(params);
 						scenarios.stress.transfer(params);
-						scenarios.stress.register(params);
-						scenarios.stress.vote(params);
+						scenarios.stress.transfer_with_data(params);
+						scenarios.stress.register_multisignature(params);
+						scenarios.stress.second_passphrase(params);
+						scenarios.stress.register_dapp(params);
+						scenarios.stress.register_delegate(params);
+						scenarios.stress.cast_vote(params);
 
 						it('there should exactly 180 established connections from 500[0-9] ports', done => {
 							// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
