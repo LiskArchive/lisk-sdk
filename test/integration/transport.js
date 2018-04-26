@@ -133,15 +133,16 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 				});
 
-				it('there should maximum 90 established connections from 500[0-9] ports', done => {
-					var expectedOutgoingConnections = (totalPeers - 1) * totalPeers;
+				it('there should maximum 180 established connections from 500[0-9] ports', done => {
+					// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
+					var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
 					utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
 						if (err) {
 							return done(err);
 						}
 
-						// It should be less than 90, as nodes are just started and establishing the connections
+						// It should be less than 180, as nodes are just started and establishing the connections
 						if (numOfConnections <= expectedOutgoingConnections) {
 							done();
 						} else {
@@ -190,8 +191,10 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.stress.register(params);
 						scenarios.stress.vote(params);
 
-						it('there should exactly 90 established connections from 500[0-9] ports', done => {
-							var expectedOutgoingConnections = (totalPeers - 1) * totalPeers;
+						it('there should exactly 180 established connections from 500[0-9] ports', done => {
+							// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
+							var expectedOutgoingConnections =
+								(totalPeers - 1) * totalPeers * 2;
 
 							utils.getEstablishedConnections(
 								wsPorts,
