@@ -15,28 +15,28 @@
 'use strict';
 
 const _ = require('lodash');
-const async = require('async');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const Peer = require('../../../logic/peer');
 
 const TIMEOUT = 2000;
+const SOCKET_DESTROY_TIMEOUT = 10000; // Allow sockets to be reused in case of frequent reconnect
+
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
-const connect = (peer, logger, onDisconnectCb) => {
+const connect = (peer, logger) => {
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer, logger);
 
-	async.parallel([
-		() => {
-			connectSteps.upgradeSocket(peer);
-			connectSteps.registerRPC(peer, logger);
-		},
-		() => connectSteps.registerSocketListeners(peer, logger, onDisconnectCb),
-	]);
+	connectSteps.upgradeSocket(peer);
+	connectSteps.registerRPC(peer, logger);
+
+	connectSteps.registerSocketListeners(peer, logger);
+
 	return peer;
 };
 
@@ -47,25 +47,16 @@ const connectSteps = {
 			autoReconnect: false,
 			connectTimeout: TIMEOUT,
 			ackTimeout: TIMEOUT,
-			pingTimeout: TIMEOUT,
-			connectAttempts: 1,
+			pingTimeoutDisabled: true,
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: System.getHeaders(),
-			multiplex: false,
+			multiplex: true,
 		};
 		return peer;
 	},
 
 	addSocket: (peer, logger) => {
-		if (peer.socket) {
-			// If a socket connection exists,
-			// before issuing a new connection
-			// destroy the exisiting connection
-			// to avoid too many socket connections
-			peer.socket.destroy();
-			delete peer.socket;
-		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 
 		if (peer.socket && Object.keys(socketConnections).length < 1000) {
@@ -127,14 +118,20 @@ const connectSteps = {
 						data
 					);
 
-					peer.socket
-						.call(rpcProcedureName, data)
-						.then(res => {
-							setImmediate(rpcCallback, null, res);
-						})
-						.catch(err => {
-							setImmediate(rpcCallback, err);
-						});
+					if (peer.socket) {
+						peer.socket
+							.call(rpcProcedureName, data)
+							.then(res => {
+								setImmediate(rpcCallback, null, res);
+							})
+							.catch(err => {
+								setImmediate(rpcCallback, err);
+							});
+					} else {
+						logger.debug(
+							'Tried to call RPC function on outbound peer socket which no longer exists'
+						);
+					}
 				};
 				return peerExtendedWithRPC;
 			},
@@ -158,10 +155,11 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
+	registerSocketListeners: (peer, logger) => {
 		const socket = peer.socket;
 
 		socket.on('connect', () => {
+			clearTimeout(socket.destroyTimeout);
 			logger.trace(
 				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
 			);
@@ -189,7 +187,10 @@ const connectSteps = {
 			logger.debug(
 				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
 			);
-			socket.disconnect();
+			socket.disconnect(
+				1000,
+				'Intentionally disconnected from peer because of error'
+			);
 		});
 
 		// When WS connection ends - remove peer
@@ -197,10 +198,24 @@ const connectSteps = {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
 					peer.ip
-				} failed with code ${code} and reason - ${reason}`
+				} closed with code ${code} and reason - ${reason}`
 			);
-			socket.destroy();
-			onDisconnectCb();
+
+			if (peer.socket && peer.socket.state === peer.socket.CLOSED) {
+				peer.state = Peer.STATE.DISCONNECTED;
+			}
+			clearTimeout(socket.destroyTimeout);
+			socket.destroyTimeout = setTimeout(() => {
+				if (socket.state === socket.CLOSED || peer.socket !== socket) {
+					// If the socket is still closed after SOCKET_DESTROY_TIMEOUT
+					// (I.e. it hasn't been reopened since), then we will destroy
+					// it completely.
+					socket.destroy();
+					if (socket === peer.socket) {
+						delete peer.socket;
+					}
+				}
+			}, SOCKET_DESTROY_TIMEOUT);
 		});
 
 		// The 'message' event can be used to log all low-level WebSocket messages.

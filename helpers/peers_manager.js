@@ -16,7 +16,6 @@
 
 const connect = require('../api/ws/rpc/connect');
 const disconnect = require('../api/ws/rpc/disconnect');
-const Peer = require('../logic/peer');
 
 /**
  * Description of the class.
@@ -51,25 +50,23 @@ PeersManager.prototype.add = function(peer) {
 	) {
 		return false;
 	}
+
 	this.peers[peer.string] = peer;
-	if (!this.addressToNonceMap[peer.string]) {
+
+	if (peer.socket) {
+		// Reconnect existing socket
+		peer.socket.connect();
+	} else {
 		// Create client WS connection to peer
-		connect(peer, this.logger, () => {
-			// Upon disconnection, if the peer is still in the list,
-			// set the peer state to disconnected.
-			// The peer will only be removed when the master process receives the
-			// command to do so from the worker process; the worker process decides
-			// when the master process should remove a peer.
-			var lostPeer = this.peers[peer.string];
-			if (lostPeer) {
-				lostPeer.state = Peer.STATE.DISCONNECTED;
-			}
-		});
+		connect(peer, this.logger);
 	}
-	this.addressToNonceMap[peer.string] = peer.nonce;
 	if (peer.nonce) {
+		this.addressToNonceMap[peer.string] = peer.nonce;
 		this.nonceToAddressMap[peer.nonce] = peer.string;
+	} else if (this.addressToNonceMap[peer.string]) {
+		delete this.addressToNonceMap[peer.string];
 	}
+
 	return true;
 };
 
