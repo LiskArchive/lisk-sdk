@@ -933,23 +933,24 @@ d.run(() => {
 					);
 				});
 
-			process.once('SIGTERM', () => {
-				process.emit('cleanup');
-			});
+				process.once('SIGTERM', () => {
+					process.emit('cleanup');
+				});
 
-			process.once('exit', () => {
-				process.emit('cleanup');
-			});
+				process.once('exit', () => {
+					process.emit('cleanup');
+				});
 
-			process.once('SIGINT', () => {
-				process.emit('cleanup');
-			});
+				process.once('SIGINT', () => {
+					process.emit('cleanup');
+				});
 
-			if (err) {
-				logger.fatal(err);
-				process.emit('cleanup');
-			} else {
-				scope.logger.info('Modules ready and launched');
+				if (err) {
+					logger.fatal(err);
+					process.emit('cleanup');
+				} else {
+					scope.logger.info('Modules ready and launched');
+				}
 			}
 		}
 	);
