@@ -57,7 +57,6 @@ describe('rounds', () => {
 				db,
 				bus: { message: sinon.spy() },
 				network: { io: { sockets: { emit: sinon.spy() } } },
-				config: { loading: { snapshot: false } },
 			};
 			done();
 		});
@@ -167,17 +166,6 @@ describe('rounds', () => {
 			it('flush query should be called once', () => {
 				return expect(stub.calledOnce).to.be.true;
 			});
-		});
-	});
-
-	describe('setSnapshotRound', () => {
-		it('should set library.config.loading.snapshot', () => {
-			var variable = 'library.config.loading.snapshot';
-			var backup = get(variable);
-			var value = 'abc';
-			rounds.setSnapshotRound(value);
-			expect(get(variable)).to.equal(value);
-			return set(variable, backup);
 		});
 	});
 
@@ -538,61 +526,6 @@ describe('rounds', () => {
 						});
 					});
 				});
-
-				describe('snapshotRound', () => {
-					describe('when library.config.loading.snapshot = 0', () => {
-						it('should be set to true', done => {
-							var variable = 'library.config.loading.snapshot';
-							var backup = get(variable);
-							var value = 0;
-							set(variable, value);
-							block = { height: 1 };
-
-							rounds.tick(block, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.snapshotRound).to.be.false;
-								set(variable, backup);
-								done();
-							});
-						});
-					});
-
-					describe('when library.config.loading.snapshot > 0', () => {
-						describe('when library.config.loading.snapshot === round', () => {
-							it('should be set to true', done => {
-								var variable = 'library.config.loading.snapshot';
-								var backup = get(variable);
-								var value = 1;
-								set(variable, value);
-								block = { height: 1 };
-
-								rounds.tick(block, err => {
-									expect(err).to.equal('Snapshot finished');
-									expect(roundScope.snapshotRound).to.be.true;
-									set(variable, backup);
-									done();
-								});
-							});
-						});
-
-						describe('when library.config.loading.snapshot !== round', () => {
-							it('should be set to false', done => {
-								var variable = 'library.config.loading.snapshot';
-								var backup = get(variable);
-								var value = 1;
-								set(variable, value);
-								block = { height: 202 };
-
-								rounds.tick(block, err => {
-									expect(err).to.not.exist;
-									expect(roundScope.snapshotRound).to.be.false;
-									set(variable, backup);
-									done();
-								});
-							});
-						});
-					});
-				});
 			});
 		});
 
@@ -677,76 +610,6 @@ describe('rounds', () => {
 				it('library.bus.message should be not called', () => {
 					var bus = get('library.bus.message');
 					return expect(bus.called).to.be.false;
-				});
-			});
-		});
-
-		describe('scope.snapshotRound', () => {
-			describe('when true', () => {
-				var res;
-
-				before(done => {
-					var variable = 'library.config.loading.snapshot';
-					var backup = get(variable);
-					var value = 1;
-					set(variable, value);
-					block = { height: 1 };
-
-					rounds.tick(block, err => {
-						res = err;
-						set(variable, backup);
-						done();
-					});
-				});
-
-				after(() => {
-					return resetStubsHistory();
-				});
-
-				it('should return with error = Snapshot finished', () => {
-					return expect(res).to.equal('Snapshot finished');
-				});
-
-				it('should set scope.finishSnapshot to true', () => {
-					return expect(roundScope.finishSnapshot).to.be.true;
-				});
-
-				it('scope.truncateBlocks should be called once', () => {
-					return expect(truncateBlocks_stub.calledOnce).to.be.true;
-				});
-			});
-
-			describe('when false', () => {
-				var res;
-
-				before(done => {
-					var variable = 'library.config.loading.snapshot';
-					var backup = get(variable);
-					var value = 0;
-					set(variable, value);
-					block = { height: 1 };
-
-					rounds.tick(block, err => {
-						res = err;
-						set(variable, backup);
-						done();
-					});
-				});
-
-				after(() => {
-					return resetStubsHistory();
-				});
-
-				it('should return with no error', () => {
-					return expect(res).to.not.exist;
-				});
-
-				it('should not set scope.finishSnapshot', () => {
-					return expect(roundScope.finishSnapshot).to.equal(undefined);
-				});
-
-				it('scope.truncateBlocks should not be called', () => {
-					return expect(truncateBlocks_stub.called).to.be.false;
 				});
 			});
 		});
