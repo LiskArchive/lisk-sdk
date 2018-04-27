@@ -16,7 +16,7 @@ swagger: '2.0'
 info:
   description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.25'
+  version: '1.0.26'
   contact:
     email: admin@lisk.io
   license:
@@ -582,8 +582,15 @@ paths:
       produces:
         - application/json
       parameters:
-        - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
       responses:
         200:
           description: Search results matching criteria
@@ -766,7 +773,14 @@ paths:
         - $ref: '#/parameters/publicKey'
         - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/offset'
-        - $ref: '#/parameters/limit'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
         - in: query
           name: sort
           description: Fields to sort results by
