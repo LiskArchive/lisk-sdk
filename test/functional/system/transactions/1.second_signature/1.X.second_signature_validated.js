@@ -27,7 +27,7 @@ describe('system test (type 1) - checking validated second signature registratio
 	var account = randomUtil.account();
 	var creditTransaction = lisk.transaction.transfer({
 		amount: 1000 * constants.normalizer,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var transaction = lisk.transaction.registerSecondPassphrase({

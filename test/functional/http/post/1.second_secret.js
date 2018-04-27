@@ -41,17 +41,17 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
 			amount: constants.fees.secondSignature,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
 			amount: constants.fees.secondSignature,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountNoSecondPassword.address,
 		});
 

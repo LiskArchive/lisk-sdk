@@ -73,7 +73,7 @@
 	},
 	"forging": {
 		"force": true,
-		"defaultKey": "elephant tree paris dragon chair galaxy",
+		"defaultPassword": "elephant tree paris dragon chair galaxy",
 		"secret": [
 			{
 				"encryptedSecret":

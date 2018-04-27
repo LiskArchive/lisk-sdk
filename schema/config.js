@@ -262,7 +262,7 @@ module.exports = {
 					force: {
 						type: 'boolean',
 					},
-					defaultKey: {
+					defaultPassword: {
 						type: 'string',
 					},
 					secret: {

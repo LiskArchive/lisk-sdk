@@ -181,7 +181,7 @@ describe('GET /accounts', () => {
 			var secondPublicKeyAccount = randomUtil.account();
 			var creditTransaction = lisk.transaction.transfer({
 				amount: constants.fees.secondSignature,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPublicKeyAccount.address,
 			});
 			var signatureTransaction = lisk.transaction.registerSecondPassphrase({

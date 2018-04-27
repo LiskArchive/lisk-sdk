@@ -48,7 +48,7 @@ describe('GET /api/node', () => {
 				// Credit account with some funds
 				transaction = lisk.transaction.transfer({
 					amount: 1000 * constants.normalizer,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: senderAccount.address,
 				});
 
