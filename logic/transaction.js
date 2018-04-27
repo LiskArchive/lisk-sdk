@@ -409,10 +409,6 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	verify(transaction, sender, requester, cb, tx) {
-		if (typeof requester === 'function') {
-			cb = requester;
-		}
-
 		// Check for already confirmed transaction
 		this.checkConfirmed(transaction, checkConfirmedErr => {
 			if (checkConfirmedErr) {
@@ -458,6 +454,7 @@ class Transaction {
 			// Check for missing requester second signature
 			if (
 				transaction.requesterPublicKey &&
+				requester &&
 				requester.secondSignature &&
 				!transaction.signSignature
 			) {
@@ -467,6 +464,7 @@ class Transaction {
 			// If second signature provided, check if requester has one enabled
 			if (
 				transaction.requesterPublicKey &&
+				requester &&
 				!requester.secondSignature &&
 				(transaction.signSignature && transaction.signSignature.length > 0)
 			) {
@@ -566,12 +564,12 @@ class Transaction {
 			}
 
 			// Verify second signature
-			if (requester.secondSignature || sender.secondSignature) {
+			if ((requester && requester.secondSignature) || sender.secondSignature) {
 				try {
 					valid = false;
 					valid = this.verifySecondSignature(
 						transaction,
-						requester.secondPublicKey || sender.secondPublicKey,
+						(requester && requester.secondPublicKey) || sender.secondPublicKey,
 						transaction.signSignature
 					);
 				} catch (e) {

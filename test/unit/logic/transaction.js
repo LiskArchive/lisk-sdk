@@ -647,7 +647,7 @@ describe('transaction', () => {
 			createAndProcess(transactionDataClone, vs, (err, transaction) => {
 				transaction.signSignature =
 					'7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
-				transactionLogic.verify(transaction, vs, err => {
+				transactionLogic.verify(transaction, vs, {}, err => {
 					expect(err).to.equal('Failed to verify second signature');
 					done();
 				});

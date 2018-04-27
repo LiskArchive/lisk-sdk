@@ -418,6 +418,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				library.logic.transaction.process(
 					multisigTransaction2,
 					multisigSender,
+					null,
 					done
 				);
 			});
@@ -437,6 +438,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 					library.logic.transaction.verify(
 						multisigTransaction2,
 						multisigSender,
+						null,
 						done
 					);
 				});
