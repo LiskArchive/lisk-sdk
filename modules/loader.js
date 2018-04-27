@@ -504,7 +504,7 @@ __private.loadBlockChain = function() {
 			? targetRound
 			: Math.min(targetRound, library.config.loading.snapshot);
 
-		let targetHeight = targetRound * constants.activeDelegates;
+		const targetHeight = targetRound * constants.activeDelegates;
 
 		library.logger.info(
 			`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
@@ -551,7 +551,7 @@ __private.loadBlockChain = function() {
 				if (err) {
 					throw new Error(err);
 				} else {
-					library.logger.log(`Snapshot creation finished`);
+					library.logger.log('Snapshot creation finished');
 					return process.exit(0);
 				}
 			}
