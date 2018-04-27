@@ -509,7 +509,7 @@ __private.loadBlockChain = function() {
 			`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
 		);
 
-		let offset = 1;
+		let currentHeight = 1;
 		async.series(
 			{
 				resetMemTables(seriesCb) {
@@ -517,20 +517,20 @@ __private.loadBlockChain = function() {
 				},
 				loadBlocksOffset(seriesCb) {
 					async.until(
-						() => targetHeight < offset,
 						cb => {
+						() => targetHeight < currentHeight,
 							library.logger.info(
 								`Rebuilding accounts states, current round: ${slots.calcRound(
-									offset
-								)}, height: ${offset}`
+									currentHeight
+								)}, height: ${currentHeight}`
 							);
 							modules.blocks.process.loadBlocksOffset(
 								constants.activeDelegates,
-								offset,
+								currentHeight,
 								true,
 								err => {
-									offset += constants.activeDelegates;
 									return setImmediate(cb, err);
+									currentHeight += constants.activeDelegates;
 								}
 							);
 						},
