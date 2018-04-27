@@ -256,7 +256,7 @@ describe('db', () => {
 				yield db.blocks.deleteBlocksAfterHeight(1);
 
 				expect(db.none.firstCall.args[0]).to.eql(sql.deleteBlocksAfterHeight);
-				expect(db.none.firstCall.args[1]).to.eql([1]);
+				expect(db.none.firstCall.args[1]).to.eql({ height: 1 });
 				return expect(db.none).to.be.calledOnce;
 			});
 

@@ -114,7 +114,7 @@ class BlocksRepository {
 	 * @todo Add description for the params and the return value
 	 */
 	deleteBlocksAfterHeight(height) {
-		return this.db.none(sql.deleteBlocksAfterHeight, [height]);
+		return this.db.none(sql.deleteBlocksAfterHeight, {height});
 	}
 
 	/**
