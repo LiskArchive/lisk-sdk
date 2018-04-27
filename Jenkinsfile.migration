@@ -25,7 +25,7 @@ def generateSrcCodeRelease(directory) {
 
 def getBuildBranch(liskDirectory) {
 	if(fileExists("${env.WORKSPACE}/${liskDirectory}/genesisBlock.json")) {
-		return "master"
+		return "development"
 	} else {
 		return "1.0.0"
 	}
@@ -47,10 +47,10 @@ pipeline {
 					env.MIGRATE_TO_BUILD_BRANCH = getBuildBranch(params.MIGRATE_TO)
 				}
 				dir("lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}") {
-					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "${env.MIGRATE_FROM_BUILD_BRANCH}"
+					git url: "https://github.com/LiskHQ/lisk-build.git", branch: env.MIGRATE_FROM_BUILD_BRANCH
 				}
 				dir("lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}") {
-					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "${env.MIGRATE_TO_BUILD_BRANCH}"
+					git url: "https://github.com/LiskHQ/lisk-build.git", branch: env.MIGRATE_TO_BUILD_BRANCH
 				}
 				sh """
 				dropdb lisk_test || true
@@ -83,7 +83,7 @@ pipeline {
 				stage('Create source binary release') {
 					steps {
 						sh """
-						cp "${env.MIGRATE_FROM_SRC}" "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}/src/${params.MIGRATE_FROM}.tar.gz"
+						cp "${env.MIGRATE_FROM_SRC}" "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}/src/lisk-${params.MIGRATE_FROM}.tgz"
 						cd "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}"
 						bash build.sh -n dev -v "${params.MIGRATE_FROM}"
 						"""
@@ -92,7 +92,7 @@ pipeline {
 				stage('Create destination binary release') {
 					steps {
 						sh """
-						cp "${env.MIGRATE_TO_SRC}" "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}/src/${params.MIGRATE_TO}.tar.gz"
+						cp "${env.MIGRATE_TO_SRC}" "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}/src/lisk-${params.MIGRATE_TO}.tgz"
 						cd "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}"
 						bash build.sh -n dev -v "${params.MIGRATE_TO}"
 						"""
