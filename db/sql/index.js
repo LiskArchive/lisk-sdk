@@ -46,7 +46,7 @@ module.exports = {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
 		count: link('blocks/count.sql'),
 		deleteBlock: link('blocks/delete_block.sql'),
-		truncateBlocks: link('blocks/truncate_blocks.sql'),
+		deleteBlocksAfterHeight: link('blocks/delete_blocks_after_height.sql'),
 		getGenesisBlock: link('blocks/get_genesis_block.sql'),
 		getGenesisBlockId: link('blocks/get_genesis_block_id.sql'),
 		getIdSequence: link('blocks/get_id_sequence.sql'),

@@ -539,7 +539,7 @@ __private.loadBlockChain = function() {
 				},
 				truncateBlocks(seriesCb) {
 					library.db.rounds
-						.truncateBlocks(targetHeight)
+						.deleteBlocksAfterHeight(targetHeight)
 						.then(() => {
 							seriesCb();
 						})

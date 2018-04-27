@@ -250,19 +250,19 @@ describe('db', () => {
 			});
 		});
 
-		describe('truncateBlocks()', () => {
+		describe('deleteBlocksAfterHeight()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'none');
-				yield db.blocks.truncateBlocks(1);
+				yield db.blocks.deleteBlocksAfterHeight(1);
 
-				expect(db.none.firstCall.args[0]).to.eql(sql.truncateBlocks);
+				expect(db.none.firstCall.args[0]).to.eql(sql.deleteBlocksAfterHeight);
 				expect(db.none.firstCall.args[1]).to.eql([1]);
 				return expect(db.none).to.be.calledOnce;
 			});
 
 			it('should delete blocks above provided height', function*() {
 				const before = yield db.query('SELECT * FROM blocks');
-				const result = yield db.blocks.truncateBlocks(2);
+				const result = yield db.blocks.deleteBlocksAfterHeight(2);
 				const after = yield db.query('SELECT * FROM blocks');
 
 				// Assuming that we seed 5 blocks
@@ -277,7 +277,7 @@ describe('db', () => {
 			});
 
 			it('should resolve with null if block with particular height does not exists', () => {
-				return expect(db.blocks.truncateBlocks(1234)).to.be.eventually.eql(
+				return expect(db.blocks.deleteBlocksAfterHeight(1234)).to.be.eventually.eql(
 					null
 				);
 			});

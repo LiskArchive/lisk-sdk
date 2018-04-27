@@ -113,8 +113,8 @@ class BlocksRepository {
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
-	truncateBlocks(height) {
-		return this.db.none(sql.truncateBlocks, [height]);
+	deleteBlocksAfterHeight(height) {
+		return this.db.none(sql.deleteBlocksAfterHeight, [height]);
 	}
 
 	/**
