@@ -15,11 +15,24 @@
 'use strict';
 
 require('../../functional.js');
+var lisk = require('lisk-js').default;
 var swaggerSpec = require('../../../common/swagger_spec');
 var randomUtil = require('../../../common/utils/random');
+var accountFixtures = require('../../../fixtures/accounts');
+var sendTransactionPromise = require('../../../common/helpers/api')
+	.sendTransactionPromise;
+var errorCodes = require('../../../../helpers/api_codes');
+var phases = require('../../common/phases');
 
 describe('POST /api/transactions (general)', () => {
 	var transactionsEndpoint = new swaggerSpec('POST /transactions');
+	const account = randomUtil.account();
+	const transaction = lisk.transaction.transfer({
+		amount: 1,
+		passphrase: accountFixtures.genesis.password,
+		recipientId: account.address,
+		timeOffset: -10000,
+	});
 
 	it('should fail if null transaction posted', () => {
 		return transactionsEndpoint
@@ -42,5 +55,25 @@ describe('POST /api/transactions (general)', () => {
 					'INVALID_REQUEST_PARAMETER'
 				);
 			});
+	});
+
+	describe('transaction processing', () => {
+		sendTransactionPromise(transaction).then(res => {
+			expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+		});
+		return phases.confirmation([transaction], []);
+	});
+
+	describe('validation', () => {
+		it('should fail when an already confirmed transaction sent again', () => {
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.be.equal(
+					`Transaction is already confirmed: ${transaction.id}`
+				);
+			});
+		});
 	});
 });
