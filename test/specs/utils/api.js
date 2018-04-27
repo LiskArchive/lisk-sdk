@@ -77,7 +77,7 @@ describe('API util', () => {
 				},
 			);
 			Given(
-				'a config with "api.nodes" set to ""',
+				'a config with "api.nodes" set to empty array',
 				given.aConfigWithAPINodesSetTo,
 				() => {
 					When(
