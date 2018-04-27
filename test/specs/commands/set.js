@@ -32,7 +32,7 @@ describe('set command', () => {
 						given.aConfigWithUnknownProperties,
 						() => {
 							Given('a variable "api.nodes"', given.aVariable, () => {
-								Given('values "true"', given.values, () => {
+								Given('values "http://localhost"', given.values, () => {
 									When(
 										'the action is called with the variable and the values',
 										when.theActionIsCalledWithTheVariableAndTheValues,
@@ -605,8 +605,88 @@ describe('set command', () => {
 							});
 						});
 						Given('a variable "api.nodes"', given.aVariable, () => {
+							Given('values "localhost"', given.values, () => {
+								Given(
+									'the config file can be written',
+									given.theConfigFileCanBeWritten,
+									() => {
+										Given(
+											'Vorpal is in non-interactive mode',
+											given.vorpalIsInNonInteractiveMode,
+											() => {
+												When(
+													'the action is called with the variable and the values',
+													when.theActionIsCalledWithTheVariableAndTheValues,
+													() => {
+														Then(
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															then.itShouldRejectWithValidationErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+										Given(
+											'Vorpal is in interactive mode',
+											given.vorpalIsInInteractiveMode,
+											() => {
+												When(
+													'the action is called with the variable and the values',
+													when.theActionIsCalledWithTheVariableAndTheValues,
+													() => {
+														Then(
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															then.itShouldRejectWithValidationErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							});
+							Given('values "localhost:4000"', given.values, () => {
+								Given(
+									'the config file can be written',
+									given.theConfigFileCanBeWritten,
+									() => {
+										Given(
+											'Vorpal is in non-interactive mode',
+											given.vorpalIsInNonInteractiveMode,
+											() => {
+												When(
+													'the action is called with the variable and the values',
+													when.theActionIsCalledWithTheVariableAndTheValues,
+													() => {
+														Then(
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															then.itShouldRejectWithValidationErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+										Given(
+											'Vorpal is in interactive mode',
+											given.vorpalIsInInteractiveMode,
+											() => {
+												When(
+													'the action is called with the variable and the values',
+													when.theActionIsCalledWithTheVariableAndTheValues,
+													() => {
+														Then(
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															then.itShouldRejectWithValidationErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							});
 							Given(
-								'values "localhost" and "http://127.0.0.1"',
+								'values "http://localhost:4000" and "http://127.0.0.1"',
 								given.values,
 								() => {
 									Given(
@@ -630,7 +710,7 @@ describe('set command', () => {
 																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 															);
 															Then(
-																'it should resolve to an object with message "Successfully set api.nodes to localhost,http://127.0.0.1."',
+																'it should resolve to an object with message "Successfully set api.nodes to http://localhost:4000,http://127.0.0.1."',
 																then.itShouldResolveToAnObjectWithMessage,
 															);
 														},
@@ -654,7 +734,7 @@ describe('set command', () => {
 																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
 															);
 															Then(
-																'it should resolve to an object with message "Successfully set api.nodes to localhost,http://127.0.0.1."',
+																'it should resolve to an object with message "Successfully set api.nodes to http://localhost:4000,http://127.0.0.1."',
 																then.itShouldResolveToAnObjectWithMessage,
 															);
 														},
