@@ -97,15 +97,15 @@ Node.prototype.internal = {
 	 * Toggle the forging status of a delegate.
 	 *
 	 * @param {string} publicKey - Public key of a delegate
-	 * @param {string} decryptionKey - Key used to decrypt encrypted passphrase
+	 * @param {string} password - Password used to decrypt encrypted passphrase
 	 * @param {function} cb - Callback function
 	 * @returns {setImmediateCallback} cb
 	 * @todo Add description for the return value
 	 */
-	toggleForgingStatus(publicKey, decryptionKey, cb) {
+	toggleForgingStatus(publicKey, password, cb) {
 		modules.delegates.toggleForgingStatus(
 			publicKey,
-			decryptionKey,
+			password,
 			(err, result) => {
 				if (err) {
 					return setImmediate(cb, err);

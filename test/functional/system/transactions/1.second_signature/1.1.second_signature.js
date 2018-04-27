@@ -26,7 +26,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.transfer({
 		amount: 1000 * constants.normalizer,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var transaction1;

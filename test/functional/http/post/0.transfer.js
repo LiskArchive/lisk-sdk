@@ -90,7 +90,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('using zero amount should fail', () => {
 			transaction = lisk.transaction.transfer({
 				amount: 0,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
 
@@ -124,7 +124,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('using entire balance should fail', () => {
 			transaction = lisk.transaction.transfer({
 				amount: Math.floor(accountFixtures.genesis.balance),
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
 
@@ -214,7 +214,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			it('using -10000 should be ok', () => {
 				transaction = lisk.transaction.transfer({
 					amount: 1,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountOffset.address,
 					timeOffset: -10000,
 				});
@@ -228,7 +228,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 			it('using future timestamp should fail', () => {
 				transaction = lisk.transaction.transfer({
 					amount: 1,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: accountOffset.address,
 					timeOffset: 10000,
 				});
@@ -256,7 +256,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						var accountAdditionalData = randomUtil.account();
 						transaction = lisk.transaction.transfer({
 							amount: 1,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 						});
 						transaction.asset.data = test.input;
@@ -282,7 +282,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						var accountAdditionalData = randomUtil.account();
 						transaction = lisk.transaction.transfer({
 							amount: 1,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: accountAdditionalData.address,
 							data: test.input,
 						});

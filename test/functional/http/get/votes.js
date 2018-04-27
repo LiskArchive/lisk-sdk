@@ -371,7 +371,7 @@ describe('GET /api/votes', () => {
 				var account = randomUtil.account();
 				var creditTransaction = lisk.transaction.transfer({
 					amount: constants.fees.delegate + constants.fees.vote,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});
 				var delegateTransaction = lisk.transaction.registerDelegate({

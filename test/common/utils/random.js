@@ -125,7 +125,7 @@ random.account = function() {
 random.transaction = function(offset) {
 	return lisk.transaction.transfer({
 		amount: 1,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
 		timeOffset: offset,
 	});

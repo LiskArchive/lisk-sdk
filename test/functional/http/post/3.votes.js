@@ -65,27 +65,27 @@ describe('POST /api/transactions (type 3) votes', () => {
 		var transactions = [];
 		var transaction1 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: delegateAccount.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
 			amount: constants.fees.vote,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFixtures.existingDelegate.address,
 		});
 		var transaction4 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerTransaction.address,
 		});
 		var transaction5 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerAccount.address,
 		});
 		transactions.push(
@@ -117,7 +117,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
 						amount: constants.fees.delegate,
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
 					transactionsCreditMaxVotesPerTransaction.push(transaction);
@@ -147,7 +147,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
 						amount: constants.fees.delegate,
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
 					transactionsCreditMaxVotesPerAccount.push(transaction);

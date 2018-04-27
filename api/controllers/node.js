@@ -154,11 +154,11 @@ NodeController.updateForgingStatus = function(context, next) {
 	}
 
 	var publicKey = context.request.swagger.params.data.value.publicKey;
-	var decryptionKey = context.request.swagger.params.data.value.decryptionKey;
+	var password = context.request.swagger.params.data.value.password;
 
 	modules.node.internal.toggleForgingStatus(
 		publicKey,
-		decryptionKey,
+		password,
 		(err, data) => {
 			if (err) {
 				context.statusCode = apiCodes.NOT_FOUND;
