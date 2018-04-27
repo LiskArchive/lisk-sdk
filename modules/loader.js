@@ -500,11 +500,9 @@ __private.loadBlockChain = function() {
 			);
 		}
 
-		let targetRound = Math.floor(height / constants.activeDelegates);
-		targetRound = isNaN(library.config.loading.snapshotRound)
-			? targetRound
-			: Math.min(targetRound, library.config.loading.snapshotRound);
-
+		const snapshotRound = library.config.loading.snapshotRound;
+		const totalRounds = Math.floor(height / constants.activeDelegates);
+		const targetRound = isNaN(snapshotRound) ? totalRounds : Math.min(totalRounds, snapshotRound);
 		const targetHeight = targetRound * constants.activeDelegates;
 
 		library.logger.info(
