@@ -813,7 +813,7 @@ d.run(() => {
 				},
 			],
 
-			wsListen: [
+			listenWebSocket: [
 				'ready',
 				/**
 				 * Description of the function.
@@ -851,7 +851,7 @@ d.run(() => {
 				},
 			],
 
-			httplisten: [
+			listenHttp: [
 				'ready',
 				/**
 				 * Description of the function.
