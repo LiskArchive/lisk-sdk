@@ -73,7 +73,7 @@ class Loader {
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					snapshot: scope.config.loading.snapshot,
+					snapshot: scope.config.loading.snapshotRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
@@ -500,9 +500,9 @@ __private.loadBlockChain = function() {
 		}
 
 		let targetRound = Math.floor(height / constants.activeDelegates);
-		targetRound = isNaN(library.config.loading.snapshot)
+		targetRound = isNaN(library.config.loading.snapshotRound)
 			? targetRound
-			: Math.min(targetRound, library.config.loading.snapshot);
+			: Math.min(targetRound, library.config.loading.snapshotRound);
 
 		const targetHeight = targetRound * constants.activeDelegates;
 
@@ -577,7 +577,7 @@ __private.loadBlockChain = function() {
 
 				matchGenesisBlock(getGenesisBlock[0]);
 
-				if (library.config.loading.snapshot) {
+				if (library.config.loading.snapshotRound) {
 					return createSnapshot(blocksCount);
 				}
 

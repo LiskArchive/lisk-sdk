@@ -43,7 +43,7 @@ describe('loader', () => {
 			});
 
 			describe('config', () => {
-				it('should assign config.loading.snapshot');
+				it('should assign config.loading.snapshotRound');
 			});
 		});
 
