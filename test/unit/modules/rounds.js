@@ -444,7 +444,6 @@ describe('rounds', () => {
 		// Init stubs
 		var mergeBlockGenerator_stub = sinon.stub().resolves();
 		var land_stub = sinon.stub().resolves();
-		var truncateBlocks_stub = sinon.stub().resolves();
 		var sumRound_stub = sinon.stub().callsArg(1);
 		var getOutsiders_stub = sinon.stub().callsArg(1);
 		var clearRoundSnapshot_stub;
@@ -455,7 +454,6 @@ describe('rounds', () => {
 		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
 			land_stub.resetHistory();
-			truncateBlocks_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
 		}
@@ -467,7 +465,6 @@ describe('rounds', () => {
 			}
 			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 			Round.prototype.land = land_stub;
-			Round.prototype.truncateBlocks = truncateBlocks_stub;
 			Rounds.__set__('Round', Round);
 
 			// Set more stubs
@@ -646,7 +643,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -704,7 +700,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -763,7 +758,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -822,7 +816,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -881,7 +874,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
