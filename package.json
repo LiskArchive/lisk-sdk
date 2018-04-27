@@ -64,7 +64,6 @@
 		"istanbul-middleware": "=0.2.2",
 		"js-yaml": "=3.10.0",
 		"json-refs": "=3.0.3",
-		"json-schema": "=0.2.3",
 		"lodash": "=4.17.4",
 		"method-override": "=2.3.10",
 		"pg-monitor": "=0.9.0",
@@ -82,8 +81,6 @@
 		"swagger-node-runner": "=0.7.3",
 		"sway": "=1.0.0",
 		"valid-url": "=1.0.9",
-		"validator": "=7.0.0",
-		"validator.js": "=2.0.3",
 		"wamp-socket-cluster": "=2.0.0-beta.2",
 		"z-schema": "=3.18.2"
 	},
