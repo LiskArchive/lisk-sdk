@@ -404,7 +404,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 	});
 
 	describe('verification', () => {
-		it('sending already confirmed second secret should fail', () => {
+		it('sending already confirmed multi-signature should fail', () => {
 			return sendTransactionPromise(
 				goodTransactions[0],
 				errorCodes.PROCESSING_ERROR

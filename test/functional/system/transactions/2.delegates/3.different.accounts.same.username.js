@@ -135,12 +135,20 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						localCommon.addTransaction(library, transaction2, err => {
-							expect(err).to.equal(
-								`Transaction is already confirmed: ${transaction2.id}`
-							);
-							done();
-						});
+						// The timeout of 1 second is necessary here because of the way we generate signature
+						// The signatures are generated using timestamp in seconds(not milliseconds)
+						// Due to this when we create transaction within millisecond using same data
+						// The transaction will have same transaction id due to use of seconds
+						setTimeout(() => {
+							const transaction3 = lisk.transaction.registerDelegate({
+								passphrase: account2.password,
+								username: account.username,
+							});
+							localCommon.addTransaction(library, transaction3, err => {
+								expect(err).to.equal('Account is already a delegate');
+								done();
+							});
+						}, 1000);
 					});
 				});
 			});

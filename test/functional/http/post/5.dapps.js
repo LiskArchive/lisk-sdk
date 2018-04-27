@@ -712,7 +712,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 	});
 
 	describe('verification', () => {
-		it('sending already confirmed multisignature transaction should fail', () => {
+		it('should fail when sending already confirmed DAPP registration', () => {
 			return sendTransactionPromise(
 				goodTransactions[0],
 				errorCodes.PROCESSING_ERROR
