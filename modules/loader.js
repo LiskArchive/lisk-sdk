@@ -73,7 +73,7 @@ class Loader {
 			config: {
 				loading: {
 					loadPerIteration: scope.config.loading.loadPerIteration,
-					snapshot: scope.config.loading.snapshotRound,
+					snapshotRound: scope.config.loading.snapshotRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
