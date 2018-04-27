@@ -21,7 +21,7 @@ import commonOptions from '../utils/options';
 
 const description = `Decrypts your secret passphrase using a password using the initialisation vector (IV) which was provided at the time of encryption.
 
-	Example: decrypt passphrase f74d6bc3bc68c9798213ee80444149e8 09dfba9040a1f2cc0b622dae18a158558b82f5ee953ece4e1ca43b8e81b15a7a
+	Example: decrypt passphrase salt=25606e160df4ababae0a0bd656310d7f&cipherText=4f513208f47dc539f7&iv=a048b9c1176b561a2f884f19&tag=2ef4db8d5e03c326fc26c0a8aa7adb69&version=1
 `;
 
 const passphraseOptionDescription = `Specifies a source for providing an encrypted passphrase to the command. If a string is provided directly as an argument, this option will be ignored. The encrypted passphrase must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
