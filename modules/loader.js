@@ -493,6 +493,7 @@ __private.loadBlockChain = function() {
 	function createSnapshot(height) {
 		library.logger.info('Snapshot mode enabled');
 
+		// Single round contains amount of blocks equal to number of active delegates
 		if (height < constants.activeDelegates) {
 			throw new Error(
 				'Unable to create snapshot, blockchain should contain at least one round of blocks.'
