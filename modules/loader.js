@@ -521,8 +521,9 @@ __private.loadBlockChain = function() {
 						() => targetHeight < offset,
 						cb => {
 							library.logger.info(
-								`Rebuilding accounts states, current round: ${offset /
-									constants.activeDelegates}, height: ${offset}`
+								`Rebuilding accounts states, current round: ${slots.calcRound(
+									offset
+								)}, height: ${offset}`
 							);
 							modules.blocks.process.loadBlocksOffset(
 								constants.activeDelegates,
