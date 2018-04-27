@@ -517,8 +517,8 @@ __private.loadBlockChain = function() {
 				},
 				loadBlocksOffset(seriesCb) {
 					async.until(
-						cb => {
 						() => targetHeight < currentHeight,
+						untilCb => {
 							library.logger.info(
 								`Rebuilding accounts states, current round: ${slots.calcRound(
 									currentHeight
@@ -528,9 +528,9 @@ __private.loadBlockChain = function() {
 								constants.activeDelegates,
 								currentHeight,
 								true,
-								err => {
-									return setImmediate(cb, err);
+								loadBlocksOffsetErr => {
 									currentHeight += constants.activeDelegates;
+									return setImmediate(untilCb, loadBlocksOffsetErr);
 								}
 							);
 						},
