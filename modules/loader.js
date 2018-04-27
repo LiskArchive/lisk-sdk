@@ -490,36 +490,71 @@ __private.loadBlockChain = function() {
 		}
 	}
 
-	/**
-	 * Description of verifySnapshot.
-	 *
-	 * @todo Add @returns and @param tags
-	 * @todo Add description for the function
-	 */
-	function verifySnapshot(count, round) {
-		if (
-			library.config.loading.snapshot !== undefined ||
-			library.config.loading.snapshot > 0
-		) {
-			library.logger.info('Snapshot mode enabled');
+	function createSnapshot(height) {
+		library.logger.info('Snapshot mode enabled');
 
-			if (
-				isNaN(library.config.loading.snapshot) ||
-				library.config.loading.snapshot >= round
-			) {
-				library.config.loading.snapshot = round;
+		if (height < constants.activeDelegates) {
+			throw new Error(
+				'Unable to create snapshot, blockchain should contain at least one round of blocks.'
+			);
+		}
 
-				if (count === 1 || count % constants.activeDelegates > 0) {
-					library.config.loading.snapshot = round > 1 ? round - 1 : 1;
+		let targetRound = Math.floor(height / constants.activeDelegates);
+		targetRound = isNaN(library.config.loading.snapshot)
+			? targetRound
+			: Math.min(targetRound, library.config.loading.snapshot);
+
+		let targetHeight = targetRound * constants.activeDelegates;
+
+		library.logger.info(
+			`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
+		);
+
+		let offset = 1;
+		async.series(
+			{
+				resetMemTables(seriesCb) {
+					library.logic.account.resetMemTables(seriesCb);
+				},
+				loadBlocksOffset(seriesCb) {
+					async.until(
+						() => targetHeight < offset,
+						cb => {
+							library.logger.info(
+								`Rebuilding accounts states, current round: ${offset /
+									constants.activeDelegates}, height: ${offset}`
+							);
+							modules.blocks.process.loadBlocksOffset(
+								constants.activeDelegates,
+								offset,
+								true,
+								err => {
+									offset += constants.activeDelegates;
+									return setImmediate(cb, err);
+								}
+							);
+						},
+						seriesCb
+					);
+				},
+				truncateBlocks(seriesCb) {
+					library.db.rounds
+						.truncateBlocks(targetHeight)
+						.then(() => {
+							seriesCb();
+						})
+						.catch(seriesCb);
+				},
+			},
+			err => {
+				if (err) {
+					throw new Error(err);
+				} else {
+					library.logger.log(`Snapshot creation finished`);
+					return process.exit(0);
 				}
 			}
-
-			library.logger.info(
-				`Snapshotting to end of round: ${library.config.loading.snapshot}`
-			);
-			return true;
-		}
-		return false;
+		);
 	}
 
 	library.db
@@ -541,10 +576,8 @@ __private.loadBlockChain = function() {
 
 				matchGenesisBlock(getGenesisBlock[0]);
 
-				verify = verifySnapshot(blocksCount, round);
-
-				if (verify) {
-					return reload(blocksCount, 'Blocks verification enabled');
+				if (library.config.loading.snapshot) {
+					return createSnapshot(blocksCount);
 				}
 
 				const unapplied = getMemRounds.filter(
