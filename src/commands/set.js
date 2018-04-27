@@ -39,7 +39,9 @@ const NETHASH_ERROR_MESSAGE =
 
 const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PROTOCOLS.map(
 	protocol => protocol.replace(':', ''),
-).toString()}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
+).join(
+	', ',
+)}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
 const writeConfigToFile = newConfig => {
 	try {

@@ -619,7 +619,7 @@ describe('set command', () => {
 													when.theActionIsCalledWithTheVariableAndTheValues,
 													() => {
 														Then(
-															'it should reject with validation error and message "Node URLs must include a supported protocol (http,https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
 															then.itShouldRejectWithValidationErrorAndMessage,
 														);
 													},
@@ -635,7 +635,7 @@ describe('set command', () => {
 													when.theActionIsCalledWithTheVariableAndTheValues,
 													() => {
 														Then(
-															'it should reject with validation error and message "Node URLs must include a supported protocol (http,https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
 															then.itShouldRejectWithValidationErrorAndMessage,
 														);
 													},
@@ -659,7 +659,7 @@ describe('set command', () => {
 													when.theActionIsCalledWithTheVariableAndTheValues,
 													() => {
 														Then(
-															'it should reject with validation error and message "Node URLs must include a supported protocol (http,https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
 															then.itShouldRejectWithValidationErrorAndMessage,
 														);
 													},
@@ -675,7 +675,7 @@ describe('set command', () => {
 													when.theActionIsCalledWithTheVariableAndTheValues,
 													() => {
 														Then(
-															'it should reject with validation error and message "Node URLs must include a supported protocol (http,https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
+															'it should reject with validation error and message "Node URLs must include a supported protocol (http, https) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost."',
 															then.itShouldRejectWithValidationErrorAndMessage,
 														);
 													},
