@@ -30,8 +30,8 @@ describe('decrypt passphrase command', () => {
 				() => {
 					Given('an action "decrypt passphrase"', given.anAction, () => {
 						Given(
-							'an encrypted passphrase "4f9ec37e5a6ff3137a89aaa1b662acc428dc33c89074e36a84b5ef5acf5efaf2107e8ee0a135aca3763f0cdee8de1d213dcd16a9b7d6feae50738ced97eddf4ba315bf49a8492e4ff065a7bd91358bde" with an IV "7bc5fe1d70faa0e5b3b88de42d26e7ec"',
-							given.anEncryptedPassphraseWithAnIV,
+							'an encrypted passphrase "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1"',
+							given.anEncryptedPassphrase,
 							() => {
 								Given('a password "testing123"', given.aPassword, () => {
 									Given(
@@ -39,8 +39,8 @@ describe('decrypt passphrase command', () => {
 										given.anEmptyOptionsObject,
 										() => {
 											When(
-												'the action is called with the IV and the options',
-												when.theActionIsCalledWithTheIVAndTheOptions,
+												'the action is called with the options',
+												when.theActionIsCalledWithTheOptions,
 												() => {
 													Then(
 														'it should reject with validation error and message "No encrypted passphrase was provided."',
@@ -53,8 +53,8 @@ describe('decrypt passphrase command', () => {
 												given.anErrorOccursRetrievingTheInputsFromTheirSources,
 												() => {
 													When(
-														'the action is called with the IV, the encrypted passphrase and the options',
-														when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions,
+														'the action is called with the encrypted passphrase and the options',
+														when.theActionIsCalledWithTheEncryptedPassphraseAndTheOptions,
 														() => {
 															Then(
 																'it should reject with the error message',
@@ -69,8 +69,8 @@ describe('decrypt passphrase command', () => {
 												given.thePasswordCanBeRetrievedFromItsSource,
 												() => {
 													When(
-														'the action is called with the IV, the encrypted passphrase and the options',
-														when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions,
+														'the action is called with the encrypted passphrase and the options',
+														when.theActionIsCalledWithTheEncryptedPassphraseAndTheOptions,
 														() => {
 															Then(
 																'it should get the inputs from sources using the Vorpal instance',
@@ -85,8 +85,8 @@ describe('decrypt passphrase command', () => {
 																then.itShouldNotGetTheInputsFromSourcesUsingTheEncryptedPassphraseSource,
 															);
 															Then(
-																'it should decrypt the passphrase using the IV and the password',
-																then.itShouldDecryptThePassphraseUsingTheIVAndThePassword,
+																'it should decrypt the passphrase using the password',
+																then.itShouldDecryptThePassphraseUsingThePassword,
 															);
 															Then(
 																'it should resolve to the result of decrypting the passphrase',
@@ -107,8 +107,8 @@ describe('decrypt passphrase command', () => {
 												given.anErrorOccursRetrievingTheInputsFromTheirSources,
 												() => {
 													When(
-														'the action is called with the IV, the encrypted passphrase and the options',
-														when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions,
+														'the action is called with the encrypted passphrase and the options',
+														when.theActionIsCalledWithTheEncryptedPassphraseAndTheOptions,
 														() => {
 															Then(
 																'it should reject with the error message',
@@ -123,8 +123,8 @@ describe('decrypt passphrase command', () => {
 												given.thePasswordCanBeRetrievedFromItsSource,
 												() => {
 													When(
-														'the action is called with the IV, the encrypted passphrase and the options',
-														when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions,
+														'the action is called with the encrypted passphrase and the options',
+														when.theActionIsCalledWithTheEncryptedPassphraseAndTheOptions,
 														() => {
 															Then(
 																'it should get the inputs from sources using the Vorpal instance',
@@ -139,8 +139,8 @@ describe('decrypt passphrase command', () => {
 																then.itShouldNotGetTheInputsFromSourcesUsingTheEncryptedPassphraseSource,
 															);
 															Then(
-																'it should decrypt the passphrase using the IV and the password',
-																then.itShouldDecryptThePassphraseUsingTheIVAndThePassword,
+																'it should decrypt the passphrase using the password',
+																then.itShouldDecryptThePassphraseUsingThePassword,
 															);
 															Then(
 																'it should resolve to the result of decrypting the passphrase',
@@ -161,8 +161,8 @@ describe('decrypt passphrase command', () => {
 												given.anErrorOccursRetrievingTheInputsFromTheirSources,
 												() => {
 													When(
-														'the action is called with the IV, the encrypted passphrase and the options',
-														when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions,
+														'the action is called with the encrypted passphrase and the options',
+														when.theActionIsCalledWithTheEncryptedPassphraseAndTheOptions,
 														() => {
 															Then(
 																'it should reject with the error message',
@@ -177,8 +177,8 @@ describe('decrypt passphrase command', () => {
 												given.thePasswordAndEncryptedPassphraseCanBeRetrievedFromTheirSources,
 												() => {
 													When(
-														'the action is called with the IV and the options',
-														when.theActionIsCalledWithTheIVAndTheOptions,
+														'the action is called with the options',
+														when.theActionIsCalledWithTheOptions,
 														() => {
 															Then(
 																'it should get the inputs from sources using the Vorpal instance',
@@ -193,8 +193,8 @@ describe('decrypt passphrase command', () => {
 																then.itShouldGetTheInputsFromSourcesUsingTheEncryptedPassphraseSourceWithoutARepeatingPrompt,
 															);
 															Then(
-																'it should decrypt the passphrase using the IV and the password',
-																then.itShouldDecryptThePassphraseUsingTheIVAndThePassword,
+																'it should decrypt the passphrase using the password',
+																then.itShouldDecryptThePassphraseUsingThePassword,
 															);
 															Then(
 																'it should resolve to the result of decrypting the passphrase',
@@ -215,8 +215,8 @@ describe('decrypt passphrase command', () => {
 												given.anErrorOccursRetrievingTheInputsFromTheirSources,
 												() => {
 													When(
-														'the action is called with the IV, the encrypted passphrase and the options',
-														when.theActionIsCalledWithTheIVTheEncryptedPassphraseAndTheOptions,
+														'the action is called with the encrypted passphrase and the options',
+														when.theActionIsCalledWithTheEncryptedPassphraseAndTheOptions,
 														() => {
 															Then(
 																'it should reject with the error message',
@@ -231,8 +231,8 @@ describe('decrypt passphrase command', () => {
 												given.thePasswordAndEncryptedPassphraseCanBeRetrievedFromTheirSources,
 												() => {
 													When(
-														'the action is called with the IV and the options',
-														when.theActionIsCalledWithTheIVAndTheOptions,
+														'the action is called with the options',
+														when.theActionIsCalledWithTheOptions,
 														() => {
 															Then(
 																'it should get the inputs from sources using the Vorpal instance',
@@ -247,8 +247,8 @@ describe('decrypt passphrase command', () => {
 																then.itShouldGetTheInputsFromSourcesUsingTheEncryptedPassphraseSourceWithoutARepeatingPrompt,
 															);
 															Then(
-																'it should decrypt the passphrase using the IV and the password',
-																then.itShouldDecryptThePassphraseUsingTheIVAndThePassword,
+																'it should decrypt the passphrase using the password',
+																then.itShouldDecryptThePassphraseUsingThePassword,
 															);
 															Then(
 																'it should resolve to the result of decrypting the passphrase',

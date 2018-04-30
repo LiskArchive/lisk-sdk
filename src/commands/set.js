@@ -13,8 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import url from 'url';
 import lisk from 'lisk-js';
-import { CONFIG_VARIABLES, NETHASHES } from '../utils/constants';
+import { CONFIG_VARIABLES, NETHASHES, API_PROTOCOLS } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
 import { writeJSONSync } from '../utils/fs';
@@ -27,6 +28,7 @@ const description = `Sets configuration <variable> to [value(s)...]. Variables a
 	- set json true
 	- set name my_custom_lisky
 	- set api.network main
+	- set api.nodes https://127.0.0.1:4000,http://mynode.com:7000
 `;
 
 const WRITE_FAIL_WARNING =
@@ -34,6 +36,12 @@ const WRITE_FAIL_WARNING =
 
 const NETHASH_ERROR_MESSAGE =
 	'Value must be a hex string with 64 characters, or one of main, test or beta.';
+
+const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PROTOCOLS.map(
+	protocol => protocol.replace(':', ''),
+).join(
+	', ',
+)}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
 const writeConfigToFile = newConfig => {
 	try {
@@ -104,8 +112,15 @@ const setBoolean = (dotNotation, value) => {
 	return setValue(dotNotation, newValue);
 };
 
-const setArrayString = (dotNotation, value, inputs) =>
-	setValue(dotNotation, inputs);
+const setArrayURL = (dotNotation, value, inputs) => {
+	inputs.forEach(input => {
+		const { protocol, hostname } = url.parse(input);
+		if (!API_PROTOCOLS.includes(protocol) || !hostname) {
+			throw new ValidationError(URL_ERROR_MESSAGE);
+		}
+	});
+	return setValue(dotNotation, inputs);
+};
 
 const setNethash = (dotNotation, value) => {
 	if (
@@ -125,7 +140,7 @@ const setNethash = (dotNotation, value) => {
 };
 
 const handlers = {
-	'api.nodes': setArrayString,
+	'api.nodes': setArrayURL,
 	'api.network': setNethash,
 	json: setBoolean,
 	name: setValue,

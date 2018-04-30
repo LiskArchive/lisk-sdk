@@ -48,6 +48,8 @@ export const CONFIG_VARIABLES = [
 	'pretty',
 ];
 
+export const API_PROTOCOLS = ['http:', 'https:'];
+
 export const NETHASHES = {
 	main: constants.MAINNET_NETHASH,
 	test: constants.TESTNET_NETHASH,

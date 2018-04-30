@@ -88,8 +88,8 @@ describe('Crypto class', () => {
 				});
 				Given('a password "testing123"', given.aPassword, () => {
 					Given(
-						'an encrypted passphrase "4f9ec37e5a6ff3137a89aaa1b662acc428dc33c89074e36a84b5ef5acf5efaf2107e8ee0a135aca3763f0cdee8de1d213dcd16a9b7d6feae50738ced97eddf4ba315bf49a8492e4ff065a7bd91358bde" with an IV "7bc5fe1d70faa0e5b3b88de42d26e7ec"',
-						given.anEncryptedPassphraseWithAnIV,
+						'an encrypted passphrase "iterations=1&salt=e8c7dae4c893e458e0ebb8bff9a36d84&cipherText=c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333&iv=1a2206e426c714091b7e48f6&tag=3a9d9f9f9a92c9a58296b8df64820c15&version=1"',
+						given.anEncryptedPassphrase,
 						() => {
 							describe('#encryptPassphrase', () => {
 								When(
@@ -97,12 +97,16 @@ describe('Crypto class', () => {
 									when.noErrorOccursAttemptingToEncryptThePassphraseWithThePassword,
 									() => {
 										Then(
-											'lisk-js crypto should be used to get the encrypted passphrase and IV',
-											then.liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV,
+											'lisk-js crypto should be used to get the encrypted passphrase',
+											then.liskJSCryptoShouldBeUsedToGetTheEncryptedPassphrase,
 										);
 										Then(
-											'the encrypted passphrase and IV should be returned',
-											then.theEncryptedPassphraseAndIVShouldBeReturned,
+											'lisk-js crypto should be used to stringify the encrypted passphrase',
+											then.liskJSCryptoShouldBeUsedToStringifyTheEncryptedPassphrase,
+										);
+										Then(
+											'the encrypted passphrase should be returned',
+											then.theEncryptedPassphraseShouldBeReturned,
 										);
 									},
 								);
@@ -122,6 +126,10 @@ describe('Crypto class', () => {
 									'no error occurs attempting to decrypt the passphrase with the password',
 									when.noErrorOccursAttemptingToDecryptThePassphraseWithThePassword,
 									() => {
+										Then(
+											'lisk-js crypto should be used to parse the encrypted passphrase',
+											then.liskJSCryptoShouldBeUsedToParseTheEncryptedPassphrase,
+										);
 										Then(
 											'lisk-js crypto should be used to get the decrypted passphrase',
 											then.liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase,

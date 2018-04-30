@@ -122,6 +122,8 @@ const setUpLiskJSCryptoStubs = () => {
 		'getAddressFromPublicKey',
 		'signMessageWithPassphrase',
 		'verifyMessageWithPublicKey',
+		'parseEncryptedPassphrase',
+		'stringifyEncryptedPassphrase',
 	].forEach(methodName => sandbox.stub(lisk.cryptography, methodName));
 };
 
