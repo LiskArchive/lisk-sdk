@@ -17,10 +17,9 @@
 				"extensions": [".js"],
 					"moduleDirectory": [
 						"node_modules",
-						"src"
+						"packages"
 					]
 			}
 		}
 	}
 }
-

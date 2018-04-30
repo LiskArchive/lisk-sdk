@@ -13,5 +13,5 @@ bin/
 browsertest/
 coverage/
 cypress/
-src/
+packages/
 test/

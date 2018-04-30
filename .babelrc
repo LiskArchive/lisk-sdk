@@ -3,7 +3,7 @@
 	"plugins": [
 		"transform-runtime",
 		["module-resolver", {
-				"root": ["./src"]
+				"root": ["./packages"]
 			}
 		]
 	],
