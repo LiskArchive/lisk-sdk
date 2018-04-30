@@ -66,11 +66,9 @@ Tests written using mocha + schedule.js.
 	- [Create Multisignature Account](https://docs.lisk.io/docs/transactions-1#section-createmultisignature)
 	- [Sign Multisignature Transaction](https://docs.lisk.io/docs/transactions-1#section-signtransaction)
 
-## Authors
+## Contributors
 
-- Boris Povod <boris@crypti.me>
-- Oliver Beddows <oliver@lightcurve.io>
-- Tobias Schwarz <tobias@lightcurve.io>
+https://github.com/LiskHQ/lisk-elements/graphs/contributors
 
 ## License
 
