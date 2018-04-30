@@ -334,7 +334,9 @@ const Queries = {
 				? ` AND ${params.owner}`
 				: params.owner,
 			params.sortField
-				? `ORDER BY ${[params.sortField, params.sortMethod].join(' ')}`
+				? `ORDER BY ${[params.sortField, params.sortMethod].join(
+						' '
+					)}, t_id ASC`
 				: '',
 			'LIMIT ${limit} OFFSET ${offset}',
 		]
