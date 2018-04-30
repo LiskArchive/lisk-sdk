@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "0.4.5",
+	"version": "1.0.0-beta.3",
 	"description": "JavaScript library for sending Lisk transactions from the client or server",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
