@@ -1,6 +1,6 @@
-# lisk-js browser distribution
+# Lisk Elements browser distribution
 
-This branch contains the built lisk-js distribution files, ready for use in the browser. There is a
+This branch contains the built Lisk Elements distribution files, ready for use in the browser. There is a
 full build and a minified build (which is the one you want to use in most cases).
 
 ## Updating these files

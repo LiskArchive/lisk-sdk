@@ -18,7 +18,7 @@ import {
 	multiSignTransaction,
 	verifyTransaction,
 } from 'transactions/utils';
-// The list of valid transactions was created with lisk-js 0.5.1
+// The list of valid transactions was created with Lisk Elements v0.5.1
 // using the below mentioned passphrases.
 import validTransactions from '../../../fixtures/transactions.json';
 // Require is used for stubbing

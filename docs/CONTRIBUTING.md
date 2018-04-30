@@ -1,8 +1,8 @@
-# Contributing to Lisk-JS
+# Contributing to Lisk Elements
 
 First off, thanks for taking the time to contribute! :raised_hands:
 
-The following is a set of guidelines for contributing to Lisk-JS, which are hosted in the [LiskHQ Organization](https://github.com/LiskHQ) on GitHub. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to Lisk Elements, which are hosted in the [LiskHQ Organization](https://github.com/LiskHQ) on GitHub. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 #### Table Of Contents
 
@@ -21,7 +21,7 @@ The following is a set of guidelines for contributing to Lisk-JS, which are host
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Lisk-JS Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [info@lisk.io](mailto:info@lisk.io).
+This project and everyone participating in it is governed by the [Lisk Elements Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [info@lisk.io](mailto:info@lisk.io).
 
 ## Project License
 
@@ -63,7 +63,7 @@ In case you've never submitted a pull request (PR) via GitHub before, please rea
 
 ### Reporting Bugs
 
-This section guides you through submitting a bug report for Lisk-JS. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
+This section guides you through submitting a bug report for Lisk Elements. Following these guidelines helps maintainers and the community understand your report :pencil:, reproduce the behavior :computer: :computer:, and find related reports :mag_right:.
 
 Before creating bug reports, please check [this list](#before-submitting-a-bug-report) as you might find out that you don't need to create one. When you are creating a bug report, please [include as many details as possible](#how-do-i-submit-a-good-bug-report). Fill out [the required template](ISSUE_TEMPLATE.md), the information it asks for helps us resolve issues faster.
 
@@ -82,7 +82,7 @@ Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
 Explain the problem and include additional details to help maintainers reproduce the problem:
 
 * **Use a clear and descriptive title** for the issue to identify the problem.
-* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Lisk-JS, e.g. with Node.js or in the Browser (which one? which version?), or how you started Lisk-JS otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you have used an API model provide the configuration you have chosen and the functions you have executed. **Make sure to erase sensitive information from the configuration or details you are passing - NEVER SHARE YOUR SECRET PASSPHRASES OR PRIVATE KEYS**.
+* **Describe the exact steps which reproduce the problem** in as many details as possible. For example, start by explaining how you started Lisk Elements, e.g. with Node.js or in the Browser (which one? which version?), or how you started Lisk Elements otherwise. When listing steps, **don't just say what you did, but explain how you did it**. For example, if you have used an API model provide the configuration you have chosen and the functions you have executed. **Make sure to erase sensitive information from the configuration or details you are passing - NEVER SHARE YOUR SECRET PASSPHRASES OR PRIVATE KEYS**.
 * **Provide specific examples to demonstrate the steps**. Include links to files or GitHub projects, or copy/pasteable snippets, which you use in those examples. If you're providing snippets in the issue, use [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the behavior you observed after following the steps** and point out what exactly is the problem with that behavior.
 * **Explain which behavior you expected to see instead and why.**
@@ -91,13 +91,13 @@ Explain the problem and include additional details to help maintainers reproduce
 
 Provide more context by answering these questions:
 
-* **Did the problem start happening recently** (e.g. after updating to a new version of Lisk-JS, Lisk or any other repository) or was this always a problem?
-* If the problem started happening recently, **can you reproduce the problem in an older version of Lisk-JS?** What's the most recent version in which the problem doesn't happen? You can download older versions of Lisk-JS from [the releases page](https://github.com/LiskHQ/lisk-js/releases).
+* **Did the problem start happening recently** (e.g. after updating to a new version of Lisk Elements, Lisk or any other repository) or was this always a problem?
+* If the problem started happening recently, **can you reproduce the problem in an older version of Lisk Elements?** What's the most recent version in which the problem doesn't happen? You can download older versions of Lisk Elements from [the releases page](https://github.com/LiskHQ/lisk-elements/releases).
 * **Can you reliably reproduce the issue?** If not, provide details about how often the problem happens and under which conditions it normally happens.
 
 ### Suggesting Enhancements
 
-This section guides you through submitting an enhancement suggestion for Lisk-JS, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
+This section guides you through submitting an enhancement suggestion for Lisk Elements, including completely new features and minor improvements to existing functionality. Following these guidelines helps maintainers and the community understand your suggestion :pencil: and find related suggestions :mag_right:.
 
  When you are creating an enhancement suggestion, please include as many details as possible. Fill in [the template](ISSUE_TEMPLATE.md), including the steps that you imagine you would take if the feature you're requesting existed.
 
@@ -109,9 +109,9 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 * **Provide a step-by-step description of the suggested enhancement** in as many details as possible.
 * **Provide specific examples to demonstrate the steps**. Include copy/pasteable snippets which you use in those examples, as [Markdown code blocks](https://help.github.com/articles/markdown-basics/#multiple-lines).
 * **Describe the current behavior** and **explain which behavior you expected to see instead** and why.
-* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Lisk-JS which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
-* **Explain why this enhancement would be useful** to most Lisk and Lisk-JS users.
-* **Specify which version of Lisk and Lisk-JS you're using.**
+* **Include screenshots and animated GIFs** which help you demonstrate the steps or point out the part of Lisk Elements which the suggestion is related to. You can use [this tool](http://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
+* **Explain why this enhancement would be useful** to most Lisk and Lisk Elements users.
+* **Specify which version of Lisk and Lisk Elements you're using.**
 * **Specify the name and version of the OS you're using.**
 
 ## Styleguides
@@ -141,7 +141,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://guides.github.com
 
 ### JavaScript Styleguide
 
-On Lisk-JS we are using [ESLint](https://eslint.org/).
+On Lisk Elements we are using [ESLint](https://eslint.org/).
 Our JavaScript style expands [Airbnb's](https://github.com/airbnb/javascript) style. You can get more details here: https://github.com/LiskHQ/eslint-config-lisk-base
 
 These contribution guidelines were inspired by and are based on Atom's contribution guidelines. They were modified for the purposes of this repository. https://github.com/atom/atom/blob/master/CONTRIBUTING.md - Copyright (c) 2011-2017 GitHub Inc. (MIT)

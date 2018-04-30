@@ -1,5 +1,5 @@
 pipeline {
-       agent { node { label 'lisk-js' } }
+       agent { node { label 'lisk-elements' } }
        stages {
                stage('Cache dependencies') {
                        steps {

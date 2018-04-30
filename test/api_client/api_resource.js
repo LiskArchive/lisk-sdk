@@ -25,7 +25,7 @@ describe('API resource module', () => {
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: 'mainnetHash',
-		os: 'lisk-js-api',
+		os: 'lisk-elements-api',
 		version: '1.0.0',
 		minVersion: '>=0.5.0',
 		port: '443',

@@ -45,7 +45,8 @@ const commonHeaders = {
 const getUserAgent = (
 	{ name = '????', version = '????', engine = '????' } = {},
 ) => {
-	const liskJSInformation = 'LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js)';
+	const liskElementsInformation =
+		'LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements)';
 	const locale =
 		process.env.LC_ALL ||
 		process.env.LC_MESSAGES ||
@@ -54,7 +55,7 @@ const getUserAgent = (
 	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	return `${name}/${version} (${engine}) ${liskJSInformation} ${
+	return `${name}/${version} (${engine}) ${liskElementsInformation} ${
 		systemInformation
 	}`;
 };

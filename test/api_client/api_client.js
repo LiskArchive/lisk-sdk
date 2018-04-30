@@ -45,7 +45,7 @@ describe('APIClient module', () => {
 	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	const baseUserAgent = `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${
+	const baseUserAgent = `LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements) ${
 		platformInfo
 	}`;
 	const defaultUserAgent = `????/???? (????) ${baseUserAgent}`;
