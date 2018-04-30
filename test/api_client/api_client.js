@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -45,7 +45,7 @@ describe('APIClient module', () => {
 	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	const baseUserAgent = `LiskJS/1.0 (+https://github.com/LiskHQ/lisk-js) ${
+	const baseUserAgent = `LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements) ${
 		platformInfo
 	}`;
 	const defaultUserAgent = `????/???? (????) ${baseUserAgent}`;

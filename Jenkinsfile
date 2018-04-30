@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,7 +13,7 @@
  *
  */
 pipeline {
-	agent { node { label 'lisk-js' } }
+	agent { node { label 'lisk-elements' } }
 	stages {
 		stage('Install dependencies') {
 			steps {
@@ -58,14 +58,14 @@ pipeline {
 	post {
 		success {
 			deleteDir()
-			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build passed.', status: 'SUCCESS'
+			githubNotify context: 'continuous-integration/jenkins/lisk-elements', description: 'The build passed.', status: 'SUCCESS'
 		}
 		failure {
 			archiveArtifacts allowEmptyArchive: true, artifacts: 'cypress/screenshots/'
-			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build failed.', status: 'FAILURE'
+			githubNotify context: 'continuous-integration/jenkins/lisk-elements', description: 'The build failed.', status: 'FAILURE'
 		}
 		aborted {
-			githubNotify context: 'continuous-integration/jenkins/lisk-js', description: 'The build was aborted.', status: 'ERROR'
+			githubNotify context: 'continuous-integration/jenkins/lisk-elements', description: 'The build was aborted.', status: 'ERROR'
 		}
 	}
 }

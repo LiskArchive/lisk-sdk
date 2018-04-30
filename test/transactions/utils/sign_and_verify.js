@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,7 +18,7 @@ import {
 	multiSignTransaction,
 	verifyTransaction,
 } from 'transactions/utils';
-// The list of valid transactions was created with lisk-js 0.5.1
+// The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import validTransactions from '../../../fixtures/transactions.json';
 // Require is used for stubbing

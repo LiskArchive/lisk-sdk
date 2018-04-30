@@ -1,4 +1,4 @@
-Have you read Lisk-JS's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: [Lisk-JS Code of Conduct](CODE_OF_CONDUCT.md)
+Have you read Lisk Elements's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: [Lisk Elements Code of Conduct](CODE_OF_CONDUCT.md)
 
 ### Description
 
@@ -19,7 +19,7 @@ Have you read Lisk-JS's Code of Conduct? By filing an Issue, you are expected to
 ### Versions
 
 Please provide the version you are working with. Please include the OS and what version of the OS you're running.
-Also please tell us whether you are using Lisk-JS in a browser (which one? which version?) or in Node.js.
+Also please tell us whether you are using Lisk Elements in a browser (which one? which version?) or in Node.js.
 
 ### Additional Information
 

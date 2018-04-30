@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Lisk Foundation
+ * Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -25,7 +25,7 @@ describe('API resource module', () => {
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: 'mainnetHash',
-		os: 'lisk-js-api',
+		os: 'lisk-elements-api',
 		version: '1.0.0',
 		minVersion: '>=0.5.0',
 		port: '443',
