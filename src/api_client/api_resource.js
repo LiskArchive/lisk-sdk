@@ -14,7 +14,8 @@
  */
 
 import * as popsicle from 'popsicle';
-import { API_RECONNECT_MAX_RETRY_COUNT } from './constants';
+
+const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
 export default class APIResource {
 	constructor(apiClient) {
