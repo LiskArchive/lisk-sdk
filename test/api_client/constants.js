@@ -16,7 +16,6 @@ import {
 	GET,
 	POST,
 	PUT,
-	API_RECONNECT_MAX_RETRY_COUNT,
 	BETANET_NODES,
 	TESTNET_NODES,
 	MAINNET_NODES,
@@ -33,10 +32,6 @@ describe('api constants module', () => {
 
 	it('PUT should be a string', () => {
 		return expect(PUT).to.be.a('string');
-	});
-
-	it('API_RECONNECT_MAX_RETRY_COUNT should be an integer', () => {
-		return expect(API_RECONNECT_MAX_RETRY_COUNT).to.be.an.integer;
 	});
 
 	it('BETANET_NODES should be an array of strings', () => {
