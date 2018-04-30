@@ -21,60 +21,60 @@ def date = new Date()
 def timestamp = dateFormat.format(date)
 
 pipeline {
-	agent { 
-		node { 
-			label 'nightly-build'
-			// Forcing a short path workspace to prevent issues with arguments lentgh
-			customWorkspace "workspace/${URLDecoder.decode(JOB_NAME)}/${BUILD_NUMBER}"
-			}
-	}
-	stages {
-		stage('Generate release') {
-			steps {
-	    		sh """
-	    		npm install
-	    		node ./node_modules/.bin/grunt release
-	    		jq -r '.version' config.json > version
-	    		"""
-				script {
-					env.LISK_VERSION = readFile("version").trim()
-				}
-			}
-		}
-		stage('Prepare build environment') {
-			steps {
-				dir('lisk-build') {
-					git url: "https://github.com/LiskHQ/lisk-build.git", branch: "1.0.0"
-				}
-				sh "cp release/lisk-${env.LISK_VERSION}.tgz lisk-build/src"
-			}
-		}
-		stage('Build release') {
-			steps {
-				dir('lisk-build') {
-					sh """
-					bash build.sh -n dev -v ${env.LISK_VERSION}
-					mv release/lisk-${env.LISK_VERSION}-Linux-x86_64.tar.gz release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
-					sha256sum release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz > release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
-					cat release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
-					"""
-				}
-			}
-		}
-		stage('Upload nightly release.') {
-			steps {
-				dir('lisk-build') {
-					sh """
-					s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz s3:///lisk/nightly/lisk/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
-					s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256 s3:///lisk/nightly/lisk/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
-					"""
-				}
-			}
-		}
-	}
-	post {
-		always {
-			cleanWs()
-		}
-	}
+    agent { 
+        node { 
+            label 'nightly-build'
+            // Forcing a short path workspace to prevent issues with arguments lentgh
+            customWorkspace "workspace/${URLDecoder.decode(JOB_NAME)}/${BUILD_NUMBER}"
+        }
+    }
+    stages {
+        stage('Generate release') {
+            steps {
+                sh """
+                npm install
+                node ./node_modules/.bin/grunt release
+                jq -r '.version' config.json > version
+                """
+                script {
+                    env.LISK_VERSION = readFile("version").trim()
+                }
+            }
+        }
+        stage('Prepare build environment') {
+            steps {
+                dir('lisk-build') {
+                    git url: "https://github.com/LiskHQ/lisk-build.git", branch: "1.0.0"
+                }
+                sh "cp release/lisk-${env.LISK_VERSION}.tgz lisk-build/src"
+            }
+        }
+        stage('Build release') {
+            steps {
+                dir('lisk-build') {
+                    sh """
+                    bash build.sh -n dev -v ${env.LISK_VERSION}
+                    mv release/lisk-${env.LISK_VERSION}-Linux-x86_64.tar.gz release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
+                    sha256sum release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz > release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
+                    cat release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
+                    """
+                }
+            }
+        }
+        stage('Upload nightly release.') {
+            steps {
+                dir('lisk-build') {
+                    sh """
+                    s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz s3:///lisk/nightly/lisk/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
+                    s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256 s3:///lisk/nightly/lisk/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
+                    """
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
