@@ -57,11 +57,10 @@ export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
-export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
-	const { cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+export function itShouldDecryptThePassphraseUsingThePassword() {
+	const { encryptedPassphrase, password } = this.test.ctx;
 	return expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
-		cipher,
-		iv,
+		encryptedPassphrase,
 		password,
 	});
 }
@@ -180,23 +179,37 @@ export function theErrorResponseShouldBeHandled() {
 	return expect(returnValue).to.eql({ error: errorMessage });
 }
 
-export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
+export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphrase() {
 	const { passphrase, password } = this.test.ctx;
 	return expect(
 		lisk.cryptography.encryptPassphraseWithPassword,
 	).to.be.calledWithExactly(passphrase, password);
 }
 
-export function theEncryptedPassphraseAndIVShouldBeReturned() {
-	const { returnValue, cipherAndIv } = this.test.ctx;
-	return expect(returnValue).to.equal(cipherAndIv);
+export function liskJSCryptoShouldBeUsedToStringifyTheEncryptedPassphrase() {
+	const { encryptedPassphraseObject } = this.test.ctx;
+	return expect(
+		lisk.cryptography.stringifyEncryptedPassphrase,
+	).to.be.calledWithExactly(encryptedPassphraseObject);
+}
+
+export function liskJSCryptoShouldBeUsedToParseTheEncryptedPassphrase() {
+	const { encryptedPassphrase } = this.test.ctx;
+	return expect(
+		lisk.cryptography.parseEncryptedPassphrase,
+	).to.be.calledWithExactly(encryptedPassphrase);
+}
+
+export function theEncryptedPassphraseShouldBeReturned() {
+	const { returnValue, encryptedPassphrase } = this.test.ctx;
+	return expect(returnValue).to.eql({ encryptedPassphrase });
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
-	const { cipherAndIv, password } = this.test.ctx;
+	const { encryptedPassphraseObject, password } = this.test.ctx;
 	return expect(
 		lisk.cryptography.decryptPassphraseWithPassword,
-	).to.be.calledWithExactly(cipherAndIv, password);
+	).to.be.calledWithExactly(encryptedPassphraseObject, password);
 }
 
 export function theDecryptedPassphraseShouldBeReturned() {
