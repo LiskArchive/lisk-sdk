@@ -110,6 +110,17 @@ function Config(packageJson) {
 		appConfig.coverage = true;
 	}
 
+	if (!appConfig.api.cors.origin) {
+		appConfig.api.cors.origin = '*';
+	}
+
+	if (
+		!appConfig.api.cors.methods ||
+		!Array.isArray(appConfig.api.cors.methods)
+	) {
+		appConfig.api.cors.methods = ['GET', 'POST', 'PUT'];
+	}
+
 	var validator = new z_schema();
 	var valid = validator.validate(appConfig, configSchema.config);
 
