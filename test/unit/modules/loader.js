@@ -231,8 +231,7 @@ describe('loader', () => {
 
 		it('should emit an event with proper error when resetMemTables fails', done => {
 			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
-			validScope.bus.message = (target, err) => {
-				expect(target).to.eql('snapshotFinished');
+			__private.snapshotFinished = err => {
 				expect(err).to.eql('resetMemTables#ERR');
 				done();
 			};
@@ -242,8 +241,7 @@ describe('loader', () => {
 
 		it('should emit an event with proper error when loadBlocksOffset fails', done => {
 			loadBlocksOffsetStub.callsArgWith(3, 'loadBlocksOffsetStub#ERR', true);
-			validScope.bus.message = (target, err) => {
-				expect(target).to.eql('snapshotFinished');
+			__private.snapshotFinished = err => {
 				expect(err).to.eql('loadBlocksOffsetStub#ERR');
 				done();
 			};
@@ -253,8 +251,7 @@ describe('loader', () => {
 
 		it('should emit an event with proper error when deleteBlocksAfterHeight fails', done => {
 			deleteBlocksAfterHeightStub.rejects('deleteBlocksAfterHeightStub#ERR');
-			validScope.bus.message = (target, err) => {
-				expect(target).to.eql('snapshotFinished');
+			__private.snapshotFinished = err => {
 				expect(err.name).to.eql('deleteBlocksAfterHeightStub#ERR');
 				done();
 			};
@@ -273,8 +270,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
 
 				library.config.loading.snapshotRound = 1;
-				validScope.bus.message = (target, err) => {
-					expect(target).to.eql('snapshotFinished');
+				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub.calledOnce).to.be.true;
 					expect(
@@ -295,8 +291,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
 
 				library.config.loading.snapshotRound = snapshotRound;
-				validScope.bus.message = (target, err) => {
-					expect(target).to.eql('snapshotFinished');
+				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub.calledOnce).to.be.true;
 					expect(loadBlocksOffsetStub.calledOnce).to.be.true;
@@ -318,8 +313,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
 
 				library.config.loading.snapshotRound = snapshotRound;
-				validScope.bus.message = (target, err) => {
-					expect(target).to.eql('snapshotFinished');
+				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub.calledOnce).to.be.true;
 					expect(loadBlocksOffsetStub.calledTwice).to.be.true;
@@ -352,8 +346,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
 
 				library.config.loading.snapshotRound = snapshotRound;
-				validScope.bus.message = (target, err) => {
-					expect(target).to.eql('snapshotFinished');
+				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub.calledOnce).to.be.true;
 					expect(loadBlocksOffsetStub.calledTwice).to.be.true;
@@ -386,8 +379,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = constants.activeDelegates;
 
 				library.config.loading.snapshotRound = snapshotRound;
-				validScope.bus.message = (target, err) => {
-					expect(target).to.eql('snapshotFinished');
+				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub.calledOnce).to.be.true;
 					expect(loadBlocksOffsetStub.calledOnce).to.be.true;
