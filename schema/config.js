@@ -175,8 +175,20 @@ module.exports = {
 						},
 						required: ['limits'],
 					},
+					cors: {
+						type: 'object',
+						properties: {
+							origin: {
+								type: 'string',
+							},
+							methods: {
+								type: 'array',
+							},
+						},
+						required: ['origin'],
+					},
 				},
-				required: ['enabled', 'access', 'options'],
+				required: ['enabled', 'access', 'options', 'cors'],
 			},
 			peers: {
 				type: 'object',
