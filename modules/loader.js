@@ -625,19 +625,18 @@ __private.createSnapshot = height => {
 					.catch(seriesCb);
 			},
 		},
-		err => {
-			library.bus.message('snapshotFinished', err);
-		}
+		__private.snapshotFinished
 	);
 };
 
 /**
- * Event fired when snapshot creation is complete.
+ * Executed when snapshot creation is complete.
  *
+ * @private
  * @param {err} Error if any
  * @emits cleanup
  */
-Loader.prototype.onSnapshotFinished = err => {
+__private.snapshotFinished = err => {
 	if (err) {
 		library.logger.error('Snapshot creation failed', err);
 	} else {
