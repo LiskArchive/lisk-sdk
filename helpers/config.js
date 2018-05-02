@@ -110,15 +110,15 @@ function Config(packageJson) {
 		appConfig.coverage = true;
 	}
 
-	if (!appConfig.api.cors.origin) {
-		appConfig.api.cors.origin = '*';
+	if (!appConfig.api.options.cors.origin) {
+		appConfig.api.options.cors.origin = '*';
 	}
 
 	if (
-		!appConfig.api.cors.methods ||
-		!Array.isArray(appConfig.api.cors.methods)
+		!appConfig.api.options.cors.methods ||
+		!Array.isArray(appConfig.api.options.cors.methods)
 	) {
-		appConfig.api.cors.methods = ['GET', 'POST', 'PUT'];
+		appConfig.api.options.cors.methods = ['GET', 'POST', 'PUT'];
 	}
 
 	var validator = new z_schema();

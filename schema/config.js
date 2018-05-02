@@ -172,23 +172,23 @@ module.exports = {
 								},
 								required: ['max', 'delayMs', 'delayAfter', 'windowMs'],
 							},
-						},
-						required: ['limits'],
-					},
-					cors: {
-						type: 'object',
-						properties: {
-							origin: {
-								type: 'string',
+							cors: {
+								type: 'object',
+								properties: {
+									origin: {
+										type: 'string',
+									},
+									methods: {
+										type: 'array',
+									},
+								},
+								required: ['origin'],
 							},
-							methods: {
-								type: 'array',
-							},
 						},
-						required: ['origin'],
+						required: ['limits', 'cors'],
 					},
 				},
-				required: ['enabled', 'access', 'options', 'cors'],
+				required: ['enabled', 'access', 'options'],
 			},
 			peers: {
 				type: 'object',

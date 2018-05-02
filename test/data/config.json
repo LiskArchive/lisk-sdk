@@ -42,11 +42,11 @@
 				"delayMs": 0,
 				"delayAfter": 0,
 				"windowMs": 60000
+			},
+			"cors": {
+				"origin": "*",
+				"headers": ["GET", "POST", "PUT"]
 			}
-		},
-		"cors": {
-			"origin": "*",
-			"headers": ["GET", "POST", "PUT"]
 		}
 	},
 	"peers": {
