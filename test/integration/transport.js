@@ -176,6 +176,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						before(done => {
 							setup.shell.runMochaTests(
 								[
+									'test/functional/http/get/peers.js',
 									'test/functional/http/get/blocks.js',
 									'test/functional/http/get/transactions.js',
 								],
