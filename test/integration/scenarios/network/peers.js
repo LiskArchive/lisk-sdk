@@ -154,6 +154,20 @@ module.exports = function(params) {
 					return expect(networkAverageHeight).to.be.above(1);
 				});
 
+				it('should have valid values values matching specification', () => {
+					return getAllPeers().then(results => {
+						return results.map(peersList => {
+							return peersList.peers.map(peer => {
+								expect(peer.ip).to.not.empty;
+								expect(peer.wsPort).to.be.gte(5000);
+								expect(peer.wsPort).to.be.lt(5010);
+								expect(peer.version).to.not.empty;
+								expect(peer.nonce).to.not.empty;
+							});
+						});
+					});
+				});
+
 				it('should have different peers heights propagated correctly on peers lists', () => {
 					return getAllPeers().then(results => {
 						expect(
