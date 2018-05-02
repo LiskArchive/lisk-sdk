@@ -15,8 +15,8 @@
 'use strict';
 
 var debug = require('debug')('swagger:lisk:cors');
-var _ = require('lodash');
 var CORS = require('cors');
+var modules = require('../../helpers/swagger_module_registry');
 
 /**
  * Description of the function.
@@ -33,9 +33,12 @@ var CORS = require('cors');
  */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
+	var config = modules.getConfig();
 
-	var validCorsOptions = ['origin', 'methods', 'allowedHeaders'];
-	var middleware = CORS(_.pick(fittingDef, validCorsOptions));
+	var middleware = CORS({
+		origin: config.api.cors.origin,
+		methods: config.api.cors.headers,
+	});
 
 	/**
 	 * Description of the function.

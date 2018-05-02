@@ -29,11 +29,6 @@ swagger:
 
     _cors:
       name: lisk_cors
-      origin: '*'
-      methods:
-        - GET
-        - PUT
-        - POST
 
     _compression:
       name: lisk_compression
