@@ -45,7 +45,7 @@
 			},
 			"cors": {
 				"origin": "*",
-				"headers": ["GET", "POST", "PUT"]
+				"methods": ["GET", "POST", "PUT"]
 			}
 		}
 	},

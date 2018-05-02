@@ -37,7 +37,7 @@ module.exports = function create(fittingDef) {
 
 	var middleware = CORS({
 		origin: config.api.options.cors.origin,
-		methods: config.api.options.cors.headers,
+		methods: config.api.options.cors.methods,
 	});
 
 	/**
