@@ -24,9 +24,9 @@ import {
 	bufferToBigNumberString,
 	stringifyEncryptedPassphrase,
 	parseEncryptedPassphrase,
-} from 'cryptography/convert';
+} from 'lisk-cryptography/convert';
 // Require is used for stubbing
-const hash = require('cryptography/hash');
+const hash = require('lisk-cryptography/hash');
 
 describe('convert', () => {
 	// keys for passphrase 'secret';

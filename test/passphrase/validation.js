@@ -20,7 +20,7 @@ import {
 	getPassphraseValidationErrors,
 	locateUppercaseCharacters,
 	locateConsecutiveWhitespaces,
-} from 'passphrase/validation';
+} from 'lisk-passphrase/validation';
 
 describe('passphrase validation', () => {
 	describe('countPassphraseWhitespaces', () => {

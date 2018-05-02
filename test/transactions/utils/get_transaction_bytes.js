@@ -25,7 +25,7 @@ import getTransactionBytes, {
 	checkTransaction,
 	checkRequiredFields,
 	isValidValue,
-} from 'transactions/utils/get_transaction_bytes';
+} from 'lisk-transactions/utils/get_transaction_bytes';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';

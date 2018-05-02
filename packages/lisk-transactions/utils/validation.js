@@ -14,7 +14,7 @@
  */
 import bignum from 'browserify-bignum';
 import { MAX_ADDRESS_NUMBER } from 'lisk-constants';
-import { hexToBuffer } from 'cryptography/convert';
+import { hexToBuffer } from 'lisk-cryptography/convert';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = hexToBuffer(publicKey);

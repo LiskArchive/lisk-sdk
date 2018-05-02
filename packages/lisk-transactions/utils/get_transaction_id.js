@@ -12,12 +12,20 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'cryptography';
+import cryptography from 'lisk-cryptography';
 import getTransactionBytes from './get_transaction_bytes';
 
-const getTransactionHash = transaction => {
-	const bytes = getTransactionBytes(transaction);
-	return cryptography.hash(bytes);
+const getTransactionId = transaction => {
+	const transactionBytes = getTransactionBytes(transaction);
+	const transactionHash = cryptography.hash(transactionBytes);
+	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
+		transactionHash,
+	);
+	const firstEntriesToNumber = cryptography.bufferToBigNumberString(
+		bufferFromFirstEntriesReversed,
+	);
+
+	return firstEntriesToNumber;
 };
 
-export default getTransactionHash;
+export default getTransactionId;

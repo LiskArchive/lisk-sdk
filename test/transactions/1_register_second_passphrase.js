@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerSecondPassphrase from 'transactions/1_register_second_passphrase';
+import registerSecondPassphrase from 'lisk-transactions/1_register_second_passphrase';
 // Require is used for stubbing
-const time = require('transactions/utils/time');
+const time = require('lisk-transactions/utils/time');
 
 describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;

@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'cryptography';
-import registerMultisignatureAccount from 'transactions/4_register_multisignature_account';
+import cryptography from 'lisk-cryptography';
+import registerMultisignatureAccount from 'lisk-transactions/4_register_multisignature_account';
 // Require is used for stubbing
-const time = require('transactions/utils/time');
+const time = require('lisk-transactions/utils/time');
 
 describe('#registerMultisignatureAccount transaction', () => {
 	const fixedPoint = 10 ** 8;

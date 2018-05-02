@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'api_client/api_resource';
-import DelegatesResource from 'api_client/resources/delegates';
+import APIResource from 'lisk-api-client/api_resource';
+import DelegatesResource from 'lisk-api-client/resources/delegates';
 
 describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

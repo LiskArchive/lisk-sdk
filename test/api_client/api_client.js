@@ -13,7 +13,7 @@
  *
  */
 import os from 'os';
-import APIClient from 'api_client/api_client';
+import APIClient from 'lisk-api-client/api_client';
 
 describe('APIClient module', () => {
 	const mainnetHash =

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import prepareTransaction from 'transactions/utils/prepare_transaction';
+import prepareTransaction from 'lisk-transactions/utils/prepare_transaction';
 
 describe('#prepareTransaction', () => {
 	const passphrase = 'secret';

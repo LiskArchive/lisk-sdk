@@ -23,7 +23,7 @@ import {
 	TRANSFER_FEE,
 	VOTE_FEE,
 	BYTESIZES,
-} from 'transactions/constants';
+} from 'lisk-transactions/constants';
 
 describe('transactions constants module', () => {
 	it('FIXED_POINT to be an integer', () => {

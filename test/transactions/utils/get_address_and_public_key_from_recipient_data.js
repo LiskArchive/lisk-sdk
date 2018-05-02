@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getAddressAndPublicKeyFromRecipientData } from 'transactions/utils';
+import { getAddressAndPublicKeyFromRecipientData } from 'lisk-transactions/utils';
 
 describe('#getAddressAndPublicKeyFromRecipientData', () => {
 	const recipientId = '18160565574430594874L';

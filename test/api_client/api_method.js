@@ -13,7 +13,7 @@
  *
  */
 
-import apiMethod from 'api_client/api_method';
+import apiMethod from 'lisk-api-client/api_method';
 
 describe('API method module', () => {
 	const GET = 'GET';

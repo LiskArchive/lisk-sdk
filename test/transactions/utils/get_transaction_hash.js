@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionHash } from 'transactions/utils';
+import { getTransactionHash } from 'lisk-transactions/utils';
 // Require is used for stubbing
-const getTransactionBytes = require('transactions/utils/get_transaction_bytes');
+const getTransactionBytes = require('lisk-transactions/utils/get_transaction_bytes');
 
 describe('#getTransactionHash', () => {
 	let defaultTransactionBytes;

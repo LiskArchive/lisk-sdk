@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'api_client/api_resource';
-import VotesResource from 'api_client/resources/votes';
+import APIResource from 'lisk-api-client/api_resource';
+import VotesResource from 'lisk-api-client/resources/votes';
 
 describe('VotesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

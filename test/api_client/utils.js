@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { toQueryString, solveURLParams } from 'api_client/utils';
+import { toQueryString, solveURLParams } from 'lisk-api-client/utils';
 
 describe('api utils module', () => {
 	const defaultURL = 'http://localhost:8080/api/resources';

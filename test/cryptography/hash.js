@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import hashFunction from 'cryptography/hash';
+import hashFunction from 'lisk-cryptography/hash';
 
 describe('hash', () => {
 	const defaultText = 'text123*';
