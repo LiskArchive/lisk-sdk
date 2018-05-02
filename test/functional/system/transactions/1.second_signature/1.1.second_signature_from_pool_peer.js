@@ -53,7 +53,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 			signatureAccount = randomUtil.account();
 			const sendTransaction = lisk.transaction.transfer({
 				amount: 1000 * constants.normalizer,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});
 			sendTransaction.amount = parseInt(sendTransaction.amount);

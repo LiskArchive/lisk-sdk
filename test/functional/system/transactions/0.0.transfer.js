@@ -34,7 +34,7 @@ describe('system test (type 0) - double transfers', () => {
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.transfer({
 				amount: 1100 * constants.normalizer,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
 			var transaction1;

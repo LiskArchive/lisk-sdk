@@ -335,7 +335,7 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 				var transaction = lisk.transaction.transfer({
 					amount: 1,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					secondPassphrase: accountFixtures.genesis.secondPassword,
 					recipientId: '1L',
 				});

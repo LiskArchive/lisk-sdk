@@ -39,12 +39,17 @@ describe('GET /api/transactions', () => {
 	var maxAmount = 100 * constants.normalizer; // 100 LSK
 	var transaction1 = lisk.transaction.transfer({
 		amount: maxAmount,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var transaction2 = lisk.transaction.transfer({
 		amount: minAmount,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
+		recipientId: account2.address,
+	});
+	var transaction3 = lisk.transaction.transfer({
+		amount: 10 * constants.normalizer, // 10 LSK
+		passphrase: account.password,
 		recipientId: account2.address,
 	});
 
@@ -53,10 +58,20 @@ describe('GET /api/transactions', () => {
 		var promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
+
 		return Promise.all(promises).then(() => {
 			transactionList.push(transaction1);
 			transactionList.push(transaction2);
-			return waitFor.confirmations(_.map(transactionList, 'id'));
+
+			return waitFor
+				.confirmations(_.map(transactionList, 'id'))
+				.then(() => {
+					return apiHelpers.sendTransactionPromise(transaction3);
+				})
+				.then(() => {
+					transactionList.push(transaction3);
+					return waitFor.confirmations([transaction3.id]);
+				});
 		});
 	});
 
@@ -383,6 +398,36 @@ describe('GET /api/transactions', () => {
 			});
 		});
 
+		describe('senderIdOrRecipientId', () => {
+			it('using empty senderIdOrRecipientId should fail', () => {
+				return transactionsEndpoint
+					.makeRequest({ senderIdOrRecipientId: '' }, 400)
+					.then(res => {
+						expectSwaggerParamError(res, 'senderIdOrRecipientId');
+					});
+			});
+			it('using invalid senderIdOrRecipientId should fail', () => {
+				return transactionsEndpoint
+					.makeRequest(
+						{ senderIdOrRecipientId: '1234567890123456789012L' },
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'senderIdOrRecipientId');
+					});
+			});
+			it('using senderIdOrRecipientId should return incoming and outgoing transactions of an account', () => {
+				var accountId = account.address;
+				return transactionsEndpoint
+					.makeRequest({ senderIdOrRecipientId: accountId }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						expect(res.body.data[0].senderId).to.be.eql(accountId);
+						expect(res.body.data[1].recipientId).to.be.eql(accountId);
+					});
+			});
+		});
+
 		describe('recipientPublicKey', () => {
 			it('using invalid recipientPublicKey should fail', () => {
 				return transactionsEndpoint
@@ -575,11 +620,14 @@ describe('GET /api/transactions', () => {
 				var firstTransaction = null;
 
 				return transactionsEndpoint
-					.makeRequest({ offset: 0 }, 200)
+					.makeRequest({ offset: 0, limit: 1 }, 200)
 					.then(res => {
 						firstTransaction = res.body.data[0];
 
-						return transactionsEndpoint.makeRequest({ offset: 1 }, 200);
+						return transactionsEndpoint.makeRequest(
+							{ offset: 1, limit: 1 },
+							200
+						);
 					})
 					.then(res => {
 						res.body.data.forEach(transaction => {

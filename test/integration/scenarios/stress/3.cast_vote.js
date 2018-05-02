@@ -22,29 +22,14 @@ var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
-var getTransaction = require('../../utils/http').getTransaction;
+var confirmTransactionsOnAllNodes = require('../common/stress')
+	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
 	describe('stress test for type 3 transactions @slow', () => {
 		var accounts = [];
 		var transactions = [];
 		var maximum = 1000;
-
-		function confirmTransactionsOnAllNodes() {
-			return Promise.all(
-				_.flatMap(params.configurations, configuration => {
-					return transactions.map(transaction => {
-						return getTransaction(transaction.id, configuration.httpPort);
-					});
-				})
-			).then(results => {
-				results.forEach(transaction => {
-					expect(transaction)
-						.to.have.property('id')
-						.that.is.an('string');
-				});
-			});
-		}
 
 		describe('prepare accounts', () => {
 			before(() => {
@@ -54,7 +39,7 @@ module.exports = function(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 500000000,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 						});
 						accounts.push(tmpAccount);
@@ -68,7 +53,7 @@ module.exports = function(params) {
 				var blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});
 			});
 		});
@@ -93,7 +78,7 @@ module.exports = function(params) {
 				var blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});
 			});
 		});

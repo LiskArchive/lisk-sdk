@@ -76,7 +76,7 @@ class Delegates {
 				forging: {
 					secret: scope.config.forging.secret,
 					force: scope.config.forging.force,
-					defaultKey: scope.config.forging.defaultKey,
+					defaultPassword: scope.config.forging.defaultPassword,
 					access: {
 						whiteList: scope.config.forging.access.whiteList,
 					},
@@ -582,7 +582,7 @@ __private.loadDelegates = function(cb) {
 		!secretsList ||
 		!secretsList.length ||
 		!library.config.forging.force ||
-		!library.config.forging.defaultKey
+		!library.config.forging.defaultPassword
 	) {
 		return setImmediate(cb);
 	}
@@ -601,7 +601,7 @@ __private.loadDelegates = function(cb) {
 			try {
 				secret = __private.decryptSecret(
 					encryptedItem.encryptedSecret,
-					library.config.forging.defaultKey
+					library.config.forging.defaultPassword
 				);
 			} catch (error) {
 				return setImmediate(
@@ -676,12 +676,12 @@ __private.loadDelegates = function(cb) {
  * Updates the forging status of an account, valid actions are enable and disable.
  *
  * @param {publicKey} publicKey - Public key of delegate
- * @param {string} secretKey - Key used to decrypt encrypted passphrase
+ * @param {string} password - Password used to decrypt encrypted passphrase
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
+Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 	const encryptedList = library.config.forging.secret;
 	const encryptedItem = _.find(
 		encryptedList,
@@ -697,10 +697,10 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 		try {
 			decryptedSecret = __private.decryptSecret(
 				encryptedItem.encryptedSecret,
-				secretKey
+				password
 			);
 		} catch (e) {
-			return setImmediate(cb, 'Invalid key and public key combination');
+			return setImmediate(cb, 'Invalid password and public key combination');
 		}
 
 		keypair = library.ed.makeKeypair(
@@ -717,7 +717,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
-		return setImmediate(cb, 'Invalid key and public key combination');
+		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
 	if (__private.keypairs[keypair.publicKey.toString('hex')]) {

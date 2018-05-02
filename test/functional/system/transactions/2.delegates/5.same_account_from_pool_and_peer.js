@@ -52,7 +52,7 @@ describe('delegate', () => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = lisk.transaction.transfer({
 				amount: 1000 * constants.normalizer,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);

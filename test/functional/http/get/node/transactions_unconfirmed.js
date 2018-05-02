@@ -46,7 +46,7 @@ describe('GET /api/node', () => {
 					transactionList.push(
 						lisk.transaction.transfer({
 							amount: (i + 1) * constants.normalizer,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,
 						})

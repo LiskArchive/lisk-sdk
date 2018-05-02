@@ -24,6 +24,7 @@ var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
+var elements = require('../../../common/utils/elements');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
@@ -43,12 +44,12 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
 			amount: constants.fees.dappRegistration,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var promises = [];
@@ -676,13 +677,27 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
-			transaction = lisk.transaction.transferOutOfDapp({
-				passphrase: account.password,
-				amount: 10 * constants.normalizer,
-				dappId: randomUtil.guestbookDapp.id,
-				transactionId: randomUtil.transaction().id,
-				recipientId: accountFixtures.genesis.address,
-			});
+			transaction = {
+				amount: '100000000',
+				recipientId: '16313739661670634666L',
+				senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				timestamp: 60731685,
+				type: 7,
+				fee: '10000000',
+				asset:
+					{
+						outTransfer:
+							{
+								dappId: randomUtil.guestbookDapp.id,
+								transactionId: '10457544900900787263',
+							},
+					},
+			};
+
+			transaction = elements.redoSignature(
+				transaction,
+				accountFixtures.genesis.passphrase
+			);
 
 			return sendTransactionPromise(
 				transaction,

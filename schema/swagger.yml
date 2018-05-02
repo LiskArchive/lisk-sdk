@@ -16,7 +16,7 @@ swagger: '2.0'
 info:
   description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.25'
+  version: '1.0.26'
   contact:
     email: admin@lisk.io
   license:
@@ -385,7 +385,7 @@ paths:
       summary: Toggles the forging status of a delegate
       operationId: updateForgingStatus
       description:
-        Upon passing the correct key and publicKey, forging will be enabled or disabled
+        Upon passing the correct password and publicKey, forging will be enabled or disabled
       produces:
         - application/json
       consumes:
@@ -393,15 +393,15 @@ paths:
       parameters:
         - in: body
           name: data
-          description: Secret key for the delegate account
+          description: Password for decrypting passphrase of delegate with corresponding public key
           required: true
           schema:
             type: object
             required:
-              - decryptionKey
+              - password
               - publicKey
             properties:
-              decryptionKey:
+              password:
                 type: string
                 example: "happy tree friends"
                 minLength: 5
@@ -582,8 +582,15 @@ paths:
       produces:
         - application/json
       parameters:
-        - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
       responses:
         200:
           description: Search results matching criteria
@@ -766,7 +773,14 @@ paths:
         - $ref: '#/parameters/publicKey'
         - $ref: '#/parameters/secondPublicKey'
         - $ref: '#/parameters/offset'
-        - $ref: '#/parameters/limit'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
         - in: query
           name: sort
           description: Fields to sort results by
@@ -859,6 +873,7 @@ paths:
         - $ref: '#/parameters/recipientPublicKey'
         - $ref: '#/parameters/senderId'
         - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/senderIdOrRecipientId'
         - $ref: '#/parameters/transactionType'
         - $ref: '#/parameters/height'
         - $ref: '#/parameters/minAmount'
@@ -1086,6 +1101,14 @@ parameters:
     type: string
     format: publicKey
     minLength: 1
+  senderIdOrRecipientId:
+    name: senderIdOrRecipientId
+    in: query
+    description: Sender Id or Recipient Id to query
+    type: string
+    format: address
+    minLength: 1
+    maxLength: 22
   transactionType:
     name: type
     in: query

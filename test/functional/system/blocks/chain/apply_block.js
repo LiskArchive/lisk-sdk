@@ -64,25 +64,25 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 		const fundTrsForAccount1 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
 
 		const fundTrsForAccount2 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount2.address,
 		});
 
 		const fundTrsForAccount3 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount3.address,
 		});
 
 		const fundTrsForAccount4 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount4.address,
 		});
 

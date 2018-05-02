@@ -27,7 +27,7 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 0 transactions @slow', () => {
+	describe('stress test for type 0 transactions with data @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
 
@@ -45,8 +45,9 @@ module.exports = function(params) {
 						) {
 							var transaction = lisk.transaction.transfer({
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.passphrase,
+								passphrase: accountFixtures.genesis.password,
 								recipientId: randomUtil.account().address,
+								data: randomUtil.dataField(64),
 							});
 							transactions.push(transaction);
 							bundled.push(transaction);
@@ -64,9 +65,8 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});
@@ -80,8 +80,9 @@ module.exports = function(params) {
 					_.range(maximum).map(() => {
 						var transaction = lisk.transaction.transfer({
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountFixtures.genesis.passphrase,
+							passphrase: accountFixtures.genesis.password,
 							recipientId: randomUtil.account().address,
+							data: randomUtil.dataField(64),
 						});
 						transactions.push(transaction);
 						return sendTransactionsPromise([transaction]);
@@ -90,9 +91,8 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});

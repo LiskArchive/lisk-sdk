@@ -96,12 +96,6 @@ module.exports = {
 					logFileName: {
 						type: 'string',
 					},
-					consoleLogLevel: {
-						type: 'string',
-					},
-					fileLogLevel: {
-						type: 'string',
-					},
 				},
 				required: [
 					'host',
@@ -268,7 +262,7 @@ module.exports = {
 					force: {
 						type: 'boolean',
 					},
-					defaultKey: {
+					defaultPassword: {
 						type: 'string',
 					},
 					secret: {
