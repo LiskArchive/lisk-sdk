@@ -321,24 +321,6 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 				options: randomUtil.guestbookDapp,
 			});
 			break;
-		case 'IN_TRANSFER':
-			transaction = lisk.transaction.transferIntoDapp({
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
-				amount: 1,
-				dappId: dapp.id,
-			});
-			break;
-		case 'OUT_TRANSFER':
-			transaction = lisk.transaction.transferOutOfDapp({
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
-				amount: 1,
-				dappId: dapp.id,
-				transactionId: randomUtil.transaction().id,
-				recipientId: randomUtil.account().address,
-			});
-			break;
 		// no default
 	}
 

@@ -146,7 +146,7 @@ module.exports = {
 				),
 				headers,
 				body: {
-					decryptionKey: 'elephant tree paris dragon chair galaxy',
+					password: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey,
 				},
 			})

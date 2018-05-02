@@ -104,7 +104,7 @@ describe('GET /delegates', () => {
 
 			var creditTransaction = lisk.transaction.transfer({
 				amount: constants.fees.secondSignature + constants.fees.delegate,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondSecretAccount.address,
 			});
 			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
@@ -550,6 +550,14 @@ describe('GET /delegates', () => {
 				.makeRequest({ limit: 10, offset: 1 }, 200)
 				.then(res => {
 					expect(res.body.data).to.have.length(10);
+				});
+		});
+
+		it('using limit=101 should be ok', () => {
+			return forgersEndpoint
+				.makeRequest({ limit: 101 }, 200)
+				.then(res => {
+					expect(res.body.data).to.have.length(101);
 				});
 		});
 

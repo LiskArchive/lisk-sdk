@@ -72,7 +72,7 @@ describe('system test (type 0) - address collision', () => {
 	before(done => {
 		var creditTransaction = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
 			data: 'addtional data from 2',
 		});

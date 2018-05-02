@@ -281,7 +281,7 @@ function enableForgingOnDelegates(done) {
 					'Content-Type': 'application/json',
 				},
 				body: {
-					decryptionKey: 'elephant tree paris dragon chair galaxy',
+					password: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey,
 				},
 			});

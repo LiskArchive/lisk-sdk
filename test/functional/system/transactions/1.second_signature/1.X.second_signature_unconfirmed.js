@@ -27,7 +27,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.transfer({
 		amount: 1000 * constants.normalizer,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var dapp = randomUtil.application();
@@ -68,7 +68,9 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	describe('validating unconfirmed status while adding to pool other transaction types from same account', () => {
 		describe('with second signature', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
-				if (key === 'SIGNATURE') {
+				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
+					return true;
+				} else if (key === 'SIGNATURE') {
 					it(`type ${index}: ${key} should fail`, done => {
 						localCommon.addTransaction(
 							library,
@@ -119,22 +121,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 		describe('without second signature', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
-					it(`type ${index}: ${key} should be rejected`, done => {
-						localCommon.loadTransactionType(
-							key,
-							account,
-							dapp,
-							true,
-							transaction => {
-								localCommon.addTransaction(library, transaction, err => {
-									expect(err).to.equal(
-										`Transaction type ${transaction.type} is frozen`
-									);
-									done();
-								});
-							}
-						);
-					});
+					return true;
 				} else if (key != 'SIGNATURE') {
 					it(`type ${index}: ${key} should be ok`, done => {
 						localCommon.loadTransactionType(

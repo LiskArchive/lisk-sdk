@@ -113,7 +113,7 @@ random.account = function() {
 	account.secondPassword = random.password();
 	account.username = random.delegateName();
 	account.publicKey = lisk.cryptography.getKeys(account.password).publicKey;
-	account.address = lisk.cryptography.getAddress(account.publicKey);
+	account.address = lisk.cryptography.getAddressFromPublicKey(account.publicKey);
 	account.secondPublicKey = lisk.cryptography.getKeys(
 		account.secondPassword
 	).publicKey;
@@ -125,7 +125,7 @@ random.account = function() {
 random.transaction = function(offset) {
 	return lisk.transaction.transfer({
 		amount: 1,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
 		timeOffset: offset,
 	});
