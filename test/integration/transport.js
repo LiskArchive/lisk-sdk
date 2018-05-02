@@ -20,6 +20,8 @@ var setup = require('./setup');
 var scenarios = require('./scenarios');
 
 const totalPeers = 10;
+// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
+var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 var wsPorts = [];
 
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
@@ -117,7 +119,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 				});
 
-				it('there should exactly 10 listening connections for 500[0-9] ports', done => {
+				it(`there should exactly ${totalPeers} listening connections for 500[0-9] ports`, done => {
 					utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
 						if (err) {
 							return done(err);
@@ -133,10 +135,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 				});
 
-				it('there should maximum 180 established connections from 500[0-9] ports', done => {
-					// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-					var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
-
+				it(`there should maximum ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
 						if (err) {
 							return done(err);
@@ -197,11 +196,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 
 						// Have to skip due to issue https://github.com/LiskHQ/lisk/issues/1954
 						// eslint-disable-next-line mocha/no-skipped-tests
-						it.skip('there should exactly 180 established connections from 500[0-9] ports', done => {
-							// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-							var expectedOutgoingConnections =
-								(totalPeers - 1) * totalPeers * 2;
-
+						it.skip(`there should exactly ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
 							utils.getEstablishedConnections(
 								wsPorts,
 								(err, numOfConnections) => {
