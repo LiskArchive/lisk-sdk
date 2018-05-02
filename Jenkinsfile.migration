@@ -17,10 +17,8 @@ def generateSrcCodeRelease(directory) {
 		sh """
 		npm install
 		node ./node_modules/.bin/grunt release
-		jq -r '.version' config.json > "/tmp/${directory}-version"
 		"""
 	}
-	return readFile("/tmp/${directory}-version").trim()
 }
 
 def getBuildBranch(liskDirectory) {
@@ -30,6 +28,22 @@ def getBuildBranch(liskDirectory) {
 		return "1.0.0"
 	}
 }
+
+def getReleaseDetails(liskDirectory) {
+	dir(liskDirectory) {
+		sh """
+		jq -r '.version' config.json > "/tmp/${liskDirectory}-version"
+		"""
+	}
+	def version = readFile("/tmp/${liskDirectory}-version").trim();
+
+	if(fileExists("${env.WORKSPACE}/${liskDirectory}/genesisBlock.json")) {
+		return [file: "${version}.tar.gz", version: version]
+	} else {
+		return [file: "lisk-${version}.tgz", version: version]
+	}
+}
+
 pipeline {
 	agent { node { label "node-07" } }
 	stages {
@@ -62,17 +76,21 @@ pipeline {
 			parallel {
 				stage('Create source release') {
 					steps {
+						generateSrcCodeRelease(params.MIGRATE_FROM)
 						script {
-							env.MIGRATE_FROM_VERSION = generateSrcCodeRelease(params.MIGRATE_FROM)
-							env.MIGRATE_FROM_SRC = "${params.MIGRATE_FROM}/release/lisk-${env.MIGRATE_FROM_VERSION}.tgz"
+							def details = getReleaseDetails(params.MIGRATE_FROM)
+							env.MIGRATE_FROM_VERSION = details.version
+							env.MIGRATE_FROM_SRC = details.file
 						}
 					}
 				}
 				stage('Create destination release') {
 					steps {
+						generateSrcCodeRelease(params.MIGRATE_TO)
 						script {
-							env.MIGRATE_TO_VERSION = generateSrcCodeRelease(params.MIGRATE_TO)
-							env.MIGRATE_TO_SRC = "${params.MIGRATE_TO}/release/lisk-${env.MIGRATE_TO_VERSION}.tgz"
+							def details = getReleaseDetails(params.MIGRATE_TO)
+							env.MIGRATE_TO_VERSION = details.version
+							env.MIGRATE_TO_SRC = details.file
 						}
 					}
 				}
@@ -82,20 +100,22 @@ pipeline {
 			parallel {
 				stage('Create source binary release') {
 					steps {
-						sh """
-						cp "${env.MIGRATE_FROM_SRC}" "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}/src/lisk-${params.MIGRATE_FROM}.tgz"
-						cd "lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}"
-						bash build.sh -n dev -v "${params.MIGRATE_FROM}"
-						"""
+						dir("lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}"){
+							sh """
+							cp "${env.WORKSPACE}/${params.MIGRATE_FROM}/release/${env.MIGRATE_FROM_SRC}" "src/"
+							bash build.sh -n dev -v "${env.MIGRATE_FROM_VERSION}"
+							"""
+						}
 					}
 				}
 				stage('Create destination binary release') {
 					steps {
-						sh """
-						cp "${env.MIGRATE_TO_SRC}" "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}/src/lisk-${params.MIGRATE_TO}.tgz"
-						cd "lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}"
-						bash build.sh -n dev -v "${params.MIGRATE_TO}"
-						"""
+						dir("lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}"){
+							sh """
+							cp "${env.WORKSPACE}/${params.MIGRATE_TO}/release/${env.MIGRATE_TO_SRC}" "src/"
+							bash build.sh -n dev -v "${env.MIGRATE_TO_VERSION}"
+							"""
+						}
 					}
 				}
 			}
