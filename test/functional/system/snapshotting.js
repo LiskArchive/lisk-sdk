@@ -69,23 +69,21 @@ describe('snapshotting', () => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
 			expect(lastBlock.height).to.eql(303);
 
-			const loadBlockChain = library.rewiredModules.loader.__get__(
-				'__private.loadBlockChain'
-			);
+			const __private = library.rewiredModules.loader.__get__('__private');
 
 			library.rewiredModules.loader.__set__(
 				'library.config.loading.snapshotRound',
 				2
 			);
 
-			library.modules.loader.onSnapshotFinished = function() {
+			__private.snapshotFinished = function() {
 				getMemAccounts().then(_accounts => {
 					expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
 					done();
 				});
 			};
 
-			loadBlockChain();
+			__private.loadBlockChain();
 		});
 	});
 });
