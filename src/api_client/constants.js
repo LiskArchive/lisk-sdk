@@ -15,7 +15,6 @@
 export const GET = 'GET';
 export const POST = 'POST';
 export const PUT = 'PUT';
-export const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
 export const BETANET_NODES = [
 	'http://94.237.42.109:5000',
