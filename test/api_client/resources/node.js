@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'lisk-api-client/api_resource';
-import NodeResource from 'lisk-api-client/resources/node';
+import APIResource from 'lisk-api-client/src/api_resource';
+import NodeResource from 'lisk-api-client/src/resources/node';
 
 describe('NodeResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

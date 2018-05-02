@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIResource from 'lisk-api-client/api_resource';
+import APIResource from 'lisk-api-client/src/api_resource';
 // Required for stub
 const axios = require('axios');
 

@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transfer from 'lisk-transactions/0_transfer';
+import transfer from 'lisk-transactions/src/0_transfer';
 // Require is used for stubbing
-const time = require('lisk-transactions/utils/time');
+const time = require('lisk-transactions/src/utils/time');
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;

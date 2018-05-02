@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClient from 'lisk-api-client';
+import APIClient from 'lisk-api-client/src';
 
 describe('api client', () => {
 	describe('exports', () => {

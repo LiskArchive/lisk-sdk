@@ -13,7 +13,7 @@
  *
  */
 import os from 'os';
-import { MAINNET_NETHASH, TESTNET_NETHASH } from 'lisk-constants';
+import { MAINNET_NETHASH, TESTNET_NETHASH } from 'lisk-constants/src';
 import * as constants from './constants';
 import {
 	AccountsResource,

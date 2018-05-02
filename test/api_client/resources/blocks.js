@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'lisk-api-client/api_resource';
-import BlocksResource from 'lisk-api-client/resources/blocks';
+import APIResource from 'lisk-api-client/src/api_resource';
+import BlocksResource from 'lisk-api-client/src/resources/blocks';
 
 describe('BlocksResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

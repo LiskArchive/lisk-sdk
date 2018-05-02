@@ -15,7 +15,7 @@
 import {
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
-} from 'lisk-transactions/utils/time';
+} from 'lisk-transactions/src/utils/time';
 
 describe('time module', () => {
 	const nowRealTime = new Date(1464109220000);

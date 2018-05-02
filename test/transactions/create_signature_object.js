@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createSignatureObject from 'lisk-transactions/create_signature_object';
+import createSignatureObject from 'lisk-transactions/src/create_signature_object';
 
 describe('#createSignatureObject', () => {
 	const transaction = {

@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'lisk-api-client/api_resource';
-import TransactionsResource from 'lisk-api-client/resources/transactions';
+import APIResource from 'lisk-api-client/src/api_resource';
+import TransactionsResource from 'lisk-api-client/src/resources/transactions';
 
 describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

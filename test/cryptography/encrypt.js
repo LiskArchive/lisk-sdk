@@ -16,11 +16,11 @@ import {
 	decryptMessageWithPassphrase,
 	encryptPassphraseWithPassword,
 	decryptPassphraseWithPassword,
-} from 'lisk-cryptography/encrypt';
+} from 'lisk-cryptography/src/encrypt';
 // Require is used for stubbing
-const convert = require('lisk-cryptography/convert');
-const keys = require('lisk-cryptography/keys');
-const hash = require('lisk-cryptography/hash');
+const convert = require('lisk-cryptography/src/convert');
+const keys = require('lisk-cryptography/src/keys');
+const hash = require('lisk-cryptography/src/hash');
 
 describe('encrypt', () => {
 	const PBKDF2_ITERATIONS = 1e6;

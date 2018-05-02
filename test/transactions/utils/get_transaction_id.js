@@ -12,10 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getTransactionId } from 'lisk-transactions/utils';
+import { getTransactionId } from 'lisk-transactions/src/utils';
 // Require is used for stubbing
-const hash = require('lisk-cryptography/hash');
-const utils = require('lisk-transactions/utils');
+const hash = require('lisk-cryptography/src/hash');
+const utils = require('lisk-transactions/src/utils');
 
 describe('#getTransactionId', () => {
 	const defaultPublicKey =

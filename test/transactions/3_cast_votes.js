@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import castVotes from 'lisk-transactions/3_cast_votes';
+import castVotes from 'lisk-transactions/src/3_cast_votes';
 // Require is used for stubbing
-const time = require('lisk-transactions/utils/time');
+const time = require('lisk-transactions/src/utils/time');
 
 describe('#castVotes transaction', () => {
 	const fixedPoint = 10 ** 8;

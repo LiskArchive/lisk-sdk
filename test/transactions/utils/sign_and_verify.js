@@ -12,17 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography';
+import cryptography from 'lisk-cryptography/src';
 import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-} from 'lisk-transactions/utils';
+} from 'lisk-transactions/src/utils';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import validTransactions from '../../../fixtures/transactions.json';
 // Require is used for stubbing
-const getTransactionHash = require('lisk-transactions/utils/get_transaction_hash');
+const getTransactionHash = require('lisk-transactions/src/utils/get_transaction_hash');
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {
