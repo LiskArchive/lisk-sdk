@@ -29,7 +29,7 @@ describe('POST /api/transactions (general)', () => {
 	const account = randomUtil.account();
 	const transaction = lisk.transaction.transfer({
 		amount: 1,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		timeOffset: -10000,
 	});
