@@ -564,7 +564,7 @@ __private.loadBlockChain = function() {
  * Snapshot creation - performs rebuild of accounts states from blockchain data
  *
  * @private
- * @emits exit
+ * @emits snapshotFinished
  * @throws {Error} When blockchain is shorter than one round of blocks
  */
 __private.createSnapshot = height => {
@@ -573,13 +573,15 @@ __private.createSnapshot = height => {
 	// Single round contains amount of blocks equal to number of active delegates
 	if (height < constants.activeDelegates) {
 		throw new Error(
-			'Unable to create snapshot, blockchain should contain at least one round of blocks.'
+			'Unable to create snapshot, blockchain should contain at least one round of blocks'
 		);
 	}
 
 	const snapshotRound = library.config.loading.snapshotRound;
 	const totalRounds = Math.floor(height / constants.activeDelegates);
-	const targetRound = isNaN(snapshotRound) ? totalRounds : Math.min(totalRounds, snapshotRound);
+	const targetRound = isNaN(snapshotRound)
+		? totalRounds
+		: Math.min(totalRounds, snapshotRound);
 	const targetHeight = targetRound * constants.activeDelegates;
 
 	library.logger.info(
@@ -624,15 +626,25 @@ __private.createSnapshot = height => {
 			},
 		},
 		err => {
-			if (err) {
-				throw new Error(err);
-			} else {
-				library.logger.log('Snapshot creation finished');
-				return process.exit(0);
-			}
+			library.bus.message('snapshotFinished', err);
 		}
 	);
-}
+};
+
+/**
+ * Event fired when snapshot creation is complete.
+ *
+ * @param {err} Error if any
+ * @emits cleanup
+ */
+Loader.prototype.onSnapshotFinished = err => {
+	if (err) {
+		library.logger.error('Snapshot creation failed', err);
+	} else {
+		library.logger.info('Snapshot creation finished');
+	}
+	process.emit('cleanup');
+};
 
 /**
  * Loads blocks from network.
