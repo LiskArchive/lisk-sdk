@@ -68,7 +68,7 @@ module.exports = function multisignature(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 2500000000,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 							ready: true,
 						});
