@@ -21,7 +21,7 @@ import {
 	TESTNET_NETHASH,
 	MAINNET_NETHASH,
 	SIGNED_MESSAGE_PREFIX,
-} from 'lisk-constants/src';
+} from '../src';
 
 describe('lisk-constants', () => {
 	it('EPOCH_TIME should be a Date instance', () => {
@@ -45,11 +45,11 @@ describe('lisk-constants', () => {
 	});
 
 	it('TESTNET_NETHASH should be a string', () => {
-		return expect(TESTNET_NETHASH).to.be.a('string');
+		return expect(TESTNET_NETHASH).to.be.a.hexString;
 	});
 
 	it('MAINNET_NETHASH should be a string', () => {
-		return expect(MAINNET_NETHASH).to.be.a('string');
+		return expect(MAINNET_NETHASH).to.be.a.hexString;
 	});
 
 	it('SIGNED_MESSAGE_PREFIX should be a string', () => {
