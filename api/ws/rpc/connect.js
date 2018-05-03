@@ -42,6 +42,8 @@ const connect = (peer, logger) => {
 
 const connectSteps = {
 	addConnectionOptions: peer => {
+		const systemHeaders = System.getHeaders();
+
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
 			autoReconnect: false,
@@ -50,7 +52,14 @@ const connectSteps = {
 			pingTimeoutDisabled: true,
 			port: peer.wsPort,
 			hostname: peer.ip,
-			query: System.getHeaders(),
+			query: {
+				os: systemHeaders.os,
+				version: systemHeaders.version,
+				wsPort: systemHeaders.wsPort,
+				httpPort: systemHeaders.httpPort,
+				nethash: systemHeaders.nethash,
+				nonce: systemHeaders.nonce,
+			},
 			multiplex: true,
 		};
 		return peer;
