@@ -15,6 +15,7 @@
 'use strict';
 
 var httpMocks = require('node-mocks-http');
+var swaggerModuleRegistry = require('../../../../helpers/swagger_module_registry');
 var fitting = require('../../../../api/fittings/lisk_cors');
 
 describe('lisk_cors', () => {
@@ -27,6 +28,13 @@ describe('lisk_cors', () => {
 			request: httpMocks.createRequest(),
 			response: httpMocks.createResponse(),
 		};
+		swaggerModuleRegistry.bind({
+			config: __testContext.config,
+			logger: __testContext.logger,
+			modules: {
+				cache: null,
+			},
+		});
 		cors_fititng = fitting();
 		next = sinonSandbox.spy();
 		done();
@@ -62,12 +70,14 @@ describe('lisk_cors', () => {
 		).to.be.equal('*');
 		expect(
 			context.response.getHeader('Access-Control-Allow-Methods')
-		).to.be.equal('GET,HEAD,PUT,PATCH,POST,DELETE');
+		).to.be.equal('GET,POST,PUT');
 		done();
 	});
 
 	it('should enable requests for test.com when provided origin = test.com', done => {
-		cors_fititng = fitting({ origin: 'test.com' }, null);
+		var originalOrigin = __testContext.config.api.options.cors.origin;
+		__testContext.config.api.options.cors.origin = 'test.com';
+		cors_fititng = fitting();
 		context.request.method = 'OPTIONS';
 
 		cors_fititng(context, next);
@@ -79,12 +89,58 @@ describe('lisk_cors', () => {
 		).to.be.equal('test.com');
 		expect(
 			context.response.getHeader('Access-Control-Allow-Methods')
-		).to.be.equal('GET,HEAD,PUT,PATCH,POST,DELETE');
+		).to.be.equal('GET,POST,PUT');
+
+		__testContext.config.api.options.cors.origin = originalOrigin;
+		done();
+	});
+
+	it('should return actual request origin if cors origin set to true', done => {
+		var originalOrigin = __testContext.config.api.options.cors.origin;
+		__testContext.config.api.options.cors.origin = true;
+		cors_fititng = fitting();
+		context.request.headers.origin = 'my-custom-origin.com';
+		context.request.method = 'OPTIONS';
+
+		cors_fititng(context, next);
+		expect(next).to.have.not.been.called;
+		expect(context.response.statusCode).to.be.equal(204);
+		expect(
+			context.response.getHeader('Access-Control-Allow-Origin')
+		).to.be.equal('my-custom-origin.com');
+		expect(
+			context.response.getHeader('Access-Control-Allow-Methods')
+		).to.be.equal('GET,POST,PUT');
+
+		__testContext.config.api.options.cors.origin = originalOrigin;
+		done();
+	});
+
+	it('should disable cors request completely if cors origin set to false', done => {
+		var originalOrigin = __testContext.config.api.options.cors.origin;
+		__testContext.config.api.options.cors.origin = false;
+		cors_fititng = fitting();
+		context.request.headers.origin = 'my-custom-origin.com';
+		context.request.method = 'OPTIONS';
+
+		cors_fititng(context, next);
+		expect(next).to.be.calledOnce;
+		expect(context.response.statusCode).to.be.equal(200);
+		expect(
+			context.response.getHeader('Access-Control-Allow-Origin')
+		).to.be.equal(undefined);
+		expect(
+			context.response.getHeader('Access-Control-Allow-Methods')
+		).to.be.equal(undefined);
+
+		__testContext.config.api.options.cors.origin = originalOrigin;
 		done();
 	});
 
 	it('should enable requests for GET, POST when provided methods = GET POST', done => {
-		cors_fititng = fitting({ methods: ['GET', 'POST'] }, null);
+		var originalMethods = __testContext.config.api.options.cors.methods;
+		__testContext.config.api.options.cors.methods = ['GET', 'POST'];
+		cors_fititng = fitting();
 		context.request.method = 'OPTIONS';
 
 		cors_fititng(context, next);
@@ -97,52 +153,7 @@ describe('lisk_cors', () => {
 		expect(
 			context.response.getHeader('Access-Control-Allow-Methods')
 		).to.be.equal('GET,POST');
-		done();
-	});
-
-	it('should block custom headers if no "allowedHeaders" provided', done => {
-		cors_fititng = fitting({ allowedHeaders: [] }, null);
-		context.request.headers['my-custom-header'] = 'my-custom-value';
-		context.request.method = 'OPTIONS';
-
-		cors_fititng(context, next);
-
-		expect(next).to.have.not.been.called;
-		expect(context.response.statusCode).to.be.equal(204);
-		expect(context.response.getHeader('my-custom-header')).to.be.undefined;
-		done();
-	});
-
-	it('should enable requests for X-MY-HEADER when provided allowedHeaders = X-MY-HEADER', done => {
-		cors_fititng = fitting({ allowedHeaders: ['X-MY-HEADER'] }, null);
-		context.request.method = 'OPTIONS';
-
-		cors_fititng(context, next);
-
-		expect(next).to.have.not.been.called;
-		expect(context.response.statusCode).to.be.equal(204);
-		expect(
-			context.response.getHeader('Access-Control-Allow-Headers')
-		).to.include('X-MY-HEADER');
-		done();
-	});
-
-	it('should enable requests for multiple headers when provided allowedHeaders with multiple values', done => {
-		cors_fititng = fitting(
-			{ allowedHeaders: ['X-1-HEADER', 'X-2-HEADER'] },
-			null
-		);
-		context.request.method = 'OPTIONS';
-
-		cors_fititng(context, next);
-
-		expect(next).to.have.not.been.called;
-		expect(context.response.statusCode).to.be.equal(204);
-		var headers = context.response
-			.getHeader('Access-Control-Allow-Headers')
-			.split(',');
-		expect(headers).to.include('X-1-HEADER');
-		expect(headers).to.include('X-2-HEADER');
+		__testContext.config.api.options.cors.methods = originalMethods;
 		done();
 	});
 });
