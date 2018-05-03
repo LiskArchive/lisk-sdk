@@ -51,11 +51,6 @@ class Rounds {
 			db: scope.db,
 			bus: scope.bus,
 			network: scope.network,
-			config: {
-				loading: {
-					snapshot: scope.config.loading.snapshot,
-				},
-			},
 		};
 		self = this;
 
@@ -182,15 +177,6 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 };
 
 /**
- * Sets up round snapshotting.
- *
- * @param {number} round - Target round.
- */
-Rounds.prototype.setSnapshotRound = function(round) {
-	library.config.loading.snapshot = round;
-};
-
-/**
  * Performs forward tick on round.
  *
  * @param {block} block - Current block
@@ -209,11 +195,6 @@ Rounds.prototype.tick = function(block, done, tx) {
 		round,
 		backwards: false,
 	};
-
-	// Establish if snapshotting round or not
-	scope.snapshotRound =
-		library.config.loading.snapshot > 0 &&
-		library.config.loading.snapshot === round;
 
 	// Establish if finishing round or not
 	scope.finishRound =
@@ -239,11 +220,6 @@ Rounds.prototype.tick = function(block, done, tx) {
 				if (scope.finishRound) {
 					return promised.land().then(() => {
 						library.bus.message('finishRound', round);
-						if (scope.snapshotRound) {
-							return promised.truncateBlocks().then(() => {
-								scope.finishSnapshot = true;
-							});
-						}
 					});
 				}
 			})
@@ -303,10 +279,6 @@ Rounds.prototype.tick = function(block, done, tx) {
 		err => {
 			// Stop round ticking
 			__private.ticking = false;
-
-			if (scope.finishSnapshot) {
-				return done('Snapshot finished');
-			}
 			return done(err);
 		}
 	);

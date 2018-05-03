@@ -56,18 +56,6 @@ class RoundsRepository {
 	}
 
 	/**
-	 * Delete all blocks above a particular height.
-	 *
-	 * @param {int} height
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	truncateBlocks(height) {
-		// TODO: This method must be in BlocksRepository, not here!
-		return this.db.none(sql.truncateBlocks, [height]);
-	}
-
-	/**
 	 * Update the missedBlocks attribute for an account.
 	 *
 	 * @param {boolean} backwards - Backwards flag

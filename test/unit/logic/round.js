@@ -499,29 +499,6 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('truncateBlocks', () => {
-		var stub;
-		var res;
-
-		before(done => {
-			stub = sinonSandbox.stub(db.rounds, 'truncateBlocks');
-			stub.withArgs(validScope.block.height).resolves('success');
-			res = round.truncateBlocks();
-			done();
-		});
-
-		it('should return promise', () => {
-			return expect(isPromise(res)).to.be.true;
-		});
-
-		it('query should be called with proper args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
-				expect(stub.calledWith(validScope.block.height)).to.be.true;
-			});
-		});
-	});
-
 	describe('restoreRoundSnapshot', () => {
 		var res;
 

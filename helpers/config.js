@@ -103,7 +103,7 @@ function Config(packageJson) {
 	}
 
 	if (program.snapshot) {
-		appConfig.loading.snapshot = Math.abs(Math.floor(program.snapshot));
+		appConfig.loading.snapshotRound = program.snapshot;
 	}
 
 	if (process.env.NODE_ENV === 'test') {
