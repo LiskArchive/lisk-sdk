@@ -1,11 +1,7 @@
 {
 	"presets": ["env"],
 	"plugins": [
-		"transform-runtime",
-		["module-resolver", {
-				"root": ["./packages"]
-			}
-		]
+		"transform-runtime"
 	],
 	"env": {
 		"test": {
@@ -16,10 +12,6 @@
 		},
 		"buildcheck": {
 			"plugins": [
-				["module-resolver", {
-						"root": ["./dist-node"]
-					}
-				],
 				"istanbul",
 				"rewire"
 			]
