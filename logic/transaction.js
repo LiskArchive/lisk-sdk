@@ -783,6 +783,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	apply(transaction, block, sender, cb, tx) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		if (!this.ready(transaction, sender)) {
 			return setImmediate(cb, 'Transaction is not ready');
 		}
@@ -865,6 +871,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	undo(transaction, block, sender, cb, tx) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		let amount = new bignum(transaction.amount.toString());
 		amount = amount.plus(transaction.fee.toString()).toNumber();
 
@@ -935,6 +947,12 @@ class Transaction {
 			cb = requester;
 		}
 
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		// Check unconfirmed sender balance
 		let amount = new bignum(transaction.amount.toString()).plus(
 			transaction.fee.toString()
@@ -997,6 +1015,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	undoUnconfirmed(transaction, sender, cb, tx) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		let amount = new bignum(transaction.amount.toString());
 		amount = amount.plus(transaction.fee.toString()).toNumber();
 
