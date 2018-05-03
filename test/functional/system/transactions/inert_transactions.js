@@ -10,19 +10,34 @@ describe('inert transactions', () => {
 	let library;
 	const senderAccount = accountFixtures.genesis;
 	const recipientAccount = randomUtil.account();
-	const inertTransaction = lisk.transaction.transfer({
+	const transferInertTransaction = lisk.transaction.transfer({
 		recipientId: recipientAccount.address,
 		amount: 1000000000 * 100,
 		passphrase: senderAccount.password,
 	});
 
-	exceptions.inertTransactions = [inertTransaction.id];
+	const voteInertTransaction = lisk.transaction.castVotes({
+		passphrase: recipientAccount.password,
+		votes: [`${accountFixtures.existingDelegate.publicKey}`],
+		timeOffset: -10000,
+	});
+
+	const delegateInertTransaction = lisk.transaction.registerDelegate({
+		passphrase: recipientAccount.password,
+		username: recipientAccount.username,
+	});
+
+	exceptions.inertTransactions = [
+		transferInertTransaction.id,
+		voteInertTransaction.id,
+		delegateInertTransaction.id,
+	];
 
 	localCommon.beforeBlock('system_inert_transactions', lib => {
 		library = lib;
 	});
 
-	describe('create recipient account', () => {
+	describe('send founds to account', () => {
 		before(done => {
 			const transferTransaction = lisk.transaction.transfer({
 				recipientId: recipientAccount.address,
@@ -61,8 +76,9 @@ describe('inert transactions', () => {
 					done
 				);
 			});
+			describe('when forging block with inert type 0 transaction', () => {
+				const inertTransaction = transferInertTransaction;
 
-			describe('when forging block with inert transaction', () => {
 				before(done => {
 					localCommon.addTransactionsAndForge(
 						library,
@@ -71,7 +87,7 @@ describe('inert transactions', () => {
 					);
 				});
 
-				describe('should not update balances of the accounts', () => {
+				describe('details of the accounts', () => {
 					let afterBlockSenderMemAccount;
 					let afterBlockRecipientMemAccount;
 
@@ -101,34 +117,65 @@ describe('inert transactions', () => {
 						);
 					});
 
-					it('should not have updated u_balance field set on sender account', () => {
+					it('should not update u_balance field set on sender account', () => {
 						return expect(beforeBlockSenderMemAccount.u_balance).to.equal(
 							afterBlockSenderMemAccount.u_balance
 						);
 					});
 
-					it('should not have updated balance field set on sender account', () => {
+					it('should not update balance field set on sender account', () => {
 						return expect(beforeBlockSenderMemAccount.balance).to.equal(
 							afterBlockSenderMemAccount.balance
 						);
 					});
 
-					it('should not have updated u_balance field set of recipient account', () => {
+					it('should not update u_balance field set of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
 							afterBlockRecipientMemAccount.u_balance
 						);
 					});
 
-					it('should not have updated balance field set on recipient account', () => {
+					it('should not update balance field set on recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
 							afterBlockRecipientMemAccount.balance
 						);
 					});
+				});
 
-					describe('after deleting block', () => {
-						let afterDeleteSenderMemAccount;
-						let afterDeleteRecipientMemAccount;
+				describe('transactions table', () => {
+					let transactionFromDatabase;
 
+					before('get transaction from database', done => {
+						localCommon.getTransactionFromModule(
+							library,
+							{
+								id: inertTransaction.id,
+							},
+							(err, res) => {
+								expect(err).to.not.exist;
+								transactionFromDatabase = res.transactions[0];
+								done();
+							}
+						);
+					});
+
+					it('should save transaction in the database', () => {
+						expect(transactionFromDatabase).to.be.an('Object');
+						return expect(transactionFromDatabase.id).to.equal(
+							inertTransaction.id
+						);
+					});
+				});
+
+				describe('after deleting block', () => {
+					let afterDeleteSenderMemAccount;
+					let afterDeleteRecipientMemAccount;
+
+					before('deleting block', done => {
+						localCommon.popLastBlock(library, done);
+					});
+
+					describe('details of the account', () => {
 						before('get sender and recipient account', done => {
 							async.parallel(
 								[
@@ -155,40 +202,319 @@ describe('inert transactions', () => {
 							);
 						});
 
-						it('should not have updated u_balance field set on sender account', () => {
-							expect(afterDeleteSenderMemAccount.u_balance).to.equal(
+						it('should not update u_balance field set on sender account', () => {
+							return expect(afterDeleteSenderMemAccount.u_balance).to.equal(
 								beforeBlockSenderMemAccount.u_balance
 							);
-							return expect(afterDeleteSenderMemAccount.u_balance).to.equal(
-								afterBlockSenderMemAccount.u_balance
-							);
 						});
 
-						it('should not have updated balance field set on sender account', () => {
-							expect(afterDeleteSenderMemAccount.balance).to.equal(
+						it('should not update balance field set on sender account', () => {
+							return expect(afterDeleteSenderMemAccount.balance).to.equal(
 								beforeBlockSenderMemAccount.balance
 							);
-							return expect(afterDeleteSenderMemAccount.balance).to.equal(
-								afterBlockSenderMemAccount.balance
-							);
 						});
 
-						it('should not have updated u_balance field set of recipient account', () => {
-							expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
+						it('should not update u_balance field set of recipient account', () => {
+							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
 								beforeBlockRecipientMemAccount.u_balance
 							);
-							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
-								afterBlockRecipientMemAccount.u_balance
+						});
+
+						it('should not update balance field set on recipient account', () => {
+							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
+								beforeBlockRecipientMemAccount.balance
+							);
+						});
+					});
+
+					describe('transactions table', () => {
+						let transactionsFilteredById;
+
+						before('get transaction from database', done => {
+							localCommon.getTransactionFromModule(
+								library,
+								{
+									id: inertTransaction.id,
+								},
+								(err, res) => {
+									expect(err).to.not.exist;
+									transactionsFilteredById = res.transactions;
+									done();
+								}
 							);
 						});
 
-						it('should not have updated balance field set on recipient account', () => {
-							expect(afterDeleteRecipientMemAccount.balance).to.equal(
+						it('should delete transaction from the database', () => {
+							expect(transactionsFilteredById).to.be.an('Array');
+							return expect(transactionsFilteredById).to.have.length(0);
+						});
+					});
+				});
+			});
+
+			describe('when forging block with inert type 2 transaction', () => {
+				const inertTransaction = delegateInertTransaction;
+
+				before(done => {
+					localCommon.addTransactionsAndForge(
+						library,
+						[inertTransaction],
+						done
+					);
+				});
+
+				describe('details of the accounts', () => {
+					let afterBlockRecipientMemAccount;
+
+					before('get recipient account', done => {
+						library.logic.account.get(
+							{ address: recipientAccount.address },
+							(err, res) => {
+								afterBlockRecipientMemAccount = res;
+								done();
+							}
+						);
+					});
+
+					it('should not update u_balance field set on recipient account', () => {
+						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
+							afterBlockRecipientMemAccount.u_balance
+						);
+					});
+
+					it('should not update balance field set on recipient account', () => {
+						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
+							afterBlockRecipientMemAccount.balance
+						);
+					});
+
+					it('should not have username property set', () => {
+						return expect(afterBlockRecipientMemAccount.username).to.not.exist;
+					});
+
+					it('should have isDelegate set to false', () => {
+						return expect(afterBlockRecipientMemAccount.isDelegate).to.equal(
+							false
+						);
+					});
+				});
+
+				describe('transactions table', () => {
+					let transactionFromDatabase;
+
+					before('get transaction from database', done => {
+						localCommon.getTransactionFromModule(
+							library,
+							{
+								id: inertTransaction.id,
+							},
+							(err, res) => {
+								expect(err).to.not.exist;
+								transactionFromDatabase = res.transactions[0];
+								done();
+							}
+						);
+					});
+
+					it('should save transaction in the database', () => {
+						expect(transactionFromDatabase).to.be.an('Object');
+						return expect(transactionFromDatabase.id).to.equal(
+							inertTransaction.id
+						);
+					});
+				});
+
+				describe('after deleting block', () => {
+					let afterDeleteRecipientMemAccount;
+
+					before('deleting block', done => {
+						localCommon.popLastBlock(library, done);
+					});
+
+					describe('details of the accounts', () => {
+						before('get recipient account', done => {
+							library.logic.account.get(
+								{ address: recipientAccount.address },
+								(err, res) => {
+									afterDeleteRecipientMemAccount = res;
+									done();
+								}
+							);
+						});
+
+						it('should not update u_balance field set of recipient account', () => {
+							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
+								beforeBlockRecipientMemAccount.u_balance
+							);
+						});
+
+						it('should not update balance field set on recipient account', () => {
+							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
 								beforeBlockRecipientMemAccount.balance
 							);
-							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
-								afterBlockRecipientMemAccount.balance
+						});
+
+						it('should not have username property set', () => {
+							return expect(afterDeleteRecipientMemAccount.username).to.not
+								.exist;
+						});
+
+						it('should have isDelegate set to false', () => {
+							return expect(afterDeleteRecipientMemAccount.isDelegate).to.equal(
+								false
 							);
+						});
+					});
+
+					describe('transactions table', () => {
+						let transactionsFilteredById;
+
+						before('get transaction from database', done => {
+							localCommon.getTransactionFromModule(
+								library,
+								{
+									id: inertTransaction.id,
+								},
+								(err, res) => {
+									expect(err).to.not.exist;
+									transactionsFilteredById = res.transactions;
+									done();
+								}
+							);
+						});
+
+						it('should delete transaction from the database', () => {
+							expect(transactionsFilteredById).to.be.an('Array');
+							return expect(transactionsFilteredById).to.have.length(0);
+						});
+					});
+				});
+			});
+			describe('when forging block with inert type 3 transaction', () => {
+				const inertTransaction = voteInertTransaction;
+
+				before(done => {
+					localCommon.addTransactionsAndForge(
+						library,
+						[inertTransaction],
+						done
+					);
+				});
+
+				describe('details of the accounts', () => {
+					let afterBlockRecipientMemAccount;
+
+					before('get recipient account', done => {
+						library.logic.account.get(
+							{ address: recipientAccount.address },
+							(err, res) => {
+								afterBlockRecipientMemAccount = res;
+								done();
+							}
+						);
+					});
+
+					it('should not update u_balance field set of recipient account', () => {
+						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
+							afterBlockRecipientMemAccount.u_balance
+						);
+					});
+
+					it('should not update balance field set on recipient account', () => {
+						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
+							afterBlockRecipientMemAccount.balance
+						);
+					});
+
+					it('should not update delegates array for account', () => {
+						return expect(beforeBlockRecipientMemAccount.delegates).to.eql(
+							afterBlockRecipientMemAccount.delegates
+						);
+					});
+				});
+
+				describe('transactions table', () => {
+					let transactionFromDatabase;
+
+					before('get transaction from database', done => {
+						localCommon.getTransactionFromModule(
+							library,
+							{
+								id: inertTransaction.id,
+							},
+							(err, res) => {
+								expect(err).to.not.exist;
+								transactionFromDatabase = res.transactions[0];
+								done();
+							}
+						);
+					});
+
+					it('should save transaction in the database', () => {
+						expect(transactionFromDatabase).to.be.an('Object');
+						return expect(transactionFromDatabase.id).to.equal(
+							inertTransaction.id
+						);
+					});
+				});
+
+				describe('after deleting block', () => {
+					before('deleting block', done => {
+						localCommon.popLastBlock(library, done);
+					});
+
+					describe('details of the accounts', () => {
+						let afterDeleteRecipientMemAccount;
+
+						before('get recipient account', done => {
+							library.logic.account.get(
+								{ address: recipientAccount.address },
+								(err, res) => {
+									afterDeleteRecipientMemAccount = res;
+									done();
+								}
+							);
+						});
+
+						it('should not update u_balance field set of recipient account', () => {
+							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
+								beforeBlockRecipientMemAccount.u_balance
+							);
+						});
+
+						it('should not update balance field set on recipient account', () => {
+							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
+								beforeBlockRecipientMemAccount.balance
+							);
+						});
+
+						it('should not update delegates array for account', () => {
+							return expect(afterDeleteRecipientMemAccount.delegates).to.eql(
+								beforeBlockRecipientMemAccount.delegates
+							);
+						});
+					});
+
+					describe('transactions table', () => {
+						let transactionsFilteredById;
+
+						before('get transaction from database', done => {
+							localCommon.getTransactionFromModule(
+								library,
+								{
+									id: inertTransaction.id,
+								},
+								(err, res) => {
+									expect(err).to.not.exist;
+									transactionsFilteredById = res.transactions;
+									done();
+								}
+							);
+						});
+
+						it('should delete transaction from the database', () => {
+							expect(transactionsFilteredById).to.be.an('Array');
+							return expect(transactionsFilteredById).to.have.length(0);
 						});
 					});
 				});
