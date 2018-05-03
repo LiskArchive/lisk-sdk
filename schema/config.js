@@ -172,8 +172,20 @@ module.exports = {
 								},
 								required: ['max', 'delayMs', 'delayAfter', 'windowMs'],
 							},
+							cors: {
+								type: 'object',
+								properties: {
+									origin: {
+										anyOf: [{ type: 'string' }, { type: 'boolean' }],
+									},
+									methods: {
+										type: 'array',
+									},
+								},
+								required: ['origin'],
+							},
 						},
-						required: ['limits'],
+						required: ['limits', 'cors'],
 					},
 				},
 				required: ['enabled', 'access', 'options'],
