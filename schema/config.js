@@ -176,7 +176,7 @@ module.exports = {
 								type: 'object',
 								properties: {
 									origin: {
-										type: 'string',
+										anyOf: [{ type: 'string' }, { type: 'boolean' }],
 									},
 									methods: {
 										type: 'array',

@@ -110,12 +110,16 @@ function Config(packageJson) {
 		appConfig.coverage = true;
 	}
 
-	if (!appConfig.api.options.cors.origin) {
+	if (
+		appConfig.api.options.cors.origin === undefined ||
+		appConfig.api.options.cors.origin === null
+	) {
 		appConfig.api.options.cors.origin = '*';
 	}
 
 	if (
-		!appConfig.api.options.cors.methods ||
+		appConfig.api.options.cors.methods === undefined ||
+		appConfig.api.options.cors.methods === null ||
 		!Array.isArray(appConfig.api.options.cors.methods)
 	) {
 		appConfig.api.options.cors.methods = ['GET', 'POST', 'PUT'];
