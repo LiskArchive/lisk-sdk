@@ -423,7 +423,7 @@ const getKeyFromPassword = (password, salt, iterations) =>
  * @returns {string} Decrypted passphrase
  * @todo Add description for the params
  */
-__private.decryptSecret = function(encryptedPassphrase, password) {
+__private.decryptPassphrase = function(encryptedPassphrase, password) {
 	const parsedPassphrase = parseEncryptedPassphrase(encryptedPassphrase);
 	validateEncryptedPassphrase(parsedPassphrase);
 	const { tag, salt, iv, iterations, cipherText } = parsedPassphrase;
@@ -599,7 +599,7 @@ __private.loadDelegates = function(cb) {
 		(encryptedItem, seriesCb) => {
 			let secret;
 			try {
-				secret = __private.decryptSecret(
+				secret = __private.decryptPassphrase(
 					encryptedItem.encryptedPassphrase,
 					library.config.forging.defaultPassword
 				);
@@ -695,7 +695,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 
 	if (encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptSecret(
+			decryptedSecret = __private.decryptPassphrase(
 				encryptedItem.encryptedPassphrase,
 				password
 			);
