@@ -606,9 +606,9 @@ __private.loadDelegates = function(cb) {
 			} catch (error) {
 				return setImmediate(
 					seriesCb,
-					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. ${
-						error.message
-					}`
+					`Invalid encryptedPassphrase for publicKey: ${
+						encryptedItem.publicKey
+					}. ${error.message}`
 				);
 			}
 
