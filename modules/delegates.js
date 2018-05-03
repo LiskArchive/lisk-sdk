@@ -322,14 +322,14 @@ __private.forge = function(cb) {
 };
 
 /**
- * Parses an encrypted secret string into its component parts.
+ * Parses an encrypted passphrase string into its component parts.
  *
  * @private
- * @param {string} encryptedSecret - String containing components of the encrypted secret
- * @returns {object} Parsed encrypted secret
+ * @param {string} encryptedPassphrase - String containing components of the encrypted passphrase
+ * @returns {object} Parsed encrypted passphrase
  */
-const parseEncryptedSecret = encryptedSecret => {
-	const keyValuePairs = encryptedSecret
+const parseEncryptedPassphrase = encryptedPassphrase => {
+	const keyValuePairs = encryptedPassphrase
 		.split('&')
 		.map(pair => pair.split('='))
 		.reduce(
@@ -353,20 +353,20 @@ const parseEncryptedSecret = encryptedSecret => {
 };
 
 /**
- * Validates an encrypted secret string, ensuring that all expected keys are present.
+ * Validates an encrypted passphrase string, ensuring that all expected keys are present.
  *
  * @private
- * @param {string} encryptedSecret - String containing components of the encrypted secret
+ * @param {string} encryptedPassphrase - String containing components of the encrypted passphrase
  * @throws {Error} If a required key is missing.
  * @returns {boolean} true
  */
-const validateEncryptedSecret = encryptedSecret => {
+const validateEncryptedPassphrase = encryptedPassphrase => {
 	const humanReadableKeys = {
 		cipherText: 'cipher text',
 		iv: 'IV',
 	};
 	return ['salt', 'cipherText', 'iv', 'tag'].every(key => {
-		if (!encryptedSecret[key]) {
+		if (!encryptedPassphrase[key]) {
 			const humanReadableKey = humanReadableKeys[key] || key;
 			throw new Error(`No ${humanReadableKey} provided`);
 		}
@@ -414,19 +414,19 @@ const getKeyFromPassword = (password, salt, iterations) =>
 	);
 
 /**
- * Returns the decrypted secret by deciphering encrypted secret with the password provided using aes-256-gcm algorithm.
+ * Returns the decrypted passphrase by deciphering encrypted passphrase with the password provided using aes-256-gcm algorithm.
  *
  * @private
- * @param {string} encryptedSecret
+ * @param {string} encryptedPassphrase
  * @param {string} password
  * @throws {error} If unable to decrypt using password.
- * @returns {string} Decrypted secret
+ * @returns {string} Decrypted passphrase
  * @todo Add description for the params
  */
-__private.decryptSecret = function(encryptedSecret, password) {
-	const parsedSecret = parseEncryptedSecret(encryptedSecret);
-	validateEncryptedSecret(parsedSecret);
-	const { tag, salt, iv, iterations, cipherText } = parsedSecret;
+__private.decryptSecret = function(encryptedPassphrase, password) {
+	const parsedPassphrase = parseEncryptedPassphrase(encryptedPassphrase);
+	validateEncryptedPassphrase(parsedPassphrase);
+	const { tag, salt, iv, iterations, cipherText } = parsedPassphrase;
 	const tagBuffer = getTagBuffer(tag);
 	const key = getKeyFromPassword(
 		password,
@@ -590,7 +590,7 @@ __private.loadDelegates = function(cb) {
 		[
 			'Loading',
 			secretsList.length,
-			'delegates using encrypted secrets from config',
+			'delegates using encrypted passphrases from config',
 		].join(' ')
 	);
 
@@ -600,13 +600,13 @@ __private.loadDelegates = function(cb) {
 			let secret;
 			try {
 				secret = __private.decryptSecret(
-					encryptedItem.encryptedSecret,
+					encryptedItem.encryptedPassphrase,
 					library.config.forging.defaultPassword
 				);
 			} catch (error) {
 				return setImmediate(
 					seriesCb,
-					`Invalid encryptedSecret for publicKey: ${encryptedItem.publicKey}. ${
+					`Invalid encryptedPassphrase for publicKey: ${encryptedItem.publicKey}. ${
 						error.message
 					}`
 				);
@@ -622,7 +622,7 @@ __private.loadDelegates = function(cb) {
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				return setImmediate(
 					seriesCb,
-					`Invalid encryptedSecret for publicKey: ${
+					`Invalid encryptedPassphrase for publicKey: ${
 						encryptedItem.publicKey
 					}. Public keys do not match`
 				);
@@ -696,7 +696,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 	if (encryptedItem) {
 		try {
 			decryptedSecret = __private.decryptSecret(
-				encryptedItem.encryptedSecret,
+				encryptedItem.encryptedPassphrase,
 				password
 			);
 		} catch (e) {
