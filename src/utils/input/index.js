@@ -15,6 +15,8 @@
  */
 import { getStdIn, getPassphrase, getData } from './utils';
 
+export { getDataIfExist } from './utils';
+
 export const getFirstLineFromString = multilineString =>
 	typeof multilineString === 'string'
 		? multilineString.split(/[\r\n]+/)[0]
