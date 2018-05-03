@@ -95,6 +95,48 @@ describe('lisk_cors', () => {
 		done();
 	});
 
+	it('should return actual request origin if cors origin set to true', done => {
+		var originalOrigin = __testContext.config.api.options.cors.origin;
+		__testContext.config.api.options.cors.origin = true;
+		cors_fititng = fitting();
+		context.request.headers.origin = 'my-custom-origin.com';
+		context.request.method = 'OPTIONS';
+
+		cors_fititng(context, next);
+		expect(next).to.have.not.been.called;
+		expect(context.response.statusCode).to.be.equal(204);
+		expect(
+			context.response.getHeader('Access-Control-Allow-Origin')
+		).to.be.equal('my-custom-origin.com');
+		expect(
+			context.response.getHeader('Access-Control-Allow-Methods')
+		).to.be.equal('GET,POST,PUT');
+
+		__testContext.config.api.options.cors.origin = originalOrigin;
+		done();
+	});
+
+	it('should disable cors request completely if cors origin set to false', done => {
+		var originalOrigin = __testContext.config.api.options.cors.origin;
+		__testContext.config.api.options.cors.origin = false;
+		cors_fititng = fitting();
+		context.request.headers.origin = 'my-custom-origin.com';
+		context.request.method = 'OPTIONS';
+
+		cors_fititng(context, next);
+		expect(next).to.be.calledOnce;
+		expect(context.response.statusCode).to.be.equal(200);
+		expect(
+			context.response.getHeader('Access-Control-Allow-Origin')
+		).to.be.equal(undefined);
+		expect(
+			context.response.getHeader('Access-Control-Allow-Methods')
+		).to.be.equal(undefined);
+
+		__testContext.config.api.options.cors.origin = originalOrigin;
+		done();
+	});
+
 	it('should enable requests for GET, POST when provided methods = GET POST', done => {
 		var originalMethods = __testContext.config.api.options.cors.methods;
 		__testContext.config.api.options.cors.methods = ['GET', 'POST'];
