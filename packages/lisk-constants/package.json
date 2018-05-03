@@ -8,6 +8,10 @@
 		"test": "NODE_ENV=test nyc mocha test",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "NODE_ENV=test nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
+		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
 		"prebuild": "rm -r dist || mkdir dist | echo",
 		"build": "babel src -d dist",
 		"build:check": "node -e \"require('./dist')\""
