@@ -17,6 +17,7 @@
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var swaggerHelper = require('../../../helpers/swagger');
+var constants = require('../../../helpers/constants');
 
 describe('loader', () => {
 	var loaderModule;
@@ -142,6 +143,257 @@ describe('loader', () => {
 					}
 				)
 			).to.be.ok;
+		});
+	});
+
+	describe('__private.createSnapshot', () => {
+		let __private;
+		let library;
+		let validScope;
+		let loggerStub;
+		let loadBlocksOffsetStub;
+		let resetMemTablesStub;
+		let deleteBlocksAfterHeightStub;
+		let rewiredLoader;
+
+		beforeEach(done => {
+			resetMemTablesStub = sinonSandbox.stub().callsArgWith(0, null, true);
+			loadBlocksOffsetStub = sinonSandbox.stub().callsArgWith(3, null, true);
+			deleteBlocksAfterHeightStub = sinonSandbox.stub().resolves();
+
+			loggerStub = {
+				trace: sinonSandbox.spy(),
+				info: sinonSandbox.spy(),
+				error: sinonSandbox.spy(),
+				warn: sinonSandbox.spy(),
+				debug: sinonSandbox.spy(),
+			};
+
+			validScope = {
+				logger: loggerStub,
+				db: {
+					blocks: { deleteBlocksAfterHeight: deleteBlocksAfterHeightStub },
+				},
+				network: sinonSandbox.stub(),
+				schema: sinonSandbox.stub(),
+				sequence: sinonSandbox.stub(),
+				bus: { message: sinonSandbox.stub() },
+				genesisblock: sinonSandbox.stub(),
+				balancesSequence: sinonSandbox.stub(),
+				logic: {
+					transaction: sinonSandbox.stub(),
+					account: { resetMemTables: resetMemTablesStub },
+					peers: sinonSandbox.stub(),
+				},
+				config: {
+					loading: {
+						loadPerIteration: 1000,
+						snapshotRound: 1,
+					},
+					syncing: {
+						active: true,
+					},
+				},
+			};
+
+			const modulesStub = {
+				transactions: sinonSandbox.stub(),
+				blocks: { process: { loadBlocksOffset: loadBlocksOffsetStub } },
+				peers: sinonSandbox.stub(),
+				rounds: sinonSandbox.stub(),
+				transport: sinonSandbox.stub(),
+				multisignatures: sinonSandbox.stub(),
+				system: sinonSandbox.stub(),
+				swagger: { definitions: null },
+			};
+
+			rewiredLoader = rewire('../../../modules/loader.js');
+			__private = rewiredLoader.__get__('__private');
+			rewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
+			new rewiredLoader((err, __loader) => {
+				library = rewiredLoader.__get__('library');
+				__loader.onBind(modulesStub);
+				done();
+			}, validScope);
+		});
+
+		it('should throw an error when called with height below active delegates count', done => {
+			try {
+				__private.createSnapshot(constants.activeDelegates - 1);
+			} catch (err) {
+				expect(err).to.exist;
+				expect(err.message).to.eql(
+					'Unable to create snapshot, blockchain should contain at least one round of blocks'
+				);
+				done();
+			}
+		});
+
+		it('should emit an event with proper error when resetMemTables fails', done => {
+			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
+			__private.snapshotFinished = err => {
+				expect(err).to.eql('resetMemTables#ERR');
+				done();
+			};
+
+			__private.createSnapshot(constants.activeDelegates);
+		});
+
+		it('should emit an event with proper error when loadBlocksOffset fails', done => {
+			loadBlocksOffsetStub.callsArgWith(3, 'loadBlocksOffsetStub#ERR', true);
+			__private.snapshotFinished = err => {
+				expect(err).to.eql('loadBlocksOffsetStub#ERR');
+				done();
+			};
+
+			__private.createSnapshot(constants.activeDelegates);
+		});
+
+		it('should emit an event with proper error when deleteBlocksAfterHeight fails', done => {
+			deleteBlocksAfterHeightStub.rejects('deleteBlocksAfterHeightStub#ERR');
+			__private.snapshotFinished = err => {
+				expect(err.name).to.eql('deleteBlocksAfterHeightStub#ERR');
+				done();
+			};
+
+			__private.createSnapshot(constants.activeDelegates);
+		});
+
+		describe('should emit an event with no error', () => {
+			let blocksAvailable;
+			let deleteBlocksAfterHeight;
+			let snapshotRound;
+
+			it('and snapshot to end of round 1 when snapshotRound = 1 and 101 blocks available', done => {
+				snapshotRound = 1;
+				blocksAvailable = constants.activeDelegates;
+				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+
+				library.config.loading.snapshotRound = 1;
+				__private.snapshotFinished = err => {
+					expect(err).to.not.exist;
+					expect(resetMemTablesStub.calledOnce).to.be.true;
+					expect(
+						loadBlocksOffsetStub.calledWith(constants.activeDelegates, 1, true)
+					).to.be.true;
+					expect(
+						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
+					).to.be.true;
+					done();
+				};
+
+				__private.createSnapshot(blocksAvailable);
+			});
+
+			it('and snapshot to end of round 1 when snapshotRound = 1 and 202 blocks available', done => {
+				snapshotRound = 1;
+				blocksAvailable = constants.activeDelegates * 2;
+				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+
+				library.config.loading.snapshotRound = snapshotRound;
+				__private.snapshotFinished = err => {
+					expect(err).to.not.exist;
+					expect(resetMemTablesStub.calledOnce).to.be.true;
+					expect(loadBlocksOffsetStub.calledOnce).to.be.true;
+					expect(
+						loadBlocksOffsetStub.calledWith(constants.activeDelegates, 1, true)
+					).to.be.true;
+					expect(
+						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
+					).to.be.true;
+					done();
+				};
+
+				__private.createSnapshot(blocksAvailable);
+			});
+
+			it('and snapshot to end of round 2 when snapshotRound = 2 and 202 blocks available', done => {
+				snapshotRound = 2;
+				blocksAvailable = constants.activeDelegates * 2;
+				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+
+				library.config.loading.snapshotRound = snapshotRound;
+				__private.snapshotFinished = err => {
+					expect(err).to.not.exist;
+					expect(resetMemTablesStub.calledOnce).to.be.true;
+					expect(loadBlocksOffsetStub.calledTwice).to.be.true;
+					expect(
+						loadBlocksOffsetStub.firstCall.calledWith(
+							constants.activeDelegates,
+							1,
+							true
+						)
+					).to.be.true;
+					expect(
+						loadBlocksOffsetStub.secondCall.calledWith(
+							constants.activeDelegates,
+							1 + constants.activeDelegates,
+							true
+						)
+					).to.be.true;
+					expect(
+						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
+					).to.be.true;
+					done();
+				};
+
+				__private.createSnapshot(blocksAvailable);
+			});
+
+			it('and snapshot to end of round 2 when snapshotRound = 2 and 303 blocks available', done => {
+				snapshotRound = 2;
+				blocksAvailable = constants.activeDelegates * 3;
+				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+
+				library.config.loading.snapshotRound = snapshotRound;
+				__private.snapshotFinished = err => {
+					expect(err).to.not.exist;
+					expect(resetMemTablesStub.calledOnce).to.be.true;
+					expect(loadBlocksOffsetStub.calledTwice).to.be.true;
+					expect(
+						loadBlocksOffsetStub.firstCall.calledWith(
+							constants.activeDelegates,
+							1,
+							true
+						)
+					).to.be.true;
+					expect(
+						loadBlocksOffsetStub.secondCall.calledWith(
+							constants.activeDelegates,
+							1 + constants.activeDelegates,
+							true
+						)
+					).to.be.true;
+					expect(
+						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
+					).to.be.true;
+					done();
+				};
+
+				__private.createSnapshot(blocksAvailable);
+			});
+
+			it('and snapshot to end of round 1 when snapshotRound = 2 and 101 blocks available', done => {
+				snapshotRound = 2;
+				blocksAvailable = constants.activeDelegates;
+				deleteBlocksAfterHeight = constants.activeDelegates;
+
+				library.config.loading.snapshotRound = snapshotRound;
+				__private.snapshotFinished = err => {
+					expect(err).to.not.exist;
+					expect(resetMemTablesStub.calledOnce).to.be.true;
+					expect(loadBlocksOffsetStub.calledOnce).to.be.true;
+					expect(
+						loadBlocksOffsetStub.calledWith(constants.activeDelegates, 1, true)
+					).to.be.true;
+					expect(
+						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
+					).to.be.true;
+					done();
+				};
+
+				__private.createSnapshot(blocksAvailable);
+			});
 		});
 	});
 });

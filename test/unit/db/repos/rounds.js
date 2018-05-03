@@ -21,8 +21,6 @@ const accountsFixtures = require('../../../fixtures').accounts;
 const roundsSQL = require('../../../../db/sql').rounds;
 const seeder = require('../../../common/db_seed');
 
-const numSeedRecords = 5;
-
 let db;
 let dbSandbox;
 
@@ -148,39 +146,6 @@ describe('db', () => {
 
 			it('should resolve with null if round does not exists', () => {
 				return expect(db.rounds.flush('1234')).to.be.eventually.eql(null);
-			});
-		});
-
-		describe('truncateBlocks()', () => {
-			it('should use the correct SQL file with one parameter', function*() {
-				sinonSandbox.spy(db, 'none');
-				yield db.rounds.truncateBlocks(1);
-
-				expect(db.none.firstCall.args[0]).to.eql(roundsSQL.truncateBlocks);
-				expect(db.none.firstCall.args[1]).to.eql([1]);
-				return expect(db.none).to.be.calledOnce;
-			});
-
-			it('should delete blocks above provided height', function*() {
-				const before = yield db.query('SELECT * FROM blocks');
-				const result = yield db.rounds.truncateBlocks(2);
-				const after = yield db.query('SELECT * FROM blocks');
-
-				// Assuming that we seed 5 blocks
-				expect(before).to.have.lengthOf(numSeedRecords);
-
-				// Truncation does not resolve to any result
-				expect(result).to.be.eql(null);
-
-				// After truncation we will have two records for height below equal to particular height
-				expect(after).to.have.lengthOf(2);
-				return expect(after.map(b => b.height)).to.be.eql([1, 2]);
-			});
-
-			it('should resolve with null if block with particular height does not exists', () => {
-				return expect(db.rounds.truncateBlocks(1234)).to.be.eventually.eql(
-					null
-				);
 			});
 		});
 

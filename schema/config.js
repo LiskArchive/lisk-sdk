@@ -295,16 +295,13 @@ module.exports = {
 			loading: {
 				type: 'object',
 				properties: {
-					verifyOnLoading: {
-						type: 'boolean',
-					},
 					loadPerIteration: {
 						type: 'integer',
 						minimum: 1,
 						maximum: 5000,
 					},
 				},
-				required: ['verifyOnLoading', 'loadPerIteration'],
+				required: ['loadPerIteration'],
 			},
 			ssl: {
 				type: 'object',
