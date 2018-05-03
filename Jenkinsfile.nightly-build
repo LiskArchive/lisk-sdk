@@ -29,15 +29,24 @@ pipeline {
         }
     }
     stages {
+        stage('Clone lisk core') {
+            steps {
+                dir('lisk'){
+                    checkout scm
+                }
+            }
+        }
         stage('Generate release') {
             steps {
-                sh """
-                npm install
-                node ./node_modules/.bin/grunt release
-                jq -r '.version' config.json > version
-                """
-                script {
-                    env.LISK_VERSION = readFile("version").trim()
+                dir('lisk'){
+                    sh """
+                    npm install
+                    node ./node_modules/.bin/grunt release
+                    jq -r '.version' config.json > version
+                    """
+                    script {
+                        env.LISK_VERSION = readFile("version").trim()
+                    }
                 }
             }
         }
@@ -46,7 +55,7 @@ pipeline {
                 dir('lisk-build') {
                     git url: "https://github.com/LiskHQ/lisk-build.git", branch: "1.0.0"
                 }
-                sh "cp release/lisk-${env.LISK_VERSION}.tgz lisk-build/src"
+                sh "cp lisk/release/lisk-${env.LISK_VERSION}.tgz lisk-build/src"
             }
         }
         stage('Build release') {
