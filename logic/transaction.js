@@ -783,7 +783,7 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	apply(transaction, block, sender, cb, tx) {
-		if (exceptions.inertTransactions.indexOf(transaction.id) > -1) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
 			return setImmediate(cb);
@@ -873,7 +873,7 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	undo(transaction, block, sender, cb, tx) {
-		if (exceptions.inertTransactions.indexOf(transaction.id) > -1) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
 			return setImmediate(cb);
@@ -951,7 +951,7 @@ class Transaction {
 			cb = requester;
 		}
 
-		if (exceptions.inertTransactions.indexOf(transaction.id) > -1) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
 			return setImmediate(cb);
@@ -1019,7 +1019,7 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	undoUnconfirmed(transaction, sender, cb, tx) {
-		if (exceptions.inertTransactions.indexOf(transaction.id) > -1) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
 			return setImmediate(cb);
