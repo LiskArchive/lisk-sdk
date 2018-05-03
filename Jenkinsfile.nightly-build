@@ -28,6 +28,9 @@ pipeline {
             customWorkspace "workspace/${URLDecoder.decode(JOB_NAME)}/${BUILD_NUMBER}"
         }
     }
+    options {
+        skipDefaultCheckout true
+    }
     stages {
         stage('Clone lisk core') {
             steps {
