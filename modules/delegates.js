@@ -576,11 +576,11 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
-	const secretsList = library.config.forging.secret;
+	const encryptedList = library.config.forging.secret;
 
 	if (
-		!secretsList ||
-		!secretsList.length ||
+		!encryptedList ||
+		!encryptedList.length ||
 		!library.config.forging.force ||
 		!library.config.forging.defaultPassword
 	) {
@@ -589,17 +589,17 @@ __private.loadDelegates = function(cb) {
 	library.logger.info(
 		[
 			'Loading',
-			secretsList.length,
+			encryptedList.length,
 			'delegates using encrypted passphrases from config',
 		].join(' ')
 	);
 
 	async.eachSeries(
-		secretsList,
+		encryptedList,
 		(encryptedItem, seriesCb) => {
-			let secret;
+			let passphrase;
 			try {
-				secret = __private.decryptPassphrase(
+				passphrase = __private.decryptPassphrase(
 					encryptedItem.encryptedPassphrase,
 					library.config.forging.defaultPassword
 				);
@@ -615,7 +615,7 @@ __private.loadDelegates = function(cb) {
 			const keypair = library.ed.makeKeypair(
 				crypto
 					.createHash('sha256')
-					.update(secret, 'utf8')
+					.update(passphrase, 'utf8')
 					.digest()
 			);
 
@@ -689,13 +689,13 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 	);
 
 	let keypair;
-	let decryptedSecret;
+	let passphrase;
 	let actionEnable = false;
 	let actionDisable = false;
 
 	if (encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptPassphrase(
+			passphrase = __private.decryptPassphrase(
 				encryptedItem.encryptedPassphrase,
 				password
 			);
@@ -706,7 +706,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 		keypair = library.ed.makeKeypair(
 			crypto
 				.createHash('sha256')
-				.update(decryptedSecret, 'utf8')
+				.update(passphrase, 'utf8')
 				.digest()
 		);
 	} else {
