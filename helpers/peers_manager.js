@@ -60,11 +60,9 @@ PeersManager.prototype.add = function(peer) {
 		// Create client WS connection to peer
 		connect(peer, this.logger);
 	}
+	this.addressToNonceMap[peer.string] = peer.nonce;
 	if (peer.nonce) {
-		this.addressToNonceMap[peer.string] = peer.nonce;
 		this.nonceToAddressMap[peer.nonce] = peer.string;
-	} else if (this.addressToNonceMap[peer.string]) {
-		delete this.addressToNonceMap[peer.string];
 	}
 
 	return true;
