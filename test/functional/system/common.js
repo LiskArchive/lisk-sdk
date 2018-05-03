@@ -135,6 +135,10 @@ function forge(library, cb) {
 	);
 }
 
+function popLastBlock(library, cb) {
+	library.modules.blocks.chain.deleteLastBlock(cb);
+}
+
 function fillPool(library, cb) {
 	var transactionPool = library.rewiredModules.transactions.__get__(
 		'__private.transactionPool'
@@ -330,6 +334,7 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 module.exports = {
 	getNextForger,
 	forge,
+	popLastBlock,
 	fillPool,
 	addTransaction,
 	addTransactionToUnconfirmedQueue,
