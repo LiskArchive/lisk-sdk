@@ -24,8 +24,6 @@ var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
-var sendTransactionPromise = require('../../../common/helpers/api')
-	.sendTransactionPromise;
 var common = require('./common');
 
 describe('POST /api/transactions (type 1) register second secret', () => {
@@ -145,18 +143,5 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 	describe('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
-	});
-
-	describe('verification', () => {
-		it('sending already confirmed second secret should fail', () => {
-			return sendTransactionPromise(
-				goodTransactions[0],
-				errorCodes.PROCESSING_ERROR
-			).then(res => {
-				expect(res.body.message).to.be.equal(
-					`Transaction is already confirmed: ${goodTransactions[0].id}`
-				);
-			});
-		});
 	});
 });

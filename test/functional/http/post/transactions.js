@@ -64,8 +64,8 @@ describe('POST /api/transactions (general)', () => {
 		return phases.confirmation([transaction], []);
 	});
 
-	describe('validation', () => {
-		it('should fail when an already confirmed transaction sent again', () => {
+	describe('verification', () => {
+		it('should fail when trying to send a transaction that is already confirmed', () => {
 			return sendTransactionPromise(
 				transaction,
 				errorCodes.PROCESSING_ERROR
