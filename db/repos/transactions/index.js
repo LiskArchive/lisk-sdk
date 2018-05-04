@@ -336,7 +336,7 @@ const Queries = {
 			params.sortField
 				? `ORDER BY ${[params.sortField, params.sortMethod].join(
 						' '
-					)}, t_id ASC`
+					)}, t_rowid ASC`
 				: '',
 			'LIMIT ${limit} OFFSET ${offset}',
 		]
