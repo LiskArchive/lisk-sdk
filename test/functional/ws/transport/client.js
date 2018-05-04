@@ -226,9 +226,9 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = null', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).to.be.null;
 						done();
 					});
 				});

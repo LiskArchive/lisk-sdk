@@ -245,11 +245,11 @@ Peers.prototype.remove = function(peer) {
  */
 Peers.prototype.list = function(normalize) {
 	if (normalize) {
-		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+		return Object.keys(self.peersManager.peers).map(key =>
 			self.peersManager.getByAddress(key).object()
 		);
 	}
-	return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+	return Object.keys(self.peersManager.peers).map(key =>
 		self.create(self.peersManager.getByAddress(key))
 	);
 };

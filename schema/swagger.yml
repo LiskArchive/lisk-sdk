@@ -2581,9 +2581,7 @@ definitions:
     required:
       - httpPort
       - wsPort
-      - os
       - version
-      - height
       - nethash
       - nonce
     properties:

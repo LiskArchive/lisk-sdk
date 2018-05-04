@@ -53,7 +53,7 @@ PeersManager.prototype.add = function(peer) {
 
 	this.peers[peer.string] = peer;
 
-	if (peer.socket) {
+	if (peer.socket && peer.socket.active) {
 		// Reconnect existing socket
 		peer.socket.connect();
 	} else {
@@ -63,8 +63,6 @@ PeersManager.prototype.add = function(peer) {
 	if (peer.nonce) {
 		this.addressToNonceMap[peer.string] = peer.nonce;
 		this.nonceToAddressMap[peer.nonce] = peer.string;
-	} else if (this.addressToNonceMap[peer.string]) {
-		delete this.addressToNonceMap[peer.string];
 	}
 
 	return true;
