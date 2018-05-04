@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import passphrase from 'lisk-passphrase/src';
+import passphrase from '../src';
 
 describe('passphrase index.js', () => {
 	it('should export an object', () => {
