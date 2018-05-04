@@ -1,0 +1,14 @@
+{
+	"extends": ["lisk-base"],
+	"plugins": ["mocha"],
+	"rules": {
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": ["test/**"],
+				"optionalDependencies": false,
+				"packageDir": "./"
+			}
+		]
+	}
+}
