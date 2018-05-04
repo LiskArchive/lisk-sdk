@@ -23,7 +23,7 @@ def generateSrcCodeRelease(directory) {
 
 def getBuildBranch(liskDirectory) {
 	if(fileExists("${env.WORKSPACE}/${liskDirectory}/genesisBlock.json")) {
-		return "development"
+		return "0.9.15"
 	} else {
 		return "1.0.0"
 	}
