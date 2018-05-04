@@ -38,15 +38,15 @@
 		"build:check": "node -e \"require('./dist')\""
 	},
 	"dependencies": {
-		"bip39": "=2.4.0"
+		"bip39": "2.4.0"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
-		"babel-plugin-istanbul": "=4.1.4",
+		"babel-plugin-istanbul": "4.1.4",
 		"babel-plugin-transform-runtime": "6.23.0",
-		"babel-preset-env": "=1.6.0",
-		"babel-register": "^6.26.0",
-		"chai": "=4.1.2",
+		"babel-preset-env": "1.6.0",
+		"babel-register": "6.26.0",
+		"chai": "4.1.2",
 		"eslint": "4.19.1",
 		"eslint-config-airbnb-base": "12.1.0",
 		"eslint-config-lisk-base": "1.0.0",
