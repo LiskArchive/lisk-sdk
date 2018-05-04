@@ -673,7 +673,12 @@ class Transaction {
 			);
 		}
 
-		var verifySubTransactionTypes = (transaction, sender, tx, verifySubTransactionTypesCb) => {
+		const verifySubTransactionTypes = (
+			transaction,
+			sender,
+			tx,
+			verifySubTransactionTypesCb
+		) => {
 			__private.types[transaction.type].verify.call(
 				this,
 				transaction,
@@ -688,7 +693,7 @@ class Transaction {
 			);
 		};
 
-		if(checkPersistent) {
+		if (checkPersistent) {
 			this.checkConfirmed(transaction, checkConfirmedErr => {
 				if (checkConfirmedErr) {
 					return setImmediate(cb, checkConfirmedErr);
