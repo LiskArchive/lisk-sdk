@@ -279,7 +279,7 @@ describe('blocks/verify', () => {
 					describe('when library.logic.transaction.verify fails', () => {
 						beforeEach(() => {
 							return library.logic.transaction.verify.callsArgWith(
-								2,
+								3,
 								'verify-ERR',
 								null
 							);
@@ -296,7 +296,7 @@ describe('blocks/verify', () => {
 					describe('when library.logic.transaction.verify succeeds', () => {
 						beforeEach(() => {
 							return library.logic.transaction.verify.callsArgWith(
-								2,
+								3,
 								null,
 								true
 							);
