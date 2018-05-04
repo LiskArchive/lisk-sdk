@@ -1,7 +1,8 @@
 {
 	"name": "lisk-passphrase",
 	"version": "1.0.0",
-	"description": "Mnemonic passphrase helpers for use with Lisk-related software",
+	"description":
+		"Mnemonic passphrase helpers for use with Lisk-related software",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -19,5 +20,11 @@
 		"node": "6.14.1",
 		"npm": "3.10.10"
 	},
-	"main": "dist/index.js"
+	"main": "dist/index.js",
+	"scripts": {
+		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\""
+	},
+	"devDependencies": {
+		"prettier": "1.12.1"
+	}
 }
