@@ -19,12 +19,9 @@
   PARAMETERS: None
 */
 
-DROP VIEW IF EXISTS trs_list;
-
 CREATE OR REPLACE VIEW trs_list AS
 
 SELECT t."id" AS "t_id",
-	   t."rowId" AS "t_rowid",
        b."height" AS "b_height",
        t."blockId" AS "t_blockId",
        t."type" AS "t_type",
@@ -38,7 +35,8 @@ SELECT t."id" AS "t_id",
        ENCODE(t."signature", 'hex') AS "t_signature",
        ENCODE(t."signSignature", 'hex') AS "t_SignSignature",
        t."signatures" AS "t_signatures",
-       (SELECT height + 1 FROM blocks ORDER BY height DESC LIMIT 1) - b."height" AS "confirmations"
+       (SELECT height + 1 FROM blocks ORDER BY height DESC LIMIT 1) - b."height" AS "confirmations",
+       t."rowId" AS "t_rowid"
 
 FROM trs t
 
