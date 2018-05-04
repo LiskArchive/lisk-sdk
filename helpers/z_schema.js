@@ -163,8 +163,8 @@ var liskFormats = {
 		// Explanation of regex structure:
 		// - 1 or more 'key=value' pairs delimited with '&'
 		// Examples:
-		// - encryptedPassphrase=abcd1234
-		// - encryptedPassphrase=abcd1234&iterations=10000&iv=ef012345
+		// - cipherText=abcd1234
+		// - cipherText=abcd1234&iterations=10000&iv=ef012345
 		// NOTE: Maximum lengths chosen here are arbitrary
 		const keyRegExp = /[a-zA-Z0-9]{2,15}/;
 		const valueRegExp = /[a-f0-9]{1,256}/;
