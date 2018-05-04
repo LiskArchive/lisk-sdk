@@ -14,7 +14,7 @@
 	"db": {
 		"host": "localhost",
 		"port": 5432,
-		"database": "lisk_local",
+		"database": "lisk_test",
 		"user": "",
 		"password": "password",
 		"min": 1,
@@ -72,7 +72,7 @@
 		"maxTransactionsPerQueue": 1000
 	},
 	"forging": {
-		"force": true,
+		"force": false,
 		"defaultKey": "elephant tree paris dragon chair galaxy",
 		"secret": [
 			{
