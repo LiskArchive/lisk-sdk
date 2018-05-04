@@ -404,12 +404,12 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {account} sender
 	 * @param {account} requester
-	 * @param  {boolean} checkPersistent - Check for confirmed transactions persisted state
+	 * @param  {boolean} checkExists - Check for confirmed transactions persisted state
 	 * @param {function} cb
 	 * @returns {SetImmediate} error, transaction
 	 * @todo Add description for the params
 	 */
-	verify(transaction, sender, requester, checkPersistent, cb, tx) {
+	verify(transaction, sender, requester, checkExists, cb, tx) {
 		let valid = false;
 		let err = null;
 
@@ -417,8 +417,8 @@ class Transaction {
 			requester = {};
 		}
 
-		if (checkPersistent === null || checkPersistent === undefined) {
-			checkPersistent = true;
+		if (checkExists === null || checkExists === undefined) {
+			checkExists = true;
 		}
 
 		// Check sender
@@ -693,7 +693,7 @@ class Transaction {
 			);
 		};
 
-		if (checkPersistent) {
+		if (checkExists) {
 			this.checkConfirmed(transaction, checkConfirmedErr => {
 				if (checkConfirmedErr) {
 					return setImmediate(cb, checkConfirmedErr);

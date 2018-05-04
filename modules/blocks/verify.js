@@ -70,12 +70,12 @@ class Verify {
  * @func checkTransaction
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
- * @param  {boolean} checkPersistent - Check for confirmed transactions persisted state
+ * @param  {boolean} checkExists - Check for confirmed transactions persisted state
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransaction = function(block, transaction, checkPersistent, cb) {
+__private.checkTransaction = function(block, transaction, checkExists, cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
@@ -91,7 +91,7 @@ __private.checkTransaction = function(block, transaction, checkPersistent, cb) {
 				return setImmediate(waterCb);
 			},
 			function(waterCb) {
-				if (!checkPersistent) {
+				if (!checkExists) {
 					return setImmediate(waterCb);
 				}
 
@@ -127,7 +127,7 @@ __private.checkTransaction = function(block, transaction, checkPersistent, cb) {
 					transaction,
 					sender,
 					null,
-					checkPersistent,
+					checkExists,
 					waterCb,
 					null
 				);
