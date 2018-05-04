@@ -70,11 +70,12 @@ class Verify {
  * @func checkTransaction
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
+ * @param  {boolean} checkPersistent - Check for confirmed transactions persisted state
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransaction = function(block, transaction, cb) {
+__private.checkTransaction = function(block, transaction, checkPersistent, cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
@@ -90,6 +91,10 @@ __private.checkTransaction = function(block, transaction, cb) {
 				return setImmediate(waterCb);
 			},
 			function(waterCb) {
+				if (!checkPersistent) {
+					return setImmediate(waterCb);
+				}
+
 				// Check if transaction is already in database, otherwise fork 2
 				// DATABASE: read only
 				library.logic.transaction.checkConfirmed(transaction, err => {
@@ -122,6 +127,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 					transaction,
 					sender,
 					null,
+					checkPersistent,
 					waterCb,
 					null
 				);
@@ -745,16 +751,22 @@ __private.validateBlockSlot = function(block, cb) {
  * @private
  * @func checkTransactions
  * @param {Object} block - Full block
+ * @param  {boolean} checkPersistent - Check for confirmed transactions persisted state*
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransactions = function(block, cb) {
+__private.checkTransactions = function(block, checkPersistent, cb) {
 	// Check against the mem_* tables that we can perform the transactions included in the block
 	async.eachSeries(
 		block.transactions,
 		(transaction, eachSeriesCb) => {
-			__private.checkTransaction(block, transaction, eachSeriesCb);
+			__private.checkTransaction(
+				block,
+				transaction,
+				checkPersistent,
+				eachSeriesCb
+			);
 		},
 		err => setImmediate(cb, err)
 	);
@@ -800,13 +812,19 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				__private.broadcastBlock(block, broadcast, seriesCb);
 			},
 			checkExists(seriesCb) {
+				// Skip checking for existing block id if we don't need to save that block
+				if (!saveBlock) {
+					return setImmediate(seriesCb);
+				}
 				__private.checkExists(block, seriesCb);
 			},
 			validateBlockSlot(seriesCb) {
 				__private.validateBlockSlot(block, seriesCb);
 			},
 			checkTransactions(seriesCb) {
-				__private.checkTransactions(block, seriesCb);
+				// checkTransactions should check for persistence of transactions
+				// only if the block needed to be saved to database
+				__private.checkTransactions(block, saveBlock, seriesCb);
 			},
 			applyBlock(seriesCb) {
 				// The block and the transactions are OK i.e:

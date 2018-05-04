@@ -404,13 +404,22 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {account} sender
 	 * @param {account} requester
+	 * @param  {boolean} checkPersistent - Check for confirmed transactions persisted state
 	 * @param {function} cb
 	 * @returns {SetImmediate} error, transaction
 	 * @todo Add description for the params
 	 */
-	verify(transaction, sender, requester, cb, tx) {
+	verify(transaction, sender, requester, checkPersistent, cb, tx) {
 		let valid = false;
 		let err = null;
+
+		if (requester === null || requester === undefined) {
+			requester = {};
+		}
+
+		if (checkPersistent === null || checkPersistent === undefined) {
+			checkPersistent = true;
+		}
 
 		// Check sender
 		if (!sender) {
@@ -664,25 +673,32 @@ class Transaction {
 			);
 		}
 
-		// Check for already confirmed transaction
-		this.checkConfirmed(transaction, checkConfirmedErr => {
-			if (checkConfirmedErr) {
-				return setImmediate(cb, checkConfirmedErr);
-			}
-			// Call verify on transaction type
+		var verifySubTransactionTypes = (transaction, sender, tx, verifySubTransactionTypesCb) => {
 			__private.types[transaction.type].verify.call(
 				this,
 				transaction,
 				sender,
 				err => {
 					if (err) {
-						return setImmediate(cb, err);
+						return setImmediate(verifySubTransactionTypesCb, err);
 					}
-					return setImmediate(cb);
+					return setImmediate(verifySubTransactionTypesCb);
 				},
 				tx
 			);
-		});
+		};
+
+		if(checkPersistent) {
+			this.checkConfirmed(transaction, checkConfirmedErr => {
+				if (checkConfirmedErr) {
+					return setImmediate(cb, checkConfirmedErr);
+				}
+
+				verifySubTransactionTypes(transaction, sender, tx, cb);
+			});
+		} else {
+			verifySubTransactionTypes(transaction, sender, tx, cb);
+		}
 	}
 
 	/**
