@@ -53,7 +53,7 @@ PeersManager.prototype.add = function(peer) {
 
 	this.peers[peer.string] = peer;
 
-	if (peer.socket) {
+	if (peer.socket && peer.socket.active) {
 		// Reconnect existing socket
 		peer.socket.connect();
 	} else {

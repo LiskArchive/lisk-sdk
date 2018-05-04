@@ -23,7 +23,6 @@ const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const Peer = require('../../../logic/peer');
 
 const TIMEOUT = 2000;
-const SOCKET_DESTROY_TIMEOUT = 10000; // Allow sockets to be reused in case of frequent reconnect
 
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
@@ -69,7 +68,7 @@ const connectSteps = {
 			port: peer.wsPort,
 			hostname: peer.ip,
 			query: queryParams,
-			multiplex: true,
+			multiplex: false,
 		};
 		return peer;
 	},
@@ -177,7 +176,6 @@ const connectSteps = {
 		const socket = peer.socket;
 
 		socket.on('connect', () => {
-			clearTimeout(socket.destroyTimeout);
 			logger.trace(
 				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
 			);
@@ -222,18 +220,11 @@ const connectSteps = {
 			if (peer.socket && peer.socket.state === peer.socket.CLOSED) {
 				peer.state = Peer.STATE.DISCONNECTED;
 			}
-			clearTimeout(socket.destroyTimeout);
-			socket.destroyTimeout = setTimeout(() => {
-				if (socket.state === socket.CLOSED || peer.socket !== socket) {
-					// If the socket is still closed after SOCKET_DESTROY_TIMEOUT
-					// (I.e. it hasn't been reopened since), then we will destroy
-					// it completely.
-					socket.destroy();
-					if (socket === peer.socket) {
-						delete peer.socket;
-					}
-				}
-			}, SOCKET_DESTROY_TIMEOUT);
+
+			socket.destroy();
+			if (socket === peer.socket) {
+				delete peer.socket;
+			}
 		});
 
 		// The 'message' event can be used to log all low-level WebSocket messages.
