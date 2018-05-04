@@ -61,22 +61,6 @@ function invalidAssets(option, badTransactions) {
 						options: randomUtil.guestbookDapp,
 					});
 					break;
-				case 'inTransfer':
-					transaction = lisk.transaction.transferIntoDapp({
-						passphrase: accountFixtures.genesis.passphrase,
-						amount: Date.now(),
-						dappId: randomUtil.guestbookDapp.id,
-					});
-					break;
-				case 'outTransfer':
-					transaction = lisk.transaction.transferOutOfDapp({
-						passphrase: accountFixtures.genesis.passphrase,
-						amount: Date.now(),
-						dappId: randomUtil.guestbookDapp.id,
-						transactionId: randomUtil.transaction().id,
-						recipientId: accountFixtures.genesis.address,
-					});
-					break;
 				// no default
 			}
 			done();

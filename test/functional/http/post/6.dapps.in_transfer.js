@@ -392,11 +392,17 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {
-			transaction = lisk.transaction.transferIntoDapp({
-				passphrase: accountFixtures.genesis.passphrase,
-				amount: 10 * constants.normalizer,
-				dappId: randomUtil.guestbookDapp.id,
-			});
+			transaction = {
+				amount: '100000000',
+				recipientId: '',
+				senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				timestamp: 60731530,
+				type: 6,
+				fee: '10000000',
+				asset: { inTransfer: { dappId: '7670083247477258129' } },
+				signature: '0845ea4121c868d11f04397fc8e2af518c530f0b1c0cfb0009da2bd688a58711146068b35eed70d55e89714ace1b8ec350c25178e5c4cc016ff517a76ded3f00',
+				id: '10457544900900787263',
+			};
 
 			return sendTransactionPromise(
 				transaction,

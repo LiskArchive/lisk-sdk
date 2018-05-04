@@ -412,10 +412,6 @@ class Transaction {
 		let valid = false;
 		let err = null;
 
-		if (typeof requester === 'function') {
-			cb = requester;
-		}
-
 		// Check sender
 		if (!sender) {
 			return setImmediate(cb, 'Missing sender');
@@ -453,6 +449,7 @@ class Transaction {
 		// Check for missing requester second signature
 		if (
 			transaction.requesterPublicKey &&
+			requester &&
 			requester.secondSignature &&
 			!transaction.signSignature
 		) {
@@ -462,6 +459,7 @@ class Transaction {
 		// If second signature provided, check if requester has one enabled
 		if (
 			transaction.requesterPublicKey &&
+			requester &&
 			!requester.secondSignature &&
 			(transaction.signSignature && transaction.signSignature.length > 0)
 		) {
@@ -558,12 +556,12 @@ class Transaction {
 		}
 
 		// Verify second signature
-		if (requester.secondSignature || sender.secondSignature) {
+		if ((requester && requester.secondSignature) || sender.secondSignature) {
 			try {
 				valid = false;
 				valid = this.verifySecondSignature(
 					transaction,
-					requester.secondPublicKey || sender.secondPublicKey,
+					(requester && requester.secondPublicKey) || sender.secondPublicKey,
 					transaction.signSignature
 				);
 			} catch (e) {
@@ -666,20 +664,25 @@ class Transaction {
 			);
 		}
 
-		// Call verify on transaction type
-		__private.types[transaction.type].verify.call(
-			this,
-			transaction,
-			sender,
-			err => {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				// Check for already confirmed transaction
-				return this.checkConfirmed(transaction, cb);
-			},
-			tx
-		);
+		// Check for already confirmed transaction
+		this.checkConfirmed(transaction, checkConfirmedErr => {
+			if (checkConfirmedErr) {
+				return setImmediate(cb, checkConfirmedErr);
+			}
+			// Call verify on transaction type
+			__private.types[transaction.type].verify.call(
+				this,
+				transaction,
+				sender,
+				err => {
+					if (err) {
+						return setImmediate(cb, err);
+					}
+					return setImmediate(cb);
+				},
+				tx
+			);
+		});
 	}
 
 	/**
@@ -783,6 +786,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	apply(transaction, block, sender, cb, tx) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		if (!this.ready(transaction, sender)) {
 			return setImmediate(cb, 'Transaction is not ready');
 		}
@@ -865,6 +874,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	undo(transaction, block, sender, cb, tx) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		let amount = new bignum(transaction.amount.toString());
 		amount = amount.plus(transaction.fee.toString()).toNumber();
 
@@ -935,6 +950,12 @@ class Transaction {
 			cb = requester;
 		}
 
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		// Check unconfirmed sender balance
 		let amount = new bignum(transaction.amount.toString()).plus(
 			transaction.fee.toString()
@@ -997,6 +1018,12 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	undoUnconfirmed(transaction, sender, cb, tx) {
+		if (exceptions.inertTransactions.includes(transaction.id)) {
+			this.scope.logger.debug('Inert transaction encountered');
+			this.scope.logger.debug(JSON.stringify(transaction));
+			return setImmediate(cb);
+		}
+
 		let amount = new bignum(transaction.amount.toString());
 		amount = amount.plus(transaction.fee.toString()).toNumber();
 

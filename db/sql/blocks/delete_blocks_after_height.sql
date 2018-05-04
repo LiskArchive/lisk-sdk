@@ -19,4 +19,4 @@
   PARAMETERS: ?
 */
 
-DELETE FROM blocks WHERE height > $1::bigint
+DELETE FROM blocks WHERE height > ${height}::bigint

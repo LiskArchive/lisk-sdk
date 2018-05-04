@@ -42,6 +42,10 @@
 				"delayMs": 0,
 				"delayAfter": 0,
 				"windowMs": 60000
+			},
+			"cors": {
+				"origin": "*",
+				"methods": ["GET", "POST", "PUT"]
 			}
 		}
 	},
@@ -118,7 +122,6 @@
 		"active": true
 	},
 	"loading": {
-		"verifyOnLoading": false,
 		"loadPerIteration": 5000
 	},
 	"ssl": {

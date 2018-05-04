@@ -906,6 +906,7 @@ d.run(() => {
 					scope.logger.fatal(error.toString());
 				}
 				scope.logger.info('Cleaning up...');
+				scope.socketCluster.removeAllListeners('fail');
 				scope.socketCluster.destroy();
 				async.eachSeries(
 					modules,

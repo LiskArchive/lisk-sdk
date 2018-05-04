@@ -103,11 +103,26 @@ function Config(packageJson) {
 	}
 
 	if (program.snapshot) {
-		appConfig.loading.snapshot = Math.abs(Math.floor(program.snapshot));
+		appConfig.loading.snapshotRound = program.snapshot;
 	}
 
 	if (process.env.NODE_ENV === 'test') {
 		appConfig.coverage = true;
+	}
+
+	if (
+		appConfig.api.options.cors.origin === undefined ||
+		appConfig.api.options.cors.origin === null
+	) {
+		appConfig.api.options.cors.origin = '*';
+	}
+
+	if (
+		appConfig.api.options.cors.methods === undefined ||
+		appConfig.api.options.cors.methods === null ||
+		!Array.isArray(appConfig.api.options.cors.methods)
+	) {
+		appConfig.api.options.cors.methods = ['GET', 'POST', 'PUT'];
 	}
 
 	var validator = new z_schema();

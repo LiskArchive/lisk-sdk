@@ -172,17 +172,6 @@ class Round {
 	}
 
 	/**
-	 * Calls sql truncateBlocks:
-	 * - Deletes blocks greather than height from `blocks` table.
-	 *
-	 * @returns {function} Promise
-	 * @todo Check type and description of the return value
-	 */
-	truncateBlocks() {
-		return this.t.rounds.truncateBlocks(this.scope.block.height);
-	}
-
-	/**
 	 * Calls sql restoreRoundSnapshot:
 	 * - Restores mem_round table snapshot.
 	 * - Performed only when rollback last block of round.
