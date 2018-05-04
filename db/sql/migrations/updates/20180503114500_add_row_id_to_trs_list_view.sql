@@ -36,7 +36,7 @@ SELECT t."id" AS "t_id",
        ENCODE(t."signSignature", 'hex') AS "t_SignSignature",
        t."signatures" AS "t_signatures",
        (SELECT height + 1 FROM blocks ORDER BY height DESC LIMIT 1) - b."height" AS "confirmations",
-       t."rowId" AS "t_rowid"
+       t."rowId" AS "t_rowId"
 
 FROM trs t
 
