@@ -117,9 +117,16 @@ class Peer {
 			if (
 				peer[key] !== null &&
 				peer[key] !== undefined &&
-				!_.includes(this.immutable, key)
+				!_.includes(this.required, key)
 			) {
-				this[key] = peer[key];
+				// Update optional httpPort and nonce
+				// for the first time when peer object
+				// has httpPort and nonce as undefined
+				if (!this[key] && _.includes(this.optional, key)) {
+					this[key] = peer[key];
+				} else if (!_.includes(this.optional, key)) {
+					this[key] = peer[key];
+				}
 			}
 		});
 
@@ -175,7 +182,9 @@ Peer.prototype.properties = [
 	'httpPort',
 ];
 
-Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
+Peer.prototype.required = ['ip', 'wsPort', 'string'];
+
+Peer.prototype.optional = ['httpPort', 'nonce'];
 
 Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 
