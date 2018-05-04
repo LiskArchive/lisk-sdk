@@ -45,7 +45,7 @@ def getReleaseDetails(liskDirectory) {
 }
 
 pipeline {
-	agent { node { label "node-07" } }
+	agent { node { label "core-migration" } }
 	stages {
 		stage("Prepare workspace") {
 			steps {
