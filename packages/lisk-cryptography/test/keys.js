@@ -18,10 +18,10 @@ import {
 	getKeys,
 	getAddressAndPublicKeyFromPassphrase,
 	getAddressFromPassphrase,
-} from 'lisk-cryptography/src/keys';
+} from '../src/keys';
 // Require is used for stubbing
-const convert = require('lisk-cryptography/src/convert');
-const hash = require('lisk-cryptography/src/hash');
+const convert = require('../src/convert');
+const hash = require('../src/hash');
 
 describe('keys', () => {
 	const defaultPassphrase = 'secret';

@@ -24,9 +24,9 @@ import {
 	signDataWithPrivateKey,
 	verifyData,
 	digestMessage,
-} from 'lisk-cryptography/src/sign';
+} from '../src/sign';
 // Require is used for stubbing
-const keys = require('lisk-cryptography/src/keys');
+const keys = require('../src/keys');
 
 const makeInvalid = str => {
 	const char = str[0] === '0' ? '1' : '0';

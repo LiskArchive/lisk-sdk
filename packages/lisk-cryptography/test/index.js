@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography/src';
+import cryptography from '../src';
 
 describe('cryptography index.js', () => {
 	it('should export an object', () => {
