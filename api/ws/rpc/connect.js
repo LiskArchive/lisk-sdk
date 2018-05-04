@@ -43,7 +43,23 @@ const connect = (peer, logger) => {
 const connectSteps = {
 	addConnectionOptions: peer => {
 		const systemHeaders = System.getHeaders();
+		const queryParams = {};
 
+		if (systemHeaders.version != null) {
+			queryParams.version = systemHeaders.version;
+		}
+		if (systemHeaders.wsPort != null) {
+			queryParams.wsPort = systemHeaders.wsPort;
+		}
+		if (systemHeaders.httpPort != null) {
+			queryParams.httpPort = systemHeaders.httpPort;
+		}
+		if (systemHeaders.nethash != null) {
+			queryParams.nethash = systemHeaders.nethash;
+		}
+		if (systemHeaders.nonce != null) {
+			queryParams.nonce = systemHeaders.nonce;
+		}
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
 			autoReconnect: false,
@@ -52,14 +68,7 @@ const connectSteps = {
 			pingTimeoutDisabled: true,
 			port: peer.wsPort,
 			hostname: peer.ip,
-			query: {
-				os: systemHeaders.os,
-				version: systemHeaders.version,
-				wsPort: systemHeaders.wsPort,
-				httpPort: systemHeaders.httpPort,
-				nethash: systemHeaders.nethash,
-				nonce: systemHeaders.nonce,
-			},
+			query: queryParams,
 			multiplex: true,
 		};
 		return peer;
