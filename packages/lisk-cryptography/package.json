@@ -1,7 +1,8 @@
 {
 	"name": "lisk-cryptography",
 	"version": "1.0.0",
-	"description": "General cryptographic functions for use with Lisk-related software",
+	"description":
+		"General cryptographic functions for use with Lisk-related software",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -18,5 +19,11 @@
 	"engines": {
 		"node": "6.14.1",
 		"npm": "3.10.10"
+	},
+	"scripts": {
+		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\""
+	},
+	"devDependencies": {
+		"prettier": "1.12.1"
 	}
 }
