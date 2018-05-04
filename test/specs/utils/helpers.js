@@ -88,42 +88,6 @@ describe('utils helpers', () => {
 			},
 		);
 	});
-	describe('#prependPlusToPublicKeys', () => {
-		Given(
-			'public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"',
-			given.publicKeys,
-			() => {
-				When(
-					'prependPlusToPublicKeys is called with the public keys',
-					when.prependPlusToPublicKeysIsCalledWithThePublicKeys,
-					() => {
-						Then(
-							'it should return the public keys prepended with a plus',
-							then.itShouldReturnThePublicKeyPrependedWithAPlus,
-						);
-					},
-				);
-			},
-		);
-	});
-	describe('#prependMinusToPublicKeys', () => {
-		Given(
-			'public keys "647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6" and "96d78cb7d246dd3b426182763e464301835787e1fe8342532660eba75b6b97fc"',
-			given.publicKeys,
-			() => {
-				When(
-					'prependMinusToPublicKeys is called with the public keys',
-					when.prependMinusToPublicKeysIsCalledWithThePublicKeys,
-					() => {
-						Then(
-							'it should return the public keys prepended with a minus',
-							then.itShouldReturnThePublicKeyPrependedWithAMinus,
-						);
-					},
-				);
-			},
-		);
-	});
 	describe('#validateLifetime', () => {
 		Given(
 			'a string lifetime of "1234567890" hours',
@@ -304,16 +268,98 @@ describe('utils helpers', () => {
 			);
 		});
 	});
-	describe('#deAlias', () => {
-		Given('a type "address" with alias "account"', given.aTypeWithAlias, () => {
+	describe('#normalizeAmount', () => {
+		Given(
+			'an amount "120" with normalized amount "12000000000"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an amount "123.456" with normalized amount "12345600000"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an amount "0" with normalized amount "0"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given(
+			'an amount "0.00000123" with normalized amount "123"',
+			given.anAmountWithNormalizedAmount,
+			() => {
+				When(
+					'normalizeAmount is called on the amount',
+					when.normalizeAmountIsCalledOnTheAmount,
+					() => {
+						Then(
+							'it should return the normalized amount',
+							then.itShouldReturnTheNormalizedAmount,
+						);
+					},
+				);
+			},
+		);
+		Given('an invalid amount "0.123456789"', given.anInvalidAmount, () => {
 			When(
-				'deAlias is called on the type',
-				when.deAliasIsCalledOnTheType,
+				'normalizeAmount is called on the amount',
+				when.normalizeAmountIsCalledOnTheAmount,
 				() => {
-					Then('it should return the alias', then.itShouldReturnTheAlias);
+					Then(
+						'it should throw validation error "Amount must be a number with no more than 8 decimal places."',
+						then.itShouldThrowValidationError,
+					);
 				},
 			);
 		});
+	});
+	describe('#deAlias', () => {
+		Given(
+			'a type "addresses" with alias "accounts"',
+			given.aTypeWithAlias,
+			() => {
+				When(
+					'deAlias is called on the type',
+					when.deAliasIsCalledOnTheType,
+					() => {
+						Then('it should return the alias', then.itShouldReturnTheAlias);
+					},
+				);
+			},
+		);
 		Given('a type "block" with no alias', given.aTypeWithNoAlias, () => {
 			When(
 				'deAlias is called on the type',
@@ -322,32 +368,6 @@ describe('utils helpers', () => {
 					Then('it should return the type', then.itShouldReturnTheType);
 				},
 			);
-		});
-	});
-	describe('#processQueryResult', () => {
-		Given('a type "block"', given.aType, () => {
-			Given(
-				'a result with error "The block could not be found."',
-				given.aResultWithError,
-				() => {
-					When(
-						'processQueryResult is called with the type then the result',
-						when.processQueryResultIsCalledWithTheTypeThenTheResult,
-						() => {
-							Then('it should return the result', then.itShouldReturnTheResult);
-						},
-					);
-				},
-			);
-			Given('a result with a block', given.aResultWithABlock, () => {
-				When(
-					'processQueryResult is called with the type then the result',
-					when.processQueryResultIsCalledWithTheTypeThenTheResult,
-					() => {
-						Then('it should return the block', then.itShouldReturnTheBlock);
-					},
-				);
-			});
 		});
 	});
 	describe('#prepareOptions', () => {

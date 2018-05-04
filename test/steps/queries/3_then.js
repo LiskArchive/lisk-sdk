@@ -13,26 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getFirstQuotedString } from '../utils';
 
-export function itShouldResolveToTheResultOfSendingTheRequest() {
-	const { returnValue, sendRequestResult } = this.test.ctx;
-	return expect(returnValue).to.eventually.equal(sendRequestResult);
+export function itShouldResolveToTheDataOfTheResponse() {
+	const { returnValue, queryResult } = this.test.ctx;
+	return expect(returnValue).to.eventually.equal(queryResult.data);
 }
 
-export function theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient() {
-	const { queryInstance, liskAPIInstance } = this.test.ctx;
-	return expect(queryInstance)
-		.to.have.property('client')
-		.equal(liskAPIInstance);
-}
-
-export function theQueryInstanceShouldHaveAHandlerFor() {
-	const { queryInstance } = this.test.ctx;
-	const item = getFirstQuotedString(this.test.title);
-	return expect(queryInstance.handlers)
-		.to.have.property(item)
-		.be.a('function');
+export function itShouldResolveToTheFirstElementOfDataOfTheResponse() {
+	const { returnValue, queryResult } = this.test.ctx;
+	return expect(returnValue).to.eventually.equal(queryResult.data[0]);
 }
 
 export function itShouldResolveToTheResultOfTheQuery() {

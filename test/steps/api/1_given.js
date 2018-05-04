@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskAPIInstance from '../../../src/utils/api';
+import getAPIClient from '../../../src/utils/api';
 
 export function aLiskAPIInstance() {
-	this.test.ctx.liskAPIInstance = liskAPIInstance;
+	this.test.ctx.liskAPIInstance = getAPIClient();
 }

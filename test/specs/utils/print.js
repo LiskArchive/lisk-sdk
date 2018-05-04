@@ -18,9 +18,9 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('print utils', () => {
+describe('print util', () => {
 	beforeEach(setUpUtilPrint);
-	describe('printResult', () => {
+	describe('print', () => {
 		Given(
 			'a Vorpal instance that can log',
 			given.aVorpalInstanceThatCanLog,
@@ -223,71 +223,159 @@ describe('print utils', () => {
 						},
 					);
 				});
-			},
-		);
-	});
-	describe('logWarning', () => {
-		Given(
-			'string arguments "Something to be warned about" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logWarning is called with the arguments',
-					when.logWarningIsCalledWithTheArguments,
+				Given(
+					'there are results to print',
+					given.thereAreResultsToPrint,
 					() => {
-						Then(
-							'console.warn should be called with the strings in yellow',
-							then.consoleWarnShouldBeCalledWithTheStringsInYellow,
+						Given(
+							'a config with json set to true',
+							given.aConfigWithJsonSetTo,
+							() => {
+								Given(
+									'an options object with json set to false',
+									given.anOptionsObjectWithJsonSetTo,
+									() => {
+										Given(
+											'JSON should be printed',
+											given.jsonShouldBePrinted,
+											() => {
+												Given(
+													'output should not be pretty',
+													given.outputShouldNotBePretty,
+													() => {
+														When(
+															'the results are printed',
+															when.theResultsArePrinted,
+															() => {
+																Then(
+																	'shouldUseJSONOutput should be called with the config and the options',
+																	then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'shouldUsePrettyOutput should be called with the config and the options',
+																	then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'JSON outputs should be logged without ANSI codes',
+																	then.jsonOutputsShouldBeLoggedWithoutANSICodes,
+																);
+															},
+														);
+													},
+												);
+												Given(
+													'the options object has key "pretty" set to boolean true',
+													given.theOptionsObjectHasKeySetToBoolean,
+													() => {
+														Given(
+															'output should be pretty',
+															given.outputShouldBePretty,
+															() => {
+																When(
+																	'the results are printed',
+																	when.theResultsArePrinted,
+																	() => {
+																		Then(
+																			'shouldUseJSONOutput should be called with the config and the options',
+																			then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																		);
+																		Then(
+																			'shouldUsePrettyOutput should be called with the config and the options',
+																			then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																		);
+																		Then(
+																			'pretty JSON outputs should be logged without ANSI codes',
+																			then.prettyJSONOutputsShouldBeLoggedWithoutANSICodes,
+																		);
+																	},
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							},
 						);
-					},
-				);
-			},
-		);
-		Given(
-			'string arguments "This has %s substitution", "a string" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logWarning is called with the arguments',
-					when.logWarningIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.warn should be called with the first string in yellow and the other arguments',
-							then.consoleWarnShouldBeCalledWithTheFirstStringInYellowAndTheOtherArguments,
-						);
-					},
-				);
-			},
-		);
-	});
-	describe('logError', () => {
-		Given(
-			'string arguments "Something to be warned about" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logError is called with the arguments',
-					when.logErrorIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.error should be called with the strings in red',
-							then.consoleErrorShouldBeCalledWithTheStringsInRed,
-						);
-					},
-				);
-			},
-		);
-		Given(
-			'string arguments "This has %s substitution", "a string" and "Something else"',
-			given.stringArguments,
-			() => {
-				When(
-					'logError is called with the arguments',
-					when.logErrorIsCalledWithTheArguments,
-					() => {
-						Then(
-							'console.error should be called with the first string in red and the other arguments',
-							then.consoleErrorShouldBeCalledWithTheFirstStringInRedAndTheOtherArguments,
+						Given(
+							'a config with json set to true and pretty set to true',
+							given.aConfigWithJsonSetToAndPrettySetTo,
+							() => {
+								Given(
+									'an empty options object',
+									given.anEmptyOptionsObject,
+									() => {
+										Given(
+											'JSON should be printed',
+											given.jsonShouldBePrinted,
+											() => {
+												Given(
+													'output should be pretty',
+													given.outputShouldBePretty,
+													() => {
+														When(
+															'the results are printed',
+															when.theResultsArePrinted,
+															() => {
+																Then(
+																	'shouldUseJSONOutput should be called with the config and the options',
+																	then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'shouldUsePrettyOutput should be called with the config and the options',
+																	then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'pretty JSON outputs should be logged without ANSI codes',
+																	then.prettyJSONOutputsShouldBeLoggedWithoutANSICodes,
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+								Given(
+									'an options object with key "pretty" set to boolean false',
+									given.anOptionsObjectWithKeySetToBoolean,
+									() => {
+										Given(
+											'JSON should be printed',
+											given.jsonShouldBePrinted,
+											() => {
+												Given(
+													'output should not be pretty',
+													given.outputShouldNotBePretty,
+													() => {
+														When(
+															'the results are printed',
+															when.theResultsArePrinted,
+															() => {
+																Then(
+																	'shouldUseJSONOutput should be called with the config and the options',
+																	then.shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'shouldUsePrettyOutput should be called with the config and the options',
+																	then.shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions,
+																);
+																Then(
+																	'JSON outputs should be logged without ANSI codes',
+																	then.jsonOutputsShouldBeLoggedWithoutANSICodes,
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									},
+								);
+							},
 						);
 					},
 				);

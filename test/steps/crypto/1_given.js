@@ -102,14 +102,17 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 		publicKey,
 	};
 
-	if (typeof lisk.crypto.getKeys.returns === 'function') {
-		lisk.crypto.getKeys.returns(keys);
+	if (typeof lisk.cryptography.getKeys.returns === 'function') {
+		lisk.cryptography.getKeys.returns(keys);
 	}
-	if (typeof lisk.crypto.decryptPassphraseWithPassword.returns === 'function') {
-		lisk.crypto.decryptPassphraseWithPassword.returns(passphrase);
+	if (
+		typeof lisk.cryptography.decryptPassphraseWithPassword.returns ===
+		'function'
+	) {
+		lisk.cryptography.decryptPassphraseWithPassword.returns(passphrase);
 	}
-	if (typeof lisk.crypto.getAddressFromPublicKey.returns === 'function') {
-		lisk.crypto.getAddressFromPublicKey.returns(address);
+	if (typeof lisk.cryptography.getAddressFromPublicKey.returns === 'function') {
+		lisk.cryptography.getAddressFromPublicKey.returns(address);
 	}
 
 	if (typeof cryptography.getKeys.returns === 'function') {
@@ -132,24 +135,49 @@ export function aPassword() {
 	this.test.ctx.password = password;
 }
 
-export function anEncryptedPassphraseWithAnIV() {
-	const [encryptedPassphrase, iv] = getQuotedStrings(this.test.parent.title);
-	const cipherAndIv = {
-		cipher: encryptedPassphrase,
-		iv,
+export function anEncryptedPassphrase() {
+	const encryptedPassphrase = getFirstQuotedString(this.test.parent.title);
+	const encryptedPassphraseObject = {
+		iterations: 1,
+		salt: 'e8c7dae4c893e458e0ebb8bff9a36d84',
+		cipherText:
+			'c0fab123d83c386ffacef9a171b6e0e0e9d913e58b7972df8e5ef358afbc65f99c9a2b6fe7716f708166ed72f59f007d2f96a91f48f0428dd51d7c9962e0c6a5fc27ca0722038f1f2cf16333',
+		iv: '1a2206e426c714091b7e48f6',
+		tag: '3a9d9f9f9a92c9a58296b8df64820c15',
+		version: '1',
 	};
-	if (typeof lisk.crypto.encryptPassphraseWithPassword.returns === 'function') {
-		lisk.crypto.encryptPassphraseWithPassword.returns(cipherAndIv);
+	if (
+		typeof lisk.cryptography.parseEncryptedPassphrase.returns === 'function'
+	) {
+		lisk.cryptography.parseEncryptedPassphrase.returns(
+			encryptedPassphraseObject,
+		);
+	}
+	if (
+		typeof lisk.cryptography.stringifyEncryptedPassphrase.returns === 'function'
+	) {
+		lisk.cryptography.stringifyEncryptedPassphrase.returns(encryptedPassphrase);
+	}
+	if (
+		typeof lisk.cryptography.encryptPassphraseWithPassword.returns ===
+		'function'
+	) {
+		lisk.cryptography.encryptPassphraseWithPassword.returns(
+			encryptedPassphraseObject,
+		);
 	}
 
-	this.test.ctx.cipherAndIv = cipherAndIv;
+	this.test.ctx.encryptedPassphrase = encryptedPassphrase;
+	this.test.ctx.encryptedPassphraseObject = encryptedPassphraseObject;
 }
 
 export function aMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
 
-	if (typeof lisk.crypto.decryptMessageWithPassphrase.returns === 'function') {
-		lisk.crypto.decryptMessageWithPassphrase.returns(message);
+	if (
+		typeof lisk.cryptography.decryptMessageWithPassphrase.returns === 'function'
+	) {
+		lisk.cryptography.decryptMessageWithPassphrase.returns(message);
 	}
 
 	this.test.ctx.message = message;
@@ -178,7 +206,7 @@ export function anEncryptedMessageWithANonce() {
 		nonce,
 	};
 
-	lisk.crypto.encryptMessageWithPassphrase.returns(cipherAndNonce);
+	lisk.cryptography.encryptMessageWithPassphrase.returns(cipherAndNonce);
 
 	this.test.ctx.cipherAndNonce = cipherAndNonce;
 }

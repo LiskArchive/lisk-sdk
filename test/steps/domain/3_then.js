@@ -14,30 +14,9 @@
  *
  */
 
-export function itShouldReturnThePublicKeyPrependedWithAMinus() {
-	const { publicKeys, returnValue } = this.test.ctx;
-	const publicKeysWithMinus = publicKeys.map(publicKey => {
-		return `-${publicKey}`;
-	});
-	return expect(returnValue).to.eql(publicKeysWithMinus);
-}
-
-export function itShouldReturnThePublicKeyPrependedWithAPlus() {
-	const { publicKeys, returnValue } = this.test.ctx;
-	const publicKeysWithPlus = publicKeys.map(publicKey => {
-		return `+${publicKey}`;
-	});
-	return expect(returnValue).to.eql(publicKeysWithPlus);
-}
-
 export function itShouldReturnThePublicKeys() {
 	const { returnValue, publicKeys } = this.test.ctx;
 	return expect(returnValue).to.eql(publicKeys);
-}
-
-export function itShouldReturnTheBlock() {
-	const { returnValue, block } = this.test.ctx;
-	return expect(returnValue).to.equal(block);
 }
 
 export function itShouldReturnAnObjectWithTheAddress() {
@@ -45,12 +24,17 @@ export function itShouldReturnAnObjectWithTheAddress() {
 	return expect(returnValue).to.eql({ address });
 }
 
+export function itShouldReturnTheNormalizedAmount() {
+	const { returnValue, normalizedAmount } = this.test.ctx;
+	return expect(returnValue).to.equal(normalizedAmount);
+}
+
 export function itShouldReturnTheAlias() {
 	const { returnValue, alias } = this.test.ctx;
-	return expect(returnValue).to.be.equal(alias);
+	return expect(returnValue).to.equal(alias);
 }
 
 export function itShouldReturnTheType() {
 	const { returnValue, type } = this.test.ctx;
-	return expect(returnValue).to.be.equal(type);
+	return expect(returnValue).to.equal(type);
 }

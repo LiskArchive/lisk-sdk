@@ -13,9 +13,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskJS from 'lisk-js';
+import lisk from 'lisk-js';
 import config from './config';
+import { NETHASHES } from './constants';
 
-const { api: LiskAPI } = liskJS;
+const { APIClient } = lisk;
 
-export default new LiskAPI(config.liskJS);
+const seedNodes = {
+	main: APIClient.constants.MAINNET_NODES,
+	test: APIClient.constants.TESTNET_NODES,
+	beta: APIClient.constants.BETANET_NODES,
+};
+
+const getAPIClient = () => {
+	const { nodes, network } = config.api;
+	const nethash = NETHASHES[network] || network;
+	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
+	return new APIClient(clientNodes, { nethash });
+};
+
+export default getAPIClient;

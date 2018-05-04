@@ -23,6 +23,17 @@ export function thereIsAResultToPrint() {
 	this.test.ctx.resultWithoutANSICodes = { lisk: 'Some prefix: JS' };
 }
 
+export function thereAreResultsToPrint() {
+	this.test.ctx.results = [
+		{ lisk: 'Some prefix: \u001B[4mJS\u001B[0m' },
+		{ lisk: 'Some suffix: \u001B[4mawsome\u001B[0m' },
+	];
+	this.test.ctx.resultsWithoutANSICodes = [
+		{ lisk: 'Some prefix: JS' },
+		{ lisk: 'Some suffix: awsome' },
+	];
+}
+
 export function jsonShouldBePrinted() {
 	shouldUseJSONOutput.returns(true);
 }

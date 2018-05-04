@@ -24,11 +24,12 @@ const description = `Returns a randomly-generated mnemonic passphrase with its c
 
 export const actionCreator = () => async () => {
 	const passphrase = createMnemonicPassphrase();
-	const { publicKey } = cryptography.getKeys(passphrase);
+	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
 	const { address } = cryptography.getAddressFromPublicKey(publicKey);
 
 	return {
 		passphrase,
+		privateKey,
 		publicKey,
 		address,
 	};

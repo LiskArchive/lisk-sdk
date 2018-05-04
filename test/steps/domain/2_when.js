@@ -15,28 +15,13 @@
  */
 import {
 	deAlias,
-	prependMinusToPublicKeys,
-	prependPlusToPublicKeys,
+	normalizeAmount,
 	validateAddress,
 	validateAmount,
 	validateLifetime,
 	validateMinimum,
 	validatePublicKeys,
 } from '../../../src/utils/helpers';
-
-export function prependMinusToPublicKeysIsCalledWithThePublicKeys() {
-	const { publicKeys } = this.test.ctx;
-	const returnValue = prependMinusToPublicKeys(publicKeys);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
-}
-
-export function prependPlusToPublicKeysIsCalledWithThePublicKeys() {
-	const { publicKeys } = this.test.ctx;
-	const returnValue = prependPlusToPublicKeys(publicKeys);
-	this.test.ctx.returnValue = returnValue;
-	return returnValue;
-}
 
 export function validatePublicKeysIsCalledWithThePublicKeys() {
 	const { publicKeys } = this.test.ctx;
@@ -85,6 +70,19 @@ export function validateAmountIsCalledOnTheAmount() {
 		return returnValue;
 	} catch (error) {
 		const testFunction = validateAmount.bind(null, amount);
+		this.test.ctx.testFunction = testFunction;
+		return testFunction;
+	}
+}
+
+export function normalizeAmountIsCalledOnTheAmount() {
+	const { amount } = this.test.ctx;
+	try {
+		const returnValue = normalizeAmount(amount);
+		this.test.ctx.returnValue = returnValue;
+		return returnValue;
+	} catch (error) {
+		const testFunction = normalizeAmount.bind(null, amount);
 		this.test.ctx.testFunction = testFunction;
 		return testFunction;
 	}

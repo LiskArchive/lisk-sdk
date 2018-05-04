@@ -1,6 +1,6 @@
 {
 	"name": "lisky",
-	"version": "0.3.0",
+	"version": "1.0.0-beta.2",
 	"description": "A command line interface for Lisk",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -15,7 +15,7 @@
 		"url": "https://github.com/LiskHQ/lisky/issues"
 	},
 	"engines": {
-		"node": "=6.12.3",
+		"node": "=6.14.1",
 		"npm": "=3.10.10"
 	},
 	"directories": {
@@ -54,12 +54,12 @@
 		"babel-polyfill": "=6.26.0",
 		"bip39": "=2.4.0",
 		"chalk": "=2.3.0",
-		"cli-table2": "=0.2.0",
-		"lisk-js": "LiskHQ/lisk-js#1.0.0-dev-lisky",
+		"cli-table2": "LiskHQ/cli-table2#187c6ae80b9d963c598d0cb3379153387bfb15c4",
+		"lisk-js": "=1.0.0-beta.2",
 		"lockfile": "=1.0.3",
 		"semver": "=5.5.0",
 		"strip-ansi": "=4.0.0",
-		"vorpal": "LiskHQ/vorpal#master"
+		"vorpal": "LiskHQ/vorpal#v1.0.0-lisk"
 	},
 	"devDependencies": {
 		"babel-cli": "=6.26.0",

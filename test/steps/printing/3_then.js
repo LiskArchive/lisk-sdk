@@ -90,6 +90,18 @@ export function jsonOutputShouldBeLoggedWithoutANSICodes() {
 	return expect(vorpal.log).to.be.calledWithExactly(jsonOutput);
 }
 
+export function prettyJSONOutputsShouldBeLoggedWithoutANSICodes() {
+	const { resultsWithoutANSICodes, vorpal } = this.test.ctx;
+	const prettyJSONOutput = JSON.stringify(resultsWithoutANSICodes, null, '\t');
+	return expect(vorpal.log).to.be.calledWithExactly(prettyJSONOutput);
+}
+
+export function jsonOutputsShouldBeLoggedWithoutANSICodes() {
+	const { resultsWithoutANSICodes, vorpal } = this.test.ctx;
+	const jsonOutput = JSON.stringify(resultsWithoutANSICodes);
+	return expect(vorpal.log).to.be.calledWithExactly(jsonOutput);
+}
+
 export function shouldUseJSONOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
 	return expect(shouldUseJSONOutput).to.be.calledWithExactly(config, {});
@@ -164,11 +176,25 @@ export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
 		.eql(keys);
 }
 
+export function theReturnedTableShouldHaveAHeadWithTheObjectsNestedKeys() {
+	const { returnValue, testArrayKeysResult } = this.test.ctx;
+	return expect(returnValue.options)
+		.to.have.property('head')
+		.eql(testArrayKeysResult);
+}
+
 export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
 	const { returnValue, testArray } = this.test.ctx;
 	return testArray.forEach((testObject, i) => {
 		const values = Object.values(testObject);
 		return expect(returnValue[i]).to.eql(values);
+	});
+}
+
+export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectNestedValues() {
+	const { returnValue, testArray, testArrayValuesResult } = this.test.ctx;
+	return testArray.forEach((testObject, i) => {
+		return expect(returnValue[i]).to.eql(testArrayValuesResult[i]);
 	});
 }
 

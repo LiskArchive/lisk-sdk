@@ -177,15 +177,24 @@ export function theFileIsNotValidJSON() {
 	fsUtils.readJSONSync.throws('Invalid JSON');
 }
 
-export function theFileIsValidJSON() {
+export function theFileIsMissingRequiredKeys() {
 	const userConfig = {
 		name: 'custom-name',
 		json: true,
-		liskJS: {
-			testnet: true,
-			node: 'my-node',
-			port: 7357,
-			ssl: true,
+	};
+
+	this.test.ctx.userConfig = userConfig;
+
+	fsUtils.readJSONSync.returns(userConfig);
+}
+
+export function theFileIsValid() {
+	const userConfig = {
+		name: 'custom-name',
+		json: true,
+		api: {
+			network: 'beta',
+			nodes: ['http://localhost:4000'],
 		},
 	};
 

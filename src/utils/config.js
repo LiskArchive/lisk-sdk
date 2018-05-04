@@ -17,8 +17,10 @@ import os from 'os';
 import fs from 'fs';
 import lockfile from 'lockfile';
 import defaultConfig from '../../default_config.json';
+import { CONFIG_VARIABLES } from './constants';
+import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
-import { logWarning, logError } from './print';
+import logger from './logger';
 
 const configDirName = '.lisky';
 const configFileName = 'config.json';
@@ -34,16 +36,16 @@ const attemptCallWithWarning = (fn, path) => {
 		return fn();
 	} catch (_) {
 		const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
-		return logWarning(warning);
+		return logger.warn(warning);
 	}
 };
 
-const attemptCallWithError = (fn, errorCode, errorMessage) => {
+const attemptCallWithError = (fn, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		logError(errorMessage);
-		return process.exit(errorCode);
+		logger.error(errorMessage);
+		return process.exit(1);
 	}
 };
 
@@ -57,25 +59,28 @@ const attemptToCreateFile = path => {
 	return attemptCallWithWarning(fn, path);
 };
 
-const checkReadAccess = path => {
-	const fn = fs.accessSync.bind(null, path, fs.constants.R_OK);
-	const errorCode = 1;
-	const errorMessage = `Could not read config file. Please check permissions for ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
-};
-
 const checkLockfile = path => {
 	const fn = lockfile.lockSync.bind(null, path);
-	const errorCode = 3;
 	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+	return attemptCallWithError(fn, errorMessage);
 };
 
 const attemptToReadJSONFile = path => {
 	const fn = readJSONSync.bind(null, path);
-	const errorCode = 2;
-	const errorMessage = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorMessage);
+};
+
+const attemptToValidateConfig = (config, path) => {
+	const rootKeys = CONFIG_VARIABLES.map(key => key.split('.')[0]);
+	const fn = () =>
+		rootKeys.forEach(key => {
+			if (!Object.keys(config).includes(key)) {
+				throw new ValidationError(`Key ${key} not found in config file.`);
+			}
+		});
+	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorMessage);
 };
 
 const getConfig = () => {
@@ -92,9 +97,10 @@ const getConfig = () => {
 		checkLockfile(lockfilePath);
 	}
 
-	checkReadAccess(configFilePath);
+	const config = attemptToReadJSONFile(configFilePath);
+	attemptToValidateConfig(config, configFilePath);
 
-	return attemptToReadJSONFile(configFilePath);
+	return config;
 };
 
 export default getConfig();

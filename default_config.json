@@ -1,11 +1,9 @@
 {
 	"name": "lisky",
 	"json": false,
-	"liskJS": {
-		"testnet": false,
-		"node": "",
-		"port": "",
-		"ssl": true
+	"api": {
+		"nodes": [],
+		"network": "main"
 	},
 	"pretty": false
 }

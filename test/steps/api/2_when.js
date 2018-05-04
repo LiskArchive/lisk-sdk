@@ -13,18 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { getFirstQuotedString, getQuotedStrings } from '../utils';
+import getAPIClient from '../../../src/utils/api';
 
-export function theParametersObjectHasKeySetTo() {
-	const [key, value] = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.parameters[key] = value;
-}
-
-export function aParametersObject() {
-	this.test.ctx.parameters = {};
-}
-
-export function anEndpoint() {
-	const endpoint = getFirstQuotedString(this.test.parent.title);
-	this.test.ctx.endpoint = endpoint;
+export function aLiskAPIInstanceIsCreated() {
+	this.test.ctx.liskAPIInstance = getAPIClient();
 }

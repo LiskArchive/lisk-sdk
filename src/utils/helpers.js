@@ -15,7 +15,7 @@
  */
 import { ValidationError } from '../utils/error';
 import commonOptions from '../utils/options';
-import { printResult } from '../utils/print';
+import print from '../utils/print';
 
 export const validatePublicKeys = publicKeys =>
 	publicKeys.map(publicKey => {
@@ -40,14 +40,9 @@ export const validatePublicKeys = publicKeys =>
 		return publicKey;
 	});
 
-export const prependPlusToPublicKeys = publicKeys =>
-	publicKeys.map(publicKey => `+${publicKey}`);
-
-export const prependMinusToPublicKeys = publicKeys =>
-	publicKeys.map(publicKey => `-${publicKey}`);
-
 const regExpAddress = /^\d{1,21}[L|l]$/;
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
+const DECIMAL_PLACES = 8;
 
 const isStringInteger = n => {
 	const parsed = parseInt(n, 10);
@@ -86,10 +81,18 @@ export const validateAmount = amount => {
 	return true;
 };
 
-export const deAlias = type => (type === 'address' ? 'account' : type);
+export const normalizeAmount = amount => {
+	validateAmount(amount);
+	const [preString, postString = ''] = amount.split('.');
+	const [preArray, postArray] = [preString, postString].map(n => Array.from(n));
+	const pad = new Array(DECIMAL_PLACES - postArray.length).fill('0');
+	const combinedArray = [...preArray, ...postArray, ...pad];
+	const combinedString = combinedArray.join('');
+	const trimmed = combinedString.replace(/^0+/, '') || '0';
+	return trimmed;
+};
 
-export const processQueryResult = type => result =>
-	result.error ? result : result[deAlias(type)];
+export const deAlias = type => (type === 'addresses' ? 'accounts' : type);
 
 export const shouldUseJSONOutput = (config = {}, options = {}) => {
 	if (!!options.json === options.json) return options.json;
@@ -134,7 +137,7 @@ export const wrapActionCreator = (vorpal, actionCreator, errorPrefix) =>
 		return prepareOptions(parameters.options)
 			.then(() => actionCreator(vorpal).call(this, parameters))
 			.catch(createErrorHandler(errorPrefix))
-			.then(printResult(vorpal, parameters.options).bind(this));
+			.then(print(vorpal, parameters.options).bind(this));
 	};
 
 const OPTION_TYPES = {

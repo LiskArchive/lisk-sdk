@@ -13,70 +13,21 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskAPIInstance from './api';
+import getAPIClient from './api';
 
-class Query {
-	constructor() {
-		this.client = liskAPIInstance;
-		this.handlers = {
-			account: (account, options) => this.getAccount(account, options),
-			block: (block, options) => this.getBlock(block, options),
-			delegate: (delegate, options) => this.getDelegate(delegate, options),
-			transaction: (transaction, options) =>
-				this.getTransaction(transaction, options),
-		};
-
-		this.testnetCache = null;
-	}
-
-	cacheTestnetSetting() {
-		this.testnetCache = this.client.testnet;
-	}
-
-	resetTestnetSetting() {
-		this.client.setTestnet(this.testnetCache);
-		this.testnetCache = null;
-	}
-
-	sendRequest(endpoint, parameters, { testnet } = {}) {
-		const overrideTestnetSetting =
-			typeof testnet === 'boolean' && this.client.testnet !== testnet;
-
-		const handleSuccess = async result => {
-			if (overrideTestnetSetting) this.resetTestnetSetting();
-			if (!result.success) throw new Error(result.message);
-			return result;
-		};
-		const handleFailure = async result => {
-			if (overrideTestnetSetting) this.resetTestnetSetting();
-			throw result;
-		};
-
-		if (overrideTestnetSetting) {
-			this.cacheTestnetSetting();
-			this.client.setTestnet(testnet);
-		}
-
-		return this.client
-			.sendRequest(endpoint, parameters)
-			.then(handleSuccess, handleFailure);
-	}
-
-	getBlock(input, options) {
-		return this.sendRequest('blocks/get', { id: input }, options);
-	}
-
-	getAccount(input, options) {
-		return this.sendRequest('accounts', { address: input }, options);
-	}
-
-	getTransaction(input, options) {
-		return this.sendRequest('transactions/get', { id: input }, options);
-	}
-
-	getDelegate(input, options) {
-		return this.sendRequest('delegates/get', { username: input }, options);
-	}
-}
-
-export default new Query();
+export default (endpoint, parameters) =>
+	// prettier-ignore
+	getAPIClient()[endpoint].get(parameters)
+		.then(res => {
+			if (res.data) {
+				if (Array.isArray(res.data)) {
+					if (res.data.length === 0) {
+						throw new Error(`No ${endpoint} found using specified parameters.`);
+					}
+					return res.data[0];
+				}
+				return res.data;
+			}
+			// Get endpoints with 2xx status code should always return with data key.
+			throw new Error('No data was returned.');
+		});

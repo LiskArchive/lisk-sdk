@@ -13,10 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { COMMAND_TYPES, SINGULARS } from '../utils/constants';
+import { COMMAND_TYPES, PLURALS, QUERY_INPUT_MAP } from '../utils/constants';
 import { ValidationError } from '../utils/error';
-import { createCommand, deAlias, processQueryResult } from '../utils/helpers';
-import commonOptions from '../utils/options';
+import { createCommand, deAlias } from '../utils/helpers';
 import query from '../utils/query';
 
 const description = `Gets an array of information from the blockchain. Types available: accounts, addresses, blocks, delegates, transactions.
@@ -26,26 +25,24 @@ const description = `Gets an array of information from the blockchain. Types ava
 	- list blocks 5510510593472232540 16450842638530591789
 `;
 
-export const actionCreator = () => async ({
-	type,
-	inputs,
-	options: { testnet },
-}) => {
-	const singularType = Object.keys(SINGULARS).includes(type)
-		? SINGULARS[type]
-		: type;
+export const actionCreator = () => async ({ type, inputs }) => {
+	const pluralType = Object.keys(PLURALS).includes(type) ? PLURALS[type] : type;
 
-	if (!COMMAND_TYPES.includes(singularType)) {
+	if (!COMMAND_TYPES.includes(pluralType)) {
 		throw new ValidationError('Unsupported type.');
 	}
 
-	const queries = inputs.map(input =>
-		query.handlers[deAlias(singularType)](input, { testnet }),
-	);
+	const endpoint = deAlias(pluralType);
 
-	return Promise.all(queries).then(results =>
-		results.map(processQueryResult(singularType)),
-	);
+	const queries = inputs.map(input => {
+		const req = {
+			limit: 1,
+			[QUERY_INPUT_MAP[endpoint]]: input,
+		};
+		return query(endpoint, req);
+	});
+
+	return Promise.all(queries);
 };
 
 const list = createCommand({
@@ -53,7 +50,6 @@ const list = createCommand({
 	autocomplete: COMMAND_TYPES,
 	description,
 	actionCreator,
-	options: [commonOptions.testnet],
 	errorPrefix: 'Could not list',
 });
 

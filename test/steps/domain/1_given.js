@@ -39,6 +39,12 @@ export function anAmount() {
 	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
 }
 
+export function anAmountWithNormalizedAmount() {
+	const [amount, normalizedAmount] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.amount = amount;
+	this.test.ctx.normalizedAmount = normalizedAmount;
+}
+
 export const anInvalidAmount = anAmount;
 
 export function aKeysgroupWithKeys() {
@@ -118,19 +124,11 @@ export function aVariable() {
 
 export const anUnknownVariable = aVariable;
 
-export function aBlockID() {
-	this.test.ctx.blockID = getFirstQuotedString(this.test.parent.title);
-}
-
 export function anAddress() {
 	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
 }
 
 export const anInvalidAddress = anAddress;
-
-export function aTransactionID() {
-	this.test.ctx.transactionId = getFirstQuotedString(this.test.parent.title);
-}
 
 export function aDelegateUsername() {
 	this.test.ctx.delegateUsername = getFirstQuotedString(this.test.parent.title);

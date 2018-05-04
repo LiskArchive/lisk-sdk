@@ -13,20 +13,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import lisk from 'lisk-js';
+
+const { constants } = lisk;
+
 export const COMMAND_TYPES = [
-	'account',
-	'address',
-	'block',
-	'delegate',
-	'transaction',
+	'accounts',
+	'addresses',
+	'blocks',
+	'delegates',
+	'transactions',
 ];
 
-export const SINGULARS = {
-	accounts: 'account',
-	addresses: 'address',
-	blocks: 'block',
-	delegates: 'delegate',
-	transactions: 'transaction',
+export const PLURALS = {
+	account: 'accounts',
+	address: 'addresses',
+	block: 'blocks',
+	delegate: 'delegates',
+	transaction: 'transactions',
 };
 
-export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];
+export const QUERY_INPUT_MAP = {
+	accounts: 'address',
+	blocks: 'id',
+	delegates: 'username',
+	transactions: 'id',
+};
+
+export const CONFIG_VARIABLES = [
+	'api.nodes',
+	'api.network',
+	'json',
+	'name',
+	'pretty',
+];
+
+export const API_PROTOCOLS = ['http:', 'https:'];
+
+export const NETHASHES = {
+	main: constants.MAINNET_NETHASH,
+	test: constants.TESTNET_NETHASH,
+	beta: constants.BETANET_NETHASH,
+};

@@ -25,13 +25,13 @@ export function theMessageVerificationShouldBeReturned() {
 
 export function liskJSCryptoShouldBeUsedToVerifyTheMessage() {
 	const { message, keys: { publicKey }, signature } = this.test.ctx;
-	return expect(lisk.crypto.verifyMessageWithPublicKey).to.be.calledWithExactly(
-		{
-			publicKey,
-			signature,
-			message,
-		},
-	);
+	return expect(
+		lisk.cryptography.verifyMessageWithPublicKey,
+	).to.be.calledWithExactly({
+		publicKey,
+		signature,
+		message,
+	});
 }
 
 export function itShouldResolveToTheResultOfVerifyingTheMessage() {
@@ -57,11 +57,10 @@ export function itShouldResolveToTheResultOfDecryptingThePassphrase() {
 	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
-export function itShouldDecryptThePassphraseUsingTheIVAndThePassword() {
-	const { cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+export function itShouldDecryptThePassphraseUsingThePassword() {
+	const { encryptedPassphrase, password } = this.test.ctx;
 	return expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
-		cipher,
-		iv,
+		encryptedPassphrase,
 		password,
 	});
 }
@@ -115,15 +114,16 @@ export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
-export function itShouldResolveToAnObjectWithThePassphraseAndThePublicKeyAndTheAddress() {
+export function itShouldResolveToAnObjectWithThePassphraseThePrivateKeyThePublicKeyAndTheAddress() {
 	const {
 		returnValue,
 		passphrase,
-		keys: { publicKey },
+		keys: { privateKey, publicKey },
 		address,
 	} = this.test.ctx;
 	const expectedObject = {
 		passphrase,
+		privateKey,
 		publicKey,
 		address,
 	};
@@ -137,17 +137,16 @@ export function theSignatureShouldBeReturned() {
 
 export function liskJSCryptoShouldBeUsedToSignTheMessage() {
 	const { message, passphrase } = this.test.ctx;
-	return expect(lisk.crypto.signMessageWithPassphrase).to.be.calledWithExactly(
-		message,
-		passphrase,
-	);
+	return expect(
+		lisk.cryptography.signMessageWithPassphrase,
+	).to.be.calledWithExactly(message, passphrase);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey() {
 	const { keys: { publicKey } } = this.test.ctx;
-	return expect(lisk.crypto.getAddressFromPublicKey).to.be.calledWithExactly(
-		publicKey,
-	);
+	return expect(
+		lisk.cryptography.getAddressFromPublicKey,
+	).to.be.calledWithExactly(publicKey);
 }
 
 export function theCryptoInstanceShouldHaveName() {
@@ -162,12 +161,12 @@ export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
 	const { cryptography: crypto } = this.test.ctx;
 	return expect(crypto)
 		.to.have.property('liskCrypto')
-		.equal(lisk.crypto);
+		.equal(lisk.cryptography);
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase() {
 	const { passphrase } = this.test.ctx;
-	return expect(lisk.crypto.getKeys).to.be.calledWithExactly(passphrase);
+	return expect(lisk.cryptography.getKeys).to.be.calledWithExactly(passphrase);
 }
 
 export function theKeysShouldBeReturned() {
@@ -180,23 +179,37 @@ export function theErrorResponseShouldBeHandled() {
 	return expect(returnValue).to.eql({ error: errorMessage });
 }
 
-export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphraseAndIV() {
+export function liskJSCryptoShouldBeUsedToGetTheEncryptedPassphrase() {
 	const { passphrase, password } = this.test.ctx;
 	return expect(
-		lisk.crypto.encryptPassphraseWithPassword,
+		lisk.cryptography.encryptPassphraseWithPassword,
 	).to.be.calledWithExactly(passphrase, password);
 }
 
-export function theEncryptedPassphraseAndIVShouldBeReturned() {
-	const { returnValue, cipherAndIv } = this.test.ctx;
-	return expect(returnValue).to.equal(cipherAndIv);
+export function liskJSCryptoShouldBeUsedToStringifyTheEncryptedPassphrase() {
+	const { encryptedPassphraseObject } = this.test.ctx;
+	return expect(
+		lisk.cryptography.stringifyEncryptedPassphrase,
+	).to.be.calledWithExactly(encryptedPassphraseObject);
+}
+
+export function liskJSCryptoShouldBeUsedToParseTheEncryptedPassphrase() {
+	const { encryptedPassphrase } = this.test.ctx;
+	return expect(
+		lisk.cryptography.parseEncryptedPassphrase,
+	).to.be.calledWithExactly(encryptedPassphrase);
+}
+
+export function theEncryptedPassphraseShouldBeReturned() {
+	const { returnValue, encryptedPassphrase } = this.test.ctx;
+	return expect(returnValue).to.eql({ encryptedPassphrase });
 }
 
 export function liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase() {
-	const { cipherAndIv, password } = this.test.ctx;
+	const { encryptedPassphraseObject, password } = this.test.ctx;
 	return expect(
-		lisk.crypto.decryptPassphraseWithPassword,
-	).to.be.calledWithExactly(cipherAndIv, password);
+		lisk.cryptography.decryptPassphraseWithPassword,
+	).to.be.calledWithExactly(encryptedPassphraseObject, password);
 }
 
 export function theDecryptedPassphraseShouldBeReturned() {
@@ -207,7 +220,7 @@ export function theDecryptedPassphraseShouldBeReturned() {
 export function liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce() {
 	const { message, passphrase, recipientKeys } = this.test.ctx;
 	return expect(
-		lisk.crypto.encryptMessageWithPassphrase,
+		lisk.cryptography.encryptMessageWithPassphrase,
 	).to.be.calledWithExactly(message, passphrase, recipientKeys.publicKey);
 }
 
@@ -223,7 +236,7 @@ export function liskJSCryptoShouldBeUsedToGetTheDecryptedMessage() {
 		keys,
 	} = this.test.ctx;
 	return expect(
-		lisk.crypto.decryptMessageWithPassphrase,
+		lisk.cryptography.decryptMessageWithPassphrase,
 	).to.be.calledWithExactly(cipher, nonce, recipientPassphrase, keys.publicKey);
 }
 
