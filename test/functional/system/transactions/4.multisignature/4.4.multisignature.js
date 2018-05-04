@@ -126,14 +126,19 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			localCommon.addTransaction(
-				library,
-				scenarios.regular.multiSigTransaction,
-				err => {
-					expect(err).to.equal('Account already has multisignatures enabled');
-					done();
+			const multiSignatureToSameAccount = lisk.transaction.registerMultisignature(
+				{
+					passphrase: scenarios.regular.account.password,
+					keysgroup: scenarios.regular.keysgroup,
+					lifetime: scenarios.regular.lifetime,
+					minimum: scenarios.regular.minimum,
+					timeOffset: -10000,
 				}
 			);
+			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
+				expect(err).to.equal('Account already has multisignatures enabled');
+				done();
+			});
 		});
 	});
 });

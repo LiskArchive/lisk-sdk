@@ -190,7 +190,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 					});
 
 					it('adding to pool downvoting transaction to same delegate from same account should fail', done => {
-						localCommon.addTransaction(library, transaction4, err => {
+						const transaction5 = lisk.transaction.castVotes({
+							passphrase: account.password,
+							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
+							timeOffset: -10000,
+						});
+						localCommon.addTransaction(library, transaction5, err => {
 							expect(err).to.equal(
 								`Failed to remove vote, delegate "${
 									accountFixtures.existingDelegate.delegateName

@@ -1954,7 +1954,7 @@ describe('blocks/process', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
 											return library.logic.transaction.verify.callsArgWith(
-												2,
+												3,
 												'transaction.verify-ERR',
 												null
 											);
@@ -1979,7 +1979,7 @@ describe('blocks/process', () => {
 									describe('when succeeds', () => {
 										beforeEach(() => {
 											return library.logic.transaction.verify.callsArgWith(
-												2,
+												3,
 												null,
 												true
 											);
@@ -2010,7 +2010,7 @@ describe('blocks/process', () => {
 					beforeEach(() => {
 						modules.accounts.getAccount.callsArgWith(1, null, true);
 						library.logic.transaction.ready.returns(true);
-						return library.logic.transaction.verify.callsArgWith(2, null, true);
+						return library.logic.transaction.verify.callsArgWith(3, null, true);
 					});
 
 					describe('when fails', () => {

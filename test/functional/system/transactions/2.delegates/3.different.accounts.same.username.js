@@ -135,7 +135,12 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						localCommon.addTransaction(library, transaction2, err => {
+						const transaction3 = lisk.transaction.registerDelegate({
+							passphrase: account2.password,
+							username: account.username,
+							timeOffset: -10000,
+						});
+						localCommon.addTransaction(library, transaction3, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});
