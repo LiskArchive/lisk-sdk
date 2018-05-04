@@ -78,7 +78,7 @@ class Verify {
 __private.checkTransaction = function(block, transaction, checkExists, cb) {
 	async.waterfall(
 		[
-			function(waterCb) {
+			function getTransactionId(waterCb) {
 				try {
 					// Calculate transaction ID
 					// FIXME: Can have poor performance, because of hash calculation
@@ -90,29 +90,7 @@ __private.checkTransaction = function(block, transaction, checkExists, cb) {
 				transaction.blockId = block.id;
 				return setImmediate(waterCb);
 			},
-			function(waterCb) {
-				if (!checkExists) {
-					return setImmediate(waterCb);
-				}
-
-				// Check if transaction is already in database, otherwise fork 2
-				// DATABASE: read only
-				library.logic.transaction.checkConfirmed(transaction, err => {
-					if (err) {
-						// Fork: Transaction already confirmed
-						modules.delegates.fork(block, 2);
-						// Undo the offending transaction
-						// DATABASE: write
-						modules.transactions.undoUnconfirmed(transaction, err2 => {
-							modules.transactions.removeUnconfirmedTransaction(transaction.id);
-							return setImmediate(waterCb, err2 || err);
-						});
-					} else {
-						return setImmediate(waterCb);
-					}
-				});
-			},
-			function(waterCb) {
+			function getAccount(waterCb) {
 				// Get account from database if any (otherwise cold wallet)
 				// DATABASE: read only
 				modules.accounts.getAccount(
@@ -120,7 +98,7 @@ __private.checkTransaction = function(block, transaction, checkExists, cb) {
 					waterCb
 				);
 			},
-			function(sender, waterCb) {
+			function verifyTransaction(sender, waterCb) {
 				// Check if transaction id valid against database state (mem_* tables)
 				// DATABASE: read only
 				library.logic.transaction.verify(
@@ -133,7 +111,23 @@ __private.checkTransaction = function(block, transaction, checkExists, cb) {
 				);
 			},
 		],
-		err => setImmediate(cb, err)
+		waterCbErr => {
+			if (waterCbErr && waterCbErr.match(/Transaction is already confirmed/)) {
+				// Fork: Transaction already confirmed.
+				modules.delegates.fork(block, 2);
+				// Undo the offending transaction.
+				// DATABASE: write
+				modules.transactions.undoUnconfirmed(
+					transaction,
+					undoUnconfirmedErr => {
+						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						return setImmediate(cb, undoUnconfirmedErr || waterCbErr);
+					}
+				);
+			} else {
+				return setImmediate(cb, waterCbErr);
+			}
+		}
 	);
 };
 
