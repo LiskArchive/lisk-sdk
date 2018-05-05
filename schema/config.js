@@ -281,9 +281,9 @@ module.exports = {
 						type: 'array',
 						items: {
 							properties: {
-								encryptedSecret: {
+								encryptedPassphrase: {
 									type: 'string',
-									format: 'encryptedSecret',
+									format: 'encryptedPassphrase',
 								},
 								publicKey: {
 									type: 'string',
