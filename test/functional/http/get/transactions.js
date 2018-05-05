@@ -48,11 +48,10 @@ describe('GET /api/transactions', () => {
 		recipientId: account2.address,
 	});
 	var transaction3 = lisk.transaction.transfer({
-		amount: 10 * constants.normalizer, // 10 LSK
+		amount: 20 * constants.normalizer, // 20 LSK
 		passphrase: account.password,
 		recipientId: account2.address,
 	});
-
 	// Crediting accounts
 	before(() => {
 		var promises = [];
@@ -616,23 +615,27 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using offset=1 should be ok', () => {
-				var firstTransaction = null;
+			it('should paginate consistently when using offset with unprecise sorting param', () => {
+				var lastId = null;
+				var firstId = null;
+				var limit = 51;
 
 				return transactionsEndpoint
-					.makeRequest({ offset: 0, limit: 1 }, 200)
+					.makeRequest(
+						{ height: 1, offset: 0, limit, sort: 'timestamp:desc' },
+						200
+					)
 					.then(res => {
-						firstTransaction = res.body.data[0];
+						lastId = res.body.data[limit - 1].id;
 
 						return transactionsEndpoint.makeRequest(
-							{ offset: 1, limit: 1 },
+							{ height: 1, offset: limit - 1, limit, sort: 'timestamp:desc' },
 							200
 						);
 					})
 					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.id).to.not.equal(firstTransaction.id);
-						});
+						firstId = res.body.data[0].id;
+						expect(firstId).to.equal(lastId);
 					});
 			});
 		});
