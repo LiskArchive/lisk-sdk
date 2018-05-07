@@ -61,7 +61,6 @@
 		"find": "=0.2.7",
 		"fs-extra": "=5.0.0",
 		"ip": "=1.1.5",
-		"istanbul-middleware": "=0.2.2",
 		"js-yaml": "=3.10.0",
 		"json-refs": "=3.0.3",
 		"lodash": "=4.17.4",

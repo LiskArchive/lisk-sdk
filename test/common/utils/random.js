@@ -113,7 +113,9 @@ random.account = function() {
 	account.secondPassword = random.password();
 	account.username = random.delegateName();
 	account.publicKey = lisk.cryptography.getKeys(account.password).publicKey;
-	account.address = lisk.cryptography.getAddressFromPublicKey(account.publicKey);
+	account.address = lisk.cryptography.getAddressFromPublicKey(
+		account.publicKey
+	);
 	account.secondPublicKey = lisk.cryptography.getKeys(
 		account.secondPassword
 	).publicKey;
