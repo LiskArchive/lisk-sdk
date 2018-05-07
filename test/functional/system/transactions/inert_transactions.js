@@ -17,12 +17,12 @@ describe('inert transactions', () => {
 	});
 
 	const voteInertTransaction = lisk.transaction.castVotes({
-		passphrase: recipientAccount.password,
+		passphrase: recipientAccount.passphrase,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
 	});
 
 	const delegateInertTransaction = lisk.transaction.registerDelegate({
-		passphrase: recipientAccount.password,
+		passphrase: recipientAccount.passphrase,
 		username: recipientAccount.username,
 	});
 
