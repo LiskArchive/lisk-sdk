@@ -15,10 +15,7 @@
 		"import/resolver": {
 			"node": {
 				"extensions": [".js"],
-					"moduleDirectory": [
-						"node_modules",
-						"packages"
-					]
+				"moduleDirectory": ["node_modules", "packages"]
 			}
 		}
 	}
