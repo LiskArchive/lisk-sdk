@@ -45,7 +45,7 @@ describe('delegates', () => {
 			var config;
 			var __private;
 
-			var encryptedPassphrase = [
+			var delegates = [
 				{
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -78,13 +78,13 @@ describe('delegates', () => {
 			beforeEach(done => {
 				__private.keypairs = {};
 				config.forging.force = true;
-				config.forging.secret = [];
+				config.forging.delegates = [];
 				done();
 			});
 
 			it('should not load any delegates when forging.force is false', done => {
 				config.forging.force = false;
-				config.forging.secret = encryptedPassphrase;
+				config.forging.delegates = delegates;
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;
@@ -93,8 +93,8 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should not load any delegates when forging.secret array is empty', done => {
-				config.forging.secret = [];
+			it('should not load any delegates when forging.delegates array is empty', done => {
+				config.forging.delegates = [];
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;
@@ -103,8 +103,8 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should not load any delegates when forging.secret list is undefined', done => {
-				config.forging.secret = undefined;
+			it('should not load any delegates when forging.delegates list is undefined', done => {
+				config.forging.delegates = undefined;
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;
@@ -122,7 +122,7 @@ describe('delegates', () => {
 						'salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -144,7 +144,7 @@ describe('delegates', () => {
 						'iterations=2&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -165,7 +165,7 @@ describe('delegates', () => {
 						'iterations=1&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -187,7 +187,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bc&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -208,7 +208,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -230,7 +230,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d05&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -251,7 +251,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -273,7 +273,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c933&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -294,7 +294,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -316,7 +316,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967cb&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -338,7 +338,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b35859&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -359,7 +359,7 @@ describe('delegates', () => {
 						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -386,7 +386,7 @@ describe('delegates', () => {
 					publicKey: randomAccount.publicKey,
 				};
 
-				config.forging.secret = [accountDetails];
+				config.forging.delegates = [accountDetails];
 
 				loadDelegates(err => {
 					expect(err).to.equal(
@@ -401,8 +401,8 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should ignore secrets which do not belong to a delegate', done => {
-				config.forging.secret = [
+			it('should ignore passphrases which do not belong to a delegate', done => {
+				config.forging.delegates = [
 					{
 						encryptedPassphrase: accountFixtures.genesis.encryptedPassphrase,
 						publicKey: accountFixtures.genesis.publicKey,
@@ -416,20 +416,20 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should load secrets in encrypted format with the key', done => {
-				config.forging.secret = encryptedPassphrase;
+			it('should load delegates in encrypted format with the key', done => {
+				config.forging.delegates = delegates;
 
 				loadDelegates(err => {
 					expect(err).to.not.exist;
 					expect(Object.keys(__private.keypairs).length).to.equal(
-						encryptedPassphrase.length
+						delegates.length
 					);
 					done();
 				});
 			});
 
-			it('should load secrets in encrypted format with the key with default 1e6 iterations if not set', done => {
-				config.forging.secret = [
+			it('should load delegates in encrypted format with the key with default 1e6 iterations if not set', done => {
+				config.forging.delegates = [
 					{
 						publicKey:
 							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -453,14 +453,14 @@ describe('delegates', () => {
 				loadDelegates(err => {
 					expect(err).to.not.exist;
 					expect(Object.keys(__private.keypairs).length).to.equal(
-						encryptedPassphrase.length
+						delegates.length
 					);
 					done();
 				});
 			});
 
 			it('should load all 101 delegates', done => {
-				config.forging.secret = genesisDelegates.delegates.map(delegate => ({
+				config.forging.delegates = genesisDelegates.delegates.map(delegate => ({
 					encryptedPassphrase: delegate.encryptedPassphrase,
 					publicKey: delegate.publicKey,
 				}));
