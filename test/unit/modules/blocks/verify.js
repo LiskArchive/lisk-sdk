@@ -179,96 +179,56 @@ describe('blocks/verify', () => {
 				return library.logic.transaction.getId.returns('4');
 			});
 
-			describe('when library.logic.transaction.checkConfirmed fails', () => {
+			describe('when modules.accounts.getAccount fails', () => {
 				beforeEach(() => {
-					return library.logic.transaction.checkConfirmed.callsArgWith(
+					return modules.accounts.getAccount.callsArgWith(
 						1,
-						'checkConfirmed-ERR',
+						'getAccount-ERR',
 						null
 					);
 				});
 
-				afterEach(() => {
-					expect(modules.delegates.fork.calledOnce).to.be.true;
-					expect(modules.delegates.fork.args[0][0]).to.deep.equal(dummyBlock);
-					return expect(modules.delegates.fork.args[0][1]).to.equal(2);
-				});
-
-				describe('when modules.transactions.undoUnconfirmed fails', () => {
-					beforeEach(() => {
-						return modules.transactions.undoUnconfirmed.callsArgWith(
-							1,
-							'undoUnconfirmed-ERR',
-							null
-						);
-					});
-
-					afterEach(() => {
-						expect(modules.transactions.removeUnconfirmedTransaction.calledOnce)
-							.to.be.true;
-						return expect(
-							modules.transactions.removeUnconfirmedTransaction.args[0][0]
-						).to.equal('4');
-					});
-
-					it('should call a callback with error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.equal('undoUnconfirmed-ERR');
-								done();
-							}
-						);
-					});
-				});
-
-				describe('when modules.transactions.undoUnconfirmed succeeds', () => {
-					beforeEach(() => {
-						return modules.transactions.undoUnconfirmed.callsArgWith(
-							1,
-							null,
-							true
-						);
-					});
-
-					afterEach(() => {
-						expect(modules.transactions.removeUnconfirmedTransaction.calledOnce)
-							.to.be.true;
-						return expect(
-							modules.transactions.removeUnconfirmedTransaction.args[0][0]
-						).to.equal('4');
-					});
-
-					it('should call a callback with error', done => {
-						__private.checkTransaction(
-							dummyBlock,
-							dummyTransaction,
-							true,
-							err => {
-								expect(err).to.equal('checkConfirmed-ERR');
-								done();
-							}
-						);
-					});
+				it('should call a callback with error', done => {
+					__private.checkTransaction(
+						dummyBlock,
+						dummyTransaction,
+						true,
+						err => {
+							expect(err).to.equal('getAccount-ERR');
+							done();
+						}
+					);
 				});
 			});
 
-			describe('when library.logic.transaction.checkConfirmed succeeds', () => {
+			describe('when modules.accounts.getAccount succeeds', () => {
 				beforeEach(() => {
-					return library.logic.transaction.checkConfirmed.callsArgWith(
-						1,
-						null,
-						true
-					);
+					return modules.accounts.getAccount.callsArgWith(1, null, true);
 				});
 
-				describe('when modules.accounts.getAccount fails', () => {
+				describe('when library.logic.transaction.verify succeeds', () => {
 					beforeEach(() => {
-						return modules.accounts.getAccount.callsArgWith(
-							1,
-							'getAccount-ERR',
+						return library.logic.transaction.verify.callsArgWith(4, null, true);
+					});
+
+					it('should call a callback with no error', done => {
+						__private.checkTransaction(
+							dummyBlock,
+							dummyTransaction,
+							true,
+							err => {
+								expect(err).to.be.null;
+								done();
+							}
+						);
+					});
+				});
+
+				describe('when library.logic.transaction.verify fails', () => {
+					beforeEach(() => {
+						return library.logic.transaction.verify.callsArgWith(
+							4,
+							'verify-ERR',
 							null
 						);
 					});
@@ -279,49 +239,60 @@ describe('blocks/verify', () => {
 							dummyTransaction,
 							true,
 							err => {
-								expect(err).to.equal('getAccount-ERR');
+								expect(err).to.equal('verify-ERR');
 								done();
 							}
 						);
 					});
-				});
 
-				describe('when modules.accounts.getAccount succeeds', () => {
-					beforeEach(() => {
-						return modules.accounts.getAccount.callsArgWith(1, null, true);
-					});
-
-					describe('when library.logic.transaction.verify fails', () => {
+					describe('when failure is related to fork 2', () => {
 						beforeEach(() => {
-							return library.logic.transaction.verify.callsArgWith(
-								3,
-								'verify-ERR',
+							library.logic.transaction.verify.callsArgWith(
+								4,
+								'Transaction is already confirmed',
 								null
 							);
+							modules.delegates.fork.returns();
+							modules.transactions.removeUnconfirmedTransaction.returns();
+							return modules.transactions.undoUnconfirmed.callsArgWith(1, null);
 						});
 
-						it('should call a callback with error', done => {
-							__private.checkTransaction(dummyBlock, dummyTransaction, err => {
-								expect(err).to.equal('verify-ERR');
-								done();
-							});
-						});
-					});
-
-					describe('when library.logic.transaction.verify succeeds', () => {
-						beforeEach(() => {
-							return library.logic.transaction.verify.callsArgWith(
-								3,
-								null,
-								true
+						it('should log the fork 2 entry', done => {
+							__private.checkTransaction(
+								dummyBlock,
+								dummyTransaction,
+								true,
+								err => {
+									expect(err).to.equal('Transaction is already confirmed');
+									expect(modules.delegates.fork).to.be.calledOnce;
+									expect(modules.delegates.fork).to.be.calledWithExactly(
+										dummyBlock,
+										2
+									);
+									done();
+								}
 							);
 						});
 
-						it('should call a callback with no error', done => {
-							__private.checkTransaction(dummyBlock, dummyTransaction, err => {
-								expect(err).to.be.null;
-								done();
-							});
+						it('should undo unconfirmed state for that transaction', done => {
+							__private.checkTransaction(
+								dummyBlock,
+								dummyTransaction,
+								true,
+								err => {
+									expect(err).to.equal('Transaction is already confirmed');
+									expect(modules.transactions.undoUnconfirmed).to.be.calledOnce;
+									expect(
+										modules.transactions.undoUnconfirmed.firstCall.args[0]
+									).to.be.eql(dummyTransaction);
+									expect(modules.transactions.removeUnconfirmedTransaction).to
+										.be.calledOnce;
+									expect(
+										modules.transactions.removeUnconfirmedTransaction
+									).to.be.calledWithExactly(dummyTransaction.id);
+									done();
+								}
+							);
 						});
 					});
 				});
