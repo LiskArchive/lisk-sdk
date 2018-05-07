@@ -858,9 +858,9 @@ Peers.prototype.onPeersReady = function() {
 
 	function calculateConsensus(cb) {
 		self.calculateConsensus();
-		library.logger
-			.debug(['Broadhash consensus:', self.getLastConsensus(), '%'])
-			.join(' ');
+		library.logger.debug(
+			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+		);
 		return setImmediate(cb);
 	}
 	// Loop in 30 sec intervals for less new insertion after removal
