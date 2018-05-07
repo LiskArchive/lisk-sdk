@@ -17,16 +17,16 @@
 var crypto = require('crypto');
 var ed = require('../../../../helpers/ed');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var validSender = {
-	password: 'yjyhgnu32jmwuii442t9',
+	passphrase: 'yjyhgnu32jmwuii442t9',
 	secondPassphrase: 'kub8gm2w330pvptx1or',
 	username: 'mix8',
 	publicKey: '5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
@@ -37,7 +37,7 @@ var validSender = {
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(validSender.password, 'utf8')
+	.update(validSender.passphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -100,7 +100,7 @@ var rawValidTransaction = {
 
 module.exports = {
 	validSender,
-	validPassword,
+	validPassphrase,
 	validKeypair,
 	senderHash,
 	senderKeypair,

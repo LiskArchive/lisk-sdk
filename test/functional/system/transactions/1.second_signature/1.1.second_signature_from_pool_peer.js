@@ -66,7 +66,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 			beforeEach(done => {
 				signatureTransaction = lisk.transaction.registerSecondPassphrase({
-					passphrase: signatureAccount.password,
+					passphrase: signatureAccount.passphrase,
 					secondPassphrase: signatureAccount.secondPassphrase,
 				});
 				signatureTransaction.amount = parseInt(signatureTransaction.amount);
@@ -131,7 +131,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 				beforeEach(done => {
 					signatureTransaction2 = lisk.transaction.registerSecondPassphrase({
-						passphrase: signatureAccount.password,
+						passphrase: signatureAccount.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 					signatureTransaction2.senderId = signatureAccount.address;
@@ -189,13 +189,13 @@ describe('system test (type 1) - second signature transactions from pool and pee
 
 					beforeEach(done => {
 						signatureTransaction2 = lisk.transaction.registerSecondPassphrase({
-							passphrase: signatureAccount.password,
+							passphrase: signatureAccount.passphrase,
 							secondPassphrase: randomUtil.password(),
 						});
 						signatureTransaction2.senderId = signatureAccount.address;
 
 						signatureTransaction3 = lisk.transaction.registerSecondPassphrase({
-							passphrase: signatureAccount.password,
+							passphrase: signatureAccount.passphrase,
 							secondPassphrase: randomUtil.password(),
 						});
 						signatureTransaction3.senderId = signatureAccount.address;

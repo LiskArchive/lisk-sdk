@@ -17,31 +17,31 @@
 var crypto = require('crypto');
 var ed = require('../../../../helpers/ed');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var validSender = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	password:
+	passphrase:
 		'wagon stock borrow episode laundry kitten salute link globe zero feed marble',
 	balance: '10000000000000000',
 };
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(validSender.password, 'utf8')
+	.update(validSender.passphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
 var multiSigAccount1 = {
 	balance: '0',
-	password: 'jcja4vxibnw5dayk3xr',
+	passphrase: 'jcja4vxibnw5dayk3xr',
 	secondPassphrase: '0j64m005jyjj37bpdgqfr',
 	username: 'LP',
 	publicKey: 'bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2',
@@ -51,7 +51,7 @@ var multiSigAccount1 = {
 var multiSigAccount2 = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-	password:
+	passphrase:
 		'actress route auction pudding shiver crater forum liquid blouse imitate seven front',
 	balance: '0',
 	delegateName: 'genesis_100',
@@ -116,7 +116,7 @@ var rawValidTransaction = {
 
 module.exports = {
 	validSender,
-	validPassword,
+	validPassphrase,
 	validKeypair,
 	senderHash,
 	senderKeypair,

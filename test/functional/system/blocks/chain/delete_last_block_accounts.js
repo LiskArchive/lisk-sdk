@@ -78,7 +78,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					testReceipt = randomUtil.account();
 					var transferTransaction = lisk.transaction.transfer({
 						amount: 100000000,
-						passphrase: testAccount.password,
+						passphrase: testAccount.passphrase,
 						recipientId: testReceipt.address,
 					});
 					localCommon.addTransactionsAndForge(
@@ -210,7 +210,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					var signatureTransaction = lisk.transaction.registerSecondPassphrase({
-						passphrase: testAccount.password,
+						passphrase: testAccount.passphrase,
 						secondPassphrase: testAccount.secondPassphrase,
 					});
 					localCommon.addTransactionsAndForge(
@@ -328,7 +328,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					var delegateTransaction = lisk.transaction.registerDelegate({
-						passphrase: testAccount.password,
+						passphrase: testAccount.passphrase,
 						username: testAccount.username,
 					});
 					localCommon.addTransactionsAndForge(
@@ -452,7 +452,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					var voteTransaction = lisk.transaction.castVotes({
-						passphrase: testAccount.password,
+						passphrase: testAccount.passphrase,
 						votes: [accountFixtures.existingDelegate.publicKey],
 					});
 					localCommon.addTransactionsAndForge(library, [voteTransaction], done);
@@ -563,7 +563,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 				it('should forge a block', done => {
 					var multisigTransaction = lisk.transaction.registerMultisignature({
-						passphrase: testAccount.password,
+						passphrase: testAccount.passphrase,
 						keysgroup: [accountFixtures.existingDelegate.publicKey],
 						lifetime: 1,
 						minimum: 1,
@@ -684,7 +684,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should forge a block', done => {
 						var dappTransaction = lisk.transaction.createDapp({
-							passphrase: testAccount.password,
+							passphrase: testAccount.passphrase,
 							options: randomUtil.guestbookDapp,
 						});
 						randomUtil.guestbookDapp.id = dappTransaction.id;
@@ -765,7 +765,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should forge a block', done => {
 						var inTransferTransaction = lisk.transaction.transferIntoDapp({
-							passphrase: testAccount.password,
+							passphrase: testAccount.passphrase,
 							amount: 10 * 100000000,
 							dappId: randomUtil.guestbookDapp.id,
 						});
@@ -846,7 +846,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 
 					it('should forge a block', done => {
 						var outTransferTransaction = lisk.transaction.transferOutOfDapp({
-							passphrase: testAccount.password,
+							passphrase: testAccount.passphrase,
 							amount: 10 * 100000000,
 							dappId: randomUtil.guestbookDapp.id,
 							transactionId: randomUtil.transaction().id,

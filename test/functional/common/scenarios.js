@@ -43,7 +43,7 @@ function Multisig(options) {
 	this.amount = options.amount || 100000000000;
 
 	this.multiSigTransaction = lisk.transaction.registerMultisignature({
-		passphrase: this.account.password,
+		passphrase: this.account.passphrase,
 		keysgroup: this.keysgroup,
 		lifetime: this.lifetime,
 		minimum: this.minimum,
@@ -54,7 +54,7 @@ function Multisig(options) {
 		recipientId: this.account.address,
 	});
 	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
-		passphrase: this.account.password,
+		passphrase: this.account.passphrase,
 		secondPassphrase: this.account.secondPassphrase,
 	});
 }

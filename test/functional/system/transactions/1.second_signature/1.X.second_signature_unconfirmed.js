@@ -32,13 +32,13 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	});
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: account.password,
+		passphrase: account.passphrase,
 		options: dapp,
 	});
 	dapp.id = dappTransaction.id;
 	var transactionWith;
 	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase({
-		passphrase: account.password,
+		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
 
@@ -88,7 +88,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
 						transactionWith = lisk.transaction.registerSecondPassphrase({
-							passphrase: account.password,
+							passphrase: account.passphrase,
 							secondPassphrase: account.secondPassphrase,
 							timeOffset: -10000,
 						});

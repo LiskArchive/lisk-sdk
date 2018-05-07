@@ -23,17 +23,17 @@ var typesRepresentatives = require('../../fixtures/types_representatives');
 var modulesLoader = require('../../common/modules_loader');
 
 var InTransfer = rewire('../../../logic/in_transfer.js');
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var validSender = {
 	balance: '0',
-	password: 'zdv72jrts9y8613e4s4i',
+	passphrase: 'zdv72jrts9y8613e4s4i',
 	secondPassphrase: '33ibzztls7xlrocpzxgvi',
 	username: '9bzuu',
 	publicKey: '967e00fbf215b6227a6521226decfdc14c92cb88d35268787a47ff0e6b92f94a',

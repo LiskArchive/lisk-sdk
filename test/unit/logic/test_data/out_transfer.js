@@ -17,16 +17,16 @@
 var crypto = require('crypto');
 var ed = require('../../../../helpers/ed');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var validSender = {
-	password: '1vi3igdedurk9ctbj4i',
+	passphrase: '1vi3igdedurk9ctbj4i',
 	secondPassphrase: 'lpdrphar6g5fcac3di',
 	username: 'p1obslna292ypj',
 	publicKey: '8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
@@ -89,13 +89,13 @@ var validGetGensisResult = {
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(validSender.password, 'utf8')
+	.update(validSender.passphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
 module.exports = {
 	validSender,
-	validPassword,
+	validPassphrase,
 	validKeypair,
 	senderHash,
 	senderKeypair,

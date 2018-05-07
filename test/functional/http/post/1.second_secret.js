@@ -82,7 +82,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 		it('using second passphrase on a fresh account should fail', () => {
 			transaction = lisk.transaction.transfer({
 				amount: 1,
-				passphrase: accountNoSecondPassphrase.password,
+				passphrase: accountNoSecondPassphrase.passphrase,
 				secondPassphrase: accountNoSecondPassphrase.secondPassphrase,
 				recipientId: accountFixtures.existingDelegate.address,
 			});
@@ -99,7 +99,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with no funds should fail', () => {
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: accountNoFunds.password,
+				passphrase: accountNoFunds.passphrase,
 				secondPassphrase: accountNoFunds.secondPassphrase,
 			});
 
@@ -117,7 +117,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with minimal required amount of funds should be ok', () => {
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: accountMinimalFunds.password,
+				passphrase: accountMinimalFunds.passphrase,
 				secondPassphrase: accountMinimalFunds.secondPassphrase,
 				timeOffset: -10000,
 			});
@@ -130,7 +130,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 
 		it('with valid params should be ok', () => {
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				secondPassphrase: account.secondPassphrase,
 			});
 

@@ -89,7 +89,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('keysgroup', () => {
 			it('using empty array should fail', () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -97,7 +97,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.multisignature.keysgroup = [];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -121,7 +121,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -130,7 +130,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.multisignature.keysgroup.push(null);
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -149,7 +149,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -173,7 +173,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -185,7 +185,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -206,7 +206,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -218,7 +218,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -240,7 +240,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -252,7 +252,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				);
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -273,7 +273,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -282,7 +282,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				transaction.asset.multisignature.keysgroup = ['+', '+'];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -303,7 +303,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -315,7 +315,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -336,7 +336,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -348,7 +348,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				];
 				transaction = elements.redoSignature(
 					transaction,
-					scenarios.regular.account.password
+					scenarios.regular.account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -365,7 +365,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			it(`using more_than_max_members scenario(${constants.multisigConstraints
 				.keysgroup.maxItems + 2},2) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.more_than_max_members.account.password,
+					passphrase: scenarios.more_than_max_members.account.passphrase,
 					keysgroup: scenarios.more_than_max_members.keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -389,7 +389,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('min', () => {
 			it('using bigger than keysgroup size plus 1 should fail', () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: [accountFixtures.existingDelegate.publicKey],
 					lifetime: 1,
 					minimum: 2,
@@ -410,7 +410,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				constants.multisigConstraints.min.maximum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.max_members_max_min.account.password,
+					passphrase: scenarios.max_members_max_min.account.passphrase,
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
 					minimum: constants.multisigConstraints.min.maximum + 1,
@@ -434,7 +434,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				constants.multisigConstraints.min.minimum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.max_members.account.password,
+					passphrase: scenarios.max_members.account.passphrase,
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
 					minimum: constants.multisigConstraints.min.minimum - 1,
@@ -460,7 +460,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				constants.multisigConstraints.lifetime.maximum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: constants.multisigConstraints.lifetime.maximum + 1,
 					minimum: 2,
@@ -485,7 +485,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				constants.multisigConstraints.lifetime.minimum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: constants.multisigConstraints.lifetime.minimum - 1,
 					minimum: 2,
@@ -564,7 +564,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			var scenario = scenarios.regular_with_second_signature;
 			var multiSigSecondPassphraseTransaction = lisk.transaction.registerMultisignature(
 				{
-					passphrase: scenario.account.password,
+					passphrase: scenario.account.passphrase,
 					secondPassphrase: scenario.account.secondPassphrase,
 					keysgroup: scenario.keysgroup,
 					lifetime: 1,
