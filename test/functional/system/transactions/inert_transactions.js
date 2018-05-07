@@ -13,13 +13,12 @@ describe('inert transactions', () => {
 	const transferInertTransaction = lisk.transaction.transfer({
 		recipientId: recipientAccount.address,
 		amount: 1000000000 * 100,
-		passphrase: senderAccount.password,
+		passphrase: senderAccount.passphrase,
 	});
 
 	const voteInertTransaction = lisk.transaction.castVotes({
 		passphrase: recipientAccount.password,
 		votes: [`${accountFixtures.existingDelegate.publicKey}`],
-		timeOffset: -10000,
 	});
 
 	const delegateInertTransaction = lisk.transaction.registerDelegate({
@@ -42,7 +41,7 @@ describe('inert transactions', () => {
 			const transferTransaction = lisk.transaction.transfer({
 				recipientId: recipientAccount.address,
 				amount: 5000000000 * 100,
-				passphrase: senderAccount.password,
+				passphrase: senderAccount.passphrase,
 			});
 			localCommon.addTransactionsAndForge(library, [transferTransaction], done);
 		});
@@ -76,6 +75,7 @@ describe('inert transactions', () => {
 					done
 				);
 			});
+
 			describe('when forging block with inert type 0 transaction', () => {
 				const inertTransaction = transferInertTransaction;
 
