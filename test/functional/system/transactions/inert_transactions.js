@@ -36,7 +36,7 @@ describe('inert transactions', () => {
 		library = lib;
 	});
 
-	describe('send founds to account', () => {
+	describe('send funds to account', () => {
 		before(done => {
 			const transferTransaction = lisk.transaction.transfer({
 				recipientId: recipientAccount.address,
