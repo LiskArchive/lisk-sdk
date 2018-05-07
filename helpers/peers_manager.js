@@ -51,6 +51,12 @@ PeersManager.prototype.add = function(peer) {
 		return false;
 	}
 
+	const existingPeer = this.peers[peer.string];
+
+	if (existingPeer && existingPeer.socket) {
+		existingPeer.socket.destroy();
+		delete existingPeer.socket;
+	}
 	this.peers[peer.string] = peer;
 
 	if (peer.socket && peer.socket.active) {
