@@ -114,17 +114,13 @@ class Peer {
 		// Accept only supported properties
 		_.each(this.properties, key => {
 			// Change value only when is defined
-			if (
-				peer[key] !== null &&
-				peer[key] !== undefined &&
-				!_.includes(this.required, key)
-			) {
+			if (peer[key] && !this.required.includes(key)) {
 				// Update optional httpPort and nonce
 				// for the first time when peer object
 				// has httpPort and nonce as undefined
-				if (!this[key] && _.includes(this.optional, key)) {
-					this[key] = peer[key];
-				} else if (!_.includes(this.optional, key)) {
+				const isOptional = this.optional.includes(key);
+				const isExists = this[key];
+				if (!isOptional || (!isExists && isOptional)) {
 					this[key] = peer[key];
 				}
 			}
