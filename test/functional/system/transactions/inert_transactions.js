@@ -172,7 +172,7 @@ describe('inert transactions', () => {
 					let afterDeleteRecipientMemAccount;
 
 					before('deleting block', done => {
-						localCommon.popLastBlock(library, done);
+						localCommon.deleteLastBlock(library, done);
 					});
 
 					describe('details of the account', () => {
@@ -328,7 +328,7 @@ describe('inert transactions', () => {
 					let afterDeleteRecipientMemAccount;
 
 					before('deleting block', done => {
-						localCommon.popLastBlock(library, done);
+						localCommon.deleteLastBlock(library, done);
 					});
 
 					describe('details of the accounts', () => {
@@ -460,7 +460,7 @@ describe('inert transactions', () => {
 
 				describe('after deleting block', () => {
 					before('deleting block', done => {
-						localCommon.popLastBlock(library, done);
+						localCommon.deleteLastBlock(library, done);
 					});
 
 					describe('details of the accounts', () => {
