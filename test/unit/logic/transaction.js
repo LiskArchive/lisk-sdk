@@ -477,7 +477,7 @@ describe('transaction', () => {
 		}
 
 		it('should return error when sender is missing', done => {
-			transactionLogic.verify(validTransaction, null, {}, err => {
+			transactionLogic.verify(validTransaction, null, null, null, err => {
 				expect(err).to.equal('Missing sender');
 				done();
 			});
@@ -487,7 +487,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.type = -1;
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Unknown transaction type');
 				done();
 			});
@@ -499,7 +499,7 @@ describe('transaction', () => {
 			vs.secondSignature =
 				'839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
 
-			transactionLogic.verify(transaction, vs, {}, err => {
+			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.include('Missing sender second signature');
 				done();
 			});
@@ -511,7 +511,7 @@ describe('transaction', () => {
 				transactionLogic.sign(validKeypair, transaction),
 			];
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Sender does not have a second signature');
 				done();
 			});
@@ -526,10 +526,16 @@ describe('transaction', () => {
 			transaction.requesterPublicKey =
 				'839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
 
-			transactionLogic.verify(transaction, sender, dummyRequester, err => {
-				expect(err).to.include('Multisig request is not allowed');
-				done();
-			});
+			transactionLogic.verify(
+				transaction,
+				sender,
+				dummyRequester,
+				null,
+				err => {
+					expect(err).to.include('Multisig request is not allowed');
+					done();
+				}
+			);
 		});
 
 		it('should return error when transaction sender publicKey and sender public key are different', done => {
@@ -538,7 +544,7 @@ describe('transaction', () => {
 				'01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746';
 			transaction.senderPublicKey = invalidPublicKey;
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include(
 					[
 						'Invalid sender public key:',
@@ -560,7 +566,7 @@ describe('transaction', () => {
 			vs.publicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 
-			transactionLogic.verify(transaction, vs, {}, err => {
+			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.include(
 					'Invalid sender. Can not send from genesis account'
 				);
@@ -572,7 +578,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.senderId = '2581762640681118072L';
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Invalid sender address');
 				done();
 			});
@@ -587,7 +593,7 @@ describe('transaction', () => {
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);
 
-			transactionLogic.verify(transaction, vs, {}, err => {
+			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.equal('Multisig request is not allowed');
 				done();
 			});
@@ -598,7 +604,7 @@ describe('transaction', () => {
 			// valid keypair is a different account
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.equal('Failed to verify signature');
 				done();
 			});
@@ -613,7 +619,7 @@ describe('transaction', () => {
 				return transactionLogic.sign(validKeypair, transaction);
 			});
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
-			transactionLogic.verify(transaction, vs, {}, err => {
+			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
 				done();
 			});
@@ -629,7 +635,7 @@ describe('transaction', () => {
 				transactionLogic.multisign(validKeypair, transaction),
 			];
 
-			transactionLogic.verify(transaction, vs, {}, err => {
+			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.not.exist;
 				done();
 			});
@@ -647,7 +653,7 @@ describe('transaction', () => {
 			createAndProcess(transactionDataClone, vs, (err, transaction) => {
 				transaction.signSignature =
 					'7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
-				transactionLogic.verify(transaction, vs, {}, err => {
+				transactionLogic.verify(transaction, vs, null, null, err => {
 					expect(err).to.equal('Failed to verify second signature');
 					done();
 				});
@@ -664,7 +670,7 @@ describe('transaction', () => {
 			transactionDataClone.secondSecret = validPassword;
 
 			createAndProcess(transactionDataClone, vs, (err, transaction) => {
-				transactionLogic.verify(transaction, vs, {}, err => {
+				transactionLogic.verify(transaction, vs, null, null, err => {
 					expect(err).to.not.exist;
 					done();
 				});
@@ -675,7 +681,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.fee = -100;
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Invalid transaction fee');
 				done();
 			});
@@ -688,14 +694,14 @@ describe('transaction', () => {
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.not.exist;
 				done();
 			});
 		});
 
 		it('should verify transaction with correct fee (without data field)', done => {
-			transactionLogic.verify(validTransaction, sender, {}, err => {
+			transactionLogic.verify(validTransaction, sender, null, null, err => {
 				expect(err).to.not.exist;
 				done();
 			});
@@ -706,7 +712,7 @@ describe('transaction', () => {
 			transactionDataClone.amount = constants.totalAmount + 10;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
-				transactionLogic.verify(transaction, sender, {}, err => {
+				transactionLogic.verify(transaction, sender, null, null, err => {
 					expect(err).to.include('Invalid transaction amount');
 					done();
 				});
@@ -718,7 +724,7 @@ describe('transaction', () => {
 			transactionDataClone.amount = constants.totalAmount;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
-				transactionLogic.verify(transaction, sender, {}, err => {
+				transactionLogic.verify(transaction, sender, null, null, err => {
 					expect(err).to.include('Account does not have enough LSK:');
 					done();
 				});
@@ -732,14 +738,14 @@ describe('transaction', () => {
 
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 
-			transactionLogic.verify(transaction, sender, {}, err => {
+			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Invalid transaction timestamp');
 				done();
 			});
 		});
 
 		it('should verify proper transaction with proper sender', done => {
-			transactionLogic.verify(validTransaction, sender, {}, err => {
+			transactionLogic.verify(validTransaction, sender, null, null, err => {
 				expect(err).to.not.be.ok;
 				done();
 			});

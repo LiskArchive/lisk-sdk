@@ -401,7 +401,6 @@ __private.loadBlockChain = function() {
 							modules.blocks.process.loadBlocksOffset(
 								limit,
 								offset,
-								true,
 								(err, lastBlock) => {
 									if (err) {
 										return setImmediate(cb, err);
@@ -606,7 +605,6 @@ __private.createSnapshot = height => {
 						modules.blocks.process.loadBlocksOffset(
 							constants.activeDelegates,
 							currentHeight,
-							true,
 							loadBlocksOffsetErr => {
 								currentHeight += constants.activeDelegates;
 								return setImmediate(untilCb, loadBlocksOffsetErr);
@@ -619,10 +617,8 @@ __private.createSnapshot = height => {
 			truncateBlocks(seriesCb) {
 				library.db.blocks
 					.deleteBlocksAfterHeight(targetHeight)
-					.then(() => {
-						seriesCb();
-					})
-					.catch(seriesCb);
+					.then(() => setImmediate(seriesCb))
+					.catch(err => setImmediate(seriesCb, err));
 			},
 		},
 		__private.snapshotFinished

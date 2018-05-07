@@ -258,6 +258,7 @@ d.run(() => {
 					var app = express();
 
 					if (appConfig.coverage) {
+						// eslint-disable-next-line import/no-extraneous-dependencies
 						var im = require('istanbul-middleware');
 						logger.debug(
 							'Hook loader for coverage - Do not use in production environment!'

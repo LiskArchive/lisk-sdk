@@ -76,21 +76,49 @@ module.exports = function(params) {
 
 	describe('Peers', () => {
 		describe('mutual connections', () => {
+			var mutualPeers = [];
+			before(() => {
+				return getAllPeers().then(peers => {
+					mutualPeers = peers;
+				});
+			});
+
 			it('should return a list of peers mutually interconnected', () => {
-				return getAllPeers().then(mutualPeers => {
-					mutualPeers.forEach(mutualPeer => {
-						expect(mutualPeer).to.have.property('success').to.be.true;
-						expect(mutualPeer)
-							.to.have.property('peers')
-							.to.be.an('array');
-						var peerPorts = mutualPeer.peers.map(peer => {
-							return peer.wsPort;
-						});
-						var allPorts = params.configurations.map(configuration => {
-							return configuration.wsPort;
-						});
-						expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and
-							.not.to.be.empty;
+				return mutualPeers.forEach(mutualPeer => {
+					expect(mutualPeer).to.have.property('success').to.be.true;
+					expect(mutualPeer)
+						.to.have.property('peers')
+						.to.be.an('array');
+					var peerPorts = mutualPeer.peers.map(peer => {
+						return peer.wsPort;
+					});
+					var allPorts = params.configurations.map(configuration => {
+						return configuration.wsPort;
+					});
+					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not
+						.to.be.empty;
+				});
+			});
+
+			it('should have all the required peer properties', () => {
+				const peerProps = [
+					'ip',
+					'wsPort',
+					'state',
+					'os',
+					'version',
+					'broadhash',
+					'httpPort',
+					'height',
+					'nonce',
+				];
+				return mutualPeers.forEach(mutualPeer => {
+					mutualPeer.peers.every(peer => {
+						// delete the not required properties from ws peer list call
+						// to keep consistency with api/controllers/peers.js/getPeers
+						delete peer.updated;
+						delete peer.clock;
+						expect(peer).to.have.all.keys(peerProps);
 					});
 				});
 			});
