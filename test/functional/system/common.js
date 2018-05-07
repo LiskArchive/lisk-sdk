@@ -135,7 +135,7 @@ function forge(library, cb) {
 	);
 }
 
-function popLastBlock(library, cb) {
+function deleteLastBlock(library, cb) {
 	library.modules.blocks.chain.deleteLastBlock(cb);
 }
 
@@ -334,7 +334,7 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 module.exports = {
 	getNextForger,
 	forge,
-	popLastBlock,
+	deleteLastBlock,
 	fillPool,
 	addTransaction,
 	addTransactionToUnconfirmedQueue,
