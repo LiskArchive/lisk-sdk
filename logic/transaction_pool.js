@@ -879,6 +879,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 					transaction,
 					sender,
 					null,
+					true,
 					err => {
 						if (err) {
 							return setImmediate(waterCb, err);

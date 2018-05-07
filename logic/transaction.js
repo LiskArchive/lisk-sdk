@@ -404,13 +404,18 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {account} sender
 	 * @param {account} requester
+	 * @param  {boolean} checkExists - Check if transaction already exists in database
 	 * @param {function} cb
 	 * @returns {SetImmediate} error, transaction
 	 * @todo Add description for the params
 	 */
-	verify(transaction, sender, requester, cb, tx) {
+	verify(transaction, sender, requester, checkExists, cb, tx) {
 		let valid = false;
 		let err = null;
+
+		if (requester === null || requester === undefined) {
+			requester = {};
+		}
 
 		// Check sender
 		if (!sender) {
@@ -664,25 +669,37 @@ class Transaction {
 			);
 		}
 
-		// Check for already confirmed transaction
-		this.checkConfirmed(transaction, checkConfirmedErr => {
-			if (checkConfirmedErr) {
-				return setImmediate(cb, checkConfirmedErr);
-			}
-			// Call verify on transaction type
+		const verifyTransactionTypes = (
+			transaction,
+			sender,
+			tx,
+			verifyTransactionTypesCb
+		) => {
 			__private.types[transaction.type].verify.call(
 				this,
 				transaction,
 				sender,
 				err => {
 					if (err) {
-						return setImmediate(cb, err);
+						return setImmediate(verifyTransactionTypesCb, err);
 					}
-					return setImmediate(cb);
+					return setImmediate(verifyTransactionTypesCb);
 				},
 				tx
 			);
-		});
+		};
+
+		if (checkExists) {
+			this.checkConfirmed(transaction, checkConfirmedErr => {
+				if (checkConfirmedErr) {
+					return setImmediate(cb, checkConfirmedErr);
+				}
+
+				verifyTransactionTypes(transaction, sender, tx, cb);
+			});
+		} else {
+			verifyTransactionTypes(transaction, sender, tx, cb);
+		}
 	}
 
 	/**

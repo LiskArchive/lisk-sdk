@@ -63,10 +63,10 @@ describe('loader', () => {
 				}
 			);
 		});
+	});
 
-		after(() => {
-			return loadBlockChainStub.restore();
-		});
+	after(() => {
+		return loadBlockChainStub.restore();
 	});
 
 	describe('findGoodPeers', () => {
@@ -158,7 +158,7 @@ describe('loader', () => {
 
 		beforeEach(done => {
 			resetMemTablesStub = sinonSandbox.stub().callsArgWith(0, null, true);
-			loadBlocksOffsetStub = sinonSandbox.stub().callsArgWith(3, null, true);
+			loadBlocksOffsetStub = sinonSandbox.stub().callsArgWith(2, null, true);
 			deleteBlocksAfterHeightStub = sinonSandbox.stub().resolves();
 
 			loggerStub = {
@@ -240,7 +240,7 @@ describe('loader', () => {
 		});
 
 		it('should emit an event with proper error when loadBlocksOffset fails', done => {
-			loadBlocksOffsetStub.callsArgWith(3, 'loadBlocksOffsetStub#ERR', true);
+			loadBlocksOffsetStub.callsArgWith(2, 'loadBlocksOffsetStub#ERR', true);
 			__private.snapshotFinished = err => {
 				expect(err).to.eql('loadBlocksOffsetStub#ERR');
 				done();
@@ -272,13 +272,14 @@ describe('loader', () => {
 				library.config.loading.snapshotRound = 1;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub.calledOnce).to.be.true;
-					expect(
-						loadBlocksOffsetStub.calledWith(constants.activeDelegates, 1, true)
-					).to.be.true;
-					expect(
-						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
-					).to.be.true;
+					expect(resetMemTablesStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledWith(
+						constants.activeDelegates,
+						1
+					);
+					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
+						deleteBlocksAfterHeight
+					);
 					done();
 				};
 
@@ -293,14 +294,15 @@ describe('loader', () => {
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub.calledOnce).to.be.true;
-					expect(loadBlocksOffsetStub.calledOnce).to.be.true;
-					expect(
-						loadBlocksOffsetStub.calledWith(constants.activeDelegates, 1, true)
-					).to.be.true;
-					expect(
-						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
-					).to.be.true;
+					expect(resetMemTablesStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledWith(
+						constants.activeDelegates,
+						1
+					);
+					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
+						deleteBlocksAfterHeight
+					);
 					done();
 				};
 
@@ -315,25 +317,19 @@ describe('loader', () => {
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub.calledOnce).to.be.true;
-					expect(loadBlocksOffsetStub.calledTwice).to.be.true;
-					expect(
-						loadBlocksOffsetStub.firstCall.calledWith(
-							constants.activeDelegates,
-							1,
-							true
-						)
-					).to.be.true;
-					expect(
-						loadBlocksOffsetStub.secondCall.calledWith(
-							constants.activeDelegates,
-							1 + constants.activeDelegates,
-							true
-						)
-					).to.be.true;
-					expect(
-						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
-					).to.be.true;
+					expect(resetMemTablesStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledTwice;
+					expect(loadBlocksOffsetStub.firstCall).to.be.calledWith(
+						constants.activeDelegates,
+						1
+					);
+					expect(loadBlocksOffsetStub.secondCall).to.be.calledWith(
+						constants.activeDelegates,
+						1 + constants.activeDelegates
+					);
+					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
+						deleteBlocksAfterHeight
+					);
 					done();
 				};
 
@@ -348,25 +344,19 @@ describe('loader', () => {
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub.calledOnce).to.be.true;
-					expect(loadBlocksOffsetStub.calledTwice).to.be.true;
-					expect(
-						loadBlocksOffsetStub.firstCall.calledWith(
-							constants.activeDelegates,
-							1,
-							true
-						)
-					).to.be.true;
-					expect(
-						loadBlocksOffsetStub.secondCall.calledWith(
-							constants.activeDelegates,
-							1 + constants.activeDelegates,
-							true
-						)
-					).to.be.true;
-					expect(
-						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
-					).to.be.true;
+					expect(resetMemTablesStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledTwice;
+					expect(loadBlocksOffsetStub.firstCall).to.be.calledWith(
+						constants.activeDelegates,
+						1
+					);
+					expect(loadBlocksOffsetStub.secondCall).to.be.calledWith(
+						constants.activeDelegates,
+						1 + constants.activeDelegates
+					);
+					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
+						deleteBlocksAfterHeight
+					);
 					done();
 				};
 
@@ -381,14 +371,15 @@ describe('loader', () => {
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
-					expect(resetMemTablesStub.calledOnce).to.be.true;
-					expect(loadBlocksOffsetStub.calledOnce).to.be.true;
-					expect(
-						loadBlocksOffsetStub.calledWith(constants.activeDelegates, 1, true)
-					).to.be.true;
-					expect(
-						deleteBlocksAfterHeightStub.calledWith(deleteBlocksAfterHeight)
-					).to.be.true;
+					expect(resetMemTablesStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledOnce;
+					expect(loadBlocksOffsetStub).to.be.calledWith(
+						constants.activeDelegates,
+						1
+					);
+					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
+						deleteBlocksAfterHeight
+					);
 					done();
 				};
 

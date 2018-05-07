@@ -439,6 +439,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 						multisigTransaction2,
 						multisigSender,
 						null,
+						true,
 						done
 					);
 				});
