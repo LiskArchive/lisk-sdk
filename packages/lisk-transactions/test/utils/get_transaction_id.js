@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptography from 'lisk-cryptography';
 import { getTransactionId } from '../../src/utils';
 // Require is used for stubbing
-const { hash } = require('lisk-cryptography');
 const utils = require('../../src/utils');
 
 describe('#getTransactionId', () => {
@@ -32,7 +32,7 @@ describe('#getTransactionId', () => {
 		'618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a';
 
 	beforeEach(() => {
-		sandbox.stub(hash, 'default').returns(defaultTransactionHash);
+		sandbox.stub(cryptography, 'hash').returns(defaultTransactionHash);
 		return sandbox.stub(utils, 'getTransactionBytes');
 	});
 

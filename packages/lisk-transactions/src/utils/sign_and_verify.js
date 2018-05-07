@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography/src';
+import cryptography from 'lisk-cryptography';
 import getTransactionHash from './get_transaction_hash';
 
 export const signTransaction = (transaction, passphrase) => {
