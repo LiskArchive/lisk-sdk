@@ -113,7 +113,7 @@
 	},
 	"forging": {
 		"force": false,
-		"secret": [],
+		"delegates": [],
 		"access": {
 			"whiteList": ["127.0.0.1"]
 		}

@@ -277,7 +277,7 @@ module.exports = {
 					defaultPassword: {
 						type: 'string',
 					},
-					secret: {
+					delegates: {
 						type: 'array',
 						items: {
 							properties: {
@@ -302,7 +302,7 @@ module.exports = {
 						required: ['whiteList'],
 					},
 				},
-				required: ['force', 'secret', 'access'],
+				required: ['force', 'delegates', 'access'],
 			},
 			loading: {
 				type: 'object',
