@@ -39,7 +39,7 @@ module.exports = function(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 2500000000,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 						});
 						accounts.push(tmpAccount);
@@ -66,7 +66,7 @@ module.exports = function(params) {
 					_.range(maximum).map(num => {
 						dappName = randomUtil.applicationName();
 						var transaction = lisk.transaction.createDapp({
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 							options: {
 								name: dappName,
 								category: 1,

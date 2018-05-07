@@ -31,12 +31,12 @@ describe('system test (type 1) - checking validated second signature registratio
 		recipientId: account.address,
 	});
 	var transaction = lisk.transaction.registerSecondPassphrase({
-		passphrase: account.password,
-		secondPassphrase: account.secondPassword,
+		passphrase: account.passphrase,
+		secondPassphrase: account.secondPassphrase,
 	});
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: account.password,
+		passphrase: account.passphrase,
 		options: dapp,
 	});
 	dapp.id = dappTransaction.id;
@@ -84,8 +84,8 @@ describe('system test (type 1) - checking validated second signature registratio
 
 		it('adding to pool second signature registration for same account should fail', done => {
 			const transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: account.password,
-				secondPassphrase: account.secondPassword,
+				passphrase: account.passphrase,
+				secondPassphrase: account.secondPassphrase,
 			});
 			localCommon.addTransaction(library, transaction, err => {
 				expect(err).to.equal('Missing sender second signature');

@@ -26,11 +26,11 @@ var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 

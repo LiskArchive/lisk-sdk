@@ -268,47 +268,47 @@ function beforeBlock(type, cb) {
 	});
 }
 
-function loadTransactionType(key, account, dapp, secondPassword, cb) {
+function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	var transaction;
 	var accountCopy = _.cloneDeep(account);
-	if (secondPassword == true) {
-		accountCopy.secondPassword = null;
-	} else if (secondPassword == false) {
-		accountCopy.secondPassword = 'invalid_second_passphrase';
+	if (secondPassphrase == true) {
+		accountCopy.secondPassphrase = null;
+	} else if (secondPassphrase == false) {
+		accountCopy.secondPassphrase = 'invalid_second_passphrase';
 	}
 	switch (key) {
 		case 'SEND':
 			transaction = lisk.transaction.transfer({
 				amount: 1,
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
+				passphrase: accountCopy.passphrase,
+				secondPassphrase: accountCopy.secondPassphrase,
 				recipientId: randomUtil.account().address,
 			});
 			break;
 		case 'SIGNATURE':
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: account.password,
-				secondPassphrase: account.secondPassword,
+				passphrase: account.passphrase,
+				secondPassphrase: account.secondPassphrase,
 			});
 			break;
 		case 'DELEGATE':
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
+				passphrase: accountCopy.passphrase,
+				secondPassphrase: accountCopy.secondPassphrase,
 				username: accountCopy.username,
 			});
 			break;
 		case 'VOTE':
 			transaction = lisk.transaction.castVotes({
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
+				passphrase: accountCopy.passphrase,
+				secondPassphrase: accountCopy.secondPassphrase,
 				votes: [accountFixtures.existingDelegate.publicKey],
 			});
 			break;
 		case 'MULTI':
 			transaction = lisk.transaction.registerMultisignature({
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
+				passphrase: accountCopy.passphrase,
+				secondPassphrase: accountCopy.secondPassphrase,
 				keysgroup: [accountFixtures.existingDelegate.publicKey],
 				lifetime: 1,
 				minimum: 1,
@@ -316,8 +316,8 @@ function loadTransactionType(key, account, dapp, secondPassword, cb) {
 			break;
 		case 'DAPP':
 			transaction = lisk.transaction.createDapp({
-				passphrase: accountCopy.password,
-				secondPassphrase: accountCopy.secondPassword,
+				passphrase: accountCopy.passphrase,
+				secondPassphrase: accountCopy.secondPassphrase,
 				options: randomUtil.guestbookDapp,
 			});
 			break;

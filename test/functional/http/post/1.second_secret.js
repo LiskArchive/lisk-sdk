@@ -26,7 +26,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
-describe('POST /api/transactions (type 1) register second secret', () => {
+describe('POST /api/transactions (type 1) register second passphrase', () => {
 	var transaction;
 	var transactionsToWaitFor = [];
 	var badTransactions = [];
@@ -35,7 +35,7 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 	var account = randomUtil.account();
 	var accountNoFunds = randomUtil.account();
 	var accountMinimalFunds = randomUtil.account();
-	var accountNoSecondPassword = randomUtil.account();
+	var accountNoSecondPassphrase = randomUtil.account();
 
 	// Crediting accounts
 	before(() => {
@@ -52,7 +52,7 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		var transaction3 = lisk.transaction.transfer({
 			amount: constants.fees.secondSignature,
 			passphrase: accountFixtures.genesis.passphrase,
-			recipientId: accountNoSecondPassword.address,
+			recipientId: accountNoSecondPassphrase.address,
 		});
 
 		var promises = [];
@@ -82,8 +82,8 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 		it('using second passphrase on a fresh account should fail', () => {
 			transaction = lisk.transaction.transfer({
 				amount: 1,
-				passphrase: accountNoSecondPassword.password,
-				secondPassphrase: accountNoSecondPassword.secondPassword,
+				passphrase: accountNoSecondPassphrase.passphrase,
+				secondPassphrase: accountNoSecondPassphrase.secondPassphrase,
 				recipientId: accountFixtures.existingDelegate.address,
 			});
 
@@ -99,8 +99,8 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 		it('with no funds should fail', () => {
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: accountNoFunds.password,
-				secondPassphrase: accountNoFunds.secondPassword,
+				passphrase: accountNoFunds.passphrase,
+				secondPassphrase: accountNoFunds.secondPassphrase,
 			});
 
 			return apiHelpers
@@ -117,8 +117,8 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 		it('with minimal required amount of funds should be ok', () => {
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: accountMinimalFunds.password,
-				secondPassphrase: accountMinimalFunds.secondPassword,
+				passphrase: accountMinimalFunds.passphrase,
+				secondPassphrase: accountMinimalFunds.secondPassphrase,
 				timeOffset: -10000,
 			});
 
@@ -130,8 +130,8 @@ describe('POST /api/transactions (type 1) register second secret', () => {
 
 		it('with valid params should be ok', () => {
 			transaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: account.password,
-				secondPassphrase: account.secondPassword,
+				passphrase: account.passphrase,
+				secondPassphrase: account.secondPassphrase,
 			});
 
 			return apiHelpers.sendTransactionPromise(transaction).then(res => {

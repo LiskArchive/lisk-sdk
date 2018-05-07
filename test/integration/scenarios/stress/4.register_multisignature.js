@@ -43,7 +43,7 @@ module.exports = function(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 2500000000,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 						});
 						accounts.push(tmpAccount);
@@ -79,7 +79,7 @@ module.exports = function(params) {
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 						});
 						transactions.push(transaction);
 						agreements = [

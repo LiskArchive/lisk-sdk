@@ -69,7 +69,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			})
 			.then(() => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.guestbookDapp,
 				});
 
@@ -93,7 +93,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		describe('category', () => {
 			it('without should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				delete transaction.asset.dapp.category;
@@ -111,7 +111,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with string should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.category = '0';
@@ -129,7 +129,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer less than minimum should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.category = -1;
@@ -145,7 +145,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer greater than maximum should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.category = 9;
@@ -163,7 +163,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with correct integer should be ok', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 
@@ -180,7 +180,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				delete application.description;
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -192,7 +192,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.description = 0;
@@ -213,7 +213,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.description = '';
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -229,7 +229,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					length: 161,
 				});
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -251,7 +251,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				delete application.icon;
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -263,7 +263,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.icon = 0;
@@ -284,7 +284,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.icon = 'invalidUrl';
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -302,7 +302,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.icon += '.invalid';
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -324,7 +324,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.link = '';
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -339,7 +339,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.link = 0;
@@ -360,7 +360,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.link += '.invalid';
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -377,7 +377,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		describe('name', () => {
 			it('without should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				delete transaction.asset.dapp.name;
@@ -393,7 +393,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.name = 0;
@@ -411,7 +411,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with empty string should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.name = '';
@@ -433,7 +433,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					length: 33,
 				});
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -455,7 +455,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				delete application.tags;
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -467,7 +467,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.tags = 0;
@@ -488,7 +488,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.tags = '';
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -504,7 +504,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 					length: 161,
 				});
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -524,7 +524,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.tags += `,${randomUtil.applicationName()}`;
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -540,7 +540,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				application.tags += `,${tag}`;
 
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -559,7 +559,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		describe('type', () => {
 			it('without should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				delete transaction.asset.dapp.type;
@@ -575,7 +575,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with negative integer should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.type = -1;
@@ -591,7 +591,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 			it('with integer smaller than minimum should fail', () => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.application(),
 				});
 				transaction.asset.dapp.type = -1;
@@ -609,7 +609,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 				var application = randomUtil.application();
 				application.type = 2;
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: application,
 				});
 
@@ -629,7 +629,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			var dapp = randomUtil.application();
 			dapp.name = randomUtil.guestbookDapp.name;
 			transaction = lisk.transaction.createDapp({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				options: dapp,
 			});
 
@@ -648,7 +648,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			var dapp = randomUtil.application();
 			dapp.link = randomUtil.guestbookDapp.link;
 			transaction = lisk.transaction.createDapp({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				options: dapp,
 			});
 
@@ -665,7 +665,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		it('with no funds should fail', () => {
 			transaction = lisk.transaction.createDapp({
-				passphrase: accountNoFunds.password,
+				passphrase: accountNoFunds.passphrase,
 				options: randomUtil.application(),
 			});
 
@@ -684,7 +684,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		it('with minimal funds should be ok', () => {
 			transaction = lisk.transaction.createDapp({
-				passphrase: accountMinimalFunds.password,
+				passphrase: accountMinimalFunds.passphrase,
 				options: randomUtil.application(),
 			});
 
@@ -696,7 +696,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		it('with valid params should be ok', () => {
 			transaction = lisk.transaction.createDapp({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				options: randomUtil.application(),
 			});
 

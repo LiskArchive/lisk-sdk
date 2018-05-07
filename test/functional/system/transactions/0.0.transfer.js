@@ -50,7 +50,7 @@ describe('system test (type 0) - double transfers', () => {
 			it('adding to pool transfer should be ok', done => {
 				transaction1 = lisk.transaction.transfer({
 					amount: 1000 * constants.normalizer,
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 					timeOffset: -10000,
 				});
@@ -63,7 +63,7 @@ describe('system test (type 0) - double transfers', () => {
 			it('adding to pool same transfer with different timestamp should be ok', done => {
 				transaction2 = lisk.transaction.transfer({
 					amount: 1000 * constants.normalizer,
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});
 				localCommon.addTransaction(library, transaction2, (err, res) => {

@@ -49,7 +49,7 @@ describe('GET /api/transactions', () => {
 	});
 	var transaction3 = lisk.transaction.transfer({
 		amount: 20 * constants.normalizer, // 20 LSK
-		passphrase: account.password,
+		passphrase: account.passphrase,
 		recipientId: account2.address,
 	});
 	// Crediting accounts
