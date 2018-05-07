@@ -1,0 +1,4 @@
+--require ./test/setup.js
+--require babel-register
+--timeout 10000
+--recursive

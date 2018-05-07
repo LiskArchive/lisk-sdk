@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'lisk-api-client/src/api_resource';
-import SignaturesResource from 'lisk-api-client/src/resources/signatures';
+import APIResource from '../../src/api_resource';
+import SignaturesResource from '../../src/resources/signatures';
 
 describe('SignaturesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

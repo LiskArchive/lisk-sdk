@@ -12,12 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClient from '../src';
+import sinon from 'sinon';
+import chai from 'chai';
+import 'chai/register-expect';
+import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
-describe('api client', () => {
-	describe('exports', () => {
-		it('should have APIClient as a function', () => {
-			return expect(APIClient).to.be.a('function');
-		});
-	});
+process.env.NODE_ENV = 'test';
+
+[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
+//
+global.sinon = sinon;
+global.sandbox = sinon.createSandbox({
+	useFakeTimers: true,
 });

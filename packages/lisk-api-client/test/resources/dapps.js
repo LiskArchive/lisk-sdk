@@ -13,8 +13,8 @@
  *
  */
 
-import APIResource from 'lisk-api-client/src/api_resource';
-import DappsResource from 'lisk-api-client/src/resources/dapps';
+import APIResource from '../../src/api_resource';
+import DappsResource from '../../src/resources/dapps';
 
 describe('DappsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
