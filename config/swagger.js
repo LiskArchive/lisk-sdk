@@ -17,8 +17,11 @@
 var path = require('path');
 var fs = require('fs');
 var _ = require('lodash');
+var bodyParser = require('body-parser');
+var methodOverride = require('method-override');
 var SwaggerRunner = require('swagger-node-runner');
 var swaggerHelper = require('../helpers/swagger');
+var middleware = require('../helpers/http_api').middleware;
 
 // Its necessary to require this file to extend swagger validator with our custom formats
 require('../helpers/swagger').getValidator();
@@ -43,6 +46,65 @@ require('../helpers/swagger').getValidator();
 function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
 	require('../helpers/swagger_module_registry').bind(scope);
+
+	// Register the express middleware(s)
+
+	// Restrict access based on rules
+	app.use(middleware.applyAPIAccessRules.bind(null, config));
+
+	// Bind each request/response pair to its own domain
+	app.use(require('express-domain-middleware'));
+
+	// Maximum 2mb body size for POST type requests
+	app.use(bodyParser.raw({ limit: '2mb' }));
+
+	// Maximum 2mb body size for json type requests
+	app.use(bodyParser.json({ limit: '2mb' }));
+
+	// Maximum 2mb body size for URL encoded requests
+	app.use(
+		bodyParser.urlencoded({
+			extended: true,
+			limit: '2mb',
+			parameterLimit: 5000,
+		})
+	);
+
+	// Allow method override for any request
+	app.use(methodOverride());
+
+	// Custom query param parsing
+	app.use(middleware.queryParser());
+
+	// Log request message
+	app.use(middleware.logClientConnections.bind(null, logger));
+
+	/**
+	 * Instruct browser to deny display of <frame>, <iframe> regardless of origin.
+	 *
+	 * RFC -> https://tools.ietf.org/html/rfc7034
+	 */
+	app.use(
+		middleware.attachResponseHeader.bind(null, 'X-Frame-Options', 'DENY')
+	);
+
+	/**
+	 * Set Content-Security-Policy headers.
+	 *
+	 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
+	 *
+	 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
+	 */
+	app.use(
+		middleware.attachResponseHeader.bind(
+			null,
+			'Content-Security-Policy',
+			"frame-ancestors 'none'"
+		)
+	);
+
+	// Log if there is any error
+	app.use(middleware.errorLogger.bind(null, logger));
 
 	// Load Swagger controllers and bind the scope
 	var controllerFolder = '/api/controllers/';

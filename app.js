@@ -20,12 +20,13 @@ var d = require('domain').create();
 var extend = require('extend');
 var SocketCluster = require('socketcluster');
 var async = require('async');
+var randomstring = require('randomstring');
 var genesisblock = require('./genesis_block.json');
 var Logger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
+var wsTransport = require('./api/ws/transport');
 var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
-var httpApi = require('./helpers/http_api.js');
 var Sequence = require('./helpers/sequence.js');
 var swagger = require('./config/swagger');
 // eslint-disable-next-line import/order
@@ -138,9 +139,6 @@ var config = {
 		transport: './modules/transport.js',
 		voters: './modules/voters',
 	},
-	api: {
-		transport: { ws: './api/ws/transport.js' },
-	},
 };
 
 /**
@@ -207,6 +205,8 @@ d.run(() => {
 						genesisblock.payloadHash,
 						'hex'
 					).toString('hex');
+
+					appConfig.nonce = randomstring.generate(16);
 				} catch (e) {
 					logger.error('Failed to assign nethash from genesis block');
 					throw Error(e);
@@ -349,121 +349,7 @@ d.run(() => {
 				},
 			],
 
-			connect: [
-				'config',
-				'genesisblock',
-				'logger',
-				'build',
-				'network',
-				/**
-				 * Description of the function.
-				 *
-				 * @func connect[5]
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
-				 */
-				function(scope, cb) {
-					var bodyParser = require('body-parser');
-					var methodOverride = require('method-override');
-					var queryParser = require('express-query-int');
-					var randomstring = require('randomstring');
-
-					scope.config.nonce = randomstring.generate(16);
-					scope.network.app.use(require('express-domain-middleware'));
-					scope.network.app.use(bodyParser.raw({ limit: '2mb' }));
-					scope.network.app.use(
-						bodyParser.urlencoded({
-							extended: true,
-							limit: '2mb',
-							parameterLimit: 5000,
-						})
-					);
-					scope.network.app.use(bodyParser.json({ limit: '2mb' }));
-					scope.network.app.use(methodOverride());
-
-					var ignore = [
-						'id',
-						'name',
-						'username',
-						'blockId',
-						'transactionId',
-						'address',
-						'recipientId',
-						'senderId',
-						'search',
-					];
-
-					scope.network.app.use(
-						queryParser({
-							parser(value, radix, name) {
-								if (ignore.indexOf(name) >= 0) {
-									return value;
-								}
-
-								// Ignore conditional fields for transactions list
-								if (/^.+?:(blockId|recipientId|senderId)$/.test(name)) {
-									return value;
-								}
-
-								if (
-									isNaN(value) ||
-									parseInt(value) != value ||
-									isNaN(parseInt(value, radix))
-								) {
-									return value;
-								}
-
-								return parseInt(value);
-							},
-						})
-					);
-
-					scope.network.app.use(
-						require('./helpers/z_schema_express.js')(scope.schema)
-					);
-
-					scope.network.app.use(
-						httpApi.middleware.logClientConnections.bind(null, scope.logger)
-					);
-
-					/**
-					 * Instruct browser to deny display of <frame>, <iframe> regardless of origin.
-					 *
-					 * RFC -> https://tools.ietf.org/html/rfc7034
-					 */
-					scope.network.app.use(
-						httpApi.middleware.attachResponseHeader.bind(
-							null,
-							'X-Frame-Options',
-							'DENY'
-						)
-					);
-
-					/**
-					 * Set Content-Security-Policy headers.
-					 *
-					 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
-					 *
-					 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
-					 */
-					scope.network.app.use(
-						httpApi.middleware.attachResponseHeader.bind(
-							null,
-							'Content-Security-Policy',
-							"frame-ancestors 'none'"
-						)
-					);
-
-					scope.network.app.use(
-						httpApi.middleware.applyAPIAccessRules.bind(null, scope.config)
-					);
-
-					cb();
-				},
-			],
-
 			swagger: [
-				'connect',
 				'modules',
 				'logger',
 				'cache',
@@ -567,7 +453,6 @@ d.run(() => {
 
 			webSocket: [
 				'config',
-				'connect',
 				'logger',
 				'network',
 				'db',
@@ -742,7 +627,6 @@ d.run(() => {
 
 			modules: [
 				'network',
-				'connect',
 				'webSocket',
 				'config',
 				'logger',
@@ -824,30 +708,7 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
-					Object.keys(config.api).forEach(moduleName => {
-						Object.keys(config.api[moduleName]).forEach(protocol => {
-							var apiEndpointPath = config.api[moduleName][protocol];
-							try {
-								// eslint-disable-next-line import/no-dynamic-require
-								var ApiEndpoint = require(apiEndpointPath);
-								new ApiEndpoint(
-									scope.modules[moduleName],
-									scope.network.app,
-									scope.logger,
-									scope.modules.cache
-								);
-							} catch (e) {
-								scope.logger.error(
-									`Unable to load API endpoint for ${moduleName} of ${protocol}`,
-									e.message
-								);
-							}
-						});
-					});
-
-					scope.network.app.use(
-						httpApi.middleware.errorLogger.bind(null, scope.logger)
-					);
+					new wsTransport(scope.modules.transport);
 					cb();
 				},
 			],
