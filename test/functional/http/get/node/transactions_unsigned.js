@@ -64,7 +64,7 @@ describe('GET /api/node', () => {
 						// Create Second Signature for sender account
 						transaction = lisk.transaction.registerSecondPassphrase({
 							passphrase: senderAccount.password,
-							secondPassphrase: senderAccount.secondPassword,
+							secondPassphrase: senderAccount.secondPassphrase,
 						});
 
 						return sendTransactionPromise(transaction);
@@ -80,7 +80,7 @@ describe('GET /api/node', () => {
 						// Convert account to multisig account
 						transaction = lisk.transaction.registerMultisignature({
 							passphrase: senderAccount.password,
-							secondPassphrase: senderAccount.secondPassword,
+							secondPassphrase: senderAccount.secondPassphrase,
 							keysgroup: [`${randomMember.publicKey}`],
 							lifetime: 1,
 							minimum: 1,
@@ -112,7 +112,7 @@ describe('GET /api/node', () => {
 								lisk.transaction.transfer({
 									amount: (i + 1) * constants.normalizer,
 									passphrase: senderAccount.password,
-									secondPassphrase: senderAccount.secondPassword,
+									secondPassphrase: senderAccount.secondPassphrase,
 									recipientId: recipientAccount.address,
 								})
 							);

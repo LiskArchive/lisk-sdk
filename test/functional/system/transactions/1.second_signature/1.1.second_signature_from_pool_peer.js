@@ -67,7 +67,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 			beforeEach(done => {
 				signatureTransaction = lisk.transaction.registerSecondPassphrase({
 					passphrase: signatureAccount.password,
-					secondPassphrase: signatureAccount.secondPassword,
+					secondPassphrase: signatureAccount.secondPassphrase,
 				});
 				signatureTransaction.amount = parseInt(signatureTransaction.amount);
 				signatureTransaction.fee = parseInt(signatureTransaction.fee);

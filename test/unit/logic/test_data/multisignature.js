@@ -42,7 +42,7 @@ var senderKeypair = ed.makeKeypair(senderHash);
 var multiSigAccount1 = {
 	balance: '0',
 	password: 'jcja4vxibnw5dayk3xr',
-	secondPassword: '0j64m005jyjj37bpdgqfr',
+	secondPassphrase: '0j64m005jyjj37bpdgqfr',
 	username: 'LP',
 	publicKey: 'bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2',
 	address: '5936324907841470379L',

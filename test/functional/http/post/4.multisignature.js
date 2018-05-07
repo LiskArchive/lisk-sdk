@@ -562,10 +562,10 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		it('using valid params regular_with_second_signature scenario should be ok', () => {
 			var scenario = scenarios.regular_with_second_signature;
-			var multiSigSecondPasswordTransaction = lisk.transaction.registerMultisignature(
+			var multiSigSecondPassphraseTransaction = lisk.transaction.registerMultisignature(
 				{
 					passphrase: scenario.account.password,
-					secondPassphrase: scenario.account.secondPassword,
+					secondPassphrase: scenario.account.secondPassphrase,
 					keysgroup: scenario.keysgroup,
 					lifetime: 1,
 					minimum: 2,
@@ -581,7 +581,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					]);
 				})
 				.then(() => {
-					return sendTransactionPromise(multiSigSecondPasswordTransaction);
+					return sendTransactionPromise(multiSigSecondPassphraseTransaction);
 				})
 				.then(res => {
 					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -589,7 +589,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					var signatureRequests = _.map(scenario.members, member => {
 						return {
 							signature: apiHelpers.createSignatureObject(
-								multiSigSecondPasswordTransaction,
+								multiSigSecondPassphraseTransaction,
 								member
 							),
 						};
@@ -603,7 +603,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 								expect(res.body.data.message).to.be.equal('Signature Accepted');
 							});
 
-							goodTransactions.push(multiSigSecondPasswordTransaction);
+							goodTransactions.push(multiSigSecondPassphraseTransaction);
 						});
 				});
 		});

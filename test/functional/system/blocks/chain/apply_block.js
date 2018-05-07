@@ -138,12 +138,12 @@ describe('system test (blocks) - chain/applyBlock', () => {
 			beforeEach('with transactions in unconfirmed queue', done => {
 				transaction3 = lisk.transaction.registerSecondPassphrase({
 					passphrase: poolAccount3.password,
-					secondPassphrase: poolAccount3.secondPassword,
+					secondPassphrase: poolAccount3.secondPassphrase,
 				});
 
 				transaction4 = lisk.transaction.registerSecondPassphrase({
 					passphrase: poolAccount4.password,
-					secondPassphrase: poolAccount4.secondPassword,
+					secondPassphrase: poolAccount4.secondPassphrase,
 				});
 
 				transaction3.senderId = poolAccount3.address;

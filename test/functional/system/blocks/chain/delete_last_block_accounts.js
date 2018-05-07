@@ -211,7 +211,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 				it('should forge a block', done => {
 					var signatureTransaction = lisk.transaction.registerSecondPassphrase({
 						passphrase: testAccount.password,
-						secondPassphrase: testAccount.secondPassword,
+						secondPassphrase: testAccount.secondPassphrase,
 					});
 					localCommon.addTransactionsAndForge(
 						library,

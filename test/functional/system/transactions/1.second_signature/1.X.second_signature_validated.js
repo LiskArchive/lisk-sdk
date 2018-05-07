@@ -32,7 +32,7 @@ describe('system test (type 1) - checking validated second signature registratio
 	});
 	var transaction = lisk.transaction.registerSecondPassphrase({
 		passphrase: account.password,
-		secondPassphrase: account.secondPassword,
+		secondPassphrase: account.secondPassphrase,
 	});
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
@@ -85,7 +85,7 @@ describe('system test (type 1) - checking validated second signature registratio
 		it('adding to pool second signature registration for same account should fail', done => {
 			const transaction = lisk.transaction.registerSecondPassphrase({
 				passphrase: account.password,
-				secondPassphrase: account.secondPassword,
+				secondPassphrase: account.secondPassphrase,
 			});
 			localCommon.addTransaction(library, transaction, err => {
 				expect(err).to.equal('Missing sender second signature');

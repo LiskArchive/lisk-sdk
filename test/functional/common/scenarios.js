@@ -55,7 +55,7 @@ function Multisig(options) {
 	});
 	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
 		passphrase: this.account.password,
-		secondPassphrase: this.account.secondPassword,
+		secondPassphrase: this.account.secondPassphrase,
 	});
 }
 

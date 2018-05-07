@@ -39,7 +39,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 	var transactionWith;
 	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase({
 		passphrase: account.password,
-		secondPassphrase: account.secondPassword,
+		secondPassphrase: account.secondPassphrase,
 	});
 
 	localCommon.beforeBlock('system_1_X_second_sign_unconfirmed', lib => {
@@ -89,7 +89,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 					it(`type ${index}: ${key} with different timestamp should be ok`, done => {
 						transactionWith = lisk.transaction.registerSecondPassphrase({
 							passphrase: account.password,
-							secondPassphrase: account.secondPassword,
+							secondPassphrase: account.secondPassphrase,
 							timeOffset: -10000,
 						});
 						localCommon.addTransaction(library, transactionWith, (err, res) => {

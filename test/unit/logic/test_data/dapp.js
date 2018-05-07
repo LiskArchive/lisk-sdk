@@ -27,7 +27,7 @@ var validKeypair = ed.makeKeypair(
 
 var validSender = {
 	password: 'yjyhgnu32jmwuii442t9',
-	secondPassword: 'kub8gm2w330pvptx1or',
+	secondPassphrase: 'kub8gm2w330pvptx1or',
 	username: 'mix8',
 	publicKey: '5ff3c8f4be105953301e505d23a6e1920da9f72dc8dfd7babe1481b662f2b081',
 	address: '4835566122337813671L',

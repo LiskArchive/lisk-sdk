@@ -186,7 +186,7 @@ describe('GET /accounts', () => {
 			});
 			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
 				passphrase: secondPublicKeyAccount.password,
-				secondPassphrase: secondPublicKeyAccount.secondPassword,
+				secondPassphrase: secondPublicKeyAccount.secondPassphrase,
 			});
 
 			before(() => {

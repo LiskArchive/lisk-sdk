@@ -34,7 +34,7 @@ var validKeypair = ed.makeKeypair(
 var validSender = {
 	balance: '0',
 	password: 'zdv72jrts9y8613e4s4i',
-	secondPassword: '33ibzztls7xlrocpzxgvi',
+	secondPassphrase: '33ibzztls7xlrocpzxgvi',
 	username: '9bzuu',
 	publicKey: '967e00fbf215b6227a6521226decfdc14c92cb88d35268787a47ff0e6b92f94a',
 	address: '17603529232728446942L',
