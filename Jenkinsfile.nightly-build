@@ -77,8 +77,8 @@ pipeline {
             steps {
                 dir('lisk-build') {
                     sh """
-                    s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz s3:///lisk-nightly/lisk-core/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
-                    s3cmd put release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256 s3:///lisk-nightly/lisk-core/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
+                    s3cmd put --acl-public release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz s3:///lisk-nightly/lisk-core/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz
+                    s3cmd put --acl-public release/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256 s3:///lisk-nightly/lisk-core/lisk-${env.LISK_VERSION}-${timestamp}-Linux-x86_64.tar.gz.SHA256
                     """
                 }
             }
