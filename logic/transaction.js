@@ -404,7 +404,7 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {account} sender
 	 * @param {account} requester
-	 * @param  {boolean} checkExists - Check for confirmed transactions persisted state
+	 * @param  {boolean} checkExists - Check if transaction already exists in database
 	 * @param {function} cb
 	 * @returns {SetImmediate} error, transaction
 	 * @todo Add description for the params
@@ -673,7 +673,7 @@ class Transaction {
 			transaction,
 			sender,
 			tx,
-			verifySubTransactionTypesCb
+			verifyTransactionTypesCb
 		) => {
 			__private.types[transaction.type].verify.call(
 				this,
@@ -681,9 +681,9 @@ class Transaction {
 				sender,
 				err => {
 					if (err) {
-						return setImmediate(verifySubTransactionTypesCb, err);
+						return setImmediate(verifyTransactionTypesCb, err);
 					}
-					return setImmediate(verifySubTransactionTypesCb);
+					return setImmediate(verifyTransactionTypesCb);
 				},
 				tx
 			);
