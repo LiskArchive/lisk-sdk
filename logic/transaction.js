@@ -417,10 +417,6 @@ class Transaction {
 			requester = {};
 		}
 
-		if (checkExists === null || checkExists === undefined) {
-			checkExists = true;
-		}
-
 		// Check sender
 		if (!sender) {
 			return setImmediate(cb, 'Missing sender');
