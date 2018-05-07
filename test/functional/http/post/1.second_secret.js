@@ -26,7 +26,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
-describe('POST /api/transactions (type 1) register second secret', () => {
+describe('POST /api/transactions (type 1) register second passphrase', () => {
 	var transaction;
 	var transactionsToWaitFor = [];
 	var badTransactions = [];

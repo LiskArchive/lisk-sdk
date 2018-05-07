@@ -33,18 +33,19 @@ var Dapp = require('../../../logic/dapp');
 var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var senderPassword = accountFixtures.genesis.passphrase;
+var senderPassphrase = accountFixtures.genesis.passphrase;
 var senderHash = crypto
 	.createHash('sha256')
-	.update(senderPassword, 'utf8')
+	.update(senderPassphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -77,7 +78,7 @@ var transactionData = {
 	recipientId: '5649948960790668770L',
 	fee: '10000000',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-	secret: senderPassword,
+	passphrase: senderPassphrase,
 };
 
 var validTransaction = {
@@ -347,7 +348,7 @@ describe('transaction', () => {
 		it('should not return error when transaction is not confirmed', done => {
 			var transaction = lisk.transaction.transfer({
 				amount: transactionData.amount,
-				passphrase: transactionData.secret,
+				passphrase: transactionData.passphrase,
 				recipientId: transactionData.recipientId,
 			});
 
@@ -465,8 +466,8 @@ describe('transaction', () => {
 		function createAndProcess(transactionData, sender, cb) {
 			var transferObject = {
 				amount: transactionData.amount,
-				passphrase: transactionData.secret,
-				secondPassphrase: transactionData.secondSecret,
+				passphrase: transactionData.passphrase,
+				secondPassphrase: transactionData.secondPassphrase,
 				recipientId: transactionData.recipientId,
 			};
 			var transaction = lisk.transaction.transfer(transferObject);
@@ -641,8 +642,8 @@ describe('transaction', () => {
 			vs.secondSignature = 1;
 
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.secret = senderPassword;
-			transactionDataClone.secondSecret = validPassword;
+			transactionDataClone.passphrase = senderPassphrase;
+			transactionDataClone.secondPassphrase = validPassphrase;
 
 			createAndProcess(transactionDataClone, vs, (err, transaction) => {
 				transaction.signSignature =
@@ -660,8 +661,8 @@ describe('transaction', () => {
 			vs.secondSignature = 1;
 
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.secret = senderPassword;
-			transactionDataClone.secondSecret = validPassword;
+			transactionDataClone.passphrase = senderPassphrase;
+			transactionDataClone.secondPassphrase = validPassphrase;
 
 			createAndProcess(transactionDataClone, vs, (err, transaction) => {
 				transactionLogic.verify(transaction, vs, {}, err => {

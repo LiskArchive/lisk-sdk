@@ -374,7 +374,7 @@ describe('delegates', () => {
 
 			it('should return error if account does not exist', done => {
 				var randomAccount = {
-					secret:
+					passphrase:
 						'robust swift deputy enable forget peasant grocery road convince',
 					publicKey:
 						'35b9364d1733e503599a1e9eefdb4994dd07bb9924acebfec06195cf1a0fa6db',
