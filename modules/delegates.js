@@ -893,7 +893,7 @@ Delegates.prototype.getForgers = function(query, cb) {
 	const forgerKeys = [];
 
 	self.generateDelegateList(
-		currentBlock.height,
+		currentBlock.height + 1,
 		null,
 		(err, activeDelegates) => {
 			if (err) {
