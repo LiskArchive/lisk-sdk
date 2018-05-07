@@ -680,18 +680,17 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			transaction = {
 				amount: '100000000',
 				recipientId: '16313739661670634666L',
-				senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				senderPublicKey:
+					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 				timestamp: 60731685,
 				type: 7,
 				fee: '10000000',
-				asset:
-					{
-						outTransfer:
-							{
-								dappId: randomUtil.guestbookDapp.id,
-								transactionId: '10457544900900787263',
-							},
+				asset: {
+					outTransfer: {
+						dappId: randomUtil.guestbookDapp.id,
+						transactionId: '10457544900900787263',
 					},
+				},
 			};
 
 			transaction = elements.redoSignature(

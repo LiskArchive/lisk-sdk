@@ -61,7 +61,8 @@
 			"blackList": []
 		},
 		"options": {
-			"timeout": 5000
+			"timeout": 5000,
+			"broadhashConsensusCalculationInterval": 5000
 		}
 	},
 	"broadcasts": {

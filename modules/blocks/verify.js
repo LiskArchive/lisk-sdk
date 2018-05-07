@@ -70,14 +70,15 @@ class Verify {
  * @func checkTransaction
  * @param {Object} block - Block object
  * @param {Object} transaction - Transaction object
+ * @param  {boolean} checkExists - Check if transaction already exists in database
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransaction = function(block, transaction, cb) {
+__private.checkTransaction = function(block, transaction, checkExists, cb) {
 	async.waterfall(
 		[
-			function(waterCb) {
+			function getTransactionId(waterCb) {
 				try {
 					// Calculate transaction ID
 					// FIXME: Can have poor performance, because of hash calculation
@@ -89,25 +90,7 @@ __private.checkTransaction = function(block, transaction, cb) {
 				transaction.blockId = block.id;
 				return setImmediate(waterCb);
 			},
-			function(waterCb) {
-				// Check if transaction is already in database, otherwise fork 2
-				// DATABASE: read only
-				library.logic.transaction.checkConfirmed(transaction, err => {
-					if (err) {
-						// Fork: Transaction already confirmed
-						modules.delegates.fork(block, 2);
-						// Undo the offending transaction
-						// DATABASE: write
-						modules.transactions.undoUnconfirmed(transaction, err2 => {
-							modules.transactions.removeUnconfirmedTransaction(transaction.id);
-							return setImmediate(waterCb, err2 || err);
-						});
-					} else {
-						return setImmediate(waterCb);
-					}
-				});
-			},
-			function(waterCb) {
+			function getAccount(waterCb) {
 				// Get account from database if any (otherwise cold wallet)
 				// DATABASE: read only
 				modules.accounts.getAccount(
@@ -115,19 +98,36 @@ __private.checkTransaction = function(block, transaction, cb) {
 					waterCb
 				);
 			},
-			function(sender, waterCb) {
+			function verifyTransaction(sender, waterCb) {
 				// Check if transaction id valid against database state (mem_* tables)
 				// DATABASE: read only
 				library.logic.transaction.verify(
 					transaction,
 					sender,
 					null,
+					checkExists,
 					waterCb,
 					null
 				);
 			},
 		],
-		err => setImmediate(cb, err)
+		waterCbErr => {
+			if (waterCbErr && waterCbErr.match(/Transaction is already confirmed/)) {
+				// Fork: Transaction already confirmed.
+				modules.delegates.fork(block, 2);
+				// Undo the offending transaction.
+				// DATABASE: write
+				modules.transactions.undoUnconfirmed(
+					transaction,
+					undoUnconfirmedErr => {
+						modules.transactions.removeUnconfirmedTransaction(transaction.id);
+						return setImmediate(cb, undoUnconfirmedErr || waterCbErr);
+					}
+				);
+			} else {
+				return setImmediate(cb, waterCbErr);
+			}
+		}
 	);
 };
 
@@ -745,16 +745,17 @@ __private.validateBlockSlot = function(block, cb) {
  * @private
  * @func checkTransactions
  * @param {Object} block - Full block
+ * @param  {boolean} checkExists - Check if transactions already exists in database
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  */
-__private.checkTransactions = function(block, cb) {
+__private.checkTransactions = function(block, checkExists, cb) {
 	// Check against the mem_* tables that we can perform the transactions included in the block
 	async.eachSeries(
 		block.transactions,
 		(transaction, eachSeriesCb) => {
-			__private.checkTransaction(block, transaction, eachSeriesCb);
+			__private.checkTransaction(block, transaction, checkExists, eachSeriesCb);
 		},
 		err => setImmediate(cb, err)
 	);
@@ -800,13 +801,19 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				__private.broadcastBlock(block, broadcast, seriesCb);
 			},
 			checkExists(seriesCb) {
+				// Skip checking for existing block id if we don't need to save that block
+				if (!saveBlock) {
+					return setImmediate(seriesCb);
+				}
 				__private.checkExists(block, seriesCb);
 			},
 			validateBlockSlot(seriesCb) {
 				__private.validateBlockSlot(block, seriesCb);
 			},
 			checkTransactions(seriesCb) {
-				__private.checkTransactions(block, seriesCb);
+				// checkTransactions should check for transactions to exists in database
+				// only if the block needed to be saved to database
+				__private.checkTransactions(block, saveBlock, seriesCb);
 			},
 			applyBlock(seriesCb) {
 				// The block and the transactions are OK i.e:
