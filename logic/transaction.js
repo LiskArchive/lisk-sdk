@@ -673,7 +673,7 @@ class Transaction {
 			);
 		}
 
-		const verifySubTransactionTypes = (
+		const verifyTransactionTypes = (
 			transaction,
 			sender,
 			tx,
@@ -699,10 +699,10 @@ class Transaction {
 					return setImmediate(cb, checkConfirmedErr);
 				}
 
-				verifySubTransactionTypes(transaction, sender, tx, cb);
+				verifyTransactionTypes(transaction, sender, tx, cb);
 			});
 		} else {
-			verifySubTransactionTypes(transaction, sender, tx, cb);
+			verifyTransactionTypes(transaction, sender, tx, cb);
 		}
 	}
 
