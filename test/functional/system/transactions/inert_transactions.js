@@ -50,7 +50,7 @@ describe('inert transactions', () => {
 			let beforeBlockSenderMemAccount;
 			let beforeBlockRecipientMemAccount;
 
-			before('get sender and recipient account', done => {
+			before('get sender and recipient accounts', done => {
 				async.parallel(
 					[
 						parallelCb => {
@@ -91,7 +91,7 @@ describe('inert transactions', () => {
 					let afterBlockSenderMemAccount;
 					let afterBlockRecipientMemAccount;
 
-					before('get sender and recipient account', done => {
+					before('get sender and recipient accounts', done => {
 						async.parallel(
 							[
 								parallelCb => {
@@ -117,25 +117,25 @@ describe('inert transactions', () => {
 						);
 					});
 
-					it('should not update u_balance field set on sender account', () => {
+					it('should not update u_balance field of sender account', () => {
 						return expect(beforeBlockSenderMemAccount.u_balance).to.equal(
 							afterBlockSenderMemAccount.u_balance
 						);
 					});
 
-					it('should not update balance field set on sender account', () => {
+					it('should not update balance field of sender account', () => {
 						return expect(beforeBlockSenderMemAccount.balance).to.equal(
 							afterBlockSenderMemAccount.balance
 						);
 					});
 
-					it('should not update u_balance field set of recipient account', () => {
+					it('should not update u_balance field of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
 							afterBlockRecipientMemAccount.u_balance
 						);
 					});
 
-					it('should not update balance field set on recipient account', () => {
+					it('should not update balance field of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
 							afterBlockRecipientMemAccount.balance
 						);
@@ -176,7 +176,7 @@ describe('inert transactions', () => {
 					});
 
 					describe('details of the account', () => {
-						before('get sender and recipient account', done => {
+						before('get sender and recipient accounts', done => {
 							async.parallel(
 								[
 									parallelCb => {
@@ -202,25 +202,25 @@ describe('inert transactions', () => {
 							);
 						});
 
-						it('should not update u_balance field set on sender account', () => {
+						it('should not update u_balance field of sender account', () => {
 							return expect(afterDeleteSenderMemAccount.u_balance).to.equal(
 								beforeBlockSenderMemAccount.u_balance
 							);
 						});
 
-						it('should not update balance field set on sender account', () => {
+						it('should not update balance field of sender account', () => {
 							return expect(afterDeleteSenderMemAccount.balance).to.equal(
 								beforeBlockSenderMemAccount.balance
 							);
 						});
 
-						it('should not update u_balance field set of recipient account', () => {
+						it('should not update u_balance field of recipient account', () => {
 							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
 								beforeBlockRecipientMemAccount.u_balance
 							);
 						});
 
-						it('should not update balance field set on recipient account', () => {
+						it('should not update balance field of recipient account', () => {
 							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
 								beforeBlockRecipientMemAccount.balance
 							);
@@ -276,13 +276,13 @@ describe('inert transactions', () => {
 						);
 					});
 
-					it('should not update u_balance field set on recipient account', () => {
+					it('should not update u_balance field of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
 							afterBlockRecipientMemAccount.u_balance
 						);
 					});
 
-					it('should not update balance field set on recipient account', () => {
+					it('should not update balance field of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
 							afterBlockRecipientMemAccount.balance
 						);
@@ -342,13 +342,13 @@ describe('inert transactions', () => {
 							);
 						});
 
-						it('should not update u_balance field set of recipient account', () => {
+						it('should not update u_balance field of recipient account', () => {
 							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
 								beforeBlockRecipientMemAccount.u_balance
 							);
 						});
 
-						it('should not update balance field set on recipient account', () => {
+						it('should not update balance field of recipient account', () => {
 							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
 								beforeBlockRecipientMemAccount.balance
 							);
@@ -414,13 +414,13 @@ describe('inert transactions', () => {
 						);
 					});
 
-					it('should not update u_balance field set of recipient account', () => {
+					it('should not update u_balance field of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.u_balance).to.equal(
 							afterBlockRecipientMemAccount.u_balance
 						);
 					});
 
-					it('should not update balance field set on recipient account', () => {
+					it('should not update balance field of recipient account', () => {
 						return expect(beforeBlockRecipientMemAccount.balance).to.equal(
 							afterBlockRecipientMemAccount.balance
 						);
@@ -476,13 +476,13 @@ describe('inert transactions', () => {
 							);
 						});
 
-						it('should not update u_balance field set of recipient account', () => {
+						it('should not update u_balance field of recipient account', () => {
 							return expect(afterDeleteRecipientMemAccount.u_balance).to.equal(
 								beforeBlockRecipientMemAccount.u_balance
 							);
 						});
 
-						it('should not update balance field set on recipient account', () => {
+						it('should not update balance field of recipient account', () => {
 							return expect(afterDeleteRecipientMemAccount.balance).to.equal(
 								beforeBlockRecipientMemAccount.balance
 							);
