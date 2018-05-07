@@ -29,7 +29,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 
 	scenarios.regular.dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: scenarios.regular.account.password,
+		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;

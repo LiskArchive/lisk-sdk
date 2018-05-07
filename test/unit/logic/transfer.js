@@ -25,11 +25,11 @@ var constants = require('../../../helpers/constants');
 var bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 

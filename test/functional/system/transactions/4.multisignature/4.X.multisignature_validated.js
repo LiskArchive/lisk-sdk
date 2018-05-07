@@ -29,7 +29,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 
 	scenarios.regular.dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: scenarios.regular.account.password,
+		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;
@@ -40,7 +40,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	scenarios.regular.members.map(member => {
 		var signature = lisk.transaction.utils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
-			member.password
+			member.passphrase
 		);
 		scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
@@ -99,7 +99,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		it('adding to pool multisignature registration for same account should fail', done => {
 			const multiSignatureToSameAccount = lisk.transaction.registerMultisignature(
 				{
-					passphrase: scenarios.regular.account.password,
+					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
 					lifetime: scenarios.regular.lifetime,
 					minimum: scenarios.regular.minimum,
