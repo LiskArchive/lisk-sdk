@@ -16,6 +16,7 @@
 import readline from 'readline';
 import getInputsFromSources from '../../../src/utils/input';
 import * as inputUtils from '../../../src/utils/input/utils';
+import { ValidationError, FileSystemError } from '../../../src/utils/error';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
@@ -336,4 +337,19 @@ export function dataIsProvidedViaAnUnknownSource() {
 export function dataIsProvidedViaAFileSource() {
 	const { filePath } = this.test.ctx;
 	this.test.ctx.sourceData = `file:${filePath}`;
+}
+
+export function getDataResolvesWith() {
+	const message = getFirstQuotedString(this.test.parent.title);
+	inputUtils.getData.resolves(message);
+}
+
+export function getDataRejectsWithValidationError() {
+	const message = getFirstQuotedString(this.test.title);
+	inputUtils.getData.rejects(new ValidationError(message));
+}
+
+export function getDataRejectsWithFileSystemError() {
+	const message = getFirstQuotedString(this.test.title);
+	inputUtils.getData.rejects(new FileSystemError(message));
 }

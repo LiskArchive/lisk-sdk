@@ -216,15 +216,3 @@ export const getData = async source => {
 
 	return getDataFromFile(path).catch(handleReadFileErrors(path));
 };
-
-export const getDataIfExist = async source => {
-	if (!source) {
-		return null;
-	}
-	const { sourceType, sourceIdentifier: path } = splitSource(source);
-
-	if (sourceType !== 'file') {
-		return source;
-	}
-	return getDataFromFile(path).catch(handleReadFileErrors(path));
-};

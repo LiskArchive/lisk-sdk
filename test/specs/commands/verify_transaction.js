@@ -18,7 +18,7 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe.only('verify transaction command', () => {
+describe('verify transaction command', () => {
 	beforeEach(setUpCommandVerifyTransaction);
 	Given('an action "verify transaction"', given.anAction, () => {
 		Given(
@@ -26,60 +26,104 @@ describe.only('verify transaction command', () => {
 			given.aTransactionInStringifiedJSONFormat,
 			() => {
 				Given(
-					'an error object',
-					given.anErrorObject,
+					'getData rejects with ValidationError "File not "',
+					given.getDataRejectsWithValidationError,
 					() => {
+						When(
+							'the action is called',
+							when.theActionIsCalled,
+							() => {
+								Then(
+									'it should reject with validation error and message "No transaction was provided."',
+									then.itShouldRejectWithValidationErrorAndMessage,
+								);
+							},
+						);
 						When(
 							'the action is called with the stringified error object via vorpal stdIn',
 							when.theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn,
 							() => {
+								Then(
+									'it should reject with validation error and message "No transaction was provided."',
+									then.itShouldRejectWithValidationErrorAndMessage,
+								);
+							},
+						);
+						When(
+							'the action is called with the corrupted stringified transaction object',
+							when.theActionIsCalledWithTheCorruptedStringifiedTransactionObject,
+							() => {
+								Then(
+									'it should reject with validation error and message "Could not parse transaction JSON. Did you use the `--json` option?"',
+									then.itShouldRejectWithValidationErrorAndMessage,
+								);
+							},
+						);
+						When(
+							'the action is called with the stringified transaction object',
+							when.theActionIsCalledWithTheStringifiedTransactionObject,
+							() => {
+								Then(
+									'it should resolve to result of successfully verifying transaction"',
+									then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+								);
+								Then(
+									'it should call VerifyTransaction with the transaction',
+									then.itShouldCallVerifyTransactionWithTheTransaction,
+								);
+							},
+						);
+						When(
+							'the action is called with the stringified transaction object via vorpal stdIn',
+							when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdIn,
+							() => {
+								Then(
+									'it should resolve to result of successfully verifying transaction"',
+									then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+								);
+								Then(
+									'it should call VerifyTransaction with the transaction',
+									then.itShouldCallVerifyTransactionWithTheTransaction,
+								);
 							},
 						);
 					},
 				);
 				Given(
-					'a second public key "790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951"',
-					given.aSecondPublicKey,
+					'an options object with secondPublicKey set to "790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951"',
+					given.anOptionsObjectWithSecondPublicKeySetTo,
 					() => {
-						When(
-							'the action is called with the stringified error object via vorpal stdIn',
-							when.theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn,
+						Given(
+							'getData resolves with "790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951"',
+							given.getDataResolvesWith,
 							() => {
-							},
-						);
-						When(
-							'the action is called with the transaction',
-							when.theActionIsCalledWithTheTransaction,
-							() => {
-							},
-						);
-						When(
-							'the action is called with the transaction via vorpal stdIn',
-							when.theActionIsCalledWithTheTransactionViaVorpalStdIn,
-							() => {
-								Then(
-									'it should reject with validation error and message "No signature was provided."',
-									then.itShouldRejectWithValidationErrorAndMessage,
+								When(
+									'the action is called with the transaction and options object contains second public key as file input',
+									when.theActionIsCalledWithTheTransactionAndOptionsObjectContainsSecondPublicKeyAsFileInput,
+									() => {
+										Then(
+											'it should resolve to result of successfully verifying transaction"',
+											then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+										);
+										Then(
+											'it should call VerifyTransaction with the transaction and second public key',
+											then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey,
+										);
+									},
 								);
-							},
-						);
-						When(
-							'the action is called with the transaction and second public key',
-							when.theActionIsCalledWithTheTransactionAndSecondPublicKey,
-							() => {
-								Then(
-									'it should reject with validation error and message "No message was provided."',
-									then.itShouldRejectWithValidationErrorAndMessage,
-								);
-							},
-						);
-						When(
-							'the action is called with the transaction via vorpal stdIn and second public key as transaction',
-							when.theActionIsCalledWithTheTransactionViaVorpalStdAndWithSecondPublicKeyAsTransaction,
-							() => {
-								Then(
-									'it should reject with validation error and message "No message was provided."',
-									then.itShouldRejectWithValidationErrorAndMessage,
+								When(
+									'the action is called with the transaction via vorpal stdIn and options object contains second public key',
+									when.theActionIsCalledWithTheTransactionViaVorpalStdInAndOptionsObjectContainsSecondPublicKey,
+									() => {
+										Then(
+											'it should resolve to result of successfully verifying transaction"',
+											then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+										);
+										Then(
+											'it should call VerifyTransaction with the transaction and second public key',
+											then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey,
+										);
+									},
 								);
 							},
 						);

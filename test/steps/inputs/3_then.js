@@ -235,6 +235,10 @@ export function itShouldNotGetThePassword() {
 	return expect(passphraseArgs).to.be.empty;
 }
 
+export function itShouldGetTheDataIfExist() {
+	return expect(inputUtils.getDataIfExist).to.be.called;
+}
+
 export function itShouldGetTheData() {
 	const { options } = this.test.ctx;
 	return expect(inputUtils.getData).to.be.calledWith(options.data.source);

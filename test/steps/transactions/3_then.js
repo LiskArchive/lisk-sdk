@@ -208,3 +208,33 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 		minimum,
 	});
 }
+
+export function itShouldCallVerifyTransactionWithTheTransaction() {
+	const { transaction } = this.test.ctx;
+	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		null,
+	);
+}
+
+export function itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey() {
+	const { transaction, options } = this.test.ctx;
+	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		options['second-public-key'],
+	);
+}
+
+export function itShouldResolveToResultOfSuccessfullyVerifyingTransaction() {
+	const { returnValue } = this.test.ctx;
+	return expect(returnValue).to.eventually.eql({
+		verified: true,
+	});
+}
+
+export function itShouldResolveToResultOfFailingToVerifyingTransaction() {
+	const { returnValue } = this.test.ctx;
+	return expect(returnValue).to.eventually.eql({
+		verified: false,
+	});
+}

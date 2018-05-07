@@ -14,10 +14,10 @@
  *
  */
 import transactions from '../utils/transactions';
-import { ValidationError } from '../utils/error';
+import { FileSystemError, ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import commonOptions from '../utils/options';
-import { getDataIfExist } from '../utils/input';
+import { getData } from '../utils/input/utils';
 
 const description = `Verify a transaction.
 
@@ -38,7 +38,7 @@ const getTransactionInput = ({ transaction, stdin, shouldUseStdIn }) => {
 export const actionCreator = () => async ({
 	transaction,
 	stdin,
-	options,
+	options = {},
 }) => {
 	const shouldUseStdIn = !transaction;
 	const transactionInput = getTransactionInput({
@@ -55,10 +55,15 @@ export const actionCreator = () => async ({
 		);
 	}
 
-	const secondPublicKeyStdin = stdin && stdin.length > 0 ? stdin[1] : null;
-	const secondPublicKeyInput = options['second-public-key'] || secondPublicKeyStdin;
+	const secondPublicKeyInput = options['second-public-key'];
 
-	return getDataIfExist(secondPublicKeyInput)
+	return getData(secondPublicKeyInput)
+		.catch(error => {
+			if (error instanceof FileSystemError) {
+				throw error;
+			}
+			return null;
+		})
 		.then(secondPublicKey => {
 			const verified = transactions.utils.verifyTransaction(
 				transactionObject,

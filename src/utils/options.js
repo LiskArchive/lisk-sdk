@@ -15,8 +15,8 @@ const secondPublicKeyDescription = `Specifies a source for providing a second pu
 	Note: if both transaction and second public key are passed via stdin, the transaction must be the first line.
 
 	Examples:
-	- --message file:/path/to/my/message.txt
-	- --message stdin
+	- --second-public-key file:/path/to/my/message.txt
+	- --second-public-key 790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951
 `;
 
 const passphraseDescription = `Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
