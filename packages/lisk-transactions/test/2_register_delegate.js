@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerDelegate from 'lisk-transactions/src/2_register_delegate';
+import registerDelegate from '../src/2_register_delegate';
 // Require is used for stubbing
-const time = require('lisk-transactions/src/utils/time');
+const time = require('../src/utils/time');
 
 describe('#registerDelegate transaction', () => {
 	const fixedPoint = 10 ** 8;

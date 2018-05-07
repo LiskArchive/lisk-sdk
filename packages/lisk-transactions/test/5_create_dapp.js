@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createDapp from 'lisk-transactions/src/5_create_dapp';
+import createDapp from '../src/5_create_dapp';
 // Require is used for stubbing
-const time = require('lisk-transactions/src/utils/time');
+const time = require('../src/utils/time');
 
 describe('#createDapp transaction', () => {
 	const fixedPoint = 10 ** 8;

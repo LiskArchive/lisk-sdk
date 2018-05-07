@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography/src';
+import cryptography from 'lisk-cryptography';
 import {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
-} from 'lisk-transactions/src/utils';
+} from '../../src/utils';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import validTransactions from '../../../../fixtures/transactions.json';

@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography/src';
+import cryptography from 'lisk-cryptography';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-} from 'lisk-transactions/src/utils/validation';
+} from '../../src/utils/validation';
 
 describe('public key validation', () => {
 	describe('#validatePublicKey', () => {

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transaction from 'lisk-transactions/src';
+import transaction from '../src';
 
 describe('transaction', () => {
 	describe('exports', () => {

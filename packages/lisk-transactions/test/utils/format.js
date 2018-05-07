@@ -17,7 +17,7 @@ import {
 	convertLSKToBeddows,
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
-} from 'lisk-transactions/src/utils/format';
+} from '../../src/utils/format';
 
 describe('format', () => {
 	describe('#convertBeddowsToLSK', () => {

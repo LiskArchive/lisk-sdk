@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import wrapTransactionCreator from 'lisk-transactions/src/utils/wrap_transaction_creator';
+import wrapTransactionCreator from '../../src/utils/wrap_transaction_creator';
 // Require is used for stubbing
-const prepareTransaction = require('lisk-transactions/src/utils/prepare_transaction');
+const prepareTransaction = require('../../src/utils/prepare_transaction');
 
 describe('#wrapTransactionCreator', () => {
 	const defaultPassphrase = 'secret';

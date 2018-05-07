@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import signRawTransaction from 'lisk-transactions/src/utils/sign_raw_transaction';
+import signRawTransaction from '../../src/utils/sign_raw_transaction';
 // Require is used for stubbing
-const time = require('lisk-transactions/src/utils/time');
+const time = require('../../src/utils/time');
 
 describe('#signRawTransaction', () => {
 	const timeWithOffset = 38350076;
