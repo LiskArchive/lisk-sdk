@@ -19,5 +19,11 @@
 	"engines": {
 		"node": "6.14.1",
 		"npm": "3.10.10"
+	},
+	"scripts": {
+		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\""
+	},
+	"devDependencies": {
+		"prettier": "1.12.1"
 	}
 }
