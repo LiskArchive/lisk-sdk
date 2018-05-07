@@ -74,7 +74,7 @@ class Delegates {
 			},
 			config: {
 				forging: {
-					secret: scope.config.forging.secret,
+					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
 					defaultPassword: scope.config.forging.defaultPassword,
 					access: {
@@ -576,7 +576,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
-	const encryptedList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 
 	if (
 		!encryptedList ||
@@ -682,7 +682,7 @@ __private.loadDelegates = function(cb) {
  * @todo Add description for the return value
  */
 Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
-	const encryptedList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 	const encryptedItem = _.find(
 		encryptedList,
 		item => item.publicKey === publicKey
