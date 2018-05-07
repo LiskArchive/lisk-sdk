@@ -58,9 +58,9 @@ module.exports = function(config) {
 		config.errorLevel = errorLevel;
 	};
 
-	function snipsecret(data) {
+	function snipFragileData(data) {
 		for (var key in data) {
-			if (key.search(/secret/i) > -1) {
+			if (key.search(/passphrase|password/i) > -1) {
 				data[key] = 'XXXXXXXXXX';
 			}
 		}
@@ -81,7 +81,7 @@ module.exports = function(config) {
 			}
 
 			if (data && util.isObject(data)) {
-				log.data = JSON.stringify(snipsecret(data));
+				log.data = JSON.stringify(snipFragileData(data));
 			} else {
 				log.data = data;
 			}

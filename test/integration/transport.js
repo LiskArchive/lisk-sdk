@@ -68,16 +68,16 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			var testFailedError;
 
 			before(() => {
-				var secretsMaxLength = Math.ceil(
-					devConfig.forging.secret.length / configurations.length
+				var delegatesMaxLength = Math.ceil(
+					devConfig.forging.delegates.length / configurations.length
 				);
-				var secrets = _.clone(devConfig.forging.secret);
+				var delegates = _.clone(devConfig.forging.delegates);
 
 				return configurations.forEach((configuration, index) => {
 					configuration.forging.force = false;
-					configuration.forging.secret = secrets.slice(
-						index * secretsMaxLength,
-						(index + 1) * secretsMaxLength
+					configuration.forging.delegates = delegates.slice(
+						index * delegatesMaxLength,
+						(index + 1) * delegatesMaxLength
 					);
 				});
 			});

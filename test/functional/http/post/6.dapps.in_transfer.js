@@ -67,7 +67,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			})
 			.then(() => {
 				transaction = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: randomUtil.guestbookDapp,
 				});
 
@@ -79,7 +79,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				randomUtil.guestbookDapp.id = transaction.id;
 				transactionsToWaitFor.push(randomUtil.guestbookDapp.id);
 				transaction = lisk.transaction.createDapp({
-					passphrase: accountMinimalFunds.password,
+					passphrase: accountMinimalFunds.passphrase,
 					options: randomUtil.blockDataDapp,
 				});
 
@@ -198,7 +198,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					'',
 					Date.now(),
-					account.password
+					account.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -264,7 +264,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 						transaction = lisk.transfer.createInTransfer(
 							randomUtil.guestbookDapp.id,
 							amount,
-							account.password
+							account.passphrase
 						);
 
 						return sendTransactionPromise(
@@ -307,7 +307,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = lisk.transfer.createInTransfer(
 				inexistentId,
 				1,
-				account.password
+				account.passphrase
 			);
 
 			return sendTransactionPromise(
@@ -357,7 +357,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.blockDataDapp.id,
 					1,
-					accountMinimalFunds.password
+					accountMinimalFunds.passphrase
 				);
 
 				return sendTransactionPromise(
@@ -375,7 +375,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
 					10 * constants.normalizer,
-					account.password
+					account.passphrase
 				);
 
 				return sendTransactionPromise(transaction).then(res => {
@@ -395,12 +395,14 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			transaction = {
 				amount: '100000000',
 				recipientId: '',
-				senderPublicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				senderPublicKey:
+					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 				timestamp: 60731530,
 				type: 6,
 				fee: '10000000',
 				asset: { inTransfer: { dappId: '7670083247477258129' } },
-				signature: '0845ea4121c868d11f04397fc8e2af518c530f0b1c0cfb0009da2bd688a58711146068b35eed70d55e89714ace1b8ec350c25178e5c4cc016ff517a76ded3f00',
+				signature:
+					'0845ea4121c868d11f04397fc8e2af518c530f0b1c0cfb0009da2bd688a58711146068b35eed70d55e89714ace1b8ec350c25178e5c4cc016ff517a76ded3f00',
 				id: '10457544900900787263',
 			};
 

@@ -116,7 +116,7 @@ var testAccount = {
 			'c76a0e680e83f47cf07c0f46b410f3b97e424171057a0f8f0f420c613da2f7b5',
 		balance: 5300000000000000000,
 	},
-	secret:
+	passphrase:
 		'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
 };
 
@@ -127,7 +127,7 @@ var block2;
 function createBlock(
 	blocksModule,
 	blockLogic,
-	secret,
+	passphrase,
 	timestamp,
 	transactions,
 	previousBlock
@@ -135,7 +135,7 @@ function createBlock(
 	var keypair = blockLogic.scope.ed.makeKeypair(
 		crypto
 			.createHash('sha256')
-			.update(secret, 'utf8')
+			.update(passphrase, 'utf8')
 			.digest()
 	);
 	blocksModule.lastBlock.set(previousBlock);
@@ -158,10 +158,10 @@ function getValidKeypairForSlot(library, slot) {
 	return generateDelegateListPromisified(lastBlock.height, null)
 		.then(list => {
 			var delegatePublicKey = list[slot % slots.delegates];
-			var secret = _.find(genesisDelegates, delegate => {
+			var passphrase = _.find(genesisDelegates, delegate => {
 				return delegate.publicKey === delegatePublicKey;
-			}).secret;
-			return secret;
+			}).passphrase;
+			return passphrase;
 		})
 		.catch(err => {
 			throw err;
@@ -895,11 +895,11 @@ describe('blocks/verify', () => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot).then(secret => {
+			getValidKeypairForSlot(library, slot).then(passphrase => {
 				block1 = createBlock(
 					blocks,
 					blockLogic,
-					secret,
+					passphrase,
 					time,
 					[],
 					genesisBlock
@@ -946,13 +946,13 @@ describe('blocks/verify', () => {
 		var invalidBlock2;
 
 		it('should generate block 2 with invalid generator slot', done => {
-			var secret =
+			var passphrase =
 				'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			invalidBlock2 = createBlock(
 				blocks,
 				blockLogic,
-				secret,
+				passphrase,
 				33772882,
 				[],
 				genesisBlock
@@ -1055,11 +1055,11 @@ describe('blocks/verify', () => {
 					var slot = slots.getSlotNumber();
 					var time = slots.getSlotTime(slots.getSlotNumber());
 
-					getValidKeypairForSlot(library, slot).then(secret => {
+					getValidKeypairForSlot(library, slot).then(passphrase => {
 						block2 = createBlock(
 							blocks,
 							blockLogic,
-							secret,
+							passphrase,
 							time,
 							[genesisBlock.transactions[0]],
 							genesisBlock
@@ -1104,11 +1104,11 @@ describe('blocks/verify', () => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot).then(secret => {
+			getValidKeypairForSlot(library, slot).then(passphrase => {
 				block2 = createBlock(
 					blocks,
 					blockLogic,
-					secret,
+					passphrase,
 					time,
 					[],
 					genesisBlock

@@ -57,11 +57,11 @@ describe('GET /dapps', () => {
 				transactionsToWaitFor = [];
 
 				var transaction1 = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: dapp1,
 				});
 				var transaction2 = lisk.transaction.createDapp({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					options: dapp2,
 				});
 				var promises = [];
@@ -260,7 +260,7 @@ describe('GET /dapps', () => {
 
 				for (var i = 1; i <= 20; i++) {
 					transaction = lisk.transaction.createDapp({
-						passphrase: account.password,
+						passphrase: account.passphrase,
 						options: randomUtil.application(),
 					});
 					transactionsToWaitFor.push(transaction.id);

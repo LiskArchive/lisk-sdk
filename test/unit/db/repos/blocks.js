@@ -277,9 +277,9 @@ describe('db', () => {
 			});
 
 			it('should resolve with null if block with particular height does not exists', () => {
-				return expect(db.blocks.deleteBlocksAfterHeight(1234)).to.be.eventually.eql(
-					null
-				);
+				return expect(
+					db.blocks.deleteBlocksAfterHeight(1234)
+				).to.be.eventually.eql(null);
 			});
 		});
 

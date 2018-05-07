@@ -106,7 +106,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('when sender has no funds should fail', () => {
 			transaction = lisk.transaction.transfer({
 				amount: 1,
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				recipientId: '1L',
 			});
 

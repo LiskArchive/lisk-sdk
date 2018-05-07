@@ -331,7 +331,10 @@ describe('GET /api/votes', () => {
 			describe('limit=101', () => {
 				it('should return 101 voters', () => {
 					return votesEndpoint
-						.makeRequest({ limit: 101, publicKey: voterDelegate.publicKey }, 200)
+						.makeRequest(
+							{ limit: 101, publicKey: voterDelegate.publicKey },
+							200
+						)
 						.then(res => {
 							expect(res.body.data.votes).to.have.length(101);
 						});
@@ -375,7 +378,7 @@ describe('GET /api/votes', () => {
 					recipientId: account.address,
 				});
 				var delegateTransaction = lisk.transaction.registerDelegate({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					username: randomstring.generate({
 						length: 10,
 						charset: 'alphabetic',
@@ -383,7 +386,7 @@ describe('GET /api/votes', () => {
 					}),
 				});
 				var voteTransaction = lisk.transaction.castVotes({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					votes: [`${nonVoterDelegate.publicKey}`],
 				});
 

@@ -378,7 +378,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				var transaction = lisk.transaction.transfer({
 					amount: 1 * constants.normalizer,
-					passphrase: scenario.members[0].password,
+					passphrase: scenario.members[0].passphrase,
 					recipientId: randomUtil.account().address,
 				});
 				transaction.requesterPublicKey = scenario.account.publicKey;

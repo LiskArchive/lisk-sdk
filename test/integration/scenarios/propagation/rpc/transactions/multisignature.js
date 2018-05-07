@@ -104,7 +104,7 @@ module.exports = function multisignature(params) {
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 						});
 						transactions.push(transaction);
 						signatures.push([

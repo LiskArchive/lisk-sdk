@@ -65,7 +65,7 @@ module.exports = function(params) {
 					_.range(maximum).map(num => {
 						var transaction = lisk.transaction.registerDelegate({
 							username: randomUtil.username(),
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 						});
 						transactions.push(transaction);
 						return sendTransactionsPromise([transaction]);

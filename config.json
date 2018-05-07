@@ -97,7 +97,8 @@
 			"blackList": []
 		},
 		"options": {
-			"timeout": 5000
+			"timeout": 5000,
+			"broadhashConsensusCalculationInterval": 5000
 		}
 	},
 	"broadcasts": {
@@ -113,7 +114,7 @@
 	},
 	"forging": {
 		"force": false,
-		"secret": [],
+		"delegates": [],
 		"access": {
 			"whiteList": ["127.0.0.1"]
 		}
