@@ -118,7 +118,6 @@ process.env.TOP = appConfig.topAccounts;
  * @memberof! app
  */
 var config = {
-	root: path.dirname(__filename),
 	db: appConfig.db,
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
@@ -207,6 +206,7 @@ d.run(() => {
 					).toString('hex');
 
 					appConfig.nonce = randomstring.generate(16);
+					appConfig.root = path.dirname(__filename);
 				} catch (e) {
 					logger.error('Failed to assign nethash from genesis block');
 					throw Error(e);
@@ -363,7 +363,7 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					swagger(scope.network.app, config, scope.logger, scope, cb);
+					swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 				},
 			],
 
