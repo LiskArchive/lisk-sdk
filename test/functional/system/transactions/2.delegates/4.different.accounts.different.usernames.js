@@ -71,7 +71,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = lisk.transaction.registerDelegate({
-						passphrase: account.password,
+						passphrase: account.passphrase,
 						username: account.username,
 					});
 					localCommon.addTransaction(library, transaction1, (err, res) => {
@@ -82,7 +82,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
 					transaction2 = lisk.transaction.registerDelegate({
-						passphrase: account2.password,
+						passphrase: account2.passphrase,
 						username: account2.username,
 					});
 					localCommon.addTransaction(library, transaction2, (err, res) => {
@@ -127,14 +127,24 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('adding to pool delegate registration with already registered username should fail', done => {
-						localCommon.addTransaction(library, transaction1, err => {
+						const transaction3 = lisk.transaction.registerDelegate({
+							passphrase: account2.passphrase,
+							username: account2.username,
+							timeOffset: -10000,
+						});
+						localCommon.addTransaction(library, transaction3, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						localCommon.addTransaction(library, transaction2, err => {
+						const transaction4 = lisk.transaction.registerDelegate({
+							passphrase: account2.passphrase,
+							username: account2.username,
+							timeOffset: -10000,
+						});
+						localCommon.addTransaction(library, transaction4, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});

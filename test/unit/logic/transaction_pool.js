@@ -74,7 +74,7 @@ describe('transactionPool', () => {
 	const transactionStub = {
 		process: sinonSandbox.stub().callsArgWith(3, null),
 		objectNormalize: sinonSandbox.stub(),
-		verify: sinonSandbox.stub().callsArgWith(2, null),
+		verify: sinonSandbox.stub().callsArgWith(4, null),
 	};
 
 	const busSpy = {
@@ -1773,7 +1773,7 @@ describe('transactionPool', () => {
 					transactionStub.process = sinonSandbox.stub().callsArgWith(3, null);
 					transactionStub.verify = sinonSandbox
 						.stub()
-						.callsArgWith(2, 'error while verifying');
+						.callsArgWith(4, 'error while verifying');
 					transactionPool.addQueuedTransaction(transaction);
 					_processVerifyTransaction(transaction, true, (err, sender) => {
 						expect(err).to.deep.eql('error while verifying');

@@ -112,7 +112,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					delegate = _.find(genesisDelegates, delegate => {
 						return delegate.publicKey === delegatePublicKey;
 					});
-					var keypair = getKeypair(delegate.secret);
+					var keypair = getKeypair(delegate.passphrase);
 
 					__testContext.debug(
 						`Last block height: ${last_block.height}
@@ -169,11 +169,11 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 		);
 	}
 
-	function getKeypair(secret) {
+	function getKeypair(passphrase) {
 		return library.ed.makeKeypair(
 			crypto
 				.createHash('sha256')
-				.update(secret, 'utf8')
+				.update(passphrase, 'utf8')
 				.digest()
 		);
 	}
@@ -190,7 +190,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				return getKeypair(
 					_.find(genesisDelegates, delegate => {
 						return delegate.publicKey === delegatePublicKey;
-					}).secret
+					}).passphrase
 				);
 			})
 			.catch(err => {
@@ -264,7 +264,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					beforeEach(done => {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						var slot = slots.getSlotNumber();
-						var nonDelegateKeypair = getKeypair(accountFixtures.genesis.passphrase);
+						var nonDelegateKeypair = getKeypair(
+							accountFixtures.genesis.passphrase
+						);
 						block = createBlock(
 							[],
 							slots.getSlotTime(slot),
@@ -694,7 +696,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 										return (
 											delegate.publicKey === secondLastBlock.generatorPublicKey
 										);
-									}).secret
+									}).passphrase
 								);
 								done();
 							});
@@ -843,7 +845,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						keypair = getKeypair(
 							_.find(genesisDelegates, delegate => {
 								return lastBlock.generatorPublicKey == delegate.publicKey;
-							}).secret
+							}).passphrase
 						);
 						done();
 					});
@@ -914,7 +916,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						id: '14723131253653198332',
 					};
 
-					var keypair = getKeypair(genesisDelegates[0].secret);
+					var keypair = getKeypair(genesisDelegates[0].passphrase);
 					differentChainBlock = createBlock(
 						[],
 						slots.getSlotTime(10),

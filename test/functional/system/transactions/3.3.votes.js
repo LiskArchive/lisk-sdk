@@ -54,7 +54,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 			it('adding to pool upvoting transaction should be ok', done => {
 				transaction1 = lisk.transaction.castVotes({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
 					timeOffset: -10000,
 				});
@@ -66,7 +66,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 			it('adding to pool upvoting transaction for same delegate from same account with different id should be ok', done => {
 				transaction2 = lisk.transaction.castVotes({
-					passphrase: account.password,
+					passphrase: account.passphrase,
 					votes: [`${accountFixtures.existingDelegate.publicKey}`],
 				});
 				localCommon.addTransaction(library, transaction2, (err, res) => {
@@ -124,7 +124,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 				it('adding to pool downvoting transaction to same delegate from same account should be ok', done => {
 					transaction3 = lisk.transaction.castVotes({
-						passphrase: account.password,
+						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 						timeOffset: -10000,
 					});
@@ -136,7 +136,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 				it('adding to pool downvoting transaction to same delegate from same account with different id should be ok', done => {
 					transaction4 = lisk.transaction.castVotes({
-						passphrase: account.password,
+						passphrase: account.passphrase,
 						unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
 					});
 					localCommon.addTransaction(library, transaction4, (err, res) => {
@@ -190,7 +190,12 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 					});
 
 					it('adding to pool downvoting transaction to same delegate from same account should fail', done => {
-						localCommon.addTransaction(library, transaction4, err => {
+						const transaction5 = lisk.transaction.castVotes({
+							passphrase: account.passphrase,
+							unvotes: [`${accountFixtures.existingDelegate.publicKey}`],
+							timeOffset: -10000,
+						});
+						localCommon.addTransaction(library, transaction5, err => {
 							expect(err).to.equal(
 								`Failed to remove vote, delegate "${
 									accountFixtures.existingDelegate.delegateName

@@ -55,18 +55,18 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			var keysgroup = [signer1.publicKey, signer2.publicKey];
 
 			multisigTransaction = lisk.transaction.registerMultisignature({
-				passphrase: multisigAccount.password,
+				passphrase: multisigAccount.passphrase,
 				keysgroup,
 				lifetime: 4,
 				minimum: 2,
 			});
 			var sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
-				signer1.password
+				signer1.passphrase
 			);
 			var sign2 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
-				signer2.password
+				signer2.passphrase
 			);
 
 			multisigTransaction.signatures = [sign1, sign2];
@@ -282,18 +282,18 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		before('apply unconfirmed multisig transaction', done => {
 			var keysgroup = [signer1.publicKey, signer2.publicKey];
 			multisigTransaction = lisk.transaction.registerMultisignature({
-				passphrase: multisigAccount.password,
+				passphrase: multisigAccount.passphrase,
 				keysgroup,
 				lifetime: 4,
 				minimum: 2,
 			});
 			var sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
-				signer1.password
+				signer1.passphrase
 			);
 			var sign2 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
-				signer2.password
+				signer2.passphrase
 			);
 			multisigTransaction.signatures = [sign1, sign2];
 			multisigTransaction.ready = true;
@@ -399,7 +399,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			before('process multisignature transaction', done => {
 				var keysgroup = [signer3.publicKey, signer4.publicKey];
 				multisigTransaction2 = lisk.transaction.registerMultisignature({
-					passphrase: multisigAccount.password,
+					passphrase: multisigAccount.passphrase,
 					keysgroup,
 					lifetime: 4,
 					minimum: 2,
@@ -408,16 +408,17 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				multisigTransaction2.fee = parseInt(multisigTransaction2.fee);
 				var sign3 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
-					signer3.password
+					signer3.passphrase
 				);
 				var sign4 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
-					signer4.password
+					signer4.passphrase
 				);
 				multisigTransaction2.signatures = [sign3, sign4];
 				library.logic.transaction.process(
 					multisigTransaction2,
 					multisigSender,
+					null,
 					done
 				);
 			});
@@ -437,6 +438,8 @@ describe('system test (type 4) - effect of multisignature registration on memory
 					library.logic.transaction.verify(
 						multisigTransaction2,
 						multisigSender,
+						null,
+						true,
 						done
 					);
 				});

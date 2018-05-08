@@ -69,6 +69,8 @@ class Peers {
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
+		self.broadhashConsensusCalculationInterval =
+			scope.config.peers.options.broadhashConsensusCalculationInterval;
 		setImmediate(cb, null, self);
 	}
 }
@@ -722,9 +724,9 @@ Peers.prototype.networkHeight = function(options, cb) {
 		if (err) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupByHeight = _.groupBy(peers, 'height');
-		const popularHeights = Object.keys(peersGroupByHeight);
-		const networkHeight = Number(_.max(popularHeights));
+		const peersGroupedByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
+		const networkHeight = _.max(popularHeights);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
 		library.logger.trace(popularHeights);
@@ -853,11 +855,25 @@ Peers.prototype.onPeersReady = function() {
 			() => setImmediate(cb)
 		);
 	}
+
+	function calculateConsensus(cb) {
+		self.calculateConsensus();
+		library.logger.debug(
+			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+		);
+		return setImmediate(cb);
+	}
 	// Loop in 30 sec intervals for less new insertion after removal
 	jobsQueue.register(
 		'peersDiscoveryAndUpdate',
 		peersDiscoveryAndUpdate,
 		peerDiscoveryFrequency
+	);
+
+	jobsQueue.register(
+		'calculateConsensus',
+		calculateConsensus,
+		self.broadhashConsensusCalculationInterval
 	);
 };
 

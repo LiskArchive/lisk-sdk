@@ -57,7 +57,6 @@ describe('rounds', () => {
 				db,
 				bus: { message: sinon.spy() },
 				network: { io: { sockets: { emit: sinon.spy() } } },
-				config: { loading: { snapshot: false } },
 			};
 			done();
 		});
@@ -167,17 +166,6 @@ describe('rounds', () => {
 			it('flush query should be called once', () => {
 				return expect(stub.calledOnce).to.be.true;
 			});
-		});
-	});
-
-	describe('setSnapshotRound', () => {
-		it('should set library.config.loading.snapshot', () => {
-			var variable = 'library.config.loading.snapshot';
-			var backup = get(variable);
-			var value = 'abc';
-			rounds.setSnapshotRound(value);
-			expect(get(variable)).to.equal(value);
-			return set(variable, backup);
 		});
 	});
 
@@ -456,7 +444,6 @@ describe('rounds', () => {
 		// Init stubs
 		var mergeBlockGenerator_stub = sinon.stub().resolves();
 		var land_stub = sinon.stub().resolves();
-		var truncateBlocks_stub = sinon.stub().resolves();
 		var sumRound_stub = sinon.stub().callsArg(1);
 		var getOutsiders_stub = sinon.stub().callsArg(1);
 		var clearRoundSnapshot_stub;
@@ -467,7 +454,6 @@ describe('rounds', () => {
 		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
 			land_stub.resetHistory();
-			truncateBlocks_stub.resetHistory();
 			sumRound_stub.resetHistory();
 			getOutsiders_stub.resetHistory();
 		}
@@ -479,7 +465,6 @@ describe('rounds', () => {
 			}
 			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 			Round.prototype.land = land_stub;
-			Round.prototype.truncateBlocks = truncateBlocks_stub;
 			Rounds.__set__('Round', Round);
 
 			// Set more stubs
@@ -534,61 +519,6 @@ describe('rounds', () => {
 								expect(err).to.not.exist;
 								expect(roundScope.finishRound).to.be.false;
 								done();
-							});
-						});
-					});
-				});
-
-				describe('snapshotRound', () => {
-					describe('when library.config.loading.snapshot = 0', () => {
-						it('should be set to true', done => {
-							var variable = 'library.config.loading.snapshot';
-							var backup = get(variable);
-							var value = 0;
-							set(variable, value);
-							block = { height: 1 };
-
-							rounds.tick(block, err => {
-								expect(err).to.not.exist;
-								expect(roundScope.snapshotRound).to.be.false;
-								set(variable, backup);
-								done();
-							});
-						});
-					});
-
-					describe('when library.config.loading.snapshot > 0', () => {
-						describe('when library.config.loading.snapshot === round', () => {
-							it('should be set to true', done => {
-								var variable = 'library.config.loading.snapshot';
-								var backup = get(variable);
-								var value = 1;
-								set(variable, value);
-								block = { height: 1 };
-
-								rounds.tick(block, err => {
-									expect(err).to.equal('Snapshot finished');
-									expect(roundScope.snapshotRound).to.be.true;
-									set(variable, backup);
-									done();
-								});
-							});
-						});
-
-						describe('when library.config.loading.snapshot !== round', () => {
-							it('should be set to false', done => {
-								var variable = 'library.config.loading.snapshot';
-								var backup = get(variable);
-								var value = 1;
-								set(variable, value);
-								block = { height: 202 };
-
-								rounds.tick(block, err => {
-									expect(err).to.not.exist;
-									expect(roundScope.snapshotRound).to.be.false;
-									set(variable, backup);
-									done();
-								});
 							});
 						});
 					});
@@ -681,76 +611,6 @@ describe('rounds', () => {
 			});
 		});
 
-		describe('scope.snapshotRound', () => {
-			describe('when true', () => {
-				var res;
-
-				before(done => {
-					var variable = 'library.config.loading.snapshot';
-					var backup = get(variable);
-					var value = 1;
-					set(variable, value);
-					block = { height: 1 };
-
-					rounds.tick(block, err => {
-						res = err;
-						set(variable, backup);
-						done();
-					});
-				});
-
-				after(() => {
-					return resetStubsHistory();
-				});
-
-				it('should return with error = Snapshot finished', () => {
-					return expect(res).to.equal('Snapshot finished');
-				});
-
-				it('should set scope.finishSnapshot to true', () => {
-					return expect(roundScope.finishSnapshot).to.be.true;
-				});
-
-				it('scope.truncateBlocks should be called once', () => {
-					return expect(truncateBlocks_stub.calledOnce).to.be.true;
-				});
-			});
-
-			describe('when false', () => {
-				var res;
-
-				before(done => {
-					var variable = 'library.config.loading.snapshot';
-					var backup = get(variable);
-					var value = 0;
-					set(variable, value);
-					block = { height: 1 };
-
-					rounds.tick(block, err => {
-						res = err;
-						set(variable, backup);
-						done();
-					});
-				});
-
-				after(() => {
-					return resetStubsHistory();
-				});
-
-				it('should return with no error', () => {
-					return expect(res).to.not.exist;
-				});
-
-				it('should not set scope.finishSnapshot', () => {
-					return expect(roundScope.finishSnapshot).to.equal(undefined);
-				});
-
-				it('scope.truncateBlocks should not be called', () => {
-					return expect(truncateBlocks_stub.called).to.be.false;
-				});
-			});
-		});
-
 		describe('performing round snapshot (queries)', () => {
 			function clearStubs() {
 				clearRoundSnapshot_stub.restore();
@@ -783,7 +643,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -841,7 +700,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -900,7 +758,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -959,7 +816,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };
@@ -1018,7 +874,6 @@ describe('rounds', () => {
 						}
 						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
 						Round.prototype.land = land_stub;
-						Round.prototype.truncateBlocks = truncateBlocks_stub;
 						Rounds.__set__('Round', Round);
 
 						block = { height: 100 };

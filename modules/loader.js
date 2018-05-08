@@ -72,8 +72,8 @@ class Loader {
 			},
 			config: {
 				loading: {
-					verifyOnLoading: scope.config.loading.verifyOnLoading,
-					snapshot: scope.config.loading.snapshot,
+					loadPerIteration: scope.config.loading.loadPerIteration,
+					snapshotRound: scope.config.loading.snapshotRound,
 				},
 				syncing: {
 					active: scope.config.syncing.active,
@@ -369,7 +369,6 @@ __private.loadTransactions = function(cb) {
 __private.loadBlockChain = function() {
 	let offset = 0;
 	const limit = Number(library.config.loading.loadPerIteration) || 1000;
-	let verify = Boolean(library.config.loading.verifyOnLoading);
 
 	/**
 	 * Description of load.
@@ -378,7 +377,6 @@ __private.loadBlockChain = function() {
 	 * @todo Add description for the function
 	 */
 	function load(count) {
-		verify = true;
 		__private.total = count;
 		async.series(
 			{
@@ -403,7 +401,6 @@ __private.loadBlockChain = function() {
 							modules.blocks.process.loadBlocksOffset(
 								limit,
 								offset,
-								verify,
 								(err, lastBlock) => {
 									if (err) {
 										return setImmediate(cb, err);
@@ -492,40 +489,6 @@ __private.loadBlockChain = function() {
 		}
 	}
 
-	/**
-	 * Description of verifySnapshot.
-	 *
-	 * @todo Add @returns and @param tags
-	 * @todo Add description for the function
-	 */
-	function verifySnapshot(count, round) {
-		if (
-			library.config.loading.snapshot !== undefined ||
-			library.config.loading.snapshot > 0
-		) {
-			library.logger.info('Snapshot mode enabled');
-
-			if (
-				isNaN(library.config.loading.snapshot) ||
-				library.config.loading.snapshot >= round
-			) {
-				library.config.loading.snapshot = round;
-
-				if (count === 1 || count % constants.activeDelegates > 0) {
-					library.config.loading.snapshot = round > 1 ? round - 1 : 1;
-				}
-
-				modules.rounds.setSnapshotRound(library.config.loading.snapshot);
-			}
-
-			library.logger.info(
-				`Snapshotting to end of round: ${library.config.loading.snapshot}`
-			);
-			return true;
-		}
-		return false;
-	}
-
 	library.db
 		.task(checkMemTables)
 		.spread(
@@ -545,10 +508,8 @@ __private.loadBlockChain = function() {
 
 				matchGenesisBlock(getGenesisBlock[0]);
 
-				verify = verifySnapshot(blocksCount, round);
-
-				if (verify) {
-					return reload(blocksCount, 'Blocks verification enabled');
+				if (library.config.loading.snapshotRound) {
+					return __private.createSnapshot(blocksCount);
 				}
 
 				const unapplied = getMemRounds.filter(
@@ -596,6 +557,88 @@ __private.loadBlockChain = function() {
 			library.logger.error(err.stack || err);
 			return process.emit('exit');
 		});
+};
+
+/**
+ * Snapshot creation - performs rebuild of accounts states from blockchain data
+ *
+ * @private
+ * @emits snapshotFinished
+ * @throws {Error} When blockchain is shorter than one round of blocks
+ */
+__private.createSnapshot = height => {
+	library.logger.info('Snapshot mode enabled');
+
+	// Single round contains amount of blocks equal to number of active delegates
+	if (height < constants.activeDelegates) {
+		throw new Error(
+			'Unable to create snapshot, blockchain should contain at least one round of blocks'
+		);
+	}
+
+	const snapshotRound = library.config.loading.snapshotRound;
+	const totalRounds = Math.floor(height / constants.activeDelegates);
+	const targetRound = isNaN(snapshotRound)
+		? totalRounds
+		: Math.min(totalRounds, snapshotRound);
+	const targetHeight = targetRound * constants.activeDelegates;
+
+	library.logger.info(
+		`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
+	);
+
+	let currentHeight = 1;
+	async.series(
+		{
+			resetMemTables(seriesCb) {
+				library.logic.account.resetMemTables(seriesCb);
+			},
+			loadBlocksOffset(seriesCb) {
+				async.until(
+					() => targetHeight < currentHeight,
+					untilCb => {
+						library.logger.info(
+							`Rebuilding accounts states, current round: ${slots.calcRound(
+								currentHeight
+							)}, height: ${currentHeight}`
+						);
+						modules.blocks.process.loadBlocksOffset(
+							constants.activeDelegates,
+							currentHeight,
+							loadBlocksOffsetErr => {
+								currentHeight += constants.activeDelegates;
+								return setImmediate(untilCb, loadBlocksOffsetErr);
+							}
+						);
+					},
+					seriesCb
+				);
+			},
+			truncateBlocks(seriesCb) {
+				library.db.blocks
+					.deleteBlocksAfterHeight(targetHeight)
+					.then(() => setImmediate(seriesCb))
+					.catch(err => setImmediate(seriesCb, err));
+			},
+		},
+		__private.snapshotFinished
+	);
+};
+
+/**
+ * Executed when snapshot creation is complete.
+ *
+ * @private
+ * @param {err} Error if any
+ * @emits cleanup
+ */
+__private.snapshotFinished = err => {
+	if (err) {
+		library.logger.error('Snapshot creation failed', err);
+	} else {
+		library.logger.info('Snapshot creation finished');
+	}
+	process.emit('cleanup');
 };
 
 /**

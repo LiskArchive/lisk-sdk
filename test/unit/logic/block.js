@@ -23,12 +23,12 @@ const constants = require('../../../helpers/constants.js');
 
 const Block = rewire('../../../logic/block.js');
 
-const validPassword =
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 

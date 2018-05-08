@@ -47,6 +47,7 @@ module.exports = {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
 		count: link('blocks/count.sql'),
 		deleteBlock: link('blocks/delete_block.sql'),
+		deleteBlocksAfterHeight: link('blocks/delete_blocks_after_height.sql'),
 		getGenesisBlock: link('blocks/get_genesis_block.sql'),
 		getGenesisBlockId: link('blocks/get_genesis_block_id.sql'),
 		getIdSequence: link('blocks/get_id_sequence.sql'),
@@ -100,7 +101,6 @@ module.exports = {
 		restoreVotesSnapshot: link('rounds/restore_votes_snapshot.sql'),
 		getMemRounds: link('rounds/get_mem_rounds.sql'),
 		flush: link('rounds/flush.sql'),
-		truncateBlocks: link('rounds/truncate_blocks.sql'),
 		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
 		insertRoundInformationWithAmount: link(
 			'rounds/insert_round_information_with_amount.sql'

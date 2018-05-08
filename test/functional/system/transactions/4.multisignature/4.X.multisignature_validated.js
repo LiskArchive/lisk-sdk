@@ -29,7 +29,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 
 	scenarios.regular.dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: scenarios.regular.account.password,
+		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;
@@ -40,7 +40,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	scenarios.regular.members.map(member => {
 		var signature = lisk.transaction.utils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
-			member.password
+			member.passphrase
 		);
 		scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
@@ -97,35 +97,25 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			localCommon.addTransaction(
-				library,
-				scenarios.regular.multiSigTransaction,
-				err => {
-					expect(err).to.equal('Account already has multisignatures enabled');
-					done();
+			const multiSignatureToSameAccount = lisk.transaction.registerMultisignature(
+				{
+					passphrase: scenarios.regular.account.passphrase,
+					keysgroup: scenarios.regular.keysgroup,
+					lifetime: scenarios.regular.lifetime,
+					minimum: scenarios.regular.minimum,
+					timeOffset: -10000,
 				}
 			);
+			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
+				expect(err).to.equal('Account already has multisignatures enabled');
+				done();
+			});
 		});
 
 		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
-					it(`type ${index}: ${key} should be rejected`, done => {
-						localCommon.loadTransactionType(
-							key,
-							scenarios.regular.account,
-							scenarios.regular.dapp,
-							true,
-							transaction => {
-								localCommon.addTransaction(library, transaction, err => {
-									expect(err).to.equal(
-										`Transaction type ${transaction.type} is frozen`
-									);
-									done();
-								});
-							}
-						);
-					});
+					return true;
 				} else if (key != 'MULTI') {
 					it(`type ${index}: ${key} should be ok`, done => {
 						localCommon.loadTransactionType(

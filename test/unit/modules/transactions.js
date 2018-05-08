@@ -185,7 +185,6 @@ describe('transactions', () => {
 								db: dbStub,
 								config: {
 									loading: {
-										verifyOnLoading: false,
 										snapshot: false,
 									},
 									syncing: {

@@ -74,7 +74,7 @@ class Delegates {
 			},
 			config: {
 				forging: {
-					secret: scope.config.forging.secret,
+					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
 					defaultPassword: scope.config.forging.defaultPassword,
 					access: {
@@ -266,7 +266,7 @@ __private.forge = function(cb) {
 
 			if (modules.transport.poorConsensus()) {
 				const consensusErr = [
-					'Inadequate broadhash consensus',
+					'Inadequate broadhash consensus before forging a block:',
 					modules.peers.getLastConsensus(),
 					'%',
 				].join(' ');
@@ -279,9 +279,11 @@ __private.forge = function(cb) {
 			}
 
 			library.logger.info(
-				['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
-					' '
-				)
+				[
+					'Broadhash consensus before forging a block:',
+					modules.peers.getLastConsensus(),
+					'%',
+				].join(' ')
 			);
 
 			modules.blocks.process.generateBlock(
@@ -322,14 +324,14 @@ __private.forge = function(cb) {
 };
 
 /**
- * Parses an encrypted secret string into its component parts.
+ * Parses an encrypted passphrase string into its component parts.
  *
  * @private
- * @param {string} encryptedSecret - String containing components of the encrypted secret
- * @returns {object} Parsed encrypted secret
+ * @param {string} encryptedPassphrase - String containing components of the encrypted passphrase
+ * @returns {object} Parsed encrypted passphrase
  */
-const parseEncryptedSecret = encryptedSecret => {
-	const keyValuePairs = encryptedSecret
+const parseEncryptedPassphrase = encryptedPassphrase => {
+	const keyValuePairs = encryptedPassphrase
 		.split('&')
 		.map(pair => pair.split('='))
 		.reduce(
@@ -353,20 +355,20 @@ const parseEncryptedSecret = encryptedSecret => {
 };
 
 /**
- * Validates an encrypted secret string, ensuring that all expected keys are present.
+ * Validates an encrypted passphrase string, ensuring that all expected keys are present.
  *
  * @private
- * @param {string} encryptedSecret - String containing components of the encrypted secret
+ * @param {string} encryptedPassphrase - String containing components of the encrypted passphrase
  * @throws {Error} If a required key is missing.
  * @returns {boolean} true
  */
-const validateEncryptedSecret = encryptedSecret => {
+const validateEncryptedPassphrase = encryptedPassphrase => {
 	const humanReadableKeys = {
 		cipherText: 'cipher text',
 		iv: 'IV',
 	};
 	return ['salt', 'cipherText', 'iv', 'tag'].every(key => {
-		if (!encryptedSecret[key]) {
+		if (!encryptedPassphrase[key]) {
 			const humanReadableKey = humanReadableKeys[key] || key;
 			throw new Error(`No ${humanReadableKey} provided`);
 		}
@@ -414,19 +416,19 @@ const getKeyFromPassword = (password, salt, iterations) =>
 	);
 
 /**
- * Returns the decrypted secret by deciphering encrypted secret with the password provided using aes-256-gcm algorithm.
+ * Returns the decrypted passphrase by deciphering encrypted passphrase with the password provided using aes-256-gcm algorithm.
  *
  * @private
- * @param {string} encryptedSecret
+ * @param {string} encryptedPassphrase
  * @param {string} password
  * @throws {error} If unable to decrypt using password.
- * @returns {string} Decrypted secret
+ * @returns {string} Decrypted passphrase
  * @todo Add description for the params
  */
-__private.decryptSecret = function(encryptedSecret, password) {
-	const parsedSecret = parseEncryptedSecret(encryptedSecret);
-	validateEncryptedSecret(parsedSecret);
-	const { tag, salt, iv, iterations, cipherText } = parsedSecret;
+__private.decryptPassphrase = function(encryptedPassphrase, password) {
+	const parsedPassphrase = parseEncryptedPassphrase(encryptedPassphrase);
+	validateEncryptedPassphrase(parsedPassphrase);
+	const { tag, salt, iv, iterations, cipherText } = parsedPassphrase;
 	const tagBuffer = getTagBuffer(tag);
 	const key = getKeyFromPassword(
 		password,
@@ -576,11 +578,11 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
-	const secretsList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 
 	if (
-		!secretsList ||
-		!secretsList.length ||
+		!encryptedList ||
+		!encryptedList.length ||
 		!library.config.forging.force ||
 		!library.config.forging.defaultPassword
 	) {
@@ -589,40 +591,40 @@ __private.loadDelegates = function(cb) {
 	library.logger.info(
 		[
 			'Loading',
-			secretsList.length,
-			'delegates using encrypted secrets from config',
+			encryptedList.length,
+			'delegates using encrypted passphrases from config',
 		].join(' ')
 	);
 
 	async.eachSeries(
-		secretsList,
+		encryptedList,
 		(encryptedItem, seriesCb) => {
-			let secret;
+			let passphrase;
 			try {
-				secret = __private.decryptSecret(
-					encryptedItem.encryptedSecret,
+				passphrase = __private.decryptPassphrase(
+					encryptedItem.encryptedPassphrase,
 					library.config.forging.defaultPassword
 				);
 			} catch (error) {
 				return setImmediate(
 					seriesCb,
-					`Invalid encryptedSecret for publicKey: ${encryptedItem.publicKey}. ${
-						error.message
-					}`
+					`Invalid encryptedPassphrase for publicKey: ${
+						encryptedItem.publicKey
+					}. ${error.message}`
 				);
 			}
 
 			const keypair = library.ed.makeKeypair(
 				crypto
 					.createHash('sha256')
-					.update(secret, 'utf8')
+					.update(passphrase, 'utf8')
 					.digest()
 			);
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				return setImmediate(
 					seriesCb,
-					`Invalid encryptedSecret for publicKey: ${
+					`Invalid encryptedPassphrase for publicKey: ${
 						encryptedItem.publicKey
 					}. Public keys do not match`
 				);
@@ -682,21 +684,21 @@ __private.loadDelegates = function(cb) {
  * @todo Add description for the return value
  */
 Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
-	const encryptedList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 	const encryptedItem = _.find(
 		encryptedList,
 		item => item.publicKey === publicKey
 	);
 
 	let keypair;
-	let decryptedSecret;
+	let passphrase;
 	let actionEnable = false;
 	let actionDisable = false;
 
 	if (encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptSecret(
-				encryptedItem.encryptedSecret,
+			passphrase = __private.decryptPassphrase(
+				encryptedItem.encryptedPassphrase,
 				password
 			);
 		} catch (e) {
@@ -706,7 +708,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 		keypair = library.ed.makeKeypair(
 			crypto
 				.createHash('sha256')
-				.update(decryptedSecret, 'utf8')
+				.update(passphrase, 'utf8')
 				.digest()
 		);
 	} else {
@@ -890,8 +892,10 @@ Delegates.prototype.getForgers = function(query, cb) {
 	const currentSlot = slots.getSlotNumber();
 	const forgerKeys = [];
 
+	// We pass height + 1 as seed for generating the list, because we want the list to be generated for next block.
+	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
 	self.generateDelegateList(
-		currentBlock.height,
+		currentBlock.height + 1,
 		null,
 		(err, activeDelegates) => {
 			if (err) {

@@ -878,6 +878,8 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 				library.logic.transaction.verify(
 					transaction,
 					sender,
+					null,
+					true,
 					err => {
 						if (err) {
 							return setImmediate(waterCb, err);

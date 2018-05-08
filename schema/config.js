@@ -172,8 +172,20 @@ module.exports = {
 								},
 								required: ['max', 'delayMs', 'delayAfter', 'windowMs'],
 							},
+							cors: {
+								type: 'object',
+								properties: {
+									origin: {
+										anyOf: [{ type: 'string' }, { type: 'boolean' }],
+									},
+									methods: {
+										type: 'array',
+									},
+								},
+								required: ['origin'],
+							},
 						},
-						required: ['limits'],
+						required: ['limits', 'cors'],
 					},
 				},
 				required: ['enabled', 'access', 'options'],
@@ -265,13 +277,13 @@ module.exports = {
 					defaultPassword: {
 						type: 'string',
 					},
-					secret: {
+					delegates: {
 						type: 'array',
 						items: {
 							properties: {
-								encryptedSecret: {
+								encryptedPassphrase: {
 									type: 'string',
-									format: 'encryptedSecret',
+									format: 'encryptedPassphrase',
 								},
 								publicKey: {
 									type: 'string',
@@ -290,21 +302,18 @@ module.exports = {
 						required: ['whiteList'],
 					},
 				},
-				required: ['force', 'secret', 'access'],
+				required: ['force', 'delegates', 'access'],
 			},
 			loading: {
 				type: 'object',
 				properties: {
-					verifyOnLoading: {
-						type: 'boolean',
-					},
 					loadPerIteration: {
 						type: 'integer',
 						minimum: 1,
 						maximum: 5000,
 					},
 				},
-				required: ['verifyOnLoading', 'loadPerIteration'],
+				required: ['loadPerIteration'],
 			},
 			ssl: {
 				type: 'object',

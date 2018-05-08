@@ -28,18 +28,18 @@ var constants = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var validSender = {
 	balance: 8067474861277,
 	u_balance: 8067474861277,
-	password: 'hacnj1113nn7tujzia4i',
+	passphrase: 'hacnj1113nn7tujzia4i',
 	username: 'i3Hb0kYEbk$r',
 	publicKey: '65eac2bdd725a0a294e3a48de235108ff1a18a829e6d125ad50815a7c5356470',
 	multimin: 0,
@@ -48,7 +48,7 @@ var validSender = {
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(validSender.password, 'utf8')
+	.update(validSender.passphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 

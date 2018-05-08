@@ -51,7 +51,7 @@ const Peer = stampit({
 	},
 	init({ broadhash, nonce, state }) {
 		this.dappid = null;
-		this.height = faker.random.number({ max: 9999, min: 1 });
+		this.height = parseInt(_.sample([50, 70, 90, 110]));
 		this.ip = faker.internet.ip();
 		this.os = faker.lorem.slug();
 		this.wsPort = `5${faker.random.number({ max: 999, min: 100 })}`;
