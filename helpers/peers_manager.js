@@ -54,13 +54,17 @@ PeersManager.prototype.add = function(peer) {
 	const existingPeer = this.peers[peer.string];
 
 	if (existingPeer && existingPeer.socket) {
-		existingPeer.socket.destroy();
-		delete existingPeer.socket;
+		if (peer.socket && peer.socket !== existingPeer.socket) {
+			// Destroy with error code 1000.
+			peer.socket.destroy(1000, 'Client intentionally disconnected the socket');
+		}
+		peer.socket = existingPeer.socket;
 	}
 	this.peers[peer.string] = peer;
 
 	if (peer.socket && peer.socket.active) {
-		// Reconnect existing socket
+		// Reconnect existing socket if it exists and is closed.
+		// If it's already open then peer.socket.connect() will do nothing.
 		peer.socket.connect();
 	} else {
 		// Create client WS connection to peer
