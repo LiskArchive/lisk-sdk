@@ -16,6 +16,7 @@
 
 var queryParser = require('express-query-int');
 var checkIpInList = require('./check_ip_in_list');
+var apiCodes = require('./api_codes');
 
 /**
  * Description of the module.
@@ -129,36 +130,19 @@ var middleware = {
 	 * @todo Add @returns tag
 	 */
 	applyAPIAccessRules(config, req, res, next) {
-		if (req.url.match(/^\/peer[/]?.*/)) {
-			var internalApiAllowed =
-				config.peers.enabled &&
-				!checkIpInList(config.peers.access.blackList, req.ip, false);
-			rejectDisallowed(internalApiAllowed, config.peers.enabled);
+		if (!config.api.enabled) {
+			res
+				.status(apiCodes.INTERNAL_SERVER_ERROR)
+				.send({ success: false, error: 'API access disabled' });
+		} else if (
+			!config.api.access.public &&
+			!checkIpInList(config.api.access.whiteList, req.ip, false)
+		) {
+			res
+				.status(apiCodes.FORBIDDEN)
+				.send({ success: false, error: 'API access denied' });
 		} else {
-			var publicApiAllowed =
-				config.api.enabled &&
-				(config.api.access.public ||
-					checkIpInList(config.api.access.whiteList, req.ip, false));
-			rejectDisallowed(publicApiAllowed, config.api.enabled);
-		}
-
-		/**
-		 * Description of the function.
-		 *
-		 * @private
-		 * @param {boolean} apiAllowed
-		 * @param {boolean} isEnabled
-		 * @todo Add description for the function and the params
-		 * @todo Add @returns tag
-		 */
-		function rejectDisallowed(apiAllowed, isEnabled) {
-			return apiAllowed
-				? next()
-				: isEnabled
-					? res.status(403).send({ success: false, error: 'API access denied' })
-					: res
-							.status(500)
-							.send({ success: false, error: 'API access disabled' });
+			next();
 		}
 	},
 

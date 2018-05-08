@@ -16,6 +16,7 @@
 'use strict';
 
 var rewire = require('rewire');
+var apiCodes = require('../../../helpers/api_codes');
 
 var httpApi = rewire('../../../helpers/http_api');
 
@@ -216,12 +217,8 @@ describe('httpApi', () => {
 		describe('applyAPIAccessRules', () => {
 			var validConfig;
 
-			before(done => {
+			beforeEach(done => {
 				validConfig = {
-					peers: {
-						enabled: true,
-						access: { blacklist: [] },
-					},
 					api: {
 						enabled: true,
 						access: {
@@ -230,12 +227,13 @@ describe('httpApi', () => {
 						},
 					},
 				};
+				checkIpInListStub = sinonSandbox.stub();
+				httpApi.__set__('checkIpInList', checkIpInListStub);
 				done();
 			});
 
-			beforeEach(done => {
-				checkIpInListStub = sinonSandbox.stub();
-				httpApi.__set__('checkIpInList', checkIpInListStub);
+			it('should response with error if api is not enabled', done => {
+				validConfig.api.enabled = false;
 
 				httpApi.middleware.applyAPIAccessRules(
 					validConfig,
@@ -243,66 +241,81 @@ describe('httpApi', () => {
 					resMock,
 					validNextSpy
 				);
+
+				expect(validNextSpy).to.be.not.called;
+				expect(resMock.status).to.be.calledWith(apiCodes.INTERNAL_SERVER_ERROR);
+				expect(resMock.send).to.be.calledWith({
+					success: false,
+					error: 'API access disabled',
+				});
 				done();
 			});
 
-			describe('when req.url matches regex(/^\\/peer[\\/]?.*!/)', () => {
-				before(done => {
-					validReq.url = '/peer/.';
-					done();
-				});
+			it('should respond with success if api is enabled and public', done => {
+				validConfig.api.enabled = true;
+				validConfig.api.access.public = true;
 
-				it('should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false', done => {
-					expect(checkIpInListStub).to.be.calledOnce;
-					expect(checkIpInListStub).to.be.calledWith(
-						validConfig.api.access.blacklist,
-						validReq.ip,
-						false
-					);
-					done();
-				});
-
-				describe('when config.peers.enabled = true and checkIpInList() = false', () => {
-					it('should call rejectDisallowed with "true" and "true" as argument');
-				});
-
-				describe('when config.peers.enabled = false', () => {
-					it(
-						'should call rejectDisallowed with "false" and "false" as arguments'
-					);
-				});
-
-				describe('when checkIpInList() = true and config.peers.enabled = true', () => {
-					it(
-						'should call rejectDisallowed with "false" and "true" as arguments'
-					);
-				});
+				httpApi.middleware.applyAPIAccessRules(
+					validConfig,
+					validReq,
+					resMock,
+					validNextSpy
+				);
+				expect(validNextSpy).to.be.calledOnce;
+				expect(validNextSpy.firstCall.args).to.be.empty;
+				done();
 			});
 
-			describe('when req.url does not match regex(/^\\/peer[\\/]?.*!/)', () => {
-				it(
-					'should call checkIpInList with parameters: config.peers.access.blackList, req.ip, false'
+			it('should check for IP and response with success if api is not public and IP is whitelisted', done => {
+				validConfig.api.access.public = false;
+				validConfig.api.access.whiteList = ['192.168.99.100'];
+				validReq.ip = '192.168.99.100';
+				checkIpInListStub.returns(true);
+
+				httpApi.middleware.applyAPIAccessRules(
+					validConfig,
+					validReq,
+					resMock,
+					validNextSpy
 				);
 
-				describe('when config.api.enabled = true and checkIpInList() = true and config.api.access.public = false', () => {
-					it(
-						'should call rejectDisallowed with "true" and "true" as arguments'
-					);
-				});
+				expect(checkIpInListStub).to.be.calledOnce;
+				expect(checkIpInListStub).to.be.calledWith(
+					['192.168.99.100'],
+					'192.168.99.100',
+					false
+				);
+				expect(validNextSpy).to.be.calledOnce;
+				expect(validNextSpy.firstCall.args).to.be.empty;
+				done();
+			});
 
-				describe('when config.api.enabled = true and config.api.access.public = true and checkIpInList() = false', () => {
-					it(
-						'should call rejectDisallowed with "true" and "true" as arguments'
-					);
-				});
+			it('should check for IP and response with error if api is not public and IP is whitelisted', done => {
+				validConfig.api.access.public = false;
+				validConfig.api.access.whiteList = ['192.168.99.100'];
+				validReq.ip = '192.168.99.101';
+				checkIpInListStub.returns(false);
 
-				describe('when config.api.enabled = false', () => {
-					it('should call rejectDisallowed "false" and "false"');
-				});
+				httpApi.middleware.applyAPIAccessRules(
+					validConfig,
+					validReq,
+					resMock,
+					validNextSpy
+				);
 
-				describe('when config.api.enabled.public = true and checkIpInList() = false and config.api.access = false', () => {
-					it('should call rejectDisallowed "false" and "true"');
+				expect(checkIpInListStub).to.be.calledOnce;
+				expect(checkIpInListStub).to.be.calledWith(
+					['192.168.99.100'],
+					'192.168.99.101',
+					false
+				);
+				expect(validNextSpy).to.be.not.called;
+				expect(resMock.status).to.be.calledWith(apiCodes.FORBIDDEN);
+				expect(resMock.send).to.be.calledWith({
+					success: false,
+					error: 'API access denied',
 				});
+				done();
 			});
 		});
 
