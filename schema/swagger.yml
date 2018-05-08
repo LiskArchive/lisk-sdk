@@ -14,9 +14,11 @@
 swagger: '2.0'
 
 info:
-  description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.26'
+  description: Lisk API Documentation
+
+
+  version: '1.0.27'
   contact:
     email: admin@lisk.io
   license:
@@ -24,9 +26,11 @@ info:
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 # All paths relative to specified basePath
-# basePath: /v1
-
 basePath: /api
+
+# The host (name or ip) serving the API
+#host: 46.101.179.89:5000
+host: localhost:4000
 
 # Tags for organizing operations
 tags:
@@ -42,12 +46,12 @@ tags:
   description: Node related API calls
 - name: Peers
   description: Peers related API Calls
-- name: Queue
-  description: Queue related API calls
 - name: Signatures
   description: Signatures related API calls
 - name: Transactions
   description: Transactions related API calls
+- name: Voters
+  description: Votes related API calls
 - name: Votes
   description: Votes related API calls
 - name: Private
@@ -66,9 +70,9 @@ paths:
       - Accounts
       summary: Requests account data
       operationId: getAccounts
-      description:
-        By passing in the appropriate parameters, you can search for
-        matching accounts in the system
+      description: |
+        By passing the appropriate parameters, you can search for matching accounts in the system.
+        Otherwise returns a list of accounts.
       produces:
       - application/json
       parameters:
@@ -112,9 +116,9 @@ paths:
       - Accounts
       summary: Requests multisignature groups data
       operationId: getMultisignatureGroups
-      description:
-        By passing in the appropriate options, you can search for a
-        specified account in the system and get its multisignature groups
+      description: |
+        By passing an address of an account, you can search for the specified account in the system.
+        As response, you will get a list of the multisignature groups that this account is member of.
       produces:
         - application/json
       parameters:
@@ -155,9 +159,9 @@ paths:
       - Accounts
       summary: Requests multisignature memberships data
       operationId: getMultisignatureMemberships
-      description:
-        By passing in the appropriate options, you can search for a
-        specified account in the system and get its multisignature memberships
+      description: |
+        By passing the address of a multisignature group, you can search for the specified account in the system.
+        As response, you will get all members of this particular multisignature group.
       produces:
         - application/json
       parameters:
@@ -187,6 +191,62 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
+  /blocks:
+     x-swagger-router-controller: blocks
+     get:
+       tags:
+         - Blocks
+       summary: Requests blocks data
+       operationId: getBlocks
+       x-lisk-cache-enabled: true
+       description: |
+         By passing the appropriate parameters, you can search for a specified block in the system.
+         Otherwise returns a list of blocks.
+       produces:
+         - application/json
+       parameters:
+         - $ref: '#/parameters/blockId'
+         - $ref: '#/parameters/height'
+         - $ref: '#/parameters/limit'
+         - $ref: '#/parameters/offset'
+         - in: query
+           name: generatorPublicKey
+           description: generatorPublicKey to query
+           type: string
+           format: publicKey
+         - in: query
+           name: sort
+           description: Fields to sort results by
+           required: false
+           type: string
+           enum:
+             - height:asc
+             - height:desc
+             - totalAmount:asc
+             - totalAmount:desc
+             - totalFee:asc
+             - totalFee:desc
+             - timestamp:asc
+             - timestamp:desc
+           default: height:desc
+       responses:
+         200:
+           description: Search results matching criteria
+           schema:
+             $ref: '#/definitions/BlocksResponse'
+         400:
+           description: Malformed query or parameters
+           schema:
+             $ref: '#/definitions/ParamErrorResponse'
+         429:
+           description: Too many requests, exceeded rate limit
+           schema:
+             $ref: '#/definitions/RequestLimitError'
+         500:
+           description: Unexpected error
+           schema:
+             $ref: '#/definitions/UnexpectedError'
+
   /dapps:
     x-swagger-router-controller: dapps
     get:
@@ -194,9 +254,9 @@ paths:
       - Dapps
       summary: Requests dapps data
       operationId: getDapps
-      description:
-        By passing in the appropriate options, you can search for
-        a specified dapp in the system, otherwise returns a list
+      description: |
+        By passing the appropriate parameters, you can search for a specified dapp in the system.
+        Otherwise returns a list of dapps.
       produces:
       - application/json
       parameters:
@@ -242,263 +302,6 @@ paths:
           schema:
            $ref: '#/definitions/UnexpectedError'
 
-  /peers:
-    x-swagger-router-controller: peers
-    get:
-      tags:
-      - Peers
-      summary: Requests peers data
-      operationId: getPeers
-      description: Returns peers related data
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/ip'
-        - $ref: '#/parameters/httpPort'
-        - $ref: '#/parameters/wsPort'
-        - $ref: '#/parameters/os'
-        - $ref: '#/parameters/version'
-        - $ref: '#/parameters/state'
-        - $ref: '#/parameters/height'
-        - $ref: '#/parameters/broadhash'
-        - $ref: '#/parameters/limit'
-        - $ref: '#/parameters/offset'
-        - in: query
-          name: sort
-          description: Fields to sort results by
-          required: false
-          type: string
-          enum:
-            - height:asc
-            - height:desc
-            - version:asc
-            - version:desc
-      responses:
-        200:
-          description: List of peers
-          schema:
-            $ref: '#/definitions/PeersResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  # Node
-  /node/constants:
-    x-swagger-router-controller: node
-    get:
-      tags:
-      - Node
-      summary: Requests constants data
-      operationId: getConstants
-      description: Returns all current constants data on the system
-      produces:
-      - application/json
-      responses:
-        200:
-          description: Node constants response
-          schema:
-            $ref: '#/definitions/NodeConstantsResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /node/status:
-    x-swagger-router-controller: node
-    get:
-      tags:
-      - Node
-      summary: Requests status data
-      operationId: getStatus
-      description: Returns all current constants data on the system
-      produces:
-      - application/json
-      responses:
-        200:
-          description: Node status response
-          schema:
-            $ref: '#/definitions/NodeStatusResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /node/status/forging:
-    x-swagger-router-controller: node
-    x-private: true
-    get:
-      tags:
-        - Node
-        - Delegates
-        - Private
-      summary: Requests forging status of a delegate
-      operationId: getForgingStatus
-      description:
-        By querying by publicKey, the forging status of a delegate can be determined on a node
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/publicKey'
-      responses:
-        200:
-          description: Search results matching criteria
-          schema:
-            $ref: '#/definitions/ForgingStatusResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        403:
-          description: Access denied
-          schema:
-            $ref: '#/definitions/AccessDeniedError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-    put:
-      tags:
-        - Node
-        - Delegates
-        - Private
-      summary: Toggles the forging status of a delegate
-      operationId: updateForgingStatus
-      description:
-        Upon passing the correct password and publicKey, forging will be enabled or disabled
-      produces:
-        - application/json
-      consumes:
-        - application/json
-      parameters:
-        - in: body
-          name: data
-          description: Password for decrypting passphrase of delegate with corresponding public key
-          required: true
-          schema:
-            type: object
-            required:
-              - password
-              - publicKey
-            properties:
-              password:
-                type: string
-                example: "happy tree friends"
-                minLength: 5
-              publicKey:
-                type: string
-                example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
-                format: publicKey
-      responses:
-        200:
-          description: Delegate forging toggled on or off
-          schema:
-            $ref: '#/definitions/ForgingStatusResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        403:
-          description: Access denied
-          schema:
-            $ref: '#/definitions/AccessDeniedError'
-        404:
-          description: Provided public key not found
-          schema:
-            $ref: '#/definitions/NotFoundError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /node/transactions/{state}:
-    x-swagger-router-controller: node
-    get:
-      tags:
-        - Transactions
-        - Queue
-      summary: Requests unprocessed transactions data
-      operationId: getPooledTransactions
-      description:
-        This API call returns unprocessed transactions matching filter criteria
-        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load
-      produces:
-        - application/json
-      parameters:
-        - in: path
-          name: state
-          description: State of transactions to query
-          required: true
-          type: string
-          enum:
-            - unprocessed
-            - unconfirmed
-            - unsigned
-        - $ref: '#/parameters/transactionId'
-        - $ref: '#/parameters/recipientId'
-        - $ref: '#/parameters/recipientPublicKey'
-        - $ref: '#/parameters/senderId'
-        - $ref: '#/parameters/senderPublicKey'
-        - $ref: '#/parameters/transactionType'
-        - $ref: '#/parameters/limit'
-        - $ref: '#/parameters/offset'
-        - in: query
-          name: sort
-          description: Fields to sort on to query
-          required: false
-          type: string
-          enum:
-            - amount:asc
-            - amount:desc
-            - fee:asc
-            - fee:desc
-            - type:asc
-            - type:desc
-            - timestamp:asc
-            - timestamp:desc
-          default: amount:asc
-      responses:
-        200:
-          description: Transactions list
-          schema:
-            $ref: '#/definitions/TransactionsResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
   /delegates:
     x-swagger-router-controller: delegates
     get:
@@ -507,9 +310,9 @@ paths:
       summary: Requests delegates data
       operationId: getDelegates
       x-lisk-cache-enabled: true
-      description:
-        By passing in the appropriate options, you can search for
-        a specified delegate in the system, otherwise returns a list
+      description: |
+        By passing the appropriate parameters, you can search for a specified delegate in the system.
+        Otherwise returns a list of delegates.
       produces:
       - application/json
       parameters:
@@ -577,8 +380,8 @@ paths:
         - Delegates
       summary: Requests next forgers data
       operationId: getForgers
-      description:
-        By passing in the appropriate options, you can get a list of the next forgers
+      description: |
+        Returns a list of the next forgers.
       produces:
         - application/json
       parameters:
@@ -617,10 +420,9 @@ paths:
       summary: Requests forging stats by delegate
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
-      description:
-        By passing an existing delegate address, you can read
-        its forging statistics within a window of time which
-        by default is from the Lisk epoch to the date.
+      description: |
+        By passing an existing delegate address, and the desired timestamps, you can get its forging statistics within a window of time.
+        If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
       produces:
       - application/json
       parameters:
@@ -650,29 +452,238 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  /blocks:
-    x-swagger-router-controller: blocks
+  /node/constants:
+    x-swagger-router-controller: node
     get:
       tags:
-        - Blocks
-      summary: Requests blocks data
-      operationId: getBlocks
-      x-lisk-cache-enabled: true
-      description:
-        By passing in the appropriate options, you can search for
-        a specified block in the system
+      - Node
+      summary: Requests constants data
+      operationId: getConstants
+      description: |
+        Returns all current constants data on the system, e.g. Lisk epoch time and version.
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Node constants response
+          schema:
+            $ref: '#/definitions/NodeConstantsResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/status:
+    x-swagger-router-controller: node
+    get:
+      tags:
+      - Node
+      summary: Requests status data
+      operationId: getStatus
+      description: |
+        Returns all current status data on the system.
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Node status response
+          schema:
+            $ref: '#/definitions/NodeStatusResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/status/forging:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Node
+      summary: Requests forging status of a delegate
+      operationId: getForgingStatus
+      description: |
+        *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
+        To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+        By querying by publicKey, the forging status of a delegate can be determined on a node
       produces:
         - application/json
       parameters:
-        - $ref: '#/parameters/blockId'
-        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/publicKey'
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+    put:
+      tags:
+        - Node
+      summary: Toggles the forging status of a delegate
+      operationId: updateForgingStatus
+      description: |
+       *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
+       To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+       Upon passing the correct password and publicKey, forging will be enabled or disabled for the delegate of this particular node.
+       The password can be generated locally either by using Lisk Commander or with Lisk Elements.
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Password for decrypting passphrase of delegate with corresponding public key
+          required: true
+          schema:
+            type: object
+            required:
+              - password
+              - publicKey
+            properties:
+              password:
+                type: string
+                example: "happy tree friends"
+                minLength: 5
+              publicKey:
+                type: string
+                example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
+                format: publicKey
+      responses:
+        200:
+          description: Delegate forging toggled on or off
+          schema:
+            $ref: '#/definitions/ForgingStatusResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        403:
+          description: Access denied
+          schema:
+            $ref: '#/definitions/AccessDeniedError'
+        404:
+          description: Provided public key not found
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /node/transactions/{state}:
+    x-swagger-router-controller: node
+    get:
+      tags:
+        - Node
+      summary: Requests unprocessed transactions data
+      operationId: getPooledTransactions
+      description: |
+        By specifying the state of the transactions, you get a list of unprocessed transactions matching this state.
+        Search for specific transactions by providing the appropriate parameters.
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load.
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: state
+          description: State of transactions to query
+          required: true
+          type: string
+          enum:
+            - unprocessed
+            - unconfirmed
+            - unsigned
+        - $ref: '#/parameters/transactionId'
+        - $ref: '#/parameters/recipientId'
+        - $ref: '#/parameters/recipientPublicKey'
+        - $ref: '#/parameters/senderId'
+        - $ref: '#/parameters/senderPublicKey'
+        - $ref: '#/parameters/transactionType'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - in: query
-          name: generatorPublicKey
-          description: generatorPublicKey to query
+          name: sort
+          description: Fields to sort on to query
+          required: false
           type: string
-          format: publicKey
+          enum:
+            - amount:asc
+            - amount:desc
+            - fee:asc
+            - fee:desc
+            - type:asc
+            - type:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: amount:asc
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: '#/definitions/TransactionsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /peers:
+    x-swagger-router-controller: peers
+    get:
+      tags:
+      - Peers
+      summary: Requests peers data
+      operationId: getPeers
+      description: |
+        By passing the appropriate parameters, you can search for specified peers.
+        Otherwise returns a list of all known peers.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/ip'
+        - $ref: '#/parameters/httpPort'
+        - $ref: '#/parameters/wsPort'
+        - $ref: '#/parameters/os'
+        - $ref: '#/parameters/version'
+        - $ref: '#/parameters/state'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/broadhash'
+        - $ref: '#/parameters/limit'
+        - $ref: '#/parameters/offset'
         - in: query
           name: sort
           description: Fields to sort results by
@@ -681,129 +692,17 @@ paths:
           enum:
             - height:asc
             - height:desc
-            - totalAmount:asc
-            - totalAmount:desc
-            - totalFee:asc
-            - totalFee:desc
-            - timestamp:asc
-            - timestamp:desc
-          default: height:desc
+            - version:asc
+            - version:desc
       responses:
         200:
-          description: Search results matching criteria
+          description: List of peers
           schema:
-            $ref: '#/definitions/BlocksResponse'
+            $ref: '#/definitions/PeersResponse'
         400:
           description: Malformed query or parameters
           schema:
             $ref: '#/definitions/ParamErrorResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /voters:
-    x-swagger-router-controller: voters
-    get:
-      tags:
-        - Votes
-      summary: Requests voters data for a delegate
-      operationId: getVoters
-      description:
-        This API call returns all votes received by a delegate. At least one of the filter parameters must be provided
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/username'
-        - $ref: '#/parameters/address'
-        - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
-        - $ref: '#/parameters/offset'
-        - $ref: '#/parameters/limit'
-        - in: query
-          name: sort
-          description: Fields to sort results by
-          required: false
-          type: string
-          enum:
-            - username:asc
-            - username:desc
-            - balance:asc
-            - balance:desc
-      responses:
-        200:
-          description: Voters list
-          schema:
-            $ref: '#/definitions/VotersResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        404:
-          description: Requested resource not found based on provided filters
-          schema:
-            $ref: '#/definitions/NotFoundError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /votes:
-    x-swagger-router-controller: voters
-    get:
-      tags:
-        - Votes
-      summary: Requests votes data for an account
-      operationId: getVotes
-      description:
-        This API call returns all votes placed by an account
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/username'
-        - $ref: '#/parameters/address'
-        - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
-        - $ref: '#/parameters/offset'
-        - name: limit
-          in: query
-          description: Limit applied to results
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 101
-          default: 10
-        - in: query
-          name: sort
-          description: Fields to sort results by
-          required: false
-          type: string
-          enum:
-            - username:asc
-            - username:desc
-            - balance:asc
-            - balance:desc
-      responses:
-        200:
-          description: Votes list
-          schema:
-            $ref: '#/definitions/VotesResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        404:
-          description: Requested resource not found based on provided filters
-          schema:
-            $ref: '#/definitions/NotFoundError'
         429:
           description: Too many requests, exceeded rate limit
           schema:
@@ -820,8 +719,9 @@ paths:
         - Signatures
       summary: Submits a signature object to sign multisignature transactions
       operationId: postSignature
-      description:
-        Submits signature to sign a multisignature transaction
+      description: |
+        Submits signature to sign a multisignature transaction.
+        Signature objects can be generated locally either by using Lisk Commander or with Lisk Elements.
       consumes:
         - application/json
       produces:
@@ -863,8 +763,9 @@ paths:
       summary: Requests transactions data
       operationId: getTransactions
       x-lisk-cache-enabled: true
-      description:
-        This API call returns transactions matching filter criteria
+      description: |
+        By passing the appropriate parameters, you can search for a specified transaction in the system.
+        Otherwise returns a list of transactions.
       produces:
         - application/json
       parameters:
@@ -920,8 +821,9 @@ paths:
         - Transactions
       summary: Submits signed transaction for processing
       operationId: postTransaction
-      description:
-        Submits signed transaction for processing by the transaction pool
+      description: |
+        Submits signed transaction object for processing by the transaction pool.
+        Transaction objects can be generated locally either by using Lisk Commander or with Lisk Elements.
       consumes:
         - application/json
       produces:
@@ -950,6 +852,115 @@ paths:
           description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
+
+  /voters:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Voters
+      summary: Requests voters data for a delegate
+      operationId: getVoters
+      description: |
+        Returns all votes received by a delegate.
+        *Attention:* **At least one of the filter parameters must be provided**
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Voters list
+          schema:
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /votes:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests votes data for an account
+      operationId: getVotes
+      description: |
+        Returns all votes placed by an account.
+        *Attention:* **At least one of the filter parameters must be provided**
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Votes list
+          schema:
+            $ref: '#/definitions/VotesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
 
   /spec:
     x-swagger-pipe: swagger_raw_pipe
@@ -2588,191 +2599,3 @@ definitions:
         type: string
         format: username
         example: liskhq
-
-  WSPeerHeaders:
-    x-private: true
-    type: object
-    required:
-      - httpPort
-      - wsPort
-      - os
-      - version
-      - height
-      - nethash
-      - nonce
-    properties:
-      httpPort:
-        type: integer
-        example: 8000
-        format: int32
-        minimum: 1
-        maximum: 65535
-      wsPort:
-        type: integer
-        example: 8001
-        format: int32
-        minimum: 1
-        maximum: 65535
-      os:
-        type: string
-        example: debian
-      version:
-        type: string
-        example: v0.8.0
-        format: version
-      height:
-        type: integer
-        example: 123
-      nethash:
-        type: string
-        maxLength: 64
-      broadhash:
-        type: string
-        example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
-        format: hex
-      nonce:
-        type: string
-        example: sYHEDBKcScaAAAYg
-        minLength: 16
-        maxLength: 16
-
-  WSPeerUpdateRequest:
-    x-private: true
-    type: object
-    required:
-      - data
-      - socketId
-    properties:
-      data:
-        type: object
-        required:
-          - nonce
-        properties:
-          nethash:
-            type: string
-            maxLength: 64
-          broadhash:
-            type: string
-            format: hex
-          height:
-            type: integer
-            minimum: 1
-          nonce:
-            type: string
-            minLength: 16
-            maxLength: 16
-      socketId:
-        type: string
-      workerId:
-        type: number
-
-  WSSignaturesList:
-    x-private: true
-    type: object
-    required:
-      - nonce
-      - signatures
-    properties:
-      nonce:
-        type: string
-        example: sYHEDBKcScaAAAYg
-        minLength: 16
-        maxLength: 16
-      signatures:
-        type: array
-        items:
-          type: object
-        minItems: 1
-        maxItems: 25
-
-  WSBlocksList:
-    x-private: true
-    type: array
-    items:
-      type: object
-
-  WSBlocksCommonRequest:
-    x-private: true
-    type: object
-    required:
-      - ids
-    properties:
-      ids:
-        type: string
-        format: csv
-
-  WSTransactionsRequest:
-    x-private: true
-    type: object
-    required:
-      - nonce
-      - transactions
-    properties:
-      nonce:
-        type: string
-        example: sYHEDBKcScaAAAYg
-        minLength: 16
-        maxLength: 16
-      transactions:
-        type: array
-        items:
-          type: object
-        minItems: 1
-        maxItems: 25
-
-  WSAccessObject:
-    x-private: true
-    type: object
-    required:
-      - peer
-      - authKey
-      - updateType
-    properties:
-      peer:
-        $ref: '#/definitions/Peer'
-      authKey:
-        type: string
-      updateType:
-        type: integer
-        minimum: 0
-        maximum: 1
-
-  WSTransactionsResponse:
-    x-private: true
-    type: object
-    required:
-      - transactions
-    properties:
-      transactions:
-        type: array
-        uniqueItems: true
-        maxItems: 100
-        items:
-          type: object
-
-  WSSignaturesResponse:
-    x-private: true
-    required:
-      - signatures
-    properties:
-      signatures:
-        type: array
-        uniqueItems: true
-        maxItems: 100
-        items:
-          type: object
-
-  WSBlocksBroadcast:
-    x-private: true
-    type: object
-    required:
-      - block
-      - nonce
-    properties:
-      nonce:
-        type: string
-        example: sYHEDBKcScaAAAYg
-        minLength: 16
-        maxLength: 16
-      block:
-        $ref: '#/definitions/ReducedBlock'
