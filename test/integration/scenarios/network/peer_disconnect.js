@@ -129,9 +129,7 @@ module.exports = params => {
 					for (let i = 1; i < totalPeers; i++) {
 						startNode(`node_${i}`);
 					}
-					setTimeout(() => {
-						console.info('waited for 5 seconds to establish connections');
-					}, 5000);
+
 					utils.ws.establishWSConnectionsToNodes(
 						params.configurations,
 						(err, socketsResult) => {
@@ -162,23 +160,14 @@ module.exports = params => {
 
 					it(`peers manager should have only ${expectedOutgoingConnections}`, () => {
 						return getAllPeers().then(mutualPeers => {
-							console.info(`mutual peer count: ${mutualPeers.length}`);
 							mutualPeers.forEach(mutualPeer => {
 								if (mutualPeer) {
-									console.info(
-										`each mutual peer count: ${mutualPeer.peers.length}`
-									);
-									console.info('============before=============');
 									mutualPeer.peers.map(peer => {
-										console.info(
-											`wsPort: ${peer.wsPort}, httpPort: ${peer.httpPort}`
-										);
 										if (peer.wsPort >= 5000 && peer.wsPort <= 5009) {
 											wsPorts.add(peer.wsPort);
 										}
 										expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 									});
-									console.info('============after=============');
 								}
 							});
 						});
