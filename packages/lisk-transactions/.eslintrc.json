@@ -1,15 +1,3 @@
 {
-	"extends": ["lisk-base"],
-	"plugins": ["mocha"],
-	"rules": {
-		"no-mixed-spaces-and-tabs": "off",
-		"import/no-extraneous-dependencies": [
-			"error",
-			{
-				"devDependencies": ["test/**"],
-				"optionalDependencies": false,
-				"packageDir": "./"
-			}
-		]
-	}
+	"extends": ["../../.eslintrc.json"]
 }

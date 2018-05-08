@@ -2,29 +2,14 @@
 	"extends": ["lisk-base"],
 	"plugins": ["mocha"],
 	"rules": {
+		"no-mixed-spaces-and-tabs": "off",
 		"import/no-extraneous-dependencies": [
-			"error", {
-				"devDependencies": [
-					"test/**",
-					"**/Gruntfile{,.js}"
-				],
+			"error",
+			{
+				"devDependencies": ["test/**"],
 				"optionalDependencies": false,
 				"packageDir": "./"
 			}
 		]
-	},
-	"globals": {
-		"naclInstance": true
-	},
-	"settings": {
-		"import/resolver": {
-			"node": {
-				"extensions": [".js"],
-					"moduleDirectory": [
-						"node_modules",
-						"packages"
-					]
-			}
-		}
 	}
 }
