@@ -46,6 +46,9 @@ def getReleaseDetails(liskDirectory) {
 
 pipeline {
 	agent { node { label "core-migration" } }
+	library identifier: 'lisk-jenkins@nh-lisk-build', retriever: modernSCM(
+      [$class: 'GitSCMSource',
+       remote: 'git@github.com:LiskHQ/lisk-jenkins.git'])
 	stages {
 		stage("Prepare workspace") {
 			steps {
