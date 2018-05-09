@@ -52,9 +52,6 @@ tags:
   description: Votes related API calls
 - name: Votes
   description: Votes related API calls
-- name: Private
-  x-private: true
-  description: Private endpoint
 
 schemes:
   - http
@@ -158,7 +155,7 @@ paths:
       summary: Requests multisignature memberships data
       operationId: getMultisignatureMemberships
       description: |
-        By passing the address of a multisignature group, you can search for the specified account in the system.
+        By passing the address of a multisignature group.
         As response, you will get all members of this particular multisignature group.
       produces:
         - application/json
@@ -188,62 +185,6 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
-
-  /blocks:
-     x-swagger-router-controller: blocks
-     get:
-       tags:
-         - Blocks
-       summary: Requests blocks data
-       operationId: getBlocks
-       x-lisk-cache-enabled: true
-       description: |
-         By passing the appropriate parameters, you can search for a specified block in the system.
-         Otherwise returns a list of blocks.
-       produces:
-         - application/json
-       parameters:
-         - $ref: '#/parameters/blockId'
-         - $ref: '#/parameters/height'
-         - $ref: '#/parameters/limit'
-         - $ref: '#/parameters/offset'
-         - in: query
-           name: generatorPublicKey
-           description: generatorPublicKey to query
-           type: string
-           format: publicKey
-         - in: query
-           name: sort
-           description: Fields to sort results by
-           required: false
-           type: string
-           enum:
-             - height:asc
-             - height:desc
-             - totalAmount:asc
-             - totalAmount:desc
-             - totalFee:asc
-             - totalFee:desc
-             - timestamp:asc
-             - timestamp:desc
-           default: height:desc
-       responses:
-         200:
-           description: Search results matching criteria
-           schema:
-             $ref: '#/definitions/BlocksResponse'
-         400:
-           description: Malformed query or parameters
-           schema:
-             $ref: '#/definitions/ParamErrorResponse'
-         429:
-           description: Too many requests, exceeded rate limit
-           schema:
-             $ref: '#/definitions/RequestLimitError'
-         500:
-           description: Unexpected error
-           schema:
-             $ref: '#/definitions/UnexpectedError'
 
   /dapps:
     x-swagger-router-controller: dapps
@@ -300,143 +241,44 @@ paths:
           schema:
            $ref: '#/definitions/UnexpectedError'
 
-  /delegates:
-    x-swagger-router-controller: delegates
+  /peers:
+    x-swagger-router-controller: peers
     get:
       tags:
-      - Delegates
-      summary: Requests delegates data
-      operationId: getDelegates
-      x-lisk-cache-enabled: true
+      - Peers
+      summary: Requests peers data
+      operationId: getPeers
       description: |
-        By passing the appropriate parameters, you can search for a specified delegate in the system.
-        Otherwise returns a list of delegates.
+        By passing the appropriate parameters, you can search for specified peers.
+        Otherwise returns a list of all known peers.
       produces:
-      - application/json
+        - application/json
       parameters:
-        - $ref: '#/parameters/address'
-        - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
-        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/ip'
+        - $ref: '#/parameters/httpPort'
+        - $ref: '#/parameters/wsPort'
+        - $ref: '#/parameters/os'
+        - $ref: '#/parameters/version'
+        - $ref: '#/parameters/state'
+        - $ref: '#/parameters/height'
+        - $ref: '#/parameters/broadhash'
+        - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
-        - name: limit
-          in: query
-          description: Limit applied to results
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 101
-          default: 10
-        - name: search
-          in: query
-          description: Fuzzy delegate username to query
-          type: string
-          minLength: 1
-          maxLength: 20
-        - name: rank
-          in: query
-          description: Delegate rank to query
-          type: string
-          minLength: 1
-          maxLength: 20
         - in: query
           name: sort
           description: Fields to sort results by
           required: false
           type: string
           enum:
-            - username:asc
-            - username:desc
-            - rank:asc
-            - rank:desc
-            - productivity:asc
-            - productivity:desc
-            - missedBlocks:asc
-            - missedBlocks:desc
+            - height:asc
+            - height:desc
+            - version:asc
+            - version:desc
       responses:
         200:
-          description: Search results matching criteria
+          description: List of peers
           schema:
-            $ref: '#/definitions/DelegatesResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /delegates/forgers:
-    x-swagger-router-controller: delegates
-    get:
-      tags:
-        - Delegates
-      summary: Requests next forgers data
-      operationId: getForgers
-      description: |
-        Returns a list of the next forgers.
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/offset'
-        - name: limit
-          in: query
-          description: Limit applied to results
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 101
-          default: 10
-      responses:
-        200:
-          description: Search results matching criteria
-          schema:
-            $ref: '#/definitions/ForgersResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /delegates/{address}/forging_statistics:
-    x-swagger-router-controller: delegates
-    get:
-      tags:
-      - Delegates
-      summary: Requests forging stats by delegate
-      operationId: getForgingStatistics
-      x-lisk-cache-enabled: true
-      description: |
-        By passing an existing delegate address, and the desired timestamps, you can get its forging statistics within a window of time.
-        If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
-      produces:
-      - application/json
-      parameters:
-        - in: path
-          name: address
-          description: Address to query
-          required: true
-          type: string
-          format: address
-        - $ref: '#/parameters/fromTimestamp'
-        - $ref: '#/parameters/toTimestamp'
-      responses:
-        200:
-          description: Results matching specified delegate address
-          schema:
-            $ref: '#/definitions/ForgingStatsResponse'
+            $ref: '#/definitions/PeersResponse'
         400:
           description: Malformed query or parameters
           schema:
@@ -659,29 +501,179 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  /peers:
-    x-swagger-router-controller: peers
+  /delegates:
+    x-swagger-router-controller: delegates
     get:
       tags:
-      - Peers
-      summary: Requests peers data
-      operationId: getPeers
+      - Delegates
+      summary: Requests delegates data
+      operationId: getDelegates
+      x-lisk-cache-enabled: true
       description: |
-        By passing the appropriate parameters, you can search for specified peers.
-        Otherwise returns a list of all known peers.
+        By passing the appropriate parameters, you can search for a specified delegate in the system.
+        Otherwise returns a list of delegates.
+      produces:
+      - application/json
+      parameters:
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
+        - name: search
+          in: query
+          description: Fuzzy delegate username to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - name: rank
+          in: query
+          description: Delegate rank to query
+          type: string
+          minLength: 1
+          maxLength: 20
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - rank:asc
+            - rank:desc
+            - productivity:asc
+            - productivity:desc
+            - missedBlocks:asc
+            - missedBlocks:desc
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/DelegatesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates/forgers:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+        - Delegates
+      summary: Requests next forgers data
+      operationId: getForgers
+      description: |
+        Returns a list of the next forgers.
       produces:
         - application/json
       parameters:
-        - $ref: '#/parameters/ip'
-        - $ref: '#/parameters/httpPort'
-        - $ref: '#/parameters/wsPort'
-        - $ref: '#/parameters/os'
-        - $ref: '#/parameters/version'
-        - $ref: '#/parameters/state'
+        - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
+      responses:
+        200:
+          description: Search results matching criteria
+          schema:
+            $ref: '#/definitions/ForgersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /delegates/{address}/forging_statistics:
+    x-swagger-router-controller: delegates
+    get:
+      tags:
+      - Delegates
+      summary: Requests forging stats by delegate
+      operationId: getForgingStatistics
+      x-lisk-cache-enabled: true
+      description: |
+        By passing an existing delegate address, and the desired timestamps, you can get its forging statistics within a window of time.
+        If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
+      produces:
+      - application/json
+      parameters:
+        - in: path
+          name: address
+          description: Address to query
+          required: true
+          type: string
+          format: address
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
+      responses:
+        200:
+          description: Results matching specified delegate address
+          schema:
+            $ref: '#/definitions/ForgingStatsResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /blocks:
+    x-swagger-router-controller: blocks
+    get:
+      tags:
+        - Blocks
+      summary: Requests blocks data
+      operationId: getBlocks
+      x-lisk-cache-enabled: true
+      description: |
+        By passing the appropriate parameters, you can search for a specified block in the system.
+        Otherwise returns a list of blocks.
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/blockId'
         - $ref: '#/parameters/height'
-        - $ref: '#/parameters/broadhash'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
+        - in: query
+          name: generatorPublicKey
+          description: generatorPublicKey to query
+          type: string
+          format: publicKey
         - in: query
           name: sort
           description: Fields to sort results by
@@ -690,17 +682,131 @@ paths:
           enum:
             - height:asc
             - height:desc
-            - version:asc
-            - version:desc
+            - totalAmount:asc
+            - totalAmount:desc
+            - totalFee:asc
+            - totalFee:desc
+            - timestamp:asc
+            - timestamp:desc
+          default: height:desc
       responses:
         200:
-          description: List of peers
+          description: Search results matching criteria
           schema:
-            $ref: '#/definitions/PeersResponse'
+            $ref: '#/definitions/BlocksResponse'
         400:
           description: Malformed query or parameters
           schema:
             $ref: '#/definitions/ParamErrorResponse'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /voters:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Voters
+      summary: Requests voters data for a delegate
+      operationId: getVoters
+      description: |
+        Returns all votes received by a delegate.
+        *Attention:* **At least one of the filter parameters must be provided**
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - $ref: '#/parameters/limit'
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Voters list
+          schema:
+            $ref: '#/definitions/VotersResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
+        429:
+          description: Too many requests, exceeded rate limit
+          schema:
+            $ref: '#/definitions/RequestLimitError'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/UnexpectedError'
+
+  /votes:
+    x-swagger-router-controller: voters
+    get:
+      tags:
+        - Votes
+      summary: Requests votes data for an account
+      operationId: getVotes
+      description: |
+        Returns all votes placed by an account.
+        *Attention:* **At least one of the filter parameters must be provided**
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/username'
+        - $ref: '#/parameters/address'
+        - $ref: '#/parameters/publicKey'
+        - $ref: '#/parameters/secondPublicKey'
+        - $ref: '#/parameters/offset'
+        - name: limit
+          in: query
+          description: Limit applied to results
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 101
+          default: 10
+        - in: query
+          name: sort
+          description: Fields to sort results by
+          required: false
+          type: string
+          enum:
+            - username:asc
+            - username:desc
+            - balance:asc
+            - balance:desc
+      responses:
+        200:
+          description: Votes list
+          schema:
+            $ref: '#/definitions/VotesResponse'
+        400:
+          description: Malformed query or parameters
+          schema:
+            $ref: '#/definitions/ParamErrorResponse'
+        404:
+          description: Requested resource not found based on provided filters
+          schema:
+            $ref: '#/definitions/NotFoundError'
         429:
           description: Too many requests, exceeded rate limit
           schema:
@@ -850,115 +956,6 @@ paths:
           description: Too many requests, exceeded rate limit
           schema:
             $ref: '#/definitions/RequestLimitError'
-
-  /voters:
-    x-swagger-router-controller: voters
-    get:
-      tags:
-        - Voters
-      summary: Requests voters data for a delegate
-      operationId: getVoters
-      description: |
-        Returns all votes received by a delegate.
-        *Attention:* **At least one of the filter parameters must be provided**
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/username'
-        - $ref: '#/parameters/address'
-        - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
-        - $ref: '#/parameters/offset'
-        - $ref: '#/parameters/limit'
-        - in: query
-          name: sort
-          description: Fields to sort results by
-          required: false
-          type: string
-          enum:
-            - username:asc
-            - username:desc
-            - balance:asc
-            - balance:desc
-      responses:
-        200:
-          description: Voters list
-          schema:
-            $ref: '#/definitions/VotersResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        404:
-          description: Requested resource not found based on provided filters
-          schema:
-            $ref: '#/definitions/NotFoundError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
-
-  /votes:
-    x-swagger-router-controller: voters
-    get:
-      tags:
-        - Votes
-      summary: Requests votes data for an account
-      operationId: getVotes
-      description: |
-        Returns all votes placed by an account.
-        *Attention:* **At least one of the filter parameters must be provided**
-      produces:
-        - application/json
-      parameters:
-        - $ref: '#/parameters/username'
-        - $ref: '#/parameters/address'
-        - $ref: '#/parameters/publicKey'
-        - $ref: '#/parameters/secondPublicKey'
-        - $ref: '#/parameters/offset'
-        - name: limit
-          in: query
-          description: Limit applied to results
-          type: integer
-          format: int32
-          minimum: 1
-          maximum: 101
-          default: 10
-        - in: query
-          name: sort
-          description: Fields to sort results by
-          required: false
-          type: string
-          enum:
-            - username:asc
-            - username:desc
-            - balance:asc
-            - balance:desc
-      responses:
-        200:
-          description: Votes list
-          schema:
-            $ref: '#/definitions/VotesResponse'
-        400:
-          description: Malformed query or parameters
-          schema:
-            $ref: '#/definitions/ParamErrorResponse'
-        404:
-          description: Requested resource not found based on provided filters
-          schema:
-            $ref: '#/definitions/NotFoundError'
-        429:
-          description: Too many requests, exceeded rate limit
-          schema:
-            $ref: '#/definitions/RequestLimitError'
-        500:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/UnexpectedError'
 
   /spec:
     x-swagger-pipe: swagger_raw_pipe
