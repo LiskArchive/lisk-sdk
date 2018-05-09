@@ -43,7 +43,11 @@
 		"build:browser:min": "uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
 		"build": "npm run build:node && npm run build:browser",
-		"build:check": "node -e \"require('./dist-node')\""
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check",
+		"prepublish:browser": "npm run prepublishOnly",
+		"publish:browser": "./scripts/publish_browser.sh",
+		"postpublish": "npm run publish:browser"
 	},
 	"dependencies": {
 		"lisk-api-client": "0.5.1",
