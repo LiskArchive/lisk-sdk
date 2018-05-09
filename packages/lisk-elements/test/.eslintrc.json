@@ -1,0 +1,7 @@
+{
+	"extends": ["../../../.eslintrc.test.json"],
+	"globals": {
+		"sandbox": true,
+		"sinon": true
+	}
+}

@@ -26,8 +26,8 @@ export const transaction = transactionModule;
 
 export default {
 	APIClient,
+	constants,
 	cryptography,
 	passphrase,
 	transaction,
-	constants,
 };
