@@ -22,6 +22,7 @@
 		"npm": ">=3 <=5"
 	},
 	"scripts": {
+		"bootstrap": "lerna bootstrap",
 		"format": "lerna run format",
 		"lint": "lerna run lint",
 		"lint:fix": "lerna run lint:fix",
