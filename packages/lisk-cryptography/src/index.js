@@ -12,10 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import naclFactory from 'js-nacl';
 import * as convert from './convert';
 import * as encrypt from './encrypt';
 import hash from './hash';
 import * as keys from './keys';
 import * as sign from './sign';
+
+if (!global.naclInstance) {
+	naclFactory.instantiate(nacl => {
+		global.naclInstance = nacl;
+	});
+}
 
 export default Object.assign({}, convert, encrypt, { hash }, keys, sign);
