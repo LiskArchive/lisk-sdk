@@ -22,6 +22,8 @@
 	},
 	"main": "dist-node/index.js",
 	"scripts": {
+		"prestart": "./scripts/prestart.sh",
+		"start": "./scripts/start.sh",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
