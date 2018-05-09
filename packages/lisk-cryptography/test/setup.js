@@ -47,7 +47,6 @@ Assertion.addProperty('integer', function handleAssert() {
 });
 /* eslint-enable no-underscore-dangle */
 
-global.sinon = sinon;
 global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,
 });
