@@ -16,7 +16,11 @@ swagger: '2.0'
 info:
   title: Lisk API Documentation
   description: |
-    Lisk API Documentation
+    Welcome to Lisks API documentation!
+
+    Below you can see all possible API calls, ordered by endpoints.
+
+    By clicking the "Try it out"-button beside each API call, you can test out the API calls and their responses interactively.
   version: '1.0.27'
   contact:
     email: admin@lisk.io
@@ -28,7 +32,7 @@ info:
 basePath: /api
 
 # The host (name or ip) serving the API
-## OpenAPI 3.0 supports Server Templates now
+# OpenAPI 3.0 already supports Server Templates
 #host: 46.101.179.89:5000
 host: 127.0.0.1:4000
 
@@ -119,7 +123,7 @@ paths:
       parameters:
         - name: address
           in: path
-          description: Address of account
+          description: Lisk address of an account
           type: string
           format: address
           required: true
@@ -152,7 +156,7 @@ paths:
     get:
       tags:
       - Accounts
-      summary: Requests multisignature memberships data
+      summary: Requests multisignature membership data
       operationId: getMultisignatureMemberships
       description: |
         Searches for the specified multisignature group and responds with a list of all members of this particular multisignature group.
@@ -161,7 +165,7 @@ paths:
       parameters:
         - name: address
           in: path
-          description: Address of account
+          description: Lisk address of a multisignature account
           type: string
           format: address
           required: true
@@ -199,7 +203,7 @@ paths:
       parameters:
         - name: transactionId
           in: query
-          description: Registration transaction ID to query
+          description: Dapp registration transaction ID
           required: false
           type: string
           format: id
@@ -219,6 +223,7 @@ paths:
           enum:
             - name:asc
             - name:desc
+          default: name:asc
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
       responses:
@@ -271,6 +276,7 @@ paths:
             - height:desc
             - version:asc
             - version:desc
+          default: height:desc
       responses:
         200:
           description: List of peers
@@ -457,6 +463,7 @@ paths:
             - unprocessed
             - unconfirmed
             - unsigned
+          default: unprocessed
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/recipientPublicKey'
@@ -467,7 +474,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -479,7 +486,7 @@ paths:
             - type:desc
             - timestamp:asc
             - timestamp:desc
-          default: amount:asc
+          default: amount:desc
       responses:
         200:
           description: Transactions list
@@ -532,7 +539,7 @@ paths:
           maxLength: 20
         - name: rank
           in: query
-          description: Delegate rank to query
+          description: Delegate rank
           type: string
           minLength: 1
           maxLength: 20
@@ -550,6 +557,7 @@ paths:
             - productivity:desc
             - missedBlocks:asc
             - missedBlocks:desc
+          default: rank:desc
       responses:
         200:
           description: Search results matching criteria
@@ -616,14 +624,14 @@ paths:
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
       description: |
-        By passing an existing delegate address and the desired timestamps, you can get its forging statistics within the specified timespan.
+        By passing an existing delegate address and the desired unix timestamps, you can get its forging statistics within the specified timespan.
         If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
       produces:
       - application/json
       parameters:
         - in: path
           name: address
-          description: Address to query
+          description: Lisk address of a delegate
           required: true
           type: string
           format: address
@@ -666,7 +674,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: generatorPublicKey
-          description: generatorPublicKey to query
+          description: Public key of the forger of the block
           type: string
           format: publicKey
         - in: query
@@ -710,8 +718,8 @@ paths:
       summary: Requests voters data for a delegate
       operationId: getVoters
       description: |
+        *Attention: At least **one of the filter parameters must be provided.***
         Returns all votes received by a delegate.
-        *Attention:* **At least one of the filter parameters must be provided**
       produces:
         - application/json
       parameters:
@@ -731,6 +739,7 @@ paths:
             - username:desc
             - balance:asc
             - balance:desc
+          default: username:asc
       responses:
         200:
           description: Voters list
@@ -761,8 +770,8 @@ paths:
       summary: Requests votes data for an account
       operationId: getVotes
       description: |
+        *Attention: At least **one of the filter parameters must be provided.***
         Returns all votes placed by an account.
-        *Attention:* **At least one of the filter parameters must be provided**
       produces:
         - application/json
       parameters:
@@ -789,6 +798,7 @@ paths:
             - username:desc
             - balance:asc
             - balance:desc
+          default: username:asc
       responses:
         200:
           description: Votes list
@@ -884,7 +894,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -1029,7 +1039,7 @@ parameters:
   address:
     name: address
     in: query
-    description: Address to query
+    description: Address of an account
     required: false
     type: string
     format: address
@@ -1074,7 +1084,7 @@ parameters:
   recipientId:
     name: recipientId
     in: query
-    description: Recipient address to query
+    description: Recipient lisk address
     type: string
     format: address
     minLength: 1
@@ -1082,14 +1092,14 @@ parameters:
   recipientPublicKey:
     name: recipientPublicKey
     in: query
-    description: Public key to query
+    description: Recipient public key
     type: string
     format: publicKey
     minLength: 1
   senderId:
     name: senderId
     in: query
-    description: Sender address to query
+    description: Sender lisk address
     type: string
     format: address
     minLength: 1
@@ -1097,14 +1107,14 @@ parameters:
   senderPublicKey:
     name: senderPublicKey
     in: query
-    description: Public key to query
+    description: Sender public key
     type: string
     format: publicKey
     minLength: 1
   senderIdOrRecipientId:
     name: senderIdOrRecipientId
     in: query
-    description: Sender Id or Recipient Id to query
+    description: Lisk address
     type: string
     format: address
     minLength: 1
@@ -1112,32 +1122,32 @@ parameters:
   transactionType:
     name: type
     in: query
-    description: Transaction type
+    description: Transaction type (0-7)
     type: integer
     minimum: 0
     maximum: 7
   minAmount:
     name: minAmount
     in: query
-    description: Minimum transaction amount
+    description: Minimum transaction amount in Beddows
     type: integer
     minimum: 0
   maxAmount:
     name: maxAmount
     in: query
-    description: Maximum transaction amount
+    description: Maximum transaction amount in Beddows
     type: integer
     minimum: 0
   fromTimestamp:
     name: fromTimestamp
     in: query
-    description: Starting Lisk timestamp of records to query
+    description: Starting unix timestamp
     type: integer
     minimum: 0
   toTimestamp:
     name: toTimestamp
     in: query
-    description: Ending Lisk timestamp of records to query
+    description: Ending unix timestamp
     type: integer
     minimum: 1
 
@@ -1172,6 +1182,7 @@ definitions:
         minimum: 0
         maximum: 7
       timestamp:
+        description: Unix Timestamp
         type: integer
         example: 28227090
       senderId:
@@ -1449,13 +1460,13 @@ definitions:
          - toTimestamp
        properties:
          fromTimestamp:
-           description: Starting timestamp of records to query
+           description: Starting unix timestamp
            type: integer
            example: 0
          toTimestamp:
-           description: Ending timestamp of records to query
+           description: Ending unix timestamp
            type: integer
-           example: 100
+           example: 1525861914
       links:
         type: object
 
@@ -1616,6 +1627,7 @@ definitions:
         maxLength: 20
         example: "6258354802676165798"
       timestamp:
+        description: Unix Timestamp
         type: integer
         example: 28227090
       senderId:
@@ -1716,6 +1728,7 @@ definitions:
         example: 123
         minimum: 1
       timestamp:
+        description: Unix Timestamp
         type: integer
         example: 28227090
       generatorAddress:
@@ -1784,6 +1797,7 @@ definitions:
         example: 123
         minimum: 1
       timestamp:
+        description: Unix Timestamp
         type: integer
         example: 28227090
       generatorAddress:
