@@ -14,13 +14,12 @@
 
 'use strict';
 
-var _ = require('lodash');
-var extend = require('extend');
-var apiCodes = require('./api_codes');
+var queryParser = require('express-query-int');
 var checkIpInList = require('./check_ip_in_list');
+var apiCodes = require('./api_codes');
 
 /**
- * Description of the module.
+ * A utility helper module to provide different express middleware to be used in http request cycle
  *
  * @module
  * @see Parent: {@link helpers}
@@ -29,14 +28,11 @@ var checkIpInList = require('./check_ip_in_list');
  * @requires helpers/api_codes
  * @requires helpers/check_ip_in_list
  * @property {Object} middleware
- * @property {function} registerEndpoint
- * @property {function} respond
- * @property {function} respondWithCode
  * @todo Add description for the module and the properties
  */
 
 /**
- * Middleware functions to add cors, log errors and conections, send status
+ * Middleware functions connection logging, api access rules and others.
  * and setup router.
  *
  * @namespace middleware
@@ -44,25 +40,6 @@ var checkIpInList = require('./check_ip_in_list');
  * @memberof module:helpers/http_api
  */
 var middleware = {
-	/**
-	 * Adds CORS header to all requests.
-	 *
-	 * @memberof module:helpers/http_api.middleware
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	cors(req, res, next) {
-		res.header('Access-Control-Allow-Origin', '*');
-		res.header(
-			'Access-Control-Allow-Headers',
-			'Origin, X-Objected-With, Content-Type, Accept'
-		);
-		return next();
-	},
-
 	/**
 	 * Logs all api errors.
 	 *
@@ -122,62 +99,6 @@ var middleware = {
 	},
 
 	/**
-	 * Resends error msg when blockchain is not loaded.
-	 *
-	 * @memberof module:helpers/http_api.middleware
-	 * @param {function} isLoaded
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	blockchainReady(isLoaded, req, res, next) {
-		if (isLoaded()) {
-			return next();
-		}
-		res.status(500).send({ success: false, error: 'Blockchain is loading' });
-	},
-
-	/**
-	 * Resends error if API endpoint doesn't exists.
-	 *
-	 * @memberof module:helpers/http_api.middleware
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	notFound(req, res) {
-		return res
-			.status(500)
-			.send({ success: false, error: 'API endpoint not found' });
-	},
-
-	/**
-	 * Uses req.sanitize for particular endpoint.
-	 *
-	 * @memberof module:helpers/http_api.middleware
-	 * @param {string} property
-	 * @param {Object} schema
-	 * @param {function} cb
-	 * @returns {function}
-	 * @todo Add description for the params
-	 */
-	sanitize(property, schema, cb) {
-		// TODO: Remove optional error codes response handler choice as soon as all modules will be conformed to new REST API standards
-		return function(req, res) {
-			req.sanitize(req[property], schema, (err, report, sanitized) => {
-				if (!report.isValid) {
-					return res.json({ success: false, error: report.issues });
-				}
-				return cb(sanitized, respond.bind(null, res));
-			});
-		};
-	},
-
-	/**
 	 * Attachs header to response.
 	 *
 	 * @memberof module:helpers/http_api.middleware
@@ -206,164 +127,60 @@ var middleware = {
 	 * @todo Add @returns tag
 	 */
 	applyAPIAccessRules(config, req, res, next) {
-		if (req.url.match(/^\/peer[/]?.*/)) {
-			var internalApiAllowed =
-				config.peers.enabled &&
-				!checkIpInList(config.peers.access.blackList, req.ip, false);
-			rejectDisallowed(internalApiAllowed, config.peers.enabled);
+		if (!config.api.enabled) {
+			res
+				.status(apiCodes.INTERNAL_SERVER_ERROR)
+				.send({ success: false, error: 'API access disabled' });
+		} else if (
+			!config.api.access.public &&
+			!checkIpInList(config.api.access.whiteList, req.ip, false)
+		) {
+			res
+				.status(apiCodes.FORBIDDEN)
+				.send({ success: false, error: 'API access denied' });
 		} else {
-			var publicApiAllowed =
-				config.api.enabled &&
-				(config.api.access.public ||
-					checkIpInList(config.api.access.whiteList, req.ip, false));
-			rejectDisallowed(publicApiAllowed, config.api.enabled);
-		}
-
-		/**
-		 * Description of the function.
-		 *
-		 * @private
-		 * @param {boolean} apiAllowed
-		 * @param {boolean} isEnabled
-		 * @todo Add description for the function and the params
-		 * @todo Add @returns tag
-		 */
-		function rejectDisallowed(apiAllowed, isEnabled) {
-			return apiAllowed
-				? next()
-				: isEnabled
-					? res.status(403).send({ success: false, error: 'API access denied' })
-					: res
-							.status(500)
-							.send({ success: false, error: 'API access disabled' });
+			next();
 		}
 	},
 
-	/**
-	 * Passes getter for headers and assign then to response.
-	 *
-	 * @memberof module:helpers/http_api.middleware
-	 * @param {function} getHeaders
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	attachResponseHeaders(getHeaders, req, res, next) {
-		res.set(getHeaders());
-		return next();
-	},
+	queryParser() {
+		const ignoredPramList = [
+			'id',
+			'name',
+			'username',
+			'blockId',
+			'transactionId',
+			'address',
+			'recipientId',
+			'senderId',
+			'search',
+		];
 
-	/**
-	 * Lookup cache, and reply with cached response if it's a hit.
-	 * If it's a miss, forward the request but cache the response if it's a success.
-	 *
-	 * @memberof module:helpers/http_api.middleware
-	 * @param {Object} req
-	 * @param {Object} res
-	 * @param {function} next
-	 * @todo Add description for the params
-	 * @todo Add @returns tag
-	 */
-	useCache(logger, cache, req, res, next) {
-		if (!cache.isReady()) {
-			return next();
-		}
+		return queryParser({
+			parser(value, radix, name) {
+				if (ignoredPramList.indexOf(name) >= 0) {
+					return value;
+				}
 
-		var key = req.originalUrl;
-		cache.getJsonForKey(key, (err, cachedValue) => {
-			// There was an error or value doesn't exist for key
-			if (err || !cachedValue) {
-				// Monkey patching res.json function only if we expect to cache response
-				var expressSendJson = res.json;
-				res.json = function(response) {
-					// ToDo: Remove response.success check when API refactor is done (#225)
-					if (
-						response.success ||
-						(response.success === undefined && res.statusCode === apiCodes.OK)
-					) {
-						logger.debug('Cache - Response for key:', req.url);
-						cache.setJsonForKey(key, response);
-					}
-					expressSendJson.call(res, response);
-				};
-				next();
-			} else {
-				logger.debug('Cache - Response for url:', req.url);
-				res.json(cachedValue);
-			}
+				// Ignore conditional fields for transactions list
+				if (/^.+?:(blockId|recipientId|senderId)$/.test(name)) {
+					return value;
+				}
+
+				if (
+					isNaN(value) ||
+					parseInt(value) != value ||
+					isNaN(parseInt(value, radix))
+				) {
+					return value;
+				}
+
+				return parseInt(value);
+			},
 		});
 	},
 };
 
-/**
- * Adds 'success' field to every response and attach error message if needed.
- *
- * @param {Object} res
- * @param {string} err
- * @param {Object} response
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-function respond(res, err, response) {
-	if (err) {
-		res.json({ success: false, error: err });
-	} else {
-		return res.json(extend({}, { success: true }, response));
-	}
-}
-
-/**
- * Adds code status to responses for every failed request.
- * Default error code is 500.
- * Success code is 200.
- * Success code for empty data is 204.
- *
- * @param {Object} res
- * @param {ApiError} err
- * @param {Object} response
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-function respondWithCode(res, err, response) {
-	if (err) {
-		return res
-			.status(err.code || apiCodes.INTERNAL_SERVER_ERROR)
-			.json(err.toJson());
-	}
-	var isResponseEmpty = function(response) {
-		var firstValue = _(response)
-			.values()
-			.first();
-		return _.isArray(firstValue) && _.isEmpty(firstValue);
-	};
-	return res
-		.status(
-			isResponseEmpty(response) ? apiCodes.EMPTY_RESOURCES_OK : apiCodes.OK
-		)
-		.json(response);
-}
-
-/**
- * Register router in express app using default middleware.
- *
- * @param {string} route
- * @param {Object} app
- * @param {Object} router
- * @param {function} isLoaded
- * @todo Add description for the params
- * @todo Add @returns tag
- */
-function registerEndpoint(route, app, router, isLoaded) {
-	router.use(middleware.notFound);
-	router.use(middleware.blockchainReady.bind(null, isLoaded));
-	app.use(route, router);
-}
-
 module.exports = {
 	middleware,
-	registerEndpoint,
-	respond,
-	respondWithCode,
 };
