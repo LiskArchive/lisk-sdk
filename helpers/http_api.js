@@ -19,7 +19,7 @@ var checkIpInList = require('./check_ip_in_list');
 var apiCodes = require('./api_codes');
 
 /**
- * Description of the module.
+ * A utility helper module to provide different express middleware to be used in http request cycle
  *
  * @module
  * @see Parent: {@link helpers}
@@ -28,14 +28,11 @@ var apiCodes = require('./api_codes');
  * @requires helpers/api_codes
  * @requires helpers/check_ip_in_list
  * @property {Object} middleware
- * @property {function} registerEndpoint
- * @property {function} respond
- * @property {function} respondWithCode
  * @todo Add description for the module and the properties
  */
 
 /**
- * Middleware functions to add cors, log errors and conections, send status
+ * Middleware functions connection logging, api access rules and others.
  * and setup router.
  *
  * @namespace middleware

@@ -232,7 +232,7 @@ describe('httpApi', () => {
 				done();
 			});
 
-			it('should response with error if api is not enabled', done => {
+			it('should respond with error if api is not enabled', done => {
 				validConfig.api.enabled = false;
 
 				httpApi.middleware.applyAPIAccessRules(
@@ -266,7 +266,7 @@ describe('httpApi', () => {
 				done();
 			});
 
-			it('should check for IP and response with success if api is not public and IP is whitelisted', done => {
+			it('should check for IP and respond with success if api is not public and IP is whitelisted', done => {
 				validConfig.api.access.public = false;
 				validConfig.api.access.whiteList = ['192.168.99.100'];
 				validReq.ip = '192.168.99.100';
@@ -290,7 +290,7 @@ describe('httpApi', () => {
 				done();
 			});
 
-			it('should check for IP and response with error if api is not public and IP is whitelisted', done => {
+			it('should check for IP and respond with error if api is not public and IP is whitelisted', done => {
 				validConfig.api.access.public = false;
 				validConfig.api.access.whiteList = ['192.168.99.100'];
 				validReq.ip = '192.168.99.101';
