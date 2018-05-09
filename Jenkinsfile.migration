@@ -12,112 +12,41 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-def generateSrcCodeRelease(directory) {
-	dir(directory) {
-		sh """
-		npm install
-		node ./node_modules/.bin/grunt release
-		"""
-	}
-}
-
-def getBuildBranch(liskDirectory) {
-	if(fileExists("${env.WORKSPACE}/${liskDirectory}/genesisBlock.json")) {
-		return "0.9.15"
-	} else {
-		return "1.0.0"
-	}
-}
-
-def getReleaseDetails(liskDirectory) {
-	dir(liskDirectory) {
-		sh """
-		jq -r '.version' config.json > "/tmp/${liskDirectory}-version"
-		"""
-	}
-	def version = readFile("/tmp/${liskDirectory}-version").trim();
-
-	if(fileExists("${env.WORKSPACE}/${liskDirectory}/genesisBlock.json")) {
-		return [file: "${version}.tar.gz", version: version]
-	} else {
-		return [file: "lisk-${version}.tgz", version: version]
-	}
-}
-
 pipeline {
 	agent { node { label "core-migration" } }
-	library identifier: 'lisk-jenkins@nh-lisk-build', retriever: modernSCM(
-      [$class: 'GitSCMSource',
-       remote: 'git@github.com:LiskHQ/lisk-jenkins.git'])
 	stages {
 		stage("Prepare workspace") {
 			steps {
+				library identifier: 'lisk-jenkins@nh-lisk-build', retriever: modernSCM(
+  					[$class: 'GitSCMSource',
+   					 remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
 				deleteDir()
-				dir(params.MIGRATE_FROM) {
-					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_FROM
-				}
-				dir(params.MIGRATE_TO) {
-					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
-				}
-				script {
-					env.MIGRATE_FROM_BUILD_BRANCH = getBuildBranch(params.MIGRATE_FROM)
-					env.MIGRATE_TO_BUILD_BRANCH = getBuildBranch(params.MIGRATE_TO)
-				}
-				dir("lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}") {
-					git url: "https://github.com/LiskHQ/lisk-build.git", branch: env.MIGRATE_FROM_BUILD_BRANCH
-				}
-				dir("lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}") {
-					git url: "https://github.com/LiskHQ/lisk-build.git", branch: env.MIGRATE_TO_BUILD_BRANCH
-				}
 				sh """
 				dropdb lisk_test || true
 				createdb lisk_test
 				"""
 			}
 		}
-		stage("Create code releases") {
+		stage("Create binary releases") {
 			parallel {
 				stage('Create source release') {
 					steps {
-						generateSrcCodeRelease(params.MIGRATE_FROM)
 						script {
-							def details = getReleaseDetails(params.MIGRATE_FROM)
-							env.MIGRATE_FROM_VERSION = details.version
-							env.MIGRATE_FROM_SRC = details.file
+							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'dev')
+							env.SRC_IS_LATEST = release.latestVersion
+							env.SRC_VERSION =  release.version
+							env.SRC_RELEASE =  release.file
 						}
+
 					}
 				}
 				stage('Create destination release') {
 					steps {
-						generateSrcCodeRelease(params.MIGRATE_TO)
 						script {
-							def details = getReleaseDetails(params.MIGRATE_TO)
-							env.MIGRATE_TO_VERSION = details.version
-							env.MIGRATE_TO_SRC = details.file
-						}
-					}
-				}
-			}
-		}
-		stage("Create binary releases") {
-			parallel {
-				stage('Create source binary release') {
-					steps {
-						dir("lisk-build-${env.MIGRATE_FROM_BUILD_BRANCH}"){
-							sh """
-							cp "${env.WORKSPACE}/${params.MIGRATE_FROM}/release/${env.MIGRATE_FROM_SRC}" "src/"
-							bash build.sh -n dev -v "${env.MIGRATE_FROM_VERSION}"
-							"""
-						}
-					}
-				}
-				stage('Create destination binary release') {
-					steps {
-						dir("lisk-build-${env.MIGRATE_TO_BUILD_BRANCH}"){
-							sh """
-							cp "${env.WORKSPACE}/${params.MIGRATE_TO}/release/${env.MIGRATE_TO_SRC}" "src/"
-							bash build.sh -n dev -v "${env.MIGRATE_TO_VERSION}"
-							"""
+							def release = liskBuild(branch: params.MIGRATE_TO, network: 'dev')
+							env.DEST_IS_LATEST = release.latestVersion
+							env.DEST_VERSION =  release.version
+							env.DEST_RELEASE =  release.file
 						}
 					}
 				}
