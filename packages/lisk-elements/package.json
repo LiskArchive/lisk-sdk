@@ -38,7 +38,7 @@
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
 		"build:node": "babel src -d dist-node",
 		"prebuild:browser": "rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
-		"build:browser": "browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk -t rewireify",
+		"build:browser": "browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk",
 		"postbuild:browser": "npm run build:browser:min",
 		"build:browser:min": "uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
