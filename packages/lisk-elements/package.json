@@ -20,6 +20,7 @@
 		"node": "6.14.1",
 		"npm": "3.10.10"
 	},
+	"main": "dist-node/index.js",
 	"scripts": {
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
@@ -31,7 +32,16 @@
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v"
+		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
+		"build:node": "babel src -d dist-node",
+		"prebuild:browser": "rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
+		"build:browser": "browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk -t rewireify",
+		"postbuild:browser": "npm run build:browser:min",
+		"build:browser:min": "uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
+		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
+		"build": "npm run build:node && npm run build:browser",
+		"build:check": "node -e \"require('./dist-node')\""
 	},
 	"dependencies": {
 		"lisk-api-client": "0.5.1",
@@ -41,10 +51,12 @@
 		"lisk-transactions": "0.5.1"
 	},
 	"devDependencies": {
+		"babel-cli": "6.26.0",
 		"babel-plugin-istanbul": "4.1.6",
 		"babel-plugin-transform-runtime": "6.23.0",
 		"babel-preset-env": "1.6.1",
 		"babel-register": "6.26.0",
+		"browserify": "16.0.0",
 		"chai": "4.1.2",
 		"eslint": "4.19.1",
 		"eslint-config-airbnb-base": "12.1.0",
@@ -53,6 +65,7 @@
 		"eslint-plugin-mocha": "5.0.0",
 		"mocha": "5.1.1",
 		"nyc": "11.7.1",
-		"prettier": "1.12.1"
+		"prettier": "1.12.1",
+		"uglify-es": "3.3.9"
 	}
 }
