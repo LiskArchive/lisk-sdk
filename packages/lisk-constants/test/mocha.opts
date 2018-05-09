@@ -1,1 +1,1 @@
---require ./test/setup.js
+../../../mocha.opts.tmpl
