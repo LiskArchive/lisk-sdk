@@ -52,5 +52,31 @@ pipeline {
 				}
 			}
 		}
+
+		stage("Install source release") {
+			steps {
+				getInstallScript(env.SRC_IS_LATEST)
+				installLisk(env.SRC_RELEASE, 'dev')
+			}
+		}
 	}
+}
+
+
+def getInstallScript(latestVersion) {
+	if(latestVersion) {
+		sh """
+		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/installLisk.sh
+		"""
+	} else {
+		sh """
+		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/master/downloaded/installLisk.sh
+		"""
+	}
+}
+
+def installLisk(buildFile, network) {
+	sh """
+	bash installLisk.sh install -r ${network} -f ${buildFile}
+	"""
 }
