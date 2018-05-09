@@ -892,8 +892,10 @@ Delegates.prototype.getForgers = function(query, cb) {
 	const currentSlot = slots.getSlotNumber();
 	const forgerKeys = [];
 
+	// We pass height + 1 as seed for generating the list, because we want the list to be generated for next block.
+	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
 	self.generateDelegateList(
-		currentBlock.height,
+		currentBlock.height + 1,
 		null,
 		(err, activeDelegates) => {
 			if (err) {
