@@ -31,11 +31,6 @@ info:
 # All paths relative to specified basePath
 basePath: /api
 
-# The host (name or ip) serving the API
-# OpenAPI 3.0 already supports Server Templates
-#host: 46.101.179.89:5000
-host: 127.0.0.1:4000
-
 # Tags for organizing operations
 tags:
 - name: Accounts
