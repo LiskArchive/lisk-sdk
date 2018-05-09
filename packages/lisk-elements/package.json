@@ -1,3 +1,22 @@
 {
-	"name": "lisk-elements"
+	"name": "lisk-elements",
+	"version": "1.0.0",
+	"description": "A default set of elements for use by clients of the Lisk network",
+	"author":
+		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "GPL-3.0",
+	"keywords": ["lisk", "blockchain"],
+	"homepage":
+		"https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-elements#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-elements/issues"
+	},
+	"engines": {
+		"node": "6.14.1",
+		"npm": "3.10.10"
+	}
 }
