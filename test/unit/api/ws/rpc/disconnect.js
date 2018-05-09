@@ -45,7 +45,7 @@ describe('disconnect', () => {
 			disconnect(validPeer);
 			// The socket should be deleted.
 			expect(validPeer.socket, undefined);
-			return expect(socket.disconnect).calledOnce;
+			return expect(socket.destroy).calledOnce;
 		});
 	});
 });
