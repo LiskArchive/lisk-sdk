@@ -15,7 +15,8 @@ swagger: '2.0'
 
 info:
   title: Lisk API Documentation
-  description: Lisk API Documentation
+  description: |
+    Lisk API Documentation
   version: '1.0.27'
   contact:
     email: admin@lisk.io
@@ -27,8 +28,9 @@ info:
 basePath: /api
 
 # The host (name or ip) serving the API
+## OpenAPI 3.0 supports Server Templates now
 #host: 46.101.179.89:5000
-host: localhost:4000
+host: 127.0.0.1:4000
 
 # Tags for organizing operations
 tags:
@@ -66,8 +68,7 @@ paths:
       summary: Requests account data
       operationId: getAccounts
       description: |
-        By passing the appropriate parameters, you can search for matching accounts in the system.
-        Otherwise returns a list of accounts.
+        Search for matching accounts in the system.
       produces:
       - application/json
       parameters:
@@ -112,8 +113,7 @@ paths:
       summary: Requests multisignature groups data
       operationId: getMultisignatureGroups
       description: |
-        By passing an address of an account, you can search for the specified account in the system.
-        As response, you will get a list of the multisignature groups that this account is member of.
+        Searches for the specified account in the system and responds with a list of the multisignature groups that this account is member of.
       produces:
         - application/json
       parameters:
@@ -155,8 +155,7 @@ paths:
       summary: Requests multisignature memberships data
       operationId: getMultisignatureMemberships
       description: |
-        By passing the address of a multisignature group.
-        As response, you will get all members of this particular multisignature group.
+        Searches for the specified multisignature group and responds with a list of all members of this particular multisignature group.
       produces:
         - application/json
       parameters:
@@ -194,8 +193,7 @@ paths:
       summary: Requests dapps data
       operationId: getDapps
       description: |
-        By passing the appropriate parameters, you can search for a specified dapp in the system.
-        Otherwise returns a list of dapps.
+        Search for a specified dapp in the system.
       produces:
       - application/json
       parameters:
@@ -249,8 +247,7 @@ paths:
       summary: Requests peers data
       operationId: getPeers
       description: |
-        By passing the appropriate parameters, you can search for specified peers.
-        Otherwise returns a list of all known peers.
+        Search for specified peers.
       produces:
         - application/json
       parameters:
@@ -325,7 +322,7 @@ paths:
       summary: Requests status data
       operationId: getStatus
       description: |
-        Returns all current status data on the system.
+        Returns all current status data of the node, e.g. height and broadhash.
       produces:
       - application/json
       responses:
@@ -352,7 +349,7 @@ paths:
       description: |
         *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
         To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
-        By querying by publicKey, the forging status of a delegate can be determined on a node
+        Responds with the forging status of a delegate on a node.
       produces:
         - application/json
       parameters:
@@ -510,8 +507,7 @@ paths:
       operationId: getDelegates
       x-lisk-cache-enabled: true
       description: |
-        By passing the appropriate parameters, you can search for a specified delegate in the system.
-        Otherwise returns a list of delegates.
+        Search for a specified delegate in the system.
       produces:
       - application/json
       parameters:
@@ -580,7 +576,7 @@ paths:
       summary: Requests next forgers data
       operationId: getForgers
       description: |
-        Returns a list of the next forgers.
+        Returns a list of the next forgers in this delegate round.
       produces:
         - application/json
       parameters:
@@ -620,7 +616,7 @@ paths:
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
       description: |
-        By passing an existing delegate address, and the desired timestamps, you can get its forging statistics within a window of time.
+        By passing an existing delegate address and the desired timestamps, you can get its forging statistics within the specified timespan.
         If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
       produces:
       - application/json
@@ -660,8 +656,7 @@ paths:
       operationId: getBlocks
       x-lisk-cache-enabled: true
       description: |
-        By passing the appropriate parameters, you can search for a specified block in the system.
-        Otherwise returns a list of blocks.
+        Search for a specified block in the system.
       produces:
         - application/json
       parameters:
@@ -868,8 +863,7 @@ paths:
       operationId: getTransactions
       x-lisk-cache-enabled: true
       description: |
-        By passing the appropriate parameters, you can search for a specified transaction in the system.
-        Otherwise returns a list of transactions.
+        Search for a specified transaction in the system.
       produces:
         - application/json
       parameters:
