@@ -1,6 +1,6 @@
 {
 	"name": "lisk-cryptography",
-	"version": "1.0.0",
+	"version": "0.5.1",
 	"description":
 		"General cryptographic functions for use with Lisk-related software",
 	"author":

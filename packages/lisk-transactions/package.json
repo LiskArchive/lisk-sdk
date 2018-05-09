@@ -1,6 +1,6 @@
 {
 	"name": "lisk-transactions",
-	"version": "1.0.0",
+	"version": "0.5.1",
 	"description":
 		"Everything related to transactions according to the Lisk protocol",
 	"author":
@@ -40,8 +40,8 @@
 	"dependencies": {
 		"browserify-bignum": "1.3.0-2",
 		"js-nacl": "LiskHQ/js-nacl#6dc1417",
-		"lisk-constants": "1.0.0",
-		"lisk-cryptography": "1.0.0"
+		"lisk-constants": "0.5.1",
+		"lisk-cryptography": "0.5.1"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
