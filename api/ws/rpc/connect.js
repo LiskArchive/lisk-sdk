@@ -145,9 +145,10 @@ const connectSteps = {
 								setImmediate(rpcCallback, err);
 							});
 					} else {
-						logger.debug(
-							'Tried to call RPC function on outbound peer socket which no longer exists'
-						);
+						const rpcNotExistError =
+							'Tried to call RPC function on outbound peer socket which no longer exists';
+						logger.debug(rpcNotExistError);
+						setImmediate(rpcCallback, rpcNotExistError);
 					}
 				};
 				return peerExtendedWithRPC;
