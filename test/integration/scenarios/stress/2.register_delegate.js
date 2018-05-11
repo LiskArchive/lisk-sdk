@@ -29,6 +29,7 @@ module.exports = function(params) {
 		var transactions = [];
 		var accounts = [];
 		var maximum = 1000;
+		var waitForExtraBlocks = 10; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
@@ -66,9 +67,14 @@ module.exports = function(params) {
 
 			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes()
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
@@ -90,9 +96,14 @@ module.exports = function(params) {
 
 			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes()
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
