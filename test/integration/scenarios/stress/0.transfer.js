@@ -30,6 +30,7 @@ module.exports = function(params) {
 	describe('stress test for type 0 transactions @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
+		var waitForExtraBlocks = 10; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('sending 1000 bundled transfers to random addresses', () => {
 			var count = 1;
@@ -64,11 +65,15 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params).then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
@@ -90,11 +95,15 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params).then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
