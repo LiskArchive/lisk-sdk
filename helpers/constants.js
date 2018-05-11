@@ -74,6 +74,7 @@ var constants = {
 	maxAmount: 100000000,
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,
+	matchingPeersRatio: 0.5,
 	maxSharedTransactions: 100,
 	maxTransactionsPerBlock: 25,
 	maxVotesPerTransaction: 33,
