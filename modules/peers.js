@@ -91,6 +91,29 @@ __private.countByFilter = function(filter, cb) {
 };
 
 /**
+ * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
+__private.shuffle = function(array) {
+	let m = array.length;
+	let t;
+	let i;
+	// While there remain elements to shuffle
+	while (m) {
+		// Pick a remaining element
+		i = Math.floor(Math.random() * m--);
+		// And swap it with the current element
+		t = array[m];
+		array[m] = array[i];
+		array[i] = t;
+	}
+	return array;
+};
+
+/**
  * Gets randomly ordered list of peers by filter.
  *
  * @private
@@ -170,29 +193,6 @@ __private.getByFilter = function(filter, cb) {
 		};
 	};
 
-	/**
-	 * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	const shuffle = function(array) {
-		let m = array.length;
-		let t;
-		let i;
-		// While there remain elements to shuffle
-		while (m) {
-			// Pick a remaining element
-			i = Math.floor(Math.random() * m--);
-			// And swap it with the current element
-			t = array[m];
-			array[m] = array[i];
-			array[i] = t;
-		}
-		return array;
-	};
-
 	// Apply filters (by AND)
 	const normalized = filter.normalized === undefined ? true : filter.normalized;
 	let peers = library.logic.peers.list(normalized);
@@ -225,7 +225,7 @@ __private.getByFilter = function(filter, cb) {
 		}
 	} else {
 		// Sort randomly by default
-		peers = shuffle(peers);
+		peers = __private.shuffle(peers);
 	}
 
 	// Apply limit if supplied
@@ -716,6 +716,7 @@ Peers.prototype.list = function(options, cb) {
 					// Unmatched broadhash
 					return randomList(peers, waterCb);
 				}
+				peers = __private.shuffle(peers);
 				return setImmediate(waterCb, null, peers);
 			},
 		],
