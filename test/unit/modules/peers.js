@@ -899,7 +899,7 @@ describe('peers', () => {
 			return expect(jobsQueueSpy).calledWith(
 				'peersDiscoveryAndUpdate',
 				sinon.match.func,
-				30000
+				10000
 			);
 		});
 	});
