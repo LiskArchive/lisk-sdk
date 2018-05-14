@@ -1174,6 +1174,32 @@ parameters:
     minimum: 1
 
 definitions:
+  Meta:
+    type: object
+    required:
+      - limit
+      - offset
+    properties:
+      limit:
+        $ref: '#/definitions/Limit'
+      offset:
+        $ref: '#/definitions/Offset'
+
+  Limit:
+    description: Limit applied to results
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 100
+    default: 10
+
+  Offset:
+    description: Offset value for results
+    type: integer
+    format: int32
+    minimum: 0
+    default: 0
+
   TransactionRequest:
     type: object
     required:
@@ -1316,13 +1342,9 @@ definitions:
          - total
        properties:
          offset:
-           description: Offset value for results
-           type: integer
-           example: 0
+           $ref: '#/definitions/Offset'
          limit:
-           description: Limit applied to results
-           type: integer
-           example: 100
+           $ref: '#/definitions/Limit'
          total:
            description: Total number of available peers
            type: integer
@@ -1343,19 +1365,7 @@ definitions:
         items:
           $ref: '#/definitions/AccountExtended'
       meta:
-        type: object
-        required:
-          - offset
-          - limit
-        properties:
-          offset:
-            description: Offset value for results
-            type: integer
-            example: 0
-          limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1389,19 +1399,7 @@ definitions:
         items:
           $ref: '#/definitions/Dapp'
       meta:
-        type: object
-        required:
-          - offset
-          - limit
-        properties:
-          offset:
-            description: Offset value for results
-            type: integer
-            example: 0
-          limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1420,17 +1418,17 @@ definitions:
       meta:
         type: object
         required:
-          - offset
           - limit
+          - offset
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
             type: integer
-            example: 100
+            format: int32
+            minimum: 1
+            maximum: 101
+            default: 10
       links:
         type: object
 
@@ -1456,13 +1454,13 @@ definitions:
           - lastBlock
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
             type: integer
-            example: 100
+            format: int32
+            minimum: 1
+            maximum: 101
+            default: 10
           currentSlot:
             description: Currently active slot
             type: integer
@@ -1533,19 +1531,7 @@ definitions:
         items:
           $ref: '#/definitions/Block'
       meta:
-       type: object
-       required:
-         - offset
-         - limit
-       properties:
-         offset:
-           description: Offset value for results
-           type: integer
-           example: 0
-         limit:
-           description: Limit applied to results
-           type: integer
-           example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1597,13 +1583,9 @@ definitions:
           - count
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+            $ref: '#/definitions/Limit'
           count:
             description: Number of transactions in the response
             type: integer
@@ -2016,19 +1998,7 @@ definitions:
       data:
         $ref: '#/definitions/DelegateWithVoters'
       meta:
-        type: object
-        required:
-          - offset
-          - limit
-        properties:
-          offset:
-            description: Offset value for results
-            type: integer
-            example: 0
-          limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -2049,13 +2019,13 @@ definitions:
           - limit
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
             type: integer
-            example: 100
+            format: int32
+            minimum: 1
+            maximum: 101
+            default: 10
       links:
         type: object
 
@@ -2579,7 +2549,7 @@ definitions:
         example: 12668885769632475474L
         description: |
           The Lisk Address is the human readable representation of the accounts owners' public key.
-          It consists of 21 numbers followed by a big 'L' at the end.
+          It consists of multiple numbers followed by a big 'L' at the end.
       publicKey:
         type: string
         format: publicKey
@@ -2615,7 +2585,7 @@ definitions:
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
         description: |
           The public key is derived from the private key of the owner of the account.
-          It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
+          It can be used to validate that the private key belongs to the owner, but does not provide access to the owners private key.
       balance:
         type: string
         example: 1081560729258
