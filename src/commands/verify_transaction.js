@@ -14,9 +14,9 @@
  *
  */
 import transactions from '../utils/transactions';
-import { FileSystemError, ValidationError } from '../utils/error';
+import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
-import { getData } from '../utils/input/utils';
+import { getData, getStdIn } from '../utils/input/utils';
 
 const description = `Verifies a transaction has a valid signature.
 
@@ -38,9 +38,20 @@ const secondPublicKeyDescription = `Specifies a source for providing a second pu
 const getTransactionInput = ({ transaction, stdin, shouldUseStdIn }) => {
 	const hasStdIn = stdin && stdin[0];
 	if (shouldUseStdIn && !hasStdIn) {
-		throw new ValidationError('No transaction was provided.');
+		return null;
 	}
 	return shouldUseStdIn ? stdin[0] : transaction;
+};
+
+const processSecondPublicKey = async secondPublicKey =>
+	secondPublicKey.includes(':') ? getData(secondPublicKey) : secondPublicKey;
+
+const getStdInOnNonInteractiveMode = async () => {
+	if (process.env.NON_INTERACTIVE_MODE) {
+		const stdin = await getStdIn({ dataIsRequired: true });
+		return stdin.data;
+	}
+	return null;
 };
 
 export const actionCreator = () => async ({
@@ -49,11 +60,18 @@ export const actionCreator = () => async ({
 	options = {},
 }) => {
 	const shouldUseStdIn = !transaction;
-	const transactionInput = getTransactionInput({
+	const transactionSource = getTransactionInput({
 		transaction,
 		stdin,
 		shouldUseStdIn,
 	});
+	const transactionInput =
+		transactionSource || (await getStdInOnNonInteractiveMode());
+
+	if (!transactionInput) {
+		throw new ValidationError('No transaction was provided.');
+	}
+
 	let transactionObject;
 	try {
 		transactionObject = JSON.parse(transactionInput);
@@ -61,24 +79,17 @@ export const actionCreator = () => async ({
 		throw new ValidationError('Could not parse transaction JSON.');
 	}
 
-	const secondPublicKeyInput = options['second-public-key'];
+	const secondPublicKey = options['second-public-key']
+		? await processSecondPublicKey(options['second-public-key'])
+		: null;
 
-	return getData(secondPublicKeyInput)
-		.catch(error => {
-			if (error instanceof FileSystemError) {
-				throw error;
-			}
-			return null;
-		})
-		.then(secondPublicKey => {
-			const verified = transactions.utils.verifyTransaction(
-				transactionObject,
-				secondPublicKey,
-			);
-			return {
-				verified,
-			};
-		});
+	const verified = transactions.utils.verifyTransaction(
+		transactionObject,
+		secondPublicKey,
+	);
+	return {
+		verified,
+	};
 };
 
 const verifyTransaction = createCommand({
