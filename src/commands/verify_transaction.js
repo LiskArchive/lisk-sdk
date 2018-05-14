@@ -16,15 +16,23 @@
 import transactions from '../utils/transactions';
 import { FileSystemError, ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
-import commonOptions from '../utils/options';
 import { getData } from '../utils/input/utils';
 
-const description = `Verify a transaction.
+const description = `Verifies a transaction has a valid signature.
 
 	Examples:
 	- verify transaction '{"type":0,"amount":"100",...}'
 	- verify transaction '{"type":0,"amount":"100",...}' --second-public-key 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6
 	- create transaction transfer 100 123L --json | verify transaction
+`;
+
+const secondPublicKeyDescription = `Specifies a source for providing a second public key to the command. The second public key must be provided via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
+
+	Note: if both transaction and second public key are passed via stdin, the transaction must be the first line.
+
+	Examples:
+	- --second-public-key file:/path/to/my/message.txt
+	- --second-public-key 790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951
 `;
 
 const getTransactionInput = ({ transaction, stdin, shouldUseStdIn }) => {
@@ -50,9 +58,7 @@ export const actionCreator = () => async ({
 	try {
 		transactionObject = JSON.parse(transactionInput);
 	} catch (error) {
-		throw new ValidationError(
-			'Could not parse transaction JSON. Did you use the `--json` option?',
-		);
+		throw new ValidationError('Could not parse transaction JSON.');
 	}
 
 	const secondPublicKeyInput = options['second-public-key'];
@@ -79,7 +85,7 @@ const verifyTransaction = createCommand({
 	command: 'verify transaction [transaction]',
 	description,
 	actionCreator,
-	options: [commonOptions.secondPublicKey],
+	options: [['--second-public-key <source>', secondPublicKeyDescription]],
 	errorPrefix: 'Could not verify transaction',
 });
 

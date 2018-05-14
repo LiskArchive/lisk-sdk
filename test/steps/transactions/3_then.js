@@ -231,10 +231,3 @@ export function itShouldResolveToResultOfSuccessfullyVerifyingTransaction() {
 		verified: true,
 	});
 }
-
-export function itShouldResolveToResultOfFailingToVerifyingTransaction() {
-	const { returnValue } = this.test.ctx;
-	return expect(returnValue).to.eventually.eql({
-		verified: false,
-	});
-}

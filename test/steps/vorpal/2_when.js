@@ -53,13 +53,6 @@ export function theActionIsCalledWithTheTransactionAndOptionsObjectContainsSecon
 	return returnValue.catch(e => e);
 }
 
-export function theActionIsCalledWithTheTransactionAndOptionsObjectContainsSecondPublicKeyAsStringInput() {
-	const { action, transaction, options } = this.test.ctx;
-	const returnValue = action({ transaction, options });
-	this.test.ctx.returnValue = returnValue;
-	return returnValue.catch(e => e);
-}
-
 export function theActionIsCalledWithTheTransactionViaVorpalStdInAndOptionsObjectContainsSecondPublicKey() {
 	const { action, transaction, options } = this.test.ctx;
 	const returnValue = action({ stdin: [transaction], options });

@@ -26,19 +26,15 @@ describe('verify transaction command', () => {
 			given.aTransactionInStringifiedJSONFormat,
 			() => {
 				Given(
-					'getData rejects with ValidationError "File not "',
+					'getData rejects with ValidationError "File not found."',
 					given.getDataRejectsWithValidationError,
 					() => {
-						When(
-							'the action is called',
-							when.theActionIsCalled,
-							() => {
-								Then(
-									'it should reject with validation error and message "No transaction was provided."',
-									then.itShouldRejectWithValidationErrorAndMessage,
-								);
-							},
-						);
+						When('the action is called', when.theActionIsCalled, () => {
+							Then(
+								'it should reject with validation error and message "No transaction was provided."',
+								then.itShouldRejectWithValidationErrorAndMessage,
+							);
+						});
 						When(
 							'the action is called with the stringified error object via vorpal stdIn',
 							when.theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn,
@@ -54,7 +50,7 @@ describe('verify transaction command', () => {
 							when.theActionIsCalledWithTheCorruptedStringifiedTransactionObject,
 							() => {
 								Then(
-									'it should reject with validation error and message "Could not parse transaction JSON. Did you use the `--json` option?"',
+									'it should reject with validation error and message "Could not parse transaction JSON."',
 									then.itShouldRejectWithValidationErrorAndMessage,
 								);
 							},

@@ -10,15 +10,6 @@ const messageDescription = `Specifies a source for providing a message to the co
 	- --message stdin
 `;
 
-const secondPublicKeyDescription = `Specifies a source for providing a second public key to the command. The second public key must be provided via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
-
-	Note: if both transaction and second public key are passed via stdin, the transaction must be the first line.
-
-	Examples:
-	- --second-public-key file:/path/to/my/message.txt
-	- --second-public-key 790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951
-`;
-
 const passphraseDescription = `Specifies a source for your secret passphrase. Lisky will prompt you for input if this option is not set.
 
 	Source must be one of \`prompt\`, \`pass\`, \`env\`, \`file\` or \`stdin\`. For \`pass\`, \`env\` and \`file\` a corresponding identifier must also be provided.
@@ -83,7 +74,6 @@ const options = {
 	message: ['-m, --message <source>', messageDescription],
 	noSignature: ['--no-signature', noSignatureDescription],
 	passphrase: ['-p, --passphrase <source>', passphraseDescription],
-	secondPublicKey: ['--second-public-key <source>', secondPublicKeyDescription],
 	secondPassphrase: [
 		'-s, --second-passphrase <source>',
 		secondPassphraseDescription,
