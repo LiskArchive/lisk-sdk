@@ -16,11 +16,34 @@ swagger: '2.0'
 info:
   title: Lisk API Documentation
   description: |
-    Welcome to Lisks API documentation!
+    # Welcome!
 
-    Below you can see all possible API calls, ordered by endpoints.
+    ## Access Restrictions
+    Nearly all endpoints are free and publicly accessible to everyone from everywhere.
+    Some endpoints are private, that means only the Node itself, or a list of whitelisted IPs (which are defined in the nodes' config file) can successfully make API calls to that particular endpoint.
+    For details, see the descriptions at the respective endpoint.
 
-    By clicking the "Try it out"-button beside each API call, you can test out the API calls and their responses interactively.
+    ## Requests
+    Chained filter parameters are logically connected with `AND`.
+    HTTP and HTTPS are supported URL schemes.
+
+    ## Responses
+    The general response format is JSON (`application/json`).
+
+    ## Date Formats
+    Most of the timestamp parameters are in the Unix timestamp format.
+    The Unix timestamp (or Unix time or POSIX time or Unix epoch time) is the number of seconds that have elapsed since January 1, 1970 , not counting leap seconds.
+    Some of them though, are are accepted or returned in the ISO8601 format, combined date and time: YYYY-MM-DDThh:mm:ssZ.
+    2 valid examples for ISO 8601: 1970-01-01T00:00:00Z, 2016-05-24T17:00:00.000Z.
+    For details, see the descriptions and examples at the respective endpoint.
+
+    ## Limit and Offset
+    You can paginate nicely through the results by providing `limit` and `offset` parameters to your requests.
+    If no limit and offset are provided, they are set to 10 and 0 by default, what will give you the first 10 results.
+
+    ## List of Endpoints
+    All possible API endpoints for Lisk Core are listed below.
+    Click on an endpoint to show descriptions, details and examples.
   version: '1.0.27'
   contact:
     email: admin@lisk.io
