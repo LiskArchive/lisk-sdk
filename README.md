@@ -151,27 +151,27 @@ $ npm test
 
 ## FAQ
 
-### Why won’t Lisky start with my version of Node.js?
+### Why won’t Lisk Commander start with my version of Node.js?
 
-> You try to run Lisky and it tells you `ERROR: Requires Node.js version 6.14.1, but was started with version 8.11.1.`
+> You try to run Lisk Commander and it tells you `ERROR: Requires Node.js version 6.14.1, but was started with version 8.11.1.`
 
-Because of the sensitive nature of Lisky’s functionality, we want to make absolutely sure that when our users are using Lisky it behaves as expected. Currently we only perform substantial tests with a single version of Node.js, so we require our users to use that specific version to avoid unforeseen behavior discrepancies.
+Because of the sensitive nature of Lisk Commander’s functionality, we want to make absolutely sure that when our users are using Lisk Commander it behaves as expected. Currently we only perform substantial tests with a single version of Node.js, so we require our users to use that specific version to avoid unforeseen behavior discrepancies.
 
 In the future we would like to support a wider range of Node.js versions, but until then we recommend using a Node.js version manager, such as [nvm][], to make it easy to switch between different Node.js versions.
 
 ### Why do I get an error regarding a config lockfile?
 
-> You try to run Lisky and it tells you `Config lockfile at ~/.lisky/config.lock found. Are you running Lisky in another process?`
+> You try to run Lisk Commander and it tells you `Config lockfile at ~/.lisk-commander/config.lock found. Are you running Lisk Commander in another process?`
 
-When you start Lisky, either in interactive or non-interactive-mode, we create a lockfile to prevent you from making changes to your configuration file. If for some reason either Lisky or your computer crashes, this lockfile might not be removed, and Lisky will prevent you from starting a new instance even though no Lisky instance is currently running. In this case it’s safe to remove the lockfile.
+When you start Lisk Commander, either in interactive or non-interactive-mode, we create a lockfile to prevent you from making changes to your configuration file. If for some reason either Lisk Commander or your computer crashes, this lockfile might not be removed, and Lisk Commander will prevent you from starting a new instance even though no Lisk Commander instance is currently running. In this case it’s safe to remove the lockfile.
 
-The lockfile is located in your Lisky configuration directory. The error message above will give you the location of the file if you want to remove if manually, or you can run `lisky clean` and Lisky will remove it for you.
+The lockfile is located in your Lisk Commander configuration directory. The error message above will give you the location of the file if you want to remove if manually, or you can run `lisk clean` and Lisk Commander will remove it for you.
 
 ### Something else went wrong. What should I do?
 
 1. Make sure you’re on the network you intend to be on.
-1. Exit Lisky (if in interactive mode) and restart.
-1. Remove the configuration file (`config.json`) located in your Lisky configuration directory (`~/.lisky` by default). When you restart Lisky the default configuration will be recreated.
+1. Exit Lisk Commander (if in interactive mode) and restart.
+1. Remove the configuration file (`config.json`) located in your Lisk Commander configuration directory (`~/.lisk-commander` by default). When you restart Lisk Commander the default configuration will be recreated.
 1. Get in contact on [Lisk Chat][] or [Gitter][].
 1. If it seems like a bug, open an issue on [GitHub][bugs]. See the [Contribution Guidelines].
 
