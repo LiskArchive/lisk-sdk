@@ -28,7 +28,7 @@ module.exports = function(params) {
 	describe('postTransactions @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
-		var waitForExtraBlocks = 2; // Wait for extra blocks to ensure all the transactions are included in the block
+		var waitForExtraBlocks = 4; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
