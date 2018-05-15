@@ -14,7 +14,6 @@
 
 'use strict';
 
-var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
@@ -29,7 +28,7 @@ module.exports = function(params) {
 	describe('postTransactions @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
-		var waitForExtraBlocks = 10; // Wait for extra blocks to ensure all the transactions are included in the block
+		var waitForExtraBlocks = 2; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		function confirmTransactionsOnAllNodes() {
 			return Promise.all(
@@ -48,35 +47,21 @@ module.exports = function(params) {
 		}
 
 		describe('sending 1000 bundled transfers to random addresses', () => {
-			var count = 1;
+			before(() => {
+				_.range(maximum).map(() => {
+					var transaction = lisk.transaction.transfer({
+						amount: randomUtil.number(100000000, 1000000000),
+						passphrase: accountFixtures.genesis.password,
+						recipientId: randomUtil.account().address,
+					});
+					transactions.push(transaction);
+				});
 
-			before(done => {
-				async.doUntil(
-					next => {
-						var bundled = [];
-						for (
-							var i = 0;
-							i < params.configurations[0].broadcasts.releaseLimit;
-							i++
-						) {
-							var transaction = lisk.transaction.transfer({
-								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.password,
-								recipientId: randomUtil.account().address,
-							});
-							transactions.push(transaction);
-							bundled.push(transaction);
-							count++;
-						}
-						sendTransactionsPromise(bundled).then(next);
-					},
-					() => {
-						return count >= maximum;
-					},
-					() => {
-						done();
-					}
-				);
+				const limit = params.configurations[0].broadcasts.releaseLimit;
+
+				return _.chunk(transactions, limit).map(bundledTransactions => {
+					return sendTransactionsPromise(bundledTransactions);
+				});
 			});
 
 			it('should confirm all transactions on all nodes', done => {

@@ -67,6 +67,12 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				);
 				var secrets = _.clone(devConfig.forging.secret);
 
+				if (broadcastingDisabled) {
+					return configurations.forEach(configuration => {
+						configuration.forging.force = false;
+						configuration.forging.secret = secrets;
+					});
+				}
 				return configurations.forEach((configuration, index) => {
 					configuration.forging.force = false;
 					configuration.forging.secret = secrets.slice(

@@ -38,15 +38,31 @@ module.exports = {
 
 	enableForgingOnDelegates(configurations, cb) {
 		var enableForgingPromises = [];
-		configurations.forEach(configuration => {
-			configuration.forging.secret.map(keys => {
+		var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
+		// In order to test the syncing process, when broadcast is disabled
+		// Only one node should be enabled for forging in the network
+		// and rest all the nodes should sync from it.
+		if (broadcastingDisabled) {
+			// Picking the default forging node 4000
+			var forgingNode = configurations.find(config => config.httpPort === 4000);
+			forgingNode.forging.secret.map(keys => {
 				var enableForgingPromise = utils.http.enableForging(
 					keys,
-					configuration.httpPort
+					forgingNode.httpPort
 				);
 				enableForgingPromises.push(enableForgingPromise);
 			});
-		});
+		} else {
+			configurations.forEach(configuration => {
+				configuration.forging.secret.map(keys => {
+					var enableForgingPromise = utils.http.enableForging(
+						keys,
+						configuration.httpPort
+					);
+					enableForgingPromises.push(enableForgingPromise);
+				});
+			});
+		}
 		Promise.all(enableForgingPromises)
 			.then(forgingResults => {
 				return cb(
