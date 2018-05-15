@@ -1353,12 +1353,11 @@ describe('transport', () => {
 				transportInstance.broadcastHeaders(done);
 			});
 
-			it('should call modules.peers.list with {normalized: false, matchingPeersRatio: constants.matchingPeersRatio}', () => {
+			it('should call modules.peers.list with {normalized: false}', () => {
 				expect(modules.peers.list.calledOnce).to.be.true;
 				return expect(
 					modules.peers.list.calledWith({
 						normalized: false,
-						matchingPeersRatio: constants.matchingPeersRatio,
 					})
 				).to.be.true;
 			});

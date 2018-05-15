@@ -644,9 +644,7 @@ Peers.prototype.acceptable = function(peers) {
  * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
-	const matchingPeersRatio = options.matchingPeersRatio || 1;
 	let limit = options.limit || constants.maxPeers;
-	const matchingPeersLimit = Math.ceil(limit * matchingPeersRatio);
 	const broadhash = options.broadhash || modules.system.getBroadhash();
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
@@ -685,11 +683,7 @@ Peers.prototype.list = function(options, cb) {
 				});
 				const matched = peersList.length;
 				// Apply limit
-				if (attempt === 0) {
-					peersList = peersList.slice(0, matchingPeersLimit);
-				} else {
-					peersList = peersList.slice(0, limit);
-				}
+				peersList = peersList.slice(0, limit);
 				const picked = peersList.length;
 				const accepted = peers.concat(peersList);
 				library.logger.debug('Listing peers', {
