@@ -165,7 +165,13 @@ const connectSteps = {
 						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
 						data
 					);
-					peer.socket.emit(eventProcedureName, data);
+					if (peer.socket) {
+						peer.socket.emit(eventProcedureName, data);
+					} else {
+						const eventNotExistError =
+							'Tried to emit event on outbound peer socket which no longer exists';
+						logger.debug(eventNotExistError);
+					}
 				};
 				return peerExtendedWithPublish;
 			},
