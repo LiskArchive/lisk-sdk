@@ -32,20 +32,20 @@ pipeline {
         skipDefaultCheckout true
     }
     stages {
-    	stage("Prepare workspace") {
-    		steps {
-    			library identifier: 'lisk-jenkins@nh-lisk-build', retriever: modernSCM(
-                 	[$class: 'GitSCMSource',
-                 	remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
-    		}
-    	}
+        stage("Prepare workspace") {
+            steps {
+                library identifier: 'lisk-jenkins@ab-lisk-build', retriever: modernSCM(
+                [$class: 'GitSCMSource',
+                remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
+            }
+        }
         stage('Build release') {
             steps {
-            	script {
-					def release = liskBuild(branch: '1.0.0', network: 'dev')
-                 	env.VERSION =  release.version
-                 	env.RELEASE_FILE =  release.file
-                 	env.DESTINATION_FILE = "lisk-${env.VERSION}-${timestamp}-Linux-x86_64.tar.gz"
+                script {
+                    def release = liskBuild(branch: "${env.BRANCH_NAME}", network: "dev")
+                    env.VERSION =  release.version
+                    env.RELEASE_FILE =  release.file
+                    env.DESTINATION_FILE = "lisk-${env.VERSION}-${timestamp}-Linux-x86_64.tar.gz"
                 }
                 dir("${env.WORKSPACE}") {
                     sh """
