@@ -299,6 +299,7 @@ export function setUpCommandVerifyMessage() {
 
 export function setUpCommandVerifyTransaction() {
 	setUpTransactionsStubs();
+	setUpReadlineStubs();
 	setUpInputUtilsStubs();
 }
 

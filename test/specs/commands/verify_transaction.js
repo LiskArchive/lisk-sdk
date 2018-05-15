@@ -29,6 +29,44 @@ describe('verify transaction command', () => {
 					'getData rejects with ValidationError "File not found."',
 					given.getDataRejectsWithValidationError,
 					() => {
+						Given(
+							'vorpal is in interactive mode',
+							given.vorpalIsInInteractiveMode,
+							() => {
+								When('the action is called', when.theActionIsCalled, () => {
+									Then(
+										'it should reject with validation error and message "No transaction was provided."',
+										then.itShouldRejectWithValidationErrorAndMessage,
+									);
+								});
+							},
+						);
+						Given(
+							'vorpal is in non interactive mode',
+							given.vorpalIsInNonInteractiveMode,
+							() => {
+								Given(
+									'the transaction is provided via stdIn',
+									given.theTransactionIsProvidedViaStdIn,
+									() => {
+										When(
+											'the action is called with the stringified transaction object',
+											when.theActionIsCalledWithTheStringifiedTransactionObject,
+											() => {
+												Then(
+													'it should resolve to result of successfully verifying transaction"',
+													then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+												);
+												Then(
+													'it should call VerifyTransaction with the transaction',
+													then.itShouldCallVerifyTransactionWithTheTransaction,
+												);
+											},
+										);
+									},
+								);
+							},
+						);
 						When('the action is called', when.theActionIsCalled, () => {
 							Then(
 								'it should reject with validation error and message "No transaction was provided."',
@@ -89,6 +127,40 @@ describe('verify transaction command', () => {
 					'an options object with secondPublicKey set to "790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951"',
 					given.anOptionsObjectWithSecondPublicKeySetTo,
 					() => {
+						When(
+							'the action is called with the transaction and options object contains second public key as file input',
+							when.theActionIsCalledWithTheTransactionAndOptionsObjectContainsSecondPublicKeyAsFileInput,
+							() => {
+								Then(
+									'it should resolve to result of successfully verifying transaction"',
+									then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+								);
+								Then(
+									'it should call VerifyTransaction with the transaction and second public key',
+									then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey,
+								);
+							},
+						);
+						When(
+							'the action is called with the transaction via vorpal stdIn and options object contains second public key',
+							when.theActionIsCalledWithTheTransactionViaVorpalStdInAndOptionsObjectContainsSecondPublicKey,
+							() => {
+								Then(
+									'it should resolve to result of successfully verifying transaction"',
+									then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
+								);
+								Then(
+									'it should call VerifyTransaction with the transaction and second public key',
+									then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey,
+								);
+							},
+						);
+					},
+				);
+				Given(
+					'an options object with secondPublicKey set to "file:sample.txt"',
+					given.anOptionsObjectWithSecondPublicKeySetTo,
+					() => {
 						Given(
 							'getData resolves with "790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951"',
 							given.getDataResolvesWith,
@@ -102,8 +174,8 @@ describe('verify transaction command', () => {
 											then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
 										);
 										Then(
-											'it should call VerifyTransaction with the transaction and second public key',
-											then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey,
+											'it should call VerifyTransaction with the transaction and second public key supplied by data',
+											then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKeySuppliedByData,
 										);
 									},
 								);
@@ -116,8 +188,8 @@ describe('verify transaction command', () => {
 											then.itShouldResolveToResultOfSuccessfullyVerifyingTransaction,
 										);
 										Then(
-											'it should call VerifyTransaction with the transaction and second public key',
-											then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey,
+											'it should call VerifyTransaction with the transaction and second public key supplied by data',
+											then.itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKeySuppliedByData,
 										);
 									},
 								);

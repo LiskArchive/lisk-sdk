@@ -225,6 +225,14 @@ export function itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKe
 	);
 }
 
+export function itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKeySuppliedByData() {
+	const { transaction, data } = this.test.ctx;
+	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		data,
+	);
+}
+
 export function itShouldResolveToResultOfSuccessfullyVerifyingTransaction() {
 	const { returnValue } = this.test.ctx;
 	return expect(returnValue).to.eventually.eql({

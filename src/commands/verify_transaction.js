@@ -47,6 +47,7 @@ const processSecondPublicKey = async secondPublicKey =>
 	secondPublicKey.includes(':') ? getData(secondPublicKey) : secondPublicKey;
 
 const getStdInOnNonInteractiveMode = async () => {
+	// We should only get normal stdin for NON_INTERACTIVE_MODE
 	if (process.env.NON_INTERACTIVE_MODE) {
 		const stdin = await getStdIn({ dataIsRequired: true });
 		return stdin.data;

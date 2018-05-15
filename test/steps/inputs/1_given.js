@@ -146,6 +146,15 @@ export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
 	});
 }
 
+export function theTransactionIsProvidedViaStdIn() {
+	const { transaction } = this.test.ctx;
+
+	readline.createInterface.returns(createFakeInterface(transaction));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ data: transaction });
+	}
+}
+
 export function thePasswordIsProvidedViaStdIn() {
 	const { password } = this.test.ctx;
 
@@ -340,8 +349,9 @@ export function dataIsProvidedViaAFileSource() {
 }
 
 export function getDataResolvesWith() {
-	const message = getFirstQuotedString(this.test.parent.title);
-	inputUtils.getData.resolves(message);
+	const data = getFirstQuotedString(this.test.parent.title);
+	inputUtils.getData.resolves(data);
+	this.test.ctx.data = data;
 }
 
 export function getDataRejectsWithValidationError() {
