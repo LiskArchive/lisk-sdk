@@ -103,6 +103,9 @@ class Broadcaster {
 	 */
 	getPeers(params, cb) {
 		params.limit = params.limit || this.config.peerLimit;
+		// Leave some room in the broadcast list for peers with a
+		// non-matching broadhash in order to avoid forks.
+		params.matchingPeersRatio = constants.matchingPeersRatio;
 		params.broadhash = params.broadhash || null;
 		params.normalized = false;
 

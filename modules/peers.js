@@ -29,7 +29,7 @@ let self;
 const __private = {};
 let definitions;
 
-const peerDiscoveryFrequency = 30000;
+const peerDiscoveryFrequency = 10000;
 
 /**
  * Main peers methods. Initializes library with scope content.
@@ -88,6 +88,29 @@ __private.countByFilter = function(filter, cb) {
 	__private.getByFilter(filter, (err, peers) =>
 		setImmediate(cb, null, peers.length)
 	);
+};
+
+/**
+ * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
+ *
+ * @todo Add @param tags
+ * @todo Add @returns tag
+ * @todo Add description of the function
+ */
+__private.shuffle = function(array) {
+	let m = array.length;
+	let t;
+	let i;
+	// While there remain elements to shuffle
+	while (m) {
+		// Pick a remaining element
+		i = Math.floor(Math.random() * m--);
+		// And swap it with the current element
+		t = array[m];
+		array[m] = array[i];
+		array[i] = t;
+	}
+	return array;
 };
 
 /**
@@ -170,29 +193,6 @@ __private.getByFilter = function(filter, cb) {
 		};
 	};
 
-	/**
-	 * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	const shuffle = function(array) {
-		let m = array.length;
-		let t;
-		let i;
-		// While there remain elements to shuffle
-		while (m) {
-			// Pick a remaining element
-			i = Math.floor(Math.random() * m--);
-			// And swap it with the current element
-			t = array[m];
-			array[m] = array[i];
-			array[i] = t;
-		}
-		return array;
-	};
-
 	// Apply filters (by AND)
 	const normalized = filter.normalized === undefined ? true : filter.normalized;
 	let peers = library.logic.peers.list(normalized);
@@ -225,7 +225,7 @@ __private.getByFilter = function(filter, cb) {
 		}
 	} else {
 		// Sort randomly by default
-		peers = shuffle(peers);
+		peers = __private.shuffle(peers);
 	}
 
 	// Apply limit if supplied
@@ -644,7 +644,9 @@ Peers.prototype.acceptable = function(peers) {
  * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
+	const matchingPeersRatio = options.matchingPeersRatio || 1;
 	let limit = options.limit || constants.maxPeers;
+	const matchingPeersLimit = Math.ceil(limit * matchingPeersRatio);
 	const broadhash = options.broadhash || modules.system.getBroadhash();
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
@@ -683,7 +685,11 @@ Peers.prototype.list = function(options, cb) {
 				});
 				const matched = peersList.length;
 				// Apply limit
-				peersList = peersList.slice(0, limit);
+				if (attempt === 0) {
+					peersList = peersList.slice(0, matchingPeersLimit);
+				} else {
+					peersList = peersList.slice(0, limit);
+				}
 				const picked = peersList.length;
 				const accepted = peers.concat(peersList);
 				library.logger.debug('Listing peers', {
@@ -710,6 +716,7 @@ Peers.prototype.list = function(options, cb) {
 					// Unmatched broadhash
 					return randomList(peers, waterCb);
 				}
+				peers = __private.shuffle(peers);
 				return setImmediate(waterCb, null, peers);
 			},
 		],
