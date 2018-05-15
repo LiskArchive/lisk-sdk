@@ -29,8 +29,9 @@
 		"test": "lerna run test",
 		"build": "lerna run build",
 		"cover": "lerna run cover",
-		"precommit": "lint-staged && lerna run lint",
-		"prepush": "lerna run lint && lerna run test"
+		"postinstall": "npm run bootstrap",
+		"precommit": "lint-staged && npm run lint",
+		"prepush": "npm run lint && npm test"
 	},
 	"devDependencies": {
 		"coveralls": "=3.0.0",

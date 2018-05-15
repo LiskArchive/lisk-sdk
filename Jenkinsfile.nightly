@@ -5,7 +5,6 @@ pipeline {
 			steps {
 				sh '''
 				npm install --verbose
-				npm run bootstrap -- --verbose
 				BRANCH=${CHANGE_TARGET:-${BRANCH_NAME:-development}}
 				if [ ! -d ~/cache/$BRANCH ]; then
 					mkdir ~/cache/$BRANCH

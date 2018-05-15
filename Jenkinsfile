@@ -19,7 +19,6 @@ pipeline {
 		stage('Install dependencies') {
 			steps {
 				sh 'npm install --verbose'
-				sh 'npm run bootstrap -- --verbose'
 			}
 		}
 		stage('Build') {
