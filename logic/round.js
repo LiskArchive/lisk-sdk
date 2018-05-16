@@ -228,6 +228,25 @@ class Round {
 	}
 
 	/**
+	 * Checks round snapshot availability for current round.
+	 *
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability() {
+		return this.t.rounds
+			.checkSnapshotAvailability(this.scope.round)
+			.then(isAvailable => {
+				if (!isAvailable) {
+					throw new Error(
+						`Snapshot for round ${
+							this.scope.round
+						} not available, unable to perform round rollback`
+					);
+				}
+			});
+	}
+
+	/**
 	 * Calls sql deleteRoundRewards:
 	 * - Removes rewards for entire round from round_rewards table.
 	 * - Performed only when rollback last block of round.
