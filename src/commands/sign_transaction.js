@@ -25,15 +25,15 @@ const description = `Sign a transaction using your secret passphrase.
 	Example: sign transaction '{"amount":"100","recipientId":"13356260975429434553L","senderPublicKey":null,"timestamp":52871598,"type":0,"fee":"10000000","recipientPublicKey":null,"asset":{}}'
 `;
 
-const getTransactionInput = ({ transaction, stdin, shouldUseStdIn }) => {
+const getTransactionInput = ({ transaction, stdin }) => {
 	const hasStdIn = stdin && stdin[0];
-	if (shouldUseStdIn && !hasStdIn) {
+	if (!transaction && !hasStdIn) {
 		return null;
 	}
-	return shouldUseStdIn ? stdin[0] : transaction;
+	return transaction || stdin[0];
 };
 
-const getStdInOnNonInteractiveMode = async () => {
+const getStdInForNonInteractiveMode = async () => {
 	// We should only get normal stdin for NON_INTERACTIVE_MODE
 	if (process.env.NON_INTERACTIVE_MODE) {
 		const stdin = await getStdIn({ dataIsRequired: true });
@@ -54,7 +54,7 @@ export const actionCreator = vorpal => async ({
 		shouldUseStdIn,
 	});
 	const transactionInput =
-		transactionSource || (await getStdInOnNonInteractiveMode());
+		transactionSource || (await getStdInForNonInteractiveMode());
 
 	if (!transactionInput) {
 		throw new ValidationError('No transaction was provided.');
@@ -66,6 +66,8 @@ export const actionCreator = vorpal => async ({
 	} catch (error) {
 		throw new ValidationError('Could not parse transaction JSON.');
 	}
+
+	transactions.utils.verifyTransaction(transactionObject);
 
 	const passphraseSource = options.passphrase;
 
