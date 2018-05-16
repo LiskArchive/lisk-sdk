@@ -41,6 +41,14 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			if (!devConfigCopy.syncing) {
 				devConfigCopy.syncing = {};
 			}
+			if (syncingDisabled && !broadcastingDisabled) {
+				// When all the nodes in network is broadcast enabled
+				// and syncing disabled then all the nodes in the network
+				// doesn't receive the block/transactions with 2 relays
+				// So we need to increase the relay limit to ensure all
+				// the peers in network receives block/transactions
+				devConfigCopy.broadcasts.relayLimit = 4;
+			}
 			devConfigCopy.syncing.active = !syncingDisabled;
 			return devConfigCopy;
 		});
