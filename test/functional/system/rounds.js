@@ -1130,6 +1130,22 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('deleting last block of round twice in a row', () => {
+		before(() => {
+			return deleteLastBlockPromise().then(() => {
+				return addTransactionsAndForgePromise(library, [], 0);
+			});
+		});
+
+		after(() => {
+			return addTransactionsAndForgePromise(library, [], 0);
+		});
+
+		it('should be able to delete last block of round again', () => {
+			return deleteLastBlockPromise();
+		});
+	});
+
 	describe('rollback more than 1 round of blocks', () => {
 		let lastBlock;
 
