@@ -16,6 +16,7 @@
 import transactions from '../utils/transactions';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
+import { getFirstLineFromString } from '../utils/input';
 import { getData, getStdIn } from '../utils/input/utils';
 
 const description = `Verifies a transaction has a valid signature.
@@ -35,22 +36,22 @@ const secondPublicKeyDescription = `Specifies a source for providing a second pu
 	- --second-public-key 790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951
 `;
 
-const getTransactionInput = ({ transaction, stdin, shouldUseStdIn }) => {
+const getTransactionInput = ({ transaction, stdin }) => {
 	const hasStdIn = stdin && stdin[0];
-	if (shouldUseStdIn && !hasStdIn) {
+	if (!transaction && !hasStdIn) {
 		return null;
 	}
-	return shouldUseStdIn ? stdin[0] : transaction;
+	return transaction || stdin[0];
 };
 
 const processSecondPublicKey = async secondPublicKey =>
 	secondPublicKey.includes(':') ? getData(secondPublicKey) : secondPublicKey;
 
-const getStdInOnNonInteractiveMode = async () => {
+const getStdInForNonInteractiveMode = async () => {
 	// We should only get normal stdin for NON_INTERACTIVE_MODE
 	if (process.env.NON_INTERACTIVE_MODE) {
 		const stdin = await getStdIn({ dataIsRequired: true });
-		return stdin.data;
+		return getFirstLineFromString(stdin.data);
 	}
 	return null;
 };
@@ -60,14 +61,12 @@ export const actionCreator = () => async ({
 	stdin,
 	options = {},
 }) => {
-	const shouldUseStdIn = !transaction;
 	const transactionSource = getTransactionInput({
 		transaction,
 		stdin,
-		shouldUseStdIn,
 	});
 	const transactionInput =
-		transactionSource || (await getStdInOnNonInteractiveMode());
+		transactionSource || (await getStdInForNonInteractiveMode());
 
 	if (!transactionInput) {
 		throw new ValidationError('No transaction was provided.');
