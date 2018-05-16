@@ -18,7 +18,12 @@ export {
 export { default as getTransactionBytes } from './get_transaction_bytes';
 export { default as getTransactionHash } from './get_transaction_hash';
 export { default as getTransactionId } from './get_transaction_id';
-export { prependPlusToPublicKeys, prependMinusToPublicKeys } from './format';
+export {
+	convertBeddowsToLSK,
+	convertLSKToBeddows,
+	prependPlusToPublicKeys,
+	prependMinusToPublicKeys,
+} from './format';
 export { default as prepareTransaction } from './prepare_transaction';
 export {
 	signTransaction,
