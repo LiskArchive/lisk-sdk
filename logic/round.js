@@ -450,6 +450,7 @@ class Round {
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
+			.then(this.checkSnapshotAvailability.bind(this))
 			.then(this.restoreRoundSnapshot.bind(this))
 			.then(this.restoreVotesSnapshot.bind(this))
 			.then(this.deleteRoundRewards.bind(this))
