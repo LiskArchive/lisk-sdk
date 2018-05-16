@@ -19,18 +19,18 @@ info:
     # Welcome!
 
     ## Access Restrictions
-    The API endpoints are by default restricted to a whitelist of IPs that can be found in `config.json` in the section `api.access.whitelist`.
+    The API endpoints are by default restricted to a whitelist of IPs that can be found in `config.json` in the section [`api.access.whitelist`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L35).
     If you want your API to be accessable by the public, you can do this by changing `api.access.public` to `true`.
     This will allow anyone to make requests to your Lisk Core node.
     However some endpoints stay private, that means only a list of whitelisted IPs can successfully make API calls to that particular endpoint;
     This includes all forging related API calls.
-    By default, only the nodes' local IP is included in the whitelist, you can change the setting in `config.json` in the section `forging.access.whitelist`.
+    By default, only the nodes' local IP is included in the whitelist, you can change the setting in `config.json` in the section [`forging.access.whitelist`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L114).
     For more details, see the descriptions at the respective endpoint.
 
     ## Requests
     Chained filter parameters are logically connected with `AND`.
     `HTTP` is the supported URL schema by default.
-    To enable `HTTPS`, please adjust the the `ssl` section in `config.json`.
+    To enable `HTTPS`, please adjust the the [`ssl`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L124) section in `config.json`.
 
     ## Responses
     The general response format is JSON (`application/json`).
@@ -46,7 +46,7 @@ info:
     ## Date Formats
     Most of the timestamp parameters are in the Unix timestamp format.
     The Unix timestamp (or Unix time or POSIX time or Unix epoch time) is the number of seconds that have elapsed since January 1, 1970 , not counting leap seconds.
-    Some of them though, are are accepted or returned in the ISO8601 format, combined date and time: YYYY-MM-DDThh:mm:ssZ.
+    Some of them though, are are accepted or returned in the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format, combined date and time: `YYYY-MM-DDThh:mm:ssZ`.
     2 valid examples for ISO 8601: 1970-01-01T00:00:00Z, 2016-05-24T17:00:00.000Z.
     For details, see the descriptions and examples at the respective endpoint.
 
