@@ -12,6 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import bignum from 'browserify-bignum';
+import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
+import { FIXED_POINT } from '../constants';
+
+const getDecimalPlaces = amount => (amount.split('.')[1] || '').length;
+const isGreaterThanMaxTransactionAmount = amount =>
+	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
+
+export const convertBeddowsToLSK = beddowsAmount => {
+	if (typeof beddowsAmount !== 'string') {
+		throw new Error('Cannot convert non-string amount');
+	}
+	if (getDecimalPlaces(beddowsAmount)) {
+		throw new Error('Beddows amount should not have decimal points');
+	}
+	const beddowsAmountBigNum = bignum(beddowsAmount);
+	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
+		throw new Error('Beddows amount out of range');
+	}
+	const lskAmountBigNum = beddowsAmountBigNum.div(FIXED_POINT);
+	return lskAmountBigNum.toString(10);
+};
+
+export const convertLSKToBeddows = lskAmount => {
+	if (typeof lskAmount !== 'string') {
+		throw new Error('Cannot convert non-string amount');
+	}
+	if (getDecimalPlaces(lskAmount) > 8) {
+		throw new Error('LSK amount has too many decimal points');
+	}
+	const lskAmountBigNum = bignum(lskAmount);
+	const beddowsAmountBigNum = lskAmountBigNum.mul(FIXED_POINT);
+	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
+		throw new Error('LSK amount out of range');
+	}
+	return beddowsAmountBigNum.toString();
+};
 
 export const prependPlusToPublicKeys = publicKeys =>
 	publicKeys.map(publicKey => `+${publicKey}`);
