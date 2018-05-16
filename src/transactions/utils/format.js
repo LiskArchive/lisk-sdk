@@ -21,6 +21,9 @@ const isGreaterThanMaxTransactionAmount = amount =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
 export const convertBeddowsToLSK = beddowsAmount => {
+	if (typeof beddowsAmount !== 'string') {
+		throw new Error('Cannot convert non-string amount');
+	}
 	if (getDecimalPlaces(beddowsAmount)) {
 		throw new Error('Beddows amount should not have decimal points');
 	}
@@ -33,6 +36,9 @@ export const convertBeddowsToLSK = beddowsAmount => {
 };
 
 export const convertLSKToBeddows = lskAmount => {
+	if (typeof lskAmount !== 'string') {
+		throw new Error('Cannot convert non-string amount');
+	}
 	if (getDecimalPlaces(lskAmount) > 8) {
 		throw new Error('LSK amount has too many decimal points');
 	}

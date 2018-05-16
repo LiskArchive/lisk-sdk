@@ -21,6 +21,11 @@ import {
 
 describe('format', () => {
 	describe('#convertBeddowsToLSK', () => {
+		it('should error if not given a string', () => {
+			return expect(convertBeddowsToLSK.bind(null, 12345678)).to.throw(
+				'Cannot convert non-string amount',
+			);
+		});
 		it('should error on 18446744073709551615.1', () => {
 			return expect(
 				convertBeddowsToLSK.bind(null, '18446744073709551615.1'),
@@ -49,6 +54,11 @@ describe('format', () => {
 		});
 	});
 	describe('#convertLSKToBeddows', () => {
+		it('should error if not given a string', () => {
+			return expect(convertLSKToBeddows.bind(null, 12345678)).to.throw(
+				'Cannot convert non-string amount',
+			);
+		});
 		it('should error on 184467440737.095516151', () => {
 			return expect(
 				convertLSKToBeddows.bind(null, '184467440737.095516151'),
