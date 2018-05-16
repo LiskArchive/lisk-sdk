@@ -165,6 +165,9 @@ const setUpTransactionsStubs = () => {
 		'castVotes',
 		'registerMultisignature',
 	].forEach(methodName => sandbox.stub(transactions, methodName));
+	transactions.utils = {
+		verifyTransaction: sandbox.stub().returns(true),
+	};
 };
 
 const setUpInputStubs = () => {
@@ -292,6 +295,12 @@ export function setUpCommandSignMessage() {
 export function setUpCommandVerifyMessage() {
 	setUpCryptoStubs();
 	setUpInputStubs();
+}
+
+export function setUpCommandVerifyTransaction() {
+	setUpTransactionsStubs();
+	setUpReadlineStubs();
+	setUpInputUtilsStubs();
 }
 
 export function setUpUtilConfig() {

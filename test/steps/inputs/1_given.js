@@ -16,6 +16,7 @@
 import readline from 'readline';
 import getInputsFromSources from '../../../src/utils/input';
 import * as inputUtils from '../../../src/utils/input/utils';
+import { ValidationError } from '../../../src/utils/error';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
@@ -143,6 +144,15 @@ export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
 		password: null,
 		data: message,
 	});
+}
+
+export function theTransactionIsProvidedViaStdIn() {
+	const { transaction } = this.test.ctx;
+
+	readline.createInterface.returns(createFakeInterface(transaction));
+	if (typeof inputUtils.getStdIn.resolves === 'function') {
+		inputUtils.getStdIn.resolves({ data: transaction });
+	}
 }
 
 export function thePasswordIsProvidedViaStdIn() {
@@ -336,4 +346,15 @@ export function dataIsProvidedViaAnUnknownSource() {
 export function dataIsProvidedViaAFileSource() {
 	const { filePath } = this.test.ctx;
 	this.test.ctx.sourceData = `file:${filePath}`;
+}
+
+export function getDataResolvesWith() {
+	const data = getFirstQuotedString(this.test.parent.title);
+	inputUtils.getData.resolves(data);
+	this.test.ctx.data = data;
+}
+
+export function getDataRejectsWithValidationError() {
+	const message = getFirstQuotedString(this.test.title);
+	inputUtils.getData.rejects(new ValidationError(message));
 }
