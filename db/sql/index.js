@@ -102,6 +102,7 @@ module.exports = {
 		clearVotesSnapshot: link('rounds/clear_votes_snapshot.sql'),
 		performVotesSnapshot: link('rounds/perform_votes_snapshot.sql'),
 		restoreVotesSnapshot: link('rounds/restore_votes_snapshot.sql'),
+		checkSnapshotAvailability: link('rounds/check_snapshot_availability.sql'),
 		getMemRounds: link('rounds/get_mem_rounds.sql'),
 		flush: link('rounds/flush.sql'),
 		truncateBlocks: link('rounds/truncate_blocks.sql'),

@@ -154,6 +154,15 @@ class RoundsRepository {
 	}
 
 	/**
+	 * Checks round snapshot availability for particular round.
+	 *
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability(round) {
+		return this.db.oneOrNone(sql.checkSnapshotAvailability, { round });
+	}
+
+	/**
 	 * Create table for the round snapshot.
 	 *
 	 * @returns {Promise}
