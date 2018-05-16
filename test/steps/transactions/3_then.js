@@ -217,6 +217,14 @@ export function itShouldCallVerifyTransactionWithTheTransaction() {
 	);
 }
 
+export function itShouldCallSignTransactionWithTheTransactionAndThePassphrase() {
+	const { transaction, passphrase } = this.test.ctx;
+	return expect(transactions.utils.signTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		passphrase,
+	);
+}
+
 export function itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey() {
 	const { transaction, options } = this.test.ctx;
 	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
@@ -238,4 +246,11 @@ export function itShouldResolveToResultOfSuccessfullyVerifyingTransaction() {
 	return expect(returnValue).to.eventually.eql({
 		verified: true,
 	});
+}
+
+export function itShouldResolveToTransactionWithTheSignature() {
+	const { returnValue, transaction, signature } = this.test.ctx;
+	return expect(returnValue).to.eventually.eql(
+		Object.assign({}, JSON.parse(transaction), { signature }),
+	);
 }

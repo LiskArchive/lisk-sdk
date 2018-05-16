@@ -14,6 +14,7 @@
  *
  */
 import transactions from '../../../src/utils/transactions';
+import { getFirstQuotedString } from '../utils';
 
 export function aSignatureInTableFormat() {
 	this.test.ctx.signature = `
@@ -86,4 +87,10 @@ export function aLiskObjectThatCanCreateTransactions() {
 	});
 
 	this.test.ctx.createdTransaction = createdTransaction;
+}
+
+export function aSignTransactionReturns() {
+	const signature = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.signature = signature;
+	transactions.utils.signTransaction.returns(signature);
 }
