@@ -248,6 +248,11 @@ npm test -- mocha:<tag>:<suite>:[section]
 * Where **suite** can be one of `unit | functional | integration` (required)
 * Where **section** depending of the chosen suite can be:
   * when `functional` --> `get | post | ws | system` (optional)
+		
+Example:
+```
+npm test --mocha slow unit
+```
 
 Individual test files can be run using the following command:
 
