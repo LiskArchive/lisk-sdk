@@ -376,40 +376,42 @@ Transport.prototype.onUnconfirmedTransaction = function(
  * @returns {setImmediateCallback} cb
  */
 Transport.prototype.broadcastHeaders = cb => {
-	// Grab some connected peers. Try to include some peers with non-matching broadhash in the list.
-	modules.peers.list({ normalized: false }, (err, peers) => {
-		if (!peers || peers.length === 0) {
-			library.logger.debug('Transport->broadcastHeaders: No peers found');
-			return setImmediate(cb);
-		}
-
-		library.logger.debug(
-			'Transport->broadcastHeaders: Broadcasting headers to remote peers',
-			{ count: peers.length }
-		);
-
-		// Execute remote procedure updateMyself for every peer
-		async.each(
-			peers,
-			(peer, eachCb) => {
-				peer.rpc.updateMyself(library.logic.peers.me(), err => {
-					if (err) {
-						library.logger.debug(
-							'Transport->broadcastHeaders: Failed to notify peer about self',
-							{ peer: peer.string, err }
-						);
-					} else {
-						library.logger.debug(
-							'Transport->broadcastHeaders: Successfully notified peer about self',
-							{ peer: peer.string }
-						);
-					}
-					return eachCb();
-				});
-			},
-			() => setImmediate(cb)
-		);
+	// Grab a random list of connected peers.
+	const peers = library.logic.peers.listRandomConnected({
+		limit: constants.maxPeers,
 	});
+
+	if (!peers || peers.length === 0) {
+		library.logger.debug('Transport->broadcastHeaders: No peers found');
+		return setImmediate(cb);
+	}
+
+	library.logger.debug(
+		'Transport->broadcastHeaders: Broadcasting headers to remote peers',
+		{ count: peers.length }
+	);
+
+	// Execute remote procedure updateMyself for every peer
+	async.each(
+		peers,
+		(peer, eachCb) => {
+			peer.rpc.updateMyself(library.logic.peers.me(), err => {
+				if (err) {
+					library.logger.debug(
+						'Transport->broadcastHeaders: Failed to notify peer about self',
+						{ peer: peer.string, err }
+					);
+				} else {
+					library.logger.debug(
+						'Transport->broadcastHeaders: Successfully notified peer about self',
+						{ peer: peer.string }
+					);
+				}
+				return eachCb();
+			});
+		},
+		() => setImmediate(cb)
+	);
 };
 
 /**

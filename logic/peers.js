@@ -255,6 +255,24 @@ Peers.prototype.list = function(normalize) {
 };
 
 /**
+ * Returns a random list of connected peers.
+ *
+ * @param {Object} [options] - Optional
+ * @param {number} [options.limit=null] - Maximum number of peers to get; defaults to all
+ * @returns {peer[]} List of peers
+ */
+Peers.prototype.listRandomConnected = function(options) {
+	options = options || {};
+	const peerList = Object.keys(self.peersManager.peers)
+		.map(key => self.create(self.peersManager.getByAddress(key)))
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+	const shuffledPeerList = _.shuffle(peerList);
+	return options.limit == null
+		? shuffledPeerList
+		: shuffledPeerList.slice(0, options.limit);
+};
+
+/**
  * Modules are not required in this file.
  *
  * @param {Object} __modules - Peers module

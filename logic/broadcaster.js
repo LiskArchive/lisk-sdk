@@ -103,27 +103,19 @@ class Broadcaster {
 	 */
 	getPeers(params, cb) {
 		params.limit = params.limit || this.config.peerLimit;
-		params.broadhash = params.broadhash || null;
-		params.normalized = false;
 
+		const peers = library.logic.peers.listRandomConnected(params);
 		const originalLimit = params.limit;
-		modules.peers.list(params, (err, peers) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
 
-			if (originalLimit === constants.maxPeers) {
-				library.logger.info(
-					[
-						'Broadhash consensus now',
-						modules.peers.getLastConsensus(),
-						'%',
-					].join(' ')
-				);
-			}
+		if (originalLimit === constants.maxPeers) {
+			library.logger.info(
+				['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
+					' '
+				)
+			);
+		}
 
-			return setImmediate(cb, null, peers);
-		});
+		return setImmediate(cb, null, peers);
 	}
 
 	/**
