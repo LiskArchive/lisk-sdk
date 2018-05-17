@@ -159,10 +159,10 @@ class RoundsRepository {
 	 * @returns {Promise}
 	 */
 	checkSnapshotAvailability(round) {
-		return this.db.oneOrNone(
+		return this.db.one(
 			sql.checkSnapshotAvailability,
 			{ round },
-			a => (a ? a.available : null)
+			a => a.available
 		);
 	}
 

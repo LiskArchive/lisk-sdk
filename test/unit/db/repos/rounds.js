@@ -496,18 +496,18 @@ describe('db', () => {
 			});
 
 			it('should use the correct SQL file with one parameter', function*() {
-				sinonSandbox.spy(db, 'oneOrNone');
+				sinonSandbox.spy(db, 'one');
 
 				// Perform round snapshot
 				yield db.rounds.performRoundSnapshot();
 
 				yield db.rounds.checkSnapshotAvailability('1');
 
-				expect(db.oneOrNone.firstCall.args[0]).to.eql(
+				expect(db.one.firstCall.args[0]).to.eql(
 					roundsSQL.checkSnapshotAvailability
 				);
-				expect(db.oneOrNone.firstCall.args[1]).to.eql({ round: '1' });
-				return expect(db.oneOrNone).to.be.calledOnce;
+				expect(db.one.firstCall.args[1]).to.eql({ round: '1' });
+				return expect(db.one).to.be.calledOnce;
 			});
 
 			it('should return true when snapshot for requested round is available', function*() {
