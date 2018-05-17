@@ -612,6 +612,45 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('checkSnapshotAvailability', () => {
+		let scope;
+		let stub;
+		let res;
+
+		before(done => {
+			// Init stubs
+			stub = sinonSandbox.stub(db.rounds, 'checkSnapshotAvailability');
+			stub.withArgs(1).resolves(1);
+			stub.withArgs(2).resolves(null);
+
+			scope = _.cloneDeep(validScope);
+			scope.round = 1;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+			done();
+		});
+
+		it('should return promise', () => {
+			return expect(isPromise(res)).to.be.true;
+		});
+
+		it('should resolve without any error when query returns 1', () => {
+			return res.then(() => {
+				expect(stub.calledWith(1)).to.be.true;
+			});
+		});
+
+		it('should be rejected with proper error when query returns null', () => {
+			scope.round = 2;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
+			return expect(res).to.eventually.be.rejectedWith(
+				'Snapshot for round 2 not available, unable to perform round rollback'
+			);
+		});
+	});
+
 	describe('deleteRoundRewards', () => {
 		var stub;
 		var res;
@@ -619,6 +658,7 @@ describe('rounds', () => {
 		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
 			stub.withArgs(validScope.round).resolves('success');
+			round = new Round(_.cloneDeep(validScope), db);
 			res = round.deleteRoundRewards();
 			done();
 		});
@@ -1962,6 +2002,7 @@ describe('rounds', () => {
 		var getVotes_stub;
 		var restoreRoundSnapshot_stub;
 		var restoreVotesSnapshot_stub;
+		let checkSnapshotAvailability_stub;
 		var deleteRoundRewards_stub;
 		var flush_stub;
 		var res;
@@ -1997,6 +2038,9 @@ describe('rounds', () => {
 					.stub(t.rounds, 'updateVotes')
 					.resolves('QUERY');
 				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
+				checkSnapshotAvailability_stub = sinonSandbox
+					.stub(t.rounds, 'checkSnapshotAvailability')
+					.resolves(1);
 				restoreRoundSnapshot_stub = sinonSandbox
 					.stub(t.rounds, 'restoreRoundSnapshot')
 					.resolves();
@@ -2038,6 +2082,10 @@ describe('rounds', () => {
 			return expect(
 				round.scope.modules.accounts.mergeAccountAndGet.callCount
 			).to.equal(4);
+		});
+
+		it('query checkSnapshotAvailability should be called once', () => {
+			return expect(checkSnapshotAvailability_stub.callCount).to.equal(1);
 		});
 
 		it('query restoreRoundSnapshot should be called once', () => {
