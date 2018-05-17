@@ -50,8 +50,17 @@ describe('Broadcaster', () => {
 			broadcastLimit: 10,
 		};
 
+		peerList = [
+			{
+				rpc: {
+					blocks: sinonSandbox.stub(),
+				},
+			},
+		];
+
 		peersStub = {
 			me: sinonSandbox.stub().returns(['192.168.10.10']),
+			listRandomConnected: sinonSandbox.stub().returns(peerList),
 		};
 
 		transactionStub = {
@@ -63,14 +72,6 @@ describe('Broadcaster', () => {
 			error: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
 		};
-
-		peerList = [
-			{
-				rpc: {
-					blocks: sinonSandbox.stub(),
-				},
-			},
-		];
 
 		modulesStub = {
 			peers: {
@@ -170,24 +171,13 @@ describe('Broadcaster', () => {
 			}).to.throw();
 		});
 
-		it('should return error when getting peers list', done => {
-			modulesStub.peers.list.callsArgWith(1, new Error('getPeers failed'));
-			broadcaster.getPeers(params, (err, peers) => {
-				expect(err).instanceOf(Error);
-				expect(err.message).to.be.eql('getPeers failed');
-				expect(loggerStub.info.called).to.be.false;
-				expect(peers).to.be.undefined;
-				done();
-			});
-		});
-
 		it('should return peers for default params', done => {
 			broadcaster.getPeers({}, (err, peers) => {
 				expect(err).to.be.null;
 				expect(peers).to.be.an('Array').that.is.not.empty;
 				expect(peers).to.deep.eql(peerList);
-				expect(modulesStub.peers.list.called).to.be.true;
-				expect(modulesStub.peers.list.args[0][0]).to.not.eql(params);
+				expect(peersStub.listRandomConnected.called).to.be.true;
+				expect(peersStub.listRandomConnected.args[0][0]).to.not.eql(params);
 				done();
 			});
 		});
@@ -197,7 +187,7 @@ describe('Broadcaster', () => {
 				expect(err).to.be.null;
 				expect(peers).to.be.an('Array').that.is.not.empty;
 				expect(peers).to.deep.eql(peerList);
-				expect(modulesStub.peers.list.calledOnce).to.be.true;
+				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
 				expect(loggerStub.info.called).to.be.false;
 				done();
 			});
@@ -207,9 +197,13 @@ describe('Broadcaster', () => {
 			const peerParams = _.cloneDeep(params);
 			peerParams.limit = 100;
 			broadcaster.getPeers(peerParams, () => {
-				expect(modulesStub.peers.list.calledOnce).to.be.true;
-				expect(modulesStub.peers.list.args[0][0]).to.deep.eql(peerParams);
-				expect(modulesStub.peers.list.args[0][1]).to.be.a('function');
+				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
+				expect(peersStub.listRandomConnected.args[0][0]).to.deep.eql(
+					peerParams
+				);
+				expect(peersStub.listRandomConnected.args[0][1]).to.not.be.a(
+					'function'
+				);
 				expect(loggerStub.info.calledOnce).to.be.true;
 				expect(loggerStub.info.args[0][0]).to.eql(
 					'Broadhash consensus now 101 %'
