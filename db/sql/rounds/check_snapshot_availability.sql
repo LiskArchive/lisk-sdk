@@ -19,4 +19,4 @@
   PARAMETERS: round - Round for we are checking availability
 */
 
-SELECT 1 FROM mem_round_snapshot WHERE round = ${round} LIMIT 1
+SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1
