@@ -47,11 +47,13 @@ export const actionCreator = vorpal => async ({
 	stdin,
 	options = {},
 }) => {
-	const shouldUseStdIn = !transaction;
+	const {
+		passphrase: passphraseSource,
+		'second-passphrase': secondPassphraseSource,
+	} = options;
 	const transactionSource = getTransactionInput({
 		transaction,
 		stdin,
-		shouldUseStdIn,
 	});
 	const transactionInput =
 		transactionSource || (await getStdInForNonInteractiveMode());
@@ -69,27 +71,31 @@ export const actionCreator = vorpal => async ({
 
 	transactions.utils.verifyTransaction(transactionObject);
 
-	const passphraseSource = options.passphrase;
-
-	const { passphrase } = await getInputsFromSources(vorpal, {
+	const { passphrase, secondPassphrase } = await getInputsFromSources(vorpal, {
 		passphrase: {
 			source: passphraseSource,
 			repeatPrompt: true,
 		},
+		secondPassphrase: !secondPassphraseSource
+			? null
+			: {
+					source: secondPassphraseSource,
+					repeatPrompt: true,
+				},
 	});
 
-	const signature = transactions.utils.signTransaction(
+	return transactions.utils.prepareTransaction(
 		transactionObject,
 		passphrase,
+		secondPassphrase,
 	);
-	return Object.assign({}, transactionObject, { signature });
 };
 
 const signTransaction = createCommand({
 	command: 'sign transaction [transaction]',
 	description,
 	actionCreator,
-	options: [commonOptions.passphrase],
+	options: [commonOptions.passphrase, commonOptions.secondPassphrase],
 	errorPrefix: 'Could not sign transaction',
 });
 

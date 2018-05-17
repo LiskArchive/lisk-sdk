@@ -167,7 +167,7 @@ const setUpTransactionsStubs = () => {
 	].forEach(methodName => sandbox.stub(transactions, methodName));
 	transactions.utils = {
 		verifyTransaction: sandbox.stub().returns(true),
-		signTransaction: sandbox.stub(),
+		prepareTransaction: sandbox.stub(),
 	};
 };
 

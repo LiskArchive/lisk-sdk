@@ -53,23 +53,13 @@ describe('sign transaction command', () => {
 											'the transaction is provided via stdIn',
 											given.theTransactionIsProvidedViaStdIn,
 											() => {
-												Given(
-													'a SignTransaction returns "fakesignature"',
-													given.aSignTransactionReturns,
+												When(
+													'the action is called with the stringified transaction object',
+													when.theActionIsCalledWithTheStringifiedTransactionObject,
 													() => {
-														When(
-															'the action is called with the stringified transaction object',
-															when.theActionIsCalledWithTheStringifiedTransactionObject,
-															() => {
-																Then(
-																	'it should resolve to transaction with the signature"',
-																	then.itShouldResolveToTransactionWithTheSignature,
-																);
-																Then(
-																	'it should call SignTransaction with the transaction and the passphrase',
-																	then.itShouldCallSignTransactionWithTheTransactionAndThePassphrase,
-																);
-															},
+														Then(
+															'it should call prepareTransaction with the transaction and the passphrase',
+															then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
 														);
 													},
 												);
@@ -77,89 +67,159 @@ describe('sign transaction command', () => {
 										);
 									},
 								);
-								Given(
-									'a SignTransaction returns "fakesignature"',
-									given.aSignTransactionReturns,
+								When('the action is called', when.theActionIsCalled, () => {
+									Then(
+										'it should reject with validation error and message "No transaction was provided."',
+										then.itShouldRejectWithValidationErrorAndMessage,
+									);
+								});
+								When(
+									'the action is called with the corrupted stringified transaction object',
+									when.theActionIsCalledWithTheCorruptedStringifiedTransactionObject,
 									() => {
-										When('the action is called', when.theActionIsCalled, () => {
-											Then(
-												'it should reject with validation error and message "No transaction was provided."',
-												then.itShouldRejectWithValidationErrorAndMessage,
-											);
-										});
-										When(
-											'the action is called with the stringified error object via vorpal stdIn',
-											when.theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn,
+										Then(
+											'it should reject with validation error and message "Could not parse transaction JSON."',
+											then.itShouldRejectWithValidationErrorAndMessage,
+										);
+									},
+								);
+								When(
+									'the action is called with the stringified transaction object',
+									when.theActionIsCalledWithTheStringifiedTransactionObject,
+									() => {
+										Then(
+											'it should call VerifyTransaction only with the transaction',
+											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
+										);
+										Then(
+											'it should call prepareTransaction with the transaction and the passphrase',
+											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
+										);
+									},
+								);
+								When(
+									'the action is called with the stringified transaction object via vorpal stdIn',
+									when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdIn,
+									() => {
+										Then(
+											'it should call VerifyTransaction only with the transaction',
+											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
+										);
+										Then(
+											'it should call prepareTransaction with the transaction and the passphrase',
+											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
+										);
+									},
+								);
+								When(
+									'the action is called with the stringified transaction object and options',
+									when.theActionIsCalledWithTheStringifiedTransactionObjectAndOptions,
+									() => {
+										Then(
+											'it should call VerifyTransaction only with the transaction',
+											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
+										);
+										Then(
+											'it should call prepareTransaction with the transaction and the passphrase',
+											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
+										);
+									},
+								);
+								When(
+									'the action is called with the stringified transaction object via vorpal stdIn and options',
+									when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdInAndOptions,
+									() => {
+										Then(
+											'it should call VerifyTransaction only with the transaction',
+											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
+										);
+										Then(
+											'it should call prepareTransaction with the transaction and the passphrase',
+											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
+										);
+									},
+								);
+								Given(
+									'a second passphrase "fame spoil quiz garbage mirror envelope island rapid lend year bike adapt"',
+									given.aSecondPassphrase,
+									() => {
+										Given(
+											'an options object with second passphrase set to "secondPassphraseSource"',
+											given.anOptionsObjectWithSecondPassphraseSetTo,
 											() => {
-												Then(
-													'it should reject with validation error and message "No transaction was provided."',
-													then.itShouldRejectWithValidationErrorAndMessage,
+												Given(
+													'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+													given.anErrorOccursRetrievingTheInputsFromTheirSources,
+													() => {
+														When(
+															'the action is called with the stringified transaction object and options',
+															when.theActionIsCalledWithTheStringifiedTransactionObjectAndOptions,
+															() => {
+																Then(
+																	'it should reject with the error message',
+																	then.itShouldRejectWithTheErrorMessage,
+																);
+															},
+														);
+													},
+												);
+												Given(
+													'the passphrase and second passphrase can be retrieved from their sources',
+													given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources,
+													() => {
+														When(
+															'the action is called with the stringified transaction object and options',
+															when.theActionIsCalledWithTheStringifiedTransactionObjectAndOptions,
+															() => {
+																Then(
+																	'it should call prepareTransaction with the transaction and the passphrase and the second passphrase',
+																	then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphraseAndTheSecondPassphrase,
+																);
+															},
+														);
+														When(
+															'the action is called with the stringified transaction object via vorpal stdIn and options',
+															when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdInAndOptions,
+															() => {
+																Then(
+																	'it should call prepareTransaction with the transaction and the passphrase and the second passphrase',
+																	then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphraseAndTheSecondPassphrase,
+																);
+															},
+														);
+													},
 												);
 											},
 										);
-										When(
-											'the action is called with the corrupted stringified transaction object',
-											when.theActionIsCalledWithTheCorruptedStringifiedTransactionObject,
+										Given(
+											'an options object with passphrase set to "passphraseSource" and second passphrase set to "secondPassphraseSource"',
+											given.anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo,
 											() => {
-												Then(
-													'it should reject with validation error and message "Could not parse transaction JSON."',
-													then.itShouldRejectWithValidationErrorAndMessage,
-												);
-											},
-										);
-										When(
-											'the action is called with the stringified transaction object',
-											when.theActionIsCalledWithTheStringifiedTransactionObject,
-											() => {
-												Then(
-													'it should resolve to transaction with the signature"',
-													then.itShouldResolveToTransactionWithTheSignature,
-												);
-												Then(
-													'it should call SignTransaction with the transaction and the passphrase',
-													then.itShouldCallSignTransactionWithTheTransactionAndThePassphrase,
-												);
-											},
-										);
-										When(
-											'the action is called with the stringified transaction object via vorpal stdIn',
-											when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdIn,
-											() => {
-												Then(
-													'it should resolve to transaction with the signature"',
-													then.itShouldResolveToTransactionWithTheSignature,
-												);
-												Then(
-													'it should call SignTransaction with the transaction and the passphrase',
-													then.itShouldCallSignTransactionWithTheTransactionAndThePassphrase,
-												);
-											},
-										);
-										When(
-											'the action is called with the stringified transaction object and options',
-											when.theActionIsCalledWithTheStringifiedTransactionObjectAndOptions,
-											() => {
-												Then(
-													'it should resolve to transaction with the signature"',
-													then.itShouldResolveToTransactionWithTheSignature,
-												);
-												Then(
-													'it should call SignTransaction with the transaction and the passphrase',
-													then.itShouldCallSignTransactionWithTheTransactionAndThePassphrase,
-												);
-											},
-										);
-										When(
-											'the action is called with the stringified transaction object via vorpal stdIn and options',
-											when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdInAndOptions,
-											() => {
-												Then(
-													'it should resolve to transaction with the signature"',
-													then.itShouldResolveToTransactionWithTheSignature,
-												);
-												Then(
-													'it should call SignTransaction with the transaction and the passphrase',
-													then.itShouldCallSignTransactionWithTheTransactionAndThePassphrase,
+												Given(
+													'the passphrase and second passphrase can be retrieved from their sources',
+													given.thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources,
+													() => {
+														When(
+															'the action is called with the stringified transaction object and options',
+															when.theActionIsCalledWithTheStringifiedTransactionObjectAndOptions,
+															() => {
+																Then(
+																	'it should call prepareTransaction with the transaction and the passphrase and the second passphrase',
+																	then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphraseAndTheSecondPassphrase,
+																);
+															},
+														);
+														When(
+															'the action is called with the stringified transaction object via vorpal stdIn and options',
+															when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdInAndOptions,
+															() => {
+																Then(
+																	'it should call prepareTransaction with the transaction and the passphrase and the second passphrase',
+																	then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphraseAndTheSecondPassphrase,
+																);
+															},
+														);
+													},
 												);
 											},
 										);

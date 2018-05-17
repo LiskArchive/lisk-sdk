@@ -209,6 +209,13 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 	});
 }
 
+export function itShouldCallVerifyTransactionOnlyWithTheTransaction() {
+	const { transaction } = this.test.ctx;
+	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+	);
+}
+
 export function itShouldCallVerifyTransactionWithTheTransaction() {
 	const { transaction } = this.test.ctx;
 	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
@@ -217,11 +224,21 @@ export function itShouldCallVerifyTransactionWithTheTransaction() {
 	);
 }
 
-export function itShouldCallSignTransactionWithTheTransactionAndThePassphrase() {
+export function itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase() {
 	const { transaction, passphrase } = this.test.ctx;
-	return expect(transactions.utils.signTransaction).to.be.calledWithExactly(
+	return expect(transactions.utils.prepareTransaction).to.be.calledWithExactly(
 		JSON.parse(transaction),
 		passphrase,
+		null,
+	);
+}
+
+export function itShouldCallPrepareTransactionWithTheTransactionAndThePassphraseAndTheSecondPassphrase() {
+	const { transaction, passphrase, secondPassphrase } = this.test.ctx;
+	return expect(transactions.utils.prepareTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		passphrase,
+		secondPassphrase,
 	);
 }
 
@@ -246,11 +263,4 @@ export function itShouldResolveToResultOfSuccessfullyVerifyingTransaction() {
 	return expect(returnValue).to.eventually.eql({
 		verified: true,
 	});
-}
-
-export function itShouldResolveToTransactionWithTheSignature() {
-	const { returnValue, transaction, signature } = this.test.ctx;
-	return expect(returnValue).to.eventually.eql(
-		Object.assign({}, JSON.parse(transaction), { signature }),
-	);
 }
