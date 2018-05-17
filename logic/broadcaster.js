@@ -129,7 +129,6 @@ class Broadcaster {
 	 */
 	broadcast(params, options, cb) {
 		params.limit = params.limit || this.config.peerLimit;
-		params.broadhash = params.broadhash || null;
 
 		async.waterfall(
 			[
