@@ -620,8 +620,8 @@ describe('rounds', () => {
 		before(done => {
 			// Init stubs
 			stub = sinonSandbox.stub(db.rounds, 'checkSnapshotAvailability');
-			stub.withArgs(1).resolves(1);
-			stub.withArgs(2).resolves(null);
+			stub.withArgs(1).resolves(true);
+			stub.withArgs(2).resolves(false);
 
 			scope = _.cloneDeep(validScope);
 			scope.round = 1;
