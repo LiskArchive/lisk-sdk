@@ -435,7 +435,7 @@ describe('blocks/chain', () => {
 					expect(err).to.equal('Blocks#deleteBlock error');
 					expect(loggerStub.error.args[0][0]).to.contains('deleteBlock-ERR');
 					done();
-				});
+				}, library.db);
 			});
 		});
 
@@ -447,7 +447,7 @@ describe('blocks/chain', () => {
 			it('should call a callback with no error', done => {
 				blocksChainModule.deleteBlock(1, () => {
 					done();
-				});
+				}, library.db);
 			});
 		});
 	});
