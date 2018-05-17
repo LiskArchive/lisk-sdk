@@ -61,6 +61,10 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					setup.sync.SYNC_MODES.ALL_TO_GROUP,
 					{ indices: _.range(10) }
 				);
+
+				// Make first node not connect with others
+				// so we can trigger the socket client connection manually
+				configurations[0].peers.list = [];
 			});
 		});
 

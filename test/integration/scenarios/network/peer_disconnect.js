@@ -119,14 +119,14 @@ module.exports = params => {
 
 			describe('when a node is randomly started and stopped', () => {
 				it('stop all the nodes in the network except one', done => {
-					for (let i = 1; i < totalPeers; i++) {
+					for (let i = 2; i < totalPeers; i++) {
 						stopNode(`node_${i}`);
 					}
 					done();
 				});
 
 				it('start all nodes that were stopped', done => {
-					for (let i = 1; i < totalPeers; i++) {
+					for (let i = 2; i < totalPeers; i++) {
 						startNode(`node_${i}`);
 					}
 

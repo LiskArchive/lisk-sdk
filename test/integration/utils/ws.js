@@ -20,17 +20,25 @@ var WSServerMaster = require('../../common/ws/server_master');
 
 module.exports = {
 	establishWSConnectionsToNodes(configurations, cb) {
+		var firstConfiguration = configurations[0];
+
 		var wampClient = new WAMPClient();
 		var sockets = [];
 		var monitorWSClient = {
-			protocol: 'http',
 			hostname: '127.0.0.1',
-			wsPort: null,
+			port: null,
 			autoReconnect: true,
-			query: WSServerMaster.generatePeerHeaders(),
+			query: WSServerMaster.generatePeerHeaders({
+				wsPort: firstConfiguration.wsPort,
+				httpPort: firstConfiguration.httpPort,
+			}),
 		};
-		var connectedTo = 0;
-		configurations.forEach(configuration => {
+		var connectedTo = 1;
+		configurations.forEach((configuration, index) => {
+			if (index === 0) {
+				return;
+			}
+
 			monitorWSClient.port = configuration.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
@@ -42,12 +50,18 @@ module.exports = {
 				}
 			});
 			socket.on('error', () => {});
-			socket.on('connectAbort', () => {
-				cb(
-					`Unable to establish WS connection with ${configuration.ip}:${
-						configuration.wsPort
-					}`
-				);
+			socket.on('connectAbort', errorCode => {
+				// When a node is restarted manually during
+				// peer disconnect, do not call the callback
+				// the peers will be connected back after
+				// restart, ref: scenarios/network/peer_disconnect
+				if (!(errorCode === 1006)) {
+					cb(
+						`Unable to establish WS connection with ${configuration.ip}:${
+							configuration.wsPort
+						}`
+					);
+				}
 			});
 		});
 	},
