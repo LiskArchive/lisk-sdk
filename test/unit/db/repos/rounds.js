@@ -510,7 +510,7 @@ describe('db', () => {
 				return expect(db.oneOrNone).to.be.calledOnce;
 			});
 
-			it('should return 1 when snapshot for requested round is available', function*() {
+			it('should return true when snapshot for requested round is available', function*() {
 				const account = accountsFixtures.Account();
 
 				const round1 = roundsFixtures.Round({
@@ -527,10 +527,10 @@ describe('db', () => {
 
 				const result = yield db.rounds.checkSnapshotAvailability(round1.round);
 
-				return expect(result).to.be.be.eql(1);
+				return expect(result).to.be.be.eql(true);
 			});
 
-			it('should return null when snapshot for requested round is not available', function*() {
+			it('should return false when snapshot for requested round is not available', function*() {
 				const account = accountsFixtures.Account();
 
 				const round1 = roundsFixtures.Round({
@@ -549,16 +549,36 @@ describe('db', () => {
 					round1.round + 1
 				);
 
-				return expect(result).to.be.be.eql(null);
+				return expect(result).to.be.be.eql(false);
 			});
 
-			it('should return null when no round number is provided', function*() {
+			it('should return true when snapshot table is empty (no transactions during round)', function*() {
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const result = yield db.rounds.checkSnapshotAvailability(666);
+
+				return expect(result).to.be.be.eql(true);
+			});
+
+			it('should return false when no round number is provided', function*() {
+				const account = accountsFixtures.Account();
+
+				const round1 = roundsFixtures.Round({
+					round: 1,
+					delegate: account.publicKey,
+				});
+
+				yield db.query(
+					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+				);
+
 				// Perform round snapshot
 				yield db.rounds.performRoundSnapshot();
 
 				const result = yield db.rounds.checkSnapshotAvailability();
 
-				return expect(result).to.be.be.eql(null);
+				return expect(result).to.be.be.eql(false);
 			});
 
 			it('should reject with error if called without performing the snapshot', () => {
