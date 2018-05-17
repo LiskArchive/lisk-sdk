@@ -1182,4 +1182,22 @@ describe('rounds', () => {
 			return expect(lastBlock.height).to.equal(101);
 		});
 	});
+
+	describe('deleting last block of round twice in a row - no transactions during round', () => {
+		before(() => {
+			return Promise.mapSeries([...Array(202)], () => {
+				return addTransactionsAndForgePromise(library, [], 0);
+			});
+		});
+
+		it('should be able to delete last block of round', () => {
+			return deleteLastBlockPromise();
+		});
+
+		it('should be able to delete last block of round again', () => {
+			return addTransactionsAndForgePromise(library, [], 0).then(() => {
+				return deleteLastBlockPromise();
+			});
+		});
+	});
 });
