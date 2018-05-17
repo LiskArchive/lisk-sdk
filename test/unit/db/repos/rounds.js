@@ -503,7 +503,9 @@ describe('db', () => {
 
 				yield db.rounds.checkSnapshotAvailability('1');
 
-				expect(db.oneOrNone.firstCall.args[0]).to.eql(roundsSQL.checkSnapshotAvailability);
+				expect(db.oneOrNone.firstCall.args[0]).to.eql(
+					roundsSQL.checkSnapshotAvailability
+				);
 				expect(db.oneOrNone.firstCall.args[1]).to.eql({ round: '1' });
 				return expect(db.oneOrNone).to.be.calledOnce;
 			});
@@ -543,7 +545,9 @@ describe('db', () => {
 				// Perform round snapshot
 				yield db.rounds.performRoundSnapshot();
 
-				const result = yield db.rounds.checkSnapshotAvailability(round1.round + 1);
+				const result = yield db.rounds.checkSnapshotAvailability(
+					round1.round + 1
+				);
 
 				return expect(result).to.be.be.eql(null);
 			});
@@ -558,9 +562,9 @@ describe('db', () => {
 			});
 
 			it('should reject with error if called without performing the snapshot', () => {
-				return expect(db.rounds.checkSnapshotAvailability(1)).to.be.rejectedWith(
-					'relation "mem_round_snapshot" does not exist'
-				);
+				return expect(
+					db.rounds.checkSnapshotAvailability(1)
+				).to.be.rejectedWith('relation "mem_round_snapshot" does not exist');
 			});
 		});
 
