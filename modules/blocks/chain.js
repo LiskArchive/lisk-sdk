@@ -167,13 +167,14 @@ __private.afterSave = function(block, cb) {
  *
  * @param {number} blockId - ID of block to delete
  * @param {function} cb - Callback function
+ * @param {Object} tx - Database transaction
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - String if SQL error occurred, null if success
  */
-Chain.prototype.deleteBlock = function(blockId, cb) {
+Chain.prototype.deleteBlock = function(blockId, cb, tx) {
 	// Delete block with ID from blocks table
 	// WARNING: DB_WRITE
-	library.db.blocks
+	tx.blocks
 		.deleteBlock(blockId)
 		.then(() => setImmediate(cb))
 		.catch(err => {
