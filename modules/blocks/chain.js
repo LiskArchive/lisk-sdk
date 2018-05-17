@@ -705,7 +705,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 						oldLastBlock.transactions.reverse(),
 						transaction =>
 							__private
-								.undoStep(transaction, secondLastBlock, tx)
+								.undoStep(transaction, oldLastBlock, tx)
 								.then(() => __private.undoUnconfirmStep(transaction, tx))
 					);
 				})
