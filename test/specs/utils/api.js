@@ -31,7 +31,7 @@ describe('API util', () => {
 						when.aLiskAPIInstanceIsCreated,
 						() => {
 							Then(
-								'the lisk instance should be a lisk-js API instance',
+								'the lisk instance should be a lisk-elements API instance',
 								then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
 							);
 							Then(
@@ -61,7 +61,7 @@ describe('API util', () => {
 						when.aLiskAPIInstanceIsCreated,
 						() => {
 							Then(
-								'the lisk instance should be a lisk-js API instance',
+								'the lisk instance should be a lisk-elements API instance',
 								then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
 							);
 							Then(
@@ -85,7 +85,7 @@ describe('API util', () => {
 						when.aLiskAPIInstanceIsCreated,
 						() => {
 							Then(
-								'the lisk instance should be a lisk-js API instance',
+								'the lisk instance should be a lisk-elements API instance',
 								then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
 							);
 							Then(
@@ -115,7 +115,7 @@ describe('API util', () => {
 						when.aLiskAPIInstanceIsCreated,
 						() => {
 							Then(
-								'the lisk instance should be a lisk-js API instance',
+								'the lisk instance should be a lisk-elements API instance',
 								then.theLiskAPIInstanceShouldBeALiskJSAPIInstance,
 							);
 							Then(

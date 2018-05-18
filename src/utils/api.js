@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import config from './config';
 import { NETHASHES } from './constants';
 
-const { APIClient } = lisk;
+const { APIClient } = elements;
 
 const seedNodes = {
 	main: APIClient.constants.MAINNET_NODES,

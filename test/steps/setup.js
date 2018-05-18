@@ -17,7 +17,7 @@ import childProcess from 'child_process';
 import fs from 'fs';
 import readline from 'readline';
 import lockfile from 'lockfile';
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import cryptography from '../../src/utils/cryptography';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
@@ -124,7 +124,7 @@ const setUpLiskJSCryptoStubs = () => {
 		'verifyMessageWithPublicKey',
 		'parseEncryptedPassphrase',
 		'stringifyEncryptedPassphrase',
-	].forEach(methodName => sandbox.stub(lisk.cryptography, methodName));
+	].forEach(methodName => sandbox.stub(elements.cryptography, methodName));
 };
 
 const setUpCryptoStubs = () => {
