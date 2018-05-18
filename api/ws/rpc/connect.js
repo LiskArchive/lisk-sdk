@@ -168,9 +168,14 @@ const connectSteps = {
 					if (peer.socket) {
 						peer.socket.emit(eventProcedureName, data);
 					} else {
-						const eventNotExistError =
-							'Tried to emit event on outbound peer socket which no longer exists';
+						const eventNotExistError = `Tried to emit event on outbound peer socket '${
+							peerExtendedWithPublish.string
+						}' which no longer exists`;
 						logger.debug(eventNotExistError);
+						logger.trace(
+							'Peer does not have a socket',
+							peerExtendedWithPublish.object()
+						);
 					}
 				};
 				return peerExtendedWithPublish;
@@ -184,14 +189,16 @@ const connectSteps = {
 
 		socket.on('connect', () => {
 			logger.trace(
-				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
+				`[Outbound socket :: connect] Peer connection to ${
+					peer.string
+				} established`
 			);
 		});
 
 		socket.on('disconnect', () => {
 			logger.trace(
 				`[Outbound socket :: disconnect] Peer connection to ${
-					peer.ip
+					peer.string
 				} disconnected`
 			);
 		});
@@ -208,7 +215,9 @@ const connectSteps = {
 		// When error on transport layer occurs - disconnect
 		socket.on('error', err => {
 			logger.debug(
-				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
+				`[Outbound socket :: error] Peer error from ${peer.string} - ${
+					err.message
+				}`
 			);
 			socket.disconnect(
 				1000,
@@ -220,7 +229,7 @@ const connectSteps = {
 		socket.on('close', (code, reason) => {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
-					peer.ip
+					peer.string
 				} closed with code ${code} and reason - ${reason}`
 			);
 
@@ -238,7 +247,7 @@ const connectSteps = {
 		socket.on('message', message => {
 			logger.trace(
 				`[Outbound socket :: message] Peer message from ${
-					peer.ip
+					peer.string
 				} received - ${message}`
 			);
 		});
