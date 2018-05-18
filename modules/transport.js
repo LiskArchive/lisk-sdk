@@ -381,7 +381,7 @@ Transport.prototype.broadcastHeaders = cb => {
 		limit: constants.maxPeers,
 	});
 
-	if (!peers || peers.length === 0) {
+	if (peers.length === 0) {
 		library.logger.debug('Transport->broadcastHeaders: No peers found');
 		return setImmediate(cb);
 	}
