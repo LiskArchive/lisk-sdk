@@ -188,7 +188,6 @@ describe('Broadcaster', () => {
 				expect(peers).to.be.an('Array').that.is.not.empty;
 				expect(peers).to.deep.eql(peerList);
 				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
-				expect(loggerStub.info.called).to.be.false;
 				done();
 			});
 		});
@@ -237,7 +236,7 @@ describe('Broadcaster', () => {
 			broadcaster.broadcast(peerParams, options, (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ body: null, peer: [] });
+				expect(res).to.deep.equal({ peers: [] });
 				done();
 			});
 		});
@@ -246,7 +245,7 @@ describe('Broadcaster', () => {
 			broadcaster.broadcast(params, options, (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ body: null, peer: peerList });
+				expect(res).to.deep.equal({ peers: peerList });
 				expect(options.data.block).to.be.instanceOf(Object);
 				done();
 			});
@@ -254,14 +253,14 @@ describe('Broadcaster', () => {
 
 		it(`should only send to ${params.limit} peers`, done => {
 			const limitedPeers = _.cloneDeep(params);
-			limitedPeers.limit = 100;
+			limitedPeers.limit = 10;
 			limitedPeers.peers = _.range(100).map(() => {
 				return peerList[0];
 			});
 			broadcaster.broadcast(limitedPeers, options, (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res.peer.length).to.eql(broadcasts.broadcastLimit);
+				expect(res.peers.length).to.eql(broadcasts.broadcastLimit);
 				done();
 			});
 		});
@@ -273,7 +272,7 @@ describe('Broadcaster', () => {
 			broadcaster.broadcast(params, options, (err, res) => {
 				expect(err).to.be.null;
 				expect(res).to.be.an('object').that.is.not.empty;
-				expect(res).to.deep.equal({ body: null, peer: peerList });
+				expect(res).to.deep.equal({ peers: peerList });
 				expect(options.data.block).to.be.instanceOf(Object);
 				expect(peerList[0].rpc.blocks.called).to.be.true;
 				expect(peerList[0].rpc.blocks.args[0][0].block).to.be.instanceOf(
@@ -445,7 +444,7 @@ describe('Broadcaster', () => {
 				.callsArgWith(1, null, peerList);
 			broadcaster.broadcast = sinonSandbox
 				.stub()
-				.callsArgWith(1, null, { body: null, peer: peerList });
+				.callsArgWith(1, null, { peers: peerList });
 			loggerStub.info = sinonSandbox.stub();
 			done();
 		});

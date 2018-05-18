@@ -105,15 +105,12 @@ class Broadcaster {
 		params.limit = params.limit || this.config.peerLimit;
 
 		const peers = library.logic.peers.listRandomConnected(params);
-		const originalLimit = params.limit;
 
-		if (originalLimit === constants.maxPeers) {
-			library.logger.info(
-				['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
-					' '
-				)
-			);
-		}
+		library.logger.info(
+			['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
+				' '
+			)
+		);
 
 		return setImmediate(cb, null, peers);
 	}
@@ -140,11 +137,7 @@ class Broadcaster {
 				},
 				function sendToPeer(peers, waterCb) {
 					library.logger.debug('Begin broadcast', options);
-
-					if (params.limit === self.config.peerLimit) {
-						peers = peers.slice(0, self.config.broadcastLimit);
-					}
-
+					peers = peers.slice(0, params.limit);
 					peers
 						.slice(0, self.config.peerLimit)
 						.map(peer => peer.rpc[options.api](options.data));
@@ -154,7 +147,7 @@ class Broadcaster {
 			],
 			(err, peers) => {
 				if (cb) {
-					return setImmediate(cb, err, { body: null, peer: peers });
+					return setImmediate(cb, err, { peers });
 				}
 			}
 		);
