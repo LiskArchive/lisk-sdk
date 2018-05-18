@@ -24,6 +24,42 @@ export function theActionIsCalledWithTheOptionsTheMessageThePublicKeyAndTheSigna
 	return returnValue.catch(e => e);
 }
 
+export function theActionIsCalledWithTheStringifiedTransactionObject() {
+	const { action, transaction } = this.test.ctx;
+	const returnValue = action({ transaction });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheCorruptedStringifiedTransactionObject() {
+	const { action, transaction } = this.test.ctx;
+	const currupted = transaction.slice(0, 10);
+	const returnValue = action({ transaction: currupted });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdIn() {
+	const { action, transaction } = this.test.ctx;
+	const returnValue = action({ stdin: [transaction] });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheTransactionAndOptionsObjectContainsSecondPublicKeyAsFileInput() {
+	const { action, transaction, options } = this.test.ctx;
+	const returnValue = action({ transaction, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
+export function theActionIsCalledWithTheTransactionViaVorpalStdInAndOptionsObjectContainsSecondPublicKey() {
+	const { action, transaction, options } = this.test.ctx;
+	const returnValue = action({ stdin: [transaction], options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalledWithTheOptionsThePublicKeyAndTheSignature() {
 	const { action, options, publicKey, signature } = this.test.ctx;
 	const returnValue = action({ options, publicKey, signature });

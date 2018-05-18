@@ -93,6 +93,11 @@ export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {
 	};
 }
 
+export function anOptionsObjectWithSecondPublicKeySetTo() {
+	const key = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options = { 'second-public-key': key };
+}
+
 export function anOptionsObjectWithKeySetToBoolean() {
 	const key = getFirstQuotedString(this.test.parent.title);
 	const value = getFirstBoolean(this.test.parent.title);
