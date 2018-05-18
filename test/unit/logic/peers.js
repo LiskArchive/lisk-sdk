@@ -18,6 +18,7 @@
 var failureCodes = require('../../../api/ws/rpc/failure_codes');
 var modulesLoader = require('../../common/modules_loader');
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
+var RandomPeer = require('../../fixtures/peers').Peer;
 var Peers = require('../../../logic/peers.js');
 var Peer = require('../../../logic/peer.js');
 
@@ -132,6 +133,47 @@ describe('peers', () => {
 					expect(peer).not.to.have.property('rpc');
 				});
 			});
+		});
+	});
+
+	describe('listRandomConnected', () => {
+		beforeEach(() => {
+			return removeAll();
+		});
+
+		it('should return list of peers', () => {
+			peers.upsert(validPeer);
+			const result = peers.listRandomConnected();
+			expect(result).to.be.an('array');
+			return result.forEach(peer => {
+				expect(peer).to.be.an.instanceof(Peer);
+			});
+		});
+
+		it('should return list of peers with maximum lengh determined by limit param', () => {
+			for (let i = 0; i < 100; i++) {
+				peers.upsert(RandomPeer());
+			}
+			return expect(
+				peers.listRandomConnected({ limit: 20 }).length
+			).to.be.equal(20);
+		});
+
+		it('should return list of peers shuffled in random order', () => {
+			for (let i = 0; i < 100; i++) {
+				peers.upsert(RandomPeer());
+			}
+			const firstShuffle = peers.listRandomConnected();
+			const firstShuffleStrings = firstShuffle.map(peer => {
+				return peer.string;
+			});
+
+			const secondShuffle = peers.listRandomConnected();
+			const secondShuffleStrings = secondShuffle.map(peer => {
+				return peer.string;
+			});
+
+			return expect(firstShuffleStrings).to.not.be.equal(secondShuffleStrings);
 		});
 	});
 
