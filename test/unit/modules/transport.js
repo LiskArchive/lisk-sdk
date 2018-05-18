@@ -1355,8 +1355,11 @@ describe('transport', () => {
 
 			it('should call modules.peers.list with {normalized: false}', () => {
 				expect(modules.peers.list.calledOnce).to.be.true;
-				return expect(modules.peers.list.calledWith({ normalized: false })).to
-					.be.true;
+				return expect(
+					modules.peers.list.calledWith({
+						normalized: false,
+					})
+				).to.be.true;
 			});
 
 			describe('when peers = undefined', () => {

@@ -376,7 +376,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
  * @returns {setImmediateCallback} cb
  */
 Transport.prototype.broadcastHeaders = cb => {
-	// Grab list of all connected peers
+	// Grab some connected peers. Try to include some peers with non-matching broadhash in the list.
 	modules.peers.list({ normalized: false }, (err, peers) => {
 		if (!peers || peers.length === 0) {
 			library.logger.debug('Transport->broadcastHeaders: No peers found');
