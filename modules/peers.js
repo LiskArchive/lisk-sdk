@@ -813,11 +813,15 @@ Peers.prototype.onPeersReady = function() {
 				updatePeers(seriesCb) {
 					let updated = 0;
 					const peers = library.logic.peers.list();
+					library.logger.trace('Total list of peers', { count: peers.length });
 
-					library.logger.trace('Updating peers', { count: peers.length });
+					const acceptablePeers = self.acceptable(peers);
+					library.logger.trace('Acceptable peers to update', {
+						count: acceptablePeers.length,
+					});
 
 					async.each(
-						peers,
+						acceptablePeers,
 						(peer, eachCb) => {
 							// If peer is not banned and not been updated during last 3 sec - ping
 							if (
