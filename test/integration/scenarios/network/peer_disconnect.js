@@ -17,6 +17,7 @@
 const childProcess = require('child_process');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
+const network = require('../../setup/network');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
@@ -24,9 +25,9 @@ var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
 module.exports = params => {
 	describe('Peer Disconnect', () => {
-		const getAllPeers = () => {
+		const getAllPeers = sockets => {
 			return Promise.all(
-				params.sockets.map(socket => {
+				sockets.map(socket => {
 					if (socket.state === 'open') {
 						return socket.call('list', {});
 					}
@@ -46,7 +47,7 @@ module.exports = params => {
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return getAllPeers().then(mutualPeers => {
+				return getAllPeers(params.sockets).then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -117,30 +118,19 @@ module.exports = params => {
 				});
 			});
 
-			describe('when a node is randomly started and stopped', () => {
-				it('stop all the nodes in the network except one', done => {
-					for (let i = 2; i < totalPeers; i++) {
+			describe('node stop and start', () => {
+				it('stop all the nodes in the network', done => {
+					for (let i = 0; i < totalPeers; i++) {
 						stopNode(`node_${i}`);
 					}
 					done();
 				});
 
 				it('start all nodes that were stopped', done => {
-					for (let i = 2; i < totalPeers; i++) {
+					for (let i = 0; i < totalPeers; i++) {
 						startNode(`node_${i}`);
 					}
-
-					utils.ws.establishWSConnectionsToNodes(
-						params.configurations,
-						(err, socketsResult) => {
-							if (err) {
-								return done(err);
-							}
-							params.sockets = socketsResult;
-							params.configurations = params.configurations;
-							done();
-						}
-					);
+					done();
 				});
 
 				describe('after all the node restarts', () => {
@@ -152,30 +142,14 @@ module.exports = params => {
 									return done(err);
 								}
 								params.sockets = socketsResult;
-								params.configurations = params.configurations;
-								done();
+								network.enableForgingOnDelegates(params.configurations, () => {
+									done();
+								});
 							}
 						);
 					});
 
-					it(`peers manager should have only ${expectedOutgoingConnections}`, () => {
-						return getAllPeers().then(mutualPeers => {
-							mutualPeers.forEach(mutualPeer => {
-								if (mutualPeer) {
-									mutualPeer.peers.map(peer => {
-										if (peer.wsPort >= 5000 && peer.wsPort <= 5009) {
-											wsPorts.add(peer.wsPort);
-										}
-										expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-									});
-								}
-							});
-						});
-					});
-
-					it(`all the nodes should be connected with port ${Array.from(
-						wsPorts
-					).join()}`, done => {
+					it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
 						utils.getEstablishedConnections(
 							Array.from(wsPorts),
 							(err, numOfConnections) => {
@@ -190,6 +164,27 @@ module.exports = params => {
 										`There are ${numOfConnections} established connections on web socket ports.`
 									);
 								}
+							}
+						);
+					});
+
+					it(`peers manager should have only ${expectedOutgoingConnections}`, () => {
+						return utils.ws.establishWSConnectionsToNodes(
+							params.configurations,
+							(err, socketsResult) => {
+								params.sockets = socketsResult;
+								getAllPeers(socketsResult).then(mutualPeers => {
+									mutualPeers.forEach(mutualPeer => {
+										if (mutualPeer) {
+											mutualPeer.peers.map(peer => {
+												if (peer.wsPort >= 5000 && peer.wsPort <= 5009) {
+													wsPorts.add(peer.wsPort);
+												}
+												expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+											});
+										}
+									});
+								});
 							}
 						);
 					});

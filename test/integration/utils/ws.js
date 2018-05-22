@@ -33,12 +33,8 @@ module.exports = {
 				httpPort: firstConfiguration.httpPort,
 			}),
 		};
-		var connectedTo = 1;
-		configurations.forEach((configuration, index) => {
-			if (index === 0) {
-				return;
-			}
-
+		var connectedTo = 0;
+		configurations.forEach(configuration => {
 			monitorWSClient.port = configuration.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
