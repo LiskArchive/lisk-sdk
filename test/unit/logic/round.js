@@ -613,34 +613,62 @@ describe('rounds', () => {
 	});
 
 	describe('checkSnapshotAvailability', () => {
+		const stubs = {};
 		let scope;
-		let stub;
 		let res;
 
 		before(done => {
-			// Init stubs
-			stub = sinonSandbox.stub(db.rounds, 'checkSnapshotAvailability');
-			stub.withArgs(1).resolves(true);
-			stub.withArgs(2).resolves(false);
-
+			// Init stubs and scope
+			stubs.checkSnapshotAvailability = sinonSandbox.stub(db.rounds, 'checkSnapshotAvailability');
+			stubs.countRoundSnapshot = sinonSandbox.stub(db.rounds, 'countRoundSnapshot');
 			scope = _.cloneDeep(validScope);
-			scope.round = 1;
-			round = new Round(scope, db);
-			res = round.checkSnapshotAvailability();
+			done();
+		});
+
+		afterEach(done => {
+			stubs.checkSnapshotAvailability.resetHistory();
+			stubs.countRoundSnapshot.resetHistory();
 			done();
 		});
 
 		it('should return promise', () => {
+			stubs.checkSnapshotAvailability.resolves();
+			stubs.countRoundSnapshot.resolves();
+			scope.round = 1;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
 			return expect(isPromise(res)).to.be.true;
 		});
 
-		it('should resolve without any error when query returns 1', () => {
+		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
+			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
+			scope.round = 1;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
 			return res.then(() => {
-				expect(stub.calledWith(1)).to.be.true;
+				expect(stubs.checkSnapshotAvailability).to.have.been.calledWith(1);
+				return expect(stubs.countRoundSnapshot.called).to.be.false;
 			});
 		});
 
-		it('should be rejected with proper error when query returns null', () => {
+		it('should resolve without any error when checkSnapshotAvailability query returns null and table is empty', () => {
+			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
+			stubs.countRoundSnapshot.resolves(0);
+			scope.round = 2;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
+			return res.then(() => {
+				expect(stubs.checkSnapshotAvailability).to.have.been.calledWith(2);
+				return expect(stubs.countRoundSnapshot.called).to.be.true;
+			});
+		});
+
+		it('should be rejected with proper error when checkSnapshotAvailability query returns null and table is not empty', () => {
+			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
+			stubs.countRoundSnapshot.resolves(1);
 			scope.round = 2;
 			round = new Round(scope, db);
 			res = round.checkSnapshotAvailability();
