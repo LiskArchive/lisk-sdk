@@ -27,7 +27,6 @@ describe('#transfer transaction', () => {
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
 	const fee = (0.1 * fixedPoint).toString();
-	const feeWithData = (0.2 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub;
@@ -164,11 +163,11 @@ describe('#transfer transaction', () => {
 				);
 			});
 
-			it('should have fee string equal to transfer with data fee', () => {
+			it('should have fee string equal to transfer fee', () => {
 				return expect(transferTransaction)
 					.to.have.property('fee')
 					.and.be.a('string')
-					.and.equal(feeWithData);
+					.and.equal(fee);
 			});
 
 			describe('data asset', () => {
