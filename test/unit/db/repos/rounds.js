@@ -564,6 +564,61 @@ describe('db', () => {
 			});
 		});
 
+		describe('countRoundSnapshot()', () => {
+			afterEach(() => {
+				return db.rounds.clearRoundSnapshot();
+			});
+
+			it('should use the correct SQL file with one parameter', function*() {
+				sinonSandbox.spy(db, 'one');
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				yield db.rounds.countRoundSnapshot();
+
+				expect(db.one.firstCall.args[0]).to.eql(roundsSQL.countRoundSnapshot);
+				expect(db.one.firstCall.args[1]).to.eql([]);
+				return expect(db.one).to.be.calledOnce;
+			});
+
+			it('should return proper number of records when table is not empty', function*() {
+				// Seed some data to mem_rounds
+				const rounds = [
+					roundsFixtures.Round(),
+					roundsFixtures.Round(),
+					roundsFixtures.Round(),
+				];
+
+				yield db.query(
+					db.rounds.pgp.helpers.insert(rounds[0], null, { table: 'mem_round' })
+				);
+				yield db.query(
+					db.rounds.pgp.helpers.insert(rounds[1], null, { table: 'mem_round' })
+				);
+				yield db.query(
+					db.rounds.pgp.helpers.insert(rounds[2], null, { table: 'mem_round' })
+				);
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const count = yield db.rounds.countRoundSnapshot();
+
+				expect(count).to.be.an('number');
+				return expect(count).to.be.eql(rounds.length);
+			});
+
+			it('should return 0 when table is empty', function*() {
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const count = yield db.rounds.countRoundSnapshot();
+
+				expect(count).to.be.an('number');
+				return expect(count).to.be.eql(0);
+			});
+		});
 
 		describe('getDelegatesSnapshot()', () => {
 			afterEach(() => {
