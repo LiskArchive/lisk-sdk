@@ -14,12 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Counts all records from mem_round_snapshot table.
 
-  PARAMETERS: ?
+  PARAMETERS: none
 */
 
-UPDATE mem_accounts m
-SET vote = b.vote
-FROM mem_votes_snapshot b
-WHERE m.address = b.address;
+SELECT COUNT(*) FROM mem_round_snapshot
