@@ -1173,7 +1173,7 @@ describe('rounds', () => {
 
 		it('should fail when try to delete one more block (last block of round 1)', () => {
 			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith(
-				'Snapshot for round 1 not available, unable to perform round rollback'
+				'Snapshot for round 1 not available'
 			);
 		});
 

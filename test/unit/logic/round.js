@@ -680,7 +680,7 @@ describe('rounds', () => {
 			res = round.checkSnapshotAvailability();
 
 			return expect(res).to.eventually.be.rejectedWith(
-				'Snapshot for round 2 not available, unable to perform round rollback'
+				'Snapshot for round 2 not available'
 			);
 		});
 	});

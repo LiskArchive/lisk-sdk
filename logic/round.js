@@ -243,9 +243,7 @@ class Round {
 						// Throw an error when round snapshot table is not empty
 						if (count) {
 							throw new Error(
-								`Snapshot for round ${
-									this.scope.round
-								} not available, unable to perform round rollback`
+								`Snapshot for round ${this.scope.round} not available`
 							);
 						}
 					});
