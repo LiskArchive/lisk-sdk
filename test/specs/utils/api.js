@@ -32,7 +32,7 @@ describe('API util', () => {
 						() => {
 							Then(
 								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementAPIInstance,
+								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
 							);
 							Then(
 								'the lisk instance should have nethash equal to "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"',
@@ -62,7 +62,7 @@ describe('API util', () => {
 						() => {
 							Then(
 								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementAPIInstance,
+								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
 							);
 							Then(
 								'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
@@ -86,7 +86,7 @@ describe('API util', () => {
 						() => {
 							Then(
 								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementAPIInstance,
+								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
 							);
 							Then(
 								'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
@@ -116,7 +116,7 @@ describe('API util', () => {
 						() => {
 							Then(
 								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementAPIInstance,
+								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
 							);
 							Then(
 								'the lisk instance should have nethash equal to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c"',
