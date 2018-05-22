@@ -157,7 +157,7 @@ export function theCryptoInstanceShouldHaveName() {
 		.equal(name);
 }
 
-export function theCryptoInstanceShouldHaveLiskJSAsAProperty() {
+export function theCryptoInstanceShouldHaveLiskElementCryptographyAsAProperty() {
 	const { cryptography: crypto } = this.test.ctx;
 	return expect(crypto)
 		.to.have.property('liskCrypto')

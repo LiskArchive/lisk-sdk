@@ -53,7 +53,7 @@ export function itShouldResolveToTheAPIResponse() {
 	return expect(returnValue).to.eventually.eql(apiResponse);
 }
 
-export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {
+export function theLiskAPIInstanceShouldBeALiskElementAPIInstance() {
 	const { liskAPIInstance } = this.test.ctx;
 	return expect(liskAPIInstance).to.be.instanceOf(elements.APIClient);
 }

@@ -26,8 +26,8 @@ describe('Crypto class', () => {
 			then.theCryptoInstanceShouldHaveName,
 		);
 		Then(
-			'the crypto instance should have lisk-elements crypto as a property',
-			then.theCryptoInstanceShouldHaveLiskJSAsAProperty,
+			'the crypto instance should have lisk-elements cryptography as a property',
+			then.theCryptoInstanceShouldHaveLiskElementCryptographyAsAProperty,
 		);
 		Given(
 			'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with private key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and address "2167422481642255385L"',

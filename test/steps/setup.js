@@ -80,7 +80,7 @@ const setUpReadlineStubs = () => {
 	sandbox.stub(readline, 'createInterface');
 };
 
-function setUpLiskJSAPIStubs() {
+function setUpLiskElementAPIStubs() {
 	const queryDefaultResult = { success: true };
 	const broadcastTransactionResponse = {
 		message: 'Transaction accepted by the node for processing',
@@ -112,7 +112,7 @@ function setUpLiskJSAPIStubs() {
 	});
 }
 
-const setUpLiskJSCryptoStubs = () => {
+const setUpLiskElementCryptoStubs = () => {
 	[
 		'encryptMessageWithPassphrase',
 		'decryptMessageWithPassphrase',
@@ -208,12 +208,12 @@ const restoreEnvVariable = variable =>
 	};
 
 export function setUpCommandBroadcastSignature() {
-	setUpLiskJSAPIStubs.call(this);
+	setUpLiskElementAPIStubs.call(this);
 	this.test.ctx.apiResponse = this.test.ctx.broadcastSignaturesResponse;
 }
 
 export function setUpCommandBroadcastTransaction() {
-	setUpLiskJSAPIStubs.call(this);
+	setUpLiskElementAPIStubs.call(this);
 	this.test.ctx.apiResponse = this.test.ctx.broadcastTransactionResponse;
 }
 
@@ -326,7 +326,7 @@ export function setUpUtilCreateCommand() {
 }
 
 export function setUpUtilCrypto() {
-	setUpLiskJSCryptoStubs();
+	setUpLiskElementCryptoStubs();
 }
 
 export function setUpUtilFs() {
@@ -351,7 +351,7 @@ export function tearDownUtilInputUtils() {
 }
 
 export function setUpUtilQuery() {
-	setUpLiskJSAPIStubs.call(this);
+	setUpLiskElementAPIStubs.call(this);
 }
 
 export function setUpUtilLog() {
