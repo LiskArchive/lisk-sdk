@@ -46,6 +46,11 @@ module.exports = function(params) {
 			});
 		}
 
+		const sendBundledTransactions = transactions => {
+			const firstNode = params.sockets[0];
+			firstNode.emit('postTransactions', { transactions });
+		};
+
 		describe('sending 1000 bundled transfers to random addresses', () => {
 			before(() => {
 				_.range(maximum).map(() => {
@@ -60,7 +65,7 @@ module.exports = function(params) {
 				const limit = params.configurations[0].broadcasts.releaseLimit;
 
 				return _.chunk(transactions, limit).map(bundledTransactions => {
-					return sendTransactionsPromise(bundledTransactions);
+					return sendBundledTransactions(bundledTransactions);
 				});
 			});
 
