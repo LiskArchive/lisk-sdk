@@ -40,7 +40,7 @@ describe('Crypto class', () => {
 						() => {
 							Then(
 								'lisk-elements crypto should be used to get the keys for the passphrase',
-								then.liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase,
+								then.liskElementsCryptoShouldBeUsedToGetTheKeysForThePassphrase,
 							);
 							Then('the keys should be returned', then.theKeysShouldBeReturned);
 						},
@@ -63,7 +63,7 @@ describe('Crypto class', () => {
 						() => {
 							Then(
 								'lisk-elements crypto should be used to get the address from the public key',
-								then.liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
+								then.liskElementsCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
 							);
 							Then(
 								'it should return an object with the address',
@@ -77,7 +77,7 @@ describe('Crypto class', () => {
 						() => {
 							Then(
 								'lisk-elements crypto should be used to get the address from the public key',
-								then.liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
+								then.liskElementsCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
 							);
 							Then(
 								'the error response should be handled',
@@ -98,11 +98,11 @@ describe('Crypto class', () => {
 									() => {
 										Then(
 											'lisk-elements crypto should be used to get the encrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToGetTheEncryptedPassphrase,
+											then.liskElementsCryptoShouldBeUsedToGetTheEncryptedPassphrase,
 										);
 										Then(
 											'lisk-elements crypto should be used to stringify the encrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToStringifyTheEncryptedPassphrase,
+											then.liskElementsCryptoShouldBeUsedToStringifyTheEncryptedPassphrase,
 										);
 										Then(
 											'the encrypted passphrase should be returned',
@@ -128,11 +128,11 @@ describe('Crypto class', () => {
 									() => {
 										Then(
 											'lisk-elements crypto should be used to parse the encrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToParseTheEncryptedPassphrase,
+											then.liskElementsCryptoShouldBeUsedToParseTheEncryptedPassphrase,
 										);
 										Then(
 											'lisk-elements crypto should be used to get the decrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase,
+											then.liskElementsCryptoShouldBeUsedToGetTheDecryptedPassphrase,
 										);
 										Then(
 											'the decrypted passphrase should be returned',
@@ -166,7 +166,7 @@ describe('Crypto class', () => {
 									() => {
 										it(
 											'Then lisk-elements crypto should be used to sign the message',
-											then.liskJSCryptoShouldBeUsedToSignTheMessage,
+											then.liskElementsCryptoShouldBeUsedToSignTheMessage,
 										);
 										it(
 											'Then the signature should be returned',
@@ -198,7 +198,7 @@ describe('Crypto class', () => {
 									() => {
 										Then(
 											'lisk-elements crypto should be used to verify the message',
-											then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
+											then.liskElementsCryptoShouldBeUsedToVerifyTheMessage,
 										);
 										Then(
 											'the the message verification should be returned',
@@ -235,7 +235,7 @@ describe('Crypto class', () => {
 										() => {
 											Then(
 												'lisk-elements crypto should be used to get the encrypted message and nonce',
-												then.liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce,
+												then.liskElementsCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce,
 											);
 											Then(
 												'the encrypted message and nonce should be returned',
@@ -261,7 +261,7 @@ describe('Crypto class', () => {
 										() => {
 											Then(
 												'lisk-elements crypto should be used to get the decrypted message',
-												then.liskJSCryptoShouldBeUsedToGetTheDecryptedMessage,
+												then.liskElementsCryptoShouldBeUsedToGetTheDecryptedMessage,
 											);
 											Then(
 												'the decrypted message should be returned',
