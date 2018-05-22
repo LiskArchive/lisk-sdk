@@ -14,22 +14,9 @@
 
 
 /*
-  DESCRIPTION: Check round snapshot availability for a particular round
-               Returns TRUE when snapshot available or table is empty, FALSE otherwise
+  DESCRIPTION: Check round snapshot availability for a particular round.
 
   PARAMETERS: round - Round for we are checking availability
 */
 
-SELECT (
-	CASE WHEN (
-		SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1
-	) = 1 THEN TRUE
-	ELSE (
-		CASE WHEN (
-			SELECT COUNT(*) FROM mem_round_snapshot
-		) = 0 THEN TRUE
-		ELSE FALSE
-		END
-	)
-	END
-) AS available
+SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1
