@@ -439,7 +439,6 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{
-			limit: library.config.broadcasts.broadcastLimit,
 			broadhash: modules.system.getBroadhash(),
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }

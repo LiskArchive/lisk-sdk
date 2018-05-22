@@ -130,8 +130,11 @@ class Broadcaster {
 					if (!params.peers) {
 						return self.getPeers(params, waterCb);
 					}
-					const peers = params.limit ? params.peers.slice(0, params.limit) : params.peers;
-					return setImmediate(waterCb, null, peers);
+					return setImmediate(
+						waterCb,
+						null,
+						params.peers.slice(0, params.limit)
+					);
 				},
 				function sendToPeer(peers, waterCb) {
 					library.logger.debug('Begin broadcast', options);
