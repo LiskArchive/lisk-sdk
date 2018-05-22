@@ -619,8 +619,14 @@ describe('rounds', () => {
 
 		before(done => {
 			// Init stubs and scope
-			stubs.checkSnapshotAvailability = sinonSandbox.stub(db.rounds, 'checkSnapshotAvailability');
-			stubs.countRoundSnapshot = sinonSandbox.stub(db.rounds, 'countRoundSnapshot');
+			stubs.checkSnapshotAvailability = sinonSandbox.stub(
+				db.rounds,
+				'checkSnapshotAvailability'
+			);
+			stubs.countRoundSnapshot = sinonSandbox.stub(
+				db.rounds,
+				'countRoundSnapshot'
+			);
 			scope = _.cloneDeep(validScope);
 			done();
 		});

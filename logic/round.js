@@ -239,18 +239,16 @@ class Round {
 				if (!isAvailable) {
 					// Snapshot for current round is not available, check if round snapshot table is empty,
 					// because we need to allow to restore snapshot in that case (no transactions during entire round)
-					return this.t.rounds
-						.countRoundSnapshot()
-						.then(count => {
-							// Throw an error when round snapshot table is not empty
-							if (count) {
-								throw new Error(
-									`Snapshot for round ${
-										this.scope.round
-										} not available, unable to perform round rollback`
-								);
-							}
-						});
+					return this.t.rounds.countRoundSnapshot().then(count => {
+						// Throw an error when round snapshot table is not empty
+						if (count) {
+							throw new Error(
+								`Snapshot for round ${
+									this.scope.round
+								} not available, unable to perform round rollback`
+							);
+						}
+					});
 				}
 			});
 	}
