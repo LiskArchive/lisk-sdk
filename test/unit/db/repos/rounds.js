@@ -618,6 +618,12 @@ describe('db', () => {
 				expect(count).to.be.an('number');
 				return expect(count).to.be.eql(0);
 			});
+
+			it('should reject with error if called without performing the snapshot', () => {
+				return expect(db.rounds.countRoundSnapshot()).to.be.rejectedWith(
+					'relation "mem_round_snapshot" does not exist'
+				);
+			});
 		});
 
 		describe('getDelegatesSnapshot()', () => {
