@@ -496,21 +496,19 @@ describe('db', () => {
 			});
 
 			it('should use the correct SQL file with one parameter', function*() {
-				sinonSandbox.spy(db, 'one');
+				sinonSandbox.spy(db, 'oneOrNone');
 
 				// Perform round snapshot
 				yield db.rounds.performRoundSnapshot();
 
 				yield db.rounds.checkSnapshotAvailability('1');
 
-				expect(db.one.firstCall.args[0]).to.eql(
-					roundsSQL.checkSnapshotAvailability
-				);
-				expect(db.one.firstCall.args[1]).to.eql({ round: '1' });
-				return expect(db.one).to.be.calledOnce;
+				expect(db.oneOrNone.firstCall.args[0]).to.eql(roundsSQL.checkSnapshotAvailability);
+				expect(db.oneOrNone.firstCall.args[1]).to.eql({ round: '1' });
+				return expect(db.oneOrNone).to.be.calledOnce;
 			});
 
-			it('should return true when snapshot for requested round is available', function*() {
+			it('should return 1 when snapshot for requested round is available', function*() {
 				const account = accountsFixtures.Account();
 
 				const round1 = roundsFixtures.Round({
@@ -527,10 +525,10 @@ describe('db', () => {
 
 				const result = yield db.rounds.checkSnapshotAvailability(round1.round);
 
-				return expect(result).to.be.be.eql(true);
+				return expect(result).to.be.be.eql(1);
 			});
 
-			it('should return false when snapshot for requested round is not available', function*() {
+			it('should return null when snapshot for requested round is not available', function*() {
 				const account = accountsFixtures.Account();
 
 				const round1 = roundsFixtures.Round({
@@ -545,48 +543,27 @@ describe('db', () => {
 				// Perform round snapshot
 				yield db.rounds.performRoundSnapshot();
 
-				const result = yield db.rounds.checkSnapshotAvailability(
-					round1.round + 1
-				);
+				const result = yield db.rounds.checkSnapshotAvailability(round1.round + 1);
 
-				return expect(result).to.be.be.eql(false);
+				return expect(result).to.be.be.eql(null);
 			});
 
-			it('should return true when snapshot table is empty (no transactions during round)', function*() {
-				// Perform round snapshot
-				yield db.rounds.performRoundSnapshot();
-
-				const result = yield db.rounds.checkSnapshotAvailability(666);
-
-				return expect(result).to.be.be.eql(true);
-			});
-
-			it('should return false when no round number is provided', function*() {
-				const account = accountsFixtures.Account();
-
-				const round1 = roundsFixtures.Round({
-					round: 1,
-					delegate: account.publicKey,
-				});
-
-				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
-				);
-
+			it('should return null when no round number is provided', function*() {
 				// Perform round snapshot
 				yield db.rounds.performRoundSnapshot();
 
 				const result = yield db.rounds.checkSnapshotAvailability();
 
-				return expect(result).to.be.be.eql(false);
+				return expect(result).to.be.be.eql(null);
 			});
 
 			it('should reject with error if called without performing the snapshot', () => {
-				return expect(
-					db.rounds.checkSnapshotAvailability(1)
-				).to.be.rejectedWith('relation "mem_round_snapshot" does not exist');
+				return expect(db.rounds.checkSnapshotAvailability(1)).to.be.rejectedWith(
+					'relation "mem_round_snapshot" does not exist'
+				);
 			});
 		});
+
 
 		describe('getDelegatesSnapshot()', () => {
 			afterEach(() => {
