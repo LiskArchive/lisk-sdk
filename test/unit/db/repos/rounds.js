@@ -424,6 +424,146 @@ describe('db', () => {
 			});
 		});
 
+		describe('checkSnapshotAvailability()', () => {
+			afterEach(() => {
+				return db.rounds.clearRoundSnapshot();
+			});
+
+			it('should use the correct SQL file with one parameter', function*() {
+				sinonSandbox.spy(db, 'oneOrNone');
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				yield db.rounds.checkSnapshotAvailability('1');
+
+				expect(db.oneOrNone.firstCall.args[0]).to.eql(
+					roundsSQL.checkSnapshotAvailability
+				);
+				expect(db.oneOrNone.firstCall.args[1]).to.eql({ round: '1' });
+				return expect(db.oneOrNone).to.be.calledOnce;
+			});
+
+			it('should return 1 when snapshot for requested round is available', function*() {
+				const account = accountsFixtures.Account();
+
+				const round1 = roundsFixtures.Round({
+					round: 1,
+					delegate: account.publicKey,
+				});
+
+				yield db.query(
+					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+				);
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const result = yield db.rounds.checkSnapshotAvailability(round1.round);
+
+				return expect(result).to.be.be.eql(1);
+			});
+
+			it('should return null when snapshot for requested round is not available', function*() {
+				const account = accountsFixtures.Account();
+
+				const round1 = roundsFixtures.Round({
+					round: 1,
+					delegate: account.publicKey,
+				});
+
+				yield db.query(
+					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+				);
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const result = yield db.rounds.checkSnapshotAvailability(
+					round1.round + 1
+				);
+
+				return expect(result).to.be.be.eql(null);
+			});
+
+			it('should return null when no round number is provided', function*() {
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const result = yield db.rounds.checkSnapshotAvailability();
+
+				return expect(result).to.be.be.eql(null);
+			});
+
+			it('should reject with error if called without performing the snapshot', () => {
+				return expect(
+					db.rounds.checkSnapshotAvailability(1)
+				).to.be.rejectedWith('relation "mem_round_snapshot" does not exist');
+			});
+		});
+
+		describe('countRoundSnapshot()', () => {
+			afterEach(() => {
+				return db.rounds.clearRoundSnapshot();
+			});
+
+			it('should use the correct SQL file with one parameter', function*() {
+				sinonSandbox.spy(db, 'one');
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				yield db.rounds.countRoundSnapshot();
+
+				expect(db.one.firstCall.args[0]).to.eql(roundsSQL.countRoundSnapshot);
+				expect(db.one.firstCall.args[1]).to.eql([]);
+				return expect(db.one).to.be.calledOnce;
+			});
+
+			it('should return proper number of records when table is not empty', function*() {
+				// Seed some data to mem_rounds
+				const rounds = [
+					roundsFixtures.Round(),
+					roundsFixtures.Round(),
+					roundsFixtures.Round(),
+				];
+
+				yield db.query(
+					db.rounds.pgp.helpers.insert(rounds[0], null, { table: 'mem_round' })
+				);
+				yield db.query(
+					db.rounds.pgp.helpers.insert(rounds[1], null, { table: 'mem_round' })
+				);
+				yield db.query(
+					db.rounds.pgp.helpers.insert(rounds[2], null, { table: 'mem_round' })
+				);
+
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const count = yield db.rounds.countRoundSnapshot();
+
+				expect(count).to.be.an('number');
+				return expect(count).to.be.eql(rounds.length);
+			});
+
+			it('should return 0 when table is empty', function*() {
+				// Perform round snapshot
+				yield db.rounds.performRoundSnapshot();
+
+				const count = yield db.rounds.countRoundSnapshot();
+
+				expect(count).to.be.an('number');
+				return expect(count).to.be.eql(0);
+			});
+
+			it('should reject with error if called without performing the snapshot', () => {
+				return expect(db.rounds.countRoundSnapshot()).to.be.rejectedWith(
+					'relation "mem_round_snapshot" does not exist'
+				);
+			});
+		});
+
 		describe('getDelegatesSnapshot()', () => {
 			afterEach(() => {
 				return db.rounds.clearVotesSnapshot();

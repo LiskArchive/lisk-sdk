@@ -14,12 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Check round snapshot availability for a particular round.
 
-  PARAMETERS: ?
+  PARAMETERS: round - Round for we are checking availability
 */
 
-UPDATE mem_accounts m
-SET vote = b.vote
-FROM mem_votes_snapshot b
-WHERE m.address = b.address;
+SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1
