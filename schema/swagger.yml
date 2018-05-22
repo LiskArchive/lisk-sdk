@@ -1341,14 +1341,14 @@ definitions:
        required:
          - offset
          - limit
-         - total
+         - count
        properties:
          offset:
            $ref: '#/definitions/Offset'
          limit:
            $ref: '#/definitions/Limit'
-         total:
-           description: Total number of available peers
+         count:
+           description: Number of peers in the response
            type: integer
            example: 100
       links:
