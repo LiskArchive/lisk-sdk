@@ -19,8 +19,6 @@ const program = require('commander');
 const extend = require('extend');
 const lisk = require('lisk-js');
 
-/* eslint-disable no-console */
-
 program
 	.version('0.1.1')
 	.option('-o, --old <path>', 'Old config.json')
@@ -75,7 +73,7 @@ if (program.old) {
 				password => {
 					rl.close();
 					if (!password.trim()) {
-						return console.log('\nSkipping the secret migration.');
+						return console.info('\nSkipping the secret migration.');
 					}
 					migrateSecrets(password);
 				}
@@ -93,15 +91,15 @@ if (program.old) {
 		delete oldConfig.forging.secret;
 	}
 } else {
-	console.log('Previous config.json not found, exiting.');
+	console.info('Previous config.json not found, exiting.');
 	process.exit(1);
 }
 
 function migrateSecrets(password) {
-	console.log('\nMigrating your secrets...');
+	console.info('\nMigrating your secrets...');
 	oldConfig.forging.defaultPassword = password;
 	oldConfig.forging.secret.map(secret => {
-		console.log('.......');
+		console.info('.......');
 		oldConfig.forging.delegates.push({
 			encryptedPassphrase: lisk.default.cryptography.stringifyEncryptedPassphrase(
 				lisk.default.cryptography.encryptPassphraseWithPassword(
@@ -116,7 +114,7 @@ function migrateSecrets(password) {
 		});
 	});
 	delete oldConfig.forging.secret;
-	console.log('Configuration migration completed.');
+	console.info('Configuration migration completed.');
 }
 
 if (program.new) {
