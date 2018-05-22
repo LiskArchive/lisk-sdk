@@ -41,6 +41,18 @@ describe('sign transaction command', () => {
 								});
 							},
 						);
+						Given('an error object', given.anErrorObject, () => {
+							When(
+								'the action is called with the stringified transaction object',
+								when.theActionIsCalledWithTheStringifiedErrorObjectViaVorpalStdIn,
+								() => {
+									Then(
+										'it should reject with the error and message "Some error."',
+										then.itShouldRejectWithTheErrorMessage,
+									);
+								},
+							);
+						});
 						Given(
 							'the passphrase can be retrieved from its source',
 							given.thePassphraseCanBeRetrievedFromItsSource,

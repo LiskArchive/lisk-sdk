@@ -69,6 +69,10 @@ export const actionCreator = vorpal => async ({
 		throw new ValidationError('Could not parse transaction JSON.');
 	}
 
+	if (transactionObject.error) {
+		throw new Error(transactionObject.error);
+	}
+
 	transactions.utils.verifyTransaction(transactionObject);
 
 	const { passphrase, secondPassphrase } = await getInputsFromSources(vorpal, {
