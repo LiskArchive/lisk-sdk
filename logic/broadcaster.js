@@ -103,27 +103,13 @@ class Broadcaster {
 	 */
 	getPeers(params, cb) {
 		params.limit = params.limit || this.config.peerLimit;
-		params.broadhash = params.broadhash || null;
-		params.normalized = false;
-
-		const originalLimit = params.limit;
-		modules.peers.list(params, (err, peers) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			if (originalLimit === constants.maxPeers) {
-				library.logger.info(
-					[
-						'Broadhash consensus now',
-						modules.peers.getLastConsensus(),
-						'%',
-					].join(' ')
-				);
-			}
-
-			return setImmediate(cb, null, peers);
-		});
+		const peers = library.logic.peers.listRandomConnected(params);
+		library.logger.info(
+			['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
+				' '
+			)
+		);
+		return setImmediate(cb, null, peers);
 	}
 
 	/**
@@ -136,8 +122,7 @@ class Broadcaster {
 	 * @todo Add description for the params
 	 */
 	broadcast(params, options, cb) {
-		params.limit = params.limit || this.config.peerLimit;
-		params.broadhash = params.broadhash || null;
+		params.limit = params.limit || this.config.broadcastLimit;
 
 		async.waterfall(
 			[
@@ -145,25 +130,22 @@ class Broadcaster {
 					if (!params.peers) {
 						return self.getPeers(params, waterCb);
 					}
-					return setImmediate(waterCb, null, params.peers);
+					return setImmediate(
+						waterCb,
+						null,
+						params.peers.slice(0, params.limit)
+					);
 				},
 				function sendToPeer(peers, waterCb) {
 					library.logger.debug('Begin broadcast', options);
-
-					if (params.limit === self.config.peerLimit) {
-						peers = peers.slice(0, self.config.broadcastLimit);
-					}
-
-					peers
-						.slice(0, self.config.peerLimit)
-						.map(peer => peer.rpc[options.api](options.data));
+					peers.forEach(peer => peer.rpc[options.api](options.data));
 					library.logger.debug('End broadcast');
 					return setImmediate(waterCb, null, peers);
 				},
 			],
 			(err, peers) => {
 				if (cb) {
-					return setImmediate(cb, err, { body: null, peer: peers });
+					return setImmediate(cb, err, { peers });
 				}
 			}
 		);
