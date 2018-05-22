@@ -267,9 +267,8 @@ Peers.prototype.listRandomConnected = function(options) {
 		.map(key => self.peersManager.peers[key])
 		.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const shuffledPeerList = _.shuffle(peerList);
-	return options.limit === undefined
-		? shuffledPeerList
-		: shuffledPeerList.slice(0, options.limit);
+	return options.limit ? shuffledPeerList.slice(0, options.limit)
+		: shuffledPeerList;
 };
 
 /**

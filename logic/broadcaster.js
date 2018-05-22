@@ -103,15 +103,12 @@ class Broadcaster {
 	 */
 	getPeers(params, cb) {
 		params.limit = params.limit || this.config.peerLimit;
-
 		const peers = library.logic.peers.listRandomConnected(params);
-
 		library.logger.info(
 			['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
 				' '
 			)
 		);
-
 		return setImmediate(cb, null, peers);
 	}
 
@@ -125,7 +122,7 @@ class Broadcaster {
 	 * @todo Add description for the params
 	 */
 	broadcast(params, options, cb) {
-		params.limit = params.limit || this.config.peerLimit;
+		params.limit = params.limit || this.config.broadcastLimit;
 
 		async.waterfall(
 			[
@@ -133,14 +130,12 @@ class Broadcaster {
 					if (!params.peers) {
 						return self.getPeers(params, waterCb);
 					}
-					return setImmediate(waterCb, null, params.peers);
+					const peers = params.limit ? params.peers.slice(0, params.limit) : params.peers;
+					return setImmediate(waterCb, null, peers);
 				},
 				function sendToPeer(peers, waterCb) {
 					library.logger.debug('Begin broadcast', options);
-					peers = peers.slice(0, params.limit);
-					peers
-						.slice(0, self.config.peerLimit)
-						.map(peer => peer.rpc[options.api](options.data));
+					peers.forEach(peer => peer.rpc[options.api](options.data));
 					library.logger.debug('End broadcast');
 					return setImmediate(waterCb, null, peers);
 				},
