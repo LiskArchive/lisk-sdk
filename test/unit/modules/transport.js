@@ -1501,7 +1501,7 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}', () => {
+				it('should call __private.broadcaster.broadcast with {broadhash: modules.system.getBroadhash()}', () => {
 					return expect(
 						__private.broadcaster.broadcast.calledWith(
 							{
