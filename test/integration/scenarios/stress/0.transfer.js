@@ -26,42 +26,10 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 0 transactions @slow', () => {
+	describe(() => {
 		var transactions = [];
 		var maximum = 1000;
 		var waitForExtraBlocks = 4; // Wait for extra blocks to ensure all the transactions are included in the block
-
-		describe('sending 1000 bundled transfers to random addresses', () => {
-			before(() => {
-				_.range(maximum).map(() => {
-					var transaction = lisk.transaction.transfer({
-						amount: randomUtil.number(100000000, 1000000000),
-						passphrase: accountFixtures.genesis.password,
-						recipientId: randomUtil.account().address,
-					});
-					transactions.push(transaction);
-				});
-
-				const limit = params.configurations[0].broadcasts.releaseLimit;
-
-				return _.chunk(transactions, limit).map(bundledTransactions => {
-					return sendTransactionsPromise(bundledTransactions);
-				});
-			});
-
-			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
-					waitForExtraBlocks;
-				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params)
-						.then(done)
-						.catch(err => {
-							done(err);
-						});
-				});
-			});
-		});
 
 		describe('sending 1000 single transfers to random addresses', () => {
 			before(() => {
@@ -92,5 +60,5 @@ module.exports = function(params) {
 				});
 			});
 		});
-	});
+	}, 'stress test for type 0 transactions @slow');
 };
