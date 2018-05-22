@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { encode as encodeVarInt } from 'varuint-bitcoin';
+import hash from './hash';
 import { hexToBuffer, bufferToHex } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 
@@ -24,8 +26,25 @@ const signatureHeader = createHeader('SIGNATURE');
 const secondSignatureHeader = createHeader('SECOND SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
-export const signMessageWithPassphrase = (message, passphrase) => {
+const SIGNED_MESSAGE_PREFIX = Buffer.from('Lisk Signed Message:\n', 'utf8');
+const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
+
+export const digestMessage = message => {
 	const msgBytes = Buffer.from(message, 'utf8');
+	const msgLenBytes = encodeVarInt(message.length);
+	const dataBytes = Buffer.concat(
+		[
+			SIGNED_MESSAGE_PREFIX_LENGTH,
+			SIGNED_MESSAGE_PREFIX,
+			msgLenBytes,
+			msgBytes,
+		],
+	);
+	return hash(hash(dataBytes));
+};
+
+export const signMessageWithPassphrase = (message, passphrase) => {
+	const msgBytes = digestMessage(message);
 	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
 		passphrase,
 	);
@@ -43,7 +62,7 @@ export const verifyMessageWithPublicKey = ({
 	signature,
 	publicKey,
 }) => {
-	const msgBytes = Buffer.from(message, 'utf8');
+	const msgBytes = digestMessage(message);
 	const signatureBytes = hexToBuffer(signature);
 	const publicKeyBytes = hexToBuffer(publicKey);
 
@@ -67,7 +86,7 @@ export const signMessageWithTwoPassphrases = (
 	passphrase,
 	secondPassphrase,
 ) => {
-	const msgBytes = Buffer.from(message, 'utf8');
+	const msgBytes = digestMessage(message);
 	const keypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(
 		secondPassphrase,
@@ -98,7 +117,7 @@ export const verifyMessageWithTwoPublicKeys = ({
 	publicKey,
 	secondPublicKey,
 }) => {
-	const messageBytes = Buffer.from(message, 'utf8');
+	const messageBytes = digestMessage(message);
 	const signatureBytes = hexToBuffer(signature);
 	const secondSignatureBytes = hexToBuffer(secondSignature);
 	const publicKeyBytes = hexToBuffer(publicKey);
