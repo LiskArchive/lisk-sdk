@@ -46,43 +46,6 @@ module.exports = function(params) {
 			});
 		}
 
-		const sendBundledTransactions = transactions => {
-			const firstNode = params.sockets[0];
-			firstNode.emit('postTransactions', { transactions });
-		};
-
-		describe('sending 1000 bundled transfers to random addresses', () => {
-			before(() => {
-				_.range(maximum).map(() => {
-					var transaction = lisk.transaction.transfer({
-						amount: randomUtil.number(100000000, 1000000000),
-						passphrase: accountFixtures.genesis.password,
-						recipientId: randomUtil.account().address,
-					});
-					transactions.push(transaction);
-				});
-
-				const limit = params.configurations[0].broadcasts.releaseLimit;
-
-				return _.chunk(transactions, limit).map(bundledTransactions => {
-					return sendBundledTransactions(bundledTransactions);
-				});
-			});
-
-			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
-					waitForExtraBlocks;
-				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes()
-						.then(done)
-						.catch(err => {
-							done(err);
-						});
-				});
-			});
-		});
-
 		describe('sending 1000 single transfers to random addresses', () => {
 			before(() => {
 				transactions = [];
