@@ -867,18 +867,15 @@ Loader.prototype.findGoodPeers = function(peers) {
  * @todo Add description for the params
  */
 Loader.prototype.getNetwork = function(cb) {
-	modules.peers.list({ normalized: false }, (err, peers) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		__private.network = self.findGoodPeers(peers);
-
-		if (!__private.network.peers.length) {
-			return setImmediate(cb, 'Failed to find enough good peers');
-		}
-		return setImmediate(cb, null, __private.network);
+	const peers = library.logic.peers.listRandomConnected({
+		limit: constants.maxPeers,
 	});
+	__private.network = self.findGoodPeers(peers);
+
+	if (!__private.network.peers.length) {
+		return setImmediate(cb, 'Failed to find enough good peers');
+	}
+	return setImmediate(cb, null, __private.network);
 };
 
 /**
