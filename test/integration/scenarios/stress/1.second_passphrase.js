@@ -39,7 +39,7 @@ module.exports = function(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 2500000000,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 						});
 						accounts.push(tmpAccount);
@@ -64,7 +64,7 @@ module.exports = function(params) {
 				return Promise.all(
 					_.range(maximum).map(num => {
 						var transaction = lisk.transaction.registerSecondPassphrase({
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 							secondPassphrase: randomUtil.password(),
 						});
 						transactions.push(transaction);

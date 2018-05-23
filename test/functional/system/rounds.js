@@ -874,7 +874,7 @@ describe('rounds', () => {
 
 					// Create register delegate transaction
 					transaction = elements.transaction.registerDelegate({
-						passphrase: tmpAccount.password,
+						passphrase: tmpAccount.passphrase,
 						username: 'my_little_delegate',
 					});
 					transactions.delegate.push(transaction);

@@ -100,20 +100,20 @@ describe('GET /delegates', () => {
 		});
 
 		describe('secondPublicKey', () => {
-			var secondSecretAccount = randomUtil.account();
+			var secondPassphraseAccount = randomUtil.account();
 
 			var creditTransaction = lisk.transaction.transfer({
 				amount: constants.fees.secondSignature + constants.fees.delegate,
 				passphrase: accountFixtures.genesis.passphrase,
-				recipientId: secondSecretAccount.address,
+				recipientId: secondPassphraseAccount.address,
 			});
 			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
-				passphrase: secondSecretAccount.password,
-				secondPassphrase: secondSecretAccount.secondPassword,
+				passphrase: secondPassphraseAccount.passphrase,
+				secondPassphrase: secondPassphraseAccount.secondPassphrase,
 			});
 			var delegateTransaction = lisk.transaction.registerDelegate({
-				passphrase: secondSecretAccount.password,
-				username: secondSecretAccount.username,
+				passphrase: secondPassphraseAccount.passphrase,
+				username: secondPassphraseAccount.username,
 			});
 
 			before(() => {
@@ -158,13 +158,13 @@ describe('GET /delegates', () => {
 			it('using valid existing secondPublicKey of delegate should return the result', () => {
 				return delegatesEndpoint
 					.makeRequest(
-						{ secondPublicKey: secondSecretAccount.secondPublicKey },
+						{ secondPublicKey: secondPassphraseAccount.secondPublicKey },
 						200
 					)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].account.secondPublicKey).to.be.eql(
-							secondSecretAccount.secondPublicKey
+							secondPassphraseAccount.secondPublicKey
 						);
 					});
 			});
@@ -554,11 +554,9 @@ describe('GET /delegates', () => {
 		});
 
 		it('using limit=101 should be ok', () => {
-			return forgersEndpoint
-				.makeRequest({ limit: 101 }, 200)
-				.then(res => {
-					expect(res.body.data).to.have.length(101);
-				});
+			return forgersEndpoint.makeRequest({ limit: 101 }, 200).then(res => {
+				expect(res.body.data).to.have.length(101);
+			});
 		});
 
 		describe('slot numbers are correct', () => {

@@ -336,7 +336,7 @@ describe('cache', () => {
 				var transaction = lisk.transaction.transfer({
 					amount: 1,
 					passphrase: accountFixtures.genesis.passphrase,
-					secondPassphrase: accountFixtures.genesis.secondPassword,
+					secondPassphrase: accountFixtures.genesis.secondPassphrase,
 					recipientId: '1L',
 				});
 

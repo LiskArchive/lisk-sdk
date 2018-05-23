@@ -66,7 +66,7 @@ module.exports = function(params) {
 						var transaction = lisk.transaction.castVotes({
 							votes: [accountFixtures.existingDelegate.publicKey],
 							unvotes: [],
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 						});
 						transactions.push(transaction);
 						return sendTransactionsPromise([transaction]);

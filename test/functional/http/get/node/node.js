@@ -122,7 +122,7 @@ describe('GET /node', () => {
 			it('using no params should return full list of internal forgers', () => {
 				return forgingEndpoint.makeRequest({}, 200).then(res => {
 					expect(res.body.data.length).to.be.eql(
-						__testContext.config.forging.secret.length
+						__testContext.config.forging.delegates.length
 					);
 				});
 			});
@@ -144,7 +144,7 @@ describe('GET /node', () => {
 			});
 
 			it('using existing publicKey should be ok', () => {
-				var publicKey = __testContext.config.forging.secret[0].publicKey;
+				var publicKey = __testContext.config.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data).to.have.length(1);
@@ -153,7 +153,7 @@ describe('GET /node', () => {
 			});
 
 			it('using enabled publicKey should be ok', () => {
-				var publicKey = __testContext.config.forging.secret[0].publicKey;
+				var publicKey = __testContext.config.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {
 					expect(res.body.data[0].publicKey).to.be.eql(publicKey);

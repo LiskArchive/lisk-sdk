@@ -74,7 +74,7 @@ class Delegates {
 			},
 			config: {
 				forging: {
-					secret: scope.config.forging.secret,
+					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
 					defaultPassword: scope.config.forging.defaultPassword,
 					access: {
@@ -266,7 +266,7 @@ __private.forge = function(cb) {
 
 			if (modules.transport.poorConsensus()) {
 				const consensusErr = [
-					'Inadequate broadhash consensus',
+					'Inadequate broadhash consensus before forging a block:',
 					modules.peers.getLastConsensus(),
 					'%',
 				].join(' ');
@@ -279,9 +279,11 @@ __private.forge = function(cb) {
 			}
 
 			library.logger.info(
-				['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
-					' '
-				)
+				[
+					'Broadhash consensus before forging a block:',
+					modules.peers.getLastConsensus(),
+					'%',
+				].join(' ')
 			);
 
 			modules.blocks.process.generateBlock(
@@ -576,7 +578,7 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
-	const encryptedList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 
 	if (
 		!encryptedList ||
@@ -682,7 +684,7 @@ __private.loadDelegates = function(cb) {
  * @todo Add description for the return value
  */
 Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
-	const encryptedList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 	const encryptedItem = _.find(
 		encryptedList,
 		item => item.publicKey === publicKey
@@ -890,8 +892,10 @@ Delegates.prototype.getForgers = function(query, cb) {
 	const currentSlot = slots.getSlotNumber();
 	const forgerKeys = [];
 
+	// We pass height + 1 as seed for generating the list, because we want the list to be generated for next block.
+	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
 	self.generateDelegateList(
-		currentBlock.height,
+		currentBlock.height + 1,
 		null,
 		(err, activeDelegates) => {
 			if (err) {

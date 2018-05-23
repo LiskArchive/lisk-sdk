@@ -91,7 +91,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	describe('transactions processing', () => {
 		it('with no funds should fail', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: accountNoFunds.password,
+				passphrase: accountNoFunds.passphrase,
 				username: accountNoFunds.username,
 			});
 
@@ -110,7 +110,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('with minimal required amount of funds should be ok', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: accountMinimalFunds.password,
+				passphrase: accountMinimalFunds.passphrase,
 				username: accountMinimalFunds.username,
 			});
 
@@ -122,7 +122,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using blank username should fail', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				username: '',
 			});
 
@@ -138,7 +138,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('using invalid username should fail', () => {
 			var username = '~!@#$ %^&*()_+.,?/';
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				username,
 			});
 
@@ -156,7 +156,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		it('using username longer than 20 characters should fail', () => {
 			var delegateName = `${randomUtil.delegateName()}x`;
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				username: delegateName,
 			});
 
@@ -173,7 +173,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using uppercase username should fail', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: accountUpperCase.password,
+				passphrase: accountUpperCase.passphrase,
 				username: accountUpperCase.username.toUpperCase(),
 			});
 
@@ -188,7 +188,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using valid params should be ok', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				username: account.username,
 			});
 
@@ -206,7 +206,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	describe('validation', () => {
 		it('setting same delegate twice should fail', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				username: account.username,
 			});
 
@@ -221,7 +221,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('using existing username should fail', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: accountFormerDelegate.password,
+				passphrase: accountFormerDelegate.passphrase,
 				username: account.username,
 			});
 
@@ -238,7 +238,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 
 		it('updating registered delegate should fail', () => {
 			transaction = lisk.transaction.registerDelegate({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				username: 'newusername',
 			});
 
