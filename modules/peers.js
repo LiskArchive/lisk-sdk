@@ -77,19 +77,18 @@ class Peers {
 
 // Private methods
 /**
- * Returns peers length after getting them by filter.
+ * Returns peers length by filter but without offset and limit.
  *
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, null, peers length
+ * @returns {int} count
  * @todo Add description for the params
  */
-__private.countByFilter = function(filter, cb) {
-	filter.normalized = false;
-	__private.getByFilter(filter, (err, peers) =>
-		setImmediate(cb, null, peers.length)
-	);
+__private.getCountByFilter = function(filter) {
+	delete filter.limit;
+	delete filter.offset;
+	var peers = __private.getByFilter(filter);
+	return peers.length;
 };
 
 /**
@@ -937,6 +936,26 @@ Peers.prototype.shared = {
 	 */
 	getPeersCount() {
 		return library.logic.peers.list(true).length;
+	},
+
+	/**
+	 * Utility method to get peers count by filter.
+	 *
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.ip - IP of the peer
+	 * @param {string} parameters.wsPort - WS Port of the peer
+	 * @param {string} parameters.httpPort - Web Socket Port of the peer
+	 * @param {string} parameters.os - OS of the peer
+	 * @param {string} parameters.version - Version the peer is running
+	 * @param {int} parameters.state - Peer State
+	 * @param {int} parameters.height - Current peer height
+	 * @param {string} parameters.broadhash - Peer broadhash
+	 * @returns {int} count
+	 * @todo Add description for the return value
+	 */
+	getPeersCountByFilter(parameters) {
+		parameters.normalized = true;
+		return __private.getCountByFilter(parameters);
 	},
 };
 
