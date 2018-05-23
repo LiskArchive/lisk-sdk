@@ -85,6 +85,7 @@ class Peers {
  * @todo Add description for the params
  */
 __private.getCountByFilter = function(filter) {
+	filter.normalized = false;
 	delete filter.limit;
 	delete filter.offset;
 	var peers = __private.getByFilter(filter);
@@ -945,7 +946,6 @@ Peers.prototype.shared = {
 	 * @todo Add description for the return value
 	 */
 	getPeersCountByFilter(parameters) {
-		parameters.normalized = true;
 		return __private.getCountByFilter(parameters);
 	},
 };
