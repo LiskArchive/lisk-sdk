@@ -930,15 +930,6 @@ Peers.prototype.shared = {
 	},
 
 	/**
-	 * Description for getPeersCount.
-	 *
-	 * @todo Add description for the function
-	 */
-	getPeersCount() {
-		return library.logic.peers.list(true).length;
-	},
-
-	/**
 	 * Utility method to get peers count by filter.
 	 *
 	 * @param {Object} parameters - Object of all parameters
