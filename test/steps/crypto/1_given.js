@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import cryptography from '../../../src/utils/cryptography';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
@@ -102,17 +102,19 @@ export function aPassphraseWithPrivateKeyAndPublicKeyAndAddress() {
 		publicKey,
 	};
 
-	if (typeof lisk.cryptography.getKeys.returns === 'function') {
-		lisk.cryptography.getKeys.returns(keys);
+	if (typeof elements.cryptography.getKeys.returns === 'function') {
+		elements.cryptography.getKeys.returns(keys);
 	}
 	if (
-		typeof lisk.cryptography.decryptPassphraseWithPassword.returns ===
+		typeof elements.cryptography.decryptPassphraseWithPassword.returns ===
 		'function'
 	) {
-		lisk.cryptography.decryptPassphraseWithPassword.returns(passphrase);
+		elements.cryptography.decryptPassphraseWithPassword.returns(passphrase);
 	}
-	if (typeof lisk.cryptography.getAddressFromPublicKey.returns === 'function') {
-		lisk.cryptography.getAddressFromPublicKey.returns(address);
+	if (
+		typeof elements.cryptography.getAddressFromPublicKey.returns === 'function'
+	) {
+		elements.cryptography.getAddressFromPublicKey.returns(address);
 	}
 
 	if (typeof cryptography.getKeys.returns === 'function') {
@@ -147,22 +149,25 @@ export function anEncryptedPassphrase() {
 		version: '1',
 	};
 	if (
-		typeof lisk.cryptography.parseEncryptedPassphrase.returns === 'function'
+		typeof elements.cryptography.parseEncryptedPassphrase.returns === 'function'
 	) {
-		lisk.cryptography.parseEncryptedPassphrase.returns(
+		elements.cryptography.parseEncryptedPassphrase.returns(
 			encryptedPassphraseObject,
 		);
 	}
 	if (
-		typeof lisk.cryptography.stringifyEncryptedPassphrase.returns === 'function'
-	) {
-		lisk.cryptography.stringifyEncryptedPassphrase.returns(encryptedPassphrase);
-	}
-	if (
-		typeof lisk.cryptography.encryptPassphraseWithPassword.returns ===
+		typeof elements.cryptography.stringifyEncryptedPassphrase.returns ===
 		'function'
 	) {
-		lisk.cryptography.encryptPassphraseWithPassword.returns(
+		elements.cryptography.stringifyEncryptedPassphrase.returns(
+			encryptedPassphrase,
+		);
+	}
+	if (
+		typeof elements.cryptography.encryptPassphraseWithPassword.returns ===
+		'function'
+	) {
+		elements.cryptography.encryptPassphraseWithPassword.returns(
 			encryptedPassphraseObject,
 		);
 	}
@@ -175,9 +180,10 @@ export function aMessage() {
 	const message = getFirstQuotedString(this.test.parent.title);
 
 	if (
-		typeof lisk.cryptography.decryptMessageWithPassphrase.returns === 'function'
+		typeof elements.cryptography.decryptMessageWithPassphrase.returns ===
+		'function'
 	) {
-		lisk.cryptography.decryptMessageWithPassphrase.returns(message);
+		elements.cryptography.decryptMessageWithPassphrase.returns(message);
 	}
 
 	this.test.ctx.message = message;
@@ -206,7 +212,7 @@ export function anEncryptedMessageWithANonce() {
 		nonce,
 	};
 
-	lisk.cryptography.encryptMessageWithPassphrase.returns(cipherAndNonce);
+	elements.cryptography.encryptMessageWithPassphrase.returns(cipherAndNonce);
 
 	this.test.ctx.cipherAndNonce = cipherAndNonce;
 }
