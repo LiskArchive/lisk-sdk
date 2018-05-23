@@ -59,9 +59,6 @@ if (program.old) {
 		delete p.port;
 	});
 
-	// Secrets Migration
-	oldConfig.forging.delegates = [];
-
 	if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 		if (!program.password.trim()) {
 			const rl = readline.createInterface({
@@ -72,10 +69,8 @@ if (program.old) {
 				'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
 				password => {
 					rl.close();
-					if (!password.trim()) {
-						return console.info('\nSkipping the secret migration.');
-					}
 					migrateSecrets(password);
+					copyTheConfigFile();
 				}
 			);
 			// To Patch the password support
@@ -86,9 +81,11 @@ if (program.old) {
 			};
 		} else {
 			migrateSecrets(program.password);
+			copyTheConfigFile();
 		}
 	} else {
-		delete oldConfig.forging.secret;
+		migrateSecrets('');
+		copyTheConfigFile();
 	}
 } else {
 	console.info('Previous config.json not found, exiting.');
@@ -96,6 +93,14 @@ if (program.old) {
 }
 
 function migrateSecrets(password) {
+	oldConfig.forging.delegates = [];
+
+	if (!password.trim()) {
+		console.info('\nSkipping the secret migration.');
+		delete oldConfig.forging.secret;
+		return;
+	}
+
 	console.info('\nMigrating your secrets...');
 	oldConfig.forging.defaultPassword = password;
 	oldConfig.forging.secret.map(secret => {
@@ -113,17 +118,20 @@ function migrateSecrets(password) {
 			).publicKey,
 		});
 	});
+
 	delete oldConfig.forging.secret;
-	console.info('Configuration migration completed.');
 }
 
-if (program.new) {
-	newConfig = JSON.parse(fs.readFileSync(program.new, 'utf8'));
-	newConfig = extend(true, {}, newConfig, oldConfig);
+function copyTheConfigFile() {
+	if (program.new) {
+		newConfig = JSON.parse(fs.readFileSync(program.new, 'utf8'));
+		newConfig = extend(true, {}, newConfig, oldConfig);
 
-	fs.writeFile(program.new, JSON.stringify(newConfig, null, '\t'), err => {
-		if (err) {
-			throw err;
-		}
-	});
+		fs.writeFile(program.new, JSON.stringify(newConfig, null, '\t'), err => {
+			if (err) {
+				throw err;
+			}
+		});
+	}
+	console.info('Configuration migration completed.');
 }
