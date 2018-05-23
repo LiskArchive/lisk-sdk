@@ -13,9 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 
-const { constants } = lisk;
+const { constants } = elements;
 
 export const COMMAND_TYPES = [
 	'accounts',

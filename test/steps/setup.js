@@ -17,7 +17,7 @@ import childProcess from 'child_process';
 import fs from 'fs';
 import readline from 'readline';
 import lockfile from 'lockfile';
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import cryptography from '../../src/utils/cryptography';
 import * as fsUtils from '../../src/utils/fs';
 import * as helpers from '../../src/utils/helpers';
@@ -80,7 +80,7 @@ const setUpReadlineStubs = () => {
 	sandbox.stub(readline, 'createInterface');
 };
 
-function setUpLiskJSAPIStubs() {
+function setUpLiskElementsAPIStubs() {
 	const queryDefaultResult = { success: true };
 	const broadcastTransactionResponse = {
 		message: 'Transaction accepted by the node for processing',
@@ -112,7 +112,7 @@ function setUpLiskJSAPIStubs() {
 	});
 }
 
-const setUpLiskJSCryptoStubs = () => {
+const setUpLiskElementsCryptoStubs = () => {
 	[
 		'encryptMessageWithPassphrase',
 		'decryptMessageWithPassphrase',
@@ -124,7 +124,7 @@ const setUpLiskJSCryptoStubs = () => {
 		'verifyMessageWithPublicKey',
 		'parseEncryptedPassphrase',
 		'stringifyEncryptedPassphrase',
-	].forEach(methodName => sandbox.stub(lisk.cryptography, methodName));
+	].forEach(methodName => sandbox.stub(elements.cryptography, methodName));
 };
 
 const setUpCryptoStubs = () => {
@@ -208,12 +208,12 @@ const restoreEnvVariable = variable =>
 	};
 
 export function setUpCommandBroadcastSignature() {
-	setUpLiskJSAPIStubs.call(this);
+	setUpLiskElementsAPIStubs.call(this);
 	this.test.ctx.apiResponse = this.test.ctx.broadcastSignaturesResponse;
 }
 
 export function setUpCommandBroadcastTransaction() {
-	setUpLiskJSAPIStubs.call(this);
+	setUpLiskElementsAPIStubs.call(this);
 	this.test.ctx.apiResponse = this.test.ctx.broadcastTransactionResponse;
 }
 
@@ -326,7 +326,7 @@ export function setUpUtilCreateCommand() {
 }
 
 export function setUpUtilCrypto() {
-	setUpLiskJSCryptoStubs();
+	setUpLiskElementsCryptoStubs();
 }
 
 export function setUpUtilFs() {
@@ -351,7 +351,7 @@ export function tearDownUtilInputUtils() {
 }
 
 export function setUpUtilQuery() {
-	setUpLiskJSAPIStubs.call(this);
+	setUpLiskElementsAPIStubs.call(this);
 }
 
 export function setUpUtilLog() {

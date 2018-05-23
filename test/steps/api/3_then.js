@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import getAPIClient from '../../../src/utils/api';
 import { getFirstQuotedString } from '../utils';
 
@@ -53,9 +53,9 @@ export function itShouldResolveToTheAPIResponse() {
 	return expect(returnValue).to.eventually.eql(apiResponse);
 }
 
-export function theLiskAPIInstanceShouldBeALiskJSAPIInstance() {
+export function theLiskAPIInstanceShouldBeALiskElementsAPIInstance() {
 	const { liskAPIInstance } = this.test.ctx;
-	return expect(liskAPIInstance).to.be.instanceOf(lisk.APIClient);
+	return expect(liskAPIInstance).to.be.instanceOf(elements.APIClient);
 }
 
 export function theGetAPIClientShouldBeCalled() {

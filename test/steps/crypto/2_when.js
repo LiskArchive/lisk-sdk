@@ -13,13 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import { DEFAULT_ERROR_MESSAGE } from '../utils';
 
 export function anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature() {
 	const { cryptography, publicKey, message, signature } = this.test.ctx;
 
-	lisk.cryptography.verifyMessageWithPublicKey.throws(
+	elements.cryptography.verifyMessageWithPublicKey.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -40,7 +40,7 @@ export function noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndThe
 	} = this.test.ctx;
 	const verifyReturnMessage = true;
 
-	lisk.cryptography.verifyMessageWithPublicKey.returns(verifyReturnMessage);
+	elements.cryptography.verifyMessageWithPublicKey.returns(verifyReturnMessage);
 
 	this.test.ctx.returnValue = cryptography.verifyMessage({
 		publicKey,
@@ -52,7 +52,7 @@ export function noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndThe
 export function noErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
 	const { cryptography, message, passphrase, signature } = this.test.ctx;
 
-	lisk.cryptography.signMessageWithPassphrase.returns(signature);
+	elements.cryptography.signMessageWithPassphrase.returns(signature);
 
 	this.test.ctx.returnValue = cryptography.signMessage({
 		message,
@@ -63,7 +63,7 @@ export function noErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
 export function anErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
 	const { cryptography, message, passphrase } = this.test.ctx;
 
-	lisk.cryptography.signMessageWithPassphrase.throws(
+	elements.cryptography.signMessageWithPassphrase.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -77,7 +77,7 @@ export function anErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
 export function anErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
 	const { cryptography, keys: { publicKey } } = this.test.ctx;
 
-	lisk.cryptography.getAddressFromPublicKey.throws(
+	elements.cryptography.getAddressFromPublicKey.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -87,7 +87,7 @@ export function anErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
 
 export function noErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
 	const { cryptography, keys: { publicKey }, address } = this.test.ctx;
-	lisk.cryptography.getAddressFromPublicKey.returns(address);
+	elements.cryptography.getAddressFromPublicKey.returns(address);
 	this.test.ctx.returnValue = cryptography.getAddressFromPublicKey(publicKey);
 }
 
@@ -99,7 +99,7 @@ export function noErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 export function anErrorOccursAttemptingToGetTheKeysForThePassphrase() {
 	const { cryptography, passphrase } = this.test.ctx;
 
-	lisk.cryptography.getKeys.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.getKeys.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
 	this.test.ctx.returnValue = cryptography.getKeys(passphrase);
@@ -116,7 +116,7 @@ export function noErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
 export function anErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
 	const { cryptography, passphrase, password } = this.test.ctx;
 
-	lisk.cryptography.encryptPassphraseWithPassword.throws(
+	elements.cryptography.encryptPassphraseWithPassword.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -138,7 +138,7 @@ export function noErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 export function anErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
 	const { cryptography, encryptedPassphrase, password } = this.test.ctx;
 
-	lisk.cryptography.decryptPassphraseWithPassword.throws(
+	elements.cryptography.decryptPassphraseWithPassword.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -161,7 +161,7 @@ export function noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingTh
 export function anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
 	const { cryptography, message, passphrase, recipientKeys } = this.test.ctx;
 
-	lisk.cryptography.encryptMessageWithPassphrase.throws(
+	elements.cryptography.encryptMessageWithPassphrase.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
@@ -196,7 +196,7 @@ export function anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassp
 		keys,
 	} = this.test.ctx;
 
-	lisk.cryptography.decryptMessageWithPassphrase.throws(
+	elements.cryptography.decryptMessageWithPassphrase.throws(
 		new TypeError(DEFAULT_ERROR_MESSAGE),
 	);
 
