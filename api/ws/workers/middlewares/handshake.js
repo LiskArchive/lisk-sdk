@@ -119,6 +119,20 @@ var middleware = {
 						peer
 					);
 				}
+
+				// TDOD : double check socket IP
+				if (system.isBlacklisted(headers.ip)) {
+					return setImmediate(
+						cb, {
+							code: failureCodes.BLACKLISTED_PEER,
+							description: failureCodes.errorMessages[
+								failureCodes.BLACKLISTED_PEER
+							],
+						},
+						peer
+					);
+				}
+
 				return setImmediate(cb, null, peer);
 			});
 		};

@@ -56,6 +56,7 @@ class System {
 				nethash: scope.config.nethash,
 				minVersion: scope.config.minVersion,
 				nonce: scope.config.nonce,
+				blackListPeers: scope.config.blackListPeers,
 			},
 		};
 
@@ -70,6 +71,7 @@ class System {
 		__private.broadhash = library.config.nethash;
 		__private.minVersion = library.config.minVersion;
 		__private.nonce = library.config.nonce;
+		__private.blackListPeers = library.config.blackListPeers;
 
 		setImmediate(cb, null, self);
 	}
@@ -243,6 +245,17 @@ System.prototype.versionCompatible = function(version) {
  */
 System.prototype.nonceCompatible = function(nonce) {
 	return nonce && __private.nonce !== nonce;
+};
+
+/**
+ * Check if the ip exists in the peer blacklist present in the config file.
+ *
+ * @param ip
+ * @returns {boolean}
+ * @todo Add description for the params and the return value
+ */
+System.prototype.isBlacklisted = function(ip) {
+	return __private.blackListPeers.indexOf(ip) > -1;
 };
 
 /**
