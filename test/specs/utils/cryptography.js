@@ -26,8 +26,8 @@ describe('Crypto class', () => {
 			then.theCryptoInstanceShouldHaveName,
 		);
 		Then(
-			'the crypto instance should have lisk-js crypto as a property',
-			then.theCryptoInstanceShouldHaveLiskJSAsAProperty,
+			'the crypto instance should have lisk-elements cryptography as a property',
+			then.theCryptoInstanceShouldHaveLiskElementsCryptographyAsAProperty,
 		);
 		Given(
 			'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with private key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and address "2167422481642255385L"',
@@ -39,8 +39,8 @@ describe('Crypto class', () => {
 						when.noErrorOccursAttemptingToGetTheKeysForThePassphrase,
 						() => {
 							Then(
-								'lisk-js crypto should be used to get the keys for the passphrase',
-								then.liskJSCryptoShouldBeUsedToGetTheKeysForThePassphrase,
+								'lisk-elements crypto should be used to get the keys for the passphrase',
+								then.liskElementsCryptoShouldBeUsedToGetTheKeysForThePassphrase,
 							);
 							Then('the keys should be returned', then.theKeysShouldBeReturned);
 						},
@@ -62,8 +62,8 @@ describe('Crypto class', () => {
 						when.noErrorOccursAttemptingToGetTheAddressFromThePublicKey,
 						() => {
 							Then(
-								'lisk-js crypto should be used to get the address from the public key',
-								then.liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
+								'lisk-elements crypto should be used to get the address from the public key',
+								then.liskElementsCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
 							);
 							Then(
 								'it should return an object with the address',
@@ -76,8 +76,8 @@ describe('Crypto class', () => {
 						when.anErrorOccursAttemptingToGetTheAddressFromThePublicKey,
 						() => {
 							Then(
-								'lisk-js crypto should be used to get the address from the public key',
-								then.liskJSCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
+								'lisk-elements crypto should be used to get the address from the public key',
+								then.liskElementsCryptoShouldBeUsedToGetTheAddressFromThePublicKey,
 							);
 							Then(
 								'the error response should be handled',
@@ -97,12 +97,12 @@ describe('Crypto class', () => {
 									when.noErrorOccursAttemptingToEncryptThePassphraseWithThePassword,
 									() => {
 										Then(
-											'lisk-js crypto should be used to get the encrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToGetTheEncryptedPassphrase,
+											'lisk-elements crypto should be used to get the encrypted passphrase',
+											then.liskElementsCryptoShouldBeUsedToGetTheEncryptedPassphrase,
 										);
 										Then(
-											'lisk-js crypto should be used to stringify the encrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToStringifyTheEncryptedPassphrase,
+											'lisk-elements crypto should be used to stringify the encrypted passphrase',
+											then.liskElementsCryptoShouldBeUsedToStringifyTheEncryptedPassphrase,
 										);
 										Then(
 											'the encrypted passphrase should be returned',
@@ -127,12 +127,12 @@ describe('Crypto class', () => {
 									when.noErrorOccursAttemptingToDecryptThePassphraseWithThePassword,
 									() => {
 										Then(
-											'lisk-js crypto should be used to parse the encrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToParseTheEncryptedPassphrase,
+											'lisk-elements crypto should be used to parse the encrypted passphrase',
+											then.liskElementsCryptoShouldBeUsedToParseTheEncryptedPassphrase,
 										);
 										Then(
-											'lisk-js crypto should be used to get the decrypted passphrase',
-											then.liskJSCryptoShouldBeUsedToGetTheDecryptedPassphrase,
+											'lisk-elements crypto should be used to get the decrypted passphrase',
+											then.liskElementsCryptoShouldBeUsedToGetTheDecryptedPassphrase,
 										);
 										Then(
 											'the decrypted passphrase should be returned',
@@ -165,8 +165,8 @@ describe('Crypto class', () => {
 									when.noErrorOccursAttemptingToSignTheMessageUsingThePassphrase,
 									() => {
 										it(
-											'Then lisk-js crypto should be used to sign the message',
-											then.liskJSCryptoShouldBeUsedToSignTheMessage,
+											'Then lisk-elements crypto should be used to sign the message',
+											then.liskElementsCryptoShouldBeUsedToSignTheMessage,
 										);
 										it(
 											'Then the signature should be returned',
@@ -197,8 +197,8 @@ describe('Crypto class', () => {
 									when.noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature,
 									() => {
 										Then(
-											'lisk-js crypto should be used to verify the message',
-											then.liskJSCryptoShouldBeUsedToVerifyTheMessage,
+											'lisk-elements crypto should be used to verify the message',
+											then.liskElementsCryptoShouldBeUsedToVerifyTheMessage,
 										);
 										Then(
 											'the the message verification should be returned',
@@ -234,8 +234,8 @@ describe('Crypto class', () => {
 										when.noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase,
 										() => {
 											Then(
-												'lisk-js crypto should be used to get the encrypted message and nonce',
-												then.liskJSCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce,
+												'lisk-elements crypto should be used to get the encrypted message and nonce',
+												then.liskElementsCryptoShouldBeUsedToGetTheEncryptedMessageAndNonce,
 											);
 											Then(
 												'the encrypted message and nonce should be returned',
@@ -260,8 +260,8 @@ describe('Crypto class', () => {
 										when.noErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey,
 										() => {
 											Then(
-												'lisk-js crypto should be used to get the decrypted message',
-												then.liskJSCryptoShouldBeUsedToGetTheDecryptedMessage,
+												'lisk-elements crypto should be used to get the decrypted message',
+												then.liskElementsCryptoShouldBeUsedToGetTheDecryptedMessage,
 											);
 											Then(
 												'the decrypted message should be returned',

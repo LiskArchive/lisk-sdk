@@ -14,7 +14,7 @@
  *
  */
 import url from 'url';
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 import { CONFIG_VARIABLES, NETHASHES, API_PROTOCOLS } from '../utils/constants';
 import config, { configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
@@ -131,7 +131,7 @@ const setNethash = (dotNotation, value) => {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 		try {
-			lisk.cryptography.hexToBuffer(value, 'utf8');
+			elements.cryptography.hexToBuffer(value, 'utf8');
 		} catch (error) {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}

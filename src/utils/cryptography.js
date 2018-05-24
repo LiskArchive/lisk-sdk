@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 
 const wrapFunction = fn =>
 	function wrappedFunction(...args) {
@@ -26,7 +26,7 @@ const wrapFunction = fn =>
 
 class Crypto {
 	constructor() {
-		this.liskCrypto = lisk.cryptography;
+		this.liskCrypto = elements.cryptography;
 
 		[
 			'encryptMessage',
