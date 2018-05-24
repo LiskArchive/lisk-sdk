@@ -23,16 +23,13 @@ const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 var wsPorts = [];
+var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
+var syncingDisabled = process.env.SYNCING_DISABLED === 'true';
 
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
 	var configurations;
-	var broadcastingDisabled;
-	var syncingDisabled;
 
 	before(done => {
-		broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
-		syncingDisabled = process.env.SYNCING_DISABLED === 'true';
-
 		utils.http.setVersion('1.0.0');
 		configurations = _.range(totalPeers).map(index => {
 			var devConfigCopy = _.cloneDeep(devConfig);
@@ -84,7 +81,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				if (broadcastingDisabled) {
 					return configurations.forEach(configuration => {
 						configuration.forging.force = false;
-						configuration.forging.secret = delegates;
+						configuration.forging.delegates = delegates;
 					});
 				}
 				return configurations.forEach((configuration, index) => {
@@ -199,7 +196,9 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 
 						scenarios.propagation.blocks(params);
 						scenarios.propagation.transactions(params);
-						scenarios.propagation.multisignature(params);
+						if (!broadcastingDisabled) {
+							scenarios.propagation.multisignature(params);
+						}
 						scenarios.stress.transfer(params);
 						scenarios.stress.transfer_with_data(params);
 						scenarios.stress.register_multisignature(params);
