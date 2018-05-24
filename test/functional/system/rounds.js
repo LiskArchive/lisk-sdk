@@ -30,6 +30,7 @@ describe('rounds', () => {
 	let Queries;
 	let generateDelegateListPromise;
 	let addTransactionsAndForgePromise;
+	let deleteLastBlockPromise;
 
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
@@ -44,6 +45,10 @@ describe('rounds', () => {
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge
+		);
+
+		deleteLastBlockPromise = Promise.promisify(
+			library.modules.blocks.chain.deleteLastBlock
 		);
 	});
 
@@ -487,7 +492,6 @@ describe('rounds', () => {
 	}
 
 	describe('round 1', () => {
-		let deleteLastBlockPromise;
 		const round = {
 			current: 1,
 			outsiderPublicKey:
@@ -496,10 +500,6 @@ describe('rounds', () => {
 
 		before(() => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
-
-			deleteLastBlockPromise = Promise.promisify(
-				library.modules.blocks.chain.deleteLastBlock
-			);
 
 			// Copy initial states for later comparison
 			return Promise.join(
@@ -706,6 +706,33 @@ describe('rounds', () => {
 				return expect(
 					Queries.getRoundRewards(round.current)
 				).to.eventually.deep.equal({});
+			});
+
+			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1781 is closed
+			// eslint-disable-next-line
+			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+				return getMemAccounts().then(_accounts => {
+					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
+				});
+			});
+
+			it('delegates list should be equal to one generated at the beginning of round 1', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return generateDelegateListPromise(lastBlock.height + 1, null).then(
+					delegatesList => {
+						expect(delegatesList).to.deep.equal(round.delegatesList);
+					}
+				);
+			});
+		});
+
+		describe('deleting last block of round twice in a row', () => {
+			before(() => {
+				return addTransactionsAndForgePromise(library, [], 0);
+			});
+
+			it('should be able to delete last block of round again', () => {
+				return deleteLastBlockPromise();
 			});
 
 			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1781 is closed
@@ -1126,6 +1153,50 @@ describe('rounds', () => {
 						}
 					);
 				});
+			});
+		});
+	});
+
+	describe('rollback more than 1 round of blocks', () => {
+		let lastBlock;
+
+		before(() => {
+			return Promise.mapSeries([...Array(101)], () => {
+				return deleteLastBlockPromise();
+			});
+		});
+
+		it('last block height should be at height 101', () => {
+			lastBlock = library.modules.blocks.lastBlock.get();
+			return expect(lastBlock.height).to.equal(101);
+		});
+
+		it('should fail when try to delete one more block (last block of round 1)', () => {
+			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith(
+				'Snapshot for round 1 not available'
+			);
+		});
+
+		it('last block height should be still at height 101', () => {
+			lastBlock = library.modules.blocks.lastBlock.get();
+			return expect(lastBlock.height).to.equal(101);
+		});
+	});
+
+	describe('deleting last block of round twice in a row - no transactions during round', () => {
+		before(() => {
+			return Promise.mapSeries([...Array(202)], () => {
+				return addTransactionsAndForgePromise(library, [], 0);
+			});
+		});
+
+		it('should be able to delete last block of round', () => {
+			return deleteLastBlockPromise();
+		});
+
+		it('should be able to delete last block of round again', () => {
+			return addTransactionsAndForgePromise(library, [], 0).then(() => {
+				return deleteLastBlockPromise();
 			});
 		});
 	});

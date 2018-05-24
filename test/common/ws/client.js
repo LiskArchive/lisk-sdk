@@ -48,8 +48,10 @@ WSClient.prototype.start = function() {
 		},
 		this.stop.bind(this)
 	);
-	// Emit random message to initialize connection
-	this.client.socket.emit('randomProcedure');
+	// Call updateMyself RPC on the peer to:
+	// 1. Initialize the connection.
+	// 2. Send our headers to the peer.
+	this.client.rpc.updateMyself(this.headers, () => {});
 };
 
 /**

@@ -14,15 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Check round snapshot availability for a particular round.
 
-  PARAMETERS: None
+  PARAMETERS: round - Round for we are checking availability
 */
 
-DELETE FROM mem_accounts;
-DELETE FROM mem_round;
-DELETE FROM mem_accounts2delegates;
-DELETE FROM mem_accounts2u_delegates;
-DELETE FROM mem_accounts2multisignatures;
-DELETE FROM mem_accounts2u_multisignatures;
-DELETE FROM rounds_rewards;
+SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1

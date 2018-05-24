@@ -431,11 +431,15 @@ describe('blocks/chain', () => {
 			});
 
 			it('should call a callback with error', done => {
-				blocksChainModule.deleteBlock(1, err => {
-					expect(err).to.equal('Blocks#deleteBlock error');
-					expect(loggerStub.error.args[0][0]).to.contains('deleteBlock-ERR');
-					done();
-				});
+				blocksChainModule.deleteBlock(
+					1,
+					err => {
+						expect(err).to.equal('Blocks#deleteBlock error');
+						expect(loggerStub.error.args[0][0]).to.contains('deleteBlock-ERR');
+						done();
+					},
+					library.db
+				);
 			});
 		});
 
@@ -445,9 +449,13 @@ describe('blocks/chain', () => {
 			});
 
 			it('should call a callback with no error', done => {
-				blocksChainModule.deleteBlock(1, () => {
-					done();
-				});
+				blocksChainModule.deleteBlock(
+					1,
+					() => {
+						done();
+					},
+					library.db
+				);
 			});
 		});
 	});
@@ -553,7 +561,7 @@ describe('blocks/chain', () => {
 						);
 					});
 
-					it('should call process.exit with 0', done => {
+					it('should call a callback with proper error message', done => {
 						blocksChainModule.applyGenesisBlock(
 							blockWithTransactions,
 							result => {
@@ -1486,11 +1494,9 @@ describe('blocks/chain', () => {
 				done();
 			});
 
-			it('should call process.exit with 1', done => {
+			it('should call a callback with proper error message', done => {
 				__private.popLastBlock(blockWithTransactions, err => {
 					expect(err.name).to.eql('db-tx_ERR');
-					expect(process.exit.calledOnce).to.equal(true);
-					expect(process.exit.calledWith(1)).to.equal(true);
 					done();
 				});
 			});

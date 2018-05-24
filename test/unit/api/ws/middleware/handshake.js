@@ -310,13 +310,7 @@ describe('Handshake', () => {
 					});
 				});
 
-				var requiredProperties = [
-					'wsPort',
-					'version',
-					'nonce',
-					'nethash',
-					'height',
-				];
+				var requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
 				requiredProperties.forEach(property => {
 					it(`should call callback with error for required property: ${property}`, done => {
 						headers[property] = undefined;

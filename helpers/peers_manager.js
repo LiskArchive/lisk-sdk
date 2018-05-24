@@ -16,7 +16,6 @@
 
 const connect = require('../api/ws/rpc/connect');
 const disconnect = require('../api/ws/rpc/disconnect');
-const Peer = require('../logic/peer');
 
 /**
  * Description of the class.
@@ -51,25 +50,27 @@ PeersManager.prototype.add = function(peer) {
 	) {
 		return false;
 	}
-	this.peers[peer.string] = peer;
-	if (!this.addressToNonceMap[peer.string]) {
-		// Create client WS connection to peer
-		connect(peer, this.logger, () => {
-			// Upon disconnection, if the peer is still in the list,
-			// set the peer state to disconnected.
-			// The peer will only be removed when the master process receives the
-			// command to do so from the worker process; the worker process decides
-			// when the master process should remove a peer.
-			var lostPeer = this.peers[peer.string];
-			if (lostPeer) {
-				lostPeer.state = Peer.STATE.DISCONNECTED;
-			}
-		});
+
+	const existingPeer = this.peers[peer.string];
+
+	if (existingPeer && existingPeer.socket) {
+		peer.socket = existingPeer.socket;
 	}
-	this.addressToNonceMap[peer.string] = peer.nonce;
+	this.peers[peer.string] = peer;
+
+	if (peer.socket && peer.socket.active) {
+		// Reconnect existing socket if it exists and is closed.
+		// If it's already open then peer.socket.connect() will do nothing.
+		peer.socket.connect();
+	} else {
+		// Create client WS connection to peer
+		connect(peer, this.logger);
+	}
 	if (peer.nonce) {
+		this.addressToNonceMap[peer.string] = peer.nonce;
 		this.nonceToAddressMap[peer.nonce] = peer.string;
 	}
+
 	return true;
 };
 
@@ -84,16 +85,17 @@ PeersManager.prototype.remove = function(peer) {
 	if (!peer || !this.peers[peer.string]) {
 		return false;
 	}
-	this.nonceToAddressMap[peer.nonce] = null;
-	delete this.nonceToAddressMap[peer.nonce];
+	const existingPeer = this.peers[peer.string];
+	this.nonceToAddressMap[existingPeer.nonce] = null;
+	delete this.nonceToAddressMap[existingPeer.nonce];
 
-	this.addressToNonceMap[peer.string] = null;
-	delete this.addressToNonceMap[peer.string];
+	this.addressToNonceMap[existingPeer.string] = null;
+	delete this.addressToNonceMap[existingPeer.string];
 
-	this.peers[peer.string] = null;
-	delete this.peers[peer.string];
+	this.peers[existingPeer.string] = null;
+	delete this.peers[existingPeer.string];
 
-	disconnect(peer);
+	disconnect(existingPeer);
 	return true;
 };
 

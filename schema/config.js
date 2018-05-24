@@ -96,12 +96,6 @@ module.exports = {
 					logFileName: {
 						type: 'string',
 					},
-					consoleLogLevel: {
-						type: 'string',
-					},
-					fileLogLevel: {
-						type: 'string',
-					},
 				},
 				required: [
 					'host',

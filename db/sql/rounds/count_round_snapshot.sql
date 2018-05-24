@@ -14,15 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Counts all records from mem_round_snapshot table.
 
-  PARAMETERS: None
+  PARAMETERS: none
 */
 
-DELETE FROM mem_accounts;
-DELETE FROM mem_round;
-DELETE FROM mem_accounts2delegates;
-DELETE FROM mem_accounts2u_delegates;
-DELETE FROM mem_accounts2multisignatures;
-DELETE FROM mem_accounts2u_multisignatures;
-DELETE FROM rounds_rewards;
+SELECT COUNT(*) FROM mem_round_snapshot
