@@ -33,6 +33,7 @@ describe('RPC', () => {
 			status: () => {},
 			list: () => {},
 			blocks: () => {},
+			updateMyself: () => {},
 		};
 		const wampServer = new WAMPServer();
 		wampServer.registerRPCEndpoints(RPCEndpoints);

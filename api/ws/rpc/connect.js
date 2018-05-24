@@ -23,7 +23,6 @@ const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const Peer = require('../../../logic/peer');
 
 const TIMEOUT = 2000;
-const SOCKET_DESTROY_TIMEOUT = 10000; // Allow sockets to be reused in case of frequent reconnect
 
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
@@ -42,6 +41,24 @@ const connect = (peer, logger) => {
 
 const connectSteps = {
 	addConnectionOptions: peer => {
+		const systemHeaders = System.getHeaders();
+		const queryParams = {};
+
+		if (systemHeaders.version != null) {
+			queryParams.version = systemHeaders.version;
+		}
+		if (systemHeaders.wsPort != null) {
+			queryParams.wsPort = systemHeaders.wsPort;
+		}
+		if (systemHeaders.httpPort != null) {
+			queryParams.httpPort = systemHeaders.httpPort;
+		}
+		if (systemHeaders.nethash != null) {
+			queryParams.nethash = systemHeaders.nethash;
+		}
+		if (systemHeaders.nonce != null) {
+			queryParams.nonce = systemHeaders.nonce;
+		}
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
 			autoReconnect: false,
@@ -50,8 +67,8 @@ const connectSteps = {
 			pingTimeoutDisabled: true,
 			port: peer.wsPort,
 			hostname: peer.ip,
-			query: System.getHeaders(),
-			multiplex: true,
+			query: queryParams,
+			multiplex: false,
 		};
 		return peer;
 	},
@@ -128,9 +145,10 @@ const connectSteps = {
 								setImmediate(rpcCallback, err);
 							});
 					} else {
-						logger.debug(
-							'Tried to call RPC function on outbound peer socket which no longer exists'
-						);
+						const rpcNotExistError =
+							'Tried to call RPC function on outbound peer socket which no longer exists';
+						logger.debug(rpcNotExistError);
+						setImmediate(rpcCallback, rpcNotExistError);
 					}
 				};
 				return peerExtendedWithRPC;
@@ -147,7 +165,18 @@ const connectSteps = {
 						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
 						data
 					);
-					peer.socket.emit(eventProcedureName, data);
+					if (peer.socket) {
+						peer.socket.emit(eventProcedureName, data);
+					} else {
+						const eventNotExistError = `Tried to emit event on outbound peer socket '${
+							peerExtendedWithPublish.string
+						}' which no longer exists`;
+						logger.debug(eventNotExistError);
+						logger.trace(
+							'Peer does not have a socket',
+							peerExtendedWithPublish.object()
+						);
+					}
 				};
 				return peerExtendedWithPublish;
 			},
@@ -159,16 +188,17 @@ const connectSteps = {
 		const socket = peer.socket;
 
 		socket.on('connect', () => {
-			clearTimeout(socket.destroyTimeout);
 			logger.trace(
-				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
+				`[Outbound socket :: connect] Peer connection to ${
+					peer.string
+				} established`
 			);
 		});
 
 		socket.on('disconnect', () => {
 			logger.trace(
 				`[Outbound socket :: disconnect] Peer connection to ${
-					peer.ip
+					peer.string
 				} disconnected`
 			);
 		});
@@ -185,7 +215,9 @@ const connectSteps = {
 		// When error on transport layer occurs - disconnect
 		socket.on('error', err => {
 			logger.debug(
-				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
+				`[Outbound socket :: error] Peer error from ${peer.string} - ${
+					err.message
+				}`
 			);
 			socket.disconnect(
 				1000,
@@ -197,32 +229,25 @@ const connectSteps = {
 		socket.on('close', (code, reason) => {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
-					peer.ip
+					peer.string
 				} closed with code ${code} and reason - ${reason}`
 			);
 
 			if (peer.socket && peer.socket.state === peer.socket.CLOSED) {
 				peer.state = Peer.STATE.DISCONNECTED;
 			}
-			clearTimeout(socket.destroyTimeout);
-			socket.destroyTimeout = setTimeout(() => {
-				if (socket.state === socket.CLOSED || peer.socket !== socket) {
-					// If the socket is still closed after SOCKET_DESTROY_TIMEOUT
-					// (I.e. it hasn't been reopened since), then we will destroy
-					// it completely.
-					socket.destroy();
-					if (socket === peer.socket) {
-						delete peer.socket;
-					}
-				}
-			}, SOCKET_DESTROY_TIMEOUT);
+
+			socket.destroy();
+			if (socket === peer.socket) {
+				delete peer.socket;
+			}
 		});
 
 		// The 'message' event can be used to log all low-level WebSocket messages.
 		socket.on('message', message => {
 			logger.trace(
 				`[Outbound socket :: message] Peer message from ${
-					peer.ip
+					peer.string
 				} received - ${message}`
 			);
 		});

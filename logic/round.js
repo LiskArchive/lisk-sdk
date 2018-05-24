@@ -198,6 +198,30 @@ class Round {
 	}
 
 	/**
+	 * Checks round snapshot availability for current round.
+	 *
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability() {
+		return this.t.rounds
+			.checkSnapshotAvailability(this.scope.round)
+			.then(isAvailable => {
+				if (!isAvailable) {
+					// Snapshot for current round is not available, check if round snapshot table is empty,
+					// because we need to allow to restore snapshot in that case (no transactions during entire round)
+					return this.t.rounds.countRoundSnapshot().then(count => {
+						// Throw an error when round snapshot table is not empty
+						if (count) {
+							throw new Error(
+								`Snapshot for round ${this.scope.round} not available`
+							);
+						}
+					});
+				}
+			});
+	}
+
+	/**
 	 * Calls sql deleteRoundRewards:
 	 * - Removes rewards for entire round from round_rewards table.
 	 * - Performed only when rollback last block of round.
@@ -397,6 +421,7 @@ class Round {
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
+			.then(this.checkSnapshotAvailability.bind(this))
 			.then(this.restoreRoundSnapshot.bind(this))
 			.then(this.restoreVotesSnapshot.bind(this))
 			.then(this.deleteRoundRewards.bind(this))

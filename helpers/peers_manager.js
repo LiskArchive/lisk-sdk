@@ -51,10 +51,16 @@ PeersManager.prototype.add = function(peer) {
 		return false;
 	}
 
+	const existingPeer = this.peers[peer.string];
+
+	if (existingPeer && existingPeer.socket) {
+		peer.socket = existingPeer.socket;
+	}
 	this.peers[peer.string] = peer;
 
-	if (peer.socket) {
-		// Reconnect existing socket
+	if (peer.socket && peer.socket.active) {
+		// Reconnect existing socket if it exists and is closed.
+		// If it's already open then peer.socket.connect() will do nothing.
 		peer.socket.connect();
 	} else {
 		// Create client WS connection to peer
@@ -63,8 +69,6 @@ PeersManager.prototype.add = function(peer) {
 	if (peer.nonce) {
 		this.addressToNonceMap[peer.string] = peer.nonce;
 		this.nonceToAddressMap[peer.nonce] = peer.string;
-	} else if (this.addressToNonceMap[peer.string]) {
-		delete this.addressToNonceMap[peer.string];
 	}
 
 	return true;
@@ -81,16 +85,17 @@ PeersManager.prototype.remove = function(peer) {
 	if (!peer || !this.peers[peer.string]) {
 		return false;
 	}
-	this.nonceToAddressMap[peer.nonce] = null;
-	delete this.nonceToAddressMap[peer.nonce];
+	const existingPeer = this.peers[peer.string];
+	this.nonceToAddressMap[existingPeer.nonce] = null;
+	delete this.nonceToAddressMap[existingPeer.nonce];
 
-	this.addressToNonceMap[peer.string] = null;
-	delete this.addressToNonceMap[peer.string];
+	this.addressToNonceMap[existingPeer.string] = null;
+	delete this.addressToNonceMap[existingPeer.string];
 
-	this.peers[peer.string] = null;
-	delete this.peers[peer.string];
+	this.peers[existingPeer.string] = null;
+	delete this.peers[existingPeer.string];
 
-	disconnect(peer);
+	disconnect(existingPeer);
 	return true;
 };
 
