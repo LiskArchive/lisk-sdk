@@ -42,6 +42,10 @@
 				"delayMs": 0,
 				"delayAfter": 0,
 				"windowMs": 60000
+			},
+			"cors": {
+				"origin": "*",
+				"methods": ["GET", "POST", "PUT"]
 			}
 		}
 	},
@@ -57,7 +61,8 @@
 			"blackList": []
 		},
 		"options": {
-			"timeout": 5000
+			"timeout": 5000,
+			"broadhashConsensusCalculationInterval": 5000
 		}
 	},
 	"broadcasts": {
@@ -690,7 +695,6 @@
 		"active": true
 	},
 	"loading": {
-		"verifyOnLoading": false,
 		"loadPerIteration": 5000
 	},
 	"ssl": {

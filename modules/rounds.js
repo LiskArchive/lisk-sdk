@@ -51,11 +51,6 @@ class Rounds {
 			db: scope.db,
 			bus: scope.bus,
 			network: scope.network,
-			config: {
-				loading: {
-					snapshot: scope.config.loading.snapshot,
-				},
-			},
 		};
 		self = this;
 
@@ -104,6 +99,7 @@ Rounds.prototype.flush = function(round, cb) {
  * @param {block} block - Current block
  * @param {block} previousBlock - Previous block
  * @param {function} done - Callback function
+ * @param {function} tx - SQL transaction
  * @returns {function} Calling done with error if any
  */
 Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
@@ -125,24 +121,21 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 		(block.height === 1 || block.height === 101);
 
 	/**
-	 * Description of BackwardTick.
+	 * Description of backwardTick.
 	 *
 	 * @todo Add @param tags
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function BackwardTick(t) {
-		const promised = new Round(scope, t);
+	function backwardTick(tx) {
+		const round = new Round(scope, tx);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
 
-		return promised.mergeBlockGenerator().then(() => {
-			if (scope.finishRound) {
-				return promised.backwardLand().then(() => promised.markBlockId());
-			}
-			return promised.markBlockId();
-		});
+		return round
+			.mergeBlockGenerator()
+			.then(() => (scope.finishRound ? round.backwardLand() : round));
 	}
 
 	async.series(
@@ -166,8 +159,8 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			},
 			function(cb) {
 				// Perform round tick
-				(tx || library.db)
-					.task(BackwardTick)
+				tx
+					.task(backwardTick)
 					.then(() => setImmediate(cb))
 					.catch(err => {
 						library.logger.error(err.stack);
@@ -181,15 +174,6 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			return done(err);
 		}
 	);
-};
-
-/**
- * Sets up round snapshotting.
- *
- * @param {number} round - Target round.
- */
-Rounds.prototype.setSnapshotRound = function(round) {
-	library.config.loading.snapshot = round;
 };
 
 /**
@@ -211,11 +195,6 @@ Rounds.prototype.tick = function(block, done, tx) {
 		round,
 		backwards: false,
 	};
-
-	// Establish if snapshotting round or not
-	scope.snapshotRound =
-		library.config.loading.snapshot > 0 &&
-		library.config.loading.snapshot === round;
 
 	// Establish if finishing round or not
 	scope.finishRound =
@@ -241,11 +220,6 @@ Rounds.prototype.tick = function(block, done, tx) {
 				if (scope.finishRound) {
 					return promised.land().then(() => {
 						library.bus.message('finishRound', round);
-						if (scope.snapshotRound) {
-							return promised.truncateBlocks().then(() => {
-								scope.finishSnapshot = true;
-							});
-						}
 					});
 				}
 			})
@@ -305,10 +279,6 @@ Rounds.prototype.tick = function(block, done, tx) {
 		err => {
 			// Stop round ticking
 			__private.ticking = false;
-
-			if (scope.finishSnapshot) {
-				return done('Snapshot finished');
-			}
 			return done(err);
 		}
 	);

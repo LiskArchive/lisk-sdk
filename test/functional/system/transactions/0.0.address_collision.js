@@ -72,7 +72,7 @@ describe('system test (type 0) - address collision', () => {
 	before(done => {
 		var creditTransaction = lisk.transaction.transfer({
 			amount: 1000 * constants.normalizer,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
 			data: 'addtional data from 2',
 		});
@@ -98,10 +98,15 @@ describe('system test (type 0) - address collision', () => {
 			});
 		});
 
-		it('adding to pool transfer should be ok for passphrase two', done => {
+		it('adding to pool transfer fail for passphrase two', done => {
 			localCommon.addTransaction(library, secondTransaction, (err, res) => {
-				expect(err).to.be.null;
-				expect(res).to.equal(secondTransaction.id);
+				expect(res).to.be.undefined;
+				expect(err).to.be.not.null;
+				expect(err).to.equal(
+					`Invalid sender public key: ${publicKeys[1]} expected: ${
+						publicKeys[0]
+					}`
+				);
 				done();
 			});
 		});
@@ -115,9 +120,25 @@ describe('system test (type 0) - address collision', () => {
 				});
 			});
 
-			it('first transaction to arrive should not be included', done => {
+			it('first transaction to arrive should be included', done => {
 				var filter = {
 					id: firstTransaction.id,
+				};
+
+				localCommon.getTransactionFromModule(library, filter, (err, res) => {
+					expect(err).to.be.null;
+					expect(res)
+						.to.have.property('transactions')
+						.which.is.an('Array');
+					expect(res.transactions.length).to.equal(1);
+					expect(res.transactions[0].id).to.equal(firstTransaction.id);
+					done();
+				});
+			});
+
+			it('last transaction to arrive should not be included', done => {
+				var filter = {
+					id: secondTransaction.id,
 				};
 
 				localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -130,32 +151,16 @@ describe('system test (type 0) - address collision', () => {
 				});
 			});
 
-			it('last transaction to arrive should be included', done => {
-				var filter = {
-					id: secondTransaction.id,
-				};
-
-				localCommon.getTransactionFromModule(library, filter, (err, res) => {
-					expect(err).to.be.null;
-					expect(res)
-						.to.have.property('transactions')
-						.which.is.an('Array');
-					expect(res.transactions.length).to.equal(1);
-					expect(res.transactions[0].id).to.equal(secondTransaction.id);
-					done();
-				});
-			});
-
-			it('publicKey from the second passphrase should be cemented and not the first one', done => {
+			it('publicKey from the first passphrase should be cemented and not the second one', done => {
 				async.waterfall(
 					[
 						function(seriesCb) {
 							localCommon.addTransaction(
 								library,
-								secondTransactionWithData,
+								firstTransactionWithData,
 								(err, res) => {
 									expect(err).to.be.null;
-									expect(res).to.equal(secondTransactionWithData.id);
+									expect(res).to.equal(firstTransactionWithData.id);
 									seriesCb();
 								}
 							);
@@ -163,13 +168,13 @@ describe('system test (type 0) - address collision', () => {
 						function(seriesCb) {
 							localCommon.addTransaction(
 								library,
-								firstTransactionWithData,
+								secondTransactionWithData,
 								(err, res) => {
 									expect(res).to.be.undefined;
 									expect(err).to.be.not.null;
 									expect(err).to.equal(
-										`Invalid sender public key: ${publicKeys[0]} expected: ${
-											publicKeys[1]
+										`Invalid sender public key: ${publicKeys[1]} expected: ${
+											publicKeys[0]
 										}`
 									);
 									seriesCb();

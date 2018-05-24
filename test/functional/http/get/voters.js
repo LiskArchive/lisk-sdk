@@ -245,13 +245,13 @@ describe('GET /api/voters', () => {
 						constants.fees.delegate +
 						constants.fees.vote +
 						constants.fees.secondSignature,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: validExtraDelegateVoter.address,
 				});
 
 				var registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
 					{
-						passphrase: validExtraDelegateVoter.password,
+						passphrase: validExtraDelegateVoter.passphrase,
 						username: randomstring.generate({
 							length: 10,
 							charset: 'alphabetic',
@@ -261,7 +261,7 @@ describe('GET /api/voters', () => {
 				);
 
 				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
-					passphrase: validExtraDelegateVoter.password,
+					passphrase: validExtraDelegateVoter.passphrase,
 					votes: [`${validVotedDelegate.publicKey}`],
 				});
 

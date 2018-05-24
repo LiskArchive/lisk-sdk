@@ -42,7 +42,6 @@ const validAccount = {
 	u_multimin: 0,
 	multilifetime: 1,
 	u_multilifetime: 1,
-	blockId: '6524861224470851795',
 	nameexist: 0,
 	u_nameexist: 0,
 	fees: 0,
@@ -51,7 +50,6 @@ const validAccount = {
 	vote: 10000000000000000,
 	producedBlocks: 0,
 	missedBlocks: 0,
-	virgin: 1,
 	approval: 100,
 	productivity: 0,
 };

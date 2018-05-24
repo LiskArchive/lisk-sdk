@@ -169,22 +169,42 @@ describe('peer', () => {
 			});
 		});
 
-		it('should not update immutable properties', () => {
+		it('should not update required properties once peer is created', () => {
 			var peerBeforeUpdate = _.clone(peer);
-			var updateImmutableData = {
+			var updateRequiredData = {
 				ip: prefixedPeer.ip,
 				wsPort: prefixedPeer.wsPort,
-				httpPort: prefixedPeer.httpPort,
 				string: `${prefixedPeer.ip}:${prefixedPeer.wsPort}`,
 			};
 
-			expect(_.isEqual(_.keys(updateImmutableData), peer.immutable)).to.be.ok;
-			peer.update(updateImmutableData);
+			expect(_.isEqual(_.keys(updateRequiredData), peer.required)).to.be.ok;
+			peer.update(updateRequiredData);
 			return peer.headers.forEach(header => {
 				expect(peer[header])
 					.equals(peerBeforeUpdate[header])
-					.and.not.equal(updateImmutableData);
+					.and.not.equal(updateRequiredData);
 			});
+		});
+
+		it('should update the optional properties only for the first time', () => {
+			var updateOptionalData = {
+				httpPort: prefixedPeer.httpPort,
+				nonce: 'nonce added first time after peer creation',
+			};
+			var updateOptionalDataForSecondTime = {
+				httpPort: 10909,
+				nonce: 'update after nonce exists should fail',
+			};
+
+			expect(_.isEqual(_.keys(updateOptionalData), peer.optional)).to.be.ok;
+			expect(_.isEqual(_.keys(updateOptionalDataForSecondTime), peer.optional))
+				.to.be.ok;
+
+			peer.update(updateOptionalData);
+			expect(peer).to.include(updateOptionalData);
+
+			peer.update(updateOptionalDataForSecondTime);
+			return expect(peer).to.not.include(updateOptionalDataForSecondTime);
 		});
 
 		it('should not delete values which were previously set but are not updated now', () => {

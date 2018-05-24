@@ -14,12 +14,9 @@
 
 
 /*
-  DESCRIPTION: Convert a virgin account to non-virgin state
+  DESCRIPTION: ?
 
-  PARAMETERS:
-  	address - Address of the particular account
+  PARAMETERS: ?
 */
 
-UPDATE mem_accounts
-SET virgin = 0
-WHERE address = ${address}
+DELETE FROM blocks WHERE height > ${height}::bigint

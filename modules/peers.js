@@ -69,25 +69,27 @@ class Peers {
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
+		self.broadhashConsensusCalculationInterval =
+			scope.config.peers.options.broadhashConsensusCalculationInterval;
 		setImmediate(cb, null, self);
 	}
 }
 
 // Private methods
 /**
- * Returns peers length after getting them by filter.
+ * Returns peers length by filter but without offset and limit.
  *
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, null, peers length
+ * @returns {int} count
  * @todo Add description for the params
  */
-__private.countByFilter = function(filter, cb) {
+__private.getCountByFilter = function(filter) {
 	filter.normalized = false;
-	__private.getByFilter(filter, (err, peers) =>
-		setImmediate(cb, null, peers.length)
-	);
+	delete filter.limit;
+	delete filter.offset;
+	var peers = __private.getByFilter(filter);
+	return peers.length;
 };
 
 /**
@@ -700,9 +702,9 @@ Peers.prototype.networkHeight = function(options, cb) {
 		if (err) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupByHeight = _.groupBy(peers, 'height');
-		const popularHeights = Object.keys(peersGroupByHeight);
-		const networkHeight = Number(_.max(popularHeights));
+		const peersGroupedByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
+		const networkHeight = _.max(popularHeights);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
 		library.logger.trace(popularHeights);
@@ -831,11 +833,25 @@ Peers.prototype.onPeersReady = function() {
 			() => setImmediate(cb)
 		);
 	}
+
+	function calculateConsensus(cb) {
+		self.calculateConsensus();
+		library.logger.debug(
+			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+		);
+		return setImmediate(cb);
+	}
 	// Loop in 30 sec intervals for less new insertion after removal
 	jobsQueue.register(
 		'peersDiscoveryAndUpdate',
 		peersDiscoveryAndUpdate,
 		peerDiscoveryFrequency
+	);
+
+	jobsQueue.register(
+		'calculateConsensus',
+		calculateConsensus,
+		self.broadhashConsensusCalculationInterval
 	);
 };
 
@@ -893,12 +909,22 @@ Peers.prototype.shared = {
 	},
 
 	/**
-	 * Description for getPeersCount.
+	 * Utility method to get peers count by filter.
 	 *
-	 * @todo Add description for the function
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.ip - IP of the peer
+	 * @param {string} parameters.wsPort - WS Port of the peer
+	 * @param {string} parameters.httpPort - Web Socket Port of the peer
+	 * @param {string} parameters.os - OS of the peer
+	 * @param {string} parameters.version - Version the peer is running
+	 * @param {int} parameters.state - Peer State
+	 * @param {int} parameters.height - Current peer height
+	 * @param {string} parameters.broadhash - Peer broadhash
+	 * @returns {int} count
+	 * @todo Add description for the return value
 	 */
-	getPeersCount() {
-		return library.logic.peers.list(true).length;
+	getPeersCountByFilter(parameters) {
+		return __private.getCountByFilter(parameters);
 	},
 };
 

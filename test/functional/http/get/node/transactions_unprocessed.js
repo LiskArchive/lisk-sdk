@@ -44,7 +44,7 @@ describe('GET /api/node', () => {
 					transactionList.push(
 						lisk.transaction.transfer({
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,
 						})

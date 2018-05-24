@@ -35,7 +35,6 @@ const normalFields = [
 	{ name: 'u_multimin', def: 0, skip: ifNotExists },
 	{ name: 'multilifetime', def: 0, skip: ifNotExists },
 	{ name: 'u_multilifetime', def: 0, skip: ifNotExists },
-	{ name: 'blockId', def: null, skip: ifNotExists },
 	{ name: 'nameexist', def: 0, skip: ifNotExists },
 	{ name: 'u_nameexist', def: 0, skip: ifNotExists },
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
@@ -60,10 +59,7 @@ const normalFields = [
 ];
 
 // Only used in SELECT and INSERT queries
-const immutableFields = [
-	{ name: 'address' },
-	{ name: 'virgin', cast: 'int::boolean', def: 1, skip: ifNotExists },
-];
+const immutableFields = [{ name: 'address' }];
 
 // Only used in SELECT queries
 const dynamicFields = [
@@ -124,10 +120,7 @@ class AccountsRepository {
 				{ name: 'u_secondSignature', cast: 'int', def: 0, skip: ifNotExists },
 			]);
 
-			cs.insert = cs.update.merge([
-				{ name: 'address' },
-				{ name: 'virgin', cast: 'int', def: 1, skip: ifNotExists },
-			]);
+			cs.insert = cs.update.merge(immutableFields);
 		}
 	}
 
@@ -155,16 +148,6 @@ class AccountsRepository {
 	}
 
 	/**
-	 * Counts memory accounts by blocks.
-	 *
-	 * @returns {Promise<number>}
-	 * @todo Add description for the return value
-	 */
-	countMemAccounts() {
-		return this.db.one(sql.countMemAccounts, []).then(a => +a.count);
-	}
-
-	/**
 	 * Update mem_accounts.
 	 *
 	 * @returns {Promise}
@@ -172,16 +155,6 @@ class AccountsRepository {
 	 */
 	updateMemAccounts() {
 		return this.db.none(sql.updateMemAccounts);
-	}
-
-	/**
-	 * Get orphan mem_accounts.
-	 *
-	 * @returns {Promise}
-	 * @todo Add description for the return value
-	 */
-	getOrphanedMemAccounts() {
-		return this.db.any(sql.getOrphanedMemAccounts);
 	}
 
 	/**
@@ -567,16 +540,6 @@ class AccountsRepository {
 			);
 
 		return this.db.none(query);
-	}
-
-	/**
-	 * Convert an account to be non-virgin account.
-	 *
-	 * @param {string} address - Account address
-	 * @return {Promise<null>}
-	 */
-	convertToNonVirgin(address) {
-		return this.db.none(sql.convertToNonVirgin, { address });
 	}
 }
 

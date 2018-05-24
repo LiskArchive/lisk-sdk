@@ -114,12 +114,15 @@ class Peer {
 		// Accept only supported properties
 		_.each(this.properties, key => {
 			// Change value only when is defined
-			if (
-				peer[key] !== null &&
-				peer[key] !== undefined &&
-				!_.includes(this.immutable, key)
-			) {
-				this[key] = peer[key];
+			if (peer[key] && !this.required.includes(key)) {
+				// Update optional httpPort and nonce
+				// for the first time when peer object
+				// has httpPort and nonce as undefined
+				const isOptional = this.optional.includes(key);
+				const isExists = this[key];
+				if (!isOptional || (!isExists && isOptional)) {
+					this[key] = peer[key];
+				}
 			}
 		});
 
@@ -175,7 +178,9 @@ Peer.prototype.properties = [
 	'httpPort',
 ];
 
-Peer.prototype.immutable = ['ip', 'wsPort', 'httpPort', 'string'];
+Peer.prototype.required = ['ip', 'wsPort', 'string'];
+
+Peer.prototype.optional = ['httpPort', 'nonce'];
 
 Peer.prototype.connectionProperties = ['rpc', 'socket', 'connectionOptions'];
 

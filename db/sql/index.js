@@ -32,9 +32,7 @@ const { link } = require('./config');
 module.exports = {
 	accounts: {
 		resetMemoryTables: link('accounts/reset_memory_tables.sql'),
-		countMemAccounts: link('accounts/count_mem_accounts.sql'),
 		updateMemAccounts: link('accounts/update_mem_accounts.sql'),
-		getOrphanedMemAccounts: link('accounts/get_orphaned_mem_accounts.sql'),
 		getDelegates: link('accounts/get_delegates.sql'),
 		incrementAccount: link('accounts/increment_account.sql'),
 		decrementAccount: link('accounts/decrement_account.sql'),
@@ -44,12 +42,12 @@ module.exports = {
 		columnMultisignatures: link('accounts/column_multisignatures.sql'),
 		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
 		columnRank: link('accounts/column_rank.sql'),
-		convertToNonVirgin: link('accounts/convert_to_non_virgin.sql'),
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
 		count: link('blocks/count.sql'),
 		deleteBlock: link('blocks/delete_block.sql'),
+		deleteBlocksAfterHeight: link('blocks/delete_blocks_after_height.sql'),
 		getGenesisBlock: link('blocks/get_genesis_block.sql'),
 		getGenesisBlockId: link('blocks/get_genesis_block_id.sql'),
 		getIdSequence: link('blocks/get_id_sequence.sql'),
@@ -94,7 +92,6 @@ module.exports = {
 		getVotes: link('rounds/get_votes.sql'),
 		updateVotes: link('rounds/update_votes.sql'),
 		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),
-		updateBlockId: link('rounds/update_block_id.sql'),
 		summedRound: link('rounds/summed_round.sql'),
 		clearRoundSnapshot: link('rounds/clear_round_snapshot.sql'),
 		performRoundSnapshot: link('rounds/perform_round_snapshot.sql'),
@@ -106,7 +103,6 @@ module.exports = {
 		countRoundSnapshot: link('rounds/count_round_snapshot.sql'),
 		getMemRounds: link('rounds/get_mem_rounds.sql'),
 		flush: link('rounds/flush.sql'),
-		truncateBlocks: link('rounds/truncate_blocks.sql'),
 		getDelegatesSnapshot: link('rounds/get_delegates_snapshot.sql'),
 		insertRoundInformationWithAmount: link(
 			'rounds/insert_round_information_with_amount.sql'

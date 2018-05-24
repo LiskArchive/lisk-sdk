@@ -37,7 +37,7 @@ describe('PUT /node/status/forging', () => {
 							{
 								data: {
 									publicKey: validDelegate.publicKey,
-									decryptionKey: validDelegate.key,
+									password: validDelegate.password,
 								},
 							},
 							200
@@ -66,7 +66,7 @@ describe('PUT /node/status/forging', () => {
 			'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 		var params = {
 			publicKey: invalidPublicKey,
-			decryptionKey: validDelegate.key,
+			password: validDelegate.password,
 		};
 
 		return toggleForgingEndpoint
@@ -76,17 +76,17 @@ describe('PUT /node/status/forging', () => {
 			});
 	});
 
-	it('using invalid key should fail', () => {
+	it('using invalid password should fail', () => {
 		var params = {
 			publicKey: validDelegate.publicKey,
-			decryptionKey: 'invalid key',
+			password: 'invalid password',
 		};
 
 		return toggleForgingEndpoint
 			.makeRequest({ data: params }, 404)
 			.then(res => {
 				expect(res.body.message).to.contain(
-					'Invalid key and public key combination'
+					'Invalid password and public key combination'
 				);
 			});
 	});
@@ -94,7 +94,7 @@ describe('PUT /node/status/forging', () => {
 	it('using valid params should be ok', () => {
 		var params = {
 			publicKey: validDelegate.publicKey,
-			decryptionKey: validDelegate.key,
+			password: validDelegate.password,
 		};
 
 		return toggleForgingEndpoint
@@ -108,7 +108,7 @@ describe('PUT /node/status/forging', () => {
 	it('using valid params should toggle forging status', () => {
 		var params = {
 			publicKey: validDelegate.publicKey,
-			decryptionKey: validDelegate.key,
+			password: validDelegate.password,
 		};
 
 		return forgingStatusEndpoint
