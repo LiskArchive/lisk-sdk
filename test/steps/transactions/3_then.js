@@ -217,6 +217,24 @@ export function itShouldCallVerifyTransactionWithTheTransaction() {
 	);
 }
 
+export function itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase() {
+	const { transaction, passphrase } = this.test.ctx;
+	return expect(transactions.utils.prepareTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		passphrase,
+		null,
+	);
+}
+
+export function itShouldCallPrepareTransactionWithTheTransactionAndThePassphraseAndTheSecondPassphrase() {
+	const { transaction, passphrase, secondPassphrase } = this.test.ctx;
+	return expect(transactions.utils.prepareTransaction).to.be.calledWithExactly(
+		JSON.parse(transaction),
+		passphrase,
+		secondPassphrase,
+	);
+}
+
 export function itShouldCallVerifyTransactionWithTheTransactionAndSecondPublicKey() {
 	const { transaction, options } = this.test.ctx;
 	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(

@@ -34,6 +34,7 @@ import * as showWarranty from '../../src/commands/show_warranty';
 import * as signMessage from '../../src/commands/sign_message';
 import * as verifyMessage from '../../src/commands/verify_message';
 import * as verifyTransaction from '../../src/commands/verify_transaction';
+import * as signTransaction from '../../src/commands/sign_transaction';
 
 export const DEFAULT_ERROR_MESSAGE = "Cannot read property 'length' of null";
 
@@ -101,6 +102,7 @@ export const getActionCreator = actionName =>
 		'sign message': signMessage.actionCreator,
 		'verify message': verifyMessage.actionCreator,
 		'verify transaction': verifyTransaction.actionCreator,
+		'sign transaction': signTransaction.actionCreator,
 	}[actionName]);
 
 export const createFakeInterface = value => ({

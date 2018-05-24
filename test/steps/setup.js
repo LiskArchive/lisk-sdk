@@ -167,6 +167,7 @@ const setUpTransactionsStubs = () => {
 	].forEach(methodName => sandbox.stub(transactions, methodName));
 	transactions.utils = {
 		verifyTransaction: sandbox.stub().returns(true),
+		prepareTransaction: sandbox.stub(),
 	};
 };
 
@@ -300,6 +301,13 @@ export function setUpCommandVerifyMessage() {
 export function setUpCommandVerifyTransaction() {
 	setUpTransactionsStubs();
 	setUpReadlineStubs();
+	setUpInputUtilsStubs();
+}
+
+export function setUpCommandSignTransaction() {
+	setUpTransactionsStubs();
+	setUpReadlineStubs();
+	setUpInputStubs();
 	setUpInputUtilsStubs();
 }
 
