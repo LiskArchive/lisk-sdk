@@ -35,8 +35,7 @@ const defaultSenderId = '18160565574430594874L';
 const defaultSenderSecondPublicKey =
 	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
 // Use (1<<62) + 3 to ensure the highest and the lowest bytes are set and contain different data.
-// This number exceeds the safe integer range of JavaScript numbers and thus must be expressed as
-// a string. Expected encoding: `python3 -c 'print(hex((1<<62)+3))'` with reversed byte order
+// This exceeds the safe integer range of JavaScript numbers and thus is expressed as a string.
 const defaultAmount = '4611686018427387907';
 const defaultNoAmount = 0;
 const defaultTimestamp = 141738;
