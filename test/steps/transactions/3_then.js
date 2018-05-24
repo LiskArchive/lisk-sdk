@@ -209,13 +209,6 @@ export function itShouldCreateARegisterMultisignatureAccountTransactionUsingTheP
 	});
 }
 
-export function itShouldCallVerifyTransactionOnlyWithTheTransaction() {
-	const { transaction } = this.test.ctx;
-	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
-		JSON.parse(transaction),
-	);
-}
-
 export function itShouldCallVerifyTransactionWithTheTransaction() {
 	const { transaction } = this.test.ctx;
 	return expect(transactions.utils.verifyTransaction).to.be.calledWithExactly(
