@@ -73,8 +73,6 @@ export const actionCreator = vorpal => async ({
 		throw new Error(transactionObject.error);
 	}
 
-	transactions.utils.verifyTransaction(transactionObject);
-
 	const { passphrase, secondPassphrase } = await getInputsFromSources(vorpal, {
 		passphrase: {
 			source: passphraseSource,

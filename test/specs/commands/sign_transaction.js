@@ -100,10 +100,6 @@ describe('sign transaction command', () => {
 									when.theActionIsCalledWithTheStringifiedTransactionObject,
 									() => {
 										Then(
-											'it should call VerifyTransaction only with the transaction',
-											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
-										);
-										Then(
 											'it should call prepareTransaction with the transaction and the passphrase',
 											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
 										);
@@ -113,10 +109,6 @@ describe('sign transaction command', () => {
 									'the action is called with the stringified transaction object via vorpal stdIn',
 									when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdIn,
 									() => {
-										Then(
-											'it should call VerifyTransaction only with the transaction',
-											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
-										);
 										Then(
 											'it should call prepareTransaction with the transaction and the passphrase',
 											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
@@ -128,10 +120,6 @@ describe('sign transaction command', () => {
 									when.theActionIsCalledWithTheStringifiedTransactionObjectAndOptions,
 									() => {
 										Then(
-											'it should call VerifyTransaction only with the transaction',
-											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
-										);
-										Then(
 											'it should call prepareTransaction with the transaction and the passphrase',
 											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
 										);
@@ -141,10 +129,6 @@ describe('sign transaction command', () => {
 									'the action is called with the stringified transaction object via vorpal stdIn and options',
 									when.theActionIsCalledWithTheStringifiedTransactionObjectViaVorpalStdInAndOptions,
 									() => {
-										Then(
-											'it should call VerifyTransaction only with the transaction',
-											then.itShouldCallVerifyTransactionOnlyWithTheTransaction,
-										);
 										Then(
 											'it should call prepareTransaction with the transaction and the passphrase',
 											then.itShouldCallPrepareTransactionWithTheTransactionAndThePassphrase,
