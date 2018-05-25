@@ -41,14 +41,6 @@ module.exports = {
 					cb(null, sockets);
 				}
 			});
-			socket.on('error', () => {});
-			socket.on('connectAbort', () => {
-				cb(
-					`Unable to establish WS connection with ${configuration.ip}:${
-						configuration.wsPort
-					}`
-				);
-			});
 		});
 	},
 };
