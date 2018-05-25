@@ -39,7 +39,7 @@
 	},
 	"dependencies": {
 		"lisk-constants": "0.5.1",
-		"popsicle": "=9.1.0"
+		"popsicle": "9.1.0"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
