@@ -129,6 +129,28 @@ class RoundsRepository {
 	}
 
 	/**
+	 * Checks round snapshot availability for particular round.
+	 *
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability(round) {
+		return this.db.oneOrNone(
+			sql.checkSnapshotAvailability,
+			{ round },
+			a => (a ? a.available : null)
+		);
+	}
+
+	/**
+	 * Get number of records from mem_round_snapshot table.
+	 *
+	 * @returns {Promise}
+	 */
+	countRoundSnapshot() {
+		return this.db.one(sql.countRoundSnapshot, [], a => +a.count);
+	}
+
+	/**
 	 * Create table for the round snapshot.
 	 *
 	 * @returns {Promise}

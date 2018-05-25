@@ -40,6 +40,7 @@ describe('Posting transaction (type 0)', () => {
 		const wampServer = new WAMPServer();
 		wampServer.registerEventEndpoints({
 			postTransactions: () => {},
+			updateMyself: () => {},
 		});
 		wsRPC.setServer(wampServer);
 		// Register client

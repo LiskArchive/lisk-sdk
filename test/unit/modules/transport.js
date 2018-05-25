@@ -1039,6 +1039,7 @@ describe('transport', () => {
 					logic: {
 						peers: {
 							me: sinonSandbox.stub().returns(WSServer.generatePeerHeaders()),
+							listRandomConnected: sinonSandbox.stub().returns(peersList),
 						},
 						block: {
 							objectNormalize: sinonSandbox.stub().returns(Block()),
@@ -1353,32 +1354,20 @@ describe('transport', () => {
 				transportInstance.broadcastHeaders(done);
 			});
 
-			it('should call modules.peers.list with {normalized: false}', () => {
-				expect(modules.peers.list.calledOnce).to.be.true;
-				return expect(modules.peers.list.calledWith({ normalized: false })).to
-					.be.true;
-			});
-
-			describe('when peers = undefined', () => {
-				beforeEach(done => {
-					modules.peers.list = sinonSandbox
-						.stub()
-						.callsArgWith(1, null, undefined);
-					transportInstance.broadcastHeaders(done);
-				});
-
-				it('should call library.logger.debug with proper message', () => {
-					return expect(
-						library.logger.debug.calledWith(
-							'Transport->broadcastHeaders: No peers found'
-						)
-					).to.be.true;
-				});
+			it('should call ibrary.logic.peers.listRandomConnected with {limit: constants.maxPeers}', () => {
+				expect(library.logic.peers.listRandomConnected.calledOnce).to.be.true;
+				return expect(
+					library.logic.peers.listRandomConnected.calledWith({
+						limit: constants.maxPeers,
+					})
+				).to.be.true;
 			});
 
 			describe('when peers.length = 0', () => {
 				beforeEach(done => {
-					modules.peers.list = sinonSandbox.stub().callsArgWith(1, null, []);
+					library.logic.peers.listRandomConnected = sinonSandbox
+						.stub()
+						.returns([]);
 					transportInstance.broadcastHeaders(done);
 				});
 
@@ -1408,9 +1397,9 @@ describe('transport', () => {
 						peerMock.rpc = {
 							updateMyself: sinonSandbox.stub().callsArgWith(1, error),
 						};
-						modules.peers.list = sinonSandbox
+						library.logic.peers.listRandomConnected = sinonSandbox
 							.stub()
-							.callsArgWith(1, null, [peerMock]);
+							.returns([peerMock]);
 						__private.removePeer = sinonSandbox.stub();
 						transportInstance.broadcastHeaders(done);
 					});
@@ -1512,11 +1501,10 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call __private.broadcaster.broadcast with {limit: constants.maxPeers, broadhash: modules.system.getBroadhash()}', () => {
+				it('should call __private.broadcaster.broadcast with {broadhash: modules.system.getBroadhash()}', () => {
 					return expect(
 						__private.broadcaster.broadcast.calledWith(
 							{
-								limit: constants.maxPeers,
 								broadhash:
 									'81a410c4ff35e6d643d30e42a27a222dbbfc66f1e62c32e6a91dd3438defb70b',
 							},
