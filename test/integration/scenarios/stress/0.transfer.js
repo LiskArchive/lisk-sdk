@@ -14,7 +14,6 @@
 
 'use strict';
 
-var async = require('async');
 var Promise = require('bluebird');
 var lisk = require('lisk-js').default;
 var accountFixtures = require('../../../fixtures/accounts');
@@ -30,48 +29,7 @@ module.exports = function(params) {
 	describe('stress test for type 0 transactions @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
-
-		describe('sending 1000 bundled transfers to random addresses', () => {
-			var count = 1;
-
-			before(done => {
-				async.doUntil(
-					next => {
-						var bundled = [];
-						for (
-							var i = 0;
-							i < params.configurations[0].broadcasts.releaseLimit;
-							i++
-						) {
-							var transaction = lisk.transaction.transfer({
-								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.passphrase,
-								recipientId: randomUtil.account().address,
-							});
-							transactions.push(transaction);
-							bundled.push(transaction);
-							count++;
-						}
-						sendTransactionsPromise(bundled).then(next);
-					},
-					() => {
-						return count >= maximum;
-					},
-					() => {
-						done();
-					}
-				);
-			});
-
-			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
-				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params).then(done);
-				});
-			});
-		});
+		var waitForExtraBlocks = 2; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('sending 1000 single transfers to random addresses', () => {
 			before(() => {
@@ -90,11 +48,15 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait = Math.ceil(
-					maximum / constants.maxTransactionsPerBlock
-				);
+				var blocksToWait =
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params).then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
