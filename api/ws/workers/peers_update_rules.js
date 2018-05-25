@@ -188,7 +188,6 @@ PeersUpdateRules.prototype.external = {
 	 * @param {Object} request - Peer object with extra requests fields added by SlaveWAMPServer
 	 * @param {Object} request.data - Peer data
 	 * @param {string} request.socketId - Connection id
-	 * @param {string} request.workerId - Worker id
 	 * @param {function} cb
 	 * @todo Add description for the function and the params
 	 * @todo Add @returns tag
