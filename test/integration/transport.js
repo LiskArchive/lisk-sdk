@@ -36,6 +36,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			devConfigCopy.ip = '127.0.0.1';
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
+			devConfigCopy.logFileName = `logs/lisk_node_${index}.log`;
 			if (!devConfigCopy.broadcasts) {
 				devConfigCopy.broadcasts = {};
 			}
