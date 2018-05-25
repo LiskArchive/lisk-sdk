@@ -34,7 +34,9 @@ const defaultSenderPublicKey =
 const defaultSenderId = '18160565574430594874L';
 const defaultSenderSecondPublicKey =
 	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-const defaultAmount = (3 + 2 ** 62).toString();
+// Use (1<<62) + 3 to ensure the highest and the lowest bytes are set and contain different data.
+// This exceeds the safe integer range of JavaScript numbers and thus is expressed as a string.
+const defaultAmount = '4611686018427387907';
 const defaultNoAmount = 0;
 const defaultTimestamp = 141738;
 const defaultTransactionId = '13987348420913138422';
@@ -68,7 +70,7 @@ describe('getTransactionBytes module', () => {
 
 			it('should return Buffer of type 0 (transfer LSK) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d6000000000000040618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0300000000000040618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
@@ -79,7 +81,7 @@ describe('getTransactionBytes module', () => {
 			it('should return Buffer of type 0 (transfer LSK) with data', () => {
 				defaultTransaction.asset.data = 'Hello Lisk! Some data in here!...';
 				const expectedBuffer = Buffer.from(
-					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d600000000000004048656c6c6f204c69736b2120536f6d65206461746120696e2068657265212e2e2e618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d030000000000004048656c6c6f204c69736b2120536f6d65206461746120696e2068657265212e2e2e618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
@@ -134,7 +136,7 @@ describe('getTransactionBytes module', () => {
 			it('should return Buffer of transaction with second signature', () => {
 				defaultTransaction.signSignature = defaultSecondSignature;
 				const expectedBuffer = Buffer.from(
-					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d6000000000000040618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0ab00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f',
+					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0300000000000040618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0ab00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
@@ -168,7 +170,7 @@ describe('getTransactionBytes module', () => {
 			it('should return Buffer of type 0 (transfer LSK) with additional properties', () => {
 				defaultTransaction.skip = false;
 				const expectedBuffer = Buffer.from(
-					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d6000000000000040618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0300000000000040618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(defaultTransaction);
@@ -375,7 +377,7 @@ describe('getTransactionBytes module', () => {
 
 			it('should return Buffer of type 6 (dapp inTransfer) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'06aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae090000000000000000600000000000004031323334323133618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'06aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae090000000000000000030000000000004031323334323133618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(inTransferTransction);
@@ -404,7 +406,7 @@ describe('getTransactionBytes module', () => {
 
 			it('should return Buffer of type 7 (dapp outTransfer) transaction', () => {
 				const expectedBuffer = Buffer.from(
-					'07aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d6000000000000040313233343231333133393837333438343230393133313338343232618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
+					'07aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0300000000000040313233343231333133393837333438343230393133313338343232618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
 				const transactionBytes = getTransactionBytes(outTransferTransaction);
