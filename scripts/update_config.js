@@ -19,77 +19,82 @@ const program = require('commander');
 const extend = require('extend');
 const lisk = require('lisk-js');
 
+let oldConfigPath;
+let newConfigPath;
+
 program
 	.version('0.1.1')
-	.option('-o, --old <path>', 'Old config.json')
-	.option('-n, --new <path>', 'New config.json', './config.json')
+	.arguments('<old_config_file> <new_config_file>')
+	.action((oldConfig, newConfig) => {
+		oldConfigPath = oldConfig;
+		newConfigPath = newConfig;
+	})
 	.option('-p, --password <string>', 'Password for secret encryption', '')
 	.parse(process.argv);
 
-let oldConfig;
-let newConfig;
+if (!oldConfigPath && !newConfigPath) {
+	console.error('error: no config file provided.');
+	process.exit(1);
+}
 
-if (program.old) {
-	oldConfig = JSON.parse(fs.readFileSync(program.old, 'utf8'));
+console.info('Starting configuration migration...');
+const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
+const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
-	// Values to keep from new config file
-	delete oldConfig.version;
-	delete oldConfig.minVersion;
+// Values to keep from new config file
+delete oldConfig.version;
+delete oldConfig.minVersion;
 
-	// Rename old port to new wsPort
-	oldConfig.httpPort = oldConfig.port;
-	oldConfig.wsPort = oldConfig.httpPort + 1;
-	delete oldConfig.port;
+// Rename old port to new wsPort
+oldConfig.httpPort = oldConfig.port;
+oldConfig.wsPort = oldConfig.httpPort + 1;
+delete oldConfig.port;
 
-	oldConfig.db.max = oldConfig.db.poolSize;
-	delete oldConfig.db.poolSize;
+oldConfig.db.max = oldConfig.db.poolSize;
+delete oldConfig.db.poolSize;
 
-	delete oldConfig.peers.options.limits;
+delete oldConfig.peers.options.limits;
 
-	oldConfig.transactions.maxTransactionsPerQueue =
-		oldConfig.transactions.maxTxsPerQueue;
-	delete oldConfig.transactions.maxTxsPerQueue;
+oldConfig.transactions.maxTransactionsPerQueue =
+	oldConfig.transactions.maxTxsPerQueue;
+delete oldConfig.transactions.maxTxsPerQueue;
 
-	delete oldConfig.loading.verifyOnLoading;
-	delete oldConfig.dapp;
+delete oldConfig.loading.verifyOnLoading;
+delete oldConfig.dapp;
 
-	// Peers migration
-	oldConfig.peers.list.map(p => {
-		p.wsPort = p.port;
-		delete p.port;
-	});
+// Peers migration
+oldConfig.peers.list.map(p => {
+	p.wsPort = p.port;
+	delete p.port;
+});
 
-	if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
-		if (!program.password.trim()) {
-			const rl = readline.createInterface({
-				input: process.stdin,
-				output: process.stdout,
-			});
-			rl.question(
-				'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
-				password => {
-					rl.close();
-					migrateSecrets(password);
-					copyTheConfigFile();
-				}
-			);
-			// To Patch the password support
-			rl.stdoutMuted = true;
-			rl._writeToOutput = function _writeToOutput(stringToWrite) {
-				if (rl.stdoutMuted) rl.output.write('*');
-				else rl.output.write(stringToWrite);
-			};
-		} else {
-			migrateSecrets(program.password);
-			copyTheConfigFile();
-		}
+if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
+	if (!program.password.trim()) {
+		const rl = readline.createInterface({
+			input: process.stdin,
+			output: process.stdout,
+		});
+		rl.question(
+			'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
+			password => {
+				rl.close();
+				migrateSecrets(password);
+				copyTheConfigFile();
+			}
+		);
+		// To Patch the password support
+		rl.stdoutMuted = true;
+		rl._writeToOutput = function _writeToOutput(stringToWrite) {
+			if (rl.stdoutMuted) rl.output.write('*');
+			else rl.output.write(stringToWrite);
+		};
 	} else {
-		migrateSecrets('');
+		migrateSecrets(program.password);
 		copyTheConfigFile();
 	}
 } else {
-	console.info('Previous config.json not found, exiting.');
-	process.exit(1);
+	migrateSecrets('');
+	copyTheConfigFile();
 }
 
 function migrateSecrets(password) {
@@ -123,15 +128,16 @@ function migrateSecrets(password) {
 }
 
 function copyTheConfigFile() {
-	if (program.new) {
-		newConfig = JSON.parse(fs.readFileSync(program.new, 'utf8'));
-		newConfig = extend(true, {}, newConfig, oldConfig);
+	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
 
-		fs.writeFile(program.new, JSON.stringify(newConfig, null, '\t'), err => {
+	fs.writeFile(
+		newConfigPath,
+		JSON.stringify(modifiedConfig, null, '\t'),
+		err => {
 			if (err) {
 				throw err;
 			}
-		});
-	}
+		}
+	);
 	console.info('Configuration migration completed.');
 }
