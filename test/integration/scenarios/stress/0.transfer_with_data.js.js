@@ -30,7 +30,7 @@ module.exports = function(params) {
 		this.timeout(1800000);
 		var transactions = [];
 		var maximum = 1000;
-		var waitForExtraBlocks = 2; // Wait for extra blocks to ensure all the transactions are included in the block
+		var waitForExtraBlocks = 4; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('sending 1000 single transfers to random addresses', () => {
 			before(() => {
