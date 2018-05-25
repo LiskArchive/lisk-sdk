@@ -26,7 +26,8 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 2 transactions @slow', () => {
+	describe('stress test for type 2 transactions @slow', function() {
+		this.timeout(1800000);
 		var transactions = [];
 		var accounts = [];
 		var maximum = 1000;

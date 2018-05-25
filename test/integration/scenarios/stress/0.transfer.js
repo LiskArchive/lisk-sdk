@@ -26,7 +26,8 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('stress test for type 0 transactions @slow', () => {
+	describe('stress test for type 0 transactions @slow', function() {
+		this.timeout(1800000);
 		var transactions = [];
 		var maximum = 1000;
 		var waitForExtraBlocks = 2; // Wait for extra blocks to ensure all the transactions are included in the block

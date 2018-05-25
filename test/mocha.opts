@@ -1,4 +1,4 @@
---timeout 1800s
+--timeout 1200s
 --exit
 --colors
 --require ./test/setup.js
