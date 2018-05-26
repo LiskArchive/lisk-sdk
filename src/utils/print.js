@@ -14,7 +14,7 @@
  *
  */
 import stripANSI from 'strip-ansi';
-import config from './config';
+import { getConfig } from './config';
 import { shouldUseJSONOutput, shouldUsePrettyOutput } from './helpers';
 import tablify from './tablify';
 
@@ -32,6 +32,7 @@ const removeANSI = result =>
 
 const print = (vorpal, options = {}) =>
 	function printResult(result) {
+    const config = getConfig();
 		const useJSONOutput = shouldUseJSONOutput(config, options);
 		const prettifyOutput = shouldUsePrettyOutput(config, options);
 		const resultToPrint = useJSONOutput ? removeANSI(result) : result;

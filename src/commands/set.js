@@ -16,9 +16,8 @@
 import url from 'url';
 import elements from 'lisk-elements';
 import { CONFIG_VARIABLES, NETHASHES, API_PROTOCOLS } from '../utils/constants';
-import config, { configFilePath } from '../utils/config';
+import { getConfig, setConfig, configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
-import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
@@ -43,18 +42,9 @@ const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PR
 	', ',
 )}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
-const writeConfigToFile = newConfig => {
-	try {
-		writeJSONSync(configFilePath, newConfig);
-		return true;
-	} catch (e) {
-		return false;
-	}
-};
-
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = newValue => (
+const setNestedConfigProperty = (config, newValue) => (
 	obj,
 	pathComponent,
 	i,
@@ -70,13 +60,13 @@ const setNestedConfigProperty = newValue => (
 		}
 		// eslint-disable-next-line no-param-reassign
 		obj[pathComponent] = newValue;
-		return config;
+    return config;
 	}
 	return obj[pathComponent];
 };
 
-const attemptWriteToFile = (value, dotNotation) => {
-	const writeSuccess = writeConfigToFile(config);
+const attemptWriteToFile = (newConfig, value, dotNotation) => {
+	const writeSuccess = setConfig(newConfig);
 
 	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
@@ -99,9 +89,10 @@ const attemptWriteToFile = (value, dotNotation) => {
 };
 
 const setValue = (dotNotation, value) => {
+  const config = getConfig();
 	const dotNotationArray = dotNotation.split('.');
-	dotNotationArray.reduce(setNestedConfigProperty(value), config);
-	return attemptWriteToFile(value, dotNotation);
+	const newConfig = dotNotationArray.reduce(setNestedConfigProperty(config, value), config);
+	return attemptWriteToFile(newConfig, value, dotNotation);
 };
 
 const setBoolean = (dotNotation, value) => {
