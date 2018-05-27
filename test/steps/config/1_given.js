@@ -15,7 +15,7 @@
  */
 import lockfile from 'lockfile';
 import defaultConfig from '../../../default_config.json';
-import * as currentConfig from '../../../src/utils/config';
+import * as configUtils from '../../../src/utils/config';
 import { getFirstBoolean, getBooleans, getQuotedStrings } from '../utils';
 
 export function aConfigWithUnknownProperties() {
@@ -23,7 +23,7 @@ export function aConfigWithUnknownProperties() {
 		corrupted: 'config',
 		invalid: 'names',
 	};
-	currentConfig.default = config;
+	configUtils.getConfig.returns(config);
 	this.test.ctx.config = config;
 }
 
@@ -37,7 +37,7 @@ export function aConfig() {
 		},
 		pretty: true,
 	};
-	currentConfig.default = config;
+	configUtils.getConfig.returns(config);
 	this.test.ctx.config = config;
 }
 
@@ -45,31 +45,29 @@ export function aDefaultConfig() {
 	this.test.ctx.defaultConfig = defaultConfig;
 }
 
+export function theConfigFileCannotBeWritten() {
+	configUtils.setConfig.returns(false);
+}
+
 export function aConfigWithJsonSetTo() {
 	const json = getFirstBoolean(this.test.parent.title);
 	const config = { json };
 
-	currentConfig.default = config;
+	configUtils.getConfig.returns(config);
 	this.test.ctx.config = config;
 }
 
-export function aConfigWithAPINodesSetTo() {
-	const nodes = getQuotedStrings(this.test.parent.title).slice(1);
-	const { api } = currentConfig.default;
-	api.nodes = nodes;
-	const config = { api };
+export function aConfigWithAPINetworkAndNodesSetTo() {
+	const [network, node] = getQuotedStrings(this.test.parent.title);
+	const nodes = node ? [node] : [];
+	const config = {
+		api: {
+			network,
+			nodes,
+		},
+	};
 
-	currentConfig.default = config;
-	this.test.ctx.config = config;
-}
-
-export function aConfigWithAPINetworkSetTo() {
-	const network = getQuotedStrings(this.test.parent.title)[1];
-	const { api } = currentConfig.default;
-	api.network = network;
-	const config = { api };
-
-	currentConfig.default = config;
+	configUtils.getConfig.returns(config);
 	this.test.ctx.config = config;
 }
 
@@ -77,7 +75,7 @@ export function aConfigWithPrettySetTo() {
 	const pretty = getFirstBoolean(this.test.parent.title);
 	const config = { pretty };
 
-	currentConfig.default = config;
+	configUtils.getConfig.returns(config);
 	this.test.ctx.config = config;
 }
 
@@ -85,13 +83,12 @@ export function aConfigWithJsonSetToAndPrettySetTo() {
 	const [json, pretty] = getBooleans(this.test.parent.title);
 	const config = { json, pretty };
 
-	currentConfig.default = config;
+	configUtils.getConfig.returns(config);
 	this.test.ctx.config = config;
 }
 
 export function thereIsAConfigLockfile() {
-	const error = new Error('Found a lockfile');
-	lockfile.lock.throws(error);
+	lockfile.checkSync.returns(true);
 }
 
 export function thereIsNoConfigLockfile() {}

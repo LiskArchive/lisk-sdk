@@ -27,6 +27,7 @@ import logger from '../../src/utils/logger';
 import * as mnemonicInstance from '../../src/utils/mnemonic';
 import transactions from '../../src/utils/transactions';
 // Use require for stubbing
+const config = require('../../src/utils/config');
 const getAPIClient = require('../../src/utils/api');
 const print = require('../../src/utils/print');
 const query = require('../../src/utils/query');
@@ -68,8 +69,16 @@ const setUpJSONStubs = () => {
 	['parse', 'stringify'].forEach(methodName => sandbox.stub(JSON, methodName));
 };
 
+const setUpConfigStubs = () => {
+	sandbox.stub(config, 'getConfig');
+	sandbox.stub(config, 'setConfig').returns(true);
+};
+
 const setUpLockfileStubs = () => {
 	sandbox.stub(lockfile, 'lock');
+	sandbox.stub(lockfile, 'checkSync').returns(false);
+	sandbox.stub(lockfile, 'lockSync');
+	sandbox.stub(lockfile, 'unlockSync');
 };
 
 const setUpProcessStubs = () => {
@@ -278,7 +287,12 @@ export function setUpCommandList() {
 	setUpQueryStubs();
 }
 
+export function setUpCommandConfig() {
+	setUpConfigStubs();
+}
+
 export function setUpCommandSet() {
+	setUpConfigStubs();
 	setUpEnvVariable(NON_INTERACTIVE_MODE).call(this);
 	setUpFsStubs();
 	setUpFsUtilsStubs();
@@ -311,6 +325,10 @@ export function setUpCommandSignTransaction() {
 	setUpInputUtilsStubs();
 }
 
+export function setUpUtilAPI() {
+	setUpConfigStubs();
+}
+
 export function setUpUtilConfig() {
 	setUpEnvVariable(EXEC_FILE_CHILD).call(this);
 	setUpEnvVariable(LISKY_CONFIG_DIR).call(this);
@@ -335,6 +353,10 @@ export function setUpUtilCreateCommand() {
 
 export function setUpUtilCrypto() {
 	setUpLiskElementsCryptoStubs();
+}
+
+export function setUpUtilHelpers() {
+	setUpConfigStubs();
 }
 
 export function setUpUtilFs() {
@@ -368,6 +390,7 @@ export function setUpUtilLog() {
 }
 
 export function setUpUtilPrint() {
+	setUpConfigStubs();
 	setUpHelperStubs();
 }
 

@@ -14,15 +14,8 @@
  *
  */
 import fs from 'fs';
+import lockfile from 'lockfile';
 import * as fsUtils from '../../../src/utils/fs';
-
-export function itShouldWriteTheUpdatedConfigToTheConfigFile() {
-	const { filePath, config } = this.test.ctx;
-	return expect(fsUtils.writeJSONSync).to.be.calledWithExactly(
-		filePath,
-		config,
-	);
-}
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
 	const { filePath } = this.test.ctx;
@@ -77,4 +70,12 @@ export function theConfigFileShouldNotBeWritten() {
 export function itShouldResolveToTheFirstLineOfTheFile() {
 	const { returnValue, passphrase } = this.test.ctx;
 	return expect(returnValue).to.eventually.equal(passphrase);
+}
+
+export function itShouldLockTheFile() {
+	return expect(lockfile.lockSync).to.be.called;
+}
+
+export function itShouldUnkockTheFile() {
+	return expect(lockfile.unlockSync).to.be.called;
 }

@@ -62,10 +62,10 @@ const attemptToCreateFile = path => {
 const checkLockfile = path => {
 	const locked = lockfile.checkSync(path);
 	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
-  if (locked) {
+	if (locked) {
 		logger.error(errorMessage);
 		process.exit(1);
-  }
+	}
 };
 
 const attemptToReadJSONFile = path => {
@@ -87,18 +87,18 @@ const attemptToValidateConfig = (config, path) => {
 };
 
 export const setConfig = newConfig => {
-  if (!process.env.EXEC_FILE_CHILD) {
+	if (!process.env.EXEC_FILE_CHILD) {
 		checkLockfile(lockfilePath);
 	}
-  lockfile.lockSync(lockfilePath);
-  try {
+	lockfile.lockSync(lockfilePath);
+	try {
 		writeJSONSync(configFilePath, newConfig);
 		return true;
 	} catch (e) {
 		return false;
-  } finally {
-    lockfile.unlockSync(lockfilePath);
-  }
+	} finally {
+		lockfile.unlockSync(lockfilePath);
+	}
 };
 
 export const getConfig = () => {
@@ -112,9 +112,7 @@ export const getConfig = () => {
 	}
 
 	const config = attemptToReadJSONFile(configFilePath);
-  attemptToValidateConfig(config, configFilePath);
+	attemptToValidateConfig(config, configFilePath);
 
 	return config;
 };
-
-export default getConfig();

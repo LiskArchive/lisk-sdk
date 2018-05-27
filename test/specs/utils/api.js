@@ -13,120 +13,104 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpUtilAPI } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('API util', () => {
+	beforeEach(setUpUtilAPI);
 	Given(
-		'a config with "api.network" set to "main"',
-		given.aConfigWithAPINetworkSetTo,
+		'a config with api.network and api.nodes set to "main" and "http://localhost:4000"',
+		given.aConfigWithAPINetworkAndNodesSetTo,
 		() => {
-			Given(
-				'a config with "api.nodes" set to "http://localhost:4000"',
-				given.aConfigWithAPINodesSetTo,
+			When(
+				'a API Client instance is created',
+				when.aLiskAPIInstanceIsCreated,
 				() => {
-					When(
-						'a API Client instance is created',
-						when.aLiskAPIInstanceIsCreated,
-						() => {
-							Then(
-								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"',
-								then.theLiskAPIInstanceShouldHaveNethashEqualTo,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "http://localhost:4000"',
-								then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
-							);
-						},
+					Then(
+						'the lisk instance should be a lisk-elements API instance',
+						then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"',
+						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "http://localhost:4000"',
+						then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
 					);
 				},
 			);
 		},
 	);
 	Given(
-		'a config with "api.network" set to "test"',
-		given.aConfigWithAPINetworkSetTo,
+		'a config with api.network and api.nodes set to "test" and "http://localhost:4000"',
+		given.aConfigWithAPINetworkAndNodesSetTo,
 		() => {
-			Given(
-				'a config with "api.nodes" set to "http://localhost:4000"',
-				given.aConfigWithAPINodesSetTo,
+			When(
+				'a API Client instance is created',
+				when.aLiskAPIInstanceIsCreated,
 				() => {
-					When(
-						'a API Client instance is created',
-						when.aLiskAPIInstanceIsCreated,
-						() => {
-							Then(
-								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
-								then.theLiskAPIInstanceShouldHaveNethashEqualTo,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "http://localhost:4000"',
-								then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
-							);
-						},
+					Then(
+						'the lisk instance should be a lisk-elements API instance',
+						then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
 					);
-				},
-			);
-			Given(
-				'a config with "api.nodes" set to empty array',
-				given.aConfigWithAPINodesSetTo,
-				() => {
-					When(
-						'a API Client instance is created',
-						when.aLiskAPIInstanceIsCreated,
-						() => {
-							Then(
-								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
-								then.theLiskAPIInstanceShouldHaveNethashEqualTo,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "http://testnet.lisk.io:7000"',
-								then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
-							);
-						},
+					Then(
+						'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
+						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "http://localhost:4000"',
+						then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
 					);
 				},
 			);
 		},
 	);
 	Given(
-		'a config with "api.network" set to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c"',
-		given.aConfigWithAPINetworkSetTo,
+		'a config with api.network and api.nodes set to "test" and empty array',
+		given.aConfigWithAPINetworkAndNodesSetTo,
 		() => {
-			Given(
-				'a config with "api.nodes" set to "http://localhost:4000"',
-				given.aConfigWithAPINodesSetTo,
+			When(
+				'a API Client instance is created',
+				when.aLiskAPIInstanceIsCreated,
 				() => {
-					When(
-						'a API Client instance is created',
-						when.aLiskAPIInstanceIsCreated,
-						() => {
-							Then(
-								'the lisk instance should be a lisk-elements API instance',
-								then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c"',
-								then.theLiskAPIInstanceShouldHaveNethashEqualTo,
-							);
-							Then(
-								'the lisk instance should have nethash equal to "http://localhost:4000"',
-								then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
-							);
-						},
+					Then(
+						'the lisk instance should be a lisk-elements API instance',
+						then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"',
+						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "http://testnet.lisk.io:7000"',
+						then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
+					);
+				},
+			);
+		},
+	);
+	Given(
+		'a config with api.network and api.nodes set to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c" and "http://localhost:4000"',
+		given.aConfigWithAPINetworkAndNodesSetTo,
+		() => {
+			When(
+				'a API Client instance is created',
+				when.aLiskAPIInstanceIsCreated,
+				() => {
+					Then(
+						'the lisk instance should be a lisk-elements API instance',
+						then.theLiskAPIInstanceShouldBeALiskElementsAPIInstance,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c"',
+						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
+					);
+					Then(
+						'the lisk instance should have nethash equal to "http://localhost:4000"',
+						then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
 					);
 				},
 			);

@@ -23,18 +23,6 @@ describe('config util', () => {
 	afterEach(tearDownUtilConfig);
 	Given('a default config', given.aDefaultConfig, () => {
 		Given(
-			'the config directory path is not specified in an environmental variable',
-			given.theConfigDirectoryPathIsNotSpecifiedInAnEnvironmentalVariable,
-			() => {
-				When('the config is loaded', when.theConfigIsLoaded, () => {
-					Then(
-						'the default config should be exported',
-						then.theDefaultConfigShouldBeExported,
-					);
-				});
-			},
-		);
-		Given(
 			`a directory path "${process.env.LISKY_CONFIG_DIR}"`,
 			given.aDirectoryPath,
 			() => {
@@ -47,14 +35,10 @@ describe('config util', () => {
 								'the directory cannot be created',
 								given.theDirectoryCannotBeCreated,
 								() => {
-									When('the config is loaded', when.theConfigIsLoaded, () => {
+									When('getConfig is called', when.getConfigIsCalled, () => {
 										Then(
 											'the user should be warned that the config will not be persisted',
 											then.theUserShouldBeWarnedThatTheConfigWillNotBePersisted,
-										);
-										Then(
-											'the default config should be exported',
-											then.theDefaultConfigShouldBeExported,
 										);
 									});
 								},
@@ -63,14 +47,10 @@ describe('config util', () => {
 								'the config directory can be created',
 								given.theDirectoryCanBeCreated,
 								() => {
-									When('the config is loaded', when.theConfigIsLoaded, () => {
+									When('getConfig is called', when.getConfigIsCalled, () => {
 										Then(
 											'the default config should be written to the config file',
 											then.theDefaultConfigShouldBeWrittenToTheConfigFile,
-										);
-										Then(
-											'the default config should be exported',
-											then.theDefaultConfigShouldBeExported,
 										);
 									});
 								},
@@ -90,16 +70,12 @@ describe('config util', () => {
 										given.theFileCannotBeWritten,
 										() => {
 											When(
-												'the config is loaded',
-												when.theConfigIsLoaded,
+												'getConfig is called',
+												when.getConfigIsCalled,
 												() => {
 													Then(
 														'the user should be warned that the config will not be persisted',
 														then.theUserShouldBeWarnedThatTheConfigWillNotBePersisted,
-													);
-													Then(
-														'the default config should be exported',
-														then.theDefaultConfigShouldBeExported,
 													);
 												},
 											);
@@ -110,16 +86,12 @@ describe('config util', () => {
 										given.theFileCanBeWritten,
 										() => {
 											When(
-												'the config is loaded',
-												when.theConfigIsLoaded,
+												'getConfig is called',
+												when.getConfigIsCalled,
 												() => {
 													Then(
 														'the default config should be written to the config file',
 														then.theDefaultConfigShouldBeWrittenToTheConfigFile,
-													);
-													Then(
-														'the default config should be exported',
-														then.theDefaultConfigShouldBeExported,
 													);
 												},
 											);
@@ -136,8 +108,8 @@ describe('config util', () => {
 										given.thereIsAConfigLockfile,
 										() => {
 											When(
-												'the config is loaded',
-												when.theConfigIsLoaded,
+												'setConfig is called',
+												when.setConfigIsCalled,
 												() => {
 													Then(
 														`the user should be informed that a config lockfile was found at path "${
@@ -148,10 +120,6 @@ describe('config util', () => {
 													Then(
 														'the process should exit with error code "1"',
 														then.theProcessShouldExitWithErrorCode,
-													);
-													Then(
-														'the config file should not be written',
-														then.theConfigFileShouldNotBeWritten,
 													);
 												},
 											);
@@ -168,8 +136,8 @@ describe('config util', () => {
 																given.theFileIsNotValidJSON,
 																() => {
 																	When(
-																		'the config is loaded',
-																		when.theConfigIsLoaded,
+																		'getConfig is called',
+																		when.getConfigIsCalled,
 																		() => {
 																			Then(
 																				'the user should be informed that the config file cannot be read or is not valid JSON',
@@ -196,8 +164,8 @@ describe('config util', () => {
 																		given.theFileCannotBeWritten,
 																		() => {
 																			When(
-																				'the config is loaded',
-																				when.theConfigIsLoaded,
+																				'getConfig is called',
+																				when.getConfigIsCalled,
 																				() => {
 																					Then(
 																						'the config file should not be written',
@@ -205,7 +173,25 @@ describe('config util', () => {
 																					);
 																					Then(
 																						'the user’s config should be exported',
-																						then.theUsersConfigShouldBeExported,
+																						then.theUsersConfigShouldBeReturned,
+																					);
+																				},
+																			);
+																			When(
+																				'setConfig is called',
+																				when.setConfigIsCalled,
+																				() => {
+																					Then(
+																						'it should lock the file',
+																						then.itShouldLockTheFile,
+																					);
+																					Then(
+																						'it should unlock the file',
+																						then.itShouldUnkockTheFile,
+																					);
+																					Then(
+																						'the default config should be written to the config file',
+																						then.theDefaultConfigShouldBeWrittenToTheConfigFile,
 																					);
 																				},
 																			);
@@ -216,8 +202,8 @@ describe('config util', () => {
 																		given.theFileCanBeWritten,
 																		() => {
 																			When(
-																				'the config is loaded',
-																				when.theConfigIsLoaded,
+																				'getConfig is called',
+																				when.getConfigIsCalled,
 																				() => {
 																					Then(
 																						'the config file should not be written',
@@ -225,7 +211,21 @@ describe('config util', () => {
 																					);
 																					Then(
 																						'the user’s config should be exported',
-																						then.theUsersConfigShouldBeExported,
+																						then.theUsersConfigShouldBeReturned,
+																					);
+																				},
+																			);
+																			When(
+																				'setConfig is called',
+																				when.setConfigIsCalled,
+																				() => {
+																					Then(
+																						'it should lock the file',
+																						then.itShouldLockTheFile,
+																					);
+																					Then(
+																						'it should unlock the file',
+																						then.itShouldUnkockTheFile,
 																					);
 																				},
 																			);
@@ -248,8 +248,8 @@ describe('config util', () => {
 												given.theFileCannotBeRead,
 												() => {
 													When(
-														'the config is loaded',
-														when.theConfigIsLoaded,
+														'getConfig is called',
+														when.getConfigIsCalled,
 														() => {
 															Then(
 																'the user should be informed that the config file cannot be read or is not valid JSON',
@@ -265,6 +265,24 @@ describe('config util', () => {
 															);
 														},
 													);
+													When(
+														'setConfig is called',
+														when.setConfigIsCalled,
+														() => {
+															Then(
+																'it should lock the file',
+																then.itShouldLockTheFile,
+															);
+															Then(
+																'it should unlock the file',
+																then.itShouldUnkockTheFile,
+															);
+															Then(
+																'the default config should be written to the config file',
+																then.theDefaultConfigShouldBeWrittenToTheConfigFile,
+															);
+														},
+													);
 												},
 											);
 											Given(
@@ -276,8 +294,8 @@ describe('config util', () => {
 														given.theFileIsNotValidJSON,
 														() => {
 															When(
-																'the config is loaded',
-																when.theConfigIsLoaded,
+																'getConfig is called',
+																when.getConfigIsCalled,
 																() => {
 																	Then(
 																		'the user should be informed that the config file cannot be read or is not valid JSON',
@@ -300,8 +318,8 @@ describe('config util', () => {
 														given.theFileIsMissingRequiredKeys,
 														() => {
 															When(
-																'the config is loaded',
-																when.theConfigIsLoaded,
+																'getConfig is called',
+																when.getConfigIsCalled,
 																() => {
 																	Then(
 																		`the user should be informed that the config file at "${
@@ -326,16 +344,16 @@ describe('config util', () => {
 														given.theFileIsValid,
 														() => {
 															When(
-																'the config is loaded',
-																when.theConfigIsLoaded,
+																'getConfig is called',
+																when.getConfigIsCalled,
 																() => {
 																	Then(
 																		'the config file should not be written',
 																		then.theConfigFileShouldNotBeWritten,
 																	);
 																	Then(
-																		'the user’s config should be exported',
-																		then.theUsersConfigShouldBeExported,
+																		'the user’s config should be returned',
+																		then.theUsersConfigShouldBeReturned,
 																	);
 																},
 															);

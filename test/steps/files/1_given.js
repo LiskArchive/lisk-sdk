@@ -30,10 +30,6 @@ export function aFilePath() {
 
 export function theConfigFileCanBeWritten() {}
 
-export function theConfigFileCannotBeWritten() {
-	fsUtils.writeJSONSync.throws('EACCES: permission denied');
-}
-
 export function thereIsAFileWithUtf8EncodedJSONContentsAtPath() {
 	const fileContents = '{\n\t"lisk": "js",\n\t"version": 1\n}';
 	const parsedFileContents = {

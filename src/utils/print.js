@@ -32,7 +32,7 @@ const removeANSI = result =>
 
 const print = (vorpal, options = {}) =>
 	function printResult(result) {
-    const config = getConfig();
+		const config = getConfig();
 		const useJSONOutput = shouldUseJSONOutput(config, options);
 		const prettifyOutput = shouldUsePrettyOutput(config, options);
 		const resultToPrint = useJSONOutput ? removeANSI(result) : result;

@@ -44,25 +44,23 @@ const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PR
 
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = (config, newValue) => (
-	obj,
-	pathComponent,
-	i,
-	dotNotationArray,
-) => {
-	if (i === dotNotationArray.length - 1) {
-		if (obj === undefined) {
-			throw new ValidationError(
-				`Config file could not be written: property '${dotNotationArray.join(
-					'.',
-				)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath} or remove it (a fresh default configuration file will be created when you run Lisky again).`,
-			);
+const setNestedConfigProperty = (config, path, value) => {
+	const dotNotationArray = path.split('.');
+	dotNotationArray.reduce((obj, pathComponent, i) => {
+		if (i === dotNotationArray.length - 1) {
+			if (obj === undefined) {
+				throw new ValidationError(
+					`Config file could not be written: property '${dotNotationArray.join(
+						'.',
+					)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath} or remove it (a fresh default configuration file will be created when you run Lisky again).`,
+				);
+			}
+			// eslint-disable-next-line no-param-reassign
+			obj[pathComponent] = value;
+			return config;
 		}
-		// eslint-disable-next-line no-param-reassign
-		obj[pathComponent] = newValue;
-    return config;
-	}
-	return obj[pathComponent];
+		return obj[pathComponent];
+	}, config);
 };
 
 const attemptWriteToFile = (newConfig, value, dotNotation) => {
@@ -89,10 +87,9 @@ const attemptWriteToFile = (newConfig, value, dotNotation) => {
 };
 
 const setValue = (dotNotation, value) => {
-  const config = getConfig();
-	const dotNotationArray = dotNotation.split('.');
-	const newConfig = dotNotationArray.reduce(setNestedConfigProperty(config, value), config);
-	return attemptWriteToFile(newConfig, value, dotNotation);
+	const config = getConfig();
+	setNestedConfigProperty(config, dotNotation, value);
+	return attemptWriteToFile(config, value, dotNotation);
 };
 
 const setBoolean = (dotNotation, value) => {
