@@ -31,6 +31,7 @@ const getFileDoesNotExistError = path => `File at ${path} does not exist.`;
 const getFileUnreadableError = path => `File at ${path} could not be read.`;
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
+const DEFAULT_TIMEOUT = 100;
 
 export const splitSource = source => {
 	const delimiter = ':';
@@ -41,52 +42,64 @@ export const splitSource = source => {
 	};
 };
 
+const timeoutPromise = ms =>
+	new Promise((resolve, reject) => {
+		const id = setTimeout(() => {
+			clearTimeout(id);
+			reject(new Error(`Timed out with ${ms} ms`));
+		}, ms);
+	});
+
 export const getStdIn = ({
 	passphraseIsRequired,
 	secondPassphraseIsRequired,
 	passwordIsRequired,
 	dataIsRequired,
 } = {}) =>
-	new Promise(resolve => {
-		if (
-			!(
-				passphraseIsRequired ||
-				secondPassphraseIsRequired ||
-				passwordIsRequired ||
-				dataIsRequired
-			)
-		) {
-			return resolve({});
-		}
+	Promise.race([
+		new Promise(resolve => {
+			if (
+				!(
+					passphraseIsRequired ||
+					secondPassphraseIsRequired ||
+					passwordIsRequired ||
+					dataIsRequired
+				)
+			) {
+				return resolve({});
+			}
 
-		const lines = [];
-		const rl = readline.createInterface({ input: process.stdin });
+			const lines = [];
+			const rl = readline.createInterface({ input: process.stdin });
 
-		const handleClose = () => {
-			const passphraseIndex = 0;
-			const passphrase = passphraseIsRequired ? lines[passphraseIndex] : null;
+			const handleClose = () => {
+				const passphraseIndex = 0;
+				const passphrase = passphraseIsRequired ? lines[passphraseIndex] : null;
 
-			const secondPassphraseIndex = passphraseIndex + (passphrase !== null);
-			const secondPassphrase = secondPassphraseIsRequired
-				? lines[secondPassphraseIndex]
-				: null;
+				const secondPassphraseIndex = passphraseIndex + (passphrase !== null);
+				const secondPassphrase = secondPassphraseIsRequired
+					? lines[secondPassphraseIndex]
+					: null;
 
-			const passwordIndex = secondPassphraseIndex + (secondPassphrase !== null);
-			const password = passwordIsRequired ? lines[passwordIndex] : null;
+				const passwordIndex =
+					secondPassphraseIndex + (secondPassphrase !== null);
+				const password = passwordIsRequired ? lines[passwordIndex] : null;
 
-			const dataStartIndex = passwordIndex + (password !== null);
-			const dataLines = lines.slice(dataStartIndex);
+				const dataStartIndex = passwordIndex + (password !== null);
+				const dataLines = lines.slice(dataStartIndex);
 
-			return resolve({
-				passphrase,
-				secondPassphrase,
-				password,
-				data: dataLines.length ? dataLines.join('\n') : null,
-			});
-		};
+				return resolve({
+					passphrase,
+					secondPassphrase,
+					password,
+					data: dataLines.length ? dataLines.join('\n') : null,
+				});
+			};
 
-		return rl.on('line', line => lines.push(line)).on('close', handleClose);
-	});
+			return rl.on('line', line => lines.push(line)).on('close', handleClose);
+		}),
+		timeoutPromise(DEFAULT_TIMEOUT),
+	]);
 
 export const createPromptOptions = message => ({
 	type: 'password',
