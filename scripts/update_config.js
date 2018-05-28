@@ -29,7 +29,11 @@ program
 		oldConfigPath = oldConfig;
 		newConfigPath = newConfig;
 	})
-	.option('-p, --password <string>', 'Password for secret encryption', '')
+	.option(
+		'-p, --password <string>',
+		"Password for secret encryption. This feature is only for testing purpose, don't use is it production.",
+		''
+	)
 	.parse(process.argv);
 
 if (!oldConfigPath && !newConfigPath) {
@@ -108,7 +112,7 @@ function migrateSecrets(password) {
 
 	console.info('\nMigrating your secrets...');
 	oldConfig.forging.defaultPassword = password;
-	oldConfig.forging.secret.map(secret => {
+	oldConfig.forging.secret.forEach(secret => {
 		console.info('.......');
 		oldConfig.forging.delegates.push({
 			encryptedPassphrase: lisk.default.cryptography.stringifyEncryptedPassphrase(
