@@ -17,14 +17,9 @@ pipeline {
 	stages {
 		stage("Prepare workspace") {
 			steps {
-				library identifier: 'lisk-jenkins@nh-lisk-build', retriever: modernSCM(
+				library identifier: 'lisk-jenkins@master', retriever: modernSCM(
   					[$class: 'GitSCMSource',
    					 remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
-				deleteDir()
-				sh """
-				dropdb lisk_test || true
-				createdb lisk_test
-				"""
 			}
 		}
 		stage("Create binary releases") {
@@ -32,7 +27,7 @@ pipeline {
 				stage('Create source release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'dev')
+							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'dev', useTestConfig: true)
 							env.SRC_IS_LATEST = release.latestVersion
 							env.SRC_VERSION =  release.version
 							env.SRC_RELEASE =  release.file
@@ -43,7 +38,7 @@ pipeline {
 				stage('Create destination release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_TO, network: 'dev')
+							def release = liskBuild(branch: params.MIGRATE_TO, network: 'dev', useTestConfig: true)
 							env.DEST_IS_LATEST = release.latestVersion
 							env.DEST_VERSION =  release.version
 							env.DEST_RELEASE =  release.file
@@ -55,28 +50,37 @@ pipeline {
 
 		stage("Install source release") {
 			steps {
-				getInstallScript(env.SRC_IS_LATEST)
 				installLisk(env.SRC_RELEASE, 'dev')
 			}
 		}
 	}
-}
-
-
-def getInstallScript(latestVersion) {
-	if(latestVersion) {
-		sh """
-		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/installLisk.sh
-		"""
-	} else {
-		sh """
-		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/master/downloaded/installLisk.sh
-		"""
+	post {
+		always {
+			dir("lisk-home/lisk-dev") {
+				sh """
+				bash lisk.sh stop
+				"""
+			}
+			cleanWs()
+		}
 	}
 }
 
 def installLisk(buildFile, network) {
-	sh """
-	bash installLisk.sh install -r ${network} -f ${buildFile}
-	"""
+	dir("lisk-home") {
+		sh """
+		cp ${buildFile} .
+		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/installLisk.sh
+		bash installLisk.sh install -r ${network} -f lisk-Linux-x86_64.tar.gz
+		"""
+	}
+}
+
+def getBlockHeight() {
+	dir("lisk-home/lisk-dev") {
+		sh """
+		bash lisk.sh status | tail -1 | awk '{print $4}' > .lisk-block-height
+		"""
+	}
+	return readFile("lisk-home/lisk-dev/.lisk-block-height").trim()
 }
