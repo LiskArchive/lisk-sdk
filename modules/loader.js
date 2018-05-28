@@ -660,9 +660,8 @@ __private.loadBlocksFromNetwork = function(cb) {
 		async.whilst(
 			() => !loaded && errorCount < 5,
 			next => {
-				const peer =
-					network.peers[Math.floor(Math.random() * network.peers.length)];
 				let lastBlock = modules.blocks.lastBlock.get();
+				const peer = getGoodPeer(lastBlock.height, network.peers);
 
 				function loadBlocks() {
 					__private.blocksToSync = peer.height;
@@ -677,12 +676,28 @@ __private.loadBlocksFromNetwork = function(cb) {
 								);
 								errorCount += 1;
 							}
+							// 'loaded' is true when no blocks were applied - the chain of Peer is the same
 							loaded = lastValidBlock.id === lastBlock.id;
 							lastBlock = null;
 							lastValidBlock = null;
 							next();
 						}
 					);
+				}
+
+				/**
+				 * Selects good (non-lower among the findGoodPeers results) peer to sync with.
+				 *
+				 * @private
+				 * @param {number} height
+				 * @param {[Peer]} peers
+				 * returns {Peer}
+				 */
+				function getGoodPeer(height, peers) {
+					const nonLowerPeers = peers.filter(peer => peer.height >= height);
+					return nonLowerPeers[
+						Math.floor(Math.random() * nonLowerPeers.length)
+					];
 				}
 
 				/**
