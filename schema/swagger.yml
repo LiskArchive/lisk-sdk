@@ -2941,8 +2941,6 @@ definitions:
             maxLength: 16
       socketId:
         type: string
-      workerId:
-        type: number
 
   WSSignaturesList:
     x-private: true
