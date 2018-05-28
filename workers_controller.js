@@ -194,7 +194,6 @@ SCWorker.create({
 						return;
 					}
 					var headers = extractHeaders(socket.request);
-					scope.slaveWAMPServer.onSocketDisconnect(socket);
 					updatePeerConnection(
 						Rules.UPDATES.REMOVE,
 						socket,

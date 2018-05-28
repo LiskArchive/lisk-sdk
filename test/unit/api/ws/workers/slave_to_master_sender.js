@@ -99,9 +99,9 @@ describe('SlaveToMasterSender', () => {
 				done();
 			});
 
-			it('nonce as a third argument', done => {
-				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).equal(
-					validNonce
+			it('function as a third argument', done => {
+				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).to.be.a(
+					'function'
 				);
 				done();
 			});
@@ -124,7 +124,7 @@ describe('SlaveToMasterSender', () => {
 			slaveWAMPServerMock.sendToMaster.restore();
 			slaveWAMPServerMock.sendToMaster = sinonSandbox
 				.stub(slaveWAMPServerMock, 'sendToMaster')
-				.callsArgWith(3, 'On master error');
+				.callsArgWith(2, 'On master error');
 			slaveToMasterSender.getPeer(validNonce, err => {
 				expect(err).to.equal('On master error');
 				done();
@@ -135,7 +135,7 @@ describe('SlaveToMasterSender', () => {
 			slaveWAMPServerMock.sendToMaster.restore();
 			slaveWAMPServerMock.sendToMaster = sinonSandbox
 				.stub(slaveWAMPServerMock, 'sendToMaster')
-				.callsArgWith(3, null, { peers: [] });
+				.callsArgWith(2, null, { peers: [] });
 			slaveToMasterSender.getPeer(validNonce, (err, res) => {
 				expect(res).to.be.false;
 				done();
@@ -146,7 +146,7 @@ describe('SlaveToMasterSender', () => {
 			slaveWAMPServerMock.sendToMaster.restore();
 			slaveWAMPServerMock.sendToMaster = sinonSandbox
 				.stub(slaveWAMPServerMock, 'sendToMaster')
-				.callsArgWith(3, null, { peers: [1] });
+				.callsArgWith(2, null, { peers: [1] });
 			slaveToMasterSender.getPeer(validNonce, (err, res) => {
 				expect(res).to.be.true;
 				done();
@@ -174,8 +174,8 @@ describe('SlaveToMasterSender', () => {
 			});
 
 			it('nonce as a third argument', done => {
-				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).equal(
-					validNonce
+				expect(slaveWAMPServerMock.sendToMaster.firstCall.args[2]).to.be.a(
+					'function'
 				);
 				done();
 			});

@@ -129,9 +129,11 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).equal(
+							"BadConnectionError: Event 'rpc-request' was aborted due to a bad connection"
+						);
 						done();
 					});
 				});
@@ -162,9 +164,11 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).equal(
+							"BadConnectionError: Event 'rpc-request' was aborted due to a bad connection"
+						);
 						done();
 					});
 				});
@@ -178,9 +182,11 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).equal(
+							"BadConnectionError: Event 'rpc-request' was aborted due to a bad connection"
+						);
 						done();
 					});
 				});
@@ -194,9 +200,11 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).equal(
+							"BadConnectionError: Event 'rpc-request' was aborted due to a bad connection"
+						);
 						done();
 					});
 				});
@@ -210,9 +218,11 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).equal(
+							"BadConnectionError: Event 'rpc-request' was aborted due to a bad connection"
+						);
 						done();
 					});
 				});
@@ -242,9 +252,11 @@ describe('RPC Client', () => {
 					done();
 				});
 
-				it('should call rpc.status with err = "RPC response timeout exceeded"', done => {
+				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
 					validClientRPCStub.status(err => {
-						expect(err).equal('RPC response timeout exceeded');
+						expect(err).equal(
+							"BadConnectionError: Event 'rpc-request' was aborted due to a bad connection"
+						);
 						done();
 					});
 				});
