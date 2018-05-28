@@ -147,7 +147,10 @@ export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNest
 		const strValue =
 			typeof value === 'object'
 				? Object.entries(value)
-						.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue)}`)
+						.map(
+							([vKey, vValue]) =>
+								`${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
+						)
 						.join('\n')
 				: value;
 		expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
@@ -190,7 +193,9 @@ export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedNest
 				strValue = values[key].join('\n');
 			} else if (typeof values[key] === 'object') {
 				strValue = Object.entries(values[key])
-					.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue)}`)
+					.map(
+						([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
+					)
 					.join('\n');
 			}
 			expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).eql({

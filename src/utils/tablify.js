@@ -38,7 +38,7 @@ const getKeyValueObject = object => {
 		return object;
 	}
 	return Object.entries(object)
-		.map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+		.map(([key, value]) => `${key}: ${JSON.stringify(value, null, ' ')}`)
 		.join('\n');
 };
 
