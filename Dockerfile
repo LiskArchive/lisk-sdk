@@ -1,8 +1,10 @@
 FROM node:6 AS builder
 
+ENV ENV_NODE=production
+
 RUN groupadd --gid 1100 lisk && \
     useradd --create-home --home-dir /home/lisk --shell /bin/bash --uid 1100 --gid 1100 lisk
-# As of Mai 2018 cloud.docker.com runs docker 17.06.1-ce
+# As of May 2018 cloud.docker.com runs docker 17.06.1-ce
 # however version 17.12 is required to use the chown flag
 COPY . /home/lisk/lisk/
 RUN chown lisk:lisk --recursive /home/lisk/lisk
@@ -11,13 +13,13 @@ USER lisk
 WORKDIR /home/lisk/lisk
 
 RUN npm install
-RUN ./node_modules/.bin/grunt release
 
 
 FROM node:6
 
 ENV CONFD_VERSION 0.16.0
 ENV CONFD_SHA256 255d2559f3824dd64df059bdc533fd6b697c070db603c76aaf8d1d5e6b0cc334
+ENV ENV_NODE=production
 
 RUN groupadd --gid 1100 lisk && \
     useradd --create-home --home-dir /home/lisk --shell /bin/bash --uid 1100 --gid 1100 lisk
