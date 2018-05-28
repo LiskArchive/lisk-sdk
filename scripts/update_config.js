@@ -11,6 +11,9 @@
  * LICENSE file.
  *
  * Removal or modification of this copyright notice is prohibited.
+ *
+ * Usage Example:
+ * 		node scripts/update_config.js ../lisk-backup/config.json ./config.json
  */
 
 const fs = require('fs');
