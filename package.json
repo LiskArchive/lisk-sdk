@@ -59,7 +59,7 @@
 		"lockfile": "=1.0.3",
 		"semver": "=5.5.0",
 		"strip-ansi": "=4.0.0",
-		"vorpal": "LiskHQ/vorpal#v1.0.0-lisk"
+		"vorpal": "LiskHQ/vorpal#v1.0.1-lisk"
 	},
 	"devDependencies": {
 		"babel-cli": "=6.26.0",
