@@ -16,7 +16,8 @@
 import {
 	setUpUtilCreateCommand,
 	setUpUtilWrapActionCreator,
-	setUpUtilHelpers,
+	setUpUtilHelpersJsonOutput,
+	setUpUtilHelpersPrettyOutput,
 } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
@@ -562,7 +563,7 @@ describe('utils helpers', () => {
 		);
 	});
 	describe('#shouldUseJSONOutput', () => {
-		beforeEach(setUpUtilHelpers);
+		beforeEach(setUpUtilHelpersJsonOutput);
 		When(
 			'shouldUseJSONOutput is called with the config and the options',
 			when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
@@ -698,7 +699,7 @@ describe('utils helpers', () => {
 		});
 	});
 	describe('#shouldUsePrettyOutput', () => {
-		beforeEach(setUpUtilHelpers);
+		beforeEach(setUpUtilHelpersPrettyOutput);
 		Given(
 			'a config with pretty set to true',
 			given.aConfigWithPrettySetTo,

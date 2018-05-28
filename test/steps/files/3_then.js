@@ -76,6 +76,6 @@ export function itShouldLockTheFile() {
 	return expect(lockfile.lockSync).to.be.called;
 }
 
-export function itShouldUnkockTheFile() {
+export function itShouldUnlockTheFile() {
 	return expect(lockfile.unlockSync).to.be.called;
 }

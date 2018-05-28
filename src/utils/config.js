@@ -87,9 +87,7 @@ const attemptToValidateConfig = (config, path) => {
 };
 
 export const setConfig = newConfig => {
-	if (!process.env.EXEC_FILE_CHILD) {
-		checkLockfile(lockfilePath);
-	}
+	checkLockfile(lockfilePath);
 	lockfile.lockSync(lockfilePath);
 	try {
 		writeJSONSync(configFilePath, newConfig);

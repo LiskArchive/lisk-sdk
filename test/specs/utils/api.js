@@ -21,8 +21,8 @@ import * as then from '../../steps/3_then';
 describe('API util', () => {
 	beforeEach(setUpUtilAPI);
 	Given(
-		'a config with api.network and api.nodes set to "main" and "http://localhost:4000"',
-		given.aConfigWithAPINetworkAndNodesSetTo,
+		'a config with api.network set to "main" and api.nodes set to "http://localhost:4000"',
+		given.aConfigWithAPINetworkAndAPINodesSetTo,
 		() => {
 			When(
 				'a API Client instance is created',
@@ -45,8 +45,8 @@ describe('API util', () => {
 		},
 	);
 	Given(
-		'a config with api.network and api.nodes set to "test" and "http://localhost:4000"',
-		given.aConfigWithAPINetworkAndNodesSetTo,
+		'a config with api.network set to "test" and api.nodes set to "http://localhost:4000"',
+		given.aConfigWithAPINetworkAndAPINodesSetTo,
 		() => {
 			When(
 				'a API Client instance is created',
@@ -69,8 +69,8 @@ describe('API util', () => {
 		},
 	);
 	Given(
-		'a config with api.network and api.nodes set to "test" and empty array',
-		given.aConfigWithAPINetworkAndNodesSetTo,
+		'a config with api.network set to "test" and api.nodes set to empty array',
+		given.aConfigWithAPINetworkAndAPINodesSetTo,
 		() => {
 			When(
 				'a API Client instance is created',
@@ -93,8 +93,8 @@ describe('API util', () => {
 		},
 	);
 	Given(
-		'a config with api.network and api.nodes set to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c" and "http://localhost:4000"',
-		given.aConfigWithAPINetworkAndNodesSetTo,
+		'a config with api.network set to "ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c" and api.nodes set to "http://localhost:4000"',
+		given.aConfigWithAPINetworkAndAPINodesSetTo,
 		() => {
 			When(
 				'a API Client instance is created',

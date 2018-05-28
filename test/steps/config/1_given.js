@@ -57,7 +57,7 @@ export function aConfigWithJsonSetTo() {
 	this.test.ctx.config = config;
 }
 
-export function aConfigWithAPINetworkAndNodesSetTo() {
+export function aConfigWithAPINetworkAndAPINodesSetTo() {
 	const [network, node] = getQuotedStrings(this.test.parent.title);
 	const nodes = node ? [node] : [];
 	const config = {
@@ -92,7 +92,3 @@ export function thereIsAConfigLockfile() {
 }
 
 export function thereIsNoConfigLockfile() {}
-
-export function theConfigDirectoryPathIsNotSpecifiedInAnEnvironmentalVariable() {
-	delete process.env.LISKY_CONFIG_DIR;
-}
