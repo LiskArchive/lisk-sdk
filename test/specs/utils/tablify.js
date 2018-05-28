@@ -33,40 +33,32 @@ describe('tablify util', () => {
 	Given('a non-empty object', given.aNonEmptyObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'the returned table should have a head with the object’s keys',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectKeys,
-			);
-			Then(
-				'the returned table should have a row with the object’s values',
-				then.theReturnedTableShouldHaveARowWithTheObjectValues,
+				'the returned table should have a row with the object’s key values',
+				then.theReturnedTableShouldHaveARowWithTheObjectKeyValues,
 			);
 		});
 	});
 	Given('a nested object', given.aNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'the returned table should have a head with the object’s nested keys',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys,
-			);
-			Then(
-				'the returned table should have a row with the object’s nested values',
-				then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues,
+				'the returned table should have a row with the object key and stringified nested values',
+				then.theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues,
 			);
 		});
 	});
 	Given('a deeply nested object', given.aDeeplyNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'it should throw print error "Output cannot be displayed in table format: Maximum object depth of 3 was exceeded. Consider using JSON output format."',
-				then.itShouldThrowPrintError,
+				'the returned table should have a row with the object key and stringified nested values',
+				then.theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues,
 			);
 		});
 	});
 	Given('a cyclic object', given.aCyclicObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
-				'it should throw print error "Output cannot be displayed in table format: Maximum object depth of 3 was exceeded. Consider using JSON output format."',
-				then.itShouldThrowPrintError,
+				'it should throw type error "Converting circular structure to JSON"',
+				then.itShouldThrowTypeError,
 			);
 		});
 	});
@@ -76,12 +68,12 @@ describe('tablify util', () => {
 		() => {
 			When('the array is tablified', when.theArrayIsTablified, () => {
 				Then(
-					'the returned table should have a head with the objects’ keys',
-					then.theReturnedTableShouldHaveAHeadWithTheObjectsKeys,
+					'the returned table should have head rows',
+					then.theReturnedTableShouldHaveHeaderRows,
 				);
 				Then(
-					'the returned table should have a row for each object with the object’s values',
-					then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues,
+					'the returned table should have rows with the object key and stringified values',
+					then.theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues,
 				);
 			});
 		},
@@ -92,12 +84,12 @@ describe('tablify util', () => {
 		() => {
 			When('the array is tablified', when.theArrayIsTablified, () => {
 				Then(
-					'the returned table should have a head with every unique key',
-					then.theReturnedTableShouldHaveAHeadWithEveryUniqueKey,
+					'the returned table should have head rows',
+					then.theReturnedTableShouldHaveHeaderRows,
 				);
 				Then(
-					'the returned table should have a row for each object with the object’s values',
-					then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues,
+					'the returned table should have rows with the object key and stringified values',
+					then.theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues,
 				);
 			});
 		},
@@ -108,12 +100,12 @@ describe('tablify util', () => {
 		() => {
 			When('the array is tablified', when.theArrayIsTablified, () => {
 				Then(
-					'the returned table should have a head with the objects’ nested keys',
-					then.theReturnedTableShouldHaveAHeadWithTheObjectsNestedKeys,
+					'the returned table should have head rows',
+					then.theReturnedTableShouldHaveHeaderRows,
 				);
 				Then(
-					'the returned table should have a row for each object with the object’s values',
-					then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectNestedValues,
+					'the returned table should have rows with the object key and stringified values',
+					then.theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedNestedValues,
 				);
 			});
 		},

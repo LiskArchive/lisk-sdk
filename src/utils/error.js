@@ -30,11 +30,3 @@ export class ValidationError extends Error {
 		this.name = 'ValidationError';
 	}
 }
-
-export class PrintError extends Error {
-	constructor(message) {
-		super(message);
-		this.message = chalk.red(message);
-		this.name = 'PrintError';
-	}
-}

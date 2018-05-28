@@ -134,12 +134,33 @@ export function theReturnedTableShouldHaveNoRows() {
 	return expect(returnValue).to.have.length(0);
 }
 
-export function theReturnedTableShouldHaveAHeadWithTheObjectKeys() {
+export function theReturnedTableShouldHaveARowWithTheObjectKeyValues() {
 	const { returnValue, testObject } = this.test.ctx;
-	const keys = Object.keys(testObject);
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(keys);
+	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
+		expect({ [key]: value }).to.eql(returnValue[arrayKey]);
+	});
+}
+
+export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues() {
+	const { returnValue, testObject } = this.test.ctx;
+	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
+		const strValue =
+			typeof value === 'object'
+				? Object.entries(value)
+						.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue)}`)
+						.join('\n')
+				: value;
+		expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
+	});
+}
+
+export function theReturnedTableShouldHaveHeaderRows() {
+	const { returnValue, testArray } = this.test.ctx;
+	testArray.forEach((value, key) => {
+		expect(
+			returnValue[key * (Object.keys(value).length + 1)][0],
+		).to.have.property('colSpan');
+	});
 }
 
 export function theReturnedTableShouldHaveARowWithTheObjectValues() {
@@ -148,76 +169,33 @@ export function theReturnedTableShouldHaveARowWithTheObjectValues() {
 	return expect(returnValue[0]).to.eql(values);
 }
 
-export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
-	const { returnValue } = this.test.ctx;
-	const keys = [
-		'root',
-		'nested.object',
-		'nested.testing',
-		'nested.nullValue',
-		'nested.keys.more',
-	];
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
-	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null, 'publicKey1\npublicKey2'];
-	return expect(returnValue[0]).to.eql(values);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
+export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues() {
 	const { returnValue, testArray } = this.test.ctx;
-	const keys = Object.keys(testArray[0]);
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectsNestedKeys() {
-	const { returnValue, testArrayKeysResult } = this.test.ctx;
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(testArrayKeysResult);
-}
-
-export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
-	const { returnValue, testArray } = this.test.ctx;
-	return testArray.forEach((testObject, i) => {
-		const values = Object.values(testObject);
-		return expect(returnValue[i]).to.eql(values);
+	return testArray.forEach((values, i) => {
+		Object.keys(values).forEach((key, keyIndex) => {
+			expect(returnValue[i * testArray.length + 1 + keyIndex]).eql({
+				[key]: values[key],
+			});
+		});
 	});
 }
 
-export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectNestedValues() {
-	const { returnValue, testArray, testArrayValuesResult } = this.test.ctx;
-	return testArray.forEach((testObject, i) => {
-		return expect(returnValue[i]).to.eql(testArrayValuesResult[i]);
-	});
-}
-
-export function theReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
+export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedNestedValues() {
 	const { returnValue, testArray } = this.test.ctx;
-	const uniqueKeys = testArray.reduce((keys, testObject) => {
-		const newKeys = Object.keys(testObject).filter(key => !keys.includes(key));
-		return [...keys, ...newKeys];
-	}, []);
-	return expect(returnValue.options)
-		.to.have.property('head')
-		.eql(uniqueKeys);
-}
-
-export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
-	const { returnValue, testArray } = this.test.ctx;
-	return testArray.forEach((testObject, i) => {
-		const row = returnValue[i];
-		const values = Object.values(testObject);
-
-		values.forEach(value => expect(row).to.include(value));
-		return row
-			.filter(value => !values.includes(value))
-			.forEach(value => expect(value).to.be.undefined);
+	return testArray.forEach((values, i) => {
+		const innerObjectKeys = Object.keys(values);
+		innerObjectKeys.forEach((key, keyIndex) => {
+			let strValue = values[key];
+			if (Array.isArray(values[key])) {
+				strValue = values[key].join('\n');
+			} else if (typeof values[key] === 'object') {
+				strValue = Object.entries(values[key])
+					.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue)}`)
+					.join('\n');
+			}
+			expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).eql({
+				[key]: strValue,
+			});
+		});
 	});
 }
