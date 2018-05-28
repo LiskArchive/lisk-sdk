@@ -27,10 +27,10 @@ pipeline {
 				stage('Create source release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'dev', useTestConfig: true)
+							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'test', useTestConfig: true)
 							env.SRC_IS_LATEST = release.latestVersion
 							env.SRC_VERSION =  release.version
-							env.SRC_RELEASE =  release.file
+							env.SRC_RELEASE =  release.nonVersionedFile
 						}
 
 					}
@@ -38,10 +38,10 @@ pipeline {
 				stage('Create destination release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_TO, network: 'dev', useTestConfig: true)
+							def release = liskBuild(branch: params.MIGRATE_TO, network: 'test', useTestConfig: true)
 							env.DEST_IS_LATEST = release.latestVersion
 							env.DEST_VERSION =  release.version
-							env.DEST_RELEASE =  release.file
+							env.DEST_RELEASE =  release.nonVersionedFile
 						}
 					}
 				}
@@ -50,13 +50,36 @@ pipeline {
 
 		stage("Install source release") {
 			steps {
-				installLisk(env.SRC_RELEASE, 'dev')
+				installLisk(env.SRC_RELEASE, 'test')
+			}
+		}
+
+		stage("Migrate to destination release") {
+			steps {
+				script {
+					env.TARGET_BLOCK_HEIGHT = getBlockHeight() + 5
+				}
+				dir("lisk-home") {
+					sh """
+					cp ${env.DEST_RELEASE} .
+					wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/lisk_bridge.sh
+					bash lisk_bridge.sh -f `basename ${env.DEST_RELEASE}` -n test -h ${env.TARGET_BLOCK_HEIGHT} -s ${WORKSPACE}/lisk-home/lisk-test
+					"""
+				}
+			}
+		}
+
+		stage("Verify migration") {
+			steps {
+				script {
+					waitForBlockHeight(env.TARGET_BLOCK_HEIGHT.toInteger() + 5)
+				}
 			}
 		}
 	}
 	post {
 		always {
-			dir("lisk-home/lisk-dev") {
+			dir("lisk-home/lisk-test") {
 				sh """
 				bash lisk.sh stop
 				"""
@@ -71,16 +94,37 @@ def installLisk(buildFile, network) {
 		sh """
 		cp ${buildFile} .
 		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/installLisk.sh
-		bash installLisk.sh install -r ${network} -f lisk-Linux-x86_64.tar.gz
+		bash installLisk.sh install -r ${network} -f `basename ${buildFile}`
 		"""
 	}
 }
 
 def getBlockHeight() {
-	dir("lisk-home/lisk-dev") {
+	dir("lisk-home/lisk-test") {
 		sh """
-		bash lisk.sh status | tail -1 | awk '{print $4}' > .lisk-block-height
+		bash lisk.sh status | tail -1 | awk '{print \$4}' > .lisk-block-height
 		"""
 	}
-	return readFile("lisk-home/lisk-dev/.lisk-block-height").trim()
+	return readFile("lisk-home/lisk-test/.lisk-block-height").trim().toInteger()
+}
+
+def waitForBlockHeight(targetBlockHeight, waitAttempts=0, previousHeight=0) {
+	def height = getBlockHeight()
+	echo "Height: ${height}"
+
+	if(previousHeight != height) {
+		previousHeight = height
+		waitAttempts = 0
+	} else if (waitAttempts < 3) {
+		waitAttempts = waitAttempts + 1
+	} else {
+		error("Block height is not increasing from ${previousHeight} in ${waitAttempts} attempts.")
+	}
+
+	if(height < targetBlockHeight) {
+		sleep 10
+		waitForBlockHeight(targetBlockHeight, waitAttempts, previousHeight)
+	} else {
+		echo "Block height reaches to target."
+	}
 }
