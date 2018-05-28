@@ -653,15 +653,17 @@ __private.loadBlocksFromNetwork = function(cb) {
 	let errorCount = 0;
 	let loaded = false;
 
-	self.getNetwork((err, network) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		async.whilst(
-			() => !loaded && errorCount < 5,
-			next => {
+	async.whilst(
+		() => !loaded && errorCount < 5,
+		next => {
+			self.getNetwork((err, network) => {
+				if (err) {
+					errorCount += 1;
+					return next();
+				}
+				const peer =
+					network.peers[Math.floor(Math.random() * network.peers.length)];
 				let lastBlock = modules.blocks.lastBlock.get();
-				const peer = getGoodPeer(lastBlock.height, network.peers);
 
 				function loadBlocks() {
 					__private.blocksToSync = peer.height;
@@ -676,28 +678,12 @@ __private.loadBlocksFromNetwork = function(cb) {
 								);
 								errorCount += 1;
 							}
-							// 'loaded' is true when no blocks were applied - the chain of Peer is the same
 							loaded = lastValidBlock.id === lastBlock.id;
 							lastBlock = null;
 							lastValidBlock = null;
 							next();
 						}
 					);
-				}
-
-				/**
-				 * Selects good (non-lower among the findGoodPeers results) peer to sync with.
-				 *
-				 * @private
-				 * @param {number} height
-				 * @param {[Peer]} peers
-				 * returns {Peer}
-				 */
-				function getGoodPeer(height, peers) {
-					const nonLowerPeers = peers.filter(peer => peer.height >= height);
-					return nonLowerPeers[
-						Math.floor(Math.random() * nonLowerPeers.length)
-					];
 				}
 
 				/**
@@ -734,22 +720,21 @@ __private.loadBlocksFromNetwork = function(cb) {
 						}
 					);
 				}
-
 				if (lastBlock.height === 1) {
 					loadBlocks();
 				} else {
 					getCommonBlock(loadBlocks);
 				}
-			},
-			err => {
-				if (err) {
-					library.logger.error('Failed to load blocks from network', err);
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb);
+			});
+		},
+		err => {
+			if (err) {
+				library.logger.error('Failed to load blocks from network', err);
+				return setImmediate(cb, err);
 			}
-		);
-	});
+			return setImmediate(cb);
+		}
+	);
 };
 
 /**
