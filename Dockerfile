@@ -2,6 +2,8 @@ FROM node:6 AS builder
 
 RUN groupadd --gid 1100 lisk && \
     useradd --create-home --home-dir /home/lisk --shell /bin/bash --uid 1100 --gid 1100 lisk
+# As of Mai 2018 cloud.docker.com runs docker 17.06.1-ce
+# however version 17.12 is required to use the chown flag
 COPY . /home/lisk/lisk/
 RUN chown lisk:lisk --recursive /home/lisk/lisk
 
