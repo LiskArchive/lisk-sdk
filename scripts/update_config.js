@@ -70,9 +70,10 @@ delete oldConfig.loading.verifyOnLoading;
 delete oldConfig.dapp;
 
 // Peers migration
-oldConfig.peers.list.map(p => {
+oldConfig.peers.list = oldConfig.peers.list.map(p => {
 	p.wsPort = p.port;
 	delete p.port;
+	return p;
 });
 
 if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
