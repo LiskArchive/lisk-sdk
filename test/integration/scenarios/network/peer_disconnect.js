@@ -122,7 +122,7 @@ module.exports = params => {
 				// To validate peers holding socket connection
 				// Need to keep one peer so that we can validate
 				// Duplicate socket connection exists or not
-				it('stop all the nodes in the network except one node', done => {
+				it('stop all the nodes in the network except node_0', done => {
 					for (let i = 1; i < totalPeers; i++) {
 						stopNode(`node_${i}`);
 					}
@@ -159,7 +159,7 @@ module.exports = params => {
 					});
 
 					// The expected connection becomes 180(new connection) + 18 (previously held connections)
-					it(`there should be ${expectedOutgoingConnections +
+					it(`should be ${expectedOutgoingConnections +
 						18} established connections from 500[0-9] ports`, done => {
 						utils.getEstablishedConnections(
 							Array.from(wsPorts),
