@@ -14,11 +14,7 @@
  *
  */
 import { getFirstQuotedString, getQuotedStrings } from '../utils';
-import {
-	FileSystemError,
-	ValidationError,
-	PrintError,
-} from '../../../src/utils/error';
+import { FileSystemError, ValidationError } from '../../../src/utils/error';
 
 export function stringArguments() {
 	this.test.ctx.testArguments = getQuotedStrings(this.test.parent.title);
@@ -42,16 +38,6 @@ export function aFunctionThatThrowsAValidationError() {
 
 	this.test.ctx.errorMessage = errorMessage;
 	this.test.ctx.validationErrorFn = validationErrorFn;
-}
-
-export function aFunctionThatThrowsAPrintError() {
-	const errorMessage = getFirstQuotedString(this.test.parent.title);
-	const printErrorFn = () => {
-		throw new PrintError(errorMessage);
-	};
-
-	this.test.ctx.errorMessage = errorMessage;
-	this.test.ctx.printErrorFn = printErrorFn;
 }
 
 export function anErrorObject() {

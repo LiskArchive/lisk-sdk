@@ -57,19 +57,3 @@ export function theValidationErrorIsThrown() {
 		return testFunction;
 	}
 }
-
-export function thePrintErrorIsThrown() {
-	const { printErrorFn } = this.test.ctx;
-	try {
-		const returnValue = printErrorFn();
-		// istanbul ignore next
-		this.test.ctx.returnValue = returnValue;
-		// istanbul ignore next
-		return returnValue;
-	} catch (error) {
-		const testFunction = printErrorFn.bind(null);
-		this.test.ctx.testFunction = testFunction;
-		this.test.ctx.testError = error;
-		return testFunction;
-	}
-}
