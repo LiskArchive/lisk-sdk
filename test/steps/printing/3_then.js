@@ -166,12 +166,6 @@ export function theReturnedTableShouldHaveHeaderRows() {
 	});
 }
 
-export function theReturnedTableShouldHaveARowWithTheObjectValues() {
-	const { returnValue, testObject } = this.test.ctx;
-	const values = Object.values(testObject);
-	return expect(returnValue[0]).to.eql(values);
-}
-
 export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues() {
 	const { returnValue, testArray } = this.test.ctx;
 	return testArray.forEach((values, i) => {

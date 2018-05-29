@@ -16,13 +16,12 @@
 import url from 'url';
 import elements from 'lisk-elements';
 import { CONFIG_VARIABLES, NETHASHES, API_PROTOCOLS } from '../utils/constants';
-import config, { configFilePath } from '../utils/config';
+import { getConfig, setConfig, configFilePath } from '../utils/config';
 import { FileSystemError, ValidationError } from '../utils/error';
-import { writeJSONSync } from '../utils/fs';
 import { createCommand } from '../utils/helpers';
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
-const description = `Sets configuration <variable> to [value(s)...]. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath}\`.
+const description = `Sets configuration <variable> to [value(s)...]. Variables available: ${availableVariables}. Configuration is persisted in \`${configFilePath()}\`.
 
 	Examples:
 	- set json true
@@ -43,40 +42,29 @@ const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PR
 	', ',
 )}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
-const writeConfigToFile = newConfig => {
-	try {
-		writeJSONSync(configFilePath, newConfig);
-		return true;
-	} catch (e) {
-		return false;
-	}
-};
-
 const checkBoolean = value => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = newValue => (
-	obj,
-	pathComponent,
-	i,
-	dotNotationArray,
-) => {
-	if (i === dotNotationArray.length - 1) {
-		if (obj === undefined) {
-			throw new ValidationError(
-				`Config file could not be written: property '${dotNotationArray.join(
-					'.',
-				)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath} or remove it (a fresh default configuration file will be created when you run Lisky again).`,
-			);
+const setNestedConfigProperty = (config, path, value) => {
+	const dotNotationArray = path.split('.');
+	dotNotationArray.reduce((obj, pathComponent, i) => {
+		if (i === dotNotationArray.length - 1) {
+			if (obj === undefined) {
+				throw new ValidationError(
+					`Config file could not be written: property '${dotNotationArray.join(
+						'.',
+					)}' was not found. It looks like your configuration file is corrupted. Please check the file at ${configFilePath()} or remove it (a fresh default configuration file will be created when you run Lisky again).`,
+				);
+			}
+			// eslint-disable-next-line no-param-reassign
+			obj[pathComponent] = value;
+			return config;
 		}
-		// eslint-disable-next-line no-param-reassign
-		obj[pathComponent] = newValue;
-		return config;
-	}
-	return obj[pathComponent];
+		return obj[pathComponent];
+	}, config);
 };
 
-const attemptWriteToFile = (value, dotNotation) => {
-	const writeSuccess = writeConfigToFile(config);
+const attemptWriteToFile = (newConfig, value, dotNotation) => {
+	const writeSuccess = setConfig(newConfig);
 
 	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
@@ -99,9 +87,9 @@ const attemptWriteToFile = (value, dotNotation) => {
 };
 
 const setValue = (dotNotation, value) => {
-	const dotNotationArray = dotNotation.split('.');
-	dotNotationArray.reduce(setNestedConfigProperty(value), config);
-	return attemptWriteToFile(value, dotNotation);
+	const config = getConfig();
+	setNestedConfigProperty(config, dotNotation, value);
+	return attemptWriteToFile(config, value, dotNotation);
 };
 
 const setBoolean = (dotNotation, value) => {

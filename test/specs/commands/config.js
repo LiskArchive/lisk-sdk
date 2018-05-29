@@ -13,11 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpCommandConfig } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
 describe('config command', () => {
+	beforeEach(setUpCommandConfig);
 	Given('a config', given.aConfig, () => {
 		Given('an action "config"', given.anAction, () => {
 			When('the action is called', when.theActionIsCalled, () => {

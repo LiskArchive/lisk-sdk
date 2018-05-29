@@ -150,9 +150,6 @@ export function theTransactionIsProvidedViaStdIn() {
 	const { transaction } = this.test.ctx;
 
 	readline.createInterface.returns(createFakeInterface(transaction));
-	if (typeof inputUtils.getStdIn.resolves === 'function') {
-		inputUtils.getStdIn.resolves({ data: transaction });
-	}
 }
 
 export function thePasswordIsProvidedViaStdIn() {
