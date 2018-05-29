@@ -14,7 +14,6 @@
  *
  */
 import Table from 'cli-table2';
-import { PrintError } from './error';
 
 const chars = {
 	top: '═',
@@ -34,77 +33,40 @@ const chars = {
 	middle: '│',
 };
 
-const getNestedValue = data => keyString =>
-	keyString
-		.split('.')
-		.reduce((accumulated, key) => (accumulated ? accumulated[key] : ''), data);
+const getKeyValueObject = object => {
+	if (typeof object !== 'object') {
+		return object;
+	}
+	return Object.entries(object)
+		.map(([key, value]) => `${key}: ${JSON.stringify(value, null, ' ')}`)
+		.join('\n');
+};
 
 const addValuesToTable = (table, data) => {
-	const nestedValues = table.options.head.map(getNestedValue(data));
-	const valuesToPush = nestedValues.map(
-		value => (Array.isArray(value) ? value.join('\n') : value),
-	);
-	return valuesToPush.length && table.push(valuesToPush);
-};
-
-const getKeys = (data, limit = 3, loop = 1) => {
-	if (loop > limit) {
-		throw new PrintError(
-			`Output cannot be displayed in table format: Maximum object depth of ${limit} was exceeded. Consider using JSON output format.`,
-		);
-	}
-	return Object.entries(data)
-		.map(
-			([parentKey, value]) =>
-				Object.prototype.toString.call(value) === '[object Object]'
-					? getKeys(value, limit, loop + 1).reduce(
-							(nestedKeys, childKey) => [
-								...nestedKeys,
-								`${parentKey}.${childKey}`,
-							],
-							[],
-						)
-					: [parentKey],
-		)
-		.reduce(
-			(flattenedKeys, keysToBeFlattened) => [
-				...flattenedKeys,
-				...keysToBeFlattened,
-			],
-			[],
-		);
-};
-
-const reduceKeys = (keys, row) => {
-	const newKeys = Object.entries(row).flatMap(([key, value]) => {
-		if (keys.includes(key) || value === undefined || value instanceof Error) {
-			return [];
-		}
-		if (typeof value === 'object' && !Array.isArray(value)) {
-			return getKeys(value)
-				.map(nestedKey => `${key}.${nestedKey}`)
-				.filter(nestedKey => !keys.includes(nestedKey));
-		}
-		return key;
+	Object.entries(data).forEach(([key, values]) => {
+		const strValue = Array.isArray(values)
+			? values.join('\n')
+			: getKeyValueObject(values);
+		table.push({ [key]: strValue });
 	});
-	return keys.concat(newKeys);
 };
 
 const tablify = data => {
 	const dataIsArray = Array.isArray(data);
-	const head = dataIsArray ? data.reduce(reduceKeys, []) : getKeys(data);
 
 	const table = new Table({
-		head,
 		chars,
 		style: {
-			head: ['cyan'],
+			head: [],
 			border: [],
 		},
 	});
 
 	if (dataIsArray) {
-		data.map(addValuesToTable.bind(null, table));
+		data.forEach((value, key) => {
+			table.push([{ colSpan: 2, content: `data ${key + 1}` }]);
+			addValuesToTable(table, value);
+		});
 	} else {
 		addValuesToTable(table, data);
 	}
