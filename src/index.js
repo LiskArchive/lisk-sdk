@@ -19,9 +19,9 @@ import path from 'path';
 import chalk from 'chalk';
 import vorpal from 'vorpal';
 import { version } from '../package.json';
-import config from './utils/config';
+import { getConfig } from './utils/config';
 
-const name = config.name || 'lisky';
+const name = getConfig().name || 'lisky';
 const lisky = vorpal();
 
 const commandsDir = path.join(__dirname, 'commands');

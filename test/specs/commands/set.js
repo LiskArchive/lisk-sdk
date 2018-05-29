@@ -141,8 +141,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set json to true."',
@@ -165,8 +165,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set json to true."',
@@ -243,8 +243,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set json to false."',
@@ -267,8 +267,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set json to false."',
@@ -347,8 +347,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
@@ -371,8 +371,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set name to my_custom_lisky."',
@@ -463,8 +463,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set pretty to true."',
@@ -487,8 +487,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set pretty to true."',
@@ -565,8 +565,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set pretty to false."',
@@ -589,8 +589,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigVariableToBoolean,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set pretty to false."',
@@ -706,8 +706,8 @@ describe('set command', () => {
 																then.itShouldUpdateTheConfigNestedVariableToTheValues,
 															);
 															Then(
-																'it should write the updated config to the config file',
-																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+																'it should call setConfig with the updated config',
+																then.itShouldCallSetConfigWithTheUpdatedConfig,
 															);
 															Then(
 																'it should resolve to an object with message "Successfully set api.nodes to http://localhost:4000,http://127.0.0.1."',
@@ -730,8 +730,8 @@ describe('set command', () => {
 																then.itShouldUpdateTheConfigNestedVariableToTheValues,
 															);
 															Then(
-																'it should write the updated config to the config file',
-																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+																'it should call setConfig with the updated config',
+																then.itShouldCallSetConfigWithTheUpdatedConfig,
 															);
 															Then(
 																'it should resolve to an object with message "Successfully set api.nodes to http://localhost:4000,http://127.0.0.1."',
@@ -763,8 +763,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheValues,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.nodes to http://localhost:4000."',
@@ -787,8 +787,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheValues,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.nodes to http://localhost:4000."',
@@ -819,8 +819,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheValues,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully reset api.nodes."',
@@ -843,8 +843,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheValues,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully reset api.nodes."',
@@ -874,8 +874,8 @@ describe('set command', () => {
 														then.itShouldUpdateTheConfigNestedVariableToEmptyArray,
 													);
 													Then(
-														'it should write the updated config to the config file',
-														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+														'it should call setConfig with the updated config',
+														then.itShouldCallSetConfigWithTheUpdatedConfig,
 													);
 													Then(
 														'it should resolve to an object with message "Successfully reset api.nodes."',
@@ -898,8 +898,8 @@ describe('set command', () => {
 														then.itShouldUpdateTheConfigNestedVariableToEmptyArray,
 													);
 													Then(
-														'it should write the updated config to the config file',
-														then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+														'it should call setConfig with the updated config',
+														then.itShouldCallSetConfigWithTheUpdatedConfig,
 													);
 													Then(
 														'it should resolve to an object with message "Successfully reset api.nodes."',
@@ -975,8 +975,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.network to main."',
@@ -999,8 +999,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.network to main."',
@@ -1031,8 +1031,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.network to test."',
@@ -1055,8 +1055,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.network to test."',
@@ -1087,8 +1087,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.network to beta."',
@@ -1111,8 +1111,8 @@ describe('set command', () => {
 															then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 														);
 														Then(
-															'it should write the updated config to the config file',
-															then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+															'it should call setConfig with the updated config',
+															then.itShouldCallSetConfigWithTheUpdatedConfig,
 														);
 														Then(
 															'it should resolve to an object with message "Successfully set api.network to beta."',
@@ -1192,8 +1192,8 @@ describe('set command', () => {
 																then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 															);
 															Then(
-																'it should write the updated config to the config file',
-																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+																'it should call setConfig with the updated config',
+																then.itShouldCallSetConfigWithTheUpdatedConfig,
 															);
 															Then(
 																'it should resolve to an object with message "Successfully set api.network to aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."',
@@ -1216,8 +1216,8 @@ describe('set command', () => {
 																then.itShouldUpdateTheConfigNestedVariableToTheFirstValue,
 															);
 															Then(
-																'it should write the updated config to the config file',
-																then.itShouldWriteTheUpdatedConfigToTheConfigFile,
+																'it should call setConfig with the updated config',
+																then.itShouldCallSetConfigWithTheUpdatedConfig,
 															);
 															Then(
 																'it should resolve to an object with message "Successfully set api.network to aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa."',

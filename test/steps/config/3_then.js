@@ -15,6 +15,12 @@
  */
 import { getFirstQuotedString, getFirstBoolean } from '../utils';
 import logger from '../../../src/utils/logger';
+import * as configUtils from '../../../src/utils/config';
+
+export function itShouldCallSetConfigWithTheUpdatedConfig() {
+	const { config } = this.test.ctx;
+	return expect(configUtils.setConfig).to.be.calledWithExactly(config);
+}
 
 export function itShouldUpdateTheConfigVariableToTheFirstValue() {
 	const { config, values } = this.test.ctx;
@@ -68,12 +74,12 @@ export function itShouldResolveToTheConfig() {
 	return expect(returnValue).to.eventually.eql(config);
 }
 
-export function theDefaultConfigShouldBeExported() {
+export function theDefaultConfigShouldBeReturned() {
 	const { config, defaultConfig } = this.test.ctx;
 	return expect(config).to.eql(defaultConfig);
 }
 
-export function theUsersConfigShouldBeExported() {
+export function theUsersConfigShouldBeReturned() {
 	const { config, userConfig } = this.test.ctx;
 	return expect(config).to.eql(userConfig);
 }
