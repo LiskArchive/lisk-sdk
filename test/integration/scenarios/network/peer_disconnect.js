@@ -119,18 +119,27 @@ module.exports = params => {
 			});
 
 			describe('node stop and start', () => {
-				it('stop all the nodes in the network', done => {
-					for (let i = 0; i < totalPeers; i++) {
+				// To validate peers holding socket connection
+				// Need to keep one peer so that we can validate
+				// Duplicate socket connection exists or not
+				it('stop all the nodes in the network except one node', done => {
+					for (let i = 1; i < totalPeers; i++) {
 						stopNode(`node_${i}`);
 					}
-					done();
+					setTimeout(() => {
+						console.info('Wait for nodes to be stopped');
+						done();
+					}, 10000);
 				});
 
 				it('start all nodes that were stopped', done => {
-					for (let i = 0; i < totalPeers; i++) {
+					for (let i = 1; i < totalPeers; i++) {
 						startNode(`node_${i}`);
 					}
-					done();
+					setTimeout(() => {
+						console.info('Wait for nodes to be started');
+						done();
+					}, 10000);
 				});
 
 				describe('after all the node restarts', () => {
@@ -149,7 +158,9 @@ module.exports = params => {
 						);
 					});
 
-					it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
+					// The expected connection becomes 180(new connection) + 18 (previously held connections)
+					it(`there should be ${expectedOutgoingConnections +
+						18} established connections from 500[0-9] ports`, done => {
 						utils.getEstablishedConnections(
 							Array.from(wsPorts),
 							(err, numOfConnections) => {
@@ -157,7 +168,7 @@ module.exports = params => {
 									return done(err);
 								}
 
-								if (numOfConnections <= expectedOutgoingConnections) {
+								if (numOfConnections <= expectedOutgoingConnections + 18) {
 									done();
 								} else {
 									done(
