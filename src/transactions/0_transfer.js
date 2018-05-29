@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { TRANSFER_FEE, DATA_FEE } from './constants';
+import { TRANSFER_FEE } from './constants';
 import {
 	getAddressAndPublicKeyFromRecipientData,
 	wrapTransactionCreator,
@@ -34,12 +34,11 @@ const transfer = ({ amount, recipientId, recipientPublicKey, data }) => {
 		recipientId,
 		recipientPublicKey,
 	});
-	const fee = data ? TRANSFER_FEE + DATA_FEE : TRANSFER_FEE;
 
 	const transaction = {
 		type: 0,
 		amount: amount.toString(),
-		fee: fee.toString(),
+		fee: TRANSFER_FEE.toString(),
 		recipientId: address,
 		recipientPublicKey: publicKey,
 		asset: createAsset(data),

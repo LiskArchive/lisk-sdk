@@ -22,7 +22,6 @@ import {
 	SIGNATURE_FEE,
 	TRANSFER_FEE,
 	VOTE_FEE,
-	DATA_FEE,
 } from 'transactions/constants';
 
 describe('transactions constants module', () => {
@@ -60,9 +59,5 @@ describe('transactions constants module', () => {
 
 	it('VOTE_FEE to be an integer', () => {
 		return expect(VOTE_FEE).to.be.an.integer;
-	});
-
-	it('DATA_FEE to be an integer', () => {
-		return expect(DATA_FEE).to.be.an.integer;
 	});
 });
