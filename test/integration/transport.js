@@ -170,7 +170,6 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 
 					scenarios.network.peers(params);
-					scenarios.network.peerDisconnect(params);
 
 					describe('when functional tests are successfully executed against 127.0.0.1:5000', () => {
 						before(done => {
@@ -216,6 +215,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 							);
 						});
 					});
+
+					scenarios.network.peerDisconnect(params);
 				});
 			});
 		});
