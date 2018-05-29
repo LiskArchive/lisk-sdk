@@ -355,7 +355,7 @@ export function setUpUtilCrypto() {
 	setUpLiskElementsCryptoStubs();
 }
 
-export function setUpUtilHelpersJsonOutput() {
+export function setUpUtilHelpersJSONOutput() {
 	setUpConfigStubs();
 }
 

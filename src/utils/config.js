@@ -26,10 +26,10 @@ const configDirName = '.lisky';
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';
 const homedir = os.homedir();
-const configDirPath =
+const configDirPath = () =>
 	process.env.LISKY_CONFIG_DIR || `${homedir}/${configDirName}`;
-export const configFilePath = `${configDirPath}/${configFileName}`;
-const lockfilePath = `${configDirPath}/${lockfileName}`;
+export const configFilePath = () => `${configDirPath()}/${configFileName}`;
+const lockfilePath = () => `${configDirPath()}/${lockfileName}`;
 
 const attemptCallWithWarning = (fn, path) => {
 	try {
@@ -61,7 +61,7 @@ const attemptToCreateFile = path => {
 
 const checkLockfile = path => {
 	const locked = lockfile.checkSync(path);
-	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
+	const errorMessage = `Config lockfile at ${lockfilePath()} found. Are you running Lisky in another process?`;
 	if (locked) {
 		logger.error(errorMessage);
 		process.exit(1);
@@ -87,30 +87,30 @@ const attemptToValidateConfig = (config, path) => {
 };
 
 export const setConfig = newConfig => {
-	checkLockfile(lockfilePath);
-	lockfile.lockSync(lockfilePath);
+	checkLockfile(lockfilePath());
+	lockfile.lockSync(lockfilePath());
 	try {
-		writeJSONSync(configFilePath, newConfig);
+		writeJSONSync(configFilePath(), newConfig);
 		return true;
 	} catch (e) {
 		return false;
 	} finally {
-		lockfile.unlockSync(lockfilePath);
+		lockfile.unlockSync(lockfilePath());
 	}
 };
 
 export const getConfig = () => {
-	if (!fs.existsSync(configDirPath)) {
-		attemptToCreateDir(configDirPath);
+	if (!fs.existsSync(configDirPath())) {
+		attemptToCreateDir(configDirPath());
 	}
 
-	if (!fs.existsSync(configFilePath)) {
-		attemptToCreateFile(configFilePath);
+	if (!fs.existsSync(configFilePath())) {
+		attemptToCreateFile(configFilePath());
 		return defaultConfig;
 	}
 
-	const config = attemptToReadJSONFile(configFilePath);
-	attemptToValidateConfig(config, configFilePath);
+	const config = attemptToReadJSONFile(configFilePath());
+	attemptToValidateConfig(config, configFilePath());
 
 	return config;
 };

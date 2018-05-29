@@ -23,6 +23,18 @@ describe('config util', () => {
 	afterEach(tearDownUtilConfig);
 	Given('a default config', given.aDefaultConfig, () => {
 		Given(
+			'the config directory path is not specified in an environmental variable',
+			given.theConfigDirectoryPathIsNotSpecifiedInAnEnvironmentalVariable,
+			() => {
+				When('getConfig is called', when.getConfigIsCalled, () => {
+					Then(
+						'the default config should be returned',
+						then.theDefaultConfigShouldBeReturned,
+					);
+				});
+			},
+		);
+		Given(
 			`a directory path "${process.env.LISKY_CONFIG_DIR}"`,
 			given.aDirectoryPath,
 			() => {
@@ -168,7 +180,7 @@ describe('config util', () => {
 																				then.theConfigFileShouldNotBeWritten,
 																			);
 																			Then(
-																				'the user’s config should be exported',
+																				'the user’s config should be returned',
 																				then.theUsersConfigShouldBeReturned,
 																			);
 																		},
@@ -206,7 +218,7 @@ describe('config util', () => {
 																				then.theConfigFileShouldNotBeWritten,
 																			);
 																			Then(
-																				'the user’s config should be exported',
+																				'the user’s config should be returned',
 																				then.theUsersConfigShouldBeReturned,
 																			);
 																		},

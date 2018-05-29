@@ -74,6 +74,11 @@ export function itShouldResolveToTheConfig() {
 	return expect(returnValue).to.eventually.eql(config);
 }
 
+export function theDefaultConfigShouldBeReturned() {
+	const { config, defaultConfig } = this.test.ctx;
+	return expect(config).to.eql(defaultConfig);
+}
+
 export function theUsersConfigShouldBeReturned() {
 	const { config, userConfig } = this.test.ctx;
 	return expect(config).to.eql(userConfig);

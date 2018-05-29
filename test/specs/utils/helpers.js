@@ -16,7 +16,7 @@
 import {
 	setUpUtilCreateCommand,
 	setUpUtilWrapActionCreator,
-	setUpUtilHelpersJsonOutput,
+	setUpUtilHelpersJSONOutput,
 	setUpUtilHelpersPrettyOutput,
 } from '../../steps/setup';
 import * as given from '../../steps/1_given';
@@ -563,7 +563,7 @@ describe('utils helpers', () => {
 		);
 	});
 	describe('#shouldUseJSONOutput', () => {
-		beforeEach(setUpUtilHelpersJsonOutput);
+		beforeEach(setUpUtilHelpersJSONOutput);
 		When(
 			'shouldUseJSONOutput is called with the config and the options',
 			when.shouldUseJSONOutputIsCalledWithTheConfigAndOptions,
