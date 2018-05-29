@@ -65,7 +65,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 				configuration.peers.list = setup.sync.generatePeers(
 					configurations,
 					setup.sync.SYNC_MODES.ALL_TO_GROUP,
-					{ indices: _.range(10) }
+					{ indices: _.range(10) },
+					configuration.wsPort
 				);
 			});
 		});
