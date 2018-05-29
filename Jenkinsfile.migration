@@ -12,6 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+properties([
+	parameters([
+		string(name: 'MIGRATE_FROM', defaultValue: 'master', description: 'Source branch to test migration', ),
+		string(name: 'MIGRATE_TO', defaultValue: 'development', description: 'Target branch to test migration', ),
+		booleanParam(name: 'USE_TEST_CONFIG', defaultValue: true, description: 'Use test genesis block and config', )
+	 ])
+])
+
 pipeline {
 	agent { node { label "core-migration" } }
 	stages {
@@ -27,7 +35,7 @@ pipeline {
 				stage('Create source release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'test', useTestConfig: true)
+							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'test', useTestConfig: params.USE_TEST_CONFIG)
 							env.SRC_IS_LATEST = release.latestVersion
 							env.SRC_VERSION =  release.version
 							env.SRC_RELEASE =  release.nonVersionedFile
@@ -38,7 +46,7 @@ pipeline {
 				stage('Create destination release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_TO, network: 'test', useTestConfig: true)
+							def release = liskBuild(branch: params.MIGRATE_TO, network: 'test', useTestConfig: params.USE_TEST_CONFIG)
 							env.DEST_IS_LATEST = release.latestVersion
 							env.DEST_VERSION =  release.version
 							env.DEST_RELEASE =  release.nonVersionedFile
