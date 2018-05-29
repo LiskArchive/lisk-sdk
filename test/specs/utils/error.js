@@ -66,24 +66,4 @@ describe('Custom Errors', () => {
 			);
 		},
 	);
-	Given(
-		'a function that throws a print error "cannot be displayed"',
-		given.aFunctionThatThrowsAPrintError,
-		() => {
-			When('the print error is thrown', when.thePrintErrorIsThrown, () => {
-				Then(
-					'it should print the error message in red',
-					then.itShouldPrintTheErrorMessageInRed,
-				);
-				Then(
-					'the error should have the name "PrintError"',
-					then.theErrorShouldHaveTheName,
-				);
-				Then(
-					'the error should be an instance of Node’s built-in Error',
-					then.theErrorShouldBeAnInstanceOfNodesBuiltInError,
-				);
-			});
-		},
-	);
 });
