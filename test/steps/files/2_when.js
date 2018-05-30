@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.

@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -100,7 +100,7 @@ export function theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValid
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
 	return expect(logger.error).to.be.calledWithExactly(
-		`Config lockfile at ${path} found. Are you running Lisky in another process?`,
+		`Config lockfile at ${path} found. Are you running Lisk Commander in another process?`,
 	);
 }
 

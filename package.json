@@ -1,18 +1,18 @@
 {
-	"name": "lisky",
+	"name": "lisk-commander",
 	"version": "1.0.0-beta.3",
 	"description": "A command line interface for Lisk",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
 	"keywords": ["lisk", "blockchain", "command-line", "nodejs", "javascript"],
-	"homepage": "https://github.com/LiskHQ/lisky#readme",
+	"homepage": "https://github.com/LiskHQ/lisk-commander#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/LiskHQ/lisky.git"
+		"url": "git+https://github.com/LiskHQ/lisk-commander.git"
 	},
 	"bugs": {
-		"url": "https://github.com/LiskHQ/lisky/issues"
+		"url": "https://github.com/LiskHQ/lisk-commander/issues"
 	},
 	"engines": {
 		"node": "=6.14.1",

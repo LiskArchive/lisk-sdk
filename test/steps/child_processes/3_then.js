@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -35,24 +35,30 @@ export function itShouldNotExecuteAThirdScriptInASeparateChildProcess() {
 	return expect(childProcess.exec).not.to.be.calledThrice;
 }
 
-export function theLiskyInstanceShouldLogTheFirstChildProcessOutputFirst() {
-	const { lisky, firstChildOutput } = this.test.ctx;
-	return expect(lisky.log.firstCall).to.be.calledWithExactly(firstChildOutput);
+export function theLiskCommanderInstanceShouldLogTheFirstChildProcessOutputFirst() {
+	const { liskCommander, firstChildOutput } = this.test.ctx;
+	return expect(liskCommander.log.firstCall).to.be.calledWithExactly(
+		firstChildOutput,
+	);
 }
 
-export function theLiskyInstanceShouldLogTheSecondChildProcessOutputSecond() {
-	const { lisky, secondChildOutput } = this.test.ctx;
-	return expect(lisky.log.secondCall).to.be.calledWithExactly(
+export function theLiskCommanderInstanceShouldLogTheSecondChildProcessOutputSecond() {
+	const { liskCommander, secondChildOutput } = this.test.ctx;
+	return expect(liskCommander.log.secondCall).to.be.calledWithExactly(
 		secondChildOutput,
 	);
 }
 
-export function theLiskyInstanceShouldLogTheThirdChildProcessOutputThird() {
-	const { lisky, thirdChildOutput } = this.test.ctx;
-	return expect(lisky.log.thirdCall).to.be.calledWithExactly(thirdChildOutput);
+export function theLiskCommanderInstanceShouldLogTheThirdChildProcessOutputThird() {
+	const { liskCommander, thirdChildOutput } = this.test.ctx;
+	return expect(liskCommander.log.thirdCall).to.be.calledWithExactly(
+		thirdChildOutput,
+	);
 }
 
-export function theLiskyInstanceShouldLogTheSecondChildProcessErrorSecond() {
-	const { lisky, secondChildError } = this.test.ctx;
-	return expect(lisky.log.secondCall).to.be.calledWithExactly(secondChildError);
+export function theLiskCommanderInstanceShouldLogTheSecondChildProcessErrorSecond() {
+	const { liskCommander, secondChildError } = this.test.ctx;
+	return expect(liskCommander.log.secondCall).to.be.calledWithExactly(
+		secondChildError,
+	);
 }

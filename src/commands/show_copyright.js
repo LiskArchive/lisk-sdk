@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -21,7 +21,7 @@ const description = `Displays copyright notice.
 `;
 
 const copyright = `
-Lisky  Copyright (C) 2017  Lisk Foundation
+Lisk Commander  Copyright (C) 2017–2018  Lisk Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

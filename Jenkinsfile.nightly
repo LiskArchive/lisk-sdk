@@ -1,9 +1,9 @@
 pipeline {
-	agent { node { label 'lisky' } }
+	agent { node { label 'lisk-commander' } }
 	stages {
 		stage('Prepare workspace') {
 			steps {
-				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'scan-1', url: 'https://github.com/LiskHQ/lisky']]])
+				checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'scan-1', url: 'https://github.com/LiskHQ/lisk-commander']]])
 			}
 		}
 		stage('Install dependencies') {
@@ -16,7 +16,7 @@ pipeline {
 				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
 					sh 'snyk test'
 				}
-				sh 'sha1sum package.json >~/.lisky.package.json.sha1sum'
+				sh 'sha1sum package.json >~/.lisk-commander.package.json.sha1sum'
 			}
 		}
 	}
