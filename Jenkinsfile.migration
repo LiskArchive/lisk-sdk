@@ -66,7 +66,7 @@ pipeline {
 		stage("Migrate to destination release") {
 			steps {
 				script {
-					env.TARGET_BLOCK_HEIGHT = getBlockHeight() + 5
+					env.TARGET_BLOCK_HEIGHT = getNetworkHeight() + getCutOffset()
 				}
 				dir("lisk-home") {
 					sh """
@@ -81,7 +81,7 @@ pipeline {
 		stage("Verify migration") {
 			steps {
 				script {
-					waitForBlockHeight(env.TARGET_BLOCK_HEIGHT.toInteger() + 5)
+					waitForBlockHeight(env.TARGET_BLOCK_HEIGHT.toInteger() + getVerifyOffset())
 				}
 			}
 		}
@@ -108,7 +108,42 @@ def installLisk(buildFile, network) {
 	}
 }
 
-def getBlockHeight() {
+def getCutOffset() {
+	if (params.USE_TEST_CONFIG == true) {
+		return 5
+	} else {
+		return 50
+	}
+}
+
+def getVerifyOffset() {
+	if (params.USE_TEST_CONFIG == true) {
+		return 5
+	} else {
+		return 0
+	}
+}
+
+def getNetworkHeight() {
+	if (params.USE_TEST_CONFIG == true) {
+		return getLocalBlockHeight()
+	} else {
+		dir("lisk-home/lisk-${params.NETWORK}") {
+			if(params.NETWORK == "main") {
+				sh """
+				curl -s https://node.lisk.io/api/loader/status/sync | jq -r '.height' > .lisk-network-height
+				"""
+			} else if (params.NETWORK == "test"){
+				sh """
+				curl -s https://testnet.lisk.io/api/loader/status/sync | jq -r '.height' > .lisk-network-height
+				"""
+			}
+		}
+		return readFile("lisk-home/lisk-${params.NETWORK}/.lisk-network-height").trim().toInteger()
+	}
+}
+
+def getLocalBlockHeight() {
 	dir("lisk-home/lisk-${params.NETWORK}") {
 		sh """
 		bash lisk.sh status | tail -1 | awk '{print \$4}' > .lisk-block-height
@@ -118,7 +153,7 @@ def getBlockHeight() {
 }
 
 def waitForBlockHeight(targetBlockHeight, waitAttempts=0, previousHeight=0) {
-	def height = getBlockHeight()
+	def height = getLocalBlockHeight()
 	echo "Height: ${height}"
 
 	if(previousHeight != height) {
