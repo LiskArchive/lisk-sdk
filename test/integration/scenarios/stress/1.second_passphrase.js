@@ -30,7 +30,7 @@ module.exports = function(params) {
 		this.timeout(1800000);
 		var transactions = [];
 		var accounts = [];
-		var maximum = 1000;
+		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
 		var waitForExtraBlocks = 4; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('prepare accounts', () => {
@@ -40,7 +40,7 @@ module.exports = function(params) {
 					_.range(maximum).map(() => {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
-							amount: 2500000000,
+							amount: 500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 						});

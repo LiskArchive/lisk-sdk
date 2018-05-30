@@ -30,7 +30,7 @@ module.exports = function(params) {
 		this.timeout(1800000);
 		var transactions = [];
 		var accounts = [];
-		var maximum = 1000;
+		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
 		var waitForExtraBlocks = 4; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('prepare accounts', () => {

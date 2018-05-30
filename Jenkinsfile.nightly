@@ -14,9 +14,9 @@ pipeline {
 				'''
 			}
 		}
-		stage('Run integration tests') {
+		stage('Run integration tests w/o syncing') {
 			steps {
-				sh 'npm test -- mocha:extensive:integration'
+				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests w/o broadcasting') {
@@ -24,9 +24,9 @@ pipeline {
 				sh 'BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
-		stage('Run integration tests w/o syncing') {
+		stage('Run integration tests') {
 			steps {
-				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'npm test -- mocha:extensive:integration'
 			}
 		}
 	}
