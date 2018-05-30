@@ -76,8 +76,7 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 	})();
 }
 
-// Returns current block height
-function getHeight(cb) {
+function nodeStatus(cb) {
 	var request = popsicle.get(`${__testContext.baseUrl}/api/node/status`);
 
 	request.use(popsicle.plugins.parse(['json']));
@@ -89,11 +88,20 @@ function getHeight(cb) {
 				['Received bad response code', res.status, res.url].join(' ')
 			);
 		}
-		return setImmediate(cb, null, res.body.data.height);
+		return setImmediate(cb, null, res.body.data);
 	});
 
 	request.catch(err => {
 		return setImmediate(cb, err);
+	});
+}
+// Returns current block height
+function getHeight(cb) {
+	nodeStatus((err, res) => {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		return setImmediate(cb, null, res.height);
 	});
 }
 
@@ -205,6 +213,48 @@ function confirmations(transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
+function confirmTransaction() {
+	return new Promise((resolve, reject) => {
+		nodeStatus((err, data) => {
+			if (err) {
+				return reject(err);
+			}
+			var total = data.transactions.total;
+			var target = data.transactions.confirmed;
+			var counter = 1;
+			async.doWhilst(
+				cb => {
+					nodeStatus((err, res) => {
+						if (err) {
+							cb(err);
+						}
+						__testContext.debug(
+							'	Waiting for transaction:'.grey,
+							'Total:'.grey,
+							res.transactions.total,
+							'Confirmed:'.grey,
+							res.transactions.confirmed,
+							'Second:'.grey,
+							counter++
+						);
+						target = res.transactions.confirmed;
+						setTimeout(cb, 1000);
+					});
+				},
+				() => {
+					return !(target >= total);
+				},
+				err => {
+					if (err) {
+						return reject(err);
+					}
+					return resolve(counter);
+				}
+			);
+		});
+	});
+}
+
 var blocksPromise = Promise.promisify(blocks);
 
 module.exports = {
@@ -213,4 +263,5 @@ module.exports = {
 	blocks,
 	blocksPromise,
 	confirmations,
+	confirmTransaction,
 };

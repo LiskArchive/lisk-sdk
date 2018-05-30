@@ -1,23 +1,26 @@
 'use strict';
 
-var getTransaction = require('../../utils/http').getTransaction;
+const getTransaction = require('../../utils/http').getTransaction;
+const { confirmTransaction } = require('../../../common/utils/wait_for');
 
-var stress = {};
-
-stress.confirmTransactionsOnAllNodes = function(transactions, params) {
-	return Promise.all(
-		_.flatMap(params.configurations, configuration => {
-			return transactions.map(transaction => {
-				return getTransaction(transaction.id, configuration.httpPort);
+const confirmTransactionsOnAllNodes = function(transactions, params) {
+	return confirmTransaction().then(() => {
+		return Promise.all(
+			_.flatMap(params.configurations, configuration => {
+				return transactions.map(transaction => {
+					return getTransaction(transaction.id, configuration.httpPort);
+				});
+			})
+		).then(results => {
+			results.forEach(transaction => {
+				expect(transaction)
+					.to.have.property('id')
+					.that.is.an('string');
 			});
-		})
-	).then(results => {
-		results.forEach(transaction => {
-			expect(transaction)
-				.to.have.property('id')
-				.that.is.an('string');
 		});
 	});
 };
 
-module.exports = stress;
+module.exports = {
+	confirmTransactionsOnAllNodes,
+};
