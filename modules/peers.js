@@ -29,7 +29,7 @@ let self;
 const __private = {};
 let definitions;
 
-const peerDiscoveryFrequency = 30000;
+const peerDiscoveryFrequency = 10000;
 
 /**
  * Main peers methods. Initializes library with scope content.
