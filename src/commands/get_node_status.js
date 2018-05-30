@@ -53,7 +53,7 @@ export const actionCreator = () => async ({ options }) => {
 		});
 };
 
-const get = createCommand({
+const getNodeStatus = createCommand({
 	command: 'get node status',
 	description,
 	actionCreator,
@@ -61,4 +61,4 @@ const get = createCommand({
 	errorPrefix: 'Could not get node status',
 });
 
-export default get;
+export default getNodeStatus;

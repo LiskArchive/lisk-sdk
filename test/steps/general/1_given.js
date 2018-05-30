@@ -57,6 +57,13 @@ export function aNonEmptyObject() {
 	};
 }
 
+export function anObjectWithObjectArray() {
+	this.test.ctx.testObject = {
+		root: 'value',
+		objectArray: [{ sample: 1 }, { sample: 2 }],
+	};
+}
+
 export function aDeeplyNestedObject() {
 	this.test.ctx.testObject = {
 		root: 'value',

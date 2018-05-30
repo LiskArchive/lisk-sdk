@@ -118,6 +118,11 @@ function setUpLiskElementsAPIStubs() {
 			get: sandbox.stub().resolves(queryDefaultResult),
 			broadcast: sandbox.stub().resolves(broadcastSignaturesResponse),
 		},
+		node: {
+			getConstants: sandbox.stub().resolves(broadcastSignaturesResponse),
+			getStatus: sandbox.stub().resolves(broadcastSignaturesResponse),
+			getForgingStatus: sandbox.stub().resolves(broadcastSignaturesResponse),
+		},
 	});
 }
 
@@ -291,6 +296,10 @@ export function setUpCommandGet() {
 
 export function setUpCommandList() {
 	setUpQueryStubs();
+}
+
+export function setUpCommandGetNodeStatus() {
+	setUpLiskElementsAPIStubs.call(this);
 }
 
 export function setUpCommandConfig() {

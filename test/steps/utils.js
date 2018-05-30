@@ -27,6 +27,7 @@ import * as encryptMessage from '../../src/commands/encrypt_message';
 import * as encryptPassphrase from '../../src/commands/encrypt_passphrase';
 import * as config from '../../src/commands/config';
 import * as get from '../../src/commands/get';
+import * as getNodeStatus from '../../src/commands/get_node_status';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
 import * as showAccount from '../../src/commands/show_account';
@@ -96,6 +97,7 @@ export const getActionCreator = actionName =>
 		'create transaction transfer': createTransactionTransfer.actionCreator,
 		config: config.actionCreator,
 		get: get.actionCreator,
+		'get node status': getNodeStatus.actionCreator,
 		list: list.actionCreator,
 		set: set.actionCreator,
 		'show copyright': showCopyright.actionCreator,
@@ -149,3 +151,8 @@ export const hasAncestorWithTitleMatching = (test, regExp) => {
 	if (!parent) return false;
 	return hasAncestorWithTitleMatching(parent, regExp);
 };
+
+export const objectToKeyValueString = value =>
+	Object.entries(value)
+		.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
+		.join('\n');

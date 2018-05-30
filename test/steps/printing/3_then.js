@@ -19,6 +19,7 @@ import {
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
 import tablify from '../../../src/utils/tablify';
+import { objectToKeyValueString } from '../utils';
 
 export function consoleErrorShouldBeCalledWithTheFirstStringInRedAndTheOtherArguments() {
 	const { testArguments } = this.test.ctx;
@@ -141,18 +142,26 @@ export function theReturnedTableShouldHaveARowWithTheObjectKeyValues() {
 	});
 }
 
-export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues() {
+export function theReturnedTableShouldHaveARow() {
 	const { returnValue, testObject } = this.test.ctx;
 	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
 		const strValue =
-			typeof value === 'object' && value !== null
-				? Object.entries(value)
-						.map(
-							([vKey, vValue]) =>
-								`${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
-						)
-						.join('\n')
-				: value;
+			typeof value === 'object' && value !== null ? objectToKeyValueString(value) : value;
+		expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
+	});
+}
+
+export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues() {
+	const { returnValue, testObject } = this.test.ctx;
+	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
+		let strValue = value;
+		if (Array.isArray(value)) {
+			strValue = value
+				.map(element => objectToKeyValueString(element))
+				.join('\n');
+		} else if (typeof value === 'object' && value !== null) {
+			strValue = objectToKeyValueString(value);
+		}
 		expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
 	});
 }
@@ -186,11 +195,7 @@ export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedNest
 			if (Array.isArray(values[key])) {
 				strValue = values[key].join('\n');
 			} else if (typeof values[key] === 'object') {
-				strValue = Object.entries(values[key])
-					.map(
-						([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
-					)
-					.join('\n');
+				strValue = objectToKeyValueString(values[key]);
 			}
 			expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).eql({
 				[key]: strValue,

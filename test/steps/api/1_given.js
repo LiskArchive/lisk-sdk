@@ -18,3 +18,10 @@ import getAPIClient from '../../../src/utils/api';
 export function aLiskAPIInstance() {
 	this.test.ctx.liskAPIInstance = getAPIClient();
 }
+
+export function aLiskAPIInstanceGetForgingStatusRejectsWithError() {
+	const { liskAPIInstance } = this.test.ctx;
+	const errorMessage = 'some error';
+	liskAPIInstance.node.getForgingStatus.rejects(new Error(errorMessage));
+	this.test.ctx.errorMessage = errorMessage;
+}

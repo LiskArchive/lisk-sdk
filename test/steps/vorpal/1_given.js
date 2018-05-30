@@ -61,6 +61,12 @@ export function anActiveCommandThatCanLog() {
 	};
 }
 
+export function aBooleanOption() {
+	const { options } = this.test.ctx;
+	const option = getFirstQuotedString(this.test.parent.title);
+	options[option] = true;
+}
+
 export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
 	const testObject = {
 		lisk: 'js',
