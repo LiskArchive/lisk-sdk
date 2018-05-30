@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -94,5 +94,5 @@ export function thereIsAConfigLockfile() {
 export function thereIsNoConfigLockfile() {}
 
 export function theConfigDirectoryPathIsNotSpecifiedInAnEnvironmentalVariable() {
-	delete process.env.LISKY_CONFIG_DIR;
+	delete process.env.LISK_COMMANDER_CONFIG_DIR;
 }

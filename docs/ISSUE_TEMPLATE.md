@@ -1,4 +1,4 @@
-Have you read Lisky's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/LiskHQ/lisky/blob/master/CODE_OF_CONDUCT.md
+Have you read Lisk Commander's Code of Conduct? By filing an Issue, you are expected to comply with it, including treating everyone with respect: https://github.com/LiskHQ/lisk-commander/blob/master/CODE_OF_CONDUCT.md
 
 ### Description
 

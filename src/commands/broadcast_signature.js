@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -28,7 +28,7 @@ piping-related conflicts in your shell.
 		- broadcast signature '{"transactionId":"abcd1234","publicKey":"abcd1234","signature":"abcd1234"}'
 		- sign transaction '{"type":0,"amount":"100",...}' --json | broadcast signature
 	- Non-interactive mode:
-		- lisky "sign transaction '{"type":0,"amount":"100",...}' --json | broadcast signature"
+		- lisk "sign transaction '{"type":0,"amount":"100",...}' --json | broadcast signature"
 `;
 
 const getSignatureInput = ({ signature, stdin, shouldUseStdIn }) => {

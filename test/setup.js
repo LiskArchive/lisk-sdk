@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -23,8 +23,8 @@ import sinon from 'sinon';
 import mochaBDD from 'mocha-bdd';
 
 process.env.NODE_ENV = 'test';
-process.env.LISKY_CONFIG_DIR =
-	process.env.LISKY_CONFIG_DIR || `${os.homedir()}/.lisky`;
+process.env.LISK_COMMANDER_CONFIG_DIR =
+	process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
 
 /* eslint-disable no-underscore-dangle */
 Assertion.addMethod('matchAny', function handleAssert(matcher) {
