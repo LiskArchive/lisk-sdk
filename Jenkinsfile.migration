@@ -16,6 +16,7 @@ properties([
 	parameters([
 		string(name: 'MIGRATE_FROM', defaultValue: 'master', description: 'Source branch to test migration', ),
 		string(name: 'MIGRATE_TO', defaultValue: 'development', description: 'Target branch to test migration', ),
+		string(name: 'NETWORK', defaultValue: 'test', description: 'The network used during `installLisk.sh`. It must be test or main. ', ),
 		booleanParam(name: 'USE_TEST_CONFIG', defaultValue: true, description: 'Use test genesis block and config', )
 	 ])
 ])
@@ -35,7 +36,7 @@ pipeline {
 				stage('Create source release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_FROM, network: 'test', useTestConfig: params.USE_TEST_CONFIG)
+							def release = liskBuild(branch: params.MIGRATE_FROM, network: params.NETWORK, useTestConfig: params.USE_TEST_CONFIG)
 							env.SRC_IS_LATEST = release.latestVersion
 							env.SRC_VERSION =  release.version
 							env.SRC_RELEASE =  release.nonVersionedFile
@@ -46,7 +47,7 @@ pipeline {
 				stage('Create destination release') {
 					steps {
 						script {
-							def release = liskBuild(branch: params.MIGRATE_TO, network: 'test', useTestConfig: params.USE_TEST_CONFIG)
+							def release = liskBuild(branch: params.MIGRATE_TO, network: params.NETWORK, useTestConfig: params.USE_TEST_CONFIG)
 							env.DEST_IS_LATEST = release.latestVersion
 							env.DEST_VERSION =  release.version
 							env.DEST_RELEASE =  release.nonVersionedFile
@@ -58,7 +59,7 @@ pipeline {
 
 		stage("Install source release") {
 			steps {
-				installLisk(env.SRC_RELEASE, 'test')
+				installLisk(env.SRC_RELEASE, params.NETWORK)
 			}
 		}
 
