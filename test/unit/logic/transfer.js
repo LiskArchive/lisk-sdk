@@ -141,17 +141,13 @@ describe('transfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should throw error if given no params', () => {
-			return expect(transfer.calculateFee).to.throw();
-		});
-
-		it('should return the correct fee when data field is not set', () => {
+		it('should return the correct fee for a transfer', () => {
 			return expect(
 				transfer.calculateFee.call(transactionLogic, validTransaction)
 			).to.equal(constants.fees.send);
 		});
 
-		it('should return the correct fee when data field is set', () => {
+		it('should return the same fee for a transfer with additional data', () => {
 			var transaction = _.clone(validTransaction);
 			transaction.asset = {
 				data: '0',
@@ -159,7 +155,7 @@ describe('transfer', () => {
 
 			return expect(
 				transfer.calculateFee.call(transactionLogic, transaction)
-			).to.equal(constants.fees.send + constants.fees.data);
+			).to.equal(constants.fees.send);
 		});
 	});
 
