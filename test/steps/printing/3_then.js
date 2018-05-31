@@ -142,23 +142,12 @@ export function theReturnedTableShouldHaveARowWithTheObjectKeyValues() {
 	});
 }
 
-export function theReturnedTableShouldHaveARow() {
-	const { returnValue, testObject } = this.test.ctx;
-	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
-		const strValue =
-			typeof value === 'object' && value !== null ? objectToKeyValueString(value) : value;
-		expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
-	});
-}
-
 export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues() {
 	const { returnValue, testObject } = this.test.ctx;
 	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
 		let strValue = value;
 		if (Array.isArray(value)) {
-			strValue = value
-				.map(element => objectToKeyValueString(element))
-				.join('\n');
+			strValue = value.map(objectToKeyValueString).join('\n\n');
 		} else if (typeof value === 'object' && value !== null) {
 			strValue = objectToKeyValueString(value);
 		}

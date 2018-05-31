@@ -20,7 +20,7 @@ import * as then from '../../steps/3_then';
 
 describe('check node status command', () => {
 	beforeEach(setUpCommandGetNodeStatus);
-	Given('an action "get node status"', given.anAction, () => {
+	Given('an action "check node status"', given.anAction, () => {
 		Given('a Lisk API Instance', given.aLiskAPIInstance, () => {
 			Given('an options object', given.anOptionsObject, () => {
 				When(
@@ -41,54 +41,58 @@ describe('check node status command', () => {
 						);
 					},
 				);
-				Given('a boolean option "forging"', given.aBooleanOption, () => {
-					Given(
-						'a Lisk API Instance getForgingStatus rejects with error',
-						given.aLiskAPIInstanceGetForgingStatusRejectsWithError,
-						() => {
-							When(
-								'the action is called with the options',
-								when.theActionIsCalledWithTheOptions,
-								() => {
-									Then(
-										'it should call node getConstants',
-										then.itShouldCallNodeGetConstants,
-									);
-									Then(
-										'it should call node getStatus',
-										then.itShouldCallNodeGetStatus,
-									);
-									Then(
-										'it should call node getForgingStatus',
-										then.itShouldCallNodeGetForgingStatus,
-									);
-									Then(
-										'it should call node getForgingStatus',
-										then.itShoulHaveErrorMessageForForgingStatus,
-									);
-								},
-							);
-						},
-					);
-					When(
-						'the action is called with the options',
-						when.theActionIsCalledWithTheOptions,
-						() => {
-							Then(
-								'it should call node getConstants',
-								then.itShouldCallNodeGetConstants,
-							);
-							Then(
-								'it should call node getStatus',
-								then.itShouldCallNodeGetStatus,
-							);
-							Then(
-								'it should call node getForgingStatus',
-								then.itShouldCallNodeGetForgingStatus,
-							);
-						},
-					);
-				});
+				Given(
+					'a boolean option "forging" set to "true"',
+					given.anOptionsObjectWithKeySetToBoolean,
+					() => {
+						Given(
+							'getForgingStatus rejects with error',
+							given.getForgingStatusRejectsWithError,
+							() => {
+								When(
+									'the action is called with the options',
+									when.theActionIsCalledWithTheOptions,
+									() => {
+										Then(
+											'it should call node getConstants',
+											then.itShouldCallNodeGetConstants,
+										);
+										Then(
+											'it should call node getStatus',
+											then.itShouldCallNodeGetStatus,
+										);
+										Then(
+											'it should call node getForgingStatus',
+											then.itShouldCallNodeGetForgingStatus,
+										);
+										Then(
+											'it should call node getForgingStatus',
+											then.itShoulHaveErrorMessageForForgingStatus,
+										);
+									},
+								);
+							},
+						);
+						When(
+							'the action is called with the options',
+							when.theActionIsCalledWithTheOptions,
+							() => {
+								Then(
+									'it should call node getConstants',
+									then.itShouldCallNodeGetConstants,
+								);
+								Then(
+									'it should call node getStatus',
+									then.itShouldCallNodeGetStatus,
+								);
+								Then(
+									'it should call node getForgingStatus',
+									then.itShouldCallNodeGetForgingStatus,
+								);
+							},
+						);
+					},
+				);
 			});
 		});
 	});

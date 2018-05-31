@@ -57,7 +57,7 @@ export function aNonEmptyObject() {
 	};
 }
 
-export function anObjectWithObjectArray() {
+export function anObjectWithAnArrayOfObjects() {
 	this.test.ctx.testObject = {
 		root: 'value',
 		objectArray: [{ sample: 1 }, { sample: 2 }],

@@ -20,14 +20,10 @@ const description = `Gets information about a node.
 
 	Examples:
 	- get node status
-	- get node status --forging
 `;
 
-const forgingDescription = `Additionally provides information about forging status
-
-	Examples:
-	- --forging
-`;
+const forgingDescription =
+	'Additionally provides information about forging status';
 
 export const actionCreator = () => async ({ options }) => {
 	const client = getAPIClient();
@@ -36,21 +32,21 @@ export const actionCreator = () => async ({ options }) => {
 		.then(([constantsResponse, statusResponse]) =>
 			Object.assign({}, constantsResponse.data, statusResponse.data),
 		)
-		.then(nodeStatus => {
-			if (options.forging) {
-				return client.node
-					.getForgingStatus()
-					.then(forgingResponse =>
-						Object.assign({}, nodeStatus, {
-							forgingStatus: forgingResponse.data,
-						}),
-					)
-					.catch(error =>
-						Object.assign({}, nodeStatus, { forgingStatus: error.message }),
-					);
-			}
-			return nodeStatus;
-		});
+		.then(
+			nodeStatus =>
+				options.forging
+					? client.node
+							.getForgingStatus()
+							.then(forgingResponse =>
+								Object.assign({}, nodeStatus, {
+									forgingStatus: forgingResponse.data,
+								}),
+							)
+							.catch(error =>
+								Object.assign({}, nodeStatus, { forgingStatus: error.message }),
+							)
+					: nodeStatus,
+		);
 };
 
 const checkNodeStatus = createCommand({
@@ -58,7 +54,7 @@ const checkNodeStatus = createCommand({
 	description,
 	actionCreator,
 	options: [['--forging', forgingDescription]],
-	errorPrefix: 'Could not get node status',
+	errorPrefix: 'Could not check node status',
 });
 
 export default checkNodeStatus;

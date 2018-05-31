@@ -19,7 +19,7 @@ export function aLiskAPIInstance() {
 	this.test.ctx.liskAPIInstance = getAPIClient();
 }
 
-export function aLiskAPIInstanceGetForgingStatusRejectsWithError() {
+export function getForgingStatusRejectsWithError() {
 	const { liskAPIInstance } = this.test.ctx;
 	const errorMessage = 'some error';
 	liskAPIInstance.node.getForgingStatus.rejects(new Error(errorMessage));

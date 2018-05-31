@@ -43,9 +43,9 @@ const getKeyValueObject = object => {
 };
 
 const getKeyValueArray = array =>
-	array && array.length > 0 && typeof array[0] !== 'object'
+	array.some(item => typeof item !== 'object')
 		? array.join('\n')
-		: array.map(element => getKeyValueObject(element)).join('\n');
+		: array.map(getKeyValueObject).join('\n\n');
 
 const addValuesToTable = (table, data) => {
 	Object.entries(data).forEach(([key, values]) => {
