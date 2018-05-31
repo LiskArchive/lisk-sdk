@@ -691,7 +691,6 @@ describe('transaction', () => {
 		it('should verify transaction with correct fee (with data field)', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = { data: '123' };
-			transaction.fee += 10000000;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 
