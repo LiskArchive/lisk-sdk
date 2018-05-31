@@ -25,17 +25,17 @@ var constants = require('../../../helpers/constants');
 var bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(accountFixtures.genesis.password, 'utf8')
+	.update(accountFixtures.genesis.passphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -58,7 +58,6 @@ var validSender = {
 	missedBlocks: 0,
 	fees: 0,
 	rewards: 0,
-	virgin: 0,
 };
 
 var validTransaction = {

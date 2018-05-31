@@ -11,6 +11,7 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
 'use strict';
 
 var MemAccounts = {
@@ -45,14 +46,12 @@ var MemAccounts = {
 		'"u_multimin",' +
 		'"multilifetime",' +
 		'"u_multilifetime",' +
-		'"blockId",' +
 		'"nameexist",' +
 		'"u_nameexist",' +
 		'"producedBlocks",' +
 		'"missedBlocks",' +
 		'"fees",' +
-		'"rewards",' +
-		'"virgin"' +
+		'"rewards"' +
 		') VALUES (' +
 		'${username}, ' +
 		'${isDelegate}, ' +
@@ -75,14 +74,12 @@ var MemAccounts = {
 		'${u_multimin}, ' +
 		'${multilifetime}, ' +
 		'${u_multilifetime}, ' +
-		'${blockId}, ' +
 		'${nameexist}, ' +
 		'${u_nameexist}, ' +
 		'${producedBlocks}, ' +
 		'${missedBlocks}, ' +
 		'${fees}, ' +
-		'${rewards}, ' +
-		'${virgin}' +
+		'${rewards}' +
 		');',
 
 	delete: 'DELETE FROM mem_accounts WHERE address = ${address}',

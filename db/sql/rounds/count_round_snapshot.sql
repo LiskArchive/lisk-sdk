@@ -14,11 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Counts all records from mem_round_snapshot table.
 
-  PARAMETERS: ?
+  PARAMETERS: none
 */
 
-UPDATE mem_accounts
-SET "blockId" = $1
-WHERE "blockId" = $2
+SELECT COUNT(*) FROM mem_round_snapshot

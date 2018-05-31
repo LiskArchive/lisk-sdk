@@ -375,6 +375,33 @@ describe('peers', () => {
 				});
 			});
 		});
+
+		describe('networkHeight', () => {
+			before(done => {
+				randomPeers = _.range(1000).map(() => {
+					return generateRandomActivePeer();
+				});
+				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
+				done();
+			});
+
+			const randomPeerNetworkHeight = randomPeers => {
+				const peersGroupedByHeight = _.groupBy(randomPeers, 'height');
+				const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
+				return _.max(popularHeights);
+			};
+
+			it('should return all 1000 peers', done => {
+				peers.networkHeight(validOptions, (err, networkHeight) => {
+					expect(err).to.be.null;
+					expect(networkHeight);
+					expect(networkHeight)
+						.to.be.an('number')
+						.and.to.deep.eql(randomPeerNetworkHeight(randomPeers));
+					done();
+				});
+			});
+		});
 	});
 
 	describe('update', () => {
@@ -899,7 +926,7 @@ describe('peers', () => {
 			return expect(jobsQueueSpy).calledWith(
 				'peersDiscoveryAndUpdate',
 				sinon.match.func,
-				5000
+				30000
 			);
 		});
 	});

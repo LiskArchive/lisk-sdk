@@ -21,7 +21,6 @@ const System = require('../modules/system.js');
 const PeersManager = require('../helpers/peers_manager.js');
 
 // Private fields
-const __private = {};
 let self;
 let library;
 let modules;
@@ -48,7 +47,6 @@ class Peers {
 			logger,
 		};
 		self = this;
-		__private.me = null;
 
 		this.peersManager = new PeersManager(logger);
 
@@ -193,7 +191,7 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	let cnt_empty_height = 0;
 	let cnt_empty_broadhash = 0;
 
-	_.each(__private.peers, peer => {
+	_.each(self.peersManager.peers, peer => {
 		++cnt_total;
 		if (peer.state === Peer.STATE.CONNECTED) {
 			++cnt_active;
@@ -247,13 +245,30 @@ Peers.prototype.remove = function(peer) {
  */
 Peers.prototype.list = function(normalize) {
 	if (normalize) {
-		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+		return Object.keys(self.peersManager.peers).map(key =>
 			self.peersManager.getByAddress(key).object()
 		);
 	}
-	return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+	return Object.keys(self.peersManager.peers).map(key =>
 		self.create(self.peersManager.getByAddress(key))
 	);
+};
+
+/**
+ * Returns a random list of connected peers.
+ *
+ * @param {Object} [options] - Optional
+ * @param {number} [options.limit] - Maximum number of peers to get; defaults to all
+ * @returns {peer[]} List of peers
+ */
+Peers.prototype.listRandomConnected = function(options) {
+	options = options || {};
+	const peerList = Object.keys(self.peersManager.peers)
+		.map(key => self.peersManager.peers[key])
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+	const shuffledPeerList = _.shuffle(peerList);
+	return options.limit ? shuffledPeerList.slice(0, options.limit)
+		: shuffledPeerList;
 };
 
 /**

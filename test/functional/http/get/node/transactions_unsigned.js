@@ -48,7 +48,7 @@ describe('GET /api/node', () => {
 				// Credit account with some funds
 				transaction = lisk.transaction.transfer({
 					amount: 1000 * constants.normalizer,
-					passphrase: accountFixtures.genesis.password,
+					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: senderAccount.address,
 				});
 
@@ -63,8 +63,8 @@ describe('GET /api/node', () => {
 					.then(() => {
 						// Create Second Signature for sender account
 						transaction = lisk.transaction.registerSecondPassphrase({
-							passphrase: senderAccount.password,
-							secondPassphrase: senderAccount.secondPassword,
+							passphrase: senderAccount.passphrase,
+							secondPassphrase: senderAccount.secondPassphrase,
 						});
 
 						return sendTransactionPromise(transaction);
@@ -79,8 +79,8 @@ describe('GET /api/node', () => {
 					.then(() => {
 						// Convert account to multisig account
 						transaction = lisk.transaction.registerMultisignature({
-							passphrase: senderAccount.password,
-							secondPassphrase: senderAccount.secondPassword,
+							passphrase: senderAccount.passphrase,
+							secondPassphrase: senderAccount.secondPassphrase,
 							keysgroup: [`${randomMember.publicKey}`],
 							lifetime: 1,
 							minimum: 1,
@@ -111,8 +111,8 @@ describe('GET /api/node', () => {
 							transactionList.push(
 								lisk.transaction.transfer({
 									amount: (i + 1) * constants.normalizer,
-									passphrase: senderAccount.password,
-									secondPassphrase: senderAccount.secondPassword,
+									passphrase: senderAccount.passphrase,
+									secondPassphrase: senderAccount.secondPassphrase,
 									recipientId: recipientAccount.address,
 								})
 							);

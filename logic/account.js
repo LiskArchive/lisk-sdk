@@ -452,7 +452,7 @@ class Account {
 
 	/**
 	 * Updates account from mem_account with diff data belonging to an editable field.
-	 * Inserts into mem_round "address", "amount", "delegate", "blockId", "round" based on balance or delegates fields.
+	 * Inserts into mem_round "address", "amount", "delegate", "round" based on balance or delegates fields.
 	 *
 	 * @param {address} address
 	 * @param {Object} diff - Must contains only mem_account editable fields
@@ -522,18 +522,12 @@ class Account {
 									Math.floor(Math.abs(updatedValue))
 								)
 							);
-
-							// Withdrawal, therefore convert to non-virgin account
-							if (updatedField === 'u_balance') {
-								promises.push(dbTx.accounts.convertToNonVirgin(address));
-							}
 						}
 
 						if (updatedField === 'balance') {
 							promises.push(
 								dbTx.rounds.insertRoundInformationWithAmount(
 									address,
-									diff.blockId,
 									diff.round,
 									updatedValue
 								)
@@ -579,7 +573,6 @@ class Account {
 									promises.push(
 										dbTx.rounds.insertRoundInformationWithDelegate(
 											address,
-											diff.blockId,
 											diff.round,
 											dependentId,
 											mode
@@ -649,14 +642,12 @@ class Account {
  * @property {number} u_multimin - Between 0 and 17
  * @property {number} multilifetime - Between 1 and 72
  * @property {number} u_multilifetime - Between 1 and 72
- * @property {string} blockId
  * @property {boolean} nameexist
  * @property {boolean} u_nameexist
  * @property {number} producedBlocks
  * @property {number} missedBlocks
  * @property {number} fees
  * @property {number} rewards
- * @property {boolean} virgin
  */
 // TODO: TO maintain backward compatibility, have to user prototype otherwise these must be converted to static attributes
 Account.prototype.table = 'mem_accounts';
@@ -768,11 +759,6 @@ Account.prototype.model = [
 		conv: Number,
 	},
 	{
-		name: 'blockId',
-		type: 'String',
-		conv: String,
-	},
-	{
 		name: 'nameexist',
 		type: 'SmallInt',
 		conv: Boolean,
@@ -811,12 +797,6 @@ Account.prototype.model = [
 		name: 'missedBlocks',
 		type: 'BigInt',
 		conv: Number,
-	},
-	{
-		name: 'virgin',
-		type: 'SmallInt',
-		conv: Boolean,
-		immutable: true,
 	},
 	{
 		name: 'approval',
@@ -967,12 +947,6 @@ Account.prototype.schema = {
 			minimum: 0,
 			maximum: constants.multisigConstraints.lifetime.maximum,
 		},
-		blockId: {
-			type: 'string',
-			format: 'id',
-			minLength: 1,
-			maxLength: 20,
-		},
 		nameexist: {
 			type: 'integer',
 			maximum: 32767,
@@ -1000,10 +974,6 @@ Account.prototype.schema = {
 		},
 		missedBlocks: {
 			type: 'integer',
-		},
-		virgin: {
-			type: 'integer',
-			maximum: 32767,
 		},
 		approval: {
 			type: 'integer',

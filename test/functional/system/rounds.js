@@ -83,7 +83,6 @@ describe('rounds', () => {
 		});
 		if (found) {
 			found.producedBlocks += 1;
-			found.blockId = lastBlock.id;
 		}
 
 		// Mutate states - apply every transaction to expected states
@@ -108,8 +107,6 @@ describe('rounds', () => {
 						new Bignum(transaction.fee).plus(new Bignum(transaction.amount))
 					)
 					.toString();
-				accounts[address].blockId = lastBlock.id;
-				accounts[address].virgin = 0;
 
 				// Set public key if not present
 				if (!accounts[address].publicKey) {
@@ -141,13 +138,11 @@ describe('rounds', () => {
 					accounts[address].u_balance = new Bignum(accounts[address].u_balance)
 						.plus(new Bignum(transaction.amount))
 						.toString();
-					accounts[address].blockId = lastBlock.id;
 				} else {
 					// Funds sent to new account - create account with default values
 					accounts[address] = accountsFixtures.dbAccount({
 						address,
 						balance: new Bignum(transaction.amount).toString(),
-						blockId: lastBlock.id,
 					});
 				}
 			}
@@ -157,15 +152,12 @@ describe('rounds', () => {
 
 	function applyRoundRewards(_accounts, blocks) {
 		const accounts = _.cloneDeep(_accounts);
-		const lastBlock = library.modules.blocks.lastBlock.get();
-
 		const expectedRewards = getExpectedRoundRewards(blocks);
 		_.each(expectedRewards, reward => {
 			const found = _.find(accounts, {
 				publicKey: Buffer.from(reward.publicKey, 'hex'),
 			});
 			if (found) {
-				found.blockId = lastBlock.id;
 				found.fees = new Bignum(found.fees)
 					.plus(new Bignum(reward.fees))
 					.toString();
@@ -531,7 +523,7 @@ describe('rounds', () => {
 				const transaction = elements.transaction.transfer({
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000),
-					passphrase: accountsFixtures.genesis.password,
+					passphrase: accountsFixtures.genesis.passphrase,
 				});
 				transactions.push(transaction);
 				done();
@@ -550,7 +542,7 @@ describe('rounds', () => {
 					const transaction = elements.transaction.transfer({
 						recipientId: randomUtil.account().address,
 						amount: randomUtil.number(100000000, 1000000000),
-						passphrase: accountsFixtures.genesis.password,
+						passphrase: accountsFixtures.genesis.passphrase,
 					});
 					transactions.push(transaction);
 				}
@@ -573,7 +565,7 @@ describe('rounds', () => {
 						const transaction = elements.transaction.transfer({
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountsFixtures.genesis.password,
+							passphrase: accountsFixtures.genesis.passphrase,
 						});
 						transactions.push(transaction);
 					}
@@ -599,7 +591,7 @@ describe('rounds', () => {
 				const transaction = elements.transaction.transfer({
 					recipientId: randomUtil.account().address,
 					amount: randomUtil.number(100000000, 1000000000),
-					passphrase: accountsFixtures.genesis.password,
+					passphrase: accountsFixtures.genesis.passphrase,
 				});
 				transactions.push(transaction);
 
@@ -708,6 +700,38 @@ describe('rounds', () => {
 				).to.eventually.deep.equal({});
 			});
 
+			it('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+				return getMemAccounts().then(_accounts => {
+					// Add back empty account, created accounts are never deleted
+					const address = lastBlock.transactions[0].recipientId;
+					round.accountsBeforeLastBlock[address] = accountsFixtures.dbAccount({
+						address,
+						balance: '0',
+					});
+
+					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
+				});
+			});
+
+			it('delegates list should be equal to one generated at the beginning of round 1', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return generateDelegateListPromise(lastBlock.height + 1, null).then(
+					delegatesList => {
+						expect(delegatesList).to.deep.equal(round.delegatesList);
+					}
+				);
+			});
+		});
+
+		describe('deleting last block of round twice in a row', () => {
+			before(() => {
+				return addTransactionsAndForgePromise(library, [], 0);
+			});
+
+			it('should be able to delete last block of round again', () => {
+				return deleteLastBlockPromise();
+			});
+
 			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1781 is closed
 			// eslint-disable-next-line
 			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
@@ -738,7 +762,7 @@ describe('rounds', () => {
 
 					// Create unvote transaction
 					const transaction = elements.transaction.castVotes({
-						passphrase: accountsFixtures.genesis.password,
+						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 					});
 					transactions.push(transaction);
@@ -755,10 +779,8 @@ describe('rounds', () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
 				return expect(lastBlock.height).to.equal(99);
 			});
-
-			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1782 is closed
 			// eslint-disable-next-line
-			it.skip('transactions from deleted block should be added back to transaction pool', done => {
+			it('transactions from deleted block should be added back to transaction pool', done => {
 				const transactionPool = library.rewiredModules.transactions.__get__(
 					'__private.transactionPool'
 				);
@@ -873,28 +895,40 @@ describe('rounds', () => {
 					let transaction = elements.transaction.transfer({
 						recipientId: tmpAccount.address,
 						amount: 5000000000,
-						passphrase: accountsFixtures.genesis.password,
+						passphrase: accountsFixtures.genesis.passphrase,
 					});
 					transactions.transfer.push(transaction);
 
 					// Create register delegate transaction
 					transaction = elements.transaction.registerDelegate({
-						passphrase: tmpAccount.password,
+						passphrase: tmpAccount.passphrase,
 						username: 'my_little_delegate',
 					});
 					transactions.delegate.push(transaction);
 
 					transaction = elements.transaction.castVotes({
-						passphrase: accountsFixtures.genesis.password,
+						passphrase: accountsFixtures.genesis.passphrase,
 						unvotes: [lastBlockForger],
 						votes: [tmpAccount.publicKey],
 					});
 					transactions.vote.push(transaction);
 
+					const transactionPool = library.rewiredModules.transactions.__get__(
+						'__private.transactionPool'
+					);
 					// Delete two blocks more
+					lastBlock = library.modules.blocks.lastBlock.get();
 					deleteLastBlockPromise().then(() => {
-						// done();
+						_.each(lastBlock.transactions, transaction => {
+							// Remove transaction from pool
+							transactionPool.removeUnconfirmedTransaction(transaction.id);
+						});
+						lastBlock = library.modules.blocks.lastBlock.get();
 						deleteLastBlockPromise().then(() => {
+							_.each(lastBlock.transactions, transaction => {
+								// Remove transaction from pool
+								transactionPool.removeUnconfirmedTransaction(transaction.id);
+							});
 							done();
 						});
 					});
@@ -926,13 +960,11 @@ describe('rounds', () => {
 					return expect(lastBlock.height).to.equal(101);
 				});
 
-				// FIXME: Unskip that tests and fix the order (or not) after issue https://github.com/LiskHQ/lisk-js/issues/625 is closed
-				// eslint-disable-next-line
-				it.skip('after finishing round, should unvote expected forger of last block of round and vote new delegate (block data)', () => {
+				it('after finishing round, should unvote expected forger of last block of round and vote new delegate (block data)', () => {
 					return Queries.getFullBlock(lastBlock.height).then(blocks => {
 						expect(blocks[0].transactions[0].asset.votes).to.deep.equal([
-							`-${lastBlockForger}`,
 							`+${tmpAccount.publicKey}`,
+							`-${lastBlockForger}`,
 						]);
 					});
 				});
@@ -1029,7 +1061,7 @@ describe('rounds', () => {
 							const transaction = elements.transaction.transfer({
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountsFixtures.genesis.password,
+								passphrase: accountsFixtures.genesis.passphrase,
 							});
 							transactions.push(transaction);
 						}
@@ -1084,7 +1116,7 @@ describe('rounds', () => {
 							const transaction = elements.transaction.transfer({
 								recipientId: randomUtil.account().address,
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountsFixtures.genesis.password,
+								passphrase: accountsFixtures.genesis.passphrase,
 							});
 							transactions.push(transaction);
 						}
@@ -1146,13 +1178,31 @@ describe('rounds', () => {
 
 		it('should fail when try to delete one more block (last block of round 1)', () => {
 			return expect(deleteLastBlockPromise()).to.eventually.be.rejectedWith(
-				'relation "mem_round_snapshot" does not exist'
+				'Snapshot for round 1 not available'
 			);
 		});
 
 		it('last block height should be still at height 101', () => {
 			lastBlock = library.modules.blocks.lastBlock.get();
 			return expect(lastBlock.height).to.equal(101);
+		});
+	});
+
+	describe('deleting last block of round twice in a row - no transactions during round', () => {
+		before(() => {
+			return Promise.mapSeries([...Array(202)], () => {
+				return addTransactionsAndForgePromise(library, [], 0);
+			});
+		});
+
+		it('should be able to delete last block of round', () => {
+			return deleteLastBlockPromise();
+		});
+
+		it('should be able to delete last block of round again', () => {
+			return addTransactionsAndForgePromise(library, [], 0).then(() => {
+				return deleteLastBlockPromise();
+			});
 		});
 	});
 });

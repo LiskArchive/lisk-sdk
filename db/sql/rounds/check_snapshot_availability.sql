@@ -14,12 +14,9 @@
 
 
 /*
-  DESCRIPTION: Convert a virgin account to non-virgin state
+  DESCRIPTION: Check round snapshot availability for a particular round.
 
-  PARAMETERS:
-  	address - Address of the particular account
+  PARAMETERS: round - Round for we are checking availability
 */
 
-UPDATE mem_accounts
-SET virgin = 0
-WHERE address = ${address}
+SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1

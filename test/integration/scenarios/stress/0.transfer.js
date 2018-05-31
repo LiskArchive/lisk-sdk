@@ -23,28 +23,13 @@ var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
-var getTransaction = require('../../utils/http').getTransaction;
+var confirmTransactionsOnAllNodes = require('../common/stress')
+	.confirmTransactionsOnAllNodes;
 
 module.exports = function(params) {
-	describe('postTransactions @slow', () => {
+	describe('stress test for type 0 transactions @slow', () => {
 		var transactions = [];
 		var maximum = 1000;
-
-		function confirmTransactionsOnAllNodes() {
-			return Promise.all(
-				_.flatMap(params.configurations, configuration => {
-					return transactions.map(transaction => {
-						return getTransaction(transaction.id, configuration.httpPort);
-					});
-				})
-			).then(results => {
-				results.forEach(transaction => {
-					expect(transaction)
-						.to.have.property('id')
-						.that.is.an('string');
-				});
-			});
-		}
 
 		describe('sending 1000 bundled transfers to random addresses', () => {
 			var count = 1;
@@ -60,7 +45,7 @@ module.exports = function(params) {
 						) {
 							var transaction = lisk.transaction.transfer({
 								amount: randomUtil.number(100000000, 1000000000),
-								passphrase: accountFixtures.genesis.password,
+								passphrase: accountFixtures.genesis.passphrase,
 								recipientId: randomUtil.account().address,
 							});
 							transactions.push(transaction);
@@ -83,7 +68,7 @@ module.exports = function(params) {
 					maximum / constants.maxTransactionsPerBlock
 				);
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});
 			});
 		});
@@ -95,7 +80,7 @@ module.exports = function(params) {
 					_.range(maximum).map(() => {
 						var transaction = lisk.transaction.transfer({
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: randomUtil.account().address,
 						});
 						transactions.push(transaction);
@@ -109,7 +94,7 @@ module.exports = function(params) {
 					maximum / constants.maxTransactionsPerBlock
 				);
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, params).then(done);
 				});
 			});
 		});

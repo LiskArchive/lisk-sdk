@@ -48,7 +48,6 @@ SlaveToMasterSender.prototype.send = function(
 			authKey: this.slaveWAMPServer.worker.options.authKey,
 			updateType,
 		},
-		peer.nonce,
 		cb
 	);
 };
@@ -64,7 +63,6 @@ SlaveToMasterSender.prototype.getPeer = function(nonce, cb) {
 	this.slaveWAMPServer.sendToMaster(
 		'list',
 		{ query: { nonce } },
-		nonce,
 		(err, result) => {
 			if (err) {
 				return setImmediate(cb, err);

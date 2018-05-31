@@ -38,7 +38,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction2;
 			transaction = lisk.transaction.transfer({
 				amount: 1000 * constants.normalizer,
-				passphrase: accountFixtures.genesis.password,
+				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
 
@@ -53,7 +53,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 				before(done => {
 					transaction = lisk.transaction.transfer({
 						amount: 1000 * constants.normalizer,
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});
 					localCommon.addTransactionsAndForge(library, [transaction], done);
@@ -61,7 +61,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration should be ok', done => {
 					transaction1 = lisk.transaction.registerDelegate({
-						passphrase: account.password,
+						passphrase: account.passphrase,
 						username: account.username,
 					});
 					localCommon.addTransaction(library, transaction1, (err, res) => {
@@ -72,7 +72,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 
 				it('adding to pool delegate registration from different account and same username should be ok', done => {
 					transaction2 = lisk.transaction.registerDelegate({
-						passphrase: account2.password,
+						passphrase: account2.passphrase,
 						username: account.username,
 					});
 					localCommon.addTransaction(library, transaction2, (err, res) => {
@@ -135,7 +135,12 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('adding to pool delegate registration from same account should fail', done => {
-						localCommon.addTransaction(library, transaction2, err => {
+						const transaction3 = lisk.transaction.registerDelegate({
+							passphrase: account2.passphrase,
+							username: account.username,
+							timeOffset: -10000,
+						});
+						localCommon.addTransaction(library, transaction3, err => {
 							expect(err).to.equal('Account is already a delegate');
 							done();
 						});

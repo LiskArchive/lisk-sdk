@@ -30,26 +30,26 @@ function invalidAssets(option, badTransactions) {
 			switch (option) {
 				case 'signature':
 					transaction = lisk.transaction.registerSecondPassphrase({
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						secondPassphrase: randomUtil.password(),
 					});
 					break;
 				case 'delegate':
 					transaction = lisk.transaction.registerDelegate({
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						username: randomUtil.delegateName(),
 					});
 					break;
 				case 'votes':
 					transaction = lisk.transaction.castVotes({
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						votes: [],
 						unvotes: [],
 					});
 					break;
 				case 'multisignature':
 					transaction = lisk.transaction.registerMultisignature({
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						keysgroup: [`${accountFixtures.existingDelegate.publicKey}`],
 						lifetime: 1,
 						minimum: 2,
@@ -57,24 +57,8 @@ function invalidAssets(option, badTransactions) {
 					break;
 				case 'dapp':
 					transaction = lisk.transaction.createDapp({
-						passphrase: accountFixtures.genesis.password,
+						passphrase: accountFixtures.genesis.passphrase,
 						options: randomUtil.guestbookDapp,
-					});
-					break;
-				case 'inTransfer':
-					transaction = lisk.transaction.transferIntoDapp({
-						passphrase: accountFixtures.genesis.password,
-						amount: Date.now(),
-						dappId: randomUtil.guestbookDapp.id,
-					});
-					break;
-				case 'outTransfer':
-					transaction = lisk.transaction.transferOutOfDapp({
-						passphrase: accountFixtures.genesis.password,
-						amount: Date.now(),
-						dappId: randomUtil.guestbookDapp.id,
-						transactionId: randomUtil.transaction().id,
-						recipientId: accountFixtures.genesis.address,
 					});
 					break;
 				// no default

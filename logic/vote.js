@@ -74,7 +74,6 @@ class Vote {
 			sender.address,
 			{
 				delegates: votesInvert,
-				blockId: block.id,
 				round: slots.calcRound(block.height),
 			},
 			mergeErr => setImmediate(cb, mergeErr),
@@ -343,7 +342,6 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
 					sender.address,
 					{
 						delegates: transaction.asset.votes,
-						blockId: block.id,
 						round: slots.calcRound(block.height),
 					},
 					mergeErr => setImmediate(cb, mergeErr),

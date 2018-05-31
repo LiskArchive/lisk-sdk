@@ -26,7 +26,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	};
 
 	var transactionToBeNotConfirmed = lisk.transaction.registerMultisignature({
-		passphrase: scenarios.regular.account.password,
+		passphrase: scenarios.regular.account.passphrase,
 		keysgroup: scenarios.regular.keysgroup,
 		lifetime: scenarios.regular.lifetime,
 		minimum: scenarios.regular.minimum,
@@ -41,12 +41,12 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	scenarios.regular.members.map(member => {
 		var signatureToBeNotconfirmed = lisk.transaction.utils.multiSignTransaction(
 			transactionToBeNotConfirmed,
-			member.password
+			member.passphrase
 		);
 		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
 		var signature = lisk.transaction.utils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
-			member.password
+			member.passphrase
 		);
 		scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
@@ -126,14 +126,19 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		});
 
 		it('adding to pool multisignature registration for same account should fail', done => {
-			localCommon.addTransaction(
-				library,
-				scenarios.regular.multiSigTransaction,
-				err => {
-					expect(err).to.equal('Account already has multisignatures enabled');
-					done();
+			const multiSignatureToSameAccount = lisk.transaction.registerMultisignature(
+				{
+					passphrase: scenarios.regular.account.passphrase,
+					keysgroup: scenarios.regular.keysgroup,
+					lifetime: scenarios.regular.lifetime,
+					minimum: scenarios.regular.minimum,
+					timeOffset: -10000,
 				}
 			);
+			localCommon.addTransaction(library, multiSignatureToSameAccount, err => {
+				expect(err).to.equal('Account already has multisignatures enabled');
+				done();
+			});
 		});
 	});
 });

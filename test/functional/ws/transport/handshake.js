@@ -157,13 +157,7 @@ describe('handshake', () => {
 			it('without height', function(done) {
 				delete validClientSocketOptions.query.height;
 				connect();
-				expectNotToConnect(this, (err, code, description) => {
-					expect(code).equal(failureCodes.INVALID_HEADERS);
-					expect(description).contain(
-						'height: Expected type integer but found type not-a-number'
-					);
-					done();
-				});
+				expectConnect(this, done);
 			});
 
 			it('without version', function(done) {

@@ -64,25 +64,25 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 		const fundTrsForAccount1 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
 
 		const fundTrsForAccount2 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount2.address,
 		});
 
 		const fundTrsForAccount3 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount3.address,
 		});
 
 		const fundTrsForAccount4 = lisk.transaction.transfer({
 			amount: transferAmount,
-			passphrase: accountFixtures.genesis.password,
+			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: poolAccount4.address,
 		});
 
@@ -108,13 +108,13 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 		beforeEach('create block', done => {
 			blockTransaction1 = lisk.transaction.registerDelegate({
-				passphrase: blockAccount1.password,
+				passphrase: blockAccount1.passphrase,
 				username: blockAccount1.username,
 			});
 			blockTransaction1.amount = parseInt(blockTransaction1.amount);
 			blockTransaction1.fee = parseInt(blockTransaction1.fee);
 			blockTransaction2 = lisk.transaction.registerDelegate({
-				passphrase: blockAccount2.password,
+				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
 			blockTransaction2.amount = parseInt(blockTransaction2.amount);
@@ -137,13 +137,13 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 			beforeEach('with transactions in unconfirmed queue', done => {
 				transaction3 = lisk.transaction.registerSecondPassphrase({
-					passphrase: poolAccount3.password,
-					secondPassphrase: poolAccount3.secondPassword,
+					passphrase: poolAccount3.passphrase,
+					secondPassphrase: poolAccount3.secondPassphrase,
 				});
 
 				transaction4 = lisk.transaction.registerSecondPassphrase({
-					passphrase: poolAccount4.password,
-					secondPassphrase: poolAccount4.secondPassword,
+					passphrase: poolAccount4.passphrase,
+					secondPassphrase: poolAccount4.secondPassphrase,
 				});
 
 				transaction3.senderId = poolAccount3.address;

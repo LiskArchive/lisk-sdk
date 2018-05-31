@@ -258,7 +258,6 @@ describe('rounds', () => {
 				scope.backwards = false;
 				round = new Round(_.cloneDeep(scope), db);
 				args = {
-					blockId: scope.block.id,
 					producedBlocks: 1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
@@ -282,7 +281,6 @@ describe('rounds', () => {
 				scope.backwards = true;
 				round = new Round(_.cloneDeep(scope), db);
 				args = {
-					blockId: scope.block.id,
 					producedBlocks: -1,
 					publicKey: scope.block.generatorPublicKey,
 					round: scope.round,
@@ -475,57 +473,16 @@ describe('rounds', () => {
 		});
 	});
 
-	describe('markBlockId', () => {
-		var updateBlockId_stub;
-		var res;
-		var scope;
-
-		describe('when going forward', () => {
-			before(done => {
-				scope = _.cloneDeep(validScope);
-				scope.backwards = false;
-				round = new Round(_.cloneDeep(scope), db);
-				done();
-			});
-
-			it('should return t object', () => {
-				var res = round.markBlockId();
-				expect(isPromise(res)).to.be.false;
-				return expect(res).to.deep.equal(db);
-			});
-		});
-
-		describe('when going backwards', () => {
-			before(done => {
-				scope = _.cloneDeep(validScope);
-				scope.backwards = true;
-				updateBlockId_stub = sinonSandbox.stub(db.rounds, 'updateBlockId');
-				updateBlockId_stub.withArgs(scope.block.id, '0').resolves('success');
-				round = new Round(_.cloneDeep(scope), db);
-				res = round.markBlockId();
-				done();
-			});
-
-			it('should return promise', () => {
-				return expect(isPromise(res)).to.be.true;
-			});
-
-			it('updateBlockId query should be called with proper args', () => {
-				return res.then(res => {
-					expect(res).to.equal('success');
-					expect(updateBlockId_stub.calledWith(scope.block.id, '0')).to.be.true;
-				});
-			});
-		});
-	});
-
 	describe('flushRound', () => {
 		var stub;
 		var res;
+		var scope;
 
 		before(done => {
+			scope = _.cloneDeep(validScope);
 			stub = sinonSandbox.stub(db.rounds, 'flush');
 			stub.withArgs(validScope.round).resolves('success');
+			round = new Round(_.cloneDeep(scope), db);
 			res = round.flushRound();
 			done();
 		});
@@ -538,29 +495,6 @@ describe('rounds', () => {
 			return res.then(res => {
 				expect(res).to.equal('success');
 				expect(stub.calledWith(validScope.round)).to.be.true;
-			});
-		});
-	});
-
-	describe('truncateBlocks', () => {
-		var stub;
-		var res;
-
-		before(done => {
-			stub = sinonSandbox.stub(db.rounds, 'truncateBlocks');
-			stub.withArgs(validScope.block.height).resolves('success');
-			res = round.truncateBlocks();
-			done();
-		});
-
-		it('should return promise', () => {
-			return expect(isPromise(res)).to.be.true;
-		});
-
-		it('query should be called with proper args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
-				expect(stub.calledWith(validScope.block.height)).to.be.true;
 			});
 		});
 	});
@@ -612,6 +546,79 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('checkSnapshotAvailability', () => {
+		const stubs = {};
+		let scope;
+		let res;
+
+		before(done => {
+			// Init stubs and scope
+			stubs.checkSnapshotAvailability = sinonSandbox.stub(
+				db.rounds,
+				'checkSnapshotAvailability'
+			);
+			stubs.countRoundSnapshot = sinonSandbox.stub(
+				db.rounds,
+				'countRoundSnapshot'
+			);
+			scope = _.cloneDeep(validScope);
+			done();
+		});
+
+		afterEach(done => {
+			stubs.checkSnapshotAvailability.resetHistory();
+			stubs.countRoundSnapshot.resetHistory();
+			done();
+		});
+
+		it('should return promise', () => {
+			stubs.checkSnapshotAvailability.resolves();
+			stubs.countRoundSnapshot.resolves();
+			scope.round = 1;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
+			return expect(isPromise(res)).to.be.true;
+		});
+
+		it('should resolve without any error when checkSnapshotAvailability query returns 1', () => {
+			stubs.checkSnapshotAvailability.withArgs(1).resolves(1);
+			scope.round = 1;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
+			return res.then(() => {
+				expect(stubs.checkSnapshotAvailability).to.have.been.calledWith(1);
+				return expect(stubs.countRoundSnapshot.called).to.be.false;
+			});
+		});
+
+		it('should resolve without any error when checkSnapshotAvailability query returns null and table is empty', () => {
+			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
+			stubs.countRoundSnapshot.resolves(0);
+			scope.round = 2;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
+			return res.then(() => {
+				expect(stubs.checkSnapshotAvailability).to.have.been.calledWith(2);
+				return expect(stubs.countRoundSnapshot.called).to.be.true;
+			});
+		});
+
+		it('should be rejected with proper error when checkSnapshotAvailability query returns null and table is not empty', () => {
+			stubs.checkSnapshotAvailability.withArgs(2).resolves(null);
+			stubs.countRoundSnapshot.resolves(1);
+			scope.round = 2;
+			round = new Round(scope, db);
+			res = round.checkSnapshotAvailability();
+
+			return expect(res).to.eventually.be.rejectedWith(
+				'Snapshot for round 2 not available'
+			);
+		});
+	});
+
 	describe('deleteRoundRewards', () => {
 		var stub;
 		var res;
@@ -619,6 +626,7 @@ describe('rounds', () => {
 		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
 			stub.withArgs(validScope.round).resolves('success');
+			round = new Round(_.cloneDeep(validScope), db);
 			res = round.deleteRoundRewards();
 			done();
 		});
@@ -688,8 +696,6 @@ describe('rounds', () => {
 				});
 
 				it('should return t object', () => {
-					var res = round.markBlockId();
-					expect(isPromise(res)).to.be.false;
 					return expect(res).to.deep.equal(db);
 				});
 
@@ -715,8 +721,6 @@ describe('rounds', () => {
 				});
 
 				it('should return t object', () => {
-					var res = round.markBlockId();
-					expect(isPromise(res)).to.be.false;
 					return expect(res).to.deep.equal(db);
 				});
 			});
@@ -778,7 +782,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -852,7 +855,6 @@ describe('rounds', () => {
 							publicKey: validScope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: validScope.block.id,
 							round: validScope.round,
 							fees: -feesPerDelegate,
 							rewards: -validScope.roundRewards[index],
@@ -964,7 +966,6 @@ describe('rounds', () => {
 							publicKey: validScope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: validScope.block.id,
 							round: validScope.round,
 							fees: feesPerDelegate,
 							rewards: validScope.roundRewards[index],
@@ -993,7 +994,6 @@ describe('rounds', () => {
 							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
-							blockId: validScope.block.id,
 							round: validScope.round,
 							fees: remainingFees,
 						};
@@ -1066,7 +1066,6 @@ describe('rounds', () => {
 							publicKey: validScope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: validScope.block.id,
 							round: validScope.round,
 							fees: -feesPerDelegate,
 							rewards: -validScope.roundRewards[index],
@@ -1095,7 +1094,6 @@ describe('rounds', () => {
 							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
-							blockId: validScope.block.id,
 							round: validScope.round,
 							fees: -remainingFees,
 						};
@@ -1213,7 +1211,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1246,7 +1243,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1279,7 +1275,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1367,7 +1362,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1400,7 +1394,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1433,7 +1426,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1550,7 +1542,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1583,7 +1574,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1616,7 +1606,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
@@ -1643,7 +1632,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: remainingFees,
 						};
@@ -1730,7 +1718,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1763,7 +1750,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1796,7 +1782,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
@@ -1823,7 +1808,6 @@ describe('rounds', () => {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
-							blockId: scope.block.id,
 							round: scope.round,
 							fees: -remainingFees,
 						};
@@ -1962,6 +1946,7 @@ describe('rounds', () => {
 		var getVotes_stub;
 		var restoreRoundSnapshot_stub;
 		var restoreVotesSnapshot_stub;
+		let checkSnapshotAvailability_stub;
 		var deleteRoundRewards_stub;
 		var flush_stub;
 		var res;
@@ -1997,6 +1982,9 @@ describe('rounds', () => {
 					.stub(t.rounds, 'updateVotes')
 					.resolves('QUERY');
 				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
+				checkSnapshotAvailability_stub = sinonSandbox
+					.stub(t.rounds, 'checkSnapshotAvailability')
+					.resolves(1);
 				restoreRoundSnapshot_stub = sinonSandbox
 					.stub(t.rounds, 'restoreRoundSnapshot')
 					.resolves();
@@ -2038,6 +2026,10 @@ describe('rounds', () => {
 			return expect(
 				round.scope.modules.accounts.mergeAccountAndGet.callCount
 			).to.equal(4);
+		});
+
+		it('query checkSnapshotAvailability should be called once', () => {
+			return expect(checkSnapshotAvailability_stub.callCount).to.equal(1);
 		});
 
 		it('query restoreRoundSnapshot should be called once', () => {

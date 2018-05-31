@@ -14,11 +14,10 @@
 
 
 /*
-  DESCRIPTION: Counts memory accounts by blocks.
-
+  DESCRIPTION: Remove column blockId from tables: mem_accounts and mem_round.
   PARAMETERS: None
 */
 
-SELECT count(*)
-FROM mem_accounts
-WHERE "blockId" = (SELECT id FROM blocks ORDER BY height DESC LIMIT 1)
+ALTER TABLE "mem_accounts" DROP COLUMN "blockId";
+ALTER TABLE "mem_round" DROP COLUMN "blockId";
+ALTER TABLE IF EXISTS "mem_round_snapshot" DROP COLUMN "blockId";

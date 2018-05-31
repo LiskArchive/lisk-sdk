@@ -27,12 +27,12 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.transfer({
 		amount: 1000 * constants.normalizer,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
 	var dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: account.password,
+		passphrase: account.passphrase,
 		options: dapp,
 	});
 	dapp.id = dappTransaction.id;
@@ -67,7 +67,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	it('adding to pool dapp transaction 1 should be ok', done => {
 		transaction1 = lisk.transaction.createDapp({
-			passphrase: account.password,
+			passphrase: account.passphrase,
 			options: dappDuplicate,
 			timeOffset: -10000,
 		});
@@ -80,7 +80,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	it('adding to pool dapp transaction 2 with same data than 1 but different id should be ok', done => {
 		transaction2 = lisk.transaction.createDapp({
-			passphrase: account.password,
+			passphrase: account.passphrase,
 			options: dappDuplicate,
 			timeOffset: -5000,
 		});
@@ -93,7 +93,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	it('adding to pool dapp transaction 3 should be ok', done => {
 		transaction3 = lisk.transaction.createDapp({
-			passphrase: account.password,
+			passphrase: account.passphrase,
 			options: dappDuplicateNameFail,
 			timeOffset: -10000,
 		});
@@ -106,7 +106,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	it('adding to pool dapp transaction 4 with same name than 3 should be ok', done => {
 		transaction4 = lisk.transaction.createDapp({
-			passphrase: account.password,
+			passphrase: account.passphrase,
 			options: dappDuplicateNameSuccess,
 		});
 		goodTransactions.push(transaction4);
@@ -118,7 +118,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	it('adding to pool dapp transaction 5 should be ok', done => {
 		transaction5 = lisk.transaction.createDapp({
-			passphrase: account.password,
+			passphrase: account.passphrase,
 			options: dappDuplicateLinkFail,
 			timeOffset: -10000,
 		});
@@ -131,7 +131,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 	it('adding to pool dapp transaction 6 with same link than 5 should be ok', done => {
 		transaction6 = lisk.transaction.createDapp({
-			passphrase: account.password,
+			passphrase: account.passphrase,
 			options: dappDuplicateLinkSuccess,
 		});
 		goodTransactions.push(transaction6);
@@ -197,7 +197,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 		it('adding to pool already registered dapp should fail', done => {
 			transaction2 = lisk.transaction.createDapp({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				options: dappDuplicate,
 			});
 			localCommon.addTransaction(library, transaction2, err => {
@@ -210,7 +210,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 		it('adding to pool already registered dapp name should fail', done => {
 			transaction4 = lisk.transaction.createDapp({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				options: dappDuplicateNameFail,
 			});
 			localCommon.addTransaction(library, transaction4, err => {
@@ -223,7 +223,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 
 		it('adding to pool already registered dapp link should fail', done => {
 			transaction6 = lisk.transaction.createDapp({
-				passphrase: account.password,
+				passphrase: account.passphrase,
 				options: dappDuplicateLinkFail,
 			});
 			localCommon.addTransaction(library, transaction6, err => {

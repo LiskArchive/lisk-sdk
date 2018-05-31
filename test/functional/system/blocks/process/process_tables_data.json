@@ -215,14 +215,12 @@
 			"u_multimin",
 			"multilifetime",
 			"u_multilifetime",
-			"blockId",
 			"nameexist",
 			"u_nameexist",
 			"producedBlocks",
 			"missedBlocks",
 			"fees",
-			"rewards",
-			"virgin"
+			"rewards"
 		],
 		"data": [
 			{
@@ -248,14 +246,12 @@
 				"u_multimin": 0,
 				"multilifetime": 0,
 				"u_multilifetime": 0,
-				"blockId": "9230558580356301042",
 				"nameexist": 0,
 				"u_nameexist": 0,
 				"producedBlocks": 0,
 				"missedBlocks": 0,
 				"fees": "0",
-				"rewards": "0",
-				"virgin": 0
+				"rewards": "0"
 			},
 			{
 				"username": "test_blk_process_2",
@@ -280,14 +276,12 @@
 				"u_multimin": 0,
 				"multilifetime": 0,
 				"u_multilifetime": 0,
-				"blockId": "9230558580356301042",
 				"nameexist": 0,
 				"u_nameexist": 0,
 				"producedBlocks": 0,
 				"missedBlocks": 0,
 				"fees": "0",
-				"rewards": "0",
-				"virgin": 0
+				"rewards": "0"
 			}
 		]
 	},

@@ -29,6 +29,8 @@ let self;
 const __private = {};
 let definitions;
 
+const peerDiscoveryFrequency = 30000;
+
 /**
  * Main peers methods. Initializes library with scope content.
  *
@@ -67,25 +69,27 @@ class Peers {
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
+		self.broadhashConsensusCalculationInterval =
+			scope.config.peers.options.broadhashConsensusCalculationInterval;
 		setImmediate(cb, null, self);
 	}
 }
 
 // Private methods
 /**
- * Returns peers length after getting them by filter.
+ * Returns peers length by filter but without offset and limit.
  *
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, null, peers length
+ * @returns {int} count
  * @todo Add description for the params
  */
-__private.countByFilter = function(filter, cb) {
+__private.getCountByFilter = function(filter) {
 	filter.normalized = false;
-	__private.getByFilter(filter, (err, peers) =>
-		setImmediate(cb, null, peers.length)
-	);
+	delete filter.limit;
+	delete filter.offset;
+	var peers = __private.getByFilter(filter);
+	return peers.length;
 };
 
 /**
@@ -168,29 +172,6 @@ __private.getByFilter = function(filter, cb) {
 		};
 	};
 
-	/**
-	 * Shuffles peers (using Fisher-Yates-Durstenfeld shuffle algorithm).
-	 *
-	 * @todo Add @param tags
-	 * @todo Add @returns tag
-	 * @todo Add description of the function
-	 */
-	const shuffle = function(array) {
-		let m = array.length;
-		let t;
-		let i;
-		// While there remain elements to shuffle
-		while (m) {
-			// Pick a remaining element
-			i = Math.floor(Math.random() * m--);
-			// And swap it with the current element
-			t = array[m];
-			array[m] = array[i];
-			array[i] = t;
-		}
-		return array;
-	};
-
 	// Apply filters (by AND)
 	const normalized = filter.normalized === undefined ? true : filter.normalized;
 	let peers = library.logic.peers.list(normalized);
@@ -223,7 +204,7 @@ __private.getByFilter = function(filter, cb) {
 		}
 	} else {
 		// Sort randomly by default
-		peers = shuffle(peers);
+		peers = _.shuffle(peers);
 	}
 
 	// Apply limit if supplied
@@ -270,11 +251,18 @@ __private.updatePeerStatus = function(err, status, peer) {
 			// state so that the node doesn't keep trying to reconnect to itself.
 			peer.applyHeaders({
 				state: Peer.STATE.BANNED,
-				nonce: self.me().nonce,
+				nonce: library.logic.peers.me().nonce,
 			});
 		} else {
 			library.logic.peers.remove(peer);
 		}
+	} else if (!modules.system.versionCompatible(status.version)) {
+		library.logger.debug(
+			`Peers->updatePeerStatus Incompatible version, rejecting peer: ${
+				peer.string
+			}, version: ${status.version}`
+		);
+		library.logic.peers.remove(peer);
 	} else {
 		peer.applyHeaders({
 			broadhash: status.broadhash,
@@ -701,6 +689,7 @@ Peers.prototype.list = function(options, cb) {
 					// Unmatched broadhash
 					return randomList(peers, waterCb);
 				}
+				peers = _.shuffle(peers);
 				return setImmediate(waterCb, null, peers);
 			},
 		],
@@ -713,9 +702,9 @@ Peers.prototype.networkHeight = function(options, cb) {
 		if (err) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupByHeight = _.groupBy(peers, 'height');
-		const popularHeights = Object.keys(peersGroupByHeight);
-		const networkHeight = Number(_.max(popularHeights));
+		const peersGroupedByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
+		const networkHeight = _.max(popularHeights);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
 		library.logger.trace(popularHeights);
@@ -844,8 +833,26 @@ Peers.prototype.onPeersReady = function() {
 			() => setImmediate(cb)
 		);
 	}
-	// Loop in 10 sec intervals (5 sec + 5 sec connection timeout from pingPeer)
-	jobsQueue.register('peersDiscoveryAndUpdate', peersDiscoveryAndUpdate, 5000);
+
+	function calculateConsensus(cb) {
+		self.calculateConsensus();
+		library.logger.debug(
+			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+		);
+		return setImmediate(cb);
+	}
+	// Loop in 30 sec intervals for less new insertion after removal
+	jobsQueue.register(
+		'peersDiscoveryAndUpdate',
+		peersDiscoveryAndUpdate,
+		peerDiscoveryFrequency
+	);
+
+	jobsQueue.register(
+		'calculateConsensus',
+		calculateConsensus,
+		self.broadhashConsensusCalculationInterval
+	);
 };
 
 /**
@@ -902,12 +909,22 @@ Peers.prototype.shared = {
 	},
 
 	/**
-	 * Description for getPeersCount.
+	 * Utility method to get peers count by filter.
 	 *
-	 * @todo Add description for the function
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.ip - IP of the peer
+	 * @param {string} parameters.wsPort - WS Port of the peer
+	 * @param {string} parameters.httpPort - Web Socket Port of the peer
+	 * @param {string} parameters.os - OS of the peer
+	 * @param {string} parameters.version - Version the peer is running
+	 * @param {int} parameters.state - Peer State
+	 * @param {int} parameters.height - Current peer height
+	 * @param {string} parameters.broadhash - Peer broadhash
+	 * @returns {int} count
+	 * @todo Add description for the return value
 	 */
-	getPeersCount() {
-		return library.logic.peers.list(true).length;
+	getPeersCountByFilter(parameters) {
+		return __private.getCountByFilter(parameters);
 	},
 };
 

@@ -75,6 +75,14 @@ random.applicationName = function() {
 	});
 };
 
+// Returns a random string of a given size
+random.dataField = function(bytes) {
+	return randomstring.generate({
+		length: bytes,
+		charset: 'alphanumeric',
+	});
+};
+
 // Test random application
 random.application = function() {
 	var application = {
@@ -101,13 +109,13 @@ random.account = function() {
 		balance: '0',
 	};
 
-	account.password = random.password();
-	account.secondPassword = random.password();
+	account.passphrase = random.password();
+	account.secondPassphrase = random.password();
 	account.username = random.delegateName();
-	account.publicKey = lisk.cryptography.getKeys(account.password).publicKey;
-	account.address = lisk.cryptography.getAddress(account.publicKey);
+	account.publicKey = lisk.cryptography.getKeys(account.passphrase).publicKey;
+	account.address = lisk.cryptography.getAddressFromPublicKey(account.publicKey);
 	account.secondPublicKey = lisk.cryptography.getKeys(
-		account.secondPassword
+		account.secondPassphrase
 	).publicKey;
 
 	return account;
@@ -117,7 +125,7 @@ random.account = function() {
 random.transaction = function(offset) {
 	return lisk.transaction.transfer({
 		amount: 1,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
 		timeOffset: offset,
 	});

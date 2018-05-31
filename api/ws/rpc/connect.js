@@ -15,57 +15,65 @@
 'use strict';
 
 const _ = require('lodash');
-const async = require('async');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const Peer = require('../../../logic/peer');
 
 const TIMEOUT = 2000;
+
 const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 second
 const socketConnections = {};
 
-const connect = (peer, logger, onDisconnectCb) => {
+const connect = (peer, logger) => {
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer, logger);
 
-	async.parallel([
-		() => {
-			connectSteps.upgradeSocket(peer);
-			connectSteps.registerRPC(peer, logger);
-		},
-		() => connectSteps.registerSocketListeners(peer, logger, onDisconnectCb),
-	]);
+	connectSteps.upgradeSocket(peer);
+	connectSteps.registerRPC(peer, logger);
+
+	connectSteps.registerSocketListeners(peer, logger);
+
 	return peer;
 };
 
 const connectSteps = {
 	addConnectionOptions: peer => {
+		const systemHeaders = System.getHeaders();
+		const queryParams = {};
+
+		if (systemHeaders.version != null) {
+			queryParams.version = systemHeaders.version;
+		}
+		if (systemHeaders.wsPort != null) {
+			queryParams.wsPort = systemHeaders.wsPort;
+		}
+		if (systemHeaders.httpPort != null) {
+			queryParams.httpPort = systemHeaders.httpPort;
+		}
+		if (systemHeaders.nethash != null) {
+			queryParams.nethash = systemHeaders.nethash;
+		}
+		if (systemHeaders.nonce != null) {
+			queryParams.nonce = systemHeaders.nonce;
+		}
 		peer.connectionOptions = {
 			autoConnect: false, // Lazy connection establishment
 			autoReconnect: false,
 			connectTimeout: TIMEOUT,
 			ackTimeout: TIMEOUT,
-			pingTimeout: TIMEOUT,
-			connectAttempts: 1,
+			pingTimeoutDisabled: true,
 			port: peer.wsPort,
 			hostname: peer.ip,
-			query: System.getHeaders(),
+			query: queryParams,
 			multiplex: false,
 		};
 		return peer;
 	},
 
 	addSocket: (peer, logger) => {
-		if (peer.socket) {
-			// If a socket connection exists,
-			// before issuing a new connection
-			// destroy the exisiting connection
-			// to avoid too many socket connections
-			peer.socket.destroy();
-			delete peer.socket;
-		}
 		peer.socket = scClient.connect(peer.connectionOptions);
 
 		if (peer.socket && Object.keys(socketConnections).length < 1000) {
@@ -127,14 +135,21 @@ const connectSteps = {
 						data
 					);
 
-					peer.socket
-						.call(rpcProcedureName, data)
-						.then(res => {
-							setImmediate(rpcCallback, null, res);
-						})
-						.catch(err => {
-							setImmediate(rpcCallback, err);
-						});
+					if (peer.socket) {
+						peer.socket
+							.call(rpcProcedureName, data)
+							.then(res => {
+								setImmediate(rpcCallback, null, res);
+							})
+							.catch(err => {
+								setImmediate(rpcCallback, err);
+							});
+					} else {
+						const rpcNotExistError =
+							'Tried to call RPC function on outbound peer socket which no longer exists';
+						logger.debug(rpcNotExistError);
+						setImmediate(rpcCallback, rpcNotExistError);
+					}
 				};
 				return peerExtendedWithRPC;
 			},
@@ -150,7 +165,18 @@ const connectSteps = {
 						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
 						data
 					);
-					peer.socket.emit(eventProcedureName, data);
+					if (peer.socket) {
+						peer.socket.emit(eventProcedureName, data);
+					} else {
+						const eventNotExistError = `Tried to emit event on outbound peer socket '${
+							peerExtendedWithPublish.string
+						}' which no longer exists`;
+						logger.debug(eventNotExistError);
+						logger.trace(
+							'Peer does not have a socket',
+							peerExtendedWithPublish.object()
+						);
+					}
 				};
 				return peerExtendedWithPublish;
 			},
@@ -158,19 +184,21 @@ const connectSteps = {
 		);
 	},
 
-	registerSocketListeners: (peer, logger, onDisconnectCb = () => {}) => {
+	registerSocketListeners: (peer, logger) => {
 		const socket = peer.socket;
 
 		socket.on('connect', () => {
 			logger.trace(
-				`[Outbound socket :: connect] Peer connection to ${peer.ip} established`
+				`[Outbound socket :: connect] Peer connection to ${
+					peer.string
+				} established`
 			);
 		});
 
 		socket.on('disconnect', () => {
 			logger.trace(
 				`[Outbound socket :: disconnect] Peer connection to ${
-					peer.ip
+					peer.string
 				} disconnected`
 			);
 		});
@@ -187,27 +215,39 @@ const connectSteps = {
 		// When error on transport layer occurs - disconnect
 		socket.on('error', err => {
 			logger.debug(
-				`[Outbound socket :: error] Peer error from ${peer.ip} - ${err.message}`
+				`[Outbound socket :: error] Peer error from ${peer.string} - ${
+					err.message
+				}`
 			);
-			socket.disconnect();
+			socket.disconnect(
+				1000,
+				'Intentionally disconnected from peer because of error'
+			);
 		});
 
 		// When WS connection ends - remove peer
 		socket.on('close', (code, reason) => {
 			logger.debug(
 				`[Outbound socket :: close] Peer connection to ${
-					peer.ip
-				} failed with code ${code} and reason - ${reason}`
+					peer.string
+				} closed with code ${code} and reason - ${reason}`
 			);
+
+			if (peer.socket && peer.socket.state === peer.socket.CLOSED) {
+				peer.state = Peer.STATE.DISCONNECTED;
+			}
+
 			socket.destroy();
-			onDisconnectCb();
+			if (socket === peer.socket) {
+				delete peer.socket;
+			}
 		});
 
 		// The 'message' event can be used to log all low-level WebSocket messages.
 		socket.on('message', message => {
 			logger.trace(
 				`[Outbound socket :: message] Peer message from ${
-					peer.ip
+					peer.string
 				} received - ${message}`
 			);
 		});

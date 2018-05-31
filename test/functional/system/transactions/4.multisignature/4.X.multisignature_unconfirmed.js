@@ -29,7 +29,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 
 	scenarios.regular.dapp = randomUtil.application();
 	var dappTransaction = lisk.transaction.createDapp({
-		passphrase: scenarios.regular.account.password,
+		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
 	scenarios.regular.dapp.id = dappTransaction.id;
@@ -64,22 +64,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 	describe('adding to pool other transactions from same account', () => {
 		Object.keys(transactionTypes).forEach((key, index) => {
 			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
-				it(`type ${index}: ${key} should be rejected`, done => {
-					localCommon.loadTransactionType(
-						key,
-						scenarios.regular.account,
-						scenarios.regular.dapp,
-						true,
-						transaction => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.equal(
-									`Transaction type ${transaction.type} is frozen`
-								);
-								done();
-							});
-						}
-					);
-				});
+				return true;
 			} else if (key != 'MULTI') {
 				it(`type ${index}: ${key} should be ok`, done => {
 					localCommon.loadTransactionType(

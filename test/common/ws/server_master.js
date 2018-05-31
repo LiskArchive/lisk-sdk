@@ -94,14 +94,14 @@ WSServerMaster.generatePeerHeaders = function(headers) {
 	}
 
 	var operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];
-	var httpPort = random.number(1025, 65536);
+	var httpPort = headers.httpPort || random.number(1025, 65536);
 
 	var defaults = {
 		broadhash: testConfig.nethash,
 		nethash: testConfig.nethash,
 		state: 2,
 		height: 1,
-		wsPort: httpPort - 1,
+		wsPort: headers.wsPort || httpPort - 1,
 		httpPort,
 		nonce: randomstring.generate(16),
 		os: operatingSystems[random.number(0, operatingSystems.length)],

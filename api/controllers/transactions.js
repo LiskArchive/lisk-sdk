@@ -54,6 +54,7 @@ TransactionsController.getTransactions = function(context, next) {
 	var params = context.request.swagger.params;
 
 	var filters = {
+		senderIdOrRecipientId: params.senderIdOrRecipientId.value,
 		id: params.id.value,
 		blockId: params.blockId.value,
 		recipientId: params.recipientId.value,

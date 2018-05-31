@@ -56,18 +56,6 @@ class RoundsRepository {
 	}
 
 	/**
-	 * Delete all blocks above a particular height.
-	 *
-	 * @param {int} height
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	truncateBlocks(height) {
-		// TODO: This method must be in BlocksRepository, not here!
-		return this.db.none(sql.truncateBlocks, [height]);
-	}
-
-	/**
 	 * Update the missedBlocks attribute for an account.
 	 *
 	 * @param {boolean} backwards - Backwards flag
@@ -107,19 +95,6 @@ class RoundsRepository {
 		return this.db.none(sql.updateVotes, [amount, address]);
 	}
 
-	// TODO: Move usage of RoundsRepository#updateBlockId to db/accounts
-	/**
-	 * Update the blockId attribute for an account.
-	 *
-	 * @param {string} newId
-	 * @param {string} oldId
-	 * @returns {Promise}
-	 * @todo Add description for the params and the return value
-	 */
-	updateBlockId(newId, oldId) {
-		return this.db.none(sql.updateBlockId, [newId, oldId]);
-	}
-
 	/**
 	 * Summarize the results for a round.
 	 *
@@ -151,6 +126,28 @@ class RoundsRepository {
 	 */
 	performRoundSnapshot() {
 		return this.db.none(sql.performRoundSnapshot);
+	}
+
+	/**
+	 * Checks round snapshot availability for particular round.
+	 *
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability(round) {
+		return this.db.oneOrNone(
+			sql.checkSnapshotAvailability,
+			{ round },
+			a => (a ? a.available : null)
+		);
+	}
+
+	/**
+	 * Get number of records from mem_round_snapshot table.
+	 *
+	 * @returns {Promise}
+	 */
+	countRoundSnapshot() {
+		return this.db.one(sql.countRoundSnapshot, [], a => +a.count);
 	}
 
 	/**
@@ -208,17 +205,15 @@ class RoundsRepository {
 	 * Insert round information record into mem_rounds.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {Number} amount - Amount updated on account
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
-	insertRoundInformationWithAmount(address, blockId, round, amount) {
+	insertRoundInformationWithAmount(address, round, amount) {
 		return this.db.none(sql.insertRoundInformationWithAmount, {
 			address,
 			amount,
-			blockId,
 			round,
 		});
 	}
@@ -227,23 +222,15 @@ class RoundsRepository {
 	 * Insert round information record into mem_rounds.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {string} blockId - Associated block id
 	 * @param {Number} round - Associated round number
 	 * @param {string} delegateId - Associated delegate id
 	 * @param {string} mode - Possible values of '+' or '-' represents behaviour of adding or removing delegate
 	 * @returns {Promise}
 	 * @todo Add description for the return value
 	 */
-	insertRoundInformationWithDelegate(
-		address,
-		blockId,
-		round,
-		delegateId,
-		mode
-	) {
+	insertRoundInformationWithDelegate(address, round, delegateId, mode) {
 		return this.db.none(sql.insertRoundInformationWithDelegate, {
 			address,
-			blockId,
 			round,
 			delegate: delegateId,
 			balanceMode: mode === '-' ? '-' : '',

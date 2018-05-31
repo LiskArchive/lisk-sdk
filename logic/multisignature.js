@@ -345,7 +345,6 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
 			multisignatures: transaction.asset.multisignature.keysgroup,
 			multimin: transaction.asset.multisignature.min,
 			multilifetime: transaction.asset.multisignature.lifetime,
-			blockId: block.id,
 			round: slots.calcRound(block.height),
 		},
 		mergeErr => {
@@ -399,7 +398,6 @@ Multisignature.prototype.undo = function(transaction, block, sender, cb, tx) {
 			multisignatures: multiInvert,
 			multimin: -transaction.asset.multisignature.min,
 			multilifetime: -transaction.asset.multisignature.lifetime,
-			blockId: block.id,
 			round: slots.calcRound(block.height),
 		},
 		mergeErr => setImmediate(cb, mergeErr),

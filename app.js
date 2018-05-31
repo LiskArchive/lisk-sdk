@@ -20,12 +20,13 @@ var d = require('domain').create();
 var extend = require('extend');
 var SocketCluster = require('socketcluster');
 var async = require('async');
+var randomstring = require('randomstring');
 var genesisblock = require('./genesis_block.json');
 var Logger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
+var wsTransport = require('./api/ws/transport');
 var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
-var httpApi = require('./helpers/http_api.js');
 var Sequence = require('./helpers/sequence.js');
 var swagger = require('./config/swagger');
 // eslint-disable-next-line import/order
@@ -117,7 +118,6 @@ process.env.TOP = appConfig.topAccounts;
  * @memberof! app
  */
 var config = {
-	root: path.dirname(__filename),
 	db: appConfig.db,
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
@@ -137,9 +137,6 @@ var config = {
 		transactions: './modules/transactions.js',
 		transport: './modules/transport.js',
 		voters: './modules/voters',
-	},
-	api: {
-		transport: { ws: './api/ws/transport.js' },
 	},
 };
 
@@ -167,9 +164,10 @@ if (
 ) {
 	dbLogger = logger;
 } else {
+	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
 	dbLogger = new Logger({
-		echo: process.env.DB_LOG_LEVEL || appConfig.db.consoleLogLevel,
-		errorLevel: process.env.FILE_LOG_LEVEL || appConfig.db.fileLogLevel,
+		echo: process.env.DB_LOG_LEVEL || 'log',
+		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
 	});
 }
@@ -206,6 +204,9 @@ d.run(() => {
 						genesisblock.payloadHash,
 						'hex'
 					).toString('hex');
+
+					appConfig.nonce = randomstring.generate(16);
+					appConfig.root = path.dirname(__filename);
 				} catch (e) {
 					logger.error('Failed to assign nethash from genesis block');
 					throw Error(e);
@@ -257,6 +258,7 @@ d.run(() => {
 					var app = express();
 
 					if (appConfig.coverage) {
+						// eslint-disable-next-line import/no-extraneous-dependencies
 						var im = require('istanbul-middleware');
 						logger.debug(
 							'Hook loader for coverage - Do not use in production environment!'
@@ -347,121 +349,7 @@ d.run(() => {
 				},
 			],
 
-			connect: [
-				'config',
-				'genesisblock',
-				'logger',
-				'build',
-				'network',
-				/**
-				 * Description of the function.
-				 *
-				 * @func connect[5]
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
-				 */
-				function(scope, cb) {
-					var bodyParser = require('body-parser');
-					var methodOverride = require('method-override');
-					var queryParser = require('express-query-int');
-					var randomstring = require('randomstring');
-
-					scope.config.nonce = randomstring.generate(16);
-					scope.network.app.use(require('express-domain-middleware'));
-					scope.network.app.use(bodyParser.raw({ limit: '2mb' }));
-					scope.network.app.use(
-						bodyParser.urlencoded({
-							extended: true,
-							limit: '2mb',
-							parameterLimit: 5000,
-						})
-					);
-					scope.network.app.use(bodyParser.json({ limit: '2mb' }));
-					scope.network.app.use(methodOverride());
-
-					var ignore = [
-						'id',
-						'name',
-						'username',
-						'blockId',
-						'transactionId',
-						'address',
-						'recipientId',
-						'senderId',
-						'search',
-					];
-
-					scope.network.app.use(
-						queryParser({
-							parser(value, radix, name) {
-								if (ignore.indexOf(name) >= 0) {
-									return value;
-								}
-
-								// Ignore conditional fields for transactions list
-								if (/^.+?:(blockId|recipientId|senderId)$/.test(name)) {
-									return value;
-								}
-
-								if (
-									isNaN(value) ||
-									parseInt(value) != value ||
-									isNaN(parseInt(value, radix))
-								) {
-									return value;
-								}
-
-								return parseInt(value);
-							},
-						})
-					);
-
-					scope.network.app.use(
-						require('./helpers/z_schema_express.js')(scope.schema)
-					);
-
-					scope.network.app.use(
-						httpApi.middleware.logClientConnections.bind(null, scope.logger)
-					);
-
-					/**
-					 * Instruct browser to deny display of <frame>, <iframe> regardless of origin.
-					 *
-					 * RFC -> https://tools.ietf.org/html/rfc7034
-					 */
-					scope.network.app.use(
-						httpApi.middleware.attachResponseHeader.bind(
-							null,
-							'X-Frame-Options',
-							'DENY'
-						)
-					);
-
-					/**
-					 * Set Content-Security-Policy headers.
-					 *
-					 * frame-ancestors - Defines valid sources for <frame>, <iframe>, <object>, <embed> or <applet>.
-					 *
-					 * W3C Candidate Recommendation -> https://www.w3.org/TR/CSP/
-					 */
-					scope.network.app.use(
-						httpApi.middleware.attachResponseHeader.bind(
-							null,
-							'Content-Security-Policy',
-							"frame-ancestors 'none'"
-						)
-					);
-
-					scope.network.app.use(
-						httpApi.middleware.applyAPIAccessRules.bind(null, scope.config)
-					);
-
-					cb();
-				},
-			],
-
 			swagger: [
-				'connect',
 				'modules',
 				'logger',
 				'cache',
@@ -475,7 +363,7 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					swagger(scope.network.app, config, scope.logger, scope, cb);
+					swagger(scope.network.app, scope.config, scope.logger, scope, cb);
 				},
 			],
 
@@ -545,7 +433,7 @@ d.run(() => {
 				db
 					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
-					.catch(err => cb(err));
+					.catch(cb);
 			},
 
 			/**
@@ -565,7 +453,6 @@ d.run(() => {
 
 			webSocket: [
 				'config',
-				'connect',
 				'logger',
 				'network',
 				'db',
@@ -582,15 +469,15 @@ d.run(() => {
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
-						wsEngine: 'uws',
+						host: '0.0.0.0',
+						wsEngine: 'sc-uws',
 						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
 						secretKey: 'liskSecretKey',
-						pingInterval: 5000,
-						// How many milliseconds to wait without receiving a ping
-						// before closing the socket
-						pingTimeout: 60000,
+						// Because our node is constantly sending messages, we don't
+						// need to use the ping feature to detect bad connections.
+						pingTimeoutDisabled: true,
 						// Maximum amount of milliseconds to wait before force-killing
 						// a process after it was passed a 'SIGTERM' or 'SIGUSR2' signal
 						processTermTimeout: 10000,
@@ -741,7 +628,6 @@ d.run(() => {
 
 			modules: [
 				'network',
-				'connect',
 				'webSocket',
 				'config',
 				'logger',
@@ -788,47 +674,6 @@ d.run(() => {
 				},
 			],
 
-			api: [
-				'modules',
-				'logger',
-				'network',
-				'webSocket',
-				/**
-				 * Description of the function.
-				 *
-				 * @func api[4]
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
-				 */
-				function(scope, cb) {
-					Object.keys(config.api).forEach(moduleName => {
-						Object.keys(config.api[moduleName]).forEach(protocol => {
-							var apiEndpointPath = config.api[moduleName][protocol];
-							try {
-								// eslint-disable-next-line import/no-dynamic-require
-								var ApiEndpoint = require(apiEndpointPath);
-								new ApiEndpoint(
-									scope.modules[moduleName],
-									scope.network.app,
-									scope.logger,
-									scope.modules.cache
-								);
-							} catch (e) {
-								scope.logger.error(
-									`Unable to load API endpoint for ${moduleName} of ${protocol}`,
-									e.message
-								);
-							}
-						});
-					});
-
-					scope.network.app.use(
-						httpApi.middleware.errorLogger.bind(null, scope.logger)
-					);
-					cb();
-				},
-			],
-
 			ready: [
 				'swagger',
 				'modules',
@@ -854,7 +699,22 @@ d.run(() => {
 				},
 			],
 
-			listen: [
+			listenWebSocket: [
+				'ready',
+				/**
+				 * Description of the function.
+				 *
+				 * @func api[1]
+				 * @param {Object} scope
+				 * @param {function} cb - Callback function
+				 */
+				function(scope, cb) {
+					new wsTransport(scope.modules.transport);
+					cb();
+				},
+			],
+
+			listenHttp: [
 				'ready',
 				/**
 				 * Description of the function.
@@ -901,8 +761,12 @@ d.run(() => {
 		},
 		(err, scope) => {
 			// Receives a 'cleanup' signal and cleans all modules
-			process.once('cleanup', () => {
+			process.once('cleanup', error => {
+				if (error) {
+					scope.logger.fatal(error.toString());
+				}
 				scope.logger.info('Cleaning up...');
+				scope.socketCluster.removeAllListeners('fail');
 				scope.socketCluster.destroy();
 				async.eachSeries(
 					modules,

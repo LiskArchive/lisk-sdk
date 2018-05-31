@@ -19,6 +19,7 @@ var SocketCluster = require('socketcluster');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 var Promise = require('bluebird');
 var sinon = require('sinon');
+var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 var WSClient = require('./client');
 
 var sandbox = sinon.createSandbox();
@@ -70,6 +71,8 @@ WSServer.prototype.start = function() {
 				childProcessOptions
 			);
 
+			wsRPC.setServer(self.rpcServer);
+
 			self.rpcServer.registerRPCEndpoints({
 				updatePeer: sandbox.stub().callsArgWith(1, null),
 				height: sandbox.stub().callsArgWith(1, null, {
@@ -91,6 +94,7 @@ WSServer.prototype.start = function() {
 				blocksCommon: sandbox
 					.stub()
 					.callsArgWith(1, null, { success: true, common: null }),
+				updateMyself: sandbox.stub().callsArgWith(1, null),
 			});
 
 			self.socketClient.start();

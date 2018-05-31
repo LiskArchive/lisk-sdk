@@ -96,7 +96,6 @@ class Round {
 				{
 					publicKey: self.scope.block.generatorPublicKey,
 					producedBlocks: self.scope.backwards ? -1 : 1,
-					blockId: self.scope.block.id,
 					round: self.scope.round,
 				},
 				(err, account) => {
@@ -121,7 +120,7 @@ class Round {
 			return this.t;
 		}
 
-		return (this.t || this.scope.library.db).rounds.updateMissedBlocks(
+		return this.t.rounds.updateMissedBlocks(
 			this.scope.backwards,
 			this.scope.roundOutsiders
 		);
@@ -134,7 +133,7 @@ class Round {
 	 * @todo Add @returns tag
 	 */
 	getVotes() {
-		return (this.t || this.scope.library.db).rounds.getVotes(this.scope.round);
+		return this.t.rounds.getVotes(this.scope.round);
 	}
 
 	/**
@@ -162,22 +161,6 @@ class Round {
 	}
 
 	/**
-	 * For backwards option calls sql updateBlockId with newID: 0.
-	 *
-	 * @returns {function} Promise
-	 * @todo Check type and description of the return value
-	 */
-	markBlockId() {
-		if (this.scope.backwards) {
-			return (this.t || this.scope.library.db).rounds.updateBlockId(
-				this.scope.block.id,
-				'0'
-			);
-		}
-		return this.t;
-	}
-
-	/**
 	 * Calls sql flush:
 	 * - Deletes round from `mem_round` table.
 	 *
@@ -185,20 +168,7 @@ class Round {
 	 * @todo Check type and description of the return value
 	 */
 	flushRound() {
-		return (this.t || this.scope.library.db).rounds.flush(this.scope.round);
-	}
-
-	/**
-	 * Calls sql truncateBlocks:
-	 * - Deletes blocks greather than height from `blocks` table.
-	 *
-	 * @returns {function} Promise
-	 * @todo Check type and description of the return value
-	 */
-	truncateBlocks() {
-		return (this.t || this.scope.library.db).rounds.truncateBlocks(
-			this.scope.block.height
-		);
+		return this.t.rounds.flush(this.scope.round);
 	}
 
 	/**
@@ -211,7 +181,7 @@ class Round {
 	 */
 	restoreRoundSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_round snapshot...');
-		return (this.t || this.scope.library.db).rounds.restoreRoundSnapshot();
+		return this.t.rounds.restoreRoundSnapshot();
 	}
 
 	/**
@@ -224,7 +194,31 @@ class Round {
 	 */
 	restoreVotesSnapshot() {
 		this.scope.library.logger.debug('Restoring mem_accounts.vote snapshot...');
-		return (this.t || this.scope.library.db).rounds.restoreVotesSnapshot();
+		return this.t.rounds.restoreVotesSnapshot();
+	}
+
+	/**
+	 * Checks round snapshot availability for current round.
+	 *
+	 * @returns {Promise}
+	 */
+	checkSnapshotAvailability() {
+		return this.t.rounds
+			.checkSnapshotAvailability(this.scope.round)
+			.then(isAvailable => {
+				if (!isAvailable) {
+					// Snapshot for current round is not available, check if round snapshot table is empty,
+					// because we need to allow to restore snapshot in that case (no transactions during entire round)
+					return this.t.rounds.countRoundSnapshot().then(count => {
+						// Throw an error when round snapshot table is not empty
+						if (count) {
+							throw new Error(
+								`Snapshot for round ${this.scope.round} not available`
+							);
+						}
+					});
+				}
+			});
 	}
 
 	/**
@@ -237,9 +231,7 @@ class Round {
 		this.scope.library.logger.debug(
 			`Deleting rewards for round ${this.scope.round}`
 		);
-		return (this.t || this.scope.library.db).rounds.deleteRoundRewards(
-			this.scope.round
-		);
+		return this.t.rounds.deleteRoundRewards(this.scope.round);
 	}
 
 	/**
@@ -280,7 +272,6 @@ class Round {
 				publicKey: delegate,
 				balance: self.scope.backwards ? -changes.balance : changes.balance,
 				u_balance: self.scope.backwards ? -changes.balance : changes.balance,
-				blockId: self.scope.block.id,
 				round: self.scope.round,
 				fees: self.scope.backwards ? -changes.fees : changes.fees,
 				rewards: self.scope.backwards ? -changes.rewards : changes.rewards,
@@ -339,7 +330,6 @@ class Round {
 						publicKey: remainderDelegate,
 						balance: feesRemaining,
 						u_balance: feesRemaining,
-						blockId: self.scope.block.id,
 						round: self.scope.round,
 						fees: feesRemaining,
 					},
@@ -431,6 +421,7 @@ class Round {
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
+			.then(this.checkSnapshotAvailability.bind(this))
 			.then(this.restoreRoundSnapshot.bind(this))
 			.then(this.restoreVotesSnapshot.bind(this))
 			.then(this.deleteRoundRewards.bind(this))
