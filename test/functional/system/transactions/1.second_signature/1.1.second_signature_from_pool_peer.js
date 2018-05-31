@@ -15,7 +15,7 @@
 'use strict';
 
 /* eslint-disable mocha/no-skipped-tests */
-const lisk = require('lisk-js').default;
+const lisk = require('lisk-elements').default;
 const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');

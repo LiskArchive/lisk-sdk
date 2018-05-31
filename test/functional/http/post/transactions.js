@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var swaggerSpec = require('../../../common/swagger_spec');
 var randomUtil = require('../../../common/utils/random');
 var accountFixtures = require('../../../fixtures/accounts');
