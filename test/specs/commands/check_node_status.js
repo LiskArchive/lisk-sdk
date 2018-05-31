@@ -18,7 +18,7 @@ import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('get node status command', () => {
+describe('check node status command', () => {
 	beforeEach(setUpCommandGetNodeStatus);
 	Given('an action "get node status"', given.anAction, () => {
 		Given('a Lisk API Instance', given.aLiskAPIInstance, () => {

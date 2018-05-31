@@ -53,12 +53,12 @@ export const actionCreator = () => async ({ options }) => {
 		});
 };
 
-const getNodeStatus = createCommand({
-	command: 'get node status',
+const checkNodeStatus = createCommand({
+	command: 'check node status',
 	description,
 	actionCreator,
 	options: [['--forging', forgingDescription]],
 	errorPrefix: 'Could not get node status',
 });
 
-export default getNodeStatus;
+export default checkNodeStatus;
