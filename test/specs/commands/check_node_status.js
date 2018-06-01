@@ -39,6 +39,10 @@ describe('check node status command', () => {
 							'it should not call node getForgingStatus',
 							then.itShouldNotCallNodeGetForgingStatus,
 						);
+						Then(
+							'it should resolves to an object which does not have key equal to "forgingStatus"',
+							then.itShouldResolvesToAnObjectWhichDoesNotHaveKeyEqualTo,
+						);
 					},
 				);
 				Given(
@@ -69,6 +73,10 @@ describe('check node status command', () => {
 											'it should call node getForgingStatus',
 											then.itShoulHaveErrorMessageForForgingStatus,
 										);
+										Then(
+											'it should resolves to an object which has key equal to "forgingStatus"',
+											then.itShouldResolvesToAnObjectWhichHaveKeyEqualTo,
+										);
 									},
 								);
 							},
@@ -88,6 +96,10 @@ describe('check node status command', () => {
 								Then(
 									'it should call node getForgingStatus',
 									then.itShouldCallNodeGetForgingStatus,
+								);
+								Then(
+									'it should resolves to an object which has key equal to "forgingStatus"',
+									then.itShouldResolvesToAnObjectWhichHaveKeyEqualTo,
 								);
 							},
 						);

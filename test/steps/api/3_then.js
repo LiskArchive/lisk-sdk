@@ -73,3 +73,19 @@ export function theLiskAPIInstanceShouldHaveCurrentNodeEqualTo() {
 	const node = getFirstQuotedString(this.test.title);
 	return expect(liskAPIInstance.currentNode).to.equal(node);
 }
+
+export function itShouldResolvesToAnObjectWhichHaveKeyEqualTo() {
+	const { returnValue } = this.test.ctx;
+	const key = getFirstQuotedString(this.test.title);
+	return expect(returnValue)
+		.to.eventually.be.an('object')
+		.and.have.property(key);
+}
+
+export function itShouldResolvesToAnObjectWhichDoesNotHaveKeyEqualTo() {
+	const { returnValue } = this.test.ctx;
+	const key = getFirstQuotedString(this.test.title);
+	return expect(returnValue)
+		.to.eventually.be.an('object')
+		.and.not.have.property(key);
+}
