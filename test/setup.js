@@ -17,7 +17,6 @@ import chai, { Assertion } from 'chai';
 import 'chai/register-expect';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
-import naclFactory from 'js-nacl';
 
 process.env.NODE_ENV = 'test';
 
@@ -55,9 +54,3 @@ global.sinon = sinon;
 global.sandbox = sinon.sandbox.create({
 	useFakeTimers: true,
 });
-
-if (!global.naclInstance) {
-	naclFactory.instantiate(nacl => {
-		global.naclInstance = nacl;
-	});
-}
