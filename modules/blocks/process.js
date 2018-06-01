@@ -200,7 +200,6 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	library.logger.info('Last block loses');
 	async.series(
 		[
 			function(seriesCb) {
@@ -231,6 +230,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 			},
 			// Delete last block
 			function(seriesCb) {
+				library.logger.info('Last block loses due to fork 5');
 				modules.blocks.chain.deleteLastBlock(seriesCb);
 			},
 			// Process received block
