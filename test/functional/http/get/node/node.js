@@ -100,10 +100,6 @@ describe('GET /node', () => {
 		it('should return a result containing fees.dappDeposit = 10000000', () => {
 			return expect(constantsResponse.fees.dappDeposit).to.be.equal('10000000');
 		});
-
-		it('should return a result containing fees.data = 10000000', () => {
-			return expect(constantsResponse.fees.data).to.be.equal('10000000');
-		});
 	});
 
 	describe('/status', () => {

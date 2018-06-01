@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var Scenarios = require('../../../common/scenarios');
 var localCommon = require('../../common');
 

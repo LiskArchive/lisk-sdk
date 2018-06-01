@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const elements = require('lisk-js').default;
+const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
 const constants = require('../../../helpers/constants');
 const slots = require('../../../helpers/slots');

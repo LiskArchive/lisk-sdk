@@ -69,7 +69,6 @@ var constants = {
 		dappRegistration: 2500000000,
 		dappWithdrawal: 10000000,
 		dappDeposit: 10000000,
-		data: 10000000,
 	},
 	maxAmount: 100000000,
 	maxPayloadLength: 1024 * 1024,

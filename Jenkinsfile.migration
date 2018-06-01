@@ -11,65 +11,164 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
+
+properties([
+	parameters([
+		string(name: 'MIGRATE_FROM', defaultValue: 'master', description: 'Source branch to test migration', ),
+		string(name: 'MIGRATE_TO', defaultValue: 'development', description: 'Target branch to test migration', ),
+		string(name: 'NETWORK', defaultValue: 'test', description: 'The network used during `installLisk.sh`. It must be test or main. ', ),
+		booleanParam(name: 'USE_TEST_CONFIG', defaultValue: true, description: 'Use test genesis block and config', )
+	 ])
+])
+
 pipeline {
-	agent { node { label "node-07" } }
+	agent { node { label "core-migration" } }
 	stages {
 		stage("Prepare workspace") {
 			steps {
-				deleteDir()
-				dir(params.MIGRATE_FROM) {
-					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_FROM
-				}
-				dir(params.MIGRATE_TO) {
-					git url: "https://github.com/LiskHQ/lisk.git", branch: params.MIGRATE_TO
-				}
-				sh """
-				json_files_copy() {
-					case \$1 in
-						0* | master)
-							cp test/config.json .
-							cp test/genesisBlock.json .
-							;;
-						*)
-							cp test/data/config.json .
-							cp test/data/genesis_block.json .
-							;;
-					esac
-				}
+				library identifier: 'lisk-jenkins@master', retriever: modernSCM(
+  					[$class: 'GitSCMSource',
+   					 remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
+			}
+		}
+		stage("Create binary releases") {
+			parallel {
+				stage('Create source release') {
+					steps {
+						script {
+							def release = liskBuild(branch: params.MIGRATE_FROM, network: params.NETWORK, useTestConfig: params.USE_TEST_CONFIG)
+							env.SRC_IS_LATEST = release.latestVersion
+							env.SRC_VERSION =  release.version
+							env.SRC_RELEASE =  release.nonVersionedFile
+						}
 
-				dropdb lisk_test || true
-				createdb lisk_test
-				cd "${params.MIGRATE_FROM}"
-				json_files_copy "${params.MIGRATE_FROM}"
-				npm install
-				cd "../${params.MIGRATE_TO}"
-				json_files_copy "${params.MIGRATE_TO}"
-				npm install
-				sudo service postgresql restart
-				"""
+					}
+				}
+				stage('Create destination release') {
+					steps {
+						script {
+							def release = liskBuild(branch: params.MIGRATE_TO, network: params.NETWORK, useTestConfig: params.USE_TEST_CONFIG)
+							env.DEST_IS_LATEST = release.latestVersion
+							env.DEST_VERSION =  release.version
+							env.DEST_RELEASE =  release.nonVersionedFile
+						}
+					}
+				}
 			}
 		}
-		stage("Start old Lisk") {
+
+		stage("Install source release") {
 			steps {
-				sh """
-				cd "${params.MIGRATE_FROM}"
-				pm2 start --name lisk app.js
-				sleep 20
-				pm2 kill
-				"""
+				installLisk(env.SRC_RELEASE, params.NETWORK)
 			}
 		}
-		stage("Start new Lisk") {
+
+		stage("Migrate to destination release") {
 			steps {
+				script {
+					env.TARGET_BLOCK_HEIGHT = getNetworkHeight() + getCutOffset()
+				}
+				dir("lisk-home") {
+					sh """
+					cp ${env.DEST_RELEASE} .
+					wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/lisk_bridge.sh
+					bash lisk_bridge.sh -f `basename ${env.DEST_RELEASE}` -n ${params.NETWORK} -h ${env.TARGET_BLOCK_HEIGHT} -s ${WORKSPACE}/lisk-home/lisk-${params.NETWORK}
+					"""
+				}
+			}
+		}
+
+		stage("Verify migration") {
+			steps {
+				script {
+					waitForBlockHeight(env.TARGET_BLOCK_HEIGHT.toInteger() + getVerifyOffset())
+				}
+			}
+		}
+	}
+	post {
+		always {
+			dir("lisk-home/lisk-${params.NETWORK}") {
 				sh """
-				cd "${params.MIGRATE_TO}"
-				pm2 start --name lisk app.js
-				sleep 30
-				if grep "error" logs/lisk.log; then
-					exit 1;
-				fi
+				bash lisk.sh stop
+				"""
+			}
+			cleanWs()
+		}
+	}
+}
+
+def installLisk(buildFile, network) {
+	dir("lisk-home") {
+		sh """
+		cp ${buildFile} .
+		wget https://raw.githubusercontent.com/LiskHQ/lisk-scripts/0.2.0/downloaded/installLisk.sh
+		bash installLisk.sh install -r ${network} -f `basename ${buildFile}`
+		"""
+	}
+}
+
+def getCutOffset() {
+	if (params.USE_TEST_CONFIG == true) {
+		return 5
+	} else {
+		return 50
+	}
+}
+
+def getVerifyOffset() {
+	if (params.USE_TEST_CONFIG == true) {
+		return 5
+	} else {
+		return 0
+	}
+}
+
+def getNetworkHeight() {
+	if (params.USE_TEST_CONFIG == true) {
+		return getLocalBlockHeight()
+	} else {
+		dir("lisk-home/lisk-${params.NETWORK}") {
+			if(params.NETWORK == "main") {
+				sh """
+				curl -s https://node.lisk.io/api/loader/status/sync | jq -r '.height' > .lisk-network-height
+				"""
+			} else if (params.NETWORK == "test"){
+				sh """
+				curl -s https://testnet.lisk.io/api/loader/status/sync | jq -r '.height' > .lisk-network-height
 				"""
 			}
 		}
+		return readFile("lisk-home/lisk-${params.NETWORK}/.lisk-network-height").trim().toInteger()
+	}
+}
+
+def getLocalBlockHeight() {
+	dir("lisk-home/lisk-${params.NETWORK}") {
+		sh """
+		bash lisk.sh status | tail -1 | awk '{print \$4}' > .lisk-block-height
+		"""
+	}
+	return readFile("lisk-home/lisk-${params.NETWORK}/.lisk-block-height").trim().toInteger()
+}
+
+def waitForBlockHeight(targetBlockHeight, waitAttempts=0, previousHeight=0) {
+	def height = getLocalBlockHeight()
+	echo "Height: ${height}"
+
+	if(previousHeight != height) {
+		previousHeight = height
+		waitAttempts = 0
+	} else if (waitAttempts < 3) {
+		waitAttempts = waitAttempts + 1
+	} else {
+		error("Block height is not increasing from ${previousHeight} in ${waitAttempts} attempts.")
+	}
+
+	if(height < targetBlockHeight) {
+		sleep 10
+		waitForBlockHeight(targetBlockHeight, waitAttempts, previousHeight)
+	} else {
+		echo "Block height reaches to target."
 	}
 }

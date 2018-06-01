@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var waitFor = require('../../../common/utils/wait_for');

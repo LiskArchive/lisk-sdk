@@ -107,7 +107,7 @@
 		"jsdoc": "=3.4.3",
 		"jsdox": "=0.4.10",
 		"lint-staged": "=6.1.0",
-		"lisk-js": "1.0.0-beta.2",
+		"lisk-elements": "1.0.0-beta.4",
 		"mocha": "=4.0.1",
 		"moment": "=2.19.3",
 		"node-mocks-http": "^1.6.6",
