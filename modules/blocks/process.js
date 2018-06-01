@@ -128,7 +128,6 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	library.logger.info('Last block and parent loses');
 	async.series(
 		[
 			function(seriesCb) {
@@ -155,6 +154,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 					// Return first error from checks
 					return setImmediate(seriesCb, check.errors[0]);
 				}
+				library.logger.info('Last block and parent loses due to fork 1');
 				return setImmediate(seriesCb);
 			},
 			// Delete last 2 blocks
