@@ -128,7 +128,7 @@ describe('API method module', () => {
 									secondURLParam
 								}`,
 								headers: defaultHeaders,
-								body: {
+								data: {
 									needed: true,
 									sort: 'id',
 								},
