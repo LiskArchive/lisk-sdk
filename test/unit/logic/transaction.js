@@ -679,7 +679,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should return error on timestamp smaller than the int32 range', function (done) {
+		it('should return error on timestamp below the int32 range', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			trs.timestamp = -2147483648 - 1;
 			delete trs.signature;
@@ -690,7 +690,7 @@ describe('transaction', function () {
 			});
 		});
 
-		it('should return error on timestamp bigger than the int32 range', function (done) {
+		it('should return error on timestamp above the int32 range', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			trs.timestamp = 2147483647 + 1;
 			delete trs.signature;
