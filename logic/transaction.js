@@ -583,6 +583,9 @@ Transaction.prototype.verify = function (trs, sender, requester, checkExists, cb
 	}
 
 	// Check timestamp
+	if (trs.timestamp < -2147483648 || trs.timestamp > 2147483647) {
+		return setImmediate(cb, 'Invalid transaction timestamp. Timestamp is not in the int32 range');
+	}
 	if (slots.getSlotNumber(trs.timestamp) > slots.getSlotNumber()) {
 		return setImmediate(cb, 'Invalid transaction timestamp. Timestamp is in the future');
 	}
