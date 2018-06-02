@@ -707,7 +707,7 @@ describe('transaction', function () {
 			delete trs.signature;
 			trs.signature = transaction.sign(senderKeypair, trs);
 			transaction.verify(trs, validSender, null, true, function (err) {
-				expect(err).to.include('Invalid transaction timestamp');
+				expect(err).to.include('Invalid transaction timestamp. Timestamp is in the future');
 				done();
 			});
 		});
