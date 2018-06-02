@@ -679,6 +679,17 @@ describe('transaction', function () {
 			});
 		});
 
+		it('should return error on timestamp out of int32 range', function (done) {
+			var trs = _.cloneDeep(validTransaction);
+			trs.timestamp = -2147483648 - 1;
+			delete trs.signature;
+			trs.signature = transaction.sign(senderKeypair, trs);
+			transaction.verify(trs, validSender, null, true, function (err) {
+				expect(err).to.include('Invalid transaction timestamp');
+				done();
+			});
+		});
+
 		it('should return error on future timestamp', function (done) {
 			var trs = _.cloneDeep(validTransaction);
 			trs.timestamp = slots.getTime() + 100;
