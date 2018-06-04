@@ -20,7 +20,7 @@ const fs = require('fs');
 const readline = require('readline');
 const program = require('commander');
 const extend = require('extend');
-const lisk = require('lisk-js');
+const lisk = require('lisk-elements');
 
 let oldConfigPath;
 let newConfigPath;
