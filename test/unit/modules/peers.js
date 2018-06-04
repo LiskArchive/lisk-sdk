@@ -922,11 +922,11 @@ describe('peers', () => {
 			return expect(peers.discover.calledOnce).to.be.ok;
 		});
 
-		it('should start peers discovery process by registering it in jobsQueue every 5 sec', () => {
+		it('should start peers discovery process by registering it in jobsQueue every 10 sec', () => {
 			return expect(jobsQueueSpy).calledWith(
 				'peersDiscoveryAndUpdate',
 				sinon.match.func,
-				30000
+				10000
 			);
 		});
 	});
