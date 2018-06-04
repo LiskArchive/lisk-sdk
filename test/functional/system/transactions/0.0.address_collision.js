@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var localCommon = require('../common');

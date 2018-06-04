@@ -2209,7 +2209,6 @@ definitions:
       - dappRegistration
       - dappWithdrawal
       - dappDeposit
-      - data
     properties:
       send:
         type: string
@@ -2233,9 +2232,6 @@ definitions:
         type: string
         example: '10000000'
       dappDeposit:
-        type: string
-        example: '10000000'
-      data:
         type: string
         example: '10000000'
 

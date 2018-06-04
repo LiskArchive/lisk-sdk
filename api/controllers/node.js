@@ -71,7 +71,6 @@ NodeController.getConstants = function(context, next) {
 			data.fees.secondSignature = data.fees.secondSignature.toString();
 			data.fees.vote = data.fees.vote.toString();
 			data.fees.send = data.fees.send.toString();
-			data.fees.data = data.fees.data.toString();
 
 			next(null, data);
 		} catch (error) {
