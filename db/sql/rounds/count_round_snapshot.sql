@@ -12,21 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-var lisk = require('lisk-elements').default;
+/*
+  DESCRIPTION: Counts all records from mem_round_snapshot table.
 
-var elements = {};
+  PARAMETERS: none
+*/
 
-elements.redoSignature = function(transaction, passphrase) {
-	delete transaction.signature;
-	transaction.signature = lisk.transaction.utils.signTransaction(
-		transaction,
-		passphrase
-	);
-	transaction.id = lisk.transaction.utils.getTransactionId(transaction);
-	return transaction;
-};
-
-// Exports
-module.exports = elements;
+SELECT COUNT(*) FROM mem_round_snapshot

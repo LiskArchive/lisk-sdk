@@ -14,9 +14,51 @@
 swagger: '2.0'
 
 info:
-  description: Lisk API Documentation
   title: Lisk API Documentation
-  version: '1.0.26'
+  description: |
+    # Welcome!
+
+    ## Access Restrictions
+    The API endpoints are by default restricted to a whitelist of IPs that can be found in `config.json` in the section [`api.access.whitelist`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L35).
+    If you want your API to be accessable by the public, you can do this by changing `api.access.public` to `true`.
+    This will allow anyone to make requests to your Lisk Core node.
+    However some endpoints stay private, that means only a list of whitelisted IPs can successfully make API calls to that particular endpoint;
+    This includes all forging related API calls.
+    By default, only the nodes' local IP is included in the whitelist, you can change the setting in `config.json` in the section [`forging.access.whitelist`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L114).
+    For more details, see the descriptions at the respective endpoint.
+
+    ## Requests
+    Chained filter parameters are logically connected with `AND`.
+    `HTTP` is the supported URL schema by default.
+    To enable `HTTPS`, please adjust the the [`ssl`](https://github.com/LiskHQ/lisk/blob/1.0.0/config.json#L124) section in `config.json`.
+
+    ## Responses
+    The general response format is JSON (`application/json`).
+    The responses for each API request have a common basic structure:
+    ```javascript
+    {
+    	"data": {}, //Contains the requested data
+    	"meta": {}, //Contains additional metadata, e.g. the values of `limit` and `offset`
+    	"links": {} //Will contain links to connected API calls from here, e.g. pagination links
+    }
+    ```
+
+    ## Date Formats
+    Most of the timestamp parameters are in the Unix timestamp format.
+    The Unix timestamp (or Unix time or POSIX time or Unix epoch time) is the number of seconds that have elapsed since January 1, 1970 , not counting leap seconds.
+    Some of them though, are are accepted or returned in the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format, combined date and time: `YYYY-MM-DDThh:mm:ssZ`.
+    2 valid examples for ISO 8601: 1970-01-01T00:00:00Z, 2016-05-24T17:00:00.000Z.
+    For details, see the descriptions and examples at the respective endpoint.
+
+    ## Pagination
+    One can paginate nicely through the results by providing `limit` and `offset` parameters to the requests.
+    `limit` and `offset` can be found in the `meta`-object of the response of an API request.
+    If no limit and offset are provided, they are set to 10 and 0 by default, what will give display the first 10 results.
+
+    ## List of Endpoints
+    All possible API endpoints for Lisk Core are listed below.
+    Click on an endpoint to show descriptions, details and examples.
+  version: '1.0.28'
   contact:
     email: admin@lisk.io
   license:
@@ -24,8 +66,6 @@ info:
     url: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 # All paths relative to specified basePath
-# basePath: /v1
-
 basePath: /api
 
 # Tags for organizing operations
@@ -42,17 +82,14 @@ tags:
   description: Node related API calls
 - name: Peers
   description: Peers related API Calls
-- name: Queue
-  description: Queue related API calls
 - name: Signatures
   description: Signatures related API calls
 - name: Transactions
   description: Transactions related API calls
+- name: Voters
+  description: Votes related API calls
 - name: Votes
   description: Votes related API calls
-- name: Private
-  x-private: true
-  description: Private endpoint only authorized to whitelisted IPs
 
 schemes:
   - http
@@ -66,9 +103,7 @@ paths:
       - Accounts
       summary: Requests account data
       operationId: getAccounts
-      description:
-        By passing in the appropriate parameters, you can search for
-        matching accounts in the system
+      description: Search for matching accounts in the system.
       produces:
       - application/json
       parameters:
@@ -112,15 +147,13 @@ paths:
       - Accounts
       summary: Requests multisignature groups data
       operationId: getMultisignatureGroups
-      description:
-        By passing in the appropriate options, you can search for a
-        specified account in the system and get its multisignature groups
+      description: Searches for the specified account in the system and responds with a list of the multisignature groups that this account is member of.
       produces:
         - application/json
       parameters:
         - name: address
           in: path
-          description: Address of account
+          description: Lisk address of an account
           type: string
           format: address
           required: true
@@ -153,17 +186,15 @@ paths:
     get:
       tags:
       - Accounts
-      summary: Requests multisignature memberships data
+      summary: Requests multisignature membership data
       operationId: getMultisignatureMemberships
-      description:
-        By passing in the appropriate options, you can search for a
-        specified account in the system and get its multisignature memberships
+      description: Searches for the specified multisignature group and responds with a list of all members of this particular multisignature group.
       produces:
         - application/json
       parameters:
         - name: address
           in: path
-          description: Address of account
+          description: Lisk address of a multisignature account
           type: string
           format: address
           required: true
@@ -194,15 +225,13 @@ paths:
       - Dapps
       summary: Requests dapps data
       operationId: getDapps
-      description:
-        By passing in the appropriate options, you can search for
-        a specified dapp in the system, otherwise returns a list
+      description: Search for a specified dapp in the system.
       produces:
       - application/json
       parameters:
         - name: transactionId
           in: query
-          description: Registration transaction ID to query
+          description: Dapp registration transaction ID
           required: false
           type: string
           format: id
@@ -222,6 +251,7 @@ paths:
           enum:
             - name:asc
             - name:desc
+          default: name:asc
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
       responses:
@@ -249,7 +279,7 @@ paths:
       - Peers
       summary: Requests peers data
       operationId: getPeers
-      description: Returns peers related data
+      description: Search for specified peers.
       produces:
         - application/json
       parameters:
@@ -273,6 +303,7 @@ paths:
             - height:desc
             - version:asc
             - version:desc
+          default: height:desc
       responses:
         200:
           description: List of peers
@@ -291,7 +322,6 @@ paths:
           schema:
             $ref: '#/definitions/UnexpectedError'
 
-  # Node
   /node/constants:
     x-swagger-router-controller: node
     get:
@@ -299,7 +329,7 @@ paths:
       - Node
       summary: Requests constants data
       operationId: getConstants
-      description: Returns all current constants data on the system
+      description: Returns all current constants data on the system, e.g. Lisk epoch time and version.
       produces:
       - application/json
       responses:
@@ -323,7 +353,7 @@ paths:
       - Node
       summary: Requests status data
       operationId: getStatus
-      description: Returns all current constants data on the system
+      description: Returns all current status data of the node, e.g. height and broadhash.
       produces:
       - application/json
       responses:
@@ -342,16 +372,15 @@ paths:
 
   /node/status/forging:
     x-swagger-router-controller: node
-    x-private: true
     get:
       tags:
         - Node
-        - Delegates
-        - Private
       summary: Requests forging status of a delegate
       operationId: getForgingStatus
-      description:
-        By querying by publicKey, the forging status of a delegate can be determined on a node
+      description: |
+        *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
+        To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+        Responds with the forging status of a delegate on a node.
       produces:
         - application/json
       parameters:
@@ -380,12 +409,13 @@ paths:
     put:
       tags:
         - Node
-        - Delegates
-        - Private
       summary: Toggles the forging status of a delegate
       operationId: updateForgingStatus
-      description:
-        Upon passing the correct password and publicKey, forging will be enabled or disabled
+      description: |
+       *Attention! This is a **private endpoint only authorized to whitelisted IPs.**
+       To edit the whitelist, please edit the `forging.access.whitelist` section in `config.json`*<br>
+       Upon passing the correct password and publicKey, forging will be enabled or disabled for the delegate of this particular node.
+       The password can be generated locally by encrypting your passphrase, either by using Lisk Commander or with Lisk Elements.
       produces:
         - application/json
       consumes:
@@ -405,10 +435,12 @@ paths:
                 type: string
                 example: "happy tree friends"
                 minLength: 5
+                description: Password for decrypting passphrase of delegate.
               publicKey:
                 type: string
                 example: "968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b"
                 format: publicKey
+                description: Public key of the delegate.
       responses:
         200:
           description: Delegate forging toggled on or off
@@ -439,13 +471,13 @@ paths:
     x-swagger-router-controller: node
     get:
       tags:
-        - Transactions
-        - Queue
+        - Node
       summary: Requests unprocessed transactions data
       operationId: getPooledTransactions
-      description:
-        This API call returns unprocessed transactions matching filter criteria
-        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load
+      description: |
+        By specifying the state of the transactions, you get a list of unprocessed transactions matching this state.
+        Search for specific transactions by providing the appropriate parameters.
+        If you post a batch of transactions, they will appear in the unprocessed list after a small delay, depending on server load.
       produces:
         - application/json
       parameters:
@@ -458,6 +490,7 @@ paths:
             - unprocessed
             - unconfirmed
             - unsigned
+          default: unprocessed
         - $ref: '#/parameters/transactionId'
         - $ref: '#/parameters/recipientId'
         - $ref: '#/parameters/recipientPublicKey'
@@ -468,7 +501,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -480,7 +513,7 @@ paths:
             - type:desc
             - timestamp:asc
             - timestamp:desc
-          default: amount:asc
+          default: amount:desc
       responses:
         200:
           description: Transactions list
@@ -507,9 +540,7 @@ paths:
       summary: Requests delegates data
       operationId: getDelegates
       x-lisk-cache-enabled: true
-      description:
-        By passing in the appropriate options, you can search for
-        a specified delegate in the system, otherwise returns a list
+      description: Search for a specified delegate in the system.
       produces:
       - application/json
       parameters:
@@ -534,7 +565,7 @@ paths:
           maxLength: 20
         - name: rank
           in: query
-          description: Delegate rank to query
+          description: Delegate rank
           type: string
           minLength: 1
           maxLength: 20
@@ -552,6 +583,7 @@ paths:
             - productivity:desc
             - missedBlocks:asc
             - missedBlocks:desc
+          default: rank:desc
       responses:
         200:
           description: Search results matching criteria
@@ -577,8 +609,8 @@ paths:
         - Delegates
       summary: Requests next forgers data
       operationId: getForgers
-      description:
-        By passing in the appropriate options, you can get a list of the next forgers
+      description: |
+        Returns a list of the next forgers in this delegate round.
       produces:
         - application/json
       parameters:
@@ -617,16 +649,15 @@ paths:
       summary: Requests forging stats by delegate
       operationId: getForgingStatistics
       x-lisk-cache-enabled: true
-      description:
-        By passing an existing delegate address, you can read
-        its forging statistics within a window of time which
-        by default is from the Lisk epoch to the date.
+      description: |
+        By passing an existing delegate address and the desired unix timestamps, you can get its forging statistics within the specified timespan.
+        If no timestamps are provided, it will use the timestamps from Lisk epoch to current date.
       produces:
       - application/json
       parameters:
         - in: path
           name: address
-          description: Address to query
+          description: Lisk address of a delegate
           required: true
           type: string
           format: address
@@ -658,9 +689,8 @@ paths:
       summary: Requests blocks data
       operationId: getBlocks
       x-lisk-cache-enabled: true
-      description:
-        By passing in the appropriate options, you can search for
-        a specified block in the system
+      description: |
+        Search for a specified block in the system.
       produces:
         - application/json
       parameters:
@@ -670,7 +700,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: generatorPublicKey
-          description: generatorPublicKey to query
+          description: Public key of the forger of the block
           type: string
           format: publicKey
         - in: query
@@ -710,11 +740,12 @@ paths:
     x-swagger-router-controller: voters
     get:
       tags:
-        - Votes
+        - Voters
       summary: Requests voters data for a delegate
       operationId: getVoters
-      description:
-        This API call returns all votes received by a delegate. At least one of the filter parameters must be provided
+      description: |
+        *Attention: At least **one of the filter parameters must be provided.***
+        Returns all votes received by a delegate.
       produces:
         - application/json
       parameters:
@@ -734,6 +765,7 @@ paths:
             - username:desc
             - balance:asc
             - balance:desc
+          default: username:asc
       responses:
         200:
           description: Voters list
@@ -763,8 +795,9 @@ paths:
         - Votes
       summary: Requests votes data for an account
       operationId: getVotes
-      description:
-        This API call returns all votes placed by an account
+      description: |
+        *Attention: At least **one of the filter parameters must be provided.***
+        Returns all votes placed by an account.
       produces:
         - application/json
       parameters:
@@ -791,6 +824,7 @@ paths:
             - username:desc
             - balance:asc
             - balance:desc
+          default: username:asc
       responses:
         200:
           description: Votes list
@@ -820,8 +854,9 @@ paths:
         - Signatures
       summary: Submits a signature object to sign multisignature transactions
       operationId: postSignature
-      description:
-        Submits signature to sign a multisignature transaction
+      description: |
+        Submits signature to sign a multisignature transaction.
+        Signature objects can be generated locally either by using Lisk Commander or with Lisk Elements.
       consumes:
         - application/json
       produces:
@@ -863,8 +898,8 @@ paths:
       summary: Requests transactions data
       operationId: getTransactions
       x-lisk-cache-enabled: true
-      description:
-        This API call returns transactions matching filter criteria
+      description: |
+        Search for a specified transaction in the system.
       produces:
         - application/json
       parameters:
@@ -885,7 +920,7 @@ paths:
         - $ref: '#/parameters/offset'
         - in: query
           name: sort
-          description: Fields to sort on to query
+          description: Fields to sort results by
           required: false
           type: string
           enum:
@@ -920,8 +955,9 @@ paths:
         - Transactions
       summary: Submits signed transaction for processing
       operationId: postTransaction
-      description:
-        Submits signed transaction for processing by the transaction pool
+      description: |
+        Submits signed transaction object for processing by the transaction pool.
+        Transaction objects can be generated locally either by using Lisk Commander or with Lisk Elements.
       consumes:
         - application/json
       produces:
@@ -1029,7 +1065,7 @@ parameters:
   address:
     name: address
     in: query
-    description: Address to query
+    description: Address of an account
     required: false
     type: string
     format: address
@@ -1074,7 +1110,7 @@ parameters:
   recipientId:
     name: recipientId
     in: query
-    description: Recipient address to query
+    description: Recipient lisk address
     type: string
     format: address
     minLength: 1
@@ -1082,14 +1118,14 @@ parameters:
   recipientPublicKey:
     name: recipientPublicKey
     in: query
-    description: Public key to query
+    description: Recipient public key
     type: string
     format: publicKey
     minLength: 1
   senderId:
     name: senderId
     in: query
-    description: Sender address to query
+    description: Sender lisk address
     type: string
     format: address
     minLength: 1
@@ -1097,14 +1133,14 @@ parameters:
   senderPublicKey:
     name: senderPublicKey
     in: query
-    description: Public key to query
+    description: Sender public key
     type: string
     format: publicKey
     minLength: 1
   senderIdOrRecipientId:
     name: senderIdOrRecipientId
     in: query
-    description: Sender Id or Recipient Id to query
+    description: Lisk address
     type: string
     format: address
     minLength: 1
@@ -1112,36 +1148,62 @@ parameters:
   transactionType:
     name: type
     in: query
-    description: Transaction type
+    description: Transaction type (0-7)
     type: integer
     minimum: 0
     maximum: 7
   minAmount:
     name: minAmount
     in: query
-    description: Minimum transaction amount
+    description: Minimum transaction amount in Beddows
     type: integer
     minimum: 0
   maxAmount:
     name: maxAmount
     in: query
-    description: Maximum transaction amount
+    description: Maximum transaction amount in Beddows
     type: integer
     minimum: 0
   fromTimestamp:
     name: fromTimestamp
     in: query
-    description: Starting Lisk timestamp of records to query
+    description: Starting unix timestamp
     type: integer
     minimum: 0
   toTimestamp:
     name: toTimestamp
     in: query
-    description: Ending Lisk timestamp of records to query
+    description: Ending unix timestamp
     type: integer
     minimum: 1
 
 definitions:
+  Meta:
+    type: object
+    required:
+      - limit
+      - offset
+    properties:
+      limit:
+        $ref: '#/definitions/Limit'
+      offset:
+        $ref: '#/definitions/Offset'
+
+  Limit:
+    description: Limit applied to results
+    type: integer
+    format: int32
+    minimum: 1
+    maximum: 100
+    default: 10
+
+  Offset:
+    description: Offset value for results
+    type: integer
+    format: int32
+    minimum: 0
+    default: 0
+
   TransactionRequest:
     type: object
     required:
@@ -1161,52 +1223,79 @@ definitions:
         example: "222675625422353767"
         minLength: 1
         maxLength: 20
+        description: |
+          Unique identifier of the transaction.
+          Derived from the transaction signature.
       amount:
         type: string
         example: '150000000'
+        description: |
+          Amount of Lisk to be transferred in this transaction.
       fee:
         type: string
         example: '1000000'
+        description: |
+          Transaction fee associated with this transaction.
       type:
         type: integer
         minimum: 0
         maximum: 7
+        description: |
+          Describes the Transaction type.
       timestamp:
         type: integer
         example: 28227090
+        description: |
+          Time when the transaction was created.
+          Unix Timestamp.
       senderId:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          Lisk Address of the Senders' account.
       senderPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        description: |
+          The public key of the Senders' account.
       senderSecondPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        description: |
+          The second public key of the Senders' account, if it exists.
       recipientId:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          Lisk Address of the Recipients' account.
       signature:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+        description: |
+          Derived from a SHA-256 hash of the transaction object,
+          that is signed by the private key of the account who created the transaction.
       signSignature:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+        description: Contains the second signature, if the transaction is sent from an account with second passphrase activated.
       signatures:
         type: array
+        description: If the transaction is a multisignature transaction, all signatures of the members of the corresponding multisignature group will be listed here.
         items:
           type: string
           format: signature
           example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
       asset:
         type: object
-
+        description: |
+          Displays additional transaction data.
+          Can include e.g. vote data or delegate username.
   NodeStatusResponse:
     type: object
     required:
@@ -1252,18 +1341,14 @@ definitions:
        required:
          - offset
          - limit
-         - total
+         - count
        properties:
          offset:
-           description: Offset value for results
-           type: integer
-           example: 0
+           $ref: '#/definitions/Offset'
          limit:
-           description: Limit applied to results
-           type: integer
-           example: 100
-         total:
-           description: Total number of available peers
+           $ref: '#/definitions/Limit'
+         count:
+           description: Number of peers in the response
            type: integer
            example: 100
       links:
@@ -1282,19 +1367,7 @@ definitions:
         items:
           $ref: '#/definitions/AccountExtended'
       meta:
-        type: object
-        required:
-          - offset
-          - limit
-        properties:
-          offset:
-            description: Offset value for results
-            type: integer
-            example: 0
-          limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1328,19 +1401,7 @@ definitions:
         items:
           $ref: '#/definitions/Dapp'
       meta:
-        type: object
-        required:
-          - offset
-          - limit
-        properties:
-          offset:
-            description: Offset value for results
-            type: integer
-            example: 0
-          limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1359,17 +1420,17 @@ definitions:
       meta:
         type: object
         required:
-          - offset
           - limit
+          - offset
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
             type: integer
-            example: 100
+            format: int32
+            minimum: 1
+            maximum: 101
+            default: 10
       links:
         type: object
 
@@ -1395,13 +1456,13 @@ definitions:
           - lastBlock
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
             type: integer
-            example: 100
+            format: int32
+            minimum: 1
+            maximum: 101
+            default: 10
           currentSlot:
             description: Currently active slot
             type: integer
@@ -1449,13 +1510,13 @@ definitions:
          - toTimestamp
        properties:
          fromTimestamp:
-           description: Starting timestamp of records to query
+           description: Starting unix timestamp
            type: integer
            example: 0
          toTimestamp:
-           description: Ending timestamp of records to query
+           description: Ending unix timestamp
            type: integer
-           example: 100
+           example: 1525861914
       links:
         type: object
 
@@ -1472,19 +1533,7 @@ definitions:
         items:
           $ref: '#/definitions/Block'
       meta:
-       type: object
-       required:
-         - offset
-         - limit
-       properties:
-         offset:
-           description: Offset value for results
-           type: integer
-           example: 0
-         limit:
-           description: Limit applied to results
-           type: integer
-           example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1536,13 +1585,9 @@ definitions:
           - count
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+            $ref: '#/definitions/Limit'
           count:
             description: Number of transactions in the response
             type: integer
@@ -1596,76 +1641,115 @@ definitions:
         example: "222675625422353767"
         minLength: 1
         maxLength: 20
+        description: |
+          Unique identifier of the transaction.
+          Derived from the transaction signature.
       amount:
         type: string
         example: '150000000'
+        description: |
+          Amount of Lisk to be transferred in this transaction.
       fee:
         type: string
         example: '1000000'
+        description: |
+          Transaction fee associated with this transaction.
       type:
         type: integer
         minimum: 0
         maximum: 7
+        description: |
+          Describes the Transaction type.
       height:
         type: integer
         minimum: 1
+        description: |
+          The height of the network, at the moment where this transaction was included in the blockchain.
       blockId:
         type: string
         format: id
         minLength: 1
         maxLength: 20
         example: "6258354802676165798"
+        description: |
+          The Id of the block, this transaction is included in.
       timestamp:
         type: integer
         example: 28227090
+        description: |
+          Time when the transaction was created.
+          Unix Timestamp.
       senderId:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          Lisk Address of the Senders' account.
       senderPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        description: |
+          The public key of the Senders' account.
       senderSecondPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        description: |
+          The second public key of the Senders' account, if it exists.
       recipientId:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          Lisk Address of the Recipients' account.
       recipientPublicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        description: |
+          The public key of the Recipients' account.
       signature:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+        description: |
+          Derived from a SHA-256 hash of the transaction object,
+          that is signed by the private key of the account who created the transaction.
       signSignature:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
+        description: Contains the second signature, if the transaction is sent from an account with second passphrase activated.
       signatures:
         type: array
         items:
           type: string
           format: signature
           example: 72c9b2aa734ec1b97549718ddf0d4737fd38a7f0fd105ea28486f2d989e9b3e399238d81a93aa45c27309d91ce604a5db9d25c9c90a138821f2011bc6636c60a
+          description: If the transaction is a multisignature transaction, all signatures of the members of the corresponding multisignature group will be listed here.
       confirmations:
         type: integer
         minimum: 0
+        description: |
+          Number of times that this transaction has been confirmed by the network.
+          By forging a new block on a chain, all former blocks and their contained transactions in the chain get confirmed by the forging delegate.
       asset:
         type: object
       receivedAt:
         type: string
         format: 'date-time'
+        description: The timestamp of the moment, where a node discovered a transaction for the first time.
       relays:
         type: integer
+        description: Number of times, a single transaction object has been broadcasted to another peer.
       ready:
         type: boolean
         example: false
-
+        description: |
+          Only present in transactions sent from a multisignature account, or transactions type 4 (multisignature registration).
+          False, if the minimum amount of signatures to sign this transaction has not been reached yet.
+          True, if the minimum amount of signatures has been reached.
   Signature:
     type: object
     required:
@@ -1679,15 +1763,19 @@ definitions:
         example: "222675625422353767"
         minLength: 1
         maxLength: 20
+        description: Unique identifier of the multisignature transaction to sign.
       publicKey:
         type: string
         format: publicKey
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
+        description: Public key of the account that intends to sign the multisignature transaction.
       signature:
         type: string
         format: signature
         example: 2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205
-
+        description: |
+          Signature to sign the transaction.
+          The signature can be generated locally, either by using Lisk Commander or with Lisk Elements.
   Block:
     type: object
     required:
@@ -1707,59 +1795,89 @@ definitions:
         minLength: 1
         maxLength: 20
         example: "6258354802676165798"
+        description: |
+          Unique identifier of the block.
+          Derived from the block signature.
       version:
         type: integer
         example: 0
         minimum: 0
+        description: Versioning for future upgrades of the lisk protocol.
       height:
         type: integer
         example: 123
         minimum: 1
+        description: |
+          Height of the network, when the block got forged.
+          The height of the networks represents the number of blocks,
+          that have been forged on the network since Genesis Block.
       timestamp:
         type: integer
         example: 28227090
+        description: Unix Timestamp
       generatorAddress:
         type: string
         format: address
         example: 12668885769632475474L
+        description: Lisk Address of the delegate who forged the block.
       generatorPublicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: Public key of th edelagte who forged the block.
       payloadLength:
         type: integer
         example: 117
         minimum: 0
+        description: Bytesize of the payload hash.
       payloadHash:
         type: string
         format: hex
         example: 4e4d91be041e09a2e54bb7dd38f1f2a02ee7432ec9f169ba63cd1f193a733dd2
+        description: |
+          Hash of the payload of the block.
+          The payload of a block is comprised of the transactions the block contains.
+          For each type of transaction exists a different maximum size for the payload.
       blockSignature:
         type: string
         format: signature
         example: a3733254aad600fa787d6223002278c3400be5e8ed4763ae27f9a15b80e20c22ac9259dc926f4f4cabdf0e4f8cec49308fa8296d71c288f56b9d1e11dfe81e07
+        description: |
+          Derived from a SHA-256 hash of the block header,
+          that is signed by the private key of the delegate who forged the block.
       confirmations:
         type: integer
         example: 200
+        description: |
+          Number of times that this Block has been confirmed by the network.
+          By forging a new block on a chain, all former blocks in the chain get confirmed by the forging delegate.
       previousBlockId:
         type: string
         format: id
         example: "15918760246746894806"
+        description: The id of the previous block of the chain.
       numberOfTransactions:
         type: integer
         example: 15
+        description: The number of transactions processed in the block.
       totalAmount:
         type: string
         example: "150000000"
+        description: The total amount of Lisk transferred.
       totalFee:
         type: string
         example: "15000000"
+        description: The total amount of fees associated with the block.
       reward:
         type: string
         example: "50000000"
+        description: The Lisk reward for the delegate.
       totalForged:
         type: string
         example: "65000000"
+        description: |
+          Total amount of LSK that have been forged in this Block.
+          Consists of fees and the reward.
 
   ReducedBlock:
     type: object
@@ -1784,6 +1902,7 @@ definitions:
         example: 123
         minimum: 1
       timestamp:
+        description: Unix Timestamp
         type: integer
         example: 28227090
       generatorAddress:
@@ -1845,12 +1964,13 @@ definitions:
     properties:
       forging:
         type: boolean
-        description: Forging status of the queried delegate
         example: true
+        description: True if the delegate enabled forging.
       publicKey:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         format: publicKey
+        description: Public key of the queried delegate.
 
   VotersResponse:
     description: Voters endpoint response
@@ -1863,19 +1983,7 @@ definitions:
       data:
         $ref: '#/definitions/DelegateWithVoters'
       meta:
-        type: object
-        required:
-          - offset
-          - limit
-        properties:
-          offset:
-            description: Offset value for results
-            type: integer
-            example: 0
-          limit:
-            description: Limit applied to results
-            type: integer
-            example: 100
+        $ref: '#/definitions/Meta'
       links:
         type: object
 
@@ -1896,13 +2004,13 @@ definitions:
           - limit
         properties:
           offset:
-            description: Offset value for results
-            type: integer
-            example: 0
+            $ref: '#/definitions/Offset'
           limit:
-            description: Limit applied to results
             type: integer
-            example: 100
+            format: int32
+            minimum: 1
+            maximum: 101
+            default: 10
       links:
         type: object
 
@@ -1918,17 +2026,31 @@ definitions:
         type: string
         format: username
         example: isabella
+        description: |
+          The delegates' username.
+          A delegate chooses the username by registering a delegate on the Lisk network.
+          It is unique and cannot be changed later.
       publicKey:
         type: string
         example: 2ca9a7143fc721fdc540fef893b27e8d648d2288efa61e56264edf01a2c23079
         format: publicKey
+        description: |
+          The public key is derived from the private key of the owner of the account.
+          It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
       address:
         type: string
         format: address
         example: 6251001604903637008L
+        description: |
+          The Lisk Address is the human readable representation of the accounts owners' public key.
+          It consists of 21 numbers followed by a big 'L' at the end.
       nextSlot:
         type: number
         example: 4368793
+        description: |
+         Returns the slot number in which the forger will be able to forge the next block.
+         Each slot has a timespan of 10 seconds.
+         The first slot began directly after the Lisk Epoch Time.
 
   ForgingStats:
     type: object
@@ -1941,15 +2063,19 @@ definitions:
       fees:
         type: string
         example: "15000000"
+        description: Amount of fees, the delegate earned during the timespan.
       rewards:
         type: string
         example: "50000000"
+        description: Amount of rewards, the delegate earned during the timespan.
       forged:
         type: string
         example: "65000000"
+        description: Amount of Lisk, that have been transferred inside the forged blocks of a delegate, during the timespan.
       count:
         type: string
         example: "100"
+        description: Amount of blocks, that the delegate has forged during the timespan.
 
   Dapp:
     type: object
@@ -1964,27 +2090,38 @@ definitions:
         example: '15359945250124697273'
         minLength: 1
         maxLength: 20
+        description: |
+          Unique Identifier of the Register Dapp Transaction.
+          Derived from the transaction signature.
       icon:
         type: string
         example: http://www.blocksafefoundation.com/header.jpg
+        description: |
+          Dapp icon.
+          A link to the icon can be provided in the Register Dapp Transaction object.
       category:
         type: number
         example: 8
+        description: The category of the Dapp.
       type:
         type: number
         example: 8
+        description: The type of the Dapp.
       link:
         type: string
         example: https://github.com/blocksafe/SDK-notice/archive/master.zip
       tags:
         type: string
         example: Smartgun
+        description: Tags of the Dapp.
       description:
         type: string
-        example: Smart Gun Netwoirk
+        example: Smart Gun Network
+        description: Description of the Dapp.
       name:
         type: string
         example: Blocksafe
+        description: Name of the Dapp.
 
   Peer:
     type: object
@@ -1996,42 +2133,59 @@ definitions:
         type: string
         example: 127.0.0.1
         format: ip
+        description: IPv4 address of the peer node.
       httpPort:
         type: integer
         example: 8000
         format: int32
         minimum: 1
         maximum: 65535
+        description: The port the peer node uses for HTTP requests, e.g. API calls.
       wsPort:
         type: integer
         example: 8001
         format: int32
         minimum: 1
         maximum: 65535
+        description: The port the peer node uses for Websocket Connections, e.g. P2P broadcasts.
       os:
         type: string
         example: debian
+        description: The Operating System, that the peer node runs on.
       version:
         type: string
         example: v0.8.0
         format: version
+        description: The version of Lisk Core that the peer node runs on.
       state:
         type: integer
         example: 2
         format: int32
         minimum: 0
         maximum: 2
+        description: |
+          The state of the Peer.
+          Available values: Connected, Disconnected, Banned
       height:
         type: integer
         example: 123
+        description: |
+          Network height on the peer node.
+          Represents the current number of blocks in the chain on the peer node.
       broadhash:
         type: string
         example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
         format: hex
+        description: |
+          Broadhash on the peer node.
+          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
       nonce:
         type: string
         example: sYHEDBKcScaAAAYg
         minLength: 1
+        description: |
+          Unique Identifier for the peer.
+          Random string.
 
   PeersList:
     x-private: true
@@ -2055,7 +2209,6 @@ definitions:
       - dappRegistration
       - dappWithdrawal
       - dappDeposit
-      - data
     properties:
       send:
         type: string
@@ -2081,11 +2234,7 @@ definitions:
       dappDeposit:
         type: string
         example: '10000000'
-      data:
-        type: string
-        example: '10000000'
 
-  # State Related Models
   NodeConstants:
     type: object
     required:
@@ -2104,35 +2253,54 @@ definitions:
         type: string
         format: date-time
         example: '2016-05-24T17:00:00.000Z'
+        description: Timestamp of first block on the network.
       milestone:
         type: string
         example: '500000000'
+        description: |
+          The Reward, each forger will get for forging a block at the current slot.
+          After a certain amount of slots, the reward will be reduced.
       build:
         type: string
         example: 'v09:54:35 12/04/2017'
+        description: |
+          The build number.
+          Consists of `v` + the date and time of the build of the node.
       commit:
         type: string
         example: 7199d4b67c3575d5f99d1c29436a02977eeb01a7
         minLength: 40
         maxLength: 40
+        description: The last commit that was added to the codebase.
       version:
         type: string
         format: version
         example: v0.8.0
+        description: The Lisk Core version, that the node is running on.
       nethash:
         type: string
         example: ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511
+        description: |
+          Describes the network.
+          The nethash describes e.g. the Mainnet or the Testnet, that the node is connecting to.
       supply:
         type: string
         example: '10575384500000000'
+        description: Total supply of LSK in the network.
       reward:
         type: string
         example: '500000000'
+        description: |
+          The reward a delegate will get for forging a block.
+          Depends on the slot height.
       nonce:
         type: string
         example: cJmXK66xxz644d67
         minLength: 16
         maxLength: 16
+        description: |
+          Unique identifier of the node.
+          Random string.
       fees:
         $ref: '#/definitions/Fees'
 
@@ -2152,24 +2320,37 @@ definitions:
         example: 258974416d58533227c6a3da1b6333f0541b06c65b41e45cf31926847a3db1ea
         minLength: 64
         maxLength: 64
+        description: |
+          Broadhash is established as an aggregated rolling hash of the past five blocks present in the database.
+          Broadhash consensus serves a vital function for the Lisk network in order to prevent forks.
+          It ensures that a majority of available peers agree that it is acceptable to forge.
       consensus:
         type: integer
         example: 95
         minimum: 0
         maximum: 100
+        description: Percentage of the connected peers, that have the same broadhash as the querying node.
       height:
         type: integer
         example: 123
         minimum: 1
+        description: |
+          Current block height of the node.
+          Represents the current number of blocks in the chain on the node.
       loaded:
         type: boolean
         example: true
+        description: True if the blockchain loaded.
       networkHeight:
         type: integer
         example: 123
+        description: |
+          Current block height of the network.
+          Represents the current number of blocks in the chain on the network.
       syncing:
         type: boolean
         example: false
+        description: True if the node syncing with other peers.
       transactions:
         type: object
         required:
@@ -2178,22 +2359,28 @@ definitions:
           - unprocessed
           - confirmed
           - total
+        description: Transactions known to the node.
         properties:
           unconfirmed:
             type: integer
             example: 5
+            description: Number of unconfirmed Transactions known to the node.
           unsigned:
             type: integer
             example: 2
+            description: Number of unsigned Transactions known to the node.
           unprocessed:
             type: integer
             example: 3
+            description: Number of unprocessed Transactions known to the node.
           confirmed:
             type: integer
             example: 5
+            description: Number of confirmed Transactions known to the node.
           total:
             type: integer
             example: 15
+            description: Number of total Transactions known to the node.
 
   ProcessingError:
     type: object
@@ -2323,14 +2510,21 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          The Lisk Address is the human readable representation of the accounts owners' public key.
+          It consists of multiple numbers followed by a big 'L' at the end.
       publicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: |
+          The public key is derived from the private key of the owner of the account.
+          It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
       secondPublicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
 
   AccountExtended:
     type: object
@@ -2344,20 +2538,31 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          The Lisk Address is the human readable representation of the accounts owners' public key.
+          It consists of 21 numbers followed by a big 'L' at the end.
       publicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: |
+          The public key is derived from the private key of the owner of the account.
+          It can be used to validate that the private key belongs to the owner, but does not provide access to the owners private key.
       balance:
         type: string
         example: 1081560729258
+        description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
         example: 0
+        description: |
+          The current unconfirmed balance of the account in Beddows.
+          Includes unconfirmed transactions.
       secondPublicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
       delegate:
         $ref: '#/definitions/Delegate'
 
@@ -2376,26 +2581,41 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+        description: |
+          The Lisk Address is the human readable representation of the accounts owners' public key.
+          It consists of 21 numbers followed by a big 'L' at the end.
       publicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: |
+          The public key is derived from the private key of the owner of the account.
+          It can be used to validate that the private key belongs to the owner, but not provide access to the owners private key.
       balance:
         type: string
         example: 1081560729258
+        description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
         example: 0
+        description: |
+          The current unconfirmed balance of the account in Beddows.
+          Includes unconfirmed transactions.
       secondPublicKey:
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: The second public key is derived from the second private key of an account, if the owner activated a second passphrase for her/his account.
       min:
         type: integer
         example: 3
+        description: Minimum amount of signatures a transaction needs to be signed successfully by this multisignature account.
       lifetime:
         type: integer
         example: 72
+        description: |
+          The maximum amount of hours, that a transaction will wait for the minimum amount of signatures to be reached.
+          If not enough members of a multisignature group sign the transaction in the defined lifespan, the transaction will be invalid.
       members:
         type: array
         items:
@@ -2411,30 +2631,45 @@ definitions:
         type: string
         example: isabella
         format: username
+        description: |
+          The delegates' username.
+          A delegate chooses the username by registering a delegate on the Lisk network.
+          It is unique and cannot be changed later.
       vote:
         type: string
         example: 1081560729258
+        description: |
+          The voters weight of the delegate.
+          Represents the total amount of Lisk (in Beddows) that the delegates' voters own.
+          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
       rewards:
         type: string
         example: 510000000
+        description: Total sum of block rewards that the delegate has forged.
       producedBlocks:
         type: integer
         example: 20131
+        description: Total number of blocks the delegate has forged.
       missedBlocks:
         type: integer
         example: 427
-      rate:
-        type: integer
-        example: 91
+        description: Total number of blocks the delegate has missed.
       approval:
         type: number
         example: 14.22
+        description: Percentage of the voters weight, that the delegate owns in relation to the total supply of Lisk.
       productivity:
         type: number
         example: 96.41
+        description: |
+          Productivity rate.
+          Percentage of successfully forged blocks (not missed) by the delegate.
       rank:
         type: integer
         example: 70
+        description: |
+          Rank of the delegate.
+          The rank is defined by the voters weight/ approval of a delegates, in relation to all other delegates.
 
   DelegateWithAccount:
     type: object
@@ -2447,30 +2682,45 @@ definitions:
         type: string
         example: isabella
         format: username
+        description: |
+          The delegates' username.
+          A delegate chooses the username by registering a delegate on the Lisk network.
+          It is unique and cannot be changed later.
       vote:
         type: string
         example: 1081560729258
+        description: |
+          The voters weight of the delegate.
+          Represents the total amount of Lisk (in Beddows) that the delegates' voters own.
+          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
       rewards:
         type: string
         example: 510000000
+        description: Total sum of block rewards that the delegate has forged.
       producedBlocks:
         type: integer
         example: 20131
+        description: Total number of blocks the delegate has forged.
       missedBlocks:
         type: integer
         example: 427
-      rate:
-        type: integer
-        example: 91
+        description: Total number of blocks the delegate has missed.
       approval:
         type: number
         example: 14.22
+        description: Percentage of the voters weight, that the delegate owns in relation to the total supply of Lisk.
       productivity:
         type: number
         example: 96.41
+        description: |
+          Productivity rate.
+          Percentage of successfully forged blocks (not missed) by the delegate.
       rank:
         type: integer
         example: 70
+        description: |
+          Rank of the delegate.
+          The rank is defined by the voters weight/ approval of a delegates, in relation to all other delegates.
       account:
         $ref: '#/definitions/Account'
 
@@ -2487,23 +2737,36 @@ definitions:
         type: string
         example: isabella
         format: username
+        description: |
+          The delegates' username.
+          A delegate chooses the username by registering a delegate on the Lisk network.
+          It is unique and cannot be changed later.
       publicKey:
-        description: Public key to query
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: The public key of the delegate.
       votes:
         type: integer
         example: 108877
+        description: |
+          The voters weight of the delegate.
+          Represents the total amount of Lisk (in Beddows) that the delegates' voters own.
+          The voters weight decides which rank the delegate gets in relation to the other delegates and their voters weights.
       address:
         type: string
         format: address
         example: 12668885769632475474L
+        description: The Lisk Address of a delegate.
       balance:
         type: string
         example: 1081560729258
+        description: |
+          Account balance.
+          Amount of Lisk the delegate account owns.
       voters:
         type: array
+        description: List of accounts that voted for the queried delegate.
         items:
           $ref: '#/definitions/Voter'
 
@@ -2518,14 +2781,16 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+        description: The Lisk Address of the account that voted for the queried delegate.
       publicKey:
-        description: Public key to query
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: Public key of the account that voted for the queried delegate.
       balance:
         type: string
         example: 1081560729258
+        description: Balance of the account that voted for the queried delegate.
 
   DelegateWithVotes:
     type: object
@@ -2541,26 +2806,34 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+        description: The Lisk Address of the queried account.
       balance:
         type: string
         example: 1081560729258
+        description: The balance of the queried account.
       username:
         type: string
         example: isabella
         format: username
+        description: Username of the account, if the queried account is a delegate
       publicKey:
-        description: Public key to query
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: Public key of the queried account.
       votesUsed:
         type: integer
         example: 2
+        description: Number of votes that are already placed by the queried account.
       votesAvailable:
         type: integer
         example: 40
+        description: |
+          Number of votes that are available for the queried account.
+          Derives from 101(max possible votes) - votesUsed(alreadu used votes)
       votes:
         type: array
+        description: List of placed votes by the queried account.
         items:
           $ref: '#/definitions/Vote'
 
@@ -2576,18 +2849,21 @@ definitions:
         type: string
         format: address
         example: 12668885769632475474L
+        description: Lisk Address of the delegate the queried account voted for.
       publicKey:
-        description: Public key to query
         type: string
         format: publicKey
         example: 968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b
+        description: Public key of the delegate the queried account voted for.
       balance:
         type: string
         example: 1081560729258
+        description: Balance of the delegate the queried account voted for.
       username:
         type: string
         format: username
         example: liskhq
+        description: Username of the delegate the queried account voted for.
 
   WSPeerHeaders:
     x-private: true
@@ -2595,9 +2871,7 @@ definitions:
     required:
       - httpPort
       - wsPort
-      - os
       - version
-      - height
       - nethash
       - nonce
     properties:
@@ -2663,8 +2937,6 @@ definitions:
             maxLength: 16
       socketId:
         type: string
-      workerId:
-        type: number
 
   WSSignaturesList:
     x-private: true

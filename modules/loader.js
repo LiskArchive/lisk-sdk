@@ -653,13 +653,14 @@ __private.loadBlocksFromNetwork = function(cb) {
 	let errorCount = 0;
 	let loaded = false;
 
-	self.getNetwork((err, network) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-		async.whilst(
-			() => !loaded && errorCount < 5,
-			next => {
+	async.whilst(
+		() => !loaded && errorCount < 5,
+		next => {
+			self.getNetwork((err, network) => {
+				if (err) {
+					errorCount += 1;
+					return next();
+				}
 				const peer =
 					network.peers[Math.floor(Math.random() * network.peers.length)];
 				let lastBlock = modules.blocks.lastBlock.get();
@@ -719,22 +720,21 @@ __private.loadBlocksFromNetwork = function(cb) {
 						}
 					);
 				}
-
 				if (lastBlock.height === 1) {
 					loadBlocks();
 				} else {
 					getCommonBlock(loadBlocks);
 				}
-			},
-			err => {
-				if (err) {
-					library.logger.error('Failed to load blocks from network', err);
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb);
+			});
+		},
+		err => {
+			if (err) {
+				library.logger.error('Failed to load blocks from network', err);
+				return setImmediate(cb, err);
 			}
-		);
-	});
+			return setImmediate(cb);
+		}
+	);
 };
 
 /**
@@ -867,18 +867,15 @@ Loader.prototype.findGoodPeers = function(peers) {
  * @todo Add description for the params
  */
 Loader.prototype.getNetwork = function(cb) {
-	modules.peers.list({ normalized: false }, (err, peers) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		__private.network = self.findGoodPeers(peers);
-
-		if (!__private.network.peers.length) {
-			return setImmediate(cb, 'Failed to find enough good peers');
-		}
-		return setImmediate(cb, null, __private.network);
+	const peers = library.logic.peers.listRandomConnected({
+		limit: constants.maxPeers,
 	});
+	__private.network = self.findGoodPeers(peers);
+
+	if (!__private.network.peers.length) {
+		return setImmediate(cb, 'Failed to find enough good peers');
+	}
+	return setImmediate(cb, null, __private.network);
 };
 
 /**

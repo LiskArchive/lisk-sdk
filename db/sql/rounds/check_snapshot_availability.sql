@@ -12,21 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-var lisk = require('lisk-elements').default;
+/*
+  DESCRIPTION: Check round snapshot availability for a particular round.
 
-var elements = {};
+  PARAMETERS: round - Round for we are checking availability
+*/
 
-elements.redoSignature = function(transaction, passphrase) {
-	delete transaction.signature;
-	transaction.signature = lisk.transaction.utils.signTransaction(
-		transaction,
-		passphrase
-	);
-	transaction.id = lisk.transaction.utils.getTransactionId(transaction);
-	return transaction;
-};
-
-// Exports
-module.exports = elements;
+SELECT 1 AS available FROM mem_round_snapshot WHERE round = ${round} LIMIT 1

@@ -77,7 +77,7 @@ PeersController.getPeers = function(context, next) {
 			meta: {
 				offset: filters.offset,
 				limit: filters.limit,
-				total: modules.peers.shared.getPeersCount(),
+				count: modules.peers.shared.getPeersCountByFilter(filters),
 			},
 		});
 	});

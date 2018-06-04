@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-js').default;
+const lisk = require('lisk-elements').default;
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../common/phases');
 const randomUtil = require('../../../common/utils/random');
@@ -40,6 +40,7 @@ describe('Posting transaction (type 0)', () => {
 		const wampServer = new WAMPServer();
 		wampServer.registerEventEndpoints({
 			postTransactions: () => {},
+			updateMyself: () => {},
 		});
 		wsRPC.setServer(wampServer);
 		// Register client

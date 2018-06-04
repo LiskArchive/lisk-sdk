@@ -245,13 +245,30 @@ Peers.prototype.remove = function(peer) {
  */
 Peers.prototype.list = function(normalize) {
 	if (normalize) {
-		return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+		return Object.keys(self.peersManager.peers).map(key =>
 			self.peersManager.getByAddress(key).object()
 		);
 	}
-	return Object.keys(self.peersManager.addressToNonceMap).map(key =>
+	return Object.keys(self.peersManager.peers).map(key =>
 		self.create(self.peersManager.getByAddress(key))
 	);
+};
+
+/**
+ * Returns a random list of connected peers.
+ *
+ * @param {Object} [options] - Optional
+ * @param {number} [options.limit] - Maximum number of peers to get; defaults to all
+ * @returns {peer[]} List of peers
+ */
+Peers.prototype.listRandomConnected = function(options) {
+	options = options || {};
+	const peerList = Object.keys(self.peersManager.peers)
+		.map(key => self.peersManager.peers[key])
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+	const shuffledPeerList = _.shuffle(peerList);
+	return options.limit ? shuffledPeerList.slice(0, options.limit)
+		: shuffledPeerList;
 };
 
 /**
