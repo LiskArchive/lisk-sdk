@@ -57,7 +57,7 @@ describe('chain', function () {
 				id: '884740302254229983'
 			};
 
-			it('should call a callback with proper error', function(done) {
+			it('should call a callback with proper error', function (done) {
 				library.modules.blocks.chain.saveBlock(block, function (err) {
 					expect(err).to.eql('Blocks#saveBlock error');
 					done();
@@ -82,7 +82,7 @@ describe('chain', function () {
 				id: '884740302254229983'
 			};
 
-			it('should call a callback with proper error', function(done) {
+			it('should call a callback with proper error', function (done) {
 				library.modules.blocks.chain.saveBlock(block, function (err) {
 					expect(err).to.eql('Blocks#saveBlock error');
 					done();
