@@ -458,7 +458,16 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					library.bus.message('newBlock', block, broadcast);
 
 					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
+					modules.rounds.tick(block, function (err) {
+						if (err) {
+							// Fatal error, memory tables will be inconsistent
+							library.logger.error('Failed to perform forward tick', err);
+
+							return process.exit(0);
+						}
+
+						seriesCb();
+					});
 				});
 			} else {
 				library.bus.message('newBlock', block, broadcast);
