@@ -39,7 +39,7 @@ program
 	)
 	.parse(process.argv);
 
-if (!oldConfigPath && !newConfigPath) {
+if (!oldConfigPath || !newConfigPath) {
 	console.error('error: no config file provided.');
 	process.exit(1);
 }
