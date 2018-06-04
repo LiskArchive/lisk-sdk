@@ -337,9 +337,6 @@ describe('blocks/process', () => {
 			});
 
 			afterEach(() => {
-				expect(loggerStub.info.args[0][0]).to.equal(
-					'Last block and parent loses'
-				);
 				return expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
 				).to.be.true;
@@ -439,6 +436,11 @@ describe('blocks/process', () => {
 
 								describe('when succeeds', () => {
 									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
+										afterEach(() => {
+											return expect(loggerStub.info.args[0][0]).to.equal(
+												'Last block and parent loses due to fork 1'
+											);
+										});
 										describe('when fails', () => {
 											beforeEach(() => {
 												library.logic.block.objectNormalize.returns({
@@ -635,10 +637,9 @@ describe('blocks/process', () => {
 			});
 
 			afterEach(() => {
-				expect(
+				return expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
 				).to.be.true;
-				return expect(loggerStub.info.args[0][0]).to.equal('Last block loses');
 			});
 
 			describe('library.logic.block.objectNormalize', () => {
@@ -740,6 +741,12 @@ describe('blocks/process', () => {
 										return modules.blocks.verify.verifyReceipt.returns({
 											verified: true,
 										});
+									});
+
+									afterEach(() => {
+										return expect(loggerStub.info.args[0][0]).to.equal(
+											'Last block loses due to fork 5'
+										);
 									});
 
 									describe('modules.blocks.chain.deleteLastBlock', () => {
