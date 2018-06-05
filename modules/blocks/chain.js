@@ -95,7 +95,8 @@ Chain.prototype.saveBlock = function (block, cb) {
 		];
 
 		// Apply transactions inserts
-		__private.promiseTransactions(t, block, promises);
+		var transactionsPromises = __private.promiseTransactions(t, block);
+		Array.prototype.push.apply(promises, transactionsPromises);
 
 		// Exec inserts as batch
 		return t.batch(promises);
@@ -138,13 +139,14 @@ __private.afterSave = function (block, cb) {
  * @method promiseTransactions
  * @param  {Object} t SQL connection object
  * @param  {Object} block Full normalized block
- * @param  {Object} blockPromises Array of block promises
- * @return {Object} promises Array of block promises extended with transactions promises
+ * @return {Object} transactionsPromises Array of transactions promises
  * @throws Will throw 'Invalid promise' when no promise, promise.values or promise.table
  */
-__private.promiseTransactions = function (t, block, blockPromises) {
+__private.promiseTransactions = function (t, block) {
+	var transactionsPromises = [];
+
 	if (_.isEmpty(block.transactions)) {
-		return t;
+		return transactionsPromises;
 	}
 
 	var transactionIterator = function (transaction) {
@@ -176,13 +178,13 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 		// Initialize insert helper
 		var inserts = new Inserts(type[0], values, true);
 		// Prepare insert SQL query
-		blockPromises.push(t.none(inserts.template(), inserts));
+		transactionsPromises.push(t.none(inserts.template(), inserts));
 	};
 
 	var promises = _.flatMap(block.transactions, transactionIterator);
 	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
 
-	return blockPromises;
+	return transactionsPromises;
 };
 
 /**
