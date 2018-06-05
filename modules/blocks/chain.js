@@ -95,9 +95,11 @@ Chain.prototype.saveBlock = function (block, cb) {
 		];
 
 		// Apply transactions inserts
-		t = __private.promiseTransactions(t, block, promises);
+		var transactionsPromises = __private.promiseTransactions(t, block);
+		Array.prototype.push.apply(promises, transactionsPromises);
+
 		// Exec inserts as batch
-		t.batch(promises);
+		return t.batch(promises);
 	}).then(function () {
 		// Execute afterSave for transactions
 		return __private.afterSave(block, cb);
@@ -137,13 +139,14 @@ __private.afterSave = function (block, cb) {
  * @method promiseTransactions
  * @param  {Object} t SQL connection object
  * @param  {Object} block Full normalized block
- * @param  {Object} blockPromises Not used
- * @return {Object} t SQL connection object filled with inserts
+ * @return {Object} transactionsPromises Array of transactions promises
  * @throws Will throw 'Invalid promise' when no promise, promise.values or promise.table
  */
-__private.promiseTransactions = function (t, block, blockPromises) {
+__private.promiseTransactions = function (t, block) {
+	var transactionsPromises = [];
+
 	if (_.isEmpty(block.transactions)) {
-		return t;
+		return transactionsPromises;
 	}
 
 	var transactionIterator = function (transaction) {
@@ -175,13 +178,13 @@ __private.promiseTransactions = function (t, block, blockPromises) {
 		// Initialize insert helper
 		var inserts = new Inserts(type[0], values, true);
 		// Prepare insert SQL query
-		t.none(inserts.template(), inserts);
+		transactionsPromises.push(t.none(inserts.template(), inserts));
 	};
 
 	var promises = _.flatMap(block.transactions, transactionIterator);
 	_.each(_.groupBy(promises, promiseGrouper), typeIterator);
 
-	return t;
+	return transactionsPromises;
 };
 
 /**
@@ -446,8 +449,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 		},
 		// Optionally save the block to the database.
 		saveBlock: function (seriesCb) {
-			modules.blocks.lastBlock.set(block);
-
 			if (saveBlock) {
 				// DATABASE: write
 				self.saveBlock(block, function (err) {
@@ -460,17 +461,34 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
-					library.bus.message('newBlock', block, broadcast);
 
-					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
+					modules.blocks.lastBlock.set(block);
+					library.bus.message('newBlock', block, broadcast);
+					seriesCb();
 				});
 			} else {
+				modules.blocks.lastBlock.set(block);
 				library.bus.message('newBlock', block, broadcast);
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, seriesCb);
+				seriesCb();
 			}
+		},
+		// Perform round tick
+		roundTick: function (seriesCb) {
+			// DATABASE write. Update delegates accounts
+			modules.rounds.tick(block, function (err) {
+				if (err === 'Snapshot finished') {
+					// Finish here if snapshotting.
+					library.logger.info(err);
+					process.emit('SIGTERM');
+				} else if (err) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to perform forward tick', err);
+
+					return process.exit(0);
+				}
+
+				seriesCb();
+			});
 		}
 	}, function (err) {
 		// Allow shutdown, database writes are finished.
@@ -479,13 +497,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 		// Nullify large objects.
 		// Prevents memory leak during synchronisation.
 		appliedTransactions = block = null;
-
-		// Finish here if snapshotting.
-		// FIXME: Not the best place to do that
-		if (err === 'Snapshot finished') {
-			library.logger.info(err);
-			process.emit('SIGTERM');
-		}
 
 		return setImmediate(cb, err);
 	});
