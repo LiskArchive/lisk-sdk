@@ -143,8 +143,9 @@ function copyTheConfigFile() {
 		err => {
 			if (err) {
 				throw err;
+			} else {
+				console.info('Configuration migration completed.');
 			}
 		}
 	);
-	console.info('Configuration migration completed.');
 }
