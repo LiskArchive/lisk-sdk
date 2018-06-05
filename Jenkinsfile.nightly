@@ -23,17 +23,17 @@ pipeline {
 		}
 		stage('Run integration tests w/o syncing') {
 			steps {
-				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'MAXIMUM_TRANSACTION=100 SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests w/o broadcasting') {
 			steps {
-				sh 'BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'MAXIMUM_TRANSACTION=100 BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests') {
 			steps {
-				sh 'npm test -- mocha:extensive:integration'
+				sh 'MAXIMUM_TRANSACTION=100 npm test -- mocha:extensive:integration'
 			}
 		}
 	}
