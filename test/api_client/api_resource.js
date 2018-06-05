@@ -120,9 +120,11 @@ describe('API resource module', () => {
 		describe('when response status is greater than 300', () => {
 			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
 				const statusCode = 300;
-				requestStub.resolves({
-					status: statusCode,
-					data: sendRequestResult,
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: sendRequestResult,
+					},
 				});
 				return resource.request(defaultRequest, true).catch(err => {
 					return expect(err.message).to.equal(
@@ -134,9 +136,11 @@ describe('API resource module', () => {
 			it('should reject with error message from server if message is supplied', () => {
 				const serverErrorMessage = 'validation error';
 				const statusCode = 300;
-				requestStub.resolves({
-					status: statusCode,
-					data: { message: serverErrorMessage },
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: { message: serverErrorMessage },
+					},
 				});
 				return resource.request(defaultRequest, true).catch(err => {
 					return expect(err.message).to.eql(
@@ -145,11 +149,21 @@ describe('API resource module', () => {
 				});
 			});
 
+			it('should reject with error if client rejects with plain error', () => {
+				const clientError = new Error('client error');
+				requestStub.rejects(clientError);
+				return resource.request(defaultRequest, true).catch(err => {
+					return expect(err).to.eql(clientError);
+				});
+			});
+
 			it('should make a request to API with calling retry', () => {
 				const statusCode = 300;
-				requestStub.resolves({
-					status: statusCode,
-					data: sendRequestResult,
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: sendRequestResult,
+					},
 				});
 				return resource.request(defaultRequest, true).catch(() => {
 					expect(requestStub).to.be.calledOnce;

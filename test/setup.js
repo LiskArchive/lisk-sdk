@@ -54,7 +54,6 @@ Assertion.addProperty('integer', function handleAssert() {
 global.sinon = sinon;
 global.sandbox = sinon.sandbox.create({
 	useFakeTimers: true,
-	useFakeServer: true,
 });
 
 if (!global.naclInstance) {
