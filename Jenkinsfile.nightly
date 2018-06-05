@@ -21,19 +21,19 @@ pipeline {
 				'''
 			}
 		}
-		stage('Run integration tests w/o syncing') {
+		stage('Run integration tests without syncing') {
 			steps {
-				sh 'MAXIMUM_TRANSACTION=100 SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'MAXIMUM_TRANSACTION=1000 SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
-		stage('Run integration tests w/o broadcasting') {
+		stage('Run integration tests without broadcasting') {
 			steps {
-				sh 'MAXIMUM_TRANSACTION=100 BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'MAXIMUM_TRANSACTION=1000 BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
-		stage('Run integration tests') {
+		stage('Run integration tests with syncing and broadcasting') {
 			steps {
-				sh 'MAXIMUM_TRANSACTION=100 npm test -- mocha:extensive:integration'
+				sh 'MAXIMUM_TRANSACTION=1000 npm test -- mocha:extensive:integration'
 			}
 		}
 	}
@@ -41,6 +41,9 @@ pipeline {
 		always {
 			sh './node_modules/.bin/pm2 kill'
 			archiveArtifacts artifacts: "logs/*", allowEmptyArchive: true
+			dir('logs/') {
+				deleteDir()
+			}
 		}
 	}
 }
