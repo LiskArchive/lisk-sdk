@@ -456,17 +456,31 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 
 					modules.blocks.lastBlock.set(block);
 					library.bus.message('newBlock', block, broadcast);
-
-					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(block, seriesCb);
+					seriesCb();
 				});
 			} else {
 				modules.blocks.lastBlock.set(block);
 				library.bus.message('newBlock', block, broadcast);
-
-				// DATABASE write. Update delegates accounts
-				modules.rounds.tick(block, seriesCb);
+				seriesCb();
 			}
+		},
+		// Perform round tick
+		roundTick: function (seriesCb) {
+			// DATABASE write. Update delegates accounts
+			modules.rounds.tick(block, function (err) {
+				if (err === 'Snapshot finished') {
+					// Finish here if snapshotting.
+					library.logger.info(err);
+					process.emit('SIGTERM');
+				} else if (err) {
+					// Fatal error, memory tables will be inconsistent
+					library.logger.error('Failed to perform forward tick', err);
+
+					return process.exit(0);
+				}
+
+				seriesCb();
+			});
 		}
 	}, function (err) {
 		// Allow shutdown, database writes are finished.
@@ -475,13 +489,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 		// Nullify large objects.
 		// Prevents memory leak during synchronisation.
 		appliedTransactions = block = null;
-
-		// Finish here if snapshotting.
-		// FIXME: Not the best place to do that
-		if (err === 'Snapshot finished') {
-			library.logger.info(err);
-			process.emit('SIGTERM');
-		}
 
 		return setImmediate(cb, err);
 	});
