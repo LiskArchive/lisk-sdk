@@ -441,8 +441,6 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 		},
 		// Optionally save the block to the database.
 		saveBlock: function (seriesCb) {
-			modules.blocks.lastBlock.set(block);
-
 			if (saveBlock) {
 				// DATABASE: write
 				self.saveBlock(block, function (err) {
@@ -455,12 +453,15 @@ Chain.prototype.applyBlock = function (block, broadcast, saveBlock, cb) {
 					}
 
 					library.logger.debug('Block applied correctly with ' + block.transactions.length + ' transactions');
+
+					modules.blocks.lastBlock.set(block);
 					library.bus.message('newBlock', block, broadcast);
 
 					// DATABASE write. Update delegates accounts
 					modules.rounds.tick(block, seriesCb);
 				});
 			} else {
+				modules.blocks.lastBlock.set(block);
 				library.bus.message('newBlock', block, broadcast);
 
 				// DATABASE write. Update delegates accounts
