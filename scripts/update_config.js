@@ -122,8 +122,7 @@ function migrateSecrets(password) {
 			encryptedPassphrase: lisk.default.cryptography.stringifyEncryptedPassphrase(
 				lisk.default.cryptography.encryptPassphraseWithPassword(
 					secret,
-					password,
-					1
+					password
 				)
 			),
 			publicKey: lisk.default.cryptography.getPrivateAndPublicKeyFromPassphrase(
