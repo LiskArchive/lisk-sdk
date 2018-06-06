@@ -107,11 +107,10 @@ describe('API resource module', () => {
 			});
 		});
 
-		it('should make a request to API without calling retry when it successes', () => {
+		it('should make a request to API without calling retry when it succeeds', () => {
 			return resource.request(defaultRequest, true).then(res => {
 				expect(requestStub).to.be.calledOnce;
 				expect(requestStub).to.be.calledWithExactly(defaultRequest);
-				expect(requestStub).to.be.calledOnce;
 				expect(handleRetryStub).not.to.be.called;
 				return expect(res).to.eql(sendRequestResult);
 			});
