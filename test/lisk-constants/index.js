@@ -21,6 +21,7 @@ import {
 	BETANET_NETHASH,
 	TESTNET_NETHASH,
 	MAINNET_NETHASH,
+	SIGNED_MESSAGE_PREFIX,
 } from 'lisk-constants';
 
 describe('lisk-constants', () => {
@@ -54,5 +55,9 @@ describe('lisk-constants', () => {
 
 	it('MAINNET_NETHASH should be a string', () => {
 		return expect(MAINNET_NETHASH).to.be.a('string');
+	});
+
+	it('SIGNED_MESSAGE_PREFIX should be a string', () => {
+		return expect(SIGNED_MESSAGE_PREFIX).to.be.a('string');
 	});
 });

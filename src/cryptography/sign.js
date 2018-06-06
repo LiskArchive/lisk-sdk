@@ -13,6 +13,7 @@
  *
  */
 import { encode as encodeVarInt } from 'varuint-bitcoin';
+import { SIGNED_MESSAGE_PREFIX } from 'lisk-constants';
 import hash from './hash';
 import { hexToBuffer, bufferToHex } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
@@ -26,7 +27,7 @@ const signatureHeader = createHeader('SIGNATURE');
 const secondSignatureHeader = createHeader('SECOND SIGNATURE');
 const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 
-const SIGNED_MESSAGE_PREFIX = Buffer.from('Lisk Signed Message:\n', 'utf8');
+const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
 const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
 
 export const digestMessage = message => {
@@ -35,7 +36,7 @@ export const digestMessage = message => {
 	const dataBytes = Buffer.concat(
 		[
 			SIGNED_MESSAGE_PREFIX_LENGTH,
-			SIGNED_MESSAGE_PREFIX,
+			SIGNED_MESSAGE_PREFIX_BYTES,
 			msgLenBytes,
 			msgBytes,
 		],
