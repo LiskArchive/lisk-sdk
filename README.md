@@ -9,6 +9,20 @@ Lisk is a next generation crypto-currency and decentralized application platform
 <a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
 <a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
+## Docker image
+
+### Build
+
+Please refer to the official documentation if you need to install the [Docker Engine](https://docs.docker.com/engine/installation).
+To build the image:
+```
+docker build --tag lisk/mainnet:1.0.0 --build-arg LISK_VERSION=1.0.0 .
+```
+
+### Usage
+
+Please refer to the documentation on [lisk.io](https://lisk.io/documentation/core/installation/docker-main-network).
+
 ## Prerequisites - In order
 
 This sections provides details on what you need install on your system in order to run Lisk.
