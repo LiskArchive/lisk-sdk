@@ -216,3 +216,18 @@ export function anEncryptedMessageWithANonce() {
 
 	this.test.ctx.cipherAndNonce = cipherAndNonce;
 }
+
+export function anObjectWithThePublicKeyAndTheAddressDerivedFromThePassphrase() {
+	const [publicKey, address] = getQuotedStrings(this.test.parent.title);
+	if (
+		typeof elements.cryptography.getAddressAndPublicKeyFromPassphrase
+			.returns === 'function'
+	) {
+		elements.cryptography.getAddressAndPublicKeyFromPassphrase.returns({
+			publicKey,
+			address,
+		});
+	}
+	this.test.ctx.publicKey = publicKey;
+	this.test.ctx.address = address;
+}

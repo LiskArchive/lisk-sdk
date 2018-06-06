@@ -114,6 +114,15 @@ export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
+export function itShouldResolveToAnObjectWithThePublicKeyAndTheAddress() {
+	const { returnValue, publicKey, address } = this.test.ctx;
+	const expectedObject = {
+		publicKey,
+		address,
+	};
+	return expect(returnValue).to.eventually.eql(expectedObject);
+}
+
 export function itShouldResolveToAnObjectWithThePassphraseThePrivateKeyThePublicKeyAndTheAddress() {
 	const {
 		returnValue,
