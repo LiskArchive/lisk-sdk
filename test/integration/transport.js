@@ -216,7 +216,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						});
 					});
 
-					scenarios.network.peerBlacklist(params);
+					scenarios.network.peersBlackList(params);
 
 					scenarios.network.peerDisconnect(params);
 				});

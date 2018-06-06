@@ -71,7 +71,7 @@ class Peers {
 		self.consensus = scope.config.forging.force ? 100 : 0;
 		self.broadhashConsensusCalculationInterval =
 			scope.config.peers.options.broadhashConsensusCalculationInterval;
-		self.blackListPeers = scope.config.peers.access.blackList;
+		self.blackListedPeers = scope.config.peers.access.blackList;
 
 		setImmediate(cb, null, self);
 	}
@@ -246,7 +246,7 @@ __private.getMatched = function(test, peers) {
  * @todo Add description for the params and the return value
  */
 __private.isBlacklisted = function(ip) {
-	return self.blackListPeers.indexOf(ip) > -1;
+	return self.blackListedPeers.indexOf(ip) > -1;
 };
 
 /**

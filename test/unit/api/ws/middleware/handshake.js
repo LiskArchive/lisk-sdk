@@ -35,7 +35,7 @@ describe('Handshake', () => {
 			minVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
-			blackListPeers: [],
+			blackListedPeers: [],
 		},
 	};
 	var validHeaders;

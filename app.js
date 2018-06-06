@@ -502,7 +502,7 @@ d.run(() => {
 						nethash: scope.config.nethash,
 						port: scope.config.wsPort,
 						nonce: scope.config.nonce,
-						blackListPeers: scope.config.peers.access.blackList,
+						blackListedPeers: scope.config.peers.access.blackList,
 					};
 
 					scope.socketCluster = new SocketCluster(webSocketConfig);

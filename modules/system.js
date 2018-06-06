@@ -56,7 +56,7 @@ class System {
 				nethash: scope.config.nethash,
 				minVersion: scope.config.minVersion,
 				nonce: scope.config.nonce,
-				blackListPeers: scope.config.blackListPeers,
+				blackListedPeers: scope.config.blackListedPeers,
 			},
 		};
 
@@ -71,7 +71,7 @@ class System {
 		__private.broadhash = library.config.nethash;
 		__private.minVersion = library.config.minVersion;
 		__private.nonce = library.config.nonce;
-		__private.blackListPeers = library.config.blackListPeers;
+		__private.blackListedPeers = library.config.blackListedPeers;
 
 		setImmediate(cb, null, self);
 	}
@@ -255,7 +255,7 @@ System.prototype.nonceCompatible = function(nonce) {
  * @todo Add description for the params and the return value
  */
 System.prototype.isBlacklisted = function(ip) {
-	return __private.blackListPeers.indexOf(ip) > -1;
+	return __private.blackListedPeers.indexOf(ip) > -1;
 };
 
 /**
