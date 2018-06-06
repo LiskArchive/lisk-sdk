@@ -14,7 +14,11 @@
 
 import java.text.SimpleDateFormat
 
-properties([pipelineTriggers([cron('15 2 * * *')])])
+properties([pipelineTriggers([cron('15 2 * * *')]),
+    parameters([
+    string(defaultValue: "dev", description: 'Network', name: 'NETWORK'),
+   ])
+])
 
 def dateFormat = new SimpleDateFormat("yyyyMMdd")
 def date = new Date()
@@ -33,19 +37,19 @@ pipeline {
     }
     stages {
     	stage("Prepare workspace") {
-    		steps {
-    			library identifier: 'lisk-jenkins@nh-lisk-build', retriever: modernSCM(
-                 	[$class: 'GitSCMSource',
-                 	remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
-    		}
+            steps {
+            	library identifier: 'lisk-jenkins@master', retriever: modernSCM(
+                    [$class: 'GitSCMSource',
+                    remote: 'https://github.com/LiskHQ/lisk-jenkins.git'])
+            }
     	}
         stage('Build release') {
             steps {
             	script {
-					def release = liskBuild(branch: '1.0.0', network: 'dev')
-                 	env.VERSION =  release.version
-                 	env.RELEASE_FILE =  release.file
-                 	env.DESTINATION_FILE = "lisk-${env.VERSION}-${timestamp}-Linux-x86_64.tar.gz"
+                    def release = liskBuild(branch: env.BRANCH_NAME, network: params.NETWORK)
+                    env.VERSION = release.version
+                    env.RELEASE_FILE =  release.file
+                    env.DESTINATION_FILE = "lisk-${env.VERSION}-${timestamp}-Linux-x86_64.tar.gz"
                 }
                 dir("${env.WORKSPACE}") {
                     sh """
@@ -59,10 +63,14 @@ pipeline {
         stage('Upload nightly release.') {
             steps {
                 dir("${env.WORKSPACE}") {
-                    sh """
-                    s3cmd put --acl-public ${env.DESTINATION_FILE} s3:///lisk-nightly/lisk-core/${env.DESTINATION_FILE}
-                    s3cmd put --acl-public ${env.DESTINATION_FILE}.SHA256 s3:///lisk-nightly/lisk-core/${env.DESTINATION_FILE}.SHA256
-                    """
+                    script {
+                        if (params.NETWORK == 'dev') {
+                            sh """
+                            s3cmd put --acl-public ${env.DESTINATION_FILE} s3:///lisk-releases/lisk-core/devnet/${env.DESTINATION_FILE}
+                            s3cmd put --acl-public ${env.DESTINATION_FILE}.SHA256 s3:///lisk-releases/lisk-core/devnet/${env.DESTINATION_FILE}.SHA256
+                            """
+                        }
+                    }
                 }
             }
         }
