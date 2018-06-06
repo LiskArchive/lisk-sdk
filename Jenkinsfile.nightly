@@ -6,6 +6,7 @@ pipeline {
 		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', )
 		string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', )
 		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
+		string(name: 'MAXIMUM_TRANSACTION', defaultValue: '1000', description: 'Number of transaction to process for stress tests.', )
 	}
 	stages {
 		stage('Install dependencies') {
@@ -23,17 +24,17 @@ pipeline {
 		}
 		stage('Run integration tests without syncing') {
 			steps {
-				sh 'MAXIMUM_TRANSACTION=1000 SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests without broadcasting') {
 			steps {
-				sh 'MAXIMUM_TRANSACTION=1000 BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests with syncing and broadcasting') {
 			steps {
-				sh 'MAXIMUM_TRANSACTION=1000 npm test -- mocha:extensive:integration'
+				sh 'npm test -- mocha:extensive:integration'
 			}
 		}
 	}
@@ -41,9 +42,7 @@ pipeline {
 		always {
 			sh './node_modules/.bin/pm2 kill'
 			archiveArtifacts artifacts: "logs/*", allowEmptyArchive: true
-			dir('logs/') {
-				deleteDir()
-			}
+			cleanWs()
 		}
 	}
 }
