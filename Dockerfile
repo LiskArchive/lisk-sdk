@@ -1,6 +1,6 @@
 FROM node:6 AS builder
 
-ENV ENV_NODE=production
+ENV NODE_ENV=production
 
 RUN groupadd --gid 1100 lisk && \
     useradd --create-home --home-dir /home/lisk --shell /bin/bash --uid 1100 --gid 1100 lisk
@@ -19,7 +19,7 @@ FROM node:6
 
 ENV CONFD_VERSION 0.16.0
 ENV CONFD_SHA256 255d2559f3824dd64df059bdc533fd6b697c070db603c76aaf8d1d5e6b0cc334
-ENV ENV_NODE=production
+ENV NODE_ENV=production
 
 RUN groupadd --gid 1100 lisk && \
     useradd --create-home --home-dir /home/lisk --shell /bin/bash --uid 1100 --gid 1100 lisk
