@@ -19,18 +19,20 @@ var utils = require('./utils');
 var setup = require('./setup');
 var scenarios = require('./scenarios');
 
-const totalPeers = 10;
-// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 var wsPorts = [];
 var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
 var syncingDisabled = process.env.SYNCING_DISABLED === 'true';
+const totalPeers = broadcastingDisabled ? 2 : 10;
+// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
+var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
 	var configurations;
 
 	before(done => {
 		utils.http.setVersion('1.0.0');
+		// When broadcasting disabled, start two node
+		// one node to forge and one to sync for testing
 		configurations = _.range(totalPeers).map(index => {
 			var devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
@@ -82,10 +84,13 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 
 				if (broadcastingDisabled) {
 					return configurations.forEach(configuration => {
-						configuration.forging.force = false;
 						if (configuration.httpPort === 4000) {
+							// Set forging force to true
+							// When sync only enabled to forge a block
+							configuration.forging.force = true;
 							configuration.forging.delegates = delegates;
 						} else {
+							configuration.forging.force = false;
 							configuration.forging.delegates = [];
 						}
 					});
@@ -210,11 +215,11 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						scenarios.propagation.transactions(params);
 						scenarios.stress.transfer(params);
 						scenarios.stress.transfer_with_data(params);
-						scenarios.stress.register_multisignature(params);
 						scenarios.stress.second_passphrase(params);
-						scenarios.stress.register_dapp(params);
 						scenarios.stress.register_delegate(params);
 						scenarios.stress.cast_vote(params);
+						scenarios.stress.register_multisignature(params);
+						scenarios.stress.register_dapp(params);
 
 						// Have to skip due to issue https://github.com/LiskHQ/lisk/issues/1954
 						// eslint-disable-next-line mocha/no-skipped-tests
@@ -238,7 +243,12 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						});
 					});
 
-					scenarios.network.peerDisconnect(params);
+					// When broadcasting is disabled, there are only
+					// two nodes available for testing sync only
+					// so skipping peer disconnect test
+					if (broadcastingDisabled) {
+						scenarios.network.peerDisconnect(params);
+					}
 				});
 			});
 		});

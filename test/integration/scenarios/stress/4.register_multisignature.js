@@ -32,7 +32,7 @@ var confirmTransactionsOnAllNodes = require('../common/stress')
 module.exports = function(params) {
 	// Disable multi-signature transaction to avoid nightly build failures
 	// eslint-disable-next-line mocha/no-skipped-tests
-	describe.skip('stress test for type 4 transactions @slow', function() {
+	describe('stress test for type 4 transactions @slow', function() {
 		this.timeout(2200000);
 		var transactions = [];
 		var accounts = [];

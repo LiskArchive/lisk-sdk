@@ -213,48 +213,6 @@ function confirmations(transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
-function confirmTransaction() {
-	return new Promise((resolve, reject) => {
-		nodeStatus((err, data) => {
-			if (err) {
-				return reject(err);
-			}
-			var total = data.transactions.total;
-			var target = data.transactions.confirmed;
-			var counter = 1;
-			async.doWhilst(
-				cb => {
-					nodeStatus((err, res) => {
-						if (err) {
-							cb(err);
-						}
-						__testContext.debug(
-							'	Waiting for transaction:'.grey,
-							'Total:'.grey,
-							res.transactions.total,
-							'Confirmed:'.grey,
-							res.transactions.confirmed,
-							'Second:'.grey,
-							counter++
-						);
-						target = res.transactions.confirmed;
-						setTimeout(cb, 1000);
-					});
-				},
-				() => {
-					return !(target >= total);
-				},
-				err => {
-					if (err) {
-						return reject(err);
-					}
-					return resolve(counter);
-				}
-			);
-		});
-	});
-}
-
 var blocksPromise = Promise.promisify(blocks);
 
 module.exports = {
@@ -263,5 +221,4 @@ module.exports = {
 	blocks,
 	blocksPromise,
 	confirmations,
-	confirmTransaction,
 };
