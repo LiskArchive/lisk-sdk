@@ -375,7 +375,7 @@ __private.dbLoad = function(cb) {
 					if (library.logic.peers.upsert(peer, true) !== true) {
 						return setImmediate(eachCb);
 					}
-					if (peer.state > 0 && Date.now() - peer.updated > 3000) {
+					if (peer.state !== Peer.STATE.BANNED && Date.now() - peer.updated > 3000) {
 						peer.rpc.status((err, status) => {
 							__private.updatePeerStatus(err, status, peer);
 							if (!err) {
@@ -835,7 +835,7 @@ Peers.prototype.onPeersReady = function() {
 							// If peer is not banned and not been updated during last 3 sec - ping
 							if (
 								peer &&
-								peer.state > 0 &&
+								peer.state !== Peer.STATE.BANNED &&
 								(!peer.updated || Date.now() - peer.updated > 3000)
 							) {
 								library.logger.trace('Updating peer', peer.object());
