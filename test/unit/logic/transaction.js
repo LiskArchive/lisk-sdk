@@ -15,7 +15,7 @@
 'use strict';
 
 var crypto = require('crypto');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../fixtures/accounts');
 var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
@@ -272,7 +272,7 @@ describe('transaction', () => {
 			return expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
-		it('should return same result of getBytes using /logic/transaction and lisk-js package (without data field)', () => {
+		it('should return same result of getBytes using /logic/transaction and lisk-elements package (without data field)', () => {
 			var transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
@@ -691,7 +691,6 @@ describe('transaction', () => {
 		it('should verify transaction with correct fee (with data field)', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = { data: '123' };
-			transaction.fee += 10000000;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 

@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const lisk = require('lisk-js').default;
+const lisk = require('lisk-elements').default;
 const getTransaction = require('../../../../utils/http').getTransaction;
 const waitFor = require('../../../../../common/utils/wait_for');
 const constants = require('../../../../../../helpers/constants');

@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-const lisk = require('lisk-js').default;
+const lisk = require('lisk-elements').default;
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
 const phases = require('../../common/phases');
 const randomUtil = require('../../../common/utils/random');

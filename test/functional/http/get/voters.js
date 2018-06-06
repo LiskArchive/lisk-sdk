@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var randomstring = require('randomstring');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');

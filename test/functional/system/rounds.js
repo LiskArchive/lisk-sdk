@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const elements = require('lisk-js').default;
+const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
 const constants = require('../../../helpers/constants');
 const slots = require('../../../helpers/slots');
@@ -732,9 +732,7 @@ describe('rounds', () => {
 				return deleteLastBlockPromise();
 			});
 
-			// FIXME: Unskip that test after https://github.com/LiskHQ/lisk/issues/1781 is closed
-			// eslint-disable-next-line
-			it.skip('mem_accounts table should be equal to one generated before last block of round deletion', () => {
+			it('mem_accounts table should be equal to one generated before last block of round deletion', () => {
 				return getMemAccounts().then(_accounts => {
 					expect(_accounts).to.deep.equal(round.accountsBeforeLastBlock);
 				});

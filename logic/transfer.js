@@ -65,12 +65,8 @@ Transfer.prototype.bind = function(accounts) {
  * @returns {number} Transaction fee
  * @todo Add description for the params
  */
-Transfer.prototype.calculateFee = function(transaction) {
-	let fee = new bignum(constants.fees.send);
-	if (transaction.asset && transaction.asset.data) {
-		fee = fee.plus(constants.fees.data);
-	}
-
+Transfer.prototype.calculateFee = function() {
+	const fee = new bignum(constants.fees.send);
 	return Number(fee.toString());
 };
 

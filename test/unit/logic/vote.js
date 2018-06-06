@@ -16,7 +16,7 @@
 
 var crypto = require('crypto');
 var async = require('async');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../fixtures/accounts');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
