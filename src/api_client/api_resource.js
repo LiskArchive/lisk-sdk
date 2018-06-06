@@ -57,7 +57,7 @@ export default class APIResource {
 			});
 
 		if (retry) {
-			request.catch(err => this.handleRetry(err, req, retryCount));
+			return request.catch(err => this.handleRetry(err, req, retryCount));
 		}
 		return request;
 	}
