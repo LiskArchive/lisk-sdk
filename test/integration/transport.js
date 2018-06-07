@@ -243,12 +243,7 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						});
 					});
 
-					// When broadcasting is disabled, there are only
-					// two nodes available for testing sync only
-					// so skipping peer disconnect test
-					if (broadcastingDisabled) {
-						scenarios.network.peerDisconnect(params);
-					}
+					scenarios.network.peerDisconnect(params);
 				});
 			});
 		});

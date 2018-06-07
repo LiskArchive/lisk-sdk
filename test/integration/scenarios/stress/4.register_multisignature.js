@@ -29,6 +29,8 @@ var sendTransactionPromise = require('../../../common/helpers/api')
 var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
+var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
+
 module.exports = function(params) {
 	// Disable multi-signature transaction to avoid nightly build failures
 	// eslint-disable-next-line mocha/no-skipped-tests
@@ -37,7 +39,7 @@ module.exports = function(params) {
 		var transactions = [];
 		var accounts = [];
 		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
-		var waitForExtraBlocks = 8; // Wait for extra blocks to ensure all the transactions are included in the block
+		var waitForExtraBlocks = broadcastingDisabled ? 10 : 8; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('prepare accounts', () => {
 			before(() => {
