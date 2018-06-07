@@ -748,7 +748,7 @@ describe('transaction', () => {
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 			transactionLogic.verify(transaction, sender, null, null, err => {
-				expect(err).to.include('Invalid transaction timestamp. Timestamp is not in the int32 range');
+				expect(err).to.eql('Invalid transaction timestamp. Timestamp is not in the int32 range');
 				done();
 			});
 		});
