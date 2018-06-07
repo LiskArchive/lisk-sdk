@@ -2,7 +2,7 @@
 	"name": "Lisk Commander",
 	"version": "1.0.0",
 	"delimiter": "lisk",
-	"json": false,
+	"json": true,
 	"api": {
 		"nodes": [],
 		"network": "main"
