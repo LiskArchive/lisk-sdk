@@ -429,8 +429,6 @@ __private.applyConfirmedStep = function(block, tx) {
  */
 __private.saveBlockStep = function(block, saveBlock, tx) {
 	return new Promise((resolve, reject) => {
-		modules.blocks.lastBlock.set(block);
-
 		if (saveBlock) {
 			// DATABASE: write
 			self.saveBlock(
@@ -448,7 +446,6 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 							block.transactions.length
 						} transactions`
 					);
-					library.bus.message('newBlock', block);
 
 					// DATABASE write. Update delegates accounts
 					modules.rounds.tick(
@@ -457,6 +454,9 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 							if (err) {
 								return setImmediate(reject, err);
 							}
+
+							library.bus.message('newBlock', block);
+							modules.blocks.lastBlock.set(block);
 							return setImmediate(resolve);
 						},
 						tx
@@ -465,8 +465,6 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 				tx
 			);
 		} else {
-			library.bus.message('newBlock', block);
-
 			// DATABASE write. Update delegates accounts
 			modules.rounds.tick(
 				block,
@@ -474,6 +472,9 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 					if (err) {
 						return setImmediate(reject, err);
 					}
+
+					library.bus.message('newBlock', block);
+					modules.blocks.lastBlock.set(block);
 					return setImmediate(resolve);
 				},
 				tx
