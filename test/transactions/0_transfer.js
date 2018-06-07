@@ -220,6 +220,16 @@ describe('#transfer transaction', () => {
 				return Promise.resolve();
 			});
 
+			it('should handle too much data', () => {
+				return expect(
+					transfer.bind(null, {
+						recipientId,
+						amount,
+						data: new Array(65).fill('0').join(''),
+					}),
+				).to.throw('Transaction data field cannot exceed 64 bytes.');
+			});
+
 			it('should have the type', () => {
 				return expect(transferTransaction)
 					.to.have.property('type')
@@ -254,7 +264,7 @@ describe('#transfer transaction', () => {
 				return expect(transferTransaction).to.have.property('timestamp');
 			});
 
-			it('should have the asset ', () => {
+			it('should have the asset', () => {
 				return expect(transferTransaction).to.have.property('asset');
 			});
 

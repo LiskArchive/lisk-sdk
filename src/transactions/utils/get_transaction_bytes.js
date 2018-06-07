@@ -15,19 +15,9 @@
 import bignum from 'browserify-bignum';
 import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
 import cryptography from 'cryptography';
+import { BYTESIZES } from '../constants';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
-
-export const BYTESIZES = {
-	TYPE: 1,
-	TIMESTAMP: 4,
-	MULTISIGNATURE_PUBLICKEY: 32,
-	RECIPIENT_ID: 8,
-	AMOUNT: 8,
-	SIGNATURE_TRANSACTION: 64,
-	SECOND_SIGNATURE_TRANSACTION: 64,
-	DATA: 64,
-};
 
 export const checkRequiredFields = (requiredFields, data) => {
 	const dataFields = Object.keys(data);

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { TRANSFER_FEE } from './constants';
+import { BYTESIZES, TRANSFER_FEE } from './constants';
 import {
 	getAddressAndPublicKeyFromRecipientData,
 	wrapTransactionCreator,
@@ -20,6 +20,9 @@ import {
 
 const createAsset = data => {
 	if (data && data.length > 0) {
+		if (data.length > BYTESIZES.DATA) {
+			throw new Error('Transaction data field cannot exceed 64 bytes.');
+		}
 		if (data !== data.toString('utf8'))
 			throw new Error(
 				'Invalid encoding in transaction data. Data must be utf-8 encoded.',

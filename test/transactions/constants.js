@@ -22,6 +22,7 @@ import {
 	SIGNATURE_FEE,
 	TRANSFER_FEE,
 	VOTE_FEE,
+	BYTESIZES,
 } from 'transactions/constants';
 
 describe('transactions constants module', () => {
@@ -59,5 +60,37 @@ describe('transactions constants module', () => {
 
 	it('VOTE_FEE to be an integer', () => {
 		return expect(VOTE_FEE).to.be.an.integer;
+	});
+
+	it('BYTESIZES.TYPE to be an integer', () => {
+		return expect(BYTESIZES.TYPE).to.be.an.integer;
+	});
+
+	it('BYTESIZES.TIMESTAMP to be an integer', () => {
+		return expect(BYTESIZES.TIMESTAMP).to.be.an.integer;
+	});
+
+	it('BYTESIZES.MULTISIGNATURE_PUBLICKEY to be an integer', () => {
+		return expect(BYTESIZES.MULTISIGNATURE_PUBLICKEY).to.be.an.integer;
+	});
+
+	it('BYTESIZES.RECIPIENT_ID to be an integer', () => {
+		return expect(BYTESIZES.RECIPIENT_ID).to.be.an.integer;
+	});
+
+	it('BYTESIZES.AMOUNT to be an integer', () => {
+		return expect(BYTESIZES.AMOUNT).to.be.an.integer;
+	});
+
+	it('BYTESIZES.SIGNATURE_TRANSACTION to be an integer', () => {
+		return expect(BYTESIZES.SIGNATURE_TRANSACTION).to.be.an.integer;
+	});
+
+	it('BYTESIZES.SECOND_SIGNATURE_TRANSACTION to be an integer', () => {
+		return expect(BYTESIZES.SECOND_SIGNATURE_TRANSACTION).to.be.an.integer;
+	});
+
+	it('BYTESIZES.DATA to be an integer', () => {
+		return expect(BYTESIZES.DATA).to.be.an.integer;
 	});
 });
