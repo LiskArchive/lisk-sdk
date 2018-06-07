@@ -1,10 +1,8 @@
 'use strict';
 
-var getTransaction = require('../../utils/http').getTransaction;
+const getTransaction = require('../../utils/http').getTransaction;
 
-var stress = {};
-
-stress.confirmTransactionsOnAllNodes = function(transactions, params) {
+const confirmTransactionsOnAllNodes = function(transactions, params) {
 	return Promise.all(
 		_.flatMap(params.configurations, configuration => {
 			return transactions.map(transaction => {
@@ -20,4 +18,6 @@ stress.confirmTransactionsOnAllNodes = function(transactions, params) {
 	});
 };
 
-module.exports = stress;
+module.exports = {
+	confirmTransactionsOnAllNodes,
+};
