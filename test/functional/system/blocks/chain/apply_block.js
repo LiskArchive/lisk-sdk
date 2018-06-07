@@ -303,8 +303,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					);
 				});
 
-				// Should be unskipped once transaction
-				it.skip('should revert applyconfirmedStep on block transactions', done => {
+				it('should revert applyconfirmedStep on block transactions', done => {
 					async.forEach(
 						[blockAccount1, blockAccount2],
 						(account, eachCb) => {
