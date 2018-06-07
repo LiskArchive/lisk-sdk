@@ -63,7 +63,7 @@ module.exports = params => {
 
 			describe('when a node is stopped', () => {
 				before(done => {
-					stopNode('node_5');
+					stopNode('node_1');
 					setTimeout(() => {
 						done();
 					}, 2000);
@@ -92,7 +92,7 @@ module.exports = params => {
 
 			describe('when a stopped node is started', () => {
 				before(done => {
-					startNode('node_5');
+					startNode('node_1');
 					setTimeout(() => {
 						done();
 					}, 2000);

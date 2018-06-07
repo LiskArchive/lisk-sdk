@@ -46,18 +46,14 @@ module.exports = {
 				}
 			});
 			socket.on('error', () => {});
-			socket.on('connectAbort', errorCode => {
+			socket.on('connectAbort', (errorCode, reason) => {
 				// When a node is restarted manually during
 				// peer disconnect, do not call the callback
 				// the peers will be connected back after
 				// restart, ref: scenarios/network/peer_disconnect
-				if (!(errorCode === 1006)) {
-					cb(
-						`Unable to establish WS connection with ${configuration.ip}:${
-							configuration.wsPort
-						}`
-					);
-				}
+				__testContext.debug(
+					`Connection aborted with code: ${errorCode} and reason ${reason}`
+				);
 			});
 		});
 	},
