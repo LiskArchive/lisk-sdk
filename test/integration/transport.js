@@ -22,7 +22,7 @@ var scenarios = require('./scenarios');
 var wsPorts = [];
 var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
 var syncingDisabled = process.env.SYNCING_DISABLED === 'true';
-const totalPeers = broadcastingDisabled ? 2 : 10;
+const totalPeers = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
@@ -213,7 +213,6 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 
 						scenarios.propagation.blocks(params);
 						scenarios.propagation.transactions(params);
-						scenarios.stress.transfer(params);
 						scenarios.stress.transfer_with_data(params);
 						scenarios.stress.second_passphrase(params);
 						scenarios.stress.register_delegate(params);
@@ -243,7 +242,12 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						});
 					});
 
-					scenarios.network.peerDisconnect(params);
+					// When broadcasting is disabled, there are only
+					// two nodes available for testing sync only
+					// so skipping peer disconnect test
+					if (!broadcastingDisabled) {
+						scenarios.network.peerDisconnect(params);
+					}
 				});
 			});
 		});
