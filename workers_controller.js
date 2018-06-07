@@ -94,7 +94,7 @@ SCWorker.create({
 				handshake: [
 					'system',
 					function(scope, cb) {
-						return cb(null, Handshake(scope.system));
+						return cb(null, Handshake(scope.system, scope.config));
 					},
 				],
 			},

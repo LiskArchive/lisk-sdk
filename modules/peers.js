@@ -246,7 +246,7 @@ __private.getMatched = function(test, peers) {
  * @todo Add description for the params and the return value
  */
 __private.isBlacklisted = function(ip) {
-	return self.blackListedPeers.indexOf(ip) > -1;
+	return self.blackListedPeers.includes(ip);
 };
 
 /**

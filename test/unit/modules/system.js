@@ -48,7 +48,6 @@ describe('system', () => {
 			nethash: 1,
 			minVersion: '>=1.0.0-beta.0',
 			nonce: 1,
-			blackListedPeers: [],
 		};
 
 		systemModule = new System(
