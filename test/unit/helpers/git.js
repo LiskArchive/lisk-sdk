@@ -18,7 +18,7 @@ var childProcess = require('child_process');
 var fs = require('fs');
 var git = require('../../../helpers/git');
 
-describe.skip('git', () => {
+describe('git', () => {
 	afterEach(done => {
 		sinonSandbox.restore();
 		done();
