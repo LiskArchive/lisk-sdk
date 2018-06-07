@@ -26,10 +26,6 @@
  * @property {string} genesisPublicKey.mainnet
  * @property {string} genesisPublicKey.testnet
  * @property {Object} rounds
- * @property {Object} rounds.27040
- * @property {number} rounds.27040.rewards_factor
- * @property {number} rounds.27040.fees_factor
- * @property {number} rounds.27040.fees_bonus
  * @property {string[]} senderPublicKey
  * @property {string[]} signatures
  * @property {string[]} multisignatures
@@ -37,45 +33,36 @@
  * @todo Add description for the namespace and the properties
  */
 module.exports = {
-	blockRewards: [],
+	blockRewards: [
+		'11807740622680299921', // 2161
+		'5714016151987080352', // 2162
+	],
 	delegates: [],
 	genesisPublicKey: {
 		mainnet: 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4',
 		testnet: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 	},
-	rounds: {
-		27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 },
-	},
+	rounds: {},
 	senderPublicKey: [
-		'6140297682817553271', // 12526
-		'17693199811026162972', // 12532
-		'12745015510836138583', // 34991
-		'15516237395249255875', // 34998
-		'6377354815333756139', // 34998
-		'12466861689592168447', // 35027
-		'2778306120620555464', // 36819
-		'1371513618457310858', // 43162
-		'17975182010363461275', // 660458
-		'7393365363305861496', // 734924
-		'10835780973515164613', // 734941
-		'16597985030226429007', // 734946
-		'16651448368467202930', // 734972
-		'2716517134501650091', // 734909
-		'3580178084951037889', // 735111
-		'5153508874902580125', // 735179
+		'5252526207733553499', // 464289
 	],
 	signatures: [
-		'5676385569187187158', // 868797
-		'5384302058030309746', // 869890
-		'9352922026980330230', // 925165
+		'3274071402587084244', // 595491
+		'10403141873189588012', // 624550
+		'16896494584440078079', // 631670
 	],
 	multisignatures: [
-		'14122550998639658526', // 1189962
+		'8191213966308378713', // 952880
+		'8031165757158212499', // 979109
+		'6741135886562440478', // 982288
 	],
 	votes: [
-		'5524930565698900323', // 20407
-		'11613486949732674475', // 123300
-		'14164134775432642506', // 123333
+		'16272500600161825502', // 336424
+		'17197328760149985951', // 341635
+		'18231026627962552928', // 917323
 	],
-	inertTransactions: [],
+	inertTransactions: [
+		'16394286522174687330', // 1318685 - Vote transaction
+		'12298100805070303137', // 3057955 - Delegate transaction
+	],
 };
