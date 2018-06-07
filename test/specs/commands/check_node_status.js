@@ -40,13 +40,13 @@ describe('check node status command', () => {
 							then.itShouldNotCallNodeGetForgingStatus,
 						);
 						Then(
-							'it should resolves to an object which does not have key equal to "forgingStatus"',
-							then.itShouldResolvesToAnObjectWhichDoesNotHaveKeyEqualTo,
+							'it should resolve to an object which does not have key equal to "forgingStatus"',
+							then.itShouldResolveToAnObjectWhichDoesNotHaveKeyEqualTo,
 						);
 					},
 				);
 				Given(
-					'a boolean option "forging" set to "true"',
+					'a boolean option "forging" set to true',
 					given.anOptionsObjectWithKeySetToBoolean,
 					() => {
 						Given(
@@ -74,8 +74,8 @@ describe('check node status command', () => {
 											then.itShoulHaveErrorMessageForForgingStatus,
 										);
 										Then(
-											'it should resolves to an object which has key equal to "forgingStatus"',
-											then.itShouldResolvesToAnObjectWhichHaveKeyEqualTo,
+											'it should resolve to an object which has key equal to "forgingStatus"',
+											then.itShouldResolveToAnObjectWhichHaveKeyEqualTo,
 										);
 									},
 								);
@@ -98,8 +98,8 @@ describe('check node status command', () => {
 									then.itShouldCallNodeGetForgingStatus,
 								);
 								Then(
-									'it should resolves to an object which has key equal to "forgingStatus"',
-									then.itShouldResolvesToAnObjectWhichHaveKeyEqualTo,
+									'it should resolve to an object which has key equal to "forgingStatus"',
+									then.itShouldResolveToAnObjectWhichHaveKeyEqualTo,
 								);
 							},
 						);

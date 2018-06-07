@@ -74,7 +74,7 @@ export function theLiskAPIInstanceShouldHaveCurrentNodeEqualTo() {
 	return expect(liskAPIInstance.currentNode).to.equal(node);
 }
 
-export function itShouldResolvesToAnObjectWhichHaveKeyEqualTo() {
+export function itShouldResolveToAnObjectWhichHaveKeyEqualTo() {
 	const { returnValue } = this.test.ctx;
 	const key = getFirstQuotedString(this.test.title);
 	return expect(returnValue)
@@ -82,7 +82,7 @@ export function itShouldResolvesToAnObjectWhichHaveKeyEqualTo() {
 		.and.have.property(key);
 }
 
-export function itShouldResolvesToAnObjectWhichDoesNotHaveKeyEqualTo() {
+export function itShouldResolveToAnObjectWhichDoesNotHaveKeyEqualTo() {
 	const { returnValue } = this.test.ctx;
 	const key = getFirstQuotedString(this.test.title);
 	return expect(returnValue)

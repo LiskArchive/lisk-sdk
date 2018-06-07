@@ -18,12 +18,11 @@ import getAPIClient from '../utils/api';
 
 const description = `Gets information about a node.
 
-	Examples:
-	- get node status
+	Examples: check node status
 `;
 
 const forgingDescription =
-	'Additionally provides information about forging status';
+	'Additionally provides information about forging status.';
 
 export const actionCreator = () => async ({ options }) => {
 	const client = getAPIClient();
