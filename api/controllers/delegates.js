@@ -54,7 +54,6 @@ DelegatesController.getDelegates = function(context, next) {
 		offset: params.offset.value,
 		sort: params.sort.value,
 		search: params.search.value,
-		rank: params.rank.value,
 	};
 
 	// Remove filters with null values
