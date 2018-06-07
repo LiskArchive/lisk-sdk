@@ -563,12 +563,6 @@ paths:
           type: string
           minLength: 1
           maxLength: 20
-        - name: rank
-          in: query
-          description: Delegate rank
-          type: string
-          minLength: 1
-          maxLength: 20
         - in: query
           name: sort
           description: Fields to sort results by

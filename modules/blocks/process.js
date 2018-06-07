@@ -128,7 +128,6 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	library.logger.info('Last block and parent loses');
 	async.series(
 		[
 			function(seriesCb) {
@@ -155,6 +154,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 					// Return first error from checks
 					return setImmediate(seriesCb, check.errors[0]);
 				}
+				library.logger.info('Last block and parent loses due to fork 1');
 				return setImmediate(seriesCb);
 			},
 			// Delete last 2 blocks
@@ -200,7 +200,6 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	library.logger.info('Last block loses');
 	async.series(
 		[
 			function(seriesCb) {
@@ -231,6 +230,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 			},
 			// Delete last block
 			function(seriesCb) {
+				library.logger.info('Last block loses due to fork 5');
 				modules.blocks.chain.deleteLastBlock(seriesCb);
 			},
 			// Process received block
@@ -628,23 +628,26 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
  * @todo Add @returns tag
  */
 Process.prototype.onReceiveBlock = function(block) {
-	let lastBlock;
+	// When client is not loaded, is syncing
+	// Do not receive new blocks as client is not ready
+	if (!__private.loaded) {
+		return library.logger.debug(
+			'Client is not ready to receive block',
+			block.id
+		);
+	}
+
+	if (modules.loader.syncing()) {
+		return library.logger.debug(
+			"Client is syncing. Can't receive block at the moment.",
+			block.id
+		);
+	}
 
 	// Execute in sequence via sequence
 	library.sequence.add(cb => {
-		// When client is not loaded, is syncing or round is ticking
-		// Do not receive new blocks as client is not ready
-		if (
-			!__private.loaded ||
-			modules.loader.syncing() ||
-			modules.rounds.ticking()
-		) {
-			library.logger.debug('Client not ready to receive block', block.id);
-			return setImmediate(cb);
-		}
-
 		// Get the last block
-		lastBlock = modules.blocks.lastBlock.get();
+		const lastBlock = modules.blocks.lastBlock.get();
 
 		// Detect sane block
 		if (

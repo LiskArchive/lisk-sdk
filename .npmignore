@@ -4,7 +4,8 @@ logs/*
 package/
 pids/*
 release/
-scripts/
+scripts/**/*
+!scripts/update_config.js
 tasks/
 test/
 Grunt*

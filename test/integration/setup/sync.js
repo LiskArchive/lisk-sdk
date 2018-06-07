@@ -32,7 +32,7 @@ var SYNC_MODE_DEFAULT_ARGS = {
 module.exports = {
 	SYNC_MODES,
 
-	generatePeers(configurations, syncMode, syncModeArgs) {
+	generatePeers(configurations, syncMode, syncModeArgs, currentPeer) {
 		syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
 
 		var peersList = [];
@@ -49,10 +49,12 @@ module.exports = {
 				};
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
-						peersList.push({
-							ip: configuration.ip,
-							wsPort: configuration.wsPort,
-						});
+						if (!(configuration.wsPort === currentPeer)) {
+							peersList.push({
+								ip: configuration.ip,
+								wsPort: configuration.wsPort,
+							});
+						}
 					}
 				});
 				break;
@@ -75,10 +77,12 @@ module.exports = {
 				}
 				configurations.forEach((configuration, index) => {
 					if (syncModeArgs.indices.indexOf(index) !== -1) {
-						peersList.push({
-							ip: configuration.ip,
-							wsPort: configuration.wsPort,
-						});
+						if (!(configuration.wsPort === currentPeer)) {
+							peersList.push({
+								ip: configuration.ip,
+								wsPort: configuration.wsPort,
+							});
+						}
 					}
 				});
 			// no default
