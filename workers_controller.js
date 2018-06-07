@@ -110,7 +110,7 @@ SCWorker.create({
 								// error will not be passed to the client. So we can attach the error to the request and disconnect later during the SC 'handshake' event.
 								req.failedHeadersValidationError = err;
 								// When ip is blacklisted, error is thrown as soon as possible.
-								if (err.code == failureCodes.BLACKLISTED_PEER) {
+								if (err.code === failureCodes.BLACKLISTED_PEER) {
 									return next(err);
 								}
 							} else {
