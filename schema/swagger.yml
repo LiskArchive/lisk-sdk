@@ -58,7 +58,7 @@ info:
     ## List of Endpoints
     All possible API endpoints for Lisk Core are listed below.
     Click on an endpoint to show descriptions, details and examples.
-  version: '1.0.27'
+  version: '1.0.28'
   contact:
     email: admin@lisk.io
   license:
