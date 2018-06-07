@@ -731,6 +731,28 @@ describe('transaction', () => {
 			});
 		});
 
+		it('should return error on timestamp below the int32 range', done => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.timestamp = -2147483648 - 1;
+			delete transaction.signature;
+			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transactionLogic.verify(transaction, sender, null, null, err => {
+				expect(err).to.eql('Invalid transaction timestamp. Timestamp is not in the int32 range');
+				done();
+			});
+		});
+
+		it('should return error on timestamp above the int32 range', done => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.timestamp = 2147483647 + 1;
+			delete transaction.signature;
+			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transactionLogic.verify(transaction, sender, null, null, err => {
+				expect(err).to.include('Invalid transaction timestamp. Timestamp is not in the int32 range');
+				done();
+			});
+		});
+
 		it('should return error on future timestamp', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = slots.getTime() + 100;
@@ -739,7 +761,7 @@ describe('transaction', () => {
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
-				expect(err).to.include('Invalid transaction timestamp');
+				expect(err).to.eql('Invalid transaction timestamp. Timestamp is in the future');
 				done();
 			});
 		});
