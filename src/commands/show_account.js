@@ -20,8 +20,7 @@ import cryptography from '../utils/cryptography';
 
 const description = `Shows an account information with the given passphrase.
 
-  Examples:
-  - show account
+  Examples: show account
 `;
 
 const processInput = ({ passphrase }) =>
