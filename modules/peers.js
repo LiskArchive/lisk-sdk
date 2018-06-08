@@ -324,7 +324,7 @@ __private.insertSeeds = function(cb) {
 			}
 
 			// Continue if peer it is not blacklisted nor banned
-			if (peer.state != Peer.STATE.BANNED) {
+			if (peer.state !== Peer.STATE.BANNED) {
 				peer.rpc.status((err, status) => {
 					__private.updatePeerStatus(err, status, peer);
 					if (!err) {
