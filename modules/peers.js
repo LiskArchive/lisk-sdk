@@ -71,6 +71,8 @@ class Peers {
 		self.consensus = scope.config.forging.force ? 100 : 0;
 		self.broadhashConsensusCalculationInterval =
 			scope.config.peers.options.broadhashConsensusCalculationInterval;
+		self.blackListedPeers = scope.config.peers.access.blackList;
+
 		setImmediate(cb, null, self);
 	}
 }
@@ -237,6 +239,17 @@ __private.getMatched = function(test, peers) {
 };
 
 /**
+ * Check if the ip exists in the peer blacklist coming from config file.
+ *
+ * @param ip
+ * @returns {boolean}
+ * @todo Add description for the params and the return value
+ */
+__private.isBlacklisted = function(ip) {
+	return self.blackListedPeers.includes(ip);
+};
+
+/**
  * Description of updatePeerStatus.
  *
  * @todo Add @param tags
@@ -264,13 +277,21 @@ __private.updatePeerStatus = function(err, status, peer) {
 		);
 		library.logic.peers.remove(peer);
 	} else {
+		let state;
+		// Ban peer if it is presented in the array of black listed peers
+		if (__private.isBlacklisted(peer.ip)) {
+			state = Peer.STATE.BANNED;
+		} else {
+			state = Peer.STATE.CONNECTED;
+		}
+
 		peer.applyHeaders({
 			broadhash: status.broadhash,
 			height: status.height,
 			httpPort: status.httpPort,
 			nonce: status.nonce,
 			os: status.os,
-			state: Peer.STATE.CONNECTED,
+			state,
 			version: status.version,
 		});
 	}
@@ -291,20 +312,31 @@ __private.insertSeeds = function(cb) {
 	async.each(
 		library.config.peers.list,
 		(peer, eachCb) => {
+			// Ban peer if it is presented in the array of black listed peers
+			if (__private.isBlacklisted(peer.ip)) {
+				peer.state = Peer.STATE.BANNED;
+			}
+
 			peer = library.logic.peers.create(peer);
 			library.logger.debug(`Processing seed peer: ${peer.string}`);
 			if (library.logic.peers.upsert(peer, true) !== true) {
 				return setImmediate(eachCb);
 			}
-			peer.rpc.status((err, status) => {
-				__private.updatePeerStatus(err, status, peer);
-				if (!err) {
-					updated += 1;
-				} else {
-					library.logger.trace(`Ping peer failed: ${peer.string}`, err);
-				}
+
+			// Continue if peer it is not blacklisted nor banned
+			if (peer.state !== Peer.STATE.BANNED) {
+				peer.rpc.status((err, status) => {
+					__private.updatePeerStatus(err, status, peer);
+					if (!err) {
+						updated += 1;
+					} else {
+						library.logger.trace(`Ping peer failed: ${peer.string}`, err);
+					}
+					return setImmediate(eachCb);
+				});
+			} else {
 				return setImmediate(eachCb);
-			});
+			}
 		},
 		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
@@ -336,11 +368,16 @@ __private.dbLoad = function(cb) {
 			async.each(
 				rows,
 				(peer, eachCb) => {
+					// Ban peer if it is presented in the array of black listed peers
+					if (__private.isBlacklisted(peer.ip)) {
+						peer.state = Peer.STATE.BANNED;
+					}
+
 					peer = library.logic.peers.create(peer);
 					if (library.logic.peers.upsert(peer, true) !== true) {
 						return setImmediate(eachCb);
 					}
-					if (peer.state > 0 && Date.now() - peer.updated > 3000) {
+					if (peer.state !== Peer.STATE.BANNED && Date.now() - peer.updated > 3000) {
 						peer.rpc.status((err, status) => {
 							__private.updatePeerStatus(err, status, peer);
 							if (!err) {
@@ -800,7 +837,7 @@ Peers.prototype.onPeersReady = function() {
 							// If peer is not banned and not been updated during last 3 sec - ping
 							if (
 								peer &&
-								peer.state > 0 &&
+								peer.state !== Peer.STATE.BANNED &&
 								(!peer.updated || Date.now() - peer.updated > 3000)
 							) {
 								library.logger.trace('Updating peer', peer.object());

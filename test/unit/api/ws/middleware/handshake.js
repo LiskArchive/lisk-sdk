@@ -35,6 +35,7 @@ describe('Handshake', () => {
 			minVersion,
 			nethash: config.nethash,
 			nonce: validNodeNonce,
+			blackListedPeers: [],
 		},
 	};
 	var validHeaders;
@@ -42,7 +43,7 @@ describe('Handshake', () => {
 	before(done => {
 		new System((err, __system) => {
 			system = __system;
-			handshake = Handshake.middleware.Handshake(system);
+			handshake = Handshake.middleware.Handshake(system, validConfig.config);
 			done(err);
 		}, validConfig);
 	});

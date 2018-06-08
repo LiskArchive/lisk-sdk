@@ -191,8 +191,6 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 						);
 					});
 
-					scenarios.network.peers(params);
-
 					describe('when functional tests are successfully executed against 127.0.0.1:5000', () => {
 						before(done => {
 							setup.shell.runMochaTests(
@@ -246,6 +244,8 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					// two nodes available for testing sync only
 					// so skipping peer disconnect test
 					if (!broadcastingDisabled) {
+						scenarios.network.peers(params);
+						scenarios.network.peersBlackList(params);
 						scenarios.network.peerDisconnect(params);
 					}
 				});
