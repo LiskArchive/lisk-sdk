@@ -52,7 +52,7 @@ info:
     ## Pagination
     One can paginate nicely through the results by providing `limit` and `offset` parameters to the requests.
     `limit` and `offset` can be found in the `meta`-object of the response of an API request.
-    If no limit and offset are provided, they are set to 10 and 0 by default, what will give display the first 10 results.
+    If no limit and offset are provided, they are set to 10 and 0 by default, what will display the first 10 results.
 
     ## List of Endpoints
     All possible API endpoints for Lisk Core are listed below.
