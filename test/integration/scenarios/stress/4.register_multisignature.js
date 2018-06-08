@@ -29,11 +29,17 @@ var sendTransactionPromise = require('../../../common/helpers/api')
 var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
+var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
+
 module.exports = function(params) {
-	describe('stress test for type 4 transactions @slow', () => {
+	// Disable multi-signature transaction to avoid nightly build failures
+	// eslint-disable-next-line mocha/no-skipped-tests
+	describe('stress test for type 4 transactions @slow', function() {
+		this.timeout(2200000);
 		var transactions = [];
 		var accounts = [];
-		var maximum = 1000;
+		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
+		var waitForExtraBlocks = broadcastingDisabled ? 10 : 8; // Wait for extra blocks to ensure all the transactions are included in the block
 
 		describe('prepare accounts', () => {
 			before(() => {
@@ -55,9 +61,14 @@ module.exports = function(params) {
 
 			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params).then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
@@ -104,9 +115,14 @@ module.exports = function(params) {
 
 			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params).then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});

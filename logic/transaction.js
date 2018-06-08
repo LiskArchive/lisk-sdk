@@ -412,6 +412,8 @@ class Transaction {
 	verify(transaction, sender, requester, checkExists, cb, tx) {
 		let valid = false;
 		let err = null;
+		const INT_32_MIN = -2147483648;
+		const INT_32_MAX = 2147483647;
 
 		if (requester === null || requester === undefined) {
 			requester = {};
@@ -662,6 +664,15 @@ class Transaction {
 		}
 
 		// Check timestamp
+		if (
+			transaction.timestamp < INT_32_MIN ||
+			transaction.timestamp > INT_32_MAX
+		) {
+			return setImmediate(
+				cb,
+				'Invalid transaction timestamp. Timestamp is not in the int32 range'
+			);
+		}
 		if (slots.getSlotNumber(transaction.timestamp) > slots.getSlotNumber()) {
 			return setImmediate(
 				cb,

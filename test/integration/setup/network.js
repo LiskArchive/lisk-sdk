@@ -40,11 +40,13 @@ module.exports = {
 		var enableForgingPromises = [];
 		configurations.forEach(configuration => {
 			configuration.forging.delegates.map(keys => {
-				var enableForgingPromise = utils.http.enableForging(
-					keys,
-					configuration.httpPort
-				);
-				enableForgingPromises.push(enableForgingPromise);
+				if (!configuration.forging.force) {
+					var enableForgingPromise = utils.http.enableForging(
+						keys,
+						configuration.httpPort
+					);
+					enableForgingPromises.push(enableForgingPromise);
+				}
 			});
 		});
 		Promise.all(enableForgingPromises)

@@ -972,10 +972,6 @@ describe('blocks/chain', () => {
 
 		afterEach(done => {
 			blocksChainModule.saveBlock = saveBlockTemp;
-			expect(modules.blocks.lastBlock.set.calledOnce).to.be.true;
-			expect(modules.blocks.lastBlock.set.args[0][0]).to.deep.equal(
-				blockWithTransactions
-			);
 			done();
 		});
 
@@ -1006,6 +1002,7 @@ describe('blocks/chain', () => {
 							expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
 								blockWithTransactions
 							);
+							expect(modules.blocks.lastBlock.set.calledOnce).to.be.false;
 							done();
 						});
 				});
@@ -1020,12 +1017,7 @@ describe('blocks/chain', () => {
 					expect(loggerStub.debug.args[0][0]).to.contains(
 						'Block applied correctly with 3 transactions'
 					);
-					expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
-						blockWithTransactions
-					);
-					expect(library.bus.message.calledOnce).to.be.true;
-					expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
-					return expect(library.bus.message.args[0][1]).to.deep.equal(
+					return expect(blocksChainModule.saveBlock.args[0][0]).to.deep.equal(
 						blockWithTransactions
 					);
 				});
@@ -1040,6 +1032,7 @@ describe('blocks/chain', () => {
 							.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 							.catch(err => {
 								expect(err).to.equal('tick-ERR');
+								expect(library.bus.message.calledOnce).to.be.false;
 								done();
 							});
 					});
@@ -1055,6 +1048,13 @@ describe('blocks/chain', () => {
 							.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 							.then(resolve => {
 								expect(resolve).to.be.undefined;
+								expect(library.bus.message.calledOnce).to.be.true;
+								expect(library.bus.message.args[0][0]).to.deep.equal(
+									'newBlock'
+								);
+								expect(library.bus.message.args[0][1]).to.deep.equal(
+									blockWithTransactions
+								);
 								done();
 							});
 					});
@@ -1063,14 +1063,6 @@ describe('blocks/chain', () => {
 		});
 
 		describe('when saveBlock is false', () => {
-			afterEach(() => {
-				expect(library.bus.message.calledOnce).to.be.true;
-				expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
-				return expect(library.bus.message.args[0][1]).to.deep.equal(
-					blockWithTransactions
-				);
-			});
-
 			describe('when modules.rounds.tick fails', () => {
 				beforeEach(() => {
 					return modules.rounds.tick.callsArgWith(1, 'tick-ERR', null);
@@ -1081,6 +1073,7 @@ describe('blocks/chain', () => {
 						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 						.catch(err => {
 							expect(err).to.equal('tick-ERR');
+							expect(library.bus.message.calledOnce).to.be.false;
 							done();
 						});
 				});
@@ -1096,6 +1089,11 @@ describe('blocks/chain', () => {
 						.saveBlockStep(blockWithTransactions, true, dbStub.tx)
 						.then(resolve => {
 							expect(resolve).to.be.undefined;
+							expect(library.bus.message.calledOnce).to.be.true;
+							expect(library.bus.message.args[0][0]).to.deep.equal('newBlock');
+							expect(library.bus.message.args[0][1]).to.deep.equal(
+								blockWithTransactions
+							);
 							done();
 						});
 				});

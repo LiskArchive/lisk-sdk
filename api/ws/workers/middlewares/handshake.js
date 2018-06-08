@@ -55,15 +55,17 @@ var middleware = {
 	 * @memberof module:helpers/ws_api.middleware
 	 * @see Parent: {@link module:helpers/ws_api.middleware}
 	 * @param {Object} system
+	 * @param {Object} config
 	 * @todo Add description for the class and the params
 	 * @todo Add @returns tag
 	 */
 	// eslint-disable-next-line object-shorthand
-	Handshake: function(system) {
+	Handshake: function(system, config) {
 		/**
 		 * Description of the function.
 		 *
 		 * @param {Object} system
+		 * @param {Object} config
 		 * @todo Add description for the function and the params
 		 * @todo Add @returns tag
 		 */
@@ -119,6 +121,20 @@ var middleware = {
 						peer
 					);
 				}
+
+				// TODO : double check socket IP
+				if (config.blackListedPeers.includes(headers.ip)) {
+					return setImmediate(
+						cb, {
+							code: failureCodes.BLACKLISTED_PEER,
+							description: failureCodes.errorMessages[
+								failureCodes.BLACKLISTED_PEER
+							],
+						},
+						peer
+					);
+				}
+
 				return setImmediate(cb, null, peer);
 			});
 		};

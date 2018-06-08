@@ -60,6 +60,9 @@ var endpoints = {
 			getTransactions(ip, port) {
 				return `http://${ip}:${port}/api/transactions`;
 			},
+			getPeers(ip, port) {
+				return `http://${ip}:${port}/api/peers`;
+			},
 		},
 	},
 };
@@ -166,6 +169,20 @@ module.exports = {
 						keys.publicKey
 					}${JSON.stringify(err)}`
 				);
+			});
+	},
+
+	getPeers(port, ip) {
+		return popsicle
+			.get({
+				url: endpoints.versions[currentVersion].getPeers(
+					ip || '127.0.0.1',
+					port || 4000
+				),
+				headers,
+			})
+			.then(res => {
+				return JSON.parse(res.body).data;
 			});
 	},
 };
