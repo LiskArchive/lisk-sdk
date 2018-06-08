@@ -44,10 +44,9 @@ info:
     ```
 
     ## Date Formats
-    Most of the timestamp parameters are in the Unix timestamp format.
-    The Unix timestamp (or Unix time or POSIX time or Unix epoch time) is the number of seconds that have elapsed since January 1, 1970 , not counting leap seconds.
-    Some of them though, are are accepted or returned in the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format, combined date and time: `YYYY-MM-DDThh:mm:ssZ`.
-    2 valid examples for ISO 8601: 1970-01-01T00:00:00Z, 2016-05-24T17:00:00.000Z.
+    Most of the timestamp parameters are in the Lisk Timestamp format, which is similar to the Unix Timestamp format.
+    The **Lisk Timestamp** is the number of seconds that have elapsed since the Lisk epoch time (2016-05-24T17:00:00.000Z), not counting leap seconds.
+    The **Lisk Epoch Time** is returned in the [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format, combined date and time: `YYYY-MM-DDThh:mm:ssZ`.
     For details, see the descriptions and examples at the respective endpoint.
 
     ## Pagination
