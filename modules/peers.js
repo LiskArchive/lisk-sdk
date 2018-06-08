@@ -334,6 +334,8 @@ __private.insertSeeds = function(cb) {
 					}
 					return setImmediate(eachCb);
 				});
+			} else {
+				return setImmediate(eachCb);
 			}
 		},
 		() => {
