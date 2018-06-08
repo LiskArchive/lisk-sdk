@@ -18,6 +18,7 @@ const fs = require('fs');
 const childProcess = require('child_process');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
+const blockchainReady = require('../../../common/utils/wait_for').blockchainReady;
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
@@ -84,10 +85,9 @@ module.exports = params => {
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					restartNode('node_0');
-					setTimeout(() => {
-						done();
-					}, 8000);
+					blockchainReady(done, null, null, 'http://127.0.0.1:4000');
 				});
+
 
 				it(`there should be ${expectedConnectionsAfterBlacklisting} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
@@ -150,9 +150,7 @@ module.exports = params => {
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					restartNode('node_0');
-					setTimeout(() => {
-						done();
-					}, 8000);
+					blockchainReady(done, null, null, 'http://127.0.0.1:4000');
 				});
 
 				it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
@@ -178,7 +176,7 @@ module.exports = params => {
 					return utils.http.getPeers().then(peers => {
 						peers.map(peer => {
 							if (peer.wsPort == 5000) {
-								expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
+								expect(peer.state).to.be.eql(Peer.STATE.BANNED);
 							} else {
 								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 							}
