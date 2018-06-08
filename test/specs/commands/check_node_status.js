@@ -23,35 +23,61 @@ describe('check node status command', () => {
 	Given('an action "check node status"', given.anAction, () => {
 		Given('a Lisk API Instance', given.aLiskAPIInstance, () => {
 			Given('an options object', given.anOptionsObject, () => {
-				When(
-					'the action is called with the options',
-					when.theActionIsCalledWithTheOptions,
+				Given(
+					'get node status rejects with error',
+					given.getNodeStatusRejectsWithError,
 					() => {
-						Then(
-							'it should call node getConstants',
-							then.itShouldCallNodeGetConstants,
-						);
-						Then(
-							'it should call node getStatus',
-							then.itShouldCallNodeGetStatus,
-						);
-						Then(
-							'it should not call node getForgingStatus',
-							then.itShouldNotCallNodeGetForgingStatus,
-						);
-						Then(
-							'it should resolve to an object which does not have key equal to "forgingStatus"',
-							then.itShouldResolveToAnObjectWhichDoesNotHaveKeyEqualTo,
+						When(
+							'the action is called with the options',
+							when.theActionIsCalledWithTheOptions,
+							() => {
+								Then(
+									'it should call node getConstants',
+									then.itShouldCallNodeGetConstants,
+								);
+								Then(
+									'it should call node getStatus',
+									then.itShouldCallNodeGetStatus,
+								);
+								Then(
+									'it should reject with the error message',
+									then.itShouldRejectWithTheErrorMessage,
+								);
+							},
 						);
 					},
 				);
 				Given(
-					'a boolean option "forging" set to true',
-					given.anOptionsObjectWithKeySetToBoolean,
+					'get node constants rejects with error',
+					given.getNodeConstantsRejectsWithError,
+					() => {
+						When(
+							'the action is called with the options',
+							when.theActionIsCalledWithTheOptions,
+							() => {
+								Then(
+									'it should call node getConstants',
+									then.itShouldCallNodeGetConstants,
+								);
+								Then(
+									'it should call node getStatus',
+									then.itShouldCallNodeGetStatus,
+								);
+								Then(
+									'it should reject with the error message',
+									then.itShouldRejectWithTheErrorMessage,
+								);
+							},
+						);
+					},
+				);
+				Given(
+					'get node status resolves successfully',
+					given.getNodeStatusResolvesSuccessfully,
 					() => {
 						Given(
-							'getForgingStatus rejects with error',
-							given.getForgingStatusRejectsWithError,
+							'get node constants resolves successfully',
+							given.getNodeConstantsResolvesSuccessfully,
 							() => {
 								When(
 									'the action is called with the options',
@@ -66,40 +92,98 @@ describe('check node status command', () => {
 											then.itShouldCallNodeGetStatus,
 										);
 										Then(
-											'it should call node getForgingStatus',
-											then.itShouldCallNodeGetForgingStatus,
+											'it should resolve to an object which includes the node status',
+											then.itShouldResolveToAnObjectWhichIncludesTheNodeStatus,
 										);
 										Then(
-											'it should call node getForgingStatus',
-											then.itShoulHaveErrorMessageForForgingStatus,
+											'it should resolve to an object which includes the node constants',
+											then.itShouldResolveToAnObjectWhichIncludesTheNodeConstants,
 										);
 										Then(
-											'it should resolve to an object which has key equal to "forgingStatus"',
-											then.itShouldResolveToAnObjectWhichHaveKeyEqualTo,
+											'it should not call node getForgingStatus',
+											then.itShouldNotCallNodeGetForgingStatus,
+										);
+										Then(
+											'it should resolve to an object which does not have key equal to "forgingStatus"',
+											then.itShouldResolveToAnObjectWhichDoesNotHaveKeyEqualTo,
 										);
 									},
 								);
-							},
-						);
-						When(
-							'the action is called with the options',
-							when.theActionIsCalledWithTheOptions,
-							() => {
-								Then(
-									'it should call node getConstants',
-									then.itShouldCallNodeGetConstants,
-								);
-								Then(
-									'it should call node getStatus',
-									then.itShouldCallNodeGetStatus,
-								);
-								Then(
-									'it should call node getForgingStatus',
-									then.itShouldCallNodeGetForgingStatus,
-								);
-								Then(
-									'it should resolve to an object which has key equal to "forgingStatus"',
-									then.itShouldResolveToAnObjectWhichHaveKeyEqualTo,
+								Given(
+									'a boolean option "forging" set to true',
+									given.anOptionsObjectWithKeySetToBoolean,
+									() => {
+										Given(
+											'getForgingStatus rejects with error',
+											given.getForgingStatusRejectsWithError,
+											() => {
+												When(
+													'the action is called with the options',
+													when.theActionIsCalledWithTheOptions,
+													() => {
+														Then(
+															'it should call node getConstants',
+															then.itShouldCallNodeGetConstants,
+														);
+														Then(
+															'it should call node getStatus',
+															then.itShouldCallNodeGetStatus,
+														);
+														Then(
+															'it should call node getForgingStatus',
+															then.itShouldCallNodeGetForgingStatus,
+														);
+														Then(
+															'it should resolve to an object which includes the node status',
+															then.itShouldResolveToAnObjectWhichIncludesTheNodeStatus,
+														);
+														Then(
+															'it should resolve to an object which includes the node constants',
+															then.itShouldResolveToAnObjectWhichIncludesTheNodeConstants,
+														);
+														Then(
+															'it should have error message for forgingStatus',
+															then.itShoulHaveErrorMessageForForgingStatus,
+														);
+														Then(
+															'it should resolve to an object which has key equal to "forgingStatus"',
+															then.itShouldResolveToAnObjectWhichHaveKeyEqualTo,
+														);
+													},
+												);
+											},
+										);
+										When(
+											'the action is called with the options',
+											when.theActionIsCalledWithTheOptions,
+											() => {
+												Then(
+													'it should call node getConstants',
+													then.itShouldCallNodeGetConstants,
+												);
+												Then(
+													'it should call node getStatus',
+													then.itShouldCallNodeGetStatus,
+												);
+												Then(
+													'it should resolve to an object which includes the node status',
+													then.itShouldResolveToAnObjectWhichIncludesTheNodeStatus,
+												);
+												Then(
+													'it should resolve to an object which includes the node constants',
+													then.itShouldResolveToAnObjectWhichIncludesTheNodeConstants,
+												);
+												Then(
+													'it should call node getForgingStatus',
+													then.itShouldCallNodeGetForgingStatus,
+												);
+												Then(
+													'it should resolve to an object which has key equal to "forgingStatus"',
+													then.itShouldResolveToAnObjectWhichHaveKeyEqualTo,
+												);
+											},
+										);
+									},
 								);
 							},
 						);

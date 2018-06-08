@@ -25,3 +25,37 @@ export function getForgingStatusRejectsWithError() {
 	liskAPIInstance.node.getForgingStatus.rejects(new Error(errorMessage));
 	this.test.ctx.errorMessage = errorMessage;
 }
+
+export function getNodeStatusResolvesSuccessfully() {
+	const { liskAPIInstance } = this.test.ctx;
+	const data = {
+		status: 'node',
+	};
+	liskAPIInstance.node.getStatus.resolves({ data });
+
+	this.test.ctx.nodeStatus = data;
+}
+
+export function getNodeStatusRejectsWithError() {
+	const { liskAPIInstance } = this.test.ctx;
+	const errorMessage = 'some error';
+	liskAPIInstance.node.getStatus.rejects(new Error(errorMessage));
+	this.test.ctx.errorMessage = errorMessage;
+}
+
+export function getNodeConstantsRejectsWithError() {
+	const { liskAPIInstance } = this.test.ctx;
+	const errorMessage = 'some error';
+	liskAPIInstance.node.getConstants.rejects(new Error(errorMessage));
+	this.test.ctx.errorMessage = errorMessage;
+}
+
+export function getNodeConstantsResolvesSuccessfully() {
+	const { liskAPIInstance } = this.test.ctx;
+	const data = {
+		constants: 'some constants',
+	};
+	liskAPIInstance.node.getConstants.resolves({ data });
+
+	this.test.ctx.nodeConstants = data;
+}

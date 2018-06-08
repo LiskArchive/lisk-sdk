@@ -56,5 +56,8 @@ export function itShouldNotCallNodeGetForgingStatus() {
 
 export function itShoulHaveErrorMessageForForgingStatus() {
 	const { returnValue, errorMessage } = this.test.ctx;
-	return expect(returnValue).to.eventually.eql({ forgingStatus: errorMessage });
+	return expect(returnValue)
+		.to.eventually.be.an('object')
+		.and.have.property('forgingStatus')
+		.eql(errorMessage);
 }
