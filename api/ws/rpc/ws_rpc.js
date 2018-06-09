@@ -74,6 +74,16 @@ const wsRPC = {
 	},
 };
 
+const remoteAction = function(query, cb) {
+	const err = 'Function invoked on master instead of slave process';
+	return setImmediate(cb, err);
+};
+
+const slaveRPCStub = {
+	updateMyself: remoteAction,
+};
+
 module.exports = {
 	wsRPC,
+	slaveRPCStub,
 };
