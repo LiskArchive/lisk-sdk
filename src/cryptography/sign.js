@@ -66,7 +66,7 @@ export const verifyMessageWithPublicKey = ({
 	const signatureBytes = hexToBuffer(signature);
 	const publicKeyBytes = hexToBuffer(publicKey);
 
-	if (publicKeyBytes.length !== 32) {
+	if (publicKeyBytes.length !== nacl.sign.publicKeyLength) {
 		throw new Error('Invalid publicKey, expected 32-byte publicKey');
 	}
 
@@ -128,11 +128,11 @@ export const verifyMessageWithTwoPublicKeys = ({
 		);
 	}
 
-	if (publicKeyBytes.length !== 32) {
+	if (publicKeyBytes.length !== nacl.sign.publicKeyLength) {
 		throw new Error('Invalid first publicKey, expected 32-byte publicKey');
 	}
 
-	if (secondPublicKeyBytes.length !== 32) {
+	if (secondPublicKeyBytes.length !== nacl.sign.publicKeyLength) {
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 

@@ -17,7 +17,7 @@ import { bufferToHex, getAddressFromPublicKey } from './convert';
 import hash from './hash';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
-	const hashed = hash(passphrase, 'utf8'); // :: Is getSha256Hash the same as hash function?
+	const hashed = hash(passphrase, 'utf8');
 	const { publicKey, secretKey } = nacl.sign.keyPair.fromSeed(hashed);
 
 	return {

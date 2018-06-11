@@ -23,9 +23,7 @@ export const bigNumberToBuffer = (bignumber, size) =>
 export const bufferToBigNumberString = bigNumberBuffer =>
 	bignum.fromBuffer(bigNumberBuffer).toString();
 
-// @todo replace Buffer constructor
-// eslint-disable-next-line no-buffer-constructor
-export const bufferToHex = buffer => new Buffer(buffer).toString('hex');
+export const bufferToHex = buffer => Buffer.from(buffer).toString('hex');
 
 const hexRegex = /^[0-9a-f]+/i;
 export const hexToBuffer = hex => {
