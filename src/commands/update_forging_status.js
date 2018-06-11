@@ -27,20 +27,23 @@ update forging status enable 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a
 update forging status disable 647aac1e2df8a5c870499d7ddc82236b1e10936977537a3844a6b05ea33f9ef6
 `;
 
-const ACTION_ENABLE = 'enable';
-const ACTION_DISABLE = 'disable';
-const ERROR_PUBLIC_KEY = 'Public key must be a hex string with 64 characters';
+const STATUS_ENABLE = 'enable';
+const STATUS_DISABLE = 'disable';
+const ERROR_PUBLIC_KEY = 'Public key must be a hex string';
 
 const toggleForging = (client, publicKey, passphrase) =>
-	client.node.updateForgingStatus({
-		password: passphrase,
-		publicKey,
-	});
+	client.node
+		.updateForgingStatus({
+			password: passphrase,
+			publicKey,
+		})
+		.then(response => response.data);
 
-const processInput = (client, action, publicKey, passphrase) =>
+const processInput = (client, status, publicKey, passphrase) =>
 	client.node.getForgingStatus().then(res => {
-		const delegate = res.data.find(key => key.publicKey === publicKey);
-		if (action === ACTION_ENABLE) {
+		const data = res.data || [];
+		const delegate = data.find(key => key.publicKey === publicKey);
+		if (status === STATUS_ENABLE) {
 			if (delegate && delegate.forging) {
 				throw new Error('The delegate is already enabled');
 			}
@@ -54,7 +57,7 @@ const processInput = (client, action, publicKey, passphrase) =>
 	});
 
 const validatePublicKey = publicKey => {
-	if (!publicKey || publicKey.length !== 64) {
+	if (!publicKey) {
 		throw new ValidationError(ERROR_PUBLIC_KEY);
 	}
 	try {
@@ -65,12 +68,12 @@ const validatePublicKey = publicKey => {
 };
 
 export const actionCreator = vorpal => async ({
-	action,
+	status,
 	publicKey,
 	options,
 }) => {
-	if (![ACTION_ENABLE, ACTION_DISABLE].includes(action)) {
-		throw new ValidationError('Action must be either enable or disable');
+	if (![STATUS_ENABLE, STATUS_DISABLE].includes(status)) {
+		throw new ValidationError('Status must be either enable or disable');
 	}
 	validatePublicKey(publicKey);
 
@@ -82,12 +85,12 @@ export const actionCreator = vorpal => async ({
 			repeatPrompt: true,
 		},
 	}).then(({ passphrase }) =>
-		processInput(client, action, publicKey, passphrase),
+		processInput(client, status, publicKey, passphrase),
 	);
 };
 
 const updateForgingStatus = createCommand({
-	command: 'update forging status [action] [publicKey]',
+	command: 'update forging status [status] [publicKey]',
 	description,
 	actionCreator,
 	options: [commonOptions.passphrase],

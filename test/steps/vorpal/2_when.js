@@ -271,6 +271,13 @@ export function theActionIsCalledWithTheOptions() {
 	return returnValue.catch(e => e);
 }
 
+export function theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions() {
+	const { action, status, publicKey, options } = this.test.ctx;
+	const returnValue = action({ status, publicKey, options });
+	this.test.ctx.returnValue = returnValue;
+	return returnValue.catch(e => e);
+}
+
 export function theActionIsCalled() {
 	const { action } = this.test.ctx;
 	const returnValue = action({});

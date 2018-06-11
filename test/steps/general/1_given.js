@@ -40,6 +40,11 @@ export function aFunctionThatThrowsAValidationError() {
 	this.test.ctx.validationErrorFn = validationErrorFn;
 }
 
+export function aStatus() {
+	const status = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.status = status;
+}
+
 export function anErrorObject() {
 	this.test.ctx.errorObject = {
 		error: 'Some error',
