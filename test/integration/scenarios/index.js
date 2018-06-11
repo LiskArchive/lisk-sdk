@@ -18,6 +18,7 @@ module.exports = {
 	network: {
 		peers: require('./network/peers'),
 		peerDisconnect: require('./network/peer_disconnect'),
+		peersBlackList: require('./network/peers_blacklist'),
 	},
 	propagation: {
 		blocks: require('./propagation/blocks'),

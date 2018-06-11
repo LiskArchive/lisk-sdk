@@ -17,8 +17,13 @@
 var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 var Peer = require('../../../logic/peer');
 var PeersManager = require('../../../helpers/peers_manager');
+var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
 var peersManagerInstance;
+var masterWAMPServerMock;
+
+var validRPCProcedureName = 'rpcProcedureA';
+var validEventProcedureName = 'eventProcedureB';
 
 describe('PeersManager', () => {
 	beforeEach(done => {
@@ -29,6 +34,18 @@ describe('PeersManager', () => {
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
 		});
+		masterWAMPServerMock = {
+			upgradeToWAMP: sinonSandbox.stub(),
+			endpoints: {
+				rpc: {
+					[validRPCProcedureName]: sinonSandbox.stub().callsArg(1),
+				},
+				event: {
+					[validEventProcedureName]: sinonSandbox.stub(),
+				},
+			},
+		};
+		wsRPC.getServer = sinonSandbox.stub().returns(masterWAMPServerMock);
 		done();
 	});
 
