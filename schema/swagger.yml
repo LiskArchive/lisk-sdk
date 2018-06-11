@@ -57,7 +57,7 @@ info:
     ## List of Endpoints
     All possible API endpoints for Lisk Core are listed below.
     Click on an endpoint to show descriptions, details and examples.
-  version: '1.0.29'
+  version: '1.0.30'
   contact:
     email: admin@lisk.io
   license:
@@ -405,7 +405,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
-    put:
+    patch:
       tags:
         - Node
       summary: Toggles the forging status of a delegate
@@ -429,7 +429,12 @@ paths:
             required:
               - password
               - publicKey
+              - forging
             properties:
+              forging:
+                type: boolean
+                example: true
+                description: Forging status of the delegate
               password:
                 type: string
                 example: "happy tree friends"
