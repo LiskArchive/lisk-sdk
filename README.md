@@ -116,7 +116,7 @@ Configuration is stored in a config file placed in the user's home directory (ru
 | Command                                                                    | Description                                                 |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | <code>set name lisk</code>                                                 | Sets name to be displayed.                                  |
-| <code>set delimiter lisk</code>                                            | Sets delimiter in the interactive mode.                     |
+| <code>set delimiter lisk</code>                                            | Sets delimiter in interactive mode.                         |
 | <code>set json true&#124;false</code>                                      | Sets default to JSON output (true) or text output (false).  |
 | <code>set pretty true&#124;false</code>                                    | Sets default to formatted output when JSON output is used.  |
 | <code>set api.network main&#124;test&#124;beta</code>                      | Sets API target to the specified network.                   |
