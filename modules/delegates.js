@@ -17,6 +17,7 @@
 const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
+const lisk = require('lisk-elements').default;
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const BlockReward = require('../logic/block_reward.js');
@@ -324,98 +325,6 @@ __private.forge = function(cb) {
 };
 
 /**
- * Parses an encrypted passphrase string into its component parts.
- *
- * @private
- * @param {string} encryptedPassphrase - String containing components of the encrypted passphrase
- * @returns {object} Parsed encrypted passphrase
- */
-const parseEncryptedPassphrase = encryptedPassphrase => {
-	const keyValuePairs = encryptedPassphrase
-		.split('&')
-		.map(pair => pair.split('='))
-		.reduce(
-			(obj, [key, value]) => Object.assign({}, obj, { [key]: value }),
-			{}
-		);
-
-	const { salt, cipherText, iv, tag } = keyValuePairs;
-	const iterations =
-		keyValuePairs.iterations !== undefined
-			? parseInt(keyValuePairs.iterations, 10)
-			: null;
-
-	return {
-		iterations,
-		salt,
-		cipherText,
-		iv,
-		tag,
-	};
-};
-
-/**
- * Validates an encrypted passphrase string, ensuring that all expected keys are present.
- *
- * @private
- * @param {string} encryptedPassphrase - String containing components of the encrypted passphrase
- * @throws {Error} If a required key is missing.
- * @returns {boolean} true
- */
-const validateEncryptedPassphrase = encryptedPassphrase => {
-	const humanReadableKeys = {
-		cipherText: 'cipher text',
-		iv: 'IV',
-	};
-	return ['salt', 'cipherText', 'iv', 'tag'].every(key => {
-		if (!encryptedPassphrase[key]) {
-			const humanReadableKey = humanReadableKeys[key] || key;
-			throw new Error(`No ${humanReadableKey} provided`);
-		}
-		return true;
-	});
-};
-
-/**
- * Converts a tag to a Buffer, throwing an error if the tag is the wrong length.
- *
- * @private
- * @param {string} tag - Hex string-formatted tag
- * @throws {Error} If tag has been shortened or is otherwise the wrong length.
- * @returns {Buffer} Tag
- */
-const getTagBuffer = tag => {
-	const tagBuffer = Buffer.from(tag, 'hex');
-	if (tagBuffer.length !== 16) {
-		throw new Error('Tag must be 16 bytes');
-	}
-	return tagBuffer;
-};
-
-const PBKDF2_ITERATIONS = 1e6;
-const PBKDF2_KEYLEN = 32;
-const PBKDF2_HASH_FUNCTION = 'sha256';
-const CIPHER_ALGORITHM = 'aes-256-gcm';
-
-/**
- * Derives the key to be used in the decryption from the provided password using the salt and optional number of iterations.
- *
- * @private
- * @param {string} password - Password used to derive the key
- * @param {Buffer} salt - Salt used when deriving the key
- * @param {number} iterations - Optional number of iterations to use (default 1,000,000)
- * @returns {Buffer} Key derived from the password
- */
-const getKeyFromPassword = (password, salt, iterations) =>
-	crypto.pbkdf2Sync(
-		password,
-		salt,
-		iterations || PBKDF2_ITERATIONS,
-		PBKDF2_KEYLEN,
-		PBKDF2_HASH_FUNCTION
-	);
-
-/**
  * Returns the decrypted passphrase by deciphering encrypted passphrase with the password provided using aes-256-gcm algorithm.
  *
  * @private
@@ -426,26 +335,10 @@ const getKeyFromPassword = (password, salt, iterations) =>
  * @todo Add description for the params
  */
 __private.decryptPassphrase = function(encryptedPassphrase, password) {
-	const parsedPassphrase = parseEncryptedPassphrase(encryptedPassphrase);
-	validateEncryptedPassphrase(parsedPassphrase);
-	const { tag, salt, iv, iterations, cipherText } = parsedPassphrase;
-	const tagBuffer = getTagBuffer(tag);
-	const key = getKeyFromPassword(
-		password,
-		Buffer.from(salt, 'hex'),
-		iterations
+	return lisk.cryptography.decryptPassphraseWithPassword(
+		lisk.cryptography.parseEncryptedPassphrase(encryptedPassphrase),
+		password
 	);
-
-	const decipher = crypto.createDecipheriv(
-		CIPHER_ALGORITHM,
-		key,
-		Buffer.from(iv, 'hex')
-	);
-	decipher.setAuthTag(tagBuffer);
-	const firstChunk = decipher.update(Buffer.from(cipherText, 'hex'));
-	const decrypted = Buffer.concat([firstChunk, decipher.final()]);
-
-	return decrypted.toString();
 };
 
 /**
@@ -614,14 +507,11 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			const keypair = library.ed.makeKeypair(
-				crypto
-					.createHash('sha256')
-					.update(passphrase, 'utf8')
-					.digest()
+			const keypair = lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
+				passphrase
 			);
 
-			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
+			if (keypair.publicKey !== encryptedItem.publicKey) {
 				return setImmediate(
 					seriesCb,
 					`Invalid encryptedPassphrase for publicKey: ${
@@ -632,7 +522,7 @@ __private.loadDelegates = function(cb) {
 
 			modules.accounts.getAccount(
 				{
-					publicKey: keypair.publicKey.toString('hex'),
+					publicKey: keypair.publicKey,
 				},
 				(err, account) => {
 					if (err) {
@@ -642,16 +532,14 @@ __private.loadDelegates = function(cb) {
 					if (!account) {
 						return setImmediate(
 							seriesCb,
-							[
-								'Account with public key:',
-								keypair.publicKey.toString('hex'),
-								'not found',
-							].join(' ')
+							['Account with public key:', keypair.publicKey, 'not found'].join(
+								' '
+							)
 						);
 					}
 
 					if (account.isDelegate) {
-						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
+						__private.keypairs[keypair.publicKey] = keypair;
 						library.logger.info(
 							['Forging enabled on account:', account.address].join(' ')
 						);
@@ -659,7 +547,7 @@ __private.loadDelegates = function(cb) {
 						library.logger.warn(
 							[
 								'Account with public key:',
-								keypair.publicKey.toString('hex'),
+								keypair.publicKey,
 								'is not a delegate',
 							].join(' ')
 						);
@@ -679,21 +567,24 @@ __private.loadDelegates = function(cb) {
  *
  * @param {publicKey} publicKey - Public key of delegate
  * @param {string} password - Password used to decrypt encrypted passphrase
+ * @param {boolean} forging - Forging status of a delegate to update
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
+Delegates.prototype.updateForgingStatus = function(
+	publicKey,
+	password,
+	forging,
+	cb
+) {
 	const encryptedList = library.config.forging.delegates;
-	const encryptedItem = _.find(
-		encryptedList,
+	const encryptedItem = encryptedList.find(
 		item => item.publicKey === publicKey
 	);
 
 	let keypair;
 	let passphrase;
-	let actionEnable = false;
-	let actionDisable = false;
 
 	if (encryptedItem) {
 		try {
@@ -705,11 +596,8 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 			return setImmediate(cb, 'Invalid password and public key combination');
 		}
 
-		keypair = library.ed.makeKeypair(
-			crypto
-				.createHash('sha256')
-				.update(passphrase, 'utf8')
-				.digest()
+		keypair = lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
+			passphrase
 		);
 	} else {
 		return setImmediate(
@@ -718,37 +606,23 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 		);
 	}
 
-	if (keypair.publicKey.toString('hex') !== publicKey) {
+	if (keypair.publicKey !== publicKey) {
 		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
-	if (__private.keypairs[keypair.publicKey.toString('hex')]) {
-		actionDisable = true;
-	}
-
-	if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
-		actionEnable = true;
-	}
-
 	modules.accounts.getAccount(
-		{ publicKey: keypair.publicKey.toString('hex') },
+		{ publicKey: keypair.publicKey },
 		(err, account) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
 
 			if (account && account.isDelegate) {
-				let forgingStatus;
-
-				if (actionEnable) {
-					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					forgingStatus = true;
+				if (forging) {
+					__private.keypairs[keypair.publicKey] = keypair;
 					library.logger.info(`Forging enabled on account: ${account.address}`);
-				}
-
-				if (actionDisable) {
-					delete __private.keypairs[keypair.publicKey.toString('hex')];
-					forgingStatus = false;
+				} else {
+					delete __private.keypairs[keypair.publicKey];
 					library.logger.info(
 						`Forging disabled on account: ${account.address}`
 					);
@@ -756,7 +630,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, password, cb) {
 
 				return setImmediate(cb, null, {
 					publicKey,
-					forging: forgingStatus,
+					forging,
 				});
 			}
 			return setImmediate(cb, 'Delegate not found');
