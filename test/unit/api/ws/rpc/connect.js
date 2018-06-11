@@ -22,15 +22,20 @@ const wsRPC = require('../../../../../api/ws/rpc/ws_rpc').wsRPC;
 
 const connectRewired = rewire('../../../../../api/ws/rpc/connect');
 
+const validRPCProcedureName = 'rpcProcedureA';
+const validEventProcedureName = 'eventProcedureB';
+
 describe('connect', () => {
 	let validPeer;
 	let connectResult;
 	let addConnectionOptionsSpySpy;
 	let addSocketSpy;
-	let upgradeSocketSpy;
+	let upgradeSocketAsClientSpy;
+	let upgradeSocketAsServerSpy;
 	let registerRPCSpy;
 	let registerSocketListenersSpy;
 	let loggerMock;
+	let masterWAMPServerMock;
 
 	before('spy on connectSteps', done => {
 		const connectionSteps = connectRewired.__get__('connectSteps');
@@ -39,7 +44,14 @@ describe('connect', () => {
 			'addConnectionOptions'
 		);
 		addSocketSpy = sinon.spy(connectionSteps, 'addSocket');
-		upgradeSocketSpy = sinon.spy(connectionSteps, 'upgradeSocket');
+		upgradeSocketAsClientSpy = sinon.spy(
+			connectionSteps,
+			'upgradeSocketAsWAMPClient'
+		);
+		upgradeSocketAsServerSpy = sinon.spy(
+			connectionSteps,
+			'upgradeSocketAsWAMPServer'
+		);
 		registerRPCSpy = sinon.spy(connectionSteps, 'registerRPC');
 		registerSocketListenersSpy = sinon.spy(
 			connectionSteps,
@@ -51,7 +63,8 @@ describe('connect', () => {
 	after('restore spies on connectSteps', done => {
 		addConnectionOptionsSpySpy.restore();
 		addSocketSpy.restore();
-		upgradeSocketSpy.restore();
+		upgradeSocketAsClientSpy.restore();
+		upgradeSocketAsServerSpy.restore();
 		registerRPCSpy.restore();
 		registerSocketListenersSpy.restore();
 		done();
@@ -66,6 +79,18 @@ describe('connect', () => {
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
 		};
+		masterWAMPServerMock = {
+			upgradeToWAMP: sinon.stub(),
+			endpoints: {
+				rpc: {
+					[validRPCProcedureName]: sinon.stub().callsArg(1),
+				},
+				event: {
+					[validEventProcedureName]: sinon.stub(),
+				},
+			},
+		};
+		wsRPC.getServer = sinon.stub().returns(masterWAMPServerMock);
 		done();
 	});
 
@@ -85,7 +110,8 @@ describe('connect', () => {
 			it('should call all connectSteps', () => {
 				expect(addConnectionOptionsSpySpy).to.be.calledOnce;
 				expect(addSocketSpy).to.be.calledOnce;
-				expect(upgradeSocketSpy).to.be.calledOnce;
+				expect(upgradeSocketAsClientSpy).to.be.calledOnce;
+				expect(upgradeSocketAsServerSpy).to.be.calledOnce;
 				expect(registerRPCSpy).to.be.calledOnce;
 				return expect(registerSocketListenersSpy).to.be.calledOnce;
 			});
@@ -94,13 +120,24 @@ describe('connect', () => {
 				return sinon.assert.callOrder(addConnectionOptionsSpySpy, addSocketSpy);
 			});
 
-			it('should call upgradeSocketSpy after addSocket', () => {
-				return sinon.assert.callOrder(addSocketSpy, upgradeSocketSpy);
+			it('should call upgradeSocketAsClientSpy after addSocket', () => {
+				return sinon.assert.callOrder(addSocketSpy, upgradeSocketAsClientSpy);
 			});
 
-			it('should call registerRPCSpy after upgradeSocketSpy', () => {
+			it('should call upgradeSocketAsServerSpy after addSocket', () => {
+				return sinon.assert.callOrder(addSocketSpy, upgradeSocketAsServerSpy);
+			});
+
+			it('should call registerRPCSpy after upgradeSocketAsClientSpy', () => {
 				return sinon.assert.callOrder(
-					upgradeSocketSpy,
+					upgradeSocketAsClientSpy,
+					registerSocketListenersSpy
+				);
+			});
+
+			it('should call registerRPCSpy after upgradeSocketAsServerSpy', () => {
+				return sinon.assert.callOrder(
+					upgradeSocketAsServerSpy,
 					registerSocketListenersSpy
 				);
 			});
@@ -210,7 +247,7 @@ describe('connect', () => {
 			});
 		});
 
-		describe('upgradeSocket', () => {
+		describe('upgradeSocketAsWAMPClient', () => {
 			let upgradeToWAMPSpy;
 			let validSocket;
 			before(done => {
@@ -224,11 +261,11 @@ describe('connect', () => {
 				done();
 			});
 			beforeEach(done => {
-				const upgradeSocket = connectRewired.__get__(
-					'connectSteps.upgradeSocket'
+				const upgradeSocketAsWAMPClient = connectRewired.__get__(
+					'connectSteps.upgradeSocketAsWAMPClient'
 				);
 				validPeer.socket = validSocket;
-				peerAsResult = upgradeSocket(validPeer);
+				peerAsResult = upgradeSocketAsWAMPClient(validPeer);
 				done();
 			});
 			afterEach(done => {
@@ -270,43 +307,11 @@ describe('connect', () => {
 				validRPCSocket.call.reset();
 				validRPCSocket.emit.reset();
 				validPeer.socket = validRPCSocket;
-				peerAsResult = registerRPC(validPeer, loggerMock);
+				peerAsResult = registerRPC(validPeer, loggerMock, masterWAMPServerMock);
 				done();
 			});
 
-			describe('when wsRPC.getServer throws', () => {
-				before(done => {
-					wsRPC.getServer = sinon.stub().throws();
-					done();
-				});
-
-				it('should return peer with rpc = {}', () => {
-					return expect(peerAsResult)
-						.to.have.property('rpc')
-						.to.be.an('object').and.to.be.empty;
-				});
-			});
-
 			describe('when wsRPC.getServer returns servers with event and rpc methods', () => {
-				let masterWAMPServerMock;
-				const validRPCProcedureName = 'rpcProcedureA';
-				const validEventProcedureName = 'eventProcedureB';
-
-				before(done => {
-					masterWAMPServerMock = {
-						endpoints: {
-							rpc: {
-								[validRPCProcedureName]: sinon.stub().callsArg(1),
-							},
-							event: {
-								[validEventProcedureName]: sinon.stub(),
-							},
-						},
-					};
-					wsRPC.getServer = sinon.stub().returns(masterWAMPServerMock);
-					done();
-				});
-
 				it('should return peer with rpc', () => {
 					return expect(peerAsResult)
 						.to.have.property('rpc')
