@@ -13,7 +13,7 @@
  *
  */
 
-import * as popsicle from 'popsicle';
+import axios from 'axios';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
@@ -37,23 +37,27 @@ export default class APIResource {
 	}
 
 	request(req, retry, retryCount = 1) {
-		const request = popsicle
+		const request = axios
 			.request(req)
-			.use(popsicle.plugins.parse(['json', 'urlencoded']))
-			.then(res => {
-				if (res.status >= 300) {
-					if (res.body && res.body.message) {
-						throw new Error(`Status ${res.status} : ${res.body.message}`);
+			.then(res => res.data)
+			.catch(error => {
+				if (error.response) {
+					if (error.response.data && error.response.data.message) {
+						throw new Error(
+							`Status ${error.response.status} : ${
+								error.response.data.message
+							}`,
+						);
 					}
 					throw new Error(
-						`Status ${res.status} : An unknown error has occurred.`,
+						`Status ${error.response.status} : An unknown error has occurred.`,
 					);
 				}
-				return res.body;
+				throw error;
 			});
 
 		if (retry) {
-			request.catch(err => this.handleRetry(err, req, retryCount));
+			return request.catch(err => this.handleRetry(err, req, retryCount));
 		}
 		return request;
 	}

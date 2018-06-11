@@ -69,7 +69,7 @@ const apiMethod = (
 			if (method === GET) {
 				requestData.url += `?${toQueryString(data)}`;
 			} else {
-				requestData.body = data;
+				requestData.data = data;
 			}
 		}
 		return this.request(requestData, retry);

@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import APIResource from 'api_client/api_resource';
-// Require is used for stubbing
-const popsicle = require('popsicle');
+// Required for stub
+const axios = require('axios');
 
 describe('API resource module', () => {
 	const GET = 'GET';
@@ -37,8 +36,8 @@ describe('API resource module', () => {
 	};
 
 	const sendRequestResult = {
-		status: 200,
-		body: { success: true, sendRequest: true },
+		data: [],
+		limit: 0,
 	};
 	let resource;
 	let apiClient;
@@ -87,12 +86,13 @@ describe('API resource module', () => {
 	});
 
 	describe('#request', () => {
-		let popsicleStub;
+		let requestStub;
 		let handleRetryStub;
 
 		beforeEach(() => {
-			popsicleStub = sandbox.stub(popsicle, 'request').returns({
-				use: () => Promise.resolve(sendRequestResult),
+			requestStub = sandbox.stub(axios, 'request').resolves({
+				status: 200,
+				data: sendRequestResult,
 			});
 			handleRetryStub = sandbox.stub(resource, 'handleRetry');
 			return Promise.resolve();
@@ -100,28 +100,30 @@ describe('API resource module', () => {
 
 		it('should make a request to API without calling retry', () => {
 			return resource.request(defaultRequest, false).then(res => {
-				expect(popsicleStub).to.be.calledOnce;
+				expect(requestStub).to.be.calledOnce;
+				expect(requestStub).to.be.calledWithExactly(defaultRequest);
 				expect(handleRetryStub).not.to.be.called;
-				return expect(res).to.eql(sendRequestResult.body);
+				return expect(res).to.eql(sendRequestResult);
 			});
 		});
 
-		it('should make a request to API without calling retry when it successes', () => {
+		it('should make a request to API without calling retry when it succeeds', () => {
 			return resource.request(defaultRequest, true).then(res => {
-				expect(popsicleStub).to.be.calledOnce;
+				expect(requestStub).to.be.calledOnce;
+				expect(requestStub).to.be.calledWithExactly(defaultRequest);
 				expect(handleRetryStub).not.to.be.called;
-				return expect(res).to.eql(sendRequestResult.body);
+				return expect(res).to.eql(sendRequestResult);
 			});
 		});
 
 		describe('when response status is greater than 300', () => {
 			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
 				const statusCode = 300;
-				popsicleStub.returns({
-					use: () =>
-						Promise.resolve({
-							status: statusCode,
-						}),
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: sendRequestResult,
+					},
 				});
 				return resource.request(defaultRequest, true).catch(err => {
 					return expect(err.message).to.equal(
@@ -133,14 +135,11 @@ describe('API resource module', () => {
 			it('should reject with error message from server if message is supplied', () => {
 				const serverErrorMessage = 'validation error';
 				const statusCode = 300;
-				popsicleStub.returns({
-					use: () =>
-						Promise.resolve({
-							status: statusCode,
-							body: {
-								message: serverErrorMessage,
-							},
-						}),
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: { message: serverErrorMessage },
+					},
 				});
 				return resource.request(defaultRequest, true).catch(err => {
 					return expect(err.message).to.eql(
@@ -149,15 +148,24 @@ describe('API resource module', () => {
 				});
 			});
 
+			it('should reject with error if client rejects with plain error', () => {
+				const clientError = new Error('client error');
+				requestStub.rejects(clientError);
+				return resource.request(defaultRequest, true).catch(err => {
+					return expect(err).to.eql(clientError);
+				});
+			});
+
 			it('should make a request to API with calling retry', () => {
-				popsicleStub.returns({
-					use: () =>
-						Promise.resolve({
-							status: 300,
-						}),
+				const statusCode = 300;
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: sendRequestResult,
+					},
 				});
 				return resource.request(defaultRequest, true).catch(() => {
-					expect(popsicleStub).to.be.calledOnce;
+					expect(requestStub).to.be.calledOnce;
 					return expect(handleRetryStub).to.be.calledOnce;
 				});
 			});
