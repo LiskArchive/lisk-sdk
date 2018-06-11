@@ -54,10 +54,10 @@ export function itShouldNotCallNodeGetForgingStatus() {
 	return expect(liskAPIInstance.node.getForgingStatus).not.to.be.called;
 }
 
-export function itShoulHaveErrorMessageForForgingStatus() {
+export function itShouldHaveErrorMessageForForgingStatus() {
 	const { returnValue, errorMessage } = this.test.ctx;
 	return expect(returnValue)
 		.to.eventually.be.an('object')
 		.and.have.property('forgingStatus')
-		.eql(errorMessage);
+		.equal(errorMessage);
 }

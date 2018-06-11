@@ -18,7 +18,7 @@ import getAPIClient from '../utils/api';
 
 const description = `Gets information about a node.
 
-	Examples: check node status
+	Example: check node status
 `;
 
 const forgingDescription =

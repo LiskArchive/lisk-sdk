@@ -143,7 +143,7 @@ describe('check node status command', () => {
 														);
 														Then(
 															'it should have error message for forgingStatus',
-															then.itShoulHaveErrorMessageForForgingStatus,
+															then.itShouldHaveErrorMessageForForgingStatus,
 														);
 														Then(
 															'it should resolve to an object which has key equal to "forgingStatus"',
