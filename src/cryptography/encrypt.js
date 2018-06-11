@@ -38,7 +38,7 @@ export const encryptMessageWithPassphrase = (
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
-	const messageInBytes = nacl.util.decodeUTF8(message);
+	const messageInBytes = Buffer.from(message, 'utf8');
 
 	const nonce = nacl.randomBytes(24);
 	const cipherBytes = nacl.box(
@@ -81,7 +81,7 @@ export const decryptMessageWithPassphrase = (
 			convertedPublicKey,
 			convertedPrivateKey,
 		);
-		return nacl.util.encodeUTF8(decoded);
+		return Buffer.from(decoded).toString();
 	} catch (error) {
 		if (error.message.match(/bad nonce size/)) {
 			throw new Error('Expected 24-byte nonce but got length 1.');

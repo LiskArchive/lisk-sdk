@@ -13,14 +13,11 @@
  *
  */
 import nacl from 'tweetnacl';
-import naclUtil from 'tweetnacl-util';
 import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { SIGNED_MESSAGE_PREFIX } from 'lisk-constants';
 import hash from './hash';
 import { hexToBuffer, bufferToHex } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
-
-nacl.util = naclUtil;
 
 const createHeader = text => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');

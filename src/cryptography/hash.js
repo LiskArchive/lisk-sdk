@@ -12,22 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import nacl from 'tweetnacl';
-import naclUtil from 'tweetnacl-util';
-import sha256 from 'js-sha256';
+import crypto from 'crypto';
 import { hexToBuffer } from './convert';
 
-nacl.util = naclUtil;
-
 const cryptoHashSha256 = data => {
-	const hash = sha256.create();
+	const hash = crypto.createHash('sha256');
 	hash.update(data);
-	return new Uint8Array(hash.array());
+	return hash.digest();
 };
 
 const hash = (data, format) => {
 	if (Buffer.isBuffer(data)) {
-		return Buffer.from(cryptoHashSha256(data)); // :: should I remove Buffer.from?
+		return cryptoHashSha256(data);
 	}
 
 	if (typeof data === 'string') {
@@ -37,7 +33,7 @@ const hash = (data, format) => {
 			);
 		}
 		const encoded =
-			format === 'utf8' ? nacl.util.decodeUTF8(data) : hexToBuffer(data);
+			format === 'utf8' ? Buffer.from(data, 'utf8') : hexToBuffer(data);
 		return cryptoHashSha256(encoded);
 	}
 
