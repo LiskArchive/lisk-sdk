@@ -15,7 +15,7 @@
  */
 import elements from 'lisk-elements';
 import getAPIClient from '../../../src/utils/api';
-import { getFirstQuotedString } from '../utils';
+import { getFirstQuotedString, getFirstBoolean } from '../utils';
 
 export function itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters() {
 	const { liskAPIInstance, endpoint, parameters } = this.test.ctx;
@@ -108,4 +108,14 @@ export function itShouldResolveToAnObjectWhichDoesNotHaveKeyEqualTo() {
 	return expect(returnValue)
 		.to.eventually.be.an('object')
 		.and.not.have.property(key);
+}
+
+export function updateForgingStatusShouldBeCalledWithThePublicKeyAndThePasswordAndForgingSetTo() {
+	const { liskAPIInstance, publicKey, password } = this.test.ctx;
+	const forging = getFirstBoolean(this.test.title);
+	return expect(liskAPIInstance.node.updateForgingStatus).to.be.calledWith({
+		publicKey,
+		password,
+		forging,
+	});
 }

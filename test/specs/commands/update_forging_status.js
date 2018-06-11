@@ -20,234 +20,178 @@ import * as then from '../../steps/3_then';
 
 describe('update forging status command', () => {
 	beforeEach(setUpCommandUpdateForgingStatus);
-	Given('a crypto instance', given.aCryptoInstance, () => {
-		Given('a Lisk API Instance instance', given.aLiskAPIInstance, () => {
-			Given(
-				'a Vorpal instance with a UI and an active command that can prompt',
-				given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt,
-				() => {
-					Given('an action "update forging status"', given.anAction, () => {
-						Given(
-							'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice"',
-							given.aPassphrase,
-							() => {
-								Given(
-									'an empty options object',
-									given.anEmptyOptionsObject,
-									() => {
-										When(
-											'the action is called with the status and the public key and the options',
-											when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+	Given('a Lisk API instance', given.aLiskAPIInstance, () => {
+		Given(
+			'a Vorpal instance with a UI and an active command that can prompt',
+			given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt,
+			() => {
+				Given('an action "update forging status"', given.anAction, () => {
+					Given(
+						'an options object with a password set to "randompassword"',
+						given.anOptionsObjectWithPasswordSetTo,
+						() => {
+							Given(
+								'the password can be retrived from its source',
+								given.thePasswordCanBeRetrievedFromItsSource,
+								() => {
+									Given('a status "enable"', given.aStatus, () => {
+										Given(
+											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
+											given.aPublicKey,
 											() => {
-												Then(
-													'it should reject with validation error and message "Status must be either enable or disable"',
-													then.itShouldRejectWithValidationErrorAndMessage,
+												Given(
+													'updateForgingStatus resolves successfully',
+													given.updateForgingStatusResolvesSuccessfully,
+													() => {
+														When(
+															'the action is called with the status and the public key and the options',
+															when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+															() => {
+																Then(
+																	'it should resolve to the API response',
+																	then.itShouldResolveToTheAPIResponse,
+																);
+																Then(
+																	'updateForgingStatus should be called with the public key and the password and forging set to true',
+																	then.updateForgingStatusShouldBeCalledWithThePublicKeyAndThePasswordAndForgingSetTo,
+																);
+															},
+														);
+													},
 												);
 											},
 										);
-										Given('a status "enable"', given.aStatus, () => {
-											When(
-												'the action is called with the status and the public key and the options',
-												when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-												() => {
-													Then(
-														'it should reject with validation error and message "Public key must be a hex string"',
-														then.itShouldRejectWithValidationErrorAndMessage,
-													);
-												},
-											);
-											Given(
-												'a public key "randompublickey"',
-												given.aPublicKey,
-												() => {
-													When(
-														'the action is called with the status and the public key and the options',
-														when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-														() => {
-															Then(
-																'it should reject with validation error and message "Public key must be a hex string"',
-																then.itShouldRejectWithValidationErrorAndMessage,
-															);
-														},
-													);
-												},
-											);
-											Given(
-												'a public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"',
-												given.aPublicKey,
-												() => {
-													Given(
-														'getForgingStatus resolves with the public key "non-existing public key"',
-														given.getForgingStatusResolvesWithPublicKey,
-														() => {
-															Given(
-																'updateForgingStatus resolvess successfully',
-																given.updateForgingStatusResolvesSuccessfully,
-																() => {
-																	Given(
-																		'the passphrase can be retrieved from its source',
-																		given.thePassphraseCanBeRetrievedFromItsSource,
-																		() => {
-																			When(
-																				'the action is called with the status and the public key and the options',
-																				when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																				() => {
-																					Then(
-																						'it should resolves to the API response',
-																						then.itShouldResolveToTheAPIResponse,
-																					);
-																				},
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-													Given(
-														'getForgingStatus resolves with the public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"',
-														given.getForgingStatusResolvesWithPublicKey,
-														() => {
-															Given(
-																'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-																given.anErrorOccursRetrievingTheInputsFromTheirSources,
-																() => {
-																	When(
-																		'the action is called with the status and the public key and the options',
-																		when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																		() => {
-																			Then(
-																				'it should reject with the error message',
-																				then.itShouldRejectWithTheErrorMessage,
-																			);
-																		},
-																	);
-																},
-															);
-															Given(
-																'the passphrase can be retrieved from its source',
-																given.thePassphraseCanBeRetrievedFromItsSource,
-																() => {
-																	When(
-																		'the action is called with the status and the public key and the options',
-																		when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																		() => {
-																			Then(
-																				'it should reject with error and message "The delegate is already enabled"',
-																				then.itShouldRejectWithErrorAndMessage,
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-												},
-											);
-										});
-										Given('a status "disable"', given.aStatus, () => {
-											Given(
-												'a public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc5"',
-												given.aPublicKey,
-												() => {
-													Given(
-														'updateForgingStatus resolvess successfully',
-														given.updateForgingStatusResolvesSuccessfully,
-														() => {
-															Given(
-																'the passphrase can be retrieved from its source',
-																given.thePassphraseCanBeRetrievedFromItsSource,
-																() => {
-																	When(
-																		'the action is called with the status and the public key and the options',
-																		when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																		() => {
-																			Then(
-																				'it should reject with error and message "There is no delegate enabled"',
-																				then.itShouldRejectWithErrorAndMessage,
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-												},
-											);
-											Given(
-												'a public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"',
-												given.aPublicKey,
-												() => {
-													Given(
-														'getForgingStatus resolves with the public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad063010139aaaaaaaaaaaaaaaaaaa"',
-														given.getForgingStatusResolvesWithPublicKey,
-														() => {
-															Given(
-																'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-																given.anErrorOccursRetrievingTheInputsFromTheirSources,
-																() => {
-																	When(
-																		'the action is called with the status and the public key and the options',
-																		when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																		() => {
-																			Then(
-																				'it should reject with the error message',
-																				then.itShouldRejectWithTheErrorMessage,
-																			);
-																		},
-																	);
-																},
-															);
-															Given(
-																'the passphrase can be retrieved from its source',
-																given.thePassphraseCanBeRetrievedFromItsSource,
-																() => {
-																	When(
-																		'the action is called with the status and the public key and the options',
-																		when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																		() => {
-																			Then(
-																				'it should reject with error and message "There is no delegate enabled"',
-																				then.itShouldRejectWithErrorAndMessage,
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-													Given(
-														'getForgingStatus resolves with the public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588"',
-														given.getForgingStatusResolvesWithPublicKey,
-														() => {
-															Given(
-																'the passphrase can be retrieved from its source',
-																given.thePassphraseCanBeRetrievedFromItsSource,
-																() => {
-																	When(
-																		'the action is called with the status and the public key and the options',
-																		when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
-																		() => {
-																			Then(
-																				'it should resolves to the API Response',
-																				then.itShouldResolveToTheAPIResponse,
-																			);
-																		},
-																	);
-																},
-															);
-														},
-													);
-												},
-											);
-										});
-									},
-								);
-							},
-						);
-					});
-				},
-			);
-		});
+									});
+								},
+							);
+						},
+					);
+					Given(
+						'a password "minute omit local rare sword knee banner pair rib museum shadow juice"',
+						given.aPassword,
+						() => {
+							Given(
+								'an empty options object',
+								given.anEmptyOptionsObject,
+								() => {
+									Given('a status "random"', given.aStatus, () => {
+										Given(
+											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
+											given.aPublicKey,
+											() => {
+												When(
+													'the action is called with the status and the public key and the options',
+													when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+													() => {
+														Then(
+															'it should reject error and message "Status must be either enable or disable."',
+															then.itShouldRejectWithErrorAndMessage,
+														);
+													},
+												);
+											},
+										);
+									});
+									Given('a status "enable"', given.aStatus, () => {
+										Given(
+											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
+											given.aPublicKey,
+											() => {
+												Given(
+													'the password can be retrived from its source',
+													given.thePasswordCanBeRetrievedFromItsSource,
+													() => {
+														Given(
+															'updateForgingStatus resolves successfully',
+															given.updateForgingStatusResolvesSuccessfully,
+															() => {
+																When(
+																	'the action is called with the status and the public key and the options',
+																	when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+																	() => {
+																		Then(
+																			'updateForgingStatus should be called with the public key and the password and forging set to true',
+																			then.updateForgingStatusShouldBeCalledWithThePublicKeyAndThePasswordAndForgingSetTo,
+																		);
+																		Then(
+																			'it should resolve to the API response',
+																			then.itShouldResolveToTheAPIResponse,
+																		);
+																	},
+																);
+															},
+														);
+													},
+												);
+												Given(
+													'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+													given.anErrorOccursRetrievingTheInputsFromTheirSources,
+													() => {
+														When(
+															'the action is called with the status and the public key and the options',
+															when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+															() => {
+																Then(
+																	'it should reject with the error message',
+																	then.itShouldRejectWithTheErrorMessage,
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									});
+									Given('a status "disable"', given.aStatus, () => {
+										Given(
+											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
+											given.aPublicKey,
+											() => {
+												Given(
+													'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+													given.anErrorOccursRetrievingTheInputsFromTheirSources,
+													() => {
+														When(
+															'the action is called with the status and the public key and the options',
+															when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+															() => {
+																Then(
+																	'it should reject with the error message',
+																	then.itShouldRejectWithTheErrorMessage,
+																);
+															},
+														);
+													},
+												);
+												Given(
+													'the password can be retrived from its source',
+													given.thePasswordCanBeRetrievedFromItsSource,
+													() => {
+														When(
+															'the action is called with the status and the public key and the options',
+															when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+															() => {
+																Then(
+																	'updateForgingStatus should be called with the public key and the password and forging set to false',
+																	then.updateForgingStatusShouldBeCalledWithThePublicKeyAndThePasswordAndForgingSetTo,
+																);
+																Then(
+																	'it should resolve to the API Response',
+																	then.itShouldResolveToTheAPIResponse,
+																);
+															},
+														);
+													},
+												);
+											},
+										);
+									});
+								},
+							);
+						},
+					);
+				});
+			},
+		);
 	});
 });

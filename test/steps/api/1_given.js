@@ -14,7 +14,6 @@
  *
  */
 import getAPIClient from '../../../src/utils/api';
-import { getFirstQuotedString } from '../utils';
 
 export function aLiskAPIInstance() {
 	this.test.ctx.liskAPIInstance = getAPIClient();
@@ -60,19 +59,6 @@ export function getNodeConstantsResolvesSuccessfully() {
 
 	this.test.ctx.nodeConstants = data;
 }
-export function getForgingStatusResolvesWithPublicKey() {
-	const { liskAPIInstance } = this.test.ctx;
-	const publicKey = getFirstQuotedString(this.test.parent.title);
-	const response = {
-		data: [
-			{
-				publicKey,
-				forging: true,
-			},
-		],
-	};
-	liskAPIInstance.node.getForgingStatus.resolves(response);
-}
 
 export function updateForgingStatusResolvesSuccessfully() {
 	const { liskAPIInstance, publicKey } = this.test.ctx;
@@ -86,11 +72,4 @@ export function updateForgingStatusResolvesSuccessfully() {
 	};
 	this.test.ctx.apiResponse = response.data;
 	liskAPIInstance.node.updateForgingStatus.resolves(response);
-}
-
-export function updateForgingStatusRejectsWithError() {
-	const { liskAPIInstance } = this.test.ctx;
-	const errorMessage = 'update error';
-	liskAPIInstance.node.updateForgingStatus.rejects(new Error(errorMessage));
-	this.test.ctx.errorMessage = errorMessage;
 }
