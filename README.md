@@ -113,12 +113,14 @@ $ lisk get delegate lightcurve --json
 
 Configuration is stored in a config file placed in the user's home directory (run `help set` to see the exact location). If this is unavailable a default configuration is used. The following settings can be updated (and will be persisted if possible):
 
-| Command                                               | Description                                                 |
-| ----------------------------------------------------- | ----------------------------------------------------------- |
-| <code>set json true&#124;false</code>                 | Sets default to JSON output (true) or text output (false).  |
-| <code>set pretty true&#124;false</code>               | Sets default to formatted output when JSON output is used.  |
-| <code>set api.network main&#124;test&#124;beta</code> | Sets api target to the specified network.                   |
-| <code>set api.nodes http://localhost:4000</code>      | Override api.network and set specific nodes communicate to. |
+| Command                                                                    | Description                                                 |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| <code>set name lisk</code>                                                 | Sets name to be displayed.                                  |
+| <code>set delimiter lisk</code>                                            | Sets delimiter in the interactive mode.                     |
+| <code>set json true&#124;false</code>                                      | Sets default to JSON output (true) or text output (false).  |
+| <code>set pretty true&#124;false</code>                                    | Sets default to formatted output when JSON output is used.  |
+| <code>set api.network main&#124;test&#124;beta</code>                      | Sets API target to the specified network.                   |
+| <code>set api.nodes http://localhost:4000 http://192.168.178.1:4001</code> | Override api.network and set specific nodes communicate to. |
 
 ## Documentation
 
