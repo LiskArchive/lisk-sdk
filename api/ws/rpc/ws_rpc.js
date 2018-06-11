@@ -74,8 +74,9 @@ const wsRPC = {
 	},
 };
 
-const remoteAction = function() {
-	throw new Error('Function invoked on master instead of slave process');
+const remoteAction = function(query, cb) {
+	const err = 'Function invoked on master instead of slave process';
+	return setImmediate(cb, err);
 };
 
 const slaveRPCStub = {
