@@ -18,13 +18,20 @@ import { createCommand } from '../utils/helpers';
 import commonOptions from '../utils/options';
 import cryptography from '../utils/cryptography';
 
-const description = `Shows an account information with the given passphrase.
+const description = `Shows account information for a given passphrase.
 
-  Examples: show account
+  Example: show account
 `;
 
-const processInput = ({ passphrase }) =>
-	cryptography.liskCrypto.getAddressAndPublicKeyFromPassphrase(passphrase);
+const processInput = ({ passphrase }) => {
+	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
+	const { address } = cryptography.getAddressFromPublicKey(publicKey);
+	return {
+		privateKey,
+		publicKey,
+		address,
+	};
+};
 
 export const actionCreator = vorpal => async ({ options }) => {
 	const { passphrase: passphraseSource } = options;

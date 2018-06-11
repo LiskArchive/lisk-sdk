@@ -31,23 +31,29 @@ describe('show account command', () => {
 						given.aPassphrase,
 						() => {
 							Given(
-								'an object with the public key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and the address "2167422481642255385L" derived from the passphrase',
-								given.anObjectWithThePublicKeyAndTheAddressDerivedFromThePassphrase,
+								'a passphrase "minute omit local rare sword knee banner pair rib museum shadow juice" with private key "314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d977ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and public key "7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588" and address "2167422481642255385L"',
+								given.aPassphraseWithPrivateKeyAndPublicKeyAndAddress,
 								() => {
 									Given(
-										'an empty options object',
-										given.anEmptyOptionsObject,
+										'an options object with passphrase set to "passphraseSource"',
+										given.anOptionsObjectWithPassphraseSetTo,
 										() => {
 											When(
 												'the action is called with the options',
 												when.theActionIsCalledWithTheOptions,
 												() => {
 													Then(
-														'it should resolve to an object with the public key and the address',
-														then.itShouldResolveToAnObjectWithThePublicKeyAndTheAddress,
+														'it should resolve to an object with the public key, the private key and the address',
+														then.itShouldResolveToAnObjectWithThePublicKeyThePrivateKeyAndTheAddress,
 													);
 												},
 											);
+										},
+									);
+									Given(
+										'an empty options object',
+										given.anEmptyOptionsObject,
+										() => {
 											Given(
 												'an error "Unknown data source type." occurs retrieving the inputs from their sources',
 												given.anErrorOccursRetrievingTheInputsFromTheirSources,
@@ -81,8 +87,8 @@ describe('show account command', () => {
 																then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
 															);
 															Then(
-																'it should resolve to an object with the public key and the address',
-																then.itShouldResolveToAnObjectWithThePublicKeyAndTheAddress,
+																'it should resolve to an object with the public key, the private key and the address',
+																then.itShouldResolveToAnObjectWithThePublicKeyThePrivateKeyAndTheAddress,
 															);
 														},
 													);
