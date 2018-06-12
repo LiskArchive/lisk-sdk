@@ -523,7 +523,7 @@ __private.loadDelegates = function(cb) {
 
 			modules.accounts.getAccount(
 				{
-					publicKey: keypair.publicKey,
+					publicKey: keypair.publicKey.toString('hex'),
 				},
 				(err, account) => {
 					if (err) {
