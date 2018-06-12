@@ -482,11 +482,9 @@ __private.loadDelegates = function(cb) {
 		return setImmediate(cb);
 	}
 	library.logger.info(
-		[
-			'Loading',
-			encryptedList.length,
-			'delegates using encrypted passphrases from config',
-		].join(' ')
+		`Loading ${
+			encryptedList.length
+		} delegates using encrypted passphrases from config`
 	);
 
 	async.eachSeries(
@@ -535,26 +533,22 @@ __private.loadDelegates = function(cb) {
 					if (!account) {
 						return setImmediate(
 							seriesCb,
-							[
-								'Account with public key:',
-								keypair.publicKey.toString('hex'),
-								'not found',
-							].join(' ')
+							`Account with public key: ${keypair.publicKey.toString(
+								'hex'
+							)} not found`
 						);
 					}
 
 					if (account.isDelegate) {
 						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 						library.logger.info(
-							['Forging enabled on account:', account.address].join(' ')
+							`Forging enabled on account: ${account.address}`
 						);
 					} else {
 						library.logger.warn(
-							[
-								'Account with public key:',
-								keypair.publicKey,
-								'is not a delegate',
-							].join(' ')
+							`Account with public key: ${keypair.publicKey.toString(
+								'hex'
+							)} is not a delegate`
 						);
 					}
 
@@ -608,10 +602,7 @@ Delegates.prototype.updateForgingStatus = function(
 				.digest()
 		);
 	} else {
-		return setImmediate(
-			cb,
-			['Delegate with publicKey:', publicKey, 'not found'].join(' ')
-		);
+		return setImmediate(cb, `Delegate with publicKey: ${publicKey} not found`);
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
