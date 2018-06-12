@@ -405,7 +405,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/UnexpectedError'
-    patch:
+    put:
       tags:
         - Node
       summary: Toggles the forging status of a delegate

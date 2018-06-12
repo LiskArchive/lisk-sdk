@@ -22,9 +22,9 @@ var apiHelpers = require('../../../common/helpers/api');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
-describe('PATCH /node/status/forging', () => {
+describe('PUT /node/status/forging', () => {
 	var validDelegate = genesisDelegates.delegates[0];
-	var updateForgingEndpoint = new swaggerEndpoint('PATCH /node/status/forging');
+	var updateForgingEndpoint = new swaggerEndpoint('PUT /node/status/forging');
 	var forgingStatusEndpoint = new swaggerEndpoint('GET /node/status/forging');
 
 	before(() => {
