@@ -17,6 +17,8 @@
 module.exports = {
 	network: {
 		peers: require('./network/peers'),
+		peerDisconnect: require('./network/peer_disconnect'),
+		peersBlackList: require('./network/peers_blacklist'),
 	},
 	propagation: {
 		blocks: require('./propagation/blocks'),
@@ -24,7 +26,6 @@ module.exports = {
 		multisignature: require('./propagation/rpc/transactions/multisignature'),
 	},
 	stress: {
-		transfer: require('./stress/0.transfer'),
 		transfer_with_data: require('./stress/0.transfer_with_data.js'),
 		second_passphrase: require('./stress/1.second_passphrase'),
 		register_delegate: require('./stress/2.register_delegate'),

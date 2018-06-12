@@ -337,9 +337,6 @@ describe('blocks/process', () => {
 			});
 
 			afterEach(() => {
-				expect(loggerStub.info.args[0][0]).to.equal(
-					'Last block and parent loses'
-				);
 				return expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 1)
 				).to.be.true;
@@ -439,6 +436,11 @@ describe('blocks/process', () => {
 
 								describe('when succeeds', () => {
 									describe('modules.blocks.chain.deleteLastBlock (first call)', () => {
+										afterEach(() => {
+											return expect(loggerStub.info.args[0][0]).to.equal(
+												'Last block and parent loses due to fork 1'
+											);
+										});
 										describe('when fails', () => {
 											beforeEach(() => {
 												library.logic.block.objectNormalize.returns({
@@ -635,10 +637,9 @@ describe('blocks/process', () => {
 			});
 
 			afterEach(() => {
-				expect(
+				return expect(
 					modules.delegates.fork.calledWithExactly(sinonSandbox.match.object, 5)
 				).to.be.true;
-				return expect(loggerStub.info.args[0][0]).to.equal('Last block loses');
 			});
 
 			describe('library.logic.block.objectNormalize', () => {
@@ -740,6 +741,12 @@ describe('blocks/process', () => {
 										return modules.blocks.verify.verifyReceipt.returns({
 											verified: true,
 										});
+									});
+
+									afterEach(() => {
+										return expect(loggerStub.info.args[0][0]).to.equal(
+											'Last block loses due to fork 5'
+										);
 									});
 
 									describe('modules.blocks.chain.deleteLastBlock', () => {
@@ -1167,21 +1174,16 @@ describe('blocks/process', () => {
 				});
 
 				it('should call a callback with error', done => {
-					blocksProcessModule.loadBlocksOffset(
-						100,
-						0,
-						true,
-						(err, lastBlock) => {
-							expect(err).to.equal(
-								'Blocks#loadBlocksOffset error: blocks.loadBlocksOffset-REJECTS'
-							);
-							expect(lastBlock).to.be.undefined;
-							expect(loggerStub.error.args[0][0].stack).to.contains(
-								'blocks.loadBlocksOffset-REJECTS'
-							);
-							done();
-						}
-					);
+					blocksProcessModule.loadBlocksOffset(100, 0, (err, lastBlock) => {
+						expect(err).to.equal(
+							'Blocks#loadBlocksOffset error: blocks.loadBlocksOffset-REJECTS'
+						);
+						expect(lastBlock).to.be.undefined;
+						expect(loggerStub.error.args[0][0].stack).to.contains(
+							'blocks.loadBlocksOffset-REJECTS'
+						);
+						done();
+					});
 				});
 			});
 
@@ -1199,30 +1201,23 @@ describe('blocks/process', () => {
 					});
 
 					it('should return without process', done => {
-						blocksProcessModule.loadBlocksOffset(
-							100,
-							0,
-							true,
-							(err, lastBlock) => {
-								expect(err).to.be.null;
-								expect(lastBlock).to.deep.equal({
-									id: '2',
-									height: 2,
-								});
-								done();
-							}
-						);
+						blocksProcessModule.loadBlocksOffset(100, 0, (err, lastBlock) => {
+							expect(err).to.be.null;
+							expect(lastBlock).to.deep.equal({
+								id: '2',
+								height: 2,
+							});
+							done();
+						});
 					});
 				});
 
 				describe('when query returns rows', () => {
 					beforeEach(() => {
-						library.db.blocks.loadBlocksOffset.resolves([dummyBlock]);
-						return modules.blocks.utils.readDbRows.returns([dummyBlock]);
+						return library.db.blocks.loadBlocksOffset.resolves([dummyBlock]);
 					});
 
 					afterEach(() => {
-						expect(modules.blocks.utils.readDbRows.calledOnce).to.be.true;
 						return expect(modules.blocks.lastBlock.get.calledOnce).to.be.true;
 					});
 
@@ -1235,7 +1230,6 @@ describe('blocks/process', () => {
 								return expect(loggerStub.debug.args[0][1]).to.deep.equal({
 									limit: 100,
 									offset: 0,
-									verify: true,
 								});
 							});
 
@@ -1243,7 +1237,6 @@ describe('blocks/process', () => {
 								blocksProcessModule.loadBlocksOffset(
 									100,
 									0,
-									true,
 									(err, lastBlock) => {
 										expect(err).to.be.null;
 										expect(lastBlock).to.deep.equal({
@@ -1262,147 +1255,6 @@ describe('blocks/process', () => {
 								return modules.blocks.isCleaning.get.returns(false);
 							});
 
-							describe('when verify is true and block id is not genesis block', () => {
-								afterEach(() => {
-									expect(loggerStub.debug.args[1][0]).to.equal(
-										'Processing block'
-									);
-									expect(loggerStub.debug.args[1][1]).to.equal('4');
-									return expect(loggerStub.debug.args[0][1]).to.deep.equal({
-										limit: 100,
-										offset: 0,
-										verify: true,
-									});
-								});
-
-								describe('library.logic.block.objectNormalize', () => {
-									describe('when fails', () => {
-										beforeEach(() => {
-											return library.logic.block.objectNormalize.throws(
-												'objectNormalize-ERR'
-											);
-										});
-
-										it('should call a callback with error', done => {
-											blocksProcessModule.loadBlocksOffset(
-												100,
-												0,
-												true,
-												(err, lastBlock) => {
-													expect(err.name).to.equal('objectNormalize-ERR');
-													expect(lastBlock).to.deep.equal({
-														id: '2',
-														height: 2,
-													});
-													done();
-												}
-											);
-										});
-									});
-
-									describe('when succeeds', () => {
-										beforeEach(() => {
-											return library.logic.block.objectNormalize.returns(
-												dummyBlock
-											);
-										});
-										describe('modules.blocks.verify.verifyBlock', () => {
-											describe('when fails', () => {
-												beforeEach(() => {
-													return modules.blocks.verify.verifyBlock.returns({
-														verified: false,
-														errors: ['verifyBlock-ERR'],
-													});
-												});
-
-												it('should call a callback with error', done => {
-													blocksProcessModule.loadBlocksOffset(
-														100,
-														0,
-														true,
-														(err, lastBlock) => {
-															expect(err).to.equal('verifyBlock-ERR');
-															expect(lastBlock).to.deep.equal({
-																id: '2',
-																height: 2,
-															});
-															expect(loggerStub.error.args[0][0]).to.equal(
-																'Block 4 verification failed'
-															);
-															expect(loggerStub.error.args[0][1]).to.equal(
-																'verifyBlock-ERR'
-															);
-															done();
-														}
-													);
-												});
-											});
-
-											describe('when succeeds', () => {
-												beforeEach(() => {
-													return modules.blocks.verify.verifyBlock.returns({
-														verified: true,
-													});
-												});
-												describe('modules.blocks.chain.applyBlock ', () => {
-													describe('when fails', () => {
-														beforeEach(() => {
-															return modules.blocks.chain.applyBlock.callsArgWith(
-																2,
-																'chain.applyBlock-ERR',
-																null
-															);
-														});
-
-														it('should call a callback with error', done => {
-															blocksProcessModule.loadBlocksOffset(
-																100,
-																0,
-																true,
-																(err, lastBlock) => {
-																	expect(err).to.equal('chain.applyBlock-ERR');
-																	expect(lastBlock).to.deep.equal({
-																		id: '2',
-																		height: 2,
-																	});
-																	done();
-																}
-															);
-														});
-													});
-
-													describe('when succeeds', () => {
-														beforeEach(() => {
-															modules.blocks.chain.applyBlock.callsArgWith(
-																2,
-																null,
-																dummyBlock
-															);
-															return modules.blocks.lastBlock.get.returns(
-																dummyBlock
-															);
-														});
-
-														it('should call a callback with lastBlock and no errors', done => {
-															blocksProcessModule.loadBlocksOffset(
-																100,
-																0,
-																true,
-																(err, lastBlock) => {
-																	expect(err).to.be.null;
-																	expect(lastBlock).to.deep.equal(dummyBlock);
-																	done();
-																}
-															);
-														});
-													});
-												});
-											});
-										});
-									});
-								});
-							});
-
 							describe('when block id is genesis block', () => {
 								beforeEach(() => {
 									return modules.blocks.utils.readDbRows.returns([
@@ -1418,7 +1270,6 @@ describe('blocks/process', () => {
 									return expect(loggerStub.debug.args[0][1]).to.deep.equal({
 										limit: 100,
 										offset: 0,
-										verify: true,
 									});
 								});
 
@@ -1436,7 +1287,6 @@ describe('blocks/process', () => {
 											blocksProcessModule.loadBlocksOffset(
 												100,
 												0,
-												true,
 												(err, lastBlock) => {
 													expect(err).to.equal('chain.applyGenesisBlock-ERR');
 													expect(lastBlock).to.deep.equal({
@@ -1465,7 +1315,6 @@ describe('blocks/process', () => {
 											blocksProcessModule.loadBlocksOffset(
 												100,
 												0,
-												true,
 												(err, lastBlock) => {
 													expect(err).to.be.null;
 													expect(lastBlock).to.deep.equal(dummyBlock);
@@ -1477,48 +1326,57 @@ describe('blocks/process', () => {
 								});
 							});
 
-							describe('when verify is false and block id is not genesis block', () => {
-								describe('modules.blocks.chain.applyBlock ', () => {
-									afterEach(() => {
-										return expect(loggerStub.debug.args[0][1]).to.deep.equal({
-											limit: 100,
-											offset: 0,
-											verify: false,
-										});
-									});
+							describe('when block id is not genesis block', () => {
+								beforeEach(() => {
+									return modules.blocks.utils.readDbRows.returns([dummyBlock]);
+								});
 
+								afterEach(() => {
+									expect(loggerStub.debug.args[1][0]).to.equal(
+										'Processing block'
+									);
+									expect(loggerStub.debug.args[1][1]).to.equal('4');
+									return expect(loggerStub.debug.args[0][1]).to.deep.equal({
+										limit: 100,
+										offset: 0,
+									});
+								});
+
+								describe('modules.blocks.verify.processBlock', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
-											return modules.blocks.chain.applyBlock.callsArgWith(
-												2,
-												'chain.applyBlock-ERR',
+											return modules.blocks.verify.processBlock.callsArgWith(
+												3,
+												'verify.processBlock-ERR',
 												null
 											);
 										});
 
 										it('should call a callback with error', done => {
-											blocksProcessModule.loadBlocksOffset(
-												100,
-												0,
-												false,
-												(err, lastBlock) => {
-													expect(err).to.equal('chain.applyBlock-ERR');
-													expect(lastBlock).to.deep.equal({
-														id: '2',
-														height: 2,
-													});
-													done();
-												}
-											);
+											blocksProcessModule.loadBlocksOffset(100, 0, err => {
+												expect(modules.blocks.verify.processBlock).to.be
+													.calledOnce;
+												expect(err).to.equal('verify.processBlock-ERR');
+												expect(loggerStub.debug).to.be.calledWithExactly(
+													'Block processing failed',
+													{
+														id: dummyBlock.id,
+														err: 'verify.processBlock-ERR',
+														module: 'blocks',
+														block: dummyBlock,
+													}
+												);
+												done();
+											});
 										});
 									});
 
 									describe('when succeeds', () => {
 										beforeEach(() => {
-											modules.blocks.chain.applyBlock.callsArgWith(
-												2,
+											modules.blocks.verify.processBlock.callsArgWith(
+												3,
 												null,
-												dummyBlock
+												'verify.processBlock-OK'
 											);
 											return modules.blocks.lastBlock.get.returns(dummyBlock);
 										});
@@ -1527,7 +1385,6 @@ describe('blocks/process', () => {
 											blocksProcessModule.loadBlocksOffset(
 												100,
 												0,
-												false,
 												(err, lastBlock) => {
 													expect(err).to.be.null;
 													expect(lastBlock).to.deep.equal(dummyBlock);
@@ -1954,7 +1811,7 @@ describe('blocks/process', () => {
 									describe('when fails', () => {
 										beforeEach(() => {
 											return library.logic.transaction.verify.callsArgWith(
-												2,
+												4,
 												'transaction.verify-ERR',
 												null
 											);
@@ -1979,7 +1836,7 @@ describe('blocks/process', () => {
 									describe('when succeeds', () => {
 										beforeEach(() => {
 											return library.logic.transaction.verify.callsArgWith(
-												2,
+												4,
 												null,
 												true
 											);
@@ -2010,7 +1867,7 @@ describe('blocks/process', () => {
 					beforeEach(() => {
 						modules.accounts.getAccount.callsArgWith(1, null, true);
 						library.logic.transaction.ready.returns(true);
-						return library.logic.transaction.verify.callsArgWith(2, null, true);
+						return library.logic.transaction.verify.callsArgWith(4, null, true);
 					});
 
 					describe('when fails', () => {
@@ -2250,29 +2107,21 @@ describe('blocks/process', () => {
 		var tempReceiveForkOne;
 		var tempReceiveForkFive;
 
-		before(done => {
+		beforeEach(done => {
 			tempReceiveBlock = __private.receiveBlock;
 			tempReceiveForkOne = __private.receiveForkOne;
 			tempReceiveForkFive = __private.receiveForkFive;
 			done();
 		});
 
-		after(done => {
+		afterEach(done => {
 			__private.receiveBlock = tempReceiveBlock;
 			__private.receiveForkOne = tempReceiveForkOne;
 			__private.receiveForkFive = tempReceiveForkFive;
 			done();
 		});
 
-		describe('client not ready to receive block', () => {
-			afterEach(() => {
-				expect(loggerStub.debug.args[0][0]).to.equal(
-					'Client not ready to receive block'
-				);
-				expect(loggerStub.debug.args[0][1]).to.equal(5);
-				return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
-			});
-
+		describe('Client is syncing and not ready to receive block', () => {
 			describe('when __private.loaded is false', () => {
 				beforeEach(done => {
 					__private.loaded = false;
@@ -2284,14 +2133,14 @@ describe('blocks/process', () => {
 					done();
 				});
 
-				it('should return without process block', done => {
-					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
-						fn().then(() => {
-							done();
-						});
-					};
+				it('should return without process block', () => {
 					blocksProcessModule.onReceiveBlock({ id: 5 });
+
+					expect(loggerStub.debug.args[0][0]).to.equal(
+						'Client is not ready to receive block'
+					);
+					expect(loggerStub.debug.args[0][1]).to.equal(5);
+					return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
 				});
 			});
 
@@ -2304,34 +2153,14 @@ describe('blocks/process', () => {
 					return modules.loader.syncing.returns(false);
 				});
 
-				it('should return without process block', done => {
-					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
-						fn().then(() => {
-							done();
-						});
-					};
+				it('should return without process block', () => {
 					blocksProcessModule.onReceiveBlock({ id: 5 });
-				});
-			});
 
-			describe('when modules.rounds.ticking is true', () => {
-				beforeEach(() => {
-					return modules.rounds.ticking.returns(true);
-				});
-
-				afterEach(() => {
-					return modules.rounds.ticking.returns(false);
-				});
-
-				it('should return without process block', done => {
-					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
-						fn().then(() => {
-							done();
-						});
-					};
-					blocksProcessModule.onReceiveBlock({ id: 5 });
+					expect(loggerStub.debug.args[0][0]).to.equal(
+						"Client is syncing. Can't receive block at the moment."
+					);
+					expect(loggerStub.debug.args[0][1]).to.equal(5);
+					return expect(modules.blocks.lastBlock.get.calledOnce).to.be.false;
 				});
 			});
 		});

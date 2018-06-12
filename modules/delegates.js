@@ -17,6 +17,7 @@
 const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
+const lisk = require('lisk-elements').default;
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const BlockReward = require('../logic/block_reward.js');
@@ -74,9 +75,9 @@ class Delegates {
 			},
 			config: {
 				forging: {
-					secret: scope.config.forging.secret,
+					delegates: scope.config.forging.delegates,
 					force: scope.config.forging.force,
-					defaultKey: scope.config.forging.defaultKey,
+					defaultPassword: scope.config.forging.defaultPassword,
 					access: {
 						whiteList: scope.config.forging.access.whiteList,
 					},
@@ -266,7 +267,7 @@ __private.forge = function(cb) {
 
 			if (modules.transport.poorConsensus()) {
 				const consensusErr = [
-					'Inadequate broadhash consensus',
+					'Inadequate broadhash consensus before forging a block:',
 					modules.peers.getLastConsensus(),
 					'%',
 				].join(' ');
@@ -279,9 +280,11 @@ __private.forge = function(cb) {
 			}
 
 			library.logger.info(
-				['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
-					' '
-				)
+				[
+					'Broadhash consensus before forging a block:',
+					modules.peers.getLastConsensus(),
+					'%',
+				].join(' ')
 			);
 
 			modules.blocks.process.generateBlock(
@@ -322,20 +325,20 @@ __private.forge = function(cb) {
 };
 
 /**
- * Returns the decrypted secret by deciphering encrypted secret with the key provided using aes-256-cbc algorithm.
+ * Returns the decrypted passphrase by deciphering encrypted passphrase with the password provided using aes-256-gcm algorithm.
  *
  * @private
- * @param {string} encryptedSecret
- * @param {string} key
- * @throws {error} If unable to decrypt using key.
- * @returns {string} decryptedSecret
+ * @param {string} encryptedPassphrase
+ * @param {string} password
+ * @throws {error} If unable to decrypt using password.
+ * @returns {string} Decrypted passphrase
  * @todo Add description for the params
  */
-__private.decryptSecret = function(encryptedSecret, key) {
-	const decipher = crypto.createDecipher('aes-256-cbc', key);
-	let decryptedSecret = decipher.update(encryptedSecret, 'hex', 'utf8');
-	decryptedSecret += decipher.final('utf8');
-	return decryptedSecret;
+__private.decryptPassphrase = function(encryptedPassphrase, password) {
+	return lisk.cryptography.decryptPassphraseWithPassword(
+		lisk.cryptography.parseEncryptedPassphrase(encryptedPassphrase),
+		password
+	);
 };
 
 /**
@@ -468,52 +471,54 @@ __private.checkDelegates = function(publicKey, votes, state, cb, tx) {
  * @todo Add description for the return value
  */
 __private.loadDelegates = function(cb) {
-	const secretsList = library.config.forging.secret;
+	const encryptedList = library.config.forging.delegates;
 
 	if (
-		!secretsList ||
-		!secretsList.length ||
+		!encryptedList ||
+		!encryptedList.length ||
 		!library.config.forging.force ||
-		!library.config.forging.defaultKey
+		!library.config.forging.defaultPassword
 	) {
 		return setImmediate(cb);
 	}
 	library.logger.info(
-		[
-			'Loading',
-			secretsList.length,
-			'delegates using encrypted secrets from config',
-		].join(' ')
+		`Loading ${
+			encryptedList.length
+		} delegates using encrypted passphrases from config`
 	);
 
 	async.eachSeries(
-		secretsList,
+		encryptedList,
 		(encryptedItem, seriesCb) => {
-			let secret;
+			let passphrase;
 			try {
-				secret = __private.decryptSecret(
-					encryptedItem.encryptedSecret,
-					library.config.forging.defaultKey
+				passphrase = __private.decryptPassphrase(
+					encryptedItem.encryptedPassphrase,
+					library.config.forging.defaultPassword
 				);
-			} catch (e) {
+			} catch (error) {
 				return setImmediate(
 					seriesCb,
-					[
-						'Invalid encryptedSecret for publicKey:',
-						encryptedItem.publicKey,
-					].join(' ')
+					`Invalid encryptedPassphrase for publicKey: ${
+						encryptedItem.publicKey
+					}. ${error.message}`
 				);
 			}
 
 			const keypair = library.ed.makeKeypair(
 				crypto
 					.createHash('sha256')
-					.update(secret, 'utf8')
+					.update(passphrase, 'utf8')
 					.digest()
 			);
 
 			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
-				return setImmediate(seriesCb, 'Public keys do not match');
+				return setImmediate(
+					seriesCb,
+					`Invalid encryptedPassphrase for publicKey: ${
+						encryptedItem.publicKey
+					}. Public keys do not match`
+				);
 			}
 
 			modules.accounts.getAccount(
@@ -528,26 +533,22 @@ __private.loadDelegates = function(cb) {
 					if (!account) {
 						return setImmediate(
 							seriesCb,
-							[
-								'Account with public key:',
-								keypair.publicKey.toString('hex'),
-								'not found',
-							].join(' ')
+							`Account with public key: ${keypair.publicKey.toString(
+								'hex'
+							)} not found`
 						);
 					}
 
 					if (account.isDelegate) {
 						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 						library.logger.info(
-							['Forging enabled on account:', account.address].join(' ')
+							`Forging enabled on account: ${account.address}`
 						);
 					} else {
 						library.logger.warn(
-							[
-								'Account with public key:',
-								keypair.publicKey.toString('hex'),
-								'is not a delegate',
-							].join(' ')
+							`Account with public key: ${keypair.publicKey.toString(
+								'hex'
+							)} is not a delegate`
 						);
 					}
 
@@ -564,56 +565,48 @@ __private.loadDelegates = function(cb) {
  * Updates the forging status of an account, valid actions are enable and disable.
  *
  * @param {publicKey} publicKey - Public key of delegate
- * @param {string} secretKey - Key used to decrypt encrypted passphrase
+ * @param {string} password - Password used to decrypt encrypted passphrase
+ * @param {boolean} forging - Forging status of a delegate to update
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb
  * @todo Add description for the return value
  */
-Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
-	const encryptedList = library.config.forging.secret;
-	const encryptedItem = _.find(
-		encryptedList,
+Delegates.prototype.updateForgingStatus = function(
+	publicKey,
+	password,
+	forging,
+	cb
+) {
+	const encryptedList = library.config.forging.delegates;
+	const encryptedItem = encryptedList.find(
 		item => item.publicKey === publicKey
 	);
 
 	let keypair;
-	let decryptedSecret;
-	let actionEnable = false;
-	let actionDisable = false;
+	let passphrase;
 
 	if (encryptedItem) {
 		try {
-			decryptedSecret = __private.decryptSecret(
-				encryptedItem.encryptedSecret,
-				secretKey
+			passphrase = __private.decryptPassphrase(
+				encryptedItem.encryptedPassphrase,
+				password
 			);
 		} catch (e) {
-			return setImmediate(cb, 'Invalid key and public key combination');
+			return setImmediate(cb, 'Invalid password and public key combination');
 		}
 
 		keypair = library.ed.makeKeypair(
 			crypto
 				.createHash('sha256')
-				.update(decryptedSecret, 'utf8')
+				.update(passphrase, 'utf8')
 				.digest()
 		);
 	} else {
-		return setImmediate(
-			cb,
-			['Delegate with publicKey:', publicKey, 'not found'].join(' ')
-		);
+		return setImmediate(cb, `Delegate with publicKey: ${publicKey} not found`);
 	}
 
 	if (keypair.publicKey.toString('hex') !== publicKey) {
-		return setImmediate(cb, 'Invalid key and public key combination');
-	}
-
-	if (__private.keypairs[keypair.publicKey.toString('hex')]) {
-		actionDisable = true;
-	}
-
-	if (!__private.keypairs[keypair.publicKey.toString('hex')]) {
-		actionEnable = true;
+		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
 	modules.accounts.getAccount(
@@ -624,17 +617,11 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 			}
 
 			if (account && account.isDelegate) {
-				let forgingStatus;
-
-				if (actionEnable) {
+				if (forging) {
 					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
-					forgingStatus = true;
 					library.logger.info(`Forging enabled on account: ${account.address}`);
-				}
-
-				if (actionDisable) {
+				} else {
 					delete __private.keypairs[keypair.publicKey.toString('hex')];
-					forgingStatus = false;
 					library.logger.info(
 						`Forging disabled on account: ${account.address}`
 					);
@@ -642,7 +629,7 @@ Delegates.prototype.toggleForgingStatus = function(publicKey, secretKey, cb) {
 
 				return setImmediate(cb, null, {
 					publicKey,
-					forging: forgingStatus,
+					forging,
 				});
 			}
 			return setImmediate(cb, 'Delegate not found');
@@ -778,8 +765,10 @@ Delegates.prototype.getForgers = function(query, cb) {
 	const currentSlot = slots.getSlotNumber();
 	const forgerKeys = [];
 
+	// We pass height + 1 as seed for generating the list, because we want the list to be generated for next block.
+	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
 	self.generateDelegateList(
-		currentBlock.height,
+		currentBlock.height + 1,
 		null,
 		(err, activeDelegates) => {
 			if (err) {

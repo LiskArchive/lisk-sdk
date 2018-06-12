@@ -17,7 +17,7 @@
 
 require('../../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var constants = require('../../../../../helpers/constants');
@@ -46,7 +46,7 @@ describe('GET /api/node', () => {
 					transactionList.push(
 						lisk.transaction.transfer({
 							amount: (i + 1) * constants.normalizer,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,
 						})

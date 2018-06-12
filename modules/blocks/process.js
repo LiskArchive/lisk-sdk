@@ -128,7 +128,6 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	library.logger.info('Last block and parent loses');
 	async.series(
 		[
 			function(seriesCb) {
@@ -155,6 +154,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 					// Return first error from checks
 					return setImmediate(seriesCb, check.errors[0]);
 				}
+				library.logger.info('Last block and parent loses due to fork 1');
 				return setImmediate(seriesCb);
 			},
 			// Delete last 2 blocks
@@ -200,7 +200,6 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	library.logger.info('Last block loses');
 	async.series(
 		[
 			function(seriesCb) {
@@ -231,6 +230,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 			},
 			// Delete last block
 			function(seriesCb) {
+				library.logger.info('Last block loses due to fork 5');
 				modules.blocks.chain.deleteLastBlock(seriesCb);
 			},
 			// Process received block
@@ -358,13 +358,12 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
  *
  * @param {number} limit - Limit amount of blocks
  * @param {number} offset - Offset to start at
- * @param {boolean} verify - Indicator that block needs to be verified
  * @param {function} cb - Callback function
  * @returns {function} cb - Callback function from params (through setImmediate)
  * @returns {Object} cb.err - Error if occurred
  * @returns {Object} cb.lastBlock - Current last block
  */
-Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
+Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 	// Calculate limit if offset is supplied
 	const newLimit = limit + (offset || 0);
 	const params = { limit: newLimit, offset: offset || 0 };
@@ -372,7 +371,6 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 	library.logger.debug('Loading blocks offset', {
 		limit,
 		offset,
-		verify,
 	});
 
 	// Loads full blocks from database
@@ -393,51 +391,23 @@ Process.prototype.loadBlocksOffset = function(limit, offset, verify, cb) {
 
 					library.logger.debug('Processing block', block.id);
 
-					if (verify && block.id !== library.genesisblock.block.id) {
-						async.series(
-							{
-								normalizeBlock(seriesCb) {
-									try {
-										block = library.logic.block.objectNormalize(block);
-									} catch (err) {
-										return setImmediate(seriesCb, err);
-									}
-
-									return setImmediate(seriesCb);
-								},
-								verifyBlock(seriesCb) {
-									// Sanity check of the block, if values are coherent.
-									// No access to database
-									const result = modules.blocks.verify.verifyBlock(block);
-
-									if (!result.verified) {
-										library.logger.error(
-											['Block', block.id, 'verification failed'].join(' '),
-											result.errors[0]
-										);
-										return setImmediate(seriesCb, result.errors[0]);
-									}
-									return setImmediate(seriesCb);
-								},
-							},
-							err => {
-								if (err) {
-									return setImmediate(eachBlockSeriesCb, err);
-								}
-								// Apply block - saveBlock: false
-								modules.blocks.chain.applyBlock(block, false, err => {
-									setImmediate(eachBlockSeriesCb, err);
+					if (block.id === library.genesisblock.block.id) {
+						// Apply block - saveBlock: false
+						modules.blocks.chain.applyGenesisBlock(block, err =>
+							setImmediate(eachBlockSeriesCb, err)
+						);
+					} else {
+						// Process block - broadcast: false, saveBlock: false
+						modules.blocks.verify.processBlock(block, false, false, err => {
+							if (err) {
+								library.logger.debug('Block processing failed', {
+									id: block.id,
+									err: err.toString(),
+									module: 'blocks',
+									block,
 								});
 							}
-						);
-					} else if (block.id === library.genesisblock.block.id) {
-						modules.blocks.chain.applyGenesisBlock(block, err => {
-							setImmediate(eachBlockSeriesCb, err);
-						});
-					} else {
-						// Apply block - saveBlock: false
-						modules.blocks.chain.applyBlock(block, false, err => {
-							setImmediate(eachBlockSeriesCb, err);
+							return setImmediate(eachBlockSeriesCb, err);
 						});
 					}
 				},
@@ -577,12 +547,19 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 					// Check transaction depends on type
 					if (library.logic.transaction.ready(transaction, sender)) {
 						// Verify transaction
-						library.logic.transaction.verify(transaction, sender, err => {
-							if (!err) {
-								ready.push(transaction);
-							}
-							return setImmediate(cb);
-						});
+						library.logic.transaction.verify(
+							transaction,
+							sender,
+							null,
+							true,
+							err => {
+								if (!err) {
+									ready.push(transaction);
+								}
+								return setImmediate(cb);
+							},
+							null
+						);
 					} else {
 						return setImmediate(cb);
 					}
@@ -651,23 +628,26 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
  * @todo Add @returns tag
  */
 Process.prototype.onReceiveBlock = function(block) {
-	let lastBlock;
+	// When client is not loaded, is syncing
+	// Do not receive new blocks as client is not ready
+	if (!__private.loaded) {
+		return library.logger.debug(
+			'Client is not ready to receive block',
+			block.id
+		);
+	}
+
+	if (modules.loader.syncing()) {
+		return library.logger.debug(
+			"Client is syncing. Can't receive block at the moment.",
+			block.id
+		);
+	}
 
 	// Execute in sequence via sequence
 	library.sequence.add(cb => {
-		// When client is not loaded, is syncing or round is ticking
-		// Do not receive new blocks as client is not ready
-		if (
-			!__private.loaded ||
-			modules.loader.syncing() ||
-			modules.rounds.ticking()
-		) {
-			library.logger.debug('Client not ready to receive block', block.id);
-			return setImmediate(cb);
-		}
-
 		// Get the last block
-		lastBlock = modules.blocks.lastBlock.get();
+		const lastBlock = modules.blocks.lastBlock.get();
 
 		// Detect sane block
 		if (

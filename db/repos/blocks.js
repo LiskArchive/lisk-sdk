@@ -107,6 +107,17 @@ class BlocksRepository {
 	}
 
 	/**
+	 * Delete all blocks above a particular height.
+	 *
+	 * @param {int} height
+	 * @returns {Promise}
+	 * @todo Add description for the params and the return value
+	 */
+	deleteBlocksAfterHeight(height) {
+		return this.db.none(sql.deleteBlocksAfterHeight, { height });
+	}
+
+	/**
 	 * Aggregate rewards for a block.
 	 *
 	 * @param {Object} params

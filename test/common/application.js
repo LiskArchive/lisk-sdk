@@ -443,7 +443,7 @@ function __init(initScope, done) {
 							);
 							var delegates_cnt = Object.keys(keypairs).length;
 							expect(delegates_cnt).to.equal(
-								__testContext.config.forging.secret.length
+								__testContext.config.forging.delegates.length
 							);
 
 							__testContext.debug(

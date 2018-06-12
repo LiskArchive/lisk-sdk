@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const lisk = require('lisk-js').default;
+const lisk = require('lisk-elements').default;
 const getTransaction = require('../../../../utils/http').getTransaction;
 const waitFor = require('../../../../../common/utils/wait_for');
 const constants = require('../../../../../../helpers/constants');
@@ -68,7 +68,7 @@ module.exports = function multisignature(params) {
 						var tmpAccount = randomUtil.account();
 						var transaction = lisk.transaction.transfer({
 							amount: 2500000000,
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
 							ready: true,
 						});
@@ -104,7 +104,7 @@ module.exports = function multisignature(params) {
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
-							passphrase: accounts[num].password,
+							passphrase: accounts[num].passphrase,
 						});
 						transactions.push(transaction);
 						signatures.push([

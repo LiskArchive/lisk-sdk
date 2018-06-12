@@ -25,17 +25,17 @@ var constants = require('../../../helpers/constants');
 var bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var senderHash = crypto
 	.createHash('sha256')
-	.update(accountFixtures.genesis.password, 'utf8')
+	.update(accountFixtures.genesis.passphrase, 'utf8')
 	.digest();
 var senderKeypair = ed.makeKeypair(senderHash);
 
@@ -58,7 +58,6 @@ var validSender = {
 	missedBlocks: 0,
 	fees: 0,
 	rewards: 0,
-	virgin: 0,
 };
 
 var validTransaction = {
@@ -142,17 +141,13 @@ describe('transfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should throw error if given no params', () => {
-			return expect(transfer.calculateFee).to.throw();
-		});
-
-		it('should return the correct fee when data field is not set', () => {
+		it('should return the correct fee for a transfer', () => {
 			return expect(
 				transfer.calculateFee.call(transactionLogic, validTransaction)
 			).to.equal(constants.fees.send);
 		});
 
-		it('should return the correct fee when data field is set', () => {
+		it('should return the same fee for a transfer with additional data', () => {
 			var transaction = _.clone(validTransaction);
 			transaction.asset = {
 				data: '0',
@@ -160,7 +155,7 @@ describe('transfer', () => {
 
 			return expect(
 				transfer.calculateFee.call(transactionLogic, transaction)
-			).to.equal(constants.fees.send + constants.fees.data);
+			).to.equal(constants.fees.send);
 		});
 	});
 

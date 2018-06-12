@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var waitFor = require('../../../common/utils/wait_for');
@@ -378,7 +378,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				var transaction = lisk.transaction.transfer({
 					amount: 1 * constants.normalizer,
-					passphrase: scenario.members[0].password,
+					passphrase: scenario.members[0].passphrase,
 					recipientId: randomUtil.account().address,
 				});
 				transaction.requesterPublicKey = scenario.account.publicKey;

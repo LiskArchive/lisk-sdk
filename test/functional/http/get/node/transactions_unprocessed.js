@@ -16,7 +16,7 @@
 
 require('../../../functional.js');
 var Promise = require('bluebird');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
@@ -44,7 +44,7 @@ describe('GET /api/node', () => {
 					transactionList.push(
 						lisk.transaction.transfer({
 							amount: randomUtil.number(100000000, 1000000000),
-							passphrase: accountFixtures.genesis.password,
+							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: account.address,
 							data,
 						})

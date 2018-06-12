@@ -23,18 +23,18 @@ var typesRepresentatives = require('../../fixtures/types_representatives');
 var modulesLoader = require('../../common/modules_loader');
 
 var InTransfer = rewire('../../../logic/in_transfer.js');
-var validPassword = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
-		.update(validPassword, 'utf8')
+		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
 var validSender = {
 	balance: '0',
-	password: 'zdv72jrts9y8613e4s4i',
-	secondPassword: '33ibzztls7xlrocpzxgvi',
+	passphrase: 'zdv72jrts9y8613e4s4i',
+	secondPassphrase: '33ibzztls7xlrocpzxgvi',
 	username: '9bzuu',
 	publicKey: '967e00fbf215b6227a6521226decfdc14c92cb88d35268787a47ff0e6b92f94a',
 	address: '17603529232728446942L',
@@ -454,14 +454,6 @@ describe('inTransfer', () => {
 				).to.be.true;
 			});
 
-			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', () => {
-				return expect(
-					accountsStub.mergeAccountAndGet.calledWith(
-						sinonSandbox.match({ blockId: dummyBlock.id })
-					)
-				).to.be.true;
-			});
-
 			it('should call modules.accounts.mergeAccountAndGet with round = slots.calcRound result', () => {
 				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
@@ -563,14 +555,6 @@ describe('inTransfer', () => {
 				return expect(
 					accountsStub.mergeAccountAndGet.calledWith(
 						sinonSandbox.match({ u_balance: -trs.amount })
-					)
-				).to.be.true;
-			});
-
-			it('should call modules.accounts.mergeAccountAndGet with blockId = block.id', () => {
-				return expect(
-					accountsStub.mergeAccountAndGet.calledWith(
-						sinonSandbox.match({ blockId: dummyBlock.id })
 					)
 				).to.be.true;
 			});

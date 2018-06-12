@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var constants = require('../../../../helpers/constants');
@@ -26,12 +26,12 @@ describe('system test - get unconfirmed transactions', () => {
 	var account2 = randomUtil.account();
 	var transaction1 = lisk.transaction.transfer({
 		amount: 1100 * constants.normalizer,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account1.address,
 	});
 	var transaction2 = lisk.transaction.transfer({
 		amount: 1100 * constants.normalizer,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 	});
 

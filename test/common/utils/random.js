@@ -15,8 +15,7 @@
 'use strict';
 
 var randomstring = require('randomstring');
-var lisk = require('lisk-js').default;
-var constants = require('../../../helpers/constants');
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../fixtures/accounts');
 
 var random = {};
@@ -26,11 +25,6 @@ random.number = function(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min)) + min;
-};
-
-// Returns the expected fee for the given amount with data property
-random.expectedFeeForTransactionWithData = function() {
-	return parseInt(constants.fees.transaction) + parseInt(constants.fees.data);
 };
 
 // Returns a random username of 16 characters
@@ -109,13 +103,13 @@ random.account = function() {
 		balance: '0',
 	};
 
-	account.password = random.password();
-	account.secondPassword = random.password();
+	account.passphrase = random.password();
+	account.secondPassphrase = random.password();
 	account.username = random.delegateName();
-	account.publicKey = lisk.cryptography.getKeys(account.password).publicKey;
-	account.address = lisk.cryptography.getAddress(account.publicKey);
+	account.publicKey = lisk.cryptography.getKeys(account.passphrase).publicKey;
+	account.address = lisk.cryptography.getAddressFromPublicKey(account.publicKey);
 	account.secondPublicKey = lisk.cryptography.getKeys(
-		account.secondPassword
+		account.secondPassphrase
 	).publicKey;
 
 	return account;
@@ -125,7 +119,7 @@ random.account = function() {
 random.transaction = function(offset) {
 	return lisk.transaction.transfer({
 		amount: 1,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: random.account().address,
 		timeOffset: offset,
 	});

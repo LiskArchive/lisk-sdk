@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 
@@ -43,19 +43,19 @@ function Multisig(options) {
 	this.amount = options.amount || 100000000000;
 
 	this.multiSigTransaction = lisk.transaction.registerMultisignature({
-		passphrase: this.account.password,
+		passphrase: this.account.passphrase,
 		keysgroup: this.keysgroup,
 		lifetime: this.lifetime,
 		minimum: this.minimum,
 	});
 	this.creditTransaction = lisk.transaction.transfer({
 		amount: this.amount,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: this.account.address,
 	});
 	this.secondSignatureTransaction = lisk.transaction.registerSecondPassphrase({
-		passphrase: this.account.password,
-		secondPassphrase: this.account.secondPassword,
+		passphrase: this.account.passphrase,
+		secondPassphrase: this.account.secondPassphrase,
 	});
 }
 

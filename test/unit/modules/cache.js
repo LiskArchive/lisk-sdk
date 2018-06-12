@@ -15,7 +15,7 @@
 'use strict';
 
 var async = require('async');
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../fixtures/accounts');
 var modulesLoader = require('../../common/modules_loader');
 var randomUtil = require('../../common/utils/random');
@@ -335,8 +335,8 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 				var transaction = lisk.transaction.transfer({
 					amount: 1,
-					passphrase: accountFixtures.genesis.password,
-					secondPassphrase: accountFixtures.genesis.secondPassword,
+					passphrase: accountFixtures.genesis.passphrase,
+					secondPassphrase: accountFixtures.genesis.secondPassphrase,
 					recipientId: '1L',
 				});
 

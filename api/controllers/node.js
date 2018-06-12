@@ -71,7 +71,6 @@ NodeController.getConstants = function(context, next) {
 			data.fees.secondSignature = data.fees.secondSignature.toString();
 			data.fees.vote = data.fees.vote.toString();
 			data.fees.send = data.fees.send.toString();
-			data.fees.data = data.fees.data.toString();
 
 			next(null, data);
 		} catch (error) {
@@ -154,11 +153,13 @@ NodeController.updateForgingStatus = function(context, next) {
 	}
 
 	var publicKey = context.request.swagger.params.data.value.publicKey;
-	var decryptionKey = context.request.swagger.params.data.value.decryptionKey;
+	var password = context.request.swagger.params.data.value.password;
+	var forging = context.request.swagger.params.data.value.forging;
 
-	modules.node.internal.toggleForgingStatus(
+	modules.node.internal.updateForgingStatus(
 		publicKey,
-		decryptionKey,
+		password,
+		forging,
 		(err, data) => {
 			if (err) {
 				context.statusCode = apiCodes.NOT_FOUND;

@@ -65,12 +65,8 @@ Transfer.prototype.bind = function(accounts) {
  * @returns {number} Transaction fee
  * @todo Add description for the params
  */
-Transfer.prototype.calculateFee = function(transaction) {
-	let fee = new bignum(constants.fees.send);
-	if (transaction.asset && transaction.asset.data) {
-		fee = fee.plus(constants.fees.data);
-	}
-
+Transfer.prototype.calculateFee = function() {
+	const fee = new bignum(constants.fees.send);
 	return Number(fee.toString());
 };
 
@@ -150,7 +146,6 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
 					address: transaction.recipientId,
 					balance: transaction.amount,
 					u_balance: transaction.amount,
-					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
@@ -185,7 +180,6 @@ Transfer.prototype.undo = function(transaction, block, sender, cb, tx) {
 					address: transaction.recipientId,
 					balance: -transaction.amount,
 					u_balance: -transaction.amount,
-					blockId: block.id,
 					round: slots.calcRound(block.height),
 				},
 				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),

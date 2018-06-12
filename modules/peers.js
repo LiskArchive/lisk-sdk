@@ -69,25 +69,29 @@ class Peers {
 		};
 		self = this;
 		self.consensus = scope.config.forging.force ? 100 : 0;
+		self.broadhashConsensusCalculationInterval =
+			scope.config.peers.options.broadhashConsensusCalculationInterval;
+		self.blackListedPeers = scope.config.peers.access.blackList;
+
 		setImmediate(cb, null, self);
 	}
 }
 
 // Private methods
 /**
- * Returns peers length after getting them by filter.
+ * Returns peers length by filter but without offset and limit.
  *
  * @private
  * @param {Object} filter
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, null, peers length
+ * @returns {int} count
  * @todo Add description for the params
  */
-__private.countByFilter = function(filter, cb) {
+__private.getCountByFilter = function(filter) {
 	filter.normalized = false;
-	__private.getByFilter(filter, (err, peers) =>
-		setImmediate(cb, null, peers.length)
-	);
+	delete filter.limit;
+	delete filter.offset;
+	var peers = __private.getByFilter(filter);
+	return peers.length;
 };
 
 /**
@@ -235,6 +239,17 @@ __private.getMatched = function(test, peers) {
 };
 
 /**
+ * Check if the ip exists in the peer blacklist coming from config file.
+ *
+ * @param ip
+ * @returns {boolean}
+ * @todo Add description for the params and the return value
+ */
+__private.isBlacklisted = function(ip) {
+	return self.blackListedPeers.includes(ip);
+};
+
+/**
  * Description of updatePeerStatus.
  *
  * @todo Add @param tags
@@ -262,13 +277,21 @@ __private.updatePeerStatus = function(err, status, peer) {
 		);
 		library.logic.peers.remove(peer);
 	} else {
+		let state;
+		// Ban peer if it is presented in the array of black listed peers
+		if (__private.isBlacklisted(peer.ip)) {
+			state = Peer.STATE.BANNED;
+		} else {
+			state = Peer.STATE.CONNECTED;
+		}
+
 		peer.applyHeaders({
 			broadhash: status.broadhash,
 			height: status.height,
 			httpPort: status.httpPort,
 			nonce: status.nonce,
 			os: status.os,
-			state: Peer.STATE.CONNECTED,
+			state,
 			version: status.version,
 		});
 	}
@@ -289,20 +312,31 @@ __private.insertSeeds = function(cb) {
 	async.each(
 		library.config.peers.list,
 		(peer, eachCb) => {
+			// Ban peer if it is presented in the array of black listed peers
+			if (__private.isBlacklisted(peer.ip)) {
+				peer.state = Peer.STATE.BANNED;
+			}
+
 			peer = library.logic.peers.create(peer);
 			library.logger.debug(`Processing seed peer: ${peer.string}`);
 			if (library.logic.peers.upsert(peer, true) !== true) {
 				return setImmediate(eachCb);
 			}
-			peer.rpc.status((err, status) => {
-				__private.updatePeerStatus(err, status, peer);
-				if (!err) {
-					updated += 1;
-				} else {
-					library.logger.trace(`Ping peer failed: ${peer.string}`, err);
-				}
+
+			// Continue if peer it is not blacklisted nor banned
+			if (peer.state !== Peer.STATE.BANNED) {
+				peer.rpc.status((err, status) => {
+					__private.updatePeerStatus(err, status, peer);
+					if (!err) {
+						updated += 1;
+					} else {
+						library.logger.trace(`Ping peer failed: ${peer.string}`, err);
+					}
+					return setImmediate(eachCb);
+				});
+			} else {
 				return setImmediate(eachCb);
-			});
+			}
 		},
 		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
@@ -334,11 +368,16 @@ __private.dbLoad = function(cb) {
 			async.each(
 				rows,
 				(peer, eachCb) => {
+					// Ban peer if it is presented in the array of black listed peers
+					if (__private.isBlacklisted(peer.ip)) {
+						peer.state = Peer.STATE.BANNED;
+					}
+
 					peer = library.logic.peers.create(peer);
 					if (library.logic.peers.upsert(peer, true) !== true) {
 						return setImmediate(eachCb);
 					}
-					if (peer.state > 0 && Date.now() - peer.updated > 3000) {
+					if (peer.state !== Peer.STATE.BANNED && Date.now() - peer.updated > 3000) {
 						peer.rpc.status((err, status) => {
 							__private.updatePeerStatus(err, status, peer);
 							if (!err) {
@@ -700,9 +739,9 @@ Peers.prototype.networkHeight = function(options, cb) {
 		if (err) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupByHeight = _.groupBy(peers, 'height');
-		const popularHeights = Object.keys(peersGroupByHeight);
-		const networkHeight = Number(_.max(popularHeights));
+		const peersGroupedByHeight = _.groupBy(peers, 'height');
+		const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
+		const networkHeight = _.max(popularHeights);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
 		library.logger.trace(popularHeights);
@@ -798,7 +837,7 @@ Peers.prototype.onPeersReady = function() {
 							// If peer is not banned and not been updated during last 3 sec - ping
 							if (
 								peer &&
-								peer.state > 0 &&
+								peer.state !== Peer.STATE.BANNED &&
 								(!peer.updated || Date.now() - peer.updated > 3000)
 							) {
 								library.logger.trace('Updating peer', peer.object());
@@ -831,11 +870,25 @@ Peers.prototype.onPeersReady = function() {
 			() => setImmediate(cb)
 		);
 	}
+
+	function calculateConsensus(cb) {
+		self.calculateConsensus();
+		library.logger.debug(
+			['Broadhash consensus:', self.getLastConsensus(), '%'].join(' ')
+		);
+		return setImmediate(cb);
+	}
 	// Loop in 30 sec intervals for less new insertion after removal
 	jobsQueue.register(
 		'peersDiscoveryAndUpdate',
 		peersDiscoveryAndUpdate,
 		peerDiscoveryFrequency
+	);
+
+	jobsQueue.register(
+		'calculateConsensus',
+		calculateConsensus,
+		self.broadhashConsensusCalculationInterval
 	);
 };
 
@@ -893,12 +946,22 @@ Peers.prototype.shared = {
 	},
 
 	/**
-	 * Description for getPeersCount.
+	 * Utility method to get peers count by filter.
 	 *
-	 * @todo Add description for the function
+	 * @param {Object} parameters - Object of all parameters
+	 * @param {string} parameters.ip - IP of the peer
+	 * @param {string} parameters.wsPort - WS Port of the peer
+	 * @param {string} parameters.httpPort - Web Socket Port of the peer
+	 * @param {string} parameters.os - OS of the peer
+	 * @param {string} parameters.version - Version the peer is running
+	 * @param {int} parameters.state - Peer State
+	 * @param {int} parameters.height - Current peer height
+	 * @param {string} parameters.broadhash - Peer broadhash
+	 * @returns {int} count
+	 * @todo Add description for the return value
 	 */
-	getPeersCount() {
-		return library.logic.peers.list(true).length;
+	getPeersCountByFilter(parameters) {
+		return __private.getCountByFilter(parameters);
 	},
 };
 

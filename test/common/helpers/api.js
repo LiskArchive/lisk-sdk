@@ -14,7 +14,7 @@
 
 'use strict';
 
-var lisk = require('lisk-js').default;
+var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
 var accountFixtures = require('../../fixtures/accounts');
 var swaggerSpec = require('../swagger_spec');
@@ -218,7 +218,7 @@ function sendSignature(signature, cb) {
 function creditAccount(address, amount, cb) {
 	var transaction = lisk.transaction.transfer({
 		amount,
-		passphrase: accountFixtures.genesis.password,
+		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: address,
 	});
 	sendTransactionPromise(transaction).then(cb);
@@ -230,7 +230,7 @@ function getCount(param, cb) {
 
 function registerDelegate(account, cb) {
 	var transaction = lisk.transaction.registerDelegate({
-		passphrase: account.password,
+		passphrase: account.passphrase,
 		username: account.username,
 	});
 	sendTransactionPromise(transaction).then(cb);
@@ -322,7 +322,7 @@ function expectSwaggerParamError(res, param) {
  * Create a signature object for POST /api/signatures endpoint
  *
  * @param {Object} transaction - Transaction object
- * @param {Object} signer - Signer object including public key and password
+ * @param {Object} signer - Signer object including public key and passphrase
  * @return {{signature: string, transactionId: string, publicKey: string}}
  */
 function createSignatureObject(transaction, signer) {
@@ -331,7 +331,7 @@ function createSignatureObject(transaction, signer) {
 		publicKey: signer.publicKey,
 		signature: lisk.transaction.utils.multiSignTransaction(
 			transaction,
-			signer.password
+			signer.passphrase
 		),
 	};
 }

@@ -46,4 +46,5 @@ module.exports = {
 	signatures: [],
 	multisignatures: [],
 	votes: [],
+	inertTransactions: [],
 };

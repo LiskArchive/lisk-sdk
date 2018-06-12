@@ -1,5 +1,13 @@
 pipeline {
 	agent { node { label 'node-06' } }
+	parameters {
+		string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', )
+		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', )
+		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', )
+		string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', )
+		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
+		string(name: 'MAXIMUM_TRANSACTION', defaultValue: '1000', description: 'Number of transaction to process for stress tests.', )
+	}
 	stages {
 		stage('Install dependencies') {
 			steps {
@@ -14,25 +22,27 @@ pipeline {
 				'''
 			}
 		}
-		stage('Run integration tests') {
-			steps {
-				sh 'npm test -- mocha:extensive:integration'
-			}
-		}
-		stage('Run integration tests w/o broadcasting') {
-			steps {
-				sh 'BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
-			}
-		}
-		stage('Run integration tests w/o syncing') {
+		stage('Run integration tests without syncing') {
 			steps {
 				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
+			}
+		}
+		stage('Run integration tests without broadcasting') {
+			steps {
+				sh 'TOTAL_PEERS=2 BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
+			}
+		}
+		stage('Run integration tests with syncing and broadcasting') {
+			steps {
+				sh 'npm test -- mocha:extensive:integration'
 			}
 		}
 	}
 	post {
 		always {
 			sh './node_modules/.bin/pm2 kill'
+			archiveArtifacts artifacts: "logs/*", allowEmptyArchive: true
+			cleanWs()
 		}
 	}
 }

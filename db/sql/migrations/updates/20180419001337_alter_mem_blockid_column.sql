@@ -14,16 +14,10 @@
 
 
 /*
-  DESCRIPTION: ?
-
-  PARAMETERS: ?
+  DESCRIPTION: Remove column blockId from tables: mem_accounts and mem_round.
+  PARAMETERS: None
 */
 
-SELECT a."address",
-       a."blockId",
-       b.id
-FROM mem_accounts a
-LEFT OUTER JOIN blocks b ON b.id = a."blockId"
-WHERE a."blockId" IS NOT NULL
-  AND a."blockId" != '0'
-  AND b.id IS NULL
+ALTER TABLE "mem_accounts" DROP COLUMN "blockId";
+ALTER TABLE "mem_round" DROP COLUMN "blockId";
+ALTER TABLE IF EXISTS "mem_round_snapshot" DROP COLUMN "blockId";

@@ -124,13 +124,13 @@ function generateNodePeers(numOfPeers, syncMode, syncModeArgs) {
 }
 
 function generateNodesConfig(numOfPeers, syncMode, forgingNodesIndices) {
-	var secretsInChunk = Math.ceil(
-		baseConfig.forging.secret.length / forgingNodesIndices.length
+	var delegatesInChunk = Math.ceil(
+		baseConfig.forging.delegates.length / forgingNodesIndices.length
 	);
-	var secretsChunks = forgingNodesIndices.map((val, index) => {
-		return baseConfig.forging.secret.slice(
-			index * secretsInChunk,
-			(index + 1) * secretsInChunk
+	var delegatesChunks = forgingNodesIndices.map((val, index) => {
+		return baseConfig.forging.delegates.slice(
+			index * delegatesInChunk,
+			(index + 1) * delegatesInChunk
 		);
 	});
 
@@ -144,7 +144,7 @@ function generateNodesConfig(numOfPeers, syncMode, forgingNodesIndices) {
 				list: generateNodePeers(numOfPeers, syncMode),
 			},
 			forging: isForging,
-			secrets: isForging ? secretsChunks[index] : [],
+			delegates: isForging ? delegatesChunks[index] : [],
 		};
 	});
 }
@@ -185,7 +185,7 @@ function generatePM2NodesConfig(testNodeConfigs) {
 		} else {
 			var currentNodeConfig = _.clone(baseConfig);
 			currentNodeConfig.forging.force = false;
-			currentNodeConfig.forging.secret = nodeConfig.secrets;
+			currentNodeConfig.forging.delegates = nodeConfig.delegates;
 			fs.writeFileSync(
 				`${__dirname}/configs/config.node-${index}.json`,
 				JSON.stringify(currentNodeConfig, null, 4)
@@ -272,7 +272,7 @@ function enableForgingOnDelegates(done) {
 	var enableForgingPromises = [];
 
 	testNodeConfigs.forEach(testNodeConfig => {
-		testNodeConfig.secrets.forEach(keys => {
+		testNodeConfig.delegates.forEach(keys => {
 			var enableForgingPromise = popsicle.put({
 				url: `http://${testNodeConfig.ip}:${testNodeConfig.wsPort -
 					1000}/api/node/status/forging`,
@@ -281,7 +281,7 @@ function enableForgingOnDelegates(done) {
 					'Content-Type': 'application/json',
 				},
 				body: {
-					decryptionKey: 'elephant tree paris dragon chair galaxy',
+					password: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey,
 				},
 			});
