@@ -151,6 +151,7 @@ module.exports = {
 				body: {
 					password: 'elephant tree paris dragon chair galaxy',
 					publicKey: keys.publicKey,
+					forging: true,
 				},
 			})
 			.then(res => {
