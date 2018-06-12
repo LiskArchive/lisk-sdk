@@ -18,4 +18,4 @@ var parallelTests = require('../../../common/parallel_tests').parallelTests;
 
 var pathFiles = ['./node'];
 
-parallelTests(pathFiles, 'test/functional/http/put/');
+parallelTests(pathFiles, 'test/functional/http/patch/');
