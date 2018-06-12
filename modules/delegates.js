@@ -507,11 +507,14 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			const keypair = lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
-				passphrase
+			const keypair = library.ed.makeKeypair(
+				crypto
+					.createHash('sha256')
+					.update(passphrase, 'utf8')
+					.digest()
 			);
 
-			if (keypair.publicKey !== encryptedItem.publicKey) {
+			if (keypair.publicKey.toString('hex') !== encryptedItem.publicKey) {
 				return setImmediate(
 					seriesCb,
 					`Invalid encryptedPassphrase for publicKey: ${
@@ -532,14 +535,16 @@ __private.loadDelegates = function(cb) {
 					if (!account) {
 						return setImmediate(
 							seriesCb,
-							['Account with public key:', keypair.publicKey, 'not found'].join(
-								' '
-							)
+							[
+								'Account with public key:',
+								keypair.publicKey.toString('hex'),
+								'not found',
+							].join(' ')
 						);
 					}
 
 					if (account.isDelegate) {
-						__private.keypairs[keypair.publicKey] = keypair;
+						__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 						library.logger.info(
 							['Forging enabled on account:', account.address].join(' ')
 						);
@@ -596,8 +601,11 @@ Delegates.prototype.updateForgingStatus = function(
 			return setImmediate(cb, 'Invalid password and public key combination');
 		}
 
-		keypair = lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
-			passphrase
+		keypair = library.ed.makeKeypair(
+			crypto
+				.createHash('sha256')
+				.update(passphrase, 'utf8')
+				.digest()
 		);
 	} else {
 		return setImmediate(
@@ -606,12 +614,12 @@ Delegates.prototype.updateForgingStatus = function(
 		);
 	}
 
-	if (keypair.publicKey !== publicKey) {
+	if (keypair.publicKey.toString('hex') !== publicKey) {
 		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
 	modules.accounts.getAccount(
-		{ publicKey: keypair.publicKey },
+		{ publicKey: keypair.publicKey.toString('hex') },
 		(err, account) => {
 			if (err) {
 				return setImmediate(cb, err);
@@ -619,10 +627,10 @@ Delegates.prototype.updateForgingStatus = function(
 
 			if (account && account.isDelegate) {
 				if (forging) {
-					__private.keypairs[keypair.publicKey] = keypair;
+					__private.keypairs[keypair.publicKey.toString('hex')] = keypair;
 					library.logger.info(`Forging enabled on account: ${account.address}`);
 				} else {
-					delete __private.keypairs[keypair.publicKey];
+					delete __private.keypairs[keypair.publicKey.toString('hex')];
 					library.logger.info(
 						`Forging disabled on account: ${account.address}`
 					);
