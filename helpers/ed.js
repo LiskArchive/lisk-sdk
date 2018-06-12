@@ -52,6 +52,9 @@ ed.makeKeypair = function(hash) {
  * @todo Add description for the params and the return value
  */
 ed.sign = function(hash, privateKey) {
+	if (typeof privateKey === 'string') {
+		privateKey = Buffer.from(privateKey, 'hex');
+	}
 	return sodium.crypto_sign_detached(hash, privateKey);
 };
 
