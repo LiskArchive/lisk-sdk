@@ -114,9 +114,10 @@
 	},
 	"forging": {
 		"force": {{getv "/lisk/forging/force" "false"}},
+		"defaultPassword": "{{getv "/lisk/forging/defaultpassword" ""}}",
 		"delegates": [{{range $index, $element := (getvs "/lisk/forging/delegates/*")}}{{$data := split $element ":"}}{{if $index}}, {{end}}
 		{
-			"encryptedSecret": "{{index $data 0}}",
+			"encryptedPassphrase": "{{index $data 0}}",
 			"publicKey": "{{index $data 1}}"
 		}{{end}}],
 		"access": {

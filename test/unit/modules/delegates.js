@@ -167,11 +167,13 @@ describe('delegates', () => {
 
 				config.forging.delegates = [accountDetails];
 
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/688
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. No salt provided`
+						}. Argument must be a string.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -210,11 +212,13 @@ describe('delegates', () => {
 
 				config.forging.delegates = [accountDetails];
 
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/688
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. No cipher text provided`
+						}. Argument must be a string.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -253,11 +257,13 @@ describe('delegates', () => {
 
 				config.forging.delegates = [accountDetails];
 
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/688
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. No IV provided`
+						}. Argument must be a string.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -296,11 +302,13 @@ describe('delegates', () => {
 
 				config.forging.delegates = [accountDetails];
 
+				// TODO: Update the expectation after fixing
+				// https://github.com/LiskHQ/lisk-elements/issues/688
 				loadDelegates(err => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. No tag provided`
+						}. Argument must be a string.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
@@ -344,7 +352,7 @@ describe('delegates', () => {
 					expect(err).to.equal(
 						`Invalid encryptedPassphrase for publicKey: ${
 							accountDetails.publicKey
-						}. Tag must be 16 bytes`
+						}. Tag must be 16 bytes.`
 					);
 					expect(Object.keys(__private.keypairs).length).to.equal(0);
 					done();
