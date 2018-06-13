@@ -129,6 +129,7 @@ const setUpLiskElementsCryptoStubs = () => {
 		'decryptPassphraseWithPassword',
 		'getKeys',
 		'getAddressFromPublicKey',
+		'getAddressAndPublicKeyFromPassphrase',
 		'signMessageWithPassphrase',
 		'verifyMessageWithPublicKey',
 		'parseEncryptedPassphrase',
@@ -230,6 +231,11 @@ export function setUpCommandBroadcastTransaction() {
 export function setUpCommandCreateAccount() {
 	setUpCryptoStubs();
 	setUpMnemonicStubs();
+}
+
+export function setUpCommandShowAccount() {
+	setUpLiskElementsCryptoStubs();
+	setUpInputStubs();
 }
 
 export function setUpCommandCreateTransactionTransfer() {

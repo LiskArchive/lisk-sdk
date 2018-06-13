@@ -29,6 +29,7 @@ import * as config from '../../src/commands/config';
 import * as get from '../../src/commands/get';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
+import * as showAccount from '../../src/commands/show_account';
 import * as showCopyright from '../../src/commands/show_copyright';
 import * as showWarranty from '../../src/commands/show_warranty';
 import * as signMessage from '../../src/commands/sign_message';
@@ -99,6 +100,7 @@ export const getActionCreator = actionName =>
 		set: set.actionCreator,
 		'show copyright': showCopyright.actionCreator,
 		'show warranty': showWarranty.actionCreator,
+		'show account': showAccount.actionCreator,
 		'sign message': signMessage.actionCreator,
 		'verify message': verifyMessage.actionCreator,
 		'verify transaction': verifyTransaction.actionCreator,
