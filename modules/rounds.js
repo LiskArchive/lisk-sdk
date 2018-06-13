@@ -387,6 +387,16 @@ __private.getOutsiders = function(scope, cb, tx) {
  * @todo Add description for the params and the return value
  */
 __private.sumRound = function(scope, cb, tx) {
+	// When we need to sum round just after genesis block (height: 1)
+	// - set data manually directly from genesis block object
+	if (scope.block.height === 1) {
+		library.logger.debug(`Summing round - ${scope.round} (genesis block)`);
+		scope.roundFees = scope.block.totalFee;
+		scope.roundRewards = [scope.block.reward];
+		scope.roundDelegates = [scope.block.generatorPublicKey];
+		return setImmediate(cb);
+	}
+
 	library.logger.debug('Summing round', scope.round);
 
 	(tx || library.db).rounds
