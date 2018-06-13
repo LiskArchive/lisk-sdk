@@ -184,6 +184,8 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 				req = req.post(callPath);
 			} else if (self.method === 'put') {
 				req = req.put(callPath);
+			} else if (self.method === 'patch') {
+				req = req.patch(callPath);
 			} else if (self.method === 'get') {
 				req = req.get(callPath);
 			}
@@ -194,7 +196,11 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 
 			req = req.query(query);
 
-			if (self.method === 'post' || self.method === 'put') {
+			if (
+				self.method === 'post' ||
+				self.method === 'put' ||
+				self.method === 'patch'
+			) {
 				if (formData) {
 					req.type('form');
 				}

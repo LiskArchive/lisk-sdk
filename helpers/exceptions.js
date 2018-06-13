@@ -78,4 +78,5 @@ module.exports = {
 		'14164134775432642506', // 123333
 	],
 	inertTransactions: [],
+	transactionFee: [],
 };
