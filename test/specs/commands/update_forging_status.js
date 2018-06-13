@@ -25,20 +25,20 @@ describe('update forging status command', () => {
 			'a Vorpal instance with a UI and an active command that can prompt',
 			given.aVorpalInstanceWithAUIAndAnActiveCommandThatCanPrompt,
 			() => {
-				Given('an action "update forging status"', given.anAction, () => {
-					Given(
-						'an options object with a password set to "randompassword"',
-						given.anOptionsObjectWithPasswordSetTo,
-						() => {
+				Given(
+					'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
+					given.aPublicKey,
+					() => {
+						Given('an action "update forging status"', given.anAction, () => {
 							Given(
-								'the password can be retrived from its source',
-								given.thePasswordCanBeRetrievedFromItsSource,
+								'an options object with a password set to "randompassword"',
+								given.anOptionsObjectWithPasswordSetTo,
 								() => {
-									Given('a status "enable"', given.aStatus, () => {
-										Given(
-											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
-											given.aPublicKey,
-											() => {
+									Given(
+										'the password can be retrived from its source',
+										given.thePasswordCanBeRetrievedFromItsSource,
+										() => {
+											Given('a status "enable"', given.aStatus, () => {
 												Given(
 													'updateForgingStatus resolves successfully',
 													given.updateForgingStatusResolvesSuccessfully,
@@ -59,26 +59,20 @@ describe('update forging status command', () => {
 														);
 													},
 												);
-											},
-										);
-									});
+											});
+										},
+									);
 								},
 							);
-						},
-					);
-					Given(
-						'a password "minute omit local rare sword knee banner pair rib museum shadow juice"',
-						given.aPassword,
-						() => {
 							Given(
-								'an empty options object',
-								given.anEmptyOptionsObject,
+								'a password "minute omit local rare sword knee banner pair rib museum shadow juice"',
+								given.aPassword,
 								() => {
-									Given('a status "random"', given.aStatus, () => {
-										Given(
-											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
-											given.aPublicKey,
-											() => {
+									Given(
+										'an empty options object',
+										given.anEmptyOptionsObject,
+										() => {
+											Given('a status "random"', given.aStatus, () => {
 												When(
 													'the action is called with the status and the public key and the options',
 													when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
@@ -89,14 +83,8 @@ describe('update forging status command', () => {
 														);
 													},
 												);
-											},
-										);
-									});
-									Given('a status "enable"', given.aStatus, () => {
-										Given(
-											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
-											given.aPublicKey,
-											() => {
+											});
+											Given('a status "enable"', given.aStatus, () => {
 												Given(
 													'the password can be retrived from its source',
 													given.thePasswordCanBeRetrievedFromItsSource,
@@ -121,32 +109,42 @@ describe('update forging status command', () => {
 																);
 															},
 														);
-													},
-												);
-												Given(
-													'an error "Unknown data source type." occurs retrieving the inputs from their sources',
-													given.anErrorOccursRetrievingTheInputsFromTheirSources,
-													() => {
-														When(
-															'the action is called with the status and the public key and the options',
-															when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+														Given(
+															'updateForgingStatus rejects with error',
+															given.updateForgingStatusRejectsWithError,
 															() => {
-																Then(
-																	'it should reject with the error message',
-																	then.itShouldRejectWithTheErrorMessage,
+																When(
+																	'the action is called with the status and the public key and the options',
+																	when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+																	() => {
+																		Then(
+																			'it should reject with the error message',
+																			then.itShouldRejectWithTheErrorMessage,
+																		);
+																	},
+																);
+															},
+														);
+														Given(
+															'an error "Unknown data source type." occurs retrieving the inputs from their sources',
+															given.anErrorOccursRetrievingTheInputsFromTheirSources,
+															() => {
+																When(
+																	'the action is called with the status and the public key and the options',
+																	when.theActionIsCalledWithTheStatusAndThePublicKeyAndTheOptions,
+																	() => {
+																		Then(
+																			'it should reject with the error message',
+																			then.itShouldRejectWithTheErrorMessage,
+																		);
+																	},
 																);
 															},
 														);
 													},
 												);
-											},
-										);
-									});
-									Given('a status "disable"', given.aStatus, () => {
-										Given(
-											'a public key "1b5a93c7622c666b0228236a70ee1a31407828b71bfb6daaa29a1509e87d4d3c"',
-											given.aPublicKey,
-											() => {
+											});
+											Given('a status "disable"', given.aStatus, () => {
 												Given(
 													'an error "Unknown data source type." occurs retrieving the inputs from their sources',
 													given.anErrorOccursRetrievingTheInputsFromTheirSources,
@@ -183,14 +181,14 @@ describe('update forging status command', () => {
 														);
 													},
 												);
-											},
-										);
-									});
+											});
+										},
+									);
 								},
 							);
-						},
-					);
-				});
+						});
+					},
+				);
 			},
 		);
 	});

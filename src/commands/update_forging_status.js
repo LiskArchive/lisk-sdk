@@ -54,7 +54,6 @@ export const actionCreator = vorpal => async ({
 	return getInputsFromSources(vorpal, {
 		password: {
 			source: passwordSource,
-			repeatPrompt: true,
 		},
 	}).then(({ password }) => processInput(client, status, publicKey, password));
 };

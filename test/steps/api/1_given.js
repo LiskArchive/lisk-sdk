@@ -73,3 +73,10 @@ export function updateForgingStatusResolvesSuccessfully() {
 	this.test.ctx.apiResponse = response.data;
 	liskAPIInstance.node.updateForgingStatus.resolves(response);
 }
+
+export function updateForgingStatusRejectsWithError() {
+	const { liskAPIInstance } = this.test.ctx;
+	const errorMessage = 'some error';
+	this.test.ctx.errorMessage = errorMessage;
+	liskAPIInstance.node.updateForgingStatus.rejects(new Error(errorMessage));
+}
