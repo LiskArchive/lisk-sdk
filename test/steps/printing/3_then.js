@@ -145,7 +145,7 @@ export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNest
 	const { returnValue, testObject } = this.test.ctx;
 	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
 		const strValue =
-			typeof value === 'object'
+			typeof value === 'object' && value !== null
 				? Object.entries(value)
 						.map(
 							([vKey, vValue]) =>
