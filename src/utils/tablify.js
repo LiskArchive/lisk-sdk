@@ -34,7 +34,7 @@ const chars = {
 };
 
 const getKeyValueObject = object => {
-	if (typeof object !== 'object') {
+	if (!object || typeof object !== 'object') {
 		return object;
 	}
 	return Object.entries(object)
