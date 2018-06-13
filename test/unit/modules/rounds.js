@@ -395,11 +395,11 @@ describe('rounds', () => {
 			});
 
 			it('should set scope.roundFees correctly', () => {
-				return expect(scope.roundFees).to.equal(scope.block.totalFee);
+				return expect(scope.roundFees).to.equal(0);
 			});
 
 			it('should set scope.roundRewards correctly', () => {
-				return expect(scope.roundRewards).to.deep.equal([scope.block.reward]);
+				return expect(scope.roundRewards).to.deep.equal([0]);
 			});
 
 			it('should set scope.roundDelegates', () => {
