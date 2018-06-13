@@ -67,7 +67,7 @@ describe('show account command', () => {
 														then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
 													);
 													Then(
-														'it should resolve to an object withthe private key, the public key and the address',
+														'it should resolve to an object with the private key, the public key and the address',
 														then.itShouldResolveToAnObjectWithThePrivateKeyThePublicKeyAndTheAddress,
 													);
 												},
@@ -113,7 +113,7 @@ describe('show account command', () => {
 														then.itShouldGetTheInputsFromSourcesUsingThePassphraseSourceWithARepeatingPrompt,
 													);
 													Then(
-														'it should resolve to an object withthe private key, the public key and the address',
+														'it should resolve to an object with the private key, the public key and the address',
 														then.itShouldResolveToAnObjectWithThePrivateKeyThePublicKeyAndTheAddress,
 													);
 												},
