@@ -114,7 +114,7 @@ export function itShouldResolveToTheResultOfEncryptingTheMessage() {
 	return expect(returnValue).to.eventually.equal(cryptoResult);
 }
 
-export function itShouldResolveToAnObjectWithThePublicKeyThePrivateKeyAndTheAddress() {
+export function itShouldResolveToAnObjectWithThePrivateKeyThePublicKeyAndTheAddress() {
 	const {
 		returnValue,
 		keys: { privateKey, publicKey },
