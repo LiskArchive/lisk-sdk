@@ -23,7 +23,7 @@ export const bigNumberToBuffer = (bignumber, size) =>
 export const bufferToBigNumberString = bigNumberBuffer =>
 	bignum.fromBuffer(bigNumberBuffer).toString();
 
-export const bufferToHex = buffer => naclInstance.to_hex(buffer);
+export const bufferToHex = buffer => Buffer.from(buffer).toString('hex');
 
 const hexRegex = /^[0-9a-f]+/i;
 export const hexToBuffer = hex => {

@@ -12,9 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import crypto from 'crypto';
+import { hexToBuffer } from './convert';
+
+const cryptoHashSha256 = data => {
+	const hash = crypto.createHash('sha256');
+	hash.update(data);
+	return hash.digest();
+};
+
 const hash = (data, format) => {
 	if (Buffer.isBuffer(data)) {
-		return Buffer.from(naclInstance.crypto_hash_sha256(data));
+		return cryptoHashSha256(data);
 	}
 
 	if (typeof data === 'string') {
@@ -24,10 +33,8 @@ const hash = (data, format) => {
 			);
 		}
 		const encoded =
-			format === 'utf8'
-				? naclInstance.encode_utf8(data)
-				: naclInstance.from_hex(data);
-		return Buffer.from(naclInstance.crypto_hash_sha256(encoded));
+			format === 'utf8' ? Buffer.from(data, 'utf8') : hexToBuffer(data);
+		return cryptoHashSha256(encoded);
 	}
 
 	throw new Error(

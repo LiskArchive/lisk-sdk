@@ -13,6 +13,7 @@
  *
  */
 import crypto from 'crypto';
+import nacl from 'tweetnacl';
 import {
 	hexToBuffer,
 	bufferToHex,
@@ -37,10 +38,10 @@ export const encryptMessageWithPassphrase = (
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
-	const messageInBytes = naclInstance.encode_utf8(message);
+	const messageInBytes = Buffer.from(message, 'utf8');
 
-	const nonce = naclInstance.crypto_box_random_nonce();
-	const cipherBytes = naclInstance.crypto_box(
+	const nonce = nacl.randomBytes(24);
+	const cipherBytes = nacl.box(
 		messageInBytes,
 		nonce,
 		convertedPublicKey,
@@ -74,19 +75,15 @@ export const decryptMessageWithPassphrase = (
 	const nonceBytes = hexToBuffer(nonce);
 
 	try {
-		const decoded = naclInstance.crypto_box_open(
+		const decoded = nacl.box.open(
 			cipherBytes,
 			nonceBytes,
 			convertedPublicKey,
 			convertedPrivateKey,
 		);
-		return naclInstance.decode_utf8(decoded);
+		return Buffer.from(decoded).toString();
 	} catch (error) {
-		if (
-			error.message.match(
-				/nacl\.crypto_box_open expected 24-byte nonce but got length 1/,
-			)
-		) {
+		if (error.message.match(/bad nonce size/)) {
 			throw new Error('Expected 24-byte nonce but got length 1.');
 		}
 		throw new Error(

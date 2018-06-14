@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import nacl from 'tweetnacl';
 import { bufferToHex, getAddressFromPublicKey } from './convert';
 import hash from './hash';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
-	const { signSk, signPk } = naclInstance.crypto_sign_seed_keypair(hashed);
+	const { publicKey, secretKey } = nacl.sign.keyPair.fromSeed(hashed);
 
 	return {
-		privateKey: signSk,
-		publicKey: signPk,
+		privateKey: secretKey,
+		publicKey,
 	};
 };
 
