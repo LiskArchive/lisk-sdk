@@ -369,29 +369,22 @@ describe('rounds', () => {
 	describe('__private.sumRound', () => {
 		var sumRound;
 		var stub;
-		var scope = { round: 1 };
 
-		before(done => {
+		beforeEach(done => {
 			sumRound = get('__private.sumRound');
 			done();
 		});
 
-		describe('when summedRound query is successful', () => {
-			before(done => {
-				var rows = [
-					{
-						rewards: [1.001, 2, 3],
-						fees: 100.001,
-						delegates: ['delegate1', 'delegate2', 'delegate3'],
-					},
-				];
-				stub = sinon.stub(db.rounds, 'summedRound').resolves(rows);
-				done();
-			});
-
-			after(() => {
-				return stub.restore();
-			});
+		describe('when last block is genesis block', () => {
+			const scope = {
+				round: 1,
+				block: {
+					height: 1,
+					totalFee: 123,
+					reward: 456,
+					generatorPublicKey: 'aaa',
+				},
+			};
 
 			it('should call a callback', done => {
 				sumRound(scope, err => {
@@ -401,37 +394,81 @@ describe('rounds', () => {
 				});
 			});
 
-			it('should set scope.roundFees correctly', () => {
-				return expect(scope.roundFees).to.equal(100);
+			it('should set scope.roundFees to 0', () => {
+				return expect(scope.roundFees).to.equal(0);
 			});
 
-			it('should set scope.roundRewards correctly', () => {
-				return expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
+			it('should set scope.roundRewards to 0', () => {
+				return expect(scope.roundRewards).to.deep.equal([0]);
 			});
 
 			it('should set scope.roundDelegates', () => {
 				return expect(scope.roundDelegates).to.deep.equal([
-					'delegate1',
-					'delegate2',
-					'delegate3',
+					scope.block.generatorPublicKey,
 				]);
 			});
 		});
 
-		describe('when summedRound query fails', () => {
-			before(done => {
-				stub = sinon.stub(db.rounds, 'summedRound').rejects('fail');
-				done();
-			});
+		describe('when last block is not genesis block', () => {
+			const scope = { round: 1, block: { height: 2 } };
 
-			after(() => {
-				return stub.restore();
-			});
-
-			it('should call a callback with error = fail', done => {
-				sumRound(scope, err => {
-					expect(err.name).to.equal('fail');
+			describe('when summedRound query is successful', () => {
+				beforeEach(done => {
+					var rows = [
+						{
+							rewards: [1.001, 2, 3],
+							fees: 100.001,
+							delegates: ['delegate1', 'delegate2', 'delegate3'],
+						},
+					];
+					stub = sinon.stub(db.rounds, 'summedRound').resolves(rows);
 					done();
+				});
+
+				afterEach(() => {
+					return stub.restore();
+				});
+
+				it('should call a callback', done => {
+					sumRound(scope, err => {
+						_.cloneDeep(scope);
+						expect(err).to.not.exist;
+						done();
+					});
+				});
+
+				it('should set scope.roundFees correctly', () => {
+					return expect(scope.roundFees).to.equal(100);
+				});
+
+				it('should set scope.roundRewards correctly', () => {
+					return expect(scope.roundRewards).to.deep.equal([1, 2, 3]);
+				});
+
+				it('should set scope.roundDelegates', () => {
+					return expect(scope.roundDelegates).to.deep.equal([
+						'delegate1',
+						'delegate2',
+						'delegate3',
+					]);
+				});
+			});
+
+			describe('when summedRound query fails', () => {
+				before(done => {
+					stub = sinon.stub(db.rounds, 'summedRound').rejects('fail');
+					done();
+				});
+
+				after(() => {
+					return stub.restore();
+				});
+
+				it('should call a callback with error = fail', done => {
+					sumRound(scope, err => {
+						expect(err.name).to.equal('fail');
+						done();
+					});
 				});
 			});
 		});
