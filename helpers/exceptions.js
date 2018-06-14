@@ -65,4 +65,5 @@ module.exports = {
 		'16394286522174687330', // 1318685 - Vote transaction
 		'12298100805070303137', // 3057955 - Delegate transaction
 	],
+	transactionFee: [],
 };

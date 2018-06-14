@@ -628,23 +628,26 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
  * @todo Add @returns tag
  */
 Process.prototype.onReceiveBlock = function(block) {
-	let lastBlock;
+	// When client is not loaded, is syncing
+	// Do not receive new blocks as client is not ready
+	if (!__private.loaded) {
+		return library.logger.debug(
+			'Client is not ready to receive block',
+			block.id
+		);
+	}
+
+	if (modules.loader.syncing()) {
+		return library.logger.debug(
+			"Client is syncing. Can't receive block at the moment.",
+			block.id
+		);
+	}
 
 	// Execute in sequence via sequence
 	library.sequence.add(cb => {
-		// When client is not loaded, is syncing or round is ticking
-		// Do not receive new blocks as client is not ready
-		if (
-			!__private.loaded ||
-			modules.loader.syncing() ||
-			modules.rounds.ticking()
-		) {
-			library.logger.debug('Client not ready to receive block', block.id);
-			return setImmediate(cb);
-		}
-
 		// Get the last block
-		lastBlock = modules.blocks.lastBlock.get();
+		const lastBlock = modules.blocks.lastBlock.get();
 
 		// Detect sane block
 		if (

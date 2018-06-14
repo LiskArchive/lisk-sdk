@@ -76,8 +76,7 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 	})();
 }
 
-// Returns current block height
-function getHeight(cb) {
+function nodeStatus(cb) {
 	var request = popsicle.get(`${__testContext.baseUrl}/api/node/status`);
 
 	request.use(popsicle.plugins.parse(['json']));
@@ -89,11 +88,20 @@ function getHeight(cb) {
 				['Received bad response code', res.status, res.url].join(' ')
 			);
 		}
-		return setImmediate(cb, null, res.body.data.height);
+		return setImmediate(cb, null, res.body.data);
 	});
 
 	request.catch(err => {
 		return setImmediate(cb, err);
+	});
+}
+// Returns current block height
+function getHeight(cb) {
+	nodeStatus((err, res) => {
+		if (err) {
+			return setImmediate(cb, err);
+		}
+		return setImmediate(cb, null, res.height);
 	});
 }
 
