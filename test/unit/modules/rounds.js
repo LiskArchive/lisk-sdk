@@ -394,11 +394,11 @@ describe('rounds', () => {
 				});
 			});
 
-			it('should set scope.roundFees correctly', () => {
+			it('should set scope.roundFees to 0', () => {
 				return expect(scope.roundFees).to.equal(0);
 			});
 
-			it('should set scope.roundRewards correctly', () => {
+			it('should set scope.roundRewards to 0', () => {
 				return expect(scope.roundRewards).to.deep.equal([0]);
 			});
 
