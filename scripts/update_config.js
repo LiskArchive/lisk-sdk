@@ -19,5 +19,58 @@
  * 		A user manual can be found on documentation site under /documentation/lisk-core/upgrade/upgrade-configurations
  */
 
-// Betanet doesn't contain any 0.9.* version. Update config.json is not necessary. The script will terminate immediately.
-process.exit(0);
+
+// Migration of config.json from version 1.0.0-beta.7 to 1.0.0-beta.8
+// Doesn't migrate secrets.
+
+const fs = require('fs');
+const program = require('commander');
+const extend = require('extend');
+
+let oldConfigPath;
+let newConfigPath;
+
+program
+	.version('0.1.1')
+	.arguments('<old_config_file> <new_config_file>')
+	.action((oldConfig, newConfig) => {
+		oldConfigPath = oldConfig;
+		newConfigPath = newConfig;
+	})
+	.parse(process.argv);
+
+if (!oldConfigPath || !newConfigPath) {
+	console.error('error: no config file provided.');
+	process.exit(1);
+}
+
+console.info('Starting configuration migration. Without secrets! Please encrypt them manually using lisk-commander');
+const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
+const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
+
+// Values to keep from new config file
+delete oldConfig.version;
+delete oldConfig.minVersion;
+
+// loading.verifyOnLoading had been removed
+delete oldConfig.loading.verifyOnLoading;
+
+oldConfig.forging.delegates = [];
+
+oldConfig.forging.defaultPassword = oldConfig.forging.defautKey;
+delete oldConfig.forging.defautKey;
+delete oldConfig.forging.secret;
+
+const modifiedConfig = extend(true, {}, newConfig, oldConfig);
+
+fs.writeFile(
+	newConfigPath,
+	JSON.stringify(modifiedConfig, null, '\t'),
+	err => {
+		if (err) {
+			throw err;
+		} else {
+			console.info('Configuration migration completed.');
+		}
+	}
+);
