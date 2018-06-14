@@ -53,10 +53,11 @@ describe('snapshotting', () => {
 		let memAccountsBeforeSnapshot;
 
 		before(() => {
-			// Forge 201 blocks to reach height 202 (genesis block is already tyhere)
+			// Forge 99 blocks to reach height 100 (genesis block is already there)
 			return Promise.mapSeries([...Array(99)], () => {
 				return addTransactionsAndForgePromise(library, [], 0);
 			})
+				// Forge 1 block with transaction to reach height 101
 				.then(() => {
 					const transaction = elements.transaction.transfer({
 						recipientId: randomUtil.account().address,
@@ -65,6 +66,7 @@ describe('snapshotting', () => {
 					});
 					return addTransactionsAndForgePromise(library, [transaction], 0);
 				})
+				// Forge 101 block with transaction to reach height 202
 				.then(() => {
 					return Promise.mapSeries([...Array(101)], () => {
 						return addTransactionsAndForgePromise(library, [], 0);
@@ -74,7 +76,8 @@ describe('snapshotting', () => {
 					return getMemAccounts().then(_accounts => {
 						// Save copy of mem_accounts table
 						memAccountsBeforeSnapshot = _.cloneDeep(_accounts);
-						// Forge one more round (blocks from that round should be deleted during snapshotting process)
+						// Forge one more round of blocks to reach height 303
+						// blocks from that round should be deleted during snapshotting process)
 						return Promise.mapSeries([...Array(101)], () => {
 							return addTransactionsAndForgePromise(library, [], 0);
 						});
