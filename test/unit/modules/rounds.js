@@ -370,7 +370,7 @@ describe('rounds', () => {
 		var sumRound;
 		var stub;
 
-		before(done => {
+		beforeEach(done => {
 			sumRound = get('__private.sumRound');
 			done();
 		});
@@ -413,7 +413,7 @@ describe('rounds', () => {
 			const scope = { round: 1, block: { height: 2 } };
 
 			describe('when summedRound query is successful', () => {
-				before(done => {
+				beforeEach(done => {
 					var rows = [
 						{
 							rewards: [1.001, 2, 3],
@@ -425,7 +425,7 @@ describe('rounds', () => {
 					done();
 				});
 
-				after(() => {
+				afterEach(() => {
 					return stub.restore();
 				});
 
