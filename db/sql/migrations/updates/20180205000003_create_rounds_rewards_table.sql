@@ -39,7 +39,7 @@ CREATE TABLE "rounds_rewards"(
 );
 
 -- Insert record for dummy round 1 when genesis block is in database
-INSERT INTO rounds_rewards SELECT timestamp, 0, 0, 1, "generatorPublicKey" FROM blocks WHERE height = 1;
+INSERT INTO rounds_rewards (timestamp, fees, reward, round, "publicKey") SELECT timestamp, 0, 0, 1, "generatorPublicKey" FROM blocks WHERE height = 1;
 
 -- Compute all rewards for previous rounds and insert them to 'rounds_rewards'
 DO $$
