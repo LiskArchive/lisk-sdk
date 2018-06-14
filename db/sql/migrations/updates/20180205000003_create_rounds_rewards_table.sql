@@ -38,6 +38,9 @@ CREATE TABLE "rounds_rewards"(
 	"publicKey" BYTEA  NOT NULL
 );
 
+-- Insert record for dummy round 1 when genesis block is in database
+INSERT INTO rounds_rewards SELECT timestamp, 0, 0, 1, "publicKey" FROM blocks WHERE height = 1;
+
 -- Compute all rewards for previous rounds and insert them to 'rounds_rewards'
 DO $$
 	DECLARE
@@ -66,11 +69,8 @@ DO $$
 					FROM blocks b
 					WHERE ceil(b.height / 101::float)::int = row.round
 				),
-				filtered_round AS (
-					SELECT * FROM round WHERE height > 1
-				),
 				-- Calculating total fees of round
-				fees AS (SELECT sum(fees) AS total, floor(sum(fees) / 101) AS single FROM filtered_round),
+				fees AS (SELECT sum(fees) AS total, floor(sum(fees) / 101) AS single FROM round),
 				-- Get last delegate and timestamp of round's last block
 				last AS (SELECT "publicKey", timestamp FROM filtered_round ORDER BY height DESC LIMIT 1)
 			INSERT INTO rounds_rewards
