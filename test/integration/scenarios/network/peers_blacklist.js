@@ -85,7 +85,9 @@ module.exports = params => {
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					restartNode('node_0');
-					blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+					setTimeout(() => {
+						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+					}, 4000);
 				});
 
 
@@ -150,7 +152,9 @@ module.exports = params => {
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					restartNode('node_0');
-					blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+					setTimeout(() => {
+						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+					}, 4000);
 				});
 
 				it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
