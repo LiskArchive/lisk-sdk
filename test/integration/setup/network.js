@@ -22,13 +22,15 @@ var utils = require('../utils');
 
 module.exports = {
 	waitForAllNodesToBeReady(configurations, cb) {
+		const retries = 20;
+		const timeout = 3000;
 		async.forEachOf(
 			configurations,
 			(configuration, index, eachCb) => {
 				waitUntilBlockchainReady(
 					eachCb,
-					20,
-					2000,
+					retries,
+					timeout,
 					`http://${configuration.ip}:${configuration.httpPort}`
 				);
 			},
