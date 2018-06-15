@@ -59,6 +59,7 @@
     "build:check": "node -e \"require('./dist-node')\"",
     "precommit": "lint-staged && npm run lint",
     "prepush": "npm run lint && npm test",
+    "postinstall": "if [ ! -f ./dist-node/index.js ]; then npm run build; fi",
     "prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build",
     "prepublish:browser": "npm run prepublishOnly",
     "publish:browser": "./bin/publish_browser.sh",
