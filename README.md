@@ -263,6 +263,14 @@ npm test -- mocha:<tag>:<suite>:[section]
 * Where **section** depending of the chosen suite can be:
   * when `functional` --> `get | post | ws | system` (optional)
 
+Examples:
+```
+npm test -- mocha:slow:unit
+npm test -- mocha:untagged:functional:get
+npm test -- mocha:unstable:functional:ws
+npm test -- mocha:extensive:integration
+```
+
 Individual test files can be run using the following command:
 
 ```
