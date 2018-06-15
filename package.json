@@ -20,64 +20,84 @@
 		"url": "https://github.com/LiskHQ/lisk-commander/issues"
 	},
 	"engines": {
-		"node": "=6.14.1",
-		"npm": "=3.10.10"
+		"node": ">=8.0.0"
 	},
-	"directories": {
-		"bin": "./bin"
+	"main": "dist/index.js",
+	"bin": {
+		"lisk": "./bin/run"
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
 		"format": "prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
-		"test:local": "NODE_ENV=test nyc mocha test/specs",
-		"test:ci": "NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
+		"test":
+			"if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
+		"test:local": "NODE_ENV=test nyc mocha test/commands",
+		"test:ci":
+			"NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/commands",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
-		"cover:local": "npm run cover:base -- --reporter=html --reporter=text mocha",
-		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
-		"cover:test": "NODE_ENV=test nyc  --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
+		"cover:local":
+			"npm run cover:base -- --reporter=html --reporter=text mocha",
+		"cover:ci":
+			"npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:test":
+			"NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test/commands",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
+		"postpack": "rm -f oclif.manifest.json",
+		"prepack": "oclif-dev manifest && oclif-dev readme && npm shrinkwrap",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint && npm test",
 		"prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build"
 	},
+	"oclif": {
+		"commands": "./dist/commands",
+		"bin": "lisk",
+		"plugins": ["@oclif/plugin-help"]
+	},
+	"files": ["/bin", "/npm-shrinkwrap.json", "/oclif.manifest.json", "/dist"],
 	"dependencies": {
-		"babel-polyfill": "=6.26.0",
-		"bip39": "=2.4.0",
-		"chalk": "=2.3.0",
+		"@oclif/command": "1.4.33",
+		"@oclif/config": "1.6.28",
+		"@oclif/plugin-help": "2.0.5",
+		"babel-polyfill": "6.26.0",
+		"bip39": "2.4.0",
+		"chalk": "2.3.0",
 		"cli-table2": "LiskHQ/cli-table2#187c6ae80b9d963c598d0cb3379153387bfb15c4",
-		"lisk-elements": "=1.0.0-beta.3",
-		"lockfile": "=1.0.3",
-		"semver": "=5.5.0",
-		"strip-ansi": "=4.0.0",
-		"vorpal": "LiskHQ/vorpal#v1.0.1-lisk"
+		"lisk-elements": "1.0.0-beta.3",
+		"lockfile": "1.0.3",
+		"semver": "5.5.0",
+		"strip-ansi": "4.0.0"
 	},
 	"devDependencies": {
-		"babel-cli": "=6.26.0",
-		"babel-plugin-istanbul": "=4.1.5",
-		"babel-preset-env": "=1.6.1",
-		"babel-register": "=6.26.0",
-		"chai": "=4.1.2",
-		"chai-as-promised": "=7.1.1",
-		"coveralls": "=3.0.0",
-		"eslint": "=4.16.0",
-		"eslint-config-airbnb-base": "=12.1.0",
-		"eslint-config-lisk-base": "=1.0.0",
-		"eslint-plugin-import": "=2.8.0",
-		"eslint-plugin-mocha": "=4.11.0",
-		"husky": "=0.14.3",
-		"lint-staged": "=5.0.0",
-		"mocha": "=4.0.1",
-		"mocha-bdd": "=0.1.2",
-		"nyc": "=11.3.0",
-		"prettier": "=1.9.2",
-		"sinon": "=4.1.2",
-		"sinon-chai": "=2.14.0"
+		"@oclif/dev-cli": "1.13.31",
+		"@oclif/test": "1.1.0",
+		"babel-cli": "6.26.0",
+		"babel-plugin-istanbul": "4.1.5",
+		"babel-plugin-transform-object-rest-spread": "6.26.0",
+		"babel-preset-env": "1.6.1",
+		"babel-register": "6.26.0",
+		"chai": "4.1.2",
+		"chai-as-promised": "7.1.1",
+		"coveralls": "3.0.0",
+		"eslint": "4.16.0",
+		"eslint-config-airbnb-base": "12.1.0",
+		"eslint-config-lisk-base": "1.0.0",
+		"eslint-config-oclif": "1.5.1",
+		"eslint-plugin-import": "2.8.0",
+		"eslint-plugin-mocha": "4.11.0",
+		"fancy-test": "1.2.0",
+		"globby": "8.0.1",
+		"husky": "0.14.3",
+		"lint-staged": "5.0.0",
+		"mocha": "4.0.1",
+		"nyc": "11.3.0",
+		"prettier": "1.9.2",
+		"sinon": "4.1.2",
+		"sinon-chai": "2.14.0"
 	}
 }

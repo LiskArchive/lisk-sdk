@@ -1,0 +1,9 @@
+{
+	"name": "lisk-commander",
+	"oclif": {
+		"commands": "../src/commands",
+		"bin": "lisk",
+		"plugins": ["@oclif/plugin-help"]
+	},
+	"files": ["/bin", "/npm-shrinkwrap.json", "/oclif.manifest.json", "/dist"]
+}
