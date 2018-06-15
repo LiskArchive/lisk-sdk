@@ -31,7 +31,7 @@ This sections provides details on what you need install on your system in order 
 
 * Tool chain components -- Used for compiling dependencies
 
-  * Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
     ```
     sudo apt-get update
@@ -52,7 +52,7 @@ This sections provides details on what you need install on your system in order 
 
 * Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
-  * Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
     ```
     sudo apt-get install -y git
@@ -70,7 +70,7 @@ This sections provides details on what you need install on your system in order 
 
   Install System wide via package manager:
 
-  * Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
     ```
     curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
@@ -100,7 +100,7 @@ This sections provides details on what you need install on your system in order 
 
 ### PostgreSQL (version 9.6):
 
-* Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
   ```
   curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
@@ -123,7 +123,7 @@ This sections provides details on what you need install on your system in order 
 
 ### Installing Redis
 
-* Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
   ```
   sudo apt-get install redis-server
@@ -171,7 +171,7 @@ Update the launch configuration file on your system. Note that their a number of
 
 1. Stop redis-server
 2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
-   * Ubuntu/Debian: `/etc/redis/redis.conf`
+   * Ubuntu 14|16 / Debian: `/etc/redis/redis.conf`
    * MacOS: `/usr/local/etc/redis.conf`
 3. Start redis-server
 
