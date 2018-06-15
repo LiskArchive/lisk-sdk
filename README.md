@@ -1,7 +1,5 @@
 # Lisk
 
-Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://lisk.io/.
-
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-core/development)](https://jenkins.lisk.io/job/lisk-core/job/development)
 [![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk?branch=development)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
@@ -9,23 +7,15 @@ Lisk is a next generation crypto-currency and decentralized application platform
 <a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
 <a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
-## Docker image
+Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found https://lisk.io/.
 
-### Build
+Lisk Core is the program that implements the [Lisk Protocol](https://lisk.io/documentation/the-lisk-protocol/introduction). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
-Please refer to the official documentation if you need to install the [Docker Engine](https://docs.docker.com/engine/installation).
-To build the image:
-```
-docker build --tag lisk/mainnet:1.0.0 .
-```
+This document details how to install Lisk Core. If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
-### Usage
+## Pre-Installation
 
-Please refer to the documentation on [lisk.io](https://lisk.io/documentation/core/installation/docker-main-network).
-
-## Prerequisites - In order
-
-This sections provides details on what you need install on your system in order to run Lisk.
+The next section details the prerequisites to install Lisk Core from a Source installation using tagged releases on Github.
 
 ### System Install
 
@@ -186,7 +176,7 @@ And you should get the result `PONG`.
 
 ## Installation Steps
 
-Clone the Lisk repository using git and initialize the modules.
+Before you proceed, you need to decide if you want to connect your node to the Testnet (Test Network), to the Mainnet (Main Network) or to work in your own network. In order to connect your node with the *Mainnet* for example, clone this Lisk Core repository from the master branch and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
@@ -277,13 +267,9 @@ Individual test files can be run using the following command:
 npm run mocha -- path/to/test.js
 ```
 
-### Genesis Account
+## Other ways to run Lisk Core
 
-The master passphrase for the genesis block used by the tests is as follows:
-
-```
-wagon stock borrow episode laundry kitten salute link globe zero feed marble
-```
+We offer two ways more to run a node on the Lisk Networks: binaries and Docker images. Please, access to our official documentation to get more information https://lisk.io/documentation
 
 ## Contributors
 
