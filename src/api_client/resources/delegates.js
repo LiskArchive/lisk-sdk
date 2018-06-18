@@ -24,12 +24,15 @@ export default class DelegatesResource extends APIResource {
 
 		this.get = apiMethod({
 			method: GET,
+			defaultData: {
+				sort: 'rank:asc',
+			},
 		}).bind(this);
 
 		this.getStandby = apiMethod({
 			method: GET,
 			defaultData: {
-				sort: 'rate:asc',
+				sort: 'rank:asc',
 				offset: 101,
 			},
 		}).bind(this);
