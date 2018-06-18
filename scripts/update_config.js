@@ -57,7 +57,7 @@ delete oldConfig.minVersion;
 
 // Rename old port to new wsPort
 oldConfig.httpPort = oldConfig.port;
-oldConfig.wsPort = oldConfig.httpPort + 1;
+oldConfig.wsPort = oldConfig.port + 1;
 delete oldConfig.port;
 
 oldConfig.db.max = oldConfig.db.poolSize;
@@ -74,7 +74,7 @@ delete oldConfig.dapp;
 
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
-	p.wsPort = p.port;
+	p.wsPort = p.port + 1;
 	delete p.port;
 	return p;
 });
