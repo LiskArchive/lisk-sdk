@@ -91,14 +91,10 @@ export const parseEncryptedPassphrase = encryptedPassphrase => {
 		throw new Error('Encrypted passphrase to parse must be a string.');
 	}
 	const keyValuePairs = querystring.parse(encryptedPassphrase);
-	const { salt, cipherText, iv, tag, version } = keyValuePairs;
-	const iterations =
-		keyValuePairs.iterations !== undefined
-			? parseInt(keyValuePairs.iterations, 10)
-			: null;
+	const { iterations, salt, cipherText, iv, tag, version } = keyValuePairs;
 
 	return {
-		iterations,
+		iterations: iterations === undefined ? undefined : parseInt(iterations, 10),
 		salt,
 		cipherText,
 		iv,

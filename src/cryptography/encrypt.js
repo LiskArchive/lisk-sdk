@@ -96,12 +96,16 @@ const getKeyFromPassword = (password, salt, iterations) =>
 	crypto.pbkdf2Sync(
 		password,
 		salt,
-		iterations || PBKDF2_ITERATIONS,
+		iterations,
 		PBKDF2_KEYLEN,
 		PBKDF2_HASH_FUNCTION,
 	);
 
-const encryptAES256GCMWithPassword = (plainText, password, iterations) => {
+const encryptAES256GCMWithPassword = (
+	plainText,
+	password,
+	iterations = PBKDF2_ITERATIONS,
+) => {
 	const iv = crypto.randomBytes(12);
 	const salt = crypto.randomBytes(16);
 	const key = getKeyFromPassword(password, salt, iterations);
@@ -112,7 +116,7 @@ const encryptAES256GCMWithPassword = (plainText, password, iterations) => {
 	const tag = cipher.getAuthTag();
 
 	return {
-		iterations: iterations || null,
+		iterations,
 		cipherText: encrypted.toString('hex'),
 		iv: iv.toString('hex'),
 		salt: salt.toString('hex'),
@@ -130,7 +134,7 @@ const getTagBuffer = tag => {
 };
 
 const decryptAES256GCMWithPassword = (
-	{ iterations, cipherText, iv, salt, tag },
+	{ iterations = PBKDF2_ITERATIONS, cipherText, iv, salt, tag },
 	password,
 ) => {
 	const tagBuffer = getTagBuffer(tag);
