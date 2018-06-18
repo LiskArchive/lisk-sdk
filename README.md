@@ -7,11 +7,12 @@
 <a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
 <a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
-Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found https://lisk.io/.
+Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
 
-Lisk Core is the program that implements the [Lisk Protocol](https://lisk.io/documentation/the-lisk-protocol/introduction). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
+Lisk Core is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
-This document details how to install Lisk Core. If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
+This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/docker). 
+If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
 ## Pre-Installation
 
@@ -266,10 +267,6 @@ Individual test files can be run using the following command:
 ```
 npm run mocha -- path/to/test.js
 ```
-
-## Other ways to run Lisk Core
-
-We offer two ways more to run a node on the Lisk Networks: binaries and Docker images. Please, access to our official documentation to get more information https://lisk.io/documentation
 
 ## Contributors
 
