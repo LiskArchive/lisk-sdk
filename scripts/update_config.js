@@ -47,6 +47,14 @@ if (!oldConfigPath || !newConfigPath) {
 	process.exit(1);
 }
 
+const passwordLen = program.password.trim().length;
+if (passwordLen < 5) {
+	console.error(
+		`error: String is too short (${passwordLen} chars), minimum 5.`
+	);
+	process.exit(1);
+}
+
 console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
