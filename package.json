@@ -2,15 +2,10 @@
 	"name": "lisk-commander",
 	"version": "1.0.0-beta.3",
 	"description": "A command line interface for Lisk",
-	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"author":
+		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
-	"keywords": [
-		"lisk",
-		"blockchain",
-		"command-line",
-		"nodejs",
-		"javascript"
-	],
+	"keywords": ["lisk", "blockchain", "command-line", "nodejs", "javascript"],
 	"homepage": "https://github.com/LiskHQ/lisk-commander#readme",
 	"repository": {
 		"type": "git",
@@ -28,7 +23,8 @@
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
-		"format": "prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
+		"format":
+			"prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
 		"test":
@@ -38,7 +34,8 @@
 			"NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/commands",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover":
+			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local":
 			"npm run cover:base -- --reporter=html --reporter=text mocha",
@@ -52,7 +49,8 @@
 		"prepack": "oclif-dev manifest && oclif-dev readme && npm shrinkwrap",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint && npm test",
-		"prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build"
+		"prepublishOnly":
+			"rm -r ./node_modules && npm install && npm run prepush && npm run build"
 	},
 	"oclif": {
 		"commands": "./dist/commands",
