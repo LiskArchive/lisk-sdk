@@ -18,9 +18,7 @@ const _ = require('lodash');
 const rewire = require('rewire');
 const expect = require('chai').expect;
 const transactionTypes = require('../../../helpers/transaction_types.js');
-const constants = require('../../../helpers/constants.js');
 // Load config file - global (one from test directory)
-const config = require('../../../config.json');
 const Sequence = require('../../../helpers/sequence.js');
 
 // Instantiate test subject
@@ -28,6 +26,8 @@ const TransactionPool = rewire('../../../logic/transaction_pool.js');
 
 // Create fresh instance of jobsQueue
 const jobsQueue = rewire('../../../helpers/jobs_queue.js');
+const constants = global.constants;
+const config = __testContext.config;
 
 describe('transactionPool', () => {
 	let transactionPool;
@@ -132,7 +132,8 @@ describe('transactionPool', () => {
 			transactionStub, // transaction
 			busSpy, // bus
 			logger, // logger
-			balancesSequence
+			balancesSequence,
+			config
 		);
 
 		// Bind fake modules

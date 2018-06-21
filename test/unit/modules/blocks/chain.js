@@ -30,7 +30,7 @@ describe('blocks/chain', () => {
 	let transactionStub;
 	let busStub;
 	let balancesSequenceStub;
-	let genesisblockStub;
+	let genesisBlockStub;
 	let modulesStub;
 
 	const blockWithEmptyTransactions = {
@@ -99,7 +99,7 @@ describe('blocks/chain', () => {
 			},
 		};
 
-		genesisblockStub = {
+		genesisBlockStub = {
 			block: {
 				id: '6524861224470851795',
 				height: 1,
@@ -111,7 +111,7 @@ describe('blocks/chain', () => {
 			blockStub,
 			transactionStub,
 			dbStub,
-			genesisblockStub,
+			genesisBlockStub,
 			busStub,
 			balancesSequenceStub
 		);
@@ -190,7 +190,7 @@ describe('blocks/chain', () => {
 		it('should assign params to library', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
-			expect(library.genesisblock).to.eql(genesisblockStub);
+			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.bus).to.eql(busStub);
 			expect(library.balancesSequence).to.eql(balancesSequenceStub);
 			expect(library.logic.block).to.eql(blockStub);

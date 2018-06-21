@@ -17,7 +17,7 @@
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var swaggerHelper = require('../../../helpers/swagger');
-var constants = require('../../../helpers/constants');
+var constants = require('../../../config/mainnet/constants');
 
 describe('loader', () => {
 	var loaderModule;

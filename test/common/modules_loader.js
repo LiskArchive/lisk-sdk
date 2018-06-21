@@ -20,7 +20,7 @@ var async = require('async');
 var config = require('../../test/data/config.json');
 var Sequence = require('../../helpers/sequence.js');
 var database = require('../../db');
-var genesisblock = require('../../test/data/genesis_block.json');
+var genesisBlock = require('../../test/data/genesis_block.json');
 var Logger = require('../../logger.js');
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
@@ -40,7 +40,7 @@ var modulesLoader = new function() {
 	config.nonce = randomstring.generate(16);
 	this.scope = {
 		config,
-		genesisblock: { block: genesisblock },
+		genesisBlock: { block: genesisBlock },
 		logger: this.logger,
 		network: {
 			app: express(),
@@ -101,7 +101,7 @@ var modulesLoader = new function() {
 							scope.db,
 							scope.ed,
 							scope.schema,
-							scope.genesisblock,
+							scope.genesisBlock,
 							result.account,
 							scope.logger,
 							cb
@@ -120,7 +120,7 @@ var modulesLoader = new function() {
 								scope.db,
 								scope.ed,
 								scope.schema,
-								scope.genesisblock,
+								scope.genesisBlock,
 								account,
 								scope.logger,
 								waterCb
