@@ -188,6 +188,7 @@ d.on('error', err => {
 global.constants = appConfig.constants;
 global.exceptions = appConfig.exceptions;
 
+logger.info(`Starting lisk with "${appConfig.network}" configurations.`);
 // Run domain
 d.run(() => {
 	var modules = [];
@@ -571,9 +572,7 @@ d.run(() => {
 								cb(null, scope.schema);
 							},
 							genesisBlock(cb) {
-								cb(null, {
-									block: scope.genesisBlock,
-								});
+								cb(null, scope.genesisBlock);
 							},
 							account: [
 								'db',
