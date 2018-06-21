@@ -9,14 +9,14 @@
 
 Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
 
-Lisk Core is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
+[Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
 This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/docker). 
 If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
 ## Pre-Installation
 
-The next section details the prerequisites to install Lisk Core from a Source installation using tagged releases on Github.
+The next section details the prerequisites to install Lisk Core from source using the different tagged releases.
 
 ### System Install
 
@@ -188,7 +188,7 @@ npm install
 
 ## Managing Lisk
 
-To test that Lisk is built and configured correctly, issue the following command:
+To test Lisk is built and configured correctly, issue the following command:
 
 ```
 node app.js
