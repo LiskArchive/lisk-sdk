@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../config/mainnet/constants.js');
+const constants = global.constants;
 // Submodules
 const blocksAPI = require('./blocks/api');
 const blocksVerify = require('./blocks/verify');

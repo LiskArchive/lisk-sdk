@@ -15,8 +15,8 @@
 'use strict';
 
 const ByteBuffer = require('bytebuffer');
-const constants = require('../helpers/constants.js');
 
+const constants = global.constants;
 let modules;
 let library;
 

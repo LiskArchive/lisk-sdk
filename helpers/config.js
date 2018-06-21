@@ -77,9 +77,13 @@ function Config(packageJson) {
 		}
 	}
 
+	appConfig.network = `${network}net`;
 	appConfig.genesisBlock = JSON.parse(
 		fs.readFileSync(
-			path.resolve(process.cwd(), `./config/${network}net/genesis_block.json`)
+			path.resolve(
+				process.cwd(),
+				`./config/${appConfig.network}/genesis_block.json`
+			)
 		)
 	);
 

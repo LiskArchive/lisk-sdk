@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../config/mainnet/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
 
@@ -26,6 +25,7 @@ let modules;
 let definitions;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 
 __private.loaded = false;

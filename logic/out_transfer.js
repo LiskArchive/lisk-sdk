@@ -14,12 +14,12 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
 const milestones = require('../helpers/milestones.js');
 
 let modules;
 let library;
+const constants = global.constants;
 const __private = {};
 
 __private.unconfirmedOutTansfers = {};

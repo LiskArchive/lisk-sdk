@@ -16,8 +16,9 @@
 
 const _ = require('lodash');
 const async = require('async');
-const constants = require('../../config/mainnet/constants.js');
 const slots = require('../../helpers/slots.js');
+
+const constants = global.constants;
 
 const __private = {};
 let modules;

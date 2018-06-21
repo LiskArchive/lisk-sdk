@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+const constants = global.constants;
 
 const __private = {};
 /**

@@ -14,10 +14,10 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
 const milestones = require('../helpers/milestones.js');
 
+const constants = global.constants;
 let modules;
 let library;
 let shared;

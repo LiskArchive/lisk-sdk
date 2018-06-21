@@ -17,10 +17,10 @@
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const bignum = require('../helpers/bignum.js');
-const constants = require('../helpers/constants.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
 
+const constants = global.constants;
 const __private = {};
 
 /**

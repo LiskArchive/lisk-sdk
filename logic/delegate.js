@@ -15,9 +15,9 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../helpers/constants.js');
-const exceptions = require('../helpers/exceptions.js');
+const exceptions = require('../config/mainnet/exceptions.js');
 
+const constants = global.constants;
 let modules;
 let library;
 let self;

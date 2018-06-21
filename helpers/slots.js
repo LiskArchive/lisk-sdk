@@ -14,7 +14,7 @@
 
 'use strict';
 
-var constants = require('./constants.js');
+var constants = global.constants;
 
 /**
  * Description of the module.

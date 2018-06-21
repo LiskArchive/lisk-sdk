@@ -16,7 +16,8 @@
 
 const _ = require('lodash');
 const BlockReward = require('../logic/block_reward.js');
-const constants = require('../helpers/constants.js');
+
+const constants = global.constants;
 
 // Private fields
 let modules;

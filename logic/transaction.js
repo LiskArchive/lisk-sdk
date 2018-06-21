@@ -19,10 +19,10 @@ const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const bignum = require('../helpers/bignum.js');
-const constants = require('../helpers/constants.js');
-const exceptions = require('../helpers/exceptions.js');
+const exceptions = require('../config/mainnet/exceptions.js');
 const slots = require('../helpers/slots.js');
 
+const constants = global.constants;
 const __private = {};
 
 /**

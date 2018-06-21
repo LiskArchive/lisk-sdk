@@ -17,8 +17,9 @@
 const async = require('async');
 const extend = require('extend');
 const _ = require('lodash');
-const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
+
+const constants = global.constants;
 
 let modules;
 let library;

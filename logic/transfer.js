@@ -14,9 +14,10 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
 const bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
+
+const constants = global.constants;
 
 let modules;
 let library;

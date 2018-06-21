@@ -15,9 +15,9 @@
 'use strict';
 
 const _ = require('lodash');
-const constants = require('../../config/mainnet/constants.js');
 const transactionTypes = require('../../helpers/transaction_types.js');
 
+const constants = global.constants;
 const __private = {};
 let modules;
 let library;

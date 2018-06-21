@@ -16,10 +16,11 @@
 
 const _ = require('lodash');
 const async = require('async');
-const constants = require('../helpers/constants.js');
-const exceptions = require('../helpers/exceptions.js');
+const exceptions = require('../config/mainnet/exceptions.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
+
+const constants = global.constants;
 
 let modules;
 let library;

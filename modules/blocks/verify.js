@@ -18,13 +18,13 @@ const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
-const constants = require('../../helpers/constants.js');
 const slots = require('../../helpers/slots.js');
-const exceptions = require('../../helpers/exceptions.js');
+const exceptions = require('../../config/mainnet/exceptions.js');
 
 let modules;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 
 __private.lastNBlockIds = [];

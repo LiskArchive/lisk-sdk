@@ -18,7 +18,8 @@ var ip = require('ip');
 var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
-var constants = require('./constants');
+
+var constants = global.constants;
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.

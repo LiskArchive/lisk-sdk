@@ -17,10 +17,10 @@
 var _ = require('lodash');
 var bignum = require('../../helpers/bignum.js');
 var swaggerHelper = require('../../helpers/swagger');
-var constants = require('../../helpers/constants.js');
 
 // Private Fields
 var modules;
+var constants;
 
 /**
  * Description of the function.
@@ -33,6 +33,7 @@ var modules;
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
+	constants = scope.config.constants;
 }
 
 /**

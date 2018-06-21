@@ -21,7 +21,6 @@ const lisk = require('lisk-elements').default;
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const BlockReward = require('../logic/block_reward.js');
-const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Delegate = require('../logic/delegate.js');
 const slots = require('../helpers/slots.js');
@@ -31,6 +30,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 let modules;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 
 __private.assetTypes = {};

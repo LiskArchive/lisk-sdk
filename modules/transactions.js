@@ -16,7 +16,6 @@
 
 const Promise = require('bluebird');
 const _ = require('lodash');
-const constants = require('../config/mainnet/constants.js');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
@@ -25,6 +24,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const Transfer = require('../logic/transfer.js');
 
 // Private fields
+const constants = global.constants;
 const __private = {};
 let modules;
 let library;
@@ -74,7 +74,8 @@ class Transactions {
 			scope.logic.transaction,
 			scope.bus,
 			scope.logger,
-			scope.balancesSequence
+			scope.balancesSequence,
+			scope.config
 		);
 
 		__private.assetTypes[
