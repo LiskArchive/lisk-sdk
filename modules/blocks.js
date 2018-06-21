@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+const constants = require('../config/mainnet/constants.js');
 // Submodules
 const blocksAPI = require('./blocks/api');
 const blocksVerify = require('./blocks/verify');
@@ -80,7 +80,7 @@ class Blocks {
 				scope.schema,
 				scope.db,
 				scope.sequence,
-				scope.genesisblock
+				scope.genesisBlock
 			),
 			utils: new blocksUtils(
 				scope.logger,
@@ -88,14 +88,14 @@ class Blocks {
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
-				scope.genesisblock
+				scope.genesisBlock
 			),
 			chain: new blocksChain(
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
-				scope.genesisblock,
+				scope.genesisBlock,
 				scope.bus,
 				scope.balancesSequence
 			),

@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const constants = require('../../helpers/constants.js');
+const constants = require('../../config/mainnet/constants.js');
 const transactionTypes = require('../../helpers/transaction_types.js');
 
 const __private = {};
@@ -37,18 +37,18 @@ let self;
  * @param {Block} block
  * @param {Transaction} transaction
  * @param {Database} db
- * @param {Object} genesisblock
+ * @param {Object} genesisBlock
  * @todo Add description for the params
  */
 class Utils {
-	constructor(logger, account, block, transaction, db, genesisblock) {
+	constructor(logger, account, block, transaction, db, genesisBlock) {
 		library = {
 			logger,
 			account,
 			block,
 			transaction,
 			db,
-			genesisblock,
+			genesisBlock,
 			logic: {
 				account,
 				block,
@@ -79,7 +79,7 @@ Utils.prototype.readDbRows = function(rows) {
 		if (block) {
 			// If block is not already in the list...
 			if (!blocks[block.id]) {
-				if (block.id === library.genesisblock.block.id) {
+				if (block.id === library.genesisBlock.block.id) {
 					// Generate fake signature for genesis block
 					block.generationSignature = new Array(65).join('0');
 				}
@@ -163,7 +163,7 @@ Utils.prototype.loadLastBlock = function(cb) {
 
 			// Sort block's transactions
 			block.transactions = block.transactions.sort(a => {
-				if (block.id === library.genesisblock.block.id) {
+				if (block.id === library.genesisBlock.block.id) {
 					if (a.type === transactionTypes.VOTE) {
 						return 1;
 					}
@@ -218,14 +218,14 @@ Utils.prototype.getIdSequence = function(height, cb) {
 			const ids = [];
 
 			// Add genesis block at the end if the set doesn't contain it already
-			if (library.genesisblock && library.genesisblock.block) {
-				const __genesisblock = {
-					id: library.genesisblock.block.id,
-					height: library.genesisblock.block.height,
+			if (library.genesisBlock && library.genesisBlock.block) {
+				const __genesisBlock = {
+					id: library.genesisBlock.block.id,
+					height: library.genesisBlock.block.height,
 				};
 
-				if (!_.includes(rows, __genesisblock.id)) {
-					rows.push(__genesisblock);
+				if (!_.includes(rows, __genesisBlock.id)) {
+					rows.push(__genesisBlock);
 				}
 			}
 

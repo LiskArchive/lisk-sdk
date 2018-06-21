@@ -16,7 +16,7 @@
 
 const Promise = require('bluebird');
 const _ = require('lodash');
-const constants = require('../helpers/constants.js');
+const constants = require('../config/mainnet/constants.js');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
@@ -63,7 +63,7 @@ class Transactions {
 			logic: {
 				transaction: scope.logic.transaction,
 			},
-			genesisblock: scope.genesisblock,
+			genesisBlock: scope.genesisBlock,
 		};
 
 		self = this;
@@ -606,7 +606,7 @@ Transactions.prototype.applyUnconfirmed = function(
 ) {
 	library.logger.debug('Applying unconfirmed transaction', transaction.id);
 
-	if (!sender && transaction.blockId !== library.genesisblock.block.id) {
+	if (!sender && transaction.blockId !== library.genesisBlock.block.id) {
 		return setImmediate(cb, 'Invalid block id');
 	} else if (transaction.requesterPublicKey) {
 		modules.accounts.getAccount(

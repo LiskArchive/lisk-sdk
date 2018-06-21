@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../helpers/constants.js');
+const constants = require('../config/mainnet/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
 
@@ -63,7 +63,7 @@ class Loader {
 			schema: scope.schema,
 			sequence: scope.sequence,
 			bus: scope.bus,
-			genesisblock: scope.genesisblock,
+			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				transaction: scope.logic.transaction,
@@ -83,8 +83,8 @@ class Loader {
 		self = this;
 
 		__private.initialize();
-		__private.lastBlock = library.genesisblock;
-		__private.genesisBlock = library.genesisblock;
+		__private.lastBlock = library.genesisBlock;
+		__private.genesisBlock = library.genesisBlock;
 
 		setImmediate(cb, null, self);
 	}
