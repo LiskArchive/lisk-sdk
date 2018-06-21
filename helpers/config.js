@@ -95,6 +95,12 @@ function Config(packageJson) {
 		`./config/${network}net/constants.js`
 	));
 
+	// eslint-disable-next-line import/no-dynamic-require
+	appConfig.exceptions = require(path.resolve(
+		process.cwd(),
+		`./config/${network}net/exceptions.js`
+	));
+
 	if (program.wsPort) {
 		appConfig.wsPort = +program.wsPort;
 	}
