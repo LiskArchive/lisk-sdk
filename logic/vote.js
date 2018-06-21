@@ -16,10 +16,10 @@
 
 const _ = require('lodash');
 const async = require('async');
-const exceptions = require('../config/mainnet/exceptions.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
 
+const exceptions = global.exceptions;
 const constants = global.constants;
 
 let modules;
@@ -36,9 +36,7 @@ let self;
  * @see Parent: {@link logic}
  * @requires async
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/diff
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {Object} logger
  * @param {ZSchema} schema

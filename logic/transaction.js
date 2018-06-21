@@ -19,9 +19,9 @@ const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const bignum = require('../helpers/bignum.js');
-const exceptions = require('../config/mainnet/exceptions.js');
 const slots = require('../helpers/slots.js');
 
+const exceptions = global.exceptions;
 const constants = global.constants;
 const __private = {};
 
@@ -36,8 +36,6 @@ const __private = {};
  * @requires extend
  * @requires lodash
  * @requires helpers/bignum
- * @requires helpers/constants
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {Database} db
  * @param {Object} ed

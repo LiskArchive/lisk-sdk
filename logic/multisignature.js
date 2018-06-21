@@ -17,11 +17,11 @@
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
 const Diff = require('../helpers/diff.js');
-const exceptions = require('../config/mainnet/exceptions.js');
 const slots = require('../helpers/slots.js');
 
 let modules;
 let library;
+const exceptions = global.exceptions;
 const constants = global.constants;
 const __private = {};
 
@@ -35,9 +35,7 @@ __private.unconfirmedSignatures = {};
  * @see Parent: {@link logic}
  * @requires async
  * @requires bytebuffer
- * @requires helpers/constants
  * @requires helpers/diff
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {ZSchema} schema
  * @param {Object} network

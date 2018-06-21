@@ -15,8 +15,8 @@
 'use strict';
 
 const async = require('async');
-const exceptions = require('../config/mainnet/exceptions.js');
 
+const exceptions = global.exceptions;
 const constants = global.constants;
 let modules;
 let library;
@@ -29,8 +29,6 @@ let self;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @requires helpers/constants
- * @requires helpers/exceptions
  * @param {logger} logger
  * @param {ZSchema} schema
  * @todo Add description for the params
