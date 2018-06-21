@@ -1,4 +1,5 @@
 /* eslint-disable mocha/no-top-level-hooks */
+/* eslint-disable import/no-extraneous-dependencies */
 import lockfile from 'lockfile';
 
 afterEach(() => {
