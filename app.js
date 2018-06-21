@@ -186,6 +186,7 @@ d.on('error', err => {
 
 // Global objects to be utilized under modules/helpers where scope is not accessible
 global.constants = appConfig.constants;
+global.exceptions = appConfig.exceptions;
 
 // Run domain
 d.run(() => {
