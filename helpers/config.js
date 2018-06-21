@@ -17,7 +17,6 @@
 var fs = require('fs');
 var path = require('path');
 var program = require('commander');
-var constants = require('../config/mainnet/constants.js');
 var configSchema = require('../schema/config.js');
 var z_schema = require('./z_schema.js');
 /**
@@ -83,6 +82,14 @@ function Config(packageJson) {
 			path.resolve(process.cwd(), `./config/${network}net/genesis_block.json`)
 		)
 	);
+
+	appConfig.nethash = appConfig.genesisBlock.payloadHash;
+
+	// eslint-disable-next-line import/no-dynamic-require
+	appConfig.constants = require(path.resolve(
+		process.cwd(),
+		`./config/${network}net/constants.js`
+	));
 
 	if (program.wsPort) {
 		appConfig.wsPort = +program.wsPort;
@@ -162,7 +169,7 @@ function Config(packageJson) {
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
-		var index = constants.nethashes.indexOf(configData.nethash);
+		var index = configData.constants.nethashes.indexOf(configData.nethash);
 
 		if (index !== -1) {
 			console.info('Forced forging disabled for nethash', configData.nethash);
