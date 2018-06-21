@@ -17,7 +17,7 @@
 var fs = require('fs');
 var path = require('path');
 var program = require('commander');
-var constants = require('../helpers/constants.js');
+var constants = require('../config/mainnet/constants.js');
 var configSchema = require('../schema/config.js');
 var z_schema = require('./z_schema.js');
 /**
@@ -38,6 +38,11 @@ function Config(packageJson) {
 	program
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
+		.option(
+			'-n, --network [network]',
+			'lisk network [dev|beta|main|test]. Defaults to "dev"',
+			'dev'
+		)
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
 		.option('-d, --database <database>', 'database name')
@@ -50,8 +55,13 @@ function Config(packageJson) {
 		.parse(process.argv);
 
 	var configPath = program.config;
+	var network = program.network;
+
 	var appConfig = fs.readFileSync(
-		path.resolve(process.cwd(), configPath || 'config.json'),
+		path.resolve(
+			process.cwd(),
+			configPath || `./config/${network}net/config.json`
+		),
 		'utf8'
 	);
 
@@ -67,6 +77,12 @@ function Config(packageJson) {
 			process.exit(1);
 		}
 	}
+
+	appConfig.genesisBlock = JSON.parse(
+		fs.readFileSync(
+			path.resolve(process.cwd(), `./config/${network}net/genesis_block.json`)
+		)
+	);
 
 	if (program.wsPort) {
 		appConfig.wsPort = +program.wsPort;
