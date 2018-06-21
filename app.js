@@ -109,6 +109,7 @@ var appConfig = AppConfig(require('./package.json'));
 
 // Define availability of top accounts endpoint
 process.env.TOP = appConfig.topAccounts;
+process.env.NETWORK = appConfig.network;
 
 /**
  * Application config object.
@@ -182,6 +183,9 @@ d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
+
+// Global objects to be utilized under modules/helpers where scope is not accessible
+global.constants = appConfig.constants;
 
 // Run domain
 d.run(() => {
