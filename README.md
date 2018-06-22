@@ -114,7 +114,7 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### Installing Redis
 
-  * Ubuntu 14|16 / Debian:
+* Ubuntu 14|16 / Debian:
 
   ```
   sudo apt-get install redis-server
