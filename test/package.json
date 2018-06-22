@@ -8,6 +8,7 @@
 	"files": ["/bin", "/npm-shrinkwrap.json", "/oclif.manifest.json", "/dist"],
 	"devDependencies": {
 		"@oclif/test": "x.x.x",
+		"chalk": "xxx",
 		"lisk-elements": "xxx",
 		"lockfile": "x.x.x",
 		"babel-polyfill": "x.x.x",
