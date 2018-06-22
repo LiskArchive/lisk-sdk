@@ -188,7 +188,7 @@ d.on('error', err => {
 	process.exit(0);
 });
 
-logger.info(`Starting lisk with "${appConfig.network}" configurations.`);
+logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
 // Run domain
 d.run(() => {
 	var modules = [];

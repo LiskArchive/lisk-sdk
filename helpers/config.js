@@ -56,13 +56,16 @@ function Config(packageJson) {
 	var configPath = program.config;
 	var network = program.network;
 
-	var appConfig = fs.readFileSync(
-		path.resolve(
-			process.cwd(),
-			configPath || `./config/${network}net/config.json`
-		),
-		'utf8'
+	configPath = path.resolve(
+		process.cwd(),
+		configPath || `./config/${network}net/config.json`
 	);
+
+	if (configPath) {
+		console.info(`Starting with configuration file ${configPath}`);
+	}
+
+	var appConfig = fs.readFileSync(configPath, 'utf8');
 
 	if (!appConfig.length) {
 		console.error('Failed to read config file');
