@@ -111,6 +111,10 @@ var appConfig = AppConfig(require('./package.json'));
 process.env.TOP = appConfig.topAccounts;
 process.env.NETWORK = appConfig.network;
 
+// Global objects to be utilized under modules/helpers where scope is not accessible
+global.constants = appConfig.constants;
+global.exceptions = appConfig.exceptions;
+
 /**
  * Application config object.
  *
@@ -183,10 +187,6 @@ d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
 	process.exit(0);
 });
-
-// Global objects to be utilized under modules/helpers where scope is not accessible
-global.constants = appConfig.constants;
-global.exceptions = appConfig.exceptions;
 
 logger.info(`Starting lisk with "${appConfig.network}" configurations.`);
 // Run domain
