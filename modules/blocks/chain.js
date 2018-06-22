@@ -251,7 +251,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		err => {
 			if (err) {
 				// If genesis block is invalid, kill the node...
-				process.exit(0);
+				process.emit('cleanup', err.message);
 				return setImmediate(cb, err);
 			}
 			// Set genesis block as last block
