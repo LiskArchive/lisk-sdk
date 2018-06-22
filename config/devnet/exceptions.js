@@ -35,10 +35,6 @@
 module.exports = {
 	blockRewards: [],
 	delegates: [],
-	genesisPublicKey: {
-		mainnet: 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4',
-		testnet: '73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b',
-	},
 	rounds: {},
 	senderPublicKey: [],
 	signatures: [],

@@ -490,10 +490,7 @@ class Transaction {
 
 		// Check sender is not genesis account unless block id equals genesis
 		if (
-			[
-				exceptions.genesisPublicKey.mainnet,
-				exceptions.genesisPublicKey.testnet,
-			].indexOf(sender.publicKey) !== -1 &&
+			sender.publicKey === this.scope.genesisBlock.block.generatorPublicKey &&
 			transaction.blockId !== this.scope.genesisBlock.block.id
 		) {
 			return setImmediate(
