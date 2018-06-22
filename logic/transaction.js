@@ -40,7 +40,7 @@ const __private = {};
  * @param {Database} db
  * @param {Object} ed
  * @param {ZSchema} schema
- * @param {Object} genesisblock
+ * @param {Object} genesisBlock
  * @param {Account} account
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -48,7 +48,7 @@ const __private = {};
  * @todo Add description for the params
  */
 class Transaction {
-	constructor(db, ed, schema, genesisblock, account, logger, cb) {
+	constructor(db, ed, schema, genesisBlock, account, logger, cb) {
 		/**
 		 * @typedef {Object} privateTypes
 		 * - 0: Transfer
@@ -66,7 +66,7 @@ class Transaction {
 			db,
 			ed,
 			schema,
-			genesisblock,
+			genesisBlock,
 			account,
 			logger,
 		};
@@ -317,7 +317,7 @@ class Transaction {
 			amount
 		);
 		const exceeded =
-			transaction.blockId !== this.scope.genesisblock.block.id &&
+			transaction.blockId !== this.scope.genesisBlock.block.id &&
 			exceededBalance;
 
 		return {
@@ -437,7 +437,7 @@ class Transaction {
 			!transaction.requesterPublicKey &&
 			sender.secondSignature &&
 			!transaction.signSignature &&
-			transaction.blockId !== this.scope.genesisblock.block.id
+			transaction.blockId !== this.scope.genesisBlock.block.id
 		) {
 			return setImmediate(cb, 'Missing sender second signature');
 		}
@@ -494,7 +494,7 @@ class Transaction {
 				exceptions.genesisPublicKey.mainnet,
 				exceptions.genesisPublicKey.testnet,
 			].indexOf(sender.publicKey) !== -1 &&
-			transaction.blockId !== this.scope.genesisblock.block.id
+			transaction.blockId !== this.scope.genesisBlock.block.id
 		) {
 			return setImmediate(
 				cb,
