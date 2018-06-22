@@ -16,13 +16,14 @@
 'use strict';
 
 var async = require('async');
-var constants = require('../../../../../helpers/constants');
 var genesisBlock = require('../../../../data/genesis_block.json');
 var application = require('../../../../common/application');
 var modulesLoader = require('../../../../common/modules_loader');
 var clearDatabaseTable = require('../../../../common/db_sandbox')
 	.clearDatabaseTable;
 var loadTables = require('./process_tables_data.json');
+
+var constants = global.constants;
 
 describe('system test (blocks) - process', () => {
 	var blocksProcess;

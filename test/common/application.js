@@ -294,7 +294,7 @@ function __init(initScope, done) {
 										cb(null, scope.schema);
 									},
 									genesisBlock(cb) {
-										cb(null, scope.genesisBlock.block);
+										cb(null, scope.genesisBlock);
 									},
 									account: [
 										'db',
