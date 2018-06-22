@@ -46,8 +46,8 @@ def buildDependencies() {
 def startLisk() {
 	try {
 		sh '''
-		cp test/data/config.json test/data/genesis_block.json .
-		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
+		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe nohup node app.js -c test/data/config.json &> .app.log &
+		sleep 15
 		'''
 	} catch (err) {
 		echo "Error: ${err}"
