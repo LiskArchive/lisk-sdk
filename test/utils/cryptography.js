@@ -18,6 +18,21 @@ import crypto from '../../src/utils/cryptography';
 const elements = require('lisk-elements');
 
 describe('crypto utils', () => {
+	describe('elements throws error', () => {
+		const errorMessage = 'some error';
+		beforeEach(() => {
+			return sandbox
+				.stub(elements.default.cryptography, 'encryptMessageWithPassphrase')
+				.throws(new Error(errorMessage));
+		});
+
+		it('should result in error object with the errorMessage', () => {
+			const result = crypto.encryptMessage('random input');
+			expect(result).to.be.an('Object');
+			return expect(result.error).to.eql(errorMessage);
+		});
+	});
+
 	describe('#encryptMessage', () => {
 		let result;
 		let cryptoStub;
