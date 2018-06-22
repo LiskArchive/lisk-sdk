@@ -529,6 +529,7 @@ describe('blocks/chain', () => {
 		describe('when block.transactions is not empty', () => {
 			describe('when modules.accounts.setAccountAndGet fails', () => {
 				beforeEach(() => {
+					process.emit = sinonSandbox.stub();
 					return modules.accounts.setAccountAndGet.callsArgWith(
 						1,
 						'setAccountAndGet-ERR',
@@ -540,7 +541,11 @@ describe('blocks/chain', () => {
 					blocksChainModule.applyGenesisBlock(blockWithTransactions, result => {
 						expect(modules.blocks.utils.getBlockProgressLogger.calledOnce).to.be
 							.true;
-						expect(process.exit.callCount).to.equal(1);
+						expect(process.emit).to.have.been.calledOnce;
+						expect(process.emit).to.have.been.calledWith(
+							'cleanup',
+							'setAccountAndGet-ERR'
+						);
 						expect(result.message).to.equal('setAccountAndGet-ERR');
 						done();
 					});
