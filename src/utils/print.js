@@ -28,7 +28,7 @@ const removeANSI = result =>
 		? result.map(removeANSIFromObject)
 		: removeANSIFromObject(result);
 
-const print = ({ json, pretty }) =>
+const print = ({ json, pretty } = {}) =>
 	function printResult(result) {
 		const resultToPrint = json ? removeANSI(result) : result;
 
