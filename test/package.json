@@ -9,6 +9,7 @@
 	"devDependencies": {
 		"@oclif/test": "x.x.x",
 		"chalk": "x.x.x",
+		"inquirer": "x.x.x",
 		"lisk-elements": "x.x.x",
 		"lockfile": "x.x.x",
 		"babel-polyfill": "x.x.x",
