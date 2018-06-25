@@ -80,20 +80,13 @@ oldConfig.peers.list = oldConfig.peers.list.map(p => {
 });
 
 if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
-	const passwordLen = program.password.trim().length;
-	if (passwordLen < 5) {
-		console.error(
-			`error: String is too short (${passwordLen} chars), minimum 5 chars.`
-		);
-		process.exit(1);
-	}
 	if (!program.password.trim()) {
 		const rl = readline.createInterface({
 			input: process.stdin,
 			output: process.stdout,
 		});
 		rl.question(
-			'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
+			'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
 			password => {
 				rl.close();
 				migrateSecrets(password);
@@ -117,11 +110,20 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 
 function migrateSecrets(password) {
 	oldConfig.forging.delegates = [];
-
-	if (!password.trim()) {
+	password = password.trim();
+	if (!password) {
 		console.info('\nSkipping the secret migration.');
 		delete oldConfig.forging.secret;
 		return;
+	}
+
+	if (password.length < 5) {
+		console.error(
+			`error: Password is too short (${
+				password.length
+			} characters), minimum 5 characters.`
+		);
+		process.exit(1);
 	}
 
 	console.info('\nMigrating your secrets...');
