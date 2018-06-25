@@ -19,7 +19,7 @@ var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var localCommon = require('../common');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('system test (type 0) - address collision', () => {
 	var library;

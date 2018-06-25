@@ -27,7 +27,7 @@ var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
 var application = require('../../../../common/application.js');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('system test (blocks) - process onReceiveBlock()', () => {
 	var library;

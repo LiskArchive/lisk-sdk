@@ -24,7 +24,7 @@ var randomUtil = require('../../../common/utils/random');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 
-var constants = global.constants;
+const constants = global.constants;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {

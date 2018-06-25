@@ -51,7 +51,7 @@
  * @property {number} unconfirmedTransactionTimeOut - Expiration time for unconfirmed transaction/signatures in transaction pool.
  * @todo Add description for the namespace and the properties.
  */
-var constants = {
+const constants = {
 	activeDelegates: 101,
 	blockSlotWindow: 5,
 	additionalData: {

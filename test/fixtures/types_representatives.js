@@ -16,7 +16,7 @@
 
 var faker = require('faker');
 var difference = require('lodash').difference;
-var constants = require('../../config/mainnet/constants');
+const constants = require('../../config/mainnet/constants');
 
 var arrays = [
 	{

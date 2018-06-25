@@ -20,7 +20,7 @@ var randomUtil = require('../../../../common/utils/random');
 var transactionTypes = require('../../../../../helpers/transaction_types.js');
 var localCommon = require('../../common');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	var library;

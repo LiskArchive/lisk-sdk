@@ -14,7 +14,7 @@
 
 'use strict';
 
-var constants = global.constants;
+const constants = global.constants;
 
 /**
  * Description of the module.

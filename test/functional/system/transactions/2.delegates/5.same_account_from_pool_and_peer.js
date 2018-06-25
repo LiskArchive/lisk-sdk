@@ -21,7 +21,7 @@ const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('delegate', () => {
 	let library;

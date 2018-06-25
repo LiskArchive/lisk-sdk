@@ -24,7 +24,7 @@ var modulesLoader = require('../../common/modules_loader');
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transaction_types');
-var constants = require('../../../config/mainnet/constants');
+const constants = require('../../../config/mainnet/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 

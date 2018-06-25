@@ -24,7 +24,7 @@ var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 
-var constants = global.constants;
+const constants = global.constants;
 var exceptions = global.exceptions;
 
 var validPassphrase =

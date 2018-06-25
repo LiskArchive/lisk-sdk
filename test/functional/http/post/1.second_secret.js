@@ -25,7 +25,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('POST /api/transactions (type 1) register second passphrase', () => {
 	var transaction;

@@ -26,7 +26,7 @@ var apiHelpers = require('../../../common/helpers/api');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var slots = require('../../../../helpers/slots');
 
-var constants = global.constants;
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/transactions', () => {

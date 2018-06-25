@@ -19,7 +19,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var localCommon = require('../common');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('system test (type 0) - double transfers', () => {
 	var library;

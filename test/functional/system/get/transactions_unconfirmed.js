@@ -20,7 +20,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var localCommon = require('./../common');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('system test - get unconfirmed transactions', () => {
 	var account1 = randomUtil.account();

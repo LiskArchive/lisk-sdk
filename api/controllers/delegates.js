@@ -20,7 +20,7 @@ var swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
 var modules;
-var constants;
+const constants = global.constants;
 
 /**
  * Description of the function.
@@ -33,7 +33,6 @@ var constants;
  */
 function DelegatesController(scope) {
 	modules = scope.modules;
-	constants = scope.config.constants;
 }
 
 /**

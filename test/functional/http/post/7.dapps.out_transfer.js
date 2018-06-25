@@ -28,7 +28,7 @@ var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
-var constants = global.constants;
+const constants = global.constants;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 7) outTransfer dapp', () => {

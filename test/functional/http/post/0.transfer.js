@@ -25,7 +25,7 @@ var sendTransactionPromise = require('../../../common/helpers/api')
 var randomUtil = require('../../../common/utils/random');
 var errorCodes = require('../../../../helpers/api_codes');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('POST /api/transactions (type 0) transfer funds', () => {
 	var transaction;

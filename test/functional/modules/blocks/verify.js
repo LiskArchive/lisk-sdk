@@ -30,7 +30,7 @@ var genesisBlock = require('../../../data/genesis_block.json');
 var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 
-var constants = global.constants;
+const constants = global.constants;
 
 var previousBlock = {
 	blockSignature:

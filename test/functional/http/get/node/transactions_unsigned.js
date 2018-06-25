@@ -23,7 +23,7 @@ var swaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
 var waitFor = require('../../../../common/utils/wait_for');
 
-var constants = global.constants;
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 

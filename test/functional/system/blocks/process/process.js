@@ -23,7 +23,7 @@ var clearDatabaseTable = require('../../../../common/db_sandbox')
 	.clearDatabaseTable;
 var loadTables = require('./process_tables_data.json');
 
-var constants = global.constants;
+const constants = global.constants;
 
 describe('system test (blocks) - process', () => {
 	var blocksProcess;
