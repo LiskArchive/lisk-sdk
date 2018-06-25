@@ -28,31 +28,31 @@ module.exports = {
 		async.series(
 			[
 				function(cbSeries) {
-					utils.logger.log('Generating PM2 configuration');
+					utils.logger.info('Generating PM2 configuration');
 					pm2.generatePM2Configuration(configurations, cbSeries);
 				},
 				function(cbSeries) {
-					utils.logger.log('Recreating databases');
+					utils.logger.info('Recreating databases');
 					shell.recreateDatabases(configurations, cbSeries);
 				},
 				function(cbSeries) {
-					utils.logger.log('Clearing existing logs');
+					utils.logger.info('Clearing existing logs');
 					shell.clearLogs(cbSeries);
 				},
 				function(cbSeries) {
-					utils.logger.log('Launching network');
+					utils.logger.info('Launching network');
 					shell.launchTestNodes(cbSeries);
 				},
 				function(cbSeries) {
-					utils.logger.log('Waiting for nodes to load the blockchain');
+					utils.logger.info('Waiting for nodes to load the blockchain');
 					network.waitForAllNodesToBeReady(configurations, cbSeries);
 				},
 				function(cbSeries) {
-					utils.logger.log('Enabling forging with registered delegates');
+					utils.logger.info('Enabling forging with registered delegates');
 					network.enableForgingOnDelegates(configurations, cbSeries);
 				},
 				function(cbSeries) {
-					utils.logger.log(
+					utils.logger.info(
 						`Waiting ${WAIT_BEFORE_CONNECT_MS /
 							1000} seconds for nodes to establish connections`
 					);

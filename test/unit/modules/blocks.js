@@ -28,6 +28,7 @@ describe('blocks', () => {
 	let __private;
 	let dbStub;
 	let loggerStub;
+	let loggerChildStub;
 	let logicBlockStub;
 	let logicTransactionStub;
 	let schemaStub;
@@ -46,12 +47,16 @@ describe('blocks', () => {
 				height: 1,
 			},
 		};
-		loggerStub = {
+		loggerChildStub = {
 			trace: sinonSandbox.spy(),
-			info: sinonSandbox.spy(),
-			error: sinonSandbox.spy(),
-			warn: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			log: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+		};
+		loggerStub = {
+			child: () => loggerChildStub,
 		};
 		dbStub = {
 			blocks: {
@@ -102,7 +107,7 @@ describe('blocks', () => {
 	});
 	describe('constructor', () => {
 		it('should assign params to library', () => {
-			return expect(library.logger).to.eql(loggerStub);
+			return expect(library.logger).to.eql(loggerChildStub);
 		});
 
 		it('should instantiate submodules', () => {
@@ -317,8 +322,8 @@ describe('blocks', () => {
 			});
 			describe('after 10 seconds', () => {
 				afterEach(() => {
-					expect(loggerStub.info.callCount).to.equal(1);
-					return expect(loggerStub.info.args[0][0]).to.equal(
+					expect(loggerChildStub.info.callCount).to.equal(1);
+					return expect(loggerChildStub.info.args[0][0]).to.equal(
 						'Waiting for block processing to finish...'
 					);
 				});
@@ -335,11 +340,11 @@ describe('blocks', () => {
 
 			describe('after 20 seconds', () => {
 				afterEach(() => {
-					expect(loggerStub.info.callCount).to.equal(2);
-					expect(loggerStub.info.args[0][0]).to.equal(
+					expect(loggerChildStub.info.callCount).to.equal(2);
+					expect(loggerChildStub.info.args[0][0]).to.equal(
 						'Waiting for block processing to finish...'
 					);
-					return expect(loggerStub.info.args[1][0]).to.equal(
+					return expect(loggerChildStub.info.args[1][0]).to.equal(
 						'Waiting for block processing to finish...'
 					);
 				});

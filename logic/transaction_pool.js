@@ -97,7 +97,7 @@ class TransactionPool {
 function nextBundle(cb) {
 	self.processBundled(err => {
 		if (err) {
-			library.logger.log('Bundled transaction timer', err);
+			library.logger.error('Bundled transaction timer', err);
 		}
 		return setImmediate(cb);
 	});
@@ -107,7 +107,7 @@ function nextBundle(cb) {
 function nextExpiry(cb) {
 	self.expireTransactions(err => {
 		if (err) {
-			library.logger.log('Transaction expiry timer', err);
+			library.logger.error('Transaction expiry timer', err);
 		}
 		return setImmediate(cb);
 	});

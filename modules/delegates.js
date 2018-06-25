@@ -62,7 +62,7 @@ __private.forgeInterval = 1000;
 class Delegates {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			logger: scope.logger.child({ module: 'delegates' }),
 			sequence: scope.sequence,
 			ed: scope.ed,
 			db: scope.db,
@@ -89,7 +89,10 @@ class Delegates {
 			transactionTypes.DELEGATE
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DELEGATE,
-			new Delegate(scope.logger, scope.schema)
+			new Delegate(
+				scope.logger.child('logic/transaction/delegate'),
+				scope.schema
+			)
 		);
 
 		setImmediate(cb, null, self);

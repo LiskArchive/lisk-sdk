@@ -1650,13 +1650,11 @@ describe('blocks/process', () => {
 																					dummyBlock
 																				);
 																				expect(
-																					loggerStub.info.args[1][0]
-																				).to.equal(
-																					'Block 4 loaded from: ip:wsPort'
-																				);
-																				expect(
-																					loggerStub.info.args[1][1]
-																				).to.equal('height: 4');
+																					loggerStub.info
+																				).to.be.calledWith('Block loaded', {
+																					blockId: '4',
+																					peer: 'ip:wsPort',
+																				});
 																				done();
 																			}
 																		);

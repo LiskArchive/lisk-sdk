@@ -27,7 +27,7 @@ var emitMiddleware = require('./api/ws/workers/middlewares/emit');
 var PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
 var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failure_codes');
-var Logger = require('./logger');
+var createLogger = require('./logger');
 var AppConfig = require('./helpers/config.js');
 var config = AppConfig(require('./package.json'), false);
 
@@ -46,11 +46,13 @@ SCWorker.create({
 				logger(cb) {
 					cb(
 						null,
-						new Logger({
-							echo: config.consoleLogLevel,
-							errorLevel: config.fileLogLevel,
-							filename: config.logFileName,
-						})
+						createLogger(
+							{
+								level: config.fileLogLevel,
+								filename: config.logFileName,
+							},
+							'p2p-worker'
+						)
 					);
 				},
 
@@ -88,7 +90,7 @@ SCWorker.create({
 				system: [
 					'config',
 					function(scope, cb) {
-						new System(cb, { config: scope.config });
+						new System(cb, { config: scope.config, logger: scope.logger });
 					},
 				],
 

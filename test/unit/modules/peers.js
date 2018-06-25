@@ -27,6 +27,7 @@ const generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers'
 const modulesLoader = require('../../common/modules_loader');
 const random = require('../../common/utils/random');
 const swagerHelper = require('../../../helpers/swagger');
+const failureCode = require('../../../api/ws/rpc/failure_codes');
 
 const constants = __testContext.config.constants;
 
@@ -456,7 +457,6 @@ describe('peers', () => {
 
 		describe('when removable peer is frozen', () => {
 			var originalFrozenPeersList;
-			var loggerDebugSpy;
 
 			before(done => {
 				originalFrozenPeersList = _.assign(
@@ -469,28 +469,26 @@ describe('peers', () => {
 						wsPort: validPeer.wsPort,
 					},
 				];
-				loggerDebugSpy = sinonSandbox.spy(modulesLoader.scope.logger, 'debug');
 				done();
 			});
 
-			after(() => {
+			after(done => {
 				modulesLoader.scope.config.peers.list = originalFrozenPeersList;
-				return loggerDebugSpy.restore();
+				done();
 			});
 
 			it('should not call logic.peers.remove', () => {
 				return expect(peersLogicMock.remove.called).to.be.false;
 			});
 
-			it('should call logger.debug with message = "Cannot remove frozen peer"', () => {
-				return expect(loggerDebugSpy.calledWith('Cannot remove frozen peer')).to
-					.be.true;
+			it('should return ON_MASTER.REMOVE.FROZEN_PEER error code"', () => {
+				return expect(removeResult).equal(
+					failureCode.ON_MASTER.REMOVE.FROZEN_PEER
+				);
 			});
 
-			it('should call logger.debug with message = [ip:port]', () => {
-				return expect(loggerDebugSpy.args[0][1]).eql(
-					`${validPeer.ip}:${validPeer.wsPort}`
-				);
+			it('should call logic.peers.upsert with the peer', () => {
+				return expect(peersLogicMock.upsert).to.be.calledWith(validPeer);
 			});
 		});
 

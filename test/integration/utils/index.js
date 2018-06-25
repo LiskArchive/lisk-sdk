@@ -15,15 +15,15 @@
 'use strict';
 
 var childProcess = require('child_process');
-var Logger = require('../../../logger');
+var createLogger = require('../../../logger');
 
 module.exports = {
 	http: require('./http'),
 	ws: require('./ws'),
 	transactions: require('./transactions'),
-	logger: new Logger({
+	logger: createLogger({
 		filename: `${__dirname}/integrationTestsLogger.logs`,
-		echo: 'log',
+		level: 'debug',
 	}),
 	getOpenConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n | wc -l

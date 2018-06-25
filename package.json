@@ -45,6 +45,7 @@
 		"bignumber.js": "=4.0.2",
 		"bluebird": "=3.5.1",
 		"body-parser": "=1.18.2",
+		"bunyan": "=1.8.12",
 		"bytebuffer": "=5.0.1",
 		"change-case": "=3.0.1",
 		"colors": "=1.1.2",

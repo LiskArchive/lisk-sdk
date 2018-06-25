@@ -487,10 +487,10 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 			if (!err) {
 				// Update last valid block
 				lastValidBlock = block;
-				library.logger.info(
-					['Block', block.id, 'loaded from:', peer.string].join(' '),
-					`height: ${block.height}`
-				);
+				library.logger.info('Block loaded', {
+					blockId: block.id,
+					peer: peer.string,
+				});
 			} else {
 				const id = block ? block.id : 'null';
 

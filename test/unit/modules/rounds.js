@@ -31,12 +31,14 @@ describe('rounds', () => {
 
 	// Init fake logger
 	var logger = {
-		trace: sinon.spy(),
-		debug: sinon.spy(),
-		info: sinon.spy(),
-		log: sinon.spy(),
-		warn: sinon.spy(),
-		error: sinon.spy(),
+		child: () => ({
+			trace: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			log: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+		}),
 	};
 
 	function get(variable) {
@@ -81,7 +83,10 @@ describe('rounds', () => {
 		});
 
 		it('should set library to scope', () => {
-			return expect(get('library')).to.deep.equal(validScope);
+			const library = get('library');
+			expect(library.network).to.deep.equal(validScope.network);
+			expect(library.bus).to.deep.equal(validScope.bus);
+			return expect(library.db).to.deep.equal(validScope.db);
 		});
 
 		it('should set self object', () => {

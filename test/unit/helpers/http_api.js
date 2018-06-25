@@ -57,7 +57,6 @@ describe('httpApi', () => {
 				trace: sinonSandbox.spy(),
 				debug: sinonSandbox.spy(),
 				info: sinonSandbox.spy(),
-				log: sinonSandbox.spy(),
 				warn: sinonSandbox.spy(),
 				error: sinonSandbox.spy(),
 			};
@@ -87,7 +86,6 @@ describe('httpApi', () => {
 
 		after(done => {
 			loggerMock.trace.reset();
-			loggerMock.log.reset();
 			loggerMock.error.reset();
 			resMock.header.reset();
 			resMock.status.reset();
@@ -169,8 +167,8 @@ describe('httpApi', () => {
 				done();
 			});
 
-			it('should call logger.log with string "GET req/url from 127.0.0.1"', done => {
-				expect(loggerMock.log.calledWith('GET req/url from 127.0.0.1'));
+			it('should call logger.info with string "GET req/url from 127.0.0.1"', done => {
+				expect(loggerMock.info.calledWith('GET req/url from 127.0.0.1'));
 				done();
 			});
 

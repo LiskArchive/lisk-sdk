@@ -48,7 +48,7 @@ __private.assetTypes = {};
  */
 function Multisignatures(cb, scope) {
 	library = {
-		logger: scope.logger,
+		logger: scope.logger.child({ module: 'multisignatures' }),
 		db: scope.db,
 		network: scope.network,
 		schema: scope.schema,

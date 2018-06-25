@@ -40,7 +40,7 @@ class Cache {
 	constructor(cb, scope) {
 		self = this;
 		client = scope.cache.client;
-		logger = scope.logger;
+		logger = scope.logger.child({ module: 'cache' });
 		cacheEnabled = scope.cache.cacheEnabled;
 		setImmediate(cb, null, self);
 	}

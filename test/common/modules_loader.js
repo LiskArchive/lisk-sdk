@@ -19,7 +19,7 @@ var randomstring = require('randomstring');
 var async = require('async');
 var Sequence = require('../../helpers/sequence.js');
 var database = require('../../db');
-var Logger = require('../../logger.js');
+var createLogger = require('../../logger.js');
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
 var Cache = require('../../modules/cache.js');
@@ -30,9 +30,8 @@ var Account = require('../../logic/account.js');
 
 var modulesLoader = new function() {
 	this.db = null;
-	this.logger = new Logger({
-		echo: null,
-		errorLevel: __testContext.config.fileLogLevel,
+	this.logger = createLogger({
+		level: __testContext.config.fileLogLevel,
 		filename: __testContext.config.logFileName,
 	});
 	this.scope = {

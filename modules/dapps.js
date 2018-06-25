@@ -62,7 +62,7 @@ __private.assetTypes = {};
 class DApps {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger,
+			logger: scope.logger.child({ module: 'dapps' }),
 			db: scope.db,
 			network: scope.network,
 			schema: scope.schema,
@@ -81,7 +81,12 @@ class DApps {
 			transactionTypes.DAPP
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DAPP,
-			new DApp(scope.db, scope.logger, scope.schema, scope.network)
+			new DApp(
+				scope.db,
+				scope.logger.child({ module: 'logic/transaction/dapp' }),
+				scope.schema,
+				scope.network
+			)
 		);
 
 		__private.assetTypes[

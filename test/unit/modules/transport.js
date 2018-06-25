@@ -34,6 +34,7 @@ var expect = chai.expect;
 describe('transport', () => {
 	var dbStub;
 	var loggerStub;
+	var childLoggerStub;
 	var busStub;
 	var schemaStub;
 	var networkStub;
@@ -166,9 +167,22 @@ describe('transport', () => {
 			query: sinonSandbox.spy(),
 		};
 
-		loggerStub = {
+		childLoggerStub = {
+			done: sinonSandbox.spy(),
+			trace: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			log: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
 			error: sinonSandbox.spy(),
+		};
+		loggerStub = {
+			child: () => childLoggerStub,
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
 		};
 
 		busStub = {};
@@ -262,7 +276,7 @@ describe('transport', () => {
 					.which.is.equal(dbStub);
 				expect(library)
 					.to.have.property('logger')
-					.which.is.equal(loggerStub);
+					.which.is.equal(childLoggerStub);
 				expect(library)
 					.to.have.property('bus')
 					.which.is.equal(busStub);

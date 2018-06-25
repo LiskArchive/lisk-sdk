@@ -30,6 +30,12 @@ describe('Handshake', () => {
 	var validPeerNonce = randomstring.generate(16);
 	var validNodeNonce = randomstring.generate(16);
 	var validConfig = {
+		logger: {
+			child: () => ({
+				debug: sinonSandbox.spy(),
+				error: sinonSandbox.spy(),
+			}),
+		},
 		config: {
 			version: config.version,
 			minVersion,
