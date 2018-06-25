@@ -1,6 +1,6 @@
 {
-	"wsPort": {{getv "/lisk/wsport" "8001"}},
-	"httpPort": {{getv "/lisk/httpport" "8000"}},
+	"wsPort": {{getv "/lisk/wsport" "7001"}},
+	"httpPort": {{getv "/lisk/httpport" "7000"}},
 	"address": "{{getv "/lisk/address" "0.0.0.0"}}",
 	"version": "__LISK_VERSION__REPLACE_ME__",
 	"minVersion": "__LISK_MIN_VERSION__REPLACE_ME__",
@@ -14,7 +14,7 @@
 	"db": {
 		"host": "{{getv "/lisk/db/host" "localhost"}}",
 		"port": {{getv "/lisk/db/port" "5432"}},
-		"database": "{{getv "/lisk/db/database" "lisk_main"}}",
+		"database": "{{getv "/lisk/db/database" "lisk_test"}}",
 		"user": "{{getv "/lisk/db/user" "lisk"}}",
 		"password": "{{getv "/lisk/db/password" "password"}}",
 		"min": {{getv "/lisk/db/min" "10"}},
@@ -53,44 +53,24 @@
 		"enabled": {{getv "/lisk/peers/enabled" "true"}},
 		"list": [
 			{
-				"ip": "83.136.254.92",
-				"wsPort": 8000
+				"ip": "94.237.29.221",
+				"wsPort": 7001
 			},
 			{
-				"ip": "83.136.249.76",
-				"wsPort": 8000
+				"ip": "83.136.254.104",
+				"wsPort": 7001
 			},
 			{
-				"ip": "94.237.28.66",
-				"wsPort": 8000
+				"ip": "209.50.48.177",
+				"wsPort": 7001
 			},
 			{
-				"ip": "94.237.24.199",
-				"wsPort": 8000
+				"ip": "94.237.64.33",
+				"wsPort": 7001
 			},
 			{
-				"ip": "209.50.49.23",
-				"wsPort": 8000
-			},
-			{
-				"ip": "209.50.49.40",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.64.70",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.64.73",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.40.140",
-				"wsPort": 8000
-			},
-			{
-				"ip": "94.237.40.141",
-				"wsPort": 8000
+				"ip": "94.237.30.23",
+				"wsPort": 7001
 			}
 		],
 		"access": {
@@ -104,17 +84,16 @@
 	"broadcasts": {
 		"active": {{getv "/lisk/broadcasts/active" "true"}},
 		"broadcastInterval": {{getv "/lisk/broadcasts/broadcastinterval" "5000"}},
-		"broadcastLimit": {{getv "/lisk/broadcasts/broadcastlimit" "20"}},
+		"broadcastLimit": {{getv "/lisk/broadcasts/broadcastlimit" "25"}},
 		"parallelLimit": {{getv "/lisk/broadcasts/parallellimit" "20"}},
 		"releaseLimit": {{getv "/lisk/broadcasts/releaselimit" "25"}},
-		"relayLimit": {{getv "/lisk/broadcasts/relaylimit" "2"}}
+		"relayLimit": {{getv "/lisk/broadcasts/relaylimit" "3"}}
 	},
 	"transactions": {
 		"maxTransactionsPerQueue": {{getv "/lisk/transactions/maxtransactionsperqueue" "1000"}}
 	},
 	"forging": {
 		"force": {{getv "/lisk/forging/force" "false"}},
-		"defaultPassword": "{{getv "/lisk/forging/defaultpassword" ""}}",
 		"delegates": [{{range $index, $element := (getvs "/lisk/forging/delegates/*")}}{{$data := split $element ":"}}{{if $index}}, {{end}}
 		{
 			"encryptedPassphrase": "{{index $data 0}}",
@@ -139,5 +118,5 @@
 			"cert": "{{getv "/lisk/ssl/options/cert" "./ssl/lisk.crt"}}"
 		}
 	},
-	"nethash": "{{getv "/lisk/nethash" "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"}}"
+	"nethash": "{{getv "/lisk/nethash" "da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba"}}"
 }
