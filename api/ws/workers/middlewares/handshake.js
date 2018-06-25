@@ -72,11 +72,17 @@ var middleware = {
 		return function(headers, cb) {
 			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
 				if (error) {
+					var errorDescription;
+					if (error[0].path && error[0].path.length) {
+						errorDescription = `${error[0].path}: ${error[0].message}`;
+					} else {
+						errorDescription = `${error[0].message}`;
+					}
 					return setImmediate(
 						cb,
 						{
 							code: failureCodes.INVALID_HEADERS,
-							description: `${error[0].path}: ${error[0].message}`,
+							description: errorDescription,
 						},
 						null
 					);
@@ -125,11 +131,11 @@ var middleware = {
 				// TODO : double check socket IP
 				if (config.blackListedPeers.includes(headers.ip)) {
 					return setImmediate(
-						cb, {
+						cb,
+						{
 							code: failureCodes.BLACKLISTED_PEER,
-							description: failureCodes.errorMessages[
-								failureCodes.BLACKLISTED_PEER
-							],
+							description:
+								failureCodes.errorMessages[failureCodes.BLACKLISTED_PEER],
 						},
 						peer
 					);

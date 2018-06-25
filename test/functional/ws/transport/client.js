@@ -25,8 +25,11 @@ const WSServer = require('../../../common/ws/server_master');
 describe('RPC Client', () => {
 	const validWSServerIp = '127.0.0.1';
 	const validWSServerPort = 5000;
+	let validPeerStub;
 	let validClientRPCStub;
 	let socketClusterMock;
+	let closeErrorCode;
+	let closeErrorReason;
 
 	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
 		const loggerMock = {
@@ -36,7 +39,27 @@ describe('RPC Client', () => {
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
 		};
-		validClientRPCStub = connect({ ip, wsPort }, loggerMock).rpc;
+		validPeerStub = connect({ ip, wsPort }, loggerMock);
+		validClientRPCStub = validPeerStub.rpc;
+	}
+
+	function unbindConnectionHandlers() {
+		validPeerStub.socket.removeAllListeners('close');
+		validPeerStub.socket.removeAllListeners('connect');
+	}
+
+	function captureConnectionResult() {
+		closeErrorCode = null;
+		closeErrorReason = null;
+		unbindConnectionHandlers();
+		validPeerStub.socket.on('close', (code, reason) => {
+			unbindConnectionHandlers();
+			closeErrorCode = code;
+			closeErrorReason = reason;
+		});
+		validPeerStub.socket.on('connect', () => {
+			unbindConnectionHandlers();
+		});
 	}
 
 	before(done => {
@@ -126,7 +149,18 @@ describe('RPC Client', () => {
 					delete validHeaders.wsPort;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "wsPort: Expected type integer but found type not-a-number"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'wsPort: Expected type integer but found type not-a-number'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -161,7 +195,18 @@ describe('RPC Client', () => {
 					validHeaders.nonce = 'TOO_SHORT';
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "nonce: String is too short (9 chars), minimum 16"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'nonce: String is too short (9 chars), minimum 16'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -179,7 +224,18 @@ describe('RPC Client', () => {
 					validHeaders.nonce = 'NONCE_LONGER_THAN_16_CHARS';
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "nonce: String is too long (26 chars), maximum 16"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'nonce: String is too long (26 chars), maximum 16'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -197,7 +253,16 @@ describe('RPC Client', () => {
 					delete validHeaders.nonce;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "Missing required property: nonce"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal('Missing required property: nonce');
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -215,7 +280,18 @@ describe('RPC Client', () => {
 					delete validHeaders.nethash;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "Missing required property: nethash"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'Missing required property: nethash'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -249,7 +325,18 @@ describe('RPC Client', () => {
 					delete validHeaders.version;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "Missing required property: version"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'Missing required property: version'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
