@@ -47,6 +47,14 @@ if (!oldConfigPath || !newConfigPath) {
 	process.exit(1);
 }
 
+const passwordLen = program.password.trim().length;
+if (passwordLen < 5) {
+	console.error(
+		`error: String is too short (${passwordLen} chars), minimum 5.`
+	);
+	process.exit(1);
+}
+
 console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
@@ -57,7 +65,7 @@ delete oldConfig.minVersion;
 
 // Rename old port to new wsPort
 oldConfig.httpPort = oldConfig.port;
-oldConfig.wsPort = oldConfig.httpPort + 1;
+oldConfig.wsPort = oldConfig.port + 1;
 delete oldConfig.port;
 
 oldConfig.db.max = oldConfig.db.poolSize;
@@ -74,7 +82,7 @@ delete oldConfig.dapp;
 
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
-	p.wsPort = p.port;
+	p.wsPort = p.port + 1;
 	delete p.port;
 	return p;
 });
