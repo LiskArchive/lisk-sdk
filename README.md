@@ -11,7 +11,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 [Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
-This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/docker). 
+This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
 If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
 ## Pre-Installation
@@ -91,16 +91,17 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### PostgreSQL (version 9.6):
 
-  * Ubuntu 14|16 / Debian:
+* Ubuntu 14|16 / Debian:
 
-  ```
-  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-  sudo -u postgres createuser --createdb $USER
-  createdb lisk_test
-  createdb lisk_main
-  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
-  ```
+
+```
+curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+sudo -u postgres createuser --createdb $USER
+createdb lisk_test
+createdb lisk_main
+sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
@@ -116,21 +117,22 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 * Ubuntu 14|16 / Debian:
 
-  ```
-  sudo apt-get install redis-server
-  ```
 
-  Start redis:
+```
+sudo apt-get install redis-server
+```
 
-  ```
-  service redis start
-  ```
+Start redis:
 
-  Stop redis:
+```
+service redis start
+```
 
-  ```
-  service redis stop
-  ```
+Stop redis:
+
+```
+service redis stop
+```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
@@ -177,7 +179,7 @@ And you should get the result `PONG`.
 
 ## Installation Steps
 
-Before you proceed, you need to decide if you want to connect your node to the Testnet (Test Network), to the Mainnet (Main Network) or to work in your own network. In order to connect your node with the *Mainnet* for example, clone this Lisk Core repository from the master branch and initialize the modules.
+Before you proceed, you need to decide if you want to connect your node to the Testnet (Test Network), to the Mainnet (Main Network) or to work in your own network. In order to connect your node with the _Mainnet_ for example, clone this Lisk Core repository from the master branch and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
@@ -255,6 +257,7 @@ npm test -- mocha:<tag>:<suite>:[section]
   * when `functional` --> `get | post | ws | system` (optional)
 
 Examples:
+
 ```
 npm test -- mocha:slow:unit
 npm test -- mocha:untagged:functional:get
