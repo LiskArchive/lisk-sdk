@@ -93,7 +93,6 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 * Ubuntu 14|16 / Debian:
 
-
 ```
 curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
 sudo -u postgres createuser --createdb $USER
@@ -105,18 +104,17 @@ sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'passwor
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  ```
-  brew install postgresql@9.6
-  initdb /usr/local/var/postgres -E utf8
-  brew services start postgresql@9.6
-  createdb lisk_test
-  createdb lisk_main
-  ```
+```
+brew install postgresql@9.6
+initdb /usr/local/var/postgres -E utf8
+brew services start postgresql@9.6
+createdb lisk_test
+createdb lisk_main
+```
 
 ### Installing Redis
 
 * Ubuntu 14|16 / Debian:
-
 
 ```
 sudo apt-get install redis-server
@@ -136,21 +134,21 @@ service redis stop
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  ```
-  brew install redis
-  ```
+```
+brew install redis
+```
 
-  Start redis:
+Start redis:
 
-  ```
-  brew services start redis
-  ```
+```
+brew services start redis
+```
 
-  Stop redis:
+Stop redis:
 
-  ```
-  brew services stop redis
-  ```
+```
+brew services stop redis
+```
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
