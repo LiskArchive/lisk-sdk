@@ -20,6 +20,6 @@
 */
 
 UPDATE mem_accounts m
-SET vote = b.vote
+SET vote = b.vote, "missedBlocks" = b."missedBlocks", "producedBlocks" = b."producedBlocks"
 FROM mem_votes_snapshot b
 WHERE m.address = b.address;
