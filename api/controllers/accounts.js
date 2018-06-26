@@ -71,10 +71,8 @@ AccountsController.getAccounts = function(context, next) {
 				delete account.delegate;
 			} else {
 				account.delegate.rank = parseInt(account.delegate.rank);
-				account.delegate.missedBlocks = parseInt(account.delegate.missedBlocks);
-				account.delegate.producedBlocks = parseInt(
-					account.delegate.producedBlocks
-				);
+				account.delegate.missedBlocks = account.delegate.missedBlocks;
+				account.delegate.producedBlocks = account.delegate.producedBlocks;
 			}
 			if (_.isNull(account.publicKey)) {
 				account.publicKey = '';

@@ -77,8 +77,8 @@ DelegatesController.getDelegates = function(context, next) {
 			delete delegate.publicKey;
 			delete delegate.address;
 
-			delegate.missedBlocks = parseInt(delegate.missedBlocks);
-			delegate.producedBlocks = parseInt(delegate.producedBlocks);
+			delegate.missedBlocks = delegate.missedBlocks;
+			delegate.producedBlocks = delegate.producedBlocks;
 			delegate.rank = parseInt(delegate.rank);
 
 			return delegate;
