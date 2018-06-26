@@ -32,7 +32,10 @@ var failureCodes = require('./api/ws/rpc/failure_codes');
 var Logger = require('./logger');
 
 var config = fs.readFileSync(
-	path.resolve(process.cwd(), `./config/${process.env.NETWORK}/config.json`),
+	path.resolve(
+		process.cwd(),
+		`./config/${process.env.LISK_NETWORK}/config.json`
+	),
 	'utf8'
 );
 

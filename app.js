@@ -107,9 +107,8 @@ if (typeof gc !== 'undefined') {
  */
 var appConfig = AppConfig(require('./package.json'));
 
-// Define availability of top accounts endpoint
-process.env.TOP = appConfig.topAccounts;
-process.env.NETWORK = appConfig.network;
+// Define lisk network env variable to be used by child processes load config files
+process.env.LISK_NETWORK = appConfig.network;
 
 // Global objects to be utilized under modules/helpers where scope is not accessible
 global.constants = appConfig.constants;
