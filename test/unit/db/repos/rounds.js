@@ -716,7 +716,13 @@ describe('db', () => {
 				expect(result).to.have.lengthOf(2);
 				return expect(result).to.have.deep.members(
 					delegates.map(d => {
-						return { publicKey: d.publicKey, address: d.address, vote: d.vote, producedBlocks: d.producedBlocks, missedBlocks: d.missedBlocks };
+						return {
+							publicKey: d.publicKey,
+							address: d.address,
+							vote: d.vote,
+							producedBlocks: d.producedBlocks,
+							missedBlocks: d.missedBlocks,
+						};
 					})
 				);
 			});
