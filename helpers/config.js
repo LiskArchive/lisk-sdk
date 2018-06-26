@@ -39,8 +39,8 @@ function Config(packageJson) {
 		.option('-c, --config <path>', 'config file path')
 		.option(
 			'-n, --network [network]',
-			'lisk network [dev|beta|main|test]. Defaults to "dev"',
-			'dev'
+			'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "dev"',
+			'devnet'
 		)
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
@@ -58,7 +58,7 @@ function Config(packageJson) {
 
 	configPath = path.resolve(
 		process.cwd(),
-		configPath || `./config/${network}net/config.json`
+		configPath || `./config/${network}/config.json`
 	);
 
 	if (configPath) {
@@ -80,7 +80,7 @@ function Config(packageJson) {
 		}
 	}
 
-	appConfig.network = `${network}net`;
+	appConfig.network = network;
 	appConfig.genesisBlock = JSON.parse(
 		fs.readFileSync(
 			path.resolve(
@@ -95,13 +95,13 @@ function Config(packageJson) {
 	// eslint-disable-next-line import/no-dynamic-require
 	appConfig.constants = require(path.resolve(
 		process.cwd(),
-		`./config/${network}net/constants.js`
+		`./config/${network}/constants.js`
 	));
 
 	// eslint-disable-next-line import/no-dynamic-require
 	appConfig.exceptions = require(path.resolve(
 		process.cwd(),
-		`./config/${network}net/exceptions.js`
+		`./config/${network}/exceptions.js`
 	));
 
 	if (program.wsPort) {
