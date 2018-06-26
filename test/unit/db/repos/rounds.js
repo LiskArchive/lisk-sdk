@@ -692,7 +692,7 @@ describe('db', () => {
 				return expect(db.none).to.be.calledOnce;
 			});
 
-			it('should copy the "address", "publicKey", "vote" from table "mem_accounts" to snapshot table "mem_votes_snapshot" for delegates', function*() {
+			it('should copy the "address", "publicKey", "vote", "producedBlocks", "missedBlocks" from table "mem_accounts" to snapshot table "mem_votes_snapshot" for delegates', function*() {
 				// Seed some account
 				const account1 = accountsFixtures.Account({ isDelegate: true });
 				const account2 = accountsFixtures.Account({ isDelegate: true });
@@ -716,7 +716,7 @@ describe('db', () => {
 				expect(result).to.have.lengthOf(2);
 				return expect(result).to.have.deep.members(
 					delegates.map(d => {
-						return { publicKey: d.publicKey, address: d.address, vote: d.vote };
+						return { publicKey: d.publicKey, address: d.address, vote: d.vote, producedBlocks: d.producedBlocks, missedBlocks: d.missedBlocks };
 					})
 				);
 			});
