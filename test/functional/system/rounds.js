@@ -1018,9 +1018,7 @@ describe('rounds', () => {
 					});
 				});
 
-				// FIXME: Unskip that test after issue https://github.com/LiskHQ/lisk/issues/1783 is closed
-				// eslint-disable-next-line
-				it.skip('delegate who replaced last block forger should have vote, producedBlocks, missedBlocks = 0', () => {
+				it('delegate who replaced last block forger should have vote, producedBlocks, missedBlocks = 0', () => {
 					return getDelegates().then(_delegates => {
 						expect(_delegates[tmpAccount.publicKey].vote).to.equal('0');
 						expect(_delegates[tmpAccount.publicKey].producedBlocks).to.equal(0);
