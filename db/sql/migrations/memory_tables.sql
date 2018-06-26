@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS "mem_round"(
   "address" VARCHAR(22),
   "amount" BIGINT,
   "delegate" VARCHAR(64),
-  "round" BIGINT
+  "round" INT
 );
 
 CREATE INDEX IF NOT EXISTS "mem_round_address" ON "mem_round"("address");
