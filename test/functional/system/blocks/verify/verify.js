@@ -16,18 +16,20 @@
 'use strict';
 
 var crypto = require('crypto');
+var lisk = require('lisk-elements').default;
 var _ = require('lodash');
 var rewire = require('rewire');
 var async = require('async'); // eslint-disable-line no-unused-vars
 var Promise = require('bluebird');
-var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
-var clearDatabaseTable = require('../../../common/db_sandbox')
+var application = require('../../../../common/application'); // eslint-disable-line no-unused-vars
+var clearDatabaseTable = require('../../../../common/db_sandbox')
 	.clearDatabaseTable; // eslint-disable-line no-unused-vars
-var modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
-var random = require('../../../common/utils/random');
-var slots = require('../../../../helpers/slots.js');
-var genesisBlock = require('../../../data/genesis_block.json');
-var genesisDelegates = require('../../../data/genesis_delegates.json')
+var modulesLoader = require('../../../../common/modules_loader'); // eslint-disable-line no-unused-vars
+var random = require('../../../../common/utils/random');
+var slots = require('../../../../../helpers/slots.js');
+var accountFixtures = require('../../../../fixtures/accounts');
+var genesisBlock = require('../../../../data/genesis_block.json');
+var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
 
 const constants = global.constants;
@@ -230,7 +232,7 @@ describe('blocks/verify', () => {
 		var RewiredVerify;
 
 		before(done => {
-			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
+			RewiredVerify = rewire('../../../../../modules/blocks/verify.js');
 			var verify = new RewiredVerify(
 				library.logger,
 				library.logic.block,
@@ -1081,20 +1083,78 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				// TODO: https://github.com/LiskHQ/lisk/issues/2152
-				it.skip('should fail when transaction is already confirmed (fork:2)', done => {
-					block2 = blocksVerify.deleteBlockProperties(block2);
-					blocksVerify.processBlock(block2, false, true, err => {
-						if (err) {
-							expect(err).to.equal(
-								[
-									'Transaction is already confirmed:',
-									genesisBlock.transactions[0].id,
-								].join(' ')
-							);
-							done();
-						}
+				it('should fail when transaction is already confirmed (fork:2)', done => {
+					const account = random.account();
+					const transaction = lisk.transaction.transfer({
+						amount: 1000 * constants.normalizer,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: account.address,
 					});
+					transaction.amount = Number.parseInt(transaction.amount);
+					transaction.fee = Number.parseInt(transaction.fee);
+					transaction.senderId = '16313739661670634666L';
+
+					const createBlockPayload = (
+						passPhrase,
+						transactions,
+						previousBlock
+					) => {
+						const time = slots.getSlotTime(slots.getSlotNumber());
+						const firstBlock = createBlock(
+							blocks,
+							blockLogic,
+							passPhrase,
+							time,
+							transactions,
+							previousBlock
+						);
+
+						return blocksVerify.deleteBlockProperties(firstBlock);
+					};
+
+					getValidKeypairForSlot(library, slots.getSlotNumber())
+						.then(passPhrase => {
+							const transactions = [transaction];
+							const firstBlock = createBlockPayload(
+								passPhrase,
+								transactions,
+								genesisBlock
+							);
+							blocksVerify.processBlock(firstBlock, false, true, err => {
+								expect(err).to.equal(null);
+								// Wait for next slot
+								setTimeout(() => {
+									getValidKeypairForSlot(library, slots.getSlotNumber())
+										.then(passPhrase => {
+											const secondBlock = createBlockPayload(
+												passPhrase,
+												transactions,
+												firstBlock
+											);
+											blocksVerify.processBlock(
+												secondBlock,
+												false,
+												true,
+												err => {
+													expect(err).to.equal(
+														[
+															'Transaction is already confirmed:',
+															transaction.id,
+														].join(' ')
+													);
+													done();
+												}
+											);
+										})
+										.catch(err => {
+											done(err);
+										});
+								}, 10000);
+							});
+						})
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
