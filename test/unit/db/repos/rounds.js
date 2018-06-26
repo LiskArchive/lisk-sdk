@@ -193,9 +193,7 @@ describe('db', () => {
 				const after = (yield db.accounts.list({ address: account.address }))[0]
 					.missedBlocks;
 
-				return expect(after).to.be.eql(
-					new BigNumber(before).plus(1).toString()
-				);
+				return expect(after).to.be.eql(before + 1);
 			});
 
 			it('should decrement missed blocks for an account if backward flag is set to true', function*() {
@@ -206,9 +204,7 @@ describe('db', () => {
 				const after = (yield db.accounts.list({ address: account.address }))[0]
 					.missedBlocks;
 
-				return expect(after).to.be.eql(
-					new BigNumber(before).minus(1).toString()
-				);
+				return expect(after).to.be.eql(before - 1);
 			});
 		});
 
