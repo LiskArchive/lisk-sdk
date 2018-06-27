@@ -15,6 +15,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 Please refer to the official documentation if you need to install the [Docker Engine](https://docs.docker.com/engine/installation).
 To build the image:
+
 ```
 docker build --tag lisk/mainnet:1.0.0 .
 ```
@@ -224,8 +225,10 @@ pm2 stop lisk
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
+pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
 ```
+
+You can pass any of `devnet`, `testnet`, `betanet` or `mainnet` for the network option.
 
 ## Tests
 
