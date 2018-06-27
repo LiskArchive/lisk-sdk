@@ -72,11 +72,9 @@ var middleware = {
 		return function(headers, cb) {
 			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
 				if (error) {
-					var errorDescription;
+					var errorDescription = error[0].message;
 					if (error[0].path && error[0].path.length) {
-						errorDescription = `${error[0].path}: ${error[0].message}`;
-					} else {
-						errorDescription = `${error[0].message}`;
+						errorDescription = `${error[0].path}: ${errorDescription}`;
 					}
 					return setImmediate(
 						cb,
