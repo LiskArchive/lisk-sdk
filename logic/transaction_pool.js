@@ -33,7 +33,6 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires helpers/transaction_types
  * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling

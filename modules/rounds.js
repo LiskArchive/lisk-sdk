@@ -36,7 +36,6 @@ __private.ticking = false;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/constants
  * @requires helpers/slots
  * @requires logic/round
  * @param {function} cb - Callback function

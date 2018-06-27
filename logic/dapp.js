@@ -34,7 +34,6 @@ __private.unconfirmedAscii = {};
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires valid
- * @requires helpers/constants
  * @requires helpers/dapp_categories
  * @param {Database} db
  * @param {Object} logger

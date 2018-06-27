@@ -36,7 +36,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires extend
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force

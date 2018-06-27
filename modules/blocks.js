@@ -41,7 +41,6 @@ __private.isActive = false;
  * @class
  * @memberof modules
  * @see Parent: {@link modules}
- * @requires helpers/constants
  * @requires modules/blocks/api
  * @requires modules/blocks/verify
  * @requires modules/blocks/process

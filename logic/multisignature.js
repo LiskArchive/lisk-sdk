@@ -74,7 +74,6 @@ Multisignature.prototype.bind = function(accounts) {
 /**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  *
- * @see {@link module:helpers/constants}
  * @param {transaction} transaction
  * @returns {number} Quantity of multisignature keysgroup * multisignature fees
  * @todo Add description for the params

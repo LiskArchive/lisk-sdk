@@ -35,7 +35,6 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/sort_by
  * @requires helpers/bignum
  * @requires logic/block_reward

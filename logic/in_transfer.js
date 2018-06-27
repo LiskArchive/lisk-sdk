@@ -28,7 +28,6 @@ let shared;
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @requires helpers/constants
  * @requires helpers/milestones
  * @requires helpers/slots
  * @param {Database} db

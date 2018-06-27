@@ -46,7 +46,6 @@ __private.retries = 5;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires helpers/slots
  * @requires logic/peer

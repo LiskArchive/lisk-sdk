@@ -27,7 +27,6 @@ const __private = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @requires helpers/constants
  */
 class BlockReward {
 	constructor() {

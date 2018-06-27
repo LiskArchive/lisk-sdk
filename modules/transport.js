@@ -46,7 +46,6 @@ __private.messages = {};
  * @requires api/ws/rpc/failure_codes
  * @requires api/ws/workers/rules
  * @requires api/ws/rpc/ws_rpc
- * @requires helpers/constants
  * @requires logic/broadcaster
  * @param {function} cb - Callback function
  * @param {scope} scope - App instance

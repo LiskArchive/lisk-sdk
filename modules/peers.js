@@ -42,7 +42,6 @@ const peerDiscoveryFrequency = 30000;
  * @requires ip
  * @requires pg-promise
  * @requires api/ws/rpc/failure_codes
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires logic/peer
  * @param {function} cb - Callback function

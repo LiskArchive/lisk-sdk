@@ -32,7 +32,6 @@ const __private = {};
  * @requires bytebuffer
  * @requires crypto
  * @requires helpers/bignum
- * @requires helpers/constants
  * @requires helpers/transaction_types
  * @requires logic/block_reward
  * @param {Object} ed

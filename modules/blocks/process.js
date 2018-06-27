@@ -34,7 +34,6 @@ let self;
  * @see Parent: {@link modules.blocks}
  * @requires async
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/slots
  * @requires logic/peer
  * @param {Object} logger

@@ -34,7 +34,6 @@ let loaded;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires lodash
- * @requires helpers/constants
  * @requires logic/block_reward
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance

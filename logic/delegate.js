@@ -60,7 +60,6 @@ Delegate.prototype.bind = function(accounts) {
 /**
  * Obtains constant fee delegate.
  *
- * @see {@link helpers/constants}
  * @returns {number} constants.fees.delegate
  * @todo Delete unused transaction, sender parameters
  */

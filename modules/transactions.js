@@ -43,7 +43,6 @@ __private.assetTypes = {};
  * @requires lodash
  * @requires helpers/api_codes
  * @requires helpers/api_error
- * @requires helpers/constants
  * @requires helpers/sort_by
  * @requires helpers/transaction_types
  * @requires logic/transaction_pool

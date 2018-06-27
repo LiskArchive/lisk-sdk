@@ -123,7 +123,6 @@ Vote.prototype.bind = function(delegates) {
 /**
  * Obtains constant fee vote.
  *
- * @see {@link module:helpers/constants}
  * @returns {number} Transaction fee
  */
 Vote.prototype.calculateFee = function() {

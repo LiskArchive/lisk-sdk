@@ -30,7 +30,6 @@ let self;
  * @memberof modules.blocks
  * @see Parent: {@link modules.blocks}
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/transaction_types
  * @param {Object} logger
  * @param {Account} account

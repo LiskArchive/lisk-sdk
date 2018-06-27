@@ -37,7 +37,6 @@ let loaded = false;
  * @requires lodash
  * @requires helpers/api_codes
  * @requires helpers/api_error
- * @requires helpers/constants
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance
  */

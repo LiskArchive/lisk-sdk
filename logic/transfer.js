@@ -29,7 +29,6 @@ let library;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires helpers/bignum
- * @requires helpers/constants
  * @requires helpers/slots
  * @param {Object} logger
  * @param {Object} schema
