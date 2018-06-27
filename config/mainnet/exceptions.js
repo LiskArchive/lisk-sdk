@@ -22,9 +22,6 @@
  * @see Parent: {@link config}
  * @property {Array} blockRewards
  * @property {Array} delegates
- * @property {Object} genesisPublicKey
- * @property {string} genesisPublicKey.mainnet
- * @property {string} genesisPublicKey.testnet
  * @property {Object} rounds
  * @property {Object} rounds.27040
  * @property {number} rounds.27040.rewards_factor

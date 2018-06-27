@@ -22,10 +22,6 @@
  * @see Parent: {@link config}
  * @property {Array} blockRewards
  * @property {Array} delegates
- * @property {Object} genesisPublicKey
- * @property {string} genesisPublicKey.mainnet
- * @property {string} genesisPublicKey.testnet
- * @property {string} genesisPublicKey.betanet
  * @property {Object} rounds
  * @property {string[]} senderPublicKey
  * @property {string[]} signatures
