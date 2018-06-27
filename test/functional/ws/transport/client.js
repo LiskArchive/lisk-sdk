@@ -43,22 +43,15 @@ describe('RPC Client', () => {
 		validClientRPCStub = validPeerStub.rpc;
 	}
 
-	function unbindConnectionHandlers() {
-		validPeerStub.socket.removeAllListeners('close');
-		validPeerStub.socket.removeAllListeners('connect');
-	}
-
 	function captureConnectionResult() {
 		closeErrorCode = null;
 		closeErrorReason = null;
-		unbindConnectionHandlers();
+		validPeerStub.socket.removeAllListeners('close');
+		validPeerStub.socket.removeAllListeners('connect');
+
 		validPeerStub.socket.on('close', (code, reason) => {
-			unbindConnectionHandlers();
 			closeErrorCode = code;
 			closeErrorReason = reason;
-		});
-		validPeerStub.socket.on('connect', () => {
-			unbindConnectionHandlers();
 		});
 	}
 
