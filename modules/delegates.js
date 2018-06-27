@@ -907,7 +907,7 @@ Delegates.prototype.onBind = function(scope) {
  * @param {function} cb - Callback function
  */
 __private.nextForge = function(cb) {
-	async.series([__private.forge, modules.transactions.fillPool], cb);
+	async.series([modules.transactions.fillPool, __private.forge], cb);
 };
 
 /**
