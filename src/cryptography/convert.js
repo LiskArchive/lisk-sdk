@@ -86,6 +86,17 @@ export const stringifyEncryptedPassphrase = encryptedPassphrase => {
 	return querystring.stringify(objectToStringify);
 };
 
+const parseIterations = iterationsString => {
+	const iterations =
+		iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
+
+	if (Number.isNaN(iterations)) {
+		throw new Error('Could not parse iterations.');
+	}
+
+	return iterations;
+};
+
 export const parseEncryptedPassphrase = encryptedPassphrase => {
 	if (typeof encryptedPassphrase !== 'string') {
 		throw new Error('Encrypted passphrase to parse must be a string.');
@@ -94,7 +105,7 @@ export const parseEncryptedPassphrase = encryptedPassphrase => {
 	const { iterations, salt, cipherText, iv, tag, version } = keyValuePairs;
 
 	return {
-		iterations: iterations === undefined ? undefined : parseInt(iterations, 10),
+		iterations: parseIterations(iterations),
 		salt,
 		cipherText,
 		iv,
