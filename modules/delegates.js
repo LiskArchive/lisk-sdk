@@ -771,37 +771,33 @@ Delegates.prototype.getForgers = function(query, cb) {
 	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
 	const round = slots.calcRound(currentBlock.height + 1);
 
-	self.generateDelegateList(
-		round,
-		null,
-		(err, activeDelegates) => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-
-			for (
-				let i = query.offset + 1;
-				i <= slots.delegates && i <= query.limit + query.offset;
-				i++
-			) {
-				if (activeDelegates[(currentSlot + i) % slots.delegates]) {
-					forgerKeys.push(activeDelegates[(currentSlot + i) % slots.delegates]);
-				}
-			}
-
-			library.db.delegates
-				.getDelegatesByPublicKeys(forgerKeys)
-				.then(rows => {
-					rows.forEach(forger => {
-						forger.nextSlot =
-							forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
-					});
-					rows = _.sortBy(rows, 'nextSlot');
-					return setImmediate(cb, null, rows);
-				})
-				.catch(error => setImmediate(cb, error));
+	self.generateDelegateList(round, null, (err, activeDelegates) => {
+		if (err) {
+			return setImmediate(cb, err);
 		}
-	);
+
+		for (
+			let i = query.offset + 1;
+			i <= slots.delegates && i <= query.limit + query.offset;
+			i++
+		) {
+			if (activeDelegates[(currentSlot + i) % slots.delegates]) {
+				forgerKeys.push(activeDelegates[(currentSlot + i) % slots.delegates]);
+			}
+		}
+
+		library.db.delegates
+			.getDelegatesByPublicKeys(forgerKeys)
+			.then(rows => {
+				rows.forEach(forger => {
+					forger.nextSlot =
+						forgerKeys.indexOf(forger.publicKey) + currentSlot + 1;
+				});
+				rows = _.sortBy(rows, 'nextSlot');
+				return setImmediate(cb, null, rows);
+			})
+			.catch(error => setImmediate(cb, error));
+	});
 };
 
 /**
