@@ -81,7 +81,6 @@ module.exports = {
 	migrations: {
 		getLastId: link('migrations/get_last_id.sql'),
 		add: link('migrations/add.sql'),
-		memoryTables: link('migrations/memory_tables.sql'),
 		runtime: link('migrations/runtime.sql'),
 	},
 	peers: {
