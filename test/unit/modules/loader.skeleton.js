@@ -30,7 +30,7 @@ describe('loader', () => {
 
 			it('should assign bus');
 
-			it('should assign genesisblock');
+			it('should assign genesisBlock');
 
 			it('should assign balancesSequence');
 

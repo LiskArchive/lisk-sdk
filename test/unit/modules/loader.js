@@ -178,7 +178,7 @@ describe('loader', () => {
 				schema: sinonSandbox.stub(),
 				sequence: sinonSandbox.stub(),
 				bus: { message: sinonSandbox.stub() },
-				genesisblock: sinonSandbox.stub(),
+				genesisBlock: sinonSandbox.stub(),
 				balancesSequence: sinonSandbox.stub(),
 				logic: {
 					transaction: sinonSandbox.stub(),

@@ -18,7 +18,7 @@ require('../../functional.js');
 var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
-var genesisblock = require('../../../data/genesis_block.json');
+var genesisBlock = require('../../../data/genesis_block.json');
 var transactionTypes = require('../../../../helpers/transaction_types');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -222,7 +222,7 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('should get transaction with asset for id', () => {
-				var transactionInCheck = genesisblock.transactions.find(trs => {
+				var transactionInCheck = genesisBlock.transactions.find(trs => {
 					// Vote type transaction from genesisBlock
 					return trs.id === '9314232245035524467';
 				});
