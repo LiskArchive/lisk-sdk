@@ -22,7 +22,7 @@ var utils = require('../utils');
 
 module.exports = {
 	waitForAllNodesToBeReady(configurations, cb) {
-		const retries = 20;
+		const retries = 40;
 		const timeout = 3000;
 		async.forEachOf(
 			configurations,
