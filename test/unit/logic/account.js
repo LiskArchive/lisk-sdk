@@ -79,9 +79,6 @@ describe('account', () => {
 		before(done => {
 			dbStub = {
 				query: sinonSandbox.stub().resolves(),
-				migrations: {
-					createMemoryTables: sinonSandbox.stub().resolves(),
-				},
 			};
 
 			new Account(
