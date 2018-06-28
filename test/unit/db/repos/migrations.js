@@ -213,29 +213,6 @@ describe('db', () => {
 			});
 		});
 
-		describe('createMemoryTables()', () => {
-			it('should use the correct SQL while in transaction context', function*() {
-				return yield db.tx(function*(t) {
-					sinonSandbox.spy(t, 'none');
-
-					yield t.migrations.createMemoryTables();
-
-					return expect(t.none.firstCall.args[0]).to.be.eql(
-						migrationsSQL.memoryTables
-					);
-				});
-			});
-
-			it('should start a transaction context if no transaction exists', function*() {
-				sinonSandbox.spy(db, 'tx');
-
-				yield db.migrations.createMemoryTables();
-
-				expect(db.tx.firstCall.args[0]).to.be.eql('createMemoryTables');
-				return expect(db.tx.firstCall.args[1]).to.be.a('function');
-			});
-		});
-
 		describe('readPending()', () => {
 			let files;
 			let fileIds;
