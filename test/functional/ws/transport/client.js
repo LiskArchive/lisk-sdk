@@ -403,5 +403,26 @@ describe('RPC Client', () => {
 				done();
 			});
 		});
+
+		describe('makes request with incompatible version', () => {
+			beforeEach(done => {
+				// Set a non-matching version.
+				validHeaders.version = '0.0.0-beta.1';
+				System.setHeaders(validHeaders);
+				reconnect();
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 4103', done => {
+				expect(closeErrorCode).equal(4103);
+				expect(closeErrorReason).equal(
+					'Expected version: >=0.0.0 but received: 0.0.0-beta.1'
+				);
+				done();
+			});
+		});
 	});
 });
