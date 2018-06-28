@@ -429,5 +429,22 @@ describe('RPC Client', () => {
 				done();
 			});
 		});
+
+		describe('cannot connect - socket hung up', () => {
+			beforeEach(done => {
+				System.setHeaders(validHeaders);
+				// Target unused port.
+				reconnect(validWSServerIp, 4567);
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 1006', done => {
+				expect(closeErrorCode).equal(1006);
+				done();
+			});
+		});
 	});
 });
