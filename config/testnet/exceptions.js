@@ -62,6 +62,6 @@ module.exports = {
 	],
 	transactionFee: [],
 	disableTransactions: {
-		dappTransfer: 0,
+		dappTransfer: 5594491, // Disable Dapp Transfer on this block height
 	},
 };
