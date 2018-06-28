@@ -96,8 +96,8 @@ const Account = stampit({
 		u_multilifetime: 0,
 		nameexist: 0,
 		u_nameexist: 0,
-		producedBlocks: '9',
-		missedBlocks: '0',
+		producedBlocks: 9,
+		missedBlocks: 0,
 		fees: '0',
 		rewards: '0',
 	},
@@ -124,7 +124,7 @@ const Account = stampit({
 
 		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
 
-		this.missedBlocks = missedBlocks || '0';
+		this.missedBlocks = missedBlocks || 0;
 		this.balance = balance || '0';
 	},
 });

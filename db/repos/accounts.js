@@ -40,8 +40,8 @@ const normalFields = [
 	{ name: 'fees', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'rewards', cast: 'bigint', def: '0', skip: ifNotExists },
 	{ name: 'vote', cast: 'bigint', def: '0', skip: ifNotExists },
-	{ name: 'producedBlocks', cast: 'bigint', def: '0', skip: ifNotExists },
-	{ name: 'missedBlocks', cast: 'bigint', def: '0', skip: ifNotExists },
+	{ name: 'producedBlocks', def: 0, skip: ifNotExists },
+	{ name: 'missedBlocks', def: 0, skip: ifNotExists },
 	{ name: 'username', def: null, skip: ifNotExists },
 	{ name: 'u_username', def: null, skip: ifNotExists },
 	{

@@ -57,7 +57,7 @@ info:
     ## List of Endpoints
     All possible API endpoints for Lisk Core are listed below.
     Click on an endpoint to show descriptions, details and examples.
-  version: '1.0.30'
+  version: '1.0.31'
   contact:
     email: admin@lisk.io
   license:
@@ -581,7 +581,7 @@ paths:
             - productivity:desc
             - missedBlocks:asc
             - missedBlocks:desc
-          default: rank:desc
+          default: rank:asc
       responses:
         200:
           description: Search results matching criteria

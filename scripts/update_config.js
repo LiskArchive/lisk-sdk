@@ -47,14 +47,6 @@ if (!oldConfigPath || !newConfigPath) {
 	process.exit(1);
 }
 
-const passwordLen = program.password.trim().length;
-if (passwordLen < 5) {
-	console.error(
-		`error: String is too short (${passwordLen} chars), minimum 5.`
-	);
-	process.exit(1);
-}
-
 console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
@@ -94,7 +86,7 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 			output: process.stdout,
 		});
 		rl.question(
-			'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
+			'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
 			password => {
 				rl.close();
 				migrateSecrets(password);
@@ -118,11 +110,20 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 
 function migrateSecrets(password) {
 	oldConfig.forging.delegates = [];
-
-	if (!password.trim()) {
+	password = password.trim();
+	if (!password) {
 		console.info('\nSkipping the secret migration.');
 		delete oldConfig.forging.secret;
 		return;
+	}
+
+	if (password.length < 5) {
+		console.error(
+			`error: Password is too short (${
+				password.length
+			} characters), minimum 5 characters.`
+		);
+		process.exit(1);
 	}
 
 	console.info('\nMigrating your secrets...');

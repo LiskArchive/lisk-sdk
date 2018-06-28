@@ -1,7 +1,5 @@
 # Lisk
 
-Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://lisk.io/.
-
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-core/development)](https://jenkins.lisk.io/job/lisk-core/job/development)
 [![Coverage Status](https://coveralls.io/repos/github/LiskHQ/lisk/badge.svg?branch=development)](https://coveralls.io/github/LiskHQ/lisk?branch=development)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
@@ -9,29 +7,22 @@ Lisk is a next generation crypto-currency and decentralized application platform
 <a href="https://david-dm.org/LiskHQ/lisk"><img src="https://david-dm.org/LiskHQ/lisk.svg" alt="Dependency Status"></a>
 <a href="https://david-dm.org/LiskHQ/lisk/?type=dev"><img src="https://david-dm.org/LiskHQ/lisk/dev-status.svg" alt="devDependency Status"></a>
 
-## Docker image
+Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. The official documentation about the whole ecosystem can be found in https://lisk.io/documentation.
 
-### Build
+[Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
-Please refer to the official documentation if you need to install the [Docker Engine](https://docs.docker.com/engine/installation).
-To build the image:
-```
-docker build --tag lisk/mainnet:1.0.0 .
-```
+This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
+If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
-### Usage
+## Pre-Installation
 
-Please refer to the documentation on [lisk.io](https://lisk.io/documentation/core/installation/docker-main-network).
-
-## Prerequisites - In order
-
-This sections provides details on what you need install on your system in order to run Lisk.
+The next section details the prerequisites to install Lisk Core from source using the different tagged releases.
 
 ### System Install
 
 * Tool chain components -- Used for compiling dependencies
 
-  * Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
     ```
     sudo apt-get update
@@ -52,7 +43,7 @@ This sections provides details on what you need install on your system in order 
 
 * Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
 
-  * Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
     ```
     sudo apt-get install -y git
@@ -70,7 +61,7 @@ This sections provides details on what you need install on your system in order 
 
   Install System wide via package manager:
 
-  * Ubuntu/Debian:
+  * Ubuntu 14|16 / Debian:
 
     ```
     curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
@@ -100,64 +91,64 @@ This sections provides details on what you need install on your system in order 
 
 ### PostgreSQL (version 9.6):
 
-* Ubuntu/Debian:
+* Ubuntu 14|16 / Debian:
 
-  ```
-  curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-  sudo -u postgres createuser --createdb $USER
-  createdb lisk_test
-  createdb lisk_main
-  sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-  sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
-  ```
+```
+curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+sudo -u postgres createuser --createdb $USER
+createdb lisk_test
+createdb lisk_main
+sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
+sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  ```
-  brew install postgresql@9.6
-  initdb /usr/local/var/postgres -E utf8
-  brew services start postgresql@9.6
-  createdb lisk_test
-  createdb lisk_main
-  ```
+```
+brew install postgresql@9.6
+initdb /usr/local/var/postgres -E utf8
+brew services start postgresql@9.6
+createdb lisk_test
+createdb lisk_main
+```
 
 ### Installing Redis
 
-* Ubuntu/Debian:
+* Ubuntu 14|16 / Debian:
 
-  ```
-  sudo apt-get install redis-server
-  ```
+```
+sudo apt-get install redis-server
+```
 
-  Start redis:
+Start redis:
 
-  ```
-  service redis start
-  ```
+```
+service redis start
+```
 
-  Stop redis:
+Stop redis:
 
-  ```
-  service redis stop
-  ```
+```
+service redis stop
+```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  ```
-  brew install redis
-  ```
+```
+brew install redis
+```
 
-  Start redis:
+Start redis:
 
-  ```
-  brew services start redis
-  ```
+```
+brew services start redis
+```
 
-  Stop redis:
+Stop redis:
 
-  ```
-  brew services stop redis
-  ```
+```
+brew services stop redis
+```
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
@@ -171,7 +162,7 @@ Update the launch configuration file on your system. Note that their a number of
 
 1. Stop redis-server
 2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
-   * Ubuntu/Debian: `/etc/redis/redis.conf`
+   * Ubuntu 14|16 / Debian: `/etc/redis/redis.conf`
    * MacOS: `/usr/local/etc/redis.conf`
 3. Start redis-server
 
@@ -186,7 +177,7 @@ And you should get the result `PONG`.
 
 ## Installation Steps
 
-Clone the Lisk repository using git and initialize the modules.
+Before you proceed, you need to decide if you want to connect your node to the Testnet (Test Network), to the Mainnet (Main Network) or to work in your own network. In order to connect your node with the _Mainnet_ for example, clone this Lisk Core repository from the master branch and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
@@ -197,7 +188,7 @@ npm install
 
 ## Managing Lisk
 
-To test that Lisk is built and configured correctly, issue the following command:
+To test Lisk is built and configured correctly, issue the following command:
 
 ```
 node app.js
@@ -263,18 +254,19 @@ npm test -- mocha:<tag>:<suite>:[section]
 * Where **section** depending of the chosen suite can be:
   * when `functional` --> `get | post | ws | system` (optional)
 
+Examples:
+
+```
+npm test -- mocha:slow:unit
+npm test -- mocha:untagged:functional:get
+npm test -- mocha:unstable:functional:ws
+npm test -- mocha:extensive:integration
+```
+
 Individual test files can be run using the following command:
 
 ```
 npm run mocha -- path/to/test.js
-```
-
-### Genesis Account
-
-The master passphrase for the genesis block used by the tests is as follows:
-
-```
-wagon stock borrow episode laundry kitten salute link globe zero feed marble
 ```
 
 ## Contributors

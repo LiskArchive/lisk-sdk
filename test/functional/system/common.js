@@ -24,15 +24,12 @@ var accountFixtures = require('../../fixtures/accounts');
 
 function getDelegateForSlot(library, slot, cb) {
 	var lastBlock = library.modules.blocks.lastBlock.get();
+	const round = slots.calcRound(lastBlock.height + 1);
 
-	library.modules.delegates.generateDelegateList(
-		lastBlock.height + 1,
-		null,
-		(err, list) => {
-			var delegatePublicKey = list[slot % slots.delegates];
-			return cb(err, delegatePublicKey);
-		}
-	);
+	library.modules.delegates.generateDelegateList(round, null, (err, list) => {
+		var delegatePublicKey = list[slot % slots.delegates];
+		return cb(err, delegatePublicKey);
+	});
 }
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {

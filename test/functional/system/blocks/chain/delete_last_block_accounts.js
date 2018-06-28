@@ -316,8 +316,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.u_isDelegate).to.equal(false);
 							expect(res.username).to.be.null;
 							expect(res.u_username).to.be.null;
-							expect(res.missedBlocks).to.equal('0');
-							expect(res.producedBlocks).to.equal('0');
+							expect(res.missedBlocks).to.equal(0);
+							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.be.null;
 							expect(res.rewards).to.equal('0');
 							expect(res.vote).to.equal('0');
@@ -349,8 +349,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.u_isDelegate).to.equal(true);
 							expect(res.username).to.be.equal(testAccount.username);
 							expect(res.u_username).to.be.equal(testAccount.username);
-							expect(res.missedBlocks).to.equal('0');
-							expect(res.producedBlocks).to.equal('0');
+							expect(res.missedBlocks).to.equal(0);
+							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.equal('102');
 							expect(res.rewards).to.equal('0');
 							expect(res.vote).to.equal('0');
@@ -378,8 +378,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.u_isDelegate).to.equal(false);
 							expect(res.username).to.be.null;
 							expect(res.u_username).to.be.null;
-							expect(res.missedBlocks).to.equal('0');
-							expect(res.producedBlocks).to.equal('0');
+							expect(res.missedBlocks).to.equal(0);
+							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.be.null;
 							expect(res.rewards).to.equal('0');
 							expect(res.vote).to.equal('0');
@@ -413,8 +413,8 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 							expect(res.u_username).to.be.equal(
 								testAccountDataAfterBlock.username
 							);
-							expect(res.missedBlocks).to.equal('0');
-							expect(res.producedBlocks).to.equal('0');
+							expect(res.missedBlocks).to.equal(0);
+							expect(res.producedBlocks).to.equal(0);
 							expect(res.rank).to.equal('102');
 							expect(res.rewards).to.equal('0');
 							expect(res.vote).to.equal('0');
