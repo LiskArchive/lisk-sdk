@@ -46,7 +46,7 @@ def buildDependencies() {
 def startLisk() {
 	try {
 		sh '''
-		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe nohup node app.js -c test/data/config.json &> .app.log &
+		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe nohup node app.js &> .app.log &
 		sleep 15
 		'''
 	} catch (err) {
