@@ -356,7 +356,7 @@ describe('RPC Client', () => {
 			});
 		});
 
-		describe('node makes request to itself', () => {
+		describe('makes request to itself', () => {
 			beforeEach(done => {
 				System.setHeaders(validHeaders);
 				reconnect();
@@ -377,6 +377,28 @@ describe('RPC Client', () => {
 				expect(closeErrorCode).equal(4101);
 				expect(closeErrorReason).equal(
 					`Expected nonce to be not equal to: ${validHeaders.nonce}`
+				);
+				done();
+			});
+		});
+
+		describe('makes request to the wrong network', () => {
+			beforeEach(done => {
+				// Set a non-matching nethash.
+				validHeaders.nethash =
+					'123f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
+				System.setHeaders(validHeaders);
+				reconnect();
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 4102', done => {
+				expect(closeErrorCode).equal(4102);
+				expect(closeErrorReason).equal(
+					'Expected nethash: 198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d but received: 123f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
 				);
 				done();
 			});
