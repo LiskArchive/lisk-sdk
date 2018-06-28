@@ -32,6 +32,13 @@ describe('RPC Client', () => {
 	let closeErrorReason;
 
 	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
+		if (
+			validPeerStub &&
+			validPeerStub.socket &&
+			validPeerStub.socket.state == validPeerStub.socket.OPEN
+		) {
+			validPeerStub.socket.disconnect();
+		}
 		const loggerMock = {
 			error: sinonSandbox.stub(),
 			warn: sinonSandbox.stub(),
@@ -43,7 +50,7 @@ describe('RPC Client', () => {
 		validClientRPCStub = validPeerStub.rpc;
 	}
 
-	function captureConnectionResult() {
+	function captureConnectionResult(callback) {
 		closeErrorCode = null;
 		closeErrorReason = null;
 		validPeerStub.socket.removeAllListeners('close');
@@ -52,7 +59,14 @@ describe('RPC Client', () => {
 		validPeerStub.socket.on('close', (code, reason) => {
 			closeErrorCode = code;
 			closeErrorReason = reason;
+			callback && callback(code, reason);
 		});
+
+		if (callback) {
+			validPeerStub.socket.on('connect', () => {
+				callback();
+			});
+		}
 	}
 
 	before(done => {
@@ -166,7 +180,6 @@ describe('RPC Client', () => {
 				});
 			});
 
-			// TODO: Throws "Unable to find resolving function for procedure status with signature ..." error
 			describe('with valid port as string', () => {
 				beforeEach(done => {
 					validHeaders.wsPort = validHeaders.wsPort.toString();
@@ -340,6 +353,32 @@ describe('RPC Client', () => {
 						done();
 					});
 				});
+			});
+		});
+
+		describe('node makes request to itself', () => {
+			beforeEach(done => {
+				System.setHeaders(validHeaders);
+				reconnect();
+				// First connect is just to get the node's nonce.
+				validClientRPCStub.status((err, data) => {
+					// Then connect to the node with its own nonce.
+					validHeaders.nonce = data.nonce;
+					System.setHeaders(validHeaders);
+					reconnect();
+					validClientRPCStub.status(() => {});
+					captureConnectionResult(() => {
+						done();
+					});
+				});
+			});
+
+			it('should close connection with code 4101', done => {
+				expect(closeErrorCode).equal(4101);
+				expect(closeErrorReason).equal(
+					`Expected nonce to be not equal to: ${validHeaders.nonce}`
+				);
+				done();
 			});
 		});
 	});
