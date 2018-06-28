@@ -17,7 +17,8 @@
 const randomstring = require('randomstring');
 const stampit = require('stampit');
 const faker = require('faker');
-const genesisBlock = require('../data/genesis_block');
+
+const genesisBlock = __testContext.config.genesisBlock;
 
 const Block = stampit({
 	props: {
