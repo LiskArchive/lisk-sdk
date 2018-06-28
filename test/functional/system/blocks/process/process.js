@@ -16,7 +16,6 @@
 'use strict';
 
 var async = require('async');
-var genesisBlock = require('../../../../data/genesis_block.json');
 var application = require('../../../../common/application');
 var modulesLoader = require('../../../../common/modules_loader');
 var clearDatabaseTable = require('../../../../common/db_sandbox')
@@ -202,7 +201,7 @@ describe('system test (blocks) - process', () => {
 
 	describe('loadBlocksOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', done => {
-			blocks.lastBlock.set(genesisBlock);
+			blocks.lastBlock.set(__testContext.config.genesisBlock);
 			blocksProcess.loadBlocksOffset(1, 2, (err, loadedBlock) => {
 				if (err) {
 					return done(err);

@@ -22,7 +22,6 @@ var Promise = require('bluebird');
 var PQ = require('pg-promise').ParameterizedQuery;
 var accountFixtures = require('../../../../fixtures/accounts');
 var slots = require('../../../../../helpers/slots');
-var genesisBlock = require('../../../../data/genesis_block.json');
 var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
 var application = require('../../../../common/application.js');
@@ -55,7 +54,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				]);
 			})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(genesisBlock);
+				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();
 			})
 			.catch(err => {
@@ -935,7 +934,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						expect(err).to.not.exist;
 						expect(blockIds).to.have.length(1);
 						expect(blockIds).to.not.include(differentChainBlock.id);
-						expect(blockIds).to.include.members([genesisBlock.id]);
+						expect(blockIds).to.include.members([
+							__testContext.config.genesisBlock.id,
+						]);
 						done();
 					});
 				});

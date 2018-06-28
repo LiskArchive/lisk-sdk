@@ -28,11 +28,11 @@ var modulesLoader = require('../../../../common/modules_loader'); // eslint-disa
 var random = require('../../../../common/utils/random');
 var slots = require('../../../../../helpers/slots.js');
 var accountFixtures = require('../../../../fixtures/accounts');
-var genesisBlock = require('../../../../data/genesis_block.json');
 var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
 
 const constants = global.constants;
+const genesisBlock = __testContext.config.genesisBlock;
 
 var previousBlock = {
 	blockSignature:

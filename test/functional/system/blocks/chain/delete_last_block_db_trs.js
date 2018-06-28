@@ -20,7 +20,6 @@ const lisk = require('lisk-elements').default;
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../common/utils/random');
 const localCommon = require('../../common');
-const genesisBlock = require('../../../../data/genesis_block.json');
 
 describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -42,7 +41,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				]);
 			})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(genesisBlock);
+				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();
 			})
 			.catch(err => {
