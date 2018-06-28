@@ -1,5 +1,4 @@
-/*
- * Copyright © 2018 Lisk Foundation
+/** Copyright © 2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -24,6 +23,7 @@ const keys = require('cryptography/keys');
 const hash = require('cryptography/hash');
 
 describe('encrypt', () => {
+	const PBKDF2_ITERATIONS = 1e6;
 	const ENCRYPTION_VERSION = '1';
 	const defaultPassphrase =
 		'minute omit local rare sword knee banner pair rib museum shadow juice';
@@ -212,9 +212,10 @@ describe('encrypt', () => {
 					.which.is.equal(ENCRYPTION_VERSION);
 			});
 
-			it('should not output the default number of iterations', () => {
-				return expect(encryptedPassphrase).to.have.property('iterations').be
-					.null;
+			it('should output the default number of iterations', () => {
+				return expect(encryptedPassphrase)
+					.to.have.property('iterations')
+					.equal(PBKDF2_ITERATIONS);
 			});
 
 			it('should take more than 0.5 seconds @node-only', () => {
@@ -244,7 +245,7 @@ describe('encrypt', () => {
 
 			beforeEach(() => {
 				encryptedPassphrase = {
-					iterations: null,
+					iterations: undefined,
 					cipherText:
 						'5cfd7bcc13022a482e7c8bd250cd73ef3eb7c49c849d5e761ce717608293f777cca8e0e18587ee307beab65bcc1b273caeb23d4985010b675391b354c38f8e84e342c1e7aa',
 					iv: '7b820ad6936a63152d13ffa2',
