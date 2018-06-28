@@ -14,6 +14,9 @@
 
 'use strict';
 
+// Initialize global variables
+require('../../setup');
+
 var ChildProcess = require('child_process');
 var path = require('path');
 var Promise = require('bluebird');
