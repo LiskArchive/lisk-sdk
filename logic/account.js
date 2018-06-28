@@ -410,8 +410,8 @@ class Account {
 	/**
 	 * Calculates productivity of a delegate account.
 	 *
-	 * @param {String} producedBlocks
-	 * @param {String} missedBlocks
+	 * @param {number} producedBlocks
+	 * @param {number} missedBlocks
 	 * @returns {number}
 	 */
 	// eslint-disable-next-line class-methods-use-this
@@ -790,12 +790,12 @@ Account.prototype.model = [
 	},
 	{
 		name: 'producedBlocks',
-		type: 'BigInt',
+		type: 'integer',
 		conv: Number,
 	},
 	{
 		name: 'missedBlocks',
-		type: 'BigInt',
+		type: 'integer',
 		conv: Number,
 	},
 	{
