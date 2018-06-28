@@ -38,7 +38,7 @@ function exit(code) {
 }
 
 if (!semver.satisfies(process.version, packageJSON.engines.node)) {
-	console.error('\x1b[31m', `ERROR: Requires Node.js version ${semver.clean(packageJSON.engines.node)}, but was started with version ${semver.clean(process.version)}.`, '\x1b[0m');
+	console.error('\x1b[31m', `ERROR: Requires Node.js version ${packageJSON.engines.node}, but was started with version ${semver.clean(process.version)}.`, '\x1b[0m');
 	exit();
 }
 
