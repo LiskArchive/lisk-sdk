@@ -35,13 +35,9 @@ export default class BaseCommand extends Command {
 		);
 	}
 
-	async catch(error) {
-		this.error(error);
-	}
-
 	async finally(error) {
 		if (error) {
-			this.error(error);
+			this.error(error.message ? error.message : error);
 		}
 	}
 }

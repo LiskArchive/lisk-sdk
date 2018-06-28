@@ -26,5 +26,7 @@ GetCommand.flags = {
 	...BaseCommand.flags,
 };
 
-GetCommand.description = 'Prints the current configuration.';
+GetCommand.description = `
+Prints the current configuration.
+`;
 GetCommand.examples = ['config:get'];

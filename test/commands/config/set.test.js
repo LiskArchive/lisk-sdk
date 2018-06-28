@@ -17,7 +17,7 @@ import { expect, test } from '../../test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 
-describe('config:get', () => {
+describe('config:set', () => {
 	const defaultConfig = {
 		api: {
 			network: 'main',
@@ -26,23 +26,29 @@ describe('config:get', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
+	const defaultDir = './someDir';
 	const setupStub = test
+		.env({ LISK_COMMANDER_CONFIG_DIR: defaultDir })
 		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig));
+		.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig))
+		.stub(config, 'setConfig', sandbox.stub().returns(true));
 
 	setupStub
 		.stdout()
-		.command(['config:get'])
-		.it('should call print with the user config', () => {
-			expect(print.default).to.be.called;
-			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
-		});
+		.command(['config:set'])
+		.catch(error => expect(error.message).to.contain('Missing 1 required arg'))
+		.it('should throw an error');
 
 	setupStub
 		.stdout()
-		.command(['config:get', '--json', '--pretty'])
+		.command(['config:set', 'api.nodes', 'http://somehost:1234'])
 		.it('should call print with json', () => {
-			expect(print.default).to.be.calledWith({ json: true, pretty: true });
-			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
+			const newConfig = Object.assign({}, defaultConfig, {
+				api: {
+					network: defaultConfig.api.network,
+					nodes: ['http://somehost:1234'],
+				},
+			});
+			return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
 		});
 });
