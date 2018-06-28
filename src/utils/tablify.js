@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Table from 'cli-table2';
+import Table from 'cli-table3';
 
 const chars = {
 	top: '═',
