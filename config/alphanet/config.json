@@ -14,7 +14,7 @@
 	"db": {
 		"host": "localhost",
 		"port": 5432,
-		"database": "lisk_test",
+		"database": "lisk_alpha",
 		"user": "",
 		"password": "password",
 		"min": 1,
