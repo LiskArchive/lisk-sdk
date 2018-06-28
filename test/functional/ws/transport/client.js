@@ -31,6 +31,17 @@ describe('RPC Client', () => {
 	let closeErrorCode;
 	let closeErrorReason;
 
+	function createLoggerMock() {
+		const loggerMock = {
+			error: sinonSandbox.stub(),
+			warn: sinonSandbox.stub(),
+			log: sinonSandbox.stub(),
+			debug: sinonSandbox.stub(),
+			trace: sinonSandbox.stub(),
+		};
+		return loggerMock;
+	}
+
 	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
 		if (
 			validPeerStub &&
@@ -39,13 +50,7 @@ describe('RPC Client', () => {
 		) {
 			validPeerStub.socket.disconnect();
 		}
-		const loggerMock = {
-			error: sinonSandbox.stub(),
-			warn: sinonSandbox.stub(),
-			log: sinonSandbox.stub(),
-			debug: sinonSandbox.stub(),
-			trace: sinonSandbox.stub(),
-		};
+		const loggerMock = createLoggerMock();
 		validPeerStub = connect({ ip, wsPort }, loggerMock);
 		validClientRPCStub = validPeerStub.rpc;
 	}
@@ -373,7 +378,7 @@ describe('RPC Client', () => {
 				});
 			});
 
-			it('should close connection with code 4101', done => {
+			it('should close connection with code 4101 and reason string', done => {
 				expect(closeErrorCode).equal(4101);
 				expect(closeErrorReason).equal(
 					`Expected nonce to be not equal to: ${validHeaders.nonce}`
@@ -395,7 +400,7 @@ describe('RPC Client', () => {
 				});
 			});
 
-			it('should close connection with code 4102', done => {
+			it('should close connection with code 4102 and reason string', done => {
 				expect(closeErrorCode).equal(4102);
 				expect(closeErrorReason).equal(
 					'Expected nethash: 198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d but received: 123f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
@@ -416,7 +421,7 @@ describe('RPC Client', () => {
 				});
 			});
 
-			it('should close connection with code 4103', done => {
+			it('should close connection with code 4103 and reason string', done => {
 				expect(closeErrorCode).equal(4103);
 				expect(closeErrorReason).equal(
 					'Expected version: >=0.0.0 but received: 0.0.0-beta.1'
