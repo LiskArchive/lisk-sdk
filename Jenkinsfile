@@ -16,8 +16,8 @@ def initializeNode() {
 		sh '''
 		pkill -f app.js -9 || true
 		sudo service postgresql restart
-		dropdb lisk_test || true
-		createdb lisk_test
+		dropdb lisk_dev || true
+		createdb lisk_dev
 		'''
 		deleteDir()
 		checkout scm
