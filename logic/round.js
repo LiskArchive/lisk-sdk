@@ -382,9 +382,7 @@ class Round {
 
 	/**
 	 * Calls:
-	 * - updateVotes
 	 * - updateMissedBlocks
-	 * - flushRound
 	 * - applyRound
 	 * - updateVotes
 	 * - flushRound
@@ -392,9 +390,8 @@ class Round {
 	 * @returns {function} Call result
 	 */
 	land() {
-		return this.updateVotes()
+		return Promise.resolve()
 			.then(this.updateMissedBlocks.bind(this))
-			.then(this.flushRound.bind(this))
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
@@ -403,23 +400,18 @@ class Round {
 
 	/**
 	 * Calls:
-	 * - updateVotes
-	 * - updateMissedBlocks
-	 * - flushRound
 	 * - applyRound
-	 * - updateVotes
 	 * - flushRound
+	 * - checkSnapshotAvailability
 	 * - restoreRoundSnapshot
 	 * - restoreVotesSnapshot
+	 * - deleteRoundRewards
 	 *
 	 * @returns {function} Call result
 	 */
 	backwardLand() {
-		return this.updateVotes()
-			.then(this.updateMissedBlocks.bind(this))
-			.then(this.flushRound.bind(this))
+		return Promise.resolve()
 			.then(this.applyRound.bind(this))
-			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
 			.then(this.checkSnapshotAvailability.bind(this))
 			.then(this.restoreRoundSnapshot.bind(this))

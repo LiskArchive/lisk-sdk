@@ -20,6 +20,6 @@
 */
 
 CREATE TABLE mem_votes_snapshot AS
-SELECT address, "publicKey", vote
+SELECT address, "publicKey", vote, "producedBlocks", "missedBlocks"
 FROM mem_accounts
 WHERE "isDelegate" = 1

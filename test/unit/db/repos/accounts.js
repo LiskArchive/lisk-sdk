@@ -1059,19 +1059,19 @@ describe('db', () => {
 						});
 					});
 
-					it('should return "producedBlocks" as "bigint"', () => {
+					it('should return "producedBlocks" as "number"', () => {
 						return db.accounts
 							.list({}, ['producedBlocks'], { limit: 1 })
 							.then(data => {
-								expect(data[0].producedBlocks).to.be.a('string');
+								expect(data[0].producedBlocks).to.be.a('number');
 							});
 					});
 
-					it('should return "missedBlocks" as "bigint"', () => {
+					it('should return "missedBlocks" as "number"', () => {
 						return db.accounts
 							.list({}, ['missedBlocks'], { limit: 1 })
 							.then(data => {
-								expect(data[0].missedBlocks).to.be.a('string');
+								expect(data[0].missedBlocks).to.be.a('number');
 							});
 					});
 				});

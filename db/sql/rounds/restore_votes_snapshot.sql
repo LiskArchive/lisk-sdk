@@ -19,7 +19,7 @@
   PARAMETERS: ?
 */
 
-UPDATE mem_accounts m
-SET vote = b.vote
-FROM mem_votes_snapshot b
-WHERE m.address = b.address;
+UPDATE mem_accounts accounts
+SET vote = snapshot.vote, "missedBlocks" = snapshot."missedBlocks", "producedBlocks" = snapshot."producedBlocks"
+FROM mem_votes_snapshot snapshot
+WHERE accounts.address = snapshot.address;
