@@ -286,12 +286,15 @@ var liskFormats = {
 	 * @returns {boolean}
 	 */
 	amount(str) {
-		if (typeof str !== 'string') {
-			return false;
+		let result = false;
+		try {
+			const value = new bignum(str);
+			result =
+				value.greaterThanOrEqualTo(0) && value.lessThan(constants.totalAmount);
+		} catch (e) {
+			result = false;
 		}
-
-		const value = parseAmount(str);
-		return value >= 0 && value < constants.totalAmount;
+		return result;
 	},
 	/**
 	 * Transaction totalAmount, totalFee, reward.
@@ -300,23 +303,15 @@ var liskFormats = {
 	 * @returns {boolean}
 	 */
 	minAmount(str) {
-		if (typeof str !== 'string') {
-			return false;
+		let result = false;
+		try {
+			const value = new bignum(str);
+			result = value.greaterThanOrEqualTo(0);
+		} catch (e) {
+			result = false;
 		}
-
-		const value = parseAmount(str);
-		return value >= 0;
+		return result;
 	},
-};
-
-const parseAmount = str => {
-	let value = 0;
-	try {
-		value = new bignum(str);
-	} catch (e) {
-		value = 0;
-	}
-	return Number(value);
 };
 
 // Register the formats
