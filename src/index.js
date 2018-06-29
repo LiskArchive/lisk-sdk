@@ -12,11 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClient from './api_client';
-import cryptography from './cryptography';
-import * as constants from './lisk-constants';
-import passphrase from './passphrase';
-import transaction from './transactions';
+import APIClientModule from './api_client';
+import * as constantsModule from './lisk-constants';
+import cryptographyModule from './cryptography';
+import passphraseModule from './passphrase';
+import transactionModule from './transactions';
+
+export const APIClient = APIClientModule;
+export const constants = constantsModule;
+export const cryptography = cryptographyModule;
+export const passphrase = passphraseModule;
+export const transaction = transactionModule;
 
 export default {
 	APIClient,
