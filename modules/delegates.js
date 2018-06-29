@@ -353,112 +353,146 @@ __private.decryptPassphrase = function(encryptedPassphrase, password) {
  * @returns {setImmediateCallback} cb, err
  * @todo Add description for the params
  */
-__private.checkDelegates = function(publicKey, votes, state, cb, tx) {
+__private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 	if (!Array.isArray(votes)) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
 
-	modules.accounts.getAccount(
-		{ publicKey },
-		(err, account) => {
-			if (err) {
-				return setImmediate(cb, err);
+	// Converting publicKeys to addresses because module.accounts do not support fetching multiple accounts by publicKeys
+	const actionWithAddresses = votes.map(vote => {
+		const action = vote[0];
+		let voteAddress;
+
+		try {
+			if (action !== '+' && action !== '-') {
+				throw 'Invalid math operator';
 			}
+			const votePublicKey = vote.slice(1);
 
-			if (!account) {
-				return setImmediate(cb, 'Account not found');
-			}
+			voteAddress = modules.accounts.generateAddressByPublicKey(votePublicKey);
+		} catch (e) {
+			library.logger.error(e.stack);
+			return setImmediate(cb, e);
+		}
+		return {
+			action,
+			address: voteAddress,
+		};
+	});
 
-			const delegates =
-				state === 'confirmed' ? account.delegates : account.u_delegates;
-			const existingVotes = Array.isArray(delegates) ? delegates.length : 0;
-			let additions = 0;
-			let removals = 0;
+	async.waterfall(
+		[
+			function getVotedAccounts(waterfallCb) {
+				modules.accounts.getAccount(
+					{ publicKey: senderPublicKey },
+					(err, account) => {
+						if (err) {
+							return setImmediate(waterfallCb, err);
+						}
 
-			async.eachSeries(
-				votes,
-				(action, cb) => {
-					const math = action[0];
+						if (!account) {
+							return setImmediate(waterfallCb, 'Account not found');
+						}
 
-					if (math === '+') {
-						additions += 1;
-					} else if (math === '-') {
-						removals += 1;
-					} else {
-						return setImmediate(cb, 'Invalid math operator');
-					}
+						const delegates =
+							state === 'confirmed' ? account.delegates : account.u_delegates;
+						const votedAddresses = Array.isArray(delegates)
+							? delegates.map(delegate =>
+									modules.accounts.generateAddressByPublicKey(delegate)
+								)
+							: [];
 
-					const publicKey = action.slice(1);
+						return setImmediate(waterfallCb, null, votedAddresses);
+					},
+					tx
+				);
+			},
+			function validateVotes(existingVotedAddresses, waterfallCb) {
+				modules.accounts.getAccounts(
+					{
+						address: actionWithAddresses.map(({ address }) => address),
+						isDelegate: 1,
+					},
+					(err, votesAccounts) => {
+						if (err) {
+							return setImmediate(waterfallCb, err);
+						}
 
-					try {
-						Buffer.from(publicKey, 'hex');
-					} catch (e) {
-						library.logger.error(e.stack);
-						return setImmediate(cb, 'Invalid public key');
-					}
+						if (
+							!votesAccounts ||
+							votesAccounts.length < actionWithAddresses.length
+						) {
+							return setImmediate(waterfallCb, 'Delegate not found');
+						}
 
-					modules.accounts.getAccount(
-						{ publicKey, isDelegate: 1 },
-						(err, account) => {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-
-							if (!account) {
-								return setImmediate(cb, 'Delegate not found');
-							}
-
-							if (
-								math === '+' &&
-								(delegates != null && delegates.indexOf(publicKey) !== -1)
-							) {
-								return setImmediate(
-									cb,
-									`Failed to add vote, delegate "${
-										account.username
-									}" already voted for`
-								);
-							}
-
-							if (
-								math === '-' &&
-								(delegates === null || delegates.indexOf(publicKey) === -1)
-							) {
-								return setImmediate(
-									cb,
-									`Failed to remove vote, delegate "${
-										account.username
-									}" was not voted for`
-								);
-							}
-
-							return setImmediate(cb);
-						},
-						tx
-					);
-				},
-				err => {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-
-					const totalVotes = existingVotes + additions - removals;
-
-					if (totalVotes > constants.activeDelegates) {
-						const exceeded = totalVotes - constants.activeDelegates;
-
-						return setImmediate(
-							cb,
-							`Maximum number of ${
-								constants.activeDelegates
-							} votes exceeded (${exceeded} too many)`
+						const upvoteAccounts = votesAccounts.filter(voteAccount =>
+							actionWithAddresses.find(
+								actionWithAddress =>
+									actionWithAddress.action === '+' &&
+									actionWithAddress.address === voteAccount.address
+							)
 						);
-					}
-					return setImmediate(cb);
-				}
-			);
-		},
-		tx
+						const downvoteAccounts = votesAccounts.filter(voteAccount =>
+							actionWithAddresses.find(
+								actionWithAddress =>
+									actionWithAddress.action === '-' &&
+									actionWithAddress.address === voteAccount.address
+							)
+						);
+
+						const invalidUpvoteAccount = upvoteAccounts.find(
+							voteAccount =>
+								existingVotedAddresses.find(
+									existingVotedAddress =>
+										voteAccount.address === existingVotedAddress
+								) !== undefined
+						);
+						if (invalidUpvoteAccount) {
+							return setImmediate(
+								waterfallCb,
+								`Failed to add vote, delegate "${
+									invalidUpvoteAccount.username
+								}" already voted for`
+							);
+						}
+
+						const invalidDownvoteAccount = downvoteAccounts.find(voteAccount =>
+							existingVotedAddresses.every(
+								existingVotedAddress =>
+									voteAccount.address !== existingVotedAddress
+							)
+						);
+						if (invalidDownvoteAccount) {
+							return setImmediate(
+								waterfallCb,
+								`Failed to remove vote, delegate "${
+									invalidDownvoteAccount.username
+								}" was not voted for`
+							);
+						}
+
+						const existingVotes = existingVotedAddresses.length;
+						const upvotes = upvoteAccounts.length;
+						const downvotes = downvoteAccounts.length;
+						const totalVotes = existingVotes + upvotes - downvotes;
+
+						if (totalVotes > constants.activeDelegates) {
+							const exceeded = totalVotes - constants.activeDelegates;
+
+							return setImmediate(
+								waterfallCb,
+								`Maximum number of ${
+									constants.activeDelegates
+								} votes exceeded (${exceeded} too many)`
+							);
+						}
+						return setImmediate(waterfallCb);
+					},
+					tx
+				);
+			},
+		],
+		cb
 	);
 };
 
