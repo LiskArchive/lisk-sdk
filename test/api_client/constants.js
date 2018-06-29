@@ -16,7 +16,6 @@ import {
 	GET,
 	POST,
 	PUT,
-	BETANET_NODES,
 	TESTNET_NODES,
 	MAINNET_NODES,
 } from 'api_client/constants';
@@ -32,11 +31,6 @@ describe('api constants module', () => {
 
 	it('PUT should be a string', () => {
 		return expect(PUT).to.be.a('string');
-	});
-
-	it('BETANET_NODES should be an array of strings', () => {
-		expect(BETANET_NODES).to.be.an('array');
-		return BETANET_NODES.forEach(node => expect(node).to.be.a('string'));
 	});
 
 	it('TESTNET_NODES should be an array of strings', () => {
