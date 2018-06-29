@@ -34,7 +34,7 @@ def cleanUp() {
 	'''
 }
 
-node('node-06') {
+node('lisk-integration') {
 	lock(resource: "core-integration-tests", inversePrecedence: true) {
 
 		properties([
