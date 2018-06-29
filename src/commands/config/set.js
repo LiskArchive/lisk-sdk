@@ -65,7 +65,7 @@ const setNestedConfigProperty = (config, path, value) => {
 const attemptWriteToFile = (newConfig, value, dotNotation) => {
 	const writeSuccess = setConfig(process.env.XDG_CONFIG_HOME, newConfig);
 
-	if (!writeSuccess && process.env.NON_INTERACTIVE_MODE === 'true') {
+	if (!writeSuccess) {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
 	}
 
@@ -77,10 +77,6 @@ const attemptWriteToFile = (newConfig, value, dotNotation) => {
 	const result = {
 		message,
 	};
-
-	if (!writeSuccess) {
-		result.warning = WRITE_FAIL_WARNING;
-	}
 
 	return result;
 };
@@ -136,9 +132,6 @@ const handlers = {
 export default class SetCommand extends BaseCommand {
 	async run() {
 		const { args: { variable, values } } = this.parse(SetCommand);
-		if (!CONFIG_VARIABLES.includes(variable)) {
-			throw new ValidationError('Unsupported variable name.');
-		}
 		const safeValues = values || [];
 		const safeValue = safeValues[0] || '';
 		const result = handlers[variable](
@@ -161,7 +154,7 @@ SetCommand.args = [
 	{
 		name: 'values',
 		required: false,
-		parse: input => (Array.isArray(input) ? input : [input]),
+		parse: input => input.split(','),
 		description: '',
 	},
 ];
