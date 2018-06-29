@@ -21,6 +21,7 @@ const BlockReward = require('../../logic/block_reward.js');
 const constants = require('../../helpers/constants.js');
 const slots = require('../../helpers/slots.js');
 const exceptions = require('../../helpers/exceptions.js');
+const bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
@@ -306,8 +307,8 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
-	let totalAmount = 0;
-	let totalFee = 0;
+	let totalAmount = new bignum(0);
+	let totalFee = new bignum(0);
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
@@ -331,19 +332,19 @@ __private.verifyPayload = function(block, result) {
 		if (bytes) {
 			payloadHash.update(bytes);
 		}
-		totalAmount += transaction.amount;
-		totalFee += transaction.fee;
+		totalAmount = totalAmount.plus(transaction.amount);
+		totalFee = totalFee.plus(transaction.fee);
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
 		result.errors.push('Invalid payload hash');
 	}
 
-	if (totalAmount !== block.totalAmount) {
+	if (!totalAmount.equals(block.totalAmount)) {
 		result.errors.push('Invalid total amount');
 	}
 
-	if (totalFee !== block.totalFee) {
+	if (!totalFee.equals(block.totalFee)) {
 		result.errors.push('Invalid total fee');
 	}
 

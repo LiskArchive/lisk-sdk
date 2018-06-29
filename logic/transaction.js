@@ -1143,11 +1143,11 @@ class Transaction {
 		}
 
 		if (transaction.amount) {
-			transaction.amount = parseInt(transaction.amount);
+			transaction.amount = new bignum(transaction.amount).toNumber();
 		}
 
 		if (transaction.fee) {
-			transaction.fee = parseInt(transaction.fee);
+			transaction.fee = new bignum(transaction.fee).toNumber();
 		}
 
 		const report = this.scope.schema.validate(
@@ -1199,8 +1199,8 @@ class Transaction {
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
 			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: parseInt(raw.t_amount),
-			fee: parseInt(raw.t_fee),
+			amount: new bignum(raw.t_amount).toNumber(),
+			fee: new bignum(raw.t_fee).toNumber(),
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
@@ -1324,12 +1324,14 @@ Transaction.prototype.schema = {
 			maxLength: 22,
 		},
 		amount: {
-			type: 'string',
-			format: 'amount',
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount,
 		},
 		fee: {
-			type: 'string',
-			format: 'amount',
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount,
 		},
 		signature: {
 			type: 'string',

@@ -1058,29 +1058,33 @@ describe('blocks/verify', () => {
 					var slot = slots.getSlotNumber();
 					var time = slots.getSlotTime(slots.getSlotNumber());
 
-					getValidKeypairForSlot(library, slot).then(passphrase => {
-						block2 = createBlock(
-							blocks,
-							blockLogic,
-							passphrase,
-							time,
-							[genesisBlock.transactions[0]],
-							genesisBlock
-						);
+					getValidKeypairForSlot(library, slot)
+						.then(passphrase => {
+							block2 = createBlock(
+								blocks,
+								blockLogic,
+								passphrase,
+								time,
+								[genesisBlock.transactions[0]],
+								genesisBlock
+							);
 
-						expect(block2.version).to.equal(0);
-						expect(block2.timestamp).to.equal(time);
-						expect(block2.numberOfTransactions).to.equal(1);
-						expect(block2.reward).to.equal(0);
-						expect(block2.totalFee).to.equal(0);
-						expect(block2.totalAmount).to.equal(10000000000000000);
-						expect(block2.payloadLength).to.equal(117);
-						expect(block2.transactions).to.deep.eql([
-							genesisBlock.transactions[0],
-						]);
-						expect(block2.previousBlock).to.equal(genesisBlock.id);
-						done();
-					});
+							expect(block2.version).to.equal(0);
+							expect(block2.timestamp).to.equal(time);
+							expect(block2.numberOfTransactions).to.equal(1);
+							expect(block2.reward).to.equal(0);
+							expect(block2.totalFee).to.equal(0);
+							expect(block2.totalAmount).to.equal(10000000000000000);
+							expect(block2.payloadLength).to.equal(117);
+							expect(block2.transactions).to.deep.eql([
+								genesisBlock.transactions[0],
+							]);
+							expect(block2.previousBlock).to.equal(genesisBlock.id);
+							done();
+						})
+						.catch(err => {
+							done(err);
+						});
 				});
 
 				it('should fail when transaction is already confirmed (fork:2)', done => {

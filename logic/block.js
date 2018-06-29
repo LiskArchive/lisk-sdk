@@ -88,10 +88,12 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			if (a.amount < b.amount) {
+			const prev = new bignum(a.amount);
+			const next = new bignum(b.amount);
+			if (prev.lessThan(next)) {
 				return -1;
 			}
-			if (a.amount > b.amount) {
+			if (prev.greaterThan(next)) {
 				return 1;
 			}
 			return 0;
@@ -100,8 +102,8 @@ class Block {
 		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
 
 		const reward = __private.blockReward.calcReward(nextHeight);
-		let totalFee = 0;
-		let totalAmount = 0;
+		let totalFee = new bignum(0);
+		let totalAmount = new bignum(0);
 		let size = 0;
 
 		const blockTransactions = [];
@@ -117,12 +119,15 @@ class Block {
 
 			size += bytes.length;
 
-			totalFee += transaction.fee;
-			totalAmount += transaction.amount;
+			totalFee = totalFee.plus(transaction.fee);
+			totalAmount = totalAmount.plus(transaction.amount);
 
 			blockTransactions.push(transaction);
 			payloadHash.update(bytes);
 		}
+
+		totalAmount = totalAmount.toNumber();
+		totalFee = totalFee.toNumber();
 
 		let block = {
 			version: 0,
@@ -338,16 +343,16 @@ Block.prototype.schema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			type: 'string',
-			format: 'minAmount',
+			type: 'integer',
+			minimum: 0,
 		},
 		totalFee: {
-			type: 'string',
-			format: 'minAmount',
+			type: 'integer',
+			minimum: 0,
 		},
 		reward: {
-			type: 'string',
-			format: 'minAmount',
+			type: 'integer',
+			minimum: 0,
 		},
 		transactions: {
 			type: 'array',
@@ -499,9 +504,9 @@ Block.prototype.dbRead = function(raw) {
 		height: parseInt(raw.b_height),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: parseInt(raw.b_totalAmount),
-		totalFee: parseInt(raw.b_totalFee),
-		reward: parseInt(raw.b_reward),
+		totalAmount: new bignum(raw.b_totalAmount).toNumber(),
+		totalFee: new bignum(raw.b_totalFee).toNumber(),
+		reward: new bignum(raw.b_reward).toNumber(),
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,

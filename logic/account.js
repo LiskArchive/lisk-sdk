@@ -869,12 +869,14 @@ Account.prototype.schema = {
 			],
 		},
 		balance: {
-			type: 'string',
-			format: 'amount',
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount,
 		},
 		u_balance: {
-			type: 'string',
-			format: 'amount',
+			type: 'integer',
+			minimum: 0,
+			maximum: constants.totalAmount,
 		},
 		rate: {
 			type: 'integer',
@@ -954,15 +956,15 @@ Account.prototype.schema = {
 			maximum: 32767,
 		},
 		fees: {
-			type: 'string',
-			format: 'minAmount',
+			type: 'integer',
+			minimum: 0,
 		},
 		rank: {
 			type: 'integer',
 		},
 		rewards: {
-			type: 'string',
-			format: 'minAmount',
+			type: 'integer',
+			minimum: 0,
 		},
 		vote: {
 			type: 'integer',

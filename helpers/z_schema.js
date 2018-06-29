@@ -19,7 +19,6 @@ var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
 var constants = require('./constants');
-var bignum = require('./bignum.js');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -278,39 +277,6 @@ var liskFormats = {
 		}
 
 		return ip.isV4Format(str) || FormatValidators.hostname(str);
-	},
-	/**
-	 * Transaction amount/fee.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 */
-	amount(str) {
-		let result = false;
-		try {
-			const value = new bignum(str);
-			result =
-				value.greaterThanOrEqualTo(0) && value.lessThan(constants.totalAmount);
-		} catch (e) {
-			result = false;
-		}
-		return result;
-	},
-	/**
-	 * Transaction totalAmount, totalFee, reward.
-	 *
-	 * @param {string} str
-	 * @returns {boolean}
-	 */
-	minAmount(str) {
-		let result = false;
-		try {
-			const value = new bignum(str);
-			result = value.greaterThanOrEqualTo(0);
-		} catch (e) {
-			result = false;
-		}
-		return result;
 	},
 };
 
