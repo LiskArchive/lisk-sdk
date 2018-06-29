@@ -17,13 +17,16 @@ import os from 'os';
 import { Command, flags as flagParser } from '@oclif/command';
 import { getConfig } from './utils/config';
 
+export const defaultConfigFolder = '.lisk-commander';
+
 export default class BaseCommand extends Command {
 	async init() {
 		const { flags } = this.parse(this.constructor);
 		this.flags = flags;
 
 		process.env.XDG_CONFIG_HOME =
-			process.env.LISK_COMMANDER_CONFIG_DIR || os.homedir();
+			process.env.LISK_COMMANDER_CONFIG_DIR ||
+			`${os.homedir()}/${defaultConfigFolder}`;
 		this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
 		this.printOptions = Object.assign(
 			{},
