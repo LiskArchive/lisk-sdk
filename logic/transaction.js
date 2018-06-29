@@ -1324,14 +1324,12 @@ Transaction.prototype.schema = {
 			maxLength: 22,
 		},
 		amount: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'string',
+			format: 'amount',
 		},
 		fee: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'string',
+			format: 'amount',
 		},
 		signature: {
 			type: 'string',

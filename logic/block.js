@@ -338,16 +338,16 @@ Block.prototype.schema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			type: 'integer',
-			minimum: 0,
+			type: 'string',
+			format: 'minAmount',
 		},
 		totalFee: {
-			type: 'integer',
-			minimum: 0,
+			type: 'string',
+			format: 'minAmount',
 		},
 		reward: {
-			type: 'integer',
-			minimum: 0,
+			type: 'string',
+			format: 'minAmount',
 		},
 		transactions: {
 			type: 'array',
