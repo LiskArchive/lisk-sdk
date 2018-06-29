@@ -28,7 +28,8 @@ var constants = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
@@ -413,7 +414,7 @@ describe('vote', () => {
 			});
 			vote.checkConfirmedDelegates(transaction, err => {
 				expect(err).to.equal(
-					'Failed to add vote, delegate "genesis_99" already voted for'
+					'Failed to add vote, delegate "genesis_95" already voted for'
 				);
 				done();
 			});
@@ -468,7 +469,7 @@ describe('vote', () => {
 			});
 			vote.checkUnconfirmedDelegates(transaction, err => {
 				expect(err).to.equal(
-					'Failed to add vote, delegate "genesis_99" already voted for'
+					'Failed to add vote, delegate "genesis_95" already voted for'
 				);
 
 				done();
