@@ -424,6 +424,28 @@ describe('GET /delegates', () => {
 					});
 			});
 
+			it('using sort="producedBlocks:asc" should sort results in ascending order', () => {
+				return delegatesEndpoint
+					.makeRequest({ sort: 'producedBlocks:asc' }, 200)
+					.then(res => {
+						expect(_.map(res.data, 'producedBlocks').sort()).to.eql(
+							_.map(res.data, 'producedBlocks')
+						);
+					});
+			});
+
+			it('using sort="producedBlocks:desc" should sort results in descending order', () => {
+				return delegatesEndpoint
+					.makeRequest({ sort: 'producedBlocks:desc' }, 200)
+					.then(res => {
+						expect(
+							_.map(res.data, 'producedBlocks')
+								.sort()
+								.reverse()
+						).to.eql(_.map(res.data, 'producedBlocks'));
+					});
+			});
+
 			it('using sort="productivity:asc" should sort results in ascending order', () => {
 				return delegatesEndpoint
 					.makeRequest({ sort: 'productivity:asc' }, 200)
