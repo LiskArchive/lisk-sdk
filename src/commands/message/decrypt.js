@@ -70,7 +70,7 @@ DecryptCommand.args = [
 	},
 	{
 		name: 'message',
-		description: 'Message to decrypt.',
+		description: 'Encrypted message.',
 	},
 ];
 
