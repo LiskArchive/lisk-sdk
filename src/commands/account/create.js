@@ -14,7 +14,6 @@
  *
  */
 import BaseCommand from '../../base';
-import print from '../../utils/print';
 import cryptography from '../../utils/cryptography';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
@@ -23,7 +22,7 @@ export default class CreateCommand extends BaseCommand {
 		const passphrase = createMnemonicPassphrase();
 		const { privateKey, publicKey } = cryptography.getKeys(passphrase);
 		const { address } = cryptography.getAddressFromPublicKey(publicKey);
-		print(this.printOptions).call(this, {
+		this.print({
 			passphrase,
 			privateKey,
 			publicKey,

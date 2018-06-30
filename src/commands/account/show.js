@@ -16,7 +16,6 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getInputsFromSources from '../../utils/input';
-import print from '../../utils/print';
 import cryptography from '../../utils/cryptography';
 import commonOptions from '../../utils/options';
 
@@ -39,7 +38,7 @@ export default class ShowCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 		});
-		print(this.printOptions).call(this, processInput(input));
+		this.print(processInput(input));
 	}
 }
 
