@@ -16,8 +16,10 @@
 import { expect, test } from '../../test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
+import cryptography from '../../../src/utils/cryptography';
+import * as getInputsFromSources from '../../../src/utils/input';
 
-describe('config:show', () => {
+describe('passphrase:decrypt', () => {
 	const defaultConfig = {
 		api: {
 			network: 'main',
@@ -25,24 +27,106 @@ describe('config:show', () => {
 		},
 	};
 
+	const defaultEncryptedPassphrase =
+		'salt=d3887df959ed2bfe5961a6831da6e177&cipherText=1c08a1&iv=096ede534df9092fd4523ec7&tag=2a055e1c860b3ef76084a6c9aca68ce9&version=1';
+	const passphrase = {
+		passphrase: '123',
+	};
+	const defaultInputs = {
+		password: '456',
+		data: `${defaultEncryptedPassphrase}\nshould not be used`,
+	};
+
 	const printMethodStub = sandbox.stub();
 	const setupStub = test
 		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig));
+		.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig))
+		.stub(cryptography, 'decryptPassphrase', sandbox.stub().returns(passphrase))
+		.stub(
+			getInputsFromSources,
+			'default',
+			sandbox.stub().resolves(defaultInputs),
+		);
 
-	setupStub
-		.stdout()
-		.command(['config:show'])
-		.it('should call print with the user config', () => {
-			expect(print.default).to.be.called;
-			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
-		});
+	describe('passphrase:decrypt', () => {
+		setupStub
+			.stdout()
+			.command(['passphrase:decrypt'])
+			.catch(error =>
+				expect(error.message).to.contain(
+					'No encrypted passphrase was provided.',
+				),
+			)
+			.it('should throw an error');
+	});
 
-	setupStub
-		.stdout()
-		.command(['config:show', '--json', '--pretty'])
-		.it('should call print with json', () => {
-			expect(print.default).to.be.calledWith({ json: true, pretty: true });
-			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
-		});
+	describe('passphrase:decrypt encryptedPassphrase', () => {
+		setupStub
+			.stdout()
+			.command(['passphrase:decrypt', defaultEncryptedPassphrase])
+			.it('should decrypt passphrase with arg', () => {
+				expect(getInputsFromSources.default).to.be.calledWithExactly({
+					password: {
+						source: undefined,
+					},
+					data: null,
+				});
+				expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
+					encryptedPassphrase: defaultEncryptedPassphrase,
+					password: defaultInputs.password,
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(passphrase);
+			});
+	});
+
+	describe('passphrase:decrypt --passphrase=file:./path/to/encrypted_passphrase.txt', () => {
+		const passphraseSource = 'file:./path/to/encrypted_passphrase.txt';
+		setupStub
+			.stdout()
+			.command(['passphrase:decrypt', `--passphrase=${passphraseSource}`])
+			.it('should decrypt passphrase with passphrase flag', () => {
+				expect(getInputsFromSources.default).to.be.calledWithExactly({
+					password: {
+						source: undefined,
+					},
+					data: {
+						source: passphraseSource,
+					},
+				});
+				expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
+					encryptedPassphrase: defaultEncryptedPassphrase,
+					password: defaultInputs.password,
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(passphrase);
+			});
+	});
+
+	describe('passphrase:decrypt --passphrase=filePath --password=pass:456', () => {
+		const passphraseSource = 'file:./path/to/encrypted_passphrase.txt';
+		setupStub
+			.stdout()
+			.command([
+				'passphrase:decrypt',
+				`--passphrase=${passphraseSource}`,
+				'--password=pass:456',
+			])
+			.it(
+				'should decrypt passphrase with passphrase flag and password flag',
+				() => {
+					expect(getInputsFromSources.default).to.be.calledWithExactly({
+						password: {
+							source: 'pass:456',
+						},
+						data: {
+							source: passphraseSource,
+						},
+					});
+					expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
+						encryptedPassphrase: defaultEncryptedPassphrase,
+						password: defaultInputs.password,
+					});
+					return expect(printMethodStub).to.be.calledWithExactly(passphrase);
+				},
+			);
+	});
 });
