@@ -14,11 +14,10 @@
  *
  */
 import getAPIClient from '../../src/utils/api';
-// Required for stubbing
-const config = require('../../src/utils/config.js');
 
 describe('api utils', () => {
 	let apiClient;
+	let apiConfig;
 
 	const mainnetNethash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
@@ -27,16 +26,12 @@ describe('api utils', () => {
 	const testnetNode = 'http://testnet.lisk.io:7000';
 
 	describe('when the network is set to main', () => {
-		let stubbedConfig;
 		beforeEach(() => {
-			stubbedConfig = {
-				api: {
-					network: 'main',
-					nodes: ['http://localhost:4000'],
-				},
+			apiConfig = {
+				network: 'main',
+				nodes: ['http://localhost:4000'],
 			};
-			sandbox.stub(config, 'getConfig').returns(stubbedConfig);
-			apiClient = getAPIClient();
+			apiClient = getAPIClient(apiConfig);
 			return Promise.resolve();
 		});
 
@@ -45,23 +40,17 @@ describe('api utils', () => {
 		});
 
 		it('should have currentNode as first element of the api.nodes', () => {
-			return expect(apiClient.currentNode).to.be.equal(
-				stubbedConfig.api.nodes[0],
-			);
+			return expect(apiClient.currentNode).to.be.equal(apiConfig.nodes[0]);
 		});
 	});
 
 	describe('when the network is set to test', () => {
-		let stubbedConfig;
 		beforeEach(() => {
-			stubbedConfig = {
-				api: {
-					network: 'test',
-					nodes: ['http://localhost:4000'],
-				},
+			apiConfig = {
+				network: 'test',
+				nodes: ['http://localhost:4000'],
 			};
-			sandbox.stub(config, 'getConfig').returns(stubbedConfig);
-			apiClient = getAPIClient();
+			apiClient = getAPIClient(apiConfig);
 			return Promise.resolve();
 		});
 
@@ -70,23 +59,17 @@ describe('api utils', () => {
 		});
 
 		it('should have currentNode as first element of the api.nodes', () => {
-			return expect(apiClient.currentNode).to.be.equal(
-				stubbedConfig.api.nodes[0],
-			);
+			return expect(apiClient.currentNode).to.be.equal(apiConfig.nodes[0]);
 		});
 	});
 
 	describe('when the network is set to test and the nodes are empty', () => {
-		let stubbedConfig;
 		beforeEach(() => {
-			stubbedConfig = {
-				api: {
-					network: 'test',
-					nodes: [],
-				},
+			apiConfig = {
+				network: 'test',
+				nodes: [],
 			};
-			sandbox.stub(config, 'getConfig').returns(stubbedConfig);
-			apiClient = getAPIClient();
+			apiClient = getAPIClient(apiConfig);
 			return Promise.resolve();
 		});
 
@@ -100,30 +83,22 @@ describe('api utils', () => {
 	});
 
 	describe('when the network is set to nethash', () => {
-		let stubbedConfig;
 		beforeEach(() => {
-			stubbedConfig = {
-				api: {
-					network:
-						'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
-					nodes: ['http://localhost:4000'],
-				},
+			apiConfig = {
+				network:
+					'ef3844327d1fd0fc5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2b7e859e9ca0c',
+				nodes: ['http://localhost:4000'],
 			};
-			sandbox.stub(config, 'getConfig').returns(stubbedConfig);
-			apiClient = getAPIClient();
+			apiClient = getAPIClient(apiConfig);
 			return Promise.resolve();
 		});
 
 		it('should have mainnet nethash', () => {
-			return expect(apiClient.headers.nethash).to.be.equal(
-				stubbedConfig.api.network,
-			);
+			return expect(apiClient.headers.nethash).to.be.equal(apiConfig.network);
 		});
 
 		it('should have currentNode as first element of the api.nodes', () => {
-			return expect(apiClient.currentNode).to.be.equal(
-				stubbedConfig.api.nodes[0],
-			);
+			return expect(apiClient.currentNode).to.be.equal(apiConfig.nodes[0]);
 		});
 	});
 });

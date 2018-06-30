@@ -14,7 +14,6 @@
  *
  */
 import elements from 'lisk-elements';
-import { getConfig } from './config';
 import { NETHASHES } from './constants';
 
 const { APIClient } = elements;
@@ -25,8 +24,7 @@ const seedNodes = {
 	beta: APIClient.constants.BETANET_NODES,
 };
 
-const getAPIClient = () => {
-	const { api: { nodes, network } } = getConfig();
+const getAPIClient = ({ nodes, network }) => {
 	const nethash = NETHASHES[network] || network;
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
 	return new APIClient(clientNodes, { nethash });
