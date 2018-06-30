@@ -23,7 +23,6 @@ import {
 } from '../../utils/constants';
 import { FileSystemError, ValidationError } from '../../utils/error';
 import { setConfig } from '../../utils/config';
-import print from '../../utils/print';
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
 
@@ -140,7 +139,7 @@ export default class SetCommand extends BaseCommand {
 			safeValue,
 			safeValues,
 		);
-		print(this.printOptions).call(this, result);
+		this.print(result);
 	}
 }
 

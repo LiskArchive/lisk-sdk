@@ -17,7 +17,7 @@ import { expect, test } from '../../test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 
-describe('config:get', () => {
+describe('config:show', () => {
 	const defaultConfig = {
 		api: {
 			network: 'main',
@@ -32,7 +32,7 @@ describe('config:get', () => {
 
 	setupStub
 		.stdout()
-		.command(['config:get'])
+		.command(['config:show'])
 		.it('should call print with the user config', () => {
 			expect(print.default).to.be.called;
 			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
@@ -40,7 +40,7 @@ describe('config:get', () => {
 
 	setupStub
 		.stdout()
-		.command(['config:get', '--json', '--pretty'])
+		.command(['config:show', '--json', '--pretty'])
 		.it('should call print with json', () => {
 			expect(print.default).to.be.calledWith({ json: true, pretty: true });
 			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);

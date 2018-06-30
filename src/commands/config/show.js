@@ -14,19 +14,18 @@
  *
  */
 import BaseCommand from '../../base';
-import print from '../../utils/print';
 
-export default class GetCommand extends BaseCommand {
+export default class ShowCommand extends BaseCommand {
 	async run() {
-		print(this.printOptions).call(this, this.userConfig);
+		this.print(this.userConfig);
 	}
 }
 
-GetCommand.flags = {
+ShowCommand.flags = {
 	...BaseCommand.flags,
 };
 
-GetCommand.description = `
+ShowCommand.description = `
 Prints the current configuration.
 `;
-GetCommand.examples = ['config:get'];
+ShowCommand.examples = ['config:show'];

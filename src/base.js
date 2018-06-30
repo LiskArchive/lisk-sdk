@@ -16,6 +16,7 @@
 import os from 'os';
 import { Command, flags as flagParser } from '@oclif/command';
 import { getConfig } from './utils/config';
+import print from './utils/print';
 
 export const defaultConfigFolder = '.lisk-commander';
 
@@ -42,6 +43,10 @@ export default class BaseCommand extends Command {
 		if (error) {
 			this.error(error.message ? error.message : error);
 		}
+	}
+
+	print(result) {
+		print(this.printOptions).call(this, result);
 	}
 }
 
