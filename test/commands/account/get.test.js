@@ -51,12 +51,10 @@ describe('account:get', () => {
 			.command(['account:get', account])
 			.it('should get an account info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						limit: 1,
-						address: account,
-					},
-				]);
+				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, {
+					limit: 1,
+					address: account,
+				});
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});

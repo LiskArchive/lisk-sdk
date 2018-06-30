@@ -19,11 +19,14 @@ import query from '../../utils/query';
 
 export default class GetCommand extends BaseCommand {
 	async run() {
-		const { args: { accounts } } = this.parse(GetCommand);
-		const req = accounts.map(account => ({
-			limit: 1,
-			address: account,
-		}));
+		const { args: { addresses } } = this.parse(GetCommand);
+		const req =
+			addresses.length === 1
+				? { limit: 1, address: addresses[0] }
+				: addresses.map(address => ({
+						limit: 1,
+						address,
+					}));
 		const client = getAPIClient(this.userConfig.api);
 		const results = await query(client, 'accounts', req);
 		this.print(results);
@@ -32,10 +35,10 @@ export default class GetCommand extends BaseCommand {
 
 GetCommand.args = [
 	{
-		name: 'accounts',
+		name: 'addresses',
 		required: true,
 		description:
-			'Comma separated account(s) which you want to get the information of.',
+			'Comma separated address(es) which you want to get the information of.',
 		parse: input => input.split(','),
 	},
 ];
