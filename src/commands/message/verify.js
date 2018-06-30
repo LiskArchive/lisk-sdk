@@ -34,14 +34,6 @@ export default class VerifyCommand extends BaseCommand {
 			flags: { message: messageSource },
 		} = this.parse(VerifyCommand);
 
-		if (!publicKey) {
-			throw new ValidationError('No public key was provided.');
-		}
-
-		if (!signature) {
-			throw new ValidationError('No signature was provided.');
-		}
-
 		if (!message && !messageSource) {
 			throw new ValidationError('No message was provided.');
 		}
@@ -58,10 +50,12 @@ VerifyCommand.args = [
 	{
 		name: 'publicKey',
 		description: 'Public key which signed the message.',
+		required: true,
 	},
 	{
 		name: 'signature',
 		description: 'Signature of the message.',
+		required: true,
 	},
 	{
 		name: 'message',
