@@ -45,7 +45,11 @@ module.exports = function create() {
 
 		if (_.isEmpty(context.input)) {
 			context.headers = { 'content-type': 'application/json' };
-			next(null, {});
+			next(null, {
+				meta: {},
+				data: context.input,
+				links: {},
+			});
 			return;
 		}
 
