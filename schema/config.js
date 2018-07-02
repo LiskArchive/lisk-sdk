@@ -343,10 +343,6 @@ module.exports = {
 				},
 				required: ['enabled', 'options'],
 			},
-			nethash: {
-				type: 'string',
-				format: 'hex',
-			},
 		},
 		required: [
 			'wsPort',
@@ -367,7 +363,6 @@ module.exports = {
 			'forging',
 			'loading',
 			'ssl',
-			'nethash',
 			'cacheEnabled',
 			'redis',
 		],

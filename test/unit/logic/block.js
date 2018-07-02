@@ -19,7 +19,7 @@ const rewire = require('rewire');
 const ed = require('../../../helpers/ed');
 const modulesLoader = require('../../common/modules_loader');
 const transactionTypes = require('../../../helpers/transaction_types.js');
-const constants = require('../../../helpers/constants.js');
+const constants = require('../../../config/mainnet/constants.js');
 
 const Block = rewire('../../../logic/block.js');
 

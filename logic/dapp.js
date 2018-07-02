@@ -16,10 +16,10 @@
 
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
-const constants = require('../helpers/constants.js');
 const dappCategories = require('../helpers/dapp_categories.js');
 
 let library;
+const constants = global.constants;
 const __private = {};
 
 __private.unconfirmedNames = {};
@@ -34,7 +34,6 @@ __private.unconfirmedAscii = {};
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires valid
- * @requires helpers/constants
  * @requires helpers/dapp_categories
  * @param {Database} db
  * @param {Object} logger

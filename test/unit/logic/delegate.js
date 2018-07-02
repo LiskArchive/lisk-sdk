@@ -17,16 +17,18 @@
 var crypto = require('crypto');
 var rewire = require('rewire');
 var accounts = require('../../fixtures/accounts');
-var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
-var exceptions = require('../../../helpers/exceptions');
 var modulesLoader = require('../../common/modules_loader');
 var random = require('../../common/utils/random');
 var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+const constants = global.constants;
+var exceptions = global.exceptions;
+
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')

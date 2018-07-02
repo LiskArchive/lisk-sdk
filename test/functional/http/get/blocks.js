@@ -59,7 +59,7 @@ describe('GET /blocks', () => {
 					});
 			});
 
-			it('using genesisblock id should return the result', () => {
+			it('using genesisBlock id should return the result', () => {
 				var id = '6524861224470851795';
 
 				return blocksEndpoint.makeRequest({ blockId: id }, 200).then(res => {

@@ -20,7 +20,7 @@ var chai = require('chai');
 var randomstring = require('randomstring');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
-var constants = require('../../../helpers/constants');
+const constants = require('../../../config/mainnet/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var Block = require('../../fixtures/blocks').Block;

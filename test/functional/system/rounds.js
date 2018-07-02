@@ -17,13 +17,14 @@
 const async = require('async');
 const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
-const constants = require('../../../helpers/constants');
 const slots = require('../../../helpers/slots');
 const Bignum = require('../../../helpers/bignum');
 const accountsFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const queriesHelper = require('../common/sql/queriesHelper.js');
 const localCommon = require('./common');
+
+const constants = global.constants;
 
 describe('rounds', () => {
 	let library;
@@ -504,7 +505,7 @@ describe('rounds', () => {
 				(_accounts, _delegates, _delegatesList) => {
 					// Get genesis accounts address - should be senderId from first transaction
 					const genesisAddress =
-						library.genesisblock.block.transactions[0].senderId;
+						library.genesisBlock.block.transactions[0].senderId;
 					// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 					const genesisPublicKey = _accounts[genesisAddress].publicKey.toString(
 						'hex'
@@ -623,7 +624,7 @@ describe('rounds', () => {
 
 						// Get genesis accounts address - should be senderId from first transaction
 						const genesisAddress =
-							library.genesisblock.block.transactions[0].senderId;
+							library.genesisBlock.block.transactions[0].senderId;
 						// Inject and normalize genesis account to delegates (it's not a delegate, but will get rewards split from first round)
 						const genesisPublicKey = _accounts[
 							genesisAddress

@@ -112,7 +112,7 @@ describe('blocks/utils', () => {
 			blockMock,
 			transactionMock,
 			dbStub,
-			modulesLoader.scope.genesisblock
+			modulesLoader.scope.genesisBlock
 		);
 
 		modulesStub = {
@@ -484,38 +484,38 @@ describe('blocks/utils', () => {
 			});
 		});
 
-		it('should not add genesis block to the set when library.genesisblock is undefined', done => {
+		it('should not add genesis block to the set when library.genesisBlock is undefined', done => {
 			library.db.blocks.getIdSequence = sinonSandbox
 				.stub()
 				.resolves([{ id: 1, height: 2 }]);
 
-			const genesisblock = library.genesisblock;
-			library.genesisblock = undefined;
+			const genesisBlock = library.genesisBlock;
+			library.genesisBlock = undefined;
 
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(err).to.be.null;
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
 				expect(sequence.ids).to.equal('9314232245035524467,1');
-				library.genesisblock = genesisblock;
+				library.genesisBlock = genesisBlock;
 				done();
 			});
 		});
 
-		it('should not add genesis block to the set when library.genesisblock.block is undefined', done => {
+		it('should not add genesis block to the set when library.genesisBlock.block is undefined', done => {
 			library.db.blocks.getIdSequence = sinonSandbox
 				.stub()
 				.resolves([{ id: 1, height: 2 }]);
 
-			const block = library.genesisblock.block;
-			library.genesisblock.block = undefined;
+			const block = library.genesisBlock.block;
+			library.genesisBlock.block = undefined;
 
 			blocksUtilsModule.getIdSequence(10, (err, sequence) => {
 				expect(err).to.be.null;
 				expect(sequence).to.be.an('object');
 				expect(sequence.firstHeight).to.equal(1);
 				expect(sequence.ids).to.equal('9314232245035524467,1');
-				library.genesisblock.block = block;
+				library.genesisBlock.block = block;
 				done();
 			});
 		});
