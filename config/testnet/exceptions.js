@@ -27,6 +27,8 @@
  * @property {string[]} signatures
  * @property {string[]} multisignatures
  * @property {string[]} votes
+ * @property {Object} precedent - A rule/authoritative checkpoint in place to follow in future
+ * @property {string} precedent.disableDappTransfer - Disable Dapp in and out transfer transactions
  * @todo Add description for the namespace and the properties
  */
 module.exports = {
@@ -59,4 +61,7 @@ module.exports = {
 		'12298100805070303137', // 3057955 - Delegate transaction
 	],
 	transactionFee: [],
+	precedent: {
+		disableDappTransfer: 5594491, // Disable Dapp Transfer at this block height
+	},
 };
