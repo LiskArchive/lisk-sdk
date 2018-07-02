@@ -14,13 +14,12 @@
 
 'use strict';
 
-var constants = require('./constants.js');
+const constants = global.constants;
 
 /**
  * Description of the module.
  *
  * @module
- * @requires helpers/constants
  * @property {number} interval - Slot time interval in seconds
  * @property {number} delegates - Active delegates from constants
  * @see Parent: {@link helpers}

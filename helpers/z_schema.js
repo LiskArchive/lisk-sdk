@@ -18,7 +18,6 @@ var ip = require('ip');
 var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
-var constants = require('./constants');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -44,7 +43,6 @@ var constants = require('./constants');
  * @requires ip
  * @requires lodash
  * @requires z-schema
- * @requires helpers/constants
  * @returns {boolean} True if the format is valid
  * @see Parent: {@link helpers}
  */
@@ -74,8 +72,7 @@ var liskFormats = {
 		if (typeof str !== 'string') {
 			return false;
 		}
-
-		return Buffer.from(str).length <= constants.additionalData.maxLength;
+		return Buffer.from(str).length <= global.constants.additionalData.maxLength;
 	},
 	/**
 	 * Description of the function.

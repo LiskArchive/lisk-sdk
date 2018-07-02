@@ -15,8 +15,8 @@
 'use strict';
 
 const ByteBuffer = require('bytebuffer');
-const constants = require('../helpers/constants.js');
 
+const constants = global.constants;
 let modules;
 let library;
 
@@ -27,7 +27,6 @@ let library;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires bytebuffer
- * @requires helpers/constants
  * @param {ZSchema} schema
  * @param {Object} logger
  * @todo Add description for the params

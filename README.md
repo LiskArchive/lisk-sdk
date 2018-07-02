@@ -215,8 +215,10 @@ pm2 stop lisk
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
+pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
 ```
+
+You can pass any of `devnet`, `testnet`, `betanet` or `mainnet` for the network option.
 
 ## Tests
 

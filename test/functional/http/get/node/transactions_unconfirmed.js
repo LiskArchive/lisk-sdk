@@ -20,10 +20,10 @@ var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
-var constants = require('../../../../../helpers/constants');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
 
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 

@@ -17,7 +17,6 @@
 var fs = require('fs');
 var path = require('path');
 var program = require('commander');
-var constants = require('../helpers/constants.js');
 var configSchema = require('../schema/config.js');
 var z_schema = require('./z_schema.js');
 /**
@@ -38,6 +37,11 @@ function Config(packageJson) {
 	program
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
+		.option(
+			'-n, --network [network]',
+			'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "dev"',
+			'devnet'
+		)
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
 		.option('-d, --database <database>', 'database name')
@@ -50,10 +54,18 @@ function Config(packageJson) {
 		.parse(process.argv);
 
 	var configPath = program.config;
-	var appConfig = fs.readFileSync(
-		path.resolve(process.cwd(), configPath || 'config.json'),
-		'utf8'
+	var network = program.network;
+
+	configPath = path.resolve(
+		process.cwd(),
+		configPath || `./config/${network}/config.json`
 	);
+
+	if (configPath) {
+		console.info(`Starting with configuration file ${configPath}`);
+	}
+
+	var appConfig = fs.readFileSync(configPath, 'utf8');
 
 	if (!appConfig.length) {
 		console.error('Failed to read config file');
@@ -67,6 +79,30 @@ function Config(packageJson) {
 			process.exit(1);
 		}
 	}
+
+	appConfig.network = network;
+	appConfig.genesisBlock = JSON.parse(
+		fs.readFileSync(
+			path.resolve(
+				process.cwd(),
+				`./config/${appConfig.network}/genesis_block.json`
+			)
+		)
+	);
+
+	appConfig.nethash = appConfig.genesisBlock.payloadHash;
+
+	// eslint-disable-next-line import/no-dynamic-require
+	appConfig.constants = require(path.resolve(
+		process.cwd(),
+		`./config/${network}/constants.js`
+	));
+
+	// eslint-disable-next-line import/no-dynamic-require
+	appConfig.exceptions = require(path.resolve(
+		process.cwd(),
+		`./config/${network}/exceptions.js`
+	));
 
 	if (program.wsPort) {
 		appConfig.wsPort = +program.wsPort;
@@ -146,7 +182,7 @@ function Config(packageJson) {
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
-		var index = constants.nethashes.indexOf(configData.nethash);
+		var index = configData.constants.nethashes.indexOf(configData.nethash);
 
 		if (index !== -1) {
 			console.info('Forced forging disabled for nethash', configData.nethash);

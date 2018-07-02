@@ -21,7 +21,8 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
-var constants = require('../../../../../helpers/constants');
+
+const constants = global.constants;
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;

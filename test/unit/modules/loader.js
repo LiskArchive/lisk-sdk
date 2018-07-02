@@ -17,7 +17,7 @@
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var swaggerHelper = require('../../../helpers/swagger');
-var constants = require('../../../helpers/constants');
+const constants = require('../../../config/mainnet/constants');
 
 describe('loader', () => {
 	var loaderModule;
@@ -178,7 +178,7 @@ describe('loader', () => {
 				schema: sinonSandbox.stub(),
 				sequence: sinonSandbox.stub(),
 				bus: { message: sinonSandbox.stub() },
-				genesisblock: sinonSandbox.stub(),
+				genesisBlock: sinonSandbox.stub(),
 				balancesSequence: sinonSandbox.stub(),
 				logic: {
 					transaction: sinonSandbox.stub(),

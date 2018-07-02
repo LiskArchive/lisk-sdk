@@ -18,8 +18,8 @@
  * Description of the namespace.
  *
  * @namespace constants
- * @memberof helpers
- * @see Parent: {@link helpers}
+ * @memberof config
+ * @see Parent: {@link config}
  * @property {number} activeDelegates - The default number of delegates allowed to forge a block.
  * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} blockSlotWindow - The default number of previous blocks to keep in memory.
@@ -51,7 +51,7 @@
  * @property {number} unconfirmedTransactionTimeOut - Expiration time for unconfirmed transaction/signatures in transaction pool.
  * @todo Add description for the namespace and the properties.
  */
-var constants = {
+const constants = {
 	activeDelegates: 101,
 	blockSlotWindow: 5,
 	additionalData: {

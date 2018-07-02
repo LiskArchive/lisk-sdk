@@ -17,10 +17,10 @@
 var _ = require('lodash');
 var bignum = require('../../helpers/bignum.js');
 var swaggerHelper = require('../../helpers/swagger');
-var constants = require('../../helpers/constants.js');
 
 // Private Fields
 var modules;
+const constants = global.constants;
 
 /**
  * Description of the function.

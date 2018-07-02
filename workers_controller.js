@@ -14,8 +14,10 @@
 
 'use strict';
 
-var SCWorker = require('socketcluster/scworker');
+var path = require('path');
+var fs = require('fs');
 var async = require('async');
+var SCWorker = require('socketcluster/scworker');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 var Peer = require('./logic/peer');
 var System = require('./modules/system');
@@ -28,7 +30,14 @@ var PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
 var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failure_codes');
 var Logger = require('./logger');
-var config = require('./config.json');
+
+var config = fs.readFileSync(
+	path.resolve(
+		process.cwd(),
+		`./config/${process.env.LISK_NETWORK}/config.json`
+	),
+	'utf8'
+);
 
 /**
  * Instantiate the SocketCluster SCWorker instance with custom logic

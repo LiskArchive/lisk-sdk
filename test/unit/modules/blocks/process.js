@@ -34,7 +34,7 @@ describe('blocks/process', () => {
 	var peersStub;
 	var schemaStub;
 	var sequenceStub;
-	var genesisblockStub;
+	var genesisBlockStub;
 	var modulesStub;
 	var definitions;
 
@@ -63,7 +63,7 @@ describe('blocks/process', () => {
 			string: 'ip:wsPort',
 		};
 
-		genesisblockStub = {
+		genesisBlockStub = {
 			block: {
 				id: '6524861224470851795',
 				height: 1,
@@ -79,7 +79,7 @@ describe('blocks/process', () => {
 			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Empty' }))
 			.callsArgWith(1, null, { common: undefined })
 			.withArgs(sinonSandbox.match({ ids: 'rpc.blocksCommon-Genesis' }))
-			.callsArgWith(1, null, { common: genesisblockStub.block })
+			.callsArgWith(1, null, { common: genesisBlockStub.block })
 			.withArgs(sinonSandbox.match({ ids: 'OK' }))
 			.callsArgWith(1, null, {
 				common: dummyCommonBlock,
@@ -138,7 +138,7 @@ describe('blocks/process', () => {
 			schemaStub,
 			dbStub,
 			sequenceStub,
-			genesisblockStub
+			genesisBlockStub
 		);
 
 		library = BlocksProcess.__get__('library');
@@ -245,7 +245,7 @@ describe('blocks/process', () => {
 			expect(library.schema).to.eql(schemaStub);
 			expect(library.db).to.eql(dbStub);
 			expect(library.sequence).to.eql(sequenceStub);
-			expect(library.genesisblock).to.eql(genesisblockStub);
+			expect(library.genesisBlock).to.eql(genesisBlockStub);
 			expect(library.logic.block).to.eql(blockStub);
 			expect(library.logic.peers).to.eql(peersStub);
 			return expect(library.logic.transaction).to.eql(transactionStub);

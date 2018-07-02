@@ -19,11 +19,11 @@ var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var constants = require('../../../../helpers/constants.js');
 var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', () => {

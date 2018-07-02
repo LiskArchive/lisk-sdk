@@ -16,7 +16,8 @@
 
 var bignum = require('./bignum');
 var slots = require('./slots');
-var exceptions = require('./exceptions');
+
+var exceptions = global.exceptions;
 
 /**
  * Sets round fees and rewards.
@@ -24,7 +25,6 @@ var exceptions = require('./exceptions');
  * @class
  * @memberof helpers
  * @requires helpers/bignum
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {Object} scope
  * @see Parent: {@link helpers}

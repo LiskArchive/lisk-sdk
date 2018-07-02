@@ -49,7 +49,7 @@ describe('app', () => {
 		describe('consistency', () => {
 			it('should contain transactions', () => {
 				return expect(
-					library.genesisblock.block.transactions.length
+					library.genesisBlock.block.transactions.length
 				).to.be.above(0);
 			});
 		});
@@ -58,7 +58,7 @@ describe('app', () => {
 			describe('database block at height 1', () => {
 				it('ID should match genesis block ID', () => {
 					return expect(genesisBlock.id).to.equal(
-						library.genesisblock.block.id
+						library.genesisBlock.block.id
 					);
 				});
 
@@ -68,7 +68,7 @@ describe('app', () => {
 
 				it('number of transactions should match genesis number of transactions in block', () => {
 					return expect(genesisBlock.transactions.length).to.equal(
-						library.genesisblock.block.transactions.length
+						library.genesisBlock.block.transactions.length
 					);
 				});
 
@@ -76,7 +76,7 @@ describe('app', () => {
 					return expect(
 						genesisBlock.transactions.map(t => t.id).sort()
 					).to.be.deep.equal(
-						library.genesisblock.block.transactions.map(t => t.id).sort()
+						library.genesisBlock.block.transactions.map(t => t.id).sort()
 					);
 				});
 			});
@@ -123,7 +123,7 @@ describe('app', () => {
 						it('fields transactionId, username, address, publicKey should match genesis block transactions', done => {
 							let found;
 							_.each(delegates, delegate => {
-								found = _.find(library.genesisblock.block.transactions, {
+								found = _.find(library.genesisBlock.block.transactions, {
 									id: delegate.transactionId,
 								});
 								expect(found).to.be.an('object');
@@ -145,7 +145,7 @@ describe('app', () => {
 							_.each(delegates, delegate => {
 								// Find accounts that vote for delegate
 								const voters = _.filter(
-									library.genesisblock.block.transactions,
+									library.genesisBlock.block.transactions,
 									transaction => {
 										return (
 											transaction.type === 3 &&
@@ -160,7 +160,7 @@ describe('app', () => {
 								let voters_balance = '0';
 								_.each(voters, voter => {
 									const balance = _.reduce(
-										library.genesisblock.block.transactions,
+										library.genesisBlock.block.transactions,
 										(balance, acc) => {
 											if (acc.recipientId === voter.senderId) {
 												return new Bignum(balance).plus(acc.amount).toString();
@@ -195,12 +195,12 @@ describe('app', () => {
 
 				before(() => {
 					// Get genesis accounts address - should be senderId from first transaction
-					genesisAddress = library.genesisblock.block.transactions[0].senderId;
+					genesisAddress = library.genesisBlock.block.transactions[0].senderId;
 
 					// Get unique accounts from genesis block
 					genesisAccounts = _.union(
-						library.genesisblock.block.transactions.map(a => a.senderId),
-						library.genesisblock.block.transactions.map(a => a.recipientId)
+						library.genesisBlock.block.transactions.map(a => a.senderId),
+						library.genesisBlock.block.transactions.map(a => a.recipientId)
 					).filter(a => a); // We call filter here to remove null values
 
 					// Get accounts from database
@@ -236,7 +236,7 @@ describe('app', () => {
 
 							before(done => {
 								genesisAccountTransaction =
-									library.genesisblock.block.transactions[0];
+									library.genesisBlock.block.transactions[0];
 								genesisAccount = _.find(accounts, {
 									address: genesisAddress,
 								});
@@ -258,7 +258,7 @@ describe('app', () => {
 
 								// Sum all outgoing transactions from genesis account
 								const balance = _.reduce(
-									library.genesisblock.block.transactions,
+									library.genesisBlock.block.transactions,
 									(balance, acc) => {
 										if (acc.senderId === genesisAccount.address) {
 											return new Bignum(balance).minus(acc.amount).toString();
@@ -321,7 +321,7 @@ describe('app', () => {
 			it('should contain public keys of all 101 genesis delegates', done => {
 				_.each(delegatesList, pk => {
 					// Search for that pk in genesis block
-					var found = _.find(library.genesisblock.block.transactions, {
+					var found = _.find(library.genesisBlock.block.transactions, {
 						senderPublicKey: pk,
 					});
 					expect(found).to.be.an('object');

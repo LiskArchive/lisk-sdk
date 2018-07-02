@@ -57,7 +57,7 @@ describe('GET /node', () => {
 			return expect(constantsResponse)
 				.to.have.property('version')
 				.to.match(
-					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3})?$/
+					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3}(\.[0-9]{1,3})?)?$/
 				);
 		});
 
