@@ -1,0 +1,7 @@
+{
+	"rules": {
+		"no-var": "error",
+		"prefer-rest-params": "error",
+		"vars-on-top": "off"
+	}
+}

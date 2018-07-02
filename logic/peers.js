@@ -1,114 +1,164 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var _ = require('lodash');
-var async = require('async');
-var Peer = require('../logic/peer.js');
-var schema = require('../schema/peers.js');
+const _ = require('lodash');
+const failureCodes = require('../api/ws/rpc/failure_codes.js');
+const Peer = require('../logic/peer.js');
+const System = require('../modules/system.js');
+const PeersManager = require('../helpers/peers_manager.js');
 
 // Private fields
-var __private = {};
-var self;
-var library;
-var modules;
+let self;
+let library;
+let modules;
+
 /**
- * Initializes library.
- * @memberof module:peers
+ * Main peers logic. Initializes library.
+ *
  * @class
- * @classdesc Main peers logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires lodash
+ * @requires api/ws/rpc/failure_codes
+ * @requires logic/peer
+ * @requires modules/system
+ * @requires helpers/peers_manager
  * @param {Object} logger
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} Callback function with `this` as data.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} null, this
+ * @todo Add description for the params
  */
-// Constructor
-function Peers (logger, cb) {
-	library = {
-		logger: logger
-	};
-	self = this;
-	__private.peers = {};
-	return setImmediate(cb, null, this);
+class Peers {
+	constructor(logger, cb) {
+		library = {
+			logger,
+		};
+		self = this;
+
+		this.peersManager = new PeersManager(logger);
+
+		return setImmediate(cb, null, this);
+	}
 }
+
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
+/**
+ * Returns current peer state and system headers.
+ *
+ * @returns {Object} system headers and peer status
+ */
+Peers.prototype.me = function() {
+	return Object.assign({}, System.getHeaders(), {
+		state: Peer.STATE.CONNECTED,
+	});
+};
 
 /**
  * Returns a peer instance.
+ *
  * @param {peer} peer
- * @return {peer} peer instance
+ * @returns {peer} Peer instance
+ * @todo Add description for the params
  */
-Peers.prototype.create = function (peer) {
+Peers.prototype.create = function(peer) {
 	if (!(peer instanceof Peer)) {
 		return new Peer(peer);
-	} else {
-		return peer;
 	}
+	return peer;
 };
 
 /**
  * Checks if peer is in peers list.
+ *
  * @param {peer} peer
- * @return {boolean} True if peer is in peers list
+ * @returns {boolean} true - If peer is in peers list
+ * @todo Add description for the params
  */
-Peers.prototype.exists = function (peer) {
+Peers.prototype.exists = function(peer) {
 	peer = self.create(peer);
-	return !!__private.peers[peer.string];
+	return !!self.peersManager.getByAddress(peer.string);
 };
 
 /**
  * Gets a peer from peers or creates a new one and returns it.
+ *
  * @param {peer} peer
- * @return {peer} peer new or peer from peers
+ * @returns {peer} Found peer or new peer
+ * @todo Add description for the params
  */
-Peers.prototype.get = function (peer) {
+Peers.prototype.get = function(peer) {
 	if (typeof peer === 'string') {
-		return __private.peers[peer];
-	} else {
-		peer = self.create(peer);
-		return __private.peers[peer.string];
+		return self.peersManager.getByAddress(peer);
 	}
+	peer = self.create(peer);
+	return self.peersManager.getByAddress(peer.string);
 };
 
 /**
- * Inserts or updates a peer
+ * Inserts or updates a peer.
+ *
  * @param {peer} peer
- * @param {boolean} insertOnly - true to only insert.
- * @return {boolean} True if operation is success.
+ * @param {boolean} insertOnly - True to only insert
+ * @returns {boolean|number} true - If operation is success, error code in other case
+ * @todo Add description for the params
  */
-Peers.prototype.upsert = function (peer, insertOnly) {
+Peers.prototype.upsert = function(peer, insertOnly) {
 	// Insert new peer
-	var insert = function (peer) {
-		if (!_.isEmpty(modules.peers.acceptable([peer]))) {
-			peer.updated = Date.now();
-			__private.peers[peer.string] = peer;
-			library.logger.debug('Inserted new peer', peer.string);
-		} else {
-			library.logger.debug('Rejecting unacceptable peer', peer.string);
-		}
+	const insert = function(peer) {
+		peer.updated = Date.now();
+		return self.peersManager.add(peer);
 	};
 
 	// Update existing peer
-	var update = function (peer) {
+	const update = function(peer) {
 		peer.updated = Date.now();
+		const diff = {};
 
-		var diff = {};
-		_.each(peer, function (value, key) {
-			if (key !== 'updated' && __private.peers[peer.string][key] !== value) {
+		const recentPeer = self.peersManager.getByAddress(peer.string);
+		// Make a copy for logging difference purposes only
+		const recentPeerBeforeUpdate = Object.assign({}, recentPeer);
+
+		recentPeer.update(peer);
+		self.peersManager.add(recentPeer);
+
+		// Create a log after peer update to summarize updated fields
+		_.each(recentPeer, (value, key) => {
+			if (
+				key !== 'updated' &&
+				peer.properties.indexOf(key) !== -1 &&
+				recentPeerBeforeUpdate[key] !== value
+			) {
 				diff[key] = value;
 			}
 		});
 
-		__private.peers[peer.string].update(peer);
-
 		if (Object.keys(diff).length) {
-			library.logger.debug('Updated peer ' + peer.string, diff);
+			library.logger.debug(`Updated peer ${peer.string}`, diff);
 		} else {
 			library.logger.trace('Peer not changed', peer.string);
 		}
 	};
 
 	peer = self.create(peer);
-	
+	peer.string = peer.string || self.peersManager.getAddress(peer.nonce);
+
 	if (!peer.string) {
-		library.logger.warn('Upsert invalid peer rejected', {peer: peer});
-		return false;
+		library.logger.trace('Upsert invalid peer rejected', { peer });
+		return failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
 	}
 
 	// Performing insert or update
@@ -117,21 +167,33 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		if (!insertOnly) {
 			update(peer);
 		} else {
-			return false;
+			return failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE;
 		}
 	} else {
-		insert(peer);
+		if (_.isEmpty(modules.peers.acceptable([peer]))) {
+			library.logger.debug('Rejecting unacceptable peer', peer.string);
+			return failureCodes.ON_MASTER.INSERT.NOT_ACCEPTED;
+		}
+		if (insert(peer)) {
+			library.logger.debug('Inserted new peer', peer.string);
+		} else {
+			library.logger.debug(
+				'Cannot insert peer (nonce exists / empty address field)',
+				peer.string
+			);
+			return failureCodes.ON_MASTER.INSERT.NONCE_EXISTS;
+		}
 	}
 
 	// Stats for tracking changes
-	var cnt_total = 0;
-	var cnt_active = 0;
-	var cnt_empty_height = 0;
-	var cnt_empty_broadhash = 0;
+	let cnt_total = 0;
+	let cnt_active = 0;
+	let cnt_empty_height = 0;
+	let cnt_empty_broadhash = 0;
 
-	_.each(__private.peers, function (peer, index) {
+	_.each(self.peersManager.peers, peer => {
 		++cnt_total;
-		if (peer.state === 2) {
+		if (peer.state === Peer.STATE.CONNECTED) {
 			++cnt_active;
 		}
 		if (!peer.height) {
@@ -142,52 +204,81 @@ Peers.prototype.upsert = function (peer, insertOnly) {
 		}
 	});
 
-	library.logger.trace('Peer stats', {total: cnt_total, alive: cnt_active, empty_height: cnt_empty_height, empty_broadhash: cnt_empty_broadhash});
+	library.logger.trace('Peer stats', {
+		total: cnt_total,
+		alive: cnt_active,
+		empty_height: cnt_empty_height,
+		empty_broadhash: cnt_empty_broadhash,
+	});
 
 	return true;
 };
 
 /**
  * Deletes peer from peers list.
+ *
  * @param {peer} peer
- * @return {boolean} True if peer exists
+ * @returns {boolean|number} true - If peer exists, error code in other case
+ * @todo Add description for the params
  */
-Peers.prototype.remove = function (peer) {
+Peers.prototype.remove = function(peer) {
 	peer = self.create(peer);
 	// Remove peer if exists
 	if (self.exists(peer)) {
 		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', {peer: __private.peers[peer.string]});
-		__private.peers[peer.string] = null; // Possible memory leak prevention
-		delete __private.peers[peer.string];
+		library.logger.debug('Removed peer', { peer: peer.object() });
+		self.peersManager.remove(peer);
 		return true;
-	} else {
-		library.logger.debug('Failed to remove peer', {err: 'AREMOVED', peer: peer});
-		return false;
 	}
+	library.logger.debug('Failed to remove peer', {
+		err: 'AREMOVED',
+		peer: peer.object(),
+	});
+	return failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST;
 };
 
 /**
- * Returns private list of peers
+ * Returns private list of peers.
+ *
  * @param {boolean} [normalize] - If true transform list to object
- * @return {peer[]} list of peers
+ * @returns {peer[]} List of peers
  */
-Peers.prototype.list = function (normalize) {
+Peers.prototype.list = function(normalize) {
 	if (normalize) {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key].object(); });
-	} else {
-		return Object.keys(__private.peers).map(function (key) { return __private.peers[key]; });
+		return Object.keys(self.peersManager.peers).map(key =>
+			self.peersManager.getByAddress(key).object()
+		);
 	}
+	return Object.keys(self.peersManager.peers).map(key =>
+		self.create(self.peersManager.getByAddress(key))
+	);
 };
 
-// Public methods
+/**
+ * Returns a random list of connected peers.
+ *
+ * @param {Object} [options] - Optional
+ * @param {number} [options.limit] - Maximum number of peers to get; defaults to all
+ * @returns {peer[]} List of peers
+ */
+Peers.prototype.listRandomConnected = function(options) {
+	options = options || {};
+	const peerList = Object.keys(self.peersManager.peers)
+		.map(key => self.peersManager.peers[key])
+		.filter(peer => peer.state === Peer.STATE.CONNECTED);
+	const shuffledPeerList = _.shuffle(peerList);
+	return options.limit ? shuffledPeerList.slice(0, options.limit)
+		: shuffledPeerList;
+};
+
 /**
  * Modules are not required in this file.
- * @param {Object} __modules - Peers module.
+ *
+ * @param {Object} __modules - Peers module
  */
-Peers.prototype.bindModules = function (__modules) {
+Peers.prototype.bindModules = function(__modules) {
 	modules = {
-		peers: __modules.peers
+		peers: __modules.peers,
 	};
 };
 

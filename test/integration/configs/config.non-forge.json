@@ -1,0 +1,91 @@
+{
+	"wsPort": 5000,
+	"httpPort": 4000,
+	"address": "0.0.0.0",
+	"version": "0.0.0a",
+	"minVersion": "0.0.0a",
+	"fileLogLevel": "info",
+	"logFileName": "logs/lisk.log",
+	"consoleLogLevel": "debug",
+	"trustProxy": true,
+	"topAccounts": false,
+	"wsWorkers": 1,
+	"db": {
+		"host": "localhost",
+		"port": 5432,
+		"database": "lisk_local",
+		"user": "",
+		"password": "password",
+		"min": 1,
+		"max": 9,
+		"poolIdleTimeout": 30000,
+		"reapIntervalMillis": 1000,
+		"logEvents": ["error"]
+	},
+	"api": {
+		"enabled": true,
+		"access": {
+			"public": true,
+			"whiteList": []
+		},
+		"options": {
+			"limits": {
+				"max": 0,
+				"delayMs": 0,
+				"delayAfter": 0,
+				"windowMs": 60000
+			}
+		}
+	},
+	"peers": {
+		"enabled": true,
+		"list": [
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5000
+			}
+		],
+		"access": {
+			"blackList": []
+		},
+		"options": {
+			"limits": {
+				"max": 0,
+				"delayMs": 0,
+				"delayAfter": 0,
+				"windowMs": 60000
+			},
+			"timeout": 5000
+		}
+	},
+	"broadcasts": {
+		"broadcastInterval": 5000,
+		"broadcastLimit": 20,
+		"parallelLimit": 20,
+		"releaseLimit": 25,
+		"relayLimit": 2
+	},
+	"transactions": {
+		"maxTransactionsPerQueue": 1000
+	},
+	"forging": {
+		"force": false,
+		"delegates": [],
+		"access": {
+			"whiteList": ["127.0.0.1"]
+		}
+	},
+	"loading": {
+		"loadPerIteration": 5000
+	},
+	"ssl": {
+		"enabled": false,
+		"options": {
+			"port": 443,
+			"address": "0.0.0.0",
+			"key": "./ssl/lisk.key",
+			"cert": "./ssl/lisk.crt"
+		}
+	},
+	"nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
+}

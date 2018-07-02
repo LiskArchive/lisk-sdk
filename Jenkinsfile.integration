@@ -1,0 +1,89 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+def report() {
+	if (currentBuild.result == 'FAILURE') {
+		def prBranch = ''
+		if (env.CHANGE_BRANCH != null) {
+			prBranch = " (${env.CHANGE_BRANCH})"
+		}
+		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${prBranch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-core-jenkins'
+	}
+}
+
+def statusFail() {
+	currentBuild.result = 'FAILURE'
+	error('Stopping build, build failed')
+	report()
+	cleanUp()
+}
+
+def cleanUp() {
+	sh '''
+		node_modules/.bin/pm2 kill
+	'''
+}
+
+node('node-06') {
+	lock(resource: "core-integration-tests", inversePrecedence: true) {
+
+		properties([
+			parameters([
+				string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
+				string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
+				string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
+				string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
+			 ])
+		])
+
+		stage('Prepare workspace') {
+			try {
+				deleteDir()
+				checkout scm
+
+				sh '''
+					# Cycle postgres, install deps and prepare config
+					sudo service postgresql restart
+					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/" || true
+					npm install
+					cp test/data/config.json test/data/genesis_block.json .
+				'''
+			} catch (err) {
+				statusFail()
+			}
+		}
+
+		stage('Run integration tests') {
+			try {
+				sh '''#!/bin/bash -xe
+					set -o pipefail
+					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+					if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
+						npm test -- mocha:extensive:integration |& tee integrationTests.logs
+					else
+						npm test -- mocha:untagged:integration |& tee integrationTests.logs
+					fi
+				'''
+			} catch (err) {
+				statusFail()
+			}
+		}
+
+		stage('Set milestone') {
+			milestone 1
+			currentBuild.result = 'SUCCESS'
+			report()
+			cleanUp()
+		}
+	}
+}

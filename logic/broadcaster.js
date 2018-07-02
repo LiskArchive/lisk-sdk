@@ -1,190 +1,180 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var jobsQueue = require('../helpers/jobsQueue.js');
-var extend = require('extend');
-var _ = require('lodash');
+const async = require('async');
+const extend = require('extend');
+const _ = require('lodash');
+const constants = require('../helpers/constants.js');
+const jobsQueue = require('../helpers/jobs_queue.js');
 
-// Private fields
-var modules, library, self, __private = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 /**
+ * Main Broadcaster logic.
  * Initializes variables, sets Broadcast routes and timer based on
  * broadcast interval from config file.
- * @memberof module:transport
+ *
  * @class
- * @classdesc Main Broadcaster logic.
- * @implements {__private.releaseQueue}
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires extend
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force
- * @param {Peers} peers - from logic, Peers instance
- * @param {Transaction} transaction - from logic, Transaction instance
+ * @param {Peers} peers - Peers instance
+ * @param {Transaction} transaction - Transaction instance
  * @param {Object} logger
+ * @todo Add description for the params
  */
-// Constructor
-function Broadcaster (broadcasts, force, peers, transaction, logger) {
-	library = {
-		logger: logger,
-		logic: {
-			peers: peers,
-			transaction: transaction,
-		},
-		config: {
-			broadcasts: broadcasts,
-			forging: {
-				force: force,
+class Broadcaster {
+	constructor(broadcasts, force, peers, transaction, logger) {
+		library = {
+			logger,
+			logic: {
+				peers,
+				transaction,
 			},
-		},
-	};
-	self = this;
+			config: {
+				broadcasts,
+				forging: {
+					force,
+				},
+			},
+		};
 
-	self.queue = [];
-	self.config = library.config.broadcasts;
-	self.config.peerLimit = constants.maxPeers;
+		self = this;
 
-	// Optionally ignore broadhash consensus
-	if (library.config.forging.force) {
-		self.consensus = undefined;
-	} else {
-		self.consensus = 100;
+		self.queue = [];
+		self.config = library.config.broadcasts;
+		self.config.peerLimit = constants.maxPeers;
+
+		// Broadcast routes
+		self.routes = [
+			{
+				path: 'postTransactions',
+				collection: 'transactions',
+				object: 'transaction',
+			},
+			{
+				path: 'postSignatures',
+				collection: 'signatures',
+				object: 'signature',
+			},
+		];
+
+		if (broadcasts.active) {
+			jobsQueue.register(
+				'broadcasterNextRelease',
+				nextRelease,
+				self.config.broadcastInterval
+			);
+		} else {
+			library.logger.info(
+				'Broadcasting data disabled by user through config.json'
+			);
+		}
 	}
 
-	// Broadcast routes
-	self.routes = [{
-		path: '/transactions',
-		collection: 'transactions',
-		object: 'transaction',
-		method: 'POST'
-	}, {
-		path: '/signatures',
-		collection: 'signatures',
-		object: 'signature',
-		method: 'POST'
-	}];
+	/**
+	 * Calls peers.list function to get peers.
+	 *
+	 * @param {Object} params
+	 * @param {function} cb
+	 * @returns {SetImmediate} error, peers
+	 * @todo Add description for the params
+	 */
+	getPeers(params, cb) {
+		params.limit = params.limit || this.config.peerLimit;
+		const peers = library.logic.peers.listRandomConnected(params);
+		library.logger.info(
+			['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
+				' '
+			)
+		);
+		return setImmediate(cb, null, peers);
+	}
 
-	// Broadcaster timer
-	function nextRelease (cb) {
-		__private.releaseQueue(function (err) {
-			if (err) {
-				library.logger.log('Broadcaster timer', err);
+	/**
+	 * Gets peers and for each peer create it and broadcast.
+	 *
+	 * @param {Object} params
+	 * @param {Object} options
+	 * @param {function} cb
+	 * @returns {SetImmediate} error, peers
+	 * @todo Add description for the params
+	 */
+	broadcast(params, options, cb) {
+		params.limit = params.limit || this.config.broadcastLimit;
+
+		async.waterfall(
+			[
+				function getPeers(waterCb) {
+					if (!params.peers) {
+						return self.getPeers(params, waterCb);
+					}
+					return setImmediate(
+						waterCb,
+						null,
+						params.peers.slice(0, params.limit)
+					);
+				},
+				function sendToPeer(peers, waterCb) {
+					library.logger.debug('Begin broadcast', options);
+					peers.forEach(peer => peer.rpc[options.api](options.data));
+					library.logger.debug('End broadcast');
+					return setImmediate(waterCb, null, peers);
+				},
+			],
+			(err, peers) => {
+				if (cb) {
+					return setImmediate(cb, err, { peers });
+				}
 			}
-			return setImmediate(cb);
-		});
+		);
 	}
-
-	jobsQueue.register('broadcasterNextRelease', nextRelease, self.config.broadcastInterval);
-
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
- * Binds input parameters to private variables modules.
- * @param {Peers} peers
- * @param {Transport} transport
- * @param {Transactions} transactions
- */
-Broadcaster.prototype.bind = function (peers, transport, transactions) {
-	modules = {
-		peers: peers,
-		transport: transport,
-		transactions: transactions,
-	};
-};
-
-/**
- * Calls peers.list function to get peers.
- * @implements {modules.peers.list}
- * @param {Object} params
- * @param {function} cb
- * @return {setImmediateCallback} err | peers
- */
-Broadcaster.prototype.getPeers = function (params, cb) {
-	params.limit = params.limit || self.config.peerLimit;
-	params.broadhash = params.broadhash || null;
-
-	var originalLimit = params.limit;
-
-	modules.peers.list(params, function (err, peers, consensus) {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		if (self.consensus !== undefined && originalLimit === constants.maxPeers) {
-			library.logger.info(['Broadhash consensus now', consensus, '%'].join(' '));
-			self.consensus = consensus;
-		}
-
-		return setImmediate(cb, null, peers);
-	});
-};
-
-/**
- * Adds new object {params, options} to queue array .
+ * Adds new object {params, options} to queue array.
+ *
  * @param {Object} params
  * @param {Object} options
- * @return {Object[]} queue private variable with new data
+ * @returns {Object[]} Queue private variable with new data
+ * @todo Add description for the params
  */
-Broadcaster.prototype.enqueue = function (params, options) {
+Broadcaster.prototype.enqueue = function(params, options) {
 	options.immediate = false;
-	return self.queue.push({params: params, options: options});
+	return self.queue.push({ params, options });
 };
 
 /**
- * Gets peers and for each peer create it and broadcast. 
- * @implements {getPeers}
- * @implements {library.logic.peers.create}
- * @param {Object} params
- * @param {Object} options
- * @param {function} cb
- * @return {setImmediateCallback} err | peers
- */
-Broadcaster.prototype.broadcast = function (params, options, cb) {
-	params.limit = params.limit || self.config.peerLimit;
-	params.broadhash = params.broadhash || null;
-
-	async.waterfall([
-		function getPeers (waterCb) {
-			if (!params.peers) {
-				return self.getPeers(params, waterCb);
-			} else {
-				return setImmediate(waterCb, null, params.peers);
-			}
-		},
-		function getFromPeer (peers, waterCb) {
-			library.logger.debug('Begin broadcast', options);
-
-			if (params.limit === self.config.peerLimit) { 
-				peers = peers.slice(0, self.config.broadcastLimit);
-			}
-
-			async.eachLimit(peers, self.config.parallelLimit, function (peer, eachLimitCb) {
-				peer = library.logic.peers.create(peer);
-
-				modules.transport.getFromPeer(peer, options, function (err) {
-					if (err) {
-						library.logger.debug('Failed to broadcast to peer: ' + peer.string, err);
-					}
-					return setImmediate(eachLimitCb);
-				});
-			}, function (err) {
-				library.logger.debug('End broadcast');
-				return setImmediate(waterCb, err, peers);
-			});
-		}
-	], function (err, peers) {
-		if (cb) {
-			return setImmediate(cb, err, {body: null, peer: peers});
-		}
-	});
-};
-
-/**
- * Counts relays and valids limit.
+ * Counts relays and valid limit.
+ *
  * @param {Object} object
- * @return {boolean} True if Broadcast relays exhausted
+ * @returns {boolean} true - If broadcast relays exhausted
+ * @todo Add description for the params
  */
-Broadcaster.prototype.maxRelays = function (object) {
+Broadcaster.prototype.maxRelays = function(object) {
 	if (!Number.isInteger(object.relays)) {
 		object.relays = 0; // First broadcast
 	}
@@ -192,87 +182,114 @@ Broadcaster.prototype.maxRelays = function (object) {
 	if (Math.abs(object.relays) >= self.config.relayLimit) {
 		library.logger.debug('Broadcast relays exhausted', object);
 		return true;
-	} else {
-		object.relays++; // Next broadcast
-		return false;
 	}
+	object.relays++; // Next broadcast
+	return false;
 };
 
-// Private
 /**
- * Filters private queue based on broadcasts.
- * @private
- * @implements {__private.filterTransaction}
- * @param {function} cb
- * @return {setImmediateCallback} cb
+ * Binds input parameters to private variables modules.
+ *
+ * @param {Peers} peers
+ * @param {Transport} transport
+ * @param {Transactions} transactions
+ * @todo Add description for the params
  */
-__private.filterQueue = function (cb) {
-	library.logger.debug('Broadcasts before filtering: ' + self.queue.length);
+Broadcaster.prototype.bind = function(peers, transport, transactions) {
+	modules = {
+		peers,
+		transport,
+		transactions,
+	};
+};
 
-	async.filter(self.queue, function (broadcast, filterCb) {
-		if (broadcast.options.immediate) {
-			return setImmediate(filterCb, null, false);
-		} else if (broadcast.options.data) {
-			var transaction = (broadcast.options.data.transaction || broadcast.options.data.signature);
-			return __private.filterTransaction(transaction, filterCb);
-		} else {
-			return setImmediate(filterCb, null, true);
+// Broadcaster timer
+function nextRelease(cb) {
+	__private.releaseQueue(err => {
+		if (err) {
+			library.logger.info('Broadcaster timer', err);
 		}
-	}, function (err, broadcasts) {
-		self.queue = broadcasts;
-
-		library.logger.debug('Broadcasts after filtering: ' + self.queue.length);
 		return setImmediate(cb);
 	});
+}
+
+/**
+ * Filters private queue based on broadcasts.
+ *
+ * @private
+ * @param {function} cb
+ * @returns {SetImmediate} null, boolean|undefined
+ * @todo Add description for the params
+ */
+__private.filterQueue = function(cb) {
+	library.logger.debug(`Broadcasts before filtering: ${self.queue.length}`);
+
+	async.filter(
+		self.queue,
+		(broadcast, filterCb) => {
+			if (broadcast.options.immediate) {
+				return setImmediate(filterCb, null, false);
+			} else if (broadcast.options.data) {
+				const transaction =
+					broadcast.options.data.transaction ||
+					broadcast.options.data.signature;
+				return __private.filterTransaction(transaction, filterCb);
+			}
+			return setImmediate(filterCb, null, true);
+		},
+		(err, broadcasts) => {
+			self.queue = broadcasts;
+
+			library.logger.debug(`Broadcasts after filtering: ${self.queue.length}`);
+			return setImmediate(cb);
+		}
+	);
 };
 
 /**
  * Checks if transaction is in pool or confirm it.
+ *
  * @private
- * @implements {modules.transactions.transactionInPool}
- * @implements {library.logic.transaction.checkConfirmed}
  * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, boolean
+ * @returns {SetImmediate} null, boolean
+ * @todo Add description for the params
  */
-__private.filterTransaction = function (transaction, cb) {
+__private.filterTransaction = function(transaction, cb) {
 	if (transaction !== undefined) {
 		if (modules.transactions.transactionInPool(transaction.id)) {
 			return setImmediate(cb, null, true);
-		} else {
-			return library.logic.transaction.checkConfirmed(transaction, function (err) {
-				return setImmediate(cb, null, !err);
-			});
 		}
-	} else {
-		return setImmediate(cb, null, false);
+		return library.logic.transaction.checkConfirmed(transaction, err =>
+			setImmediate(cb, null, !err)
+		);
 	}
+	return setImmediate(cb, null, false);
 };
 
 /**
  * Groups broadcasts by api.
+ *
  * @private
  * @param {Object} broadcasts
- * @return {Object[]} squashed routes
+ * @returns {Object[]} Squashed routes
+ * @todo Add description for the params
  */
-__private.squashQueue = function (broadcasts) {
-	var grouped = _.groupBy(broadcasts, function (broadcast) {
-		return broadcast.options.api;
-	});
+__private.squashQueue = function(broadcasts) {
+	const grouped = _.groupBy(broadcasts, broadcast => broadcast.options.api);
+	const squashed = [];
 
-	var squashed = [];
-
-	self.routes.forEach(function (route) {
+	self.routes.forEach(route => {
 		if (Array.isArray(grouped[route.path])) {
-			var data = {};
+			const data = {};
 
-			data[route.collection] = grouped[route.path].map(function (broadcast) {
-				return broadcast.options.data[route.object];
-			}).filter(Boolean);
+			data[route.collection] = grouped[route.path]
+				.map(broadcast => broadcast.options.data[route.object])
+				.filter(Boolean);
 
 			squashed.push({
-				options: { api: route.path, data: data, method: route.method },
-				immediate: false
+				options: { api: route.path, data },
+				immediate: false,
 			});
 		}
 	});
@@ -285,51 +302,57 @@ __private.squashQueue = function (broadcasts) {
  * - filterQueue
  * - squashQueue
  * - broadcast
+ *
  * @private
- * @implements {__private.filterQueue}
- * @implements {__private.squashQueue}
- * @implements {getPeers}
- * @implements {broadcast}
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
-__private.releaseQueue = function (cb) {
-	library.logger.debug('Releasing enqueued broadcasts');
+__private.releaseQueue = function(cb) {
+	library.logger.info('Releasing enqueued broadcasts');
 
 	if (!self.queue.length) {
-		library.logger.debug('Queue empty');
+		library.logger.info('Queue empty');
 		return setImmediate(cb);
 	}
 
-	async.waterfall([
-		function filterQueue (waterCb) {
-			return __private.filterQueue(waterCb);
-		},
-		function squashQueue (waterCb) {
-			var broadcasts = self.queue.splice(0, self.config.releaseLimit);
-			return setImmediate(waterCb, null, __private.squashQueue(broadcasts));
-		},
-		function getPeers (broadcasts, waterCb) {
-			self.getPeers({}, function (err, peers) {
-				return setImmediate(waterCb, err, broadcasts, peers);
-			});
-		},
-		function broadcast (broadcasts, peers, waterCb) {
-			async.eachSeries(broadcasts, function (broadcast, eachSeriesCb) {
-				self.broadcast(extend({peers: peers}, broadcast.params), broadcast.options, eachSeriesCb);
-			}, function (err) {
-				return setImmediate(waterCb, err, broadcasts);
-			});
+	async.waterfall(
+		[
+			function filterQueue(waterCb) {
+				return __private.filterQueue(waterCb);
+			},
+			function squashQueue(waterCb) {
+				const broadcasts = self.queue.splice(0, self.config.releaseLimit);
+				return setImmediate(waterCb, null, __private.squashQueue(broadcasts));
+			},
+			function getPeers(broadcasts, waterCb) {
+				self.getPeers({}, (err, peers) =>
+					setImmediate(waterCb, err, broadcasts, peers)
+				);
+			},
+			function broadcast(broadcasts, peers, waterCb) {
+				async.eachSeries(
+					broadcasts,
+					(broadcast, eachSeriesCb) => {
+						self.broadcast(
+							extend({ peers }, broadcast.params),
+							broadcast.options,
+							eachSeriesCb
+						);
+					},
+					err => setImmediate(waterCb, err, broadcasts)
+				);
+			},
+		],
+		(err, broadcasts) => {
+			if (err) {
+				library.logger.error('Failed to release broadcast queue', err);
+			} else {
+				library.logger.info(`Broadcasts released: ${broadcasts.length}`);
+			}
+			return setImmediate(cb);
 		}
-	], function (err, broadcasts) {
-		if (err) {
-			library.logger.debug('Failed to release broadcast queue', err);
-		} else {
-			library.logger.debug('Broadcasts released: ' + broadcasts.length);
-		}
-		return setImmediate(cb);
-	});
+	);
 };
 
-// Export
 module.exports = Broadcaster;

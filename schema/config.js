@@ -1,3 +1,17 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
 module.exports = {
@@ -5,41 +19,44 @@ module.exports = {
 		id: 'appCon',
 		type: 'object',
 		properties: {
-			port: {
+			wsPort: {
 				type: 'integer',
 				minimum: 1,
-				maximum: 65535
+				maximum: 65535,
+			},
+			httpPort: {
+				type: 'integer',
+				minimum: 1,
+				maximum: 65535,
 			},
 			address: {
 				type: 'string',
-				format: 'ip'
+				format: 'ip',
 			},
 			version: {
 				type: 'string',
 				format: 'version',
-				minLength: 5,
-				maxLength: 12
 			},
 			minVersion: {
-				type: 'string'
+				type: 'string',
 			},
 			fileLogLevel: {
-				type: 'string'
+				type: 'string',
 			},
 			logFileName: {
-				type: 'string'
+				type: 'string',
 			},
 			consoleLogLevel: {
-				type: 'string'
+				type: 'string',
 			},
 			trustProxy: {
-				type: 'boolean'
+				type: 'boolean',
 			},
 			topAccounts: {
-				type: 'boolean'
+				type: 'boolean',
 			},
 			cacheEnabled: {
-				type: 'boolean'
+				type: 'boolean',
 			},
 			db: {
 				type: 'object',
@@ -50,72 +67,89 @@ module.exports = {
 					port: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 65535
+						maximum: 65535,
 					},
 					database: {
-						type: 'string'
+						type: 'string',
 					},
 					user: {
-						type: 'string'
+						type: 'string',
 					},
 					password: {
-						type: 'string'
+						type: 'string',
 					},
-					poolSize: {
-						type: 'integer'
+					min: {
+						type: 'integer',
+					},
+					max: {
+						type: 'integer',
 					},
 					poolIdleTimeout: {
-						type: 'integer'
+						type: 'integer',
 					},
 					reapIntervalMillis: {
-						type: 'integer'
+						type: 'integer',
 					},
 					logEvents: {
-						type: 'array'
-					}
+						type: 'array',
+					},
+					logFileName: {
+						type: 'string',
+					},
 				},
-				required: ['host', 'port', 'database', 'user', 'password', 'poolSize', 'poolIdleTimeout', 'reapIntervalMillis', 'logEvents']
+				required: [
+					'host',
+					'port',
+					'database',
+					'user',
+					'password',
+					'min',
+					'max',
+					'poolIdleTimeout',
+					'reapIntervalMillis',
+					'logEvents',
+				],
 			},
 			redis: {
 				type: 'object',
 				properties: {
 					host: {
 						type: 'string',
-						format: 'ip',
+						format: 'ipOrFQDN',
 					},
 					port: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 65535
+						maximum: 65535,
 					},
 					db: {
 						type: 'integer',
 						minimum: 0,
-						maximum: 15
+						maximum: 15,
 					},
 					password: {
-						type: ['string', 'null']
-					}
+						type: ['string', 'null'],
+					},
 				},
-				required: ['host', 'port', 'db', 'password']
+				required: ['host', 'port', 'db', 'password'],
 			},
 			api: {
 				type: 'object',
 				properties: {
 					enabled: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					access: {
 						type: 'object',
 						properties: {
 							public: {
-								type: 'boolean'
+								type: 'boolean',
 							},
 							whiteList: {
-								type: 'array'
-							}
+								type: 'array',
+							},
 						},
-						required: ['public', 'whiteList']
+						required: ['public', 'whiteList'],
 					},
 					options: {
 						type: 'object',
@@ -124,196 +158,218 @@ module.exports = {
 								type: 'object',
 								properties: {
 									max: {
-										type: 'integer'
+										type: 'integer',
 									},
 									delayMs: {
-										type: 'integer'
+										type: 'integer',
 									},
 									delayAfter: {
-										type: 'integer'
+										type: 'integer',
 									},
 									windowMs: {
-										type: 'integer'
-									}
+										type: 'integer',
+									},
 								},
-								required: ['max', 'delayMs', 'delayAfter', 'windowMs']
-							}
+								required: ['max', 'delayMs', 'delayAfter', 'windowMs'],
+							},
+							cors: {
+								type: 'object',
+								properties: {
+									origin: {
+										anyOf: [{ type: 'string' }, { type: 'boolean' }],
+									},
+									methods: {
+										type: 'array',
+									},
+								},
+								required: ['origin'],
+							},
 						},
-						required: ['limits']
-					}
+						required: ['limits', 'cors'],
+					},
 				},
-				required: ['enabled', 'access', 'options']
+				required: ['enabled', 'access', 'options'],
 			},
 			peers: {
 				type: 'object',
 				properties: {
 					enabled: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					list: {
-						type: 'array'
+						type: 'array',
 					},
 					access: {
 						type: 'object',
 						properties: {
 							blackList: {
-								type: 'array'
-							}
+								type: 'array',
+							},
 						},
-						required: ['blackList']
+						required: ['blackList'],
 					},
 					options: {
 						properties: {
-							limits: {
-								type: 'object',
-								properties: {
-									max: {
-										type: 'integer'
-									},
-									delayMs: {
-										type: 'integer'
-									},
-									delayAfter: {
-										type: 'integer'
-									},
-									windowMs: {
-										type: 'integer'
-									}
-								},
-								required: ['max', 'delayMs', 'delayAfter', 'windowMs']
-							},
 							timeout: {
-								type: 'integer'
-							}
+								type: 'integer',
+							},
 						},
-						required: ['limits', 'timeout']
-					}
+						required: ['timeout'],
+					},
 				},
-				required: ['enabled', 'list', 'access', 'options']
+				required: ['enabled', 'list', 'access', 'options'],
 			},
 			broadcasts: {
 				type: 'object',
 				properties: {
+					active: {
+						type: 'boolean',
+					},
 					broadcastInterval: {
 						type: 'integer',
 						minimum: 1000,
-						maximum: 60000
+						maximum: 60000,
 					},
 					broadcastLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 100
+						maximum: 100,
 					},
 					parallelLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 100
+						maximum: 100,
 					},
 					releaseLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 25
+						maximum: 25,
 					},
 					relayLimit: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 100
-					}
+						maximum: 100,
+					},
 				},
-				required: ['broadcastInterval', 'broadcastLimit', 'parallelLimit', 'releaseLimit', 'relayLimit']
+				required: [
+					'broadcastInterval',
+					'broadcastLimit',
+					'parallelLimit',
+					'releaseLimit',
+					'relayLimit',
+				],
 			},
 			transactions: {
 				type: 'object',
-				maxTxsPerQueue: {
+				maxTransactionsPerQueue: {
 					type: 'integer',
 					minimum: 100,
-					maximum: 5000
+					maximum: 5000,
 				},
-				required: ['maxTxsPerQueue']
+				required: ['maxTransactionsPerQueue'],
 			},
 			forging: {
 				type: 'object',
 				properties: {
 					force: {
-						type: 'boolean'
+						type: 'boolean',
 					},
-					secret: {
-						type: 'array'
+					defaultPassword: {
+						type: 'string',
+					},
+					delegates: {
+						type: 'array',
+						items: {
+							properties: {
+								encryptedPassphrase: {
+									type: 'string',
+									format: 'encryptedPassphrase',
+								},
+								publicKey: {
+									type: 'string',
+									format: 'publicKey',
+								},
+							},
+						},
 					},
 					access: {
 						type: 'object',
 						properties: {
 							whiteList: {
-								type: 'array'
-							}
+								type: 'array',
+							},
 						},
-						required: ['whiteList']
-					}
+						required: ['whiteList'],
+					},
 				},
-				required: ['force', 'secret', 'access']
+				required: ['force', 'delegates', 'access'],
 			},
 			loading: {
 				type: 'object',
 				properties: {
-					verifyOnLoading: {
-						type: 'boolean'
-					},
 					loadPerIteration: {
 						type: 'integer',
 						minimum: 1,
-						maximum: 5000
-					}
+						maximum: 5000,
+					},
 				},
-				required: ['verifyOnLoading', 'loadPerIteration']
+				required: ['loadPerIteration'],
 			},
 			ssl: {
 				type: 'object',
 				properties: {
 					enabled: {
-						type: 'boolean'
+						type: 'boolean',
 					},
 					options: {
 						type: 'object',
 						properties: {
 							port: {
-								type: 'integer'
+								type: 'integer',
 							},
 							address: {
 								type: 'string',
 								format: 'ip',
 							},
 							key: {
-								type: 'string'
+								type: 'string',
 							},
 							cert: {
-								type: 'string'
-							}
+								type: 'string',
+							},
 						},
-						required: ['port', 'address', 'key', 'cert']
-					}
-				},
-				required: ['enabled', 'options']
-			},
-			dapp: {
-				type: 'object',
-				properties: {
-					masterrequired: {
-						type: 'boolean'
+						required: ['port', 'address', 'key', 'cert'],
 					},
-					masterpassword: {
-						type: 'string'
-					},
-					autoexec: {
-						type: 'array'
-					}
 				},
-				required: ['masterrequired', 'masterpassword', 'autoexec']
+				required: ['enabled', 'options'],
 			},
 			nethash: {
 				type: 'string',
-				format: 'hex'
-			}
+				format: 'hex',
+			},
 		},
-		required: ['port', 'address', 'version', 'minVersion', 'fileLogLevel', 'logFileName', 'consoleLogLevel', 'trustProxy', 'topAccounts', 'db', 'api', 'peers', 'broadcasts', 'transactions', 'forging', 'loading', 'ssl', 'dapp', 'nethash', 'cacheEnabled', 'redis']
-	}
+		required: [
+			'wsPort',
+			'httpPort',
+			'address',
+			'version',
+			'minVersion',
+			'fileLogLevel',
+			'logFileName',
+			'consoleLogLevel',
+			'trustProxy',
+			'topAccounts',
+			'db',
+			'api',
+			'peers',
+			'broadcasts',
+			'transactions',
+			'forging',
+			'loading',
+			'ssl',
+			'nethash',
+			'cacheEnabled',
+			'redis',
+		],
+	},
 };

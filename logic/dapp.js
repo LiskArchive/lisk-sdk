@@ -1,108 +1,107 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var ByteBuffer = require('bytebuffer');
-var constants = require('../helpers/constants.js');
-var dappCategories = require('../helpers/dappCategories.js');
-var sql = require('../sql/dapps.js');
-var valid_url = require('valid-url');
+const valid_url = require('valid-url');
+const ByteBuffer = require('bytebuffer');
+const constants = require('../helpers/constants.js');
+const dappCategories = require('../helpers/dapp_categories.js');
 
-// Private fields
-var library, __private = {};
+let library;
+const __private = {};
 
 __private.unconfirmedNames = {};
 __private.unconfirmedLinks = {};
 __private.unconfirmedAscii = {};
 
 /**
- * Initializes library.
- * @memberof module:dapps
+ * Main dapp logic. Initializes library.
+ *
  * @class
- * @classdesc Main dapp logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires bytebuffer
+ * @requires valid
+ * @requires helpers/constants
+ * @requires helpers/dapp_categories
  * @param {Database} db
  * @param {Object} logger
  * @param {ZSchema} schema
  * @param {Object} network
+ * @todo Add description for the params
  */
-// Constructor
-function DApp (db, logger, schema, network) {
-	library = {
-		db: db,
-		logger: logger,
-		schema: schema,
-		network: network,
-	};
+class DApp {
+	constructor(db, logger, schema, network) {
+		library = {
+			db,
+			logger,
+			schema,
+			network,
+		};
+	}
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds scope.modules to private variable modules.
  */
-DApp.prototype.bind = function () {};
-
-/**
- * Creates transaction.asset.dapp based on data.
- * @param {dapp} data
- * @param {transaction} trs
- * @return {transaction} trs with new data
- */
-DApp.prototype.create = function (data, trs) {
-	trs.recipientId = null;
-	trs.amount = 0;
-
-	trs.asset.dapp = {
-		category: data.category,
-		name: data.name,
-		description: data.description,
-		tags: data.tags,
-		type: data.dapp_type,
-		link: data.link,
-		icon: data.icon
-	};
-
-	return trs;
-};
+DApp.prototype.bind = function() {};
 
 /**
  * Returns dapp fee from constants.
- * @param {transaction} trs
- * @param {account} sender
- * @return {number} fee
+ *
+ * @returns {number} Transaction fee
  */
-DApp.prototype.calculateFee = function (trs, sender) {
-	return constants.fees.dapp;
+DApp.prototype.calculateFee = function() {
+	return constants.fees.dappRegistration;
 };
 
 /**
- * Verifies transaction and dapp fields. Checks dapp name and link in 
+ * Verifies transaction and dapp fields. Checks dapp name and link in
  * `dapps` table.
- * @implements {library.db.query}
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} errors | trs
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
-DApp.prototype.verify = function (trs, sender, cb) {
-	var i;
-
-	if (trs.recipientId) {
+DApp.prototype.verify = function(transaction, sender, cb, tx) {
+	if (transaction.recipientId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (trs.amount !== 0) {
+	if (transaction.amount !== 0) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	if (!trs.asset || !trs.asset.dapp) {
+	if (!transaction.asset || !transaction.asset.dapp) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	if (trs.asset.dapp.category !== 0 && !trs.asset.dapp.category) {
+	if (
+		transaction.asset.dapp.category !== 0 &&
+		!transaction.asset.dapp.category
+	) {
 		return setImmediate(cb, 'Invalid application category');
 	}
 
-	var foundCategory = false;
-	for (i in dappCategories) {
-		if (dappCategories[i] === trs.asset.dapp.category) {
+	let foundCategory = false;
+	for (const i of Object.keys(dappCategories)) {
+		if (dappCategories[i] === transaction.asset.dapp.category) {
 			foundCategory = true;
 			break;
 		}
@@ -112,96 +111,126 @@ DApp.prototype.verify = function (trs, sender, cb) {
 		return setImmediate(cb, 'Application category not found');
 	}
 
-	if (trs.asset.dapp.icon) {
-		if (!valid_url.isUri(trs.asset.dapp.icon)) {
+	if (transaction.asset.dapp.icon) {
+		if (!valid_url.isUri(transaction.asset.dapp.icon)) {
 			return setImmediate(cb, 'Invalid application icon link');
 		}
 
-		var length = trs.asset.dapp.icon.length;
+		const length = transaction.asset.dapp.icon.length;
 
 		if (
-			trs.asset.dapp.icon.indexOf('.png') !== length - 4 &&
-			trs.asset.dapp.icon.indexOf('.jpg') !== length - 4 &&
-			trs.asset.dapp.icon.indexOf('.jpeg') !== length - 5
+			transaction.asset.dapp.icon.indexOf('.png') !== length - 4 &&
+			transaction.asset.dapp.icon.indexOf('.jpg') !== length - 4 &&
+			transaction.asset.dapp.icon.indexOf('.jpeg') !== length - 5
 		) {
 			return setImmediate(cb, 'Invalid application icon file type');
 		}
 	}
 
-	if (trs.asset.dapp.type > 1 || trs.asset.dapp.type < 0) {
+	if (transaction.asset.dapp.type > 1 || transaction.asset.dapp.type < 0) {
 		return setImmediate(cb, 'Invalid application type');
 	}
 
-	if (!valid_url.isUri(trs.asset.dapp.link)) {
+	if (!valid_url.isUri(transaction.asset.dapp.link)) {
 		return setImmediate(cb, 'Invalid application link');
 	}
 
-	if (trs.asset.dapp.link.indexOf('.zip') !== trs.asset.dapp.link.length - 4) {
+	if (
+		transaction.asset.dapp.link.indexOf('.zip') !==
+		transaction.asset.dapp.link.length - 4
+	) {
 		return setImmediate(cb, 'Invalid application file type');
 	}
 
-	if (!trs.asset.dapp.name || trs.asset.dapp.name.trim().length === 0 || trs.asset.dapp.name.trim() !== trs.asset.dapp.name) {
+	if (
+		!transaction.asset.dapp.name ||
+		transaction.asset.dapp.name.trim().length === 0 ||
+		transaction.asset.dapp.name.trim() !== transaction.asset.dapp.name
+	) {
 		return setImmediate(cb, 'Application name must not be blank');
 	}
 
-	if (trs.asset.dapp.name.length > 32) {
-		return setImmediate(cb, 'Application name is too long. Maximum is 32 characters');
+	if (transaction.asset.dapp.name.length > 32) {
+		return setImmediate(
+			cb,
+			'Application name is too long. Maximum is 32 characters'
+		);
 	}
 
-	if (trs.asset.dapp.description && trs.asset.dapp.description.length > 160) {
-		return setImmediate(cb, 'Application description is too long. Maximum is 160 characters');
+	if (
+		transaction.asset.dapp.description &&
+		transaction.asset.dapp.description.length > 160
+	) {
+		return setImmediate(
+			cb,
+			'Application description is too long. Maximum is 160 characters'
+		);
 	}
 
-	if (trs.asset.dapp.tags && trs.asset.dapp.tags.length > 160) {
-		return setImmediate(cb, 'Application tags is too long. Maximum is 160 characters');
+	if (transaction.asset.dapp.tags && transaction.asset.dapp.tags.length > 160) {
+		return setImmediate(
+			cb,
+			'Application tags is too long. Maximum is 160 characters'
+		);
 	}
 
-	if (trs.asset.dapp.tags) {
-		var tags = trs.asset.dapp.tags.split(',');
+	if (transaction.asset.dapp.tags) {
+		let tags = transaction.asset.dapp.tags.split(',');
 
-		tags = tags.map(function (tag) {
-			return tag.trim();
-		}).sort();
+		tags = tags.map(tag => tag.trim()).sort();
 
-		for (i = 0; i < tags.length - 1; i++) {
+		for (let i = 0; i < tags.length - 1; i++) {
 			if (tags[i + 1] === tags[i]) {
-				return setImmediate(cb, 'Encountered duplicate tag: ' + tags[i] + ' in application');
+				return setImmediate(
+					cb,
+					`Encountered duplicate tag: ${tags[i]} in application`
+				);
 			}
 		}
 	}
 
-	library.db.query(sql.getExisting, {
-		name: trs.asset.dapp.name,
-		link: trs.asset.dapp.link || null,
-		transactionId: trs.id
-	}).then(function (rows) {
-		var dapp = rows[0];
+	(tx || library.db).dapps
+		.getExisting({
+			name: transaction.asset.dapp.name,
+			link: transaction.asset.dapp.link || null,
+			transactionId: transaction.id,
+		})
+		.then(rows => {
+			const dapp = rows[0];
 
-		if (dapp) {
-			if (dapp.name === trs.asset.dapp.name) {
-				return setImmediate(cb, 'Application name already exists: ' + dapp.name);
-			} else if (dapp.link === trs.asset.dapp.link) {
-				return setImmediate(cb, 'Application link already exists: ' + dapp.link);
-			} else {
+			if (dapp) {
+				if (dapp.name === transaction.asset.dapp.name) {
+					return setImmediate(
+						cb,
+						`Application name already exists: ${dapp.name}`
+					);
+				} else if (dapp.link === transaction.asset.dapp.link) {
+					return setImmediate(
+						cb,
+						`Application link already exists: ${dapp.link}`
+					);
+				}
 				return setImmediate(cb, 'Application already exists');
 			}
-		} else {
-			return setImmediate(cb, null, trs);
-		}
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'DApp#verify error');
-	});
+			return setImmediate(cb, null, transaction);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'DApp#verify error');
+		});
 };
 
 /**
- * @param {transaction} trs
+ * Description of the function.
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, trs
+ * @returns {SetImmediate} null, transaction
+ * @todo Add description for the function and the params
  */
-DApp.prototype.process = function (trs, sender, cb) {
-	return setImmediate(cb, null, trs);
+DApp.prototype.process = function(transaction, sender, cb) {
+	return setImmediate(cb, null, transaction);
 };
 
 /**
@@ -213,42 +242,54 @@ DApp.prototype.process = function (trs, sender, cb) {
  * - icon
  * - type
  * - category
- * @param {transaction} trs
- * @return {Array} Buffer
- * @throws {e} error
+ *
+ * @param {transaction} transaction
+ * @throws {Error}
+ * @returns {Array} Buffer
+ * @todo Add description for the params
+ * @todo Check type and description of the return value
  */
-DApp.prototype.getBytes = function (trs) {
-	var buf;
+DApp.prototype.getBytes = function(transaction) {
+	let buf;
 
 	try {
 		buf = Buffer.from([]);
-		var nameBuf = Buffer.from(trs.asset.dapp.name, 'utf8');
+		const nameBuf = Buffer.from(transaction.asset.dapp.name, 'utf8');
 		buf = Buffer.concat([buf, nameBuf]);
 
-		if (trs.asset.dapp.description) {
-			var descriptionBuf = Buffer.from(trs.asset.dapp.description, 'utf8');
+		if (transaction.asset.dapp.description) {
+			const descriptionBuf = Buffer.from(
+				transaction.asset.dapp.description,
+				'utf8'
+			);
 			buf = Buffer.concat([buf, descriptionBuf]);
 		}
 
-		if (trs.asset.dapp.tags) {
-			var tagsBuf = Buffer.from(trs.asset.dapp.tags, 'utf8');
+		if (transaction.asset.dapp.tags) {
+			const tagsBuf = Buffer.from(transaction.asset.dapp.tags, 'utf8');
 			buf = Buffer.concat([buf, tagsBuf]);
 		}
 
-		if (trs.asset.dapp.link) {
-			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.link, 'utf8')]);
+		if (transaction.asset.dapp.link) {
+			buf = Buffer.concat([
+				buf,
+				Buffer.from(transaction.asset.dapp.link, 'utf8'),
+			]);
 		}
 
-		if (trs.asset.dapp.icon) {
-			buf = Buffer.concat([buf, Buffer.from(trs.asset.dapp.icon, 'utf8')]);
+		if (transaction.asset.dapp.icon) {
+			buf = Buffer.concat([
+				buf,
+				Buffer.from(transaction.asset.dapp.icon, 'utf8'),
+			]);
 		}
 
-		var bb = new ByteBuffer(4 + 4, true);
-		bb.writeInt(trs.asset.dapp.type);
-		bb.writeInt(trs.asset.dapp.category);
-		bb.flip();
+		const byteBuffer = new ByteBuffer(4 + 4, true);
+		byteBuffer.writeInt(transaction.asset.dapp.type);
+		byteBuffer.writeInt(transaction.asset.dapp.category);
+		byteBuffer.flip();
 
-		buf = Buffer.concat([buf, bb.toBuffer()]);
+		buf = Buffer.concat([buf, byteBuffer.toBuffer()]);
 	} catch (e) {
 		throw e;
 	}
@@ -257,60 +298,76 @@ DApp.prototype.getBytes = function (trs) {
 };
 
 /**
- * @param {transaction} trs
+ * Description of the function.
+ *
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the function and the params
  */
-DApp.prototype.apply = function (trs, block, sender, cb) {
+DApp.prototype.apply = function(transaction, block, sender, cb) {
+	delete __private.unconfirmedNames[transaction.asset.dapp.name];
+	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
+
 	return setImmediate(cb);
 };
 
 /**
- * @param {transaction} trs
+ * Description of the function.
+ *
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the function and the params
  */
-DApp.prototype.undo = function (trs, block, sender, cb) {
+DApp.prototype.undo = function(transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 
 /**
- * Checks if dapp name and link exists, if not adds them to private 
+ * Checks if dapp name and link exists, if not adds them to private
  * unconfirmed variables.
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb|errors
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
-DApp.prototype.applyUnconfirmed = function (trs, sender, cb) {
-	if (__private.unconfirmedNames[trs.asset.dapp.name]) {
+DApp.prototype.applyUnconfirmed = function(transaction, sender, cb) {
+	if (__private.unconfirmedNames[transaction.asset.dapp.name]) {
 		return setImmediate(cb, 'Application name already exists');
 	}
 
-	if (trs.asset.dapp.link && __private.unconfirmedLinks[trs.asset.dapp.link]) {
+	if (
+		transaction.asset.dapp.link &&
+		__private.unconfirmedLinks[transaction.asset.dapp.link]
+	) {
 		return setImmediate(cb, 'Application link already exists');
 	}
 
-	__private.unconfirmedNames[trs.asset.dapp.name] = true;
-	__private.unconfirmedLinks[trs.asset.dapp.link] = true;
+	__private.unconfirmedNames[transaction.asset.dapp.name] = true;
+	__private.unconfirmedLinks[transaction.asset.dapp.link] = true;
 
 	return setImmediate(cb);
 };
 
 /**
  * Deletes dapp name and link from private unconfirmed variables.
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
-DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	delete __private.unconfirmedNames[trs.asset.dapp.name];
-	delete __private.unconfirmedLinks[trs.asset.dapp.link];
+DApp.prototype.undoUnconfirmed = function(transaction, sender, cb) {
+	delete __private.unconfirmedNames[transaction.asset.dapp.name];
+	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
 	return setImmediate(cb);
 };
@@ -324,7 +381,7 @@ DApp.prototype.undoUnconfirmed = function (trs, sender, cb) {
  * @property {dappType} type - Number, minimum 0
  * @property {string} link - Between 0 and 2000 chars
  * @property {string} icon - Between 0 and 2000 chars
- * @property {string} transactionId - transaction id
+ * @property {string} transactionId - Transaction id
  */
 DApp.prototype.schema = {
 	id: 'DApp',
@@ -333,133 +390,107 @@ DApp.prototype.schema = {
 		category: {
 			type: 'integer',
 			minimum: 0,
-			maximum: 8
+			maximum: 8,
 		},
 		name: {
 			type: 'string',
 			minLength: 1,
-			maxLength: 32
+			maxLength: 32,
 		},
 		description: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 160
+			maxLength: 160,
 		},
 		tags: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 160
+			maxLength: 160,
 		},
 		type: {
 			type: 'integer',
-			minimum: 0
+			minimum: 0,
 		},
 		link: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 2000
+			maxLength: 2000,
 		},
 		icon: {
 			type: 'string',
 			minLength: 0,
-			maxLength: 2000
-		}
+			maxLength: 2000,
+		},
 	},
-	required: ['type', 'name', 'category']
+	required: ['type', 'name', 'category'],
 };
 
 /**
  * Deletes null or undefined dapp from transaction and validate dapp schema.
- * @implements {library.schema.validate}
- * @param {transaction} trs
- * @return {transaction}
- * @throws {string} Failed to validate dapp schema.
+ *
+ * @param {transaction} transaction
+ * @throws {string} If dapp schema is invalid
+ * @returns {transaction}
+ * @todo Add description for the params
  */
-DApp.prototype.objectNormalize = function (trs) {
-	for (var i in trs.asset.dapp) {
-		if (trs.asset.dapp[i] === null || typeof trs.asset.dapp[i] === 'undefined') {
-			delete trs.asset.dapp[i];
+DApp.prototype.objectNormalize = function(transaction) {
+	for (const i of Object.keys(transaction.asset.dapp)) {
+		if (
+			transaction.asset.dapp[i] === null ||
+			typeof transaction.asset.dapp[i] === 'undefined'
+		) {
+			delete transaction.asset.dapp[i];
 		}
 	}
 
-	var report = library.schema.validate(trs.asset.dapp, DApp.prototype.schema);
+	const report = library.schema.validate(
+		transaction.asset.dapp,
+		DApp.prototype.schema
+	);
 
 	if (!report) {
-		throw 'Failed to validate dapp schema: ' + this.scope.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate dapp schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
 	}
 
-	return trs;
+	return transaction;
 };
 
 /**
  * Creates dapp object based on raw data.
+ *
  * @param {Object} raw
- * @return {null|dapp} dapp object
+ * @returns {null|Object} Dapp object
+ * @todo Add description for the params
  */
-DApp.prototype.dbRead = function (raw) {
+DApp.prototype.dbRead = function(raw) {
 	if (!raw.dapp_name) {
 		return null;
-	} else {
-		var dapp = {
-			name: raw.dapp_name,
-			description: raw.dapp_description,
-			tags: raw.dapp_tags,
-			type: raw.dapp_type,
-			link: raw.dapp_link,
-			category: raw.dapp_category,
-			icon: raw.dapp_icon
-		};
-
-		return {dapp: dapp};
 	}
-};
-
-DApp.prototype.dbTable = 'dapps';
-
-DApp.prototype.dbFields = [
-	'type',
-	'name',
-	'description',
-	'tags',
-	'link',
-	'category',
-	'icon',
-	'transactionId'
-];
-
-/**
- * Creates db operation object based on dapp data.
- * @see privateTypes
- * @param {transaction} trs
- * @return {Object[]} table, fields, values.
- */
-DApp.prototype.dbSave = function (trs) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			type: trs.asset.dapp.type,
-			name: trs.asset.dapp.name,
-			description: trs.asset.dapp.description || null,
-			tags: trs.asset.dapp.tags || null,
-			link: trs.asset.dapp.link || null,
-			icon: trs.asset.dapp.icon || null,
-			category: trs.asset.dapp.category,
-			transactionId: trs.id
-		}
+	const dapp = {
+		name: raw.dapp_name,
+		description: raw.dapp_description,
+		tags: raw.dapp_tags,
+		type: raw.dapp_type,
+		link: raw.dapp_link,
+		category: raw.dapp_category,
+		icon: raw.dapp_icon,
 	};
+
+	return { dapp };
 };
 
 /**
  * Emits 'dapps/change' signal.
- * @implements {library.network.io.sockets}
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
  */
-DApp.prototype.afterSave = function (trs, cb) {
+DApp.prototype.afterSave = function(transaction, cb) {
 	if (library) {
 		library.network.io.sockets.emit('dapps/change', {});
 	}
@@ -467,22 +498,21 @@ DApp.prototype.afterSave = function (trs, cb) {
 };
 
 /**
- * Checks sender multisignatures and transaction signatures.
- * @param {transaction} trs
+ * Checks if transaction has enough signatures to be confirmed.
+ *
+ * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
- * sender multimin or there are not sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
+ * @todo Add description for the params
  */
-DApp.prototype.ready = function (trs, sender) {
+DApp.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		if (!Array.isArray(trs.signatures)) {
+		if (!Array.isArray(transaction.signatures)) {
 			return false;
 		}
-		return trs.signatures.length >= sender.multimin;
-	} else {
-		return true;
+		return transaction.signatures.length >= sender.multimin;
 	}
+	return true;
 };
 
-// Export
 module.exports = DApp;

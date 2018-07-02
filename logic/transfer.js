@@ -1,214 +1,298 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var constants = require('../helpers/constants.js');
+const constants = require('../helpers/constants.js');
+const bignum = require('../helpers/bignum.js');
+const slots = require('../helpers/slots.js');
 
-// Private fields
-var modules;
+let modules;
+let library;
 
 /**
  * Main transfer logic.
- * @memberof module:transactions
+ *
  * @class
- * @classdesc Main transfer logic.
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires helpers/bignum
+ * @requires helpers/constants
+ * @requires helpers/slots
+ * @param {Object} logger
+ * @param {Object} schema
+ * @todo Add description for the params
  */
-// Constructor
-function Transfer () {}
+class Transfer {
+	constructor(logger, schema) {
+		library = {
+			logger,
+			schema,
+		};
+	}
+}
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds input parameters to private variable modules.
+ *
  * @param {Accounts} accounts
- * @param {Rounds} rounds
+ * @todo Add description for the params
  */
-Transfer.prototype.bind = function (accounts, rounds) {
+Transfer.prototype.bind = function(accounts) {
 	modules = {
-		accounts: accounts,
-		rounds: rounds,
+		accounts,
 	};
 };
 
 /**
- * Assigns data to transaction recipientId and amount.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with assigned data
- */
-Transfer.prototype.create = function (data, trs) {
-	trs.recipientId = data.recipientId;
-	trs.amount = data.amount;
-
-	return trs;
-};
-/**
  * Returns send fees from constants.
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
- * @return {number} fee
+ * @returns {number} Transaction fee
+ * @todo Add description for the params
  */
-Transfer.prototype.calculateFee = function (trs, sender) {
-	return constants.fees.send;
+Transfer.prototype.calculateFee = function() {
+	const fee = new bignum(constants.fees.send);
+	return Number(fee.toString());
 };
 
 /**
  * Verifies recipientId and amount greather than 0.
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} errors | trs
+ * @returns {SetImmediate} error, transaction
+ * @todo Add description for the params
  */
-Transfer.prototype.verify = function (trs, sender, cb) {
-	if (!trs.recipientId) {
+Transfer.prototype.verify = function(transaction, sender, cb) {
+	if (!transaction.recipientId) {
 		return setImmediate(cb, 'Missing recipient');
 	}
 
-	if (trs.amount <= 0) {
+	if (transaction.amount <= 0) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
-	return setImmediate(cb, null, trs);
+	return setImmediate(cb, null, transaction);
 };
 
 /**
- * @param {transaction} trs
+ * Description of the function.
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, trs
+ * @returns {SetImmediate} null, transaction
+ * @todo Add description for the params
  */
-Transfer.prototype.process = function (trs, sender, cb) {
-	return setImmediate(cb, null, trs);
+Transfer.prototype.process = function(transaction, sender, cb) {
+	return setImmediate(cb, null, transaction);
 };
 
 /**
- * @param {transaction} trs
- * @return {null}
+ * Creates a buffer with asset.transfer.data.
+ *
+ * @param {transaction} transaction
+ * @throws {Error}
+ * @returns {buffer}
+ * @todo Add description for the params
  */
-Transfer.prototype.getBytes = function (trs) {
-	return null;
-};
-
-/**
- * Calls setAccountAndGet based on transaction recipientId and
- * mergeAccountAndGet with unconfirmed trs amount.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
- * @param {transaction} trs
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-Transfer.prototype.apply = function (trs, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (setAccountAndGetErr, recipient) {
-		if (setAccountAndGetErr) {
-			return setImmediate(cb, setAccountAndGetErr);
-		}
-
-		modules.accounts.mergeAccountAndGet({
-			address: trs.recipientId,
-			balance: trs.amount,
-			u_balance: trs.amount,
-			blockId: block.id,
-			round: modules.rounds.calc(block.height)
-		}, function (mergeAccountAndGetErr) {
-			return setImmediate(cb, mergeAccountAndGetErr);
-		});
-	});
-};
-
-/**
- * Calls setAccountAndGet based on transaction recipientId and
- * mergeAccountAndGet with unconfirmed trs amount and balance negative.
- * @implements {modules.accounts.setAccountAndGet}
- * @implements {modules.accounts.mergeAccountAndGet}
- * @implements {modules.rounds.calc}
- * @param {transaction} trs
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} error, cb
- */
-Transfer.prototype.undo = function (trs, block, sender, cb) {
-	modules.accounts.setAccountAndGet({address: trs.recipientId}, function (setAccountAndGetErr, recipient) {
-		if (setAccountAndGetErr) {
-			return setImmediate(cb, setAccountAndGetErr);
-		}
-
-		modules.accounts.mergeAccountAndGet({
-			address: trs.recipientId,
-			balance: -trs.amount,
-			u_balance: -trs.amount,
-			blockId: block.id,
-			round: modules.rounds.calc(block.height)
-		}, function (mergeAccountAndGetErr) {
-			return setImmediate(cb, mergeAccountAndGetErr);
-		});
-	});
-};
-
-/**
- * @param {transaction} trs
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-Transfer.prototype.applyUnconfirmed = function (trs, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * @param {transaction} trs
- * @param {account} sender
- * @param {function} cb
- * @return {setImmediateCallback} cb
- */
-Transfer.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	return setImmediate(cb);
-};
-
-/**
- * Deletes blockId from transaction 
- * @param {transaction} trs
- * @return {transaction}
- */
-Transfer.prototype.objectNormalize = function (trs) {
-	delete trs.blockId;
-	return trs;
-};
-
-/**
- * @param {Object} raw
- * @return {null}
- */
-Transfer.prototype.dbRead = function (raw) {
-	return null;
-};
-
-/**
- * @param {transaction} trs
- * @return {null}
- */
-Transfer.prototype.dbSave = function (trs) {
-	return null;
-};
-
-/**
- * Checks sender multisignatures and transaction signatures.
- * @param {transaction} trs
- * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
- * sender multimin or there are not sender multisignatures.
- */
-Transfer.prototype.ready = function (trs, sender) {
-	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		if (!Array.isArray(trs.signatures)) {
-			return false;
-		}
-		return trs.signatures.length >= sender.multimin;
-	} else {
-		return true;
+Transfer.prototype.getBytes = function(transaction) {
+	try {
+		return transaction.asset && transaction.asset.data
+			? Buffer.from(transaction.asset.data, 'utf8')
+			: null;
+	} catch (ex) {
+		throw ex;
 	}
 };
 
-// Export
+/**
+ * Calls setAccountAndGet based on transaction recipientId and
+ * mergeAccountAndGet with unconfirmed transaction amount.
+ *
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
+ */
+Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
+	modules.accounts.setAccountAndGet(
+		{ address: transaction.recipientId },
+		setAccountAndGetErr => {
+			if (setAccountAndGetErr) {
+				return setImmediate(cb, setAccountAndGetErr);
+			}
+
+			modules.accounts.mergeAccountAndGet(
+				{
+					address: transaction.recipientId,
+					balance: transaction.amount,
+					u_balance: transaction.amount,
+					round: slots.calcRound(block.height),
+				},
+				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
+				tx
+			);
+		},
+		tx
+	);
+};
+
+/**
+ * Calls setAccountAndGet based on transaction recipientId and
+ * mergeAccountAndGet with unconfirmed transaction amount and balance negative.
+ *
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
+ */
+Transfer.prototype.undo = function(transaction, block, sender, cb, tx) {
+	modules.accounts.setAccountAndGet(
+		{ address: transaction.recipientId },
+		setAccountAndGetErr => {
+			if (setAccountAndGetErr) {
+				return setImmediate(cb, setAccountAndGetErr);
+			}
+
+			modules.accounts.mergeAccountAndGet(
+				{
+					address: transaction.recipientId,
+					balance: -transaction.amount,
+					u_balance: -transaction.amount,
+					round: slots.calcRound(block.height),
+				},
+				mergeAccountAndGetErr => setImmediate(cb, mergeAccountAndGetErr),
+				tx
+			);
+		},
+		tx
+	);
+};
+
+/**
+ * Description of the function.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
+ */
+Transfer.prototype.applyUnconfirmed = function(transaction, sender, cb) {
+	return setImmediate(cb);
+};
+
+/**
+ * Description of the function.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb
+ * @returns {SetImmediate}
+ * @todo Add description for the params
+ */
+Transfer.prototype.undoUnconfirmed = function(transaction, sender, cb) {
+	return setImmediate(cb);
+};
+
+/**
+ * @typedef {Object} transfer
+ * @property {string} data
+ */
+Transfer.prototype.schema = {
+	id: 'transfer',
+	type: 'object',
+	properties: {
+		data: {
+			type: 'string',
+			format: 'additionalData',
+			minLength: constants.additionalData.minLength,
+			maxLength: constants.additionalData.maxLength,
+		},
+	},
+};
+
+/**
+ * Deletes blockId from transaction, and validates schema if asset exists.
+ *
+ * @param {transaction} transaction
+ * @returns {transaction}
+ * @todo Add description for the params
+ */
+Transfer.prototype.objectNormalize = function(transaction) {
+	delete transaction.blockId;
+
+	if (!transaction.asset) {
+		return transaction;
+	}
+
+	const report = library.schema.validate(
+		transaction.asset,
+		Transfer.prototype.schema
+	);
+
+	if (!report) {
+		throw `Failed to validate transfer schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
+	}
+
+	return transaction;
+};
+
+/**
+ * Checks if asset exists, if so, returns value, otherwise returns null.
+ *
+ * @param {Object} raw
+ * @returns {transferAsset|null}
+ * @todo Add description for the params
+ */
+Transfer.prototype.dbRead = function(raw) {
+	if (raw.tf_data) {
+		return { data: raw.tf_data };
+	}
+
+	return null;
+};
+
+/**
+ * Checks if transaction has enough signatures to be confirmed.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
+ * @todo Add description for the params
+ */
+Transfer.prototype.ready = function(transaction, sender) {
+	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
+		if (!Array.isArray(transaction.signatures)) {
+			return false;
+		}
+		return transaction.signatures.length >= sender.multimin;
+	}
+	return true;
+};
+
 module.exports = Transfer;

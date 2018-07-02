@@ -1,130 +1,226 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var exceptions = require('../helpers/exceptions.js');
-var Diff = require('../helpers/diff.js');
-var _ = require('lodash');
+const _ = require('lodash');
+const async = require('async');
+const constants = require('../helpers/constants.js');
+const exceptions = require('../helpers/exceptions.js');
+const Diff = require('../helpers/diff.js');
+const slots = require('../helpers/slots.js');
 
-// Private fields
-var modules, library, self;
+let modules;
+let library;
+let self;
 
-// Constructor
 /**
- * Initializes library.
- * @memberof module:accounts
- * @class
- * @classdesc Main vote logic.
+ * Main vote logic.
  * Allows validate and undo transactions, verify votes.
- * @constructor
+ * Initializes library.
+ *
+ * @class
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires async
+ * @requires lodash
+ * @requires helpers/constants
+ * @requires helpers/diff
+ * @requires helpers/exceptions
+ * @requires helpers/slots
  * @param {Object} logger
  * @param {ZSchema} schema
+ * @todo Add description for the params
  */
-function Vote (logger, schema) {
-	self = this;
-	library = {
-		logger: logger,
-		schema: schema,
-	};
+class Vote {
+	constructor(logger, schema) {
+		self = this;
+		library = {
+			logger,
+			schema,
+		};
+	}
 
+	/**
+	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * sender address with inverted votes as delegates.
+	 *
+	 * @param {transaction} transaction
+	 * @param {block} block
+	 * @param {account} sender
+	 * @param {function} cb - Callback function
+	 * @returns {SetImmediate} error
+	 * @todo Add description for the params
+	 */
+	undo(transaction, block, sender, cb, tx) {
+		if (transaction.asset.votes === null) {
+			return setImmediate(cb);
+		}
+
+		const votesInvert = Diff.reverse(transaction.asset.votes);
+
+		this.scope.account.merge(
+			sender.address,
+			{
+				delegates: votesInvert,
+				round: slots.calcRound(block.height),
+			},
+			mergeErr => setImmediate(cb, mergeErr),
+			tx
+		);
+	}
+
+	/**
+	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * sender address with inverted votes as unconfirmed delegates.
+	 *
+	 * @param {transaction} transaction
+	 * @param {account} sender
+	 * @param {function} cb - Callback function
+	 * @returns {SetImmediate} error
+	 * @todo Add description for the params
+	 */
+	undoUnconfirmed(transaction, sender, cb, tx) {
+		if (transaction.asset.votes === null) {
+			return setImmediate(cb);
+		}
+
+		const votesInvert = Diff.reverse(transaction.asset.votes);
+
+		this.scope.account.merge(
+			sender.address,
+			{ u_delegates: votesInvert },
+			mergeErr => setImmediate(cb, mergeErr),
+			tx
+		);
+	}
 }
 
-// Public methods
+// TODO: The below functions should be converted into static functions,
+// however, this will lead to incompatibility with modules and tests implementation.
 /**
  * Binds module content to private object modules.
+ *
  * @param {Delegates} delegates
- * @param {Rounds} rounds
+ * @todo Add description for the params
  */
-Vote.prototype.bind = function (delegates, rounds) {
+Vote.prototype.bind = function(delegates) {
 	modules = {
-		delegates: delegates,
-		rounds: rounds,
+		delegates,
 	};
-};
-
-/**
- * Sets recipientId with sender address.
- * Creates transaction.asset.votes based on data.
- * @param {Object} data
- * @param {transaction} trs
- * @return {transaction} trs with new data
- */
-Vote.prototype.create = function (data, trs) {
-	trs.recipientId = data.sender.address;
-	trs.asset.votes = data.votes;
-
-	return trs;
 };
 
 /**
  * Obtains constant fee vote.
+ *
  * @see {@link module:helpers/constants}
- * @return {number} fee
+ * @returns {number} Transaction fee
  */
-Vote.prototype.calculateFee = function (trs, sender) {
+Vote.prototype.calculateFee = function() {
 	return constants.fees.vote;
 };
 
 /**
  * Validates transaction votes fields and for each vote calls verifyVote.
- * @implements {verifyVote}
- * @implements {checkConfirmedDelegates}
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
- * @param {function} cb - Callback function.
- * @returns {setImmediateCallback|function} returns error if invalid field | 
- * calls checkConfirmedDelegates.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate|checkConfirmedDelegates}
+ * @todo Add description for the params
  */
-Vote.prototype.verify = function (trs, sender, cb) {
-	if (trs.recipientId !== trs.senderId) {
+Vote.prototype.verify = function(transaction, sender, cb, tx) {
+	if (transaction.recipientId !== transaction.senderId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (!trs.asset || !trs.asset.votes) {
+	if (!transaction.asset || !transaction.asset.votes) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	if (!Array.isArray(trs.asset.votes)) {
+	if (!Array.isArray(transaction.asset.votes)) {
 		return setImmediate(cb, 'Invalid votes. Must be an array');
 	}
 
-	if (!trs.asset.votes.length) {
+	if (!transaction.asset.votes.length) {
 		return setImmediate(cb, 'Invalid votes. Must not be empty');
 	}
 
-	if (trs.asset.votes && trs.asset.votes.length > constants.maxVotesPerTransaction) {
-		return setImmediate(cb, ['Voting limit exceeded. Maximum is', constants.maxVotesPerTransaction, 'votes per transaction'].join(' '));
+	if (
+		transaction.asset.votes &&
+		transaction.asset.votes.length > constants.maxVotesPerTransaction
+	) {
+		return setImmediate(
+			cb,
+			[
+				'Voting limit exceeded. Maximum is',
+				constants.maxVotesPerTransaction,
+				'votes per transaction',
+			].join(' ')
+		);
 	}
 
-	async.eachSeries(trs.asset.votes, function (vote, eachSeriesCb) {
-		self.verifyVote(vote, function (err) {
+	async.eachSeries(
+		transaction.asset.votes,
+		(vote, eachSeriesCb) => {
+			self.verifyVote(
+				vote,
+				err => {
+					if (err) {
+						return setImmediate(
+							eachSeriesCb,
+							[
+								'Invalid vote at index',
+								transaction.asset.votes.indexOf(vote),
+								'-',
+								err,
+							].join(' ')
+						);
+					}
+					return setImmediate(eachSeriesCb);
+				},
+				tx
+			);
+		},
+		err => {
 			if (err) {
-				return setImmediate(eachSeriesCb, ['Invalid vote at index', trs.asset.votes.indexOf(vote), '-', err].join(' '));
-			} else {
-				return setImmediate(eachSeriesCb);
+				return setImmediate(cb, err);
 			}
-		});
-	}, function (err) {
-		if (err) {
-			return setImmediate(cb, err);
-		} else {
-
-			if (trs.asset.votes.length > _.uniqBy(trs.asset.votes, function (v) { return v.slice(1); }).length) {
-				return setImmediate(cb, 'Multiple votes for same delegate are not allowed');
+			if (
+				transaction.asset.votes.length >
+				_.uniqBy(transaction.asset.votes, v => v.slice(1)).length
+			) {
+				return setImmediate(
+					cb,
+					'Multiple votes for same delegate are not allowed'
+				);
 			}
 
-			return self.checkConfirmedDelegates(trs, cb);
+			return self.checkConfirmedDelegates(transaction, cb, tx);
 		}
-	});
+	);
 };
 
 /**
  * Checks type, format and lenght from vote.
+ *
  * @param {Object} vote
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} error message | cb.
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
  */
-Vote.prototype.verifyVote = function (vote, cb) {
+Vote.prototype.verifyVote = function(vote, cb) {
 	if (typeof vote !== 'string') {
 		return setImmediate(cb, 'Invalid vote type');
 	}
@@ -142,180 +238,157 @@ Vote.prototype.verifyVote = function (vote, cb) {
 
 /**
  * Calls checkConfirmedDelegates() with senderPublicKeykey and asset votes.
- * @implements {modules.delegates.checkConfirmedDelegates}
- * @param {transaction} trs
- * @param {function} cb - Callback function.
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
- * exceptions votes list)
+ *
+ * @param {transaction} transaction
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error - If transaction id is not in exceptions votes list
+ * @todo Add description for the params
  */
-Vote.prototype.checkConfirmedDelegates = function (trs, cb) {
-	modules.delegates.checkConfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
-		if (err && exceptions.votes.indexOf(trs.id) > -1) {
-			library.logger.debug(err);
-			library.logger.debug(JSON.stringify(trs));
-			err = null;
-		}
+Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
+	modules.delegates.checkConfirmedDelegates(
+		transaction.senderPublicKey,
+		transaction.asset.votes,
+		err => {
+			if (err && exceptions.votes.indexOf(transaction.id) > -1) {
+				library.logger.debug(err);
+				library.logger.debug(JSON.stringify(transaction));
+				err = null;
+			}
 
-		return setImmediate(cb, err);
-	});
+			return setImmediate(cb, err);
+		},
+		tx
+	);
 };
 
 /**
  * Calls checkUnconfirmedDelegates() with senderPublicKeykey and asset votes.
- * @implements {modules.delegates.checkUnconfirmedDelegates}
- * @param {Object} trs
+ *
+ * @param {Object} transaction
  * @param {function} cb
- * @return {setImmediateCallback} cb, err(if transaction id is not in 
- * exceptions votes list)
+ * @returns {SetImmediate} error - If transaction id is not in exceptions votes list
+ * @todo Add description for the params
  */
-Vote.prototype.checkUnconfirmedDelegates = function (trs, cb) {
-	modules.delegates.checkUnconfirmedDelegates(trs.senderPublicKey, trs.asset.votes, function (err) {
-		if (err && exceptions.votes.indexOf(trs.id) > -1) {
-			library.logger.debug(err);
-			library.logger.debug(JSON.stringify(trs));
-			err = null;
-		}
+Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
+	modules.delegates.checkUnconfirmedDelegates(
+		transaction.senderPublicKey,
+		transaction.asset.votes,
+		err => {
+			if (err && exceptions.votes.indexOf(transaction.id) > -1) {
+				library.logger.debug(err);
+				library.logger.debug(JSON.stringify(transaction));
+				err = null;
+			}
 
-		return setImmediate(cb, err);
-	});
+			return setImmediate(cb, err);
+		},
+		tx
+	);
 };
 
 /**
- * @param {transaction} trs
+ * Description of the function.
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb
- * @return {setImmediateCallback} cb, null, trs
+ * @returns {SetImmediate} null, transaction
+ * @todo Add description for the params
  */
-Vote.prototype.process = function (trs, sender, cb) {
-	return setImmediate(cb, null, trs);
+Vote.prototype.process = function(transaction, sender, cb) {
+	return setImmediate(cb, null, transaction);
 };
 
 /**
  * Creates a buffer with asset.votes information.
- * @param {transaction} trs
- * @return {Array} Buffer
- * @throws {e} error
+ *
+ * @param {transaction} transaction
+ * @throws {Error}
+ * @returns {Array} Buffer
+ * @todo Add description for the params
+ * @todo Check type and description of the return value
  */
-Vote.prototype.getBytes = function (trs) {
-	var buf;
-
+Vote.prototype.getBytes = function(transaction) {
 	try {
-		buf = trs.asset.votes ? Buffer.from(trs.asset.votes.join(''), 'utf8') : null;
+		return transaction.asset.votes
+			? Buffer.from(transaction.asset.votes.join(''), 'utf8')
+			: null;
 	} catch (e) {
 		throw e;
 	}
-
-	return buf;
 };
 
 /**
  * Calls checkConfirmedDelegates based on transaction data and
  * merges account to sender address with votes as delegates.
- * @implements {checkConfirmedDelegates}
- * @implements {scope.account.merge}
- * @implements {modules.rounds.calc}
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo delete unnecessary var parent = this
+ * @todo Delete unnecessary const parent = this
+ * @todo Add description for the params
  */
-Vote.prototype.apply = function (trs, block, sender, cb) {
-	var parent = this;
+Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
+	const parent = this;
 
-	async.series([
-		function (seriesCb) {
-			self.checkConfirmedDelegates(trs, seriesCb);
-		},
-		function (seriesCb) {
-			parent.scope.account.merge(sender.address, {
-				delegates: trs.asset.votes,
-				blockId: block.id,
-				round: modules.rounds.calc(block.height)
-			}, function (mergeErr) {
-				return setImmediate(seriesCb, mergeErr);
-			});
-		}
-	], cb);
-};
-
-/**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
- * sender address with inverted votes as delegates.
- * @implements {Diff}
- * @implements {scope.account.merge}
- * @implements {modules.rounds.calc}
- * @param {transaction} trs
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
- */
-Vote.prototype.undo = function (trs, block, sender, cb) {
-	if (trs.asset.votes === null) { return setImmediate(cb); }
-
-	var votesInvert = Diff.reverse(trs.asset.votes);
-
-	this.scope.account.merge(sender.address, {
-		delegates: votesInvert,
-		blockId: block.id,
-		round: modules.rounds.calc(block.height)
-	}, function (mergeErr) {
-		return setImmediate(cb, mergeErr);
-	});
+	async.series(
+		[
+			function(seriesCb) {
+				self.checkConfirmedDelegates(transaction, seriesCb, tx);
+			},
+			function() {
+				parent.scope.account.merge(
+					sender.address,
+					{
+						delegates: transaction.asset.votes,
+						round: slots.calcRound(block.height),
+					},
+					mergeErr => setImmediate(cb, mergeErr),
+					tx
+				);
+			},
+		],
+		cb
+	);
 };
 
 /**
  * Calls checkUnconfirmedDelegates based on transaction data and
  * merges account to sender address with votes as unconfirmed delegates.
- * @implements {checkUnconfirmedDelegates}
- * @implements {scope.account.merge}
- * @param {transaction} trs
+ *
+ * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo delete unnecessary var parent = this
+ * @todo Delete unnecessary const parent = this
+ * @todo Add description for the params
  */
-Vote.prototype.applyUnconfirmed = function (trs, sender, cb) {
-	var parent = this;
+Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
+	const parent = this;
 
-	async.series([
-		function (seriesCb) {
-			self.checkUnconfirmedDelegates(trs, seriesCb);
-		},
-		function (seriesCb) {
-			parent.scope.account.merge(sender.address, {
-				u_delegates: trs.asset.votes
-			}, function (mergeErr) {
-				return setImmediate(seriesCb, mergeErr);
-			});
-		}
-	], cb);
-};
-
-/**
- * Calls Diff.reverse to change asset.votes signs and merges account to 
- * sender address with inverted votes as unconfirmed delegates.
- * @implements {Diff}
- * @implements {scope.account.merge}
- * @implements {modules.rounds.calc}
- * @param {transaction} trs
- * @param {account} sender
- * @param {function} cb - Callback function
- * @return {setImmediateCallback} cb, err
- */
-Vote.prototype.undoUnconfirmed = function (trs, sender, cb) {
-	if (trs.asset.votes === null) { return setImmediate(cb); }
-
-	var votesInvert = Diff.reverse(trs.asset.votes);
-
-	this.scope.account.merge(sender.address, {u_delegates: votesInvert}, function (mergeErr) {
-		return setImmediate(cb, mergeErr);
-	});
+	async.series(
+		[
+			function(seriesCb) {
+				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
+			},
+			function(seriesCb) {
+				parent.scope.account.merge(
+					sender.address,
+					{
+						u_delegates: transaction.asset.votes,
+					},
+					mergeErr => setImmediate(seriesCb, mergeErr),
+					tx
+				);
+			},
+		],
+		cb
+	);
 };
 
 /**
  * @typedef {Object} votes
- * @property {String[]} votes - Unique items, max constant activeDelegates.
+ * @property {String[]} votes - Unique items, max constant activeDelegates
  * @property {string} transactionId
  */
 Vote.prototype.schema = {
@@ -326,89 +399,69 @@ Vote.prototype.schema = {
 			type: 'array',
 			minItems: 1,
 			maxItems: constants.maxVotesPerTransaction,
-			uniqueItems: true
-		}
+			uniqueItems: true,
+		},
 	},
-	required: ['votes']
+	required: ['votes'],
 };
 
 /**
  * Validates asset schema.
- * @implements {library.schema.validate}
- * @param {transaction} trs
- * @return {transaction}
- * @throws {string} Failed to validate vote schema.
- * @todo should pass trs.asset.vote to validate?
+ *
+ * @param {transaction} transaction
+ * @throws {string} If vote schema is invalid
+ * @returns {transaction}
+ * @todo Should pass transaction.asset.vote to validate?
+ * @todo Add description for the params
  */
-Vote.prototype.objectNormalize = function (trs) {
-	var report = library.schema.validate(trs.asset, Vote.prototype.schema);
+Vote.prototype.objectNormalize = function(transaction) {
+	const report = library.schema.validate(
+		transaction.asset,
+		Vote.prototype.schema
+	);
 
 	if (!report) {
-		throw 'Failed to validate vote schema: ' + this.scope.schema.getLastErrors().map(function (err) {
-			return err.message;
-		}).join(', ');
+		throw `Failed to validate vote schema: ${library.schema
+			.getLastErrors()
+			.map(err => err.message)
+			.join(', ')}`;
 	}
 
-	return trs;
+	return transaction;
 };
 
 /**
  * Creates votes object based on raw data.
+ *
  * @param {Object} raw
- * @return {null|votes} votes object
+ * @returns {null|votes}
+ * @todo Add description for the params
  */
-Vote.prototype.dbRead = function (raw) {
-	// console.log(raw.v_votes);
-
+Vote.prototype.dbRead = function(raw) {
 	if (!raw.v_votes) {
 		return null;
-	} else {
-		var votes = raw.v_votes.split(',');
-
-		return {votes: votes};
 	}
-};
+	const votes = raw.v_votes.split(',');
 
-Vote.prototype.dbTable = 'votes';
-
-Vote.prototype.dbFields = [
-	'votes',
-	'transactionId'
-];
-
-/**
- * Creates db operation object to 'votes' table based on votes data.
- * @param {transaction} trs
- * @return {Object[]} table, fields, values.
- */
-Vote.prototype.dbSave = function (trs) {
-	return {
-		table: this.dbTable,
-		fields: this.dbFields,
-		values: {
-			votes: Array.isArray(trs.asset.votes) ? trs.asset.votes.join(',') : null,
-			transactionId: trs.id
-		}
-	};
+	return { votes };
 };
 
 /**
- * Checks sender multisignatures and transaction signatures.
- * @param {transaction} trs
+ * Checks if transaction has enough signatures to be confirmed.
+ *
+ * @param {transaction} transaction
  * @param {account} sender
- * @return {boolean} True if transaction signatures greather than 
- * sender multimin or there are not sender multisignatures.
+ * @returns {boolean} true - If transaction signatures greather than sender multimin, or there are no sender multisignatures
+ * @todo Add description for the params
  */
-Vote.prototype.ready = function (trs, sender) {
+Vote.prototype.ready = function(transaction, sender) {
 	if (Array.isArray(sender.multisignatures) && sender.multisignatures.length) {
-		if (!Array.isArray(trs.signatures)) {
+		if (!Array.isArray(transaction.signatures)) {
 			return false;
 		}
-		return trs.signatures.length >= sender.multimin;
-	} else {
-		return true;
+		return transaction.signatures.length >= sender.multimin;
 	}
+	return true;
 };
 
-// Export
 module.exports = Vote;

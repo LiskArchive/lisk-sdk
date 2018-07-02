@@ -1,39 +1,75 @@
 {
-  "parserOptions": {
-    "ecmaVersion": 5,
-    "sourceType": "module"
-  },
-  "rules": {
-    "semi": "error",
-    "no-eq-null": "off",
-    "indent": ["error", "tab"],
-    "eqeqeq": "off",
-    "curly": "error",
-    "no-undef": "error",
-    "quotes": ["error", "single"],
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "always",
-      "asyncArrow": "ignore"
-    }],
-    "callback-return": "off",
-    "global-require": "off",
-    "handle-callback-err": "off",
-    "no-mixed-requires": "off",
-    "no-new-require": "off"
-  },
-  "env": {
-    "browser": true,
-    "node": true
-  },
-  "globals": {
-    "it": true,
-    "describe": true,
-    "before": true,
-    "beforeEach": true,
-    "after": true,
-    "afterEach": true
-  },
-  "plugins": []
-
+	"extends": ["lisk-base"],
+	"plugins": ["mocha"],
+	"rules": {
+		"array-callback-return": "off",
+		"camelcase": "off",
+		"comma-dangle": [
+			"error",
+			{
+				"arrays": "always-multiline",
+				"objects": "always-multiline",
+				"imports": "always-multiline",
+				"exports": "always-multiline",
+				"functions": "never"
+			}
+		],
+		"consistent-return": "off",
+		"eqeqeq": "off",
+		"func-names": "off",
+		"global-require": "off",
+		"guard-for-in": "off",
+		"generator-star-spacing": ["error", { "before": false, "after": false }],
+		"max-len": "off",
+		"new-cap": "off",
+		"no-bitwise": "off",
+		"no-nested-ternary": "off",
+		"no-new": "off",
+		"no-param-reassign": "off",
+		"no-plusplus": "off",
+		"no-prototype-builtins": "off",
+		"no-restricted-globals": "off",
+		"no-restricted-syntax": "off",
+		"no-shadow": "off",
+		"no-template-curly-in-string": "off",
+		"no-throw-literal": "off",
+		"no-underscore-dangle": "off",
+		"no-unused-expressions": "off",
+		"no-use-before-define": "off",
+		"no-var": "off",
+		"prefer-destructuring": "off",
+		"prefer-rest-params": "off",
+		"radix": "off",
+		"require-jsdoc": [
+			"error",
+			{
+				"require": {
+					"FunctionDeclaration": false,
+					"MethodDefinition": false,
+					"ClassDeclaration": false,
+					"ArrowFunctionExpression": false,
+					"FunctionExpression": false
+				}
+			}
+		],
+		"strict": "off",
+		"space-before-function-paren": ["error", "never"],
+		"vars-on-top": "off",
+		"wrap-iife": "off",
+		// To keep
+		"import/no-extraneous-dependencies": [
+			"error",
+			{
+				"devDependencies": [
+					"test/**",
+					"tasks/**",
+					"scripts/**",
+					"webpack.config.js",
+					"Gruntfile.js"
+				]
+			}
+		],
+		"no-console": ["error", { "allow": ["trace", "error", "info", "warn"] }],
+		"no-restricted-properties": "off"
+	}
 }

@@ -1,96 +1,89 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var _ = require('lodash');
-var BlockReward = require('../../logic/blockReward.js');
-var constants = require('../../helpers/constants.js');
-var OrderBy = require('../../helpers/orderBy.js');
-var schema = require('../../schema/blocks.js');
-var sql = require('../../sql/blocks.js');
+const apiCodes = require('../../helpers/api_codes.js');
+const ApiError = require('../../helpers/api_error.js');
+const sortBy = require('../../helpers/sort_by.js').sortBy;
 
-var modules, library, self, __private = {};
-
-__private.blockReward = new BlockReward();
-
+let library;
+let self;
+const __private = {};
+// eslint-disable-next-line no-unused-vars, no-var
+var modules;
 /**
- * Initializes library.
- * @memberof module:blocks
+ * Main API logic. Allows get information. Initializes library.
+ *
  * @class
- * @classdesc Main API logic.
- * Allows get information.
+ * @memberof modules.blocks
+ * @see Parent: {@link modules.blocks}
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/sort_by.sortBy
  * @param {Object} logger
  * @param {Database} db
  * @param {Block} block
  * @param {ZSchema} schema
- * @param {Sequence} dbSequence
+ * @todo Add description for the params
  */
-function API (logger, db, block, schema, dbSequence) {
-	library = {
-		logger: logger,
-		db: db,
-		schema: schema,
-		dbSequence: dbSequence,
-		logic: {
-			block: block,
-		},
-	};
-	self = this;
-
-	library.logger.trace('Blocks->API: Submodule initialized.');
-	return self;
+class API {
+	constructor(logger, db, block, schema) {
+		library = {
+			logger,
+			db,
+			schema,
+			logic: {
+				block,
+			},
+		};
+		self = this;
+		library.logger.trace('Blocks->API: Submodule initialized.');
+		return self;
+	}
 }
 
 /**
- * Get block by ID
+ * Get filtered list of blocks (without transactions).
  *
  * @private
- * @async
- * @method getById
- * @param  {string}   id Block ID
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.block Block object
+ * @func list
+ * @param {Object} filter - Conditions to filter with
+ * @param {string} filter.id - Block id
+ * @param {string} filter.generatorPublicKey - Public key of delegate who generates the block
+ * @param {number} filter.numberOfTransactions - Number of transactions
+ * @param {string} filter.previousBlock - Previous block ID
+ * @param {number} filter.height - Block height
+ * @param {number} filter.totalAmount - Total amount of block's transactions
+ * @param {number} filter.totalFee - Block total fees
+ * @param {number} filter.reward - Block reward
+ * @param {number} filter.limit - Limit of blocks to retrieve, default: 100, max: 100
+ * @param {number} filter.offset - Offset from where to start
+ * @param {string} filter.sort - Sort order, default: height:desc
+ * @param {function} cb - Callback function
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.data - List of normalized blocks
  */
-__private.getById = function (id, cb) {
-	library.db.query(sql.getById, {id: id}).then(function (rows) {
-		if (!rows.length) {
-			return setImmediate(cb, 'Block not found');
-		}
+__private.list = function(filter, cb) {
+	const params = {};
+	const where = [];
 
-		// Normalize block
-		var block = library.logic.block.dbRead(rows[0]);
-
-		return setImmediate(cb, null, block);
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#getById error');
-	});
-};
-
-/**
- * Get filtered list of blocks (without transactions)
- *
- * @private
- * @async
- * @method list
- * @param  {Object}   filter Conditions to filter with
- * @param  {string}   filter.generatorPublicKey Public key of delegate who generates the block
- * @param  {number}   filter.numberOfTransactions Number of transactions
- * @param  {string}   filter.previousBlock Previous block ID
- * @param  {number}   filter.height Block height
- * @param  {number}   filter.totalAmount Total amount of block's transactions
- * @param  {number}   filter.totalFee Block total fees
- * @param  {number}   filter.reward Block reward
- * @param  {number}   filter.limit Limit of blocks to retrieve, default: 100, max: 100
- * @param  {number}   filter.offset Offset from where to start
- * @param  {string}   filter.orderBy Sort order, default: height:desc
- * @param  {Function} cb Callback function
- * @return {Function} cb Callback function from params (through setImmediate)
- * @return {Object}   cb.err Error if occurred
- * @return {Object}   cb.data List of normalized blocks
- */
-__private.list = function (filter, cb) {
-	var params = {}, where = [];
+	if (filter.id) {
+		where.push('"b_id" = ${id}');
+		params.id = filter.id;
+	}
 
 	if (filter.generatorPublicKey) {
 		where.push('"b_generatorPublicKey"::bytea = ${generatorPublicKey}');
@@ -147,182 +140,65 @@ __private.list = function (filter, cb) {
 		return setImmediate(cb, 'Invalid limit. Maximum is 100');
 	}
 
-	var orderBy = OrderBy(
-		(filter.orderBy || 'height:desc'), {
-			sortFields: sql.sortFields,
-			fieldPrefix: 'b_'
-		}
-	);
+	const sort = sortBy(filter.sort || 'height:desc', {
+		sortFields: library.db.blocks.sortFields,
+		fieldPrefix: 'b_',
+	});
 
-	if (orderBy.error) {
-		return setImmediate(cb, orderBy.error);
+	if (sort.error) {
+		return setImmediate(cb, sort.error);
 	}
 
-	library.db.query(sql.countList({
-		where: where
-	}), params).then(function (rows) {
-		var count = rows[0].count;
-
-		library.db.query(sql.list({
-			where: where,
-			sortField: orderBy.sortField,
-			sortMethod: orderBy.sortMethod
-		}), params).then(function (rows) {
-			var blocks = [];
-
+	library.db.blocks
+		.list(
+			Object.assign(
+				{},
+				{
+					where,
+					sortField: sort.sortField,
+					sortMethod: sort.sortMethod,
+				},
+				params
+			)
+		)
+		.then(rows => {
+			const blocks = [];
+			const rowCount = rows.length;
 			// Normalize blocks
-			for (var i = 0; i < rows.length; i++) {
+			for (let i = 0; i < rowCount; i++) {
 				// FIXME: Can have poor performance because it performs SHA256 hash calculation for each block
-				blocks.push(library.logic.block.dbRead(rows[i]));
+				const block = library.logic.block.dbRead(rows[i]);
+				blocks.push(block);
 			}
-
-			var data = {
-				blocks: blocks,
-				count: count
-			};
-
-			return setImmediate(cb, null, data);
-		}).catch(function (err) {
+			return setImmediate(cb, null, blocks);
+		})
+		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Blocks#list error');
 		});
-	}).catch(function (err) {
-		library.logger.error(err.stack);
-		return setImmediate(cb, 'Blocks#list error');
-	});
 };
 
-
-API.prototype.getBlock = function (req, cb) {
+/**
+ * Description of the function.
+ *
+ * @returns {Immediate}
+ * @todo Add @param tags
+ * @todo Add description for the function and return value
+ */
+API.prototype.getBlocks = function(filters, cb) {
 	if (!__private.loaded) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	library.schema.validate(req.body, schema.getBlock, function (err) {
+	__private.list(filters, (err, data) => {
 		if (err) {
-			return setImmediate(cb, err[0].message);
+			return setImmediate(
+				cb,
+				new ApiError(err[0].message, apiCodes.INTERNAL_SERVER_ERROR)
+			);
 		}
 
-		library.dbSequence.add(function (cb) {
-			__private.getById(req.body.id, function (err, block) {
-				if (!block || err) {
-					return setImmediate(cb, 'Block not found');
-				}
-				return setImmediate(cb, null, {block: block});
-			});
-		}, cb);
-	});
-};
-
-API.prototype.getBlocks = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	library.schema.validate(req.body, schema.getBlocks, function (err) {
-		if (err) {
-			return setImmediate(cb, err[0].message);
-		}
-
-		library.dbSequence.add(function (cb) {
-			__private.list(req.body, function (err, data) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb, null, {blocks: data.blocks, count: data.count});
-			});
-		}, cb);
-	});
-};
-
-API.prototype.getBroadhash = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {broadhash: modules.system.getBroadhash()});
-};
-
-API.prototype.getEpoch = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {epoch: constants.epochTime});
-};
-
-API.prototype.getHeight = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {height: modules.blocks.lastBlock.get().height});
-};
-
-API.prototype.getFee = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {fee: library.logic.block.calculateFee()});
-};
-
-API.prototype.getFees = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {fees: constants.fees});
-};
-
-API.prototype.getNethash = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {nethash: modules.system.getNethash()});
-};
-
-API.prototype.getMilestone = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {milestone: __private.blockReward.calcMilestone(modules.blocks.lastBlock.get().height)});
-};
-
-API.prototype.getReward = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {reward: __private.blockReward.calcReward(modules.blocks.lastBlock.get().height)});
-};
-
-API.prototype.getSupply = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	return setImmediate(cb, null, {supply: __private.blockReward.calcSupply(modules.blocks.lastBlock.get().height)});
-};
-
-API.prototype.getStatus = function (req, cb) {
-	if (!__private.loaded) {
-		return setImmediate(cb, 'Blockchain is loading');
-	}
-
-	var lastBlock = modules.blocks.lastBlock.get();
-
-	return setImmediate(cb, null, {
-		broadhash: modules.system.getBroadhash(),
-		epoch: constants.epochTime,
-		height: lastBlock.height,
-		fee: library.logic.block.calculateFee(),
-		milestone: __private.blockReward.calcMilestone(lastBlock.height),
-		nethash: modules.system.getNethash(),
-		reward: __private.blockReward.calcReward(lastBlock.height),
-		supply: __private.blockReward.calcSupply(lastBlock.height)
+		return setImmediate(cb, null, data);
 	});
 };
 
@@ -330,9 +206,10 @@ API.prototype.getStatus = function (req, cb) {
  * Handle modules initialization:
  * - blocks
  * - system
- * @param {modules} scope Exposed modules
+ *
+ * @param {Object} scope - Exposed modules
  */
-API.prototype.onBind = function (scope) {
+API.prototype.onBind = function(scope) {
 	library.logger.trace('Blocks->API: Shared modules bind.');
 	modules = {
 		blocks: scope.blocks,
