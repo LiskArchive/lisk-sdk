@@ -126,8 +126,8 @@ class Block {
 			payloadHash.update(bytes);
 		}
 
-		totalAmount = totalAmount.toNumber();
-		totalFee = totalFee.toNumber();
+		totalAmount = totalAmount.toString();
+		totalFee = totalFee.toString();
 
 		let block = {
 			version: 0,
@@ -343,16 +343,16 @@ Block.prototype.schema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			type: 'integer',
-			minimum: 0,
+			type: 'string',
+			format: 'minAmount',
 		},
 		totalFee: {
-			type: 'integer',
-			minimum: 0,
+			type: 'string',
+			format: 'minAmount',
 		},
 		reward: {
-			type: 'integer',
-			minimum: 0,
+			type: 'string',
+			format: 'minAmount',
 		},
 		transactions: {
 			type: 'array',
@@ -483,7 +483,7 @@ Block.prototype.getId = function(block) {
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return constants.fees.send.toString();
 };
 
 /**
@@ -504,9 +504,9 @@ Block.prototype.dbRead = function(raw) {
 		height: parseInt(raw.b_height),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: new bignum(raw.b_totalAmount).toNumber(),
-		totalFee: new bignum(raw.b_totalFee).toNumber(),
-		reward: new bignum(raw.b_reward).toNumber(),
+		totalAmount: new bignum(raw.b_totalAmount).toString(),
+		totalFee: new bignum(raw.b_totalFee).toString(),
+		reward: new bignum(raw.b_reward).toString(),
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,

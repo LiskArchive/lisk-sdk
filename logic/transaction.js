@@ -1007,7 +1007,7 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		amount = amount.toNumber();
+		amount = amount.toString();
 
 		this.scope.account.merge(
 			sender.address,
@@ -1061,7 +1061,7 @@ class Transaction {
 		}
 
 		let amount = new bignum(transaction.amount.toString());
-		amount = amount.plus(transaction.fee.toString()).toNumber();
+		amount = amount.plus(transaction.fee.toString()).toString();
 
 		this.scope.account.merge(
 			sender.address,
@@ -1143,11 +1143,11 @@ class Transaction {
 		}
 
 		if (transaction.amount) {
-			transaction.amount = new bignum(transaction.amount).toNumber();
+			transaction.amount = new bignum(transaction.amount).toString();
 		}
 
 		if (transaction.fee) {
-			transaction.fee = new bignum(transaction.fee).toNumber();
+			transaction.fee = new bignum(transaction.fee).toString();
 		}
 
 		const report = this.scope.schema.validate(
@@ -1199,8 +1199,8 @@ class Transaction {
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
 			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: new bignum(raw.t_amount).toNumber(),
-			fee: new bignum(raw.t_fee).toNumber(),
+			amount: new bignum(raw.t_amount).toString(),
+			fee: new bignum(raw.t_fee).toString(),
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
@@ -1324,14 +1324,12 @@ Transaction.prototype.schema = {
 			maxLength: 22,
 		},
 		amount: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'string',
+			format: 'amount',
 		},
 		fee: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'string',
+			format: 'amount',
 		},
 		signature: {
 			type: 'string',

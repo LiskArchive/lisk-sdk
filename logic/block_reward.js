@@ -71,9 +71,9 @@ class BlockReward {
 		height = __private.parseHeight(height);
 
 		if (height < this.rewardOffset) {
-			return 0;
+			return '0';
 		}
-		return this.milestones[this.calcMilestone(height)];
+		return this.milestones[this.calcMilestone(height)].toString();
 	}
 
 	/**

@@ -15,7 +15,6 @@
 'use strict';
 
 const constants = require('../helpers/constants.js');
-const bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
 let modules;
@@ -66,8 +65,7 @@ Transfer.prototype.bind = function(accounts) {
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function() {
-	const fee = new bignum(constants.fees.send);
-	return Number(fee.toString());
+	return constants.fees.send.toString();
 };
 
 /**

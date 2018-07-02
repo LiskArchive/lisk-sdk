@@ -67,7 +67,7 @@ Delegate.prototype.bind = function(accounts) {
  * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {
-	return constants.fees.delegate;
+	return constants.fees.delegate.toString();
 };
 
 /**

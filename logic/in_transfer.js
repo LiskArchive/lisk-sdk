@@ -70,7 +70,7 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
  * @todo Add description for the params
  */
 InTransfer.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return constants.fees.send.toString();
 };
 
 /**

@@ -85,7 +85,7 @@ Multisignature.prototype.calculateFee = function(transaction) {
 	return (
 		(transaction.asset.multisignature.keysgroup.length + 1) *
 		constants.fees.multisignature
-	);
+	).toString();
 };
 
 /**
