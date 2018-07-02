@@ -32,7 +32,7 @@
  * @property {string[]} multisignatures
  * @property {string[]} votes
  * @property {Object} precedent - A rule/authoritative checkpoint in place to follow in future
- * @property {string} precedent.disableDapp - Disable Dapp in and out transfer transactions
+ * @property {string} precedent.disableDappTransfer - Disable Dapp in and out transfer transactions
  * @todo Add description for the namespace and the properties
  */
 module.exports = {
@@ -75,6 +75,6 @@ module.exports = {
 	inertTransactions: [],
 	transactionFee: [],
 	precedent: {
-		disableDapp: 0,
+		disableDappTransfer: 0,
 	},
 };

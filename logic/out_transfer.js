@@ -80,7 +80,7 @@ OutTransfer.prototype.calculateFee = function() {
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
-	if (lastBlock.height >= exceptions.precedent.disableDapp) {
+	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
 		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
 
