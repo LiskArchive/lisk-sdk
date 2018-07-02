@@ -23,7 +23,8 @@ var typesRepresentatives = require('../../fixtures/types_representatives');
 var modulesLoader = require('../../common/modules_loader');
 
 var InTransfer = rewire('../../../logic/in_transfer.js');
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
@@ -202,7 +203,9 @@ describe('inTransfer', () => {
 
 	describe('calculateFee', () => {
 		it('should return constants.fees.send', () => {
-			return expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
+			return expect(inTransfer.calculateFee(trs)).to.equal(
+				constants.fees.send.toString()
+			);
 		});
 	});
 

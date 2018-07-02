@@ -28,7 +28,8 @@ var constants = require('../../../helpers/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
@@ -237,7 +238,9 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee()).to.equal(constants.fees.vote);
+			return expect(vote.calculateFee()).to.equal(
+				constants.fees.vote.toString()
+			);
 		});
 	});
 

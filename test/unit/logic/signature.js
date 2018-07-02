@@ -22,7 +22,8 @@ var constants = require('../../../helpers/constants');
 var ed = require('../../../helpers/ed');
 
 var Signature = rewire('../../../logic/signature');
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
@@ -168,7 +169,7 @@ describe('signature', () => {
 			});
 
 			it('should return constants.fees.secondSignature', () => {
-				return expect(fee).to.equal(constants.fees.secondSignature);
+				return expect(fee).to.equal(constants.fees.secondSignature.toString());
 			});
 		});
 

@@ -26,7 +26,8 @@ var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
@@ -158,7 +159,7 @@ describe('delegate', () => {
 	describe('calculateFee', () => {
 		it('should return the correct fee for delegate transaction', () => {
 			return expect(delegate.calculateFee(transaction)).to.equal(
-				constants.fees.delegate
+				constants.fees.delegate.toString()
 			);
 		});
 	});

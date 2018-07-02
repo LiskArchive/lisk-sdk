@@ -298,8 +298,8 @@ describe('transactions', () => {
 						recipientId: '16313739661670634666L',
 						recipientPublicKey:
 							'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-						amount: 112340000,
-						fee: 20000000,
+						amount: '112340000',
+						fee: '20000000',
 						signature:
 							'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
 						signSignature: undefined,
@@ -323,8 +323,8 @@ describe('transactions', () => {
 						senderId: '10313008732729972965L',
 						recipientId: null,
 						recipientPublicKey: null,
-						amount: 0,
-						fee: 500000000,
+						amount: '0',
+						fee: '500000000',
 						signature:
 							'b281931b24514c0b150a3b6daf362822c98207148c8967b2469233c5118f7874520e4067595f20c359136385fc8c0ba9391b408df139f58ba86a279b9d96b305',
 						signatures: [],
@@ -352,8 +352,8 @@ describe('transactions', () => {
 						senderId: '13683056641259213857L',
 						recipientId: null,
 						recipientPublicKey: null,
-						amount: 0,
-						fee: 2500000000,
+						amount: '0',
+						fee: '2500000000',
 						signature:
 							'00732b1bc95d8b459bde261cbdd27c7e06bb023483446f350101f42bdd2f5d807be0115ea5ef9f3e15246659a8d3d14cbae5afe5ad2862a3416ddee29870b009',
 						signSignature: undefined,
@@ -384,8 +384,8 @@ describe('transactions', () => {
 						recipientId: '8643584619166983815L',
 						recipientPublicKey:
 							'31ab15b507bbdbb8f53b0dfbca65e78aafc3efe73e793b5f7db94dae53f94aba',
-						amount: 0,
-						fee: 100000000,
+						amount: '0',
+						fee: '100000000',
 						signature:
 							'02dacc2888e1c4608e812d7099a2657e6f57f1446af6489811a942621f5619292873429621c097078276047a5905bb8e11af5ad5a96a389b767e6c7c019f6c0b',
 						signSignature: undefined,
@@ -412,8 +412,8 @@ describe('transactions', () => {
 						senderId: '10952279861355607751L',
 						recipientId: null,
 						recipientPublicKey: null,
-						amount: 0,
-						fee: 1500000000,
+						amount: '0',
+						fee: '1500000000',
 						signature:
 							'c05e4fe662f64c14529331d37611ccfc66f41901f92faa6c7c010f7a2f6fcda9c594aa67c5634f46b795d9dc0cb75943c6a20f757e56f86e88205876ae17b103',
 						signatures: [
@@ -446,8 +446,8 @@ describe('transactions', () => {
 						senderId: '5519106118231224961L',
 						recipientId: null,
 						recipientPublicKey: null,
-						amount: 0,
-						fee: 2500000000,
+						amount: '0',
+						fee: '2500000000',
 						signature:
 							'b024f90f73e53c9fee943f3c3ef7a9e3da99bab2f9fa3cbfd5ad05ed79cdbbe21130eb7b27698692bf491a1cf573a518dfa63607dc88bc0c01925fda18304905',
 						signatures: [],

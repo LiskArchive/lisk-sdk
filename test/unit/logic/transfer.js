@@ -25,7 +25,8 @@ var constants = require('../../../helpers/constants');
 var bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
@@ -144,7 +145,7 @@ describe('transfer', () => {
 		it('should return the correct fee for a transfer', () => {
 			return expect(
 				transfer.calculateFee.call(transactionLogic, validTransaction)
-			).to.equal(constants.fees.send);
+			).to.equal(constants.fees.send.toString());
 		});
 
 		it('should return the same fee for a transfer with additional data', () => {
@@ -155,7 +156,7 @@ describe('transfer', () => {
 
 			return expect(
 				transfer.calculateFee.call(transactionLogic, transaction)
-			).to.equal(constants.fees.send);
+			).to.equal(constants.fees.send.toString());
 		});
 	});
 
