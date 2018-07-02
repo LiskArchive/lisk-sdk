@@ -473,7 +473,7 @@ d.run(() => {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
 						host: '0.0.0.0',
-						wsEngine: 'sc-uws',
+						wsEngine: scope.config.wsEngine || 'sc-uws',
 						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
@@ -522,6 +522,11 @@ d.run(() => {
 					// The 'fail' event aggregates errors from all SocketCluster processes.
 					scope.socketCluster.on('fail', err => {
 						scope.logger.error(err);
+						if (err.name === 'WSEngineInitError') {
+							var extendedError =
+								'If you are not able to install sc-uws, you can try setting the wsEngine property in config.json to "ws" before starting the node';
+							scope.logger.error(extendedError);
+						}
 					});
 
 					scope.socketCluster.on('workerExit', workerInfo => {
