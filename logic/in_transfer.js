@@ -84,7 +84,7 @@ InTransfer.prototype.calculateFee = function() {
  */
 InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 	const lastBlock = modules.blocks.lastBlock.get();
-	if (lastBlock.height >= exceptions.disableTransactions.dappTransfer) {
+	if (lastBlock.height >= exceptions.precedent.disableDapp) {
 		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
 
