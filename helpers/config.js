@@ -146,6 +146,10 @@ function Config(packageJson) {
 		appConfig.coverage = true;
 	}
 
+	if (appConfig.wsEngine === undefined || appConfig.wsEngine === null) {
+		appConfig.wsEngine = 'sc-uws';
+	}
+
 	if (
 		appConfig.api.options.cors.origin === undefined ||
 		appConfig.api.options.cors.origin === null

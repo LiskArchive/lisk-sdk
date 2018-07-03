@@ -473,7 +473,7 @@ d.run(() => {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
 						host: '0.0.0.0',
-						wsEngine: scope.config.wsEngine || 'sc-uws',
+						wsEngine: scope.config.wsEngine,
 						appName: 'lisk',
 						workerController: workersControllerPath,
 						perMessageDeflate: false,
