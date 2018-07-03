@@ -123,6 +123,6 @@
 	},
 	"snyk": true,
 	"lisk": {
-		"minVersion": ">=1.0.0-beta.9.2"
+		"minVersion": "1.0.0-beta.9.2"
 	}
 }
