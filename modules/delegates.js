@@ -359,6 +359,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 	}
 
 	// Converting publicKeys to addresses because module.accounts do not support fetching multiple accounts by publicKeys
+	// TODO: Use Hashmap to improve performance further.
 	const actionWithAddresses = votes.map(vote => {
 		const action = vote[0];
 		let voteAddress;
@@ -382,7 +383,8 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 
 	async.waterfall(
 		[
-			function getVotedAccounts(waterfallCb) {
+			// get all the addresses (converted from public keys) the sender has voted for. Confirmed or unconfirmed based on state parameter.
+			function getExistingVotedAddresses(waterfallCb) {
 				modules.accounts.getAccount(
 					{ publicKey: senderPublicKey },
 					(err, account) => {
@@ -407,6 +409,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 					tx
 				);
 			},
+			// Validate votes in the transaction by checking that sender is not voting for an account already, and also that sender is not unvoting an account it did not vote before.
 			function validateVotes(existingVotedAddresses, waterfallCb) {
 				modules.accounts.getAccounts(
 					{
@@ -422,6 +425,17 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 							!votesAccounts ||
 							votesAccounts.length < actionWithAddresses.length
 						) {
+							library.logger.error(
+								'Delegates with addresses not found',
+								_.differenceWith(
+									actionWithAddresses,
+									votesAccounts,
+									(
+										{ address: addressFromTransaction },
+										{ addressFromAccount }
+									) => addressFromTransaction === addressFromAccount
+								)
+							);
 							return setImmediate(waterfallCb, 'Delegate not found');
 						}
 
