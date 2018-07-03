@@ -17,18 +17,18 @@
 var async = require('async');
 var utils = require('../utils');
 var network = require('./network');
-var pm2 = require('./pm2');
+var config = require('./config');
 var shell = require('./shell');
 
 var WAIT_BEFORE_CONNECT_MS = 20000;
 
 module.exports = {
-	setupNetwork(configurations, cb) {
+	createNetwork(configurations, cb) {
 		async.series(
 			[
 				function(cbSeries) {
 					utils.logger.log('Generating PM2 configuration');
-					pm2.generatePM2Configuration(configurations, cbSeries);
+					config.generatePM2json(configurations, cbSeries);
 				},
 				function(cbSeries) {
 					utils.logger.log('Recreating databases');
@@ -68,6 +68,6 @@ module.exports = {
 		shell.killTestNodes(cb);
 	},
 	network,
-	pm2,
+	config,
 	shell,
 };
