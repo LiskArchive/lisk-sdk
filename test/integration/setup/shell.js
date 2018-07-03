@@ -48,39 +48,6 @@ module.exports = {
 		});
 	},
 
-	runMochaTests(testsPaths, cb) {
-		var child = child_process.spawn(
-			'node_modules/.bin/_mocha',
-			[
-				'--timeout',
-				(8 * 60 * 1000).toString(),
-				'--exit',
-				'--require',
-				'./test/setup.js',
-				'--grep',
-				'@slow|@unstable',
-				'--invert',
-			].concat(testsPaths),
-			{
-				cwd: `${__dirname}/../../..`,
-			}
-		);
-
-		child.stdout.pipe(process.stdout);
-		child.stderr.pipe(process.stderr);
-
-		child.on('close', code => {
-			if (code === 0) {
-				return cb();
-			}
-			return cb('Functional tests failed');
-		});
-
-		child.on('error', err => {
-			return cb(err);
-		});
-	},
-
 	killTestNodes(cb) {
 		child_process.exec('node_modules/.bin/pm2 kill', err => {
 			if (err) {
