@@ -71,7 +71,7 @@ module.exports = {
 		);
 		var delegates = _.clone(devConfig.forging.delegates);
 
-		if (broadcasting) {
+		if (!broadcasting) {
 			configurations.forEach(configuration => {
 				if (configuration.httpPort === 4000) {
 					// Set forging force to true

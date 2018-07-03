@@ -35,7 +35,7 @@ module.exports = function(params) {
 			return expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
 		});
 
-		it('should contain non empty blocks after running functional tests', () => {
+		it('should contain non empty blocks', () => {
 			return nodesBlocks.forEach(blocks => {
 				expect(blocks).to.be.an('array').and.not.to.be.empty;
 			});

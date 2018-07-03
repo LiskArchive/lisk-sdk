@@ -16,7 +16,6 @@
 
 const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
-const getTransaction = require('../../../../utils/http').getTransaction;
 const waitFor = require('../../../../../common/utils/wait_for');
 const constants = require('../../../../../../config/mainnet/constants');
 const accountFixtures = require('../../../../../fixtures/accounts');
@@ -26,28 +25,14 @@ const {
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
 } = require('../../../../../common/helpers/api');
+const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
+	.confirmTransactionsOnAllNodes;
 
 module.exports = function multisignature(params) {
 	describe('RPC /postSignatures', () => {
 		let transactions = [];
 		const accounts = [];
 		const MAXIMUM = 3;
-
-		const validateTransactionsOnAllNodes = () => {
-			return Promise.all(
-				_.flatMap(params.configurations, configuration => {
-					return transactions.map(transaction => {
-						return getTransaction(transaction.id, configuration.httpPort);
-					});
-				})
-			).then(results => {
-				results.forEach(transaction => {
-					expect(transaction)
-						.to.have.property('id')
-						.that.is.an('string');
-				});
-			});
-		};
 
 		const postSignatures = signature => {
 			const postSignatures = {
@@ -81,9 +66,13 @@ module.exports = function multisignature(params) {
 
 			it('should confirm all transactions on all nodes', done => {
 				var blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 1;
+					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 3;
 				waitFor.blocks(blocksToWait, () => {
-					validateTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
@@ -141,9 +130,13 @@ module.exports = function multisignature(params) {
 
 			it('check all the nodes received the transactions', done => {
 				const blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 1;
+					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
-					validateTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, params)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});

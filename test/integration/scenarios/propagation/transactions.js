@@ -17,7 +17,7 @@
 var Promise = require('bluebird');
 
 module.exports = function(params) {
-	describe('blocks', () => {
+	describe('transactions', () => {
 		var nodesTransactions = [];
 
 		before(() => {
@@ -35,7 +35,7 @@ module.exports = function(params) {
 			});
 		});
 
-		it('should contain non empty transactions after running functional tests', () => {
+		it('should contain non empty transactions', () => {
 			return nodesTransactions.forEach(transactions => {
 				expect(transactions).to.be.an('array').and.not.empty;
 			});
