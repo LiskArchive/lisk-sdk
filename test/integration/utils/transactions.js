@@ -15,6 +15,7 @@
 'use strict';
 
 var lisk = require('lisk-elements').default;
+var getTransaction = require('./http').getTransaction;
 
 module.exports = {
 	generateValidTransaction() {
@@ -32,6 +33,21 @@ module.exports = {
 			amount: 1,
 			passphrase: gAccountPassphrase,
 			recipientId: randomAddress,
+		});
+	},
+	confirmTransactionsOnAllNodes(transactions, params) {
+		return Promise.all(
+			_.flatMap(params.configurations, configuration => {
+				return transactions.map(transaction => {
+					return getTransaction(transaction.id, configuration.httpPort);
+				});
+			})
+		).then(results => {
+			results.forEach(transaction => {
+				expect(transaction)
+					.to.have.property('id')
+					.that.is.an('string');
+			});
 		});
 	},
 };

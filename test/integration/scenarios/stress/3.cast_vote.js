@@ -22,7 +22,7 @@ var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
-var confirmTransactionsOnAllNodes = require('../common/stress')
+var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
 var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';

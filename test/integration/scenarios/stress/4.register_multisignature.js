@@ -26,7 +26,7 @@ var sendSignaturePromise = require('../../../common/helpers/api')
 	.sendSignaturePromise;
 var sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
-var confirmTransactionsOnAllNodes = require('../common/stress')
+var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
 var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
