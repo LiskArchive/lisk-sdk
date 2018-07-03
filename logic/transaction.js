@@ -140,129 +140,6 @@ class Transaction {
 	}
 
 	/**
-	 * Calls `getBytes` based on transaction type (see privateTypes)
-	 * @see {@link privateTypes}
-	 *
-	 * @param {transaction} transaction
-	 * @param {boolean} skipSignature
-	 * @param {boolean} skipSecondSignature
-	 * @throws {Error}
-	 * @returns {!Array} Contents as an ArrayBuffer
-	 * @todo Add description for the params
-	 */
-	getBytes(transaction, skipSignature, skipSecondSignature) {
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		let byteBuffer;
-
-		try {
-			const assetBytes = __private.types[transaction.type].getBytes.call(
-				this,
-				transaction,
-				skipSignature,
-				skipSecondSignature
-			);
-			const assetSize = assetBytes ? assetBytes.length : 0;
-
-			byteBuffer = new ByteBuffer(
-				1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + assetSize,
-				true
-			);
-			byteBuffer.writeByte(transaction.type);
-			byteBuffer.writeInt(transaction.timestamp);
-
-			const senderPublicKeyBuffer = Buffer.from(
-				transaction.senderPublicKey,
-				'hex'
-			);
-			for (let i = 0; i < senderPublicKeyBuffer.length; i++) {
-				byteBuffer.writeByte(senderPublicKeyBuffer[i]);
-			}
-
-			if (transaction.requesterPublicKey) {
-				const requesterPublicKey = Buffer.from(
-					transaction.requesterPublicKey,
-					'hex'
-				);
-				for (let i = 0; i < requesterPublicKey.length; i++) {
-					byteBuffer.writeByte(requesterPublicKey[i]);
-				}
-			}
-
-			if (transaction.recipientId) {
-				let recipient = transaction.recipientId.slice(0, -1);
-				recipient = new bignum(recipient).toBuffer({ size: 8 });
-
-				for (let i = 0; i < 8; i++) {
-					byteBuffer.writeByte(recipient[i] || 0);
-				}
-			} else {
-				for (let i = 0; i < 8; i++) {
-					byteBuffer.writeByte(0);
-				}
-			}
-
-			byteBuffer.writeLong(transaction.amount);
-
-			if (assetSize > 0) {
-				for (let i = 0; i < assetSize; i++) {
-					byteBuffer.writeByte(assetBytes[i]);
-				}
-			}
-
-			if (!skipSignature && transaction.signature) {
-				const signatureBuffer = Buffer.from(transaction.signature, 'hex');
-				for (let i = 0; i < signatureBuffer.length; i++) {
-					byteBuffer.writeByte(signatureBuffer[i]);
-				}
-			}
-
-			if (!skipSecondSignature && transaction.signSignature) {
-				const signSignatureBuffer = Buffer.from(
-					transaction.signSignature,
-					'hex'
-				);
-				for (let i = 0; i < signSignatureBuffer.length; i++) {
-					byteBuffer.writeByte(signSignatureBuffer[i]);
-				}
-			}
-
-			byteBuffer.flip();
-		} catch (e) {
-			throw e;
-		}
-
-		return byteBuffer.toBuffer();
-	}
-
-	/**
-	 * Calls `ready` based on transaction type (see privateTypes).
-	 *
-	 * @see {@link privateTypes}
-	 * @param {transaction} transaction
-	 * @param {account} sender
-	 * @returns {function|boolean} Calls `ready()` on sub class | false
-	 * @todo Add description for the params
-	 */
-	ready(transaction, sender) {
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		if (!sender) {
-			return false;
-		}
-
-		return __private.types[transaction.type].ready.call(
-			this,
-			transaction,
-			sender
-		);
-	}
-
-	/**
 	 * Counts transactions from `trs` table by id.
 	 *
 	 * @param {transaction} transaction
@@ -380,8 +257,7 @@ class Transaction {
 		transaction.senderId = sender.address;
 
 		// Call process on transaction type
-		__private.types[transaction.type].process.call(
-			this,
+		__private.types[transaction.type].process(
 			transaction,
 			sender,
 			(err, transaction) => {
@@ -624,11 +500,8 @@ class Transaction {
 
 		// Calculate fee
 		const fee =
-			__private.types[transaction.type].calculateFee.call(
-				this,
-				transaction,
-				sender
-			) || false;
+			__private.types[transaction.type].calculateFee(transaction, sender) ||
+			false;
 		if (!fee || transaction.fee !== fee) {
 			err = 'Invalid transaction fee';
 
@@ -689,8 +562,7 @@ class Transaction {
 			tx,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transaction.type].verify.call(
-				this,
+			__private.types[transaction.type].verify(
 				transaction,
 				sender,
 				err => {
@@ -865,8 +737,7 @@ class Transaction {
 				 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
 				 * DApp, InTransfer or OutTransfer.
 				 */
-				__private.types[transaction.type].apply.call(
-					this,
+				__private.types[transaction.type].apply(
 					transaction,
 					block,
 					sender,
@@ -932,8 +803,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undo.call(
-					this,
+				__private.types[transaction.type].undo(
 					transaction,
 					block,
 					sender,
@@ -1012,8 +882,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].applyUnconfirmed.call(
-					this,
+				__private.types[transaction.type].applyUnconfirmed(
 					transaction,
 					sender,
 					applyUnconfirmedErr => {
@@ -1066,8 +935,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undoUnconfirmed.call(
-					this,
+				__private.types[transaction.type].undoUnconfirmed(
 					transaction,
 					sender,
 					undoUnconfirmedErr => {
@@ -1158,8 +1026,7 @@ class Transaction {
 		}
 
 		try {
-			transaction = __private.types[transaction.type].objectNormalize.call(
-				this,
+			transaction = __private.types[transaction.type].objectNormalize(
 				transaction
 			);
 		} catch (e) {
@@ -1168,54 +1035,173 @@ class Transaction {
 
 		return transaction;
 	}
-
-	/**
-	 * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
-	 *
-	 * @see {@link privateTypes}
-	 * @param {Object} raw
-	 * @throws {string} If unknown transaction type
-	 * @returns {null|transaction}
-	 * @todo Add description for the params
-	 */
-	dbRead(raw) {
-		if (!raw.t_id) {
-			return null;
-		}
-
-		const transaction = {
-			id: raw.t_id,
-			height: raw.b_height,
-			blockId: raw.b_id || raw.t_blockId,
-			type: parseInt(raw.t_type),
-			timestamp: parseInt(raw.t_timestamp),
-			senderPublicKey: raw.t_senderPublicKey,
-			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
-			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: parseInt(raw.t_amount),
-			fee: parseInt(raw.t_fee),
-			signature: raw.t_signature,
-			signSignature: raw.t_signSignature,
-			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations),
-			asset: {},
-		};
-
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		const asset = __private.types[transaction.type].dbRead.call(this, raw);
-
-		if (asset) {
-			transaction.asset = extend(transaction.asset, asset);
-		}
-
-		return transaction;
-	}
 }
+
+/**
+ * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
+ *
+ * @see {@link privateTypes}
+ * @param {Object} raw
+ * @throws {string} If unknown transaction type
+ * @returns {null|transaction}
+ * @todo Add description for the params
+ */
+Transaction.prototype.dbRead = function(raw) {
+	if (!raw.t_id) {
+		return null;
+	}
+
+	const transaction = {
+		id: raw.t_id,
+		height: raw.b_height,
+		blockId: raw.b_id || raw.t_blockId,
+		type: parseInt(raw.t_type),
+		timestamp: parseInt(raw.t_timestamp),
+		senderPublicKey: raw.t_senderPublicKey,
+		requesterPublicKey: raw.t_requesterPublicKey,
+		senderId: raw.t_senderId,
+		recipientId: raw.t_recipientId,
+		recipientPublicKey: raw.m_recipientPublicKey || null,
+		amount: parseInt(raw.t_amount),
+		fee: parseInt(raw.t_fee),
+		signature: raw.t_signature,
+		signSignature: raw.t_signSignature,
+		signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
+		confirmations: parseInt(raw.confirmations),
+		asset: {},
+	};
+
+	if (!__private.types[transaction.type]) {
+		throw `Unknown transaction type ${transaction.type}`;
+	}
+
+	const asset = __private.types[transaction.type].dbRead(raw);
+
+	if (asset) {
+		transaction.asset = extend(transaction.asset, asset);
+	}
+
+	return transaction;
+};
+
+/**
+ * Calls `getBytes` based on transaction type (see privateTypes)
+ * @see {@link privateTypes}
+ *
+ * @param {transaction} transaction
+ * @param {boolean} skipSignature
+ * @param {boolean} skipSecondSignature
+ * @throws {Error}
+ * @returns {!Array} Contents as an ArrayBuffer
+ * @todo Add description for the params
+ */
+Transaction.prototype.getBytes = function(
+	transaction,
+	skipSignature,
+	skipSecondSignature
+) {
+	if (!__private.types[transaction.type]) {
+		throw `Unknown transaction type ${transaction.type}`;
+	}
+
+	let byteBuffer;
+
+	try {
+		const assetBytes = __private.types[transaction.type].getBytes(
+			transaction,
+			skipSignature,
+			skipSecondSignature
+		);
+		const assetSize = assetBytes ? assetBytes.length : 0;
+
+		byteBuffer = new ByteBuffer(
+			1 + 4 + 32 + 32 + 8 + 8 + 64 + 64 + assetSize,
+			true
+		);
+		byteBuffer.writeByte(transaction.type);
+		byteBuffer.writeInt(transaction.timestamp);
+
+		const senderPublicKeyBuffer = Buffer.from(
+			transaction.senderPublicKey,
+			'hex'
+		);
+		for (let i = 0; i < senderPublicKeyBuffer.length; i++) {
+			byteBuffer.writeByte(senderPublicKeyBuffer[i]);
+		}
+
+		if (transaction.requesterPublicKey) {
+			const requesterPublicKey = Buffer.from(
+				transaction.requesterPublicKey,
+				'hex'
+			);
+			for (let i = 0; i < requesterPublicKey.length; i++) {
+				byteBuffer.writeByte(requesterPublicKey[i]);
+			}
+		}
+
+		if (transaction.recipientId) {
+			let recipient = transaction.recipientId.slice(0, -1);
+			recipient = new bignum(recipient).toBuffer({ size: 8 });
+
+			for (let i = 0; i < 8; i++) {
+				byteBuffer.writeByte(recipient[i] || 0);
+			}
+		} else {
+			for (let i = 0; i < 8; i++) {
+				byteBuffer.writeByte(0);
+			}
+		}
+
+		byteBuffer.writeLong(transaction.amount);
+
+		if (assetSize > 0) {
+			for (let i = 0; i < assetSize; i++) {
+				byteBuffer.writeByte(assetBytes[i]);
+			}
+		}
+
+		if (!skipSignature && transaction.signature) {
+			const signatureBuffer = Buffer.from(transaction.signature, 'hex');
+			for (let i = 0; i < signatureBuffer.length; i++) {
+				byteBuffer.writeByte(signatureBuffer[i]);
+			}
+		}
+
+		if (!skipSecondSignature && transaction.signSignature) {
+			const signSignatureBuffer = Buffer.from(transaction.signSignature, 'hex');
+			for (let i = 0; i < signSignatureBuffer.length; i++) {
+				byteBuffer.writeByte(signSignatureBuffer[i]);
+			}
+		}
+
+		byteBuffer.flip();
+	} catch (e) {
+		throw e;
+	}
+
+	return byteBuffer.toBuffer();
+};
+
+/**
+ * Calls `ready` based on transaction type (see privateTypes).
+ *
+ * @see {@link privateTypes}
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @returns {function|boolean} Calls `ready()` on sub class | false
+ * @todo Add description for the params
+ */
+Transaction.prototype.ready = function(transaction, sender) {
+	if (!__private.types[transaction.type]) {
+		throw `Unknown transaction type ${transaction.type}`;
+	}
+
+	if (!sender) {
+		return false;
+	}
+
+	return __private.types[transaction.type].ready(transaction, sender);
+};
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
