@@ -33,8 +33,13 @@ chai.use(chaiAsPromised);
 
 var testContext = {};
 
-testContext.config = require('./data/config.json');
+testContext.config = require('../config/devnet/config.json');
+testContext.config.genesisBlock = require('../config/devnet/genesis_block.json');
 
+testContext.config.nethash = Buffer.from(
+	testContext.config.genesisBlock.payloadHash,
+	'hex'
+).toString('hex');
 testContext.config.root = process.cwd();
 
 if (process.env.SILENT === 'true') {

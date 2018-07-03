@@ -126,8 +126,7 @@ function __init(initScope, done) {
 						cb(null, __testContext.config);
 					},
 					genesisBlock(cb) {
-						var genesisBlock = require('../data/genesis_block.json');
-						cb(null, { block: genesisBlock });
+						cb(null, { block: __testContext.config.genesisBlock });
 					},
 
 					schema(cb) {

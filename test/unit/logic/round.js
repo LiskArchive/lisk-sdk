@@ -19,10 +19,10 @@ var rewire = require('rewire');
 var Promise = require('bluebird');
 var slots = require('../../../helpers/slots.js');
 var bignum = require('../../../helpers/bignum.js');
-var genesisBlock = require('../../data/genesis_block.json');
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
 var Round = rewire('../../../logic/round.js');
+var genesisBlock = __testContext.config.genesisBlock;
 
 describe('rounds', () => {
 	var db;

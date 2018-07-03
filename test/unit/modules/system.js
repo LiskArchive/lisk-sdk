@@ -46,7 +46,7 @@ describe('system', () => {
 			wsPort: 1,
 			httpPort: 1,
 			nethash: 1,
-			minVersion: '>=1.0.0-beta.0',
+			minVersion: '1.0.0-beta.0',
 			nonce: 1,
 		};
 

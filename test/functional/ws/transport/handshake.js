@@ -18,7 +18,6 @@ require('../../functional.js');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var randomstring = require('randomstring');
 var scClient = require('socketcluster-client');
-var testConfig = require('../../../data/config.json');
 var failureCodes = require('../../../../api/ws/rpc/failure_codes');
 var wsServer = require('../../../common/ws/server');
 var WSServerMaster = require('../../../common/ws/server_master');
@@ -101,7 +100,7 @@ describe('handshake', () => {
 		validClientSocketOptions = {
 			protocol: 'http',
 			hostname: '127.0.0.1',
-			port: testConfig.wsPort,
+			port: __testContext.config.wsPort,
 			query: Object.assign({}, frozenHeaders),
 			connectTimeout: 1000,
 			ackTimeout: 1000,
