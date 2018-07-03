@@ -63,7 +63,7 @@ module.exports = function(grunt) {
 								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
 							);
 						}
-						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
+						return `./node_modules/.bin/_mocha --bail test/integration/integration.js ${slowTag}`;
 					}
 					var toExecute = [tag, suite, section].filter(val => val).join(' ');
 					return `node test/common/parallel_tests.js ${toExecute}`;
