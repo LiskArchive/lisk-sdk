@@ -315,9 +315,7 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	checkBalance(amount, balance, transaction, sender) {
-		const exceededBalance = new bignum(sender[balance].toString()).lessThan(
-			amount
-		);
+		const exceededBalance = new bignum(sender[balance]).lessThan(amount);
 		const exceeded =
 			transaction.blockId !== this.scope.genesisblock.block.id &&
 			exceededBalance;
@@ -647,19 +645,20 @@ class Transaction {
 		}
 
 		// Check amount
+		let amount = new bignum(transaction.amount);
 		if (
-			transaction.amount < 0 ||
-			transaction.amount > constants.totalAmount ||
-			String(transaction.amount).indexOf('.') >= 0 ||
-			transaction.amount.toString().indexOf('e') >= 0
+			amount.lessThan(0) ||
+			amount.greaterThan(constants.totalAmount) ||
+			amount.toString().indexOf('.') >= 0 ||
+			amount.toString().indexOf('e') >= 0
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 
 		// Check confirmed sender balance
-		const amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
+		amount = amount.plus(transaction.fee);
+		amount = amount.toString();
+
 		const senderBalance = this.checkBalance(
 			amount,
 			'balance',
@@ -833,9 +832,9 @@ class Transaction {
 		}
 
 		// Check confirmed sender balance
-		let amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
+		let amount = new bignum(transaction.amount).plus(transaction.fee);
+		amount = amount.toString();
+
 		const senderBalance = this.checkBalance(
 			amount,
 			'balance',
@@ -847,11 +846,11 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		amount = amount.toNumber();
+		amount = amount.toString();
 
 		this.scope.logger.trace('Logic/Transaction->apply', {
 			sender: sender.address,
-			balance: -amount,
+			balance: `-${amount}`,
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		});
@@ -859,7 +858,7 @@ class Transaction {
 		this.scope.account.merge(
 			sender.address,
 			{
-				balance: -amount,
+				balance: `-${amount}`,
 				round: slots.calcRound(block.height),
 			},
 			(mergeErr, sender) => {
@@ -916,8 +915,8 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		let amount = new bignum(transaction.amount.toString());
-		amount = amount.plus(transaction.fee.toString()).toNumber();
+		let amount = new bignum(transaction.amount).plus(transaction.fee);
+		amount = amount.toString();
 
 		this.scope.logger.trace('Logic/Transaction->undo', {
 			sender: sender.address,
@@ -947,7 +946,7 @@ class Transaction {
 							this.scope.account.merge(
 								sender.address,
 								{
-									balance: -amount,
+									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
 								},
 								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),
@@ -993,9 +992,8 @@ class Transaction {
 		}
 
 		// Check unconfirmed sender balance
-		let amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
+		let amount = new bignum(transaction.amount).plus(transaction.fee);
+
 		const senderBalance = this.checkBalance(
 			amount,
 			'u_balance',
@@ -1011,7 +1009,7 @@ class Transaction {
 
 		this.scope.account.merge(
 			sender.address,
-			{ u_balance: -amount },
+			{ u_balance: `-${amount}` },
 			(mergeErr, sender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
@@ -1060,8 +1058,8 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		let amount = new bignum(transaction.amount.toString());
-		amount = amount.plus(transaction.fee.toString()).toString();
+		let amount = new bignum(transaction.amount).plus(transaction.fee);
+		amount = amount.toString();
 
 		this.scope.account.merge(
 			sender.address,
@@ -1079,7 +1077,7 @@ class Transaction {
 						if (undoUnconfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
-								{ u_balance: -amount },
+								{ u_balance: `-${amount}` },
 								reverseMergeErr =>
 									setImmediate(cb, reverseMergeErr || undoUnconfirmedErr),
 								tx
