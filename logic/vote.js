@@ -43,68 +43,69 @@ let self;
  * @todo Add description for the params
  */
 class Vote {
-	constructor(logger, schema) {
+	constructor(logger, schema, account) {
 		self = this;
 		library = {
 			logger,
 			schema,
+			account,
 		};
 	}
-
-	/**
-	 * Calls Diff.reverse to change asset.votes signs and merges account to
-	 * sender address with inverted votes as delegates.
-	 *
-	 * @param {transaction} transaction
-	 * @param {block} block
-	 * @param {account} sender
-	 * @param {function} cb - Callback function
-	 * @returns {SetImmediate} error
-	 * @todo Add description for the params
-	 */
-	undo(transaction, block, sender, cb, tx) {
-		if (transaction.asset.votes === null) {
-			return setImmediate(cb);
-		}
-
-		const votesInvert = Diff.reverse(transaction.asset.votes);
-
-		this.scope.account.merge(
-			sender.address,
-			{
-				delegates: votesInvert,
-				round: slots.calcRound(block.height),
-			},
-			mergeErr => setImmediate(cb, mergeErr),
-			tx
-		);
-	}
-
-	/**
-	 * Calls Diff.reverse to change asset.votes signs and merges account to
-	 * sender address with inverted votes as unconfirmed delegates.
-	 *
-	 * @param {transaction} transaction
-	 * @param {account} sender
-	 * @param {function} cb - Callback function
-	 * @returns {SetImmediate} error
-	 * @todo Add description for the params
-	 */
-	undoUnconfirmed(transaction, sender, cb, tx) {
-		if (transaction.asset.votes === null) {
-			return setImmediate(cb);
-		}
-
-		const votesInvert = Diff.reverse(transaction.asset.votes);
-
-		this.scope.account.merge(
-			sender.address,
-			{ u_delegates: votesInvert },
-			mergeErr => setImmediate(cb, mergeErr),
-			tx
-		);
-	}
 }
+
+/**
+ * Calls Diff.reverse to change asset.votes signs and merges account to
+ * sender address with inverted votes as delegates.
+ *
+ * @param {transaction} transaction
+ * @param {block} block
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
+ */
+Vote.prototype.undo = function(transaction, block, sender, cb, tx) {
+	if (transaction.asset.votes === null) {
+		return setImmediate(cb);
+	}
+
+	const votesInvert = Diff.reverse(transaction.asset.votes);
+
+	library.account.merge(
+		sender.address,
+		{
+			delegates: votesInvert,
+			round: slots.calcRound(block.height),
+		},
+		mergeErr => setImmediate(cb, mergeErr),
+		tx
+	);
+};
+
+/**
+ * Calls Diff.reverse to change asset.votes signs and merges account to
+ * sender address with inverted votes as unconfirmed delegates.
+ *
+ * @param {transaction} transaction
+ * @param {account} sender
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error
+ * @todo Add description for the params
+ */
+Vote.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
+	if (transaction.asset.votes === null) {
+		return setImmediate(cb);
+	}
+
+	const votesInvert = Diff.reverse(transaction.asset.votes);
+
+	library.account.merge(
+		sender.address,
+		{ u_delegates: votesInvert },
+		mergeErr => setImmediate(cb, mergeErr),
+		tx
+	);
+};
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.
@@ -324,19 +325,16 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
-	const parent = this;
-
 	async.series(
 		[
 			function(seriesCb) {
 				self.checkConfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function() {
-				parent.scope.account.merge(
+				library.account.merge(
 					sender.address,
 					{
 						delegates: transaction.asset.votes,
@@ -358,19 +356,16 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
-	const parent = this;
-
 	async.series(
 		[
 			function(seriesCb) {
 				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				parent.scope.account.merge(
+				library.account.merge(
 					sender.address,
 					{
 						u_delegates: transaction.asset.votes,
