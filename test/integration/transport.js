@@ -64,9 +64,9 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 	describe('when every peers contains the others on the peers list', () => {
 		before(() => {
 			return configurations.forEach(configuration => {
-				configuration.peers.list = setup.sync.generatePeers(
+				configuration.peers.list = setup.network.generatePeers(
 					configurations,
-					setup.sync.SYNC_MODES.ALL_TO_GROUP,
+					setup.network.SYNC_MODES.ALL_TO_GROUP,
 					{ indices: _.range(10) },
 					configuration.wsPort
 				);
@@ -192,15 +192,10 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 					});
 
 					describe('when functional tests are successfully executed against 127.0.0.1:5000', () => {
-						before(done => {
-							setup.shell.runMochaTests(
-								[
-									'test/functional/http/get/peers.js',
-									'test/functional/http/get/blocks.js',
-									'test/functional/http/get/transactions.js',
-								],
-								done
-							);
+						describe('Run functional tests', () => {
+							require('../functional/http/get/peers.js');
+							require('../functional/http/get/blocks.js');
+							require('../functional/http/get/transactions.js');
 						});
 
 						if (!broadcastingDisabled) {
