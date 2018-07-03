@@ -184,7 +184,7 @@ module.exports = params => {
 					return utils.http.getPeers().then(peers => {
 						peers.map(peer => {
 							if (peer.wsPort == 5000) {
-								expect(peer.state).to.be.eql(Peer.STATE.BANNED);
+								expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
 							} else {
 								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 							}
