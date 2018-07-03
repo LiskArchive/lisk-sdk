@@ -717,6 +717,21 @@ describe('db', () => {
 				return yield expect(db.accounts.increment('12L', 'unknown', 1000)).to
 					.eventually.rejected;
 			});
+
+			it('should increment balance with string data', function*() {
+				const account = accountFixtures.Account();
+				account.balance = '15000';
+
+				yield db.accounts.insert(account);
+				yield db.accounts.increment(account.address, 'balance', '1000');
+
+				const updatedAccount = (yield db.accounts.list(
+					{ address: account.address },
+					['balance']
+				))[0];
+
+				return expect(updatedAccount.balance).to.eql('16000');
+			});
 		});
 
 		describe('decrement()', () => {
@@ -735,6 +750,21 @@ describe('db', () => {
 
 				yield db.accounts.insert(account);
 				yield db.accounts.decrement(account.address, 'balance', 1000);
+
+				const updatedAccount = (yield db.accounts.list(
+					{ address: account.address },
+					['balance']
+				))[0];
+
+				return expect(updatedAccount.balance).to.eql('14000');
+			});
+
+			it('should increment balance with string data', function*() {
+				const account = accountFixtures.Account();
+				account.balance = '15000';
+
+				yield db.accounts.insert(account);
+				yield db.accounts.decrement(account.address, 'balance', '1000');
 
 				const updatedAccount = (yield db.accounts.list(
 					{ address: account.address },
