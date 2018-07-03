@@ -77,7 +77,7 @@
 		"maxTransactionsPerQueue": 1000
 	},
 	"forging": {
-		"force": false,
+		"force": true,
 		"defaultPassword": "elephant tree paris dragon chair galaxy",
 		"delegates": [
 			{
