@@ -424,7 +424,9 @@ describe('RPC Client', () => {
 			it('should close connection with code 4103 and reason string', done => {
 				expect(closeErrorCode).equal(4103);
 				expect(closeErrorReason).equal(
-					'Expected version: >=0.0.0 but received: 0.0.0-beta.1'
+					`Expected version: ${
+						__testContext.config.minVersion
+					} but received: 0.0.0-beta.1`
 				);
 				done();
 			});
