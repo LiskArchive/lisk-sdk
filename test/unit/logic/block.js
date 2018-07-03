@@ -37,9 +37,9 @@ const validDataForBlock = {
 	timestamp: 41898500,
 	previousBlock: {
 		version: 0,
-		totalAmount: 0,
-		totalFee: 0,
-		reward: 0,
+		totalAmount: '0',
+		totalFee: '0',
+		reward: '0',
 		payloadHash:
 			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 		timestamp: 41898490,
@@ -70,7 +70,7 @@ const blockData = validDataForBlock.previousBlock;
 const transactionsByTypes = {};
 transactionsByTypes[transactionTypes.MULTI] = {
 	type: 4,
-	amount: 0,
+	amount: '0',
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -126,7 +126,7 @@ transactionsByTypes[transactionTypes.MULTI] = {
 
 transactionsByTypes[transactionTypes.DAPP] = {
 	type: 5,
-	amount: 0,
+	amount: '0',
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -154,7 +154,7 @@ transactionsByTypes[transactionTypes.DAPP] = {
 
 transactionsByTypes[transactionTypes.VOTE] = {
 	type: 3,
-	amount: 0,
+	amount: '0',
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -175,7 +175,7 @@ transactionsByTypes[transactionTypes.VOTE] = {
 
 transactionsByTypes[transactionTypes.DELEGATE] = {
 	type: 2,
-	amount: 0,
+	amount: '0',
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -197,7 +197,7 @@ transactionsByTypes[transactionTypes.DELEGATE] = {
 
 transactionsByTypes[transactionTypes.SIGNATURE] = {
 	type: 1,
-	amount: 0,
+	amount: '0',
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -218,7 +218,7 @@ transactionsByTypes[transactionTypes.SIGNATURE] = {
 
 transactionsByTypes[transactionTypes.SEND] = {
 	type: 0,
-	amount: 1,
+	amount: '1',
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -242,7 +242,7 @@ transactionsByTypes[transactionTypes.IN_TRANSFER] = {
 	senderId: '2623857243537009424L',
 	recipientId: null,
 	recipientPublicKey: null,
-	amount: 999,
+	amount: '999',
 	fee: 10000000,
 	signature:
 		'46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
@@ -261,8 +261,8 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 		'8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
 	senderId: '12566082625150495618L',
 	recipientId: '477547807936790449L',
-	amount: 100,
-	fee: 10000000,
+	amount: '100',
+	fee: '10000000',
 	signature:
 		'126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
 	asset: {

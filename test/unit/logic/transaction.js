@@ -950,8 +950,8 @@ describe('transaction', () => {
 								var balanceAfter = new bignum(accountAfter.balance.toString());
 
 								expect(err).to.not.exist;
-								expect(balanceAfter.plus(amount).toString()).to.equal(
-									balanceBefore.toString()
+								expect(balanceBefore.plus(amount).toString()).to.equal(
+									balanceAfter.toString()
 								);
 								undoTransaction(validTransaction, sender, done);
 							}
@@ -992,12 +992,10 @@ describe('transaction', () => {
 						accountModule.getAccount(
 							{ publicKey: transaction.senderPublicKey },
 							(err, accountAfter) => {
+								expect(err).to.not.exist;
 								var balanceAfter = new bignum(accountAfter.balance.toString());
 
-								expect(
-									balanceBefore.plus(amount.mul(2)).toString()
-								).to.not.equal(balanceAfter.toString());
-								expect(balanceBefore.toString()).to.equal(
+								expect(balanceBefore.plus(amount.mul(2)).toString()).to.equal(
 									balanceAfter.toString()
 								);
 								done();
@@ -1009,27 +1007,20 @@ describe('transaction', () => {
 		});
 
 		it('should be okay with valid params', done => {
-			var transaction = validTransaction;
-			var amount = new bignum(transaction.amount.toString()).plus(
-				transaction.fee.toString()
-			);
-
 			accountModule.getAccount(
-				{ publicKey: transaction.senderPublicKey },
+				{ publicKey: validTransaction.senderPublicKey },
 				(err, accountBefore) => {
 					var balanceBefore = new bignum(accountBefore.balance.toString());
 
-					transactionLogic.undo(transaction, dummyBlock, sender, () => {
+					transactionLogic.undo(validTransaction, dummyBlock, sender, () => {
 						accountModule.getAccount(
-							{ publicKey: transaction.senderPublicKey },
+							{ publicKey: validTransaction.senderPublicKey },
 							(err, accountAfter) => {
+								expect(err).to.not.exist;
 								var balanceAfter = new bignum(accountAfter.balance.toString());
 
-								expect(err).to.not.exist;
-								expect(balanceBefore.plus(amount).toString()).to.equal(
-									balanceAfter.toString()
-								);
-								applyTransaction(transaction, sender, done);
+								expect(balanceAfter.equals(balanceBefore));
+								applyTransaction(validTransaction, sender, done);
 							}
 						);
 					});

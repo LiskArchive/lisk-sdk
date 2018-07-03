@@ -49,8 +49,8 @@ var validSender = {
 
 var validTransaction = {
 	type: 2,
-	amount: 0,
-	fee: 0,
+	amount: '0',
+	fee: '0',
 	timestamp: 0,
 	recipientId: null,
 	senderId: '10881167371402274308L',
@@ -176,7 +176,7 @@ describe('delegate', () => {
 			});
 
 			it('should call callback with error if amount is not equal to 0', done => {
-				transaction.amount = 1;
+				transaction.amount = '1';
 
 				delegate.verify(transaction, sender, err => {
 					expect(err).to.equal('Invalid transaction amount');
