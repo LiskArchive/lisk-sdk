@@ -31,12 +31,6 @@ describe('APIClient module', () => {
 	const testnetHash =
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
 	const testnetNodes = ['http://testnet.lisk.io:7000'];
-	const betanetHash =
-		'ef3844327d1fd0fc5785291806150c937797bdb34a748c9cd932b7e859e9ca0c';
-	const betanetNodes = [
-		'http://94.237.42.109:5000',
-		'http://83.136.252.99:5000',
-	];
 	const locale =
 		process.env.LC_ALL ||
 		process.env.LC_MESSAGES ||
@@ -150,26 +144,6 @@ describe('APIClient module', () => {
 
 		it('should be set to testnet hash', () => {
 			return expect(client.headers.nethash).to.equal(testnetHash);
-		});
-	});
-
-	describe('#createBetanetAPIClient', () => {
-		let client;
-		beforeEach(() => {
-			client = APIClient.createBetanetAPIClient();
-			return Promise.resolve();
-		});
-
-		it('should return APIClient instance', () => {
-			return expect(client).to.be.instanceof(APIClient);
-		});
-
-		it('should contain betanet nodes', () => {
-			return expect(client.nodes).to.eql(betanetNodes);
-		});
-
-		it('should be set to betanet hash', () => {
-			return expect(client.headers.nethash).to.equal(betanetHash);
 		});
 	});
 

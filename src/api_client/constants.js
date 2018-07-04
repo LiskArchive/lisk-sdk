@@ -16,10 +16,6 @@ export const GET = 'GET';
 export const POST = 'POST';
 export const PUT = 'PUT';
 
-export const BETANET_NODES = [
-	'http://94.237.42.109:5000',
-	'http://83.136.252.99:5000',
-];
 export const TESTNET_NODES = ['http://testnet.lisk.io:7000'];
 export const MAINNET_NODES = [
 	'https://node01.lisk.io:443',
