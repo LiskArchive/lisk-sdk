@@ -358,28 +358,31 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
 
-	// Converting publicKeys to addresses because module.accounts do not support fetching multiple accounts by publicKeys
-	// TODO: Use Hashmap to improve performance further.
-	const voteAddressesWithActions = votes.map(vote => {
-		const action = vote[0];
-		let voteAddress;
+	let voteAddressesWithActions;
 
-		try {
+	try {
+		// Converting publicKeys to addresses because module.accounts do not support fetching multiple accounts by publicKeys
+		// TODO: Use Hashmap to improve performance further.
+		voteAddressesWithActions = votes.map(vote => {
+			const action = vote[0];
+
 			if (action !== '+' && action !== '-') {
 				throw 'Invalid math operator';
 			}
 			const votePublicKey = vote.slice(1);
+			const voteAddress = modules.accounts.generateAddressByPublicKey(
+				votePublicKey
+			);
 
-			voteAddress = modules.accounts.generateAddressByPublicKey(votePublicKey);
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, e);
-		}
-		return {
-			action,
-			address: voteAddress,
-		};
-	});
+			return {
+				action,
+				address: voteAddress,
+			};
+		});
+	} catch (e) {
+		library.logger.error(e.stack);
+		return setImmediate(cb, e);
+	}
 
 	async.waterfall(
 		[
