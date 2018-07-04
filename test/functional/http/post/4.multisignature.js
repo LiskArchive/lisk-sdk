@@ -20,7 +20,6 @@ var phases = require('../../common/phases');
 var Scenarios = require('../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
 var apiCodes = require('../../../../helpers/api_codes');
-var constants = require('../../../../helpers/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var elements = require('../../../common/utils/elements');
@@ -29,6 +28,7 @@ var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
+const constants = global.constants;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {

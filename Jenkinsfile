@@ -16,8 +16,8 @@ def initializeNode() {
 		sh '''
 		pkill -f app.js -9 || true
 		sudo service postgresql restart
-		dropdb lisk_test || true
-		createdb lisk_test
+		dropdb lisk_dev || true
+		createdb lisk_dev
 		'''
 		deleteDir()
 		checkout scm
@@ -46,8 +46,8 @@ def buildDependencies() {
 def startLisk() {
 	try {
 		sh '''
-		cp test/data/config.json test/data/genesis_block.json .
-		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe ~/start_lisk.sh
+		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe nohup node app.js &> .app.log &
+		sleep 15
 		'''
 	} catch (err) {
 		echo "Error: ${err}"

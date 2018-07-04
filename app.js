@@ -21,7 +21,6 @@ var extend = require('extend');
 var SocketCluster = require('socketcluster');
 var async = require('async');
 var randomstring = require('randomstring');
-var genesisblock = require('./genesis_block.json');
 var Logger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 var wsTransport = require('./api/ws/transport');
@@ -41,7 +40,6 @@ var swaggerHelper = require('./helpers/swagger');
  * @requires extend
  * @requires fs
  * @requires socketcluster
- * @requires genesis_block.json
  * @requires logger.js
  * @requires api/ws/rpc/ws_rpc.wsRPC
  * @requires helpers/config
@@ -65,7 +63,7 @@ var swaggerHelper = require('./helpers/swagger');
  * @property {undefined} connect
  * @property {Object} db
  * @property {Object} ed
- * @property {Object} genesisblock
+ * @property {Object} genesisBlock
  * @property {string} lastCommit
  * @property {Object} listen
  * @property {Object} logger
@@ -109,8 +107,12 @@ if (typeof gc !== 'undefined') {
  */
 var appConfig = AppConfig(require('./package.json'));
 
-// Define availability of top accounts endpoint
-process.env.TOP = appConfig.topAccounts;
+// Define lisk network env variable to be used by child processes load config files
+process.env.LISK_NETWORK = appConfig.network;
+
+// Global objects to be utilized under modules/helpers where scope is not accessible
+global.constants = appConfig.constants;
+global.exceptions = appConfig.exceptions;
 
 /**
  * Application config object.
@@ -185,6 +187,7 @@ d.on('error', err => {
 	process.exit(0);
 });
 
+logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
 // Run domain
 d.run(() => {
 	var modules = [];
@@ -201,7 +204,7 @@ d.run(() => {
 			config(cb) {
 				try {
 					appConfig.nethash = Buffer.from(
-						genesisblock.payloadHash,
+						appConfig.genesisBlock.payloadHash,
 						'hex'
 					).toString('hex');
 
@@ -233,9 +236,9 @@ d.run(() => {
 				cb(null, lastCommit);
 			},
 
-			genesisblock(cb) {
+			genesisBlock(cb) {
 				cb(null, {
-					block: genesisblock,
+					block: appConfig.genesisBlock,
 				});
 			},
 
@@ -535,7 +538,7 @@ d.run(() => {
 				'db',
 				'bus',
 				'schema',
-				'genesisblock',
+				'genesisBlock',
 				/**
 				 * Description of the function.
 				 *
@@ -567,17 +570,15 @@ d.run(() => {
 							schema(cb) {
 								cb(null, scope.schema);
 							},
-							genesisblock(cb) {
-								cb(null, {
-									block: genesisblock,
-								});
+							genesisBlock(cb) {
+								cb(null, scope.genesisBlock);
 							},
 							account: [
 								'db',
 								'bus',
 								'ed',
 								'schema',
-								'genesisblock',
+								'genesisBlock',
 								'logger',
 								function(scope, cb) {
 									new Account(scope.db, scope.schema, scope.logger, cb);
@@ -588,7 +589,7 @@ d.run(() => {
 								'bus',
 								'ed',
 								'schema',
-								'genesisblock',
+								'genesisBlock',
 								'account',
 								'logger',
 								function(scope, cb) {
@@ -596,7 +597,7 @@ d.run(() => {
 										scope.db,
 										scope.ed,
 										scope.schema,
-										scope.genesisblock,
+										scope.genesisBlock,
 										scope.account,
 										scope.logger,
 										cb
@@ -608,7 +609,7 @@ d.run(() => {
 								'bus',
 								'ed',
 								'schema',
-								'genesisblock',
+								'genesisBlock',
 								'account',
 								'transaction',
 								function(scope, cb) {

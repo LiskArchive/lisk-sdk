@@ -15,9 +15,9 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../helpers/constants.js');
-const exceptions = require('../helpers/exceptions.js');
 
+const exceptions = global.exceptions;
+const constants = global.constants;
 let modules;
 let library;
 let self;
@@ -29,8 +29,6 @@ let self;
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @requires helpers/constants
- * @requires helpers/exceptions
  * @param {logger} logger
  * @param {ZSchema} schema
  * @todo Add description for the params
@@ -62,7 +60,6 @@ Delegate.prototype.bind = function(accounts) {
 /**
  * Obtains constant fee delegate.
  *
- * @see {@link helpers/constants}
  * @returns {number} constants.fees.delegate
  * @todo Delete unused transaction, sender parameters
  */

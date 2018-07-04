@@ -15,11 +15,12 @@
 'use strict';
 
 const rewire = require('rewire');
-const constants = require('../../../helpers/constants.js');
 const application = require('../../common/application.js');
 const modulesLoader = require('../../common/modules_loader');
 
 const Account = rewire('../../../logic/account.js');
+
+const constants = global.constants;
 
 const validAccount = {
 	username: 'genesis_100',

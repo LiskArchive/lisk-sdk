@@ -16,13 +16,13 @@
 
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
-const constants = require('../helpers/constants.js');
 const Diff = require('../helpers/diff.js');
-const exceptions = require('../helpers/exceptions.js');
 const slots = require('../helpers/slots.js');
 
 let modules;
 let library;
+const exceptions = global.exceptions;
+const constants = global.constants;
 const __private = {};
 
 __private.unconfirmedSignatures = {};
@@ -35,9 +35,7 @@ __private.unconfirmedSignatures = {};
  * @see Parent: {@link logic}
  * @requires async
  * @requires bytebuffer
- * @requires helpers/constants
  * @requires helpers/diff
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {ZSchema} schema
  * @param {Object} network
@@ -76,7 +74,6 @@ Multisignature.prototype.bind = function(accounts) {
 /**
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  *
- * @see {@link module:helpers/constants}
  * @param {transaction} transaction
  * @returns {number} Quantity of multisignature keysgroup * multisignature fees
  * @todo Add description for the params

@@ -15,8 +15,6 @@
 'use strict';
 
 const async = require('async');
-const config = require('../config.json');
-const constants = require('../helpers/constants.js');
 // eslint-disable-next-line  prefer-const
 let jobsQueue = require('../helpers/jobs_queue.js');
 const transactionTypes = require('../helpers/transaction_types.js');
@@ -24,6 +22,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 let modules;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 
 /**
@@ -34,8 +33,6 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires async
- * @requires config.json
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires helpers/transaction_types
  * @param {number} broadcastInterval - Broadcast interval in seconds, used for bundling
@@ -52,7 +49,8 @@ class TransactionPool {
 		transaction,
 		bus,
 		logger,
-		balancesSequence
+		balancesSequence,
+		config
 	) {
 		library = {
 			logger,
@@ -64,6 +62,9 @@ class TransactionPool {
 				broadcasts: {
 					broadcastInterval,
 					releaseLimit,
+				},
+				transactions: {
+					maxTransactionsPerQueue: config.transactions.maxTransactionsPerQueue,
 				},
 			},
 			balancesSequence,
@@ -604,7 +605,9 @@ TransactionPool.prototype.queueTransaction = function(transaction, sender, cb) {
 	transaction.receivedAt = new Date();
 
 	if (transaction.bundled) {
-		if (self.countBundled() >= config.transactions.maxTransactionsPerQueue) {
+		if (
+			self.countBundled() >= library.config.transactions.maxTransactionsPerQueue
+		) {
 			return setImmediate(cb, 'Transaction pool is full');
 		}
 		self.addBundledTransaction(transaction);
@@ -617,13 +620,14 @@ TransactionPool.prototype.queueTransaction = function(transaction, sender, cb) {
 			sender.multisignatures.length);
 	if (isMultisignature) {
 		if (
-			self.countMultisignature() >= config.transactions.maxTransactionsPerQueue
+			self.countMultisignature() >=
+			library.config.transactions.maxTransactionsPerQueue
 		) {
 			return setImmediate(cb, 'Transaction pool is full');
 		}
 		self.addMultisignatureTransaction(transaction);
 	} else if (
-		self.countQueued() >= config.transactions.maxTransactionsPerQueue
+		self.countQueued() >= library.config.transactions.maxTransactionsPerQueue
 	) {
 		return setImmediate(cb, 'Transaction pool is full');
 	} else {

@@ -2,9 +2,10 @@ const async = require('async');
 const expect = require('chai').expect;
 const lisk = require('lisk-elements').default;
 const localCommon = require('../common');
-const exceptions = require('../../../../helpers/exceptions.js');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
+
+const exceptions = global.exceptions;
 
 describe('inert transactions', () => {
 	let library;

@@ -17,10 +17,8 @@
 var express = require('express');
 var randomstring = require('randomstring');
 var async = require('async');
-var config = require('../../test/data/config.json');
 var Sequence = require('../../helpers/sequence.js');
 var database = require('../../db');
-var genesisblock = require('../../test/data/genesis_block.json');
 var Logger = require('../../logger.js');
 var z_schema = require('../../helpers/z_schema.js');
 var cacheHelper = require('../../helpers/cache.js');
@@ -34,13 +32,12 @@ var modulesLoader = new function() {
 	this.db = null;
 	this.logger = new Logger({
 		echo: null,
-		errorLevel: config.fileLogLevel,
-		filename: config.logFileName,
+		errorLevel: __testContext.config.fileLogLevel,
+		filename: __testContext.config.logFileName,
 	});
-	config.nonce = randomstring.generate(16);
 	this.scope = {
-		config,
-		genesisblock: { block: genesisblock },
+		config: __testContext.config,
+		genesisBlock: { block: __testContext.config.genesisBlock },
 		logger: this.logger,
 		network: {
 			app: express(),
@@ -101,7 +98,7 @@ var modulesLoader = new function() {
 							scope.db,
 							scope.ed,
 							scope.schema,
-							scope.genesisblock,
+							scope.genesisBlock,
 							result.account,
 							scope.logger,
 							cb
@@ -120,7 +117,7 @@ var modulesLoader = new function() {
 								scope.db,
 								scope.ed,
 								scope.schema,
-								scope.genesisblock,
+								scope.genesisBlock,
 								account,
 								scope.logger,
 								waterCb

@@ -21,7 +21,6 @@ const lisk = require('lisk-elements').default;
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../common/utils/random');
 const localCommon = require('../../common');
-const genesisBlock = require('../../../../data/genesis_block.json');
 
 describe('system test (blocks) - chain/applyBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -42,7 +41,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				]);
 			})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(genesisBlock);
+				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();
 			})
 			.catch(err => {
@@ -369,7 +368,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 					payloadHash:
 						'be0df321b1653c203226add63ac0d13b3411c2f4caf0a213566cbd39edb7ce3b',
 					payloadLength: 494,
-					previousBlock: genesisBlock.id,
+					previousBlock: __testContext.config.genesisBlock.id,
 					height: 2,
 					reward: 0,
 					timestamp: 32578370,

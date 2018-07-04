@@ -14,12 +14,12 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
-const milestones = require('../helpers/milestones.js');
 
 let modules;
 let library;
+const constants = global.constants;
+const exceptions = global.exceptions;
 const __private = {};
 
 __private.unconfirmedOutTansfers = {};
@@ -80,7 +80,7 @@ OutTransfer.prototype.calculateFee = function() {
  */
 OutTransfer.prototype.verify = function(transaction, sender, cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
-	if (lastBlock.height >= milestones.disableDappTransfers) {
+	if (lastBlock.height >= exceptions.precedent.disableDappTransfer) {
 		return setImmediate(cb, `Transaction type ${transaction.type} is frozen`);
 	}
 

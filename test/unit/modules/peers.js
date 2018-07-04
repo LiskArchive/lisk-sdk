@@ -21,7 +21,7 @@ const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 const Peer = require('../../../logic/peer');
 const generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
-const constants = require('../../../helpers/constants');
+const constants = require('../../../config/mainnet/constants');
 const jobsQueue = require('../../../helpers/jobs_queue');
 const generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers')
 	.generateMatchedAndUnmatchedBroadhashes;

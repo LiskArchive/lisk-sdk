@@ -16,8 +16,9 @@
 
 const _ = require('lodash');
 const async = require('async');
-const constants = require('../../helpers/constants.js');
 const slots = require('../../helpers/slots.js');
+
+const constants = global.constants;
 
 const __private = {};
 let modules;
@@ -33,7 +34,6 @@ let self;
  * @see Parent: {@link modules.blocks}
  * @requires async
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/slots
  * @requires logic/peer
  * @param {Object} logger
@@ -43,7 +43,7 @@ let self;
  * @param {ZSchema} schema
  * @param {Database} db
  * @param {Sequence} sequence
- * @param {Object} genesisblock
+ * @param {Object} genesisBlock
  * @todo Add description for the params
  */
 class Process {
@@ -55,14 +55,14 @@ class Process {
 		schema,
 		db,
 		sequence,
-		genesisblock
+		genesisBlock
 	) {
 		library = {
 			logger,
 			schema,
 			db,
 			sequence,
-			genesisblock,
+			genesisBlock,
 			logic: {
 				block,
 				peers,
@@ -391,7 +391,7 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 
 					library.logger.debug('Processing block', block.id);
 
-					if (block.id === library.genesisblock.block.id) {
+					if (block.id === library.genesisBlock.block.id) {
 						// Apply block - saveBlock: false
 						modules.blocks.chain.applyGenesisBlock(block, err =>
 							setImmediate(eachBlockSeriesCb, err)

@@ -21,7 +21,6 @@ var _ = require('lodash');
 var rewire = require('rewire');
 var async = require('async'); // eslint-disable-line no-unused-vars
 var Promise = require('bluebird');
-var constants = require('../../../../../helpers/constants');
 var application = require('../../../../common/application'); // eslint-disable-line no-unused-vars
 var clearDatabaseTable = require('../../../../common/db_sandbox')
 	.clearDatabaseTable; // eslint-disable-line no-unused-vars
@@ -29,9 +28,11 @@ var modulesLoader = require('../../../../common/modules_loader'); // eslint-disa
 var random = require('../../../../common/utils/random');
 var slots = require('../../../../../helpers/slots.js');
 var accountFixtures = require('../../../../fixtures/accounts');
-var genesisBlock = require('../../../../data/genesis_block.json');
 var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
+
+const constants = global.constants;
+const genesisBlock = __testContext.config.genesisBlock;
 
 var previousBlock = {
 	blockSignature:

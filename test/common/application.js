@@ -125,9 +125,8 @@ function __init(initScope, done) {
 					config(cb) {
 						cb(null, __testContext.config);
 					},
-					genesisblock(cb) {
-						var genesisblock = require('../data/genesis_block.json');
-						cb(null, { block: genesisblock });
+					genesisBlock(cb) {
+						cb(null, { block: __testContext.config.genesisBlock });
 					},
 
 					schema(cb) {
@@ -268,7 +267,7 @@ function __init(initScope, done) {
 						'bus',
 						'schema',
 						'network',
-						'genesisblock',
+						'genesisBlock',
 						function(scope, cb) {
 							var Transaction = require('../../logic/transaction.js');
 							var Block = require('../../logic/block.js');
@@ -293,17 +292,15 @@ function __init(initScope, done) {
 									schema(cb) {
 										cb(null, scope.schema);
 									},
-									genesisblock(cb) {
-										cb(null, {
-											block: scope.genesisblock.block,
-										});
+									genesisBlock(cb) {
+										cb(null, scope.genesisBlock);
 									},
 									account: [
 										'db',
 										'bus',
 										'ed',
 										'schema',
-										'genesisblock',
+										'genesisBlock',
 										'logger',
 										function(scope, cb) {
 											new Account(scope.db, scope.schema, scope.logger, cb);
@@ -314,7 +311,7 @@ function __init(initScope, done) {
 										'bus',
 										'ed',
 										'schema',
-										'genesisblock',
+										'genesisBlock',
 										'account',
 										'logger',
 										function(scope, cb) {
@@ -322,7 +319,7 @@ function __init(initScope, done) {
 												scope.db,
 												scope.ed,
 												scope.schema,
-												scope.genesisblock,
+												scope.genesisBlock,
 												scope.account,
 												scope.logger,
 												cb
@@ -334,7 +331,7 @@ function __init(initScope, done) {
 										'bus',
 										'ed',
 										'schema',
-										'genesisblock',
+										'genesisBlock',
 										'account',
 										'transaction',
 										function(scope, cb) {

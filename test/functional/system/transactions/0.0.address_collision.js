@@ -17,8 +17,9 @@
 var async = require('async');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
 var localCommon = require('../common');
+
+const constants = global.constants;
 
 describe('system test (type 0) - address collision', () => {
 	var library;

@@ -36,7 +36,7 @@ const __private = {};
  * @param {Block} block
  * @param {Transaction} transaction
  * @param {Database} db
- * @param {Object} genesisblock
+ * @param {Object} genesisBlock
  * @param {bus} bus
  * @param {Sequence} balancesSequence
  * @todo Add description for the params
@@ -47,14 +47,14 @@ class Chain {
 		block,
 		transaction,
 		db,
-		genesisblock,
+		genesisBlock,
 		bus,
 		balancesSequence
 	) {
 		library = {
 			logger,
 			db,
-			genesisblock,
+			genesisBlock,
 			bus,
 			balancesSequence,
 			logic: {
@@ -80,7 +80,7 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 	// Check if genesis block ID already exists in the database
 	// FIXME: Duplicated, there is another SQL query that we can use for that
 	library.db.blocks
-		.getGenesisBlockId(library.genesisblock.block.id)
+		.getGenesisBlockId(library.genesisBlock.block.id)
 		.then(rows => {
 			const blockId = rows.length && rows[0].id;
 
@@ -88,7 +88,7 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 				// If there is no block with genesis ID - save to database
 				// WARNING: DB_WRITE
 				// FIXME: This will fail if we already have genesis block in database, but with different ID
-				self.saveBlock(library.genesisblock.block, err =>
+				self.saveBlock(library.genesisBlock.block, err =>
 					setImmediate(cb, err)
 				);
 			} else {
@@ -251,7 +251,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 		err => {
 			if (err) {
 				// If genesis block is invalid, kill the node...
-				process.exit(0);
+				process.emit('cleanup', err.message);
 				return setImmediate(cb, err);
 			}
 			// Set genesis block as last block

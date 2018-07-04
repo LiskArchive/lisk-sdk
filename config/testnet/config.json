@@ -1,0 +1,117 @@
+{
+	"wsPort": 7001,
+	"httpPort": 7000,
+	"address": "0.0.0.0",
+	"version": "1.0.0-rc.0.1",
+	"minVersion": "1.0.0-rc.0.1",
+	"fileLogLevel": "info",
+	"logFileName": "logs/lisk.log",
+	"consoleLogLevel": "none",
+	"trustProxy": false,
+	"topAccounts": false,
+	"cacheEnabled": false,
+	"wsWorkers": 1,
+	"db": {
+		"host": "localhost",
+		"port": 5432,
+		"database": "lisk_test",
+		"user": "",
+		"password": "password",
+		"min": 10,
+		"max": 95,
+		"poolIdleTimeout": 30000,
+		"reapIntervalMillis": 1000,
+		"logEvents": ["error"],
+		"logFileName": "logs/lisk_db.log"
+	},
+	"redis": {
+		"host": "127.0.0.1",
+		"port": 6380,
+		"db": 0,
+		"password": null
+	},
+	"api": {
+		"enabled": true,
+		"access": {
+			"public": false,
+			"whiteList": ["127.0.0.1"]
+		},
+		"options": {
+			"limits": {
+				"max": 0,
+				"delayMs": 0,
+				"delayAfter": 0,
+				"windowMs": 60000
+			},
+			"cors": {
+				"origin": "*",
+				"methods": ["GET", "POST", "PUT"]
+			}
+		}
+	},
+	"peers": {
+		"enabled": true,
+		"list": [
+			{
+				"ip": "94.237.29.221",
+				"wsPort": 7001
+			},
+			{
+				"ip": "83.136.254.104",
+				"wsPort": 7001
+			},
+			{
+				"ip": "209.50.48.177",
+				"wsPort": 7001
+			},
+			{
+				"ip": "94.237.64.33",
+				"wsPort": 7001
+			},
+			{
+				"ip": "94.237.30.23",
+				"wsPort": 7001
+			}
+		],
+		"access": {
+			"blackList": []
+		},
+		"options": {
+			"timeout": 5000,
+			"broadhashConsensusCalculationInterval": 5000
+		}
+	},
+	"broadcasts": {
+		"active": true,
+		"broadcastInterval": 5000,
+		"broadcastLimit": 25,
+		"parallelLimit": 20,
+		"releaseLimit": 25,
+		"relayLimit": 3
+	},
+	"transactions": {
+		"maxTransactionsPerQueue": 1000
+	},
+	"forging": {
+		"force": false,
+		"delegates": [],
+		"access": {
+			"whiteList": ["127.0.0.1"]
+		}
+	},
+	"syncing": {
+		"active": true
+	},
+	"loading": {
+		"loadPerIteration": 5000
+	},
+	"ssl": {
+		"enabled": false,
+		"options": {
+			"port": 443,
+			"address": "0.0.0.0",
+			"key": "./ssl/lisk.key",
+			"cert": "./ssl/lisk.crt"
+		}
+	}
+}

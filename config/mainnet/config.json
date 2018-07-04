@@ -2,8 +2,8 @@
 	"wsPort": 8001,
 	"httpPort": 8000,
 	"address": "0.0.0.0",
-	"version": "0.9.8",
-	"minVersion": ">=0.9.5",
+	"version": "1.1.0-alpha.0",
+	"minVersion": "0.9.5",
 	"fileLogLevel": "info",
 	"logFileName": "logs/lisk.log",
 	"consoleLogLevel": "none",
@@ -133,6 +133,5 @@
 			"key": "./ssl/lisk.key",
 			"cert": "./ssl/lisk.crt"
 		}
-	},
-	"nethash": "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"
+	}
 }

@@ -34,7 +34,7 @@ def cleanUp() {
 	'''
 }
 
-node('node-06') {
+node('lisk-integration') {
 	lock(resource: "core-integration-tests", inversePrecedence: true) {
 
 		properties([
@@ -56,7 +56,6 @@ node('node-06') {
 					sudo service postgresql restart
 					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/" || true
 					npm install
-					cp test/data/config.json test/data/genesis_block.json .
 				'''
 			} catch (err) {
 				statusFail()

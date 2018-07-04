@@ -19,7 +19,7 @@ var rewire = require('rewire');
 var randomstring = require('randomstring');
 var modulesLoader = require('../../common/modules_loader.js');
 var randomUtil = require('../../common/utils/random');
-var constants = require('../../../helpers/constants');
+const constants = require('../../../config/mainnet/constants');
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
 var testData = require('./test_data/dapp.js');
 
