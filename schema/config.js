@@ -33,13 +33,6 @@ module.exports = {
 				type: 'string',
 				format: 'ip',
 			},
-			version: {
-				type: 'string',
-				format: 'version',
-			},
-			minVersion: {
-				type: 'string',
-			},
 			fileLogLevel: {
 				type: 'string',
 			},
@@ -213,6 +206,12 @@ module.exports = {
 							timeout: {
 								type: 'integer',
 							},
+							broadhashConsensusCalculationInterval: {
+								type: 'integer',
+							},
+							wsEngine: {
+								type: 'string',
+							},
 						},
 						required: ['timeout'],
 					},
@@ -348,8 +347,6 @@ module.exports = {
 			'wsPort',
 			'httpPort',
 			'address',
-			'version',
-			'minVersion',
 			'fileLogLevel',
 			'logFileName',
 			'consoleLogLevel',

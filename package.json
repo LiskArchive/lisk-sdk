@@ -1,6 +1,6 @@
 {
 	"name": "lisk",
-	"version": "0.9.8",
+	"version": "1.1.0-alpha.0",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -121,5 +121,8 @@
 		"stampit": "=4.0.2",
 		"supertest": "=3.0.0"
 	},
-	"snyk": true
+	"snyk": true,
+	"lisk": {
+		"minVersion": "1.0.0-beta.9.2"
+	}
 }
