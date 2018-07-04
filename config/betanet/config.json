@@ -78,7 +78,8 @@
 		},
 		"options": {
 			"timeout": 5000,
-			"broadhashConsensusCalculationInterval": 5000
+			"broadhashConsensusCalculationInterval": 5000,
+			"wsEngine": "sc-uws"
 		}
 	},
 	"broadcasts": {
