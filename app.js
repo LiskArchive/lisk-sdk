@@ -17,7 +17,6 @@
 var path = require('path');
 var fs = require('fs');
 var d = require('domain').create();
-var extend = require('extend');
 var SocketCluster = require('socketcluster');
 var async = require('async');
 var Logger = require('./logger.js');
@@ -36,7 +35,6 @@ var swaggerHelper = require('./helpers/swagger');
  * @namespace app
  * @requires async
  * @requires domain.create
- * @requires extend
  * @requires fs
  * @requires socketcluster
  * @requires logger.js
@@ -482,18 +480,6 @@ d.run(() => {
 						processTermTimeout: 10000,
 						logLevel: 0,
 					};
-
-					if (scope.config.ssl.enabled) {
-						extend(webSocketConfig, {
-							protocol: 'https',
-							protocolOptions: {
-								key: fs.readFileSync(scope.config.ssl.options.key),
-								cert: fs.readFileSync(scope.config.ssl.options.cert),
-								ciphers:
-									'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA',
-							},
-						});
-					}
 
 					var childProcessOptions = {
 						version: scope.config.version,
