@@ -1,79 +1,24 @@
 {
-	"wsPort": 5000,
-	"httpPort": 4000,
-	"address": "0.0.0.0",
 	"fileLogLevel": "debug",
-	"logFileName": "logs/lisk.log",
-	"consoleLogLevel": "info",
-	"trustProxy": false,
-	"topAccounts": false,
 	"cacheEnabled": true,
-	"wsWorkers": 1,
+	"consoleLogLevel": "info",
 	"db": {
-		"host": "localhost",
-		"port": 5432,
 		"database": "lisk_alpha",
-		"user": "",
-		"password": "password",
 		"min": 1,
-		"max": 9,
-		"poolIdleTimeout": 30000,
-		"reapIntervalMillis": 1000,
-		"logEvents": ["error"],
-		"logFileName": "logs/lisk_db.log"
-	},
-	"redis": {
-		"host": "127.0.0.1",
-		"port": 6380,
-		"db": 0,
-		"password": null
+		"max": 10
 	},
 	"api": {
-		"enabled": true,
 		"access": {
-			"public": true,
-			"whiteList": ["127.0.0.1"]
-		},
-		"options": {
-			"limits": {
-				"max": 0,
-				"delayMs": 0,
-				"delayAfter": 0,
-				"windowMs": 60000
-			},
-			"cors": {
-				"origin": "*",
-				"methods": ["GET", "POST", "PUT"]
-			}
+			"public": true
 		}
 	},
 	"peers": {
-		"enabled": true,
 		"list": [
 			{
 				"ip": "127.0.0.1",
 				"wsPort": "5000"
 			}
-		],
-		"access": {
-			"blackList": []
-		},
-		"options": {
-			"timeout": 5000,
-			"broadhashConsensusCalculationInterval": 5000,
-			"wsEngine": "sc-uws"
-		}
-	},
-	"broadcasts": {
-		"active": true,
-		"broadcastInterval": 5000,
-		"broadcastLimit": 25,
-		"parallelLimit": 20,
-		"releaseLimit": 25,
-		"relayLimit": 3
-	},
-	"transactions": {
-		"maxTransactionsPerQueue": 1000
+		]
 	},
 	"forging": {
 		"force": false,
@@ -685,24 +630,6 @@
 				"publicKey":
 					"904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37"
 			}
-		],
-		"access": {
-			"whiteList": ["127.0.0.1"]
-		}
-	},
-	"syncing": {
-		"active": true
-	},
-	"loading": {
-		"loadPerIteration": 5000
-	},
-	"ssl": {
-		"enabled": false,
-		"options": {
-			"port": 443,
-			"address": "0.0.0.0",
-			"key": "./ssl/lisk.key",
-			"cert": "./ssl/lisk.crt"
-		}
+		]
 	}
 }
