@@ -80,6 +80,8 @@ function Config(packageJson) {
 		}
 	}
 
+	appConfig.version = packageJson.version;
+	appConfig.minVersion = packageJson.lisk.minVersion;
 	appConfig.network = network;
 	appConfig.genesisBlock = JSON.parse(
 		fs.readFileSync(
