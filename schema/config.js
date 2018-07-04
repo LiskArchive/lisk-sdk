@@ -213,6 +213,12 @@ module.exports = {
 							timeout: {
 								type: 'integer',
 							},
+							broadhashConsensusCalculationInterval: {
+								type: 'integer',
+							},
+							wsEngine: {
+								type: 'string',
+							},
 						},
 						required: ['timeout'],
 					},
