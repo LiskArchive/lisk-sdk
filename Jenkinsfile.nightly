@@ -24,12 +24,12 @@ pipeline {
 		}
 		stage('Run integration tests without syncing') {
 			steps {
-				sh 'SYNCING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'SYNCING=false npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests without broadcasting') {
 			steps {
-				sh 'TOTAL_PEERS=2 BROADCASTING_DISABLED=true npm test -- mocha:extensive:integration'
+				sh 'TOTAL_PEERS=2 BROADCASTING=false npm test -- mocha:extensive:integration'
 			}
 		}
 		stage('Run integration tests with syncing and broadcasting') {

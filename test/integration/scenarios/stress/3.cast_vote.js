@@ -25,7 +25,7 @@ var sendTransactionsPromise = require('../../../common/helpers/api')
 var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
-var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
+var broadcasting = process.env.BROADCASTING !== 'false';
 
 module.exports = function(params) {
 	describe('stress test for type 3 transactions @slow', function() {
@@ -33,7 +33,7 @@ module.exports = function(params) {
 		var accounts = [];
 		var transactions = [];
 		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
-		var waitForExtraBlocks = broadcastingDisabled ? 10 : 4; // Wait for extra blocks to ensure all the transactions are included in the block
+		var waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
 		describe('prepare accounts', () => {
 			before(() => {

@@ -22,12 +22,8 @@ var network = require('./network');
 module.exports = {
 	generateLiskConfigs(broadcasting = true, syncing = true, totalPeers = 10) {
 		utils.http.setVersion('1.0.0');
-		// When broadcasting disabled, start two node
-		// one node to forge and one to sync for testing
-		if (!broadcasting) {
-			totalPeers = 2;
-		}
 
+		// Generate config objects
 		var configurations = _.range(totalPeers).map(index => {
 			var devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
@@ -65,7 +61,7 @@ module.exports = {
 			);
 		});
 
-		// Configuring nodes to forge with force or normally
+		// Configuring nodes to forge with force or without
 		var delegatesMaxLength = Math.ceil(
 			devConfig.forging.delegates.length / configurations.length
 		);
