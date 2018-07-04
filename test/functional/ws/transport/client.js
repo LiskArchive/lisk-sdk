@@ -25,10 +25,13 @@ const WSServer = require('../../../common/ws/server_master');
 describe('RPC Client', () => {
 	const validWSServerIp = '127.0.0.1';
 	const validWSServerPort = 5000;
+	let validPeerStub;
 	let validClientRPCStub;
 	let socketClusterMock;
+	let closeErrorCode;
+	let closeErrorReason;
 
-	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
+	function createLoggerMock() {
 		const loggerMock = {
 			error: sinonSandbox.stub(),
 			warn: sinonSandbox.stub(),
@@ -36,7 +39,39 @@ describe('RPC Client', () => {
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
 		};
-		validClientRPCStub = connect({ ip, wsPort }, loggerMock).rpc;
+		return loggerMock;
+	}
+
+	function reconnect(ip = validWSServerIp, wsPort = validWSServerPort) {
+		if (
+			validPeerStub &&
+			validPeerStub.socket &&
+			validPeerStub.socket.state == validPeerStub.socket.OPEN
+		) {
+			validPeerStub.socket.disconnect();
+		}
+		const loggerMock = createLoggerMock();
+		validPeerStub = connect({ ip, wsPort }, loggerMock);
+		validClientRPCStub = validPeerStub.rpc;
+	}
+
+	function captureConnectionResult(callback) {
+		closeErrorCode = null;
+		closeErrorReason = null;
+		validPeerStub.socket.removeAllListeners('close');
+		validPeerStub.socket.removeAllListeners('connect');
+
+		validPeerStub.socket.on('close', (code, reason) => {
+			closeErrorCode = code;
+			closeErrorReason = reason;
+			callback && callback(code, reason);
+		});
+
+		if (callback) {
+			validPeerStub.socket.on('connect', () => {
+				callback();
+			});
+		}
 	}
 
 	before(done => {
@@ -126,7 +161,18 @@ describe('RPC Client', () => {
 					delete validHeaders.wsPort;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "wsPort: Expected type integer but found type not-a-number"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'wsPort: Expected type integer but found type not-a-number'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -139,7 +185,6 @@ describe('RPC Client', () => {
 				});
 			});
 
-			// TODO: Throws "Unable to find resolving function for procedure status with signature ..." error
 			describe('with valid port as string', () => {
 				beforeEach(done => {
 					validHeaders.wsPort = validHeaders.wsPort.toString();
@@ -161,7 +206,18 @@ describe('RPC Client', () => {
 					validHeaders.nonce = 'TOO_SHORT';
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "nonce: String is too short (9 chars), minimum 16"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'nonce: String is too short (9 chars), minimum 16'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -179,7 +235,18 @@ describe('RPC Client', () => {
 					validHeaders.nonce = 'NONCE_LONGER_THAN_16_CHARS';
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "nonce: String is too long (26 chars), maximum 16"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'nonce: String is too long (26 chars), maximum 16'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -197,7 +264,16 @@ describe('RPC Client', () => {
 					delete validHeaders.nonce;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "Missing required property: nonce"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal('Missing required property: nonce');
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -215,7 +291,18 @@ describe('RPC Client', () => {
 					delete validHeaders.nethash;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "Missing required property: nethash"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'Missing required property: nethash'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -249,7 +336,18 @@ describe('RPC Client', () => {
 					delete validHeaders.version;
 					System.setHeaders(validHeaders);
 					reconnect();
+					captureConnectionResult();
 					done();
+				});
+
+				it('should close connection with code = 4100 and reason = "Missing required property: version"', done => {
+					validClientRPCStub.status(() => {
+						expect(closeErrorCode).equal(4100);
+						expect(closeErrorReason).equal(
+							'Missing required property: version'
+						);
+						done();
+					});
 				});
 
 				it('should call rpc.status with err = "BadConnectionError: Event \'rpc-request\' was aborted due to a bad connection"', done => {
@@ -260,6 +358,94 @@ describe('RPC Client', () => {
 						done();
 					});
 				});
+			});
+		});
+
+		describe('makes request to itself', () => {
+			beforeEach(done => {
+				System.setHeaders(validHeaders);
+				reconnect();
+				// First connect is just to get the node's nonce.
+				validClientRPCStub.status((err, data) => {
+					// Then connect to the node with its own nonce.
+					validHeaders.nonce = data.nonce;
+					System.setHeaders(validHeaders);
+					reconnect();
+					validClientRPCStub.status(() => {});
+					captureConnectionResult(() => {
+						done();
+					});
+				});
+			});
+
+			it('should close connection with code 4101 and reason string', done => {
+				expect(closeErrorCode).equal(4101);
+				expect(closeErrorReason).equal(
+					`Expected nonce to be not equal to: ${validHeaders.nonce}`
+				);
+				done();
+			});
+		});
+
+		describe('makes request to the wrong network', () => {
+			beforeEach(done => {
+				// Set a non-matching nethash.
+				validHeaders.nethash =
+					'123f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
+				System.setHeaders(validHeaders);
+				reconnect();
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 4102 and reason string', done => {
+				expect(closeErrorCode).equal(4102);
+				expect(closeErrorReason).equal(
+					'Expected nethash: 198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d but received: 123f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d'
+				);
+				done();
+			});
+		});
+
+		describe('makes request with incompatible version', () => {
+			beforeEach(done => {
+				// Set a non-matching version.
+				validHeaders.version = '0.0.0-beta.1';
+				System.setHeaders(validHeaders);
+				reconnect();
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 4103 and reason string', done => {
+				expect(closeErrorCode).equal(4103);
+				expect(closeErrorReason).equal(
+					`Expected version: ${
+						__testContext.config.minVersion
+					} but received: 0.0.0-beta.1`
+				);
+				done();
+			});
+		});
+
+		describe('cannot connect - socket hung up', () => {
+			beforeEach(done => {
+				System.setHeaders(validHeaders);
+				// Target unused port.
+				reconnect(validWSServerIp, 4567);
+				validClientRPCStub.status(() => {});
+				captureConnectionResult(() => {
+					done();
+				});
+			});
+
+			it('should close connection with code 1006', done => {
+				expect(closeErrorCode).equal(1006);
+				done();
 			});
 		});
 	});

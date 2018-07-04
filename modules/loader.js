@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');
 
@@ -26,6 +25,7 @@ let modules;
 let definitions;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -46,7 +46,6 @@ __private.retries = 5;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires helpers/slots
  * @requires logic/peer
@@ -63,7 +62,7 @@ class Loader {
 			schema: scope.schema,
 			sequence: scope.sequence,
 			bus: scope.bus,
-			genesisblock: scope.genesisblock,
+			genesisBlock: scope.genesisBlock,
 			balancesSequence: scope.balancesSequence,
 			logic: {
 				transaction: scope.logic.transaction,
@@ -83,8 +82,8 @@ class Loader {
 		self = this;
 
 		__private.initialize();
-		__private.lastBlock = library.genesisblock;
-		__private.genesisBlock = library.genesisblock;
+		__private.lastBlock = library.genesisBlock;
+		__private.genesisBlock = library.genesisBlock;
 
 		setImmediate(cb, null, self);
 	}

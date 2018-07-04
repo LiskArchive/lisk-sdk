@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const async = require('async');
 const ip = require('ip');
-const constants = require('../helpers/constants.js');
 const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Peer = require('../logic/peer.js');
@@ -26,6 +25,7 @@ const Peer = require('../logic/peer.js');
 let modules;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 let definitions;
 
@@ -42,7 +42,6 @@ const peerDiscoveryFrequency = 30000;
  * @requires ip
  * @requires pg-promise
  * @requires api/ws/rpc/failure_codes
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @requires logic/peer
  * @param {function} cb - Callback function
@@ -377,7 +376,10 @@ __private.dbLoad = function(cb) {
 					if (library.logic.peers.upsert(peer, true) !== true) {
 						return setImmediate(eachCb);
 					}
-					if (peer.state !== Peer.STATE.BANNED && Date.now() - peer.updated > 3000) {
+					if (
+						peer.state !== Peer.STATE.BANNED &&
+						Date.now() - peer.updated > 3000
+					) {
 						peer.rpc.status((err, status) => {
 							__private.updatePeerStatus(err, status, peer);
 							if (!err) {

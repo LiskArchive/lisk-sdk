@@ -57,7 +57,7 @@ describe('GET /node', () => {
 			return expect(constantsResponse)
 				.to.have.property('version')
 				.to.match(
-					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3})?$/
+					/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})(-(alpha|beta|rc)\.[0-9]{1,3}(\.[0-9]{1,3})?)?$/
 				);
 		});
 
@@ -148,7 +148,7 @@ describe('GET /node', () => {
 				});
 			});
 
-			it('using enabled publicKey should be ok', () => {
+			it('using available publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {

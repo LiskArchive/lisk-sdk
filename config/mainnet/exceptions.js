@@ -18,13 +18,10 @@
  * Description of the namespace.
  *
  * @namespace exceptions
- * @memberof helpers
- * @see Parent: {@link helpers}
+ * @memberof config
+ * @see Parent: {@link config}
  * @property {Array} blockRewards
  * @property {Array} delegates
- * @property {Object} genesisPublicKey
- * @property {string} genesisPublicKey.mainnet
- * @property {string} genesisPublicKey.testnet
  * @property {Object} rounds
  * @property {Object} rounds.27040
  * @property {number} rounds.27040.rewards_factor
@@ -34,15 +31,13 @@
  * @property {string[]} signatures
  * @property {string[]} multisignatures
  * @property {string[]} votes
+ * @property {Object} precedent - A rule/authoritative checkpoint in place to follow in future
+ * @property {string} precedent.disableDappTransfer - Disable Dapp in and out transfer transactions
  * @todo Add description for the namespace and the properties
  */
 module.exports = {
 	blockRewards: [],
 	delegates: [],
-	genesisPublicKey: {
-		mainnet: 'd121d3abf5425fdc0f161d9ddb32f89b7750b4bdb0bff7d18b191d4b4bafa6d4',
-		testnet: 'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
-	},
 	rounds: {
 		27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 },
 	},
@@ -79,4 +74,7 @@ module.exports = {
 	],
 	inertTransactions: [],
 	transactionFee: [],
+	precedent: {
+		disableDappTransfer: 0,
+	},
 };

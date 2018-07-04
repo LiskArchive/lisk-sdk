@@ -194,7 +194,7 @@ To test Lisk is built and configured correctly, issue the following command:
 node app.js
 ```
 
-Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
+This will start the lisk instance with `devnet` configuration. Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
 
 ```
 pm2 start --name lisk app.js
@@ -215,8 +215,10 @@ pm2 stop lisk
 **NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
 
 ```
-pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path]
+pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
 ```
+
+You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
 
 ## Tests
 
@@ -229,13 +231,7 @@ dropdb lisk_test
 createdb lisk_test
 ```
 
-2. Ensure Lisk is configured to run on the same local network used by the tests. Replace the files **config.json** and **genesis_block.json** with those located under the **test/data** directory:
-
-```
-cp test/data/config.json test/data/genesis_block.json .
-```
-
-3. Launch Lisk (runs on port 4000):
+2. Launch Lisk (runs on port 4000):
 
 ```
 NODE_ENV=test node app.js

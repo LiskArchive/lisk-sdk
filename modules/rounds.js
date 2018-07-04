@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const constants = require('../helpers/constants.js');
 // eslint-disable-next-line prefer-const
 let Round = require('../logic/round.js');
 const slots = require('../helpers/slots.js');
@@ -24,6 +23,7 @@ const slots = require('../helpers/slots.js');
 let modules;
 let library;
 let self;
+const constants = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -36,7 +36,6 @@ __private.ticking = false;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires async
- * @requires helpers/constants
  * @requires helpers/slots
  * @requires logic/round
  * @param {function} cb - Callback function

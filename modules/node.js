@@ -16,7 +16,8 @@
 
 const _ = require('lodash');
 const BlockReward = require('../logic/block_reward.js');
-const constants = require('../helpers/constants.js');
+
+const constants = global.constants;
 
 // Private fields
 let modules;
@@ -33,7 +34,6 @@ let loaded;
  * @memberof modules
  * @see Parent: {@link modules}
  * @requires lodash
- * @requires helpers/constants
  * @requires logic/block_reward
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance

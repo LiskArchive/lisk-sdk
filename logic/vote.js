@@ -16,10 +16,11 @@
 
 const _ = require('lodash');
 const async = require('async');
-const constants = require('../helpers/constants.js');
-const exceptions = require('../helpers/exceptions.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
+
+const exceptions = global.exceptions;
+const constants = global.constants;
 
 let modules;
 let library;
@@ -35,9 +36,7 @@ let self;
  * @see Parent: {@link logic}
  * @requires async
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/diff
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {Object} logger
  * @param {ZSchema} schema
@@ -124,7 +123,6 @@ Vote.prototype.bind = function(delegates) {
 /**
  * Obtains constant fee vote.
  *
- * @see {@link module:helpers/constants}
  * @returns {number} Transaction fee
  */
 Vote.prototype.calculateFee = function() {

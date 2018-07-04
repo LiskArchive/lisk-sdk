@@ -14,7 +14,6 @@
 
 'use strict';
 
-const testConfig = require('../../data/config.json');
 const System = require('../../../modules/system');
 const connect = require('../../../api/ws/rpc/connect');
 const WSServerMaster = require('./server_master');
@@ -22,6 +21,7 @@ const WSServerMaster = require('./server_master');
 /**
  * WSClient
  * Create a web socket client to be connected to server
+ *
  *
  * @param {object} headers - headers object to be passed a query param to client
  * @constructor
@@ -37,8 +37,8 @@ WSClient.prototype.start = function() {
 	System.setHeaders(this.headers);
 	this.client = connect(
 		{
-			ip: testConfig.address,
-			wsPort: testConfig.wsPort,
+			ip: __testContext.config.address,
+			wsPort: __testContext.config.wsPort,
 		},
 		{
 			trace() {},

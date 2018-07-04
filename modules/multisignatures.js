@@ -20,7 +20,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const ApiError = require('../helpers/api_error');
 const errorCodes = require('../helpers/api_codes');
 
-let genesisblock = null; // eslint-disable-line no-unused-vars
+let genesisBlock = null; // eslint-disable-line no-unused-vars
 
 // Private fields
 let modules;
@@ -60,7 +60,7 @@ function Multisignatures(cb, scope) {
 			account: scope.logic.account,
 		},
 	};
-	genesisblock = library.genesisblock;
+	genesisBlock = library.genesisBlock;
 	self = this;
 
 	__private.assetTypes[

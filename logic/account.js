@@ -15,10 +15,11 @@
 'use strict';
 
 const _ = require('lodash');
-const constants = require('../helpers/constants.js');
 const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
+
+const constants = global.constants;
 
 // Private fields
 let self; // eslint-disable-line no-unused-vars
@@ -34,7 +35,6 @@ const __private = {};
  * @memberof logic
  * @see Parent: {@link logic}
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/sort_by
  * @requires helpers/bignum
  * @requires logic/block_reward

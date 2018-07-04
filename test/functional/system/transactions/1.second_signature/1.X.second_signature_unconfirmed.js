@@ -17,9 +17,10 @@
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../../fixtures/accounts');
 var randomUtil = require('../../../../common/utils/random');
-var constants = require('../../../../../helpers/constants');
 var transactionTypes = require('../../../../../helpers/transaction_types.js');
 var localCommon = require('../../common');
+
+const constants = global.constants;
 
 describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
 	var library;

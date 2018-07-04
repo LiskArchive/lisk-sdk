@@ -18,15 +18,14 @@ require('../../functional.js');
 var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
-var genesisblock = require('../../../data/genesis_block.json');
 var transactionTypes = require('../../../../helpers/transaction_types');
 var randomUtil = require('../../../common/utils/random');
-var constants = require('../../../../helpers/constants.js');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var slots = require('../../../../helpers/slots');
 
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/transactions', () => {
@@ -222,10 +221,12 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('should get transaction with asset for id', () => {
-				var transactionInCheck = genesisblock.transactions.find(trs => {
-					// Vote type transaction from genesisBlock
-					return trs.id === '9314232245035524467';
-				});
+				var transactionInCheck = __testContext.config.genesisBlock.transactions.find(
+					trs => {
+						// Vote type transaction from genesisBlock
+						return trs.id === '9314232245035524467';
+					}
+				);
 
 				return transactionsEndpoint
 					.makeRequest({ id: transactionInCheck.id }, 200)

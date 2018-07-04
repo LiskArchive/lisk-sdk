@@ -23,6 +23,7 @@ var sinonChai = require('sinon-chai');
 var chaiAsPromised = require('chai-as-promised');
 var supertest = require('supertest');
 var _ = require('lodash');
+const packageJson = require('../package.json');
 
 coMocha(mocha);
 
@@ -33,8 +34,16 @@ chai.use(chaiAsPromised);
 
 var testContext = {};
 
-testContext.config = require('./data/config.json');
+testContext.config = require('../config/devnet/config.json');
+testContext.config.genesisBlock = require('../config/devnet/genesis_block.json');
 
+testContext.config.version = packageJson.version;
+testContext.config.minVersion = packageJson.lisk.minVersion;
+
+testContext.config.nethash = Buffer.from(
+	testContext.config.genesisBlock.payloadHash,
+	'hex'
+).toString('hex');
 testContext.config.root = process.cwd();
 
 if (process.env.SILENT === 'true') {
@@ -142,6 +151,9 @@ _.mixin(
 	},
 	{ chain: false }
 );
+
+global.constants = require('../config/devnet/constants.js');
+global.exceptions = require('../config/devnet/exceptions.js');
 
 global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();

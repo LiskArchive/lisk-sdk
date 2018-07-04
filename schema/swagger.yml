@@ -581,6 +581,8 @@ paths:
             - productivity:desc
             - missedBlocks:asc
             - missedBlocks:desc
+            - producedBlocks:asc
+            - producedBlocks:desc
           default: rank:asc
       responses:
         200:

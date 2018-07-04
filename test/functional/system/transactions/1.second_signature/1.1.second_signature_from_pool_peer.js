@@ -19,9 +19,9 @@ const lisk = require('lisk-elements').default;
 const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
-const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
-var constants = require('../../../../../helpers/constants');
+
+const constants = global.constants;
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
@@ -41,7 +41,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				]);
 			})
 			.then(() => {
-				library.modules.blocks.lastBlock.set(genesisBlock);
+				library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
 				done();
 			});
 	});

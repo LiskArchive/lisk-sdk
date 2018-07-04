@@ -19,7 +19,6 @@ var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var genesisDelegates = require('../../../data/genesis_delegates.json');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
 var slots = require('../../../../helpers/slots');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -27,6 +26,7 @@ var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 
 Promise.promisify(waitFor.newRound);
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
@@ -421,6 +421,28 @@ describe('GET /delegates', () => {
 								.sort()
 								.reverse()
 						).to.eql(_.map(res.data, 'missedBlocks'));
+					});
+			});
+
+			it('using sort="producedBlocks:asc" should sort results in ascending order', () => {
+				return delegatesEndpoint
+					.makeRequest({ sort: 'producedBlocks:asc' }, 200)
+					.then(res => {
+						expect(_.map(res.data, 'producedBlocks').sort()).to.eql(
+							_.map(res.data, 'producedBlocks')
+						);
+					});
+			});
+
+			it('using sort="producedBlocks:desc" should sort results in descending order', () => {
+				return delegatesEndpoint
+					.makeRequest({ sort: 'producedBlocks:desc' }, 200)
+					.then(res => {
+						expect(
+							_.map(res.data, 'producedBlocks')
+								.sort()
+								.reverse()
+						).to.eql(_.map(res.data, 'producedBlocks'));
 					});
 			});
 

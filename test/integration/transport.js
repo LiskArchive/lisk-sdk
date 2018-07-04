@@ -14,11 +14,11 @@
 
 'use strict';
 
-var devConfig = require('../data/config.json');
 var utils = require('./utils');
 var setup = require('./setup');
 var scenarios = require('./scenarios');
 
+var devConfig = __testContext.config;
 var wsPorts = [];
 var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
 var syncingDisabled = process.env.SYNCING_DISABLED === 'true';
