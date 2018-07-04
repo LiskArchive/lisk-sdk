@@ -16,6 +16,7 @@
 'use strict';
 
 var rewire = require('rewire');
+var bignum = require('../../../../helpers/bignum.js');
 
 var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
 
@@ -489,25 +490,9 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when __private.blockReward.calcReward fails', () => {
-			beforeEach(() => {
-				return __private.blockReward.calcReward.returns('calcReward-ERR');
-			});
-
-			it('should return error', () => {
-				verifyReward = __private.verifyReward(
-					{ height: 'ERR' },
-					{ errors: [] }
-				);
-				return expect(verifyReward.errors[0]).to.equal(
-					'Invalid block reward:  expected: calcReward-ERR'
-				);
-			});
-		});
-
 		describe('when __private.blockReward.calcReward succeeds', () => {
 			beforeEach(() => {
-				return __private.blockReward.calcReward.returns(5);
+				return __private.blockReward.calcReward.returns(new bignum(5));
 			});
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {

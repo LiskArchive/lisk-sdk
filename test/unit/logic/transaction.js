@@ -91,8 +91,8 @@ var validTransaction = {
 		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
-	amount: '8067474861277',
-	fee: '10000000',
+	amount: new bignum('8067474861277'),
+	fee: new bignum('10000000'),
 	signature:
 		'7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
 	signSignature: null,
@@ -471,6 +471,8 @@ describe('transaction', () => {
 				recipientId: transactionData.recipientId,
 			};
 			var transaction = lisk.transaction.transfer(transferObject);
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(transaction.fee);
 			transactionLogic.process(transaction, sender, (err, transaction) => {
 				cb(err, transaction);
 			});
@@ -634,6 +636,8 @@ describe('transaction', () => {
 			transaction.signatures = [
 				transactionLogic.multisign(validKeypair, transaction),
 			];
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(transaction.fee);
 
 			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.not.exist;
@@ -679,7 +683,8 @@ describe('transaction', () => {
 
 		it('should throw return error transaction fee is incorrect', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.fee = -100;
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(-100);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Invalid transaction fee');
@@ -692,6 +697,8 @@ describe('transaction', () => {
 			transaction.asset = { data: '123' };
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(transaction.fee);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.not.exist;
@@ -735,6 +742,8 @@ describe('transaction', () => {
 			transaction.timestamp = -2147483648 - 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.eql(
 					'Invalid transaction timestamp. Timestamp is not in the int32 range'
@@ -748,6 +757,8 @@ describe('transaction', () => {
 			transaction.timestamp = 2147483647 + 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.eql(
 					'Invalid transaction timestamp. Timestamp is not in the int32 range'
@@ -762,6 +773,8 @@ describe('transaction', () => {
 			delete transaction.signature;
 
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.amount = new bignum(transaction.amount);
+			transaction.fee = new bignum(transaction.fee);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.eql(
