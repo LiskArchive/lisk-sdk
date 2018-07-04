@@ -51,61 +51,63 @@ class Vote {
 			account,
 		};
 	}
+
+	/**
+	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * sender address with inverted votes as delegates.
+	 *
+	 * @param {transaction} transaction
+	 * @param {block} block
+	 * @param {account} sender
+	 * @param {function} cb - Callback function
+	 * @returns {SetImmediate} error
+	 * @todo Add description for the params
+	 */
+	/* eslint-disable class-methods-use-this */
+	undo(transaction, block, sender, cb, tx) {
+		if (transaction.asset.votes === null) {
+			return setImmediate(cb);
+		}
+
+		const votesInvert = Diff.reverse(transaction.asset.votes);
+
+		library.account.merge(
+			sender.address,
+			{
+				delegates: votesInvert,
+				round: slots.calcRound(block.height),
+			},
+			mergeErr => setImmediate(cb, mergeErr),
+			tx
+		);
+	}
+
+	/**
+	 * Calls Diff.reverse to change asset.votes signs and merges account to
+	 * sender address with inverted votes as unconfirmed delegates.
+	 *
+	 * @param {transaction} transaction
+	 * @param {account} sender
+	 * @param {function} cb - Callback function
+	 * @returns {SetImmediate} error
+	 * @todo Add description for the params
+	 */
+	/* eslint-disable class-methods-use-this */
+	undoUnconfirmed(transaction, sender, cb, tx) {
+		if (transaction.asset.votes === null) {
+			return setImmediate(cb);
+		}
+
+		const votesInvert = Diff.reverse(transaction.asset.votes);
+
+		library.account.merge(
+			sender.address,
+			{ u_delegates: votesInvert },
+			mergeErr => setImmediate(cb, mergeErr),
+			tx
+		);
+	}
 }
-
-/**
- * Calls Diff.reverse to change asset.votes signs and merges account to
- * sender address with inverted votes as delegates.
- *
- * @param {transaction} transaction
- * @param {block} block
- * @param {account} sender
- * @param {function} cb - Callback function
- * @returns {SetImmediate} error
- * @todo Add description for the params
- */
-Vote.prototype.undo = function(transaction, block, sender, cb, tx) {
-	if (transaction.asset.votes === null) {
-		return setImmediate(cb);
-	}
-
-	const votesInvert = Diff.reverse(transaction.asset.votes);
-
-	library.account.merge(
-		sender.address,
-		{
-			delegates: votesInvert,
-			round: slots.calcRound(block.height),
-		},
-		mergeErr => setImmediate(cb, mergeErr),
-		tx
-	);
-};
-
-/**
- * Calls Diff.reverse to change asset.votes signs and merges account to
- * sender address with inverted votes as unconfirmed delegates.
- *
- * @param {transaction} transaction
- * @param {account} sender
- * @param {function} cb - Callback function
- * @returns {SetImmediate} error
- * @todo Add description for the params
- */
-Vote.prototype.undoUnconfirmed = function(transaction, sender, cb, tx) {
-	if (transaction.asset.votes === null) {
-		return setImmediate(cb);
-	}
-
-	const votesInvert = Diff.reverse(transaction.asset.votes);
-
-	library.account.merge(
-		sender.address,
-		{ u_delegates: votesInvert },
-		mergeErr => setImmediate(cb, mergeErr),
-		tx
-	);
-};
 
 // TODO: The below functions should be converted into static functions,
 // however, this will lead to incompatibility with modules and tests implementation.

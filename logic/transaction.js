@@ -1099,54 +1099,6 @@ class Transaction {
 	}
 
 	/**
-	 * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
-	 *
-	 * @see {@link privateTypes}
-	 * @param {Object} raw
-	 * @throws {string} If unknown transaction type
-	 * @returns {null|transaction}
-	 * @todo Add description for the params
-	 */
-	/* eslint-disable class-methods-use-this */
-	dbRead(raw) {
-		if (!raw.t_id) {
-			return null;
-		}
-
-		const transaction = {
-			id: raw.t_id,
-			height: raw.b_height,
-			blockId: raw.b_id || raw.t_blockId,
-			type: parseInt(raw.t_type),
-			timestamp: parseInt(raw.t_timestamp),
-			senderPublicKey: raw.t_senderPublicKey,
-			requesterPublicKey: raw.t_requesterPublicKey,
-			senderId: raw.t_senderId,
-			recipientId: raw.t_recipientId,
-			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: parseInt(raw.t_amount),
-			fee: parseInt(raw.t_fee),
-			signature: raw.t_signature,
-			signSignature: raw.t_signSignature,
-			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
-			confirmations: parseInt(raw.confirmations),
-			asset: {},
-		};
-
-		if (!__private.types[transaction.type]) {
-			throw `Unknown transaction type ${transaction.type}`;
-		}
-
-		const asset = __private.types[transaction.type].dbRead(raw);
-
-		if (asset) {
-			transaction.asset = extend(transaction.asset, asset);
-		}
-
-		return transaction;
-	}
-
-	/**
 	 * Calls `objectNormalize` based on transaction type (privateTypes).
 	 *
 	 * @see {@link privateTypes}
@@ -1199,6 +1151,54 @@ class Transaction {
 			);
 		} catch (e) {
 			throw e;
+		}
+
+		return transaction;
+	}
+
+	/**
+	 * Calls `dbRead` based on transaction type (privateTypes) to add tr asset.
+	 *
+	 * @see {@link privateTypes}
+	 * @param {Object} raw
+	 * @throws {string} If unknown transaction type
+	 * @returns {null|transaction}
+	 * @todo Add description for the params
+	 */
+	/* eslint-disable class-methods-use-this */
+	dbRead(raw) {
+		if (!raw.t_id) {
+			return null;
+		}
+
+		const transaction = {
+			id: raw.t_id,
+			height: raw.b_height,
+			blockId: raw.b_id || raw.t_blockId,
+			type: parseInt(raw.t_type),
+			timestamp: parseInt(raw.t_timestamp),
+			senderPublicKey: raw.t_senderPublicKey,
+			requesterPublicKey: raw.t_requesterPublicKey,
+			senderId: raw.t_senderId,
+			recipientId: raw.t_recipientId,
+			recipientPublicKey: raw.m_recipientPublicKey || null,
+			amount: parseInt(raw.t_amount),
+			fee: parseInt(raw.t_fee),
+			signature: raw.t_signature,
+			signSignature: raw.t_signSignature,
+			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
+			confirmations: parseInt(raw.confirmations),
+			asset: {},
+		};
+
+		if (!__private.types[transaction.type]) {
+			throw `Unknown transaction type ${transaction.type}`;
+		}
+
+		const asset = __private.types[transaction.type].dbRead(raw);
+
+		if (asset) {
+			transaction.asset = extend(transaction.asset, asset);
 		}
 
 		return transaction;
