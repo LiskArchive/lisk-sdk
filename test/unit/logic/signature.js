@@ -164,7 +164,7 @@ describe('signature', () => {
 			var fee;
 
 			beforeEach(done => {
-				fee = signature.calculateFee.call(transactionMock, transaction);
+				fee = signature.calculateFee(transaction);
 				done();
 			});
 
@@ -377,15 +377,10 @@ describe('signature', () => {
 				});
 
 				it('should call callback with error', done => {
-					signature.applyUnconfirmed.call(
-						transactionMock,
-						transaction,
-						sender,
-						err => {
-							expect(err).to.equal('Second signature already enabled');
-							done();
-						}
-					);
+					signature.applyUnconfirmed(transaction, sender, err => {
+						expect(err).to.equal('Second signature already enabled');
+						done();
+					});
 				});
 			});
 
@@ -396,15 +391,10 @@ describe('signature', () => {
 				});
 
 				it('should call callback with error', done => {
-					signature.applyUnconfirmed.call(
-						transactionMock,
-						transaction,
-						sender,
-						err => {
-							expect(err).to.equal('Second signature already enabled');
-							done();
-						}
-					);
+					signature.applyUnconfirmed(transaction, sender, err => {
+						expect(err).to.equal('Second signature already enabled');
+						done();
+					});
 				});
 			});
 
