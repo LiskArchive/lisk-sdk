@@ -242,10 +242,9 @@ __private.verifyVersion = function(block, result) {
  */
 __private.verifyReward = function(block, result) {
 	const expectedReward = __private.blockReward.calcReward(block.height);
-
 	if (
 		block.height !== 1 &&
-		expectedReward !== block.reward &&
+		!expectedReward.equals(block.reward) &&
 		exceptions.blockRewards.indexOf(block.id) === -1
 	) {
 		result.errors.push(
@@ -576,21 +575,40 @@ Verify.prototype.deleteBlockProperties = function(block) {
 	}
 	if (reducedBlock.totalAmount === 0) {
 		delete reducedBlock.totalAmount;
+	} else {
+		reducedBlock.totalAmount = new bignum(reducedBlock.totalAmount);
 	}
 	if (reducedBlock.totalFee === 0) {
 		delete reducedBlock.totalFee;
+	} else {
+		reducedBlock.totalFee = new bignum(reducedBlock.totalFee);
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
 	}
 	if (reducedBlock.reward === 0) {
 		delete reducedBlock.reward;
+	} else {
+		reducedBlock.reward = new bignum(reducedBlock.reward);
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
 		delete reducedBlock.transactions;
+	} else {
+		convertToBigNum(reducedBlock.transactions);
 	}
 	return reducedBlock;
 };
+
+const convertToBigNum = transactions =>
+	transactions.forEach(transaction => {
+		if (transaction.amount) {
+			transaction.amount = new bignum(transaction.amount);
+		}
+
+		if (transaction.fee) {
+			transaction.fee = new bignum(transaction.fee);
+		}
+	});
 
 /**
  * Adds block properties.
