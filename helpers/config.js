@@ -22,6 +22,8 @@ const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
 const z_schema = require('./z_schema.js');
 
+const rootPath = path.dirname(path.resolve(__filename, '..'));
+
 /**
  * Description of the module.
  *
@@ -73,7 +75,7 @@ function Config(packageJson) {
 
 	const runtimeConfig = {
 		network,
-		root: process.cwd(),
+		root: rootPath,
 		nonce: randomstring.generate(16),
 		version: packageJson.version,
 		minVersion: packageJson.lisk.minVersion,
@@ -125,7 +127,7 @@ function Config(packageJson) {
 
 function loadJSONFile(filePath) {
 	try {
-		filePath = path.resolve(process.cwd(), filePath);
+		filePath = path.resolve(rootPath, filePath);
 		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 	} catch (err) {
 		console.error(`Failed to load file: ${filePath}`);
