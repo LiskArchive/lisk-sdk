@@ -17,6 +17,7 @@
 const constants = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
 const milestones = require('../helpers/milestones.js');
+const bignum = require('../helpers/bignum.js');
 
 let modules;
 let library;
@@ -93,7 +94,9 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (!transaction.amount) {
+	const amount = new bignum(transaction.amount);
+
+	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

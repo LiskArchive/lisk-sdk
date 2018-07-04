@@ -206,7 +206,7 @@ class Transaction {
 				}
 			}
 
-			byteBuffer.writeLong(transaction.amount);
+			byteBuffer.writeLong(transaction.amount.toString());
 
 			if (assetSize > 0) {
 				for (let i = 0; i < assetSize; i++) {
@@ -632,7 +632,7 @@ class Transaction {
 				transaction,
 				sender
 			) || false;
-		if (!fee || transaction.fee !== fee) {
+		if (!fee || !transaction.fee.equals(fee)) {
 			err = 'Invalid transaction fee';
 
 			if (exceptions.transactionFee.indexOf(transaction.id) > -1) {
@@ -657,7 +657,6 @@ class Transaction {
 
 		// Check confirmed sender balance
 		amount = amount.plus(transaction.fee);
-		amount = amount.toString();
 
 		const senderBalance = this.checkBalance(
 			amount,
@@ -832,8 +831,7 @@ class Transaction {
 		}
 
 		// Check confirmed sender balance
-		let amount = new bignum(transaction.amount).plus(transaction.fee);
-		amount = amount.toString();
+		const amount = new bignum(transaction.amount).plus(transaction.fee);
 
 		const senderBalance = this.checkBalance(
 			amount,
@@ -845,8 +843,6 @@ class Transaction {
 		if (senderBalance.exceeded) {
 			return setImmediate(cb, senderBalance.error);
 		}
-
-		amount = amount.toString();
 
 		this.scope.logger.trace('Logic/Transaction->apply', {
 			sender: sender.address,
@@ -915,8 +911,7 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		let amount = new bignum(transaction.amount).plus(transaction.fee);
-		amount = amount.toString();
+		const amount = new bignum(transaction.amount).plus(transaction.fee);
 
 		this.scope.logger.trace('Logic/Transaction->undo', {
 			sender: sender.address,
@@ -992,7 +987,7 @@ class Transaction {
 		}
 
 		// Check unconfirmed sender balance
-		let amount = new bignum(transaction.amount).plus(transaction.fee);
+		const amount = new bignum(transaction.amount).plus(transaction.fee);
 
 		const senderBalance = this.checkBalance(
 			amount,
@@ -1004,8 +999,6 @@ class Transaction {
 		if (senderBalance.exceeded) {
 			return setImmediate(cb, senderBalance.error);
 		}
-
-		amount = amount.toString();
 
 		this.scope.account.merge(
 			sender.address,
@@ -1058,8 +1051,7 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		let amount = new bignum(transaction.amount).plus(transaction.fee);
-		amount = amount.toString();
+		const amount = new bignum(transaction.amount).plus(transaction.fee);
 
 		this.scope.account.merge(
 			sender.address,
@@ -1141,11 +1133,11 @@ class Transaction {
 		}
 
 		if (transaction.amount) {
-			transaction.amount = new bignum(transaction.amount).toString();
+			transaction.amount = new bignum(transaction.amount);
 		}
 
 		if (transaction.fee) {
-			transaction.fee = new bignum(transaction.fee).toString();
+			transaction.fee = new bignum(transaction.fee);
 		}
 
 		const report = this.scope.schema.validate(
@@ -1322,11 +1314,11 @@ Transaction.prototype.schema = {
 			maxLength: 22,
 		},
 		amount: {
-			type: 'string',
+			type: 'object',
 			format: 'amount',
 		},
 		fee: {
-			type: 'string',
+			type: 'object',
 			format: 'amount',
 		},
 		signature: {

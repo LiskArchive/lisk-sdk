@@ -18,6 +18,7 @@ const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
 const constants = require('../helpers/constants.js');
 const dappCategories = require('../helpers/dapp_categories.js');
+const bignum = require('../helpers/bignum.js');
 
 let library;
 const __private = {};
@@ -84,7 +85,8 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (transaction.amount !== 0) {
+	const amount = new bignum(transaction.amount);
+	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
