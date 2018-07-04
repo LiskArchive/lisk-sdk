@@ -434,7 +434,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 										{ address: addressFromTransaction },
 										{ addressFromAccount }
 									) => addressFromTransaction === addressFromAccount
-								)
+								).map(({ address }) => address)
 							);
 							return setImmediate(waterfallCb, 'Delegate not found');
 						}
