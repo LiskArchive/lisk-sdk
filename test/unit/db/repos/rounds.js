@@ -115,8 +115,8 @@ describe('db', () => {
 			});
 
 			it('should remove round information for provided round number', function*() {
-				const round1 = roundsFixtures.Round({ round: '1' });
-				const round2 = roundsFixtures.Round({ round: '2' });
+				const round1 = roundsFixtures.Round({ round: 1 });
+				const round2 = roundsFixtures.Round({ round: 2 });
 				yield db.query(
 					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
 				);
