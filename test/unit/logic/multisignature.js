@@ -19,12 +19,12 @@ var rewire = require('rewire');
 var lisk = require('lisk-elements').default;
 var modulesLoader = require('../../common/modules_loader');
 var randomUtil = require('../../common/utils/random');
-const constants = require('../../../config/mainnet/constants');
 var accountFixtures = require('../../fixtures/accounts');
 var slots = require('../../../helpers/slots');
 var Diff = require('../../../helpers/diff');
 var testData = require('./test_data/multisignature');
 
+const constants = __testContext.config.constants;
 var Multisignature = rewire('../../../logic/multisignature');
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
