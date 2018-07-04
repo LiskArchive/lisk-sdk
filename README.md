@@ -154,7 +154,7 @@ brew services stop redis
 
 1. **Change the Lisk configuration**
 
-Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
+Update the redis port configuration in the `config.json` file. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
 
 2. **Change the Redis launch configuration**
 

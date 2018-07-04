@@ -18,7 +18,7 @@ pipeline {
 			steps {
 				sh '''
 				sudo service postgresql restart
-				cp test/data/config.json test/data/genesis_block.json .
+				cp config/devnet/config.json config/devnet/genesis_block.json .
 				'''
 			}
 		}
