@@ -149,6 +149,13 @@ function Config(packageJson) {
 	}
 
 	if (
+		appConfig.peers.options.wsEngine === undefined ||
+		appConfig.peers.options.wsEngine === null
+	) {
+		appConfig.peers.options.wsEngine = 'sc-uws';
+	}
+
+	if (
 		appConfig.api.options.cors.origin === undefined ||
 		appConfig.api.options.cors.origin === null
 	) {
