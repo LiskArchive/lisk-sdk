@@ -360,7 +360,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 
 	// Converting publicKeys to addresses because module.accounts do not support fetching multiple accounts by publicKeys
 	// TODO: Use Hashmap to improve performance further.
-	const actionWithAddresses = votes.map(vote => {
+	const voteAddressesWithActions = votes.map(vote => {
 		const action = vote[0];
 		let voteAddress;
 
@@ -413,7 +413,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 			function validateVotes(existingVotedAddresses, waterfallCb) {
 				modules.accounts.getAccounts(
 					{
-						address: actionWithAddresses.map(({ address }) => address),
+						address: voteAddressesWithActions.map(({ address }) => address),
 						isDelegate: 1,
 					},
 					(err, votesAccounts) => {
@@ -423,12 +423,12 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 
 						if (
 							!votesAccounts ||
-							votesAccounts.length < actionWithAddresses.length
+							votesAccounts.length < voteAddressesWithActions.length
 						) {
 							library.logger.error(
 								'Delegates with addresses not found',
 								_.differenceWith(
-									actionWithAddresses,
+									voteAddressesWithActions,
 									votesAccounts,
 									(
 										{ address: addressFromTransaction },
@@ -440,14 +440,14 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 						}
 
 						const upvoteAccounts = votesAccounts.filter(voteAccount =>
-							actionWithAddresses.find(
+							voteAddressesWithActions.find(
 								actionWithAddress =>
 									actionWithAddress.action === '+' &&
 									actionWithAddress.address === voteAccount.address
 							)
 						);
 						const downvoteAccounts = votesAccounts.filter(voteAccount =>
-							actionWithAddresses.find(
+							voteAddressesWithActions.find(
 								actionWithAddress =>
 									actionWithAddress.action === '-' &&
 									actionWithAddress.address === voteAccount.address
