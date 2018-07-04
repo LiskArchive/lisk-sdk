@@ -16,7 +16,7 @@
 
 var fs = require('fs');
 var utils = require('../utils');
-var devConfig = require('../../data/config.json');
+var devConfig = require('../../../config/devnet/config.json');
 var network = require('./network');
 
 module.exports = {
