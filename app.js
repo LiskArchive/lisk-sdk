@@ -27,7 +27,7 @@ var wsTransport = require('./api/ws/transport');
 var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
 var Sequence = require('./helpers/sequence.js');
-var swagger = require('./config/swagger');
+var httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 var swaggerHelper = require('./helpers/swagger');
 
@@ -366,7 +366,13 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					swagger(scope.network.app, scope.config, scope.logger, scope, cb);
+					httpApi.bootstrapSwagger(
+						scope.network.app,
+						scope.config,
+						scope.logger,
+						scope,
+						cb
+					);
 				},
 			],
 
