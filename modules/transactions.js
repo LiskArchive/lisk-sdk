@@ -397,11 +397,26 @@ __private.getPooledTransactions = function(method, filters, cb) {
 
 	// Sort the results
 	const sortAttribute = sortBy(filters.sort, { quoteField: false });
-	toSend = _.orderBy(
-		toSend,
-		[sortAttribute.sortField],
-		[sortAttribute.sortMethod.toLowerCase()]
-	);
+
+	if (
+		sortAttribute.sortField === 'fee' ||
+		sortAttribute.sortField === 'amount'
+	) {
+		const sortFactor =
+			sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
+		toSend = toSend.sort((a, b) => {
+			if (sortAttribute.sortField === 'fee') {
+				return a.fee.minus(b.fee) * sortFactor;
+			}
+			return a.amount.minus(b.amount) * sortFactor;
+		});
+	} else {
+		toSend = _.orderBy(
+			toSend,
+			[sortAttribute.sortField],
+			[sortAttribute.sortMethod.toLowerCase()]
+		);
+	}
 
 	// Paginate filtered transactions
 	toSend = toSend.slice(filters.offset, filters.offset + filters.limit);
