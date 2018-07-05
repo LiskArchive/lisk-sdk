@@ -645,7 +645,7 @@ class Transaction {
 		}
 
 		// Check amount
-		let amount = new bignum(transaction.amount);
+		let amount = transaction.amount;
 		if (
 			amount.lessThan(0) ||
 			amount.greaterThan(constants.totalAmount) ||
@@ -831,7 +831,7 @@ class Transaction {
 		}
 
 		// Check confirmed sender balance
-		const amount = new bignum(transaction.amount).plus(transaction.fee);
+		const amount = transaction.amount.plus(transaction.fee);
 
 		const senderBalance = this.checkBalance(
 			amount,
@@ -911,7 +911,7 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		const amount = new bignum(transaction.amount).plus(transaction.fee);
+		const amount = transaction.amount.plus(transaction.fee);
 
 		this.scope.logger.trace('Logic/Transaction->undo', {
 			sender: sender.address,
@@ -987,7 +987,7 @@ class Transaction {
 		}
 
 		// Check unconfirmed sender balance
-		const amount = new bignum(transaction.amount).plus(transaction.fee);
+		const amount = transaction.amount.plus(transaction.fee);
 
 		const senderBalance = this.checkBalance(
 			amount,
@@ -1051,7 +1051,7 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		const amount = new bignum(transaction.amount).plus(transaction.fee);
+		const amount = transaction.amount.plus(transaction.fee);
 
 		this.scope.account.merge(
 			sender.address,

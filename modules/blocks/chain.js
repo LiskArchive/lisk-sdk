@@ -17,6 +17,7 @@
 const Promise = require('bluebird');
 const async = require('async');
 const transactionTypes = require('../../helpers/transaction_types.js');
+const bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
@@ -230,6 +231,14 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
+			if (transaction.amount) {
+				transaction.amount = new bignum(transaction.amount);
+			}
+
+			if (transaction.fee) {
+				transaction.fee = new bignum(transaction.fee);
+			}
+
 			modules.accounts.setAccountAndGet(
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {
@@ -539,6 +548,17 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
  * @param {boolean} broadcast - Indicator that block needs to be broadcasted
  */
 Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
+	if (reducedBlock.totalAmount) {
+		reducedBlock.totalAmount = reducedBlock.totalAmount.toString();
+	}
+
+	if (reducedBlock.totalFee) {
+		reducedBlock.totalFee = reducedBlock.totalFee.toString();
+	}
+
+	if (reducedBlock.reward) {
+		reducedBlock.reward = reducedBlock.reward.toString();
+	}
 	library.bus.message('broadcastBlock', reducedBlock, broadcast);
 };
 
