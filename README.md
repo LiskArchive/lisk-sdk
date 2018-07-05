@@ -239,17 +239,17 @@ node app.js [options]
 
 Each of that option can be appended on command line. There are also few `ENV` variables that can be utilized for this purpose.
 
-| Option             | ENV Variable           | Config Option   | Default Value | Description                                                                                                                                           |
-| ------------------ | ---------------------- | --------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| --config<br> -c    | LISK_CONFIG_FILE       |                 |               | Path the custom configuration file, which will override values of `config/default/config.json`                                                        |
-| --network<br> -n   | LISK_NETWORK           |                 | devnet        | Which configurations set to use, associated to lisk networks. Any of this option can be used `devnet`, `alphanet`, `betanet`, `testnet` and `mainnet` |
-| --port<br> -p      | LISK_WS_PORT           | wsPort          |               | TCP port for P2P layer                                                                                                                                |
-| --http-port<br> -h | LISK_HTTP_PORT         | httpPort        |               | TCP port for HTTP API                                                                                                                                 |
-| --database<br> -d  |                        | db.database     |               | PostgreSQL database name to connect                                                                                                                   |
-| --address<br> -a   |                        | address         |               | Listening host name or ip                                                                                                                             |
-| --peers<br> -p     | LISK_PEERS             | peers.list      |               | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                       |
-| --log<br> -l       | LISK_CONSOLE_LOG_LEVEL | consoleLogLevel |               | Log level for lisk for console output                                                                                                                 |
-| --snapshot<br> -s  |                        |                 |               | Number of round for which take the snapshot.                                                                                                          |
+| Option             | ENV Variable           | Config Option   | Description                                                                                                                                                                       |
+| ------------------ | ---------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| --network<br> -n   | LISK_NETWORK           |                 | Which configurations set to use, associated to lisk networks. Any of this option can be used `devnet`, `alphanet`, `betanet`, `testnet` and `mainnet`. Default value is `devnet`. |
+| --config<br> -c    | LISK_CONFIG_FILE       |                 | Path the custom configuration file, which will override values of `config/default/config.json`                                                                                    |
+| --port<br> -p      | LISK_WS_PORT           | wsPort          | TCP port for P2P layer                                                                                                                                                            |
+| --http-port<br> -h | LISK_HTTP_PORT         | httpPort        | TCP port for HTTP API                                                                                                                                                             |
+| --address<br> -a   |                        | address         | Listening host name or ip                                                                                                                                                         |
+| --database<br> -d  |                        | db.database     | PostgreSQL database name to connect                                                                                                                                               |
+| --peers<br> -p     | LISK_PEERS             | peers.list      | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                   |
+| --log<br> -l       | LISK_CONSOLE_LOG_LEVEL | consoleLogLevel | Log level for lisk for console output                                                                                                                                             |
+| --snapshot<br> -s  |                        |                 | Number of round for which take the snapshot. If none specified it will use the highest round available.                                                                           |
 
 For more detail understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
 
@@ -266,8 +266,8 @@ Update the `redis.port` configuration attribute in `config/devnet/config.json` o
 1. Recreate the database in order to run the tests against a new blockchain:
 
 ```
-dropdb lisk_test
-createdb lisk_test
+dropdb lisk_dev
+createdb lisk_dev
 ```
 
 2. Launch Lisk (runs on port 4000):
