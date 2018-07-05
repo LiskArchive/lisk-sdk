@@ -25,6 +25,7 @@ var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transaction_types');
 var constants = require('../../../helpers/constants');
+var bignum = require('../../../helpers/bignum.js');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
@@ -182,7 +183,7 @@ describe('vote', () => {
 
 		var sendTransaction = {
 			type: 0,
-			amount: '8067474861277',
+			amount: new bignum('8067474861277'),
 			senderPublicKey:
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 			requesterPublicKey: null,
@@ -193,7 +194,7 @@ describe('vote', () => {
 			signature:
 				'f2910e221d88134265974d9fc8efee0532e7e14ffdb22a9674c64bfd01863e70da75db51f7e0adcfbe87d9efdaef9f914f577ca08a7664db290e8e5ad89eb30c',
 			id: '4802102241260248478',
-			fee: '10000000',
+			fee: new bignum('10000000'),
 			senderId: '16313739661670634666L',
 		};
 
@@ -203,8 +204,8 @@ describe('vote', () => {
 			address: '16313739661670634666L',
 			publicKey:
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-			balance: '9850458911801508',
-			u_balance: '9850458911801508',
+			balance: new bignum('9850458911801508'),
+			u_balance: new bignum('9850458911801508'),
 			blockId: '8505659485551877884',
 		};
 

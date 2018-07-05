@@ -56,8 +56,8 @@ var sender = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	secondPublicKey: null,
-	balance: '9850458911801508',
-	u_balance: '9850458911801508',
+	balance: new bignum('9850458911801508'),
+	u_balance: new bignum('9850458911801508'),
 	vote: 0,
 	multisignatures: null,
 	multimin: 0,
@@ -66,17 +66,17 @@ var sender = {
 	nameexist: 0,
 	producedBlocks: 0,
 	missedBlocks: 0,
-	fees: '0',
-	rewards: '0',
+	fees: new bignum('0'),
+	rewards: new bignum('0'),
 };
 
 var transactionData = {
 	type: 0,
-	amount: '8067474861277',
+	amount: new bignum('8067474861277'),
 	sender,
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
-	fee: '10000000',
+	fee: new bignum('10000000'),
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	passphrase: senderPassphrase,
 };
@@ -112,8 +112,8 @@ var rawTransaction = {
 	m_recipientPublicKey: null,
 	t_senderId: '16313739661670634666L',
 	t_recipientId: '5649948960790668770L',
-	t_amount: '8067474861277',
-	t_fee: '10000000',
+	t_amount: new bignum('8067474861277'),
+	t_fee: new bignum('10000000'),
 	t_signature:
 		'7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
 	tf_data: '123',
@@ -122,8 +122,8 @@ var rawTransaction = {
 
 var genesisTransaction = {
 	type: 0,
-	amount: '10000000000000000',
-	fee: '0',
+	amount: new bignum('10000000000000000'),
+	fee: new bignum('0'),
 	timestamp: 0,
 	recipientId: '16313739661670634666L',
 	senderId: '1085993630748340485L',
@@ -137,7 +137,7 @@ var genesisTransaction = {
 
 var unconfirmedTransaction = {
 	type: 0,
-	amount: '8067474861277',
+	amount: new bignum('8067474861277'),
 	senderPublicKey:
 		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	senderId: '16313739661670634666L',
@@ -148,7 +148,7 @@ var unconfirmedTransaction = {
 	recipientId: '5649948960790668770L',
 	signature:
 		'24c65ac5562a8ae252aa308926b60342829e82f285e704814d0d3c3954078c946d113aa0bd5388b2c863874e63f71e8e0a284a03274e66c719e69d443d91f309',
-	fee: '10000000',
+	fee: new bignum('10000000'),
 	id: '16580139363949197645',
 };
 
@@ -938,7 +938,7 @@ describe('transaction', () => {
 
 		it('should return error on if balance is low', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = '9850458911801908';
+			transaction.amount = new bignum('9850458911801908');
 
 			transactionLogic.apply(transaction, dummyBlock, sender, err => {
 				expect(err).to.include('Account does not have enough ');
@@ -1060,7 +1060,7 @@ describe('transaction', () => {
 
 		it('should return error on if balance is low', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = '9850458911801908';
+			transaction.amount = new bignum('9850458911801908');
 
 			transactionLogic.applyUnconfirmed(transaction, sender, err => {
 				expect(err).to.include('Account does not have enough ');
