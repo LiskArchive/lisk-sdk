@@ -36,6 +36,15 @@
 			"public": true,
 			"whiteList": ["127.0.0.1"]
 		},
+		"ssl": {
+			"enabled": false,
+			"options": {
+				"port": 443,
+				"address": "0.0.0.0",
+				"key": "./ssl/lisk.key",
+				"cert": "./ssl/lisk.crt"
+			}
+		},
 		"options": {
 			"limits": {
 				"max": 0,
@@ -696,15 +705,6 @@
 	},
 	"loading": {
 		"loadPerIteration": 5000
-	},
-	"ssl": {
-		"enabled": false,
-		"options": {
-			"port": 443,
-			"address": "0.0.0.0",
-			"key": "./ssl/lisk.key",
-			"cert": "./ssl/lisk.crt"
-		}
 	},
 	"nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }
