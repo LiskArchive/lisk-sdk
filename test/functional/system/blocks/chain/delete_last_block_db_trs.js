@@ -21,6 +21,7 @@ const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../common/utils/random');
 const localCommon = require('../../common');
 const genesisBlock = require('../../../../data/genesis_block.json');
+const bignum = require('../../../../../helpers/bignum.js');
 
 describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -62,8 +63,8 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
-		fundTrsForAccount1.amount = parseInt(fundTrsForAccount1.amount);
-		fundTrsForAccount1.fee = parseInt(fundTrsForAccount1.fee);
+		fundTrsForAccount1.amount = new bignum(fundTrsForAccount1.amount);
+		fundTrsForAccount1.fee = new bignum(fundTrsForAccount1.fee);
 		fundTrsForAccount1.senderId = accountFixtures.genesis.address;
 
 		localCommon.createValidBlock(library, [fundTrsForAccount1], (err, b) => {

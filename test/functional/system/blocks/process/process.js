@@ -17,6 +17,7 @@
 
 var async = require('async');
 var constants = require('../../../../../helpers/constants');
+var bignum = require('../../../../../helpers/bignum.js');
 var genesisBlock = require('../../../../data/genesis_block.json');
 var application = require('../../../../common/application');
 var modulesLoader = require('../../../../common/modules_loader');
@@ -201,6 +202,10 @@ describe('system test (blocks) - process', () => {
 
 	describe('loadBlocksOffset() - no errors', () => {
 		it('should load block 2 from db: block without transactions', done => {
+			genesisBlock.totalAmount = new bignum(genesisBlock.totalAmount);
+			genesisBlock.totalFee = new bignum(genesisBlock.totalFee);
+			genesisBlock.reward = new bignum(genesisBlock.reward);
+
 			blocks.lastBlock.set(genesisBlock);
 			blocksProcess.loadBlocksOffset(1, 2, (err, loadedBlock) => {
 				if (err) {

@@ -22,6 +22,7 @@ const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
 var constants = require('../../../../../helpers/constants');
+const bignum = require('../../../../../helpers/bignum.js');
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
@@ -56,8 +57,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});
-			sendTransaction.amount = parseInt(sendTransaction.amount);
-			sendTransaction.fee = parseInt(sendTransaction.fee);
+			sendTransaction.amount = new bignum(sendTransaction.amount);
+			sendTransaction.fee = new bignum(sendTransaction.fee);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
@@ -69,8 +70,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					passphrase: signatureAccount.passphrase,
 					secondPassphrase: signatureAccount.secondPassphrase,
 				});
-				signatureTransaction.amount = parseInt(signatureTransaction.amount);
-				signatureTransaction.fee = parseInt(signatureTransaction.fee);
+				signatureTransaction.amount = new bignum(signatureTransaction.amount);
+				signatureTransaction.fee = new bignum(signatureTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
@@ -135,8 +136,10 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						secondPassphrase: randomUtil.password(),
 					});
 					signatureTransaction2.senderId = signatureAccount.address;
-					signatureTransaction2.amount = parseInt(signatureTransaction2.amount);
-					signatureTransaction2.fee = parseInt(signatureTransaction2.fee);
+					signatureTransaction2.amount = new bignum(
+						signatureTransaction2.amount
+					);
+					signatureTransaction2.fee = new bignum(signatureTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[signatureTransaction2],

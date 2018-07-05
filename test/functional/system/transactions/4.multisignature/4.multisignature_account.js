@@ -19,6 +19,7 @@ var accountFixtures = require('../../../../fixtures/accounts');
 var randomUtil = require('../../../../common/utils/random');
 var constants = require('../../../../../helpers/constants');
 var localCommon = require('../../common');
+const bignum = require('../../../../../helpers/bignum.js');
 
 describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
 	var library;
@@ -298,6 +299,9 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			multisigTransaction.signatures = [sign1, sign2];
 			multisigTransaction.ready = true;
 
+			multisigTransaction.amount = new bignum(multisigTransaction.amount);
+			multisigTransaction.fee = new bignum(multisigTransaction.fee);
+
 			library.logic.transaction.applyUnconfirmed(
 				multisigTransaction,
 				multisigSender,
@@ -404,8 +408,8 @@ describe('system test (type 4) - effect of multisignature registration on memory
 					lifetime: 4,
 					minimum: 2,
 				});
-				multisigTransaction2.amount = parseInt(multisigTransaction2.amount);
-				multisigTransaction2.fee = parseInt(multisigTransaction2.fee);
+				multisigTransaction2.amount = new bignum(multisigTransaction2.amount);
+				multisigTransaction2.fee = new bignum(multisigTransaction2.fee);
 				var sign3 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
 					signer3.passphrase

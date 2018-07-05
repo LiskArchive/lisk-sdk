@@ -21,6 +21,7 @@ const localCommon = require('../../common.js');
 const genesisBlock = require('../../../../data/genesis_block.json');
 const randomUtil = require('../../../../common/utils/random');
 var constants = require('../../../../../helpers/constants');
+const bignum = require('../../../../../helpers/bignum.js');
 
 describe('delegate', () => {
 	let library;
@@ -69,8 +70,8 @@ describe('delegate', () => {
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
-				delegateTransaction.amount = parseInt(delegateTransaction.amount);
-				delegateTransaction.fee = parseInt(delegateTransaction.fee);
+				delegateTransaction.amount = new bignum(delegateTransaction.amount);
+				delegateTransaction.fee = new bignum(delegateTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					delegateTransaction,
@@ -135,8 +136,8 @@ describe('delegate', () => {
 						username: username2,
 					});
 					delegateTransaction2.senderId = delegateAccount.address;
-					delegateTransaction2.amount = parseInt(delegateTransaction2.amount);
-					delegateTransaction2.fee = parseInt(delegateTransaction2.fee);
+					delegateTransaction2.amount = new bignum(delegateTransaction2.amount);
+					delegateTransaction2.fee = new bignum(delegateTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[delegateTransaction2],

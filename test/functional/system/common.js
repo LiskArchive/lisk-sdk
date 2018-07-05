@@ -21,6 +21,14 @@ var slots = require('../../../helpers/slots');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 var accountFixtures = require('../../fixtures/accounts');
+var bignum = require('../../../helpers/bignum.js');
+
+const convertToBigNum = transactions => {
+	return transactions.forEach(transaction => {
+		transaction.amount = new bignum(transaction.amount);
+		transaction.fee = new bignum(transaction.fee);
+	});
+};
 
 function getDelegateForSlot(library, slot, cb) {
 	var lastBlock = library.modules.blocks.lastBlock.get();
@@ -33,6 +41,7 @@ function getDelegateForSlot(library, slot, cb) {
 }
 
 function createBlock(library, transactions, timestamp, keypair, previousBlock) {
+	convertToBigNum(transactions);
 	var block = library.logic.block.create({
 		keypair,
 		timestamp,
@@ -49,6 +58,7 @@ function createValidBlock(library, transactions, cb) {
 	var lastBlock = library.modules.blocks.lastBlock.get();
 	var slot = slots.getSlotNumber();
 	var keypairs = library.modules.delegates.getForgersKeyPairs();
+	convertToBigNum(transactions);
 	getDelegateForSlot(library, slot, (err, delegateKey) => {
 		var block = createBlock(
 			library,
@@ -147,6 +157,7 @@ function addTransaction(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
 	__testContext.debug(`	Add transaction ID: ${transaction.id}`);
+	convertToBigNum([transaction]);
 
 	transaction = library.logic.transaction.objectNormalize(transaction);
 	library.balancesSequence.add(sequenceCb => {
@@ -166,6 +177,7 @@ function addTransaction(library, transaction, cb) {
 function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 	// Add transaction to transactions pool - we use shortcut here to bypass transport module, but logic is the same
 	// See: modules.transport.__private.receiveTransaction
+	convertToBigNum([transaction]);
 	library.modules.transactions.processUnconfirmedTransaction(
 		transaction,
 		true,
@@ -186,6 +198,7 @@ function addTransactionsAndForge(library, transactions, forgeDelay, cb) {
 		cb = forgeDelay;
 		forgeDelay = 800;
 	}
+	convertToBigNum(transactions);
 
 	async.waterfall(
 		[
