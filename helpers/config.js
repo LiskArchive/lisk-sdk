@@ -35,10 +35,11 @@ const rootPath = path.dirname(path.resolve(__filename, '..'));
  * Loads config.json file.
  *
  * @param {Object} packageJson
+ * @param {Boolean} parseCommandLineOptions - Should parse the command line options or not
  * @returns {Object}
  * @todo Add description for the params and the return value
  */
-function Config(packageJson) {
+function Config(packageJson, parseCommandLineOptions = true) {
 	program
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
@@ -54,8 +55,11 @@ function Config(packageJson) {
 		.option('-l, --log <level>', 'log level')
 		.option('-s, --snapshot <round>', 'verify snapshot')
 		.option('--inspect-workers', 'inspect worker processes')
-		.option('--inspect-brokers', 'inspect broker processes')
-		.parse(process.argv);
+		.option('--inspect-brokers', 'inspect broker processes');
+
+	if (parseCommandLineOptions) {
+		program.parse(process.argv);
+	}
 
 	const network = program.network || process.env.LISK_NETWORK || 'devnet';
 

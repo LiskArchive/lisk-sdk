@@ -35,7 +35,7 @@ chai.use(chaiAsPromised);
 
 var testContext = {};
 
-testContext.config = AppConfig(packageJson);
+testContext.config = AppConfig(packageJson, false);
 
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};
