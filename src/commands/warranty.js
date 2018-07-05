@@ -28,13 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 export default class WarrantyCommand extends BaseCommand {
 	async run() {
-		// throw new Error('hey');
 		this.log({ warranty });
 	}
 }
 
 WarrantyCommand.description = `
 Displays warranty notice.
-...
-Example: warranty
 `;
+
+WarrantyCommand.examples = ['warranty'];

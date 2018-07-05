@@ -40,6 +40,6 @@ export default class CopyrightCommand extends BaseCommand {
 
 CopyrightCommand.description = `
 Displays copyright notice.
-...
-Example: copyright
 `;
+
+CopyrightCommand.examples = ['copyright'];
