@@ -20,6 +20,7 @@ const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
 const blockchainReady = require('../../../common/utils/wait_for')
 	.blockchainReady;
+const common = require('../common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
@@ -27,8 +28,11 @@ const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 const expectedConnectionsAfterBlacklisting =
 	(totalPeers - 2) * (totalPeers - 1) * 2;
 
-module.exports = params => {
+module.exports = configurations => {
 	describe('Peer Blacklisted', () => {
+		var params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
 		const getAllPeers = sockets => {
 			return Promise.all(
 				sockets.map(socket => {

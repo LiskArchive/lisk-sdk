@@ -55,6 +55,18 @@ module.exports = {
 					`Connection aborted with code: ${errorCode} and reason ${reason}`
 				);
 			});
+			socket.on('close', (errorCode, reason) => {
+				__testContext.debug(
+					`Connection closed with code: ${errorCode} and reason ${reason}`
+				);
+			});
 		});
+	},
+
+	killMonitoringSockets(sockets, cb) {
+		sockets.forEach(socket => {
+			socket.destroy();
+		});
+		cb(null);
 	},
 };

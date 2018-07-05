@@ -18,13 +18,17 @@ const childProcess = require('child_process');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
 const network = require('../../setup/network');
+const common = require('../common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
-module.exports = params => {
+module.exports = configurations => {
 	describe('Peer Disconnect', () => {
+		var params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
 		const getAllPeers = sockets => {
 			return Promise.all(
 				sockets.map(socket => {
@@ -144,18 +148,7 @@ module.exports = params => {
 
 				describe('after all the node restarts', () => {
 					before(done => {
-						utils.ws.establishWSConnectionsToNodes(
-							params.configurations,
-							(err, socketsResult) => {
-								if (err) {
-									return done(err);
-								}
-								params.sockets = socketsResult;
-								network.enableForgingOnDelegates(params.configurations, () => {
-									done();
-								});
-							}
-						);
+						network.enableForgingOnDelegates(params.configurations, done);
 					});
 
 					// The expected connection becomes 180(new connection) + 18 (previously held connections)
@@ -175,27 +168,6 @@ module.exports = params => {
 										`There are ${numOfConnections} established connections on web socket ports.`
 									);
 								}
-							}
-						);
-					});
-
-					it(`peers manager should have only ${expectedOutgoingConnections}`, () => {
-						return utils.ws.establishWSConnectionsToNodes(
-							params.configurations,
-							(err, socketsResult) => {
-								params.sockets = socketsResult;
-								getAllPeers(socketsResult).then(mutualPeers => {
-									mutualPeers.forEach(mutualPeer => {
-										if (mutualPeer) {
-											mutualPeer.peers.map(peer => {
-												if (peer.wsPort >= 5000 && peer.wsPort <= 5009) {
-													wsPorts.add(peer.wsPort);
-												}
-												expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-											});
-										}
-									});
-								});
 							}
 						);
 					});

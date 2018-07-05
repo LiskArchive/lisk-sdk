@@ -14,10 +14,14 @@
 
 'use strict';
 
-var Promise = require('bluebird');
+const Promise = require('bluebird');
+const common = require('../common');
 
-module.exports = function(params) {
+module.exports = function(configurations) {
 	describe('transactions', () => {
+		var params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
 		var nodesTransactions = [];
 
 		before(() => {

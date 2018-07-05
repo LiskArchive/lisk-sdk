@@ -14,67 +14,71 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var utils = require('../../utils');
+const Promise = require('bluebird');
+const utils = require('../../utils');
+const common = require('../common');
 
-module.exports = function(params) {
-	function getAllPeers() {
-		return Promise.all(
-			params.sockets.map(socket => {
-				return socket.call('list', {});
-			})
-		);
-	}
-
-	function getPeersStatus(peers) {
-		return Promise.all(
-			peers.map(peer => {
-				return utils.http.getNodeStatus(peer.httpPort, peer.ip);
-			})
-		);
-	}
-
-	function getNodesStatus(cb) {
-		getAllPeers()
-			.then(peers => {
-				var peersCount = peers.length;
-				getPeersStatus(peers)
-					.then(peerStatusList => {
-						var networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
-						var status = {
-							peersCount,
-							peerStatusList,
-							networkMaxAvgHeight,
-						};
-						cb(null, status);
-					})
-					.catch(err => {
-						cb(err, null);
-					});
-			})
-			.catch(err => {
-				cb(err, null);
-			});
-	}
-
-	function getMaxAndAvgHeight(peerStatusList) {
-		var maxHeight = 1;
-		var heightSum = 0;
-		var totalPeers = peerStatusList.length;
-		peerStatusList.forEach(peerStatus => {
-			if (peerStatus.height > maxHeight) {
-				maxHeight = peerStatus.height;
-			}
-			heightSum += peerStatus.height;
-		});
-
-		return {
-			maxHeight,
-			averageHeight: heightSum / totalPeers,
-		};
-	}
-
+module.exports = configurations => {
 	describe('Peers', () => {
+		var params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
+		function getAllPeers() {
+			return Promise.all(
+				params.sockets.map(socket => {
+					return socket.call('list', {});
+				})
+			);
+		}
+
+		function getPeersStatus(peers) {
+			return Promise.all(
+				peers.map(peer => {
+					return utils.http.getNodeStatus(peer.httpPort, peer.ip);
+				})
+			);
+		}
+
+		function getNodesStatus(cb) {
+			getAllPeers()
+				.then(peers => {
+					var peersCount = peers.length;
+					getPeersStatus(peers)
+						.then(peerStatusList => {
+							var networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
+							var status = {
+								peersCount,
+								peerStatusList,
+								networkMaxAvgHeight,
+							};
+							cb(null, status);
+						})
+						.catch(err => {
+							cb(err, null);
+						});
+				})
+				.catch(err => {
+					cb(err, null);
+				});
+		}
+
+		function getMaxAndAvgHeight(peerStatusList) {
+			var maxHeight = 1;
+			var heightSum = 0;
+			var totalPeers = peerStatusList.length;
+			peerStatusList.forEach(peerStatus => {
+				if (peerStatus.height > maxHeight) {
+					maxHeight = peerStatus.height;
+				}
+				heightSum += peerStatus.height;
+			});
+
+			return {
+				maxHeight,
+				averageHeight: heightSum / totalPeers,
+			};
+		}
+
 		describe('mutual connections', () => {
 			var mutualPeers = [];
 			before(() => {

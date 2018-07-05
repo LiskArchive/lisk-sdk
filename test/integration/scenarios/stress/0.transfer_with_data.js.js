@@ -27,7 +27,7 @@ var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 
 var broadcasting = process.env.BROADCASTING !== 'false';
 
-module.exports = function(params) {
+module.exports = function(configurations) {
 	describe('stress test for type 0 transactions with data @slow', function() {
 		this.timeout(1800000);
 		var transactions = [];
@@ -56,7 +56,7 @@ module.exports = function(params) {
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params)
+					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
 						.catch(err => {
 							done(err);

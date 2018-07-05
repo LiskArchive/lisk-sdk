@@ -35,9 +35,9 @@ module.exports = {
 			recipientId: randomAddress,
 		});
 	},
-	confirmTransactionsOnAllNodes(transactions, params) {
+	confirmTransactionsOnAllNodes(transactions, configurations) {
 		return Promise.all(
-			_.flatMap(params.configurations, configuration => {
+			_.flatMap(configurations, configuration => {
 				return transactions.map(transaction => {
 					return getTransaction(transaction.id, configuration.httpPort);
 				});

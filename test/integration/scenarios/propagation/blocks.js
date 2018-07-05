@@ -14,16 +14,20 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var utils = require('../../utils');
+const Promise = require('bluebird');
+const utils = require('../../utils');
+const common = require('../common');
 
-module.exports = function(params) {
+module.exports = function(configurations) {
 	describe('blocks', () => {
+		var params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
 		var nodesBlocks;
 
 		before(() => {
 			return Promise.all(
-				params.configurations.map(configuration => {
+				configurations.map(configuration => {
 					return utils.http.getBlocks(configuration.httpPort);
 				})
 			).then(blocksResults => {
@@ -32,7 +36,7 @@ module.exports = function(params) {
 		});
 
 		it('should be able to get blocks list from every peer', () => {
-			return expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
+			return expect(nodesBlocks).to.have.lengthOf(configurations.length);
 		});
 
 		it('should contain non empty blocks', () => {

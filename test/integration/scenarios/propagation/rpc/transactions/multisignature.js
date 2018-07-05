@@ -27,9 +27,13 @@ const {
 } = require('../../../../../common/helpers/api');
 const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
+const common = require('../../../common');
 
-module.exports = function multisignature(params) {
+module.exports = function multisignature(configurations) {
 	describe('RPC /postSignatures', () => {
+		var params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
 		let transactions = [];
 		const accounts = [];
 		const MAXIMUM = 3;
@@ -68,7 +72,7 @@ module.exports = function multisignature(params) {
 				var blocksToWait =
 					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 3;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params)
+					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
 						.catch(err => {
 							done(err);
@@ -109,9 +113,9 @@ module.exports = function multisignature(params) {
 
 			it('pending multisignatures should remain in the pending queue', () => {
 				return Promise.map(transactions, transaction => {
-					var params = [`id=${transaction.id}`];
+					var parameters = [`id=${transaction.id}`];
 
-					return getPendingMultisignaturesPromise(params).then(res => {
+					return getPendingMultisignaturesPromise(parameters).then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].id).to.be.equal(transaction.id);
 					});
@@ -132,7 +136,7 @@ module.exports = function multisignature(params) {
 				const blocksToWait =
 					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params)
+					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
 						.catch(err => {
 							done(err);
