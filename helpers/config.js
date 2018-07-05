@@ -44,8 +44,7 @@ function Config(packageJson) {
 		.option('-c, --config <path>', 'config file path')
 		.option(
 			'-n, --network [network]',
-			'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"',
-			'devnet'
+			'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"'
 		)
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
@@ -58,7 +57,7 @@ function Config(packageJson) {
 		.option('--inspect-brokers', 'inspect broker processes')
 		.parse(process.argv);
 
-	const network = program.network;
+	const network = program.network || process.env.LISK_NETWORK || 'devnet';
 
 	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
 
@@ -70,7 +69,9 @@ function Config(packageJson) {
 
 	const defaultConfig = loadJSONFile('config/default/config.json');
 	const customConfig = loadJSONFile(
-		program.config || `config/${network}/config.json`
+		program.config ||
+			process.env.LISK_CONFIG_FILE ||
+			`config/${network}/config.json`
 	);
 
 	const runtimeConfig = {
@@ -83,16 +84,19 @@ function Config(packageJson) {
 	};
 
 	let commandLineConfig = {
-		wsPort: +program.port || null,
-		httpPort: +program.httpPort || null,
+		wsPort: +program.port || process.env.LISK_WS_PORT || null,
+		httpPort: +program.httpPort || process.env.LISK_HTTP_PORT || null,
 		address: program.address,
-		consoleLogLevel: program.log,
+		consoleLogLevel: program.log || process.env.LISK_CONSOLE_LOG_LEVEL,
 		db: { database: program.database },
 		loading: { snapshotRound: program.snapshot },
 		peers: {
 			list: extractPeersList(
-				program.peers,
-				+program.port || customConfig.wsPort || defaultConfig.wsPort
+				program.peers || process.env.LISK_PEERS,
+				+program.port ||
+					process.env.LISK_WS_PORT ||
+					customConfig.wsPort ||
+					defaultConfig.wsPort
 			),
 		},
 		coverage: process.env.NODE_ENV === 'test',

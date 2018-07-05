@@ -152,11 +152,7 @@ brew services stop redis
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-1. **Change the Lisk configuration**
-
-Update the redis port configuration in both `config.json` and `test/data/config.json`. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
-
-2. **Change the Redis launch configuration**
+**Change the Redis launch configuration**
 
 Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
@@ -173,7 +169,7 @@ redis-cli -p 6380
 ping
 ```
 
-And you should get the result `PONG`.
+And you should get the result `PONG`. TO update the redis port in Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
 
 ## Installation Steps
 
@@ -219,6 +215,49 @@ pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [netw
 ```
 
 You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
+
+## Configuring Lisk
+
+### Structure
+
+1. The Lisk configuration is managed under different folder structures.
+2. Root folder for all configuration is `./config/`.
+3. You can find network specific configuration folder there as well.
+4. Main file that used as base is `config/default/config.json`
+5. Don't override any value in above mentioned file if you need custom configuration.
+6. Either modify network specific `config.json` or create your own `json` file and pass it as command line options.
+7. What ever `config.json` provided will be merged on top of `config/default/config.json` to generate final configuration to start the lisk.
+8. For development purposes use `devnet` as network option, others network are specific to public lisk networks.
+
+### Command Line Options
+
+There are plenty of options available that you can use to override configuration on runtime while starting the lisk.
+
+```
+node app.js [options]
+```
+
+Each of that option can be appended on command line. There are also few `ENV` variables that can be utilized for this purpose.
+
+| Option             | ENV Variable           | Config Option   | Default Value | Description                                                                                                                                           |
+| ------------------ | ---------------------- | --------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| --config<br> -c    | LISK_CONFIG_FILE       |                 |               | Path the custom configuration file, which will override values of `config/default/config.json`                                                        |
+| --network<br> -n   | LISK_NETWORK           |                 | devnet        | Which configurations set to use, associated to lisk networks. Any of this option can be used `devnet`, `alphanet`, `betanet`, `testnet` and `mainnet` |
+| --port<br> -p      | LISK_WS_PORT           | wsPort          |               | TCP port for P2P layer                                                                                                                                |
+| --http-port<br> -h | LISK_HTTP_PORT         | httpPort        |               | TCP port for HTTP API                                                                                                                                 |
+| --database<br> -d  |                        | db.database     |               | PostgreSQL database name to connect                                                                                                                   |
+| --address<br> -a   |                        | address         |               | Listening host name or ip                                                                                                                             |
+| --peers<br> -p     | LISK_PEERS             | peers.list      |               | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                       |
+| --log<br> -l       | LISK_CONSOLE_LOG_LEVEL | consoleLogLevel |               | Log level for lisk for console output                                                                                                                 |
+| --snapshot<br> -s  |                        |                 |               | Number of round for which take the snapshot.                                                                                                          |
+
+For more detail understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
+
+### Examples
+
+#### Change Redis Port
+
+Update the `redis.port` configuration attribute in `config/devnet/config.json` or any other network you want to configure.
 
 ## Tests
 
