@@ -89,7 +89,7 @@ describe('system test (type 0) - double transfers', () => {
 						expect(res)
 							.to.have.property('transactions')
 							.which.is.an('Array');
-						expect(res.transactions.length).to.equal(1);
+						expect(res.transactions.length).to.equal(0);
 						done();
 					});
 				});
@@ -111,7 +111,7 @@ describe('system test (type 0) - double transfers', () => {
 
 				it('adding to pool transfer for same account should fail', done => {
 					localCommon.addTransaction(library, transaction1, err => {
-						expect(err).to.match(/^Transaction is already confirmed: /);
+						expect(err).to.match(/^Account does not have enough LSK: /);
 						done();
 					});
 				});

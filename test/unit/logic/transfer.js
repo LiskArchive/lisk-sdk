@@ -350,8 +350,8 @@ describe('transfer', () => {
 									);
 
 									expect(err).to.not.exist;
-									expect(balanceBefore.plus(amount).toString()).to.equal(
-										balanceAfter.toString()
+									expect(balanceAfter.plus(amount).toString()).to.equal(
+										balanceBefore.toString()
 									);
 									applyTransaction(validTransaction, validSender, done);
 								}

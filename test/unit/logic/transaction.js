@@ -963,8 +963,8 @@ describe('transaction', () => {
 								var balanceAfter = new bignum(accountAfter.balance.toString());
 
 								expect(err).to.not.exist;
-								expect(balanceBefore.plus(amount).toString()).to.equal(
-									balanceAfter.toString()
+								expect(balanceAfter.plus(amount).toString()).to.equal(
+									balanceBefore.toString()
 								);
 								undoTransaction(validTransaction, sender, done);
 							}
@@ -1008,7 +1008,10 @@ describe('transaction', () => {
 								expect(err).to.not.exist;
 								var balanceAfter = new bignum(accountAfter.balance.toString());
 
-								expect(balanceBefore.plus(amount.mul(2)).toString()).to.equal(
+								expect(
+									balanceBefore.plus(amount.mul(2)).toString()
+								).to.not.equal(balanceAfter.toString());
+								expect(balanceBefore.toString()).to.equal(
 									balanceAfter.toString()
 								);
 								done();
