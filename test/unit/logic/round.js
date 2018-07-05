@@ -396,7 +396,7 @@ describe('rounds', () => {
 					getVotes_stub.withArgs(scope.round).resolves([delegate, delegate]);
 					updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes');
 					updateVotes_stub
-						.withArgs(delegate.address, delegate.amount)
+						.withArgs(delegate.address, new bignum(delegate.amount))
 						.resolves('QUERY');
 
 					round = new Round(_.cloneDeep(scope), t);
@@ -418,7 +418,10 @@ describe('rounds', () => {
 
 			it('updateVotes query should be called with proper args', () => {
 				return expect(
-					updateVotes_stub.alwaysCalledWith(delegate.address, delegate.amount)
+					updateVotes_stub.alwaysCalledWith(
+						delegate.address,
+						new bignum(delegate.amount)
+					)
 				).to.be.true;
 			});
 
