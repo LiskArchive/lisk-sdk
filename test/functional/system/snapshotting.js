@@ -18,9 +18,10 @@ const Promise = require('bluebird');
 const elements = require('lisk-elements').default;
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
-const constants = require('../../../helpers/constants');
 const queriesHelper = require('../common/sql/queriesHelper.js');
 const localCommon = require('./common');
+
+const constants = global.constants;
 
 describe('snapshotting', () => {
 	let library;

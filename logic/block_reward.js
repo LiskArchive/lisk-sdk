@@ -14,8 +14,9 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
 const bignum = require('../helpers/bignum.js');
+
+const constants = global.constants;
 
 const __private = {};
 /**
@@ -28,7 +29,6 @@ const __private = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @requires helpers/constants
  */
 class BlockReward {
 	constructor() {

@@ -17,12 +17,12 @@
 require('../../../functional.js');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../../fixtures/accounts');
-var constants = require('../../../../../helpers/constants');
 var swaggerEndpoint = require('../../../../common/swagger_spec');
 var randomUtil = require('../../../../common/utils/random');
 var waitFor = require('../../../../common/utils/wait_for');
 var apiHelpers = require('../../../../common/helpers/api');
 
+const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', () => {

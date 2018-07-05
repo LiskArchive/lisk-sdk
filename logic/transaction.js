@@ -19,10 +19,10 @@ const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const bignum = require('../helpers/bignum.js');
-const constants = require('../helpers/constants.js');
-const exceptions = require('../helpers/exceptions.js');
 const slots = require('../helpers/slots.js');
 
+const exceptions = global.exceptions;
+const constants = global.constants;
 const __private = {};
 
 /**
@@ -36,13 +36,11 @@ const __private = {};
  * @requires extend
  * @requires lodash
  * @requires helpers/bignum
- * @requires helpers/constants
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @param {Database} db
  * @param {Object} ed
  * @param {ZSchema} schema
- * @param {Object} genesisblock
+ * @param {Object} genesisBlock
  * @param {Account} account
  * @param {Object} logger
  * @param {function} cb - Callback function
@@ -50,7 +48,7 @@ const __private = {};
  * @todo Add description for the params
  */
 class Transaction {
-	constructor(db, ed, schema, genesisblock, account, logger, cb) {
+	constructor(db, ed, schema, genesisBlock, account, logger, cb) {
 		/**
 		 * @typedef {Object} privateTypes
 		 * - 0: Transfer
@@ -68,7 +66,7 @@ class Transaction {
 			db,
 			ed,
 			schema,
-			genesisblock,
+			genesisBlock,
 			account,
 			logger,
 		};
@@ -317,7 +315,7 @@ class Transaction {
 	checkBalance(amount, balance, transaction, sender) {
 		const exceededBalance = new bignum(sender[balance]).lessThan(amount);
 		const exceeded =
-			transaction.blockId !== this.scope.genesisblock.block.id &&
+			transaction.blockId !== this.scope.genesisBlock.block.id &&
 			exceededBalance;
 
 		return {
@@ -437,7 +435,7 @@ class Transaction {
 			!transaction.requesterPublicKey &&
 			sender.secondSignature &&
 			!transaction.signSignature &&
-			transaction.blockId !== this.scope.genesisblock.block.id
+			transaction.blockId !== this.scope.genesisBlock.block.id
 		) {
 			return setImmediate(cb, 'Missing sender second signature');
 		}
@@ -490,11 +488,8 @@ class Transaction {
 
 		// Check sender is not genesis account unless block id equals genesis
 		if (
-			[
-				exceptions.genesisPublicKey.mainnet,
-				exceptions.genesisPublicKey.testnet,
-			].indexOf(sender.publicKey) !== -1 &&
-			transaction.blockId !== this.scope.genesisblock.block.id
+			sender.publicKey === this.scope.genesisBlock.block.generatorPublicKey &&
+			transaction.blockId !== this.scope.genesisBlock.block.id
 		) {
 			return setImmediate(
 				cb,

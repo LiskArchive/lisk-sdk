@@ -14,12 +14,11 @@
 
 'use strict';
 
-const ip = require('ip');
-const _ = require('lodash');
-const z_schema = require('z-schema');
-const FormatValidators = require('z-schema/src/FormatValidators');
-const constants = require('./constants');
-const bignum = require('./bignum.js');
+var ip = require('ip');
+var _ = require('lodash');
+var z_schema = require('z-schema');
+var FormatValidators = require('z-schema/src/FormatValidators');
+var bignum = require('./bignum.js');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -45,7 +44,6 @@ const bignum = require('./bignum.js');
  * @requires ip
  * @requires lodash
  * @requires z-schema
- * @requires helpers/constants
  * @returns {boolean} True if the format is valid
  * @see Parent: {@link helpers}
  */
@@ -75,8 +73,7 @@ var liskFormats = {
 		if (typeof str !== 'string') {
 			return false;
 		}
-
-		return Buffer.from(str).length <= constants.additionalData.maxLength;
+		return Buffer.from(str).length <= global.constants.additionalData.maxLength;
 	},
 	/**
 	 * Description of the function.
@@ -289,7 +286,7 @@ var liskFormats = {
 		if (obj instanceof bignum) {
 			return (
 				obj.greaterThanOrEqualTo(0) &&
-				obj.lessThanOrEqualTo(constants.totalAmount)
+				obj.lessThanOrEqualTo(global.constants.totalAmount)
 			);
 		}
 		return false;

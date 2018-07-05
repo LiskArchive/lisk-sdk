@@ -21,7 +21,6 @@ var _ = require('lodash');
 var rewire = require('rewire');
 var async = require('async'); // eslint-disable-line no-unused-vars
 var Promise = require('bluebird');
-var constants = require('../../../../../helpers/constants');
 var bignum = require('../../../../../helpers/bignum.js');
 var application = require('../../../../common/application'); // eslint-disable-line no-unused-vars
 var clearDatabaseTable = require('../../../../common/db_sandbox')
@@ -33,6 +32,8 @@ var accountFixtures = require('../../../../fixtures/accounts');
 var genesisBlock = require('../../../../data/genesis_block.json');
 var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
+
+const constants = global.constants;
 
 var previousBlock = {
 	blockSignature:

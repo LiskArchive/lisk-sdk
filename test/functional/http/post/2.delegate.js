@@ -19,12 +19,13 @@ var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
+
+const constants = global.constants;
 
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 

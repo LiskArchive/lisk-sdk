@@ -20,7 +20,6 @@ var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var constants = require('../../../../helpers/constants');
 var bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -28,6 +27,7 @@ var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
+const constants = global.constants;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 6) inTransfer dapp', () => {

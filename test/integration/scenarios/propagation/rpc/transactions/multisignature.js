@@ -18,7 +18,7 @@ const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
 const getTransaction = require('../../../../utils/http').getTransaction;
 const waitFor = require('../../../../../common/utils/wait_for');
-const constants = require('../../../../../../helpers/constants');
+const constants = require('../../../../../../config/mainnet/constants');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const randomUtil = require('../../../../../common/utils/random');
 const {

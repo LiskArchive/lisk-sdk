@@ -143,6 +143,9 @@ _.mixin(
 	{ chain: false }
 );
 
+global.constants = require('../config/devnet/constants.js');
+global.exceptions = require('../config/devnet/exceptions.js');
+
 global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;

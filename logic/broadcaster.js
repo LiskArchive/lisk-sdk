@@ -17,8 +17,9 @@
 const async = require('async');
 const extend = require('extend');
 const _ = require('lodash');
-const constants = require('../helpers/constants.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
+
+const constants = global.constants;
 
 let modules;
 let library;
@@ -35,7 +36,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires extend
  * @requires lodash
- * @requires helpers/constants
  * @requires helpers/jobs_queue
  * @param {Object} broadcasts
  * @param {boolean} force

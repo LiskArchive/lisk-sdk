@@ -14,11 +14,11 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
 const slots = require('../helpers/slots.js');
 const milestones = require('../helpers/milestones.js');
 const bignum = require('../helpers/bignum.js');
 
+const constants = global.constants;
 let modules;
 let library;
 let shared;
@@ -29,7 +29,6 @@ let shared;
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @requires helpers/constants
  * @requires helpers/milestones
  * @requires helpers/slots
  * @param {Database} db

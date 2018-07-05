@@ -18,14 +18,14 @@ const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
-const constants = require('../../helpers/constants.js');
 const slots = require('../../helpers/slots.js');
-const exceptions = require('../../helpers/exceptions.js');
 const bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
 let self;
+const exceptions = global.exceptions;
+const constants = global.constants;
 const __private = {};
 
 __private.lastNBlockIds = [];
@@ -39,8 +39,6 @@ __private.lastNBlockIds = [];
  * @requires async
  * @requires crypto
  * @requires lodash
- * @requires helpers/constants
- * @requires helpers/exceptions
  * @requires helpers/slots
  * @requires logic/block_reward
  * @todo Add @param tags

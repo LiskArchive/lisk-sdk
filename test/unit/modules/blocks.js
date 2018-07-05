@@ -16,7 +16,8 @@
 'use strict';
 
 const rewire = require('rewire');
-const constants = require('../../../helpers/constants.js');
+
+const constants = global.constants;
 
 const Blocks = rewire('../../../modules/blocks.js');
 
@@ -82,7 +83,7 @@ describe('blocks', () => {
 			schema: schemaStub,
 			dbSequence: dbSequenceStub,
 			sequence: sequenceStub,
-			genesisblock: dummyGenesisblock,
+			genesisBlock: dummyGenesisblock,
 			bus: busStub,
 			balancesSequence: balancesSequenceStub,
 		};

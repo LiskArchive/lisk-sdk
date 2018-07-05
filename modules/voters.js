@@ -18,7 +18,8 @@ const _ = require('lodash');
 const async = require('async');
 const apiCodes = require('../helpers/api_codes');
 const ApiError = require('../helpers/api_error');
-const constants = require('../helpers/constants');
+
+const constants = global.constants;
 
 // Private fields
 let modules;
@@ -36,7 +37,6 @@ let loaded = false;
  * @requires lodash
  * @requires helpers/api_codes
  * @requires helpers/api_error
- * @requires helpers/constants
  * @param {setImmediateCallback} cb - Callback function
  * @param {scope} scope - App instance
  */
