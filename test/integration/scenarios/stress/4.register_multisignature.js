@@ -32,8 +32,6 @@ var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 var broadcasting = process.env.BROADCASTING !== 'false';
 
 module.exports = function(params) {
-	// Disable multi-signature transaction to avoid nightly build failures
-	// eslint-disable-next-line mocha/no-skipped-tests
 	describe('stress test for type 4 transactions @slow', function() {
 		this.timeout(2200000);
 		var transactions = [];
@@ -41,7 +39,7 @@ module.exports = function(params) {
 		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
 		var waitForExtraBlocks = broadcasting ? 8 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
-		describe('prepare accounts', () => {
+		describe(`prepare ${maximum} accounts`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(

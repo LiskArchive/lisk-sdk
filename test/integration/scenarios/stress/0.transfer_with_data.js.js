@@ -34,7 +34,7 @@ module.exports = function(params) {
 		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
 		var waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
-		describe('sending 1000 single transfers to random addresses', () => {
+		describe(`sending ${maximum} single transfers to random addresses`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
