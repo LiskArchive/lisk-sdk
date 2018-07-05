@@ -32,7 +32,6 @@
  * @property {number} fees.delegate - Fee for registering as a delegate.
  * @property {number} fees.multisignature - Fee for multisignature transaction.
  * @property {number} fees.dapp	- Fee for registering as a dapp.
- * @property {number} maxAmount - Maximum amount of LSK that can be transfered in a transaction.
  // TODO: Needs additional check to revise max payload length
  // for each transaction type for consistency
  // FYI: https://lisk.io/documentation/the-lisk-protocol/blocks {Block Payload Section}
@@ -70,7 +69,6 @@ module.exports = {
 		dappWithdrawal: 10000000,
 		dappDeposit: 10000000,
 	},
-	maxAmount: 100000000,
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,
 	maxSharedTransactions: 100,
