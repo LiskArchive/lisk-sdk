@@ -100,10 +100,7 @@ describe('db', () => {
 				expect(result1).to.have.lengthOf(3);
 				expect(result2).to.have.lengthOf(2);
 				expect(result2[0]).to.have.all.keys('round');
-				return expect(result2.map(r => r.round)).to.have.all.members([
-					'1',
-					'2',
-				]);
+				return expect(result2.map(r => r.round)).to.have.all.members([1, 2]);
 			});
 		});
 
@@ -118,8 +115,8 @@ describe('db', () => {
 			});
 
 			it('should remove round information for provided round number', function*() {
-				const round1 = roundsFixtures.Round({ round: '1' });
-				const round2 = roundsFixtures.Round({ round: '2' });
+				const round1 = roundsFixtures.Round({ round: 1 });
+				const round2 = roundsFixtures.Round({ round: 2 });
 				yield db.query(
 					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
 				);
@@ -211,10 +208,10 @@ describe('db', () => {
 		describe('getVotes()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'query');
-				yield db.rounds.getVotes('1');
+				yield db.rounds.getVotes(1);
 
 				expect(db.query.firstCall.args[0]).to.eql(roundsSQL.getVotes);
-				expect(db.query.firstCall.args[1]).to.eql({ round: '1' });
+				expect(db.query.firstCall.args[1]).to.eql({ round: 1 });
 				return expect(db.query).to.be.calledOnce;
 			});
 
@@ -298,12 +295,12 @@ describe('db', () => {
 		describe('summedRound()', () => {
 			it('should use the correct SQL file with one parameter', function*() {
 				sinonSandbox.spy(db, 'query');
-				yield db.rounds.summedRound('1', '2');
+				yield db.rounds.summedRound(1, 2);
 
 				expect(db.query.firstCall.args[0]).to.eql(roundsSQL.summedRound);
 				expect(db.query.firstCall.args[1]).to.eql({
-					round: '1',
-					activeDelegates: '2',
+					round: 1,
+					activeDelegates: 2,
 				});
 				return expect(db.query).to.be.calledOnce;
 			});
@@ -867,7 +864,7 @@ describe('db', () => {
 				const params = {
 					address: '123L',
 					amount: '456',
-					round: '1',
+					round: 1,
 				};
 				yield db.rounds.insertRoundInformationWithAmount(
 					params.address,
@@ -886,7 +883,7 @@ describe('db', () => {
 				const params = {
 					address: '123L',
 					amount: '456',
-					round: '1',
+					round: 1,
 				};
 				yield db.rounds.insertRoundInformationWithAmount(
 					params.address,
@@ -913,7 +910,7 @@ describe('db', () => {
 				const params = {
 					address: account.address,
 					amount: '456',
-					round: '1',
+					round: 1,
 				};
 				yield db.rounds.insertRoundInformationWithAmount(
 					params.address,
@@ -934,7 +931,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				const params = {
 					address: '123L',
-					round: '1',
+					round: 1,
 					delegate: '456',
 					balanceMode: '-',
 				};
@@ -955,7 +952,7 @@ describe('db', () => {
 			it('should not insert any record for an invalid address', function*() {
 				const params = {
 					address: '123L',
-					round: '1',
+					round: 1,
 					delegate: '456',
 					balanceMode: '-',
 				};
@@ -978,7 +975,7 @@ describe('db', () => {
 					balance: '100',
 				});
 				yield db.accounts.insert(account);
-				const round = '1';
+				const round = 1;
 				const delegate = '4567';
 				const balanceMode = '-';
 
@@ -1007,7 +1004,7 @@ describe('db', () => {
 					balance: '100',
 				});
 				yield db.accounts.insert(account);
-				const round = '1';
+				const round = 1;
 				const delegate = '4567';
 				const balanceMode = '+';
 
@@ -1036,7 +1033,7 @@ describe('db', () => {
 					balance: '100',
 				});
 				yield db.accounts.insert(account);
-				const round = '1';
+				const round = 1;
 				const delegate = '4567';
 				const balanceMode = null;
 
@@ -1066,7 +1063,7 @@ describe('db', () => {
 					timestamp: (+new Date() / 1000).toFixed(),
 					fees: '123',
 					reward: '123',
-					round: '1',
+					round: 1,
 					publicKey: '11111111',
 				};
 				yield db.rounds.insertRoundRewards(
