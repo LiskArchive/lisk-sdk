@@ -45,7 +45,7 @@ module.exports = {
 			if (!devConfigCopy.syncing) {
 				devConfigCopy.syncing = {};
 			}
-			devConfigCopy.syncing.active = !syncing;
+			devConfigCopy.syncing.active = syncing;
 			return devConfigCopy;
 		});
 
