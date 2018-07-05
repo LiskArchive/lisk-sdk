@@ -414,7 +414,7 @@ describe('vote', () => {
 			});
 			vote.checkConfirmedDelegates(transaction, err => {
 				expect(err).to.equal(
-					'Failed to add vote, delegate "genesis_99" already voted for'
+					'Failed to add vote, delegate "genesis_95" already voted for'
 				);
 				done();
 			});
@@ -469,7 +469,7 @@ describe('vote', () => {
 			});
 			vote.checkUnconfirmedDelegates(transaction, err => {
 				expect(err).to.equal(
-					'Failed to add vote, delegate "genesis_99" already voted for'
+					'Failed to add vote, delegate "genesis_95" already voted for'
 				);
 
 				done();
