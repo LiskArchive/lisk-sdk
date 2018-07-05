@@ -500,9 +500,9 @@ Block.prototype.dbRead = function(raw) {
 		height: parseInt(raw.b_height),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: raw.b_totalAmount,
-		totalFee: raw.b_totalFee,
-		reward: raw.b_reward,
+		totalAmount: new bignum(raw.b_totalAmount),
+		totalFee: new bignum(raw.b_totalFee),
+		reward: new bignum(raw.b_reward),
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,
@@ -510,9 +510,7 @@ Block.prototype.dbRead = function(raw) {
 		blockSignature: raw.b_blockSignature,
 		confirmations: parseInt(raw.b_confirmations),
 	};
-	block.totalForged = new bignum(block.totalFee)
-		.plus(new bignum(block.reward))
-		.toString();
+	block.totalForged = block.totalFee.plus(block.reward).toString();
 	return block;
 };
 

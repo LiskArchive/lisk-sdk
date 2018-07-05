@@ -143,7 +143,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 						.stub(library.logic.transaction.scope.account, 'merge')
 						.callThrough()
 						.withArgs(fundTrsForAccount1.senderId, {
-							u_balance: fundTrsForAccount1.amount + fundTrsForAccount1.fee,
+							u_balance: fundTrsForAccount1.amount.plus(fundTrsForAccount1.fee),
 						})
 						.callsArgWith(2, 'err');
 					done();
