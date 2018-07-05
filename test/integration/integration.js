@@ -14,9 +14,9 @@
 
 'use strict';
 
+var find = require('find');
 var utils = require('./utils');
 var setup = require('./setup');
-var scenarios = require('./scenarios');
 
 describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases', () => {
 	var totalPeers = Number.parseInt(process.env.TOTAL_PEERS) || 10;
@@ -75,7 +75,6 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			if (err) {
 				return done(err);
 			}
-
 			// It should be less than 180, as nodes are just started and establishing the connections
 			if (numOfConnections <= expectedOutgoingConnections) {
 				done();
@@ -88,42 +87,13 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 	});
 
 	describe('when WS connections to all nodes all established', () => {
-		var params = {};
-
-		before(done => {
-			utils.ws.establishWSConnectionsToNodes(
-				configurations,
-				(err, socketsResult) => {
-					if (err) {
-						return done(err);
-					}
-					params.sockets = socketsResult;
-					params.configurations = configurations;
-					done();
-				}
-			);
-		});
-
-		describe('when functional tests are successfully executed against 127.0.0.1:5000', () => {
-			scenarios.propagation.blocks(params);
-			scenarios.propagation.transactions(params);
-
-			// @slow tests
-			scenarios.stress.transfer_with_data(params);
-			scenarios.stress.second_passphrase(params);
-			scenarios.stress.register_delegate(params);
-			scenarios.stress.cast_vote(params);
-			scenarios.stress.register_multisignature(params);
-			scenarios.stress.register_dapp(params);
-			// @slow
-
-			if (broadcasting) {
-				// This test uses broadcasting mechanism to test signatures don't run this test when broadcasting is disabled
-				scenarios.propagation.multisignature(params);
-				scenarios.network.peers(params);
-				scenarios.network.peersBlackList(params);
-				scenarios.network.peerDisconnect(params);
-			}
+		var suiteFolder = 'test/integration/scenarios/';
+		var filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+		filepaths.forEach(filepath => {
+			var currentFilePath = filepath.replace('test/integration', '.');
+			// eslint-disable-next-line import/no-dynamic-require
+			var test = require(currentFilePath);
+			test(configurations);
 		});
 	});
 });

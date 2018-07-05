@@ -79,8 +79,8 @@ function parallelTests(tag, suite, section) {
 	}
 
 	// Looking recursevely for javascript files not containing the word "common"
-	var pathfiles = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
-	var initPathfiles = pathfiles.splice(0, maxParallelism);
+	var filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+	var initFilepaths = filepaths.splice(0, maxParallelism);
 
 	var parallelTestsRunning = {};
 
@@ -126,8 +126,8 @@ function parallelTests(tag, suite, section) {
 				console.info('Test finished successfully:', test);
 				delete parallelTestsRunning[child.pid];
 
-				if (pathfiles.length) {
-					spawnTest(pathfiles.shift());
+				if (filepaths.length) {
+					spawnTest(filepaths.shift());
 				}
 				if (Object.keys(parallelTestsRunning).length === 0) {
 					return console.info('All tests finished successfully.');
@@ -147,7 +147,7 @@ function parallelTests(tag, suite, section) {
 		});
 	};
 
-	initPathfiles.forEach(spawnTest);
+	initFilepaths.forEach(spawnTest);
 }
 
 parallelTests(process.argv[2], process.argv[3], process.argv[4]);
