@@ -148,7 +148,7 @@ describe('GET /node', () => {
 				});
 			});
 
-			it('using enabled publicKey should be ok', () => {
+			it('using available publicKey should be ok', () => {
 				var publicKey = __testContext.config.forging.delegates[0].publicKey;
 
 				return forgingEndpoint.makeRequest({ publicKey }, 200).then(res => {

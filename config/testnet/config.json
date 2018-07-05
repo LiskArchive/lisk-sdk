@@ -2,8 +2,6 @@
 	"wsPort": 7001,
 	"httpPort": 7000,
 	"address": "0.0.0.0",
-	"version": "1.0.0-rc.0.1",
-	"minVersion": ">=1.0.0-rc.0.1",
 	"fileLogLevel": "info",
 	"logFileName": "logs/lisk.log",
 	"consoleLogLevel": "none",
@@ -78,7 +76,8 @@
 		},
 		"options": {
 			"timeout": 5000,
-			"broadhashConsensusCalculationInterval": 5000
+			"broadhashConsensusCalculationInterval": 5000,
+			"wsEngine": "sc-uws"
 		}
 	},
 	"broadcasts": {

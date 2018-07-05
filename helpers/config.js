@@ -80,6 +80,8 @@ function Config(packageJson) {
 		}
 	}
 
+	appConfig.version = packageJson.version;
+	appConfig.minVersion = packageJson.lisk.minVersion;
 	appConfig.network = network;
 	appConfig.genesisBlock = JSON.parse(
 		fs.readFileSync(
@@ -144,6 +146,13 @@ function Config(packageJson) {
 
 	if (process.env.NODE_ENV === 'test') {
 		appConfig.coverage = true;
+	}
+
+	if (
+		appConfig.peers.options.wsEngine === undefined ||
+		appConfig.peers.options.wsEngine === null
+	) {
+		appConfig.peers.options.wsEngine = 'sc-uws';
 	}
 
 	if (

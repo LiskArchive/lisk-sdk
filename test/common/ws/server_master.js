@@ -14,12 +14,16 @@
 
 'use strict';
 
+// Initialize global variables
+require('../../setup');
+
 var ChildProcess = require('child_process');
 var path = require('path');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
-var testConfig = require('../../data/config.json');
 var random = require('../../common/utils/random');
+
+var testConfig = __testContext.config;
 
 /**
  * WSServerMaster

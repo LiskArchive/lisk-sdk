@@ -16,7 +16,6 @@
 
 require('../../functional.js');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
-const genesisBlock = require('../../../data/genesis_block.json');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');
 
@@ -254,7 +253,13 @@ describe('WS transport blocks', () => {
 
 		it('using ids which include genesisBlock.id should be ok', done => {
 			connectedPeer.rpc.blocksCommon(
-				{ ids: [genesisBlock.id.toString(), '2', '3'].join() },
+				{
+					ids: [
+						__testContext.config.genesisBlock.id.toString(),
+						'2',
+						'3',
+					].join(),
+				},
 				(err, res) => {
 					__testContext.debug(
 						'> Error / Response:'.grey,

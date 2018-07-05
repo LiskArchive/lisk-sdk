@@ -133,7 +133,7 @@ describe('Handshake', () => {
 					}`, done => {
 						handshake(type.input, err => {
 							expect(err.description).to.equal(
-								`: Expected type object but found type ${type.expectation}`
+								`Expected type object but found type ${type.expectation}`
 							);
 							done();
 						});
@@ -317,7 +317,7 @@ describe('Handshake', () => {
 						headers[property] = undefined;
 						handshake(headers, err => {
 							expect(err.description).to.equal(
-								`: Missing required property: ${property}`
+								`Missing required property: ${property}`
 							);
 							done();
 						});

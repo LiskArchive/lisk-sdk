@@ -231,7 +231,7 @@ System.prototype.networkCompatible = function(nethash) {
  * @todo Add description for the params and the return value
  */
 System.prototype.versionCompatible = function(version) {
-	return semver.satisfies(version, __private.minVersion);
+	return semver.gte(version, __private.minVersion);
 };
 
 /**

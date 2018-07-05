@@ -19,7 +19,6 @@ require('../../setup'); // Ensure availability of global variables
 var randomstring = require('randomstring');
 var WAMPServer = require('wamp-socket-cluster/WAMPServer');
 var SocketCluster = require('socketcluster');
-var testConfig = require('../../data/config.json');
 
 var wsServer = {
 	validNonce: randomstring.generate(16),
@@ -58,8 +57,8 @@ var wsServer = {
 		status: sinonSandbox.stub().callsArgWith(1, {
 			success: true,
 			height: 1,
-			broadhash: testConfig.nethash,
-			nonce: testConfig.nethash,
+			broadhash: __testContext.config.nethash,
+			nonce: __testContext.config.nethash,
 		}),
 		list: sinonSandbox.stub().callsArgWith(1, { peers: [] }),
 		blocks: sinonSandbox.stub().callsArgWith(1, { blocks: [] }),
