@@ -108,14 +108,6 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			scenarios.propagation.blocks(params);
 			scenarios.propagation.transactions(params);
 
-			if (broadcasting) {
-				// This test uses broadcasting mechanism to test signatures don't run this test when broadcasting is disabled
-				scenarios.propagation.multisignature(params);
-				scenarios.network.peers(params);
-				scenarios.network.peersBlackList(params);
-				scenarios.network.peerDisconnect(params);
-			}
-
 			// @slow tests
 			scenarios.stress.transfer_with_data(params);
 			scenarios.stress.second_passphrase(params);
@@ -124,6 +116,14 @@ describe('given configurations for 10 nodes with address "127.0.0.1", WS ports 5
 			scenarios.stress.register_multisignature(params);
 			scenarios.stress.register_dapp(params);
 			// @slow
+
+			if (broadcasting) {
+				// This test uses broadcasting mechanism to test signatures don't run this test when broadcasting is disabled
+				scenarios.propagation.multisignature(params);
+				scenarios.network.peers(params);
+				scenarios.network.peersBlackList(params);
+				scenarios.network.peerDisconnect(params);
+			}
 		});
 	});
 });
