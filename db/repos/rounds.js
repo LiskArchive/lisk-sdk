@@ -92,7 +92,7 @@ class RoundsRepository {
 	 * @todo Add @returns tag
 	 */
 	updateVotes(address, amount) {
-		return this.db.none(sql.updateVotes, [amount, address]);
+		return this.db.none(sql.updateVotes, [amount.toString(), address]);
 	}
 
 	/**

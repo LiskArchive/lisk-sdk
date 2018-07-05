@@ -149,7 +149,7 @@ class Round {
 			const queries = votes.map(vote =>
 				self.t.rounds.updateVotes(
 					self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
-					Math.floor(vote.amount)
+					new bignum(vote.amount).floor()
 				)
 			);
 
