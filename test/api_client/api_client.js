@@ -30,7 +30,7 @@ describe('APIClient module', () => {
 	];
 	const testnetHash =
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const testnetNodes = ['http://testnet.lisk.io:7000'];
+	const testnetNodes = ['https://testnet.lisk.io:443'];
 	const locale =
 		process.env.LC_ALL ||
 		process.env.LC_MESSAGES ||
