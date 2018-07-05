@@ -260,7 +260,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 							.to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
-						var amount = new bignum(balance).plus('1').toNumber();
+						var amount = new bignum(balance).plus('1').toString();
 						transaction = lisk.transfer.createInTransfer(
 							randomUtil.guestbookDapp.id,
 							amount,

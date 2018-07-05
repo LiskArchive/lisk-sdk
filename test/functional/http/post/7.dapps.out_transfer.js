@@ -531,7 +531,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 							.to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
-						var amount = new bignum(balance).plus('1').toNumber();
+						var amount = new bignum(balance).plus('1').toString();
 						transaction = lisk.transfer.createOutTransfer(
 							randomUtil.guestbookDapp.id,
 							randomUtil.transaction().id,

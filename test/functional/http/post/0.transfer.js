@@ -123,7 +123,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('using entire balance should fail', () => {
 			transaction = lisk.transaction.transfer({
-				amount: Math.floor(accountFixtures.genesis.balance),
+				amount: Math.floor(accountFixtures.genesis.balance) + 10000,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -132,9 +132,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.match(
-					/^Account does not have enough LSK: [0-9]+L balance: /
-				);
+				expect(res.body.message).to.match(/^Invalid transaction body -/);
 				badTransactions.push(transaction);
 			});
 		});
