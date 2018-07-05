@@ -1,12 +1,11 @@
 {
 	"presets": [
-    ["env", {
-      "targets": {
-        "node": "8"
-      }
-    }]
-  ],
-	"plugins": ["transform-object-rest-spread"],
+		["env", {
+			"targets": {
+				"node": "8.3"
+			}
+		}]
+	],
 	"env": {
 		"test": {
 			"plugins": ["istanbul"]
