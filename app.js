@@ -270,9 +270,9 @@ d.run(() => {
 					var https;
 					var https_io;
 
-					if (scope.config.ssl.enabled) {
-						privateKey = fs.readFileSync(scope.config.ssl.options.key);
-						certificate = fs.readFileSync(scope.config.ssl.options.cert);
+					if (scope.config.api.ssl.enabled) {
+						privateKey = fs.readFileSync(scope.config.api.ssl.options.key);
+						certificate = fs.readFileSync(scope.config.api.ssl.options.cert);
 
 						https = require('https').createServer(
 							{
@@ -723,15 +723,15 @@ d.run(() => {
 							);
 
 							if (!err) {
-								if (scope.config.ssl.enabled) {
+								if (scope.config.api.ssl.enabled) {
 									scope.network.https.listen(
-										scope.config.ssl.options.port,
-										scope.config.ssl.options.address,
+										scope.config.api.ssl.options.port,
+										scope.config.api.ssl.options.address,
 										err => {
 											scope.logger.info(
 												`Lisk https started: ${
-													scope.config.ssl.options.address
-												}:${scope.config.ssl.options.port}`
+													scope.config.api.ssl.options.address
+												}:${scope.config.api.ssl.options.port}`
 											);
 
 											cb(err, scope.network);
