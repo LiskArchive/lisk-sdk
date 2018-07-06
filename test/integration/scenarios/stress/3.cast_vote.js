@@ -27,7 +27,7 @@ const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 
 const broadcasting = process.env.BROADCASTING !== 'false';
 
-module.exports = configurations => {
+module.exports = function(configurations) {
 	describe('Stress: type 3 transactions @slow @syncing', () => {
 		let transactions = [];
 		const accounts = [];

@@ -29,7 +29,7 @@ const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 const common = require('../../../common');
 
-module.exports = configurations => {
+module.exports = function(configurations) {
 	describe('Propagation: multisig transactions', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);

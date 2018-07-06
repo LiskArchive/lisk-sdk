@@ -23,7 +23,7 @@ const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
-module.exports = configurations => {
+module.exports = function(configurations) {
 	describe('Network: peer Disconnect', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);

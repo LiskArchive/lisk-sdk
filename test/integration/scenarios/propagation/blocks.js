@@ -18,7 +18,7 @@ const Promise = require('bluebird');
 const utils = require('../../utils');
 const common = require('../common');
 
-module.exports = configurations => {
+module.exports = function(configurations) {
 	describe('Propagation: blocks @syncing', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);

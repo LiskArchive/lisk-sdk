@@ -17,7 +17,7 @@
 const utils = require('../../utils');
 const common = require('../common');
 
-module.exports = configurations => {
+module.exports = function(configurations) {
 	describe('Netowrk: peers', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
