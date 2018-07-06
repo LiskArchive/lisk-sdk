@@ -85,9 +85,9 @@ module.exports = {
 		syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
 		let peersList = [];
 
-		function isPickedWithProbability(n) {
+		const isPickedWithProbability = n => {
 			return !!n && Math.random() <= n;
-		}
+		};
 
 		switch (syncMode) {
 			case SYNC_MODES.RANDOM:
