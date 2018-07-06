@@ -17,7 +17,6 @@
 const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
 const waitFor = require('../../../../../common/utils/wait_for');
-const constants = require('../../../../../../config/mainnet/constants');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const randomUtil = require('../../../../../common/utils/random');
 const {
@@ -28,6 +27,8 @@ const {
 const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 const common = require('../../../common');
+
+const constants = __testContext.config.constants;
 
 module.exports = function(configurations) {
 	describe('Propagation: multisig transactions', () => {

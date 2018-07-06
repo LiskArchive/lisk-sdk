@@ -17,7 +17,6 @@
 const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
 const accountFixtures = require('../../../fixtures/accounts');
-const constants = require('../../../../config/mainnet/constants');
 const randomUtil = require('../../../common/utils/random');
 const waitFor = require('../../../common/utils/wait_for');
 const createSignatureObject = require('../../../common/helpers/api')
@@ -30,6 +29,7 @@ const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
 const broadcasting = process.env.BROADCASTING !== 'false';
+const constants = __testContext.config.constants;
 
 module.exports = function(configurations) {
 	describe('Stress: type 4 transactions @slow @syncing', () => {
