@@ -18,10 +18,10 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
-const constants = require('../../../config/mainnet/constants');
 var slots = require('../../../helpers/slots');
 var testData = require('./test_data/out_transfer');
 
+const constants = __testContext.config.constants;
 var OutTransfer = rewire('../../../logic/out_transfer');
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;

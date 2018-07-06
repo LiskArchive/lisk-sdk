@@ -24,10 +24,10 @@ var modulesLoader = require('../../common/modules_loader');
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transaction_types');
-const constants = require('../../../config/mainnet/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
+const constants = __testContext.config.constants;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
@@ -414,7 +414,7 @@ describe('vote', () => {
 			});
 			vote.checkConfirmedDelegates(transaction, err => {
 				expect(err).to.equal(
-					'Failed to add vote, delegate "genesis_99" already voted for'
+					'Failed to add vote, delegate "genesis_95" already voted for'
 				);
 				done();
 			});
@@ -469,7 +469,7 @@ describe('vote', () => {
 			});
 			vote.checkUnconfirmedDelegates(transaction, err => {
 				expect(err).to.equal(
-					'Failed to add vote, delegate "genesis_99" already voted for'
+					'Failed to add vote, delegate "genesis_95" already voted for'
 				);
 
 				done();

@@ -51,6 +51,9 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+delete oldConfig.ssl;
+
 // Values to keep from new config file
 delete oldConfig.version;
 delete oldConfig.minVersion;

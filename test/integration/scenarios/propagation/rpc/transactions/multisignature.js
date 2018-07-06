@@ -18,7 +18,6 @@ const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
 const getTransaction = require('../../../../utils/http').getTransaction;
 const waitFor = require('../../../../../common/utils/wait_for');
-const constants = require('../../../../../../config/mainnet/constants');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const randomUtil = require('../../../../../common/utils/random');
 const {
@@ -26,6 +25,8 @@ const {
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
 } = require('../../../../../common/helpers/api');
+
+const constants = __testContext.config.constants;
 
 module.exports = function multisignature(params) {
 	describe('RPC /postSignatures', () => {

@@ -16,7 +16,8 @@
 
 var randomstring = require('randomstring');
 var Z_schema = require('../../../helpers/z_schema.js');
-const constants = require('../../../config/mainnet/constants.js');
+
+const constants = __testContext.config.constants;
 
 var validator = new Z_schema();
 

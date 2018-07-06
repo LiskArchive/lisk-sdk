@@ -40,7 +40,7 @@ const Round = stampit({
 				length: 32,
 				capitalization: 'lowercase',
 			});
-		this.round = round || faker.random.number({ min: 10, max: 500 }).toString();
+		this.round = round || faker.random.number({ min: 10, max: 500 });
 	},
 });
 
