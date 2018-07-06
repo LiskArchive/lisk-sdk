@@ -14,38 +14,38 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
 const constants = require('../../../../config/mainnet/constants');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var createSignatureObject = require('../../../common/helpers/api')
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const createSignatureObject = require('../../../common/helpers/api')
 	.createSignatureObject;
-var sendSignaturePromise = require('../../../common/helpers/api')
+const sendSignaturePromise = require('../../../common/helpers/api')
 	.sendSignaturePromise;
-var sendTransactionPromise = require('../../../common/helpers/api')
+const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
-var confirmTransactionsOnAllNodes = require('../../utils/transactions')
+const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
-var broadcasting = process.env.BROADCASTING !== 'false';
+const broadcasting = process.env.BROADCASTING !== 'false';
 
 module.exports = function(configurations) {
 	describe('Stress: type 4 transactions @slow @syncing', function() {
 		this.timeout(2200000);
-		var transactions = [];
-		var accounts = [];
-		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
-		var waitForExtraBlocks = broadcasting ? 8 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
+		let transactions = [];
+		const accounts = [];
+		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
+		const waitForExtraBlocks = broadcasting ? 8 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
 		describe(`prepare ${maximum} accounts`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
 					_.range(maximum).map(() => {
-						var tmpAccount = randomUtil.account();
-						var transaction = lisk.transaction.transfer({
+						const tmpAccount = randomUtil.account();
+						const transaction = lisk.transaction.transfer({
 							amount: 2500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
@@ -58,7 +58,7 @@ module.exports = function(configurations) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
+				const blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
@@ -72,11 +72,11 @@ module.exports = function(configurations) {
 		});
 
 		describe('sending multisignature registrations', () => {
-			var signatures = [];
-			var agreements = [];
-			var numbers = _.range(maximum);
-			var i = 0;
-			var j = 0;
+			const signatures = [];
+			let agreements = [];
+			const numbers = _.range(maximum);
+			let i = 0;
+			let j = 0;
 
 			before(() => {
 				transactions = [];
@@ -84,7 +84,7 @@ module.exports = function(configurations) {
 					numbers.map(num => {
 						i = (num + 1) % numbers.length;
 						j = (num + 2) % numbers.length;
-						var transaction = lisk.transaction.registerMultisignature({
+						const transaction = lisk.transaction.registerMultisignature({
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
@@ -112,7 +112,7 @@ module.exports = function(configurations) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
+				const blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {

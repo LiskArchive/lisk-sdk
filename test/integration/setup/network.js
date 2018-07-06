@@ -14,19 +14,19 @@
 
 'use strict';
 
-var async = require('async');
-var Promise = require('bluebird');
-var waitUntilBlockchainReady = require('../../common/utils/wait_for')
+const async = require('async');
+const Promise = require('bluebird');
+const waitUntilBlockchainReady = require('../../common/utils/wait_for')
 	.blockchainReady;
-var utils = require('../utils');
+const utils = require('../utils');
 
-var SYNC_MODES = {
+const SYNC_MODES = {
 	RANDOM: 0,
 	ALL_TO_FIRST: 1,
 	ALL_TO_GROUP: 2,
 };
 
-var SYNC_MODE_DEFAULT_ARGS = {
+const SYNC_MODE_DEFAULT_ARGS = {
 	RANDOM: {
 		probability: 0.5, // (0 - 1)
 	},
@@ -54,11 +54,11 @@ module.exports = {
 	},
 
 	enableForgingOnDelegates(configurations, cb) {
-		var enableForgingPromises = [];
+		const enableForgingPromises = [];
 		configurations.forEach(configuration => {
 			configuration.forging.delegates.map(keys => {
 				if (!configuration.forging.force) {
-					var enableForgingPromise = utils.http.enableForging(
+					const enableForgingPromise = utils.http.enableForging(
 						keys,
 						configuration.httpPort
 					);
@@ -83,8 +83,11 @@ module.exports = {
 
 	generatePeers(configurations, syncMode, syncModeArgs, currentPeer) {
 		syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
+		let peersList = [];
 
-		var peersList = [];
+		function isPickedWithProbability(n) {
+			return !!n && Math.random() <= n;
+		}
 
 		switch (syncMode) {
 			case SYNC_MODES.RANDOM:
@@ -93,9 +96,6 @@ module.exports = {
 						'Probability parameter not specified to random sync mode'
 					);
 				}
-				var isPickedWithProbability = function(n) {
-					return !!n && Math.random() <= n;
-				};
 				configurations.forEach(configuration => {
 					if (isPickedWithProbability(syncModeArgs.probability)) {
 						if (!(configuration.wsPort === currentPeer)) {

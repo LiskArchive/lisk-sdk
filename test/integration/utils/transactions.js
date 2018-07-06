@@ -14,14 +14,14 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var getTransaction = require('./http').getTransaction;
+const lisk = require('lisk-elements').default;
+const getTransaction = require('./http').getTransaction;
 
 module.exports = {
 	generateValidTransaction() {
-		var gAccountPassphrase =
+		const gAccountPassphrase =
 			'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
-		var randomAddress = lisk.cryptography.getAddressFromPublicKey(
+		const randomAddress = lisk.cryptography.getAddressFromPublicKey(
 			lisk.cryptography.getKeys(
 				Math.random()
 					.toString(36)

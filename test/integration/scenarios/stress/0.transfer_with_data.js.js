@@ -14,32 +14,32 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
 const constants = require('../../../../config/mainnet/constants');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var sendTransactionsPromise = require('../../../common/helpers/api')
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
-var confirmTransactionsOnAllNodes = require('../../utils/transactions')
+const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
-var broadcasting = process.env.BROADCASTING !== 'false';
+const broadcasting = process.env.BROADCASTING !== 'false';
 
 module.exports = function(configurations) {
 	describe('Stress: type 0 transactions with data @slow @syncing', function() {
 		this.timeout(1800000);
-		var transactions = [];
-		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
-		var waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
+		let transactions = [];
+		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
+		const waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
 		describe(`sending ${maximum} single transfers to random addresses`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
 					_.range(maximum).map(() => {
-						var transaction = lisk.transaction.transfer({
+						const transaction = lisk.transaction.transfer({
 							amount: 500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: randomUtil.account().address,
@@ -52,7 +52,7 @@ module.exports = function(configurations) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
+				const blocksToWait =
 					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {

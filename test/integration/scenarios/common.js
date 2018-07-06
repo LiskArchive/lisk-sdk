@@ -16,7 +16,7 @@
 
 const utils = require('../utils');
 
-function setMonitoringSocketsConnections(params, configurations) {
+const setMonitoringSocketsConnections = (params, configurations) => {
 	// eslint-disable-next-line mocha/no-top-level-hooks
 	before(done => {
 		utils.ws.establishWSConnectionsToNodes(
@@ -36,7 +36,7 @@ function setMonitoringSocketsConnections(params, configurations) {
 	after(done => {
 		utils.ws.killMonitoringSockets(params.sockets, done);
 	});
-}
+};
 
 module.exports = {
 	setMonitoringSocketsConnections,

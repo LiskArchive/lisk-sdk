@@ -19,10 +19,10 @@ const common = require('../common');
 
 module.exports = function(configurations) {
 	describe('Propagation: transactions @syncing', () => {
-		var params = {};
+		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
-		var nodesTransactions = [];
+		let nodesTransactions = [];
 
 		before(() => {
 			return Promise.all(
@@ -46,7 +46,7 @@ module.exports = function(configurations) {
 		});
 
 		it('should have all peers having same amount of confirmed transactions', () => {
-			var uniquePeersTransactionsNumber = _(nodesTransactions)
+			const uniquePeersTransactionsNumber = _(nodesTransactions)
 				.map('length')
 				.uniq()
 				.value();
@@ -54,9 +54,9 @@ module.exports = function(configurations) {
 		});
 
 		it('should have all transactions the same at all peers', done => {
-			var patternTransactions = nodesTransactions[0];
-			for (var i = 0; i < patternTransactions.length; i += 1) {
-				for (var j = 1; j < nodesTransactions.length; j += 1) {
+			const patternTransactions = nodesTransactions[0];
+			for (let i = 0; i < patternTransactions.length; i += 1) {
+				for (let j = 1; j < nodesTransactions.length; j += 1) {
 					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
 				}
 			}

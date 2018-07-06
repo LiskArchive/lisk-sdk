@@ -14,13 +14,13 @@
 
 'use strict';
 
-var async = require('async');
-var utils = require('../utils');
-var network = require('./network');
-var config = require('./config');
-var shell = require('./shell');
+const async = require('async');
+const utils = require('../utils');
+const network = require('./network');
+const config = require('./config');
+const shell = require('./shell');
 
-var WAIT_BEFORE_CONNECT_MS = 20000;
+const WAIT_BEFORE_CONNECT_MS = 20000;
 
 module.exports = {
 	createNetwork(configurations, cb) {

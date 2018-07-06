@@ -22,11 +22,11 @@ const networkCommon = require('./common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
+const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
 module.exports = configurations => {
 	describe('Network: peer Disconnect', () => {
-		var params = {};
+		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
 		const wsPorts = new Set();

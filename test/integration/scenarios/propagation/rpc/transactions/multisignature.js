@@ -31,7 +31,7 @@ const common = require('../../../common');
 
 module.exports = function multisignature(configurations) {
 	describe('Propagation: multisig transactions', () => {
-		var params = {};
+		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
 		let transactions = [];
@@ -54,8 +54,8 @@ module.exports = function multisignature(configurations) {
 				transactions = [];
 				return Promise.all(
 					_.range(MAXIMUM).map(() => {
-						var tmpAccount = randomUtil.account();
-						var transaction = lisk.transaction.transfer({
+						const tmpAccount = randomUtil.account();
+						const transaction = lisk.transaction.transfer({
 							amount: 2500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
@@ -69,7 +69,7 @@ module.exports = function multisignature(configurations) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
+				const blocksToWait =
 					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 3;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
@@ -93,7 +93,7 @@ module.exports = function multisignature(configurations) {
 					numbers.map(num => {
 						i = (num + 1) % numbers.length;
 						j = (num + 2) % numbers.length;
-						var transaction = lisk.transaction.registerMultisignature({
+						const transaction = lisk.transaction.registerMultisignature({
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
@@ -113,7 +113,7 @@ module.exports = function multisignature(configurations) {
 
 			it('pending multisignatures should remain in the pending queue', () => {
 				return Promise.map(transactions, transaction => {
-					var parameters = [`id=${transaction.id}`];
+					const parameters = [`id=${transaction.id}`];
 
 					return getPendingMultisignaturesPromise(parameters).then(res => {
 						expect(res.body.data).to.have.length(1);

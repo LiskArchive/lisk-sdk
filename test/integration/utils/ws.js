@@ -14,17 +14,17 @@
 
 'use strict';
 
-var scClient = require('socketcluster-client');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var WSServerMaster = require('../../common/ws/server_master');
+const scClient = require('socketcluster-client');
+const WAMPClient = require('wamp-socket-cluster/WAMPClient');
+const WSServerMaster = require('../../common/ws/server_master');
 
 module.exports = {
 	establishWSConnectionsToNodes(configurations, cb) {
-		var firstConfiguration = configurations[0];
+		const firstConfiguration = configurations[0];
 
-		var wampClient = new WAMPClient();
-		var sockets = [];
-		var monitorWSClient = {
+		const wampClient = new WAMPClient();
+		const sockets = [];
+		const monitorWSClient = {
 			hostname: '127.0.0.1',
 			port: null,
 			autoReconnect: true,
@@ -33,10 +33,10 @@ module.exports = {
 				httpPort: firstConfiguration.httpPort,
 			}),
 		};
-		var connectedTo = 0;
+		let connectedTo = 0;
 		configurations.forEach(configuration => {
 			monitorWSClient.port = configuration.wsPort;
-			var socket = scClient.connect(monitorWSClient);
+			const socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			socket.on('connect', () => {
 				sockets.push(socket);

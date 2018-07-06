@@ -20,10 +20,10 @@ const common = require('../common');
 
 module.exports = function(configurations) {
 	describe('Propagation: blocks @syncing', () => {
-		var params = {};
+		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
-		var nodesBlocks;
+		let nodesBlocks;
 
 		before(() => {
 			return Promise.all(
@@ -46,7 +46,7 @@ module.exports = function(configurations) {
 		});
 
 		it('should have all peers at the same height', () => {
-			var uniquePeersHeights = _(nodesBlocks)
+			const uniquePeersHeights = _(nodesBlocks)
 				.map('length')
 				.uniq()
 				.value();
@@ -54,9 +54,9 @@ module.exports = function(configurations) {
 		});
 
 		it('should have all blocks the same at all peers', done => {
-			var patternBlocks = nodesBlocks[0];
-			for (var i = 0; i < patternBlocks.length; i += 1) {
-				for (var j = 1; j < nodesBlocks.length; j += 1) {
+			const patternBlocks = nodesBlocks[0];
+			for (let i = 0; i < patternBlocks.length; i += 1) {
+				for (let j = 1; j < nodesBlocks.length; j += 1) {
 					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
 				}
 			}

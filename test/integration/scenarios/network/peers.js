@@ -20,11 +20,11 @@ const networkCommon = require('./common');
 
 module.exports = configurations => {
 	describe('Netowrk: peers', () => {
-		var params = {};
+		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
 		describe('mutual connections', () => {
-			var mutualPeers = [];
+			let mutualPeers = [];
 			before(() => {
 				return networkCommon.getAllPeers(params.sockets).then(peers => {
 					mutualPeers = peers;
@@ -37,10 +37,10 @@ module.exports = configurations => {
 					expect(mutualPeer)
 						.to.have.property('peers')
 						.to.be.an('array');
-					var peerPorts = mutualPeer.peers.map(peer => {
+					const peerPorts = mutualPeer.peers.map(peer => {
 						return peer.wsPort;
 					});
-					var allPorts = params.configurations.map(configuration => {
+					const allPorts = params.configurations.map(configuration => {
 						return configuration.wsPort;
 					});
 					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not
@@ -75,13 +75,13 @@ module.exports = configurations => {
 		describe('forging', () => {
 			before(done => {
 				// Expect some blocks to forge after 30 seconds
-				var timesToCheckNetworkStatus = 30;
-				var timesNetworkStatusChecked = 0;
-				var checkNetworkStatusInterval = 1000;
+				const timesToCheckNetworkStatus = 30;
+				let timesNetworkStatusChecked = 0;
+				const checkNetworkStatusInterval = 1000;
 
-				var checkingInterval = setInterval(() => {
+				const checkingInterval = setInterval(() => {
 					networkCommon.getNodesStatus(params.sockets, (err, data) => {
-						var { networkMaxAvgHeight } = data;
+						const { networkMaxAvgHeight } = data;
 						timesNetworkStatusChecked += 1;
 						if (err) {
 							clearInterval(checkingInterval);
@@ -101,11 +101,11 @@ module.exports = configurations => {
 			});
 
 			describe('network status after 30 seconds', () => {
-				var getNodesStatusError;
-				var networkHeight;
-				var networkAverageHeight;
-				var peersCount;
-				var peerStatusList;
+				let getNodesStatusError;
+				let networkHeight;
+				let networkAverageHeight;
+				let peersCount;
+				let peerStatusList;
 
 				before(done => {
 					networkCommon.getNodesStatus(params.sockets, (err, data) => {
@@ -169,8 +169,8 @@ module.exports = configurations => {
 					});
 
 					it('should be same for all the peers', () => {
-						var networkHeights = _.groupBy(peerStatusList, 'networkHeight');
-						var heights = Object.keys(networkHeights);
+						const networkHeights = _.groupBy(peerStatusList, 'networkHeight');
+						const heights = Object.keys(networkHeights);
 						return expect(heights).to.have.lengthOf(1);
 					});
 				});

@@ -14,8 +14,8 @@
 
 'use strict';
 
-var childProcess = require('child_process');
-var Logger = require('../../../logger');
+const childProcess = require('child_process');
+const Logger = require('../../../logger');
 
 module.exports = {
 	http: require('./http'),

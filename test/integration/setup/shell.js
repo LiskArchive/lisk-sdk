@@ -14,8 +14,8 @@
 
 'use strict';
 
-var child_process = require('child_process');
-var async = require('async');
+const child_process = require('child_process');
+const async = require('async');
 
 module.exports = {
 	recreateDatabases(configurations, cb) {

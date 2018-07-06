@@ -14,18 +14,18 @@
 
 'use strict';
 
-var fs = require('fs');
-var utils = require('../utils');
-var devConfig = require('../../../config/devnet/config.json');
-var network = require('./network');
+const fs = require('fs');
+const utils = require('../utils');
+const devConfig = require('../../../config/devnet/config.json');
+const network = require('./network');
 
 module.exports = {
 	generateLiskConfigs(broadcasting = true, syncing = true, totalPeers = 10) {
 		utils.http.setVersion('1.0.0');
 
 		// Generate config objects
-		var configurations = _.range(totalPeers).map(index => {
-			var devConfigCopy = _.cloneDeep(devConfig);
+		const configurations = _.range(totalPeers).map(index => {
+			const devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
@@ -62,10 +62,10 @@ module.exports = {
 		});
 
 		// Configuring nodes to forge with force or without
-		var delegatesMaxLength = Math.ceil(
+		const delegatesMaxLength = Math.ceil(
 			devConfig.forging.delegates.length / configurations.length
 		);
-		var delegates = _.clone(devConfig.forging.delegates);
+		const delegates = _.clone(devConfig.forging.delegates);
 
 		if (!broadcasting) {
 			configurations.forEach(configuration => {
@@ -91,9 +91,9 @@ module.exports = {
 		return configurations;
 	},
 	generatePM2json(configurations, cb) {
-		var pm2Config = configurations.reduce(
+		const pm2Config = configurations.reduce(
 			(pm2Config, configuration) => {
-				var index = pm2Config.apps.length;
+				const index = pm2Config.apps.length;
 				configuration.db.database = `${configuration.db.database}_${index}`;
 				try {
 					fs.writeFileSync(

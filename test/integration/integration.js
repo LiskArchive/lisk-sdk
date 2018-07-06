@@ -14,27 +14,27 @@
 
 'use strict';
 
-var find = require('find');
-var utils = require('./utils');
-var setup = require('./setup');
+const find = require('find');
+const utils = require('./utils');
+const setup = require('./setup');
 
-var totalPeers = Number.parseInt(process.env.TOTAL_PEERS) || 10;
+const totalPeers = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
-var broadcasting = process.env.BROADCASTING !== 'false';
-var syncing = process.env.SYNCING !== 'false';
+const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
+const broadcasting = process.env.BROADCASTING !== 'false';
+const syncing = process.env.SYNCING !== 'false';
 
 describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
-	var wsPorts = [];
+	const wsPorts = [];
 	_.range(totalPeers).map(index => {
 		wsPorts.push(5000 + index);
 	});
-	var configurations = setup.config.generateLiskConfigs(
+	const configurations = setup.config.generateLiskConfigs(
 		broadcasting,
 		syncing,
 		totalPeers
 	);
-	var testFailedError;
+	let testFailedError;
 
 	before(done => {
 		setup.createNetwork(configurations, done);
@@ -87,12 +87,12 @@ describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS po
 	});
 
 	describe('when WS connections to all nodes all established', () => {
-		var suiteFolder = 'test/integration/scenarios/';
-		var filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+		const suiteFolder = 'test/integration/scenarios/';
+		const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
 		filepaths.forEach(filepath => {
-			var currentFilePath = filepath.replace('test/integration', '.');
+			const currentFilePath = filepath.replace('test/integration', '.');
 			// eslint-disable-next-line import/no-dynamic-require
-			var test = require(currentFilePath);
+			const test = require(currentFilePath);
 			test(configurations);
 		});
 	});

@@ -30,7 +30,7 @@ const expectedConnectionsAfterBlacklisting =
 
 module.exports = configurations => {
 	describe('Network: peer Blacklisted', () => {
-		var params = {};
+		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
 		const wsPorts = new Set();

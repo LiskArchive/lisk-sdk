@@ -50,11 +50,11 @@ const getPeersStatus = peers => {
 const getNodesStatus = (sockets, cb) => {
 	getAllPeers(sockets)
 		.then(peers => {
-			var peersCount = peers.length;
+			const peersCount = peers.length;
 			getPeersStatus(peers)
 				.then(peerStatusList => {
-					var networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
-					var status = {
+					const networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
+					const status = {
 						peersCount,
 						peerStatusList,
 						networkMaxAvgHeight,
@@ -71,9 +71,9 @@ const getNodesStatus = (sockets, cb) => {
 };
 
 const getMaxAndAvgHeight = peerStatusList => {
-	var maxHeight = 1;
-	var heightSum = 0;
-	var totalPeers = peerStatusList.length;
+	let maxHeight = 1;
+	let heightSum = 0;
+	const totalPeers = peerStatusList.length;
 	peerStatusList.forEach(peerStatus => {
 		if (peerStatus.height > maxHeight) {
 			maxHeight = peerStatus.height;
