@@ -19,7 +19,7 @@ const utils = require('../../utils');
 const common = require('../common');
 
 module.exports = function(configurations) {
-	describe('blocks', () => {
+	describe('blocks @syncing', () => {
 		var params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
