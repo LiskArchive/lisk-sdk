@@ -20,14 +20,13 @@ var d = require('domain').create();
 var extend = require('extend');
 var SocketCluster = require('socketcluster');
 var async = require('async');
-var randomstring = require('randomstring');
 var Logger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 var wsTransport = require('./api/ws/transport');
 var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
 var Sequence = require('./helpers/sequence.js');
-var swagger = require('./config/swagger');
+var httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 var swaggerHelper = require('./helpers/swagger');
 
@@ -202,17 +201,8 @@ d.run(() => {
 			 * @throws {Error} If unable to assign nethash from genesis block
 			 */
 			config(cb) {
-				try {
-					appConfig.nethash = Buffer.from(
-						appConfig.genesisBlock.payloadHash,
-						'hex'
-					).toString('hex');
-
-					appConfig.nonce = randomstring.generate(16);
-					appConfig.root = path.dirname(__filename);
-				} catch (e) {
-					logger.error('Failed to assign nethash from genesis block');
-					throw Error(e);
+				if (!appConfig.nethash) {
+					throw Error('Failed to assign nethash from genesis block');
 				}
 				cb(null, appConfig);
 			},
@@ -366,7 +356,13 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					swagger(scope.network.app, scope.config, scope.logger, scope, cb);
+					httpApi.bootstrapSwagger(
+						scope.network.app,
+						scope.config,
+						scope.logger,
+						scope,
+						cb
+					);
 				},
 			],
 

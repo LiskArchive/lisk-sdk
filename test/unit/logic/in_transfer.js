@@ -17,7 +17,6 @@
 var crypto = require('crypto');
 var rewire = require('rewire');
 var ed = require('../../../helpers/ed');
-const constants = require('../../../config/mainnet/constants');
 var slots = require('../../../helpers/slots');
 var typesRepresentatives = require('../../fixtures/types_representatives');
 var modulesLoader = require('../../common/modules_loader');
@@ -31,6 +30,8 @@ var validKeypair = ed.makeKeypair(
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
+
+const constants = __testContext.config.constants;
 
 var validSender = {
 	balance: '0',

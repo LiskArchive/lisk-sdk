@@ -381,6 +381,21 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
+		it('upvoting non delegate should be fail', () => {
+			transaction = lisk.transaction.castVotes({
+				passphrase: accountMinimalFunds.passphrase,
+				votes: [`${accountMinimalFunds.publicKey}`],
+			});
+
+			return sendTransactionPromise(
+				transaction,
+				errorCodes.PROCESSING_ERROR
+			).then(res => {
+				expect(res.body.message).to.equal('Delegate not found');
+				badTransactions.push(transaction);
+			});
+		});
+
 		it('upvoting with minimal required amount of funds should be ok', () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMinimalFunds.passphrase,

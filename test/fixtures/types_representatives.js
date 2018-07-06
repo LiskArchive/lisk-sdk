@@ -16,7 +16,8 @@
 
 var faker = require('faker');
 var difference = require('lodash').difference;
-const constants = require('../../config/mainnet/constants');
+
+const constants = __testContext.config.constants;
 
 var arrays = [
 	{
