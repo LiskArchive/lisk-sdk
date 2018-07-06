@@ -21,13 +21,14 @@ const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
 const Peer = require('../../../logic/peer');
 const generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
-const constants = require('../../../config/mainnet/constants');
 const jobsQueue = require('../../../helpers/jobs_queue');
 const generateMatchedAndUnmatchedBroadhashes = require('../common/helpers/peers')
 	.generateMatchedAndUnmatchedBroadhashes;
 const modulesLoader = require('../../common/modules_loader');
 const random = require('../../common/utils/random');
 const swagerHelper = require('../../../helpers/swagger');
+
+const constants = __testContext.config.constants;
 
 describe('peers', () => {
 	var dbMock;

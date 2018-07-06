@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var rewire = require('rewire');
 var async = require('async');
 var dbRepos = require('../../db/repos');
-var swagger = require('../../config/swagger');
+var httpApi = require('../../helpers/http_api');
 var jobsQueue = require('../../helpers/jobs_queue');
 var Sequence = require('../../helpers/sequence');
 var DBSandbox = require('./db_sandbox').DBSandbox;
@@ -192,7 +192,13 @@ function __init(initScope, done) {
 						'modules',
 						'logger',
 						function(scope, cb) {
-							swagger(scope.network.app, scope.config, scope.logger, scope, cb);
+							httpApi.bootstrapSwagger(
+								scope.network.app,
+								scope.config,
+								scope.logger,
+								scope,
+								cb
+							);
 						},
 					],
 

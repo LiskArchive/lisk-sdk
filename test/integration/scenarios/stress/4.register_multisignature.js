@@ -17,7 +17,6 @@
 var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
-const constants = require('../../../../config/mainnet/constants');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var createSignatureObject = require('../../../common/helpers/api')
@@ -29,6 +28,7 @@ var sendTransactionPromise = require('../../../common/helpers/api')
 var confirmTransactionsOnAllNodes = require('../common/stress')
 	.confirmTransactionsOnAllNodes;
 
+const constants = __testContext.config.constants;
 var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
 
 module.exports = function(params) {
