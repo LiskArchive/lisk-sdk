@@ -14,27 +14,9 @@
 
 'use strict';
 
-const lisk = require('lisk-elements').default;
 const getTransaction = require('./http').getTransaction;
 
 module.exports = {
-	generateValidTransaction() {
-		const gAccountPassphrase =
-			'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
-		const randomAddress = lisk.cryptography.getAddressFromPublicKey(
-			lisk.cryptography.getKeys(
-				Math.random()
-					.toString(36)
-					.substring(7)
-			).publicKey
-		);
-
-		return lisk.transaction.transfer({
-			amount: 1,
-			passphrase: gAccountPassphrase,
-			recipientId: randomAddress,
-		});
-	},
 	confirmTransactionsOnAllNodes(transactions, configurations) {
 		return Promise.all(
 			_.flatMap(configurations, configuration => {

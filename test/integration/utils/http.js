@@ -70,10 +70,6 @@ const endpoints = {
 let currentVersion = '1.0.0';
 
 module.exports = {
-	getVersion() {
-		return currentVersion;
-	},
-
 	setVersion(version) {
 		currentVersion = version;
 	},
