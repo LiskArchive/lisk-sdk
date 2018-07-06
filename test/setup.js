@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable import/no-extraneous-dependencies */
 import os from 'os';
 import 'babel-polyfill';
 import chai, { Assertion } from 'chai';

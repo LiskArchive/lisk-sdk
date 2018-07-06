@@ -13,13 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../test';
+import { expect, test } from '@oclif/test';
 
 describe('warranty command', () => {
 	test
 		.stdout()
 		.command(['warranty'])
 		.it('should show warranty', ctx => {
-			expect(ctx.stdout).to.contain('THERE IS NO WARRANTY FOR THE PROGRAM');
+			return expect(ctx.stdout).to.contain(
+				'THERE IS NO WARRANTY FOR THE PROGRAM',
+			);
 		});
 });

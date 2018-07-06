@@ -1,10 +1,7 @@
 /* eslint-disable mocha/no-top-level-hooks */
-/* eslint-disable import/no-extraneous-dependencies */
 import lockfile from 'lockfile';
 
-afterEach(() => {
-	return sandbox.restore();
-});
+afterEach(() => sandbox.restore());
 
 after(() => {
 	const configLockfilePath = `${

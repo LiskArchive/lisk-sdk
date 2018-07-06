@@ -2,10 +2,15 @@
 	"name": "lisk-commander",
 	"version": "1.0.0-beta.3",
 	"description": "A command line interface for Lisk",
-	"author":
-		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
-	"keywords": ["lisk", "blockchain", "command-line", "nodejs", "javascript"],
+	"keywords": [
+		"lisk",
+		"blockchain",
+		"command-line",
+		"nodejs",
+		"javascript"
+	],
 	"homepage": "https://github.com/LiskHQ/lisk-commander#readme",
 	"repository": {
 		"type": "git",
@@ -24,44 +29,44 @@
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
-		"format":
-			"prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
+		"format": "prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
-		"test":
-			"if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
-		"test:local": "NODE_ENV=test nyc mocha test/commands",
-		"test:ci":
-			"NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/commands",
+		"test": "if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
+		"test:local": "NODE_ENV=test nyc mocha test",
+		"test:ci": "NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"cover":
-			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
-		"cover:local":
-			"npm run cover:base -- --reporter=html --reporter=text mocha",
-		"cover:ci":
-			"npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
-		"cover:test":
-			"NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test/commands",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text mocha",
+		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:test": "NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
 		"postpack": "rm -f oclif.manifest.json",
 		"prepack": "oclif-dev manifest && oclif-dev readme && npm shrinkwrap",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint && npm test",
-		"prepublishOnly":
-			"rm -r ./node_modules && npm install && npm run prepush && npm run build"
+		"prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build"
 	},
 	"oclif": {
 		"commands": "./dist/commands",
 		"bin": "lisk",
-		"plugins": ["@oclif/plugin-help"]
+		"plugins": [
+			"@oclif/plugin-help"
+		]
 	},
-	"files": ["/bin", "/npm-shrinkwrap.json", "/oclif.manifest.json", "/dist"],
+	"files": [
+		"/bin",
+		"/npm-shrinkwrap.json",
+		"/oclif.manifest.json",
+		"/dist"
+	],
 	"dependencies": {
 		"@oclif/command": "1.4.33",
 		"@oclif/config": "1.6.28",
+		"@oclif/errors": "1.1.2",
 		"@oclif/plugin-help": "2.0.5",
 		"babel-polyfill": "6.26.0",
 		"bip39": "2.4.0",

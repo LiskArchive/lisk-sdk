@@ -13,14 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../test';
+import { expect, test } from '@oclif/test';
 
 describe('copyright command', () => {
 	test
 		.stdout()
 		.command(['copyright'])
-		.it('should show copy right', ctx => {
-			expect(ctx.stdout).to.contain(
+		.it('should show copyright', ctx => {
+			return expect(ctx.stdout).to.contain(
 				'Lisk Commander  Copyright (C) 2017–2018  Lisk Foundation',
 			);
 		});
