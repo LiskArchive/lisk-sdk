@@ -27,9 +27,8 @@ const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 
 const broadcasting = process.env.BROADCASTING !== 'false';
 
-module.exports = function(configurations) {
-	describe('Stress: type 0 transactions with data @slow @syncing', function() {
-		this.timeout(1800000);
+module.exports = configurations => {
+	describe('Stress: type 0 transactions with data @slow @syncing', () => {
 		let transactions = [];
 		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
 		const waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain

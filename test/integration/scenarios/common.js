@@ -17,79 +17,12 @@
 const childProcess = require('child_process');
 const utils = require('../utils');
 
-const setMonitoringSocketsConnections = (params, configurations) => {
-	// eslint-disable-next-line mocha/no-top-level-hooks
-	before(done => {
-		utils.ws.establishWSConnectionsToNodes(
-			configurations,
-			(err, socketsResult) => {
-				if (err) {
-					return done(err);
-				}
-				params.sockets = socketsResult;
-				params.configurations = configurations;
-				done();
-			}
-		);
-	});
-
-	// eslint-disable-next-line mocha/no-top-level-hooks
-	after(done => {
-		utils.ws.killMonitoringSockets(params.sockets, done);
-	});
-};
-
-const getAllPeers = sockets => {
-	return Promise.all(
-		sockets.map(socket => {
-			if (socket.state === 'open') {
-				return socket.call('list', {});
-			}
-		})
-	);
-};
-
-const stopNode = nodeName => {
-	return childProcess.execSync(`pm2 stop ${nodeName}`);
-};
-
-const startNode = nodeName => {
-	childProcess.execSync(`pm2 start ${nodeName}`);
-};
-
-const restartNode = nodeName => {
-	return childProcess.execSync(`pm2 restart ${nodeName}`);
-};
-
 const getPeersStatus = peers => {
 	return Promise.all(
 		peers.map(peer => {
 			return utils.http.getNodeStatus(peer.httpPort, peer.ip);
 		})
 	);
-};
-
-const getNodesStatus = (sockets, cb) => {
-	getAllPeers(sockets)
-		.then(peers => {
-			const peersCount = peers.length;
-			getPeersStatus(peers)
-				.then(peerStatusList => {
-					const networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
-					const status = {
-						peersCount,
-						peerStatusList,
-						networkMaxAvgHeight,
-					};
-					cb(null, status);
-				})
-				.catch(err => {
-					cb(err, null);
-				});
-		})
-		.catch(err => {
-			cb(err, null);
-		});
 };
 
 const getMaxAndAvgHeight = peerStatusList => {
@@ -109,11 +42,70 @@ const getMaxAndAvgHeight = peerStatusList => {
 	};
 };
 
+const getAllPeers = sockets => {
+	return Promise.all(
+		sockets.map(socket => {
+			if (socket.state === 'open') {
+				return socket.call('list', {});
+			}
+		})
+	);
+};
+
 module.exports = {
+	setMonitoringSocketsConnections: (params, configurations) => {
+		// eslint-disable-next-line mocha/no-top-level-hooks
+		before(done => {
+			utils.ws.establishWSConnectionsToNodes(
+				configurations,
+				(err, socketsResult) => {
+					if (err) {
+						return done(err);
+					}
+					params.sockets = socketsResult;
+					params.configurations = configurations;
+					done();
+				}
+			);
+		});
+
+		// eslint-disable-next-line mocha/no-top-level-hooks
+		after(done => {
+			utils.ws.killMonitoringSockets(params.sockets, done);
+		});
+	},
+
 	getAllPeers,
-	stopNode,
-	startNode,
-	restartNode,
-	getNodesStatus,
-	setMonitoringSocketsConnections,
+
+	stopNode: nodeName => {
+		return childProcess.execSync(`pm2 stop ${nodeName}`);
+	},
+	startNode: nodeName => {
+		childProcess.execSync(`pm2 start ${nodeName}`);
+	},
+	restartNode: nodeName => {
+		return childProcess.execSync(`pm2 restart ${nodeName}`);
+	},
+	getNodesStatus: (sockets, cb) => {
+		getAllPeers(sockets)
+			.then(peers => {
+				const peersCount = peers.length;
+				getPeersStatus(peers)
+					.then(peerStatusList => {
+						const networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
+						const status = {
+							peersCount,
+							peerStatusList,
+							networkMaxAvgHeight,
+						};
+						cb(null, status);
+					})
+					.catch(err => {
+						cb(err, null);
+					});
+			})
+			.catch(err => {
+				cb(err, null);
+			});
+	},
 };

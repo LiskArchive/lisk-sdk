@@ -27,9 +27,8 @@ const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 
 const broadcasting = process.env.BROADCASTING !== 'false';
 
-module.exports = function(configurations) {
-	describe('Stress: type 2 transactions @slow @syncing', function() {
-		this.timeout(1800000);
+module.exports = configurations => {
+	describe('Stress: type 2 transactions @slow @syncing', () => {
 		let transactions = [];
 		const accounts = [];
 		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
