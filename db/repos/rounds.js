@@ -88,7 +88,7 @@ class RoundsRepository {
 	 * Update the votes of for a particular account.
 	 *
 	 * @param {string} address - Address of the account
-	 * @param {int} amount - Votes to update
+	 * @param {BigNumber} amount - Votes to update
 	 * @todo Add @returns tag
 	 */
 	updateVotes(address, amount) {

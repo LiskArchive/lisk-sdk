@@ -305,15 +305,15 @@ class Transaction {
 	/**
 	 * Checks if balance is less than amount for sender.
 	 *
-	 * @param {number} amount
-	 * @param {number} balance
+	 * @param {BigNumber} amount
+	 * @param {string} field
 	 * @param {transaction} transaction
 	 * @param {account} sender
 	 * @returns {Object} With exceeded boolean and error: address, balance
 	 * @todo Add description for the params
 	 */
-	checkBalance(amount, balance, transaction, sender) {
-		const exceededBalance = new bignum(sender[balance]).lessThan(amount);
+	checkBalance(amount, field, transaction, sender) {
+		const exceededBalance = new bignum(sender[field]).lessThan(amount);
 		const exceeded =
 			transaction.blockId !== this.scope.genesisBlock.block.id &&
 			exceededBalance;
@@ -325,7 +325,7 @@ class Transaction {
 						'Account does not have enough LSK:',
 						sender.address,
 						'balance:',
-						new bignum(sender[balance].toString() || '0').div(Math.pow(10, 8)),
+						new bignum(sender[field].toString() || '0').div(Math.pow(10, 8)),
 					].join(' ')
 				: null,
 		};

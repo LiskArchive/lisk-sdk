@@ -279,14 +279,14 @@ var liskFormats = {
 	/**
 	 * Transaction amount/fee.
 	 *
-	 * @param {string} str
+	 * @param {Object} value
 	 * @returns {boolean}
 	 */
-	amount(obj) {
-		if (obj instanceof bignum) {
+	amount(value) {
+		if (value instanceof bignum) {
 			return (
-				obj.greaterThanOrEqualTo(0) &&
-				obj.lessThanOrEqualTo(global.constants.totalAmount)
+				value.greaterThanOrEqualTo(0) &&
+				value.lessThanOrEqualTo(global.constants.totalAmount)
 			);
 		}
 		return false;
@@ -294,12 +294,12 @@ var liskFormats = {
 	/**
 	 * Transaction totalAmount, totalFee, reward.
 	 *
-	 * @param {string} str
+	 * @param {Object} value
 	 * @returns {boolean}
 	 */
-	minAmount(obj) {
-		if (obj instanceof bignum) {
-			return obj.greaterThanOrEqualTo(0);
+	minAmount(value) {
+		if (value instanceof bignum) {
+			return value.greaterThanOrEqualTo(0);
 		}
 		return false;
 	},
