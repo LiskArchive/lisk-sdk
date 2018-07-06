@@ -14,75 +14,19 @@
 
 'use strict';
 
-const Promise = require('bluebird');
 const utils = require('../../utils');
 const common = require('../common');
+const networkCommon = require('./common');
 
 module.exports = configurations => {
-	describe('Peers', () => {
+	describe('Netowrk: peers', () => {
 		var params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
-
-		function getAllPeers() {
-			return Promise.all(
-				params.sockets.map(socket => {
-					return socket.call('list', {});
-				})
-			);
-		}
-
-		function getPeersStatus(peers) {
-			return Promise.all(
-				peers.map(peer => {
-					return utils.http.getNodeStatus(peer.httpPort, peer.ip);
-				})
-			);
-		}
-
-		function getNodesStatus(cb) {
-			getAllPeers()
-				.then(peers => {
-					var peersCount = peers.length;
-					getPeersStatus(peers)
-						.then(peerStatusList => {
-							var networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
-							var status = {
-								peersCount,
-								peerStatusList,
-								networkMaxAvgHeight,
-							};
-							cb(null, status);
-						})
-						.catch(err => {
-							cb(err, null);
-						});
-				})
-				.catch(err => {
-					cb(err, null);
-				});
-		}
-
-		function getMaxAndAvgHeight(peerStatusList) {
-			var maxHeight = 1;
-			var heightSum = 0;
-			var totalPeers = peerStatusList.length;
-			peerStatusList.forEach(peerStatus => {
-				if (peerStatus.height > maxHeight) {
-					maxHeight = peerStatus.height;
-				}
-				heightSum += peerStatus.height;
-			});
-
-			return {
-				maxHeight,
-				averageHeight: heightSum / totalPeers,
-			};
-		}
 
 		describe('mutual connections', () => {
 			var mutualPeers = [];
 			before(() => {
-				return getAllPeers().then(peers => {
+				return networkCommon.getAllPeers(params.sockets).then(peers => {
 					mutualPeers = peers;
 				});
 			});
@@ -136,7 +80,7 @@ module.exports = configurations => {
 				var checkNetworkStatusInterval = 1000;
 
 				var checkingInterval = setInterval(() => {
-					getNodesStatus((err, data) => {
+					networkCommon.getNodesStatus(params.sockets, (err, data) => {
 						var { networkMaxAvgHeight } = data;
 						timesNetworkStatusChecked += 1;
 						if (err) {
@@ -164,7 +108,7 @@ module.exports = configurations => {
 				var peerStatusList;
 
 				before(done => {
-					getNodesStatus((err, data) => {
+					networkCommon.getNodesStatus(params.sockets, (err, data) => {
 						getNodesStatusError = err;
 						peersCount = data.peersCount;
 						peerStatusList = data.peerStatusList;
@@ -187,7 +131,7 @@ module.exports = configurations => {
 				});
 
 				it('should have valid values values matching specification', () => {
-					return getAllPeers().then(results => {
+					return networkCommon.getAllPeers(params.sockets).then(results => {
 						return results.map(peersList => {
 							return peersList.peers.map(peer => {
 								expect(peer.ip).to.not.empty;
@@ -201,7 +145,7 @@ module.exports = configurations => {
 				});
 
 				it('should have different peers heights propagated correctly on peers lists', () => {
-					return getAllPeers().then(results => {
+					return networkCommon.getAllPeers(params.sockets).then(results => {
 						expect(
 							results.some(peersList => {
 								return peersList.peers.some(peer => {

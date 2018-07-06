@@ -28,7 +28,7 @@ var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 var broadcasting = process.env.BROADCASTING !== 'false';
 
 module.exports = function(configurations) {
-	describe('stress test for type 0 transactions with data @slow @syncing', function() {
+	describe('Stress: type 0 transactions with data @slow @syncing', function() {
 		this.timeout(1800000);
 		var transactions = [];
 		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;

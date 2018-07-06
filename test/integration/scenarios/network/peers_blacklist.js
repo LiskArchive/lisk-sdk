@@ -15,12 +15,12 @@
 'use strict';
 
 const fs = require('fs');
-const childProcess = require('child_process');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
 const blockchainReady = require('../../../common/utils/wait_for')
 	.blockchainReady;
 const common = require('../common');
+const networkCommon = require('./common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
@@ -29,29 +29,15 @@ const expectedConnectionsAfterBlacklisting =
 	(totalPeers - 2) * (totalPeers - 1) * 2;
 
 module.exports = configurations => {
-	describe('Peer Blacklisted', () => {
+	describe('Network: peer Blacklisted', () => {
 		var params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
-
-		const getAllPeers = sockets => {
-			return Promise.all(
-				sockets.map(socket => {
-					if (socket.state === 'open') {
-						return socket.call('list', {});
-					}
-				})
-			);
-		};
-
-		const restartNode = nodeName => {
-			return childProcess.execSync(`pm2 restart ${nodeName}`);
-		};
 
 		const wsPorts = new Set();
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return getAllPeers(params.sockets).then(mutualPeers => {
+				return networkCommon.getAllPeers(params.sockets).then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -89,7 +75,7 @@ module.exports = configurations => {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
-					restartNode('node_0');
+					networkCommon.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
 					}, 8000);
@@ -119,7 +105,7 @@ module.exports = configurations => {
 
 				it(`peers manager should contain ${totalPeers -
 					2} active connections`, () => {
-					return getAllPeers(params.sockets).then(mutualPeers => {
+					return networkCommon.getAllPeers(params.sockets).then(mutualPeers => {
 						mutualPeers.forEach(mutualPeer => {
 							if (mutualPeer) {
 								expect(mutualPeer.peers.length).to.be.eql(totalPeers - 2);
@@ -159,7 +145,7 @@ module.exports = configurations => {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
-					restartNode('node_0');
+					networkCommon.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
 					}, 8000);

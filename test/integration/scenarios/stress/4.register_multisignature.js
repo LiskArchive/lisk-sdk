@@ -32,7 +32,7 @@ var confirmTransactionsOnAllNodes = require('../../utils/transactions')
 var broadcasting = process.env.BROADCASTING !== 'false';
 
 module.exports = function(configurations) {
-	describe('stress test for type 4 transactions @slow @syncing', function() {
+	describe('Stress: type 4 transactions @slow @syncing', function() {
 		this.timeout(2200000);
 		var transactions = [];
 		var accounts = [];

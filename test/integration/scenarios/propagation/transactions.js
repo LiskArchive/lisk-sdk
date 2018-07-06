@@ -18,7 +18,7 @@ const Promise = require('bluebird');
 const common = require('../common');
 
 module.exports = function(configurations) {
-	describe('RPC transactions @syncing', () => {
+	describe('Propagation: transactions @syncing', () => {
 		var params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 

@@ -14,44 +14,26 @@
 
 'use strict';
 
-const childProcess = require('child_process');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
 const network = require('../../setup/network');
 const common = require('../common');
+const networkCommon = require('./common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 var expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 
 module.exports = configurations => {
-	describe('Peer Disconnect', () => {
+	describe('Network: peer Disconnect', () => {
 		var params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
-
-		const getAllPeers = sockets => {
-			return Promise.all(
-				sockets.map(socket => {
-					if (socket.state === 'open') {
-						return socket.call('list', {});
-					}
-				})
-			);
-		};
-
-		const stopNode = nodeName => {
-			return childProcess.execSync(`pm2 stop ${nodeName}`);
-		};
-
-		const startNode = nodeName => {
-			childProcess.execSync(`pm2 start ${nodeName}`);
-		};
 
 		const wsPorts = new Set();
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return getAllPeers(params.sockets).then(mutualPeers => {
+				return networkCommon.getAllPeers(params.sockets).then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -67,7 +49,7 @@ module.exports = configurations => {
 
 			describe('when a node is stopped', () => {
 				before(done => {
-					stopNode('node_1');
+					networkCommon.stopNode('node_1');
 					setTimeout(() => {
 						done();
 					}, 2000);
@@ -96,7 +78,7 @@ module.exports = configurations => {
 
 			describe('when a stopped node is started', () => {
 				before(done => {
-					startNode('node_1');
+					networkCommon.startNode('node_1');
 					setTimeout(() => {
 						done();
 					}, 2000);
@@ -128,7 +110,7 @@ module.exports = configurations => {
 				// Duplicate socket connection exists or not
 				it('stop all the nodes in the network except node_0', done => {
 					for (let i = 1; i < totalPeers; i++) {
-						stopNode(`node_${i}`);
+						networkCommon.stopNode(`node_${i}`);
 					}
 					setTimeout(() => {
 						console.info('Wait for nodes to be stopped');
@@ -138,7 +120,7 @@ module.exports = configurations => {
 
 				it('start all nodes that were stopped', done => {
 					for (let i = 1; i < totalPeers; i++) {
-						startNode(`node_${i}`);
+						networkCommon.startNode(`node_${i}`);
 					}
 					setTimeout(() => {
 						console.info('Wait for nodes to be started');

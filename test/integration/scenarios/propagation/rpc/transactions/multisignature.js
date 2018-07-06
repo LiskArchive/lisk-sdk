@@ -30,7 +30,7 @@ const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 const common = require('../../../common');
 
 module.exports = function multisignature(configurations) {
-	describe('RPC transactions multisignatures', () => {
+	describe('Propagation: multisig transactions', () => {
 		var params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 
