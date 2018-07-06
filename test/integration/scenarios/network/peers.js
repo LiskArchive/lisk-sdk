@@ -16,7 +16,6 @@
 
 const utils = require('../../utils');
 const common = require('../common');
-const networkCommon = require('./common');
 
 module.exports = configurations => {
 	describe('Netowrk: peers', () => {
@@ -26,7 +25,7 @@ module.exports = configurations => {
 		describe('mutual connections', () => {
 			let mutualPeers = [];
 			before(() => {
-				return networkCommon.getAllPeers(params.sockets).then(peers => {
+				return common.getAllPeers(params.sockets).then(peers => {
 					mutualPeers = peers;
 				});
 			});
@@ -80,7 +79,7 @@ module.exports = configurations => {
 				const checkNetworkStatusInterval = 1000;
 
 				const checkingInterval = setInterval(() => {
-					networkCommon.getNodesStatus(params.sockets, (err, data) => {
+					common.getNodesStatus(params.sockets, (err, data) => {
 						const { networkMaxAvgHeight } = data;
 						timesNetworkStatusChecked += 1;
 						if (err) {
@@ -108,7 +107,7 @@ module.exports = configurations => {
 				let peerStatusList;
 
 				before(done => {
-					networkCommon.getNodesStatus(params.sockets, (err, data) => {
+					common.getNodesStatus(params.sockets, (err, data) => {
 						getNodesStatusError = err;
 						peersCount = data.peersCount;
 						peerStatusList = data.peerStatusList;
@@ -131,7 +130,7 @@ module.exports = configurations => {
 				});
 
 				it('should have valid values values matching specification', () => {
-					return networkCommon.getAllPeers(params.sockets).then(results => {
+					return common.getAllPeers(params.sockets).then(results => {
 						return results.map(peersList => {
 							return peersList.peers.map(peer => {
 								expect(peer.ip).to.not.empty;
@@ -145,7 +144,7 @@ module.exports = configurations => {
 				});
 
 				it('should have different peers heights propagated correctly on peers lists', () => {
-					return networkCommon.getAllPeers(params.sockets).then(results => {
+					return common.getAllPeers(params.sockets).then(results => {
 						expect(
 							results.some(peersList => {
 								return peersList.peers.some(peer => {

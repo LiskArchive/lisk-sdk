@@ -14,6 +14,7 @@
 
 'use strict';
 
+const childProcess = require('child_process');
 const utils = require('../utils');
 
 const setMonitoringSocketsConnections = (params, configurations) => {
@@ -38,6 +39,81 @@ const setMonitoringSocketsConnections = (params, configurations) => {
 	});
 };
 
+const getAllPeers = sockets => {
+	return Promise.all(
+		sockets.map(socket => {
+			if (socket.state === 'open') {
+				return socket.call('list', {});
+			}
+		})
+	);
+};
+
+const stopNode = nodeName => {
+	return childProcess.execSync(`pm2 stop ${nodeName}`);
+};
+
+const startNode = nodeName => {
+	childProcess.execSync(`pm2 start ${nodeName}`);
+};
+
+const restartNode = nodeName => {
+	return childProcess.execSync(`pm2 restart ${nodeName}`);
+};
+
+const getPeersStatus = peers => {
+	return Promise.all(
+		peers.map(peer => {
+			return utils.http.getNodeStatus(peer.httpPort, peer.ip);
+		})
+	);
+};
+
+const getNodesStatus = (sockets, cb) => {
+	getAllPeers(sockets)
+		.then(peers => {
+			const peersCount = peers.length;
+			getPeersStatus(peers)
+				.then(peerStatusList => {
+					const networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
+					const status = {
+						peersCount,
+						peerStatusList,
+						networkMaxAvgHeight,
+					};
+					cb(null, status);
+				})
+				.catch(err => {
+					cb(err, null);
+				});
+		})
+		.catch(err => {
+			cb(err, null);
+		});
+};
+
+const getMaxAndAvgHeight = peerStatusList => {
+	let maxHeight = 1;
+	let heightSum = 0;
+	const totalPeers = peerStatusList.length;
+	peerStatusList.forEach(peerStatus => {
+		if (peerStatus.height > maxHeight) {
+			maxHeight = peerStatus.height;
+		}
+		heightSum += peerStatus.height;
+	});
+
+	return {
+		maxHeight,
+		averageHeight: heightSum / totalPeers,
+	};
+};
+
 module.exports = {
+	getAllPeers,
+	stopNode,
+	startNode,
+	restartNode,
+	getNodesStatus,
 	setMonitoringSocketsConnections,
 };

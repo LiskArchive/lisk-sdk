@@ -20,7 +20,6 @@ const utils = require('../../utils');
 const blockchainReady = require('../../../common/utils/wait_for')
 	.blockchainReady;
 const common = require('../common');
-const networkCommon = require('./common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
@@ -37,7 +36,7 @@ module.exports = configurations => {
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return networkCommon.getAllPeers(params.sockets).then(mutualPeers => {
+				return common.getAllPeers(params.sockets).then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -75,7 +74,7 @@ module.exports = configurations => {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
-					networkCommon.restartNode('node_0');
+					common.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
 					}, 8000);
@@ -105,7 +104,7 @@ module.exports = configurations => {
 
 				it(`peers manager should contain ${totalPeers -
 					2} active connections`, () => {
-					return networkCommon.getAllPeers(params.sockets).then(mutualPeers => {
+					return common.getAllPeers(params.sockets).then(mutualPeers => {
 						mutualPeers.forEach(mutualPeer => {
 							if (mutualPeer) {
 								expect(mutualPeer.peers.length).to.be.eql(totalPeers - 2);
@@ -145,7 +144,7 @@ module.exports = configurations => {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
-					networkCommon.restartNode('node_0');
+					common.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
 					}, 8000);

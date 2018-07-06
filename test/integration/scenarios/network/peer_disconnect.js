@@ -18,7 +18,6 @@ const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
 const network = require('../../setup/network');
 const common = require('../common');
-const networkCommon = require('./common');
 
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
@@ -33,7 +32,7 @@ module.exports = configurations => {
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return networkCommon.getAllPeers(params.sockets).then(mutualPeers => {
+				return common.getAllPeers(params.sockets).then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -49,7 +48,7 @@ module.exports = configurations => {
 
 			describe('when a node is stopped', () => {
 				before(done => {
-					networkCommon.stopNode('node_1');
+					common.stopNode('node_1');
 					setTimeout(() => {
 						done();
 					}, 2000);
@@ -78,7 +77,7 @@ module.exports = configurations => {
 
 			describe('when a stopped node is started', () => {
 				before(done => {
-					networkCommon.startNode('node_1');
+					common.startNode('node_1');
 					setTimeout(() => {
 						done();
 					}, 2000);
@@ -110,7 +109,7 @@ module.exports = configurations => {
 				// Duplicate socket connection exists or not
 				it('stop all the nodes in the network except node_0', done => {
 					for (let i = 1; i < totalPeers; i++) {
-						networkCommon.stopNode(`node_${i}`);
+						common.stopNode(`node_${i}`);
 					}
 					setTimeout(() => {
 						console.info('Wait for nodes to be stopped');
@@ -120,7 +119,7 @@ module.exports = configurations => {
 
 				it('start all nodes that were stopped', done => {
 					for (let i = 1; i < totalPeers; i++) {
-						networkCommon.startNode(`node_${i}`);
+						common.startNode(`node_${i}`);
 					}
 					setTimeout(() => {
 						console.info('Wait for nodes to be started');
