@@ -92,7 +92,5 @@ module.exports = {
 	stopNode,
 	startNode,
 	restartNode,
-	getPeersStatus,
 	getNodesStatus,
-	getMaxAndAvgHeight,
 };
