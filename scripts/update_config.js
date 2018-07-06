@@ -78,7 +78,9 @@ console.info('\nChanges summary: ');
 observableDiff(oldConfig, unifiedNewConfig, d => {
 	switch (d.kind) {
 		case 'N':
-			console.info(`${changesMap[d.kind]}: ${d.path.join('.')} = ${d.rhs}`);
+			console.info(
+				`${changesMap[d.kind]}: ${d.path.join('.')} = ${JSON.stringify(d.rhs)}`
+			);
 			applyChange(oldConfig, unifiedNewConfig, d);
 			break;
 
@@ -91,7 +93,9 @@ observableDiff(oldConfig, unifiedNewConfig, d => {
 			break;
 
 		case 'D':
-			console.info(`${changesMap[d.kind]}: ${d.path.join('.')} = ${d.lhs}`);
+			console.info(
+				`${changesMap[d.kind]}: ${d.path.join('.')} = ${JSON.stringify(d.lhs)}`
+			);
 			applyChange(oldConfig, unifiedNewConfig, d);
 			break;
 
@@ -99,7 +103,7 @@ observableDiff(oldConfig, unifiedNewConfig, d => {
 			console.info(
 				`${changesMap[d.kind]}: ${d.path.join('.')} = ${
 					arrayItemChangesMap[d.item.kind]
-					} -> ${d.item.lhs}`
+				} -> ${d.item.lhs}`
 			);
 			// Preserve user configured value
 			// applyChange(oldConfig, unifiedNewConfig, d);
