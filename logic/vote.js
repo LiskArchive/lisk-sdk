@@ -126,7 +126,7 @@ Vote.prototype.bind = function(delegates) {
  * @returns {number} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
-	return constants.fees.vote.toString();
+	return constants.fees.vote;
 };
 
 /**

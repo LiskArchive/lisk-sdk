@@ -644,8 +644,7 @@ class Transaction {
 		if (
 			amount.lessThan(0) ||
 			amount.greaterThan(constants.totalAmount) ||
-			amount.toString().indexOf('.') >= 0 ||
-			amount.toString().indexOf('e') >= 0
+			!amount.isInteger()
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
@@ -1127,13 +1126,8 @@ class Transaction {
 			}
 		}
 
-		if (transaction.amount) {
-			transaction.amount = new Bignum(transaction.amount);
-		}
-
-		if (transaction.fee) {
-			transaction.fee = new Bignum(transaction.fee);
-		}
+		transaction.amount = new Bignum(transaction.amount || 0);
+		transaction.fee = new Bignum(transaction.fee || 0);
 
 		const report = this.scope.schema.validate(
 			transaction,

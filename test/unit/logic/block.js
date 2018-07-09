@@ -665,9 +665,7 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', () => {
-			return expect(block.calculateFee(blockData)).to.eql(
-				constants.fees.send.toString()
-			);
+			return expect(block.calculateFee(blockData)).to.eql(constants.fees.send);
 		});
 	});
 

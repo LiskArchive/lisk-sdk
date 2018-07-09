@@ -87,12 +87,10 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			const prev = new Bignum(a.amount);
-			const next = new Bignum(b.amount);
-			if (prev.lessThan(next)) {
+			if (a.amount.lessThan(b.amount)) {
 				return -1;
 			}
-			if (prev.greaterThan(next)) {
+			if (a.amount.greaterThan(b.amount)) {
 				return 1;
 			}
 			return 0;
@@ -479,7 +477,7 @@ Block.prototype.getId = function(block) {
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return constants.fees.send.toString();
+	return constants.fees.send;
 };
 
 /**

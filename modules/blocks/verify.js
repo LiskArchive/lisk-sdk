@@ -539,16 +539,16 @@ Verify.prototype.addBlockProperties = function(block) {
 		}
 	}
 	if (block.totalAmount === undefined) {
-		block.totalAmount = 0;
+		block.totalAmount = new Bignum(0);
 	}
 	if (block.totalFee === undefined) {
-		block.totalFee = 0;
+		block.totalFee = new Bignum(0);
 	}
 	if (block.payloadLength === undefined) {
 		block.payloadLength = 0;
 	}
 	if (block.reward === undefined) {
-		block.reward = 0;
+		block.reward = new Bignum(0);
 	}
 	if (block.transactions === undefined) {
 		block.transactions = [];
@@ -563,7 +563,7 @@ Verify.prototype.addBlockProperties = function(block) {
  * @returns {Object} Block object reduced
  */
 Verify.prototype.deleteBlockProperties = function(block) {
-	const reducedBlock = JSON.parse(JSON.stringify(block));
+	const reducedBlock = Object.assign({}, block);
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
 	}
@@ -571,42 +571,23 @@ Verify.prototype.deleteBlockProperties = function(block) {
 	if (typeof reducedBlock.numberOfTransactions === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
-	if (reducedBlock.totalAmount === 0) {
+	if (reducedBlock.totalAmount.equals(0)) {
 		delete reducedBlock.totalAmount;
-	} else {
-		reducedBlock.totalAmount = new Bignum(reducedBlock.totalAmount);
 	}
-	if (reducedBlock.totalFee === 0) {
+	if (reducedBlock.totalFee.equals(0)) {
 		delete reducedBlock.totalFee;
-	} else {
-		reducedBlock.totalFee = new Bignum(reducedBlock.totalFee);
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
 	}
-	if (reducedBlock.reward === 0) {
+	if (reducedBlock.reward.equals(0)) {
 		delete reducedBlock.reward;
-	} else {
-		reducedBlock.reward = new Bignum(reducedBlock.reward);
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
 		delete reducedBlock.transactions;
-	} else {
-		convertToBigNum(reducedBlock.transactions);
 	}
 	return reducedBlock;
 };
-
-const convertToBigNum = transactions =>
-	transactions.forEach(transaction => {
-		if (transaction.amount) {
-			transaction.amount = new Bignum(transaction.amount);
-		}
-
-		if (transaction.fee) {
-			transaction.fee = new Bignum(transaction.fee);
-		}
-	});
 
 /**
  * Adds block properties.

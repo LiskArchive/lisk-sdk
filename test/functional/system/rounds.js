@@ -893,20 +893,30 @@ describe('rounds', () => {
 					);
 					// Delete two blocks more
 					lastBlock = library.modules.blocks.lastBlock.get();
-					deleteLastBlockPromise().then(() => {
-						_.each(lastBlock.transactions, transaction => {
-							// Remove transaction from pool
-							transactionPool.removeUnconfirmedTransaction(transaction.id);
-						});
-						lastBlock = library.modules.blocks.lastBlock.get();
-						deleteLastBlockPromise().then(() => {
+					deleteLastBlockPromise()
+						.then(() => {
 							_.each(lastBlock.transactions, transaction => {
 								// Remove transaction from pool
 								transactionPool.removeUnconfirmedTransaction(transaction.id);
 							});
-							done();
+							lastBlock = library.modules.blocks.lastBlock.get();
+							deleteLastBlockPromise()
+								.then(() => {
+									_.each(lastBlock.transactions, transaction => {
+										// Remove transaction from pool
+										transactionPool.removeUnconfirmedTransaction(
+											transaction.id
+										);
+									});
+									done();
+								})
+								.catch(err => {
+									done(err);
+								});
+						})
+						.catch(err => {
+							done(err);
 						});
-					});
 				});
 			});
 

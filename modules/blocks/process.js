@@ -629,17 +629,9 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
  * @todo Add @returns tag
  */
 Process.prototype.onReceiveBlock = function(block) {
-	if (block.totalAmount) {
-		block.totalAmount = new Bignum(block.totalAmount);
-	}
-
-	if (block.totalFee) {
-		block.totalFee = new Bignum(block.totalFee);
-	}
-
-	if (block.reward) {
-		block.reward = new Bignum(block.reward);
-	}
+	block.totalAmount = new Bignum(block.totalAmount || 0);
+	block.totalFee = new Bignum(block.totalFee || 0);
+	block.reward = new Bignum(block.reward || 0);
 	// When client is not loaded, is syncing
 	// Do not receive new blocks as client is not ready
 	if (!__private.loaded) {

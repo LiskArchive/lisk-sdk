@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const Bignum = require('../helpers/bignum.js');
 
 const exceptions = global.exceptions;
 const constants = global.constants;
@@ -65,7 +64,7 @@ Delegate.prototype.bind = function(accounts) {
  * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {
-	return constants.fees.delegate.toString();
+	return constants.fees.delegate;
 };
 
 /**
@@ -82,9 +81,7 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	const amount = new Bignum(transaction.amount);
-
-	if (!amount.equals(0)) {
+	if (!transaction.amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

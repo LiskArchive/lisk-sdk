@@ -231,13 +231,9 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
-			if (transaction.amount) {
-				transaction.amount = new Bignum(transaction.amount);
-			}
 
-			if (transaction.fee) {
-				transaction.fee = new Bignum(transaction.fee);
-			}
+			transaction.amount = new Bignum(transaction.amount || 0);
+			transaction.fee = new Bignum(transaction.fee || 0);
 
 			modules.accounts.setAccountAndGet(
 				{ publicKey: transaction.senderPublicKey },

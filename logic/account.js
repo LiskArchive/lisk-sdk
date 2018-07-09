@@ -521,7 +521,10 @@ class Account {
 								dbTx.accounts.decrement(
 									address,
 									updatedField,
-									value.abs().toString()
+									value
+										.abs()
+										.floor()
+										.toString()
 								)
 							);
 						}
