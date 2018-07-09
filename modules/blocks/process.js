@@ -16,7 +16,7 @@
 
 const _ = require('lodash');
 const async = require('async');
-const bignum = require('../../helpers/bignum.js');
+const Bignum = require('../../helpers/bignum.js');
 const slots = require('../../helpers/slots.js');
 
 const constants = global.constants;
@@ -630,15 +630,15 @@ __private.validateBlockSlot = function(block, lastBlock, cb) {
  */
 Process.prototype.onReceiveBlock = function(block) {
 	if (block.totalAmount) {
-		block.totalAmount = new bignum(block.totalAmount);
+		block.totalAmount = new Bignum(block.totalAmount);
 	}
 
 	if (block.totalFee) {
-		block.totalFee = new bignum(block.totalFee);
+		block.totalFee = new Bignum(block.totalFee);
 	}
 
 	if (block.reward) {
-		block.reward = new bignum(block.reward);
+		block.reward = new Bignum(block.reward);
 	}
 	// When client is not loaded, is syncing
 	// Do not receive new blocks as client is not ready

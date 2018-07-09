@@ -21,7 +21,7 @@ var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 var transactionTypes = require('../../../helpers/transaction_types');
 var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum');
+var Bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
 const constants = __testContext.config.constants;
@@ -260,8 +260,8 @@ describe('transfer', () => {
 					expect(err).to.not.exist;
 					expect(accountBefore).to.exist;
 
-					var amount = new bignum(validTransaction.amount.toString());
-					var balanceBefore = new bignum(accountBefore.balance.toString());
+					var amount = new Bignum(validTransaction.amount.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transfer.apply.call(
 						transactionLogic,
@@ -277,7 +277,7 @@ describe('transfer', () => {
 									expect(err).to.not.exist;
 									expect(accountAfter).to.exist;
 
-									var balanceAfter = new bignum(
+									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
 									expect(balanceBefore.plus(amount).toString()).to.equal(
@@ -331,8 +331,8 @@ describe('transfer', () => {
 				(err, accountBefore) => {
 					expect(err).to.not.exist;
 
-					var amount = new bignum(validTransaction.amount.toString());
-					var balanceBefore = new bignum(accountBefore.balance.toString());
+					var amount = new Bignum(validTransaction.amount.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transfer.undo.call(
 						transactionLogic,
@@ -345,7 +345,7 @@ describe('transfer', () => {
 							accountModule.getAccount(
 								{ address: validTransaction.recipientId },
 								(err, accountAfter) => {
-									var balanceAfter = new bignum(
+									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
 

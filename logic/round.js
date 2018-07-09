@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 const RoundChanges = require('../helpers/round_changes.js');
 
 /**
@@ -149,7 +149,7 @@ class Round {
 			const queries = votes.map(vote =>
 				self.t.rounds.updateVotes(
 					self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
-					new bignum(vote.amount).floor()
+					new Bignum(vote.amount).floor()
 				)
 			);
 
@@ -297,8 +297,8 @@ class Round {
 			if (!self.scope.backwards) {
 				roundRewards.push({
 					timestamp: self.scope.block.timestamp,
-					fees: new bignum(changes.fees).toString(),
-					reward: new bignum(changes.rewards).toString(),
+					fees: new Bignum(changes.fees).toString(),
+					reward: new Bignum(changes.rewards).toString(),
 					round: self.scope.round,
 					publicKey: delegate,
 				});
@@ -346,7 +346,7 @@ class Round {
 
 			// Aggregate round rewards data (remaining fees) - when going forward
 			if (!self.scope.backwards) {
-				roundRewards[roundRewards.length - 1].fees = new bignum(
+				roundRewards[roundRewards.length - 1].fees = new Bignum(
 					roundRewards[roundRewards.length - 1].fees
 				)
 					.plus(feesRemaining)

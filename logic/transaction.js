@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
@@ -121,7 +121,7 @@ class Transaction {
 			temp[i] = hash[7 - i];
 		}
 
-		const id = bignum.fromBuffer(temp).toString();
+		const id = Bignum.fromBuffer(temp).toString();
 		return id;
 	}
 
@@ -193,7 +193,7 @@ class Transaction {
 
 			if (transaction.recipientId) {
 				let recipient = transaction.recipientId.slice(0, -1);
-				recipient = new bignum(recipient).toBuffer({ size: 8 });
+				recipient = new Bignum(recipient).toBuffer({ size: 8 });
 
 				for (let i = 0; i < 8; i++) {
 					byteBuffer.writeByte(recipient[i] || 0);
@@ -313,7 +313,7 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	checkBalance(amount, field, transaction, sender) {
-		const exceededBalance = new bignum(sender[field]).lessThan(amount);
+		const exceededBalance = new Bignum(sender[field]).lessThan(amount);
 		const exceeded =
 			transaction.blockId !== this.scope.genesisBlock.block.id &&
 			exceededBalance;
@@ -325,7 +325,7 @@ class Transaction {
 						'Account does not have enough LSK:',
 						sender.address,
 						'balance:',
-						new bignum(sender[field].toString() || '0').div(Math.pow(10, 8)),
+						new Bignum(sender[field].toString() || '0').div(Math.pow(10, 8)),
 					].join(' ')
 				: null,
 		};
@@ -1128,11 +1128,11 @@ class Transaction {
 		}
 
 		if (transaction.amount) {
-			transaction.amount = new bignum(transaction.amount);
+			transaction.amount = new Bignum(transaction.amount);
 		}
 
 		if (transaction.fee) {
-			transaction.fee = new bignum(transaction.fee);
+			transaction.fee = new Bignum(transaction.fee);
 		}
 
 		const report = this.scope.schema.validate(
@@ -1184,8 +1184,8 @@ class Transaction {
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
 			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: new bignum(raw.t_amount),
-			fee: new bignum(raw.t_fee),
+			amount: new Bignum(raw.t_amount),
+			fee: new Bignum(raw.t_fee),
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],

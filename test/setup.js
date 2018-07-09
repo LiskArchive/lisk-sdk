@@ -23,10 +23,9 @@ var sinonChai = require('sinon-chai');
 var chaiAsPromised = require('chai-as-promised');
 var supertest = require('supertest');
 var _ = require('lodash');
-var bignum = require('../helpers/bignum.js');
+var AppConfig = require('../helpers/config');
 const packageJson = require('../package.json');
-const devNetConfig = require('../config/devnet/config.json');
-const genesisBlock = require('../config/devnet/genesis_block.json');
+var Bignum = require('../helpers/bignum.js');
 
 coMocha(mocha);
 
@@ -37,22 +36,15 @@ chai.use(chaiAsPromised);
 
 var testContext = {};
 
-testContext.config = devNetConfig;
+testContext.config = AppConfig(packageJson, false);
 
-genesisBlock.totalAmount = new bignum(genesisBlock.totalAmount);
-genesisBlock.totalFee = new bignum(genesisBlock.totalFee);
-genesisBlock.reward = new bignum(genesisBlock.reward);
+const genesisBlock = testContext.config.genesisBlock;
+
+genesisBlock.totalAmount = new Bignum(genesisBlock.totalAmount);
+genesisBlock.totalFee = new Bignum(genesisBlock.totalFee);
+genesisBlock.reward = new Bignum(genesisBlock.reward);
 
 testContext.config.genesisBlock = genesisBlock;
-
-testContext.config.version = packageJson.version;
-testContext.config.minVersion = packageJson.lisk.minVersion;
-
-testContext.config.nethash = Buffer.from(
-	testContext.config.genesisBlock.payloadHash,
-	'hex'
-).toString('hex');
-testContext.config.root = process.cwd();
 
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};

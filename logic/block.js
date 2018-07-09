@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
 
@@ -87,8 +87,8 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			const prev = new bignum(a.amount);
-			const next = new bignum(b.amount);
+			const prev = new Bignum(a.amount);
+			const next = new Bignum(b.amount);
 			if (prev.lessThan(next)) {
 				return -1;
 			}
@@ -101,8 +101,8 @@ class Block {
 		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
 
 		const reward = __private.blockReward.calcReward(nextHeight);
-		let totalFee = new bignum(0);
-		let totalAmount = new bignum(0);
+		let totalFee = new Bignum(0);
+		let totalAmount = new Bignum(0);
 		let size = 0;
 
 		const blockTransactions = [];
@@ -275,7 +275,7 @@ __private.getAddressByPublicKey = function(publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	const address = `${bignum.fromBuffer(temp).toString()}L`;
+	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 	return address;
 };
 
@@ -404,7 +404,7 @@ Block.prototype.getBytes = function(block) {
 		byteBuffer.writeInt(block.timestamp);
 
 		if (block.previousBlock) {
-			const pb = new bignum(block.previousBlock).toBuffer({ size: '8' });
+			const pb = new Bignum(block.previousBlock).toBuffer({ size: '8' });
 
 			for (let i = 0; i < 8; i++) {
 				byteBuffer.writeByte(pb[i]);
@@ -468,7 +468,7 @@ Block.prototype.getId = function(block) {
 		temp[i] = hash[7 - i];
 	}
 
-	const id = new bignum.fromBuffer(temp).toString();
+	const id = new Bignum.fromBuffer(temp).toString();
 	return id;
 };
 
@@ -500,9 +500,9 @@ Block.prototype.dbRead = function(raw) {
 		height: parseInt(raw.b_height),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: new bignum(raw.b_totalAmount),
-		totalFee: new bignum(raw.b_totalFee),
-		reward: new bignum(raw.b_reward),
+		totalAmount: new Bignum(raw.b_totalAmount),
+		totalFee: new Bignum(raw.b_totalFee),
+		reward: new Bignum(raw.b_reward),
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,

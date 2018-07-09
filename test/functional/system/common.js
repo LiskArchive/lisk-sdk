@@ -21,12 +21,12 @@ var slots = require('../../../helpers/slots');
 var application = require('../../common/application');
 var randomUtil = require('../../common/utils/random');
 var accountFixtures = require('../../fixtures/accounts');
-var bignum = require('../../../helpers/bignum.js');
+var Bignum = require('../../../helpers/bignum.js');
 
 const convertToBigNum = transactions => {
 	return transactions.forEach(transaction => {
-		transaction.amount = new bignum(transaction.amount);
-		transaction.fee = new bignum(transaction.fee);
+		transaction.amount = new Bignum(transaction.amount);
+		transaction.fee = new Bignum(transaction.fee);
 	});
 };
 

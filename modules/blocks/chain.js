@@ -17,7 +17,7 @@
 const Promise = require('bluebird');
 const async = require('async');
 const transactionTypes = require('../../helpers/transaction_types.js');
-const bignum = require('../../helpers/bignum.js');
+const Bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
@@ -232,11 +232,11 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
 			if (transaction.amount) {
-				transaction.amount = new bignum(transaction.amount);
+				transaction.amount = new Bignum(transaction.amount);
 			}
 
 			if (transaction.fee) {
-				transaction.fee = new bignum(transaction.fee);
+				transaction.fee = new Bignum(transaction.fee);
 			}
 
 			modules.accounts.setAccountAndGet(

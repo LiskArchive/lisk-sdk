@@ -15,7 +15,7 @@
 'use strict';
 
 const async = require('async');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 
 const exceptions = global.exceptions;
 const constants = global.constants;
@@ -82,7 +82,7 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	const amount = new bignum(transaction.amount);
+	const amount = new Bignum(transaction.amount);
 
 	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');

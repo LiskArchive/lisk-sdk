@@ -18,7 +18,7 @@ var ip = require('ip');
 var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
-var bignum = require('./bignum.js');
+var Bignum = require('./bignum.js');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -283,7 +283,7 @@ var liskFormats = {
 	 * @returns {boolean}
 	 */
 	amount(value) {
-		if (value instanceof bignum) {
+		if (value instanceof Bignum) {
 			return (
 				value.greaterThanOrEqualTo(0) &&
 				value.lessThanOrEqualTo(global.constants.totalAmount)
@@ -298,7 +298,7 @@ var liskFormats = {
 	 * @returns {boolean}
 	 */
 	minAmount(value) {
-		if (value instanceof bignum) {
+		if (value instanceof Bignum) {
 			return value.greaterThanOrEqualTo(0);
 		}
 		return false;

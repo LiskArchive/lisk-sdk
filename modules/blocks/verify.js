@@ -19,7 +19,7 @@ const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
-const bignum = require('../../helpers/bignum.js');
+const Bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
@@ -304,8 +304,8 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
-	let totalAmount = new bignum(0);
-	let totalFee = new bignum(0);
+	let totalAmount = new Bignum(0);
+	let totalFee = new Bignum(0);
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
@@ -574,12 +574,12 @@ Verify.prototype.deleteBlockProperties = function(block) {
 	if (reducedBlock.totalAmount === 0) {
 		delete reducedBlock.totalAmount;
 	} else {
-		reducedBlock.totalAmount = new bignum(reducedBlock.totalAmount);
+		reducedBlock.totalAmount = new Bignum(reducedBlock.totalAmount);
 	}
 	if (reducedBlock.totalFee === 0) {
 		delete reducedBlock.totalFee;
 	} else {
-		reducedBlock.totalFee = new bignum(reducedBlock.totalFee);
+		reducedBlock.totalFee = new Bignum(reducedBlock.totalFee);
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
@@ -587,7 +587,7 @@ Verify.prototype.deleteBlockProperties = function(block) {
 	if (reducedBlock.reward === 0) {
 		delete reducedBlock.reward;
 	} else {
-		reducedBlock.reward = new bignum(reducedBlock.reward);
+		reducedBlock.reward = new Bignum(reducedBlock.reward);
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {
 		delete reducedBlock.transactions;
@@ -600,11 +600,11 @@ Verify.prototype.deleteBlockProperties = function(block) {
 const convertToBigNum = transactions =>
 	transactions.forEach(transaction => {
 		if (transaction.amount) {
-			transaction.amount = new bignum(transaction.amount);
+			transaction.amount = new Bignum(transaction.amount);
 		}
 
 		if (transaction.fee) {
-			transaction.fee = new bignum(transaction.fee);
+			transaction.fee = new Bignum(transaction.fee);
 		}
 	});
 

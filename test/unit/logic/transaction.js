@@ -20,7 +20,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum');
+var Bignum = require('../../../helpers/bignum');
 var transactionTypes = require('../../../helpers/transaction_types');
 var slots = require('../../../helpers/slots');
 var Vote = require('../../../logic/vote');
@@ -56,8 +56,8 @@ var sender = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	secondPublicKey: null,
-	balance: new bignum('9850458911801508'),
-	u_balance: new bignum('9850458911801508'),
+	balance: new Bignum('9850458911801508'),
+	u_balance: new Bignum('9850458911801508'),
 	vote: 0,
 	multisignatures: null,
 	multimin: 0,
@@ -66,17 +66,17 @@ var sender = {
 	nameexist: 0,
 	producedBlocks: 0,
 	missedBlocks: 0,
-	fees: new bignum('0'),
-	rewards: new bignum('0'),
+	fees: new Bignum('0'),
+	rewards: new Bignum('0'),
 };
 
 var transactionData = {
 	type: 0,
-	amount: new bignum('8067474861277'),
+	amount: new Bignum('8067474861277'),
 	sender,
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
-	fee: new bignum('10000000'),
+	fee: new Bignum('10000000'),
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	passphrase: senderPassphrase,
 };
@@ -91,8 +91,8 @@ var validTransaction = {
 		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	senderId: '16313739661670634666L',
 	recipientId: '5649948960790668770L',
-	amount: new bignum('8067474861277'),
-	fee: new bignum('10000000'),
+	amount: new Bignum('8067474861277'),
+	fee: new Bignum('10000000'),
 	signature:
 		'7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
 	signSignature: null,
@@ -112,8 +112,8 @@ var rawTransaction = {
 	m_recipientPublicKey: null,
 	t_senderId: '16313739661670634666L',
 	t_recipientId: '5649948960790668770L',
-	t_amount: new bignum('8067474861277'),
-	t_fee: new bignum('10000000'),
+	t_amount: new Bignum('8067474861277'),
+	t_fee: new Bignum('10000000'),
 	t_signature:
 		'7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
 	tf_data: '123',
@@ -122,8 +122,8 @@ var rawTransaction = {
 
 var genesisTransaction = {
 	type: 0,
-	amount: new bignum('10000000000000000'),
-	fee: new bignum('0'),
+	amount: new Bignum('10000000000000000'),
+	fee: new Bignum('0'),
 	timestamp: 0,
 	recipientId: '16313739661670634666L',
 	senderId: '1085993630748340485L',
@@ -137,7 +137,7 @@ var genesisTransaction = {
 
 var unconfirmedTransaction = {
 	type: 0,
-	amount: new bignum('8067474861277'),
+	amount: new Bignum('8067474861277'),
 	senderPublicKey:
 		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	senderId: '16313739661670634666L',
@@ -148,7 +148,7 @@ var unconfirmedTransaction = {
 	recipientId: '5649948960790668770L',
 	signature:
 		'24c65ac5562a8ae252aa308926b60342829e82f285e704814d0d3c3954078c946d113aa0bd5388b2c863874e63f71e8e0a284a03274e66c719e69d443d91f309',
-	fee: new bignum('10000000'),
+	fee: new Bignum('10000000'),
 	id: '16580139363949197645',
 };
 
@@ -471,8 +471,8 @@ describe('transaction', () => {
 				recipientId: transactionData.recipientId,
 			};
 			var transaction = lisk.transaction.transfer(transferObject);
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(transaction.fee);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.process(transaction, sender, (err, transaction) => {
 				cb(err, transaction);
 			});
@@ -636,8 +636,8 @@ describe('transaction', () => {
 			transaction.signatures = [
 				transactionLogic.multisign(validKeypair, transaction),
 			];
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(transaction.fee);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 
 			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.not.exist;
@@ -683,8 +683,8 @@ describe('transaction', () => {
 
 		it('should throw return error transaction fee is incorrect', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(-100);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(-100);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.include('Invalid transaction fee');
@@ -697,8 +697,8 @@ describe('transaction', () => {
 			transaction.asset = { data: '123' };
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(transaction.fee);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.not.exist;
@@ -742,8 +742,8 @@ describe('transaction', () => {
 			transaction.timestamp = -2147483648 - 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(transaction.fee);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.eql(
 					'Invalid transaction timestamp. Timestamp is not in the int32 range'
@@ -757,8 +757,8 @@ describe('transaction', () => {
 			transaction.timestamp = 2147483647 + 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(transaction.fee);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.eql(
 					'Invalid transaction timestamp. Timestamp is not in the int32 range'
@@ -773,8 +773,8 @@ describe('transaction', () => {
 			delete transaction.signature;
 
 			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
-			transaction.amount = new bignum(transaction.amount);
-			transaction.fee = new bignum(transaction.fee);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
 				expect(err).to.eql(
@@ -938,7 +938,7 @@ describe('transaction', () => {
 
 		it('should return error on if balance is low', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = new bignum('9850458911801908');
+			transaction.amount = new Bignum('9850458911801908');
 
 			transactionLogic.apply(transaction, dummyBlock, sender, err => {
 				expect(err).to.include('Account does not have enough ');
@@ -950,17 +950,17 @@ describe('transaction', () => {
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
 				(err, accountBefore) => {
-					var amount = new bignum(validTransaction.amount.toString()).plus(
+					var amount = new Bignum(validTransaction.amount.toString()).plus(
 						validTransaction.fee.toString()
 					);
-					var balanceBefore = new bignum(accountBefore.balance.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.apply(validTransaction, dummyBlock, sender, () => {
 						accountModule.getAccount(
 							{ publicKey: validTransaction.senderPublicKey },
 							(err, accountAfter) => {
 								expect(err).to.not.exist;
-								var balanceAfter = new bignum(accountAfter.balance.toString());
+								var balanceAfter = new Bignum(accountAfter.balance.toString());
 
 								expect(err).to.not.exist;
 								expect(balanceAfter.plus(amount).toString()).to.equal(
@@ -991,7 +991,7 @@ describe('transaction', () => {
 
 		it('should not update sender balance when transaction is invalid', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			var amount = new bignum(transaction.amount.toString()).plus(
+			var amount = new Bignum(transaction.amount.toString()).plus(
 				transaction.fee.toString()
 			);
 			delete transaction.recipientId;
@@ -999,14 +999,14 @@ describe('transaction', () => {
 			accountModule.getAccount(
 				{ publicKey: transaction.senderPublicKey },
 				(err, accountBefore) => {
-					var balanceBefore = new bignum(accountBefore.balance.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undo(transaction, dummyBlock, sender, () => {
 						accountModule.getAccount(
 							{ publicKey: transaction.senderPublicKey },
 							(err, accountAfter) => {
 								expect(err).to.not.exist;
-								var balanceAfter = new bignum(accountAfter.balance.toString());
+								var balanceAfter = new Bignum(accountAfter.balance.toString());
 
 								expect(
 									balanceBefore.plus(amount.mul(2)).toString()
@@ -1026,14 +1026,14 @@ describe('transaction', () => {
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
 				(err, accountBefore) => {
-					var balanceBefore = new bignum(accountBefore.balance.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undo(validTransaction, dummyBlock, sender, () => {
 						accountModule.getAccount(
 							{ publicKey: validTransaction.senderPublicKey },
 							(err, accountAfter) => {
 								expect(err).to.not.exist;
-								var balanceAfter = new bignum(accountAfter.balance.toString());
+								var balanceAfter = new Bignum(accountAfter.balance.toString());
 
 								expect(balanceAfter.equals(balanceBefore));
 								applyTransaction(validTransaction, sender, done);
@@ -1063,7 +1063,7 @@ describe('transaction', () => {
 
 		it('should return error on if balance is low', done => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = new bignum('9850458911801908');
+			transaction.amount = new Bignum('9850458911801908');
 
 			transactionLogic.applyUnconfirmed(transaction, sender, err => {
 				expect(err).to.include('Account does not have enough ');

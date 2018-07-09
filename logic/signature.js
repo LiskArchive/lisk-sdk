@@ -15,7 +15,7 @@
 'use strict';
 
 const ByteBuffer = require('bytebuffer');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 
 const constants = global.constants;
 let modules;
@@ -79,7 +79,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	const amount = new bignum(transaction.amount);
+	const amount = new Bignum(transaction.amount);
 	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}

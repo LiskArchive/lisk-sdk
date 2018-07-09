@@ -312,7 +312,7 @@ class BlocksRepository {
 				'hex'
 			);
 			saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
-			saveBlock.reward = block.reward.toString() || '0';
+			saveBlock.reward = block.reward.toString();
 			saveBlock.totalAmount = block.totalAmount.toString();
 			saveBlock.totalFee = block.totalFee.toString();
 			return this.pgp.helpers.insert(saveBlock, cs.insert);

@@ -20,7 +20,7 @@ var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
 var phases = require('../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
-var bignum = require('../../../../helpers/bignum.js');
+var Bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
@@ -260,7 +260,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 							.to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
-						var amount = new bignum(balance).plus('1').toString();
+						var amount = new Bignum(balance).plus('1').toString();
 						transaction = lisk.transfer.createInTransfer(
 							randomUtil.guestbookDapp.id,
 							amount,

@@ -19,7 +19,7 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const randomUtil = require('../../../../common/utils/random');
-const bignum = require('../../../../../helpers/bignum.js');
+const Bignum = require('../../../../../helpers/bignum.js');
 
 const constants = global.constants;
 
@@ -70,8 +70,8 @@ describe('delegate', () => {
 					passphrase: delegateAccount.passphrase,
 					username,
 				});
-				delegateTransaction.amount = new bignum(delegateTransaction.amount);
-				delegateTransaction.fee = new bignum(delegateTransaction.fee);
+				delegateTransaction.amount = new Bignum(delegateTransaction.amount);
+				delegateTransaction.fee = new Bignum(delegateTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					delegateTransaction,
@@ -136,8 +136,8 @@ describe('delegate', () => {
 						username: username2,
 					});
 					delegateTransaction2.senderId = delegateAccount.address;
-					delegateTransaction2.amount = new bignum(delegateTransaction2.amount);
-					delegateTransaction2.fee = new bignum(delegateTransaction2.fee);
+					delegateTransaction2.amount = new Bignum(delegateTransaction2.amount);
+					delegateTransaction2.fee = new Bignum(delegateTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[delegateTransaction2],

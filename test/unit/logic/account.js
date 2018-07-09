@@ -17,7 +17,7 @@
 const rewire = require('rewire');
 const application = require('../../common/application.js');
 const modulesLoader = require('../../common/modules_loader');
-const bignum = require('../../../helpers/bignum.js');
+const Bignum = require('../../../helpers/bignum.js');
 
 const Account = rewire('../../../logic/account.js');
 
@@ -33,8 +33,8 @@ const validAccount = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	secondPublicKey: null,
-	balance: new bignum('0'),
-	u_balance: new bignum('0'),
+	balance: new Bignum('0'),
+	u_balance: new Bignum('0'),
 	rate: 0,
 	delegates: null,
 	u_delegates: null,
@@ -46,9 +46,9 @@ const validAccount = {
 	u_multilifetime: 1,
 	nameexist: 0,
 	u_nameexist: 0,
-	fees: new bignum('0'),
+	fees: new Bignum('0'),
 	rank: 70,
-	rewards: new bignum('0'),
+	rewards: new Bignum('0'),
 	vote: 10000000000000000,
 	producedBlocks: 0,
 	missedBlocks: 0,

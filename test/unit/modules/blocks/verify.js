@@ -16,7 +16,7 @@
 'use strict';
 
 var rewire = require('rewire');
-var bignum = require('../../../../helpers/bignum.js');
+var Bignum = require('../../../../helpers/bignum.js');
 
 var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
 
@@ -492,7 +492,7 @@ describe('blocks/verify', () => {
 
 		describe('when __private.blockReward.calcReward succeeds', () => {
 			beforeEach(() => {
-				return __private.blockReward.calcReward.returns(new bignum(5));
+				return __private.blockReward.calcReward.returns(new Bignum(5));
 			});
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {

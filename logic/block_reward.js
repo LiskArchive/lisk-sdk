@@ -14,7 +14,7 @@
 
 'use strict';
 
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 
 const constants = global.constants;
 
@@ -72,9 +72,9 @@ class BlockReward {
 		height = __private.parseHeight(height);
 
 		if (height < this.rewardOffset) {
-			return new bignum(0);
+			return new Bignum(0);
 		}
-		return new bignum(this.milestones[this.calcMilestone(height)]);
+		return new Bignum(this.milestones[this.calcMilestone(height)]);
 	}
 
 	/**
