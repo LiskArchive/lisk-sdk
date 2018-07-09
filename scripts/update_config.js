@@ -51,6 +51,13 @@ console.info('Starting configuration migration...');
 // Old config in 1.0.x will be single unified config file.
 const oldConfig = loadJSONFile(oldConfigPath);
 
+// Had dedicated ssl config only for API
+// https://github.com/LiskHQ/lisk/issues/2154
+if (oldConfig.ssl) {
+	oldConfig.api.ssl = merge({}, oldConfig.ssl);
+	delete oldConfig.ssl;
+}
+
 // New config in 1.1.x will be partial config other than default/config.json
 const newConfig = loadJSONFile(newConfigPath);
 
