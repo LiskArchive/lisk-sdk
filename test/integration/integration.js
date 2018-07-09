@@ -22,7 +22,6 @@ const totalPeers = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
 const broadcasting = process.env.BROADCASTING !== 'false';
-const syncing = process.env.SYNCING !== 'false';
 
 describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const wsPorts = [];
@@ -31,7 +30,6 @@ describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS po
 	});
 	const configurations = setup.config.generateLiskConfigs(
 		broadcasting,
-		syncing,
 		totalPeers
 	);
 	let testFailedError;

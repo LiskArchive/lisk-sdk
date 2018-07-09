@@ -20,7 +20,7 @@ const devConfig = require('../../../config/devnet/config.json');
 const network = require('./network');
 
 module.exports = {
-	generateLiskConfigs(broadcasting = true, syncing = true, totalPeers = 10) {
+	generateLiskConfigs(broadcasting = true, totalPeers = 10) {
 		utils.http.setVersion('1.0.0');
 
 		// Generate config objects
@@ -34,18 +34,6 @@ module.exports = {
 				devConfigCopy.broadcasts = {};
 			}
 			devConfigCopy.broadcasts.active = broadcasting;
-			if (!syncing && broadcasting) {
-				// When all the nodes in network is broadcast enabled
-				// and syncing disabled then all the nodes in the network
-				// doesn't receive the block/transactions with 2 relays
-				// So we need to increase the relay limit to ensure all
-				// the peers in network receives block/transactions
-				devConfigCopy.broadcasts.relayLimit = 4;
-			}
-			if (!devConfigCopy.syncing) {
-				devConfigCopy.syncing = {};
-			}
-			devConfigCopy.syncing.active = syncing;
 			return devConfigCopy;
 		});
 

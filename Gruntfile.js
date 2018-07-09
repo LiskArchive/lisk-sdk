@@ -58,8 +58,6 @@ module.exports = function(grunt) {
 							slowTag = '--grep @slow';
 						} else if (tag === 'unstable') {
 							slowTag = '--grep @unstable';
-						} else if (tag === 'syncing') {
-							slowTag = '--grep @syncing';
 						} else {
 							grunt.fail.fatal(
 								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
