@@ -20,7 +20,7 @@ const network = require('../../setup/network');
 const common = require('../common');
 
 module.exports = function(configurations, networkFeatures) {
-	describe('Network: peer Disconnect', () => {
+	describe('@network : peer Disconnect', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 

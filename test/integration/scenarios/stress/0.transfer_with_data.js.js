@@ -28,7 +28,7 @@ const broadcasting = process.env.BROADCASTING !== 'false';
 const constants = __testContext.config.constants;
 
 module.exports = function(configurations) {
-	describe('Stress: type 0 transactions with data @slow', () => {
+	describe('@stress : type 0 transactions with data @slow', () => {
 		let transactions = [];
 		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
 		const waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain

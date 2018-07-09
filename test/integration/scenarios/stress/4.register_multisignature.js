@@ -32,7 +32,7 @@ const broadcasting = process.env.BROADCASTING !== 'false';
 const constants = __testContext.config.constants;
 
 module.exports = function(configurations) {
-	describe('Stress: type 4 transactions @slow', () => {
+	describe('@stress : type 4 transactions @slow', () => {
 		let transactions = [];
 		const accounts = [];
 		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;

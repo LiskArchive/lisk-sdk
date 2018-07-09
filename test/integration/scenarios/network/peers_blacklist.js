@@ -26,7 +26,7 @@ module.exports = function(configurations, networkFeatures) {
 	const EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING =
 		(networkFeatures.TOTAL_PEERS - 2) * (networkFeatures.TOTAL_PEERS - 1) * 2;
 
-	describe('Network: peer Blacklisted', () => {
+	describe('@network : peer Blacklisted', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 

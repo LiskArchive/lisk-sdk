@@ -31,7 +31,7 @@ const common = require('../../../common');
 const constants = __testContext.config.constants;
 
 module.exports = function(configurations) {
-	describe('Propagation: multisig transactions', () => {
+	describe('@propagation : multisig transactions', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
 

@@ -23,7 +23,7 @@ pipeline {
 		}
 		stage('Run integration tests with syncing only') {
 			steps {
-				sh 'TOTAL_PEERS=2 BROADCASTING=false npm test -- mocha:syncing:integration'
+				sh 'TOTAL_PEERS=2 BROADCASTING=false npm test -- mocha:stress:integration'
 			}
 		}
 		stage('Run integration tests with syncing and broadcasting') {
