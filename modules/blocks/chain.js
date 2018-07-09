@@ -280,7 +280,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransaction = function(block, transaction, sender, cb) {
-	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'apply' can be ok
+	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'applyConfirmed' can be ok
 	modules.transactions.applyUnconfirmed(transaction, sender, err => {
 		if (err) {
 			return setImmediate(cb, {
@@ -290,10 +290,10 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			});
 		}
 
-		modules.transactions.apply(transaction, block, sender, err => {
+		modules.transactions.applyConfirmed(transaction, block, sender, err => {
 			if (err) {
 				return setImmediate(cb, {
-					message: `Failed to apply transaction: ${transaction.id}`,
+					message: `Failed to applyConfirmed transaction: ${transaction.id}`,
 					transaction,
 					block,
 				});
@@ -373,7 +373,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
  * @param {Object} block - Block object
@@ -389,7 +389,7 @@ __private.applyConfirmedStep = function(block, tx) {
 					{ publicKey: transaction.senderPublicKey },
 					(accountErr, sender) => {
 						if (accountErr) {
-							const err = `Failed to get account to apply transaction: ${
+							const err = `Failed to get account to applyConfirmed transaction: ${
 								transaction.id
 							} - ${accountErr}`;
 							library.logger.error(err);
@@ -397,14 +397,14 @@ __private.applyConfirmedStep = function(block, tx) {
 							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
-						modules.transactions.apply(
+						modules.transactions.applyConfirmed(
 							transaction,
 							block,
 							sender,
 							err => {
 								if (err) {
 									// Fatal error, memory tables will be inconsistent
-									err = `Failed to apply transaction: ${
+									err = `Failed to applyConfirmed transaction: ${
 										transaction.id
 									} - ${err}`;
 									library.logger.error(err);
@@ -424,7 +424,7 @@ __private.applyConfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
  * @param {Object} block - Block object

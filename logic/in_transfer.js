@@ -160,7 +160,13 @@ InTransfer.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-InTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
+InTransfer.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {

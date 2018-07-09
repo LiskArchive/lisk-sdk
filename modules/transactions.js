@@ -590,9 +590,15 @@ Transactions.prototype.undoUnconfirmedList = function(cb, tx) {
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Transactions.prototype.apply = function(transaction, block, sender, cb, tx) {
+Transactions.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	library.logger.debug('Applying confirmed transaction', transaction.id);
-	library.logic.transaction.apply(transaction, block, sender, cb, tx);
+	library.logic.transaction.applyConfirmed(transaction, block, sender, cb, tx);
 };
 
 /**

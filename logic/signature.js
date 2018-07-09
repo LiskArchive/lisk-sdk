@@ -150,7 +150,13 @@ Signature.prototype.getBytes = function(transaction) {
  * @param {function} cb - Callback function
  * @returns {SetImmediate} error
  */
-Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
+Signature.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,

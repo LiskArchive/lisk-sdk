@@ -330,7 +330,7 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
+Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 	async.series(
 		[
 			function(seriesCb) {

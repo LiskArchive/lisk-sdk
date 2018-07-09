@@ -199,7 +199,13 @@ OutTransfer.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-OutTransfer.prototype.apply = function(transaction, block, sender, cb, tx) {
+OutTransfer.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	__private.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = false;

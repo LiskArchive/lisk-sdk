@@ -333,7 +333,13 @@ Multisignature.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
+Multisignature.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
 	library.logic.account.merge(

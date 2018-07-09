@@ -278,7 +278,13 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
  * @todo Delete unused block parameter
  * @todo Add description for the params
  */
-Delegate.prototype.apply = function(transaction, block, sender, cb, tx) {
+Delegate.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	const data = {
 		publicKey: transaction.senderPublicKey,
 		address: sender.address,
