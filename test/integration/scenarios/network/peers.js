@@ -73,7 +73,7 @@ module.exports = function(configurations) {
 
 		describe('forging', () => {
 			before(done => {
-				// Expect some blocks to forge after 30 seconds
+				// Expect some blocks to be forged after 30 seconds
 				const timesToCheckNetworkStatus = 30;
 				let timesNetworkStatusChecked = 0;
 				const checkNetworkStatusInterval = 1000;

@@ -18,19 +18,21 @@ const find = require('find');
 const utils = require('./utils');
 const setup = require('./setup');
 
-const totalPeers = Number.parseInt(process.env.TOTAL_PEERS) || 10;
-// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
-const broadcasting = process.env.BROADCASTING !== 'false';
+const BROADCASTING = process.env.BROADCASTING !== 'false';
+const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
+const networkFeatures = {
+	TOTAL_PEERS,
+	EXPECTED_OUTOGING_CONNECTIONS: (TOTAL_PEERS - 1) * TOTAL_PEERS * 2, // Full mesh network with 2 connection for bi-directional communication
+};
 
-describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
+describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const wsPorts = [];
-	_.range(totalPeers).map(index => {
+	_.range(TOTAL_PEERS).map(index => {
 		wsPorts.push(5000 + index);
 	});
 	const configurations = setup.config.generateLiskConfigs(
-		broadcasting,
-		totalPeers
+		BROADCASTING,
+		TOTAL_PEERS
 	);
 	let testFailedError;
 
@@ -52,13 +54,13 @@ describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS po
 		});
 	});
 
-	it(`there should exactly ${totalPeers} listening connections for 500[0-9] ports`, done => {
+	it(`there should exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
 		utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
 			if (err) {
 				return done(err);
 			}
 
-			if (numOfConnections === totalPeers) {
+			if (numOfConnections === TOTAL_PEERS) {
 				done();
 			} else {
 				done(
@@ -68,13 +70,15 @@ describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS po
 		});
 	});
 
-	it(`there should maximum ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
+	it(`there should maximum ${
+		networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+	} established connections from 500[0-9] ports`, done => {
 		utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
 			if (err) {
 				return done(err);
 			}
 			// It should be less than 180, as nodes are just started and establishing the connections
-			if (numOfConnections <= expectedOutgoingConnections) {
+			if (numOfConnections <= networkFeatures.EXPECTED_OUTOGING_CONNECTIONS) {
 				done();
 			} else {
 				done(
@@ -91,7 +95,7 @@ describe(`Start a network of ${totalPeers} nodes with address "127.0.0.1", WS po
 			const currentFilePath = filepath.replace('test/integration', '.');
 			// eslint-disable-next-line import/no-dynamic-require
 			const test = require(currentFilePath);
-			test(configurations);
+			test(configurations, networkFeatures);
 		});
 	});
 });

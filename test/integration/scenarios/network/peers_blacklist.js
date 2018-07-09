@@ -21,14 +21,11 @@ const blockchainReady = require('../../../common/utils/wait_for')
 	.blockchainReady;
 const common = require('../common');
 
-const totalPeers = 10;
-// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
-// Full mesh network connections without the blacklisted peer
-const expectedConnectionsAfterBlacklisting =
-	(totalPeers - 2) * (totalPeers - 1) * 2;
+module.exports = function(configurations, networkFeatures) {
+	// Full mesh network with 2 connection for bi-directional communication without the blacklisted peer
+	const EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING =
+		(networkFeatures.TOTAL_PEERS - 2) * (networkFeatures.TOTAL_PEERS - 1) * 2;
 
-module.exports = function(configurations) {
 	describe('Network: peer Blacklisted', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
@@ -49,7 +46,9 @@ module.exports = function(configurations) {
 				});
 			});
 
-			it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
+			it(`there should be ${
+				networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+			} established connections from 500[0-9] ports`, done => {
 				utils.getEstablishedConnections(
 					Array.from(wsPorts),
 					(err, numOfConnections) => {
@@ -57,7 +56,10 @@ module.exports = function(configurations) {
 							return done(err);
 						}
 
-						if (numOfConnections - 20 <= expectedOutgoingConnections) {
+						if (
+							numOfConnections - 20 <=
+							networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+						) {
 							done();
 						} else {
 							done(
@@ -88,7 +90,7 @@ module.exports = function(configurations) {
 					}, 8000);
 				});
 
-				it(`there should be ${expectedConnectionsAfterBlacklisting} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, numOfConnections) => {
@@ -98,7 +100,7 @@ module.exports = function(configurations) {
 
 							if (
 								numOfConnections - 20 <=
-								expectedConnectionsAfterBlacklisting
+								EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING
 							) {
 								done();
 							} else {
@@ -110,12 +112,14 @@ module.exports = function(configurations) {
 					);
 				});
 
-				it(`peers manager should contain ${totalPeers -
+				it(`peers manager should contain ${networkFeatures.TOTAL_PEERS -
 					2} active connections`, () => {
 					return common.getAllPeers(params.sockets).then(mutualPeers => {
 						mutualPeers.forEach(mutualPeer => {
 							if (mutualPeer) {
-								expect(mutualPeer.peers.length).to.be.eql(totalPeers - 2);
+								expect(mutualPeer.peers.length).to.be.eql(
+									networkFeatures.TOTAL_PEERS - 2
+								);
 								mutualPeer.peers.map(peer => {
 									expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 								});
@@ -159,7 +163,9 @@ module.exports = function(configurations) {
 					}, 8000);
 				});
 
-				it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${
+					networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+				} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, numOfConnections) => {
@@ -167,7 +173,10 @@ module.exports = function(configurations) {
 								return done(err);
 							}
 
-							if (numOfConnections - 20 <= expectedOutgoingConnections) {
+							if (
+								numOfConnections - 20 <=
+								networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+							) {
 								done();
 							} else {
 								done(

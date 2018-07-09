@@ -20,11 +20,11 @@ const devConfig = require('../../../config/devnet/config.json');
 const network = require('./network');
 
 module.exports = {
-	generateLiskConfigs(broadcasting = true, totalPeers = 10) {
+	generateLiskConfigs(broadcasting = true, TOTAL_PEERS = 10) {
 		utils.http.setVersion('1.0.0');
 
 		// Generate config objects
-		const configurations = _.range(totalPeers).map(index => {
+		const configurations = _.range(TOTAL_PEERS).map(index => {
 			const devConfigCopy = _.cloneDeep(devConfig);
 			devConfigCopy.ip = '127.0.0.1';
 			devConfigCopy.wsPort = 5000 + index;
