@@ -402,6 +402,8 @@ __private.getPooledTransactions = function(method, filters, cb) {
 		sortAttribute.sortField === 'fee' ||
 		sortAttribute.sortField === 'amount'
 	) {
+		// amount and fee are bignumber here, so in order to sort
+		// we need to use bignumber functions here specific to amount, fee
 		const sortFactor =
 			sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
 		toSend = toSend.sort((a, b) => {

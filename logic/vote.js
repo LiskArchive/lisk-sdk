@@ -18,6 +18,7 @@ const _ = require('lodash');
 const async = require('async');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 
 const exceptions = global.exceptions;
 const constants = global.constants;
@@ -126,7 +127,7 @@ Vote.prototype.bind = function(delegates) {
  * @returns {number} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
-	return constants.fees.vote;
+	return new Bignum(constants.fees.vote);
 };
 
 /**

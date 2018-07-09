@@ -24,6 +24,7 @@ var sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');
 var errorCodes = require('../../../../helpers/api_codes');
+var Bignum = require('../../../../helpers/bignum.js');
 
 const constants = global.constants;
 
@@ -90,7 +91,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('using zero amount should fail', () => {
 			transaction = lisk.transaction.transfer({
-				amount: 0,
+				amount: new Bignum(0),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -106,7 +107,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('when sender has no funds should fail', () => {
 			transaction = lisk.transaction.transfer({
-				amount: 1,
+				amount: new Bignum(1),
 				passphrase: account.passphrase,
 				recipientId: '1L',
 			});
@@ -124,7 +125,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 
 		it('using entire balance should fail', () => {
 			transaction = lisk.transaction.transfer({
-				amount: Math.floor(accountFixtures.genesis.balance) + 10000,
+				amount: accountFixtures.genesis.balance,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -133,7 +134,9 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				transaction,
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
-				expect(res.body.message).to.match(/^Invalid transaction body -/);
+				expect(res.body.message).to.match(
+					/^Account does not have enough LSK: [0-9]+L balance: /
+				);
 				badTransactions.push(transaction);
 			});
 		});
@@ -141,7 +144,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 		it('from the genesis account should fail', () => {
 			var signedTransactionFromGenesis = {
 				type: 0,
-				amount: '1000',
+				amount: new Bignum('1000'),
 				senderPublicKey:
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
 				requesterPublicKey: null,
@@ -151,7 +154,7 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 				signature:
 					'f56a09b2f448f6371ffbe54fd9ac87b1be29fe29f27f001479e044a65e7e42fb1fa48dce6227282ad2a11145691421c4eea5d33ac7f83c6a42e1dcaa44572101',
 				id: '15307587316657110485',
-				fee: (0.1 * constants.normalizer).toString(),
+				fee: new Bignum(constants.normalizer).mul(0.1),
 			};
 
 			return sendTransactionPromise(

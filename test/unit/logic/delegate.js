@@ -159,8 +159,8 @@ describe('delegate', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee for delegate transaction', () => {
-			return expect(delegate.calculateFee(transaction)).to.equal(
-				constants.fees.delegate.toString()
+			return expect(
+				delegate.calculateFee(transaction).equals(constants.fees.delegate)
 			);
 		});
 	});

@@ -111,8 +111,8 @@ describe('dapp', () => {
 
 		describe('calculateFee', () => {
 			it('should return constants.fees.dappRegistration', () => {
-				return expect(dapp.calculateFee(transaction)).to.equal(
-					constants.fees.dappRegistration.toString()
+				return expect(
+					dapp.calculateFee(transaction).equals(constants.fees.dappRegistration)
 				);
 			});
 		});

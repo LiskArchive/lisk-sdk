@@ -144,8 +144,10 @@ describe('transfer', () => {
 	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', () => {
 			return expect(
-				transfer.calculateFee.call(transactionLogic, validTransaction)
-			).to.equal(constants.fees.send.toString());
+				transfer.calculateFee
+					.call(transactionLogic, validTransaction)
+					.equals(constants.fees.send)
+			);
 		});
 
 		it('should return the same fee for a transfer with additional data', () => {
@@ -155,8 +157,10 @@ describe('transfer', () => {
 			};
 
 			return expect(
-				transfer.calculateFee.call(transactionLogic, transaction)
-			).to.equal(constants.fees.send.toString());
+				transfer.calculateFee
+					.call(transactionLogic, transaction)
+					.equals(constants.fees.send)
+			);
 		});
 	});
 

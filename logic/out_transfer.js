@@ -67,7 +67,7 @@ OutTransfer.prototype.bind = function(accounts, blocks) {
  * @returns {number} Transaction fee
  */
 OutTransfer.prototype.calculateFee = function() {
-	return constants.fees.send.toString();
+	return new Bignum(constants.fees.send);
 };
 
 /**

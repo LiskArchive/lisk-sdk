@@ -621,13 +621,12 @@ class Transaction {
 		}
 
 		// Calculate fee
-		const fee =
-			__private.types[transaction.type].calculateFee.call(
-				this,
-				transaction,
-				sender
-			) || false;
-		if (!fee || !transaction.fee.equals(fee)) {
+		const fee = __private.types[transaction.type].calculateFee.call(
+			this,
+			transaction,
+			sender
+		);
+		if (!transaction.fee.equals(fee)) {
 			err = 'Invalid transaction fee';
 
 			if (exceptions.transactionFee.indexOf(transaction.id) > -1) {

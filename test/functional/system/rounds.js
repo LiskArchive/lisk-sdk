@@ -738,13 +738,9 @@ describe('rounds', () => {
 
 					lastBlock = library.modules.blocks.lastBlock.get();
 					// Delete one block more
-					return deleteLastBlockPromise()
-						.then(() => {
-							done();
-						})
-						.catch(err => {
-							done(err);
-						});
+					return deleteLastBlockPromise().then(() => {
+						done();
+					});
 				});
 			});
 

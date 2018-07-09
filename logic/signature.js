@@ -62,7 +62,7 @@ Signature.prototype.bind = function(accounts) {
  * @returns {number} Transaction fee
  */
 Signature.prototype.calculateFee = function() {
-	return constants.fees.secondSignature.toString();
+	return new Bignum(constants.fees.secondSignature);
 };
 
 /**
