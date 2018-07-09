@@ -18,7 +18,6 @@ pipeline {
 			steps {
 				sh '''
 				sudo service postgresql restart
-				cp config/devnet/config.json config/devnet/genesis_block.json .
 				'''
 			}
 		}
