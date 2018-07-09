@@ -20,7 +20,6 @@ var chai = require('chai');
 var randomstring = require('randomstring');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
-const constants = require('../../../config/mainnet/constants');
 var generateRandomActivePeer = require('../../fixtures/peers')
 	.generateRandomActivePeer;
 var Block = require('../../fixtures/blocks').Block;
@@ -28,6 +27,7 @@ var Rules = require('../../../api/ws/workers/rules');
 
 var TransportModule = rewire('../../../modules/transport.js');
 
+const constants = __testContext.config.constants;
 var expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.

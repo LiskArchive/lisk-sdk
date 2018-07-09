@@ -18,9 +18,9 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var typesRepresentatives = require('../../fixtures/types_representatives');
-const constants = require('../../../config/mainnet/constants');
 var ed = require('../../../helpers/ed');
 
+const constants = __testContext.config.constants;
 var Signature = rewire('../../../logic/signature');
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';

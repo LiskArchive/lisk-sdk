@@ -12,14 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
 
-module.exports = {
-	transactionFee: [
-		'15429910859603286865', // 79349
-		'14352150066958672690', // 95527
-		'13937635495177593105', // 309109
-		'12218027223346052530', // 316636
-		'15330085901178121679', // 440756
-	],
-};
+/*
+  DESCRIPTION: Alter 'mem_round' table - change data type of 'round' from BIGINT to INT.
+
+  PARAMETERS: None
+*/
+
+ALTER TABLE mem_round ALTER COLUMN round TYPE INT;

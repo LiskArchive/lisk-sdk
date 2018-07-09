@@ -21,10 +21,10 @@ var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 var transactionTypes = require('../../../helpers/transaction_types');
 var ed = require('../../../helpers/ed');
-const constants = require('../../../config/mainnet/constants');
 var bignum = require('../../../helpers/bignum');
 var Transfer = require('../../../logic/transfer');
 
+const constants = __testContext.config.constants;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(

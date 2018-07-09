@@ -19,10 +19,10 @@ var rewire = require('rewire');
 var randomstring = require('randomstring');
 var modulesLoader = require('../../common/modules_loader.js');
 var randomUtil = require('../../common/utils/random');
-const constants = require('../../../config/mainnet/constants');
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
 var testData = require('./test_data/dapp.js');
 
+const constants = __testContext.config.constants;
 var Dapp = rewire('../../../logic/dapp.js');
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
