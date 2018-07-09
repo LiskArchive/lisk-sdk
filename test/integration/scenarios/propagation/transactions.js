@@ -54,12 +54,14 @@ module.exports = function(configurations) {
 		});
 
 		it('should have all transactions the same at all peers', done => {
-			const patternTransactions = nodesTransactions[0];
-			for (let i = 0; i < patternTransactions.length; i += 1) {
-				for (let j = 1; j < nodesTransactions.length; j += 1) {
-					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
-				}
-			}
+			const transactionsFromOtherNodes = nodesTransactions.splice(1);
+			const transactionsFromNode0 = nodesTransactions[0];
+
+			transactionsFromOtherNodes.forEach(transactionsFromOtherNode =>
+				expect(transactionsFromOtherNode).to.include.deep.members(
+					transactionsFromNode0
+				)
+			);
 			done();
 		});
 	});

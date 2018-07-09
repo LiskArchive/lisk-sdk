@@ -54,12 +54,12 @@ module.exports = function(configurations) {
 		});
 
 		it('should have all blocks the same at all peers', done => {
-			const patternBlocks = nodesBlocks[0];
-			for (let i = 0; i < patternBlocks.length; i += 1) {
-				for (let j = 1; j < nodesBlocks.length; j += 1) {
-					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
-				}
-			}
+			const blocksFromOtherNodes = nodesBlocks.splice(1);
+			const blocksFromNode0 = nodesBlocks[0];
+
+			blocksFromOtherNodes.forEach(blocksFromNode =>
+				expect(blocksFromNode).to.include.deep.members(blocksFromNode0)
+			);
 			done();
 		});
 	});
