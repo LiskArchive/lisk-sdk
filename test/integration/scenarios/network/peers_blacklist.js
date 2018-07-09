@@ -69,6 +69,12 @@ module.exports = function(configurations) {
 
 			describe('when a node blacklists an ip', () => {
 				before(done => {
+					if (!('access' in params.configurations[0].peers)) {
+						params.configurations[0].peers.access = {};
+					}
+					if (!('blackList' in params.configurations[0].peers)) {
+						params.configurations[0].peers.access.blackList = [];
+					}
 					params.configurations[0].peers.access.blackList.push('127.0.0.1');
 					fs.writeFileSync(
 						`${__dirname}/../../configs/config.node-0.json`,
