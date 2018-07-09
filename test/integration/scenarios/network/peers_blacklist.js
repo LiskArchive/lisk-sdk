@@ -24,6 +24,7 @@ const common = require('../common');
 const totalPeers = 10;
 // Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
 const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
+// Full mesh network connections without the blacklisted peer
 const expectedConnectionsAfterBlacklisting =
 	(totalPeers - 2) * (totalPeers - 1) * 2;
 
@@ -80,6 +81,7 @@ module.exports = function(configurations) {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
+					// Restart the node to load the just changed configuration
 					common.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
@@ -150,6 +152,7 @@ module.exports = function(configurations) {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
+					// Restart the node to load the just changed configuration
 					common.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
