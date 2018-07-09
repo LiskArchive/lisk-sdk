@@ -150,15 +150,15 @@ Stop redis:
 brew services stop redis
 ```
 
-**NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+**NOTE:** Lisk does not run on the Redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
 1. **Change the Lisk configuration**
 
-Update the redis port configuration in the `config.json` file. Note that this is the easiest option, however, be mindful of reverting the changes should you make a pull request.
+Update the redis port configuration in the `config.json` file to the Redis default `redis.port=6379`. This is the easiest option, however, be mindful of reverting the changes when you make a pull request.
 
 2. **Change the Redis launch configuration**
 
-Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+Update the Redis launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
 1. Stop redis-server
 2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
