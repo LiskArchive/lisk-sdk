@@ -492,10 +492,10 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		beforeEach(done => {
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
-			multisignature.apply(transaction, dummyBlock, sender, done);
+			multisignature.applyConfirmed(transaction, dummyBlock, sender, done);
 		});
 
 		it('should set __private.unconfirmedSignatures[sender.address] = false', () => {
@@ -532,9 +532,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with error', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return multisignature.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
@@ -596,7 +601,7 @@ describe('multisignature', () => {
 							});
 
 							it('should call callback with error', () => {
-								return multisignature.apply(
+								return multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -609,7 +614,7 @@ describe('multisignature', () => {
 
 						describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 							it('should call callback with error = null', () => {
-								return multisignature.apply(
+								return multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -620,7 +625,7 @@ describe('multisignature', () => {
 							});
 
 							it('should call callback with result = undefined', () => {
-								return multisignature.apply(
+								return multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -690,13 +695,18 @@ describe('multisignature', () => {
 
 		describe('when library.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, err => {
-					expect(err).to.be.null;
-				});
+				return multisignature.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).to.be.null;
+					}
+				);
 			});
 
 			it('should call callback with result = undefined', () => {
-				return multisignature.apply(
+				return multisignature.applyConfirmed(
 					transaction,
 					dummyBlock,
 					sender,
@@ -861,13 +871,18 @@ describe('multisignature', () => {
 
 		describe('when library.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, err => {
-					expect(err).to.be.null;
-				});
+				return multisignature.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).to.be.null;
+					}
+				);
 			});
 
 			it('should call callback with result = undefined', () => {
-				return multisignature.apply(
+				return multisignature.applyConfirmed(
 					transaction,
 					dummyBlock,
 					sender,

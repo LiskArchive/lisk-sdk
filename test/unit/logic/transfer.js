@@ -221,7 +221,7 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
@@ -234,7 +234,7 @@ describe('transfer', () => {
 		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
-			transfer.apply(transaction, dummyBlock, validSender, err => {
+			transfer.applyConfirmed(transaction, dummyBlock, validSender, err => {
 				expect(err).to.equal('Invalid public key');
 				done();
 			});
@@ -250,23 +250,30 @@ describe('transfer', () => {
 					var amount = new Bignum(validTransaction.amount.toString());
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transfer.apply(validTransaction, dummyBlock, validSender, err => {
-						expect(err).to.not.exist;
+					transfer.applyConfirmed(
+						validTransaction,
+						dummyBlock,
+						validSender,
+						err => {
+							expect(err).to.not.exist;
 
-						accountModule.getAccount(
-							{ address: validTransaction.recipientId },
-							(err, accountAfter) => {
-								expect(err).to.not.exist;
-								expect(accountAfter).to.exist;
+							accountModule.getAccount(
+								{ address: validTransaction.recipientId },
+								(err, accountAfter) => {
+									expect(err).to.not.exist;
+									expect(accountAfter).to.exist;
 
-								var balanceAfter = new Bignum(accountAfter.balance.toString());
-								expect(balanceBefore.plus(amount).toString()).to.equal(
-									balanceAfter.toString()
-								);
-								undoTransaction(validTransaction, validSender, done);
-							}
-						);
-					});
+									var balanceAfter = new Bignum(
+										accountAfter.balance.toString()
+									);
+									expect(balanceBefore.plus(amount).toString()).to.equal(
+										balanceAfter.toString()
+									);
+									undoTransaction(validTransaction, validSender, done);
+								}
+							);
+						}
+					);
 				}
 			);
 		});
@@ -278,8 +285,8 @@ describe('transfer', () => {
 			height: 1,
 		};
 
-		function applyTransaction(transaction, sender, done) {
-			transfer.apply(transaction, dummyBlock, sender, done);
+		function applyConfirmedTransaction(transaction, sender, done) {
+			transfer.applyConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should return error if recipientid is not set', done => {
@@ -312,7 +319,7 @@ describe('transfer', () => {
 								expect(balanceAfter.plus(amount).toString()).to.equal(
 									balanceBefore.toString()
 								);
-								applyTransaction(validTransaction, validSender, done);
+								applyConfirmedTransaction(validTransaction, validSender, done);
 							}
 						);
 					});
