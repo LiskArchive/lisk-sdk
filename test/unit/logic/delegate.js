@@ -18,6 +18,7 @@ var crypto = require('crypto');
 var rewire = require('rewire');
 var accounts = require('../../fixtures/accounts');
 var ed = require('../../../helpers/ed');
+var Bignum = require('../../../helpers/bignum.js');
 var modulesLoader = require('../../common/modules_loader');
 var random = require('../../common/utils/random');
 var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
@@ -49,8 +50,8 @@ var validSender = {
 
 var validTransaction = {
 	type: 2,
-	amount: '0',
-	fee: '0',
+	amount: new Bignum('0'),
+	fee: new Bignum('0'),
 	timestamp: 0,
 	recipientId: null,
 	senderId: '10881167371402274308L',
@@ -79,8 +80,8 @@ var rawValidTransaction = {
 	m_recipientPublicKey: null,
 	t_senderId: '10881167371402274308L',
 	t_recipientId: null,
-	t_amount: '0',
-	t_fee: '0',
+	t_amount: new Bignum('0'),
+	t_fee: new Bignum('0'),
 	t_signature:
 		'5495bea66b026b0d6b72bab8611fca9c655c1f023267f3c51453c950aa3d0e0eb08b0bc04e6355909abd75cd1d4df8c3048a55c3a98d0719b4b71e5d527e580a',
 	t_SignSignature: null,
@@ -176,7 +177,7 @@ describe('delegate', () => {
 			});
 
 			it('should call callback with error if amount is not equal to 0', done => {
-				transaction.amount = '1';
+				transaction.amount = new Bignum('1');
 
 				delegate.verify(transaction, sender, err => {
 					expect(err).to.equal('Invalid transaction amount');

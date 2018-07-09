@@ -1213,10 +1213,10 @@ describe('blocks/verify', () => {
 			version: 0,
 			numberOfTransactions: 0,
 			transactions: [],
-			totalAmount: 0,
-			totalFee: 0,
+			totalAmount: new Bignum(0),
+			totalFee: new Bignum(0),
 			payloadLength: 0,
-			reward: 0,
+			reward: new Bignum(0),
 		};
 
 		afterEach(() => {
@@ -1322,10 +1322,10 @@ describe('blocks/verify', () => {
 			version: 1,
 			numberOfTransactions: 1,
 			transactions: [{ id: 1 }],
-			totalAmount: 1,
-			totalFee: 1,
+			totalAmount: new Bignum(1),
+			totalFee: new Bignum(1),
 			payloadLength: 1,
-			reward: 1,
+			reward: new Bignum(1),
 		};
 
 		describe('when block.version = 0', () => {
@@ -1382,7 +1382,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalAmount property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalAmount = 0;
+				dummyBlockCompleted.totalAmount = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -1403,7 +1403,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalFee = 0;
+				dummyBlockCompleted.totalFee = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -1445,7 +1445,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.reward = 0;
+				dummyBlockCompleted.reward = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);

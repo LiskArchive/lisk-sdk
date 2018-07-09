@@ -544,17 +544,6 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
  * @param {boolean} broadcast - Indicator that block needs to be broadcasted
  */
 Chain.prototype.broadcastReducedBlock = function(reducedBlock, broadcast) {
-	if (reducedBlock.totalAmount) {
-		reducedBlock.totalAmount = reducedBlock.totalAmount.toString();
-	}
-
-	if (reducedBlock.totalFee) {
-		reducedBlock.totalFee = reducedBlock.totalFee.toString();
-	}
-
-	if (reducedBlock.reward) {
-		reducedBlock.reward = reducedBlock.reward.toString();
-	}
 	library.bus.message('broadcastBlock', reducedBlock, broadcast);
 };
 

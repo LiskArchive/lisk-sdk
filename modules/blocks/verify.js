@@ -528,6 +528,10 @@ Verify.prototype.verifyBlock = function(block) {
  * @returns {Object} Block object completed
  */
 Verify.prototype.addBlockProperties = function(block) {
+	block.totalAmount = new Bignum(block.totalAmount || 0);
+	block.totalFee = new Bignum(block.totalFee || 0);
+	block.reward = new Bignum(block.reward || 0);
+
 	if (block.version === undefined) {
 		block.version = 0;
 	}
@@ -538,17 +542,8 @@ Verify.prototype.addBlockProperties = function(block) {
 			block.numberOfTransactions = block.transactions.length;
 		}
 	}
-	if (block.totalAmount === undefined) {
-		block.totalAmount = new Bignum(0);
-	}
-	if (block.totalFee === undefined) {
-		block.totalFee = new Bignum(0);
-	}
 	if (block.payloadLength === undefined) {
 		block.payloadLength = 0;
-	}
-	if (block.reward === undefined) {
-		block.reward = new Bignum(0);
 	}
 	if (block.transactions === undefined) {
 		block.transactions = [];

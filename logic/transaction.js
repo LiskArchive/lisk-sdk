@@ -1126,8 +1126,13 @@ class Transaction {
 			}
 		}
 
-		transaction.amount = new Bignum(transaction.amount || 0);
-		transaction.fee = new Bignum(transaction.fee || 0);
+		if (transaction.amount) {
+			transaction.amount = new Bignum(transaction.amount);
+		}
+
+		if (transaction.fee) {
+			transaction.fee = new Bignum(transaction.fee);
+		}
 
 		const report = this.scope.schema.validate(
 			transaction,
