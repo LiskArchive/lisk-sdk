@@ -23,7 +23,6 @@ var ed = require('../../../helpers/ed');
 var bignum = require('../../../helpers/bignum');
 var transactionTypes = require('../../../helpers/transaction_types');
 var slots = require('../../../helpers/slots');
-const constants = require('../../../config/mainnet/constants');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 var Delegate = require('../../../logic/delegate');
@@ -33,6 +32,7 @@ var Dapp = require('../../../logic/dapp');
 var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
 
+const constants = __testContext.config.constants;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(

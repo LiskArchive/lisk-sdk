@@ -14,11 +14,16 @@
 
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var program = require('commander');
-var configSchema = require('../schema/config.js');
-var z_schema = require('./z_schema.js');
+const fs = require('fs');
+const path = require('path');
+const program = require('commander');
+const _ = require('lodash');
+const randomstring = require('randomstring');
+const configSchema = require('../schema/config.js');
+const z_schema = require('./z_schema.js');
+
+const rootPath = path.dirname(path.resolve(__filename, '..'));
+
 /**
  * Description of the module.
  *
@@ -30,17 +35,17 @@ var z_schema = require('./z_schema.js');
  * Loads config.json file.
  *
  * @param {Object} packageJson
- * @returns {OBject}
+ * @param {Boolean} parseCommandLineOptions - Should parse the command line options or not
+ * @returns {Object}
  * @todo Add description for the params and the return value
  */
-function Config(packageJson) {
+function Config(packageJson, parseCommandLineOptions = true) {
 	program
 		.version(packageJson.version)
 		.option('-c, --config <path>', 'config file path')
 		.option(
 			'-n, --network [network]',
-			'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "dev"',
-			'devnet'
+			'lisk network [devnet|betanet|mainnet|testnet]. Defaults to "devnet"'
 		)
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
@@ -50,125 +55,64 @@ function Config(packageJson) {
 		.option('-l, --log <level>', 'log level')
 		.option('-s, --snapshot <round>', 'verify snapshot')
 		.option('--inspect-workers', 'inspect worker processes')
-		.option('--inspect-brokers', 'inspect broker processes')
-		.parse(process.argv);
+		.option('--inspect-brokers', 'inspect broker processes');
 
-	var configPath = program.config;
-	var network = program.network;
+	if (parseCommandLineOptions) {
+		program.parse(process.argv);
+	}
 
-	configPath = path.resolve(
-		process.cwd(),
-		configPath || `./config/${network}/config.json`
+	const network = program.network || process.env.LISK_NETWORK || 'devnet';
+
+	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
+
+	const defaultConstants = require('../config/default/constants.js');
+	const customConstants = require(`../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
+
+	const defaultExceptions = require('../config/default/exceptions.js');
+	const customExceptions = require(`../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+
+	const defaultConfig = loadJSONFile('config/default/config.json');
+	const customConfig = loadJSONFile(
+		program.config ||
+			process.env.LISK_CONFIG_FILE ||
+			`config/${network}/config.json`
 	);
 
-	if (configPath) {
-		console.info(`Starting with configuration file ${configPath}`);
-	}
+	const runtimeConfig = {
+		network,
+		root: rootPath,
+		nonce: randomstring.generate(16),
+		version: packageJson.version,
+		minVersion: packageJson.lisk.minVersion,
+		nethash: genesisBlock.payloadHash,
+	};
 
-	var appConfig = fs.readFileSync(configPath, 'utf8');
+	let commandLineConfig = {
+		wsPort: +program.port || process.env.LISK_WS_PORT || null,
+		httpPort: +program.httpPort || process.env.LISK_HTTP_PORT || null,
+		address: program.address,
+		consoleLogLevel: program.log || process.env.LISK_CONSOLE_LOG_LEVEL,
+		db: { database: program.database },
+		loading: { snapshotRound: program.snapshot },
+		peers: {
+			list: extractPeersList(
+				program.peers || process.env.LISK_PEERS,
+				+program.port ||
+					process.env.LISK_WS_PORT ||
+					customConfig.wsPort ||
+					defaultConfig.wsPort
+			),
+		},
+		coverage: process.env.NODE_ENV === 'test',
+	};
+	commandLineConfig = cleanDeep(commandLineConfig);
 
-	if (!appConfig.length) {
-		console.error('Failed to read config file');
-		process.exit(1);
-	} else {
-		try {
-			appConfig = JSON.parse(appConfig);
-		} catch (err) {
-			console.error('Failed to parse config file');
-			console.error(err.message);
-			process.exit(1);
-		}
-	}
-
-	appConfig.version = packageJson.version;
-	appConfig.minVersion = packageJson.lisk.minVersion;
-	appConfig.network = network;
-	appConfig.genesisBlock = JSON.parse(
-		fs.readFileSync(
-			path.resolve(
-				process.cwd(),
-				`./config/${appConfig.network}/genesis_block.json`
-			)
-		)
+	const appConfig = _.merge(
+		defaultConfig,
+		customConfig,
+		runtimeConfig,
+		commandLineConfig
 	);
-
-	appConfig.nethash = appConfig.genesisBlock.payloadHash;
-
-	// eslint-disable-next-line import/no-dynamic-require
-	appConfig.constants = require(path.resolve(
-		process.cwd(),
-		`./config/${network}/constants.js`
-	));
-
-	// eslint-disable-next-line import/no-dynamic-require
-	appConfig.exceptions = require(path.resolve(
-		process.cwd(),
-		`./config/${network}/exceptions.js`
-	));
-
-	if (program.wsPort) {
-		appConfig.wsPort = +program.wsPort;
-	}
-
-	if (program.httpPort) {
-		appConfig.httpPort = +program.httpPort;
-	}
-
-	if (program.address) {
-		appConfig.address = program.address;
-	}
-
-	if (program.database) {
-		appConfig.db.database = program.database;
-	}
-
-	if (program.peers) {
-		if (typeof program.peers === 'string') {
-			appConfig.peers.list = program.peers.split(',').map(peer => {
-				peer = peer.split(':');
-				return {
-					ip: peer.shift(),
-					wsPort: peer.shift() || appConfig.wsPort,
-				};
-			});
-		} else {
-			appConfig.peers.list = [];
-		}
-	}
-
-	if (program.log) {
-		appConfig.consoleLogLevel = program.log;
-	}
-
-	if (program.snapshot) {
-		appConfig.loading.snapshotRound = program.snapshot;
-	}
-
-	if (process.env.NODE_ENV === 'test') {
-		appConfig.coverage = true;
-	}
-
-	if (
-		appConfig.peers.options.wsEngine === undefined ||
-		appConfig.peers.options.wsEngine === null
-	) {
-		appConfig.peers.options.wsEngine = 'sc-uws';
-	}
-
-	if (
-		appConfig.api.options.cors.origin === undefined ||
-		appConfig.api.options.cors.origin === null
-	) {
-		appConfig.api.options.cors.origin = '*';
-	}
-
-	if (
-		appConfig.api.options.cors.methods === undefined ||
-		appConfig.api.options.cors.methods === null ||
-		!Array.isArray(appConfig.api.options.cors.methods)
-	) {
-		appConfig.api.options.cors.methods = ['GET', 'POST', 'PUT'];
-	}
 
 	var validator = new z_schema();
 	var valid = validator.validate(appConfig, configSchema.config);
@@ -177,9 +121,96 @@ function Config(packageJson) {
 		console.error('Failed to validate config data', validator.getLastErrors());
 		process.exit(1);
 	} else {
+		appConfig.genesisBlock = genesisBlock;
+
+		appConfig.constants = _.merge(defaultConstants, customConstants);
+
+		appConfig.exceptions = _.merge(defaultExceptions, customExceptions);
+
 		validateForce(appConfig);
+
 		return appConfig;
 	}
+}
+
+function loadJSONFile(filePath) {
+	try {
+		filePath = path.resolve(rootPath, filePath);
+		return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+	} catch (err) {
+		console.error(`Failed to load file: ${filePath}`);
+		console.error(err.message);
+		process.exit(1);
+	}
+}
+
+function extractPeersList(peers, defaultPort) {
+	if (typeof peers === 'string') {
+		return peers.split(',').map(peer => {
+			peer = peer.split(':');
+			return {
+				ip: peer.shift(),
+				wsPort: peer.shift() || defaultPort,
+			};
+		});
+	}
+	return [];
+}
+
+function cleanDeep(
+	object,
+	{
+		emptyArrays = true,
+		emptyObjects = true,
+		emptyStrings = true,
+		nullValues = true,
+		undefinedValues = true,
+	} = {}
+) {
+	return _.transform(object, (result, value, key) => {
+		// Recurse into arrays and objects.
+		if (Array.isArray(value) || _.isPlainObject(value)) {
+			value = cleanDeep(value, {
+				emptyArrays,
+				emptyObjects,
+				emptyStrings,
+				nullValues,
+				undefinedValues,
+			});
+		}
+
+		// Exclude empty objects.
+		if (emptyObjects && _.isPlainObject(value) && _.isEmpty(value)) {
+			return;
+		}
+
+		// Exclude empty arrays.
+		if (emptyArrays && Array.isArray(value) && !value.length) {
+			return;
+		}
+
+		// Exclude empty strings.
+		if (emptyStrings && value === '') {
+			return;
+		}
+
+		// Exclude null values.
+		if (nullValues && value === null) {
+			return;
+		}
+
+		// Exclude undefined values.
+		if (undefinedValues && value === undefined) {
+			return;
+		}
+
+		// Append when recursing arrays.
+		if (Array.isArray(result)) {
+			return result.push(value);
+		}
+
+		result[key] = value;
+	});
 }
 
 /**
