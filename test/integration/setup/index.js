@@ -48,7 +48,7 @@ module.exports = {
 				},
 				cbSeries => {
 					utils.logger.log('Enabling forging with registered delegates');
-					network.enableForgingOnDelegates(configurations, cbSeries);
+					network.enableForgingForDelegates(configurations, cbSeries);
 				},
 				cbSeries => {
 					utils.logger.log(

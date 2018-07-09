@@ -129,7 +129,7 @@ module.exports = function(configurations) {
 
 				describe('after all the node restarts', () => {
 					before(done => {
-						network.enableForgingOnDelegates(params.configurations, done);
+						network.enableForgingForDelegates(params.configurations, done);
 					});
 
 					// The expected connection becomes 180(new connection) + 18 (previously held connections)

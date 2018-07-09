@@ -53,7 +53,7 @@ module.exports = {
 		);
 	},
 
-	enableForgingOnDelegates(configurations, cb) {
+	enableForgingForDelegates(configurations, cb) {
 		const enableForgingPromises = [];
 		configurations.forEach(configuration => {
 			configuration.forging.delegates.map(keys => {
