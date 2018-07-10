@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography/src';
+import cryptography from 'lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
 import { wrapTransactionCreator } from './utils';
 

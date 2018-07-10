@@ -13,8 +13,8 @@
  *
  */
 import bignum from 'browserify-bignum';
-import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants/src';
-import cryptography from 'lisk-cryptography/src';
+import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
+import cryptography from 'lisk-cryptography';
 import { BYTESIZES } from '../constants';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);
@@ -133,9 +133,7 @@ const REQUIRED_TRANSACTION_PARAMETERS = [
 
 export const checkTransaction = transaction => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
-	const {
-		asset: { data },
-	} = transaction;
+	const { asset: { data } } = transaction;
 	if (data && data.length > BYTESIZES.DATA) {
 		throw new Error(
 			`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`,
@@ -171,7 +169,7 @@ const getTransactionBytes = transaction => {
 		? cryptography.bigNumberToBuffer(
 				recipientId.slice(0, -1),
 				BYTESIZES.RECIPIENT_ID,
-		  )
+			)
 		: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 	const amountBigNum = bignum(amount);

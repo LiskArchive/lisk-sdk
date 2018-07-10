@@ -12,11 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClientModule from 'lisk-api-client/src';
-import * as constantsModule from 'lisk-constants/src';
-import cryptographyModule from 'lisk-cryptography/src';
-import passphraseModule from 'lisk-passphrase/src';
-import transactionModule from 'lisk-transactions/src';
+import APIClientModule from 'lisk-api-client';
+import * as constantsModule from 'lisk-constants';
+import cryptographyModule from 'lisk-cryptography';
+import passphraseModule from 'lisk-passphrase';
+import transactionModule from 'lisk-transactions';
 
 export const APIClient = APIClientModule;
 export const constants = constantsModule;

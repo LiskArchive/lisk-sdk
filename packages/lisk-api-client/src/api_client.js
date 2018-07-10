@@ -13,7 +13,7 @@
  *
  */
 import os from 'os';
-import { MAINNET_NETHASH, TESTNET_NETHASH } from 'lisk-constants/src';
+import { MAINNET_NETHASH, TESTNET_NETHASH } from 'lisk-constants';
 import * as constants from './constants';
 import {
 	AccountsResource,
@@ -38,11 +38,9 @@ const commonHeaders = {
 	'Content-Type': 'application/json',
 };
 
-const getUserAgent = ({
-	name = '????',
-	version = '????',
-	engine = '????',
-} = {}) => {
+const getUserAgent = (
+	{ name = '????', version = '????', engine = '????' } = {},
+) => {
 	const liskElementsInformation =
 		'LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements)';
 	const locale =
@@ -53,7 +51,9 @@ const getUserAgent = ({
 	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	return `${name}/${version} (${engine}) ${liskElementsInformation} ${systemInformation}`;
+	return `${name}/${version} (${engine}) ${liskElementsInformation} ${
+		systemInformation
+	}`;
 };
 
 export default class APIClient {

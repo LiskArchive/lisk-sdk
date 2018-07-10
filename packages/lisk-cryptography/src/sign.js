@@ -14,7 +14,7 @@
  */
 import nacl from 'tweetnacl';
 import { encode as encodeVarInt } from 'varuint-bitcoin';
-import { SIGNED_MESSAGE_PREFIX } from 'lisk-constants/src';
+import { SIGNED_MESSAGE_PREFIX } from 'lisk-constants';
 import hash from './hash';
 import { hexToBuffer, bufferToHex } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';

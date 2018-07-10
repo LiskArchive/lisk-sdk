@@ -13,7 +13,7 @@
  *
  */
 import bignum from 'browserify-bignum';
-import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants/src';
+import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
 import { FIXED_POINT } from '../constants';
 
 const getDecimalPlaces = amount => (amount.split('.')[1] || '').length;
