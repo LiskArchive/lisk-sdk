@@ -63,7 +63,7 @@ DApp.prototype.bind = function() {};
 /**
  * Returns dapp fee from constants.
  *
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  */
 DApp.prototype.calculateFee = function() {
 	return new Bignum(constants.fees.dappRegistration);

@@ -59,7 +59,7 @@ Signature.prototype.bind = function(accounts) {
  * Obtains constant fee secondSignature.
  *
  * @see {@link module:helpers~constants}
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  */
 Signature.prototype.calculateFee = function() {
 	return new Bignum(constants.fees.secondSignature);

@@ -402,15 +402,18 @@ __private.getPooledTransactions = function(method, filters, cb) {
 		sortAttribute.sortField === 'fee' ||
 		sortAttribute.sortField === 'amount'
 	) {
-		// amount and fee are bignumber here, so in order to sort
-		// we need to use bignumber functions here specific to amount, fee
-		const sortFactor =
+		/**
+		 * sortOrder - Sorting by asc or desc, -1 desc order, 1 is asc order
+		 * amount and fee are bignumber here, so in order to sort
+		 * we need to use bignumber functions here specific to amount, fee
+		 */
+		const sortOrder =
 			sortAttribute.sortMethod.toLowerCase() === 'desc' ? -1 : 1;
 		toSend = toSend.sort((a, b) => {
 			if (sortAttribute.sortField === 'fee') {
-				return a.fee.minus(b.fee) * sortFactor;
+				return a.fee.minus(b.fee) * sortOrder;
 			}
-			return a.amount.minus(b.amount) * sortFactor;
+			return a.amount.minus(b.amount) * sortOrder;
 		});
 	} else {
 		toSend = _.orderBy(

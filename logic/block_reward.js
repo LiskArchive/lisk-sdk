@@ -65,7 +65,7 @@ class BlockReward {
 	 * Description of the function.
 	 *
 	 * @param {number} height
-	 * @returns {number}
+	 * @returns {Bignumber}
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcReward(height) {
@@ -81,7 +81,7 @@ class BlockReward {
 	 * Description of the function.
 	 *
 	 * @param {number} height
-	 * @returns {number}
+	 * @returns {Bignumber}
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcSupply(height) {

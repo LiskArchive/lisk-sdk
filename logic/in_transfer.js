@@ -64,9 +64,7 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 /**
  * Returns send fee from constants.
  *
- * @param {transaction} transaction
- * @param {account} sender
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  * @todo Add description for the params
  */
 InTransfer.prototype.calculateFee = function() {

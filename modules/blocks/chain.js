@@ -232,8 +232,8 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
 
-			transaction.amount = new Bignum(transaction.amount || 0);
-			transaction.fee = new Bignum(transaction.fee || 0);
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
 
 			modules.accounts.setAccountAndGet(
 				{ publicKey: transaction.senderPublicKey },

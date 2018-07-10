@@ -14,7 +14,7 @@
 
 'use strict';
 
-var Bignum = require('../../../helpers/bignum');
+var Bignum = require('../../../helpers/bignum.js');
 
 describe('BigNumber', () => {
 	var validBuf;

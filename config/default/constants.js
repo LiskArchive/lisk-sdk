@@ -99,11 +99,11 @@ module.exports = {
 	normalizer: '100000000',
 	rewards: {
 		milestones: [
-			500000000, // Initial Reward
-			400000000, // Milestone 1
-			300000000, // Milestone 2
-			200000000, // Milestone 3
-			100000000, // Milestone 4
+			'500000000', // Initial Reward
+			'400000000', // Milestone 1
+			'300000000', // Milestone 2
+			'200000000', // Milestone 3
+			'100000000', // Milestone 4
 		],
 		offset: 2160, // Start rewards at first block of the second round
 		distance: 3000000, // Distance between each milestone

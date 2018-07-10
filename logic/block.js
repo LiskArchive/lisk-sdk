@@ -473,7 +473,7 @@ Block.prototype.getId = function(block) {
 /**
  * Returns send fees from constants.
  *
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {

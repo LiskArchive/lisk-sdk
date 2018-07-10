@@ -124,7 +124,7 @@ Vote.prototype.bind = function(delegates) {
 /**
  * Obtains constant fee vote.
  *
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
 	return new Bignum(constants.fees.vote);

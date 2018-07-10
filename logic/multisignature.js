@@ -76,15 +76,13 @@ Multisignature.prototype.bind = function(accounts) {
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  *
  * @param {transaction} transaction
- * @returns {number} Quantity of multisignature keysgroup * multisignature fees
+ * @returns {Bignumber} Quantity of multisignature keysgroup * multisignature fees
  * @todo Add description for the params
  */
 Multisignature.prototype.calculateFee = function(transaction) {
-	const keys = new Bignum(
-		transaction.asset.multisignature.keysgroup.length + 1
-	);
+	const keys = transaction.asset.multisignature.keysgroup.length + 1;
 	const amount = new Bignum(constants.fees.multisignature);
-	return keys.mul(amount);
+	return amount.mul(keys);
 };
 
 /**

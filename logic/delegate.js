@@ -61,7 +61,7 @@ Delegate.prototype.bind = function(accounts) {
 /**
  * Obtains constant fee delegate.
  *
- * @returns {number} constants.fees.delegate
+ * @returns {Bignumber} constants.fees.delegate
  * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {

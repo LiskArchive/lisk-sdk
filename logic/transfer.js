@@ -60,9 +60,7 @@ Transfer.prototype.bind = function(accounts) {
 /**
  * Returns send fees from constants.
  *
- * @param {transaction} transaction
- * @param {account} sender
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function() {
