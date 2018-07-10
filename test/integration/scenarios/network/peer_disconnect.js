@@ -19,7 +19,7 @@ const utils = require('../../utils');
 const network = require('../../setup/network');
 const common = require('../common');
 
-module.exports = function(configurations, networkFeatures) {
+module.exports = function(configurations, networkParameters) {
 	describe('@network : peer Disconnect', () => {
 		const params = {};
 		common.setMonitoringSocketsConnections(params, configurations);
@@ -50,7 +50,7 @@ module.exports = function(configurations, networkFeatures) {
 					}, 2000);
 				});
 
-				it(`peer manager should remove peer from the list and there should be ${networkFeatures.EXPECTED_OUTOGING_CONNECTIONS -
+				it(`peer manager should remove peer from the list and there should be ${networkParameters.EXPECTED_OUTOGING_CONNECTIONS -
 					20} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
@@ -61,7 +61,7 @@ module.exports = function(configurations, networkFeatures) {
 
 							if (
 								numOfConnections <=
-								networkFeatures.EXPECTED_OUTOGING_CONNECTIONS - 20
+								networkParameters.EXPECTED_OUTOGING_CONNECTIONS - 20
 							) {
 								done();
 							} else {
@@ -83,7 +83,7 @@ module.exports = function(configurations, networkFeatures) {
 				});
 
 				it(`there should be ${
-					networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+					networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 				} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
@@ -94,7 +94,7 @@ module.exports = function(configurations, networkFeatures) {
 
 							if (
 								numOfConnections <=
-								networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+								networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 							) {
 								done();
 							} else {
@@ -112,7 +112,7 @@ module.exports = function(configurations, networkFeatures) {
 				// Need to keep one peer so that we can validate
 				// Duplicate socket connection exists or not
 				it('stop all the nodes in the network except node_0', done => {
-					for (let i = 1; i < networkFeatures.TOTAL_PEERS; i++) {
+					for (let i = 1; i < networkParameters.TOTAL_PEERS; i++) {
 						common.stopNode(`node_${i}`);
 					}
 					setTimeout(() => {
@@ -122,7 +122,7 @@ module.exports = function(configurations, networkFeatures) {
 				});
 
 				it('start all nodes that were stopped', done => {
-					for (let i = 1; i < networkFeatures.TOTAL_PEERS; i++) {
+					for (let i = 1; i < networkParameters.TOTAL_PEERS; i++) {
 						common.startNode(`node_${i}`);
 					}
 					setTimeout(() => {
@@ -137,7 +137,7 @@ module.exports = function(configurations, networkFeatures) {
 					});
 
 					// The expected connection becomes 180(new connection) + 18 (previously held connections)
-					it(`should be ${networkFeatures.EXPECTED_OUTOGING_CONNECTIONS +
+					it(`should be ${networkParameters.EXPECTED_OUTOGING_CONNECTIONS +
 						18} established connections from 500[0-9] ports`, done => {
 						utils.getEstablishedConnections(
 							Array.from(wsPorts),
@@ -148,7 +148,7 @@ module.exports = function(configurations, networkFeatures) {
 
 								if (
 									numOfConnections <=
-									networkFeatures.EXPECTED_OUTOGING_CONNECTIONS + 18
+									networkParameters.EXPECTED_OUTOGING_CONNECTIONS + 18
 								) {
 									done();
 								} else {

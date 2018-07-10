@@ -21,10 +21,12 @@ const blockchainReady = require('../../../common/utils/wait_for')
 	.blockchainReady;
 const common = require('../common');
 
-module.exports = function(configurations, networkFeatures) {
+module.exports = function(configurations, networkParameters) {
 	// Full mesh network with 2 connection for bi-directional communication without the blacklisted peer
 	const EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING =
-		(networkFeatures.TOTAL_PEERS - 2) * (networkFeatures.TOTAL_PEERS - 1) * 2;
+		(networkParameters.TOTAL_PEERS - 2) *
+		(networkParameters.TOTAL_PEERS - 1) *
+		2;
 
 	describe('@network : peer Blacklisted', () => {
 		const params = {};
@@ -47,7 +49,7 @@ module.exports = function(configurations, networkFeatures) {
 			});
 
 			it(`there should be ${
-				networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+				networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 			} established connections from 500[0-9] ports`, done => {
 				utils.getEstablishedConnections(
 					Array.from(wsPorts),
@@ -58,7 +60,7 @@ module.exports = function(configurations, networkFeatures) {
 
 						if (
 							numOfConnections - 20 <=
-							networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+							networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 						) {
 							done();
 						} else {
@@ -112,13 +114,13 @@ module.exports = function(configurations, networkFeatures) {
 					);
 				});
 
-				it(`peers manager should contain ${networkFeatures.TOTAL_PEERS -
+				it(`peers manager should contain ${networkParameters.TOTAL_PEERS -
 					2} active connections`, () => {
 					return common.getAllPeers(params.sockets).then(mutualPeers => {
 						mutualPeers.forEach(mutualPeer => {
 							if (mutualPeer) {
 								expect(mutualPeer.peers.length).to.be.eql(
-									networkFeatures.TOTAL_PEERS - 2
+									networkParameters.TOTAL_PEERS - 2
 								);
 								mutualPeer.peers.map(peer => {
 									expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
@@ -164,7 +166,7 @@ module.exports = function(configurations, networkFeatures) {
 				});
 
 				it(`there should be ${
-					networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+					networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 				} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
@@ -175,7 +177,7 @@ module.exports = function(configurations, networkFeatures) {
 
 							if (
 								numOfConnections - 20 <=
-								networkFeatures.EXPECTED_OUTOGING_CONNECTIONS
+								networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 							) {
 								done();
 							} else {
