@@ -16,8 +16,9 @@
 
 const fs = require('fs');
 const utils = require('../utils');
-const devConfig = require('../../../config/devnet/config.json');
 const network = require('./network');
+
+const devConfig = __testContext.config;
 
 module.exports = {
 	generateLiskConfigs(broadcasting = true, TOTAL_PEERS = 10) {
@@ -30,9 +31,6 @@ module.exports = {
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
 			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
-			if (!devConfigCopy.broadcasts) {
-				devConfigCopy.broadcasts = {};
-			}
 			devConfigCopy.broadcasts.active = broadcasting;
 			return devConfigCopy;
 		});

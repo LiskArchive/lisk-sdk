@@ -74,14 +74,6 @@ module.exports = function(configurations, networkParameters) {
 
 			describe('when a node blacklists an ip', () => {
 				before(done => {
-					// By default, current devnet configurations don't have all the parameters
-					// A pre-control is needed to avoid exceptions
-					if (!('access' in params.configurations[0].peers)) {
-						params.configurations[0].peers.access = {};
-					}
-					if (!('blackList' in params.configurations[0].peers)) {
-						params.configurations[0].peers.access.blackList = [];
-					}
 					params.configurations[0].peers.access.blackList.push('127.0.0.1');
 					fs.writeFileSync(
 						`${__dirname}/../../configs/config.node-0.json`,
