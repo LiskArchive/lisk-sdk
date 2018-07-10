@@ -890,7 +890,7 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undo(transaction, block, sender, cb, tx) {
+	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
@@ -899,7 +899,7 @@ class Transaction {
 
 		const amount = transaction.amount.plus(transaction.fee);
 
-		this.scope.logger.trace('Logic/Transaction->undo', {
+		this.scope.logger.trace('Logic/Transaction->undoConfirmed', {
 			sender: sender.address,
 			balance: amount,
 			blockId: block.id,
@@ -917,7 +917,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undo(
+				__private.types[transaction.type].undoConfirmed(
 					transaction,
 					block,
 					sender,
@@ -1215,7 +1215,7 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
 		typeof instance.objectNormalize === 'function' &&
 		typeof instance.dbRead === 'function' &&
 		typeof instance.applyConfirmed === 'function' &&
-		typeof instance.undo === 'function' &&
+		typeof instance.undoConfirmed === 'function' &&
 		typeof instance.applyUnconfirmed === 'function' &&
 		typeof instance.undoUnconfirmed === 'function' &&
 		typeof instance.ready === 'function' &&

@@ -610,9 +610,15 @@ Transactions.prototype.applyConfirmed = function(
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Transactions.prototype.undo = function(transaction, block, sender, cb, tx) {
+Transactions.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	library.logger.debug('Undoing confirmed transaction', transaction.id);
-	library.logic.transaction.undo(transaction, block, sender, cb, tx);
+	library.logic.transaction.undoConfirmed(transaction, block, sender, cb, tx);
 };
 
 /**

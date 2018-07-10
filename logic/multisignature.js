@@ -390,7 +390,13 @@ Multisignature.prototype.applyConfirmed = function(
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Multisignature.prototype.undo = function(transaction, block, sender, cb, tx) {
+Multisignature.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;

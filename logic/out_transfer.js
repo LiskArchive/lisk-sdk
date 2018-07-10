@@ -244,7 +244,13 @@ OutTransfer.prototype.applyConfirmed = function(
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-OutTransfer.prototype.undo = function(transaction, block, sender, cb, tx) {
+OutTransfer.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	__private.unconfirmedOutTansfers[
 		transaction.asset.outTransfer.transactionId
 	] = true;

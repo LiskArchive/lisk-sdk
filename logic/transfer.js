@@ -171,7 +171,13 @@ Transfer.prototype.applyConfirmed = function(
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Transfer.prototype.undo = function(transaction, block, sender, cb, tx) {
+Transfer.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {

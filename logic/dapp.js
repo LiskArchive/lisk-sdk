@@ -325,7 +325,7 @@ DApp.prototype.applyConfirmed = function(transaction, block, sender, cb) {
  * @returns {SetImmediate}
  * @todo Add description for the function and the params
  */
-DApp.prototype.undo = function(transaction, block, sender, cb) {
+DApp.prototype.undoConfirmed = function(transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 

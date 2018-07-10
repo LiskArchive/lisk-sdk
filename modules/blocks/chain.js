@@ -576,7 +576,7 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
  * @param {Object} oldLastBlock - secondLastBlock
  * @param {Object} tx - database transaction
  */
-__private.undoStep = function(transaction, oldLastBlock, tx) {
+__private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 	return new Promise((resolve, reject) => {
 		// Retrieve sender by public key
 		modules.accounts.getAccount(
@@ -585,21 +585,24 @@ __private.undoStep = function(transaction, oldLastBlock, tx) {
 				if (accountErr) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error(
-						'Failed to get account to undo transactions',
+						'Failed to get account to undoConfirmed transactions',
 						accountErr
 					);
 					return setImmediate(reject, accountErr);
 				}
 				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
 				// WARNING: DB_WRITE
-				modules.transactions.undo(
+				modules.transactions.undoConfirmed(
 					transaction,
 					oldLastBlock,
 					sender,
 					undoErr => {
 						if (undoErr) {
 							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to undo transactions', undoErr);
+							library.logger.error(
+								'Failed to undoConfirmed transactions',
+								undoErr
+							);
 							return setImmediate(reject, undoErr);
 						}
 						return setImmediate(resolve);
@@ -624,11 +627,14 @@ __private.undoUnconfirmStep = function(transaction, tx) {
 		// WARNING: DB_WRITE
 		modules.transactions.undoUnconfirmed(
 			transaction,
-			undoUnconfirmErr => {
-				if (undoUnconfirmErr) {
+			undoUnconfirmedErr => {
+				if (undoUnconfirmedErr) {
 					// Fatal error, memory tables will be inconsistent
-					library.logger.error('Failed to undo transactions', undoUnconfirmErr);
-					return setImmediate(reject, undoUnconfirmErr);
+					library.logger.error(
+						'Failed to undoUnconfirmed transactions',
+						undoUnconfirmedErr
+					);
+					return setImmediate(reject, undoUnconfirmedErr);
 				}
 				return setImmediate(resolve);
 			},
@@ -711,7 +717,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 						oldLastBlock.transactions.reverse(),
 						transaction =>
 							__private
-								.undoStep(transaction, oldLastBlock, tx)
+								.undoConfirmedStep(transaction, oldLastBlock, tx)
 								.then(() => __private.undoUnconfirmStep(transaction, tx))
 					);
 				})

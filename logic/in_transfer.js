@@ -200,7 +200,13 @@ InTransfer.prototype.applyConfirmed = function(
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-InTransfer.prototype.undo = function(transaction, block, sender, cb, tx) {
+InTransfer.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	shared.getGenesis(
 		{ dappid: transaction.asset.inTransfer.dappId },
 		(getGenesisErr, res) => {

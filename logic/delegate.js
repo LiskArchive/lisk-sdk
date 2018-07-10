@@ -316,7 +316,13 @@ Delegate.prototype.applyConfirmed = function(
  * @todo Delete unused block parameter
  * @todo Add description for the params
  */
-Delegate.prototype.undo = function(transaction, block, sender, cb, tx) {
+Delegate.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	const data = {
 		address: sender.address,
 		isDelegate: 0,

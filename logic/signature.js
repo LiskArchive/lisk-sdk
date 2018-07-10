@@ -177,7 +177,13 @@ Signature.prototype.applyConfirmed = function(
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Signature.prototype.undo = function(transaction, block, sender, cb, tx) {
+Signature.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,

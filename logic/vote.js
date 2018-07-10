@@ -65,7 +65,7 @@ class Vote {
 	 * @todo Add description for the params
 	 */
 	/* eslint-disable class-methods-use-this */
-	undo(transaction, block, sender, cb, tx) {
+	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
 		}
