@@ -225,8 +225,8 @@ Peers.prototype.remove = function(peer) {
 	peer = self.create(peer);
 	// Remove peer if exists
 	if (self.exists(peer)) {
-		library.logger.info('Removed peer', peer.string);
-		library.logger.debug('Removed peer', { peer: peer.object() });
+		library.logger.debug('Removed peer', peer.string);
+		library.logger.trace('Removed peer', { peer: peer.object() });
 		self.peersManager.remove(peer);
 		return true;
 	}
@@ -267,7 +267,8 @@ Peers.prototype.listRandomConnected = function(options) {
 		.map(key => self.peersManager.peers[key])
 		.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const shuffledPeerList = _.shuffle(peerList);
-	return options.limit ? shuffledPeerList.slice(0, options.limit)
+	return options.limit
+		? shuffledPeerList.slice(0, options.limit)
 		: shuffledPeerList;
 };
 
