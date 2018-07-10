@@ -13,7 +13,7 @@
  *
  */
 
-import { EPOCH_TIME_MILLISECONDS } from 'lisk-constants';
+import { EPOCH_TIME_MILLISECONDS } from 'lisk-constants/src';
 
 export const getTimeFromBlockchainEpoch = givenTimestamp => {
 	const startingPoint = givenTimestamp || new Date().getTime();

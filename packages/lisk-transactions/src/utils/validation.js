@@ -13,8 +13,8 @@
  *
  */
 import bignum from 'browserify-bignum';
-import cryptography from 'lisk-cryptography';
-import { MAX_ADDRESS_NUMBER } from 'lisk-constants';
+import cryptography from 'lisk-cryptography/src';
+import { MAX_ADDRESS_NUMBER } from 'lisk-constants/src';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);

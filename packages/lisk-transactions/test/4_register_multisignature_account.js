@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography';
+import cryptography from 'lisk-cryptography/src';
 import registerMultisignatureAccount from '../src/4_register_multisignature_account';
 // Require is used for stubbing
 const time = require('../src/utils/time');
