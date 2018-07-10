@@ -15,20 +15,20 @@
  */
 
 const handleResponse = (endpoint, res) => {
-	if (res.data) {
-		if (Array.isArray(res.data)) {
-			if (res.data.length === 0) {
-				throw new Error(`No ${endpoint} found using specified parameters.`);
-			}
-			return res.data[0];
-		}
-		return res.data;
-	}
 	// Get endpoints with 2xx status code should always return with data key.
-	throw new Error('No data was returned.');
+	if (!res.data) {
+		throw new Error('No data was returned.');
+	}
+	if (Array.isArray(res.data)) {
+		if (res.data.length === 0) {
+			throw new Error(`No ${endpoint} found using specified parameters.`);
+		}
+		return res.data[0];
+	}
+	return res.data;
 };
 
-export default (client, endpoint, parameters) => {
+export default async (client, endpoint, parameters) => {
 	const queries = Array.isArray(parameters)
 		? Promise.all(
 				parameters.map(param =>
