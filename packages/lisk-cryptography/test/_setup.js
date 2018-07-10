@@ -14,7 +14,6 @@
  */
 import { Assertion } from 'chai';
 import 'chai/register-expect';
-import naclFactory from 'js-nacl';
 import sinon from 'sinon';
 
 process.env.NODE_ENV = 'test';
@@ -50,9 +49,3 @@ Assertion.addProperty('integer', function handleAssert() {
 global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,
 });
-
-if (!global.naclInstance) {
-	naclFactory.instantiate(nacl => {
-		global.naclInstance = nacl;
-	});
-}
