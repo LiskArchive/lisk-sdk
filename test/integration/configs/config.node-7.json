@@ -1,0 +1,203 @@
+{
+	"wsPort": 5007,
+	"httpPort": 4007,
+	"address": "0.0.0.0",
+	"version": "0.0.1",
+	"minVersion": ">=0.0.0",
+	"fileLogLevel": "error",
+	"logFileName": "logs/lisk.log",
+	"trustProxy": false,
+	"topAccounts": false,
+	"cacheEnabled": true,
+	"wsWorkers": 1,
+	"db": {
+		"host": "localhost",
+		"port": 5432,
+		"database": "lisk_test_7",
+		"user": "",
+		"password": "password",
+		"min": 1,
+		"max": 9,
+		"poolIdleTimeout": 30000,
+		"reapIntervalMillis": 1000,
+		"logEvents": ["error"],
+		"logFileName": "logs/lisk_db.log"
+	},
+	"redis": {
+		"host": "127.0.0.1",
+		"port": 6380,
+		"db": 0,
+		"password": null
+	},
+	"api": {
+		"enabled": true,
+		"access": {
+			"public": true,
+			"whiteList": ["127.0.0.1"]
+		},
+		"options": {
+			"limits": {
+				"max": 0,
+				"delayMs": 0,
+				"delayAfter": 0,
+				"windowMs": 60000
+			}
+		}
+	},
+	"peers": {
+		"enabled": true,
+		"list": [
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5000
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5001
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5002
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5003
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5004
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5005
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5006
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5007
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5008
+			},
+			{
+				"ip": "127.0.0.1",
+				"wsPort": 5009
+			}
+		],
+		"access": {
+			"blackList": []
+		},
+		"options": {
+			"timeout": 5000
+		}
+	},
+	"broadcasts": {
+		"active": true,
+		"broadcastInterval": 5000,
+		"broadcastLimit": 20,
+		"parallelLimit": 20,
+		"releaseLimit": 25,
+		"relayLimit": 2
+	},
+	"transactions": {
+		"maxTransactionsPerQueue": 1000
+	},
+	"forging": {
+		"force": false,
+		"defaultKey": "elephant tree paris dragon chair galaxy",
+		"secret": [
+			{
+				"encryptedSecret":
+					"c3ba451d1782554a7623b5fd05821322175b5dae5d37fabb4ddb1201ce12d6a89827847f6cf484f942cfcec8374471bfbf60015d140ef5bfea443d6d84d89484aff762812991e506101ce076ea6f504c",
+				"publicKey":
+					"9986cedd4b5a28e4c81d9b4bff0461dddaa25099df00b8632fe99e88df28ce73"
+			},
+			{
+				"encryptedSecret":
+					"b690512b16387a0e8c676da57e8ec6ae941d6c9bb9bf411a75223eca7b5912f0ce26ecfd9e20bad87f2b2b437ac3a65ed107599e5309d440af190d0cdd964d08f4b8d556a74e7a3d313fa5f3d90d1abb",
+				"publicKey":
+					"03e811dda4f51323ac712cd12299410830d655ddffb104f2c9974d90bf8c583a"
+			},
+			{
+				"encryptedSecret":
+					"106ab4fe7329b2b2305bad84cec475533538ad41b9834e4d8d7623a66f6d78dbc5c313e5e4c7023bfb0e62e76df70d74c0cf097de99d23030b9e76add43fe27bda98d5dc6569ef6e4a4d79f720227fcf",
+				"publicKey":
+					"64db2bce729e302f6021047dfd39b6c53caf83b42da4b5b881cb153a3fb31613"
+			},
+			{
+				"encryptedSecret":
+					"dbdc922cdd7ebb7f34b1765ed49bfd3ad1602eeac08959fcf56235b9eb87ab156119990e4de1d4ee3817d735f861b5d57a378549fd084826ed6281d46cc27113a0e7f09d6f8e9116ca80f85d1d690444b7c32320f53c645dd93a01b579ebf0ee",
+				"publicKey":
+					"f827f60366fae9f9ed65384979de780f4a18c6dbfbefb1c7d100957dde51a06d"
+			},
+			{
+				"encryptedSecret":
+					"8b020a97c8923d6c0f6478d8f4e107dc4144c6e06631c9ec6f400cfe35583af521149f03b3f93f2d3d11972afad0f3c464ee93cf42b4fbc2da618c03df4dd297c0e1e9a4d3e57df83736081f8cde1b4c",
+				"publicKey":
+					"68680ca0bcd4676489976837edeac305c34f652e970386013ef26e67589a2516"
+			},
+			{
+				"encryptedSecret":
+					"14858db09f3c91ba1d593eb6629029b681738e2e0f900cfd8a02d4b272f24c932a02c640b04bf1454e9373b0864bc0ebdce685c4e7027ecf918a75ddc013c944144b39d316d33c94b06284ec4c62bcb7",
+				"publicKey":
+					"f25af3c59ac7f5155c7a9f36762bd941b9dc9c5c051a1bc2d4e34ed773dd04a3"
+			},
+			{
+				"encryptedSecret":
+					"1e78d9f0c6df02fd0f3d4342fbb9a69b4ccd7ae19b4c34e1efea6ebb33055fb8661b2012b2a51ff37ff792e363375d8bc50d9632ca1456313cedf5632726000d1f6085c6a7b1af7522a8ec77e7e2452d",
+				"publicKey":
+					"d3e3c8348bca51461eabfc382f8a01e8e284db54104ad37ec0695d48ae5531ac"
+			},
+			{
+				"encryptedSecret":
+					"8bf566f5535b678a71c3791de7e424385bf49b9b9ab89ca99305004cc17a557db3c9ea9b82b6a8874afd6e99ae642c41f4d2750efcdfbe06885f231c78c6289cf8e57807c0f86fdc683dcca37eca4b39",
+				"publicKey":
+					"3be2eb47134d5158e5f7d52076b624b76744b3fba8aa50791b46ba21408524c9"
+			},
+			{
+				"encryptedSecret":
+					"841c73811a19a87413d971f11bed92f912c296a4602d4103aea9a632acdc583f0917a1cbd84bcd4b5b0eb0d216b1c0d7068c637099f1cacb11cd39738fc555e7de53a7aa181a0502c1fce60887abefa4a3ab119927d6e2e6228108c9b9f96d95",
+				"publicKey":
+					"9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c"
+			},
+			{
+				"encryptedSecret":
+					"c35c3b607292200a1a0f00b00c5b63bba049c873557189296667db63f212e1964afd2c9643de049f6257207340fb05f4de633929b540456f0f0672205a78ae1fb503760d40139a91cfff1ffa38f76856",
+				"publicKey":
+					"e818ac2e8e9ffacd2d49f0f2f6739e16711644194d10bb1a8e9e434603125fa1"
+			},
+			{
+				"encryptedSecret":
+					"d9cf9f01f5d2a9674b679e97af437f4ca994b33eb7eaef246cecc584a3da1bc6b1af954a1a20ee8ae32f1eb0b2caf4f667ce14b418eb22348aa35ded35ae450b01734cf5ee3ac75e3b6bc75559a81148",
+				"publicKey":
+					"19d55c023d85d6061d1e196fa440a50907878e2d425bcd893366fa04bc23b4de"
+			}
+		],
+		"access": {
+			"whiteList": ["127.0.0.1"]
+		}
+	},
+	"syncing": {
+		"active": true
+	},
+	"loading": {
+		"verifyOnLoading": false,
+		"loadPerIteration": 5000
+	},
+	"ssl": {
+		"enabled": false,
+		"options": {
+			"port": 443,
+			"address": "0.0.0.0",
+			"key": "./ssl/lisk.key",
+			"cert": "./ssl/lisk.crt"
+		}
+	},
+	"nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d",
+	"root": "/Users/shuse2/Documents/10_lisk/lisk",
+	"ip": "127.0.0.1"
+}

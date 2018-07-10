@@ -39,9 +39,6 @@ module.exports = {
 			logFileName: {
 				type: 'string',
 			},
-			consoleLogLevel: {
-				type: 'string',
-			},
 			trustProxy: {
 				type: 'boolean',
 			},
@@ -349,7 +346,6 @@ module.exports = {
 			'address',
 			'fileLogLevel',
 			'logFileName',
-			'consoleLogLevel',
 			'trustProxy',
 			'topAccounts',
 			'db',
