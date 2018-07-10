@@ -12,13 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	GET,
-	POST,
-	PUT,
-	TESTNET_NODES,
-	MAINNET_NODES,
-} from '../src/constants';
+import { GET, POST, PUT, TESTNET_NODES, MAINNET_NODES } from '../src/constants';
 
 describe('api constants module', () => {
 	it('GET should be a string', () => {

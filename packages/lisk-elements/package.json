@@ -37,14 +37,18 @@
 		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
 		"build:node": "babel src -d dist-node",
-		"prebuild:browser": "rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
-		"build:browser": "browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk",
+		"prebuild:browser":
+			"rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
+		"build:browser":
+			"browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk",
 		"postbuild:browser": "npm run build:browser:min",
-		"build:browser:min": "uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
+		"build:browser:min":
+			"uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
 		"build": "npm run build:node && npm run build:browser",
 		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check",
+		"prepublishOnly":
+			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check",
 		"prepublish:browser": "npm run prepublishOnly",
 		"publish:browser": "./scripts/publish_browser.sh",
 		"postpublish": "npm run publish:browser"

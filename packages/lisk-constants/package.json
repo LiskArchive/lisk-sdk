@@ -35,7 +35,8 @@
 		"prebuild": "rm -r dist || mkdir dist | echo",
 		"build": "babel src -d dist",
 		"build:check": "node -e \"require('./dist')\"",
-		"prepublishOnly": "rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
+		"prepublishOnly":
+			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
