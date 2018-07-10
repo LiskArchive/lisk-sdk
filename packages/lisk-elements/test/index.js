@@ -12,17 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from '../src';
+import {
+	APIClient,
+	constants,
+	cryptography,
+	passphrase,
+	transaction,
+} from '../src';
 
 describe('lisk-elements', () => {
-	const {
-		APIClient,
-		constants,
-		cryptography,
-		passphrase,
-		transaction,
-	} = elements;
-
 	it('APIClient should be a function', () => {
 		return expect(APIClient).to.be.a('function');
 	});
