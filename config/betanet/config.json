@@ -2,7 +2,6 @@
 	"wsPort": 5001,
 	"httpPort": 5000,
 	"fileLogLevel": "debug",
-	"consoleLogLevel": "error",
 	"db": {
 		"database": "lisk_beta"
 	},
