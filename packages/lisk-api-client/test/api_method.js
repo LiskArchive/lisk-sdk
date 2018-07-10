@@ -124,9 +124,7 @@ describe('API method module', () => {
 						return expect(resource.request).to.be.calledWithExactly(
 							{
 								method: POST,
-								url: `${defaultFullPath}/${firstURLParam}/ids/${
-									secondURLParam
-								}`,
+								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam}`,
 								headers: defaultHeaders,
 								data: {
 									needed: true,
@@ -186,9 +184,7 @@ describe('API method module', () => {
 						return expect(resource.request).to.be.calledWithExactly(
 							{
 								method: GET,
-								url: `${defaultFullPath}/${firstURLParam}/ids/${
-									secondURLParam
-								}?sort=id&needed=true`,
+								url: `${defaultFullPath}/${firstURLParam}/ids/${secondURLParam}?sort=id&needed=true`,
 								headers: defaultHeaders,
 							},
 							false,
