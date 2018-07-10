@@ -136,7 +136,7 @@ module.exports = function(configurations, networkParameters) {
 						network.enableForgingForDelegates(params.configurations, done);
 					});
 
-					// The expected connection becomes 180(new connection) + 18 (previously held connections)
+					// The expected connection becomes 'networkParameters.EXPECTED_OUTOGING_CONNECTIONS' + 18 previously held connections
 					it(`should be ${networkParameters.EXPECTED_OUTOGING_CONNECTIONS +
 						18} established connections from 500[0-9] ports`, done => {
 						utils.getEstablishedConnections(

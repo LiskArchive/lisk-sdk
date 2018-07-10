@@ -77,7 +77,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			if (err) {
 				return done(err);
 			}
-			// It should be less than 180, as nodes are just started and establishing the connections
+			// It should be less than 'networkParameters.EXPECTED_OUTOGING_CONNECTIONS', as nodes are just started and establishing the connections
 			if (numOfConnections <= networkParameters.EXPECTED_OUTOGING_CONNECTIONS) {
 				done();
 			} else {
