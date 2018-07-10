@@ -291,18 +291,6 @@ var liskFormats = {
 		}
 		return false;
 	},
-	/**
-	 * Transaction totalAmount, totalFee, reward.
-	 *
-	 * @param {Object} value
-	 * @returns {boolean}
-	 */
-	minAmount(value) {
-		if (value instanceof Bignum) {
-			return value.greaterThanOrEqualTo(0);
-		}
-		return false;
-	},
 };
 
 // Register the formats

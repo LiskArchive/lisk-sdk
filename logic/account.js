@@ -960,14 +960,14 @@ Account.prototype.schema = {
 		},
 		fees: {
 			type: 'object',
-			format: 'minAmount',
+			format: 'amount',
 		},
 		rank: {
 			type: 'integer',
 		},
 		rewards: {
 			type: 'object',
-			format: 'minAmount',
+			format: 'amount',
 		},
 		vote: {
 			type: 'integer',

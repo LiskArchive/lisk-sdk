@@ -338,15 +338,15 @@ Block.prototype.schema = {
 		},
 		totalAmount: {
 			type: 'object',
-			format: 'minAmount',
+			format: 'amount',
 		},
 		totalFee: {
 			type: 'object',
-			format: 'minAmount',
+			format: 'amount',
 		},
 		reward: {
 			type: 'object',
-			format: 'minAmount',
+			format: 'amount',
 		},
 		transactions: {
 			type: 'array',
