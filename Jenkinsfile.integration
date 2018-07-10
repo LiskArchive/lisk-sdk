@@ -11,22 +11,8 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-def report() {
-	if (currentBuild.result == 'FAILURE') {
-		def prBranch = ''
-		if (env.CHANGE_BRANCH != null) {
-			prBranch = " (${env.CHANGE_BRANCH})"
-		}
-		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${prBranch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-core-jenkins'
-	}
-}
 
-def statusFail() {
-	currentBuild.result = 'FAILURE'
-	error('Stopping build, build failed')
-	report()
-	cleanUp()
-}
+@Library('lisk-jenkins') _
 
 def cleanUp() {
 	sh '''
@@ -50,15 +36,15 @@ node('lisk-integration') {
 			try {
 				deleteDir()
 				checkout scm
-
-				sh '''
-					# Cycle postgres, install deps and prepare config
-					sudo service postgresql restart
-					rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/" || true
-					npm install
-				'''
+				// Cycle postgres, restore chache install deps and prepare config
+				sh 'sudo service postgresql restart'
+				cache_file = restoreCache("package.json")
+				sh 'npm install'
+				saveCache(cache_file, './node_modules', 7)
 			} catch (err) {
-				statusFail()
+				build_info = getBuildInfo()
+				liskSlackSend('danger', "Job ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)\n",'lisk-ci-core')
+				cleanUp()
 			}
 		}
 
@@ -74,14 +60,17 @@ node('lisk-integration') {
 					fi
 				'''
 			} catch (err) {
-				statusFail()
+				build_info = getBuildInfo()
+				liskSlackSend('danger', "Job ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)\n",'lisk-ci-core')
+				cleanUp()
 			}
 		}
 
 		stage('Set milestone') {
 			milestone 1
 			currentBuild.result = 'SUCCESS'
-			report()
+			build_info = getBuildInfo()
+			liskSlackSend('good', "Job ${build_info} was successful.",'lisk-ci-core')
 			cleanUp()
 		}
 	}
