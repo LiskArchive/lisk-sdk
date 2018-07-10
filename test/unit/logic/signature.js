@@ -90,7 +90,6 @@ var rawValidTransaction = {
 };
 
 describe('signature', () => {
-	var transactionMock;
 	var accountsMock;
 	var signature;
 	var dummyBlock;
@@ -100,7 +99,6 @@ describe('signature', () => {
 			id: '9314232245035524467',
 			height: 1,
 		};
-		transactionMock = sinonSandbox.mock({});
 		accountsMock = {
 			setAccountAndGet: sinonSandbox.mock().callsArg(1),
 		};
@@ -114,7 +112,6 @@ describe('signature', () => {
 	});
 
 	afterEach(() => {
-		transactionMock.restore();
 		return accountsMock.setAccountAndGet.reset();
 	});
 
