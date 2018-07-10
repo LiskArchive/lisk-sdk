@@ -46,13 +46,10 @@ SCWorker.create({
 				logger(cb) {
 					cb(
 						null,
-						createLogger(
-							{
-								level: config.fileLogLevel,
-								filename: config.logFileName,
-							},
-							'p2p-worker'
-						)
+						createLogger({
+							level: config.fileLogLevel,
+							filename: config.logFileName,
+						})
 					);
 				},
 
