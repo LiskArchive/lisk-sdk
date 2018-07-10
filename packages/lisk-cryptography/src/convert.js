@@ -26,16 +26,18 @@ export const bufferToBigNumberString = bigNumberBuffer =>
 export const bufferToHex = buffer => Buffer.from(buffer).toString('hex');
 
 const hexRegex = /^[0-9a-f]+/i;
-export const hexToBuffer = hex => {
+export const hexToBuffer = (hex, argumentName = 'Argument') => {
 	if (typeof hex !== 'string') {
-		throw new TypeError('Argument must be a string.');
+		throw new TypeError(`${argumentName} must be a string.`);
 	}
 	const matchedHex = (hex.match(hexRegex) || [])[0];
 	if (!matchedHex || matchedHex.length !== hex.length) {
-		throw new TypeError('Argument must be a valid hex string.');
+		throw new TypeError(`${argumentName} must be a valid hex string.`);
 	}
 	if (matchedHex.length % 2 !== 0) {
-		throw new TypeError('Argument must have a valid length of hex string.');
+		throw new TypeError(
+			`${argumentName} must have a valid length of hex string.`,
+		);
 	}
 	return Buffer.from(matchedHex, 'hex');
 };
@@ -82,7 +84,7 @@ export const stringifyEncryptedPassphrase = encryptedPassphrase => {
 				iv: encryptedPassphrase.iv,
 				tag: encryptedPassphrase.tag,
 				version: encryptedPassphrase.version,
-		  };
+			};
 	return querystring.stringify(objectToStringify);
 };
 

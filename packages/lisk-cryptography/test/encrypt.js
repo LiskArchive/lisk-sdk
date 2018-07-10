@@ -264,6 +264,50 @@ describe('encrypt', () => {
 				return expect(decrypted).to.be.equal(defaultPassphrase);
 			});
 
+			it('should inform the user if cipherText is missing', () => {
+				delete encryptedPassphrase.cipherText;
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						encryptedPassphrase,
+						defaultPassword,
+					),
+				).to.throw('Cipher text must be a string.');
+			});
+
+			it('should inform the user if iv is missing', () => {
+				delete encryptedPassphrase.iv;
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						encryptedPassphrase,
+						defaultPassword,
+					),
+				).to.throw('IV must be a string.');
+			});
+
+			it('should inform the user if salt is missing', () => {
+				delete encryptedPassphrase.salt;
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						encryptedPassphrase,
+						defaultPassword,
+					),
+				).to.throw('Salt must be a string.');
+			});
+
+			it('should inform the user if tag is missing', () => {
+				delete encryptedPassphrase.tag;
+				return expect(
+					decryptPassphraseWithPassword.bind(
+						null,
+						encryptedPassphrase,
+						defaultPassword,
+					),
+				).to.throw('Tag must be a string.');
+			});
+
 			it('should inform the user if the salt has been altered', () => {
 				encryptedPassphrase.salt = `00${encryptedPassphrase.salt.slice(2)}`;
 				return expect(
@@ -294,7 +338,7 @@ describe('encrypt', () => {
 						encryptedPassphrase,
 						defaultPassword,
 					),
-				).to.throw('Argument must be a valid hex string.');
+				).to.throw('Tag must be a valid hex string.');
 			});
 
 			it('should inform the user if the tag has been altered', () => {
