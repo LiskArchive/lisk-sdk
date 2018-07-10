@@ -160,7 +160,7 @@ describe('blocks/chain', () => {
 			applyUnconfirmed: sinonSandbox.stub(),
 			applyConfirmed: sinonSandbox.stub(),
 			receiveTransactions: sinonSandbox.stub(),
-			undo: sinonSandbox.stub(),
+			undoConfirmed: sinonSandbox.stub(),
 			undoUnconfirmed: sinonSandbox.stub(),
 			undoUnconfirmedList: sinonSandbox.stub(),
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
@@ -1284,7 +1284,7 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private.undoStep', () => {
+	describe('__private.undoConfirmedStep', () => {
 		let tx;
 		describe('when oldLastBlock.transactions is not empty', () => {
 			describe('when modules.accounts.getAccount fails', () => {
@@ -1298,7 +1298,7 @@ describe('blocks/chain', () => {
 
 				it('should reject promise with "getAccount-ERR"', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx
@@ -1313,13 +1313,13 @@ describe('blocks/chain', () => {
 			describe('when modules.accounts.getAccount succeeds', () => {
 				beforeEach(done => {
 					modules.accounts.getAccount.callsArgWith(1, null, '12ab');
-					modules.transactions.undo.callsArgWith(3, null, true);
+					modules.transactions.undoConfirmed.callsArgWith(3, null, true);
 					done();
 				});
 
 				it('should call modules.accounts.getAccount', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx
@@ -1330,22 +1330,22 @@ describe('blocks/chain', () => {
 						});
 				});
 
-				it('should call modules.transactions.undo', done => {
+				it('should call modules.transactions.undoConfirmed', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx
 						)
 						.then(() => {
-							expect(modules.transactions.undo.callCount).to.equal(1);
+							expect(modules.transactions.undoConfirmed.callCount).to.equal(1);
 							done();
 						});
 				});
 
 				it('should resolve the promise', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx

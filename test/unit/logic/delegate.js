@@ -955,9 +955,9 @@ describe('delegate', () => {
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		it('should call accounts.setAccountAndGet module with correct parameters', done => {
-			delegate.undo(transaction, dummyBlock, sender, () => {
+			delegate.undoConfirmed(transaction, dummyBlock, sender, () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,
@@ -976,7 +976,7 @@ describe('delegate', () => {
 			delete sender.username;
 			sender.nameexist = 0;
 
-			delegate.undo(transaction, dummyBlock, sender, () => {
+			delegate.undoConfirmed(transaction, dummyBlock, sender, () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,

@@ -526,7 +526,7 @@ describe('dapp', () => {
 			});
 		});
 
-		describe('undo', () => {
+		describe('undoConfirmed', () => {
 			describe('with vaid parameters', () => {
 				var dummyBlock = {
 					id: '9314232245035524467',
@@ -534,7 +534,7 @@ describe('dapp', () => {
 				};
 
 				it('should call the callback function', done => {
-					dapp.undo(transaction, dummyBlock, sender, done);
+					dapp.undoConfirmed(transaction, dummyBlock, sender, done);
 				});
 			});
 		});

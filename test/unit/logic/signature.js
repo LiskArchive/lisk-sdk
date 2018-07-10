@@ -332,9 +332,9 @@ describe('signature', () => {
 			});
 		});
 
-		describe('undo', () => {
+		describe('undoConfirmed', () => {
 			beforeEach(done => {
-				signature.undo(validTransaction, dummyBlock, sender, done);
+				signature.undoConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {

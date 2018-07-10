@@ -592,13 +592,13 @@ describe('vote', () => {
 		});
 	});
 
-	describe('undo', () => {
-		it('should undo remove votes for delegates', done => {
+	describe('undoConfirmed', () => {
+		it('should undoConfirmed remove votes for delegates', done => {
 			var transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.undo(validTransaction, dummyBlock, validSender, () => {
+			vote.undoConfirmed(validTransaction, dummyBlock, validSender, () => {
 				checkAccountVotes(
 					transaction.senderPublicKey,
 					'confirmed',
@@ -609,12 +609,12 @@ describe('vote', () => {
 			});
 		});
 
-		it('should undo add vote for delegate', done => {
+		it('should undoConfirmed add vote for delegate', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.undo(transaction, dummyBlock, validSender, () => {
+			vote.undoConfirmed(transaction, dummyBlock, validSender, () => {
 				checkAccountVotes(
 					transaction.senderPublicKey,
 					'confirmed',

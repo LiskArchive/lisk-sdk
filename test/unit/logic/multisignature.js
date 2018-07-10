@@ -641,12 +641,12 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
-			multisignature.undo(transaction, dummyBlock, sender, done);
+			multisignature.undoConfirmed(transaction, dummyBlock, sender, done);
 		});
 		/* eslint-enable */
 
@@ -687,9 +687,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with error', () => {
-				return multisignature.undo(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return multisignature.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
@@ -863,9 +868,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with error', () => {
-				return multisignature.undo(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return multisignature.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
