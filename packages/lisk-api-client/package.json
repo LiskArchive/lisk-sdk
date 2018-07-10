@@ -39,8 +39,8 @@
 			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"lisk-constants": "0.5.1",
-		"popsicle": "9.1.0"
+		"axios": "=0.18.0",
+		"lisk-constants": "0.5.1"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
