@@ -29,7 +29,7 @@ var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failure_codes');
 var Logger = require('./logger');
 var AppConfig = require('./helpers/config.js');
-var config = AppConfig(require('./package.json'));
+var config = AppConfig(require('./package.json'), false);
 
 /**
  * Instantiate the SocketCluster SCWorker instance with custom logic
