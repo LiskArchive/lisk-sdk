@@ -1012,8 +1012,6 @@ __private.expireTransactions = function(transactions, cb) {
 						modules.transactions.undoUnconfirmed(
 							transaction,
 							undoUnconfirmErr => {
-								// Remove transaction from unconfirmed, queued and multisignature lists
-								self.removeUnconfirmedTransaction(transaction.id);
 								if (undoUnconfirmErr) {
 									library.logger.error(
 										`Failed to undo unconfirmed transaction: ${transaction.id}`,
@@ -1021,6 +1019,13 @@ __private.expireTransactions = function(transactions, cb) {
 									);
 									return setImmediate(cb);
 								}
+								// Remove transaction from unconfirmed, queued and multisignature lists
+								self.removeUnconfirmedTransaction(transaction.id);
+								library.logger.info(
+									`Expired transaction: ${
+										transaction.id
+									} received at: ${transaction.receivedAt.toUTCString()}`
+								);
 							}
 						);
 					}
