@@ -65,6 +65,7 @@ class TransactionPool {
 				},
 				transactions: {
 					maxTransactionsPerQueue: config.transactions.maxTransactionsPerQueue,
+					expiryInterval: config.transactions.expiryInterval,
 				},
 			},
 			balancesSequence,
@@ -74,7 +75,7 @@ class TransactionPool {
 		self.bundled = { transactions: [], index: {} };
 		self.queued = { transactions: [], index: {} };
 		self.multisignature = { transactions: [], index: {} };
-		self.expiryInterval = 30000;
+		self.expiryInterval = library.config.transactions.expiryInterval;
 		self.bundledInterval = library.config.broadcasts.broadcastInterval;
 		self.bundleLimit = library.config.broadcasts.releaseLimit;
 		self.processed = 0;
@@ -992,29 +993,41 @@ __private.transactionTimeOut = function(transaction) {
  * @returns {SetImmediate} error, ids[]
  */
 __private.expireTransactions = function(transactions, cb) {
-	async.eachSeries(
-		transactions,
-		(transaction, eachSeriesCb) => {
-			if (!transaction) {
-				return setImmediate(eachSeriesCb);
-			}
+	library.balancesSequence.add(
+		balancesSequenceCb => {
+			async.eachSeries(
+				transactions,
+				(transaction, eachSeriesCb) => {
+					if (!transaction) {
+						return setImmediate(eachSeriesCb);
+					}
 
-			const timeNow = Math.floor(Date.now() / 1000);
-			const timeOut = __private.transactionTimeOut(transaction);
-			// transaction.receivedAt is instance of Date
-			const seconds =
-				timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+					const timeNow = Math.floor(Date.now() / 1000);
+					const timeOut = __private.transactionTimeOut(transaction);
+					// transaction.receivedAt is instance of Date
+					const seconds =
+						timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
 
-			if (seconds > timeOut) {
-				self.removeUnconfirmedTransaction(transaction.id);
-				library.logger.info(
-					`Expired transaction: ${
-						transaction.id
-					} received at: ${transaction.receivedAt.toUTCString()}`
-				);
-				return setImmediate(eachSeriesCb);
-			}
-			return setImmediate(eachSeriesCb);
+					if (seconds > timeOut) {
+						modules.transactions.undoUnconfirmed(
+							transaction,
+							undoUnconfirmErr => {
+								// Remove transaction from unconfirmed, queued and multisignature lists
+								self.removeUnconfirmedTransaction(transaction.id);
+								if (undoUnconfirmErr) {
+									library.logger.error(
+										`Failed to undo unconfirmed transaction: ${transaction.id}`,
+										undoUnconfirmErr
+									);
+									return setImmediate(cb);
+								}
+							}
+						);
+					}
+					return setImmediate(eachSeriesCb);
+				},
+				balancesSequenceCb
+			);
 		},
 		() => setImmediate(cb)
 	);
