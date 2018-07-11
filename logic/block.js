@@ -16,7 +16,7 @@
 
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
 
@@ -87,10 +87,10 @@ class Block {
 				return 1;
 			}
 			// Place depending on amount (lower first)
-			if (a.amount < b.amount) {
+			if (a.amount.lessThan(b.amount)) {
 				return -1;
 			}
-			if (a.amount > b.amount) {
+			if (a.amount.greaterThan(b.amount)) {
 				return 1;
 			}
 			return 0;
@@ -99,8 +99,8 @@ class Block {
 		const nextHeight = data.previousBlock ? data.previousBlock.height + 1 : 1;
 
 		const reward = __private.blockReward.calcReward(nextHeight);
-		let totalFee = 0;
-		let totalAmount = 0;
+		let totalFee = new Bignum(0);
+		let totalAmount = new Bignum(0);
 		let size = 0;
 
 		const blockTransactions = [];
@@ -116,8 +116,8 @@ class Block {
 
 			size += bytes.length;
 
-			totalFee += transaction.fee;
-			totalAmount += transaction.amount;
+			totalFee = totalFee.plus(transaction.fee);
+			totalAmount = totalAmount.plus(transaction.amount);
 
 			blockTransactions.push(transaction);
 			payloadHash.update(bytes);
@@ -273,7 +273,7 @@ __private.getAddressByPublicKey = function(publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	const address = `${bignum.fromBuffer(temp).toString()}L`;
+	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 	return address;
 };
 
@@ -337,16 +337,16 @@ Block.prototype.schema = {
 			type: 'integer',
 		},
 		totalAmount: {
-			type: 'integer',
-			minimum: 0,
+			type: 'object',
+			format: 'amount',
 		},
 		totalFee: {
-			type: 'integer',
-			minimum: 0,
+			type: 'object',
+			format: 'amount',
 		},
 		reward: {
-			type: 'integer',
-			minimum: 0,
+			type: 'object',
+			format: 'amount',
 		},
 		transactions: {
 			type: 'array',
@@ -402,7 +402,7 @@ Block.prototype.getBytes = function(block) {
 		byteBuffer.writeInt(block.timestamp);
 
 		if (block.previousBlock) {
-			const pb = new bignum(block.previousBlock).toBuffer({ size: '8' });
+			const pb = new Bignum(block.previousBlock).toBuffer({ size: '8' });
 
 			for (let i = 0; i < 8; i++) {
 				byteBuffer.writeByte(pb[i]);
@@ -414,9 +414,9 @@ Block.prototype.getBytes = function(block) {
 		}
 
 		byteBuffer.writeInt(block.numberOfTransactions);
-		byteBuffer.writeLong(block.totalAmount);
-		byteBuffer.writeLong(block.totalFee);
-		byteBuffer.writeLong(block.reward);
+		byteBuffer.writeLong(block.totalAmount.toString());
+		byteBuffer.writeLong(block.totalFee.toString());
+		byteBuffer.writeLong(block.reward.toString());
 
 		byteBuffer.writeInt(block.payloadLength);
 
@@ -466,18 +466,18 @@ Block.prototype.getId = function(block) {
 		temp[i] = hash[7 - i];
 	}
 
-	const id = new bignum.fromBuffer(temp).toString();
+	const id = new Bignum.fromBuffer(temp).toString();
 	return id;
 };
 
 /**
  * Returns send fees from constants.
  *
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return new Bignum(constants.fees.send);
 };
 
 /**
@@ -498,9 +498,9 @@ Block.prototype.dbRead = function(raw) {
 		height: parseInt(raw.b_height),
 		previousBlock: raw.b_previousBlock,
 		numberOfTransactions: parseInt(raw.b_numberOfTransactions),
-		totalAmount: parseInt(raw.b_totalAmount),
-		totalFee: parseInt(raw.b_totalFee),
-		reward: parseInt(raw.b_reward),
+		totalAmount: new Bignum(raw.b_totalAmount),
+		totalFee: new Bignum(raw.b_totalFee),
+		reward: new Bignum(raw.b_reward),
 		payloadLength: parseInt(raw.b_payloadLength),
 		payloadHash: raw.b_payloadHash,
 		generatorPublicKey: raw.b_generatorPublicKey,
@@ -508,9 +508,7 @@ Block.prototype.dbRead = function(raw) {
 		blockSignature: raw.b_blockSignature,
 		confirmations: parseInt(raw.b_confirmations),
 	};
-	block.totalForged = new bignum(block.totalFee)
-		.plus(new bignum(block.reward))
-		.toString();
+	block.totalForged = block.totalFee.plus(block.reward).toString();
 	return block;
 };
 

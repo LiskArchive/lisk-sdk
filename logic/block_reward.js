@@ -14,6 +14,8 @@
 
 'use strict';
 
+const Bignum = require('../helpers/bignum.js');
+
 const constants = global.constants;
 
 const __private = {};
@@ -63,35 +65,35 @@ class BlockReward {
 	 * Description of the function.
 	 *
 	 * @param {number} height
-	 * @returns {number}
+	 * @returns {Bignumber}
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcReward(height) {
 		height = __private.parseHeight(height);
 
 		if (height < this.rewardOffset) {
-			return 0;
+			return new Bignum(0);
 		}
-		return this.milestones[this.calcMilestone(height)];
+		return new Bignum(this.milestones[this.calcMilestone(height)]);
 	}
 
 	/**
 	 * Description of the function.
 	 *
 	 * @param {number} height
-	 * @returns {number}
+	 * @returns {Bignumber}
 	 * @todo Add description for the function, params and the return value
 	 */
 	calcSupply(height) {
 		height = __private.parseHeight(height);
+		const supply = new Bignum(constants.totalAmount);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
-			return constants.totalAmount;
+			return supply;
 		}
 
 		const milestone = this.calcMilestone(height);
-		let supply = constants.totalAmount;
 		const rewards = [];
 
 		let amount = 0;
@@ -125,7 +127,7 @@ class BlockReward {
 
 		for (let i = 0; i < rewards.length; i++) {
 			const reward = rewards[i];
-			supply += reward[0] * reward[1];
+			supply.plus(new Bignum(reward[0]).mul(reward[1]));
 		}
 
 		return supply;
