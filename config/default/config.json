@@ -77,7 +77,8 @@
 		"relayLimit": 3
 	},
 	"transactions": {
-		"maxTransactionsPerQueue": 1000
+		"maxTransactionsPerQueue": 1000,
+		"expiryInterval": 30000
 	},
 	"forging": {
 		"force": false,
