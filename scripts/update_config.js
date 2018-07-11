@@ -57,7 +57,7 @@ delete oldConfig.minVersion;
 
 // Rename old port to new wsPort
 oldConfig.httpPort = oldConfig.port;
-oldConfig.wsPort = oldConfig.httpPort + 1;
+oldConfig.wsPort = oldConfig.port + 1;
 delete oldConfig.port;
 
 oldConfig.db.max = oldConfig.db.poolSize;
@@ -74,7 +74,7 @@ delete oldConfig.dapp;
 
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
-	p.wsPort = p.port;
+	p.wsPort = p.port + 1;
 	delete p.port;
 	return p;
 });
@@ -86,7 +86,7 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 			output: process.stdout,
 		});
 		rl.question(
-			'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
+			'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
 			password => {
 				rl.close();
 				migrateSecrets(password);
@@ -110,11 +110,20 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 
 function migrateSecrets(password) {
 	oldConfig.forging.delegates = [];
-
-	if (!password.trim()) {
+	password = password.trim();
+	if (!password) {
 		console.info('\nSkipping the secret migration.');
 		delete oldConfig.forging.secret;
 		return;
+	}
+
+	if (password.length < 5) {
+		console.error(
+			`error: Password is too short (${
+				password.length
+			} characters), minimum 5 characters.`
+		);
+		process.exit(1);
 	}
 
 	console.info('\nMigrating your secrets...');
