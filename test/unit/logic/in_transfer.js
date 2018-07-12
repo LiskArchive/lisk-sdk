@@ -204,7 +204,7 @@ describe('inTransfer', () => {
 
 	describe('calculateFee', () => {
 		it('should return constants.fees.send', () => {
-			return expect(inTransfer.calculateFee(trs)).to.equal(constants.fees.send);
+			return expect(inTransfer.calculateFee(trs).equals(constants.fees.send));
 		});
 	});
 

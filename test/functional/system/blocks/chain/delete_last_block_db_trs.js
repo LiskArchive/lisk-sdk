@@ -20,6 +20,7 @@ const lisk = require('lisk-elements').default;
 const accountFixtures = require('../../../../fixtures/accounts');
 const randomUtil = require('../../../../common/utils/random');
 const localCommon = require('../../common');
+const Bignum = require('../../../../../helpers/bignum.js');
 
 describe('system test (blocks) - chain/popLastBlock', () => {
 	const transferAmount = 100000000 * 100;
@@ -61,8 +62,8 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: blockAccount1.address,
 		});
-		fundTrsForAccount1.amount = parseInt(fundTrsForAccount1.amount);
-		fundTrsForAccount1.fee = parseInt(fundTrsForAccount1.fee);
+		fundTrsForAccount1.amount = new Bignum(fundTrsForAccount1.amount);
+		fundTrsForAccount1.fee = new Bignum(fundTrsForAccount1.fee);
 		fundTrsForAccount1.senderId = accountFixtures.genesis.address;
 
 		localCommon.createValidBlock(library, [fundTrsForAccount1], (err, b) => {
@@ -142,7 +143,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 						.stub(library.logic.transaction.scope.account, 'merge')
 						.callThrough()
 						.withArgs(fundTrsForAccount1.senderId, {
-							u_balance: fundTrsForAccount1.amount + fundTrsForAccount1.fee,
+							u_balance: fundTrsForAccount1.amount.plus(fundTrsForAccount1.fee),
 						})
 						.callsArgWith(2, 'err');
 					done();

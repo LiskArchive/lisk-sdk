@@ -22,6 +22,7 @@ var randomUtil = require('../../../common/utils/random');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
+var Bignum = require('../../../../helpers/bignum.js');
 
 const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -373,7 +374,7 @@ describe('GET /api/votes', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				var account = randomUtil.account();
 				var creditTransaction = lisk.transaction.transfer({
-					amount: constants.fees.delegate + constants.fees.vote,
+					amount: new Bignum(constants.fees.delegate).plus(constants.fees.vote),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});

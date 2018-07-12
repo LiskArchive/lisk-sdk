@@ -15,7 +15,7 @@
 'use strict';
 
 var _ = require('lodash');
-var bignum = require('../../helpers/bignum.js');
+var Bignum = require('../../helpers/bignum.js');
 var swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
@@ -140,8 +140,8 @@ DelegatesController.getForgingStatistics = function(context, next) {
 			return next(err);
 		}
 
-		var forged = new bignum(reward.fees)
-			.plus(new bignum(reward.rewards))
+		var forged = new Bignum(reward.fees)
+			.plus(new Bignum(reward.rewards))
 			.toString();
 		var response = {
 			data: {
