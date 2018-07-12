@@ -58,7 +58,7 @@ describe('expire transaction', () => {
 			passphrase: accountsFixtures.genesis.passphrase,
 		});
 
-		localCommon.addTransactionToUnconfirmedQueue(library, [transaction], () => {
+		localCommon.addTransactionToUnconfirmedQueue(library, transaction, () => {
 			// Wait for transaction to get expired and
 			// undo the unconfirmed transaction, so that mem accounts
 			// balance is updated
