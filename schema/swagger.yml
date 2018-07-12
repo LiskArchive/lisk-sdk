@@ -91,8 +91,8 @@ tags:
   description: Votes related API calls
 
 schemes:
-  - http
   - https
+  - http
 
 paths:
   /accounts:
