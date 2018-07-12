@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 
@@ -26,23 +26,26 @@ describe('config:show', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig));
+	const setupStub = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig));
 
-	setupStub
-		.stdout()
-		.command(['config:show'])
-		.it('should call print with the user config', () => {
-			expect(print.default).to.be.called;
-			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
-		});
+	describe('config:show', () => {
+		setupStub()
+			.stdout()
+			.command(['config:show'])
+			.it('should call print with the user config', () => {
+				expect(print.default).to.be.called;
+				return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
+			});
 
-	setupStub
-		.stdout()
-		.command(['config:show', '--json', '--pretty'])
-		.it('should call print with json', () => {
-			expect(print.default).to.be.calledWith({ json: true, pretty: true });
-			return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
-		});
+		setupStub()
+			.stdout()
+			.command(['config:show', '--json', '--pretty'])
+			.it('should call print with json', () => {
+				expect(print.default).to.be.calledWith({ json: true, pretty: true });
+				return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
+			});
+	});
 });
