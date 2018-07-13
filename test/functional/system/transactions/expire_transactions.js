@@ -32,11 +32,21 @@ describe('expire transaction', () => {
 	const { expiryInterval } = __testContext.config.transactions;
 	const unconfirmedTransactionTimeOut =
 		global.constants.unconfirmedTransactionTimeOut;
+
+	const getSenderAddress = transaction =>
+		transaction.senderId ||
+		library.modules.accounts.generateAddressByPublicKey(
+			transaction.senderPublicKey
+		);
+	const setunconfirmedTransactionTimeOut = timeout => {
+		global.constants.unconfirmedTransactionTimeOut = timeout;
+	};
+
 	// override transaction expiryInterval and unconfirmedTransactionTimeOut
 	// to test undo unConfirmed expired transactions
 	before(done => {
 		__testContext.config.transactions.expiryInterval = 5000;
-		global.constants.unconfirmedTransactionTimeOut = 0;
+		setunconfirmedTransactionTimeOut(0);
 		done();
 	});
 
@@ -66,14 +76,6 @@ describe('expire transaction', () => {
 		});
 	});
 
-	afterEach('validate mem accounts snapshot', () => {
-		return queries.getAccounts().then(memAccountsSnapshotAfterUndo => {
-			const beforeResult = _.sortBy(memAccountsSnapshotBeforeUndo, ['address']);
-			const afterResult = _.sortBy(memAccountsSnapshotAfterUndo, ['address']);
-			expect(beforeResult).to.deep.equal(afterResult);
-		});
-	});
-
 	it('should expire transaction from multi-signature transaction list', done => {
 		const transaction = liskElements.transaction.registerMultisignature({
 			passphrase: multiSig.account.passphrase,
@@ -83,11 +85,7 @@ describe('expire transaction', () => {
 		});
 
 		// Get sender address
-		const address =
-			transaction.senderId ||
-			library.modules.accounts.generateAddressByPublicKey(
-				transaction.senderPublicKey
-			);
+		const address = getSenderAddress(transaction);
 
 		// Get multi-signature account created as part of
 		// transaction which is irreversible from mem account
@@ -112,6 +110,58 @@ describe('expire transaction', () => {
 			// undo the unconfirmed transaction, so that mem accounts
 			// balance is updated
 			setTimeout(done, 1000);
+		});
+	});
+
+	describe('unconfirmed transaction', () => {
+		it('should be applied on mem accounts before transaction is expired', done => {
+			// set unconfirmed transaction timeout to 10 seconds
+			// to ensure the transaction is not expired for the
+			// next 10 seconds
+			setunconfirmedTransactionTimeOut(10000);
+
+			const amount = randomUtil.number(100000000, 1000000000);
+			const transaction = liskElements.transaction.transfer({
+				recipientId: randomUtil.account().address,
+				amount,
+				passphrase: accountsFixtures.genesis.passphrase,
+			});
+
+			const address = getSenderAddress(transaction);
+
+			localCommon.addTransactionToUnconfirmedQueue(library, transaction, () => {
+				queries
+					.getAccounts()
+					.then(memAccountsSnapshotAfterUndo => {
+						const beforeAccountState = memAccountsSnapshotBeforeUndo.find(
+							account => account.address === address
+						);
+						const afterAccountState = memAccountsSnapshotAfterUndo.find(
+							account => account.address === address
+						);
+						expect(
+							new Bignum(afterAccountState.u_balance)
+								.plus(amount)
+								.equals(beforeAccountState.u_balance)
+						);
+						setunconfirmedTransactionTimeOut(0);
+						// Wait for transaction to get expired and
+						// undo the unconfirmed transaction, so that mem accounts
+						// balance is updated back
+						setTimeout(done, 10000);
+					})
+					.catch(err => {
+						done(err);
+					});
+			});
+		});
+	});
+
+	afterEach('validate mem accounts snapshot', () => {
+		return queries.getAccounts().then(memAccountsSnapshotAfterUndo => {
+			const beforeResult = _.sortBy(memAccountsSnapshotBeforeUndo, ['address']);
+			const afterResult = _.sortBy(memAccountsSnapshotAfterUndo, ['address']);
+			expect(beforeResult).to.deep.equal(afterResult);
 		});
 	});
 
