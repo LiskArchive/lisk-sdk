@@ -62,7 +62,7 @@ const transaction = lisk.transaction.transfer({
 	passphrase: 'robust swift grocery peasant forget share enable convince deputy road keep cheap',
 });
 
-const client = lisk.APIClient.createTestnetClient();
+const client = lisk.APIClient.createTestnetAPIClient();
 
 client.transactions.broadcast(transaction)
 	.then(console.info)
