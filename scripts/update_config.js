@@ -127,7 +127,6 @@ function migrateSecrets(password) {
 	}
 
 	console.info('\nMigrating your secrets...');
-	oldConfig.forging.defaultPassword = password;
 	oldConfig.forging.secret.forEach(secret => {
 		console.info('.......');
 		oldConfig.forging.delegates.push({
