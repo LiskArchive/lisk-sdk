@@ -23,12 +23,12 @@ import { ValidationError } from '../../src/utils/error';
 
 describe('helpers utils', () => {
 	describe('#validateLifetime', () => {
-		it('should return true', () => {
+		it('should return true for a valid lifetime', () => {
 			const result = validateLifetime('1234567890');
 			return expect(result).to.be.true;
 		});
 
-		it('should throw validation error whith NaN', () => {
+		it('should throw validation error with NaN', () => {
 			return expect(validateLifetime.bind(null, 'NaN'))
 				.to.throw()
 				.and.be.customError(
@@ -46,12 +46,12 @@ describe('helpers utils', () => {
 	});
 
 	describe('#validateMinimum', () => {
-		it('should return true', () => {
+		it('should return true for a valid minimum number of signatures', () => {
 			const result = validateMinimum('1234567890');
 			return expect(result).to.be.true;
 		});
 
-		it('should throw validation error whith NaN', () => {
+		it('should throw validation error with NaN', () => {
 			return expect(validateMinimum.bind(null, 'NaN'))
 				.to.throw()
 				.and.be.customError(
@@ -61,7 +61,7 @@ describe('helpers utils', () => {
 				);
 		});
 
-		it('should throw validation error with decimals', () => {
+		it('should throw validation error with too many decimals', () => {
 			return expect(validateMinimum.bind(null, '123.4'))
 				.to.throw()
 				.and.be.customError(
@@ -73,12 +73,12 @@ describe('helpers utils', () => {
 	});
 
 	describe('#validateAmount', () => {
-		it('should return true', () => {
+		it('should return true for a valid amount', () => {
 			const result = validateAmount('100.123');
 			return expect(result).to.be.true;
 		});
 
-		it('should throw validation error whith abcedf', () => {
+		it('should throw validation error with abcedf', () => {
 			return expect(validateAmount.bind(null, 'abcedf'))
 				.to.throw()
 				.and.be.customError(

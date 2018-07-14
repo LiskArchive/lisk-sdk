@@ -21,31 +21,32 @@ const inputUtils = require('../../../src/utils/input/utils');
 
 describe('input utils', () => {
 	describe('#getFirstLineFromString', () => {
-		it('should returns null when it is not string', () => {
+		it('should return null when input is not a string', () => {
 			return expect(getFirstLineFromString({})).to.be.null;
 		});
 
-		it('should returns first line of string', () => {
+		it('should return first line of string', () => {
+			const firstline = 'This is some text';
+			return expect(getFirstLineFromString(firstline)).to.equal(firstline);
+		});
+
+		it('should return first line of string with delimiter', () => {
 			const multiline = 'This is some text\nthat spans\nmultiple lines';
 			const firstline = 'This is some text';
 			return expect(getFirstLineFromString(multiline)).to.equal(firstline);
 		});
 	});
-	describe('#getInputsFromSources', () => {
-		let getStdinStub;
-		let getPassphraseStub;
-		let getDataStub;
 
+	describe('#getInputsFromSources', () => {
 		beforeEach(() => {
-			getStdinStub = sandbox.stub(inputUtils, 'getStdIn').resolves({
+			sandbox.stub(inputUtils, 'getStdIn').resolves({
 				passphrase: null,
 				password: null,
 				secondPassphrase: null,
 				data: null,
 			});
-			getPassphraseStub = sandbox.stub(inputUtils, 'getPassphrase');
-			getDataStub = sandbox.stub(inputUtils, 'getData');
-			return Promise.resolve();
+			sandbox.stub(inputUtils, 'getPassphrase');
+			return sandbox.stub(inputUtils, 'getData');
 		});
 
 		describe('get passphrase', async () => {
@@ -58,7 +59,7 @@ describe('input utils', () => {
 
 			it('should call getPassphrase when std is not used', async () => {
 				await getInputsFromSources(inputs);
-				return expect(getPassphraseStub).to.be.calledWithExactly(
+				return expect(inputUtils.getPassphrase).to.be.calledWithExactly(
 					inputs.passphrase.source,
 					{ shouldRepeat: true },
 				);
@@ -66,17 +67,17 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'some passphrase';
-				getStdinStub.resolves({
+				inputUtils.getStdIn.resolves({
 					passphrase: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.passphrase).to.equal(stdin);
 			});
 
 			it('should resolve to null when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.passphrase).to.be.null;
 			});
 		});
@@ -91,7 +92,7 @@ describe('input utils', () => {
 
 			it('should call getPassphrase when std is not used', async () => {
 				await getInputsFromSources(inputs);
-				return expect(getPassphraseStub).to.be.calledWithExactly(
+				return expect(inputUtils.getPassphrase).to.be.calledWithExactly(
 					inputs.secondPassphrase.source,
 					{
 						displayName: 'your second secret passphrase',
@@ -102,17 +103,17 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'some passphrase';
-				getStdinStub.resolves({
+				inputUtils.getStdIn.resolves({
 					secondPassphrase: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.secondPassphrase).to.equal(stdin);
 			});
 
 			it('should resolve to null when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.secondPassphrase).to.be.null;
 			});
 		});
@@ -127,7 +128,7 @@ describe('input utils', () => {
 
 			it('should call getPassphrase when std is not used', async () => {
 				await getInputsFromSources(inputs);
-				return expect(getPassphraseStub).to.be.calledWithExactly(
+				return expect(inputUtils.getPassphrase).to.be.calledWithExactly(
 					inputs.password.source,
 					{
 						displayName: 'your password',
@@ -138,17 +139,17 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'some password';
-				getStdinStub.resolves({
+				inputUtils.getStdIn.resolves({
 					password: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.password).to.equal(stdin);
 			});
 
 			it('should resolve to null when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.password).to.be.null;
 			});
 		});
@@ -162,24 +163,26 @@ describe('input utils', () => {
 
 			it('should call getData when std is not used', async () => {
 				await getInputsFromSources(inputs);
-				expect(getPassphraseStub).not.to.be.called;
-				return expect(getDataStub).to.be.calledWithExactly(inputs.data.source);
+				expect(inputUtils.getPassphrase).not.to.be.called;
+				return expect(inputUtils.getData).to.be.calledWithExactly(
+					inputs.data.source,
+				);
 			});
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'random data';
-				getStdinStub.resolves({
+				inputUtils.getStdIn.resolves({
 					data: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
-				expect(getDataStub).not.to.be.called;
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getData).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.data).to.equal(stdin);
 			});
 
 			it('should resolve to null when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
-				expect(getPassphraseStub).not.to.be.called;
+				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.password).to.be.null;
 			});
 		});

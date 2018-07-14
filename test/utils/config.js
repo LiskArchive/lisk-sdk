@@ -28,102 +28,96 @@ describe('config utils', () => {
 
 	const defaultPath = `${os.homedir()}/${configDirName}`;
 
-	let writeJSONStub;
-	let warnStub;
-	let errorStub;
-	let processStub;
-
 	beforeEach(() => {
-		writeJSONStub = sandbox.stub(fsUtils, 'writeJSONSync');
-		warnStub = sandbox.stub(logger, 'warn');
-		errorStub = sandbox.stub(logger, 'error');
-		processStub = sandbox.stub(process, 'exit');
+		sandbox.stub(fsUtils, 'writeJSONSync');
+		sandbox.stub(logger, 'error');
+		sandbox.stub(process, 'exit');
 		return Promise.resolve();
 	});
 
 	describe('#getConfig', () => {
-		let existsSyncStub;
-		let mkdirSyncStub;
-		let readJSONStub;
-
 		beforeEach(() => {
-			existsSyncStub = sandbox.stub(fs, 'existsSync');
-			mkdirSyncStub = sandbox.stub(fs, 'mkdirSync');
-			readJSONStub = sandbox
-				.stub(fsUtils, 'readJSONSync')
-				.returns(defaultConfig);
+			sandbox.stub(fs, 'existsSync');
+			sandbox.stub(fs, 'mkdirSync');
+			sandbox.stub(fsUtils, 'readJSONSync').returns(defaultConfig);
 			return Promise.resolve();
 		});
 
 		describe('when config folder does not exist', () => {
 			beforeEach(() => {
-				return existsSyncStub.returns(false);
+				return fs.existsSync.returns(false);
 			});
 
 			it('should create config folder', () => {
 				getConfig(defaultPath);
-				return expect(mkdirSyncStub).to.be.calledWithExactly(defaultPath);
+				return expect(fs.mkdirSync).to.be.calledWithExactly(defaultPath);
 			});
 
-			it('should log warn when it fails to write', () => {
-				mkdirSyncStub.throws(new Error('failed to create folder'));
+			it('should log error when it fails to write', () => {
+				fs.mkdirSync.throws(new Error('failed to create folder'));
 				getConfig(defaultPath);
-				return expect(warnStub).to.be.calledWithExactly(
-					`WARNING: Could not write to \`${defaultPath}\`. Your configuration will not be persisted.`,
+				expect(process.exit).to.be.calledWithExactly(1);
+				return expect(logger.error).to.be.calledWithExactly(
+					`ERROR: Could not write to \`${defaultPath}\`. Your configuration will not be persisted.`,
 				);
 			});
 		});
 
-		describe('when config file does not exist', () => {
+		describe('when only the config directory exists', () => {
 			beforeEach(() => {
-				return existsSyncStub.withArgs(defaultPath).returns(true);
+				return fs.existsSync.withArgs(defaultPath).returns(true);
 			});
 
 			it('should create and return the default config', () => {
 				const result = getConfig(defaultPath);
-				expect(writeJSONStub).to.be.calledWithExactly(
+				expect(fsUtils.writeJSONSync).to.be.calledWithExactly(
 					`${defaultPath}/${configFileName}`,
 					defaultConfig,
 				);
 				return expect(result).to.be.equal(defaultConfig);
 			});
 
-			it('should log warn when it fails to write', () => {
-				writeJSONStub.throws(new Error('failed to write to the file'));
+			it('should log error when it fails to write', () => {
+				fsUtils.writeJSONSync.throws(new Error('failed to write to the file'));
 				getConfig(defaultPath);
-				return expect(warnStub).to.be.calledWithExactly(
-					`WARNING: Could not write to \`${defaultPath}/${configFileName}\`. Your configuration will not be persisted.`,
+				expect(process.exit).to.be.calledWithExactly(1);
+				return expect(logger.error).to.be.calledWithExactly(
+					`ERROR: Could not write to \`${defaultPath}/${configFileName}\`. Your configuration will not be persisted.`,
 				);
 			});
 		});
 
 		describe('when config file exists', () => {
 			beforeEach(() => {
-				return existsSyncStub.returns(true);
+				return fs.existsSync.returns(true);
 			});
 
-			it('should create and return the default config', () => {
+			it('should return the custom config when its valid', () => {
+				const customConfig = Object.assign({}, defaultConfig, {
+					name: 'custom config',
+				});
+				fsUtils.readJSONSync.returns(customConfig);
 				const result = getConfig(defaultPath);
-				expect(readJSONStub).to.be.calledWithExactly(
+				expect(fsUtils.readJSONSync).to.be.calledWithExactly(
 					`${defaultPath}/${configFileName}`,
 				);
-				return expect(result).to.be.equal(defaultConfig);
+				return expect(result).to.be.equal(customConfig);
 			});
 
-			it('should log error when it fails to read and exit', () => {
-				readJSONStub.throws(new Error('failed to read to the file'));
+			it('should log error and exit when it fails to read', () => {
+				fsUtils.readJSONSync.throws(new Error('failed to read to the file'));
 				getConfig(defaultPath);
-				expect(processStub).to.be.calledWithExactly(1);
-				return expect(errorStub).to.be.calledWithExactly(
+				expect(process.exit).to.be.calledWithExactly(1);
+				return expect(logger.error).to.be.calledWithExactly(
 					`Config file cannot be read or is not valid JSON. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
 
-			it('should log error when it has invalid keys and exit', () => {
-				readJSONStub.returns({ random: 'values' });
+			it('should log error and exit when it has invalid keys', () => {
+				fsUtils.readJSONSync.returns({ random: 'values' });
 				getConfig(defaultPath);
-				expect(processStub).to.be.calledWithExactly(1);
-				return expect(errorStub).to.be.calledWithExactly(
+				expect(process.exit).to.be.calledWithExactly(1);
+				return expect(logger.error).to.be.calledWithExactly(
 					`Config file seems to be corrupted: missing required keys. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
@@ -136,23 +130,19 @@ describe('config utils', () => {
 			some: 'value',
 		};
 
-		let checkSyncStub;
-		let lockSyncStub;
-		let unlockSyncStub;
-
 		beforeEach(() => {
-			checkSyncStub = sandbox.stub(lockfile, 'checkSync');
-			lockSyncStub = sandbox.stub(lockfile, 'lockSync');
-			unlockSyncStub = sandbox.stub(lockfile, 'unlockSync');
+			sandbox.stub(lockfile, 'checkSync');
+			sandbox.stub(lockfile, 'lockSync');
+			sandbox.stub(lockfile, 'unlockSync');
 			return Promise.resolve();
 		});
 
 		describe('when lockfile exists', () => {
 			it('should log error and exit', () => {
-				checkSyncStub.returns(true);
+				lockfile.checkSync.returns(true);
 				setConfig(defaultPath, newConfigValue);
-				expect(processStub).to.be.calledWithExactly(1);
-				return expect(errorStub).to.be.calledWithExactly(
+				expect(process.exit).to.be.calledWithExactly(1);
+				return expect(logger.error).to.be.calledWithExactly(
 					`Config lockfile at ${defaultPath}/${lockfileName} found. Are you running Lisk Commander in another process?`,
 				);
 			});
@@ -160,34 +150,34 @@ describe('config utils', () => {
 
 		describe('when lockfile does not exist', () => {
 			beforeEach(() => {
-				return checkSyncStub.returns(false);
+				return lockfile.checkSync.returns(false);
 			});
 
 			it('should write new config to defined file', () => {
 				const result = setConfig(defaultPath, newConfigValue);
-				expect(writeJSONStub).to.be.calledWithExactly(
+				expect(fsUtils.writeJSONSync).to.be.calledWithExactly(
 					`${defaultPath}/${configFileName}`,
 					newConfigValue,
 				);
 				return expect(result).to.be.true;
 			});
 
-			it('should create lock file once', () => {
+			it('should create lock file', () => {
 				setConfig(defaultPath, newConfigValue);
-				return expect(lockSyncStub).to.be.calledWithExactly(
+				return expect(lockfile.lockSync).to.be.calledWithExactly(
 					`${defaultPath}/${lockfileName}`,
 				);
 			});
 
-			it('should unlock file once', () => {
+			it('should unlock file', () => {
 				setConfig(defaultPath, newConfigValue);
-				return expect(unlockSyncStub).to.be.calledWithExactly(
+				return expect(lockfile.unlockSync).to.be.calledWithExactly(
 					`${defaultPath}/${lockfileName}`,
 				);
 			});
 
-			it('should log warn if fail to write', () => {
-				writeJSONStub.throws(new Error('failed to write to the file'));
+			it('should log error if fail to write', () => {
+				fsUtils.writeJSONSync.throws(new Error('failed to write to the file'));
 				const result = setConfig(defaultPath, newConfigValue);
 				return expect(result).to.be.false;
 			});

@@ -34,87 +34,91 @@ describe('crypto utils', () => {
 	});
 
 	describe('#encryptMessage', () => {
-		let result;
-		let cryptoStub;
+		const result = {
+			result: 'result',
+		};
+		const input = {
+			message: 'msg',
+			passphrase: 'random-passphrase',
+			recipient: 'recipient',
+		};
+
 		beforeEach(() => {
-			result = {
-				result: 'result',
-			};
-			cryptoStub = sandbox
+			sandbox
 				.stub(elements.default.cryptography, 'encryptMessageWithPassphrase')
 				.returns(result);
-			return Promise.resolve(true);
+			return Promise.resolve();
 		});
 
 		it('should call encryptMessageWithPassphrase', () => {
-			const input = {
-				message: 'msg',
-				passphrase: 'random-passphrase',
-				recipient: 'recipient',
-			};
-			const encryptedMessage = crypto.encryptMessage(input);
-
-			expect(encryptedMessage).to.equal(result);
-			return expect(cryptoStub).to.be.calledWithExactly(
+			crypto.encryptMessage(input);
+			return expect(
+				elements.default.cryptography.encryptMessageWithPassphrase,
+			).to.be.calledWithExactly(
 				input.message,
 				input.passphrase,
 				input.recipient,
 			);
 		});
+
+		it('message should be equal to the result of encryptMessageWithPassphrase', () => {
+			const encryptedMessage = crypto.encryptMessage(input);
+			return expect(encryptedMessage).to.equal(result);
+		});
 	});
 
 	describe('#decryptMessage', () => {
-		let result;
-		let cryptoStub;
+		const result = 'message';
+		const input = {
+			cipher: 'cipher',
+			nonce: 'nonce',
+			passphrase: 'random-passphrase',
+			senderPublicKey: 'recipient',
+		};
+
 		beforeEach(() => {
-			result = 'message';
-			cryptoStub = sandbox
+			sandbox
 				.stub(elements.default.cryptography, 'decryptMessageWithPassphrase')
 				.returns(result);
-			return Promise.resolve(true);
+			return Promise.resolve();
 		});
 
 		it('should call decryptMessageWithPassphrase', () => {
-			const input = {
-				cipher: 'cipher',
-				nonce: 'nonce',
-				passphrase: 'random-passphrase',
-				senderPublicKey: 'recipient',
-			};
-			const decryptedMessage = crypto.decryptMessage(input);
-
-			expect(decryptedMessage.message).to.equal(result);
-			return expect(cryptoStub).to.be.calledWithExactly(
+			crypto.decryptMessage(input);
+			return expect(
+				elements.default.cryptography.decryptMessageWithPassphrase,
+			).to.be.calledWithExactly(
 				input.cipher,
 				input.nonce,
 				input.passphrase,
 				input.senderPublicKey,
 			);
 		});
+
+		it('message should be equal to the result of the decryptMessageWithPassphrase', () => {
+			const decryptedMessage = crypto.decryptMessage(input);
+			return expect(decryptedMessage.message).to.equal(result);
+		});
 	});
 
 	describe('#encryptPassphrase', () => {
-		let result;
-		let passphraseObject;
-		let encryptPassphraseStub;
-		let stringifyPassphraseStub;
+		const result = 'encryptedPassphrase';
+		const passphraseObject = {
+			iterations: 1,
+			cipherText: 'cipher',
+			iv: 'iv',
+			salt: 'salt',
+			tag: 'tag',
+			version: '1',
+		};
+
 		beforeEach(() => {
-			result = 'encryptedPassphrase';
-			passphraseObject = {
-				iterations: 1,
-				cipherText: 'cipher',
-				iv: 'iv',
-				salt: 'salt',
-				tag: 'tag',
-				version: '1',
-			};
-			encryptPassphraseStub = sandbox
+			sandbox
 				.stub(elements.default.cryptography, 'encryptPassphraseWithPassword')
 				.returns(passphraseObject);
-			stringifyPassphraseStub = sandbox
+			return sandbox
 				.stub(elements.default.cryptography, 'stringifyEncryptedPassphrase')
 				.returns(result);
-			return Promise.resolve(true);
 		});
 
 		it('should call encryptPassphrase', () => {
@@ -125,148 +129,158 @@ describe('crypto utils', () => {
 			const encryptedPassphrase = crypto.encryptPassphrase(input);
 
 			expect(encryptedPassphrase.encryptedPassphrase).to.equal(result);
-			expect(encryptPassphraseStub).to.be.calledWithExactly(
-				input.passphrase,
-				input.password,
-			);
-			return expect(stringifyPassphraseStub).to.be.calledWithExactly(
-				passphraseObject,
-			);
+			expect(
+				elements.default.cryptography.encryptPassphraseWithPassword,
+			).to.be.calledWithExactly(input.passphrase, input.password);
+			return expect(
+				elements.default.cryptography.stringifyEncryptedPassphrase,
+			).to.be.calledWithExactly(passphraseObject);
 		});
 	});
 
 	describe('#decryptPassphrase', () => {
-		let result;
-		let passphraseObject;
-		let parseEncryptedPassphraseStub;
-		let decryptPassphraseStub;
+		const result = 'passphrase';
+		const passphraseObject = {
+			iterations: 1,
+			cipherText: 'cipher',
+			iv: 'iv',
+			salt: 'salt',
+			tag: 'tag',
+			version: '1',
+		};
+		const input = {
+			encryptedPassphrase: 'random-passphrase',
+			password: 'password',
+		};
+
 		beforeEach(() => {
-			result = 'passphrase';
-			passphraseObject = {
-				iterations: 1,
-				cipherText: 'cipher',
-				iv: 'iv',
-				salt: 'salt',
-				tag: 'tag',
-				version: '1',
-			};
-			parseEncryptedPassphraseStub = sandbox
+			sandbox
 				.stub(elements.default.cryptography, 'parseEncryptedPassphrase')
 				.returns(passphraseObject);
-			decryptPassphraseStub = sandbox
+			return sandbox
 				.stub(elements.default.cryptography, 'decryptPassphraseWithPassword')
 				.returns(result);
-			return Promise.resolve(true);
 		});
 
-		it('should call decryptPassphrase', () => {
-			const input = {
-				encryptedPassphrase: 'random-passphrase',
-				password: 'password',
-			};
+		it('passphrase should equal to the result of decryptPassphraseWithPassword', () => {
 			const decryptedPassphrase = crypto.decryptPassphrase(input);
+			return expect(decryptedPassphrase.passphrase).to.equal(result);
+		});
 
-			expect(decryptedPassphrase.passphrase).to.equal(result);
-			expect(parseEncryptedPassphraseStub).to.be.calledWithExactly(
-				input.encryptedPassphrase,
-			);
-			return expect(decryptPassphraseStub).to.be.calledWithExactly(
-				passphraseObject,
-				input.password,
-			);
+		it('should call parseEncryptedPassphrase', () => {
+			crypto.decryptPassphrase(input);
+			return expect(
+				elements.default.cryptography.parseEncryptedPassphrase,
+			).to.be.calledWithExactly(input.encryptedPassphrase);
+		});
+
+		it('should call decryptPassphraseWithPassword', () => {
+			crypto.decryptPassphrase(input);
+			return expect(
+				elements.default.cryptography.decryptPassphraseWithPassword,
+			).to.be.calledWithExactly(passphraseObject, input.password);
 		});
 	});
 
 	describe('#getKeys', () => {
-		let result;
-		let cryptoStub;
+		const result = {
+			publicKey: 'publicKey',
+			privateKey: 'privateKey',
+		};
+		const input = 'passphrase';
+
 		beforeEach(() => {
-			result = {
-				publicKey: 'publicKey',
-				privateKey: 'privateKey',
-			};
-			cryptoStub = sandbox
+			return sandbox
 				.stub(elements.default.cryptography, 'getKeys')
 				.returns(result);
-			return Promise.resolve(true);
+		});
+
+		it('keys should equal to the result of getKeys', () => {
+			const keys = crypto.getKeys(input);
+			return expect(keys).to.equal(result);
 		});
 
 		it('should call getKeys', () => {
-			const input = 'passphrase';
-			const keys = crypto.getKeys(input);
-
-			expect(keys).to.equal(result);
-			return expect(cryptoStub).to.be.calledWithExactly(input);
+			crypto.getKeys(input);
+			return expect(
+				elements.default.cryptography.getKeys,
+			).to.be.calledWithExactly(input);
 		});
 	});
 
 	describe('#getAddressFromPublicKey', () => {
-		let result;
-		let cryptoStub;
+		const result = 'address';
+		const input = 'publicKey';
+
 		beforeEach(() => {
-			result = 'address';
-			cryptoStub = sandbox
+			return sandbox
 				.stub(elements.default.cryptography, 'getAddressFromPublicKey')
 				.returns(result);
-			return Promise.resolve(true);
+		});
+
+		it('address should equal to the result of getAddressFromPublicKey', () => {
+			const addressObject = crypto.getAddressFromPublicKey(input);
+			return expect(addressObject.address).to.equal(result);
 		});
 
 		it('should call getAddressFromPublicKey', () => {
-			const input = 'publicKey';
-			const addressObject = crypto.getAddressFromPublicKey(input);
-
-			expect(addressObject.address).to.equal(result);
-			return expect(cryptoStub).to.be.calledWithExactly(input);
+			crypto.getAddressFromPublicKey(input);
+			return expect(
+				elements.default.cryptography.getAddressFromPublicKey,
+			).to.be.calledWithExactly(input);
 		});
 	});
 
 	describe('#signMessage', () => {
-		let result;
-		let cryptoStub;
+		const result = 'signedMessage';
+		const input = {
+			message: 'message',
+			passphrase: 'passphrase',
+		};
+
 		beforeEach(() => {
-			result = 'signedMessage';
-			cryptoStub = sandbox
+			return sandbox
 				.stub(elements.default.cryptography, 'signMessageWithPassphrase')
 				.returns(result);
-			return Promise.resolve(true);
+		});
+
+		it('singed message should equal to the result of signMessageWithPassphrase', () => {
+			const signedMessage = crypto.signMessage(input);
+			return expect(signedMessage).to.equal(result);
 		});
 
 		it('should call signMessageWithPassphrase', () => {
-			const input = {
-				message: 'message',
-				passphrase: 'passphrase',
-			};
-			const signedMessage = crypto.signMessage(input);
-
-			expect(signedMessage).to.equal(result);
-			return expect(cryptoStub).to.be.calledWithExactly(
-				input.message,
-				input.passphrase,
-			);
+			crypto.signMessage(input);
+			return expect(
+				elements.default.cryptography.signMessageWithPassphrase,
+			).to.be.calledWithExactly(input.message, input.passphrase);
 		});
 	});
 
 	describe('#verifyMessage', () => {
-		let result;
-		let cryptoStub;
+		const result = true;
+		const input = {
+			publicKey: 'publicKey',
+			signature: 'signature',
+			message: 'message',
+		};
+
 		beforeEach(() => {
-			result = true;
-			cryptoStub = sandbox
+			return sandbox
 				.stub(elements.default.cryptography, 'verifyMessageWithPublicKey')
 				.returns(result);
-			return Promise.resolve(true);
+		});
+
+		it('verified should equal to the result of verifyMessageWithPublicKey', () => {
+			const verifiedResult = crypto.verifyMessage(input);
+			return expect(verifiedResult.verified).to.equal(result);
 		});
 
 		it('should call verifyMessageWithPublicKey', () => {
-			const input = {
-				publicKey: 'publicKey',
-				signature: 'signature',
-				message: 'message',
-			};
-			const verifiedResult = crypto.verifyMessage(input);
-
-			expect(verifiedResult.verified).to.equal(result);
-			return expect(cryptoStub).to.be.calledWithExactly(input);
+			crypto.verifyMessage(input);
+			return expect(
+				elements.default.cryptography.verifyMessageWithPublicKey,
+			).to.be.calledWithExactly(input);
 		});
 	});
 });

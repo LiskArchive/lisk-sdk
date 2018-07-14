@@ -26,7 +26,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('a non-empty object', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = {
 				lisk: 'js',
 				version: 1,
@@ -39,7 +39,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('a nested object', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = {
 				root: 'value',
 				nested: {
@@ -55,12 +55,7 @@ describe('tablify utils', () => {
 			return Object.entries(printValue).forEach(([key, value], arrayKey) => {
 				const strValue =
 					typeof value === 'object' && value !== null
-						? Object.entries(value)
-								.map(
-									([vKey, vValue]) =>
-										`${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
-								)
-								.join('\n')
+						? objectToKeyValueString(value)
 						: value;
 				expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
 			});
@@ -68,7 +63,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('a deeply nested object', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = {
 				root: 'value',
 				nullObject: null,
@@ -101,7 +96,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('a cyclic object', () => {
-		it('should thrown an error', () => {
+		it('should throw an error', () => {
 			const printValue = {
 				root: 'value',
 				nested: {
@@ -119,7 +114,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('an array of objects with the same keys', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = [
 				{
 					lisk: 'js',
@@ -146,7 +141,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('an array of objects with divergent keys', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = [
 				{
 					lisk: 'js',
@@ -173,7 +168,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('an object with an array of objects', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = {
 				root: 'value',
 				objectArray: [{ sample: 1 }, { sample: 2 }],
@@ -195,7 +190,7 @@ describe('tablify utils', () => {
 	});
 
 	describe('an array of objects with nested keys', () => {
-		it('should have the matching rows', () => {
+		it('should have the corresponding rows', () => {
 			const printValue = [
 				{
 					lisk: 'js',

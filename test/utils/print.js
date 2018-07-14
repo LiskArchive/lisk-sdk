@@ -34,14 +34,16 @@ describe('print utils', () => {
 	];
 
 	const tablifyResult = 'tablify-result';
-	let tablifyStub;
+	const stringifyResult =
+		'[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awsome"}]';
+
 	beforeEach(() => {
-		tablifyStub = sandbox.stub(tablify, 'default').returns(tablifyResult);
-		sandbox.stub(JSON, 'stringify');
+		sandbox.stub(tablify, 'default').returns(tablifyResult);
+		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
 		return Promise.resolve();
 	});
 
-	describe('when json and pretty is false', () => {
+	describe('when json and pretty are false', () => {
 		let printer;
 		beforeEach(() => {
 			printer = print();
@@ -51,23 +53,21 @@ describe('print utils', () => {
 		describe('when result is array', () => {
 			it('should call tablify with the ANSI', () => {
 				printer(arrayToPrint);
-				return expect(tablifyStub).to.be.calledWithExactly(arrayToPrint);
+				return expect(tablify.default).to.be.calledWithExactly(arrayToPrint);
 			});
 		});
 
 		describe('when there is log on the context', () => {
-			it('should call tablify with the result', () => {
-				const ctx = {
-					log: sandbox.stub(),
-				};
-				printer.call(ctx, arrayToPrint);
-				expect(tablifyStub).to.be.calledWithExactly(arrayToPrint);
-				return expect(ctx.log).to.be.calledWithExactly(tablifyResult);
+			it('should call tablify with the result and call the log of the context', () => {
+				const log = sandbox.stub();
+				printer.call({ log }, arrayToPrint);
+				expect(tablify.default).to.be.calledWithExactly(arrayToPrint);
+				return expect(log).to.be.calledWithExactly(tablifyResult);
 			});
 		});
 	});
 
-	describe('when json is true and pretty is false', () => {
+	describe('when json is true and pretty is false and the context having log method', () => {
 		describe('when result is array', () => {
 			let log;
 			beforeEach(() => {
@@ -82,6 +82,10 @@ describe('print utils', () => {
 					null,
 					null,
 				);
+			});
+
+			it('should call the log of the context with result of stringify', () => {
+				return expect(log).to.be.calledWithExactly(stringifyResult);
 			});
 		});
 
@@ -100,23 +104,55 @@ describe('print utils', () => {
 					null,
 				);
 			});
+
+			it('should call the log of the context with result of stringify', () => {
+				return expect(log).to.be.calledWithExactly(stringifyResult);
+			});
 		});
 	});
 
-	describe('when json and pretty is true', () => {
+	describe('when json and pretty are true and the context having log method', () => {
 		let log;
 		beforeEach(() => {
 			log = sandbox.stub();
-			print({ json: true, pretty: true }).call({ log }, arrayToPrint);
 			return Promise.resolve();
 		});
+		describe('when result is array', () => {
+			beforeEach(() => {
+				print({ json: true, pretty: true }).call({ log }, arrayToPrint);
+				return Promise.resolve();
+			});
 
-		it('should call JSON.stringify without the ANSI', () => {
-			return expect(JSON.stringify).to.be.calledWithExactly(
-				arrayToPrintWithoutANSI,
-				null,
-				'\t',
-			);
+			it('should call JSON.stringify without the ANSI', () => {
+				return expect(JSON.stringify).to.be.calledWithExactly(
+					arrayToPrintWithoutANSI,
+					null,
+					'\t',
+				);
+			});
+
+			it('should call the log of the context with result of stringify', () => {
+				return expect(log).to.be.calledWithExactly(stringifyResult);
+			});
+		});
+
+		describe('when result is object', () => {
+			beforeEach(() => {
+				print({ json: true, pretty: true }).call({ log }, objectToPrint);
+				return Promise.resolve();
+			});
+
+			it('should call JSON.stringify without the ANSI', () => {
+				return expect(JSON.stringify).to.be.calledWithExactly(
+					objectToPrintWithoutANSI,
+					null,
+					'\t',
+				);
+			});
+
+			it('should call the log of the context with result of stringify', () => {
+				return expect(log).to.be.calledWithExactly(stringifyResult);
+			});
 		});
 	});
 });

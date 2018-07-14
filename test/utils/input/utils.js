@@ -98,21 +98,27 @@ describe('input/utils utils', () => {
 	});
 
 	describe('#getPassphraseFromPrompt', () => {
-		let promptStub;
 		const displayName = 'password';
 		beforeEach(() => {
-			promptStub = sandbox.stub(inquirer, 'prompt');
-			return Promise.resolve();
+			return sandbox.stub(inquirer, 'prompt');
 		});
 
-		it('should prompt once with shouldRepeat false', async () => {
-			const expected = { passphrase: '123', passphraseRepeat: '123' };
-			promptStub.resolves(expected);
+		it('passphrase should equal to the result of the prompt', async () => {
+			const promptResult = { passphrase: '123' };
+			inquirer.prompt.resolves(promptResult);
 			const passphrase = await inputUtils.getPassphraseFromPrompt({
 				displayName,
 			});
-			expect(passphrase).to.equal(expected.passphrase);
-			return expect(promptStub).to.be.calledWithExactly([
+			return expect(passphrase).to.equal(promptResult.passphrase);
+		});
+
+		it('should prompt once with shouldRepeat false', async () => {
+			const promptResult = { passphrase: '123' };
+			inquirer.prompt.resolves(promptResult);
+			await inputUtils.getPassphraseFromPrompt({
+				displayName,
+			});
+			return expect(inquirer.prompt).to.be.calledWithExactly([
 				{
 					name: 'passphrase',
 					type: 'password',
@@ -122,14 +128,13 @@ describe('input/utils utils', () => {
 		});
 
 		it('should prompt twice with shouldRepeat true', async () => {
-			const expected = { passphrase: '123', passphraseRepeat: '123' };
-			promptStub.resolves(expected);
-			const passphrase = await inputUtils.getPassphraseFromPrompt({
+			const promptResult = { passphrase: '123', passphraseRepeat: '123' };
+			inquirer.prompt.resolves(promptResult);
+			await inputUtils.getPassphraseFromPrompt({
 				shouldRepeat: true,
 				displayName,
 			});
-			expect(passphrase).to.equal(expected.passphrase);
-			return expect(promptStub).to.be.calledWithExactly([
+			return expect(inquirer.prompt).to.be.calledWithExactly([
 				{
 					name: 'passphrase',
 					type: 'password',
@@ -144,8 +149,8 @@ describe('input/utils utils', () => {
 		});
 
 		it('should reject with error when repeated passphrase does not match', () => {
-			const expected = { passphrase: '123', passphraseRepeat: '456' };
-			promptStub.resolves(expected);
+			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
+			inquirer.prompt.resolves(promptResult);
 			return expect(
 				inputUtils.getPassphraseFromPrompt({ shouldRepeat: true, displayName }),
 			).to.be.rejectedWith(
@@ -158,6 +163,11 @@ describe('input/utils utils', () => {
 	describe('#getPassphraseFromEnvVariable', () => {
 		const displayName = 'passphrase';
 		beforeEach(() => {
+			delete process.env.PASSPHRASE;
+			return Promise.resolve();
+		});
+
+		after(() => {
 			delete process.env.PASSPHRASE;
 			return Promise.resolve();
 		});
@@ -189,11 +199,6 @@ describe('input/utils utils', () => {
 				const streamStub = createStreamStub(
 					(type, callback) => type === 'error' && callback(error),
 				);
-				sandbox
-					.stub(fs, 'accessSync')
-					.withArgs(filePath, fs.constants.R_OK)
-					.throws('Cannot read file');
-				sandbox.stub(fs, 'readFileSync').throws(error);
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
 
@@ -213,15 +218,10 @@ describe('input/utils utils', () => {
 				const streamStub = createStreamStub(
 					(type, callback) => type === 'error' && callback(error),
 				);
-				sandbox
-					.stub(fs, 'accessSync')
-					.withArgs(filePath, fs.constants.R_OK)
-					.throws('Cannot read file');
-				sandbox.stub(fs, 'readFileSync').throws(error);
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
 
-			it('should throw an error when file does not exist', () => {
+			it('should throw an error', () => {
 				return expect(
 					inputUtils.getPassphraseFromFile(filePath),
 				).to.be.rejectedWith(
@@ -237,7 +237,6 @@ describe('input/utils utils', () => {
 				const streamStub = createStreamStub(
 					(type, callback) => type === 'error' && callback(error),
 				);
-				sandbox.stub(fs, 'readFileSync').throws(error);
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
 
@@ -251,16 +250,9 @@ describe('input/utils utils', () => {
 		describe('when file can be read', () => {
 			const fileContents = 'password';
 			beforeEach(() => {
-				const streamStub = createStreamStub(
-					(type, callback) =>
-						// istanbul ignore next
-						type === 'data' && setImmediate(() => callback(fileContents)),
-				);
-				sandbox
+				return sandbox
 					.stub(readline, 'createInterface')
 					.returns(createFakeInterface(fileContents));
-				sandbox.stub(fs, 'createReadStream').returns(streamStub);
-				return sandbox.stub(fs, 'readFileSync').returns(fileContents);
 			});
 
 			it('should resolve to the fileContents', () => {
@@ -281,6 +273,11 @@ describe('input/utils utils', () => {
 				.returns(createFakeInterface(password));
 		});
 
+		after(() => {
+			delete process.env.PASSWORD;
+			return Promise.resolve();
+		});
+
 		it('should get from env', () => {
 			const key = 'PASSWORD';
 			process.env[key] = password;
@@ -296,7 +293,7 @@ describe('input/utils utils', () => {
 			).to.eventually.equal(password);
 		});
 
-		it('should get from pass', () => {
+		it('should get from unsafe plaintext', () => {
 			return expect(
 				inputUtils.getPassphraseFromSource(`pass:${password}`, { displayName }),
 			).to.eventually.equal(password);
@@ -340,7 +337,7 @@ describe('input/utils utils', () => {
 	describe('#handleReadFileErrors', () => {
 		const path = './some/path.txt';
 
-		it('should throw with non file existing error', () => {
+		it('should throw with file does not exist error', () => {
 			const error = new Error('ENOENT: no such file or directory');
 			return expect(inputUtils.handleReadFileErrors(path).bind(null, error))
 				.to.throw()
@@ -349,7 +346,7 @@ describe('input/utils utils', () => {
 				);
 		});
 
-		it('should throw with file cannot be read', () => {
+		it('should throw with file cannot be read error', () => {
 			const error = new Error('EACCES: permission denied');
 			return expect(inputUtils.handleReadFileErrors(path).bind(null, error))
 				.to.throw()
@@ -362,31 +359,35 @@ describe('input/utils utils', () => {
 			const error = new Error('random error');
 			return expect(
 				inputUtils.handleReadFileErrors(path).bind(null, error),
-			).to.throw(Error, 'random error');
+			).to.throw(Error, error.message);
 		});
 	});
 
 	describe('#getDataFromFile', () => {
 		const path = './some/path.txt';
-		let readFileStub;
+		const resultFileData = 'file data';
 
 		beforeEach(() => {
-			readFileStub = sandbox.stub(fs, 'readFileSync');
-			return Promise.resolve();
+			return sandbox.stub(fs, 'readFileSync').returns(resultFileData);
 		});
 
 		it('should read from file', async () => {
 			await inputUtils.getDataFromFile(path);
-			return expect(readFileStub).to.be.calledWithExactly(path, 'utf8');
+			return expect(fs.readFileSync).to.be.calledWithExactly(path, 'utf8');
+		});
+
+		it('should return the result from readFileSync', async () => {
+			const data = await inputUtils.getDataFromFile(path);
+			return expect(data).to.equal(resultFileData);
 		});
 	});
+
 	describe('#getData', () => {
 		const path = './some/path.txt';
-		let readFileStub;
+		const resultFileData = 'file data';
 
 		beforeEach(() => {
-			readFileStub = sandbox.stub(fs, 'readFileSync');
-			return Promise.resolve();
+			return sandbox.stub(fs, 'readFileSync').returns(resultFileData);
 		});
 
 		it('should throw validation error when source is empty', () => {
@@ -405,12 +406,17 @@ describe('input/utils utils', () => {
 
 		it('should get data from file', async () => {
 			await inputUtils.getData(`file:${path}`);
-			return expect(readFileStub).to.be.calledWithExactly(path, 'utf8');
+			return expect(fs.readFileSync).to.be.calledWithExactly(path, 'utf8');
 		});
 
-		it('should rejected with error', () => {
+		it('should return the result from readFileSync', async () => {
+			const data = await inputUtils.getData(`file:${path}`);
+			return expect(data).to.equal(resultFileData);
+		});
+
+		it('should be rejected if an error occurs', () => {
 			const error = new Error('some random error');
-			readFileStub.throws(error);
+			fs.readFileSync.throws(error);
 			return expect(inputUtils.getData(`file:${path}`)).to.be.rejectedWith(
 				Error,
 				error.message,

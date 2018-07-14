@@ -17,7 +17,7 @@ import query from '../../src/utils/query';
 
 describe('query utils', () => {
 	const defaultEndpoint = 'accounts';
-	const defaultParameter = {
+	const defaultParameters = {
 		address: 'address1',
 		limit: 1,
 	};
@@ -35,6 +35,7 @@ describe('query utils', () => {
 	let apiClient;
 	let response;
 	describe('when the response does not have data', () => {
+		let queryResult;
 		beforeEach(() => {
 			response = {
 				no: 'data',
@@ -44,24 +45,26 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
-			query(apiClient, defaultEndpoint, defaultParameter);
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
 		it('it should call API client', () => {
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameter,
+				defaultParameters,
 			);
 		});
 
-		it('it should thrown an error', () => {
-			return expect(
-				query(apiClient, defaultEndpoint, defaultParameter),
-			).to.be.rejectedWith(Error, 'No data was returned.');
+		it('it should reject with an error', () => {
+			return expect(queryResult).to.be.rejectedWith(
+				Error,
+				'No data was returned.',
+			);
 		});
 	});
 
 	describe('when the response is an empty array', () => {
+		let queryResult;
 		beforeEach(() => {
 			response = {
 				data: [],
@@ -71,20 +74,18 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
 		it('it should call API client', () => {
-			query(apiClient, defaultEndpoint, defaultParameter);
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameter,
+				defaultParameters,
 			);
 		});
 
-		it('it should thrown an error', () => {
-			return expect(
-				query(apiClient, defaultEndpoint, defaultParameter),
-			).to.be.rejectedWith(
+		it('it should reject with an error', () => {
+			return expect(queryResult).to.be.rejectedWith(
 				Error,
 				'No accounts found using specified parameters.',
 			);
@@ -92,6 +93,7 @@ describe('query utils', () => {
 	});
 
 	describe('when the response is an array', () => {
+		let queryResult;
 		beforeEach(() => {
 			response = {
 				data: [
@@ -106,24 +108,23 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
 		it('it should call API client', () => {
-			query(apiClient, defaultEndpoint, defaultParameter);
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameter,
+				defaultParameters,
 			);
 		});
 
 		it('it should resolve to an object', () => {
-			return expect(
-				query(apiClient, defaultEndpoint, defaultParameter),
-			).to.eventually.eql(response.data[0]);
+			return expect(queryResult).to.eventually.eql(response.data[0]);
 		});
 	});
 
 	describe('when the response is an object', () => {
+		let queryResult;
 		beforeEach(() => {
 			response = {
 				data: {
@@ -136,24 +137,22 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
 		it('it should call API client', () => {
-			query(apiClient, defaultEndpoint, defaultParameter);
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameter,
+				defaultParameters,
 			);
 		});
 
 		it('it should resolve to an object', () => {
-			return expect(
-				query(apiClient, defaultEndpoint, defaultParameter),
-			).to.eventually.eql(response.data);
+			return expect(queryResult).to.eventually.eql(response.data);
 		});
 	});
 
-	describe('when the parameter is an array', () => {
+	describe('an array of parameters objects is provided', () => {
 		beforeEach(() => {
 			response = {
 				data: [

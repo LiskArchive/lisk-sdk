@@ -24,10 +24,11 @@ describe('fs utils', () => {
 			version: 1,
 		};
 		const path = './file/path.json';
+		const encoding = 'utf8';
 		let result;
 		let readSyncStub;
 
-		describe('when file does not includes BOM', () => {
+		describe('when file does not include BOM', () => {
 			beforeEach(() => {
 				sandbox.stub(JSON, 'parse').returns(fileObject);
 				readSyncStub = sandbox.stub(fs, 'readFileSync').returns(fileContents);
@@ -36,7 +37,7 @@ describe('fs utils', () => {
 			});
 
 			it('fs.readFileSync should be called with the path and encoding', () => {
-				return expect(readSyncStub).to.be.calledWithExactly(path, 'utf8');
+				return expect(readSyncStub).to.be.calledWithExactly(path, encoding);
 			});
 
 			it('JSON.parse should be called with the file contents as a string', () => {
@@ -60,7 +61,7 @@ describe('fs utils', () => {
 			});
 
 			it('fs.readFileSync should be called with the path and encoding', () => {
-				return expect(readSyncStub).to.be.calledWithExactly(path, 'utf8');
+				return expect(readSyncStub).to.be.calledWithExactly(path, encoding);
 			});
 
 			it('JSON.parse should be called with the file contents as a string', () => {

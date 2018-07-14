@@ -25,14 +25,8 @@ import logger from './logger';
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';
 
-const attemptCallWithWarning = (fn, filePath) => {
-	try {
-		return fn();
-	} catch (_) {
-		const warning = `WARNING: Could not write to \`${filePath}\`. Your configuration will not be persisted.`;
-		return logger.warn(warning);
-	}
-};
+const fileWriteErrorMessage = filePath =>
+	`ERROR: Could not write to \`${filePath}\`. Your configuration will not be persisted.`;
 
 const attemptCallWithError = (fn, errorMessage) => {
 	try {
@@ -45,12 +39,12 @@ const attemptCallWithError = (fn, errorMessage) => {
 
 const attemptToCreateDir = dirPath => {
 	const fn = fs.mkdirSync.bind(null, dirPath);
-	return attemptCallWithWarning(fn, dirPath);
+	return attemptCallWithError(fn, fileWriteErrorMessage(dirPath));
 };
 
 const attemptToCreateFile = filePath => {
 	const fn = writeJSONSync.bind(null, filePath, defaultConfig);
-	return attemptCallWithWarning(fn, filePath);
+	return attemptCallWithError(fn, fileWriteErrorMessage(filePath));
 };
 
 const checkLockfile = filePath => {

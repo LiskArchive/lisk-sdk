@@ -16,36 +16,30 @@
 import chalk from 'chalk';
 
 describe('logger utils', () => {
-	let warnStub;
-	let errorStub;
-
+	let logger;
 	beforeEach(() => {
 		delete require.cache[require.resolve('../../src/utils/logger')];
-		warnStub = sandbox.stub(console, 'warn');
-		errorStub = sandbox.stub(console, 'error');
+		sandbox.stub(console, 'warn');
+		sandbox.stub(console, 'error');
+		// NOTE: This dynamic require is necessary because otherwise the log
+		// function is created with a bound console method rather than the stub.
+		// eslint-disable-next-line global-require
+		logger = require('../../src/utils/logger').default;
 		return Promise.resolve();
 	});
 
 	describe('#console.warn', () => {
 		it('should log with yellow with 2 strings', () => {
 			const args = ['Something to be warned about', 'Something else'];
-			// NOTE: This dynamic require is necessary because otherwise the log
-			// function is created with a bound console method rather than the stub.
-			// eslint-disable-next-line global-require
-			const logger = require('../../src/utils/logger').default;
 			logger.warn(...args);
 			const yellowArguments = args.map(arg => chalk.yellow(arg));
-			return expect(warnStub).to.be.calledWithExactly(...yellowArguments);
+			return expect(console.warn).to.be.calledWithExactly(...yellowArguments);
 		});
 
-		it('should log with yellow with string with place holder', () => {
+		it('should log with yellow with string with placeholder', () => {
 			const args = ['Something to be %d', 1];
-			// NOTE: This dynamic require is necessary because otherwise the log
-			// function is created with a bound console method rather than the stub.
-			// eslint-disable-next-line global-require
-			const logger = require('../../src/utils/logger').default;
 			logger.warn(...args);
-			return expect(warnStub).to.be.calledWithExactly(
+			return expect(console.warn).to.be.calledWithExactly(
 				chalk.yellow(args[0]),
 				args[1],
 			);
@@ -55,23 +49,15 @@ describe('logger utils', () => {
 	describe('#console.error', () => {
 		it('should log with red with 2 strings', () => {
 			const args = ['Something to be warned about', 'Something else'];
-			// NOTE: This dynamic require is necessary because otherwise the log
-			// function is created with a bound console method rather than the stub.
-			// eslint-disable-next-line global-require
-			const logger = require('../../src/utils/logger').default;
 			logger.error(...args);
 			const redArguments = args.map(arg => chalk.red(arg));
-			return expect(errorStub).to.be.calledWithExactly(...redArguments);
+			return expect(console.error).to.be.calledWithExactly(...redArguments);
 		});
 
-		it('should log with yellow with string with place holder', () => {
+		it('should log with yellow with string with placeholder', () => {
 			const args = ['Something to be %s and something', 'inserted'];
-			// NOTE: This dynamic require is necessary because otherwise the log
-			// function is created with a bound console method rather than the stub.
-			// eslint-disable-next-line global-require
-			const logger = require('../../src/utils/logger').default;
 			logger.error(...args);
-			return expect(errorStub).to.be.calledWithExactly(
+			return expect(console.error).to.be.calledWithExactly(
 				chalk.red(args[0]),
 				args[1],
 			);
