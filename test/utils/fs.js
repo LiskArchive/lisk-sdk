@@ -26,18 +26,17 @@ describe('fs utils', () => {
 		const path = './file/path.json';
 		const encoding = 'utf8';
 		let result;
-		let readSyncStub;
 
 		describe('when file does not include BOM', () => {
 			beforeEach(() => {
 				sandbox.stub(JSON, 'parse').returns(fileObject);
-				readSyncStub = sandbox.stub(fs, 'readFileSync').returns(fileContents);
+				sandbox.stub(fs, 'readFileSync').returns(fileContents);
 				result = readJSONSync(path);
 				return Promise.resolve();
 			});
 
 			it('fs.readFileSync should be called with the path and encoding', () => {
-				return expect(readSyncStub).to.be.calledWithExactly(path, encoding);
+				return expect(fs.readFileSync).to.be.calledWithExactly(path, encoding);
 			});
 
 			it('JSON.parse should be called with the file contents as a string', () => {
@@ -53,15 +52,13 @@ describe('fs utils', () => {
 			const bomFileContents = `${BOM}${fileContents}`;
 			beforeEach(() => {
 				sandbox.stub(JSON, 'parse').returns(fileObject);
-				readSyncStub = sandbox
-					.stub(fs, 'readFileSync')
-					.returns(bomFileContents);
+				sandbox.stub(fs, 'readFileSync').returns(bomFileContents);
 				result = readJSONSync(path);
 				return Promise.resolve();
 			});
 
 			it('fs.readFileSync should be called with the path and encoding', () => {
-				return expect(readSyncStub).to.be.calledWithExactly(path, encoding);
+				return expect(fs.readFileSync).to.be.calledWithExactly(path, encoding);
 			});
 
 			it('JSON.parse should be called with the file contents as a string', () => {
@@ -81,11 +78,10 @@ describe('fs utils', () => {
 		};
 		const stringifiedObject = '{\n\t"lisk": "js",\n\t"version": 1\n}';
 		const path = './path/to/write';
-		let writeSyncStub;
 
 		beforeEach(() => {
 			sandbox.stub(JSON, 'stringify').returns(stringifiedObject);
-			writeSyncStub = sandbox.stub(fs, 'writeFileSync');
+			sandbox.stub(fs, 'writeFileSync');
 			writeJSONSync(path, writingObject);
 			return Promise.resolve();
 		});
@@ -99,7 +95,7 @@ describe('fs utils', () => {
 		});
 
 		it('fs.writeFileSync should be called with the path and the stringified JSON"', () => {
-			return expect(writeSyncStub).to.be.calledWithExactly(
+			return expect(fs.writeFileSync).to.be.calledWithExactly(
 				path,
 				stringifiedObject,
 			);
