@@ -20,7 +20,7 @@ const blockVersion = require('../../../logic/block_version.js');
 describe('block_version', () => {
 	before(done => {
 		constants.blockVersions = [
-			0,
+			1,
 			102, // Bump block version at height 102
 			203, // Bump block version at height 203
 		];

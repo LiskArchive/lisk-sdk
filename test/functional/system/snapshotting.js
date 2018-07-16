@@ -31,7 +31,7 @@ describe('snapshotting', () => {
 	constants.rewards.offset = 150;
 
 	constants.blockVersions = [
-		0,
+		1,
 		100, // Bump block version at height 100
 		200, // Bump block version at height 200
 	];

@@ -25,7 +25,7 @@ describe('block_version', () => {
 	let addTransactionsAndForgePromise;
 
 	constants.blockVersions = [
-		0,
+		1,
 		102, // Bump block version at height 102
 		203, // Bump block version at height 203
 	];
