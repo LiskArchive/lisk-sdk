@@ -42,7 +42,7 @@ describe('block_version', () => {
 		);
 	});
 
-	describe('snapshotting to end of round 2 when blockchain contains 303 blocks', () => {
+	describe('forge 3 rounds of blocks (303 blocks) with different block version each round', () => {
 		before(() => {
 			// Forge 3 rounds of blocks to reach height 303 (genesis block is already there)
 			return Promise.mapSeries([...Array(302)], () => {
