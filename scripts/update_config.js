@@ -83,6 +83,10 @@ delete oldConfig.transactions.maxTxsPerQueue;
 delete oldConfig.loading.verifyOnLoading;
 delete oldConfig.dapp;
 
+if (oldConfig.db.user.trim() === '') {
+	oldConfig.db.user = 'lisk';
+}
+
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
 	p.wsPort = p.port + 1;
