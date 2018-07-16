@@ -30,6 +30,12 @@ describe('snapshotting', () => {
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
 
+	constants.blockVersions = [
+		0,
+		100, // Bump block version at height 100
+		200, // Bump block version at height 200
+	];
+
 	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
 		library = lib;
 		Queries = new queriesHelper(lib, lib.db);
