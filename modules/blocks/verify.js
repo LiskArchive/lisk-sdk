@@ -21,6 +21,7 @@ const BlockReward = require('../../logic/block_reward.js');
 const constants = require('../../helpers/constants.js');
 const slots = require('../../helpers/slots.js');
 const exceptions = require('../../helpers/exceptions.js');
+const blockVersion = require('../../helpers/block_version.js');
 
 let modules;
 let library;
@@ -221,7 +222,7 @@ __private.verifyAgainstLastNBlockIds = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyVersion = function(block, result) {
-	if (block.version > 0) {
+	if (block.version !== blockVersion.get(block.height)) {
 		result.errors.push('Invalid block version');
 	}
 
