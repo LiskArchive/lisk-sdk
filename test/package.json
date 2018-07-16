@@ -8,10 +8,13 @@
 	"files": ["/bin", "/npm-shrinkwrap.json", "/oclif.manifest.json", "/dist"],
 	"devDependencies": {
 		"@oclif/test": "x.x.x",
-		"lockfile": "x.x.x",
 		"babel-polyfill": "x.x.x",
 		"chai": "x.x.x",
 		"chai-as-promised": "x.x.x",
+		"chalk": "x.x.x",
+		"inquirer": "x.x.x",
+		"lisk-elements": "x.x.x",
+		"lockfile": "x.x.x",
 		"sinon": "x.x.x",
 		"sinon-chai": "x.x.x"
 	}
