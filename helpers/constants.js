@@ -110,7 +110,10 @@ var constants = {
 		offset: 1451520, // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
-	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
+	// Block height at which block version increases
+	blockVersions: [
+		0,
+	],
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
 };
