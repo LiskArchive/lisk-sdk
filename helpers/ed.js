@@ -16,6 +16,8 @@
 
 var sodium = require('sodium-native');
 
+const hexRegex = /^[0-9a-f]+/i;
+
 /**
  * Crypto functions that implements sodium.
  *
@@ -77,6 +79,29 @@ ed.verify = function(hash, signature, publicKey) {
 	if (!(hash instanceof Buffer) || !(signature instanceof Buffer))
 		throw new Error('argument message must be a buffer');
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
+};
+
+/**
+ * Converts hex string to buffer
+ * throws error for invalid hex strings.
+ *
+ * @func hexToBuffer
+ * @param {String} hex
+ * @returns {Buffer}
+ * @todo Add description for the params
+ */
+ed.hexToBuffer = hex => {
+	if (typeof hex !== 'string') {
+		throw new TypeError('Argument must be a string.');
+	}
+	const matchedHex = (hex.match(hexRegex) || [])[0];
+	if (!matchedHex || matchedHex.length !== hex.length) {
+		throw new TypeError('Argument must be a valid hex string.');
+	}
+	if (matchedHex.length % 2 !== 0) {
+		throw new TypeError('Argument must have a valid length of hex string.');
+	}
+	return Buffer.from(matchedHex, 'hex');
 };
 
 module.exports = ed;
