@@ -30,14 +30,14 @@ const constants = __testContext.config.constants;
 module.exports = function(configurations) {
 	describe('@stress : type 0 transactions with data @slow', () => {
 		let transactions = [];
-		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
+		const numberOfTransactions = process.env.NUMBER_OF_TRANSACTIONS || 1000;
 		const waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
-		describe(`sending ${maximum} single transfers to random addresses`, () => {
+		describe(`sending ${numberOfTransactions} single transfers to random addresses`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(() => {
+					_.range(numberOfTransactions).map(() => {
 						const transaction = lisk.transaction.transfer({
 							amount: 500000000,
 							passphrase: accountFixtures.genesis.passphrase,
@@ -52,7 +52,7 @@ module.exports = function(configurations) {
 
 			it('should confirm all transactions on all nodes', done => {
 				const blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)

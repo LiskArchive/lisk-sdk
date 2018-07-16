@@ -31,14 +31,14 @@ module.exports = function(configurations) {
 	describe('@stress : type 3 transactions @slow', () => {
 		let transactions = [];
 		const accounts = [];
-		const maximum = process.env.MAXIMUM_TRANSACTION || 1000;
+		const numberOfTransactions = process.env.NUMBER_OF_TRANSACTIONS || 1000;
 		const waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
-		describe(`prepare ${maximum} accounts`, () => {
+		describe(`prepare ${numberOfTransactions} accounts`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(() => {
+					_.range(numberOfTransactions).map(() => {
 						const tmpAccount = randomUtil.account();
 						const transaction = lisk.transaction.transfer({
 							amount: 2500000000,
@@ -54,7 +54,7 @@ module.exports = function(configurations) {
 
 			it('should confirm all transactions on all nodes', done => {
 				const blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
@@ -70,7 +70,7 @@ module.exports = function(configurations) {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(num => {
+					_.range(numberOfTransactions).map(num => {
 						const transaction = lisk.transaction.castVotes({
 							votes: [accountFixtures.existingDelegate.publicKey],
 							unvotes: [],
@@ -84,7 +84,7 @@ module.exports = function(configurations) {
 
 			it('should confirm all transactions on all nodes', done => {
 				const blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
+					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
 					waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
