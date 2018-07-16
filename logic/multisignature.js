@@ -16,6 +16,7 @@
 
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
+const ed = require('../helpers/ed.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
@@ -237,7 +238,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 			}
 
 			try {
-				const b = Buffer.from(publicKey, 'hex');
+				const b = ed.hexToBuffer(publicKey);
 				if (b.length !== 32) {
 					return setImmediate(
 						cb,

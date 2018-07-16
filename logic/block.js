@@ -16,6 +16,7 @@
 
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
+const ed = require('../helpers/ed.js');
 const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
@@ -199,10 +200,11 @@ class Block {
 				.createHash('sha256')
 				.update(dataWithoutSignature)
 				.digest();
-			const blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
-			const generatorPublicKeyBuffer = Buffer.from(
-				block.generatorPublicKey,
-				'hex'
+			const blockSignatureBuffer = this.scope.ed.hexToBuffer(
+				block.blockSignature
+			);
+			const generatorPublicKeyBuffer = this.scope.ed.hexToBuffer(
+				block.generatorPublicKey
 			);
 			res = this.scope.ed.verify(
 				hash,
@@ -420,21 +422,20 @@ Block.prototype.getBytes = function(block) {
 
 		byteBuffer.writeInt(block.payloadLength);
 
-		const payloadHashBuffer = Buffer.from(block.payloadHash, 'hex');
+		const payloadHashBuffer = this.scope.ed.hexToBuffer(block.payloadHash);
 		for (let i = 0; i < payloadHashBuffer.length; i++) {
 			byteBuffer.writeByte(payloadHashBuffer[i]);
 		}
 
-		const generatorPublicKeyBuffer = Buffer.from(
-			block.generatorPublicKey,
-			'hex'
-		);
+		const generatorPublicKeyBuffer = ed.hexToBuffer(block.generatorPublicKey);
 		for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
 			byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
 		}
 
 		if (block.blockSignature) {
-			const blockSignatureBuffer = Buffer.from(block.blockSignature, 'hex');
+			const blockSignatureBuffer = this.scope.ed.hexToBuffer(
+				block.blockSignature
+			);
 			for (let i = 0; i < blockSignatureBuffer.length; i++) {
 				byteBuffer.writeByte(blockSignatureBuffer[i]);
 			}
