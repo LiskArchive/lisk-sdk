@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('../helpers/constants.js');
+const exceptions = require('../helpers/exceptions.js');
 
 /**
  * Helper module for getting block version for particular height
@@ -31,8 +31,8 @@ const constants = require('../helpers/constants.js');
  */
 function get(height) {
 	let version = 0;
-	for (let i = 0; i < constants.blockVersions.length; i++) {
-		if (constants.blockVersions[i] <= height) {
+	for (let i = 0; i < exceptions.precedent.blockVersions.length; i++) {
+		if (exceptions.precedent.blockVersions[i] <= height) {
 			version = i;
 		}
 	}
