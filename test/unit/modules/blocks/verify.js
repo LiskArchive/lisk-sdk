@@ -457,12 +457,20 @@ describe('blocks/verify', () => {
 
 		describe('when block height provided', () => {
 			it('should return error when block version > 0', () => {
-				verifyVersion = __private.verifyVersion({ version: 3, height: 1 }, { errors: [] });
-				return expect(verifyVersion.errors[0]).to.equal('Invalid block version');
+				verifyVersion = __private.verifyVersion(
+					{ version: 3, height: 1 },
+					{ errors: [] }
+				);
+				return expect(verifyVersion.errors[0]).to.equal(
+					'Invalid block version'
+				);
 			});
 
 			it('should return no error when block version = 0', () => {
-				verifyVersion = __private.verifyVersion({ version: 0, height: 1 }, { errors: [] });
+				verifyVersion = __private.verifyVersion(
+					{ version: 0, height: 1 },
+					{ errors: [] }
+				);
 				return expect(verifyVersion.errors.length).to.equal(0);
 			});
 		});
@@ -470,7 +478,9 @@ describe('blocks/verify', () => {
 		describe('when block height is missing', () => {
 			it('should return error when block version > 0', () => {
 				verifyVersion = __private.verifyVersion({ version: 3 }, { errors: [] });
-				return expect(verifyVersion.errors[0]).to.equal('Invalid block version');
+				return expect(verifyVersion.errors[0]).to.equal(
+					'Invalid block version'
+				);
 			});
 
 			it('should return no error when block version = 0', () => {
