@@ -29,6 +29,14 @@ describe('input/utils utils', () => {
 			expect(sourceType).to.be.equal('file');
 			return expect(sourceIdentifier).to.be.equal('./utils.js');
 		});
+
+		it('should return the original input as sourceType and empty srouceIndentifier when no delimiter', () => {
+			const { sourceType, sourceIdentifier } = inputUtils.splitSource(
+				'file./utils.js',
+			);
+			expect(sourceType).to.be.equal('file./utils.js');
+			return expect(sourceIdentifier).to.equal('');
+		});
 	});
 
 	describe('#getStdIn', () => {
@@ -93,6 +101,63 @@ describe('input/utils utils', () => {
 				passphrase: null,
 				password: null,
 				secondPassphrase: null,
+			});
+		});
+
+		describe('#getStdIn with multiline inputs', () => {
+			const multilineStdContents =
+				'passphrase\nsecondPassphrase\npassword\ndata';
+			beforeEach(() => {
+				return readline.createInterface.returns(
+					createFakeInterface(multilineStdContents),
+				);
+			});
+
+			it('should resolve all the elements in order of secondPassphrase, password from stdin and rest in the data', () => {
+				const options = {
+					secondPassphraseIsRequired: true,
+					passwordIsRequired: true,
+				};
+				const expectedResults = multilineStdContents.split('\n');
+				const result = inputUtils.getStdIn(options);
+				return expect(result).to.eventually.eql({
+					passphrase: null,
+					secondPassphrase: expectedResults[0],
+					password: expectedResults[1],
+					data: `${expectedResults[2]}\n${expectedResults[3]}`,
+				});
+			});
+
+			it('should resolve all the elements in order of passphrase, password from stdin and rest in the data', () => {
+				const options = {
+					passphraseIsRequired: true,
+					passwordIsRequired: true,
+				};
+				const expectedResults = multilineStdContents.split('\n');
+				const result = inputUtils.getStdIn(options);
+				return expect(result).to.eventually.eql({
+					passphrase: expectedResults[0],
+					secondPassphrase: null,
+					password: expectedResults[1],
+					data: `${expectedResults[2]}\n${expectedResults[3]}`,
+				});
+			});
+
+			it('should resolve all the elements in order of passphrase, secondPassphrase, password, data from stdin', () => {
+				const options = {
+					passphraseIsRequired: true,
+					secondPassphraseIsRequired: true,
+					passwordIsRequired: true,
+					dataIsRequired: true,
+				};
+				const expectedResults = multilineStdContents.split('\n');
+				const result = inputUtils.getStdIn(options);
+				return expect(result).to.eventually.eql({
+					passphrase: expectedResults[0],
+					secondPassphrase: expectedResults[1],
+					password: expectedResults[2],
+					data: expectedResults[3],
+				});
 			});
 		});
 	});
@@ -162,12 +227,22 @@ describe('input/utils utils', () => {
 
 	describe('#getPassphraseFromEnvVariable', () => {
 		const displayName = 'passphrase';
-		beforeEach(() => {
-			delete process.env.PASSPHRASE;
+		let envPassphrase;
+		before(() => {
+			envPassphrase = process.env.PASSPHRASE;
 			return Promise.resolve();
 		});
 
 		after(() => {
+			if (envPassphrase) {
+				process.env.PASSPHRASE = envPassphrase;
+			} else {
+				delete process.env.PASSPHRASE;
+			}
+			return Promise.resolve();
+		});
+
+		beforeEach(() => {
 			delete process.env.PASSPHRASE;
 			return Promise.resolve();
 		});
@@ -202,7 +277,7 @@ describe('input/utils utils', () => {
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
 
-			it('should throw an error when file does not exist', () => {
+			it('should throw an error', () => {
 				return expect(
 					inputUtils.getPassphraseFromFile(filePath),
 				).to.be.rejectedWith(
@@ -266,16 +341,25 @@ describe('input/utils utils', () => {
 	describe('#getPassphraseFromSource', () => {
 		const displayName = 'password';
 		const password = 'somepassword';
+		let envPassword;
+		before(() => {
+			envPassword = process.env.PASSWORD;
+			return Promise.resolve();
+		});
+
+		after(() => {
+			if (envPassword) {
+				process.env.PASSWORD = envPassword;
+			} else {
+				delete process.env.PASSWORD;
+			}
+			return Promise.resolve();
+		});
 
 		beforeEach(() => {
 			return sandbox
 				.stub(readline, 'createInterface')
 				.returns(createFakeInterface(password));
-		});
-
-		after(() => {
-			delete process.env.PASSWORD;
-			return Promise.resolve();
 		});
 
 		it('should get from env', () => {

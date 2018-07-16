@@ -88,7 +88,7 @@ describe('helpers utils', () => {
 				);
 		});
 
-		it('should throw validation error with decimals', () => {
+		it('should throw validation error with too many decimals', () => {
 			return expect(validateAmount.bind(null, '10.0001000001'))
 				.to.throw()
 				.and.be.customError(

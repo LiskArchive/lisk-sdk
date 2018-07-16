@@ -67,7 +67,7 @@ describe('print utils', () => {
 		});
 	});
 
-	describe('when json is true and pretty is false and the context having log method', () => {
+	describe('when json is true and pretty is false and the context has a log method', () => {
 		describe('when result is array', () => {
 			let log;
 			beforeEach(() => {
@@ -111,7 +111,7 @@ describe('print utils', () => {
 		});
 	});
 
-	describe('when json and pretty are true and the context having log method', () => {
+	describe('when json and pretty are trueand the context has a log method', () => {
 		let log;
 		beforeEach(() => {
 			log = sandbox.stub();

@@ -102,7 +102,7 @@ describe('api utils', () => {
 			return Promise.resolve();
 		});
 
-		it('should have mainnet nethash', () => {
+		it('should have testnet nethash', () => {
 			return expect(apiClient.headers.nethash).to.be.equal(testnetNethash);
 		});
 

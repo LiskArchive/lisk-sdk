@@ -34,8 +34,8 @@ describe('query utils', () => {
 
 	let apiClient;
 	let response;
+	let queryResult;
 	describe('when the response does not have data', () => {
-		let queryResult;
 		beforeEach(() => {
 			response = {
 				no: 'data',
@@ -49,13 +49,13 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('it should call API client', () => {
+		it('should call API client', () => {
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters,
 			);
 		});
 
-		it('it should reject with an error', () => {
+		it('should reject with an error', () => {
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
 				'No data was returned.',
@@ -64,7 +64,6 @@ describe('query utils', () => {
 	});
 
 	describe('when the response is an empty array', () => {
-		let queryResult;
 		beforeEach(() => {
 			response = {
 				data: [],
@@ -78,13 +77,13 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('it should call API client', () => {
+		it('should call API client', () => {
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters,
 			);
 		});
 
-		it('it should reject with an error', () => {
+		it('should reject with an error', () => {
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
 				'No accounts found using specified parameters.',
@@ -93,7 +92,6 @@ describe('query utils', () => {
 	});
 
 	describe('when the response is an array', () => {
-		let queryResult;
 		beforeEach(() => {
 			response = {
 				data: [
@@ -112,19 +110,18 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('it should call API client', () => {
+		it('should call API client', () => {
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters,
 			);
 		});
 
-		it('it should resolve to an object', () => {
+		it('should resolve to an object', () => {
 			return expect(queryResult).to.eventually.eql(response.data[0]);
 		});
 	});
 
 	describe('when the response is an object', () => {
-		let queryResult;
 		beforeEach(() => {
 			response = {
 				data: {
@@ -141,13 +138,13 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('it should call API client', () => {
+		it('should call API client', () => {
 			return expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters,
 			);
 		});
 
-		it('it should resolve to an object', () => {
+		it('should resolve to an object', () => {
 			return expect(queryResult).to.eventually.eql(response.data);
 		});
 	});
@@ -170,7 +167,7 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('it should call API client', () => {
+		it('should call API client', () => {
 			defaultArrayParameters.forEach(param =>
 				expect(apiClient.accounts.get).to.be.calledWithExactly(param),
 			);

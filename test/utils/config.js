@@ -92,7 +92,7 @@ describe('config utils', () => {
 				return fs.existsSync.returns(true);
 			});
 
-			it('should return the custom config when its valid', () => {
+			it('should return the custom config when it is valid', () => {
 				const customConfig = Object.assign({}, defaultConfig, {
 					name: 'custom config',
 				});
