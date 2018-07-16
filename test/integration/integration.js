@@ -18,7 +18,7 @@ const find = require('find');
 const utils = require('./utils');
 const setup = require('./setup');
 
-const BROADCASTING = process.env.BROADCASTING !== 'false';
+const broadcasting = process.env.BROADCASTING !== 'false';
 const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 const networkParameters = {
 	TOTAL_PEERS,
@@ -31,7 +31,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		wsPorts.push(5000 + index);
 	});
 	const configurations = setup.config.generateLiskConfigs(
-		BROADCASTING,
+		broadcasting,
 		TOTAL_PEERS
 	);
 	let testFailedError;
