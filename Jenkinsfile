@@ -44,17 +44,6 @@ pipeline {
 				}
 			}
 		}
-		stage('Run browser tests') {
-			steps {
-				sh '''
-				npm run build:check
-				npm run build:browsertest
-				HTTP_PORT=808${EXECUTOR_NUMBER:-0}
-				npm run serve:browsertest -- -p $HTTP_PORT >access.log 2>&1 &
-				npm run test:browser -- --config baseUrl=http://localhost:$HTTP_PORT
-				'''
-			}
-		}
 	}
 	post {
 		success {

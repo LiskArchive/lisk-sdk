@@ -19,22 +19,46 @@
 		"node": ">=6.3 <=9.5",
 		"npm": ">=3 <=5"
 	},
-	"main": "dist/index.js",
+	"browser": "dist-browser/index.js",
+	"main": "dist-node/index.js",
 	"scripts": {
+		"babel": "babel src -d dist-node",
+		"babel:browsertest":
+			"babel src -d ./browsertest/src && BABEL_ENV=browsertest npx babel test --ignore test/transactions/dapp.js -d ./browsertest/test",
+		"browserify":
+			"browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk --node",
+		"browserify:browsertest":
+			"browserify ./browsertest/test/*.js ./browsertest/test/**/*.js -o ./browsertest/browsertest.js -s lisk",
+		"uglify":
+			"uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
+		"uglify:browsertest":
+			"uglifyjs -o ./browsertest/browsertest.min.js ./browsertest/browsertest.js",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "NODE_ENV=test nyc mocha test",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node":
+			"npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
+		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
+		"serve:browsertest": "http-server browsertest",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
 		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
-		"prebuild": "rm -r dist || mkdir dist | echo",
-		"build": "babel src -d dist",
-		"build:check": "node -e \"require('./dist')\"",
+		"build:browsertest":
+			"npm run babel:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
+		"postbuild:browsertest": "rm -r browsertest/src browsertest/test",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
+		"build:node": "npm run babel",
+		"prebuild:browser":
+			"rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
+		"build:browser": "npm run babel && npm run browserify && npm run uglify",
+		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
+		"build": "npm run babel && npm run browserify && npm run uglify",
+		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly":
 			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
 	},
@@ -48,17 +72,21 @@
 		"babel-plugin-transform-runtime": "6.23.0",
 		"babel-preset-env": "1.6.1",
 		"babel-register": "6.26.0",
+		"browserify": "16.2.2",
 		"chai": "4.1.2",
 		"chai-as-promised": "7.1.1",
+		"cypress": "3.0.2",
 		"eslint": "4.19.1",
 		"eslint-config-airbnb-base": "12.1.0",
 		"eslint-config-lisk-base": "1.0.0",
 		"eslint-plugin-import": "2.11.0",
 		"eslint-plugin-mocha": "5.0.0",
+		"http-server": "0.11.1",
 		"mocha": "5.1.1",
 		"nyc": "11.7.1",
 		"prettier": "1.12.1",
 		"sinon": "4.1.2",
-		"sinon-chai": "2.14.0"
+		"sinon-chai": "2.14.0",
+		"uglify-es": "3.3.9"
 	}
 }

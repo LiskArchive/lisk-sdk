@@ -7,8 +7,7 @@
 			"error",
 			{
 				"devDependencies": ["test/**"],
-				"optionalDependencies": false,
-				"packageDir": "./"
+				"optionalDependencies": false
 			}
 		]
 	}

@@ -48,6 +48,10 @@ tmp
 
 # Distribution folders
 dist/
+dist-node/
+dist-browser/
+*/**/browsertest/browsertest.js
+*/**/browsertest/browsertest.min.js
 
 # Unsupported lock files
 yarn.lock
