@@ -20,10 +20,8 @@ const setup = require('./setup');
 
 const broadcasting = process.env.BROADCASTING !== 'false';
 const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
-const networkParameters = {
-	TOTAL_PEERS,
-	EXPECTED_OUTOGING_CONNECTIONS: (TOTAL_PEERS - 1) * TOTAL_PEERS * 2, // Full mesh network with 2 connection for bi-directional communication
-};
+// Full mesh network with 2 connection for bi-directional communication
+const EXPECTED_OUTOGING_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
 
 describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const wsPorts = [];
@@ -70,15 +68,13 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		});
 	});
 
-	it(`there should be a maximum ${
-		networkParameters.EXPECTED_OUTOGING_CONNECTIONS
-	} established connections from 500[0-9] ports`, done => {
+	it(`there should be a maximum ${EXPECTED_OUTOGING_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 		utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
 			if (err) {
 				return done(err);
 			}
-			// It should be less than 'networkParameters.EXPECTED_OUTOGING_CONNECTIONS', as nodes are just started and establishing the connections
-			if (numOfConnections <= networkParameters.EXPECTED_OUTOGING_CONNECTIONS) {
+			// It should be less than EXPECTED_OUTOGING_CONNECTIONS, as nodes are just started and establishing the connections
+			if (numOfConnections <= EXPECTED_OUTOGING_CONNECTIONS) {
 				done();
 			} else {
 				done(
@@ -95,7 +91,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			const currentFilePath = filepath.replace('test/integration', '.');
 			// eslint-disable-next-line import/no-dynamic-require
 			const test = require(currentFilePath);
-			test(configurations, networkParameters);
+			test(configurations, TOTAL_PEERS, EXPECTED_OUTOGING_CONNECTIONS);
 		});
 	});
 });
