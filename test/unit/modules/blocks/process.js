@@ -17,6 +17,7 @@
 
 var rewire = require('rewire');
 var Promise = require('bluebird');
+var Bignum = require('../../../../helpers/bignum.js');
 
 var BlocksProcess = rewire('../../../../modules/blocks/process.js');
 
@@ -149,7 +150,7 @@ describe('blocks/process', () => {
 			id: '4',
 			height: 4,
 			timestamp: 41287231,
-			reward: 100,
+			reward: new Bignum(100),
 		};
 
 		var modulesAccountsStub = {

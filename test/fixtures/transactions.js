@@ -35,8 +35,8 @@ const Transaction = stampit({
 		recipientId: '16313739661670634666L',
 		recipientPublicKey:
 			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-		amount: 112340000,
-		fee: 20000000,
+		amount: '112340000',
+		fee: '20000000',
 		signature:
 			'56a09d33ca4d19d9092ad764952d3c43fa575057b1078fc64875fcb50a1b1755230affc4665ff6a2de2671a5106cf0ae2d709e4f6e59d21c5cdc22f77060c506',
 		signSignature:

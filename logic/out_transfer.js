@@ -15,6 +15,7 @@
 'use strict';
 
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 
 let modules;
 let library;
@@ -63,10 +64,10 @@ OutTransfer.prototype.bind = function(accounts, blocks) {
 /**
  * Returns send fee from constants.
  *
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  */
 OutTransfer.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return new Bignum(constants.fees.send);
 };
 
 /**
@@ -88,7 +89,9 @@ OutTransfer.prototype.verify = function(transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (!transaction.amount) {
+	const amount = new Bignum(transaction.amount);
+
+	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 
