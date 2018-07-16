@@ -14,12 +14,12 @@
 
 'use strict';
 
-const constants = require('../../../helpers/constants.js');
+const exceptions = require('../../../helpers/exceptions.js');
 const blockVersion = require('../../../logic/block_version.js');
 
 describe('block_version', () => {
 	before(done => {
-		constants.blockVersions = [
+		exceptions.precedent.blockVersions = [
 			1,
 			102, // Bump block version at height 102
 			203, // Bump block version at height 203

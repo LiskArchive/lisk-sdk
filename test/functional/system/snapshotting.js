@@ -19,6 +19,7 @@ const elements = require('lisk-elements').default;
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
 const constants = require('../../../helpers/constants');
+const exceptions = require('../../../helpers/exceptions');
 const queriesHelper = require('../common/sql/queriesHelper.js');
 const localCommon = require('./common');
 
@@ -30,7 +31,7 @@ describe('snapshotting', () => {
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
 
-	constants.blockVersions = [
+	exceptions.precedent.blockVersions = [
 		1,
 		100, // Bump block version at height 100
 		200, // Bump block version at height 200

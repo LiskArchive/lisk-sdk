@@ -15,7 +15,7 @@
 'use strict';
 
 const Promise = require('bluebird');
-const constants = require('../../../helpers/constants');
+const exceptions = require('../../../helpers/exceptions');
 const queriesHelper = require('../common/sql/queriesHelper.js');
 const localCommon = require('./common');
 
@@ -24,7 +24,7 @@ describe('block_version', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	constants.blockVersions = [
+	exceptions.precedent.blockVersions = [
 		1,
 		102, // Bump block version at height 102
 		203, // Bump block version at height 203

@@ -18,6 +18,7 @@ const async = require('async');
 const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
 const constants = require('../../../helpers/constants');
+const exceptions = require('../../../helpers/exceptions');
 const slots = require('../../../helpers/slots');
 const Bignum = require('../../../helpers/bignum');
 const accountsFixtures = require('../../fixtures/accounts');
@@ -35,7 +36,7 @@ describe('rounds', () => {
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
 
-	constants.blockVersions = [
+	exceptions.precedent.blockVersions = [
 		1,
 		150, // Bump block version at height 150
 	];
