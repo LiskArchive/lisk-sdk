@@ -71,7 +71,7 @@ The next section details the prerequisites to install Lisk Core from source usin
   * MacOS 10.12-10.13 (Sierra/High Sierra):
 
     ```
-    brew install node@6.14.1
+    brew install node@8.11.3
     ```
 
 * _(Recommended)_ Install using a version manager such as nvm.
@@ -80,7 +80,7 @@ The next section details the prerequisites to install Lisk Core from source usin
   2. Install the correct version of Node.js using nvm:
 
   ```
-  nvm install 6.14.1
+  nvm install v8.11.3
   ```
 
 * _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
