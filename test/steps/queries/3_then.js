@@ -13,7 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 export function itShouldResolveToTheDataOfTheResponse() {
 	const { returnValue, queryResult } = this.test.ctx;
 	return expect(returnValue).to.eventually.equal(queryResult.data);
@@ -33,4 +32,32 @@ export function itShouldResolveToAnArrayOfQueryResults() {
 	const { returnValue, inputs, queryResult } = this.test.ctx;
 	const arrayOfQueryResults = inputs.map(() => queryResult);
 	return expect(returnValue).to.eventually.eql(arrayOfQueryResults);
+}
+
+export function itShouldCallNodeGetConstants() {
+	const { liskAPIInstance } = this.test.ctx;
+	return expect(liskAPIInstance.node.getConstants).to.be.calledOnce;
+}
+
+export function itShouldCallNodeGetStatus() {
+	const { liskAPIInstance } = this.test.ctx;
+	return expect(liskAPIInstance.node.getStatus).to.be.calledOnce;
+}
+
+export function itShouldCallNodeGetForgingStatus() {
+	const { liskAPIInstance } = this.test.ctx;
+	return expect(liskAPIInstance.node.getForgingStatus).to.be.calledOnce;
+}
+
+export function itShouldNotCallNodeGetForgingStatus() {
+	const { liskAPIInstance } = this.test.ctx;
+	return expect(liskAPIInstance.node.getForgingStatus).not.to.be.called;
+}
+
+export function itShouldHaveErrorMessageForForgingStatus() {
+	const { returnValue, errorMessage } = this.test.ctx;
+	return expect(returnValue)
+		.to.eventually.be.an('object')
+		.and.have.property('forgingStatus')
+		.equal(errorMessage);
 }

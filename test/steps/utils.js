@@ -27,6 +27,7 @@ import * as encryptMessage from '../../src/commands/encrypt_message';
 import * as encryptPassphrase from '../../src/commands/encrypt_passphrase';
 import * as config from '../../src/commands/config';
 import * as get from '../../src/commands/get';
+import * as checkNodeStatus from '../../src/commands/check_node_status';
 import * as list from '../../src/commands/list';
 import * as set from '../../src/commands/set';
 import * as showAccount from '../../src/commands/show_account';
@@ -36,6 +37,7 @@ import * as signMessage from '../../src/commands/sign_message';
 import * as verifyMessage from '../../src/commands/verify_message';
 import * as verifyTransaction from '../../src/commands/verify_transaction';
 import * as signTransaction from '../../src/commands/sign_transaction';
+import * as updateForgingStatus from '../../src/commands/update_forging_status';
 
 export const DEFAULT_ERROR_MESSAGE = "Cannot read property 'length' of null";
 
@@ -96,6 +98,7 @@ export const getActionCreator = actionName =>
 		'create transaction transfer': createTransactionTransfer.actionCreator,
 		config: config.actionCreator,
 		get: get.actionCreator,
+		'check node status': checkNodeStatus.actionCreator,
 		list: list.actionCreator,
 		set: set.actionCreator,
 		'show copyright': showCopyright.actionCreator,
@@ -105,6 +108,7 @@ export const getActionCreator = actionName =>
 		'verify message': verifyMessage.actionCreator,
 		'verify transaction': verifyTransaction.actionCreator,
 		'sign transaction': signTransaction.actionCreator,
+		'update forging status': updateForgingStatus.actionCreator,
 	}[actionName]);
 
 export const createFakeInterface = value => ({
@@ -149,3 +153,8 @@ export const hasAncestorWithTitleMatching = (test, regExp) => {
 	if (!parent) return false;
 	return hasAncestorWithTitleMatching(parent, regExp);
 };
+
+export const objectToKeyValueString = value =>
+	Object.entries(value)
+		.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
+		.join('\n');

@@ -40,6 +40,11 @@ export function aFunctionThatThrowsAValidationError() {
 	this.test.ctx.validationErrorFn = validationErrorFn;
 }
 
+export function aStatus() {
+	const status = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.status = status;
+}
+
 export function anErrorObject() {
 	this.test.ctx.errorObject = {
 		error: 'Some error',
@@ -54,6 +59,13 @@ export function aNonEmptyObject() {
 	this.test.ctx.testObject = {
 		lisk: 'js',
 		version: 1,
+	};
+}
+
+export function anObjectWithAnArrayOfObjects() {
+	this.test.ctx.testObject = {
+		root: 'value',
+		objectArray: [{ sample: 1 }, { sample: 2 }],
 	};
 }
 

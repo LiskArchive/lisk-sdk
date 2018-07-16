@@ -38,6 +38,18 @@ describe('tablify util', () => {
 			);
 		});
 	});
+	Given(
+		'an object with an array of objects',
+		given.anObjectWithAnArrayOfObjects,
+		() => {
+			When('the object is tablified', when.theObjectIsTablified, () => {
+				Then(
+					'the returned table should have a row with the object key and stringified nested values',
+					then.theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues,
+				);
+			});
+		},
+	);
 	Given('a nested object', given.aNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
 			Then(
