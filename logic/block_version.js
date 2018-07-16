@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = require('./constants.js');
+const constants = require('../helpers/constants.js');
 
 /**
  * Helper module for getting block version for particular height
