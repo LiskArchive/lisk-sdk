@@ -49,7 +49,7 @@ describe('block_version', () => {
 
 		it('blockchain should be at height 303', () => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
-			expect(lastBlock.height).to.eql(303);
+			return expect(lastBlock.height).to.eql(303);
 		});
 
 		it('blocks of round 1 should have version = 0', () => {
