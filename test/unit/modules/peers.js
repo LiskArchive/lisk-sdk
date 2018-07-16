@@ -378,23 +378,6 @@ describe('peers', () => {
 		});
 
 		describe('networkHeight', () => {
-			before(done => {
-				randomPeers = _.range(100).map(() => {
-					return generateRandomActivePeer();
-				});
-				done();
-			});
-
-			const randomPeerNetworkHeight = randomPeers => {
-				const heights = _.countBy(randomPeers, 'height');
-				const height = Object.keys(heights).reduce((curr, next) => {
-					return next === undefined || heights[next] > heights[curr]
-						? next
-						: curr;
-				});
-				return Number(height);
-			};
-
 			it('should return networkHeight 0 when no peers available', done => {
 				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				peers.networkHeight(validOptions, (err, networkHeight) => {
@@ -421,13 +404,28 @@ describe('peers', () => {
 			});
 
 			it('should return the height of maximum number of peers at one particular height', done => {
-				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
+				// generate 10 peer list with height 0
+				const peerList = _.range(10).map(() => {
+					return generateRandomActivePeer();
+				});
+
+				// create group of peers with height 5,3,2
+				// and they also indicate the number of peers
+				// in that specific height, so the majority is 5
+				let count = 0;
+				[5, 3, 2].map(height => {
+					_.range(height).map(() => {
+						peerList[count].height = height;
+						count++;
+					});
+				});
+				peersLogicMock.list = sinonSandbox.stub().returns(peerList);
 				peers.networkHeight(validOptions, (err, networkHeight) => {
 					expect(err).to.be.null;
 					expect(networkHeight);
 					expect(networkHeight)
 						.to.be.an('number')
-						.and.to.deep.eql(randomPeerNetworkHeight(randomPeers));
+						.and.to.deep.eql(5);
 					done();
 				});
 			});

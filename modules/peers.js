@@ -752,14 +752,14 @@ Peers.prototype.networkHeight = function(options, cb) {
 		// count by number of peers at one height
 		const heights = _.countBy(peers, 'height');
 		const height = Object.keys(heights).reduce((curr, next) => {
-			if (next === undefined || heights[next] > heights[curr]) {
+			if (heights[next] > heights[curr]) {
 				return next;
 			}
 			return curr;
 		});
 		const networkHeight = Number(height);
 
-		library.logger.error(`Network height is: ${networkHeight}`);
+		library.logger.debug(`Network height is: ${networkHeight}`);
 		library.logger.trace(heights);
 
 		return setImmediate(cb, null, networkHeight);
