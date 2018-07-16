@@ -15,7 +15,7 @@
 'use strict';
 
 const constants = require('../../../helpers/constants.js');
-const blockVersion = require('../../../helpers/block_version.js');
+const blockVersion = require('../../../logic/block_version.js');
 
 describe('block_version', () => {
 	before(done => {
