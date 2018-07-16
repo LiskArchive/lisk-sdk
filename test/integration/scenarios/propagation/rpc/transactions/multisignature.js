@@ -37,7 +37,7 @@ module.exports = function(configurations) {
 
 		let transactions = [];
 		const accounts = [];
-		const MAXIMUM = 3;
+		const maximum = 3;
 
 		const postSignatures = signature => {
 			const postSignatures = {
@@ -54,7 +54,7 @@ module.exports = function(configurations) {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(MAXIMUM).map(() => {
+					_.range(maximum).map(() => {
 						const tmpAccount = randomUtil.account();
 						const transaction = lisk.transaction.transfer({
 							amount: 2500000000,
@@ -72,7 +72,7 @@ module.exports = function(configurations) {
 			it('should confirm all transactions on all nodes', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
@@ -85,7 +85,7 @@ module.exports = function(configurations) {
 
 		describe('sending multisignature registrations', () => {
 			const signatures = [];
-			const numbers = _.range(MAXIMUM);
+			const numbers = _.range(maximum);
 			let i = 0;
 			let j = 0;
 
@@ -137,7 +137,7 @@ module.exports = function(configurations) {
 			it('check all the nodes received the transactions', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 2;
+					Math.ceil(maximum / constants.maxTransactionsPerBlock) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)

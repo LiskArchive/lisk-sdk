@@ -54,7 +54,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		});
 	});
 
-	it(`there should exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
+	it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
 		utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
 			if (err) {
 				return done(err);
@@ -70,7 +70,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		});
 	});
 
-	it(`there should maximum ${
+	it(`there should be a maximum ${
 		networkParameters.EXPECTED_OUTOGING_CONNECTIONS
 	} established connections from 500[0-9] ports`, done => {
 		utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {

@@ -137,7 +137,7 @@ module.exports = function(configurations, networkParameters) {
 					});
 
 					// The expected connection becomes 'networkParameters.EXPECTED_OUTOGING_CONNECTIONS' + 18 previously held connections
-					it(`should be ${networkParameters.EXPECTED_OUTOGING_CONNECTIONS +
+					it(`there should be ${networkParameters.EXPECTED_OUTOGING_CONNECTIONS +
 						18} established connections from 500[0-9] ports`, done => {
 						utils.getEstablishedConnections(
 							Array.from(wsPorts),
