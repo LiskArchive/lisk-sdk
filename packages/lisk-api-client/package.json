@@ -19,18 +19,18 @@
 		"node": ">=6.3 <=9.5",
 		"npm": ">=3 <=5"
 	},
-	"browser": "dist-browser/index.js",
+	"browser": "dist-browser/index.min.js",
 	"main": "dist-node/index.js",
 	"scripts": {
 		"babel": "babel src -d dist-node",
 		"babel:browsertest":
 			"babel src -d ./browsertest/src && BABEL_ENV=browsertest npx babel test --ignore test/transactions/dapp.js -d ./browsertest/test",
 		"browserify":
-			"browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk --node",
+			"browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
 		"browserify:browsertest":
 			"browserify ./browsertest/test/*.js ./browsertest/test/**/*.js -o ./browsertest/browsertest.js -s lisk",
 		"uglify":
-			"uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
+			"uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest":
 			"uglifyjs -o ./browsertest/browsertest.min.js ./browsertest/browsertest.js",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
@@ -54,7 +54,7 @@
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
 		"build:node": "npm run babel",
 		"prebuild:browser":
-			"rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
+			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
 		"build:browser": "npm run babel && npm run browserify && npm run uglify",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
 		"build": "npm run babel && npm run browserify && npm run uglify",
