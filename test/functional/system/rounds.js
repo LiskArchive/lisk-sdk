@@ -36,7 +36,7 @@ describe('rounds', () => {
 	constants.rewards.offset = 150;
 
 	constants.blockVersions = [
-		0,
+		1,
 		150, // Bump block version at height 150
 	];
 
