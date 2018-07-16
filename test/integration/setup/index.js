@@ -26,36 +26,36 @@ module.exports = {
 	createNetwork(configurations, cb) {
 		async.series(
 			[
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log('Generating PM2 configuration');
-					config.generatePM2json(configurations, cbSeries);
+					config.generatePM2json(configurations, seriesCb);
 				},
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log('Recreating databases');
-					shell.recreateDatabases(configurations, cbSeries);
+					shell.recreateDatabases(configurations, seriesCb);
 				},
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log('Clearing existing logs');
-					shell.clearLogs(cbSeries);
+					shell.clearLogs(seriesCb);
 				},
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log('Launching network');
-					shell.launchTestNodes(cbSeries);
+					shell.launchTestNodes(seriesCb);
 				},
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log('Waiting for nodes to load the blockchain');
-					network.waitForAllNodesToBeReady(configurations, cbSeries);
+					network.waitForAllNodesToBeReady(configurations, seriesCb);
 				},
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log('Enabling forging with registered delegates');
-					network.enableForgingForDelegates(configurations, cbSeries);
+					network.enableForgingForDelegates(configurations, seriesCb);
 				},
-				cbSeries => {
+				seriesCb => {
 					utils.logger.log(
 						`Waiting ${WAIT_BEFORE_CONNECT_MS /
 							1000} seconds for nodes to establish connections`
 					);
-					setTimeout(cbSeries, WAIT_BEFORE_CONNECT_MS);
+					setTimeout(seriesCb, WAIT_BEFORE_CONNECT_MS);
 				},
 			],
 			(err, res) => {
