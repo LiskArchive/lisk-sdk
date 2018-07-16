@@ -24,9 +24,6 @@ describe('block_version', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	// Set rewards start at 150-th block
-	constants.rewards.offset = 150;
-
 	constants.blockVersions = [
 		0,
 		102, // Bump block version at height 102
