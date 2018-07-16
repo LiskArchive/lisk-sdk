@@ -111,7 +111,7 @@ describe('print utils', () => {
 		});
 	});
 
-	describe('when json and pretty are trueand the context has a log method', () => {
+	describe('when json and pretty are true and the context has a log method', () => {
 		let log;
 		beforeEach(() => {
 			log = sandbox.stub();

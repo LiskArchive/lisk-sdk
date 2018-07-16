@@ -30,7 +30,7 @@ describe('input/utils utils', () => {
 			return expect(sourceIdentifier).to.be.equal('./utils.js');
 		});
 
-		it('should return the original input as sourceType and empty srouceIndentifier when no delimiter', () => {
+		it('should return the original input as sourceType and empty sourceIdentifier when no delimiter', () => {
 			const { sourceType, sourceIdentifier } = inputUtils.splitSource(
 				'file./utils.js',
 			);

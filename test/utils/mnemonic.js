@@ -40,7 +40,7 @@ describe('mnemonic utils', () => {
 			return expect(valid).to.be.true;
 		});
 
-		it('should return true when the mnemonic passphrase is invalid', () => {
+		it('should return false when the mnemonic passphrase is invalid', () => {
 			const invalidMnemonic =
 				'minute omit local rare sword knee banner pair rib museum shadow invalidAddition';
 			const valid = mnemonic.isValidMnemonicPassphrase(invalidMnemonic);
