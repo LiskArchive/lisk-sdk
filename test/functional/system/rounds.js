@@ -35,6 +35,11 @@ describe('rounds', () => {
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
 
+	constants.blockVersions = [
+		0,
+		150, // Bump block version at height 150
+	];
+
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
 		Queries = new queriesHelper(lib, lib.db);
@@ -1088,6 +1093,11 @@ describe('rounds', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
 					return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
 				});
+
+				it('block just before version bump should have version = 0', () => {
+					const lastBlock = library.modules.blocks.lastBlock.get();
+					return expect(lastBlock.version).to.equal(0);
+				});
 			});
 
 			describe('after rewards start', () => {
@@ -1132,6 +1142,13 @@ describe('rounds', () => {
 								return expect(lastBlock.reward).to.equal(
 									expectedRewardsPerBlock
 								);
+							});
+						});
+
+						describe('version check', () => {
+							it('all blocks from now until round end should have version = 1', () => {
+								const lastBlock = library.modules.blocks.lastBlock.get();
+								return expect(lastBlock.version).to.equal(1);
 							});
 						});
 
