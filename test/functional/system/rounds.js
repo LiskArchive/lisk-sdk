@@ -17,6 +17,7 @@
 const async = require('async');
 const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
+const ed = require('../../../helpers/ed.js');
 const slots = require('../../../helpers/slots');
 const Bignum = require('../../../helpers/bignum.js');
 const accountsFixtures = require('../../fixtures/accounts');
@@ -80,7 +81,7 @@ describe('rounds', () => {
 
 		// Update last block forger account
 		const found = _.find(accounts, {
-			publicKey: Buffer.from(lastBlock.generatorPublicKey, 'hex'),
+			publicKey: ed.hexToBuffer(lastBlock.generatorPublicKey),
 		});
 		if (found) {
 			found.producedBlocks += 1;
@@ -156,7 +157,7 @@ describe('rounds', () => {
 		const expectedRewards = getExpectedRoundRewards(blocks);
 		_.each(expectedRewards, reward => {
 			const found = _.find(accounts, {
-				publicKey: Buffer.from(reward.publicKey, 'hex'),
+				publicKey: ed.hexToBuffer(reward.publicKey),
 			});
 			if (found) {
 				found.fees = new Bignum(found.fees)
@@ -191,7 +192,7 @@ describe('rounds', () => {
 		_.each(voters, delegate => {
 			let votes = '0';
 			const found = _.find(accounts, {
-				publicKey: Buffer.from(delegate.dependentId, 'hex'),
+				publicKey: ed.hexToBuffer(delegate.dependentId),
 			});
 
 			_.each(delegate.array_agg, voter => {
@@ -222,7 +223,7 @@ describe('rounds', () => {
 		// Increase missed blocks counter for every outsider
 		roundOutsidersList.forEach(publicKey => {
 			const account = _.find(accounts, {
-				publicKey: Buffer.from(publicKey, 'hex'),
+				publicKey: ed.hexToBuffer(publicKey),
 			});
 			account.missedBlocks += 1;
 		});
