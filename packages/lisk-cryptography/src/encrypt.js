@@ -126,23 +126,36 @@ const encryptAES256GCMWithPassword = (
 };
 
 const getTagBuffer = tag => {
-	const tagBuffer = hexToBuffer(tag);
+	const tagBuffer = hexToBuffer(tag, 'Tag');
 	if (tagBuffer.length !== 16) {
 		throw new Error('Tag must be 16 bytes.');
 	}
 	return tagBuffer;
 };
 
-const decryptAES256GCMWithPassword = (
-	{ iterations = PBKDF2_ITERATIONS, cipherText, iv, salt, tag },
-	password,
-) => {
-	const tagBuffer = getTagBuffer(tag);
-	const key = getKeyFromPassword(password, hexToBuffer(salt), iterations);
+const decryptAES256GCMWithPassword = (encryptedPassphrase, password) => {
+	const {
+		iterations = PBKDF2_ITERATIONS,
+		cipherText,
+		iv,
+		salt,
+		tag,
+	} = encryptedPassphrase;
 
-	const decipher = crypto.createDecipheriv('aes-256-gcm', key, hexToBuffer(iv));
+	const tagBuffer = getTagBuffer(tag);
+	const key = getKeyFromPassword(
+		password,
+		hexToBuffer(salt, 'Salt'),
+		iterations,
+	);
+
+	const decipher = crypto.createDecipheriv(
+		'aes-256-gcm',
+		key,
+		hexToBuffer(iv, 'IV'),
+	);
 	decipher.setAuthTag(tagBuffer);
-	const firstBlock = decipher.update(hexToBuffer(cipherText));
+	const firstBlock = decipher.update(hexToBuffer(cipherText, 'Cipher text'));
 	const decrypted = Buffer.concat([firstBlock, decipher.final()]);
 
 	return decrypted.toString();

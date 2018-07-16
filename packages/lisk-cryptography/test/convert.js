@@ -81,6 +81,12 @@ describe('convert', () => {
 			);
 		});
 
+		it('should throw an error for a non-string input with custom argument name', () => {
+			return expect(hexToBuffer.bind(null, {}, 'Custom')).to.throw(
+				'Custom must be a string.',
+			);
+		});
+
 		it('should throw TypeError with non hex string', () => {
 			return expect(hexToBuffer.bind(null, 'yKJj')).to.throw(
 				TypeError,
@@ -109,10 +115,22 @@ describe('convert', () => {
 			);
 		});
 
-		it('should throw TypeError with odd number of hex string', () => {
+		it('should throw an error for a non-hex string input with custom argument name', () => {
+			return expect(hexToBuffer.bind(null, 'yKJj', 'Custom')).to.throw(
+				'Custom must be a valid hex string.',
+			);
+		});
+
+		it('should throw TypeError with odd-length hex string', () => {
 			return expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a')).to.throw(
 				TypeError,
 				'Argument must have a valid length of hex string.',
+			);
+		});
+
+		it('should throw an error for an odd-length hex string input with custom argument name', () => {
+			return expect(hexToBuffer.bind(null, 'c3a5c3a4c3b6a', 'Custom')).to.throw(
+				'Custom must have a valid length of hex string.',
 			);
 		});
 	});
