@@ -110,9 +110,9 @@ var constants = {
 		offset: 1451520, // Start rewards at block (n)
 		distance: 3000000, // Distance between each milestone
 	},
-	// Block height at which block version increases
+	// Every version starts on provided height
 	blockVersions: [
-		0,
+		1, // version: 0
 	],
 	totalAmount: 10000000000000000,
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
