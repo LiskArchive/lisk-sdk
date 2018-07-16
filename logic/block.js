@@ -19,7 +19,7 @@ const ByteBuffer = require('bytebuffer');
 const bignum = require('../helpers/bignum.js');
 const constants = require('../helpers/constants.js');
 const transactionTypes = require('../helpers/transaction_types.js');
-const blockVersion = require('../helpers/block_version.js');
+const blockVersion = require('./block_version.js');
 const BlockReward = require('./block_reward.js');
 
 const __private = {};
