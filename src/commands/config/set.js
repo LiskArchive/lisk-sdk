@@ -139,7 +139,7 @@ export default class SetCommand extends BaseCommand {
 			safeValue,
 			safeValues,
 		);
-		this.print(result);
+		this.print(result, true);
 	}
 }
 
@@ -163,11 +163,9 @@ SetCommand.flags = {
 };
 
 SetCommand.description = `
-Sets configuration <variable> to [value(s)...].
+Sets configuration.
 ...
-Variables available: ${availableVariables}. Configuration is persisted in \`${
-	process.env.XDG_CONFIG_HOME
-}\`.
+Variables available: ${availableVariables}.
 `;
 
 SetCommand.examples = [

@@ -55,7 +55,10 @@
 		"bin": "lisk",
 		"plugins": [
 			"@oclif/plugin-help"
-		]
+		],
+		"topics": {
+			"config": { "description": "manage lisk-commander config variables" }
+		}
 	},
 	"files": [
 		"/bin",

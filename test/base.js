@@ -16,14 +16,14 @@
 import os from 'os';
 import BaseCommand, { defaultConfigFolder } from '../src/base';
 import * as config from '../src/utils/config';
+import * as printUtil from '../src/utils/print';
 
 describe('base command', () => {
 	let command;
-	let errorStub;
 	beforeEach(() => {
 		command = new BaseCommand();
 		sandbox.stub(command, 'parse').returns({});
-		errorStub = sandbox.stub(command, 'error');
+		sandbox.stub(command, 'error');
 		sandbox.stub(config, 'getConfig').returns({});
 		return Promise.resolve();
 	});
@@ -50,18 +50,90 @@ describe('base command', () => {
 			const errorMsg = 'some error';
 			const error = new Error(errorMsg);
 			await command.finally(error);
-			return expect(errorStub).to.be.calledWithExactly(errorMsg);
+			return expect(command.error).to.be.calledWithExactly(errorMsg);
 		});
 
 		it('should log error with input', async () => {
 			const errorMsg = 'some error';
 			await command.finally(errorMsg);
-			return expect(errorStub).to.be.calledWithExactly(errorMsg);
+			return expect(command.error).to.be.calledWithExactly(errorMsg);
 		});
 
 		it('should not log error', async () => {
 			await command.finally();
-			return expect(errorStub).not.to.be.called;
+			return expect(command.error).not.to.be.called;
+		});
+	});
+
+	describe('#print', () => {
+		const result = {
+			some: 'result',
+		};
+		let tempEnvConfigHome;
+		let print;
+
+		before(() => {
+			tempEnvConfigHome = process.env.XDG_CONFIG_HOME;
+			return Promise.resolve();
+		});
+
+		after(() => {
+			if (tempEnvConfigHome) {
+				process.env.XDG_CONFIG_HOME = tempEnvConfigHome;
+			} else {
+				delete process.env.XDG_CONFIG_HOME;
+			}
+			return Promise.resolve();
+		});
+
+		beforeEach(() => {
+			print = sandbox.stub();
+			return sandbox.stub(printUtil, 'default').returns(print);
+		});
+
+		it('should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true', async () => {
+			process.env.XDG_CONFIG_HOME = 'home';
+			await command.print(result, true);
+			return expect(config.getConfig).to.be.calledWithExactly(
+				process.env.XDG_CONFIG_HOME,
+			);
+		});
+
+		it('should not call getConfig when readAgain is false', async () => {
+			command.userConfig = {};
+			command.print(result);
+			return expect(config.getConfig).not.to.be.called;
+		});
+
+		it('should call print with the result', async () => {
+			command.userConfig = {};
+			command.print(result);
+			return expect(print).to.be.calledWithExactly(result);
+		});
+
+		it('should call printUtil with the userConfig', async () => {
+			command.userConfig = {
+				json: false,
+			};
+			command.print(result);
+			return expect(printUtil.default).to.be.calledWithExactly({
+				json: false,
+				pretty: undefined,
+			});
+		});
+
+		it('should call printUtil with the flag overwriting the userConfig', async () => {
+			command.userConfig = {
+				json: false,
+				pretty: true,
+			};
+			const overwritingFlag = {
+				json: true,
+				pretty: false,
+			};
+			command.flags = overwritingFlag;
+			command.print(result);
+			return expect(printUtil.default).to.be.calledWithExactly(overwritingFlag);
 		});
 	});
 });

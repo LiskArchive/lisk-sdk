@@ -18,7 +18,7 @@ import { Command, flags as flagParser } from '@oclif/command';
 import { getConfig } from './utils/config';
 import print from './utils/print';
 
-export const defaultConfigFolder = '.lisk-commander';
+export const defaultConfigFolder = '.lisk';
 
 export default class BaseCommand extends Command {
 	async init() {
@@ -29,14 +29,6 @@ export default class BaseCommand extends Command {
 			process.env.LISK_COMMANDER_CONFIG_DIR ||
 			`${os.homedir()}/${defaultConfigFolder}`;
 		this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
-		this.printOptions = Object.assign(
-			{},
-			{
-				json: this.userConfig.json,
-				pretty: this.userConfig.pretty,
-			},
-			this.flags,
-		);
 	}
 
 	async finally(error) {
@@ -45,8 +37,15 @@ export default class BaseCommand extends Command {
 		}
 	}
 
-	print(result) {
-		print(this.printOptions).call(this, result);
+	print(result, readAgain = false) {
+		if (readAgain) {
+			this.userConfig = getConfig(process.env.XDG_CONFIG_HOME);
+		}
+		print({
+			json: this.userConfig.json,
+			pretty: this.userConfig.pretty,
+			...this.flags,
+		}).call(this, result);
 	}
 }
 
