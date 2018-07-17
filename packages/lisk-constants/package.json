@@ -19,7 +19,7 @@
 		"node": ">=6.3 <=9.5",
 		"npm": ">=3 <=5"
 	},
-	"main": "dist/index.js",
+	"main": "dist-node/index.js",
 	"scripts": {
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
@@ -32,15 +32,16 @@
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
 		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
-		"prebuild": "rm -r dist || mkdir dist | echo",
-		"build": "babel src -d dist",
-		"build:check": "node -e \"require('./dist')\"",
+		"prebuild": "rm -r dist-node || mkdir dist-node | echo",
+		"build": "babel src -d dist-node",
+		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly":
 			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
 		"babel-plugin-istanbul": "4.1.6",
+		"babel-plugin-module-resolver": "3.1.1",
 		"babel-plugin-transform-runtime": "6.23.0",
 		"babel-preset-env": "1.6.1",
 		"babel-register": "6.26.0",
