@@ -16,7 +16,6 @@
 
 const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
-const ed = require('../helpers/ed.js');
 const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const BlockReward = require('./block_reward.js');
@@ -427,7 +426,9 @@ Block.prototype.getBytes = function(block) {
 			byteBuffer.writeByte(payloadHashBuffer[i]);
 		}
 
-		const generatorPublicKeyBuffer = ed.hexToBuffer(block.generatorPublicKey);
+		const generatorPublicKeyBuffer = this.scope.ed.hexToBuffer(
+			block.generatorPublicKey
+		);
 		for (let i = 0; i < generatorPublicKeyBuffer.length; i++) {
 			byteBuffer.writeByte(generatorPublicKeyBuffer[i]);
 		}
