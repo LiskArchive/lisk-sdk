@@ -198,7 +198,6 @@ describe('APIClient module', () => {
 
 			it('should set custom headers with supplied options', () => {
 				apiClient = new APIClient(defaultNodes, {
-					version: customHeaders.version,
 					nethash: testnetHash,
 					client: {
 						name: 'LiskHub',
@@ -209,6 +208,13 @@ describe('APIClient module', () => {
 				return expect(apiClient)
 					.to.have.property('headers')
 					.and.eql(customHeaders);
+			});
+
+			it('should not set User-Agent header when client options were not given', () => {
+				apiClient = new APIClient(defaultNodes, {
+					nethash: testnetHash,
+				});
+				return expect(apiClient.headers).to.not.have.property('User-Agent');
 			});
 		});
 
