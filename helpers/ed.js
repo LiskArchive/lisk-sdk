@@ -16,8 +16,6 @@
 
 var sodium = require('sodium-native');
 
-const hexRegex = /^[0-9a-f]+/i;
-
 /**
  * Crypto functions that implements sodium.
  *
@@ -94,12 +92,11 @@ ed.hexToBuffer = hex => {
 	if (typeof hex !== 'string') {
 		throw new TypeError('Argument must be a string.');
 	}
+	// Regex to match valid hex string with even length
+	const hexRegex = /^([0-9a-f]{2})+$/i;
 	const matchedHex = (hex.match(hexRegex) || [])[0];
-	if (!matchedHex || matchedHex.length !== hex.length) {
+	if (!matchedHex) {
 		throw new TypeError('Argument must be a valid hex string.');
-	}
-	if (matchedHex.length % 2 !== 0) {
-		throw new TypeError('Argument must have a valid length of hex string.');
 	}
 	return Buffer.from(matchedHex, 'hex');
 };
