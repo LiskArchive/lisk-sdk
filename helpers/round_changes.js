@@ -14,7 +14,7 @@
 
 'use strict';
 
-var bignum = require('./bignum');
+var Bignum = require('./bignum');
 var slots = require('./slots');
 
 var exceptions = global.exceptions;
@@ -39,13 +39,13 @@ function RoundChanges(scope) {
 	if (exceptions.rounds[scope.round]) {
 		// Apply rewards factor
 		this.roundRewards.forEach((reward, index) => {
-			this.roundRewards[index] = new bignum(reward.toPrecision(15))
+			this.roundRewards[index] = new Bignum(reward.toPrecision(15))
 				.times(exceptions.rounds[scope.round].rewards_factor)
 				.floor();
 		});
 
 		// Apply fees factor and bonus
-		this.roundFees = new bignum(this.roundFees.toPrecision(15))
+		this.roundFees = new Bignum(this.roundFees.toPrecision(15))
 			.times(exceptions.rounds[scope.round].fees_factor)
 			.plus(exceptions.rounds[scope.round].fees_bonus)
 			.floor();
@@ -62,14 +62,14 @@ function RoundChanges(scope) {
  * @todo Add description for the params
  */
 RoundChanges.prototype.at = function(index) {
-	var fees = new bignum(this.roundFees.toPrecision(15))
+	var fees = new Bignum(this.roundFees.toPrecision(15))
 		.dividedBy(slots.delegates)
 		.floor();
-	var feesRemaining = new bignum(this.roundFees.toPrecision(15)).minus(
+	var feesRemaining = new Bignum(this.roundFees.toPrecision(15)).minus(
 		fees.times(slots.delegates)
 	);
 	var rewards =
-		new bignum(this.roundRewards[index].toPrecision(15)).floor() || 0;
+		new Bignum(this.roundRewards[index].toPrecision(15)).floor() || 0;
 
 	return {
 		fees: Number(fees.toFixed()),

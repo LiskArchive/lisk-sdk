@@ -21,7 +21,7 @@ var modulesLoader = require('../../common/modules_loader');
 var application = require('../../common/application');
 var transactionTypes = require('../../../helpers/transaction_types');
 var ed = require('../../../helpers/ed');
-var bignum = require('../../../helpers/bignum');
+var Bignum = require('../../../helpers/bignum.js');
 var Transfer = require('../../../logic/transfer');
 
 const constants = __testContext.config.constants;
@@ -47,8 +47,8 @@ var validSender = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	secondPublicKey: null,
-	balance: 9850458911801508,
-	u_balance: 9850458911801508,
+	balance: '9850458911801508',
+	u_balance: '9850458911801508',
 	vote: 0,
 	multisignatures: null,
 	multimin: 0,
@@ -57,8 +57,8 @@ var validSender = {
 	nameexist: 0,
 	producedBlocks: 0,
 	missedBlocks: 0,
-	fees: 0,
-	rewards: 0,
+	fees: '0',
+	rewards: '0',
 };
 
 var validTransaction = {
@@ -71,8 +71,8 @@ var validTransaction = {
 		'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	senderId: '16313739661670634666L',
 	recipientId: '2460251951231579923L',
-	amount: 8067474861277,
-	fee: 10000000,
+	amount: '8067474861277',
+	fee: '10000000',
 	signature:
 		'0c5e9ed74fc64ca5940a45025f7386fc40cc7f495ca48490d2c7e9fb636cbe8046e1a5ce031ff5d84f7bf753f9e4307c6c3dedcc9756844177093dd46ccade06',
 	signSignature: null,
@@ -92,8 +92,8 @@ var rawValidTransaction = {
 	m_recipientPublicKey: null,
 	t_senderId: '16313739661670634666L',
 	t_recipientId: '2460251951231579923L',
-	t_amount: 8067474861277,
-	t_fee: 10000000,
+	t_amount: '8067474861277',
+	t_fee: '10000000',
 	t_signature:
 		'0c5e9ed74fc64ca5940a45025f7386fc40cc7f495ca48490d2c7e9fb636cbe8046e1a5ce031ff5d84f7bf753f9e4307c6c3dedcc9756844177093dd46ccade06',
 	confirmations: 8343,
@@ -143,8 +143,8 @@ describe('transfer', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', () => {
-			return expect(transfer.calculateFee(validTransaction)).to.equal(
-				constants.fees.send
+			return expect(
+				transfer.calculateFee(validTransaction).equals(constants.fees.send)
 			);
 		});
 
@@ -153,9 +153,8 @@ describe('transfer', () => {
 			transaction.asset = {
 				data: '0',
 			};
-
-			return expect(transfer.calculateFee(transaction)).to.equal(
-				constants.fees.send
+			return expect(
+				transfer.calculateFee(transaction).equals(constants.fees.send)
 			);
 		});
 	});
@@ -248,8 +247,8 @@ describe('transfer', () => {
 					expect(err).to.not.exist;
 					expect(accountBefore).to.exist;
 
-					var amount = new bignum(validTransaction.amount.toString());
-					var balanceBefore = new bignum(accountBefore.balance.toString());
+					var amount = new Bignum(validTransaction.amount.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transfer.apply(validTransaction, dummyBlock, validSender, err => {
 						expect(err).to.not.exist;
@@ -260,7 +259,7 @@ describe('transfer', () => {
 								expect(err).to.not.exist;
 								expect(accountAfter).to.exist;
 
-								var balanceAfter = new bignum(accountAfter.balance.toString());
+								var balanceAfter = new Bignum(accountAfter.balance.toString());
 								expect(balanceBefore.plus(amount).toString()).to.equal(
 									balanceAfter.toString()
 								);
@@ -299,16 +298,15 @@ describe('transfer', () => {
 				(err, accountBefore) => {
 					expect(err).to.not.exist;
 
-					var amount = new bignum(validTransaction.amount.toString());
-					var balanceBefore = new bignum(accountBefore.balance.toString());
-
+					var amount = new Bignum(validTransaction.amount.toString());
+					var balanceBefore = new Bignum(accountBefore.balance.toString());
 					transfer.undo(validTransaction, dummyBlock, validSender, err => {
 						expect(err).to.not.exist;
 
 						accountModule.getAccount(
 							{ address: validTransaction.recipientId },
 							(err, accountAfter) => {
-								var balanceAfter = new bignum(accountAfter.balance.toString());
+								var balanceAfter = new Bignum(accountAfter.balance.toString());
 
 								expect(err).to.not.exist;
 								expect(balanceAfter.plus(amount).toString()).to.equal(

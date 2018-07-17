@@ -24,8 +24,9 @@ var modulesLoader = require('../../common/modules_loader');
 var ed = require('../../../helpers/ed');
 var diff = require('../../../helpers/diff');
 var transactionTypes = require('../../../helpers/transaction_types');
-var Transfer = require('../../../logic/transfer');
+var Bignum = require('../../../helpers/bignum.js');
 var Vote = require('../../../logic/vote');
+var Transfer = require('../../../logic/transfer');
 
 const constants = __testContext.config.constants;
 var validPassphrase =
@@ -38,8 +39,8 @@ var validKeypair = ed.makeKeypair(
 );
 
 var validSender = {
-	balance: 8067474861277,
-	u_balance: 8067474861277,
+	balance: '8067474861277',
+	u_balance: '8067474861277',
 	passphrase: 'hacnj1113nn7tujzia4i',
 	username: 'i3Hb0kYEbk$r',
 	publicKey: '65eac2bdd725a0a294e3a48de235108ff1a18a829e6d125ad50815a7c5356470',
@@ -55,7 +56,7 @@ var senderKeypair = ed.makeKeypair(senderHash);
 
 var validTransaction = {
 	type: 3,
-	amount: 0,
+	amount: '0',
 	senderPublicKey:
 		'65eac2bdd725a0a294e3a48de235108ff1a18a829e6d125ad50815a7c5356470',
 	requesterPublicKey: null,
@@ -70,7 +71,7 @@ var validTransaction = {
 	signature:
 		'de668e2722fbc2fd02bac1bb66ff1238d75354f64ca0adc5b1967f5f4e67038336cee6a85af43ed9fa5f3a091890738de14c857bd7b1f9bade7ff1da1c395a0e',
 	id: '5962289265698105102',
-	fee: 100000000,
+	fee: '100000000',
 	senderId: '2262452491031990877L',
 };
 
@@ -175,7 +176,7 @@ describe('vote', () => {
 
 		var sendTransaction = {
 			type: 0,
-			amount: 8067474861277,
+			amount: new Bignum('8067474861277'),
 			senderPublicKey:
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 			requesterPublicKey: null,
@@ -186,7 +187,7 @@ describe('vote', () => {
 			signature:
 				'f2910e221d88134265974d9fc8efee0532e7e14ffdb22a9674c64bfd01863e70da75db51f7e0adcfbe87d9efdaef9f914f577ca08a7664db290e8e5ad89eb30c',
 			id: '4802102241260248478',
-			fee: 10000000,
+			fee: new Bignum('10000000'),
 			senderId: '16313739661670634666L',
 		};
 
@@ -196,8 +197,8 @@ describe('vote', () => {
 			address: '16313739661670634666L',
 			publicKey:
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-			balance: 9850458911801508,
-			u_balance: 9850458911801508,
+			balance: new Bignum('9850458911801508'),
+			u_balance: new Bignum('9850458911801508'),
 			blockId: '8505659485551877884',
 		};
 
@@ -231,7 +232,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee()).to.equal(constants.fees.vote);
+			return expect(vote.calculateFee().equals(constants.fees.vote.toString()));
 		});
 	});
 

@@ -15,7 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 const Vote = require('../logic/vote.js');
@@ -87,7 +87,7 @@ Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
 		temp[i] = publicKeyHash[7 - i];
 	}
 
-	const address = `${bignum.fromBuffer(temp).toString()}L`;
+	const address = `${Bignum.fromBuffer(temp).toString()}L`;
 
 	if (!address) {
 		throw `Invalid public key: ${publicKey}`;

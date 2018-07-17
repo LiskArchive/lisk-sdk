@@ -110,14 +110,10 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				passphrase: blockAccount1.passphrase,
 				username: blockAccount1.username,
 			});
-			blockTransaction1.amount = parseInt(blockTransaction1.amount);
-			blockTransaction1.fee = parseInt(blockTransaction1.fee);
 			blockTransaction2 = lisk.transaction.registerDelegate({
 				passphrase: blockAccount2.passphrase,
 				username: blockAccount2.username,
 			});
-			blockTransaction2.amount = parseInt(blockTransaction2.amount);
-			blockTransaction2.fee = parseInt(blockTransaction2.fee);
 			blockTransaction1.senderId = blockAccount1.address;
 			blockTransaction2.senderId = blockAccount2.address;
 			localCommon.createValidBlock(

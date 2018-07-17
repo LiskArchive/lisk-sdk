@@ -15,7 +15,7 @@
 
 'use strict';
 
-var bignum = require('../../../helpers/bignum.js');
+var Bignum = require('../../../helpers/bignum.js');
 var AccountModule = require('../../../modules/accounts.js');
 var randomUtil = require('../../common/utils/random');
 var application = require('../../common/application');
@@ -216,7 +216,7 @@ describe('accounts', () => {
 						expect(res).to.have.length(10);
 						for (var i = 0; i < limit - 1; i++) {
 							expect(
-								new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))
+								new Bignum(res[i].balance).gte(new Bignum(res[i + 1].balance))
 							).to.equal(true);
 						}
 						done();
@@ -240,7 +240,7 @@ describe('accounts', () => {
 						expect(res).to.have.length(10);
 						for (var i = 0; i < limit - 1; i++) {
 							expect(
-								new bignum(res[i].balance).gte(new bignum(res[i + 1].balance))
+								new Bignum(res[i].balance).gte(new Bignum(res[i + 1].balance))
 							).to.equal(true);
 						}
 						done();

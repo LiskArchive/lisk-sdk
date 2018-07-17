@@ -15,6 +15,7 @@
 'use strict';
 
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 
 const constants = global.constants;
 const exceptions = global.exceptions;
@@ -63,13 +64,11 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
 /**
  * Returns send fee from constants.
  *
- * @param {transaction} transaction
- * @param {account} sender
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  * @todo Add description for the params
  */
 InTransfer.prototype.calculateFee = function() {
-	return constants.fees.send;
+	return new Bignum(constants.fees.send);
 };
 
 /**
@@ -92,7 +91,9 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (!transaction.amount) {
+	const amount = new Bignum(transaction.amount);
+
+	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

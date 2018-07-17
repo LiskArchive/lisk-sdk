@@ -136,8 +136,8 @@ describe('multisignature', () => {
 				`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`,
 			];
 			return expect(
-				multisignature.calculateFee(transaction).toString()
-			).to.equal('1000000000');
+				multisignature.calculateFee(transaction).equals('1000000000')
+			);
 		});
 
 		it('should return correct fee based on formula for 4 keysgroup', () => {
@@ -146,8 +146,8 @@ describe('multisignature', () => {
 			);
 
 			return expect(
-				multisignature.calculateFee(transaction).toString()
-			).to.equal('2500000000');
+				multisignature.calculateFee(transaction).equals('2500000000')
+			);
 		});
 
 		it('should return correct fee based on formula for 8 keysgroup', () => {
@@ -156,8 +156,8 @@ describe('multisignature', () => {
 			);
 
 			return expect(
-				multisignature.calculateFee(transaction).toString()
-			).to.equal('4500000000');
+				multisignature.calculateFee(transaction).equals('4500000000')
+			);
 		});
 
 		it('should return correct fee based on formula for 16 keysgroup', () => {
@@ -166,8 +166,8 @@ describe('multisignature', () => {
 			);
 
 			return expect(
-				multisignature.calculateFee(transaction).toString()
-			).to.equal('8500000000');
+				multisignature.calculateFee(transaction).equals('8500000000')
+			);
 		});
 	});
 

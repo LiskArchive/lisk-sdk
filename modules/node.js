@@ -148,7 +148,7 @@ Node.prototype.shared = {
 			nethash: library.config.nethash,
 			nonce: library.config.nonce,
 			milestone: blockReward.calcMilestone(height),
-			reward: blockReward.calcReward(height),
+			reward: blockReward.calcReward(height).toString(),
 			supply: blockReward.calcSupply(height),
 			version: library.config.version,
 		});

@@ -14,13 +14,13 @@
 
 'use strict';
 
-var sodium = require('sodium').api;
+var sodium = require('sodium-native');
 
 /**
  * Crypto functions that implements sodium.
  *
  * @module
- * @requires sodium.api
+ * @requires sodium
  * @see Parent: {@link helpers}
  */
 var ed = {};
@@ -34,11 +34,13 @@ var ed = {};
  * @todo Add description for the params and the return value
  */
 ed.makeKeypair = function(hash) {
-	var keypair = sodium.crypto_sign_seed_keypair(hash);
+	var publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
+	var privateKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
+	sodium.crypto_sign_seed_keypair(publicKey, privateKey, hash);
 
 	return {
-		publicKey: keypair.publicKey,
-		privateKey: keypair.secretKey,
+		publicKey,
+		privateKey,
 	};
 };
 
@@ -52,7 +54,13 @@ ed.makeKeypair = function(hash) {
  * @todo Add description for the params and the return value
  */
 ed.sign = function(hash, privateKey) {
-	return sodium.crypto_sign_detached(hash, privateKey);
+	if (!(hash instanceof Buffer))
+		throw new Error('argument message must be a buffer');
+
+	var signature = Buffer.alloc(sodium.crypto_sign_BYTES);
+	sodium.crypto_sign_detached(signature, hash, privateKey);
+
+	return signature;
 };
 
 /**
@@ -66,6 +74,8 @@ ed.sign = function(hash, privateKey) {
  * @todo Add description for the params
  */
 ed.verify = function(hash, signature, publicKey) {
+	if (!(hash instanceof Buffer) || !(signature instanceof Buffer))
+		throw new Error('argument message must be a buffer');
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 };
 

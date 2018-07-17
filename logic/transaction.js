@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
-const bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
@@ -121,7 +121,7 @@ class Transaction {
 			temp[i] = hash[7 - i];
 		}
 
-		const id = bignum.fromBuffer(temp).toString();
+		const id = Bignum.fromBuffer(temp).toString();
 		return id;
 	}
 
@@ -193,7 +193,7 @@ class Transaction {
 
 			if (transaction.recipientId) {
 				let recipient = transaction.recipientId.slice(0, -1);
-				recipient = new bignum(recipient).toBuffer({ size: 8 });
+				recipient = new Bignum(recipient).toBuffer({ size: 8 });
 
 				for (let i = 0; i < 8; i++) {
 					byteBuffer.writeByte(recipient[i] || 0);
@@ -204,7 +204,7 @@ class Transaction {
 				}
 			}
 
-			byteBuffer.writeLong(transaction.amount);
+			byteBuffer.writeLong(transaction.amount.toString());
 
 			if (assetSize > 0) {
 				for (let i = 0; i < assetSize; i++) {
@@ -302,17 +302,15 @@ class Transaction {
 	/**
 	 * Checks if balance is less than amount for sender.
 	 *
-	 * @param {number} amount
-	 * @param {number} balance
+	 * @param {BigNumber} amount
+	 * @param {string} field
 	 * @param {transaction} transaction
 	 * @param {account} sender
 	 * @returns {Object} With exceeded boolean and error: address, balance
 	 * @todo Add description for the params
 	 */
-	checkBalance(amount, balance, transaction, sender) {
-		const exceededBalance = new bignum(sender[balance].toString()).lessThan(
-			amount
-		);
+	checkBalance(amount, field, transaction, sender) {
+		const exceededBalance = new Bignum(sender[field]).lessThan(amount);
 		const exceeded =
 			transaction.blockId !== this.scope.genesisBlock.block.id &&
 			exceededBalance;
@@ -324,7 +322,7 @@ class Transaction {
 						'Account does not have enough LSK:',
 						sender.address,
 						'balance:',
-						new bignum(sender[balance].toString() || '0').div(Math.pow(10, 8)),
+						new Bignum(sender[field].toString() || '0').div(Math.pow(10, 8)),
 					].join(' ')
 				: null,
 		};
@@ -619,10 +617,11 @@ class Transaction {
 		}
 
 		// Calculate fee
-		const fee =
-			__private.types[transaction.type].calculateFee(transaction, sender) ||
-			false;
-		if (!fee || transaction.fee !== fee) {
+		const fee = __private.types[transaction.type].calculateFee(
+			transaction,
+			sender
+		);
+		if (!transaction.fee.equals(fee)) {
 			err = 'Invalid transaction fee';
 
 			if (exceptions.transactionFee.indexOf(transaction.id) > -1) {
@@ -635,19 +634,18 @@ class Transaction {
 		}
 
 		// Check amount
+		let amount = transaction.amount;
 		if (
-			transaction.amount < 0 ||
-			transaction.amount > constants.totalAmount ||
-			String(transaction.amount).indexOf('.') >= 0 ||
-			transaction.amount.toString().indexOf('e') >= 0
+			amount.lessThan(0) ||
+			amount.greaterThan(constants.totalAmount) ||
+			!amount.isInteger()
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 
 		// Check confirmed sender balance
-		const amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
+		amount = amount.plus(transaction.fee);
+
 		const senderBalance = this.checkBalance(
 			amount,
 			'balance',
@@ -820,9 +818,8 @@ class Transaction {
 		}
 
 		// Check confirmed sender balance
-		let amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
+		const amount = transaction.amount.plus(transaction.fee);
+
 		const senderBalance = this.checkBalance(
 			amount,
 			'balance',
@@ -834,11 +831,9 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		amount = amount.toNumber();
-
 		this.scope.logger.trace('Logic/Transaction->apply', {
 			sender: sender.address,
-			balance: -amount,
+			balance: `-${amount}`,
 			blockId: block.id,
 			round: slots.calcRound(block.height),
 		});
@@ -846,7 +841,7 @@ class Transaction {
 		this.scope.account.merge(
 			sender.address,
 			{
-				balance: -amount,
+				balance: `-${amount}`,
 				round: slots.calcRound(block.height),
 			},
 			(mergeErr, sender) => {
@@ -902,8 +897,7 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		let amount = new bignum(transaction.amount.toString());
-		amount = amount.plus(transaction.fee.toString()).toNumber();
+		const amount = transaction.amount.plus(transaction.fee);
 
 		this.scope.logger.trace('Logic/Transaction->undo', {
 			sender: sender.address,
@@ -932,7 +926,7 @@ class Transaction {
 							this.scope.account.merge(
 								sender.address,
 								{
-									balance: -amount,
+									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
 								},
 								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),
@@ -978,9 +972,8 @@ class Transaction {
 		}
 
 		// Check unconfirmed sender balance
-		let amount = new bignum(transaction.amount.toString()).plus(
-			transaction.fee.toString()
-		);
+		const amount = transaction.amount.plus(transaction.fee);
+
 		const senderBalance = this.checkBalance(
 			amount,
 			'u_balance',
@@ -992,11 +985,9 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		amount = amount.toNumber();
-
 		this.scope.account.merge(
 			sender.address,
-			{ u_balance: -amount },
+			{ u_balance: `-${amount}` },
 			(mergeErr, sender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
@@ -1044,8 +1035,7 @@ class Transaction {
 			return setImmediate(cb);
 		}
 
-		let amount = new bignum(transaction.amount.toString());
-		amount = amount.plus(transaction.fee.toString()).toNumber();
+		const amount = transaction.amount.plus(transaction.fee);
 
 		this.scope.account.merge(
 			sender.address,
@@ -1062,7 +1052,7 @@ class Transaction {
 						if (undoUnconfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
-								{ u_balance: -amount },
+								{ u_balance: `-${amount}` },
 								reverseMergeErr =>
 									setImmediate(cb, reverseMergeErr || undoUnconfirmedErr),
 								tx
@@ -1126,11 +1116,11 @@ class Transaction {
 		}
 
 		if (transaction.amount) {
-			transaction.amount = parseInt(transaction.amount);
+			transaction.amount = new Bignum(transaction.amount);
 		}
 
 		if (transaction.fee) {
-			transaction.fee = parseInt(transaction.fee);
+			transaction.fee = new Bignum(transaction.fee);
 		}
 
 		const report = this.scope.schema.validate(
@@ -1182,8 +1172,8 @@ class Transaction {
 			senderId: raw.t_senderId,
 			recipientId: raw.t_recipientId,
 			recipientPublicKey: raw.m_recipientPublicKey || null,
-			amount: parseInt(raw.t_amount),
-			fee: parseInt(raw.t_fee),
+			amount: new Bignum(raw.t_amount),
+			fee: new Bignum(raw.t_fee),
 			signature: raw.t_signature,
 			signSignature: raw.t_signSignature,
 			signatures: raw.t_signatures ? raw.t_signatures.split(',') : [],
@@ -1307,14 +1297,12 @@ Transaction.prototype.schema = {
 			maxLength: 22,
 		},
 		amount: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'object',
+			format: 'amount',
 		},
 		fee: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'object',
+			format: 'amount',
 		},
 		signature: {
 			type: 'string',
