@@ -55,7 +55,12 @@ const getClientHeaders = clientOptions => {
 	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	return `${name}/${version} (${engine}) ${liskElementsInformation} ${systemInformation}`;
+
+	return {
+		'User-Agent': `${name}/${version} (${engine}) ${liskElementsInformation} ${
+			systemInformation
+		}`,
+	};
 };
 
 export default class APIClient {
