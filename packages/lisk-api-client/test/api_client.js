@@ -39,13 +39,15 @@ describe('APIClient module', () => {
 	const platformInfo = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	const baseUserAgent = `LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements) ${platformInfo}`;
-	const defaultUserAgent = `????/???? (????) ${baseUserAgent}`;
-	const customUserAgent = `LiskHub/5.0 (+https://github.com/LiskHQ/lisk-hub) ${baseUserAgent}`;
+	const baseUserAgent = `LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements) ${
+		platformInfo
+	}`;
+	const customUserAgent = `LiskHub/5.0 (+https://github.com/LiskHQ/lisk-hub) ${
+		baseUserAgent
+	}`;
 	const defaultHeaders = {
 		Accept: 'application/json',
 		'Content-Type': 'application/json',
-		'User-Agent': defaultUserAgent,
 	};
 
 	const customHeaders = {
@@ -198,7 +200,6 @@ describe('APIClient module', () => {
 
 			it('should set custom headers with supplied options', () => {
 				apiClient = new APIClient(defaultNodes, {
-					version: customHeaders.version,
 					nethash: testnetHash,
 					client: {
 						name: 'LiskHub',
@@ -209,6 +210,13 @@ describe('APIClient module', () => {
 				return expect(apiClient)
 					.to.have.property('headers')
 					.and.eql(customHeaders);
+			});
+
+			it('should not set User-Agent header when client options were not given', () => {
+				apiClient = new APIClient(defaultNodes, {
+					nethash: testnetHash,
+				});
+				return expect(apiClient.headers).to.not.have.property('User-Agent');
 			});
 		});
 
