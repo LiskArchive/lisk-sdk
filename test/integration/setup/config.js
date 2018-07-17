@@ -21,7 +21,7 @@ const network = require('./network');
 const devConfig = __testContext.config;
 
 module.exports = {
-	generateLiskConfigs(broadcasting = true, TOTAL_PEERS = 10) {
+	generateLiskConfigs(BROADCASTING = true, TOTAL_PEERS = 10) {
 		utils.http.setVersion('1.0.0');
 
 		// Generate config objects
@@ -31,7 +31,7 @@ module.exports = {
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
 			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
-			devConfigCopy.broadcasts.active = broadcasting;
+			devConfigCopy.broadcasts.active = BROADCASTING;
 			return devConfigCopy;
 		});
 
@@ -53,7 +53,7 @@ module.exports = {
 		);
 		const delegates = _.clone(devConfig.forging.delegates);
 
-		if (!broadcasting) {
+		if (!BROADCASTING) {
 			configurations.forEach(configuration => {
 				if (configuration.httpPort === 4000) {
 					// Set forging force to true

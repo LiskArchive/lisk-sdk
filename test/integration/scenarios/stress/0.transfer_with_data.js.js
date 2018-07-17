@@ -24,20 +24,24 @@ const sendTransactionsPromise = require('../../../common/helpers/api')
 const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
-const broadcasting = process.env.BROADCASTING !== 'false';
 const constants = __testContext.config.constants;
 
-module.exports = function(configurations) {
+module.exports = function(
+	configurations,
+	TOTAL_PEERS,
+	EXPECTED_OUTOGING_CONNECTIONS,
+	BROADCASTING,
+	NUMBER_OF_TRANSACTIONS
+) {
 	describe('@stress : type 0 transactions with data @slow', () => {
 		let transactions = [];
-		const numberOfTransactions = process.env.NUMBER_OF_TRANSACTIONS || 1000;
-		const waitForExtraBlocks = broadcasting ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
+		const waitForExtraBlocks = BROADCASTING ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
-		describe(`sending ${numberOfTransactions} single transfers to random addresses`, () => {
+		describe(`sending ${NUMBER_OF_TRANSACTIONS} single transfers to random addresses`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(numberOfTransactions).map(() => {
+					_.range(NUMBER_OF_TRANSACTIONS).map(() => {
 						const transaction = lisk.transaction.transfer({
 							amount: 500000000,
 							passphrase: accountFixtures.genesis.passphrase,
@@ -52,8 +56,9 @@ module.exports = function(configurations) {
 
 			it('should confirm all transactions on all nodes', done => {
 				const blocksToWait =
-					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
-					waitForExtraBlocks;
+					Math.ceil(
+						NUMBER_OF_TRANSACTIONS / constants.maxTransactionsPerBlock
+					) + waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)

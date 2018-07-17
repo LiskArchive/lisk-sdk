@@ -18,10 +18,11 @@ const find = require('find');
 const utils = require('./utils');
 const setup = require('./setup');
 
-const broadcasting = process.env.BROADCASTING !== 'false';
+const BROADCASTING = process.env.BROADCASTING !== 'false';
 const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Full mesh network with 2 connection for bi-directional communication
 const EXPECTED_OUTOGING_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
+const NUMBER_OF_TRANSACTIONS = process.env.NUMBER_OF_TRANSACTIONS || 1000;
 
 describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
 	const wsPorts = [];
@@ -29,7 +30,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		wsPorts.push(5000 + index);
 	});
 	const configurations = setup.config.generateLiskConfigs(
-		broadcasting,
+		BROADCASTING,
 		TOTAL_PEERS
 	);
 	let testFailedError;
@@ -91,7 +92,13 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			const currentFilePath = filepath.replace('test/integration', '.');
 			// eslint-disable-next-line import/no-dynamic-require
 			const test = require(currentFilePath);
-			test(configurations, TOTAL_PEERS, EXPECTED_OUTOGING_CONNECTIONS);
+			test(
+				configurations,
+				TOTAL_PEERS,
+				EXPECTED_OUTOGING_CONNECTIONS,
+				BROADCASTING,
+				NUMBER_OF_TRANSACTIONS
+			);
 		});
 	});
 });
