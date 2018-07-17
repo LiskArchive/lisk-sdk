@@ -58,6 +58,11 @@
 	},
 	"peers": {
 		"enabled": {{getv "/lisk/peers/enabled" "null"}},
+		"list": [{{range $index, $element := (getvs "/lisk/peers/list/*")}}{{$data := split $element ":"}}{{if $index}}, {{end}}
+		{
+			"ip": "{{index $data 0}}",
+			"wsPort": "{{index $data 1}}"
+		}{{end}}],
 		"access": {
 			{{$blackListEntries := getvs "/lisk/peers/access/blacklist/*"}}"blackList": [{{range $index, $element := $blackListEntries}}{{if $index}}, {{end}}"{{$element}}"{{end}}]
 		},
