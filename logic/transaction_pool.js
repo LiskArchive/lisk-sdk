@@ -704,27 +704,32 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
  * @returns {SetImmediate} error, ids[]
  */
 TransactionPool.prototype.expireTransactions = function(cb) {
-	async.waterfall(
-		[
-			function(seriesCb) {
-				__private.expireTransactions(
-					self.getUnconfirmedTransactionList(true),
-					seriesCb
-				);
-			},
-			function(seriesCb) {
-				__private.expireTransactions(
-					self.getQueuedTransactionList(true),
-					seriesCb
-				);
-			},
-			function(seriesCb) {
-				__private.expireTransactions(
-					self.getMultisignatureTransactionList(true),
-					seriesCb
-				);
-			},
-		],
+	library.balancesSequence.add(
+		balancesSequenceCb => {
+			async.waterfall(
+				[
+					function(seriesCb) {
+						__private.expireAndUndoUnconfirmedTransactions(
+							self.getUnconfirmedTransactionList(true),
+							seriesCb
+						);
+					},
+					function(seriesCb) {
+						__private.expireTransactions(
+							self.getQueuedTransactionList(true),
+							seriesCb
+						);
+					},
+					function(seriesCb) {
+						__private.expireTransactions(
+							self.getMultisignatureTransactionList(true),
+							seriesCb
+						);
+					},
+				],
+				balancesSequenceCb
+			);
+		},
 		() => setImmediate(cb)
 	);
 };
@@ -993,46 +998,78 @@ __private.transactionTimeOut = function(transaction) {
  * @returns {SetImmediate} error, ids[]
  */
 __private.expireTransactions = function(transactions, cb) {
-	library.balancesSequence.add(
-		balancesSequenceCb => {
-			async.eachSeries(
-				transactions,
-				(transaction, eachSeriesCb) => {
-					if (!transaction) {
-						return setImmediate(eachSeriesCb);
-					}
+	async.eachSeries(
+		transactions,
+		(transaction, eachSeriesCb) => {
+			if (!transaction) {
+				return setImmediate(eachSeriesCb);
+			}
 
-					const timeNow = Math.floor(Date.now() / 1000);
-					const timeOut = __private.transactionTimeOut(transaction);
-					// transaction.receivedAt is instance of Date
-					const seconds =
-						timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+			if (__private.isExpired(transaction)) {
+				self.removeUnconfirmedTransaction(transaction.id);
+				library.logger.info(
+					`Expired transaction: ${
+						transaction.id
+					} received at: ${transaction.receivedAt.toUTCString()}`
+				);
+				return setImmediate(eachSeriesCb);
+			}
+			return setImmediate(eachSeriesCb);
+		},
+		() => setImmediate(cb)
+	);
+};
 
-					if (seconds > timeOut) {
-						modules.transactions.undoUnconfirmed(
-							transaction,
-							undoUnconfirmErr => {
-								if (undoUnconfirmErr) {
-									library.logger.error(
-										`Failed to undo unconfirmed transaction: ${transaction.id}`,
-										undoUnconfirmErr
-									);
-									return setImmediate(cb);
-								}
-								// Remove transaction from unconfirmed, queued and multisignature lists
-								self.removeUnconfirmedTransaction(transaction.id);
-								library.logger.info(
-									`Expired transaction: ${
-										transaction.id
-									} received at: ${transaction.receivedAt.toUTCString()}`
-								);
-							}
+/**
+ * Check if transaction is expired.
+ *
+ * @private
+ * @param {Object} transactions - transaction to be expired
+ * @returns {Boolean} true if transactions expired
+ */
+__private.isExpired = transaction => {
+	const timeNow = Math.floor(Date.now() / 1000);
+	const timeOut = __private.transactionTimeOut(transaction);
+	// transaction.receivedAt is instance of Date
+	const seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+	return seconds > timeOut;
+};
+
+/**
+ * Undo unconfirmed transaction from mem account and removes transactions from the pool if it is expired.
+ *
+ * @private
+ * @param {Object[]} transactions - Array of unconfirmed transactions to be undo and expire
+ * @param {function} cb - Callback function
+ * @returns {SetImmediate} error, ids[]
+ */
+__private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
+	async.eachSeries(
+		transactions,
+		(transaction, eachSeriesCb) => {
+			if (!transaction) {
+				return setImmediate(eachSeriesCb);
+			}
+
+			if (__private.isExpired(transaction)) {
+				modules.transactions.undoUnconfirmed(transaction, undoUnconfirmErr => {
+					if (undoUnconfirmErr) {
+						library.logger.error(
+							`Failed to undo unconfirmed transaction: ${transaction.id}`,
+							undoUnconfirmErr
 						);
+						return setImmediate(cb);
 					}
-					return setImmediate(eachSeriesCb);
-				},
-				balancesSequenceCb
-			);
+					// Remove transaction from unconfirmed, queued and multisignature lists
+					self.removeUnconfirmedTransaction(transaction.id);
+					library.logger.info(
+						`Expired transaction: ${
+							transaction.id
+						} received at: ${transaction.receivedAt.toUTCString()}`
+					);
+				});
+			}
+			return setImmediate(eachSeriesCb);
 		},
 		() => setImmediate(cb)
 	);
