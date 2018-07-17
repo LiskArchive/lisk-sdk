@@ -22,9 +22,9 @@
 	"browser": "dist-browser/index.min.js",
 	"main": "dist-node/index.js",
 	"scripts": {
-		"babel": "babel src -d dist-node",
-		"babel:browsertest":
-			"babel src -d ./browsertest/src && BABEL_ENV=browsertest npx babel test --ignore test/transactions/dapp.js -d ./browsertest/test",
+		"transpile": "babel src -d dist-node",
+		"transpile:browsertest":
+			"babel src -d ./browsertest/src && BABEL_ENV=browsertest babel test -d ./browsertest/test",
 		"browserify":
 			"browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
 		"browserify:browsertest":
@@ -40,7 +40,7 @@
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node":
-			"npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
+			"npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
 		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
 		"serve:browsertest": "http-server browsertest",
 		"cover":
@@ -49,18 +49,18 @@
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
 		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
 		"build:browsertest":
-			"npm run babel:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
+			"npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
 		"postbuild:browsertest": "rm -r browsertest/src browsertest/test",
 		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
-		"build:node": "npm run babel",
+		"build:node": "npm run transpile",
 		"prebuild:browser":
 			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
-		"build:browser": "npm run babel && npm run browserify && npm run uglify",
+		"build:browser": "npm run browserify && npm run uglify",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
-		"build": "npm run babel && npm run browserify && npm run uglify",
+		"build": "npm run build:node && npm run build:browser",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly":
-			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
+			"npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
 		"axios": "=0.18.0",

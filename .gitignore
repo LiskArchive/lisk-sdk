@@ -23,6 +23,12 @@ test/.coverage-unit
 # nyc test coverage
 .nyc_output
 
+# cypress media
+**/cypress/screenshots/
+**/cypress/videos/
+**/cypress/plugins/
+**/cypress/support/
+
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -50,8 +56,8 @@ tmp
 dist/
 dist-node/
 dist-browser/
-*/**/browsertest/browsertest.js
-*/**/browsertest/browsertest.min.js
+**/browsertest/browsertest.js
+**/browsertest/browsertest.min.js
 
 # Unsupported lock files
 yarn.lock
