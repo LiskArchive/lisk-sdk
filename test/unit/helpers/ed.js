@@ -206,5 +206,11 @@ describe('ed', () => {
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f';
 			return expect(ed.hexToBuffer(hex)).to.be.an.instanceof(Buffer);
 		});
+
+		it('should return buffer for a valid hex string with capital letters', () => {
+			const hex =
+				'C094EBEE7EC0C50EBEE32918655E089F6E1A604B83BCAA760293C61E0F18AB6F';
+			return expect(ed.hexToBuffer(hex)).to.be.an.instanceof(Buffer);
+		});
 	});
 });
