@@ -390,19 +390,6 @@ describe('peers', () => {
 				});
 			});
 
-			it('should return height as the networkHeight when node is running alone', done => {
-				const myself = [generateRandomActivePeer()];
-				peersLogicMock.list = sinonSandbox.stub().returns(myself);
-				peers.networkHeight(validOptions, (err, networkHeight) => {
-					expect(err).to.be.null;
-					expect(networkHeight);
-					expect(networkHeight)
-						.to.be.an('number')
-						.and.to.deep.eql(myself[0].height);
-					done();
-				});
-			});
-
 			it('should return the height of maximum number of peers at one particular height', done => {
 				// generate 10 peer list with height 0
 				const peerList = _.range(10).map(() => {
