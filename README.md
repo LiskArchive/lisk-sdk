@@ -288,7 +288,7 @@ Tests are run using the following command:
 npm test -- mocha:<tag>:<suite>:[section]
 ```
 
-* Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
+* Where **tag** can be one of `default | unstable | slow | extensive` (required)
 * Where **suite** can be one of `unit | functional | integration` (required)
 * Where **section** depending of the chosen suite can be:
   * when `functional` --> `get | post | ws | system` (optional)
@@ -296,8 +296,8 @@ npm test -- mocha:<tag>:<suite>:[section]
 Examples:
 
 ```
+npm test -- mocha:default:functional:get
 npm test -- mocha:slow:unit
-npm test -- mocha:untagged:functional:get
 npm test -- mocha:unstable:functional:ws
 npm test -- mocha:extensive:integration
 ```

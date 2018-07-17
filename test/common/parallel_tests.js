@@ -61,14 +61,14 @@ function parallelTests(tag, suite, section) {
 	var mochaArguments = [];
 
 	switch (tag) {
+		case 'default':
+			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
+			break;
 		case 'slow':
 			mochaArguments.push('--', '--grep', '@slow');
 			break;
 		case 'unstable':
 			mochaArguments.push('--', '--grep', '@unstable');
-			break;
-		case 'untagged':
-			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
 			break;
 		case 'extensive':
 			mochaArguments.push('--', '--grep', '@unstable', '--invert');
