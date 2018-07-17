@@ -226,11 +226,11 @@ You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for 
 4. You can find network specific configurations under `config/<network>/config.json`
 5. Don't override any value in above mentioned files if you need custom configuration.
 6. Create your own `json` file and pass it as command line options `-c` or `LISK_CONFIG_FILE`
-7. Configurations will be loaded in following order, highest in the list have highest priority:
-   1. Default configuration file
-   2. Network specific configuration file
-   3. Custom configuration file (if specified by user)
-   4. Command line configurations, specified as command `flags` or `env` variables
+7. Configurations will be loaded in following order, lowest in the list have highest priority:
+   * Default configuration file
+   * Network specific configuration file
+   * Custom configuration file (if specified by user)
+   * Command line configurations, specified as command `flags` or `env` variables
 8. For development purposes use `devnet` as network option, others network are specific to public lisk networks.
 
 ### Command Line Options
