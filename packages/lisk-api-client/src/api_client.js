@@ -38,9 +38,13 @@ const commonHeaders = {
 	'Content-Type': 'application/json',
 };
 
-const getUserAgent = (
-	{ name = '????', version = '????', engine = '????' } = {},
-) => {
+const getClientHeaders = clientOptions => {
+	if (!clientOptions) {
+		return {};
+	}
+
+	const { name = '????', version = '????', engine = '????' } = clientOptions;
+
 	const liskElementsInformation =
 		'LiskElements/1.0 (+https://github.com/LiskHQ/lisk-elements)';
 	const locale =
@@ -51,9 +55,12 @@ const getUserAgent = (
 	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
-	return `${name}/${version} (${engine}) ${liskElementsInformation} ${
-		systemInformation
-	}`;
+
+	return {
+		'User-Agent': `${name}/${version} (${engine}) ${liskElementsInformation} ${
+			systemInformation
+		}`,
+	};
 };
 
 export default class APIClient {
@@ -107,9 +114,7 @@ export default class APIClient {
 			{},
 			commonHeaders,
 			options.nethash ? { nethash: options.nethash } : {},
-			{
-				'User-Agent': getUserAgent(options.client),
-			},
+			getClientHeaders(options.client),
 		);
 
 		this.nodes = nodes;
