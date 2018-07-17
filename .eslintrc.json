@@ -6,9 +6,8 @@
 		"import/no-extraneous-dependencies": [
 			"error",
 			{
-				"devDependencies": ["test/**"],
-				"optionalDependencies": false,
-				"packageDir": "./"
+				"devDependencies": ["**/test/**"],
+				"optionalDependencies": false
 			}
 		]
 	}
