@@ -13,13 +13,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '../../test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
 import * as query from '../../../src/utils/query';
 
-describe('account:get', () => {
+describe('account:get command', () => {
 	const endpoint = 'accounts';
 	const apiConfig = {
 		nodes: ['http://local.host'],
@@ -27,16 +27,21 @@ describe('account:get', () => {
 	};
 	const printMethodStub = sandbox.stub();
 	const apiClientStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-		.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+	const setupStub = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
 
-	setupStub
-		.stdout()
-		.command(['account:get'])
-		.catch(error => expect(error.message).to.contain('Missing 1 required arg'))
-		.it('should throw an error when arg is not provided');
+	describe('account:get', () => {
+		setupStub()
+			.stdout()
+			.command(['account:get'])
+			.catch(error =>
+				expect(error.message).to.contain('Missing 1 required arg'),
+			)
+			.it('should throw an error when arg is not provided');
+	});
 
 	describe('account:get account', () => {
 		const account = '3520445367460290306L';
@@ -45,9 +50,9 @@ describe('account:get', () => {
 			name: 'i am owner',
 		};
 
-		setupStub
-			.stdout()
+		setupStub()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stdout()
 			.command(['account:get', account])
 			.it('should get an account info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
@@ -72,9 +77,9 @@ describe('account:get', () => {
 			},
 		];
 
-		setupStub
-			.stdout()
+		setupStub()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stdout()
 			.command(['account:get', accounts.join(',')])
 			.it('should get accounts info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import cryptography from '../../../src/utils/cryptography';
@@ -33,50 +33,53 @@ describe('account:show', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
-		.stub(
-			cryptography,
-			'getAddressFromPublicKey',
-			sandbox.stub().returns(defaultAddress),
-		)
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(passphraseInput),
-		);
-
-	setupStub
-		.stdout()
-		.command(['account:show'])
-		.it('should show account with prompt', () => {
-			expect(print.default).to.be.called;
-			expect(getInputsFromSources.default).to.be.calledWithExactly({
-				passphrase: {
-					source: undefined,
-					repeatPrompt: true,
-				},
-			});
-			return expect(printMethodStub).to.be.calledWithExactly(
-				Object.assign({}, defaultKeys, defaultAddress),
+	const setupStub = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
+			.stub(
+				cryptography,
+				'getAddressFromPublicKey',
+				sandbox.stub().returns(defaultAddress),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(passphraseInput),
 			);
-		});
 
-	setupStub
-		.stdout()
-		.command(['account:show', '--passphrase=pass:123'])
-		.it('should show account with pass', () => {
-			expect(print.default).to.be.called;
-			expect(getInputsFromSources.default).to.be.calledWithExactly({
-				passphrase: {
-					source: 'pass:123',
-					repeatPrompt: true,
-				},
+	describe('account:show', () => {
+		setupStub()
+			.stdout()
+			.command(['account:show'])
+			.it('should show account with prompt', () => {
+				expect(print.default).to.be.called;
+				expect(getInputsFromSources.default).to.be.calledWithExactly({
+					passphrase: {
+						source: undefined,
+						repeatPrompt: true,
+					},
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(
+					Object.assign({}, defaultKeys, defaultAddress),
+				);
 			});
-			return expect(printMethodStub).to.be.calledWith(
-				Object.assign({}, defaultKeys, defaultAddress),
-			);
-		});
+
+		setupStub()
+			.stdout()
+			.command(['account:show', '--passphrase=pass:123'])
+			.it('should show account with pass', () => {
+				expect(print.default).to.be.called;
+				expect(getInputsFromSources.default).to.be.calledWithExactly({
+					passphrase: {
+						source: 'pass:123',
+						repeatPrompt: true,
+					},
+				});
+				return expect(printMethodStub).to.be.calledWith(
+					Object.assign({}, defaultKeys, defaultAddress),
+				);
+			});
+	});
 });

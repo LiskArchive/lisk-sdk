@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import cryptography from '../../../src/utils/cryptography';
@@ -31,34 +31,37 @@ describe('account:create', () => {
 		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
-		.stub(
-			cryptography,
-			'getAddressFromPublicKey',
-			sandbox.stub().returns(defaultAddress),
-		)
-		.stub(
-			mnemonic,
-			'createMnemonicPassphrase',
-			sandbox.stub().returns(defaultMnemonic),
-		);
+	const setupStub = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
+			.stub(
+				cryptography,
+				'getAddressFromPublicKey',
+				sandbox.stub().returns(defaultAddress),
+			)
+			.stub(
+				mnemonic,
+				'createMnemonicPassphrase',
+				sandbox.stub().returns(defaultMnemonic),
+			);
 
-	setupStub
-		.stdout()
-		.command(['account:create'])
-		.it('should create account', () => {
-			expect(print.default).to.be.called;
-			expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
-			expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
-				defaultKeys.publicKey,
-			);
-			return expect(printMethodStub).to.be.calledWith(
-				Object.assign({}, defaultKeys, defaultAddress, {
-					passphrase: defaultMnemonic,
-				}),
-			);
-		});
+	describe('account:create', () => {
+		setupStub()
+			.stdout()
+			.command(['account:create'])
+			.it('should create account', () => {
+				expect(print.default).to.be.called;
+				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
+				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
+					defaultKeys.publicKey,
+				);
+				return expect(printMethodStub).to.be.calledWith(
+					Object.assign({}, defaultKeys, defaultAddress, {
+						passphrase: defaultMnemonic,
+					}),
+				);
+			});
+	});
 });
