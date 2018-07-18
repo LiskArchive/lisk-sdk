@@ -711,10 +711,14 @@ __private.loadBlocksFromNetwork = function(cb) {
 								errorCount += 1;
 								return next();
 							}
-							library.logger.info('Found common block', {
-								blockId: commonBlock.id,
-								peer: peer.string,
-							});
+							library.logger.info(
+								[
+									'Found common block:',
+									commonBlock.id,
+									'with:',
+									peer.string,
+								].join(' ')
+							);
 							return setImmediate(cb);
 						}
 					);
