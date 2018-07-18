@@ -248,7 +248,7 @@ Each of that option can be appended on command line. There are also few `ENV` va
 | --address<br> -a   |                  | address       | Listening host name or ip                                                                                                                                                         |
 | --database<br> -d  |                  | db.database   | PostgreSQL database name to connect                                                                                                                                               |
 | --peers<br> -p     | LISK_PEERS       | peers.list    | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                   |
-| --log<br> -l       | FILE_LOG_LEVEL   | fileLogLevel  | Log level for lisk for log output                                                                                                                                                 |
+| --log<br> -l       | LISK_LOG_LEVEL   | fileLogLevel  | Log level for lisk for log output                                                                                                                                                 |
 | --snapshot<br> -s  |                  |               | Number of round for which take the snapshot. If none specified it will use the highest round available.                                                                           |
 
 For more detail understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)

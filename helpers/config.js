@@ -91,7 +91,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		wsPort: +program.port || process.env.LISK_WS_PORT || null,
 		httpPort: +program.httpPort || process.env.LISK_HTTP_PORT || null,
 		address: program.address,
-		fileLogLevel: program.log || process.env.FILE_LOG_LEVEL,
+		fileLogLevel: program.log || process.env.LISK_LOG_LEVEL,
 		db: { database: program.database },
 		loading: { snapshotRound: program.snapshot },
 		peers: {
