@@ -56,7 +56,8 @@ if (process.env.LOG_DB_EVENTS === 'true') {
 	testContext.config.db.logEvents = ['error'];
 }
 
-testContext.fileLogLevel = process.env.LOG_LEVEL || testContext.fileLogLevel;
+testContext.consoleLogLevel =
+	process.env.LOG_LEVEL || testContext.consoleLogLevel;
 
 testContext.baseUrl = `http://${testContext.config.address}:${
 	testContext.config.httpPort

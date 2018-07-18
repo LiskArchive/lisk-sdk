@@ -6,6 +6,7 @@
 	"minVersion": "0.0.0a",
 	"fileLogLevel": "info",
 	"logFileName": "logs/lisk.log",
+	"consoleLogLevel": "debug",
 	"trustProxy": true,
 	"topAccounts": false,
 	"wsWorkers": 1,
