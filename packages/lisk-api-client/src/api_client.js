@@ -57,9 +57,7 @@ const getClientHeaders = clientOptions => {
 	}`;
 
 	return {
-		'User-Agent': `${name}/${version} (${engine}) ${liskElementsInformation} ${
-			systemInformation
-		}`,
+		'User-Agent': `${name}/${version} (${engine}) ${liskElementsInformation} ${systemInformation}`,
 	};
 };
 

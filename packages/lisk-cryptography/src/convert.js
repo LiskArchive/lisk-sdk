@@ -84,7 +84,7 @@ export const stringifyEncryptedPassphrase = encryptedPassphrase => {
 				iv: encryptedPassphrase.iv,
 				tag: encryptedPassphrase.tag,
 				version: encryptedPassphrase.version,
-			};
+		  };
 	return querystring.stringify(objectToStringify);
 };
 
