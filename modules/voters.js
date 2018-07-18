@@ -44,7 +44,7 @@ class Voters {
 	constructor(cb, scope) {
 		library = {
 			db: scope.db,
-			logger: scope.logger,
+			logger: scope.logger.child({ identifier: 'modules/voters' }),
 			schema: scope.schema,
 		};
 		setImmediate(cb, null, this);

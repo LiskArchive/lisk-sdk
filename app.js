@@ -19,7 +19,7 @@ var fs = require('fs');
 var d = require('domain').create();
 var SocketCluster = require('socketcluster');
 var async = require('async');
-var Logger = require('./logger.js');
+var createLogger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 var wsTransport = require('./api/ws/transport');
 var AppConfig = require('./helpers/config.js');
@@ -144,11 +144,13 @@ var config = {
  *
  * @memberof! app
  */
-var logger = new Logger({
-	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
-	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
+var rootLogger = createLogger({
+	level: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
+	consoleLogLevel: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	filename: appConfig.logFileName,
 });
+
+var logger = rootLogger.child({ identifier: 'app' });
 
 /**
  * Db logger instance.
@@ -161,14 +163,14 @@ if (
 	appConfig.db.logFileName &&
 	appConfig.db.logFileName === appConfig.logFileName
 ) {
-	dbLogger = logger;
+	dbLogger = logger.child({ identifier: 'db' });
 } else {
 	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
-	dbLogger = new Logger({
-		echo: process.env.DB_LOG_LEVEL || 'log',
-		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
+	dbLogger = createLogger({
+		level: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
+		consoleLogLevel: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 		filename: appConfig.db.logFileName,
-	});
+	}).child({ identifier: 'db' });
 }
 
 // Try to get the last git commit
@@ -180,7 +182,7 @@ try {
 
 // Domain error handler
 d.on('error', err => {
-	logger.fatal('Domain master', { message: err.message, stack: err.stack });
+	logger.fatal({ message: err.message, stack: err.stack }, 'Domain master');
 	process.exit(0);
 });
 
@@ -357,7 +359,7 @@ d.run(() => {
 					httpApi.bootstrapSwagger(
 						scope.network.app,
 						scope.config,
-						scope.logger,
+						scope.logger.child({ identifier: 'api' }),
 						scope,
 						cb
 					);
@@ -445,7 +447,12 @@ d.run(() => {
 				logger.debug(
 					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
 				);
-				cache.connect(config.cacheEnabled, config.cache, logger, cb);
+				cache.connect(
+					config.cacheEnabled,
+					config.cache,
+					logger.child({ identifier: 'app/cache' }),
+					cb
+				);
 			},
 
 			webSocket: [
@@ -568,7 +575,12 @@ d.run(() => {
 								'genesisBlock',
 								'logger',
 								function(scope, cb) {
-									new Account(scope.db, scope.schema, scope.logger, cb);
+									new Account(
+										scope.db,
+										scope.schema,
+										scope.logger.child({ identifier: 'logic/account' }),
+										cb
+									);
 								},
 							],
 							transaction: [
@@ -586,7 +598,7 @@ d.run(() => {
 										scope.schema,
 										scope.genesisBlock,
 										scope.account,
-										scope.logger,
+										scope.logger.child({ identifier: 'logic/transaction' }),
 										cb
 									);
 								},
@@ -606,7 +618,10 @@ d.run(() => {
 							peers: [
 								'logger',
 								function(scope, cb) {
-									new Peers(scope.logger, cb);
+									new Peers(
+										scope.logger.child({ identifier: 'logic/peers' }),
+										cb
+									);
 								},
 							],
 						},
@@ -752,7 +767,7 @@ d.run(() => {
 			// Receives a 'cleanup' signal and cleans all modules
 			process.once('cleanup', error => {
 				if (error) {
-					logger.fatal(error.toString());
+					logger.fatal(error);
 				}
 				logger.info('Cleaning up...');
 				if (scope.socketCluster) {
@@ -803,6 +818,6 @@ d.run(() => {
 
 process.on('uncaughtException', err => {
 	// Handle error safely
-	logger.fatal('System error', { message: err.message, stack: err.stack });
+	logger.fatal({ message: err.message, stack: err.stack }, 'System error');
 	process.emit('cleanup');
 });

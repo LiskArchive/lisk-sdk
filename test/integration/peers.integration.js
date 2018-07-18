@@ -23,11 +23,11 @@ var scClient = require('socketcluster-client');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var blockchainReady = require('../common/utils/wait_for').blockchainReady;
 var WSServerMaster = require('../common/ws/server_master');
-var Logger = require('../../logger');
+var createLogger = require('../../logger');
 
-var logger = new Logger({
+var logger = createLogger({
 	filename: 'integrationTestsLogger.logs',
-	echo: 'log',
+	level: 'debug',
 });
 var baseConfig = __testContext.config;
 
@@ -444,7 +444,7 @@ describe('integration', function() {
 						clearInterval(checkingInterval);
 						return done(err);
 					}
-					logger.log(
+					logger.info(
 						`network status: height - ${res.height}, average height - ${
 							res.averageHeight
 						}`

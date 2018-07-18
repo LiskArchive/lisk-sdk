@@ -26,12 +26,21 @@ describe('system', () => {
 	let __private;
 	let self;
 	let loggerStub;
+	let childLoggerStub;
 	let dbStub;
 	let dummyConfig;
 
 	beforeEach(done => {
 		// Library
+		childLoggerStub = {
+			trace: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+		};
 		loggerStub = {
+			child: () => childLoggerStub,
 			trace: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
 			error: sinonSandbox.spy(),
@@ -68,7 +77,7 @@ describe('system', () => {
 
 	describe('constructor', () => {
 		it('should assign params to library', () => {
-			expect(library.logger).to.eql(loggerStub);
+			expect(library.logger).to.eql(childLoggerStub);
 			expect(library.db).to.eql(dbStub);
 			return expect(library.config).to.deep.equal(dummyConfig);
 		});

@@ -197,13 +197,13 @@ describe('loader', () => {
 			it('should call __private.loadTransactions');
 
 			describe('when __private.loadTransactions fails', () => {
-				it('should call library.logger.log');
+				it('should call library.logger.info');
 
 				it(
-					'should call library.logger.log with "Unconfirmed transactions loader"'
+					'should call library.logger.info with "Unconfirmed transactions loader"'
 				);
 
-				it('should call library.logger.log with error');
+				it('should call library.logger.info with error');
 
 				it('should call __private.loadTransactions 4 more times');
 
@@ -216,11 +216,11 @@ describe('loader', () => {
 				it('should call __private.loadSignatures');
 
 				describe('when __private.loadSignatures fails', () => {
-					it('should call library.logger.log');
+					it('should call library.logger.info');
 
-					it('should call library.logger.log with "Signatures loader"');
+					it('should call library.logger.info with "Signatures loader"');
 
-					it('should call library.logger.log with error');
+					it('should call library.logger.info with error');
 
 					it('should call __private.loadSignatures 4 more times');
 

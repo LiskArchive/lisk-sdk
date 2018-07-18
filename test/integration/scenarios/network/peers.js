@@ -139,7 +139,7 @@ module.exports = function(params) {
 							clearInterval(checkingInterval);
 							return done(err);
 						}
-						utils.logger.log(
+						utils.logger.info(
 							`network status: height - ${
 								networkMaxAvgHeight.maxHeight
 							}, average height - ${networkMaxAvgHeight.averageHeight}`

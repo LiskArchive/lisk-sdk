@@ -152,6 +152,7 @@ describe('loader', () => {
 		let library;
 		let validScope;
 		let loggerStub;
+		let childLoggerStub;
 		let loadBlocksOffsetStub;
 		let resetMemTablesStub;
 		let deleteBlocksAfterHeightStub;
@@ -162,7 +163,15 @@ describe('loader', () => {
 			loadBlocksOffsetStub = sinonSandbox.stub().callsArgWith(2, null, true);
 			deleteBlocksAfterHeightStub = sinonSandbox.stub().resolves();
 
+			childLoggerStub = {
+				trace: sinonSandbox.spy(),
+				debug: sinonSandbox.spy(),
+				info: sinonSandbox.spy(),
+				warn: sinonSandbox.spy(),
+				error: sinonSandbox.spy(),
+			};
 			loggerStub = {
+				child: () => childLoggerStub,
 				trace: sinonSandbox.spy(),
 				info: sinonSandbox.spy(),
 				error: sinonSandbox.spy(),
