@@ -64,12 +64,13 @@ describe('config:set', () => {
 				.stdout()
 				.command(['config:set', 'api.nodes', 'http://somehost:1234'])
 				.it('should set api.nodes to single value', () => {
-					const newConfig = Object.assign({}, defaultConfig, {
+					const newConfig = {
+						...defaultConfig,
 						api: {
 							network: defaultConfig.api.network,
 							nodes: ['http://somehost:1234'],
 						},
-					});
+					};
 					return expect(config.setConfig).to.be.calledWith(
 						defaultDir,
 						newConfig,
@@ -84,12 +85,13 @@ describe('config:set', () => {
 					'http://somehost:1234,http://localhost:4000',
 				])
 				.it('should set api.nodes to array with 2 values', () => {
-					const newConfig = Object.assign({}, defaultConfig, {
+					const newConfig = {
+						...defaultConfig,
 						api: {
 							network: defaultConfig.api.network,
 							nodes: ['http://somehost:1234', 'http://localhost:4000'],
 						},
-					});
+					};
 					return expect(config.setConfig).to.be.calledWith(
 						defaultDir,
 						newConfig,
@@ -100,12 +102,13 @@ describe('config:set', () => {
 				.stdout()
 				.command(['config:set', 'api.nodes'])
 				.it('should set api.nodes to empty array', () => {
-					const newConfig = Object.assign({}, defaultConfig, {
+					const newConfig = {
+						...defaultConfig,
 						api: {
 							network: defaultConfig.api.network,
 							nodes: [],
 						},
-					});
+					};
 					return expect(config.setConfig).to.be.calledWith(
 						defaultDir,
 						newConfig,
@@ -151,9 +154,10 @@ describe('config:set', () => {
 				.stdout()
 				.command(['config:set', 'json', 'true'])
 				.it('should json to provided value', () => {
-					const newConfig = Object.assign({}, defaultConfig, {
+					const newConfig = {
+						...defaultConfig,
 						json: true,
-					});
+					};
 					return expect(config.setConfig).to.be.calledWith(
 						defaultDir,
 						newConfig,
@@ -185,9 +189,10 @@ describe('config:set', () => {
 				.stdout()
 				.command(['config:set', 'name', 'new name'])
 				.it('should set name to provided value', () => {
-					const newConfig = Object.assign({}, defaultConfig, {
+					const newConfig = {
+						...defaultConfig,
 						name: 'new name',
-					});
+					};
 					return expect(config.setConfig).to.be.calledWith(
 						defaultDir,
 						newConfig,
@@ -203,12 +208,13 @@ describe('config:set', () => {
 				.it(
 					'should throw error when api.network value is not valid hex string',
 					() => {
-						const newConfig = Object.assign({}, defaultConfig, {
+						const newConfig = {
+							...defaultConfig,
 							api: {
 								network: validNethash,
 								nodes: defaultConfig.api.nodes,
 							},
-						});
+						};
 						return expect(config.setConfig).to.be.calledWith(
 							defaultDir,
 							newConfig,
@@ -220,12 +226,13 @@ describe('config:set', () => {
 				.stdout()
 				.command(['config:set', 'api.network', 'beta'])
 				.it('should set api.network to beta', () => {
-					const newConfig = Object.assign({}, defaultConfig, {
+					const newConfig = {
+						...defaultConfig,
 						api: {
 							network: 'beta',
 							nodes: defaultConfig.api.nodes,
 						},
-					});
+					};
 					return expect(config.setConfig).to.be.calledWith(
 						defaultDir,
 						newConfig,
