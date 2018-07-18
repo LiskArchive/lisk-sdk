@@ -24,6 +24,7 @@ module.exports = {
 	logger: createLogger({
 		filename: `${__dirname}/integrationTestsLogger.logs`,
 		level: 'debug',
+		consoleLogLevel: 'debug',
 	}),
 	getOpenConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n | wc -l
