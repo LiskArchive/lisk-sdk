@@ -126,7 +126,7 @@ class Block {
 		}
 
 		let block = {
-			version: blockVersion.get(nextHeight),
+			version: blockVersion.currentBlockVersion,
 			totalAmount,
 			totalFee,
 			reward,
