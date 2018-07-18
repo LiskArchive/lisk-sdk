@@ -18,7 +18,6 @@ const async = require('async');
 const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
 const constants = require('../../../helpers/constants');
-const exceptions = require('../../../helpers/exceptions');
 const slots = require('../../../helpers/slots');
 const Bignum = require('../../../helpers/bignum');
 const accountsFixtures = require('../../fixtures/accounts');
@@ -35,11 +34,6 @@ describe('rounds', () => {
 
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
-
-	exceptions.precedent.blockVersions = [
-		1,
-		150, // Bump block version at height 150
-	];
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
@@ -363,6 +357,10 @@ describe('rounds', () => {
 
 			it('ID should be different than last block ID', () => {
 				return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
+			});
+
+			it('block version should be 1', () => {
+				return expect(tick.after.block.version).to.equal(1);
 			});
 
 			it('height should be greather by 1', () => {
@@ -1094,11 +1092,6 @@ describe('rounds', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
 					return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
 				});
-
-				it('block just before version bump should have version = 0', () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.version).to.equal(0);
-				});
 			});
 
 			describe('after rewards start', () => {
@@ -1143,13 +1136,6 @@ describe('rounds', () => {
 								return expect(lastBlock.reward).to.equal(
 									expectedRewardsPerBlock
 								);
-							});
-						});
-
-						describe('version check', () => {
-							it('all blocks from now until round end should have version = 1', () => {
-								const lastBlock = library.modules.blocks.lastBlock.get();
-								return expect(lastBlock.version).to.equal(1);
 							});
 						});
 
