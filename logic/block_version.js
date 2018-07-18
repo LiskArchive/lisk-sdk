@@ -33,7 +33,7 @@ const exceptions = require('../helpers/exceptions.js');
 const currentBlockVersion = 1;
 
 /**
- * Checks if block version is valid - match current version of there is an exception for provided block height.
+ * Checks if block version is valid - if match current version or there is an exception for provided block height.
  *
  * @param {number} version - Block version
  * @param {number} height - Block height
