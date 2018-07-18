@@ -146,8 +146,7 @@ var config = {
  */
 var rootLogger = createLogger({
 	level: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
-	consoleLogLevel:
-		process.env.LISK_CONSOLE_LOG_LEVEL || appConfig.consoleLogLevel,
+	consoleLogLevel: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	filename: appConfig.logFileName,
 });
 
@@ -169,8 +168,7 @@ if (
 	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
 	dbLogger = createLogger({
 		level: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
-		consoleLogLevel:
-			process.env.LISK_CONSOLE_LOG_LEVEL || appConfig.consoleLogLevel,
+		consoleLogLevel: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 		filename: appConfig.db.logFileName,
 	}).child({ identifier: 'db' });
 }

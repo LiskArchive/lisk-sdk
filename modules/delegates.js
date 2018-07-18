@@ -90,7 +90,7 @@ class Delegates {
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.DELEGATE,
 			new Delegate(
-				scope.logger.child('logic/transaction/delegate'),
+				scope.logger.child({ identifier: 'logic/delegate' }),
 				scope.schema
 			)
 		);
