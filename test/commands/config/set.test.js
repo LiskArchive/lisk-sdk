@@ -59,7 +59,7 @@ describe('config:set', () => {
 	});
 
 	describe('config:set key variable ', () => {
-		describe('api.nodes', () => {
+		describe('config:set api.nodes variable', () => {
 			setupStub()
 				.stdout()
 				.command(['config:set', 'api.nodes', 'http://somehost:1234'])
@@ -146,7 +146,7 @@ describe('config:set', () => {
 				.it('should throw error when config file is currupted');
 		});
 
-		describe('json', () => {
+		describe('config:set json variable', () => {
 			setupStub()
 				.stdout()
 				.command(['config:set', 'json', 'true'])
@@ -180,7 +180,7 @@ describe('config:set', () => {
 				.it('should throw error when json value is not boolean');
 		});
 
-		describe('name', () => {
+		describe('config:set name variable', () => {
 			setupStub()
 				.stdout()
 				.command(['config:set', 'name', 'new name'])
@@ -194,7 +194,7 @@ describe('config:set', () => {
 					);
 				});
 		});
-		describe('api.network', () => {
+		describe('config:set api.network variable', () => {
 			const validNethash =
 				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
 			setupStub()
