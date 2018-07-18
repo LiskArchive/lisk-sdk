@@ -18,6 +18,7 @@ var ip = require('ip');
 var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
+var Bignum = require('./bignum.js');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -274,6 +275,21 @@ var liskFormats = {
 		}
 
 		return ip.isV4Format(str) || FormatValidators.hostname(str);
+	},
+	/**
+	 * Transaction amount/fee.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	amount(value) {
+		if (value instanceof Bignum) {
+			return (
+				value.greaterThanOrEqualTo(0) &&
+				value.lessThanOrEqualTo(global.constants.totalAmount)
+			);
+		}
+		return false;
 	},
 };
 

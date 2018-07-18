@@ -14,8 +14,8 @@
 
 'use strict';
 
-const bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 
 const constants = global.constants;
 
@@ -60,14 +60,11 @@ Transfer.prototype.bind = function(accounts) {
 /**
  * Returns send fees from constants.
  *
- * @param {transaction} transaction
- * @param {account} sender
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function() {
-	const fee = new bignum(constants.fees.send);
-	return Number(fee.toString());
+	return new Bignum(constants.fees.send);
 };
 
 /**
@@ -84,7 +81,8 @@ Transfer.prototype.verify = function(transaction, sender, cb) {
 		return setImmediate(cb, 'Missing recipient');
 	}
 
-	if (transaction.amount <= 0) {
+	const amount = new Bignum(transaction.amount);
+	if (amount.lessThanOrEqualTo(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

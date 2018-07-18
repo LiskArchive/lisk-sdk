@@ -21,6 +21,7 @@ var _ = require('lodash');
 var rewire = require('rewire');
 var async = require('async'); // eslint-disable-line no-unused-vars
 var Promise = require('bluebird');
+var Bignum = require('../../../../../helpers/bignum.js');
 var application = require('../../../../common/application'); // eslint-disable-line no-unused-vars
 var clearDatabaseTable = require('../../../../common/db_sandbox')
 	.clearDatabaseTable; // eslint-disable-line no-unused-vars
@@ -135,6 +136,7 @@ function createBlock(
 	transactions,
 	previousBlock
 ) {
+	random.convertToBignum(transactions);
 	var keypair = blockLogic.scope.ed.makeKeypair(
 		crypto
 			.createHash('sha256')
@@ -148,6 +150,7 @@ function createBlock(
 		previousBlock: blocksModule.lastBlock.get(),
 		transactions,
 	});
+
 	// newBlock.id = blockLogic.getId(newBlock);
 	return newBlock;
 }
@@ -899,26 +902,30 @@ describe('blocks/verify', () => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot).then(passphrase => {
-				block1 = createBlock(
-					blocks,
-					blockLogic,
-					passphrase,
-					time,
-					[],
-					genesisBlock
-				);
-				expect(block1.version).to.equal(0);
-				expect(block1.timestamp).to.equal(time);
-				expect(block1.numberOfTransactions).to.equal(0);
-				expect(block1.reward).to.equal(0);
-				expect(block1.totalFee).to.equal(0);
-				expect(block1.totalAmount).to.equal(0);
-				expect(block1.payloadLength).to.equal(0);
-				expect(block1.transactions).to.deep.eql([]);
-				expect(block1.previousBlock).to.equal(genesisBlock.id);
-				done();
-			});
+			getValidKeypairForSlot(library, slot)
+				.then(passphrase => {
+					block1 = createBlock(
+						blocks,
+						blockLogic,
+						passphrase,
+						time,
+						[],
+						genesisBlock
+					);
+					expect(block1.version).to.equal(0);
+					expect(block1.timestamp).to.equal(time);
+					expect(block1.numberOfTransactions).to.equal(0);
+					expect(block1.reward.equals('0'));
+					expect(block1.totalFee.equals('0'));
+					expect(block1.totalAmount.equals('0'));
+					expect(block1.payloadLength).to.equal(0);
+					expect(block1.transactions).to.deep.eql([]);
+					expect(block1.previousBlock).to.equal(genesisBlock.id);
+					done();
+				})
+				.catch(err => {
+					done(err);
+				});
 		});
 
 		it('should be ok when processing block 1', done => {
@@ -964,9 +971,9 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.version).to.equal(0);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward).to.equal(0);
-			expect(invalidBlock2.totalFee).to.equal(0);
-			expect(invalidBlock2.totalAmount).to.equal(0);
+			expect(invalidBlock2.reward.equals('0'));
+			expect(invalidBlock2.totalFee.equals('0'));
+			expect(invalidBlock2.totalAmount.equals('0'));
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.eql([]);
 			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
@@ -974,7 +981,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('normalizeBlock validations', () => {
-			before(done => {
+			beforeEach(done => {
 				block2 = createBlock(
 					blocks,
 					blockLogic,
@@ -988,7 +995,6 @@ describe('blocks/verify', () => {
 
 			it('should fail when timestamp property is missing', done => {
 				block2 = blocksVerify.deleteBlockProperties(block2);
-				var timestamp = block2.timestamp;
 				delete block2.timestamp;
 
 				blocksVerify.processBlock(block2, false, true, err => {
@@ -996,20 +1002,17 @@ describe('blocks/verify', () => {
 						expect(err).equal(
 							'Failed to validate block schema: Missing required property: timestamp'
 						);
-						block2.timestamp = timestamp;
 						done();
 					}
 				});
 			});
 
 			it('should fail when transactions property is missing', done => {
-				var transactions = block2.transactions;
 				delete block2.transactions;
 
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Invalid total amount');
-						block2.transactions = transactions;
 						done();
 					}
 				});
@@ -1018,7 +1021,6 @@ describe('blocks/verify', () => {
 			it('should fail when transaction type property is missing', done => {
 				var transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
-
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal('Unknown transaction type undefined');
@@ -1031,7 +1033,6 @@ describe('blocks/verify', () => {
 			it('should fail when transaction timestamp property is missing', done => {
 				var transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
-
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
 						expect(err).equal(
@@ -1059,40 +1060,42 @@ describe('blocks/verify', () => {
 					var slot = slots.getSlotNumber();
 					var time = slots.getSlotTime(slots.getSlotNumber());
 
-					getValidKeypairForSlot(library, slot).then(passphrase => {
-						block2 = createBlock(
-							blocks,
-							blockLogic,
-							passphrase,
-							time,
-							[genesisBlock.transactions[0]],
-							genesisBlock
-						);
+					getValidKeypairForSlot(library, slot)
+						.then(passphrase => {
+							block2 = createBlock(
+								blocks,
+								blockLogic,
+								passphrase,
+								time,
+								[genesisBlock.transactions[0]],
+								genesisBlock
+							);
 
-						expect(block2.version).to.equal(0);
-						expect(block2.timestamp).to.equal(time);
-						expect(block2.numberOfTransactions).to.equal(1);
-						expect(block2.reward).to.equal(0);
-						expect(block2.totalFee).to.equal(0);
-						expect(block2.totalAmount).to.equal(10000000000000000);
-						expect(block2.payloadLength).to.equal(117);
-						expect(block2.transactions).to.deep.eql([
-							genesisBlock.transactions[0],
-						]);
-						expect(block2.previousBlock).to.equal(genesisBlock.id);
-						done();
-					});
+							expect(block2.version).to.equal(0);
+							expect(block2.timestamp).to.equal(time);
+							expect(block2.numberOfTransactions).to.equal(1);
+							expect(block2.reward.equals('0'));
+							expect(block2.totalFee.equals('0'));
+							expect(block2.totalAmount.equals('10000000000000000'));
+							expect(block2.payloadLength).to.equal(117);
+							expect(block2.transactions).to.deep.eql([
+								genesisBlock.transactions[0],
+							]);
+							expect(block2.previousBlock).to.equal(genesisBlock.id);
+							done();
+						})
+						.catch(err => {
+							done(err);
+						});
 				});
 
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
 					const transaction = lisk.transaction.transfer({
-						amount: 1000 * constants.normalizer,
+						amount: new Bignum(constants.normalizer).mul(1000),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
-					transaction.amount = Number.parseInt(transaction.amount);
-					transaction.fee = Number.parseInt(transaction.fee);
 					transaction.senderId = '16313739661670634666L';
 
 					const createBlockPayload = (
@@ -1166,26 +1169,30 @@ describe('blocks/verify', () => {
 			var slot = slots.getSlotNumber();
 			var time = slots.getSlotTime(slots.getSlotNumber());
 
-			getValidKeypairForSlot(library, slot).then(passphrase => {
-				block2 = createBlock(
-					blocks,
-					blockLogic,
-					passphrase,
-					time,
-					[],
-					genesisBlock
-				);
-				expect(block2.version).to.equal(0);
-				expect(block2.timestamp).to.equal(time);
-				expect(block2.numberOfTransactions).to.equal(0);
-				expect(block2.reward).to.equal(0);
-				expect(block2.totalFee).to.equal(0);
-				expect(block2.totalAmount).to.equal(0);
-				expect(block2.payloadLength).to.equal(0);
-				expect(block2.transactions).to.deep.equal([]);
-				expect(block2.previousBlock).to.equal(genesisBlock.id);
-				done();
-			});
+			getValidKeypairForSlot(library, slot)
+				.then(passphrase => {
+					block2 = createBlock(
+						blocks,
+						blockLogic,
+						passphrase,
+						time,
+						[],
+						genesisBlock
+					);
+					expect(block2.version).to.equal(0);
+					expect(block2.timestamp).to.equal(time);
+					expect(block2.numberOfTransactions).to.equal(0);
+					expect(block2.reward.equals('0'));
+					expect(block2.totalFee.equals('0'));
+					expect(block2.totalAmount.equals('0'));
+					expect(block2.payloadLength).to.equal(0);
+					expect(block2.transactions).to.deep.equal([]);
+					expect(block2.previousBlock).to.equal(genesisBlock.id);
+					done();
+				})
+				.catch(err => {
+					done(err);
+				});
 		});
 
 		it('should be ok when processing block 2', done => {

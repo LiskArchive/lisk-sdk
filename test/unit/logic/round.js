@@ -18,7 +18,7 @@
 var rewire = require('rewire');
 var Promise = require('bluebird');
 var slots = require('../../../helpers/slots.js');
-var bignum = require('../../../helpers/bignum.js');
+var Bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
 var Round = rewire('../../../logic/round.js');
@@ -396,7 +396,7 @@ describe('rounds', () => {
 					getVotes_stub.withArgs(scope.round).resolves([delegate, delegate]);
 					updateVotes_stub = sinonSandbox.stub(t.rounds, 'updateVotes');
 					updateVotes_stub
-						.withArgs(delegate.address, delegate.amount)
+						.withArgs(delegate.address, new Bignum(delegate.amount))
 						.resolves('QUERY');
 
 					round = new Round(_.cloneDeep(scope), t);
@@ -418,7 +418,10 @@ describe('rounds', () => {
 
 			it('updateVotes query should be called with proper args', () => {
 				return expect(
-					updateVotes_stub.alwaysCalledWith(delegate.address, delegate.amount)
+					updateVotes_stub.alwaysCalledWith(
+						delegate.address,
+						new Bignum(delegate.amount)
+					)
 				).to.be.true;
 			});
 
@@ -764,16 +767,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -837,16 +840,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(validScope.roundRewards[index].toPrecision(15))
+							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(validScope.roundFees.toPrecision(15))
+									new Bignum(validScope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(validScope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -948,16 +951,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(validScope.roundRewards[index].toPrecision(15))
+							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(validScope.roundFees.toPrecision(15))
+									new Bignum(validScope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(validScope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -979,13 +982,13 @@ describe('rounds', () => {
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						var index = 0; // Delegate index on list
-						var feesPerDelegate = new bignum(
+						var feesPerDelegate = new Bignum(
 							validScope.roundFees.toPrecision(15)
 						)
 							.dividedBy(slots.delegates)
 							.floor();
 						var remainingFees = Number(
-							new bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(validScope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(slots.delegates))
 								.toFixed()
 						);
@@ -1048,16 +1051,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(validScope.roundRewards[index].toPrecision(15))
+							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(validScope.roundFees.toPrecision(15))
+									new Bignum(validScope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(validScope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1079,13 +1082,13 @@ describe('rounds', () => {
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						var index = 0; // Delegate index on list
-						var feesPerDelegate = new bignum(
+						var feesPerDelegate = new Bignum(
 							validScope.roundFees.toPrecision(15)
 						)
 							.dividedBy(slots.delegates)
 							.floor();
 						var remainingFees = Number(
-							new bignum(validScope.roundFees.toPrecision(15))
+							new Bignum(validScope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(slots.delegates))
 								.toFixed()
 						);
@@ -1193,16 +1196,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1225,16 +1228,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1257,16 +1260,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1344,16 +1347,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1376,16 +1379,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1408,16 +1411,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1524,16 +1527,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1556,16 +1559,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1588,16 +1591,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1619,11 +1622,11 @@ describe('rounds', () => {
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						var index = 2; // Delegate index on list
-						var feesPerDelegate = new bignum(scope.roundFees.toPrecision(15))
+						var feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(slots.delegates)
 							.floor();
 						var remainingFees = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(slots.delegates))
 								.toFixed()
 						);
@@ -1700,16 +1703,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
 						var index = 2; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1732,16 +1735,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
 						var index = 1; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1764,16 +1767,16 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
 						var index = 0; // Delegate index on list
 						var balancePerDelegate = Number(
-							new bignum(scope.roundRewards[index].toPrecision(15))
+							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
-									new bignum(scope.roundFees.toPrecision(15))
+									new Bignum(scope.roundFees.toPrecision(15))
 										.dividedBy(slots.delegates)
 										.floor()
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(slots.delegates)
 								.floor()
 								.toFixed()
@@ -1795,11 +1798,11 @@ describe('rounds', () => {
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						var index = 2; // Delegate index on list
-						var feesPerDelegate = new bignum(scope.roundFees.toPrecision(15))
+						var feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(slots.delegates)
 							.floor();
 						var remainingFees = Number(
-							new bignum(scope.roundFees.toPrecision(15))
+							new Bignum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.times(slots.delegates))
 								.toFixed()
 						);

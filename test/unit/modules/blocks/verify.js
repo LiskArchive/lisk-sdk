@@ -16,6 +16,7 @@
 'use strict';
 
 var rewire = require('rewire');
+var Bignum = require('../../../../helpers/bignum.js');
 
 var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
 
@@ -489,25 +490,9 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('when __private.blockReward.calcReward fails', () => {
-			beforeEach(() => {
-				return __private.blockReward.calcReward.returns('calcReward-ERR');
-			});
-
-			it('should return error', () => {
-				verifyReward = __private.verifyReward(
-					{ height: 'ERR' },
-					{ errors: [] }
-				);
-				return expect(verifyReward.errors[0]).to.equal(
-					'Invalid block reward:  expected: calcReward-ERR'
-				);
-			});
-		});
-
 		describe('when __private.blockReward.calcReward succeeds', () => {
 			beforeEach(() => {
-				return __private.blockReward.calcReward.returns(5);
+				return __private.blockReward.calcReward.returns(new Bignum(5));
 			});
 
 			describe('if block.height != 1 && expectedReward != block.reward && exceptions.blockRewards.indexOf(block.id) = -1', () => {
@@ -1228,10 +1213,10 @@ describe('blocks/verify', () => {
 			version: 0,
 			numberOfTransactions: 0,
 			transactions: [],
-			totalAmount: 0,
-			totalFee: 0,
+			totalAmount: new Bignum(0),
+			totalFee: new Bignum(0),
 			payloadLength: 0,
-			reward: 0,
+			reward: new Bignum(0),
 		};
 
 		afterEach(() => {
@@ -1337,10 +1322,10 @@ describe('blocks/verify', () => {
 			version: 1,
 			numberOfTransactions: 1,
 			transactions: [{ id: 1 }],
-			totalAmount: 1,
-			totalFee: 1,
+			totalAmount: new Bignum(1),
+			totalFee: new Bignum(1),
 			payloadLength: 1,
-			reward: 1,
+			reward: new Bignum(1),
 		};
 
 		describe('when block.version = 0', () => {
@@ -1397,7 +1382,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalAmount property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalAmount = 0;
+				dummyBlockCompleted.totalAmount = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -1418,7 +1403,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.totalFee = 0;
+				dummyBlockCompleted.totalFee = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
@@ -1460,7 +1445,7 @@ describe('blocks/verify', () => {
 
 			it('should delete totalFee property', () => {
 				const dummyBlockCompleted = _.cloneDeep(dummyBlock);
-				dummyBlockCompleted.reward = 0;
+				dummyBlockCompleted.reward = new Bignum(0);
 				dummyBlockReduced = blocksVerifyModule.deleteBlockProperties(
 					dummyBlockCompleted
 				);
