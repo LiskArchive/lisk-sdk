@@ -28,74 +28,74 @@ describe('block_version', () => {
 	});
 
 	describe('get', () => {
+		it('should return true for version = 1, height = 101', () => {
+			const height = 101;
+			const version = 1;
+
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
+		});
+
 		it('should return false for version = 0, height = undefined', () => {
 			const height = undefined;
 			const version = 0;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(false);
+			return expect(blockVersion.isValid(version, height)).to.equal(false);
 		});
 
 		it('should return true for version = 0, height = 1', () => {
 			const height = 1;
 			const version = 0;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(true);
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
 		});
 
 		it('should return true for version = 0, height = 101', () => {
 			const height = 101;
 			const version = 0;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(true);
-		});
-
-		it('should return false for version = 1, height = 101', () => {
-			const height = 101;
-			const version = 1;
-
-			return expect(blockVersion.inExceptions(version, height)).to.equal(false);
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
 		});
 
 		it('should return true for version = 1, height = 102', () => {
 			const height = 102;
 			const version = 1;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(true);
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
 		});
 
 		it('should return true for version = 1, height = 202', () => {
 			const height = 202;
 			const version = 1;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(true);
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
 		});
 
 		it('should return false for version = 2, height = 202', () => {
 			const height = 202;
 			const version = 2;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(false);
+			return expect(blockVersion.isValid(version, height)).to.equal(false);
 		});
 
 		it('should return true for version = 2, height = 203', () => {
 			const height = 203;
 			const version = 2;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(true);
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
 		});
 
 		it('should return true for version = 2, height > 203', () => {
 			const height = 203;
 			const version = 2;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(true);
+			return expect(blockVersion.isValid(version, height)).to.equal(true);
 		});
 
 		it('should return false for version = 3, height > 203', () => {
 			const height = 203;
 			const version = 3;
 
-			return expect(blockVersion.inExceptions(version, height)).to.equal(false);
+			return expect(blockVersion.isValid(version, height)).to.equal(false);
 		});
 	});
 });
