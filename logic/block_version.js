@@ -17,28 +17,40 @@
 const exceptions = require('../helpers/exceptions.js');
 
 /**
- * Helper module for getting block version for particular height
+ * Main blockVersion logic
  *
- * @module
- * @see Parent: {@link helpers}
+ * @class
+ * @memberof logic
+ * @see Parent: {@link logic}
+ * @requires helpers/exceptions
  */
 
 /**
- * Returns block version for provided block height.
+ * Current block version.
  *
- * @param {number} height - Block height
- * @returns {number} version - Block version
+ * @property {number} currentBlockVersion - Current block version used for forging and verify
  */
-function get(height) {
-	let version = 0;
-	for (let i = 0; i < exceptions.precedent.blockVersions.length; i++) {
-		if (exceptions.precedent.blockVersions[i] <= height) {
-			version = i;
-		}
+const currentBlockVersion = 1;
+
+/**
+ * Checks if there is an exception for block version for provided block height.
+ *
+ * @param {number} version - Block version
+ * @param {number} height - Block height
+ * @returns {boolean}
+ */
+function inExceptions(version, height) {
+	const heightsRange = exceptions.blockVersions[version];
+	if (
+		heightsRange &&
+		(height >= heightsRange.start && height <= heightsRange.end)
+	) {
+		return true;
 	}
-	return version;
+	return false;
 }
 
 module.exports = {
-	get,
+	inExceptions,
+	currentBlockVersion,
 };
