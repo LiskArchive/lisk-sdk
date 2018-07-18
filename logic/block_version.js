@@ -33,24 +33,34 @@ const exceptions = require('../helpers/exceptions.js');
 const currentBlockVersion = 1;
 
 /**
- * Checks if there is an exception for block version for provided block height.
+ * Checks if block version is valid - match current version of there is an exception for provided block height.
  *
  * @param {number} version - Block version
  * @param {number} height - Block height
  * @returns {boolean}
  */
-function inExceptions(version, height) {
-	const heightsRange = exceptions.blockVersions[version];
-	if (
-		heightsRange &&
-		(height >= heightsRange.start && height <= heightsRange.end)
-	) {
+function isValid(version, height) {
+	const isCurrentVersion = version === currentBlockVersion;
+	// Return true if block version match current one
+	if (isCurrentVersion) {
 		return true;
 	}
+
+	const heightsRange = exceptions.blockVersions[version];
+	const isInExceptionRange =
+		heightsRange &&
+		(height >= heightsRange.start && height <= heightsRange.end);
+
+	// Return true if block version is in exceptions and between range
+	if (isInExceptionRange) {
+		return true;
+	}
+
+	// Block version for specified height is invalid
 	return false;
 }
 
 module.exports = {
-	inExceptions,
+	isValid,
 	currentBlockVersion,
 };
