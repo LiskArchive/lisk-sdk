@@ -100,10 +100,14 @@ describe('snapshotting', () => {
 			);
 
 			__private.snapshotFinished = function() {
-				getMemAccounts().then(_accounts => {
-					expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
-					done();
-				});
+				getMemAccounts()
+					.then(_accounts => {
+						expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
+						done();
+					})
+					.catch(err => {
+						done(err);
+					});
 			};
 
 			__private.loadBlockChain();

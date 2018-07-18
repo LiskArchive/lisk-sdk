@@ -435,6 +435,17 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		);
 	}
 
+	if (block.totalAmount) {
+		block.totalAmount = block.totalAmount.toString();
+	}
+
+	if (block.totalFee) {
+		block.totalFee = block.totalFee.toString();
+	}
+
+	if (block.reward) {
+		block.reward = block.reward.toString();
+	}
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
 		{

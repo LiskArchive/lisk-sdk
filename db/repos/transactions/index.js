@@ -294,6 +294,8 @@ class TransactionsRepository {
 					? Buffer.from(t.requesterPublicKey, 'hex')
 					: null;
 				t.signatures = t.signatures ? t.signatures.join() : null;
+				t.amount = t.amount.toString();
+				t.fee = t.fee.toString();
 			});
 		} catch (e) {
 			return Promise.reject(e);

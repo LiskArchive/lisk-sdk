@@ -17,6 +17,7 @@
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
 const dappCategories = require('../helpers/dapp_categories.js');
+const Bignum = require('../helpers/bignum.js');
 
 let library;
 const constants = global.constants;
@@ -62,10 +63,10 @@ DApp.prototype.bind = function() {};
 /**
  * Returns dapp fee from constants.
  *
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  */
 DApp.prototype.calculateFee = function() {
-	return constants.fees.dappRegistration;
+	return new Bignum(constants.fees.dappRegistration);
 };
 
 /**
@@ -83,7 +84,8 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (transaction.amount !== 0) {
+	const amount = new Bignum(transaction.amount);
+	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

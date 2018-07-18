@@ -286,10 +286,6 @@ describe('db', () => {
 			it('should resolve without error if parameter "address" is not provided', () => {
 				return expect(db.rounds.updateVotes(null, '123')).to.be.fulfilled;
 			});
-
-			it('should resolve without error if parameter "amount" is not provided', () => {
-				return expect(db.rounds.updateVotes('123L')).to.be.fulfilled;
-			});
 		});
 
 		describe('summedRound()', () => {

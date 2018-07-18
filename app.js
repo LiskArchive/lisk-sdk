@@ -769,11 +769,13 @@ d.run(() => {
 			// Receives a 'cleanup' signal and cleans all modules
 			process.once('cleanup', error => {
 				if (error) {
-					scope.logger.fatal(error);
+					logger.fatal(error);
 				}
-				scope.logger.info('Cleaning up...');
-				scope.socketCluster.removeAllListeners('fail');
-				scope.socketCluster.destroy();
+				logger.info('Cleaning up...');
+				if (scope.socketCluster) {
+					scope.socketCluster.removeAllListeners('fail');
+					scope.socketCluster.destroy();
+				}
 				async.eachSeries(
 					modules,
 					(module, cb) => {
@@ -785,9 +787,9 @@ d.run(() => {
 					},
 					err => {
 						if (err) {
-							scope.logger.error(err);
+							logger.error(err);
 						} else {
-							scope.logger.info('Cleaned up successfully');
+							logger.info('Cleaned up successfully');
 						}
 						process.exit(1);
 					}

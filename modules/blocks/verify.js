@@ -19,6 +19,7 @@ const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
+const Bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
@@ -239,10 +240,9 @@ __private.verifyVersion = function(block, result) {
  */
 __private.verifyReward = function(block, result) {
 	const expectedReward = __private.blockReward.calcReward(block.height);
-
 	if (
 		block.height !== 1 &&
-		expectedReward !== block.reward &&
+		!expectedReward.equals(block.reward) &&
 		exceptions.blockRewards.indexOf(block.id) === -1
 	) {
 		result.errors.push(
@@ -304,8 +304,8 @@ __private.verifyPayload = function(block, result) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
-	let totalAmount = 0;
-	let totalFee = 0;
+	let totalAmount = new Bignum(0);
+	let totalFee = new Bignum(0);
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
@@ -329,19 +329,19 @@ __private.verifyPayload = function(block, result) {
 		if (bytes) {
 			payloadHash.update(bytes);
 		}
-		totalAmount += transaction.amount;
-		totalFee += transaction.fee;
+		totalAmount = totalAmount.plus(transaction.amount);
+		totalFee = totalFee.plus(transaction.fee);
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
 		result.errors.push('Invalid payload hash');
 	}
 
-	if (totalAmount !== block.totalAmount) {
+	if (!totalAmount.equals(block.totalAmount)) {
 		result.errors.push('Invalid total amount');
 	}
 
-	if (totalFee !== block.totalFee) {
+	if (!totalFee.equals(block.totalFee)) {
 		result.errors.push('Invalid total fee');
 	}
 
@@ -528,6 +528,10 @@ Verify.prototype.verifyBlock = function(block) {
  * @returns {Object} Block object completed
  */
 Verify.prototype.addBlockProperties = function(block) {
+	block.totalAmount = new Bignum(block.totalAmount || 0);
+	block.totalFee = new Bignum(block.totalFee || 0);
+	block.reward = new Bignum(block.reward || 0);
+
 	if (block.version === undefined) {
 		block.version = 0;
 	}
@@ -538,17 +542,8 @@ Verify.prototype.addBlockProperties = function(block) {
 			block.numberOfTransactions = block.transactions.length;
 		}
 	}
-	if (block.totalAmount === undefined) {
-		block.totalAmount = 0;
-	}
-	if (block.totalFee === undefined) {
-		block.totalFee = 0;
-	}
 	if (block.payloadLength === undefined) {
 		block.payloadLength = 0;
-	}
-	if (block.reward === undefined) {
-		block.reward = 0;
 	}
 	if (block.transactions === undefined) {
 		block.transactions = [];
@@ -563,7 +558,7 @@ Verify.prototype.addBlockProperties = function(block) {
  * @returns {Object} Block object reduced
  */
 Verify.prototype.deleteBlockProperties = function(block) {
-	const reducedBlock = JSON.parse(JSON.stringify(block));
+	const reducedBlock = Object.assign({}, block);
 	if (reducedBlock.version === 0) {
 		delete reducedBlock.version;
 	}
@@ -571,16 +566,16 @@ Verify.prototype.deleteBlockProperties = function(block) {
 	if (typeof reducedBlock.numberOfTransactions === 'number') {
 		delete reducedBlock.numberOfTransactions;
 	}
-	if (reducedBlock.totalAmount === 0) {
+	if (reducedBlock.totalAmount.equals(0)) {
 		delete reducedBlock.totalAmount;
 	}
-	if (reducedBlock.totalFee === 0) {
+	if (reducedBlock.totalFee.equals(0)) {
 		delete reducedBlock.totalFee;
 	}
 	if (reducedBlock.payloadLength === 0) {
 		delete reducedBlock.payloadLength;
 	}
-	if (reducedBlock.reward === 0) {
+	if (reducedBlock.reward.equals(0)) {
 		delete reducedBlock.reward;
 	}
 	if (reducedBlock.transactions && reducedBlock.transactions.length === 0) {

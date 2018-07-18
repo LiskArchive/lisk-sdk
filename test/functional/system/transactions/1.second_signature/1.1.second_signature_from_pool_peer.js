@@ -20,6 +20,7 @@ const expect = require('chai').expect;
 const accountFixtures = require('../../../../fixtures/accounts');
 const localCommon = require('../../common.js');
 const randomUtil = require('../../../../common/utils/random');
+const Bignum = require('../../../../../helpers/bignum.js');
 
 const constants = global.constants;
 
@@ -56,8 +57,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});
-			sendTransaction.amount = parseInt(sendTransaction.amount);
-			sendTransaction.fee = parseInt(sendTransaction.fee);
+			sendTransaction.amount = new Bignum(sendTransaction.amount);
+			sendTransaction.fee = new Bignum(sendTransaction.fee);
 			localCommon.addTransactionsAndForge(library, [sendTransaction], done);
 		});
 
@@ -69,8 +70,8 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					passphrase: signatureAccount.passphrase,
 					secondPassphrase: signatureAccount.secondPassphrase,
 				});
-				signatureTransaction.amount = parseInt(signatureTransaction.amount);
-				signatureTransaction.fee = parseInt(signatureTransaction.fee);
+				signatureTransaction.amount = new Bignum(signatureTransaction.amount);
+				signatureTransaction.fee = new Bignum(signatureTransaction.fee);
 				localCommon.addTransactionToUnconfirmedQueue(
 					library,
 					signatureTransaction,
@@ -135,8 +136,10 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						secondPassphrase: randomUtil.password(),
 					});
 					signatureTransaction2.senderId = signatureAccount.address;
-					signatureTransaction2.amount = parseInt(signatureTransaction2.amount);
-					signatureTransaction2.fee = parseInt(signatureTransaction2.fee);
+					signatureTransaction2.amount = new Bignum(
+						signatureTransaction2.amount
+					);
+					signatureTransaction2.fee = new Bignum(signatureTransaction2.fee);
 					localCommon.createValidBlock(
 						library,
 						[signatureTransaction2],

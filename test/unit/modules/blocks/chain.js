@@ -47,18 +47,18 @@ describe('blocks/chain', () => {
 		id: 3,
 		height: 3,
 		transactions: [
-			{ id: 5, type: 3, senderPublicKey: 'a' },
-			{ id: 6, type: 2, senderPublicKey: 'b' },
-			{ id: 7, type: 1, senderPublicKey: 'c' },
+			{ id: 5, type: 3, senderPublicKey: 'a', amount: '1000000', fee: '10000' },
+			{ id: 6, type: 2, senderPublicKey: 'b', amount: '1000000', fee: '10000' },
+			{ id: 7, type: 1, senderPublicKey: 'c', amount: '1000000', fee: '10000' },
 		],
 	};
 	const genesisBlockWithTransactions = {
 		id: 1,
 		height: 1,
 		transactions: [
-			{ id: 5, type: 3, senderPublicKey: 'a' },
-			{ id: 6, type: 2, senderPublicKey: 'b' },
-			{ id: 7, type: 1, senderPublicKey: 'c' },
+			{ id: 5, type: 3, senderPublicKey: 'a', amount: '1000000', fee: '10000' },
+			{ id: 6, type: 2, senderPublicKey: 'b', amount: '1000000', fee: '10000' },
+			{ id: 7, type: 1, senderPublicKey: 'c', amount: '1000000', fee: '10000' },
 		],
 	};
 	const blockReduced = { id: 3, height: 3 };
