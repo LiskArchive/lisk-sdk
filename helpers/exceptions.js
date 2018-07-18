@@ -79,10 +79,6 @@ module.exports = {
 	],
 	inertTransactions: [],
 	transactionFee: [],
-	precedent: {
-		// Every version starts on provided height
-		blockVersions: [
-			1, // version: 0
-		],
-	},
+	// <version>: { start: <start_height>, end: <end_height> }
+	blockVersions: {},
 };
