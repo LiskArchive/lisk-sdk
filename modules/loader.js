@@ -56,7 +56,7 @@ __private.retries = 5;
 class Loader {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger.child({ module: 'loader' }),
+			logger: scope.logger.child({ identifier: 'modules/loader' }),
 			db: scope.db,
 			network: scope.network,
 			schema: scope.schema,

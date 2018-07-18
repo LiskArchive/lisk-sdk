@@ -62,7 +62,7 @@ __private.forgeInterval = 1000;
 class Delegates {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger.child({ module: 'delegates' }),
+			logger: scope.logger.child({ identifier: 'modules/delegates' }),
 			sequence: scope.sequence,
 			ed: scope.ed,
 			db: scope.db,

@@ -95,7 +95,6 @@ function __init(initScope, done) {
 		.then(() => {
 			var logger = initScope.logger || {
 				child: () => ({
-					done: sinonSandbox.spy(),
 					trace: sinonSandbox.spy(),
 					debug: sinonSandbox.spy(),
 					info: sinonSandbox.spy(),

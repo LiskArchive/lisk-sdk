@@ -19,10 +19,11 @@ const bunyan = require('bunyan');
 const defaultLoggerConfig = {
 	filename: 'logs/lisk.log',
 	level: 'none',
+	consoleLogLevel: 'none',
 };
 
 const createDirIfNotExists = filename => {
-	if (!filename || filename === '') {
+	if (!filename) {
 		return;
 	}
 	const dir = path.dirname(filename);
@@ -33,20 +34,28 @@ const createDirIfNotExists = filename => {
 
 const shouldShowSrc = level => level === 'debug' || level === 'trace';
 
-const createLogger = ({ filename, level } = defaultLoggerConfig) => {
+const createLogger = ({
+	filename,
+	level,
+	consoleLogLevel,
+} = defaultLoggerConfig) => {
 	const fileLevel = level !== 'none' ? level : 'fatal';
 	createDirIfNotExists(filename);
+	const streams = [
+		{
+			level: fileLevel,
+			path: filename,
+		},
+	];
+	if (consoleLogLevel !== 'none') {
+		streams.push({ stream: process.stdout });
+	}
 	const logger = bunyan.createLogger({
 		name: filename,
 		level: fileLevel,
 		serializers: bunyan.stdSerializers,
 		src: shouldShowSrc(level),
-		streams: [
-			{
-				level: fileLevel,
-				path: filename,
-			},
-		],
+		streams,
 	});
 	return logger;
 };

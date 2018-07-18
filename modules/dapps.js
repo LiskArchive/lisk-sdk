@@ -62,7 +62,7 @@ __private.assetTypes = {};
 class DApps {
 	constructor(cb, scope) {
 		library = {
-			logger: scope.logger.child({ module: 'dapps' }),
+			logger: scope.logger.child({ identifier: 'modules/dapps' }),
 			db: scope.db,
 			network: scope.network,
 			schema: scope.schema,
@@ -83,7 +83,7 @@ class DApps {
 			transactionTypes.DAPP,
 			new DApp(
 				scope.db,
-				scope.logger.child({ module: 'logic/transaction/dapp' }),
+				scope.logger.child({ identifier: 'logic/dapp' }),
 				scope.schema,
 				scope.network
 			)

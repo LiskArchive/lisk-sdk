@@ -144,12 +144,14 @@ var config = {
  *
  * @memberof! app
  */
-var logger = createLogger({
+var rootLogger = createLogger({
 	level: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
+	consoleLogLevel:
+		process.env.LISK_CONSOLE_LOG_LEVEL || appConfig.consoleLogLevel,
 	filename: appConfig.logFileName,
 });
 
-var appLogger = logger.child({ module: 'app' });
+var logger = rootLogger.child({ identifier: 'app' });
 
 /**
  * Db logger instance.
@@ -162,25 +164,27 @@ if (
 	appConfig.db.logFileName &&
 	appConfig.db.logFileName === appConfig.logFileName
 ) {
-	dbLogger = logger.child({ module: 'db' });
+	dbLogger = logger.child({ identifier: 'db' });
 } else {
 	// since log levels for database monitor are different than node app, i.e. "query", "info", "error" etc, which is decided using "logEvents" property
 	dbLogger = createLogger({
 		level: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
+		consoleLogLevel:
+			process.env.LISK_CONSOLE_LOG_LEVEL || appConfig.consoleLogLevel,
 		filename: appConfig.db.logFileName,
-	});
+	}).child({ identifier: 'db' });
 }
 
 // Try to get the last git commit
 try {
 	lastCommit = git.getLastCommit();
 } catch (err) {
-	appLogger.debug('Cannot get last git commit', err.message);
+	logger.debug('Cannot get last git commit', err.message);
 }
 
 // Domain error handler
 d.on('error', err => {
-	appLogger.fatal('Domain master', { message: err.message, stack: err.stack });
+	logger.fatal({ message: err.message, stack: err.stack }, 'Domain master');
 	process.exit(0);
 });
 
@@ -251,7 +255,7 @@ d.run(() => {
 					if (appConfig.coverage) {
 						// eslint-disable-next-line import/no-extraneous-dependencies
 						var im = require('istanbul-middleware');
-						appLogger.debug(
+						logger.debug(
 							'Hook loader for coverage - Do not use in production environment!'
 						);
 						im.hookLoader(__dirname);
@@ -312,7 +316,7 @@ d.run(() => {
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
-							appLogger.warn('Main queue', current);
+							logger.warn('Main queue', current);
 						},
 					});
 					cb(null, sequence);
@@ -333,7 +337,7 @@ d.run(() => {
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
-							appLogger.warn('Balance queue', current);
+							logger.warn('Balance queue', current);
 						},
 					});
 					cb(null, sequence);
@@ -357,7 +361,7 @@ d.run(() => {
 					httpApi.bootstrapSwagger(
 						scope.network.app,
 						scope.config,
-						scope.logger.child({ module: 'api' }),
+						scope.logger.child({ identifier: 'api' }),
 						scope,
 						cb
 					);
@@ -442,13 +446,13 @@ d.run(() => {
 			 */
 			cache(cb) {
 				var cache = require('./helpers/cache.js');
-				appLogger.debug(
+				logger.debug(
 					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
 				);
 				cache.connect(
 					config.cacheEnabled,
 					config.cache,
-					logger.child({ module: 'app/cache' }),
+					logger.child({ identifier: 'app/cache' }),
 					cb
 				);
 			},
@@ -502,17 +506,17 @@ d.run(() => {
 					);
 
 					scope.socketCluster.on('ready', () => {
-						appLogger.info('Socket Cluster ready for incoming connections');
+						scope.logger.info('Socket Cluster ready for incoming connections');
 						cb();
 					});
 
 					// The 'fail' event aggregates errors from all SocketCluster processes.
 					scope.socketCluster.on('fail', err => {
-						appLogger.error(err);
+						logger.error(err);
 						if (err.name === 'WSEngineInitError') {
 							var extendedError =
 								'If you are not able to install sc-uws, you can try setting the wsEngine property in config.json to "ws" before starting the node';
-							appLogger.error(extendedError);
+							logger.error(extendedError);
 						}
 					});
 
@@ -521,7 +525,7 @@ d.run(() => {
 						if (workerInfo.signal) {
 							exitMessage += ` due to signal: '${workerInfo.signal}'`;
 						}
-						appLogger.error(exitMessage);
+						logger.error(exitMessage);
 					});
 				},
 			],
@@ -576,7 +580,7 @@ d.run(() => {
 									new Account(
 										scope.db,
 										scope.schema,
-										scope.logger.child({ module: 'logic/account' }),
+										scope.logger.child({ identifier: 'logic/account' }),
 										cb
 									);
 								},
@@ -596,7 +600,7 @@ d.run(() => {
 										scope.schema,
 										scope.genesisBlock,
 										scope.account,
-										scope.logger.child({ module: 'logic/transaction' }),
+										scope.logger.child({ identifier: 'logic/transaction' }),
 										cb
 									);
 								},
@@ -616,7 +620,10 @@ d.run(() => {
 							peers: [
 								'logger',
 								function(scope, cb) {
-									new Peers(scope.logger.child({ module: 'logic/peers' }), cb);
+									new Peers(
+										scope.logger.child({ identifier: 'logic/peers' }),
+										cb
+									);
 								},
 							],
 						},
@@ -658,7 +665,7 @@ d.run(() => {
 							});
 
 							d.run(() => {
-								appLogger.debug('Loading module', name);
+								logger.debug('Loading module', name);
 								// eslint-disable-next-line import/no-dynamic-require
 								var Klass = require(config.modules[name]);
 								var obj = new Klass(cb, scope);
@@ -728,7 +735,7 @@ d.run(() => {
 						scope.config.httpPort,
 						scope.config.address,
 						err => {
-							appLogger.info(
+							logger.info(
 								`Lisk started: ${scope.config.address}:${scope.config.httpPort}`
 							);
 
@@ -738,7 +745,7 @@ d.run(() => {
 										scope.config.api.ssl.options.port,
 										scope.config.api.ssl.options.address,
 										err => {
-											appLogger.info(
+											logger.info(
 												`Lisk https started: ${
 													scope.config.api.ssl.options.address
 												}:${scope.config.api.ssl.options.port}`
@@ -762,9 +769,9 @@ d.run(() => {
 			// Receives a 'cleanup' signal and cleans all modules
 			process.once('cleanup', error => {
 				if (error) {
-					appLogger.fatal(error.toString());
+					logger.fatal(error);
 				}
-				appLogger.info('Cleaning up...');
+				logger.info('Cleaning up...');
 				scope.socketCluster.removeAllListeners('fail');
 				scope.socketCluster.destroy();
 				async.eachSeries(
@@ -778,9 +785,9 @@ d.run(() => {
 					},
 					err => {
 						if (err) {
-							appLogger.error(err);
+							logger.error(err);
 						} else {
-							appLogger.info('Cleaned up successfully');
+							logger.info('Cleaned up successfully');
 						}
 						process.exit(1);
 					}
@@ -800,10 +807,10 @@ d.run(() => {
 			});
 
 			if (err) {
-				appLogger.fatal(err);
+				logger.fatal(err);
 				process.emit('cleanup');
 			} else {
-				appLogger.info('Modules ready and launched');
+				logger.info('Modules ready and launched');
 			}
 		}
 	);
@@ -811,6 +818,6 @@ d.run(() => {
 
 process.on('uncaughtException', err => {
 	// Handle error safely
-	appLogger.fatal('System error', { message: err.message, stack: err.stack });
+	logger.fatal({ message: err.message, stack: err.stack }, 'System error');
 	process.emit('cleanup');
 });

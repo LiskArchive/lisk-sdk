@@ -62,7 +62,7 @@ class Accounts {
 			transactionTypes.VOTE
 		] = library.logic.transaction.attachAssetType(
 			transactionTypes.VOTE,
-			new Vote(scope.logger.child({ module: 'accounts/vote' }), scope.schema)
+			new Vote(scope.logger.child({ identifier: 'logic/vote' }), scope.schema)
 		);
 
 		setImmediate(cb, null, self);

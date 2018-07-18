@@ -48,6 +48,7 @@ SCWorker.create({
 						null,
 						createLogger({
 							level: config.fileLogLevel,
+							consoleLogLevel: config.consoleLogLevel,
 							filename: config.logFileName,
 						})
 					);

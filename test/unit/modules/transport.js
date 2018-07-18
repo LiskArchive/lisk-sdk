@@ -168,7 +168,6 @@ describe('transport', () => {
 		};
 
 		childLoggerStub = {
-			done: sinonSandbox.spy(),
 			trace: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
