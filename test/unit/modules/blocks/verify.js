@@ -15,9 +15,10 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var exceptions = require('../../../../helpers/exceptions.js');
-var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+const rewire = require('rewire');
+const exceptions = require('../../../../helpers/exceptions.js');
+
+const BlocksVerify = rewire('../../../../modules/blocks/verify.js');
 
 describe('blocks/verify', () => {
 	let library;
