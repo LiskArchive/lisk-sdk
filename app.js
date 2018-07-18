@@ -316,7 +316,7 @@ d.run(() => {
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
-							logger.warn('Main queue', current);
+							scope.logger.warn('Main queue', current);
 						},
 					});
 					cb(null, sequence);
@@ -337,7 +337,7 @@ d.run(() => {
 				function(scope, cb) {
 					var sequence = new Sequence({
 						onWarning(current) {
-							logger.warn('Balance queue', current);
+							scope.logger.warn('Balance queue', current);
 						},
 					});
 					cb(null, sequence);
@@ -512,11 +512,11 @@ d.run(() => {
 
 					// The 'fail' event aggregates errors from all SocketCluster processes.
 					scope.socketCluster.on('fail', err => {
-						logger.error(err);
+						scope.logger.error(err);
 						if (err.name === 'WSEngineInitError') {
 							var extendedError =
 								'If you are not able to install sc-uws, you can try setting the wsEngine property in config.json to "ws" before starting the node';
-							logger.error(extendedError);
+							scope.logger.error(extendedError);
 						}
 					});
 
@@ -525,7 +525,7 @@ d.run(() => {
 						if (workerInfo.signal) {
 							exitMessage += ` due to signal: '${workerInfo.signal}'`;
 						}
-						logger.error(exitMessage);
+						scope.logger.error(exitMessage);
 					});
 				},
 			],
@@ -735,7 +735,7 @@ d.run(() => {
 						scope.config.httpPort,
 						scope.config.address,
 						err => {
-							logger.info(
+							scope.logger.info(
 								`Lisk started: ${scope.config.address}:${scope.config.httpPort}`
 							);
 
@@ -745,7 +745,7 @@ d.run(() => {
 										scope.config.api.ssl.options.port,
 										scope.config.api.ssl.options.address,
 										err => {
-											logger.info(
+											scope.logger.info(
 												`Lisk https started: ${
 													scope.config.api.ssl.options.address
 												}:${scope.config.api.ssl.options.port}`
@@ -769,9 +769,9 @@ d.run(() => {
 			// Receives a 'cleanup' signal and cleans all modules
 			process.once('cleanup', error => {
 				if (error) {
-					logger.fatal(error);
+					scope.logger.fatal(error);
 				}
-				logger.info('Cleaning up...');
+				scope.logger.info('Cleaning up...');
 				scope.socketCluster.removeAllListeners('fail');
 				scope.socketCluster.destroy();
 				async.eachSeries(
@@ -785,9 +785,9 @@ d.run(() => {
 					},
 					err => {
 						if (err) {
-							logger.error(err);
+							scope.logger.error(err);
 						} else {
-							logger.info('Cleaned up successfully');
+							scope.logger.info('Cleaned up successfully');
 						}
 						process.exit(1);
 					}
@@ -810,7 +810,7 @@ d.run(() => {
 				logger.fatal(err);
 				process.emit('cleanup');
 			} else {
-				logger.info('Modules ready and launched');
+				scope.logger.info('Modules ready and launched');
 			}
 		}
 	);
