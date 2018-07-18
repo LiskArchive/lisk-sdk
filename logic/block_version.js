@@ -40,7 +40,7 @@ const currentBlockVersion = 1;
  * @returns {boolean}
  */
 function isValid(version, height) {
-	const isCurrentVersion = version === currentBlockVersion;
+	const isCurrentVersion = version === this.currentBlockVersion;
 	// Return true if block version match current one
 	if (isCurrentVersion) {
 		return true;
