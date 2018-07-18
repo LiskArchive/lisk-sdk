@@ -19,7 +19,6 @@ const elements = require('lisk-elements').default;
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
 const constants = require('../../../helpers/constants');
-const exceptions = require('../../../helpers/exceptions');
 const queriesHelper = require('../common/sql/queriesHelper.js');
 const localCommon = require('./common');
 
@@ -30,12 +29,6 @@ describe('snapshotting', () => {
 
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
-
-	exceptions.precedent.blockVersions = [
-		1,
-		100, // Bump block version at height 100
-		200, // Bump block version at height 200
-	];
 
 	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
 		library = lib;
@@ -105,7 +98,8 @@ describe('snapshotting', () => {
 				2
 			);
 
-			__private.snapshotFinished = function() {
+			__private.snapshotFinished = function(err) {
+				expect(err).to.not.exist;
 				getMemAccounts().then(_accounts => {
 					expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
 					done();
