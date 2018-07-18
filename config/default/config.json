@@ -4,6 +4,7 @@
 	"address": "0.0.0.0",
 	"fileLogLevel": "info",
 	"logFileName": "logs/lisk.log",
+	"consoleLogLevel": "none",
 	"trustProxy": false,
 	"topAccounts": false,
 	"cacheEnabled": false,

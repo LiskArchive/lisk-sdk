@@ -1,6 +1,7 @@
 {
 	"fileLogLevel": "debug",
 	"cacheEnabled": true,
+	"consoleLogLevel": "info",
 	"db": {
 		"database": "lisk_alpha",
 		"min": 1,
