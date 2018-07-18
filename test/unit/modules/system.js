@@ -36,7 +36,6 @@ describe('system', () => {
 			trace: sinonSandbox.spy(),
 			debug: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
-			log: sinonSandbox.spy(),
 			warn: sinonSandbox.spy(),
 			error: sinonSandbox.spy(),
 		};
