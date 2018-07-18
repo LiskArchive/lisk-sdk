@@ -750,17 +750,17 @@ Peers.prototype.networkHeight = function(options, cb) {
 			return setImmediate(cb, err, 0);
 		}
 		// count by number of peers at one height
-		const heights = _.countBy(peers, 'height');
-		const height = Object.keys(heights).reduce((curr, next) => {
-			if (heights[next] > heights[curr]) {
-				return next;
-			}
-			return curr;
-		});
-		const networkHeight = Number(height);
+		const mostPopularHeight = _(peers)
+			.countBy('height')
+			.map((count, height) => ({
+				height,
+				count,
+			}))
+			.maxBy('count');
+		const networkHeight = Number(mostPopularHeight.height);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
-		library.logger.trace(heights);
+		library.logger.trace(mostPopularHeight);
 
 		return setImmediate(cb, null, networkHeight);
 	});
