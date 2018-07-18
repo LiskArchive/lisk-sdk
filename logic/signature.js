@@ -15,6 +15,7 @@
 'use strict';
 
 const ByteBuffer = require('bytebuffer');
+const Bignum = require('../helpers/bignum.js');
 
 const constants = global.constants;
 let modules;
@@ -58,10 +59,10 @@ Signature.prototype.bind = function(accounts) {
  * Obtains constant fee secondSignature.
  *
  * @see {@link module:helpers~constants}
- * @returns {number} Transaction fee
+ * @returns {Bignumber} Transaction fee
  */
 Signature.prototype.calculateFee = function() {
-	return constants.fees.secondSignature;
+	return new Bignum(constants.fees.secondSignature);
 };
 
 /**
@@ -78,7 +79,8 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	if (transaction.amount !== 0) {
+	const amount = new Bignum(transaction.amount);
+	if (!amount.equals(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

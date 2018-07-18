@@ -25,6 +25,7 @@ var supertest = require('supertest');
 var _ = require('lodash');
 var AppConfig = require('../helpers/config');
 const packageJson = require('../package.json');
+var Bignum = require('../helpers/bignum.js');
 
 coMocha(mocha);
 
@@ -36,6 +37,14 @@ chai.use(chaiAsPromised);
 var testContext = {};
 
 testContext.config = AppConfig(packageJson, false);
+
+const genesisBlock = testContext.config.genesisBlock;
+
+genesisBlock.totalAmount = new Bignum(genesisBlock.totalAmount);
+genesisBlock.totalFee = new Bignum(genesisBlock.totalFee);
+genesisBlock.reward = new Bignum(genesisBlock.reward);
+
+testContext.config.genesisBlock = genesisBlock;
 
 if (process.env.SILENT === 'true') {
 	testContext.debug = function() {};

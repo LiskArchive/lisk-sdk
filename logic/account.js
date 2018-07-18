@@ -498,28 +498,33 @@ class Account {
 						break;
 
 					// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
+					// eslint-disable-next-line no-case-declarations
 					case Number:
-						if (isNaN(updatedValue) || updatedValue === Infinity) {
-							throw `Encountered insane number: ${updatedValue}`;
+						const value = new Bignum(updatedValue);
+						if (value.isNaN() || !value.isFinite()) {
+							throw `Encountered insane number: ${value.toString()}`;
 						}
 
 						// If updated value is positive number
-						if (Math.abs(updatedValue) === updatedValue && updatedValue !== 0) {
+						if (value.greaterThan(0)) {
 							promises.push(
 								dbTx.accounts.increment(
 									address,
 									updatedField,
-									Math.floor(updatedValue)
+									value.floor().toString()
 								)
 							);
 
 							// If updated value is negative number
-						} else if (updatedValue < 0) {
+						} else if (value.lessThan(0)) {
 							promises.push(
 								dbTx.accounts.decrement(
 									address,
 									updatedField,
-									Math.floor(Math.abs(updatedValue))
+									value
+										.abs()
+										.floor()
+										.toString()
 								)
 							);
 						}
@@ -529,7 +534,7 @@ class Account {
 								dbTx.rounds.insertRoundInformationWithAmount(
 									address,
 									diff.round,
-									updatedValue
+									value.toString()
 								)
 							);
 						}
@@ -869,14 +874,12 @@ Account.prototype.schema = {
 			],
 		},
 		balance: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'object',
+			format: 'amount',
 		},
 		u_balance: {
-			type: 'integer',
-			minimum: 0,
-			maximum: constants.totalAmount,
+			type: 'object',
+			format: 'amount',
 		},
 		rate: {
 			type: 'integer',
@@ -956,15 +959,15 @@ Account.prototype.schema = {
 			maximum: 32767,
 		},
 		fees: {
-			type: 'integer',
-			minimum: 0,
+			type: 'object',
+			format: 'amount',
 		},
 		rank: {
 			type: 'integer',
 		},
 		rewards: {
-			type: 'integer',
-			minimum: 0,
+			type: 'object',
+			format: 'amount',
 		},
 		vote: {
 			type: 'integer',

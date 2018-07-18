@@ -18,7 +18,7 @@ const async = require('async');
 const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
 const slots = require('../../../helpers/slots');
-const Bignum = require('../../../helpers/bignum');
+const Bignum = require('../../../helpers/bignum.js');
 const accountsFixtures = require('../../fixtures/accounts');
 const randomUtil = require('../../common/utils/random');
 const queriesHelper = require('../common/sql/queriesHelper.js');
@@ -437,43 +437,7 @@ describe('rounds', () => {
 						);
 					}
 
-					// FIXME: Remove that nasty hack after https://github.com/LiskHQ/lisk/issues/716 is closed
-					try {
-						expect(tick.after.accounts).to.deep.equal(expected);
-					} catch (err) {
-						// When comparison of mem_accounts states fail
-						_.reduce(
-							tick.after.accounts,
-							(result, value, key) => {
-								// Clone actual and expected accounts states
-								const actualAccount = Object.assign({}, value);
-								const expectedAccount = Object.assign({}, expected[key]);
-								// Compare actual and expected states
-								if (!_.isEqual(actualAccount, expectedAccount)) {
-									// When comparison fails - calculate absolute difference of 'vote' values
-									const absoluteDiff = Math.abs(
-										new Bignum(actualAccount.vote)
-											.minus(new Bignum(expectedAccount.vote))
-											.toNumber()
-									);
-									// If absolute value is 1 beddows - pass the test, as reason is related to issue #716
-									if (absoluteDiff === 1) {
-										__testContext.debug(
-											`ERROR: Value of 'vote' for account ${key} doesn't match expectations, actual: ${
-												actualAccount.vote
-											}, expected: ${
-												expectedAccount.vote
-											}, diff: ${absoluteDiff} beddows`
-										);
-									} else {
-										// In every other case - fail the test
-										throw err;
-									}
-								}
-							},
-							[]
-						);
-					}
+					expect(tick.after.accounts).to.deep.equal(expected);
 					done();
 				});
 
@@ -925,20 +889,30 @@ describe('rounds', () => {
 					);
 					// Delete two blocks more
 					lastBlock = library.modules.blocks.lastBlock.get();
-					deleteLastBlockPromise().then(() => {
-						_.each(lastBlock.transactions, transaction => {
-							// Remove transaction from pool
-							transactionPool.removeUnconfirmedTransaction(transaction.id);
-						});
-						lastBlock = library.modules.blocks.lastBlock.get();
-						deleteLastBlockPromise().then(() => {
+					deleteLastBlockPromise()
+						.then(() => {
 							_.each(lastBlock.transactions, transaction => {
 								// Remove transaction from pool
 								transactionPool.removeUnconfirmedTransaction(transaction.id);
 							});
-							done();
+							lastBlock = library.modules.blocks.lastBlock.get();
+							deleteLastBlockPromise()
+								.then(() => {
+									_.each(lastBlock.transactions, transaction => {
+										// Remove transaction from pool
+										transactionPool.removeUnconfirmedTransaction(
+											transaction.id
+										);
+									});
+									done();
+								})
+								.catch(err => {
+									done(err);
+								});
+						})
+						.catch(err => {
+							done(err);
 						});
-					});
 				});
 			});
 
@@ -1097,7 +1071,7 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward).to.equal(expectedRewardsPerBlock);
+					return expect(lastBlock.reward.equals(expectedRewardsPerBlock));
 				});
 			});
 
@@ -1140,9 +1114,7 @@ describe('rounds', () => {
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', () => {
 								const lastBlock = library.modules.blocks.lastBlock.get();
-								return expect(lastBlock.reward).to.equal(
-									expectedRewardsPerBlock
-								);
+								return expect(lastBlock.reward.equals(expectedRewardsPerBlock));
 							});
 						});
 

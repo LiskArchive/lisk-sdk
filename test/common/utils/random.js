@@ -16,6 +16,7 @@
 
 var randomstring = require('randomstring');
 var lisk = require('lisk-elements').default;
+var Bignum = require('../../../helpers/bignum.js');
 var accountFixtures = require('../../fixtures/accounts');
 
 var random = {};
@@ -107,7 +108,9 @@ random.account = function() {
 	account.secondPassphrase = random.password();
 	account.username = random.delegateName();
 	account.publicKey = lisk.cryptography.getKeys(account.passphrase).publicKey;
-	account.address = lisk.cryptography.getAddressFromPublicKey(account.publicKey);
+	account.address = lisk.cryptography.getAddressFromPublicKey(
+		account.publicKey
+	);
 	account.secondPublicKey = lisk.cryptography.getKeys(
 		account.secondPassphrase
 	).publicKey;
@@ -131,5 +134,14 @@ random.password = function() {
 		.toString(36)
 		.substring(7);
 };
+
+const convertToBignum = transactions => {
+	return transactions.map(transaction => {
+		transaction.amount = new Bignum(transaction.amount);
+		transaction.fee = new Bignum(transaction.fee);
+	});
+};
+
+random.convertToBignum = convertToBignum;
 
 module.exports = random;

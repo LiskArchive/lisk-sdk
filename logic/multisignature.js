@@ -18,6 +18,7 @@ const async = require('async');
 const ByteBuffer = require('bytebuffer');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 
 let modules;
 let library;
@@ -75,14 +76,13 @@ Multisignature.prototype.bind = function(accounts) {
  * Obtains constant fee multisignature and multiply by quantity of signatures.
  *
  * @param {transaction} transaction
- * @returns {number} Quantity of multisignature keysgroup * multisignature fees
+ * @returns {Bignumber} Quantity of multisignature keysgroup * multisignature fees
  * @todo Add description for the params
  */
 Multisignature.prototype.calculateFee = function(transaction) {
-	return (
-		(transaction.asset.multisignature.keysgroup.length + 1) *
-		constants.fees.multisignature
-	);
+	const keys = transaction.asset.multisignature.keysgroup.length + 1;
+	const amount = new Bignum(constants.fees.multisignature);
+	return amount.mul(keys);
 };
 
 /**

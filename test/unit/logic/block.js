@@ -17,6 +17,7 @@
 const crypto = require('crypto');
 const rewire = require('rewire');
 const ed = require('../../../helpers/ed');
+const Bignum = require('../../../helpers/bignum.js');
 const modulesLoader = require('../../common/modules_loader');
 const transactionTypes = require('../../../helpers/transaction_types.js');
 
@@ -38,9 +39,9 @@ const validDataForBlock = {
 	timestamp: 41898500,
 	previousBlock: {
 		version: 0,
-		totalAmount: 0,
-		totalFee: 0,
-		reward: 0,
+		totalAmount: new Bignum('0'),
+		totalFee: new Bignum('0'),
+		reward: new Bignum('0'),
 		payloadHash:
 			'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
 		timestamp: 41898490,
@@ -63,7 +64,7 @@ const invalidBlock = {
 	version: '0',
 	totalAmount: 'qwer',
 	totalFee: 'sd#$%',
-	reward: '234',
+	reward: new Bignum('0'),
 };
 
 const blockData = validDataForBlock.previousBlock;
@@ -71,7 +72,7 @@ const blockData = validDataForBlock.previousBlock;
 const transactionsByTypes = {};
 transactionsByTypes[transactionTypes.MULTI] = {
 	type: 4,
-	amount: 0,
+	amount: new Bignum('0'),
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -101,7 +102,7 @@ transactionsByTypes[transactionTypes.MULTI] = {
 	signature:
 		'3b064ec3b4d21311c5ab3b6621eecf91b9c9398fafdd743e05d53b75a2a37aedb8c0f81e3f32981f7bc42b1a5d4f8aa697e1684e55d853dc2c4964538fedf101',
 	id: '4505208715241906348',
-	fee: 8000000000,
+	fee: new Bignum(8000000000),
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.532Z',
@@ -127,7 +128,7 @@ transactionsByTypes[transactionTypes.MULTI] = {
 
 transactionsByTypes[transactionTypes.DAPP] = {
 	type: 5,
-	amount: 0,
+	amount: new Bignum('0'),
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -147,7 +148,7 @@ transactionsByTypes[transactionTypes.DAPP] = {
 	signature:
 		'655fd2c24c490f9a540dfe833561e4b8f85c4dafce6fe7f696f52c5a3535ba562e11ffeb1479b01967d8f20ed87fe8c9ac58522ea28948e52ec1eba57f675104',
 	id: '16047960743788123485',
-	fee: 2500000000,
+	fee: new Bignum(2500000000),
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.801Z',
@@ -155,7 +156,7 @@ transactionsByTypes[transactionTypes.DAPP] = {
 
 transactionsByTypes[transactionTypes.VOTE] = {
 	type: 3,
-	amount: 0,
+	amount: new Bignum('0'),
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -168,7 +169,7 @@ transactionsByTypes[transactionTypes.VOTE] = {
 	signature:
 		'e8fb21b923ed5b5d2ad0eced31b0a966d9dfb71f710ec6e745c96c9e806ac42225a81e8140614541b0b9055c5511ea8f2d82008f9ccb1bb432772960614d9602',
 	id: '17417762698516786715',
-	fee: 100000000,
+	fee: new Bignum(100000000),
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.780Z',
@@ -176,7 +177,7 @@ transactionsByTypes[transactionTypes.VOTE] = {
 
 transactionsByTypes[transactionTypes.DELEGATE] = {
 	type: 2,
-	amount: 0,
+	amount: new Bignum('0'),
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -190,7 +191,7 @@ transactionsByTypes[transactionTypes.DELEGATE] = {
 	signature:
 		'77b0fcb420450e2d02e98d05af50d3577438ba19f38249ac301e9da07ec65a0889309b242642d3b4df7570d70be09adc80e56e68a0ecb9eb72b3ab5070248c0d',
 	id: '14164546323350881168',
-	fee: 2500000000,
+	fee: new Bignum(2500000000),
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.752Z',
@@ -198,7 +199,7 @@ transactionsByTypes[transactionTypes.DELEGATE] = {
 
 transactionsByTypes[transactionTypes.SIGNATURE] = {
 	type: 1,
-	amount: 0,
+	amount: new Bignum('0'),
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -211,7 +212,7 @@ transactionsByTypes[transactionTypes.SIGNATURE] = {
 	signature:
 		'a54c6adf96879163ac0b36563f2ff701a9f033bedf7746cef79e8f4de503fbb461322b8b8ebe07c40d5dd484f073e69256fac284af5b507952e7666b693c9b07',
 	id: '17912996692061248739',
-	fee: 500000000,
+	fee: new Bignum(500000000),
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.718Z',
@@ -219,7 +220,7 @@ transactionsByTypes[transactionTypes.SIGNATURE] = {
 
 transactionsByTypes[transactionTypes.SEND] = {
 	type: 0,
-	amount: 1,
+	amount: new Bignum('1'),
 	senderPublicKey:
 		'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc',
 	timestamp: 41898871,
@@ -228,7 +229,7 @@ transactionsByTypes[transactionTypes.SEND] = {
 	signature:
 		'ec703b28601a0aaf4141a85493dda1b00a3604fc4903513cc311dbf995b39b41b30241b17d6be2ac281c0b8b2ff5b7031b86ce9a5e0c3a545b76e935f372da06',
 	id: '18141417978934746512',
-	fee: 10000000,
+	fee: new Bignum(10000000),
 	senderId: '8885132815244884080L',
 	relays: 1,
 	receivedAt: '2017-09-21T15:34:31.689Z',
@@ -243,8 +244,8 @@ transactionsByTypes[transactionTypes.IN_TRANSFER] = {
 	senderId: '2623857243537009424L',
 	recipientId: null,
 	recipientPublicKey: null,
-	amount: 999,
-	fee: 10000000,
+	amount: new Bignum('999'),
+	fee: new Bignum(10000000),
 	signature:
 		'46b57a56f3a61c815224e4396c9c39316ca62568951f84c2e7404225cf67c489f517db6a848a0a5fd4f311b98102c36098543cecb277c7d039a07ed069d90b0b',
 	asset: {
@@ -262,8 +263,8 @@ transactionsByTypes[transactionTypes.OUT_TRANSFER] = {
 		'8d556dca10bb8294895df5477117ca2ceaae7795e7ffc4f7c7d51398a65e4911',
 	senderId: '12566082625150495618L',
 	recipientId: '477547807936790449L',
-	amount: 100,
-	fee: 10000000,
+	amount: new Bignum('100'),
+	fee: new Bignum('10000000'),
 	signature:
 		'126de9603da232b0ada5158c43640849a62736351be1f39cd98606f6d81bedff895183f12c517c96dcc71368af111e7ddde04f62c54ecd1ea47d557af69f330d',
 	asset: {
@@ -665,7 +666,7 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', () => {
-			return expect(block.calculateFee(blockData)).to.eql(constants.fees.send);
+			return expect(block.calculateFee(blockData).equals(constants.fees.send));
 		});
 	});
 

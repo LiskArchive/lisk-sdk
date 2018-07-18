@@ -17,6 +17,7 @@
 const Promise = require('bluebird');
 const async = require('async');
 const transactionTypes = require('../../helpers/transaction_types.js');
+const Bignum = require('../../helpers/bignum.js');
 
 let modules;
 let library;
@@ -230,6 +231,10 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			// Apply transactions through setAccountAndGet, bypassing unconfirmed/confirmed states
 			// FIXME: Poor performance - every transaction cause SQL query to be executed
 			// WARNING: DB_WRITE
+
+			transaction.amount = new Bignum(transaction.amount);
+			transaction.fee = new Bignum(transaction.fee);
+
 			modules.accounts.setAccountAndGet(
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {

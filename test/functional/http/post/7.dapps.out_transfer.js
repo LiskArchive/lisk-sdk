@@ -20,7 +20,7 @@ var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
 var accountFixtures = require('../../../fixtures/accounts');
 var phases = require('../../common/phases');
-var bignum = require('../../../../helpers/bignum.js');
+var Bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var elements = require('../../../common/utils/elements');
@@ -531,7 +531,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 							.to.have.lengthOf(1);
 
 						var balance = res.body.data[0].balance;
-						var amount = new bignum(balance).plus('1').toNumber();
+						var amount = new Bignum(balance).plus('1').toString();
 						transaction = lisk.transfer.createOutTransfer(
 							randomUtil.guestbookDapp.id,
 							randomUtil.transaction().id,
