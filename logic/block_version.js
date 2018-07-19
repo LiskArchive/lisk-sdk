@@ -40,13 +40,16 @@ const currentBlockVersion = 1;
  * @returns {boolean}
  */
 function isValid(version, height) {
+	// Check if there is an exception for particular block version
+	const heightsRange = exceptions.blockVersions[version];
+
 	const isCurrentVersion = version === this.currentBlockVersion;
-	// Return true if block version match current one
-	if (isCurrentVersion) {
+
+	// If there is no exception - check against current block version
+	if (!heightsRange && isCurrentVersion) {
 		return true;
 	}
 
-	const heightsRange = exceptions.blockVersions[version];
 	const isInExceptionRange =
 		heightsRange &&
 		(height >= heightsRange.start && height <= heightsRange.end);
