@@ -28,11 +28,11 @@ describe('block_version', () => {
 	});
 
 	describe('get', () => {
-		it('should return true for version = 1, height = 101', () => {
+		it('should return false for version = 1, height = 101', () => {
 			const height = 101;
 			const version = 1;
 
-			return expect(blockVersion.isValid(version, height)).to.equal(true);
+			return expect(blockVersion.isValid(version, height)).to.equal(false);
 		});
 
 		it('should return false for version = 0, height = undefined', () => {
