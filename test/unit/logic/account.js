@@ -510,6 +510,22 @@ describe('account', () => {
 					done();
 				});
 			});
+
+			it('should sort the result according to address in ascending order', done => {
+				account.getAll({ sort: 'address:asc' }, ['address'], (err, res) => {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'address'));
+					done();
+				});
+			});
+
+			it('should sort the result according to address in descending order', done => {
+				account.getAll({ sort: 'address:desc' }, ['address'], (err, res) => {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'address').reverse());
+					done();
+				});
+			});
 		});
 
 		describe('sort using object as argument', () => {
