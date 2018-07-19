@@ -151,6 +151,9 @@ function migrateSecrets(password) {
 
 function copyTheConfigFile() {
 	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
+	if (!modifiedConfig.db.user) {
+		modifiedConfig.db.user = 'lisk';
+	}
 
 	fs.writeFile(
 		newConfigPath,
