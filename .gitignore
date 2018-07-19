@@ -56,8 +56,7 @@ tmp
 dist/
 dist-node/
 dist-browser/
-**/browsertest/browsertest.js
-**/browsertest/browsertest.min.js
+browsertest.build/
 
 # Unsupported lock files
 yarn.lock

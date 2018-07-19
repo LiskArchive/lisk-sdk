@@ -1,5 +1,1 @@
-{
-	"require": ["babel-register"],
-	"sourceMap": false,
-	"instrument": false
-}
+templates/.nycrc.tmpl

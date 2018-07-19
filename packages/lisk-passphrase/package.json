@@ -20,24 +20,52 @@
 		"node": ">=6.3 <=9.5",
 		"npm": ">=3 <=5"
 	},
-	"main": "dist/index.js",
+	"browser": "dist-browser/index.min.js",
+	"main": "dist-node/index.js",
 	"scripts": {
+		"transpile": "babel src -d dist-node",
+		"transpile:browsertest":
+			"babel src -d ./browsertest.build/src && BABEL_ENV=browsertest babel test -d ./browsertest.build/test",
+		"browserify":
+			"browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
+		"browserify:browsertest":
+			"browserify ./browsertest.build/test/*.js -o ./browsertest.build/browsertest.js -s lisk",
+		"uglify":
+			"uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
+		"uglify:browsertest":
+			"uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "NODE_ENV=test nyc mocha test",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node":
+			"npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
+		"pretest:browser":
+			"npm run build:browsertest && http-server -p 8080 browsertest &",
+		"test:browser":
+			"wait-on http://localhost:8080 && cypress run --env ROOT_DIR=\"${PWD##*/}\"",
+		"posttest:browser": "kill $(lsof -t -i:8080)",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
 		"cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
-		"prebuild": "rm -r dist || mkdir dist | echo",
-		"build": "babel src -d dist",
-		"build:check": "node -e \"require('./dist')\"",
+		"build:browsertest":
+			"npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
+		"postbuild:browsertest":
+			"rm -r browsertest.build/src browsertest.build/test",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
+		"build:node": "npm run transpile",
+		"prebuild:browser":
+			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
+		"build:browser": "npm run browserify && npm run uglify",
+		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
+		"build": "npm run build:node && npm run build:browser",
+		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly":
-			"rm -r ./node_modules && npm install && npm run lint && npm test && npm run build && npm run build:check"
+			"npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
 		"bip39": "2.4.0"
@@ -45,17 +73,23 @@
 	"devDependencies": {
 		"babel-cli": "6.26.0",
 		"babel-plugin-istanbul": "4.1.4",
+		"babel-plugin-module-resolver": "3.1.1",
 		"babel-plugin-transform-runtime": "6.23.0",
 		"babel-preset-env": "1.6.0",
 		"babel-register": "6.26.0",
+		"browserify": "16.2.2",
 		"chai": "4.1.2",
+		"cypress": "3.0.2",
 		"eslint": "4.19.1",
 		"eslint-config-airbnb-base": "12.1.0",
 		"eslint-config-lisk-base": "1.0.0",
 		"eslint-plugin-import": "2.11.0",
 		"eslint-plugin-mocha": "5.0.0",
+		"http-server": "0.11.1",
 		"mocha": "5.1.1",
 		"nyc": "11.7.1",
-		"prettier": "1.12.1"
+		"prettier": "1.12.1",
+		"uglify-es": "3.3.9",
+		"wait-on": "2.1.0"
 	}
 }
