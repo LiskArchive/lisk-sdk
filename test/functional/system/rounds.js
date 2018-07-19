@@ -359,6 +359,10 @@ describe('rounds', () => {
 				return expect(tick.after.block.id).to.not.equal(tick.before.block.id);
 			});
 
+			it('block version should be 1', () => {
+				return expect(tick.after.block.version).to.equal(1);
+			});
+
 			it('height should be greather by 1', () => {
 				return expect(tick.after.block.height).to.equal(
 					tick.before.block.height + 1

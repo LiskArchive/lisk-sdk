@@ -19,6 +19,7 @@ const ByteBuffer = require('bytebuffer');
 const bignum = require('../helpers/bignum.js');
 const constants = require('../helpers/constants.js');
 const transactionTypes = require('../helpers/transaction_types.js');
+const blockVersion = require('./block_version.js');
 const BlockReward = require('./block_reward.js');
 
 const __private = {};
@@ -125,7 +126,7 @@ class Block {
 		}
 
 		let block = {
-			version: 0,
+			version: blockVersion.currentBlockVersion,
 			totalAmount,
 			totalFee,
 			reward,
