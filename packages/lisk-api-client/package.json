@@ -47,7 +47,7 @@
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-		"cover:ci": "npm run cover:base -- --reporter=text-lcov",
+		"cover:ci": "npm run cover:base -- --reporter=text",
 		"build:browsertest":
 			"npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
 		"postbuild:browsertest": "rm -r browsertest/src browsertest/test",

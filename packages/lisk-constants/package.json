@@ -31,7 +31,7 @@
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
 		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-		"cover:ci": "npm run cover:base -- --reporter=text-lcov",
+		"cover:ci": "npm run cover:base -- --reporter=text",
 		"prebuild": "rm -r dist-node || mkdir dist-node | echo",
 		"build": "babel src -d dist-node",
 		"build:check": "node -e \"require('./dist-node')\"",
