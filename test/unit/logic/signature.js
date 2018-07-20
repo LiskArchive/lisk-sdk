@@ -169,7 +169,7 @@ describe('signature', () => {
 			});
 
 			it('should return constants.fees.secondSignature', () => {
-				return expect(fee.equals(constants.fees.secondSignature));
+				return expect(fee.equals(constants.fees.secondSignature)).to.be.true;
 			});
 		});
 
