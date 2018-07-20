@@ -38,5 +38,6 @@ export {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
+	validateTransaction,
 } from './validation';
 export { default as wrapTransactionCreator } from './wrap_transaction_creator';

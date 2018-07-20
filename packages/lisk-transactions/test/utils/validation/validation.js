@@ -19,7 +19,7 @@ import {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-} from '../../src/utils/validation';
+} from '../../../src/utils/validation/validation';
 
 describe('public key validation', () => {
 	describe('#validatePublicKey', () => {
