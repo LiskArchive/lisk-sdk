@@ -66,4 +66,6 @@ module.exports = {
 		'12298100805070303137', // 3057955 - Delegate transaction
 	],
 	transactionFee: [],
+	// <version>: { start: <start_height>, end: <end_height> }
+	blockVersions: {},
 };

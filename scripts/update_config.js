@@ -51,6 +51,9 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+delete oldConfig.ssl;
+
 // Values to keep from new config file
 delete oldConfig.version;
 delete oldConfig.minVersion;
@@ -71,6 +74,10 @@ delete oldConfig.transactions.maxTxsPerQueue;
 
 delete oldConfig.loading.verifyOnLoading;
 delete oldConfig.dapp;
+
+if (oldConfig.db.user.trim() === '') {
+	oldConfig.db.user = 'lisk';
+}
 
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
@@ -127,7 +134,6 @@ function migrateSecrets(password) {
 	}
 
 	console.info('\nMigrating your secrets...');
-	oldConfig.forging.defaultPassword = password;
 	oldConfig.forging.secret.forEach(secret => {
 		console.info('.......');
 		oldConfig.forging.delegates.push({
