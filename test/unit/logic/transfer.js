@@ -147,7 +147,7 @@ describe('transfer', () => {
 				transfer.calculateFee
 					.call(transactionLogic, validTransaction)
 					.equals(constants.fees.send)
-			);
+			).to.be.true;
 		});
 
 		it('should return the same fee for a transfer with additional data', () => {
@@ -160,7 +160,7 @@ describe('transfer', () => {
 				transfer.calculateFee
 					.call(transactionLogic, transaction)
 					.equals(constants.fees.send)
-			);
+			).to.be.true;
 		});
 	});
 
@@ -284,9 +284,9 @@ describe('transfer', () => {
 									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
-									expect(balanceBefore.plus(amount).toString()).to.equal(
-										balanceAfter.toString()
-									);
+									expect(
+										balanceBefore.plus(amount).equals(balanceAfter.toString())
+									).to.be.true;
 									undoTransaction(validTransaction, validSender, done);
 								}
 							);
@@ -354,9 +354,9 @@ describe('transfer', () => {
 									);
 
 									expect(err).to.not.exist;
-									expect(balanceAfter.plus(amount).toString()).to.equal(
-										balanceBefore.toString()
-									);
+									expect(
+										balanceAfter.plus(amount).equals(balanceBefore.toString())
+									).to.be.true;
 									applyTransaction(validTransaction, validSender, done);
 								}
 							);
