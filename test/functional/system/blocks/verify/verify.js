@@ -267,7 +267,9 @@ describe('blocks/verify', () => {
 					.to.be.an('array')
 					.with.lengthOf(2);
 
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
+				expect(result.errors[0]).to.equal(
+					'TypeError: Argument must be a valid hex string.'
+				);
 				expect(result.errors[1]).to.equal('Failed to verify block signature');
 
 				validBlock.blockSignature = blockSignature;
@@ -299,7 +301,9 @@ describe('blocks/verify', () => {
 				expect(result.errors)
 					.to.be.an('array')
 					.with.lengthOf(2);
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
+				expect(result.errors[0]).to.equal(
+					'TypeError: Argument must be a valid hex string.'
+				);
 				expect(result.errors[1]).to.equal('Failed to verify block signature');
 
 				validBlock.generatorPublicKey = generatorPublicKey;

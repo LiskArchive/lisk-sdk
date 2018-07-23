@@ -173,18 +173,16 @@ class Transaction {
 			byteBuffer.writeByte(transaction.type);
 			byteBuffer.writeInt(transaction.timestamp);
 
-			const senderPublicKeyBuffer = Buffer.from(
-				transaction.senderPublicKey,
-				'hex'
+			const senderPublicKeyBuffer = this.scope.ed.hexToBuffer(
+				transaction.senderPublicKey
 			);
 			for (let i = 0; i < senderPublicKeyBuffer.length; i++) {
 				byteBuffer.writeByte(senderPublicKeyBuffer[i]);
 			}
 
 			if (transaction.requesterPublicKey) {
-				const requesterPublicKey = Buffer.from(
-					transaction.requesterPublicKey,
-					'hex'
+				const requesterPublicKey = this.scope.ed.hexToBuffer(
+					transaction.requesterPublicKey
 				);
 				for (let i = 0; i < requesterPublicKey.length; i++) {
 					byteBuffer.writeByte(requesterPublicKey[i]);
@@ -213,16 +211,17 @@ class Transaction {
 			}
 
 			if (!skipSignature && transaction.signature) {
-				const signatureBuffer = Buffer.from(transaction.signature, 'hex');
+				const signatureBuffer = this.scope.ed.hexToBuffer(
+					transaction.signature
+				);
 				for (let i = 0; i < signatureBuffer.length; i++) {
 					byteBuffer.writeByte(signatureBuffer[i]);
 				}
 			}
 
 			if (!skipSecondSignature && transaction.signSignature) {
-				const signSignatureBuffer = Buffer.from(
-					transaction.signSignature,
-					'hex'
+				const signSignatureBuffer = this.scope.ed.hexToBuffer(
+					transaction.signSignature
 				);
 				for (let i = 0; i < signSignatureBuffer.length; i++) {
 					byteBuffer.writeByte(signSignatureBuffer[i]);
@@ -788,8 +787,8 @@ class Transaction {
 				.createHash('sha256')
 				.update(data2)
 				.digest();
-			const signatureBuffer = Buffer.from(signature, 'hex');
-			const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+			const signatureBuffer = this.scope.ed.hexToBuffer(signature);
+			const publicKeyBuffer = this.scope.ed.hexToBuffer(publicKey);
 
 			return this.scope.ed.verify(
 				hash,
