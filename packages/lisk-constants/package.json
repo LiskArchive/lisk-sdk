@@ -42,9 +42,9 @@
 		"test:node":
 			"npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
 		"serve:start": "http-server -p 11542 ./browsertest &",
-		"serve:stop": "kill $(lsof -t -i:11542)",
+		"serve:stop": "kill $(lsof -t -i:11542) || true",
 		"pretest:browser":
-			"npm run serve:stop | npm run build:browsertest && npm run serve:start",
+			"npm run serve:stop && npm run build:browsertest && npm run serve:start",
 		"test:browser":
 			"wait-on http://localhost:11542 && cypress run --config baseUrl=http://localhost:11542 --env ROOT_DIR=\"${PWD##*/}\"",
 		"posttest:browser": "npm run serve:stop",
@@ -57,10 +57,10 @@
 			"npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
 		"postbuild:browsertest":
 			"rm -r browsertest.build/src browsertest.build/test",
-		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
 		"build:node": "npm run transpile",
 		"prebuild:browser":
-			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
+			"rm ./dist-browser/index.js ./dist-browser/index.min.js || true",
 		"build:browser":
 			"npm run build:node && npm run browserify && npm run uglify",
 		"prebuild": "npm run prebuild:browser",
