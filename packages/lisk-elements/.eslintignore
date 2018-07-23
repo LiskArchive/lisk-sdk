@@ -1,7 +1,1 @@
-.nyc_output/
-browsertest/browsertest.js
-browsertest/browsertest.min.js
-coverage/
-cypress/plugins/
-docs/
-dist-*/
+../../templates/.eslintignore.tmpl

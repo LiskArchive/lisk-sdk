@@ -24,15 +24,15 @@
 	"scripts": {
 		"transpile": "babel src -d dist-node",
 		"transpile:browsertest":
-			"babel src -d ./browsertest/src && BABEL_ENV=browsertest babel test -d ./browsertest/test",
+			"babel src -d ./browsertest.build/src && BABEL_ENV=browsertest babel test -d ./browsertest.build/test",
 		"browserify":
 			"browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
 		"browserify:browsertest":
-			"browserify ./browsertest/test/*.js ./browsertest/test/**/*.js -o ./browsertest/browsertest.js -s lisk",
+			"browserify ./browsertest.build/test/*.js ./browsertest.build/test/**/*.js -o ./browsertest.build/browsertest.js -s lisk",
 		"uglify":
 			"uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest":
-			"uglifyjs -o ./browsertest/browsertest.min.js ./browsertest/browsertest.js",
+			"uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
@@ -41,8 +41,13 @@
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node":
 			"npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
-		"test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
-		"serve:browsertest": "http-server browsertest",
+		"serve:start": "http-server -p 11541 ./browsertest &",
+		"serve:stop": "kill $(lsof -t -i:11541) || true",
+		"pretest:browser":
+			"npm run serve:stop && npm run build:browsertest && npm run serve:start",
+		"test:browser":
+			"wait-on http://localhost:11541 && cypress run --config baseUrl=http://localhost:11541 --env ROOT_DIR=\"${PWD##*/}\"",
+		"posttest:browser": "npm run serve:stop",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
@@ -50,14 +55,16 @@
 		"cover:ci": "npm run cover:base -- --reporter=text",
 		"build:browsertest":
 			"npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
-		"postbuild:browsertest": "rm -r browsertest/src browsertest/test",
-		"prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
+		"postbuild:browsertest":
+			"rm -r browsertest.build/src browsertest.build/test",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
 		"build:node": "npm run transpile",
 		"prebuild:browser":
-			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
-		"build:browser": "npm run browserify && npm run uglify",
-		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
-		"build": "npm run build:node && npm run build:browser",
+			"rm ./dist-browser/index.js ./dist-browser/index.min.js || true",
+		"build:browser":
+			"npm run build:node && npm run browserify && npm run uglify",
+		"prebuild": "npm run prebuild:browser",
+		"build": "npm run build:browser",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly":
 			"npm run lint && npm test && npm run build && npm run build:check"
@@ -88,6 +95,7 @@
 		"prettier": "1.12.1",
 		"sinon": "4.1.2",
 		"sinon-chai": "2.14.0",
-		"uglify-es": "3.3.9"
+		"uglify-es": "3.3.9",
+		"wait-on": "2.1.0"
 	}
 }
