@@ -49,7 +49,7 @@ validator.addFormat('publicKey', data => {
 validator.addFormat('actionPublicKey', data => {
 	try {
 		const action = data[0];
-		if (action !== '+' || action !== '-') {
+		if (action !== '+' && action !== '-') {
 			return false;
 		}
 		const publicKey = data.slice(1);

@@ -64,7 +64,6 @@ export const baseTransaction = {
 		},
 		recipientId: {
 			type: 'string',
-			format: 'address',
 		},
 		recipientPublicKey: {
 			type: ['string', 'null'],
@@ -102,12 +101,15 @@ export const transferTransaction = {
 					format: 'number',
 					minLength: 1,
 				},
+				recipientId: {
+					format: 'address',
+				},
 				asset: {
 					type: 'object',
 					properties: {
 						data: {
 							type: 'string',
-							maxLength: 64,
+							maxLength: 32,
 						},
 					},
 				},
@@ -127,6 +129,7 @@ export const signatureTransaction = {
 					properties: {
 						signature: {
 							type: 'object',
+							required: ['publicKey'],
 							properties: {
 								publicKey: {
 									type: 'string',
@@ -148,15 +151,15 @@ export const delegateTransaction = {
 			properties: {
 				asset: {
 					type: 'object',
-					required: ['signature'],
+					required: ['delegate'],
 					properties: {
-						signature: {
+						delegate: {
 							type: 'object',
 							required: ['username'],
 							properties: {
 								username: {
 									type: 'string',
-									maxLength: 20,
+									maxLength: 10,
 								},
 							},
 						},
@@ -200,23 +203,26 @@ export const multiTransaction = {
 			properties: {
 				asset: {
 					type: 'object',
-					required: ['min', 'lifetime', 'keysgroup'],
+					required: ['multisignature'],
 					properties: {
 						multisignature: {
 							type: 'object',
+							required: ['min', 'lifetime', 'keysgroup'],
 							properties: {
 								min: {
 									type: 'integer',
 									minimum: 1,
+									maximum: 16,
 								},
 								lifetime: {
 									type: 'integer',
 									minimum: 1,
+									maximum: 24,
 								},
 								keysgroup: {
 									type: 'array',
 									uniqueItems: true,
-									minItems: 1,
+									minItems: 2,
 									maxItems: 16,
 									items: {
 										type: 'string',
@@ -239,24 +245,23 @@ export const dappTransaction = {
 			properties: {
 				asset: {
 					type: 'object',
-					required: ['name'],
+					required: ['dapp'],
 					properties: {
 						dapp: {
 							type: 'object',
+							required: ['name', 'type', 'category', 'link'],
 							properties: {
 								icon: {
 									type: 'string',
-									format: 'url',
 								},
 								category: {
-									type: 'number',
+									type: 'integer',
 								},
 								type: {
-									type: 'number',
+									type: 'integer',
 								},
 								link: {
 									type: 'string',
-									format: 'url',
 								},
 								tags: {
 									type: 'string',
