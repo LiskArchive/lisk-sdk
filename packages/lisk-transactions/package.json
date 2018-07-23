@@ -43,10 +43,10 @@
 		"test:node":
 			"npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
 		"pretest:browser":
-			"npm run build:browsertest && http-server -p 8080 browsertest &",
+			"npm run build:browsertest && http-server -p 11545 browsertest &",
 		"test:browser":
-			"wait-on http://localhost:8080 && cypress run --env ROOT_DIR=\"${PWD##*/}\"",
-		"posttest:browser": "kill $(lsof -t -i:8080)",
+			"wait-on http://localhost:11545 && cypress run --env ROOT_DIR=\"${PWD##*/}\"",
+		"posttest:browser": "kill $(lsof -t -i:11545)",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
@@ -60,7 +60,8 @@
 		"build:node": "npm run transpile",
 		"prebuild:browser":
 			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
-		"build:browser": "npm run browserify && npm run uglify",
+		"build:browser":
+			"npm run build:node && npm run browserify && npm run uglify",
 		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
 		"build": "npm run build:node && npm run build:browser",
 		"build:check": "node -e \"require('./dist-node')\"",

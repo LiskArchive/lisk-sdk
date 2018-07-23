@@ -28,6 +28,7 @@
 		"test:node": "lerna run test:node",
 		"test:browser": "lerna run --concurrency 1 test:browser",
 		"build": "lerna run build",
+		"build:browsertest": "lerna run build:browsertest",
 		"cover": "lerna run cover",
 		"postinstall": "npm run bootstrap",
 		"precommit": "lint-staged && npm run lint",
