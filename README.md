@@ -37,7 +37,7 @@ import { APIClient, transactions } from 'lisk-elements';
 const { APIClient, transactions } = require('lisk-elements');
 ```
 
-**Note:** If you are installing Lisk Elements as an npm dependency via a GitHub reference, you will need to manually build the distribution files by running the following commands:
+**Note:** If you are installing Lisk Elements as an npm dependency via a GitHub reference, you will need to manually build the distribution files by running the following commands from the root directory of your project:
 
 ```
 cd node_modules/lisk-elements
@@ -59,6 +59,8 @@ Or minified:
 ```
 
 ### Installation from source
+
+Our source code is hosted on GitHub. You can build the distribution yourself by cloning the repository, installing the relevant dependencies and running our build script as follows:
 
 ```
 git clone https://github.com/LiskHQ/lisk-elements.git
