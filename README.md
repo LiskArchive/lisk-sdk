@@ -9,7 +9,7 @@ Lisk Elements is a JavaScript library for [Lisk][Lisk Core GitHub], the blockcha
 
 ## Installation
 
-## Installation via npm
+### Installation via npm
 
 Add Lisk Elements as a dependency of your project:
 
@@ -37,6 +37,13 @@ import { APIClient, transactions } from 'lisk-elements';
 const { APIClient, transactions } = require('lisk-elements');
 ```
 
+**Note:** If you are installing Lisk Elements as an npm dependency via a GitHub reference, you will need to manually build the distribution files by running the following commands:
+
+```
+cd node_modules/lisk-elements
+npm run build
+```
+
 ### Installation via CDN
 
 Include the following script using the following HTML. The `lisk` variable will be exposed.
@@ -49,6 +56,15 @@ Or minified:
 
 ```html
 <script src="https://js.lisk.io/lisk-elements-1.0.0.min.js"></script>
+```
+
+### Installation from source
+
+```
+git clone https://github.com/LiskHQ/lisk-elements.git
+cd lisk-elements
+npm install
+npm run build
 ```
 
 ## Usage
