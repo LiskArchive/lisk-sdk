@@ -41,10 +41,11 @@
 	},
 	"dependencies": {
 		"browserify-bignum": "1.3.0-2",
+		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.2.1",
 		"lisk-constants": "0.5.1",
-		"tweetnacl": "=1.0.0",
-		"varuint-bitcoin": "=1.1.0"
+		"tweetnacl": "1.0.0",
+		"varuint-bitcoin": "1.1.0"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
