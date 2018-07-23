@@ -14,6 +14,7 @@
  */
 import querystring from 'querystring';
 import bignum from 'browserify-bignum';
+import reverseBuffer from 'buffer-reverse';
 import ed2curve from 'ed2curve';
 import hash from './hash';
 
@@ -41,9 +42,7 @@ export const hexToBuffer = hex => {
 };
 
 export const getFirstEightBytesReversed = publicKeyBytes =>
-	Buffer.from(publicKeyBytes)
-		.slice(0, 8)
-		.reverse();
+	reverseBuffer(Buffer.from(publicKeyBytes).slice(0, 8));
 
 export const toAddress = buffer => {
 	if (
