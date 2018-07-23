@@ -14,24 +14,22 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
+const getTransaction = require('./http').getTransaction;
 
 module.exports = {
-	generateValidTransaction() {
-		var gAccountPassphrase =
-			'wagon stock borrow episode laundry kitten salute link globe zero feed marble';
-		var randomAddress = lisk.cryptography.getAddressFromPublicKey(
-			lisk.cryptography.getKeys(
-				Math.random()
-					.toString(36)
-					.substring(7)
-			).publicKey
-		);
-
-		return lisk.transaction.transfer({
-			amount: 1,
-			passphrase: gAccountPassphrase,
-			recipientId: randomAddress,
+	confirmTransactionsOnAllNodes(transactions, configurations) {
+		return Promise.all(
+			_.flatMap(configurations, configuration => {
+				return transactions.map(transaction => {
+					return getTransaction(transaction.id, configuration.httpPort);
+				});
+			})
+		).then(results => {
+			results.forEach(transaction => {
+				expect(transaction)
+					.to.have.property('id')
+					.that.is.an('string');
+			});
 		});
 	},
 };

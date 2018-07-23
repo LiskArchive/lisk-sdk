@@ -14,32 +14,35 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var sendTransactionsPromise = require('../../../common/helpers/api')
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const sendTransactionsPromise = require('../../../common/helpers/api')
 	.sendTransactionsPromise;
-var confirmTransactionsOnAllNodes = require('../common/stress')
+const confirmTransactionsOnAllNodes = require('../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 
 const constants = __testContext.config.constants;
-var broadcastingDisabled = process.env.BROADCASTING_DISABLED === 'true';
 
-module.exports = function(params) {
-	describe('stress test for type 0 transactions with data @slow', function() {
-		this.timeout(1800000);
-		var transactions = [];
-		var maximum = process.env.MAXIMUM_TRANSACTION || 1000;
-		var waitForExtraBlocks = broadcastingDisabled ? 10 : 4; // Wait for extra blocks to ensure all the transactions are included in the block
+module.exports = function(
+	configurations,
+	TOTAL_PEERS,
+	EXPECTED_OUTOGING_CONNECTIONS,
+	BROADCASTING,
+	NUMBER_OF_TRANSACTIONS
+) {
+	describe('@stress : type 0 transactions with data @slow', () => {
+		let transactions = [];
+		const waitForExtraBlocks = BROADCASTING ? 4 : 10; // Wait for extra blocks to ensure all the transactions are included in the blockchain
 
-		describe('sending 1000 single transfers to random addresses', () => {
+		describe(`sending ${NUMBER_OF_TRANSACTIONS} single transfers to random addresses`, () => {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(maximum).map(() => {
-						var transaction = lisk.transaction.transfer({
+					_.range(NUMBER_OF_TRANSACTIONS).map(() => {
+						const transaction = lisk.transaction.transfer({
 							amount: 500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: randomUtil.account().address,
@@ -52,11 +55,12 @@ module.exports = function(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
-					Math.ceil(maximum / constants.maxTransactionsPerBlock) +
-					waitForExtraBlocks;
+				const blocksToWait =
+					Math.ceil(
+						NUMBER_OF_TRANSACTIONS / constants.maxTransactionsPerBlock
+					) + waitForExtraBlocks;
 				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, params)
+					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
 						.catch(err => {
 							done(err);

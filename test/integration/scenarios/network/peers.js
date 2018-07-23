@@ -14,71 +14,18 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var utils = require('../../utils');
+const utils = require('../../utils');
+const common = require('../common');
 
-module.exports = function(params) {
-	function getAllPeers() {
-		return Promise.all(
-			params.sockets.map(socket => {
-				return socket.call('list', {});
-			})
-		);
-	}
+module.exports = function(configurations) {
+	describe('@network : peers', () => {
+		const params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
 
-	function getPeersStatus(peers) {
-		return Promise.all(
-			peers.map(peer => {
-				return utils.http.getNodeStatus(peer.httpPort, peer.ip);
-			})
-		);
-	}
-
-	function getNodesStatus(cb) {
-		getAllPeers()
-			.then(peers => {
-				var peersCount = peers.length;
-				getPeersStatus(peers)
-					.then(peerStatusList => {
-						var networkMaxAvgHeight = getMaxAndAvgHeight(peerStatusList);
-						var status = {
-							peersCount,
-							peerStatusList,
-							networkMaxAvgHeight,
-						};
-						cb(null, status);
-					})
-					.catch(err => {
-						cb(err, null);
-					});
-			})
-			.catch(err => {
-				cb(err, null);
-			});
-	}
-
-	function getMaxAndAvgHeight(peerStatusList) {
-		var maxHeight = 1;
-		var heightSum = 0;
-		var totalPeers = peerStatusList.length;
-		peerStatusList.forEach(peerStatus => {
-			if (peerStatus.height > maxHeight) {
-				maxHeight = peerStatus.height;
-			}
-			heightSum += peerStatus.height;
-		});
-
-		return {
-			maxHeight,
-			averageHeight: heightSum / totalPeers,
-		};
-	}
-
-	describe('Peers', () => {
 		describe('mutual connections', () => {
-			var mutualPeers = [];
+			let mutualPeers = [];
 			before(() => {
-				return getAllPeers().then(peers => {
+				return common.getAllPeers(params.sockets).then(peers => {
 					mutualPeers = peers;
 				});
 			});
@@ -89,10 +36,10 @@ module.exports = function(params) {
 					expect(mutualPeer)
 						.to.have.property('peers')
 						.to.be.an('array');
-					var peerPorts = mutualPeer.peers.map(peer => {
+					const peerPorts = mutualPeer.peers.map(peer => {
 						return peer.wsPort;
 					});
-					var allPorts = params.configurations.map(configuration => {
+					const allPorts = params.configurations.map(configuration => {
 						return configuration.wsPort;
 					});
 					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not
@@ -126,14 +73,14 @@ module.exports = function(params) {
 
 		describe('forging', () => {
 			before(done => {
-				// Expect some blocks to forge after 30 seconds
-				var timesToCheckNetworkStatus = 30;
-				var timesNetworkStatusChecked = 0;
-				var checkNetworkStatusInterval = 1000;
+				// Expect some blocks to be forged after 30 seconds
+				const timesToCheckNetworkStatus = 30;
+				let timesNetworkStatusChecked = 0;
+				const checkNetworkStatusInterval = 1000;
 
-				var checkingInterval = setInterval(() => {
-					getNodesStatus((err, data) => {
-						var { networkMaxAvgHeight } = data;
+				const checkingInterval = setInterval(() => {
+					common.getNodesStatus(params.sockets, (err, data) => {
+						const { networkMaxAvgHeight } = data;
 						timesNetworkStatusChecked += 1;
 						if (err) {
 							clearInterval(checkingInterval);
@@ -153,14 +100,14 @@ module.exports = function(params) {
 			});
 
 			describe('network status after 30 seconds', () => {
-				var getNodesStatusError;
-				var networkHeight;
-				var networkAverageHeight;
-				var peersCount;
-				var peerStatusList;
+				let getNodesStatusError;
+				let networkHeight;
+				let networkAverageHeight;
+				let peersCount;
+				let peerStatusList;
 
 				before(done => {
-					getNodesStatus((err, data) => {
+					common.getNodesStatus(params.sockets, (err, data) => {
 						getNodesStatusError = err;
 						peersCount = data.peersCount;
 						peerStatusList = data.peerStatusList;
@@ -183,7 +130,7 @@ module.exports = function(params) {
 				});
 
 				it('should have valid values values matching specification', () => {
-					return getAllPeers().then(results => {
+					return common.getAllPeers(params.sockets).then(results => {
 						return results.map(peersList => {
 							return peersList.peers.map(peer => {
 								expect(peer.ip).to.not.empty;
@@ -197,7 +144,7 @@ module.exports = function(params) {
 				});
 
 				it('should have different peers heights propagated correctly on peers lists', () => {
-					return getAllPeers().then(results => {
+					return common.getAllPeers(params.sockets).then(results => {
 						expect(
 							results.some(peersList => {
 								return peersList.peers.some(peer => {
@@ -221,8 +168,8 @@ module.exports = function(params) {
 					});
 
 					it('should be same for all the peers', () => {
-						var networkHeights = _.groupBy(peerStatusList, 'networkHeight');
-						var heights = Object.keys(networkHeights);
+						const networkHeights = _.groupBy(peerStatusList, 'networkHeight');
+						const heights = Object.keys(networkHeights);
 						return expect(heights).to.have.lengthOf(1);
 					});
 				});
