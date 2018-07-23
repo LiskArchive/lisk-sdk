@@ -419,6 +419,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 					{
 						address: voteAddressesWithActions.map(({ address }) => address),
 						isDelegate: 1,
+						sort: 'address:desc',
 					},
 					(err, votesAccounts) => {
 						if (err) {
