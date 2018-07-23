@@ -1072,7 +1072,8 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward.equals(expectedRewardsPerBlock));
+					return expect(lastBlock.reward.equals(expectedRewardsPerBlock)).to.be
+						.true;
 				});
 			});
 
@@ -1115,7 +1116,8 @@ describe('rounds', () => {
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', () => {
 								const lastBlock = library.modules.blocks.lastBlock.get();
-								return expect(lastBlock.reward.equals(expectedRewardsPerBlock));
+								return expect(lastBlock.reward.equals(expectedRewardsPerBlock))
+									.to.be.true;
 							});
 						});
 
