@@ -169,7 +169,7 @@ describe('signature', () => {
 			});
 
 			it('should return constants.fees.secondSignature', () => {
-				return expect(fee.equals(constants.fees.secondSignature));
+				return expect(fee.equals(constants.fees.secondSignature)).to.be.true;
 			});
 		});
 
@@ -288,7 +288,7 @@ describe('signature', () => {
 
 					it('should return bytes in hex format', () => {
 						return expect(signatureBytes).to.eql(
-							Buffer.from(transaction.asset.signature.publicKey, 'hex')
+							ed.hexToBuffer(transaction.asset.signature.publicKey)
 						);
 					});
 

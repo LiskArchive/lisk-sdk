@@ -14,16 +14,20 @@
 
 'use strict';
 
-var Promise = require('bluebird');
-var utils = require('../../utils');
+const Promise = require('bluebird');
+const utils = require('../../utils');
+const common = require('../common');
 
-module.exports = function(params) {
-	describe('blocks', () => {
-		var nodesBlocks;
+module.exports = function(configurations) {
+	describe('@propagation : blocks', () => {
+		const params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
+		let nodesBlocks;
 
 		before(() => {
 			return Promise.all(
-				params.configurations.map(configuration => {
+				configurations.map(configuration => {
 					return utils.http.getBlocks(configuration.httpPort);
 				})
 			).then(blocksResults => {
@@ -32,17 +36,17 @@ module.exports = function(params) {
 		});
 
 		it('should be able to get blocks list from every peer', () => {
-			return expect(nodesBlocks).to.have.lengthOf(params.configurations.length);
+			return expect(nodesBlocks).to.have.lengthOf(configurations.length);
 		});
 
-		it('should contain non empty blocks after running functional tests', () => {
+		it('should contain non empty blocks', () => {
 			return nodesBlocks.forEach(blocks => {
 				expect(blocks).to.be.an('array').and.not.to.be.empty;
 			});
 		});
 
 		it('should have all peers at the same height', () => {
-			var uniquePeersHeights = _(nodesBlocks)
+			const uniquePeersHeights = _(nodesBlocks)
 				.map('length')
 				.uniq()
 				.value();
@@ -50,12 +54,12 @@ module.exports = function(params) {
 		});
 
 		it('should have all blocks the same at all peers', done => {
-			var patternBlocks = nodesBlocks[0];
-			for (var i = 0; i < patternBlocks.length; i += 1) {
-				for (var j = 1; j < nodesBlocks.length; j += 1) {
-					expect(_.isEqual(nodesBlocks[j][i], patternBlocks[i]));
-				}
-			}
+			const blocksFromOtherNodes = nodesBlocks.splice(1);
+			const blocksFromNode0 = nodesBlocks[0];
+
+			blocksFromOtherNodes.forEach(blocksFromNode =>
+				expect(blocksFromNode).to.include.deep.members(blocksFromNode0)
+			);
 			done();
 		});
 	});

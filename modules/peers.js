@@ -736,17 +736,31 @@ Peers.prototype.list = function(options, cb) {
 	);
 };
 
+/**
+ * Gets the height of maximum number of peers at one particular height.
+ *
+ * @param {Object} options
+ * @param {string} [options.normalized=false] - Return peers in normalized (json) form
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, peers
+ */
 Peers.prototype.networkHeight = function(options, cb) {
 	self.list(options, (err, peers) => {
-		if (err) {
+		if (err || peers.length === 0) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupedByHeight = _.groupBy(peers, 'height');
-		const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
-		const networkHeight = _.max(popularHeights);
+		// count by number of peers at one height
+		const mostPopularHeight = _(peers)
+			.countBy('height')
+			.map((count, height) => ({
+				height,
+				count,
+			}))
+			.maxBy('count');
+		const networkHeight = Number(mostPopularHeight.height);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
-		library.logger.trace(popularHeights);
+		library.logger.trace(mostPopularHeight);
 
 		return setImmediate(cb, null, networkHeight);
 	});

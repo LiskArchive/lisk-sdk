@@ -16,7 +16,6 @@
 
 const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
-const getTransaction = require('../../../../utils/http').getTransaction;
 const waitFor = require('../../../../../common/utils/wait_for');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const randomUtil = require('../../../../../common/utils/random');
@@ -25,30 +24,20 @@ const {
 	sendTransactionPromise,
 	getPendingMultisignaturesPromise,
 } = require('../../../../../common/helpers/api');
+const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
+	.confirmTransactionsOnAllNodes;
+const common = require('../../../common');
 
 const constants = __testContext.config.constants;
 
-module.exports = function multisignature(params) {
-	describe('RPC /postSignatures', () => {
+module.exports = function(configurations) {
+	describe('@propagation : multisig transactions', () => {
+		const params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
 		let transactions = [];
 		const accounts = [];
-		const MAXIMUM = 3;
-
-		const validateTransactionsOnAllNodes = () => {
-			return Promise.all(
-				_.flatMap(params.configurations, configuration => {
-					return transactions.map(transaction => {
-						return getTransaction(transaction.id, configuration.httpPort);
-					});
-				})
-			).then(results => {
-				results.forEach(transaction => {
-					expect(transaction)
-						.to.have.property('id')
-						.that.is.an('string');
-				});
-			});
-		};
+		const numberOfTransactions = 3;
 
 		const postSignatures = signature => {
 			const postSignatures = {
@@ -65,9 +54,9 @@ module.exports = function multisignature(params) {
 			before(() => {
 				transactions = [];
 				return Promise.all(
-					_.range(MAXIMUM).map(() => {
-						var tmpAccount = randomUtil.account();
-						var transaction = lisk.transaction.transfer({
+					_.range(numberOfTransactions).map(() => {
+						const tmpAccount = randomUtil.account();
+						const transaction = lisk.transaction.transfer({
 							amount: 2500000000,
 							passphrase: accountFixtures.genesis.passphrase,
 							recipientId: tmpAccount.address,
@@ -81,17 +70,23 @@ module.exports = function multisignature(params) {
 			});
 
 			it('should confirm all transactions on all nodes', done => {
-				var blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 1;
+				// Adding two extra blocks as a safety timeframe
+				const blocksToWait =
+					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
+					2;
 				waitFor.blocks(blocksToWait, () => {
-					validateTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, configurations)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});
 
 		describe('sending multisignature registrations', () => {
 			const signatures = [];
-			const numbers = _.range(MAXIMUM);
+			const numbers = _.range(numberOfTransactions);
 			let i = 0;
 			let j = 0;
 
@@ -101,7 +96,7 @@ module.exports = function multisignature(params) {
 					numbers.map(num => {
 						i = (num + 1) % numbers.length;
 						j = (num + 2) % numbers.length;
-						var transaction = lisk.transaction.registerMultisignature({
+						const transaction = lisk.transaction.registerMultisignature({
 							keysgroup: [accounts[i].publicKey, accounts[j].publicKey],
 							lifetime: 24,
 							minimum: 1,
@@ -121,9 +116,9 @@ module.exports = function multisignature(params) {
 
 			it('pending multisignatures should remain in the pending queue', () => {
 				return Promise.map(transactions, transaction => {
-					var params = [`id=${transaction.id}`];
+					const parameters = [`id=${transaction.id}`];
 
-					return getPendingMultisignaturesPromise(params).then(res => {
+					return getPendingMultisignaturesPromise(parameters).then(res => {
 						expect(res.body.data).to.have.length(1);
 						expect(res.body.data[0].id).to.be.equal(transaction.id);
 					});
@@ -141,10 +136,16 @@ module.exports = function multisignature(params) {
 			});
 
 			it('check all the nodes received the transactions', done => {
+				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(MAXIMUM / constants.maxTransactionsPerBlock) + 1;
+					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
+					2;
 				waitFor.blocks(blocksToWait, () => {
-					validateTransactionsOnAllNodes().then(done);
+					confirmTransactionsOnAllNodes(transactions, configurations)
+						.then(done)
+						.catch(err => {
+							done(err);
+						});
 				});
 			});
 		});

@@ -513,8 +513,9 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('Array');
 					expect(res.transactions[0].type).to.equal(transaction.type);
-					expect(res.transactions[0].amount.equals(transaction.amount));
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].recipientId).to.equal(
 						transaction.recipientId
 					);
@@ -577,11 +578,12 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.equals(transaction.amount));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
 					expect(res.transactions[0].asset.signature.publicKey).to.equal(
 						transaction.asset.signature.publicKey
 					);
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].type).to.equal(transaction.type);
 					expect(res.transactions[0].type).to.equal(transactionTypes.SIGNATURE);
 					done();
@@ -633,7 +635,8 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.equals(transaction.amount));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
 					expect(res.transactions[0].asset.username).to.equal(
 						transaction.asset.username
 					);
@@ -643,7 +646,7 @@ describe('transactions', () => {
 					expect(res.transactions[0].asset.address).to.equal(
 						transaction.asset.address
 					);
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].type).to.equal(transaction.type);
 					expect(res.transactions[0].type).to.equal(transactionTypes.DELEGATE);
 					done();
@@ -696,11 +699,12 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.equals(transaction.amount));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
 					expect(res.transactions[0].asset.votes).to.eql(
 						transaction.asset.votes
 					);
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].type).to.equal(transaction.type);
 					expect(res.transactions[0].type).to.equal(transactionTypes.VOTE);
 					done();
@@ -756,7 +760,8 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.equals(transaction.amount));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
 					expect(res.transactions[0].asset.multisignature.lifetime).to.equal(
 						transaction.asset.multisignature.lifetime
 					);
@@ -766,7 +771,7 @@ describe('transactions', () => {
 					expect(res.transactions[0].asset.multisignature.keysgroup).to.eql(
 						transaction.asset.multisignature.keysgroup
 					);
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].type).to.equal(transaction.type);
 					expect(res.transactions[0].type).to.equal(transactionTypes.MULTI);
 					done();
@@ -824,8 +829,9 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.equals(transaction.amount));
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].type).to.equal(transaction.type);
 					expect(res.transactions[0].asset.dapp.name).to.equal(
 						transaction.asset.dapp.name
@@ -856,8 +862,9 @@ describe('transactions', () => {
 						.to.have.property('transactions')
 						.which.is.an('array');
 					expect(res.transactions[0].id).to.equal(transaction.id);
-					expect(res.transactions[0].amount.equals(transaction.amount));
-					expect(res.transactions[0].fee.equals(transaction.fee));
+					expect(res.transactions[0].amount.equals(transaction.amount)).to.be
+						.true;
+					expect(res.transactions[0].fee.equals(transaction.fee)).to.be.true;
 					expect(res.transactions[0].type).to.equal(transaction.type);
 					expect(res.transactions[0].asset.inTransfer.dappId).to.equal(
 						transaction.asset.inTransfer.dappId

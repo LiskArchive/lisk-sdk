@@ -267,7 +267,9 @@ describe('blocks/verify', () => {
 					.to.be.an('array')
 					.with.lengthOf(2);
 
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
+				expect(result.errors[0]).to.equal(
+					'TypeError: Argument must be a valid hex string.'
+				);
 				expect(result.errors[1]).to.equal('Failed to verify block signature');
 
 				validBlock.blockSignature = blockSignature;
@@ -299,7 +301,9 @@ describe('blocks/verify', () => {
 				expect(result.errors)
 					.to.be.an('array')
 					.with.lengthOf(2);
-				expect(result.errors[0]).to.equal('TypeError: Invalid hex string');
+				expect(result.errors[0]).to.equal(
+					'TypeError: Argument must be a valid hex string.'
+				);
 				expect(result.errors[1]).to.equal('Failed to verify block signature');
 
 				validBlock.generatorPublicKey = generatorPublicKey;
@@ -915,9 +919,9 @@ describe('blocks/verify', () => {
 					expect(block1.version).to.equal(0);
 					expect(block1.timestamp).to.equal(time);
 					expect(block1.numberOfTransactions).to.equal(0);
-					expect(block1.reward.equals('0'));
-					expect(block1.totalFee.equals('0'));
-					expect(block1.totalAmount.equals('0'));
+					expect(block1.reward.equals('0')).to.be.true;
+					expect(block1.totalFee.equals('0')).to.be.true;
+					expect(block1.totalAmount.equals('0')).to.be.true;
 					expect(block1.payloadLength).to.equal(0);
 					expect(block1.transactions).to.deep.eql([]);
 					expect(block1.previousBlock).to.equal(genesisBlock.id);
@@ -971,9 +975,9 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.version).to.equal(0);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward.equals('0'));
-			expect(invalidBlock2.totalFee.equals('0'));
-			expect(invalidBlock2.totalAmount.equals('0'));
+			expect(invalidBlock2.reward.equals('0')).to.be.true;
+			expect(invalidBlock2.totalFee.equals('0')).to.be.true;
+			expect(invalidBlock2.totalAmount.equals('0')).to.be.true;
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.eql([]);
 			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
@@ -1074,9 +1078,9 @@ describe('blocks/verify', () => {
 							expect(block2.version).to.equal(0);
 							expect(block2.timestamp).to.equal(time);
 							expect(block2.numberOfTransactions).to.equal(1);
-							expect(block2.reward.equals('0'));
-							expect(block2.totalFee.equals('0'));
-							expect(block2.totalAmount.equals('10000000000000000'));
+							expect(block2.reward.equals('0')).to.be.true;
+							expect(block2.totalFee.equals('0')).to.be.true;
+							expect(block2.totalAmount.equals('10000000000000000')).to.be.true;
 							expect(block2.payloadLength).to.equal(117);
 							expect(block2.transactions).to.deep.eql([
 								genesisBlock.transactions[0],
@@ -1182,9 +1186,9 @@ describe('blocks/verify', () => {
 					expect(block2.version).to.equal(0);
 					expect(block2.timestamp).to.equal(time);
 					expect(block2.numberOfTransactions).to.equal(0);
-					expect(block2.reward.equals('0'));
-					expect(block2.totalFee.equals('0'));
-					expect(block2.totalAmount.equals('0'));
+					expect(block2.reward.equals('0')).to.be.true;
+					expect(block2.totalFee.equals('0')).to.be.true;
+					expect(block2.totalAmount.equals('0')).to.be.true;
 					expect(block2.payloadLength).to.equal(0);
 					expect(block2.transactions).to.deep.equal([]);
 					expect(block2.previousBlock).to.equal(genesisBlock.id);

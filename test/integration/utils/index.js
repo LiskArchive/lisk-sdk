@@ -14,8 +14,8 @@
 
 'use strict';
 
-var childProcess = require('child_process');
-var Logger = require('../../../logger');
+const childProcess = require('child_process');
+const Logger = require('../../../logger');
 
 module.exports = {
 	http: require('./http'),
@@ -25,16 +25,6 @@ module.exports = {
 		filename: `${__dirname}/integrationTestsLogger.logs`,
 		echo: 'log',
 	}),
-	getOpenConnections: (ports, cb) => {
-		// lsof -i :5000 -i :5001 -P -n | wc -l
-		// tail -n +2 to strip the headers of lsof so we can count the rows
-		childProcess.exec(
-			`lsof ${ports.map(p => `-i :${p}`).join(' ')} -P -n | tail -n +2 | wc -l`,
-			(err, stdout) => {
-				cb(err, parseInt(stdout.toString().trim()));
-			}
-		);
-	},
 	getListeningConnections: (ports, cb) => {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:LISTEN -t | wc -l
 		// tail -n +2 to strip the headers of lsof so we can count the rows
