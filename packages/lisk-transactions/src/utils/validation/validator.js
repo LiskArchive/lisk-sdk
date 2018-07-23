@@ -13,10 +13,13 @@
  *
  */
 import Ajv from 'ajv';
+import ajvMergePatch from 'ajv-merge-patch';
 import { validateAddress, validatePublicKey } from './validation';
 import * as schemas from './schema';
 
-const validator = new Ajv();
+const validator = new Ajv({ allErrors: true });
+// Add $merge and $patch keywords
+ajvMergePatch(validator);
 
 validator.addFormat('number', data => data === '' || /^[0-9]+$/g.test(data));
 
@@ -57,31 +60,38 @@ validator.addFormat('actionPublicKey', data => {
 	}
 });
 
-const getSchema = type => {
-	const schemaMap = {
-		0: schemas.transferTransaction(),
-		1: schemas.signatureTransaction(),
-		2: schemas.delegateTransaction(),
-		3: schemas.voteTransaction(),
-		4: schemas.multiTransaction(),
-		5: schemas.dappTransaction(),
-	};
+validator.addSchema(schemas.baseTransaction);
+
+const schemaMap = {
+	0: validator.compile(schemas.transferTransaction),
+	1: validator.compile(schemas.signatureTransaction),
+	2: validator.compile(schemas.delegateTransaction),
+	3: validator.compile(schemas.voteTransaction),
+	4: validator.compile(schemas.multiTransaction),
+	5: validator.compile(schemas.dappTransaction),
+};
+
+const getValidator = type => {
 	const schema = schemaMap[type];
 	if (!schema) {
-		throw new Error('Unsupported transaction type');
+		throw new Error('Unsupported transaction type.');
 	}
 	return schema;
 };
 
 export const validateTransaction = tx => {
 	if (typeof tx.type !== 'number') {
-		throw new Error('Transaction must have type');
+		throw new Error('Transaction type must be a number.');
 	}
-	const schema = getSchema(tx.type);
-	const valid = validator.validate(schema, tx);
+	const validate = getValidator(tx.type);
+	const valid = validate(tx);
+	// Ajv produces merge error when error happens within $merge
+	const errors = validate.errors
+		? validate.errors.filter(e => e.keyword !== '$merge')
+		: null;
 	return {
 		valid,
-		errors: validator.errors,
+		errors,
 	};
 };
 

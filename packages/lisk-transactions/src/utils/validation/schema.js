@@ -13,7 +13,8 @@
  *
  */
 
-const baseTransaction = {
+export const baseTransaction = {
+	$id: 'lisk/base-transaction',
 	type: 'object',
 	required: [
 		'id',
@@ -66,7 +67,7 @@ const baseTransaction = {
 			format: 'address',
 		},
 		recipientPublicKey: {
-			type: 'string',
+			type: ['string', 'null'],
 			format: 'publicKey',
 		},
 		signature: {
@@ -91,155 +92,186 @@ const baseTransaction = {
 	},
 };
 
-export const transferTransaction = () => {
-	const schema = Object.assign({}, baseTransaction);
-	schema.properties.amount = {
-		type: 'string',
-		minimum: 1,
-	};
-	schema.properties.asset = {
-		type: 'object',
-		properties: {
-			data: {
-				type: 'string',
-				maximum: 64,
-			},
-		},
-	};
-	return schema;
-};
-
-export const signatureTransaction = () => {
-	const schema = Object.assign({}, baseTransaction);
-	schema.properties.asset = {
-		type: 'object',
-		required: ['signature'],
-		properties: {
-			signature: {
-				type: 'object',
-				properties: {
-					publicKey: {
-						type: 'string',
-						format: 'publicKey',
-					},
-				},
-			},
-		},
-	};
-	return schema;
-};
-
-export const delegateTransaction = () => {
-	const schema = Object.assign({}, baseTransaction);
-	schema.properties.asset = {
-		type: 'object',
-		required: ['signature'],
-		properties: {
-			signature: {
-				type: 'object',
-				required: ['username'],
-				properties: {
-					username: {
-						type: 'string',
-						maximum: 20,
-					},
-				},
-			},
-		},
-	};
-	return schema;
-};
-
-export const voteTransaction = () => {
-	const schema = Object.assign({}, baseTransaction);
-	schema.properties.asset = {
-		type: 'object',
-		required: ['votes'],
-		properties: {
-			votes: {
-				type: 'array',
-				uniqueItems: true,
-				minItems: 1,
-				maxItems: 33,
-				items: {
+export const transferTransaction = {
+	$merge: {
+		source: { $ref: 'lisk/base-transaction' },
+		with: {
+			properties: {
+				amount: {
 					type: 'string',
-					format: 'actionPublicKey',
+					format: 'number',
+					minLength: 1,
 				},
-			},
-		},
-	};
-	return schema;
-};
-
-export const multiTransaction = () => {
-	const schema = Object.assign({}, baseTransaction);
-	schema.properties.asset = {
-		type: 'object',
-		required: ['min', 'lifetime', 'keysgroup'],
-		properties: {
-			multisignature: {
-				type: 'object',
-				properties: {
-					min: {
-						type: 'integer',
-						minimum: 1,
-					},
-					lifetime: {
-						type: 'integer',
-						minimum: 1,
-					},
-					keysgroup: {
-						type: 'array',
-						uniqueItems: true,
-						minItems: 1,
-						maxItems: 16,
-						items: {
+				asset: {
+					type: 'object',
+					properties: {
+						data: {
 							type: 'string',
-							format: 'actionPublicKey',
+							maxLength: 64,
 						},
 					},
 				},
 			},
 		},
-	};
-	return schema;
+	},
 };
 
-export const dappTransaction = () => {
-	const schema = Object.assign({}, baseTransaction);
-	schema.properties.asset = {
-		type: 'object',
-		required: ['name'],
-		properties: {
-			dapp: {
-				type: 'object',
-				properties: {
-					icon: {
-						type: 'string',
-						format: 'url',
-					},
-					category: {
-						type: 'number',
-					},
-					type: {
-						type: 'number',
-					},
-					link: {
-						type: 'string',
-						format: 'url',
-					},
-					tags: {
-						type: 'string',
-					},
-					description: {
-						type: 'string',
-					},
-					name: {
-						type: 'string',
+export const signatureTransaction = {
+	$merge: {
+		source: { $ref: 'lisk/base-transaction' },
+		with: {
+			properties: {
+				asset: {
+					type: 'object',
+					required: ['signature'],
+					properties: {
+						signature: {
+							type: 'object',
+							properties: {
+								publicKey: {
+									type: 'string',
+									format: 'publicKey',
+								},
+							},
+						},
 					},
 				},
 			},
 		},
-	};
-	return schema;
+	},
+};
+
+export const delegateTransaction = {
+	$merge: {
+		source: { $ref: 'lisk/base-transaction' },
+		with: {
+			properties: {
+				asset: {
+					type: 'object',
+					required: ['signature'],
+					properties: {
+						signature: {
+							type: 'object',
+							required: ['username'],
+							properties: {
+								username: {
+									type: 'string',
+									maxLength: 20,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
+export const voteTransaction = {
+	$merge: {
+		source: { $ref: 'lisk/base-transaction' },
+		with: {
+			properties: {
+				asset: {
+					type: 'object',
+					required: ['votes'],
+					properties: {
+						votes: {
+							type: 'array',
+							uniqueItems: true,
+							minItems: 1,
+							maxItems: 33,
+							items: {
+								type: 'string',
+								format: 'actionPublicKey',
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
+export const multiTransaction = {
+	$merge: {
+		source: { $ref: 'lisk/base-transaction' },
+		with: {
+			properties: {
+				asset: {
+					type: 'object',
+					required: ['min', 'lifetime', 'keysgroup'],
+					properties: {
+						multisignature: {
+							type: 'object',
+							properties: {
+								min: {
+									type: 'integer',
+									minimum: 1,
+								},
+								lifetime: {
+									type: 'integer',
+									minimum: 1,
+								},
+								keysgroup: {
+									type: 'array',
+									uniqueItems: true,
+									minItems: 1,
+									maxItems: 16,
+									items: {
+										type: 'string',
+										format: 'actionPublicKey',
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+};
+
+export const dappTransaction = {
+	$merge: {
+		source: { $ref: 'lisk/base-transaction' },
+		with: {
+			properties: {
+				asset: {
+					type: 'object',
+					required: ['name'],
+					properties: {
+						dapp: {
+							type: 'object',
+							properties: {
+								icon: {
+									type: 'string',
+									format: 'url',
+								},
+								category: {
+									type: 'number',
+								},
+								type: {
+									type: 'number',
+								},
+								link: {
+									type: 'string',
+									format: 'url',
+								},
+								tags: {
+									type: 'string',
+								},
+								description: {
+									type: 'string',
+								},
+								name: {
+									type: 'string',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 };
