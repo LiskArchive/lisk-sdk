@@ -53,11 +53,8 @@ jspm_packages
 tmp
 
 # Distribution folders
-dist/
-dist-node/
 dist-browser/
-**/browsertest/browsertest.js
-**/browsertest/browsertest.min.js
+dist-node/
 
 # Unsupported lock files
 yarn.lock
