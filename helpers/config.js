@@ -66,17 +66,17 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
 
 	const defaultConstants = require('../config/default/constants.js');
-	const customConstants = require(`../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
+	const networkConstants = require(`../config/${network}/constants.js`); // eslint-disable-line import/no-dynamic-require
 
 	const defaultExceptions = require('../config/default/exceptions.js');
-	const customExceptions = require(`../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
+	const networkExceptions = require(`../config/${network}/exceptions.js`); // eslint-disable-line import/no-dynamic-require
 
 	const defaultConfig = loadJSONFile('config/default/config.json');
-	const customConfig = loadJSONFile(
-		program.config ||
-			process.env.LISK_CONFIG_FILE ||
-			`config/${network}/config.json`
-	);
+	const networkConfig = loadJSONFile(`config/${network}/config.json`);
+	let customConfig = {};
+	if (program.config || process.env.LISK_CONFIG_FILE) {
+		customConfig = loadJSONFile(program.config || process.env.LISK_CONFIG_FILE);
+	}
 
 	const runtimeConfig = {
 		network,
@@ -109,9 +109,10 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 	const appConfig = _.merge(
 		defaultConfig,
+		networkConfig,
 		customConfig,
-		runtimeConfig,
-		commandLineConfig
+		commandLineConfig,
+		runtimeConfig
 	);
 
 	var validator = new z_schema();
@@ -123,9 +124,9 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	} else {
 		appConfig.genesisBlock = genesisBlock;
 
-		appConfig.constants = _.merge(defaultConstants, customConstants);
+		appConfig.constants = _.merge(defaultConstants, networkConstants);
 
-		appConfig.exceptions = _.merge(defaultExceptions, customExceptions);
+		appConfig.exceptions = _.merge(defaultExceptions, networkExceptions);
 
 		validateForce(appConfig);
 

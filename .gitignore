@@ -37,3 +37,6 @@ test/integration/configs/
 
 # Coverage directory used by tools like istanbul
 test/.coverage-unit/
+
+# Local config file useful for development
+config.local.json
