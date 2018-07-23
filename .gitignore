@@ -24,10 +24,10 @@ test/.coverage-unit
 .nyc_output
 
 # cypress media
-**/cypress/screenshots/
-**/cypress/videos/
-**/cypress/plugins/
-**/cypress/support/
+templates/cypress.tmpl/screenshots/
+templates/cypress.tmpl/videos/
+templates/cypress.tmpl/plugins/
+templates/cypress.tmpl/support/
 
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt

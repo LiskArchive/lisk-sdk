@@ -42,11 +42,13 @@
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node":
 			"npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
+		"serve:start": "http-server -p 11543 ./browsertest &",
+		"serve:stop": "kill $(lsof -t -i:11543)",
 		"pretest:browser":
-			"npm run build:browsertest && http-server -p 11543 browsertest &",
+			"npm run serve:stop | npm run build:browsertest && npm run serve:start",
 		"test:browser":
-			"wait-on http://localhost:11543 && cypress run --env ROOT_DIR=\"${PWD##*/}\"",
-		"posttest:browser": "kill $(lsof -t -i:11543)",
+			"wait-on http://localhost:11543 && cypress run --config baseUrl=http://localhost:11543 --env ROOT_DIR=\"${PWD##*/}\"",
+		"posttest:browser": "npm run serve:stop",
 		"cover":
 			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
@@ -62,8 +64,8 @@
 			"rm ./dist-browser/index.js ./dist-browser/index.min.js | echo",
 		"build:browser":
 			"npm run build:node && npm run browserify && npm run uglify",
-		"prebuild": "npm run prebuild:node && npm run prebuild:browser",
-		"build": "npm run build:node && npm run build:browser",
+		"prebuild": "npm run prebuild:browser",
+		"build": "npm run build:browser",
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly":
 			"npm run lint && npm test && npm run build && npm run build:check"
