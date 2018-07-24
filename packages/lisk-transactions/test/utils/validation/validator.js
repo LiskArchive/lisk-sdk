@@ -16,6 +16,8 @@
 import { validateTransaction } from '../../../src/utils/validation/validator';
 
 describe('validator', () => {
+	let validTransaction;
+
 	describe('when the input is empty', () => {
 		it('should throw an error', () => {
 			return expect(validateTransaction.bind(null)).to.throw();
@@ -37,20 +39,23 @@ describe('validator', () => {
 	});
 
 	describe('transaction type 0 with common keys', () => {
-		const validTransaction = {
-			amount: '10000000000',
-			recipientId: '123L',
-			senderPublicKey:
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
-			timestamp: 68223825,
-			type: 0,
-			fee: '10000000',
-			recipientPublicKey: null,
-			asset: {},
-			signature:
-				'fad7b3b31c337b39190d206831c1eaadc6bbf3878a3507a868a5fbb03471b383042bf3bb7cee20d9844f2f4d1bb90d08bc3589b8b7d27a538be285deec7a9504',
-			id: '13241881933583824171',
-		};
+		beforeEach(() => {
+			validTransaction = {
+				amount: '10000000000',
+				recipientId: '123L',
+				senderPublicKey:
+					'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+				timestamp: 68223825,
+				type: 0,
+				fee: '10000000',
+				recipientPublicKey: null,
+				asset: {},
+				signature:
+					'fad7b3b31c337b39190d206831c1eaadc6bbf3878a3507a868a5fbb03471b383042bf3bb7cee20d9844f2f4d1bb90d08bc3589b8b7d27a538be285deec7a9504',
+				id: '13241881933583824171',
+			};
+			return Promise.resolve();
+		});
 
 		it('should validate to be true without errors', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
@@ -291,24 +296,27 @@ describe('validator', () => {
 	});
 
 	describe('transaction type 1', () => {
-		const validTransaction = {
-			amount: '0',
-			recipientId: '',
-			senderPublicKey:
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
-			timestamp: 68247466,
-			type: 1,
-			fee: '500000000',
-			asset: {
-				signature: {
-					publicKey:
-						'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+		beforeEach(() => {
+			validTransaction = {
+				amount: '0',
+				recipientId: '',
+				senderPublicKey:
+					'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+				timestamp: 68247466,
+				type: 1,
+				fee: '500000000',
+				asset: {
+					signature: {
+						publicKey:
+							'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+					},
 				},
-			},
-			signature:
-				'98b0dbd77efadaee7112915fd4a08551a594460f1d30f0ead7efb328ff60521a5d88c7f8eaf700f2d91c86228a41eacf34729268269dee5d74dd61ed1a79d40b',
-			id: '9795926042598492108',
-		};
+				signature:
+					'98b0dbd77efadaee7112915fd4a08551a594460f1d30f0ead7efb328ff60521a5d88c7f8eaf700f2d91c86228a41eacf34729268269dee5d74dd61ed1a79d40b',
+				id: '9795926042598492108',
+			};
+			return Promise.resolve();
+		});
 
 		it('should validate to be true', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
@@ -356,23 +364,26 @@ describe('validator', () => {
 	});
 
 	describe('transaction type 2', () => {
-		const validTransaction = {
-			amount: '0',
-			recipientId: '',
-			senderPublicKey:
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
-			timestamp: 68248944,
-			type: 2,
-			fee: '2500000000',
-			asset: {
-				delegate: {
-					username: 'username',
+		beforeEach(() => {
+			validTransaction = {
+				amount: '0',
+				recipientId: '',
+				senderPublicKey:
+					'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+				timestamp: 68248944,
+				type: 2,
+				fee: '2500000000',
+				asset: {
+					delegate: {
+						username: 'username',
+					},
 				},
-			},
-			signature:
-				'0ea67e681b3c68725b78c4079888aecf2bab3aa2d36597d277ecb7ca9f1167764862f112e2d07e5b8ad42a9197345f168e26d9e0da1adabf436a5ad6a003480f',
-			id: '13714796095941628325',
-		};
+				signature:
+					'0ea67e681b3c68725b78c4079888aecf2bab3aa2d36597d277ecb7ca9f1167764862f112e2d07e5b8ad42a9197345f168e26d9e0da1adabf436a5ad6a003480f',
+				id: '13714796095941628325',
+			};
+			return Promise.resolve();
+		});
 
 		it('should validate to be true', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
@@ -419,26 +430,29 @@ describe('validator', () => {
 	});
 
 	describe('transaction type 3', () => {
-		const validTransaction = {
-			amount: '0',
-			recipientId: '12475940823804898745L',
-			senderPublicKey:
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
-			timestamp: 68249271,
-			type: 3,
-			fee: '100000000',
-			asset: {
-				votes: [
-					'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-					'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					'-e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589',
-					'-ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
-				],
-			},
-			signature:
-				'8a4560fefab2bc9cbefa5429b2579889b0b8ee3c8818b6903a21fdf1bb60b71c680c8519ccfd40ebf076f30265cf89da0d9133b1f19beb8c79bb516da4666b00',
-			id: '6349709576366289404',
-		};
+		beforeEach(() => {
+			validTransaction = {
+				amount: '0',
+				recipientId: '12475940823804898745L',
+				senderPublicKey:
+					'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+				timestamp: 68249271,
+				type: 3,
+				fee: '100000000',
+				asset: {
+					votes: [
+						'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+						'-e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589',
+						'-ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
+					],
+				},
+				signature:
+					'8a4560fefab2bc9cbefa5429b2579889b0b8ee3c8818b6903a21fdf1bb60b71c680c8519ccfd40ebf076f30265cf89da0d9133b1f19beb8c79bb516da4666b00',
+				id: '6349709576366289404',
+			};
+			return Promise.resolve();
+		});
 
 		it('should validate to be true', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
@@ -583,28 +597,31 @@ describe('validator', () => {
 	});
 
 	describe('transaction type 4', () => {
-		const validTransaction = {
-			amount: '0',
-			recipientId: '',
-			senderPublicKey:
-				'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
-			timestamp: 68249989,
-			type: 4,
-			fee: '1500000000',
-			asset: {
-				multisignature: {
-					min: 2,
-					lifetime: 24,
-					keysgroup: [
-						'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-					],
+		beforeEach(() => {
+			validTransaction = {
+				amount: '0',
+				recipientId: '',
+				senderPublicKey:
+					'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+				timestamp: 68249989,
+				type: 4,
+				fee: '1500000000',
+				asset: {
+					multisignature: {
+						min: 2,
+						lifetime: 24,
+						keysgroup: [
+							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+						],
+					},
 				},
-			},
-			signature:
-				'b26ce1001190dcad87b80056ce713bbb8c9f3fbeb412b4f04c9c571d31ae7b4f02ad9952f6295f7cfeb625156ec1d29ae9ebf0455907126a16bc61a413b1260f',
-			id: '13972075266355782406',
-		};
+				signature:
+					'b26ce1001190dcad87b80056ce713bbb8c9f3fbeb412b4f04c9c571d31ae7b4f02ad9952f6295f7cfeb625156ec1d29ae9ebf0455907126a16bc61a413b1260f',
+				id: '13972075266355782406',
+			};
+			return Promise.resolve();
+		});
 
 		it('should validate to be true', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
@@ -868,29 +885,32 @@ describe('validator', () => {
 	});
 
 	describe('transaction type 5', () => {
-		const validTransaction = {
-			type: 5,
-			amount: '0',
-			fee: '2500000000',
-			recipientId: '',
-			senderPublicKey:
-				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-			timestamp: 54196080,
-			asset: {
-				dapp: {
-					category: 0,
-					name: 'OpwYfwHdAfO4ncn7D',
-					description: 'Ds',
-					tags: '1nkfYVcgsisKnXyn7k0',
-					type: 0,
-					link: 'WQDusb0DgH',
-					icon: 'RPAFQsBIsE',
+		beforeEach(() => {
+			validTransaction = {
+				type: 5,
+				amount: '0',
+				fee: '2500000000',
+				recipientId: '',
+				senderPublicKey:
+					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				timestamp: 54196080,
+				asset: {
+					dapp: {
+						category: 0,
+						name: 'OpwYfwHdAfO4ncn7D',
+						description: 'Ds',
+						tags: '1nkfYVcgsisKnXyn7k0',
+						type: 0,
+						link: 'WQDusb0DgH',
+						icon: 'RPAFQsBIsE',
+					},
 				},
-			},
-			signature:
-				'524afb27d284e4e71ea44de9d23f9a1cd603f37f81a55187a61ca92391dce1994d2c4a5e3f0ae8490caac66da5125a0d03f30d0775592aa02d451a72e3ed9303',
-			id: '7976119586785833934',
-		};
+				signature:
+					'524afb27d284e4e71ea44de9d23f9a1cd603f37f81a55187a61ca92391dce1994d2c4a5e3f0ae8490caac66da5125a0d03f30d0775592aa02d451a72e3ed9303',
+				id: '7976119586785833934',
+			};
+			return Promise.resolve();
+		});
 
 		it('should validate to be true', () => {
 			const { valid, errors } = validateTransaction(validTransaction);

@@ -244,19 +244,13 @@ describe('public key validation', () => {
 	});
 
 	describe('#isGreaterThanMaxTransactionAmount', () => {
-		it('should throw an error if the amount is not a bignum instance', () => {
-			return expect(
-				isGreaterThanMaxTransactionAmount.bind(null, '10000000000000000000'),
-			).to.throw('amount.cmp is not a function');
-		});
-
-		it('should return false when amount is less than 8 bytes interger maximum', () => {
+		it('should return false when amount is less than 8 bytes integer maximum', () => {
 			return expect(
 				isGreaterThanMaxTransactionAmount(bignum('10000000000000000000')),
 			).to.be.false;
 		});
 
-		it('should return true when amount is more than 8 bytes interger maximum', () => {
+		it('should return true when amount is more than 8 bytes integer maximum', () => {
 			return expect(
 				isGreaterThanMaxTransactionAmount(bignum('18446744073709551616')),
 			).to.be.true;
@@ -264,19 +258,13 @@ describe('public key validation', () => {
 	});
 
 	describe('#isGreaterThanMaxTransactionId', () => {
-		it('should throw an error if the id is not a bignum instance', () => {
-			return expect(
-				isGreaterThanMaxTransactionId.bind(null, '10000000000000000000'),
-			).to.throw('id.cmp is not a function');
-		});
-
-		it('should return false when id is less than 8 bytes interger maximum', () => {
+		it('should return false when id is less than 8 bytes integer maximum', () => {
 			return expect(
 				isGreaterThanMaxTransactionId(bignum('10000000000000000000')),
 			).to.be.false;
 		});
 
-		it('should return true when id is more than 8 bytes interger maximum', () => {
+		it('should return true when id is more than 8 bytes integer maximum', () => {
 			return expect(
 				isGreaterThanMaxTransactionId(bignum('18446744073709551616')),
 			).to.be.true;
@@ -284,15 +272,15 @@ describe('public key validation', () => {
 	});
 
 	describe('#isNumberString', () => {
-		it('should return false when string is not number', () => {
+		it('should return false when number is not string', () => {
 			return expect(isNumberString(1)).to.be.false;
 		});
 
-		it('should return false when contains non number', () => {
+		it('should return false when string contains non number', () => {
 			return expect(isNumberString('12345abc68789')).to.be.false;
 		});
 
-		it('should return true when contains only number', () => {
+		it('should return true when string contains only number', () => {
 			return expect(isNumberString('1234568789')).to.be.true;
 		});
 	});

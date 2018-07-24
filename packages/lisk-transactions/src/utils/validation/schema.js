@@ -31,8 +31,6 @@ export const baseTransaction = {
 		id: {
 			type: 'string',
 			format: 'id',
-			minLength: 1,
-			maxLength: 20,
 		},
 		amount: {
 			type: 'string',
@@ -96,11 +94,6 @@ export const transferTransaction = {
 		source: { $ref: 'lisk/base-transaction' },
 		with: {
 			properties: {
-				amount: {
-					type: 'string',
-					format: 'amount',
-					minLength: 1,
-				},
 				recipientId: {
 					format: 'address',
 				},
@@ -181,12 +174,12 @@ export const voteTransaction = {
 					properties: {
 						votes: {
 							type: 'array',
-							uniquePublicKeys: true,
+							uniqueSignedPublicKeys: true,
 							minItems: 1,
 							maxItems: 33,
 							items: {
 								type: 'string',
-								format: 'actionPublicKey',
+								format: 'signedPublicKey',
 							},
 						},
 					},
@@ -221,7 +214,7 @@ export const multiTransaction = {
 								},
 								keysgroup: {
 									type: 'array',
-									uniquePublicKeys: true,
+									uniqueItems: true,
 									minItems: 2,
 									maxItems: 16,
 									items: {

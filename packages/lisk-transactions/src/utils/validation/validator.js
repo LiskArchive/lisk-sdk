@@ -29,12 +29,10 @@ addMergePatchKeywords(validator);
 
 validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
 
-validator.addFormat('id', data => {
-	if (!isNumberString(data)) {
-		return false;
-	}
-	return !isGreaterThanMaxTransactionId(bignum(data));
-});
+validator.addFormat(
+	'id',
+	data => isNumberString(data) && !isGreaterThanMaxTransactionId(bignum(data)),
+);
 
 validator.addFormat('address', data => {
 	try {
@@ -45,12 +43,11 @@ validator.addFormat('address', data => {
 	}
 });
 
-validator.addFormat('amount', data => {
-	if (!isNumberString(data)) {
-		return false;
-	}
-	return !isGreaterThanMaxTransactionAmount(bignum(data));
-});
+validator.addFormat(
+	'amount',
+	data =>
+		isNumberString(data) && !isGreaterThanMaxTransactionAmount(bignum(data)),
+);
 
 validator.addFormat('publicKey', data => {
 	try {
@@ -61,7 +58,7 @@ validator.addFormat('publicKey', data => {
 	}
 });
 
-validator.addFormat('actionPublicKey', data => {
+validator.addFormat('signedPublicKey', data => {
 	try {
 		const action = data[0];
 		if (action !== '+' && action !== '-') {
@@ -89,10 +86,10 @@ validator.addFormat('additionPublicKey', data => {
 	}
 });
 
-validator.addKeyword('uniquePublicKeys', {
+validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
 	compile: () => data =>
-		[...new Set(data.map(key => key.slice(1)))].length === data.length,
+		new Set(data.map(key => key.slice(1))).size === data.length,
 });
 
 validator.addSchema(schemas.baseTransaction);

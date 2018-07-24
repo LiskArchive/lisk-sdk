@@ -16,7 +16,8 @@ export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
 export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / 1000);
 
-// Largest possible address. Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
+// Largest possible number which can be stored in eight bytes.
+// Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
 const MAX_EIGHT_BYTE_NUMBER = '18446744073709551615';
 
 export const MAX_ADDRESS_NUMBER = MAX_EIGHT_BYTE_NUMBER;
