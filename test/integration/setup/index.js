@@ -14,49 +14,48 @@
 
 'use strict';
 
-var async = require('async');
-var utils = require('../utils');
-var network = require('./network');
-var pm2 = require('./pm2');
-var shell = require('./shell');
-var sync = require('./sync');
+const async = require('async');
+const utils = require('../utils');
+const network = require('./network');
+const config = require('./config');
+const shell = require('./shell');
 
-var WAIT_BEFORE_CONNECT_MS = 20000;
+const WAIT_BEFORE_CONNECT_MS = 20000;
 
 module.exports = {
-	setupNetwork(configurations, cb) {
+	createNetwork(configurations, cb) {
 		async.series(
 			[
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log('Generating PM2 configuration');
-					pm2.generatePM2Configuration(configurations, cbSeries);
+					config.generatePM2json(configurations, seriesCb);
 				},
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log('Recreating databases');
-					shell.recreateDatabases(configurations, cbSeries);
+					shell.recreateDatabases(configurations, seriesCb);
 				},
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log('Clearing existing logs');
-					shell.clearLogs(cbSeries);
+					shell.clearLogs(seriesCb);
 				},
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log('Launching network');
-					shell.launchTestNodes(cbSeries);
+					shell.launchTestNodes(seriesCb);
 				},
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log('Waiting for nodes to load the blockchain');
-					network.waitForAllNodesToBeReady(configurations, cbSeries);
+					network.waitForAllNodesToBeReady(configurations, seriesCb);
 				},
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log('Enabling forging with registered delegates');
-					network.enableForgingOnDelegates(configurations, cbSeries);
+					network.enableForgingForDelegates(configurations, seriesCb);
 				},
-				function(cbSeries) {
+				seriesCb => {
 					utils.logger.log(
 						`Waiting ${WAIT_BEFORE_CONNECT_MS /
 							1000} seconds for nodes to establish connections`
 					);
-					setTimeout(cbSeries, WAIT_BEFORE_CONNECT_MS);
+					setTimeout(seriesCb, WAIT_BEFORE_CONNECT_MS);
 				},
 			],
 			(err, res) => {
@@ -69,7 +68,6 @@ module.exports = {
 		shell.killTestNodes(cb);
 	},
 	network,
-	pm2,
+	config,
 	shell,
-	sync,
 };

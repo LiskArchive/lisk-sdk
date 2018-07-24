@@ -291,7 +291,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:get')
 						} else {
-							runAction('mocha:untagged:functional:get')
+							runAction('mocha:default:functional:get')
 						}
 						archiveLogs()
 					}
@@ -301,7 +301,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:post')
 						} else {
-							runAction('mocha:untagged:functional:post')
+							runAction('mocha:default:functional:post')
 						}
 						archiveLogs()
 					}
@@ -311,7 +311,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:ws')
 						} else {
-							runAction('mocha:untagged:functional:ws')
+							runAction('mocha:default:functional:ws')
 						}
 						archiveLogs()
 					}
@@ -321,7 +321,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:unit')
 						} else {
-							runAction('mocha:untagged:unit')
+							runAction('mocha:default:unit')
 						}
 						archiveLogs()
 					}
@@ -331,7 +331,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:system')
 						} else {
-							runAction('mocha:untagged:functional:system')
+							runAction('mocha:default:functional:system')
 						}
 						archiveLogs()
 					}

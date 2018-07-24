@@ -56,7 +56,7 @@ node('lisk-integration') {
 					if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
 						npm test -- mocha:extensive:integration |& tee integrationTests.logs
 					else
-						npm test -- mocha:untagged:integration |& tee integrationTests.logs
+						npm test -- mocha:default:integration |& tee integrationTests.logs
 					fi
 				'''
 			} catch (err) {

@@ -14,11 +14,15 @@
 
 'use strict';
 
-var Promise = require('bluebird');
+const Promise = require('bluebird');
+const common = require('../common');
 
-module.exports = function(params) {
-	describe('blocks', () => {
-		var nodesTransactions = [];
+module.exports = function(configurations) {
+	describe('@propagation : transactions', () => {
+		const params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
+
+		let nodesTransactions = [];
 
 		before(() => {
 			return Promise.all(
@@ -35,14 +39,14 @@ module.exports = function(params) {
 			});
 		});
 
-		it('should contain non empty transactions after running functional tests', () => {
+		it('should contain non empty transactions', () => {
 			return nodesTransactions.forEach(transactions => {
 				expect(transactions).to.be.an('array').and.not.empty;
 			});
 		});
 
 		it('should have all peers having same amount of confirmed transactions', () => {
-			var uniquePeersTransactionsNumber = _(nodesTransactions)
+			const uniquePeersTransactionsNumber = _(nodesTransactions)
 				.map('length')
 				.uniq()
 				.value();
@@ -50,12 +54,14 @@ module.exports = function(params) {
 		});
 
 		it('should have all transactions the same at all peers', done => {
-			var patternTransactions = nodesTransactions[0];
-			for (var i = 0; i < patternTransactions.length; i += 1) {
-				for (var j = 1; j < nodesTransactions.length; j += 1) {
-					expect(_.isEqual(nodesTransactions[j][i], patternTransactions[i]));
-				}
-			}
+			const transactionsFromOtherNodes = nodesTransactions.splice(1);
+			const transactionsFromNode0 = nodesTransactions[0];
+
+			transactionsFromOtherNodes.forEach(transactionsFromOtherNode =>
+				expect(transactionsFromOtherNode).to.include.deep.members(
+					transactionsFromNode0
+				)
+			);
 			done();
 		});
 	});

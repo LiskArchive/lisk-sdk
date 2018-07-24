@@ -15,6 +15,7 @@
 'use strict';
 
 const sql = require('../sql').blocks;
+const ed = require('../../helpers/ed.js');
 
 const cs = {}; // Reusable ColumnSet objects
 
@@ -306,12 +307,9 @@ class BlocksRepository {
 	save(block) {
 		const query = () => {
 			const saveBlock = Object.assign({}, block);
-			saveBlock.payloadHash = Buffer.from(block.payloadHash, 'hex');
-			saveBlock.generatorPublicKey = Buffer.from(
-				block.generatorPublicKey,
-				'hex'
-			);
-			saveBlock.blockSignature = Buffer.from(block.blockSignature, 'hex');
+			saveBlock.payloadHash = ed.hexToBuffer(block.payloadHash);
+			saveBlock.generatorPublicKey = ed.hexToBuffer(block.generatorPublicKey);
+			saveBlock.blockSignature = ed.hexToBuffer(block.blockSignature);
 			saveBlock.reward = block.reward.toString();
 			saveBlock.totalAmount = block.totalAmount.toString();
 			saveBlock.totalFee = block.totalFee.toString();

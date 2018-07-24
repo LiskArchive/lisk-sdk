@@ -144,8 +144,10 @@ describe('transfer', () => {
 	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', () => {
 			return expect(
-				transfer.calculateFee(validTransaction).equals(constants.fees.send)
-			);
+				transfer
+					.calculateFee(validTransaction)
+					.equals(new Bignum(constants.fees.send))
+			).to.be.true;
 		});
 
 		it('should return the same fee for a transfer with additional data', () => {
@@ -154,8 +156,10 @@ describe('transfer', () => {
 				data: '0',
 			};
 			return expect(
-				transfer.calculateFee(transaction).equals(constants.fees.send)
-			);
+				transfer
+					.calculateFee(transaction)
+					.equals(new Bignum(constants.fees.send))
+			).to.be.true;
 		});
 	});
 
@@ -260,9 +264,9 @@ describe('transfer', () => {
 								expect(accountAfter).to.exist;
 
 								var balanceAfter = new Bignum(accountAfter.balance.toString());
-								expect(balanceBefore.plus(amount).toString()).to.equal(
-									balanceAfter.toString()
-								);
+								expect(
+									balanceBefore.plus(amount).equals(balanceAfter.toString())
+								).to.be.true;
 								undoTransaction(validTransaction, validSender, done);
 							}
 						);
@@ -300,6 +304,7 @@ describe('transfer', () => {
 
 					var amount = new Bignum(validTransaction.amount.toString());
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
+
 					transfer.undo(validTransaction, dummyBlock, validSender, err => {
 						expect(err).to.not.exist;
 
@@ -309,9 +314,9 @@ describe('transfer', () => {
 								var balanceAfter = new Bignum(accountAfter.balance.toString());
 
 								expect(err).to.not.exist;
-								expect(balanceAfter.plus(amount).toString()).to.equal(
-									balanceBefore.toString()
-								);
+								expect(
+									balanceAfter.plus(amount).equals(balanceBefore.toString())
+								).to.be.true;
 								applyTransaction(validTransaction, validSender, done);
 							}
 						);

@@ -71,7 +71,7 @@ The next section details the prerequisites to install Lisk Core from source usin
   * MacOS 10.12-10.13 (Sierra/High Sierra):
 
     ```
-    brew install node@6.14.1
+    brew install node@8.11.3
     ```
 
 * _(Recommended)_ Install using a version manager such as nvm.
@@ -80,7 +80,7 @@ The next section details the prerequisites to install Lisk Core from source usin
   2. Install the correct version of Node.js using nvm:
 
   ```
-  nvm install 6.14.1
+  nvm install v8.11.3
   ```
 
 * _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
@@ -150,11 +150,15 @@ Stop redis:
 brew services stop redis
 ```
 
-**NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+**NOTE:** Lisk does not run on the Redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-**Change the Redis launch configuration**
+1. **Change the Lisk configuration**
 
-Update the launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+Update the redis port configuration in the `config.json` file to the Redis default `redis.port=6379`. This is the easiest option, however, be mindful of reverting the changes when you make a pull request.
+
+2. **Change the Redis launch configuration**
+
+Update the Redis launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
 
 1. Stop redis-server
 2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
@@ -284,7 +288,7 @@ Tests are run using the following command:
 npm test -- mocha:<tag>:<suite>:[section]
 ```
 
-* Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
+* Where **tag** can be one of `default | unstable | slow | extensive` (required)
 * Where **suite** can be one of `unit | functional | integration` (required)
 * Where **section** depending of the chosen suite can be:
   * when `functional` --> `get | post | ws | system` (optional)
@@ -292,8 +296,8 @@ npm test -- mocha:<tag>:<suite>:[section]
 Examples:
 
 ```
+npm test -- mocha:default:functional:get
 npm test -- mocha:slow:unit
-npm test -- mocha:untagged:functional:get
 npm test -- mocha:unstable:functional:ws
 npm test -- mocha:extensive:integration
 ```

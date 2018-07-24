@@ -14,15 +14,15 @@
 
 'use strict';
 
-var popsicle = require('popsicle');
-var apiCodes = require('../../../helpers/api_codes');
+const popsicle = require('popsicle');
+const apiCodes = require('../../../helpers/api_codes');
 
-var headers = {
+const headers = {
 	Accept: 'application/json',
 	'Content-Type': 'application/json',
 };
 
-var endpoints = {
+const endpoints = {
 	versions: {
 		'0.9.*': {
 			getBlocks(ip, port) {
@@ -67,13 +67,9 @@ var endpoints = {
 	},
 };
 
-var currentVersion = '1.0.0';
+let currentVersion = '1.0.0';
 
 module.exports = {
-	getVersion() {
-		return currentVersion;
-	},
-
 	setVersion(version) {
 		currentVersion = version;
 	},
