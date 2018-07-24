@@ -30,17 +30,17 @@ export const baseTransaction = {
 	properties: {
 		id: {
 			type: 'string',
-			format: 'number',
+			format: 'id',
 			minLength: 1,
 			maxLength: 20,
 		},
 		amount: {
 			type: 'string',
-			format: 'number',
+			format: 'amount',
 		},
 		fee: {
 			type: 'string',
-			format: 'number',
+			format: 'amount',
 		},
 		type: {
 			type: 'integer',
@@ -98,7 +98,7 @@ export const transferTransaction = {
 			properties: {
 				amount: {
 					type: 'string',
-					format: 'number',
+					format: 'amount',
 					minLength: 1,
 				},
 				recipientId: {
@@ -109,7 +109,7 @@ export const transferTransaction = {
 					properties: {
 						data: {
 							type: 'string',
-							maxLength: 32,
+							maxLength: 64,
 						},
 					},
 				},
@@ -159,7 +159,7 @@ export const delegateTransaction = {
 							properties: {
 								username: {
 									type: 'string',
-									maxLength: 10,
+									maxLength: 20,
 								},
 							},
 						},
@@ -226,7 +226,7 @@ export const multiTransaction = {
 									maxItems: 16,
 									items: {
 										type: 'string',
-										format: 'actionPublicKey',
+										format: 'additionPublicKey',
 									},
 								},
 							},

@@ -13,12 +13,10 @@
  *
  */
 import bignum from 'browserify-bignum';
-import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
 import { FIXED_POINT } from '../constants';
+import { isGreaterThanMaxTransactionAmount } from './validation';
 
 const getDecimalPlaces = amount => (amount.split('.')[1] || '').length;
-const isGreaterThanMaxTransactionAmount = amount =>
-	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
 export const convertBeddowsToLSK = beddowsAmount => {
 	if (typeof beddowsAmount !== 'string') {

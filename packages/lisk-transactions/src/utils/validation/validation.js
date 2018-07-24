@@ -14,7 +14,11 @@
  */
 import bignum from 'browserify-bignum';
 import cryptography from 'lisk-cryptography';
-import { MAX_ADDRESS_NUMBER } from 'lisk-constants';
+import {
+	MAX_ADDRESS_NUMBER,
+	MAX_TRANSACTION_ID,
+	MAX_TRANSACTION_AMOUNT,
+} from 'lisk-constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);
@@ -68,4 +72,17 @@ export const validateAddress = address => {
 	}
 
 	return true;
+};
+
+export const isGreaterThanMaxTransactionAmount = amount =>
+	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
+
+export const isGreaterThanMaxTransactionId = id =>
+	id.cmp(MAX_TRANSACTION_ID) > 0;
+
+export const isNumberString = str => {
+	if (typeof str !== 'string') {
+		return false;
+	}
+	return /^[0-9]+$/g.test(str);
 };

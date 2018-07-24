@@ -26,7 +26,7 @@ describe('validator', () => {
 		it('should throw an error when the type is not a number', () => {
 			return expect(
 				validateTransaction.bind(null, { type: 'newtype' }),
-			).to.throw('Transaction type must be a number.');
+			).to.throw('Unsupported transaction type.');
 		});
 
 		it('should throw an error when the type is not supported', () => {
@@ -76,9 +76,27 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
+		it('should validate to be false with errors when id contains more maximum id possible', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				id: '18446744073709551616',
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.id');
+			return expect(valid).to.be.false;
+		});
+
 		it('should validate to be false with errors when amount is not number', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				amount: 'some number',
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.amount');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when amount is greater than maximum possible', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				amount: '18446744073709551616',
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
 			expect(errors[0].dataPath).to.equal('.amount');
@@ -255,7 +273,8 @@ describe('validator', () => {
 		it('should validate to be false with errors when data is greater than 64 bytes', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					data: 'fad7b3b31c337b39190d206831c1eaada',
+					data:
+						'fad7b3b31c337b39190d206831c1eaadfad7b3b31c337b39190d206831c1eaad+',
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -385,11 +404,11 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.delegate.username is over 10 characters', () => {
+		it('should validate to be false with errors when asset.delegate.username is over 20 bytes', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
 					delegate: {
-						username: 'abcdefghihk',
+						username: 'abcdefghihkabcdefghih',
 					},
 				},
 			});
@@ -751,6 +770,44 @@ describe('validator', () => {
 						lifetime: 24,
 						keysgroup: [
 							'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+						],
+					},
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.multisignature.keysgroup[0]');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.multisignature.keysgroup has "-" action key', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					multisignature: {
+						min: 2,
+						lifetime: 24,
+						keysgroup: [
+							'-215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+						],
+					},
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.multisignature.keysgroup[0]');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.multisignature.keysgroup has non public key', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					multisignature: {
+						min: 2,
+						lifetime: 24,
+						keysgroup: [
+							'+not public key',
 							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 						],

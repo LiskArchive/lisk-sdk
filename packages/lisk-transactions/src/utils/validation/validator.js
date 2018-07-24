@@ -13,20 +13,28 @@
  *
  */
 import Ajv from 'ajv';
-import ajvMergePatch from 'ajv-merge-patch';
-import { validateAddress, validatePublicKey } from './validation';
+import addMergePatchKeywords from 'ajv-merge-patch';
+import bignum from 'browserify-bignum';
+import {
+	validateAddress,
+	validatePublicKey,
+	isGreaterThanMaxTransactionAmount,
+	isGreaterThanMaxTransactionId,
+	isNumberString,
+} from './validation';
 import * as schemas from './schema';
 
 const validator = new Ajv({ allErrors: true });
-// Add $merge and $patch keywords
-ajvMergePatch(validator);
+addMergePatchKeywords(validator);
 
-validator.addFormat('number', data => data === '' || /^[0-9]+$/g.test(data));
+validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
 
-validator.addFormat(
-	'signature',
-	data => data === '' || /^[a-f0-9]{128}$/i.test(data),
-);
+validator.addFormat('id', data => {
+	if (!isNumberString(data)) {
+		return false;
+	}
+	return !isGreaterThanMaxTransactionId(bignum(data));
+});
 
 validator.addFormat('address', data => {
 	try {
@@ -35,6 +43,13 @@ validator.addFormat('address', data => {
 	} catch (error) {
 		return false;
 	}
+});
+
+validator.addFormat('amount', data => {
+	if (!isNumberString(data)) {
+		return false;
+	}
+	return !isGreaterThanMaxTransactionAmount(bignum(data));
 });
 
 validator.addFormat('publicKey', data => {
@@ -60,6 +75,20 @@ validator.addFormat('actionPublicKey', data => {
 	}
 });
 
+validator.addFormat('additionPublicKey', data => {
+	const action = data[0];
+	if (action !== '+') {
+		return false;
+	}
+	try {
+		const publicKey = data.slice(1);
+		validatePublicKey(publicKey);
+		return true;
+	} catch (error) {
+		return false;
+	}
+});
+
 validator.addSchema(schemas.baseTransaction);
 
 const schemaMap = {
@@ -71,7 +100,7 @@ const schemaMap = {
 	5: validator.compile(schemas.dappTransaction),
 };
 
-const getValidator = type => {
+const getTransactionValidator = type => {
 	const schema = schemaMap[type];
 	if (!schema) {
 		throw new Error('Unsupported transaction type.');
@@ -80,10 +109,7 @@ const getValidator = type => {
 };
 
 export const validateTransaction = tx => {
-	if (typeof tx.type !== 'number') {
-		throw new Error('Transaction type must be a number.');
-	}
-	const validate = getValidator(tx.type);
+	const validate = getTransactionValidator(tx.type);
 	const valid = validate(tx);
 	// Ajv produces merge error when error happens within $merge
 	const errors = validate.errors
