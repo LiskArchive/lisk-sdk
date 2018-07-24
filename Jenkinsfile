@@ -40,6 +40,21 @@ pipeline {
 				}
 			}
 		}
+		stage('Run node tests') {
+			steps {
+				ansiColor('xterm') {
+					sh 'npm run test:node'
+				}
+			}
+		}
+		stage('Run browser tests') {
+			steps {
+				sh '''
+				npm run build:browsertest
+				npm run test:browser
+				'''
+			}
+		}
 	}
 	post {
 		success {
