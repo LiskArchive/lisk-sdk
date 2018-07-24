@@ -81,7 +81,7 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when id contains more maximum id possible', () => {
+		it('should validate to be false with errors when id is too large', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				id: '18446744073709551616',
 			});
@@ -120,6 +120,24 @@ describe('validator', () => {
 		it('should validate to be false with errors when timestamp is not integer', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				timestamp: 12.34,
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.timestamp');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when timestamp is negative integer', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				timestamp: -12,
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.timestamp');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when timestamp is too large', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				timestamp: 2147483648,
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
 			expect(errors[0].dataPath).to.equal('.timestamp');
@@ -252,7 +270,7 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be true when signatures is contains valid signatures', () => {
+		it('should validate to be true when signatures contains only non-duplicated valid signatures', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				signatures: [
 					'fad7b3b31c337b39190d206831c1eaadc6bbf3878a3507a868a5fbb03471b383042bf3bb7cee20d9844f2f4d1bb90d08bc3589b8b7d27a538be285deec7a9504',
@@ -267,7 +285,7 @@ describe('validator', () => {
 		it('should validate to be true when data is 64 bytes', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					data: 'fad7b3b31c337b39190d206831c1eaad',
+					data: 'f---b3b31c337b39190d206.......czzzzzzzzzzzzzzzzzzzzzz',
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -318,7 +336,7 @@ describe('validator', () => {
 			return Promise.resolve();
 		});
 
-		it('should validate to be true', () => {
+		it('should validate to be true without errors', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
 			expect(errors).to.be.null;
 			return expect(valid).to.be.true;
@@ -385,7 +403,7 @@ describe('validator', () => {
 			return Promise.resolve();
 		});
 
-		it('should validate to be true', () => {
+		it('should validate to be true without errors', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
 			expect(errors).to.be.null;
 			return expect(valid).to.be.true;
@@ -454,7 +472,7 @@ describe('validator', () => {
 			return Promise.resolve();
 		});
 
-		it('should validate to be true', () => {
+		it('should validate to be true without errors', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
 			expect(errors).to.be.null;
 			return expect(valid).to.be.true;
@@ -567,7 +585,7 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.votes has no action key', () => {
+		it('should validate to be false with errors when a public key in asset.votes has no sign', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
 					votes: [
@@ -581,7 +599,7 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.votes has non public key', () => {
+		it('should validate to be false with errors when asset.votes has invalid public key', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
 					votes: [
@@ -623,7 +641,7 @@ describe('validator', () => {
 			return Promise.resolve();
 		});
 
-		it('should validate to be true', () => {
+		it('should validate to be true without errors', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
 			expect(errors).to.be.null;
 			return expect(valid).to.be.true;
@@ -643,13 +661,13 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.min does not exist', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						lifetime: 24,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							min: undefined,
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -660,14 +678,30 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.min is zero', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 0,
-						lifetime: 24,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							min: 0,
+						},
+					),
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.multisignature.min');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.multisignature.min is too large', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							min: 17,
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -678,13 +712,13 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.lifetime does not exist', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							lifetime: undefined,
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -695,14 +729,13 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.lifetime is zero', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 1,
-						lifetime: 0,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							lifetime: 0,
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -713,14 +746,13 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.lifetime is more than 24', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 1,
-						lifetime: 25,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							lifetime: 25,
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -731,10 +763,13 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.keysgroup does not exist', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						lifetime: 24,
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							keysgroup: undefined,
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -745,11 +780,13 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.keysgroup is an empty array', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						lifetime: 24,
-						keysgroup: [],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							keysgroup: [],
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -757,16 +794,18 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.multisignature.keysgroup has only one elements', () => {
+		it('should validate to be false with errors when asset.multisignature.keysgroup has only one element', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						lifetime: 24,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							keysgroup: [
+								'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+							],
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -777,15 +816,17 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.multisignature.keysgroup has duplicate elements', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						lifetime: 24,
-						keysgroup: [
-							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							keysgroup: [
+								'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+							],
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -793,18 +834,20 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.multisignature.keysgroup has no action key', () => {
+		it('should validate to be false with errors when asset.multisignature.keysgroup has a public key with no sign', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						lifetime: 24,
-						keysgroup: [
-							'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							keysgroup: [
+								'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+							],
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -812,18 +855,20 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.multisignature.keysgroup has "-" action key', () => {
+		it('should validate to be false with errors when asset.multisignature.keysgroup has "-" sign key', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					multisignature: {
-						min: 2,
-						lifetime: 24,
-						keysgroup: [
-							'-215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
-						],
-					},
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							keysgroup: [
+								'-215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+							],
+						},
+					),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -831,7 +876,7 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
-		it('should validate to be false with errors when asset.multisignature.keysgroup has non public key', () => {
+		it('should validate to be false with errors when asset.multisignature.keysgroup has invalid public key', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
 					multisignature: {
@@ -857,7 +902,7 @@ describe('validator', () => {
 						min: 2,
 						lifetime: 24,
 						keysgroup: [
-							'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+							'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1ab',
 							'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1ac',
@@ -912,7 +957,7 @@ describe('validator', () => {
 			return Promise.resolve();
 		});
 
-		it('should validate to be true', () => {
+		it('should validate to be true without errors', () => {
 			const { valid, errors } = validateTransaction(validTransaction);
 			expect(errors).to.be.null;
 			return expect(valid).to.be.true;
@@ -943,15 +988,9 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.dapp.name is not string', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					dapp: {
-						category: 0,
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
 						name: 3,
-						description: 'Ds',
-						tags: '1nkfYVcgsisKnXyn7k0',
-						type: 0,
-						link: 'WQDusb0DgH',
-						icon: 'RPAFQsBIsE',
-					},
+					}),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -962,15 +1001,9 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.dapp.type is not integer', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					dapp: {
-						category: 0,
-						name: 'name',
-						description: 'Ds',
-						tags: '1nkfYVcgsisKnXyn7k0',
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
 						type: 1.2,
-						link: 'WQDusb0DgH',
-						icon: 'RPAFQsBIsE',
-					},
+					}),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -981,15 +1014,9 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.dapp.link is not string', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					dapp: {
-						category: 0,
-						name: 'name',
-						description: 'Ds',
-						tags: '1nkfYVcgsisKnXyn7k0',
-						type: 1,
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
 						link: 3,
-						icon: 'RPAFQsBIsE',
-					},
+					}),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
@@ -1000,19 +1027,52 @@ describe('validator', () => {
 		it('should validate to be false with errors when asset.dapp.category is not integer', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {
-					dapp: {
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
 						category: 'category 1',
-						name: 'name',
-						description: 'Ds',
-						tags: '1nkfYVcgsisKnXyn7k0',
-						type: 1,
-						link: 'link',
-						icon: 'RPAFQsBIsE',
-					},
+					}),
 				},
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
 			expect(errors[0].dataPath).to.equal('.asset.dapp.category');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.dapp.tags is not string', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
+						tags: 3,
+					}),
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.dapp.tags');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.dapp.description is not string', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
+						description: 3,
+					}),
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.dapp.description');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.dapp.icon is not string', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					dapp: Object.assign({}, validTransaction.asset.dapp, {
+						icon: 3,
+					}),
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.dapp.icon');
 			return expect(valid).to.be.false;
 		});
 	});

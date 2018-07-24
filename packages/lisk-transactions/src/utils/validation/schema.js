@@ -47,6 +47,8 @@ export const baseTransaction = {
 		},
 		timestamp: {
 			type: 'integer',
+			minimum: 0,
+			maximum: 2147483647,
 		},
 		senderId: {
 			type: 'string',
