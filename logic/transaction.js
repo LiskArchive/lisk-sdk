@@ -150,6 +150,7 @@ class Transaction {
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	getBytes(transaction, skipSignature, skipSecondSignature) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
@@ -158,8 +159,7 @@ class Transaction {
 		let byteBuffer;
 
 		try {
-			const assetBytes = __private.types[transaction.type].getBytes.call(
-				this,
+			const assetBytes = __private.types[transaction.type].getBytes(
 				transaction,
 				skipSignature,
 				skipSecondSignature
@@ -245,6 +245,7 @@ class Transaction {
 	 * @returns {function|boolean} Calls `ready()` on sub class | false
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	ready(transaction, sender) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
@@ -254,11 +255,7 @@ class Transaction {
 			return false;
 		}
 
-		return __private.types[transaction.type].ready.call(
-			this,
-			transaction,
-			sender
-		);
+		return __private.types[transaction.type].ready(transaction, sender);
 	}
 
 	/**
@@ -377,8 +374,7 @@ class Transaction {
 		transaction.senderId = sender.address;
 
 		// Call process on transaction type
-		__private.types[transaction.type].process.call(
-			this,
+		__private.types[transaction.type].process(
 			transaction,
 			sender,
 			(err, transaction) => {
@@ -620,8 +616,7 @@ class Transaction {
 		}
 
 		// Calculate fee
-		const fee = __private.types[transaction.type].calculateFee.call(
-			this,
+		const fee = __private.types[transaction.type].calculateFee(
 			transaction,
 			sender
 		);
@@ -684,8 +679,7 @@ class Transaction {
 			tx,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transaction.type].verify.call(
-				this,
+			__private.types[transaction.type].verify(
 				transaction,
 				sender,
 				err => {
@@ -857,8 +851,7 @@ class Transaction {
 				 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
 				 * DApp, InTransfer or OutTransfer.
 				 */
-				__private.types[transaction.type].apply.call(
-					this,
+				__private.types[transaction.type].apply(
 					transaction,
 					block,
 					sender,
@@ -923,8 +916,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undo.call(
-					this,
+				__private.types[transaction.type].undo(
 					transaction,
 					block,
 					sender,
@@ -1000,8 +992,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].applyUnconfirmed.call(
-					this,
+				__private.types[transaction.type].applyUnconfirmed(
 					transaction,
 					sender,
 					applyUnconfirmedErr => {
@@ -1053,8 +1044,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undoUnconfirmed.call(
-					this,
+				__private.types[transaction.type].undoUnconfirmed(
 					transaction,
 					sender,
 					undoUnconfirmedErr => {
@@ -1145,8 +1135,7 @@ class Transaction {
 		}
 
 		try {
-			transaction = __private.types[transaction.type].objectNormalize.call(
-				this,
+			transaction = __private.types[transaction.type].objectNormalize(
 				transaction
 			);
 		} catch (e) {
@@ -1165,6 +1154,7 @@ class Transaction {
 	 * @returns {null|transaction}
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	dbRead(raw) {
 		if (!raw.t_id) {
 			return null;
@@ -1194,7 +1184,7 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		const asset = __private.types[transaction.type].dbRead.call(this, raw);
+		const asset = __private.types[transaction.type].dbRead(raw);
 
 		if (asset) {
 			transaction.asset = extend(transaction.asset, asset);

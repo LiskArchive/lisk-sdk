@@ -97,21 +97,10 @@ describe('vote', () => {
 		async.parallel(
 			[
 				function(cb) {
-					vote.apply.call(
-						transactionLogic,
-						transaction,
-						dummyBlock,
-						validSender,
-						cb
-					);
+					vote.apply(transaction, dummyBlock, validSender, cb);
 				},
 				function(cb) {
-					vote.applyUnconfirmed.call(
-						transactionLogic,
-						transaction,
-						validSender,
-						cb
-					);
+					vote.applyUnconfirmed(transaction, validSender, cb);
 				},
 			],
 			done
@@ -155,7 +144,11 @@ describe('vote', () => {
 			(err, scope) => {
 				accountsModule = scope.modules.accounts;
 				delegatesModule = scope.modules.delegates;
-				vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+				vote = new Vote(
+					modulesLoader.scope.logger,
+					modulesLoader.scope.schema,
+					scope.logic.account
+				);
 				voteBindings = {
 					delegate: delegatesModule,
 					account: accountsModule,
@@ -571,21 +564,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.apply.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.apply(transaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 
 		it('should add vote for delegate', done => {
@@ -593,21 +580,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.apply.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.apply(transaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 	});
 
@@ -617,21 +598,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.undo.call(
-				transactionLogic,
-				validTransaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undo(validTransaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 
 		it('should undo add vote for delegate', done => {
@@ -639,21 +614,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.undo.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undo(transaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 	});
 
@@ -663,20 +632,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.applyUnconfirmed.call(
-				transactionLogic,
-				validTransaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.applyUnconfirmed(validTransaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 
 		it('should add vote for delegate', done => {
@@ -684,20 +648,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.applyUnconfirmed.call(
-				transactionLogic,
-				transaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.applyUnconfirmed(transaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 	});
 
@@ -707,20 +666,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.undoUnconfirmed.call(
-				transactionLogic,
-				validTransaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undoUnconfirmed(validTransaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 
 		it('should undo add vote for delegate', done => {
@@ -728,35 +682,30 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.undoUnconfirmed.call(
-				transactionLogic,
-				transaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undoUnconfirmed(transaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 	});
 
 	describe('objectNormalize', () => {
 		it('should normalize object for valid transaction', () => {
-			return expect(
-				vote.objectNormalize.call(transactionLogic, validTransaction)
-			).to.eql(validTransaction);
+			return expect(vote.objectNormalize(validTransaction)).to.eql(
+				validTransaction
+			);
 		});
 
 		it('should throw error for duplicate votes in a transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes.push(transaction.asset.votes[0]);
 			return expect(() => {
-				vote.objectNormalize.call(transactionLogic, transaction);
+				vote.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate vote schema: Array items are not unique (indexes 0 and 3)'
 			);
@@ -770,7 +719,7 @@ describe('vote', () => {
 				return `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});
 			return expect(() => {
-				vote.objectNormalize.call(transactionLogic, transaction);
+				vote.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate vote schema: Array is too long (34), maximum 33'
 			);
