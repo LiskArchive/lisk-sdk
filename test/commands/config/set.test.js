@@ -28,7 +28,7 @@ describe('config:set', () => {
 
 	const printMethodStub = sandbox.stub();
 	const defaultDir = './someDir';
-	const setupStub = () =>
+	const setupTest = () =>
 		test
 			.env({ LISK_COMMANDER_CONFIG_DIR: defaultDir })
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
@@ -36,31 +36,31 @@ describe('config:set', () => {
 			.stub(config, 'setConfig', sandbox.stub().returns(true));
 
 	describe('config:set', () => {
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['config:set'])
 			.catch(error =>
 				expect(error.message).to.contain('Missing 1 required arg'),
 			)
-			.it('should throw an error when no variable is set');
+			.it('should throw an error when no value is set');
 	});
 
 	describe('config:set key', () => {
-		const randomVariable = 'newvariable';
-		setupStub()
+		const unknownValue = 'newvalue';
+		setupTest()
 			.stdout()
-			.command(['config:set', 'newvariable'])
+			.command(['config:set', 'newvalue'])
 			.catch(error =>
 				expect(error.message).to.contain(
-					`Expected ${randomVariable} to be one of:`,
+					`Expected ${unknownValue} to be one of:`,
 				),
 			)
-			.it('should throw an error when the variable is not supported');
+			.it('should throw an error when the value is not supported');
 	});
 
-	describe('config:set key variable ', () => {
-		describe('config:set api.nodes variable', () => {
-			setupStub()
+	describe('config:set key value ', () => {
+		describe('config:set api.nodes value', () => {
+			setupTest()
 				.stdout()
 				.command(['config:set', 'api.nodes', 'http://somehost:1234'])
 				.it('should set api.nodes to single value', () => {
@@ -77,7 +77,7 @@ describe('config:set', () => {
 					);
 				});
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command([
 					'config:set',
@@ -98,7 +98,7 @@ describe('config:set', () => {
 					);
 				});
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command(['config:set', 'api.nodes'])
 				.it('should set api.nodes to empty array', () => {
@@ -115,7 +115,7 @@ describe('config:set', () => {
 					);
 				});
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command(['config:set', 'api.nodes', 'ws://hostname'])
 				.catch(error =>
@@ -127,17 +127,17 @@ describe('config:set', () => {
 					'should throw error when api.nodes value is not supported protocol',
 				);
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command(['config:set', 'api.nodes', 'http://'])
 				.catch(error =>
 					expect(error.message).to.contain(
-						'Node URLs must include a supported protocol',
+						'Node URLs must include a supported protocol (http, https) and a hostname.',
 					),
 				)
 				.it('should throw error when api.nodes value does not have host name');
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.stub(config, 'getConfig', sandbox.stub().returns({}))
 				.command(['config:set', 'api.nodes', 'http://hostname'])
@@ -146,14 +146,14 @@ describe('config:set', () => {
 						'It looks like your configuration file is corrupted. Please check the file at',
 					),
 				)
-				.it('should throw error when config file is currupted');
+				.it('should throw error when config file is corrupted');
 		});
 
-		describe('config:set json variable', () => {
-			setupStub()
+		describe('config:set json value', () => {
+			setupTest()
 				.stdout()
 				.command(['config:set', 'json', 'true'])
-				.it('should json to provided value', () => {
+				.it('should set json to provided boolean value', () => {
 					const newConfig = {
 						...defaultConfig,
 						json: true,
@@ -164,7 +164,7 @@ describe('config:set', () => {
 					);
 				});
 
-			setupStub()
+			setupTest()
 				.stub(config, 'setConfig', sandbox.stub().returns(false))
 				.stdout()
 				.command(['config:set', 'json', 'true'])
@@ -175,7 +175,7 @@ describe('config:set', () => {
 				)
 				.it('should throw an error when setConfig fails');
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command(['config:set', 'json', 'truely'])
 				.catch(error =>
@@ -184,8 +184,8 @@ describe('config:set', () => {
 				.it('should throw error when json value is not boolean');
 		});
 
-		describe('config:set name variable', () => {
-			setupStub()
+		describe('config:set name value', () => {
+			setupTest()
 				.stdout()
 				.command(['config:set', 'name', 'new name'])
 				.it('should set name to provided value', () => {
@@ -199,33 +199,30 @@ describe('config:set', () => {
 					);
 				});
 		});
-		describe('config:set api.network variable', () => {
+		describe('config:set api.network value', () => {
 			const validNethash =
 				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
-			setupStub()
+			setupTest()
 				.stdout()
 				.command(['config:set', 'api.network', validNethash])
-				.it(
-					'should throw error when api.network value is not valid hex string',
-					() => {
-						const newConfig = {
-							...defaultConfig,
-							api: {
-								network: validNethash,
-								nodes: defaultConfig.api.nodes,
-							},
-						};
-						return expect(config.setConfig).to.be.calledWith(
-							defaultDir,
-							newConfig,
-						);
-					},
-				);
+				.it('should set api.network to the custom nethash', () => {
+					const newConfig = {
+						...defaultConfig,
+						api: {
+							network: validNethash,
+							nodes: defaultConfig.api.nodes,
+						},
+					};
+					return expect(config.setConfig).to.be.calledWith(
+						defaultDir,
+						newConfig,
+					);
+				});
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command(['config:set', 'api.network', 'beta'])
-				.it('should set api.network to beta', () => {
+				.it('should set api.network to a known network', () => {
 					const newConfig = {
 						...defaultConfig,
 						api: {
@@ -239,7 +236,7 @@ describe('config:set', () => {
 					);
 				});
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command([
 					'config:set',
@@ -253,7 +250,7 @@ describe('config:set', () => {
 				)
 				.it('should throw error when api.network value is not length of 64');
 
-			setupStub()
+			setupTest()
 				.stdout()
 				.command([
 					'config:set',

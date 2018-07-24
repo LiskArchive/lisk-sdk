@@ -19,12 +19,42 @@ import * as config from '../src/utils/config';
 import * as printUtil from '../src/utils/print';
 
 describe('base command', () => {
+	const defaultFlags = {
+		some: 'flag',
+	};
+
+	const defaultConfig = {
+		name: 'lisk-commander',
+	};
+
 	let command;
+	let envConfigDir;
+	let envConfigHome;
+	before(() => {
+		envConfigDir = process.env.LISK_COMMANDER_CONFIG_DIR;
+		envConfigHome = process.env.XDG_CONFIG_HOME;
+		return Promise.resolve();
+	});
+
+	after(() => {
+		if (envConfigDir) {
+			process.env.LISK_COMMANDER_CONFIG_DIR = envConfigDir;
+		} else {
+			delete process.env.LISK_COMMANDER_CONFIG_DIR;
+		}
+		if (envConfigHome) {
+			process.env.XDG_CONFIG_HOME = envConfigHome;
+		} else {
+			delete process.env.XDG_CONFIG_HOME;
+		}
+		return Promise.resolve();
+	});
+
 	beforeEach(() => {
 		command = new BaseCommand();
-		sandbox.stub(command, 'parse').returns({});
+		sandbox.stub(command, 'parse').returns({ flags: defaultFlags });
 		sandbox.stub(command, 'error');
-		sandbox.stub(config, 'getConfig').returns({});
+		sandbox.stub(config, 'getConfig').returns(defaultConfig);
 		return Promise.resolve();
 	});
 
@@ -43,6 +73,23 @@ describe('base command', () => {
 			await command.init();
 			return expect(process.env.XDG_CONFIG_HOME).to.equal(configFolder);
 		});
+
+		it('should call getConfig with the config folder set by the environment variable', async () => {
+			const configFolder = './some/folder';
+			process.env.LISK_COMMANDER_CONFIG_DIR = configFolder;
+			await command.init();
+			return expect(config.getConfig).to.be.calledWithExactly(configFolder);
+		});
+
+		it('should set the flags to the return value of the parse function', async () => {
+			await command.init();
+			return expect(command.flags).to.equal(defaultFlags);
+		});
+
+		it('should set the userConfig to the return value of the getConfig', async () => {
+			await command.init();
+			return expect(command.userConfig).to.equal(defaultConfig);
+		});
 	});
 
 	describe('#finally', () => {
@@ -59,7 +106,7 @@ describe('base command', () => {
 			return expect(command.error).to.be.calledWithExactly(errorMsg);
 		});
 
-		it('should not log error', async () => {
+		it('should do nothing if no error is provided', async () => {
 			await command.finally();
 			return expect(command.error).not.to.be.called;
 		});
@@ -99,7 +146,7 @@ describe('base command', () => {
 			);
 		});
 
-		it('should not call getConfig when readAgain is false', async () => {
+		it('should not call getConfig when readAgain is falsy', async () => {
 			command.userConfig = {};
 			command.print(result);
 			return expect(config.getConfig).not.to.be.called;
@@ -122,18 +169,20 @@ describe('base command', () => {
 			});
 		});
 
-		it('should call printUtil with the flag overwriting the userConfig', async () => {
+		it('should call printUtil with flags overwriting the userConfig', async () => {
 			command.userConfig = {
 				json: false,
 				pretty: true,
 			};
-			const overwritingFlag = {
+			const overwritingFlags = {
 				json: true,
 				pretty: false,
 			};
-			command.flags = overwritingFlag;
+			command.flags = overwritingFlags;
 			command.print(result);
-			return expect(printUtil.default).to.be.calledWithExactly(overwritingFlag);
+			return expect(printUtil.default).to.be.calledWithExactly(
+				overwritingFlags,
+			);
 		});
 	});
 });

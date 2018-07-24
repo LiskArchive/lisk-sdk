@@ -26,13 +26,13 @@ describe('config:show', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = () =>
+	const setupTest = () =>
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig));
 
 	describe('config:show', () => {
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['config:show'])
 			.it('should call print with the user config', () => {
@@ -40,7 +40,7 @@ describe('config:show', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
 			});
 
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['config:show', '--json', '--pretty'])
 			.it('should call print with json', () => {

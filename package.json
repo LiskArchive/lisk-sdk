@@ -57,7 +57,7 @@
 			"@oclif/plugin-help"
 		],
 		"topics": {
-			"config": { "description": "manage lisk-commander config variables" }
+			"config": { "description": "Manages Lisk Commander configuration." }
 		}
 	},
 	"files": [

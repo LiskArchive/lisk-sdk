@@ -63,5 +63,6 @@ BaseCommand.flags = {
 	}),
 	pretty: flagParser.boolean({
 		description: prettyDescription,
+		allowNo: true,
 	}),
 };
