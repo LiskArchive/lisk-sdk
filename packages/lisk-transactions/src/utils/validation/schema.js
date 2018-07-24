@@ -181,7 +181,7 @@ export const voteTransaction = {
 					properties: {
 						votes: {
 							type: 'array',
-							uniqueItems: true,
+							uniquePublicKeys: true,
 							minItems: 1,
 							maxItems: 33,
 							items: {
@@ -221,7 +221,7 @@ export const multiTransaction = {
 								},
 								keysgroup: {
 									type: 'array',
-									uniqueItems: true,
+									uniquePublicKeys: true,
 									minItems: 2,
 									maxItems: 16,
 									items: {

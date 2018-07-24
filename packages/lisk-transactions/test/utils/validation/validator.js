@@ -539,6 +539,20 @@ describe('validator', () => {
 			return expect(valid).to.be.false;
 		});
 
+		it('should validate to be false with errors when asset.votes has duplicate elements with different actions', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					votes: [
+						'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+						'-215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+					],
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.votes');
+			return expect(valid).to.be.false;
+		});
+
 		it('should validate to be false with errors when asset.votes has no action key', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				asset: {

@@ -89,6 +89,12 @@ validator.addFormat('additionPublicKey', data => {
 	}
 });
 
+validator.addKeyword('uniquePublicKeys', {
+	type: 'array',
+	compile: () => data =>
+		[...new Set(data.map(key => key.slice(1)))].length === data.length,
+});
+
 validator.addSchema(schemas.baseTransaction);
 
 const schemaMap = {
