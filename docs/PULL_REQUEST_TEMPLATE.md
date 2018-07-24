@@ -11,6 +11,5 @@
 * All new code was formatted with Prettier
 * Linting passes
 * Tests pass
-* Commit messages follow the
-  [commit guidelines](CONTRIBUTING.md#git-commit-messages)
+* Commit messages follow the [commit guidelines](CONTRIBUTING.md#git-commit-messages)
 * Documentation has been added/updated
