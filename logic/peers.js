@@ -19,6 +19,7 @@ const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const Peer = require('../logic/peer.js');
 const System = require('../modules/system.js');
 const PeersManager = require('../helpers/peers_manager.js');
+const BanManager = require('../helpers/ban_manager.js');
 
 // Private fields
 let self;
@@ -42,13 +43,14 @@ let modules;
  * @todo Add description for the params
  */
 class Peers {
-	constructor(logger, cb) {
+	constructor(logger, config, cb) {
 		library = {
 			logger,
 		};
 		self = this;
 
 		this.peersManager = new PeersManager(logger);
+		this.banManager = new BanManager(logger, config, self.unban);
 
 		return setImmediate(cb, null, this);
 	}
@@ -108,6 +110,12 @@ Peers.prototype.get = function(peer) {
 	return self.peersManager.getByAddress(peer.string);
 };
 
+/**
+ * Ban peer by setting BANNED state. Make it temporarily using banManager.
+ *
+ * @param {Peer} peer
+ *
+ */
 Peers.prototype.ban = function(peer) {
 	peer.state = Peer.STATE.BANNED;
 	// Banning peer can only fail with ON_MASTER.UPDATE.INVALID_PEER error.
@@ -117,7 +125,25 @@ Peers.prototype.ban = function(peer) {
 		self.remove(peer);
 		library.logger.info('Attempt to ban a peer failed and resulted with removal');
 	}
-	library.logger.info(`Peer ${peer.string} banned succesfully`);
+	self.banManager.ban(peer);
+	library.logger.info(`Peer ${peer.string} banned successfully`);
+};
+
+/**
+ * Unban peer by setting DISCONNECTED state.
+ *
+ * @param {Peer} peer
+ */
+Peers.prototype.unban = function(peer) {
+	peer.state = Peer.STATE.DISCONNECTED;
+	// Banning peer can only fail with ON_MASTER.UPDATE.INVALID_PEER error.
+	// Happens when we cannot obtain the proper address of a given peer.
+	// In such a case peer will be removed.
+	if (self.upsert(peer) === false) {
+		self.remove(peer);
+		library.logger.info('Attempt to unban a peer failed and resulted with removal');
+	}
+	library.logger.info(`Peer ${peer.string} unbanned successfully and moved to disconnected`);
 };
 
 /**
