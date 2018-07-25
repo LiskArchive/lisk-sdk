@@ -43,11 +43,19 @@ var validKeypair = ed.makeKeypair(
 );
 
 var senderPassphrase = accountFixtures.genesis.passphrase;
-var senderHash = crypto
-	.createHash('sha256')
-	.update(senderPassphrase, 'utf8')
-	.digest();
-var senderKeypair = ed.makeKeypair(senderHash);
+
+const generateHash = passPhrase =>
+	crypto
+		.createHash('sha256')
+		.update(passPhrase || senderPassphrase, 'utf8')
+		.digest();
+
+const senderKeyPair = passPhrase => {
+	const userHash = generateHash(passPhrase);
+	return ed.makeKeypair(userHash);
+};
+
+const keyPair = senderKeyPair();
 
 var sender = {
 	username: null,
@@ -182,8 +190,23 @@ describe('transaction', () => {
 			return expect(transactionLogic.sign).to.throw();
 		});
 
+		it('should throw an error Argument must be a valid hex string.', done => {
+			const inValidTransaction = Object.assign({}, validTransaction);
+			let err = null;
+			inValidTransaction.senderPublicKey =
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6fx';
+			try {
+				expect(transactionLogic.sign(keyPair, inValidTransaction));
+			} catch (e) {
+				err = e.message;
+			} finally {
+				expect(err).to.equal('Argument must be a valid hex string.');
+			}
+			done();
+		});
+
 		it('should sign transaction', () => {
-			return expect(transactionLogic.sign(senderKeypair, validTransaction))
+			return expect(transactionLogic.sign(keyPair, validTransaction))
 				.to.be.a('string')
 				.which.is.equal(
 					'8f9c4242dc562599f95f5481469d22567987536112663156761e4b2b3f1142c4f5355a2a7c7b254f40d370bef7e76b4a11c8a1836e0c9b0bcab3e834ca1e7502'
@@ -195,7 +218,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.data = '123';
 
-			return expect(transactionLogic.sign(senderKeypair, transaction))
+			return expect(transactionLogic.sign(keyPair, transaction))
 				.to.be.a('string')
 				.which.is.not.equal(originalSignature);
 		});
@@ -208,7 +231,7 @@ describe('transaction', () => {
 
 		it('should multisign the transaction', () => {
 			return expect(
-				transactionLogic.multisign(senderKeypair, validTransaction)
+				transactionLogic.multisign(keyPair, validTransaction)
 			).to.equal(validTransaction.signature);
 		});
 	});
@@ -620,7 +643,7 @@ describe('transaction', () => {
 			transaction.signatures = Array(...Array(2)).map(() => {
 				return transactionLogic.sign(validKeypair, transaction);
 			});
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
 				done();
@@ -632,7 +655,7 @@ describe('transaction', () => {
 			var vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.signatures = [
 				transactionLogic.multisign(validKeypair, transaction),
 			];
@@ -696,7 +719,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = { data: '123' };
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 
@@ -741,7 +764,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = -2147483648 - 1;
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
@@ -756,7 +779,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = 2147483647 + 1;
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
@@ -772,7 +795,7 @@ describe('transaction', () => {
 			transaction.timestamp = slots.getTime() + 100;
 			delete transaction.signature;
 
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 

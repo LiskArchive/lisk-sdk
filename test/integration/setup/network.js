@@ -14,11 +14,26 @@
 
 'use strict';
 
-var async = require('async');
-var Promise = require('bluebird');
-var waitUntilBlockchainReady = require('../../common/utils/wait_for')
+const async = require('async');
+const Promise = require('bluebird');
+const waitUntilBlockchainReady = require('../../common/utils/wait_for')
 	.blockchainReady;
-var utils = require('../utils');
+const utils = require('../utils');
+
+const SYNC_MODES = {
+	RANDOM: 0,
+	ALL_TO_FIRST: 1,
+	ALL_TO_GROUP: 2,
+};
+
+const SYNC_MODE_DEFAULT_ARGS = {
+	RANDOM: {
+		probability: 0.5, // (0 - 1)
+	},
+	ALL_TO_GROUP: {
+		indices: [],
+	},
+};
 
 module.exports = {
 	waitForAllNodesToBeReady(configurations, cb) {
@@ -38,12 +53,12 @@ module.exports = {
 		);
 	},
 
-	enableForgingOnDelegates(configurations, cb) {
-		var enableForgingPromises = [];
+	enableForgingForDelegates(configurations, cb) {
+		const enableForgingPromises = [];
 		configurations.forEach(configuration => {
 			configuration.forging.delegates.map(keys => {
 				if (!configuration.forging.force) {
-					var enableForgingPromise = utils.http.enableForging(
+					const enableForgingPromise = utils.http.enableForging(
 						keys,
 						configuration.httpPort
 					);
@@ -65,4 +80,64 @@ module.exports = {
 				return cb(error);
 			});
 	},
+
+	generatePeers(configurations, syncMode, syncModeArgs, currentPeer) {
+		syncModeArgs = syncModeArgs || SYNC_MODE_DEFAULT_ARGS[syncMode];
+		let peersList = [];
+
+		const isPickedWithProbability = n => {
+			return !!n && Math.random() <= n;
+		};
+
+		switch (syncMode) {
+			case SYNC_MODES.RANDOM:
+				if (typeof syncModeArgs.probability !== 'number') {
+					throw new Error(
+						'Probability parameter not specified to random sync mode'
+					);
+				}
+				configurations.forEach(configuration => {
+					if (isPickedWithProbability(syncModeArgs.probability)) {
+						if (!(configuration.wsPort === currentPeer)) {
+							peersList.push({
+								ip: configuration.ip,
+								wsPort: configuration.wsPort,
+							});
+						}
+					}
+				});
+				break;
+
+			case SYNC_MODES.ALL_TO_FIRST:
+				if (configurations.length === 0) {
+					throw new Error('No configurations provided');
+				}
+				peersList = [
+					{
+						ip: configurations[0].ip,
+						wsPort: configurations[0].wsPort,
+					},
+				];
+				break;
+
+			case SYNC_MODES.ALL_TO_GROUP:
+				if (!Array.isArray(syncModeArgs.indices)) {
+					throw new Error('Provide peers indices to sync with as an array');
+				}
+				configurations.forEach((configuration, index) => {
+					if (syncModeArgs.indices.indexOf(index) !== -1) {
+						if (!(configuration.wsPort === currentPeer)) {
+							peersList.push({
+								ip: configuration.ip,
+								wsPort: configuration.wsPort,
+							});
+						}
+					}
+				});
+			// no default
+		}
+
+		return peersList;
+	},
+	SYNC_MODES,
 };

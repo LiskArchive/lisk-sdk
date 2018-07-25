@@ -15,37 +15,30 @@
 'use strict';
 
 const fs = require('fs');
-const childProcess = require('child_process');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
-const blockchainReady = require('../../../common/utils/wait_for').blockchainReady;
+const blockchainReady = require('../../../common/utils/wait_for')
+	.blockchainReady;
+const common = require('../common');
 
-const totalPeers = 10;
-// Each peer connected to 9 other pairs and have 2 connection for bi-directional communication
-const expectedOutgoingConnections = (totalPeers - 1) * totalPeers * 2;
-const expectedConnectionsAfterBlacklisting = (totalPeers - 2) * (totalPeers - 1) * 2;
+module.exports = function(
+	configurations,
+	TOTAL_PEERS,
+	EXPECTED_OUTOGING_CONNECTIONS
+) {
+	// Full mesh network with 2 connection for bi-directional communication without the blacklisted peer
+	const EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING =
+		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
-module.exports = params => {
-	describe('Peer Blacklisted', () => {
-		const getAllPeers = sockets => {
-			return Promise.all(
-				sockets.map(socket => {
-					if (socket.state === 'open') {
-						return socket.call('list', {});
-					}
-				})
-			);
-		};
-
-		const restartNode = nodeName => {
-			return childProcess.execSync(`pm2 restart ${nodeName}`);
-		};
+	describe('@network : peer Blacklisted', () => {
+		const params = {};
+		common.setMonitoringSocketsConnections(params, configurations);
 
 		const wsPorts = new Set();
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return getAllPeers(params.sockets).then(mutualPeers => {
+				return common.getAllPeers(params.sockets).then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -57,7 +50,7 @@ module.exports = params => {
 				});
 			});
 
-			it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
+			it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 				utils.getEstablishedConnections(
 					Array.from(wsPorts),
 					(err, numOfConnections) => {
@@ -65,7 +58,7 @@ module.exports = params => {
 							return done(err);
 						}
 
-						if ((numOfConnections - 20) <= expectedOutgoingConnections) {
+						if (numOfConnections - 20 <= EXPECTED_OUTOGING_CONNECTIONS) {
 							done();
 						} else {
 							done(
@@ -76,7 +69,6 @@ module.exports = params => {
 				);
 			});
 
-
 			describe('when a node blacklists an ip', () => {
 				before(done => {
 					params.configurations[0].peers.access.blackList.push('127.0.0.1');
@@ -84,14 +76,14 @@ module.exports = params => {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
-					restartNode('node_0');
+					// Restart the node to load the just changed configuration
+					common.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-					}, 4000);
+					}, 8000);
 				});
 
-
-				it(`there should be ${expectedConnectionsAfterBlacklisting} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, numOfConnections) => {
@@ -99,7 +91,10 @@ module.exports = params => {
 								return done(err);
 							}
 
-							if ((numOfConnections - 20) <= expectedConnectionsAfterBlacklisting) {
+							if (
+								numOfConnections - 20 <=
+								EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING
+							) {
 								done();
 							} else {
 								done(
@@ -110,11 +105,12 @@ module.exports = params => {
 					);
 				});
 
-				it(`peers manager should contain ${totalPeers - 2} active connections`, () => {
-					return getAllPeers(params.sockets).then(mutualPeers => {
+				it(`peers manager should contain ${TOTAL_PEERS -
+					2} active connections`, () => {
+					return common.getAllPeers(params.sockets).then(mutualPeers => {
 						mutualPeers.forEach(mutualPeer => {
 							if (mutualPeer) {
-								expect(mutualPeer.peers.length).to.be.eql(totalPeers - 2);
+								expect(mutualPeer.peers.length).to.be.eql(TOTAL_PEERS - 2);
 								mutualPeer.peers.map(peer => {
 									expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 								});
@@ -151,13 +147,14 @@ module.exports = params => {
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(params.configurations[0], null, 4)
 					);
-					restartNode('node_0');
+					// Restart the node to load the just changed configuration
+					common.restartNode('node_0');
 					setTimeout(() => {
 						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-					}, 4000);
+					}, 8000);
 				});
 
-				it(`there should be ${expectedOutgoingConnections} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, numOfConnections) => {
@@ -165,7 +162,7 @@ module.exports = params => {
 								return done(err);
 							}
 
-							if ((numOfConnections - 20) <= expectedOutgoingConnections) {
+							if (numOfConnections - 20 <= EXPECTED_OUTOGING_CONNECTIONS) {
 								done();
 							} else {
 								done(
@@ -180,7 +177,7 @@ module.exports = params => {
 					return utils.http.getPeers().then(peers => {
 						peers.map(peer => {
 							if (peer.wsPort == 5000) {
-								expect(peer.state).to.be.eql(Peer.STATE.BANNED);
+								expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
 							} else {
 								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 							}
