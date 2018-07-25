@@ -750,9 +750,14 @@ d.run(() => {
 		},
 		(err, scope) => {
 			// Receives a 'cleanup' signal and cleans all modules
-			process.once('cleanup', error => {
+			process.once('cleanup', (error, code) => {
 				if (error) {
 					logger.fatal(error.toString());
+					if (code === undefined) {
+						code = 1;
+					}
+				} else if (code === undefined || code === null) {
+					code = 0;
 				}
 				logger.info('Cleaning up...');
 				if (scope.socketCluster) {
@@ -774,7 +779,7 @@ d.run(() => {
 						} else {
 							logger.info('Cleaned up successfully');
 						}
-						process.exit(1);
+						process.exit(code);
 					}
 				);
 			});
@@ -783,8 +788,8 @@ d.run(() => {
 				process.emit('cleanup');
 			});
 
-			process.once('exit', () => {
-				process.emit('cleanup');
+			process.once('exit', code => {
+				process.emit('cleanup', null, code);
 			});
 
 			process.once('SIGINT', () => {
