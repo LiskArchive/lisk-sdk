@@ -14,175 +14,162 @@
  *
  */
 import os from 'os';
+import { test } from '@oclif/test';
 import BaseCommand, { defaultConfigFolder } from '../src/base';
 import * as config from '../src/utils/config';
-import * as printUtil from '../src/utils/print';
+import * as print from '../src/utils/print';
 
 describe('base command', () => {
 	const defaultFlags = {
 		some: 'flag',
 	};
-
 	const defaultConfig = {
 		name: 'lisk-commander',
 	};
+	const configFolder = './some/folder';
 
-	let command;
-	let envConfigDir;
-	let envConfigHome;
-	before(() => {
-		envConfigDir = process.env.LISK_COMMANDER_CONFIG_DIR;
-		envConfigHome = process.env.XDG_CONFIG_HOME;
-		return Promise.resolve();
-	});
+	const printMethodStub = sandbox.stub();
 
-	after(() => {
-		if (envConfigDir) {
-			process.env.LISK_COMMANDER_CONFIG_DIR = envConfigDir;
-		} else {
-			delete process.env.LISK_COMMANDER_CONFIG_DIR;
-		}
-		if (envConfigHome) {
-			process.env.XDG_CONFIG_HOME = envConfigHome;
-		} else {
-			delete process.env.XDG_CONFIG_HOME;
-		}
-		return Promise.resolve();
-	});
-
-	beforeEach(() => {
-		command = new BaseCommand();
-		sandbox.stub(command, 'parse').returns({ flags: defaultFlags });
-		sandbox.stub(command, 'error');
-		sandbox.stub(config, 'getConfig').returns(defaultConfig);
-		return Promise.resolve();
-	});
+	const setupTest = () => {
+		const command = new BaseCommand();
+		return test
+			.stub(command, 'parse', sandbox.stub().returns({ flags: defaultFlags }))
+			.stub(command, 'error', sandbox.stub())
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig))
+			.add('command', () => command);
+	};
 
 	describe('#init', () => {
-		it('should set XDG_CONFIG_HOME to default value', async () => {
-			delete process.env.LISK_COMMANDER_CONFIG_DIR;
-			await command.init();
-			return expect(process.env.XDG_CONFIG_HOME).to.equal(
-				`${os.homedir()}/${defaultConfigFolder}`,
+		setupTest()
+			.env({ LISK_COMMANDER_CONFIG_DIR: undefined })
+			.do(async ctx => {
+				await ctx.command.init();
+				return expect(process.env.XDG_CONFIG_HOME).to.equal(
+					`${os.homedir()}/${defaultConfigFolder}`,
+				);
+			})
+			.it('should set XDG_CONFIG_HOME to default value');
+
+		setupTest()
+			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
+			.do(async ctx => {
+				await ctx.command.init();
+				return expect(process.env.XDG_CONFIG_HOME).to.equal(configFolder);
+			})
+			.it('should set XDG_CONFIG_HOME to LISK_COMMANDER_CONFIG_DIR');
+
+		setupTest()
+			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
+			.do(async ctx => {
+				await ctx.command.init();
+				return expect(config.getConfig).to.be.calledWithExactly(configFolder);
+			})
+			.it(
+				'should call getConfig with the config folder set by the environment variable',
 			);
-		});
 
-		it('should set XDG_CONFIG_HOME to LISK_COMMANDER_CONFIG_DIR', async () => {
-			const configFolder = './some/folder';
-			process.env.LISK_COMMANDER_CONFIG_DIR = configFolder;
-			await command.init();
-			return expect(process.env.XDG_CONFIG_HOME).to.equal(configFolder);
-		});
+		setupTest()
+			.do(async ctx => {
+				await ctx.command.init();
+				return expect(ctx.command.flags).to.equal(defaultFlags);
+			})
+			.it('should set the flags to the return value of the parse function');
 
-		it('should call getConfig with the config folder set by the environment variable', async () => {
-			const configFolder = './some/folder';
-			process.env.LISK_COMMANDER_CONFIG_DIR = configFolder;
-			await command.init();
-			return expect(config.getConfig).to.be.calledWithExactly(configFolder);
-		});
-
-		it('should set the flags to the return value of the parse function', async () => {
-			await command.init();
-			return expect(command.flags).to.equal(defaultFlags);
-		});
-
-		it('should set the userConfig to the return value of the getConfig', async () => {
-			await command.init();
-			return expect(command.userConfig).to.equal(defaultConfig);
-		});
+		setupTest()
+			.do(async ctx => {
+				await ctx.command.init();
+				return expect(ctx.command.userConfig).to.equal(defaultConfig);
+			})
+			.it('should set the userConfig to the return value of the getConfig');
 	});
 
 	describe('#finally', () => {
-		it('should log error with the message', async () => {
-			const errorMsg = 'some error';
-			const error = new Error(errorMsg);
-			await command.finally(error);
-			return expect(command.error).to.be.calledWithExactly(errorMsg);
-		});
+		const errorMsg = 'some error';
 
-		it('should log error with input', async () => {
-			const errorMsg = 'some error';
-			await command.finally(errorMsg);
-			return expect(command.error).to.be.calledWithExactly(errorMsg);
-		});
+		setupTest()
+			.do(async ctx => {
+				const error = new Error(errorMsg);
+				await ctx.command.finally(error);
+				return expect(ctx.command.error).to.be.calledWithExactly(errorMsg);
+			})
+			.it('should log error with the message');
 
-		it('should do nothing if no error is provided', async () => {
-			await command.finally();
-			return expect(command.error).not.to.be.called;
-		});
+		setupTest()
+			.do(async ctx => {
+				await ctx.command.finally(errorMsg);
+				return expect(ctx.command.error).to.be.calledWithExactly(errorMsg);
+			})
+			.it('should log error with input');
+
+		setupTest()
+			.do(async ctx => {
+				await ctx.command.finally();
+				return expect(ctx.command.error).not.to.be.called;
+			})
+			.it('should do nothing if no error is provided');
 	});
 
 	describe('#print', () => {
 		const result = {
 			some: 'result',
 		};
-		let tempEnvConfigHome;
-		let print;
 
-		before(() => {
-			tempEnvConfigHome = process.env.XDG_CONFIG_HOME;
-			return Promise.resolve();
-		});
-
-		after(() => {
-			if (tempEnvConfigHome) {
-				process.env.XDG_CONFIG_HOME = tempEnvConfigHome;
-			} else {
-				delete process.env.XDG_CONFIG_HOME;
-			}
-			return Promise.resolve();
-		});
-
-		beforeEach(() => {
-			print = sandbox.stub();
-			return sandbox.stub(printUtil, 'default').returns(print);
-		});
-
-		it('should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true', async () => {
-			process.env.XDG_CONFIG_HOME = 'home';
-			await command.print(result, true);
-			return expect(config.getConfig).to.be.calledWithExactly(
-				process.env.XDG_CONFIG_HOME,
+		setupTest()
+			.env({ XDG_CONFIG_HOME: 'home' })
+			.do(async ctx => {
+				await ctx.command.print(result, true);
+				return expect(config.getConfig).to.be.calledWithExactly(
+					process.env.XDG_CONFIG_HOME,
+				);
+			})
+			.it(
+				'should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true',
 			);
-		});
 
-		it('should not call getConfig when readAgain is falsy', async () => {
-			command.userConfig = {};
-			command.print(result);
-			return expect(config.getConfig).not.to.be.called;
-		});
+		setupTest()
+			.do(async ctx => {
+				ctx.command.userConfig = {};
+				ctx.command.print(result);
+				return expect(config.getConfig).not.to.be.called;
+			})
+			.it('should not call getConfig when readAgain is falsy');
 
-		it('should call print with the result', async () => {
-			command.userConfig = {};
-			command.print(result);
-			return expect(print).to.be.calledWithExactly(result);
-		});
+		setupTest()
+			.do(async ctx => {
+				ctx.command.userConfig = {};
+				ctx.command.print(result);
+				return expect(printMethodStub).to.be.calledWithExactly(result);
+			})
+			.it('should call print method with the result');
 
-		it('should call printUtil with the userConfig', async () => {
-			command.userConfig = {
-				json: false,
-			};
-			command.print(result);
-			return expect(printUtil.default).to.be.calledWithExactly({
-				json: false,
-				pretty: undefined,
-			});
-		});
+		setupTest()
+			.do(async ctx => {
+				ctx.command.userConfig = {
+					json: false,
+				};
+				ctx.command.print(result);
+				return expect(print.default).to.be.calledWithExactly({
+					json: false,
+					pretty: undefined,
+				});
+			})
+			.it('should call print with the userConfig');
 
-		it('should call printUtil with flags overwriting the userConfig', async () => {
-			command.userConfig = {
-				json: false,
-				pretty: true,
-			};
-			const overwritingFlags = {
-				json: true,
-				pretty: false,
-			};
-			command.flags = overwritingFlags;
-			command.print(result);
-			return expect(printUtil.default).to.be.calledWithExactly(
-				overwritingFlags,
-			);
-		});
+		setupTest()
+			.do(async ctx => {
+				ctx.command.userConfig = {
+					json: false,
+					pretty: true,
+				};
+				const overwritingFlags = {
+					json: true,
+					pretty: false,
+				};
+				ctx.command.flags = overwritingFlags;
+				ctx.command.print(result);
+				return expect(print.default).to.be.calledWithExactly(overwritingFlags);
+			})
+			.it('should call print method with the result');
 	});
 });
