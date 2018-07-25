@@ -542,13 +542,23 @@ __private.loadBlockChain = function() {
 							return reload(blocksCount, 'No delegates found');
 						}
 
-						modules.blocks.utils.loadLastBlock((err, block) => {
-							if (err) {
-								return reload(blocksCount, err || 'Failed to load last block');
+						__private.validateOwnChain(validateOwnChainError => {
+							if (validateOwnChainError) {
+								throw validateOwnChainError;
 							}
-							__private.lastBlock = block;
-							library.logger.info('Blockchain ready');
-							library.bus.message('blockchainReady');
+
+							modules.blocks.utils.loadLastBlock((err, block) => {
+								if (err) {
+									return reload(
+										blocksCount,
+										err || 'Failed to load last block'
+									);
+								}
+
+								__private.lastBlock = block;
+								library.logger.info('Blockchain ready');
+								library.bus.message('blockchainReady');
+							});
 						});
 					});
 			}
@@ -556,6 +566,98 @@ __private.loadBlockChain = function() {
 		.catch(err => {
 			library.logger.error(err.stack || err);
 			return process.emit('exit');
+		});
+};
+
+/**
+ * Validate own block chain before startup
+ *
+ * @private
+ * @param {function} cb
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.validateOwnChain = cb => {
+	const invalidBlocks = [];
+	let lastValidBlock = null;
+
+	// Load last 2 rounds + additional 1 block
+	library.db.blocks
+		.loadLastNBlockIds(constants.activeDelegates * 2 + 1)
+		.then(blockIds => {
+			async.eachSeries(
+				blockIds,
+				(blockId, eachSeriesCb) => {
+					modules.blocks.utils.loadBlocksPart(
+						{ id: blockId.id },
+						(getBlocksErr, block) => {
+							block = block[0];
+
+							if (block.height === 1) {
+								lastValidBlock = block;
+								eachSeriesCb(true);
+							}
+
+							modules.blocks.utils.loadBlocksPart(
+								{ id: block.previousBlock },
+								(lastBlockError, lastBlock) => {
+									lastBlock = lastBlock[0];
+
+									modules.blocks.lastBlock.set(lastBlock);
+
+									const result = modules.blocks.verify.verifyBlock(block);
+
+									if (!result.verified) {
+										invalidBlocks.push(block);
+										eachSeriesCb(null);
+									} else {
+										lastValidBlock = block;
+										eachSeriesCb(true);
+									}
+								}
+							);
+						}
+					);
+				},
+				eachSeriesError => {
+					if (eachSeriesError && !lastValidBlock) {
+						library.logger.error(eachSeriesError);
+						return process.emit(
+							'cleanup',
+							'Some error occurred while validating chain.'
+						);
+					}
+
+					if (invalidBlocks.length > constants.activeDelegates * 2) {
+						return process.emit(
+							'cleanup',
+							'Your block chain is invalid. Please rebuild from snapshot.'
+						);
+					}
+
+					library.logger.info(
+						`Deleting ${invalidBlocks.length} invalid blocks.`
+					);
+					library.logger.debug(invalidBlocks);
+
+					modules.blocks.lastBlock.set(invalidBlocks[0]);
+
+					async.eachSeries(
+						invalidBlocks,
+						(invalidBlock, eachSeriesCb) => {
+							modules.blocks.chain.deleteLastBlock(eachSeriesCb);
+						},
+						deleteLastBlockError => {
+							if (deleteLastBlockError) {
+								library.logger.error(
+									'Error occurred while deleting blocks',
+									deleteLastBlockError
+								);
+							}
+							return setImmediate(cb, deleteLastBlockError);
+						}
+					);
+				}
+			);
 		});
 };
 
