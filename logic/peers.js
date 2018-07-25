@@ -108,6 +108,18 @@ Peers.prototype.get = function(peer) {
 	return self.peersManager.getByAddress(peer.string);
 };
 
+Peers.prototype.ban = function(peer) {
+	peer.state = Peer.STATE.BANNED;
+	// Banning peer can only fail with ON_MASTER.UPDATE.INVALID_PEER error.
+	// Happens when we cannot obtain the proper address of a given peer.
+	// In such a case peer will be removed.
+	if (self.upsert(peer) === false) {
+		self.remove(peer);
+		library.logger.info('Attempt to ban a peer failed and resulted with removal');
+	}
+	library.logger.info(`Peer ${peer.string} banned succesfully`);
+};
+
 /**
  * Inserts or updates a peer.
  *

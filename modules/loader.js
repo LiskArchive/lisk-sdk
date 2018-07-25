@@ -678,8 +678,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 								);
 								// Ban a peer if block validation fails
 								// Invalid peers won't get chosen in the next sync attempt
-								peer.state = library.logic.peers.state.BANNED;
-								modules.peers.upsert(peer);
+								library.logic.peers.ban(peer);
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
