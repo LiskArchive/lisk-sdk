@@ -13,7 +13,7 @@
  *
  */
 
-import { validateTransaction } from '../../../src/utils/validation/validator';
+import validateTransaction from '../../../src/utils/validation/validate_transaction';
 
 describe('validator', () => {
 	let validTransaction;
@@ -66,15 +66,6 @@ describe('validator', () => {
 		it('should validate to be false with errors when id contains non-number', () => {
 			const invalidTransaction = Object.assign({}, validTransaction, {
 				id: '123nonnumber',
-			});
-			const { valid, errors } = validateTransaction(invalidTransaction);
-			expect(errors[0].dataPath).to.equal('.id');
-			return expect(valid).to.be.false;
-		});
-
-		it('should validate to be false with errors when id contains more than 20 digits', () => {
-			const invalidTransaction = Object.assign({}, validTransaction, {
-				id: '123456789012345678901',
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
 			expect(errors[0].dataPath).to.equal('.id');
@@ -925,6 +916,28 @@ describe('validator', () => {
 			});
 			const { valid, errors } = validateTransaction(invalidTransaction);
 			expect(errors[0].dataPath).to.equal('.asset.multisignature.keysgroup');
+			return expect(valid).to.be.false;
+		});
+
+		it('should validate to be false with errors when asset.multisignature.min is greater than number of keysgroup', () => {
+			const invalidTransaction = Object.assign({}, validTransaction, {
+				asset: {
+					multisignature: Object.assign(
+						{},
+						validTransaction.asset.multisignature,
+						{
+							min: 4,
+							keysgroup: [
+								'+215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
+								'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1ab',
+							],
+						},
+					),
+				},
+			});
+			const { valid, errors } = validateTransaction(invalidTransaction);
+			expect(errors[0].dataPath).to.equal('.asset.multisignature.min');
 			return expect(valid).to.be.false;
 		});
 	});

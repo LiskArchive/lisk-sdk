@@ -94,34 +94,4 @@ validator.addKeyword('uniqueSignedPublicKeys', {
 
 validator.addSchema(schemas.baseTransaction);
 
-const schemaMap = {
-	0: validator.compile(schemas.transferTransaction),
-	1: validator.compile(schemas.signatureTransaction),
-	2: validator.compile(schemas.delegateTransaction),
-	3: validator.compile(schemas.voteTransaction),
-	4: validator.compile(schemas.multiTransaction),
-	5: validator.compile(schemas.dappTransaction),
-};
-
-const getTransactionValidator = type => {
-	const schema = schemaMap[type];
-	if (!schema) {
-		throw new Error('Unsupported transaction type.');
-	}
-	return schema;
-};
-
-export const validateTransaction = tx => {
-	const validate = getTransactionValidator(tx.type);
-	const valid = validate(tx);
-	// Ajv produces merge error when error happens within $merge
-	const errors = validate.errors
-		? validate.errors.filter(e => e.keyword !== '$merge')
-		: null;
-	return {
-		valid,
-		errors,
-	};
-};
-
 export default validator;
