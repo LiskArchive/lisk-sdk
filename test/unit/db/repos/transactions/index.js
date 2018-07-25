@@ -647,7 +647,7 @@ describe('db', () => {
 				);
 				return expect(result[0]).to.have.all.keys(
 					'transaction_id',
-					'in_dappid'
+					'in_dappId'
 				);
 			});
 		});
