@@ -207,18 +207,18 @@ export const multiTransaction = {
 								min: {
 									type: 'integer',
 									minimum: 1,
-									maximum: 16,
+									maximum: 15,
 								},
 								lifetime: {
 									type: 'integer',
 									minimum: 1,
-									maximum: 24,
+									maximum: 72,
 								},
 								keysgroup: {
 									type: 'array',
 									uniqueItems: true,
-									minItems: 2,
-									maxItems: 16,
+									minItems: 1,
+									maxItems: 15,
 									items: {
 										type: 'string',
 										format: 'additionPublicKey',
