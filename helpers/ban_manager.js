@@ -29,12 +29,6 @@ function BanManager(logger, config) {
 }
 
 /**
- * Ban every peer for 2 minutes.
- * @type {number}
- */
-BanManager.BAN_TIMEOUT = 2000;
-
-/**
  * Temporarily bans a peer for 2 minutes.
  * Calls externally provided unbanPeer.
  *
@@ -52,6 +46,7 @@ BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
 		return;
 	}
 
+	const BAN_TIMEOUT = 120000; // Ban a peer for 2 min.
 	const alreadyBannedPeer = this.bannedPeers[peer.string];
 	if (alreadyBannedPeer) {
 		clearTimeout(alreadyBannedPeer.banTimeoutId);
@@ -62,7 +57,7 @@ BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
 		banTimeoutId: setTimeout(() => {
 			onBanFinished(peer);
 			delete this.bannedPeers[peer.string];
-		}),
+		}, BAN_TIMEOUT),
 	};
 };
 
