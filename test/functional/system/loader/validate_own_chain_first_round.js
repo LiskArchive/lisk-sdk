@@ -25,29 +25,32 @@ describe('validateOwnChain', () => {
 	let Queries;
 	let addTransactionsAndForgePromise;
 
-	localCommon.beforeBlock('lisk_functional_validate_own_chain', lib => {
-		library = lib;
-		Queries = new queriesHelper(lib, lib.db);
+	localCommon.beforeBlock(
+		'lisk_functional_validate_own_chain_first_round',
+		lib => {
+			library = lib;
+			Queries = new queriesHelper(lib, lib.db);
 
-		addTransactionsAndForgePromise = Promise.promisify(
-			localCommon.addTransactionsAndForge
-		);
-	});
+			addTransactionsAndForgePromise = Promise.promisify(
+				localCommon.addTransactionsAndForge
+			);
+		}
+	);
 
-	describe('forge 10 blocks with version = 0', () => {
+	describe('forge 101 blocks with version = 0', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
 
 			// 9 blocks with 1 genesis block
-			return Promise.mapSeries([...Array(9)], () => {
+			return Promise.mapSeries([...Array(100)], () => {
 				return addTransactionsAndForgePromise(library, [], 0);
 			});
 		});
 
-		it('blockchain should be at height 10', () => {
+		it('blockchain should be at height 101', () => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
-			return expect(lastBlock.height).to.eql(10);
+			return expect(lastBlock.height).to.eql(101);
 		});
 
 		it('all blocks should have version = 0', () => {
@@ -72,14 +75,10 @@ describe('validateOwnChain', () => {
 					0: { start: 0, end: 5 },
 				};
 
-				// library.rewiredModules.loader.onBlockchainReady = () => {
-				// 	__private.loaded = true;
-				// 	done();
-				// };
-
-				setTimeout(() => {
+				library.rewiredModules.loader.prototype.onBlockchainReady = () => {
+					__private.loaded = true;
 					done();
-				}, 5000);
+				};
 
 				__private.loadBlockChain();
 			});
