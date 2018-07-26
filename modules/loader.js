@@ -625,17 +625,24 @@ __private.validateOwnChain = cb => {
 	}
 
 	// Validate the top most block
-	const isCurrentBlockInvalid = cb => {
+	const validateCurrentBlock = cb => {
 		library.logger.info(
 			`Validating current block with height ${currentHeight}`
 		);
 
-		__private.validateBlock(currentBlock, validateBlockErr =>
-			setImmediate(cb, !validateBlockErr)
-		);
+		__private.validateBlock(currentBlock, validateBlockErr => {
+			if (!validateBlockErr) {
+				library.logger.info(
+					`Finished validating the chain. You are at height ${
+						modules.blocks.lastBlock.get().height
+					}.`
+				);
+			}
+			return setImmediate(cb, validateBlockErr);
+		});
 	};
 
-	const isStartBlockValid = cb => {
+	const validateStartBlock = cb => {
 		library.logger.info(
 			`Validating last block of second last round with height ${validateTillHeight}`
 		);
@@ -699,10 +706,21 @@ __private.validateOwnChain = cb => {
 		);
 	};
 
-	async.series(
-		[isCurrentBlockInvalid, isStartBlockValid, deleteInvalidBlocks],
-		seriesErr => setImmediate(cb, seriesErr)
-	);
+	validateCurrentBlock(currentBlockError => {
+		// If current block is valid no need to check further
+		if (!currentBlockError) {
+			return setImmediate(cb, null);
+		}
+
+		validateStartBlock(startBlockError => {
+			// If start block is invalid can't proceed further
+			if (startBlockError) {
+				return setImmediate(cb, startBlockError);
+			}
+
+			deleteInvalidBlocks(cb);
+		});
+	});
 };
 
 /**
