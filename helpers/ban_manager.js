@@ -52,16 +52,16 @@ BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
 		return;
 	}
 
-	const alreadyBannedPeer = this.bannedPeers[peer.ip];
+	const alreadyBannedPeer = this.bannedPeers[peer.string];
 	if (alreadyBannedPeer) {
 		clearTimeout(alreadyBannedPeer.banTimeoutId);
 	}
 
-	this.bannedPeers[peer.ip] = {
+	this.bannedPeers[peer.string] = {
 		peer: peer,
 		banTimeoutId: setTimeout(() => {
 			onBanFinished(peer);
-			delete this.bannedPeers[peer.ip];
+			delete this.bannedPeers[peer.string];
 		}),
 	};
 };
