@@ -603,6 +603,7 @@ d.run(() => {
 							],
 							peers: [
 								'logger',
+								'config',
 								function(scope, cb) {
 									new Peers(scope.logger, scope.config, cb);
 								},
