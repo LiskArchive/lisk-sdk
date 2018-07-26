@@ -172,11 +172,10 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	};
 
 	// Update existing peer
-	const update = function(peer) {
+	const update = function(recentPeer, peer) {
 		peer.updated = Date.now();
 		const diff = {};
 
-		const recentPeer = self.peersManager.getByAddress(peer.string);
 		// Make a copy for logging difference purposes only
 		const recentPeerBeforeUpdate = Object.assign({}, recentPeer);
 
@@ -213,7 +212,15 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	if (self.exists(peer)) {
 		// Skip update if insert-only is forced
 		if (!insertOnly) {
-			update(peer);
+				const recentPeer = self.peersManager.getByAddress(peer.string);
+				if (recentPeer.state === Peer.STATE.BANNED && peer.state !== Peer.STATE.BANNED) {
+					library.logger.info('Attempt to unban peer rejected', peer.string);
+					library.logger.debug('Attempt to unban peer rejected', { peer: peer.object() });
+					return failureCodes.ON_MASTER.UPDATE.BANNED;
+				} else {
+					update(recentPeer, peer);
+				}
+			}
 		} else {
 			return failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE;
 		}
