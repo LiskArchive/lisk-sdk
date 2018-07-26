@@ -47,7 +47,7 @@ BanManager.BAN_TIMEOUT = 2000;
  * Hardcoded ban length - 2 minutes also needs justification.
  */
 BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
-	// Don't ban temporarily (ban forever) a peer hardcoded in config.json by a user.
+	// Peer hardcoded in config.json by a user should stays always banned.
 	if (this.config.peers.access.blackList.includes(peer.ip)) {
 		return;
 	}
