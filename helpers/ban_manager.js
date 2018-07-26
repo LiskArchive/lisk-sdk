@@ -21,13 +21,11 @@
  * @memberof helpers
  * @param {Logger} logger
  * @param {Object} config - app configuration
- * @param {function} unbanPeer - app configuration
  */
-function BanManager(logger, config, unbanPeer) {
+function BanManager(logger, config) {
 	this.bannedPeers = {};
 	this.config = config;
 	this.logger = logger;
-	this.unbanPeer = unbanPeer;
 }
 
 /**
@@ -41,13 +39,14 @@ BanManager.BAN_TIMEOUT = 2000;
  * Calls externally provided unbanPeer.
  *
  * @param {Peer} peer
+ * @param {function} onBanFinished - called when temporarily ban finished.
  *
  * ToDo: Introduce well-designed and reasonable peer banning mechanism.
  *
  * For now no penalties for banning a peer multiple times are given.
  * Hardcoded ban length - 2 minutes also needs justification.
  */
-BanManager.prototype.ban = function(peer) {
+BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
 	// Don't ban temporarily (ban forever) a peer hardcoded in config.json by a user.
 	if (this.config.peers.access.blackList.includes(peer.ip)) {
 		return;
@@ -61,7 +60,7 @@ BanManager.prototype.ban = function(peer) {
 	this.bannedPeers[peer.ip] = {
 		peer: peer,
 		banTimeoutId: setTimeout(() => {
-			this.unbanPeer(peer);
+			onBanFinished(peer);
 			delete this.bannedPeers[peer.ip];
 		}),
 	};

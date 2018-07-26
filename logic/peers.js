@@ -127,7 +127,7 @@ Peers.prototype.ban = function(peer) {
 			'Attempt to ban a peer failed and resulted with removal'
 		);
 	}
-	self.banManager.ban(peer);
+	self.banManager.banTemporarily(peer, self.unban);
 	library.logger.info(`Peer ${peer.string} banned successfully`);
 };
 
