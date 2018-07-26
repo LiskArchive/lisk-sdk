@@ -127,7 +127,7 @@ Peers.prototype.ban = function(peer) {
 			err: 'INVALID_PEER',
 			peer: peer.object(),
 		});
-		self.remove(peer);
+		return self.remove(peer);
 	}
 	self.banManager.banTemporarily(peer, self.unban);
 	library.logger.info('Banned peer', peer.string);
@@ -150,7 +150,7 @@ Peers.prototype.unban = function(peer) {
 			err: 'INVALID_PEER',
 			peer: peer.object(),
 		});
-		self.remove(peer);
+		return self.remove(peer);
 	}
 	library.logger.info('Unbanned peer', peer.string);
 	library.logger.debug('Unbanned peer', { peer: peer.object() });
