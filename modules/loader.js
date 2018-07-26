@@ -650,7 +650,7 @@ __private.validateOwnChain = cb => {
 						__private.validateBlock(startBlock, validateBlockErr => {
 							if (validateBlockErr) {
 								library.logger.error(
-									`There are ${currentHeight -
+									`There are more than ${currentHeight -
 										startHeight} invalid blocks. Can't delete those to recover the chain.`
 								);
 								return process.emit(
