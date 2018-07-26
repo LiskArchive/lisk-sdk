@@ -579,9 +579,9 @@ __private.validateBlock = (blockToVerify, cb) => {
 
 	modules.blocks.utils.loadBlockByHeight(
 		blockToVerify.height - 1,
-		(lastBlockError, secondLastBlockToVerify) => {
-			if (lastBlockError) {
-				return setImmediate(cb, lastBlockError);
+		(secondLastBlockError, secondLastBlockToVerify) => {
+			if (secondLastBlockError) {
+				return setImmediate(cb, secondLastBlockError);
 			}
 
 			// Set the block temporarily for block verification
@@ -607,18 +607,25 @@ __private.validateBlock = (blockToVerify, cb) => {
  * @returns {setImmediateCallback} cb, err
  */
 __private.validateOwnChain = cb => {
+	// Validation should be done backward starting from higher height to the lower height
 	const currentBlock = modules.blocks.lastBlock.get();
 	const currentHeight = currentBlock.height;
 	const currentRound = slots.calcRound(currentHeight);
+	const secondLastRound = currentRound - 2;
 
-	// Starting height should be end height of second last round
-	let startHeight;
-	if (currentRound === 1) {
+	// Validate till the end height of second last round
+	let validateTillHeight;
+
+	if (secondLastRound < 1) {
 		// Skip the genesis block validation
-		startHeight = 2;
+		validateTillHeight = 2;
 	} else {
-		startHeight = slots.calcRoundEndHeight(currentRound - 2);
+		// Till last block of second last round
+		validateTillHeight = slots.calcRoundEndHeight(secondLastRound);
 	}
+
+	const breakSeries = cb => setImmediate(cb, true);
+	const continueNextStep = cb => setImmediate(cb, null);
 
 	async.series(
 		[
@@ -631,27 +638,27 @@ __private.validateOwnChain = cb => {
 				__private.validateBlock(currentBlock, validateBlockErr => {
 					if (validateBlockErr) {
 						// Current block is invalid move to next step in async.series
-						return setImmediate(seriesCb, null);
+						return continueNextStep(seriesCb);
 					}
 					// Current block is valid don't need to do any thing exit async.series
-					return setImmediate(seriesCb, true);
+					return breakSeries(seriesCb);
 				});
 			},
 
 			// Validate last block of second last round
 			seriesCb => {
 				library.logger.info(
-					`Validating last block of second last round with height ${startHeight}`
+					`Validating last block of second last round with height ${validateTillHeight}`
 				);
 
 				modules.blocks.utils.loadBlockByHeight(
-					startHeight,
+					validateTillHeight,
 					(lastBlockError, startBlock) => {
 						__private.validateBlock(startBlock, validateBlockErr => {
 							if (validateBlockErr) {
 								library.logger.error(
 									`There are more than ${currentHeight -
-										startHeight} invalid blocks. Can't delete those to recover the chain.`
+										validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
 								);
 								return process.emit(
 									'cleanup',
@@ -659,7 +666,7 @@ __private.validateOwnChain = cb => {
 								);
 							}
 							// Now move to next step
-							return setImmediate(seriesCb, null);
+							return continueNextStep(seriesCb);
 						});
 					}
 				);
@@ -668,13 +675,13 @@ __private.validateOwnChain = cb => {
 			// Delete all invalid blocks in that range
 			seriesCb => {
 				async.doDuring(
-					doWhilstCb => {
-						modules.blocks.chain.deleteLastBlock(doWhilstCb);
+					doDuringCb => {
+						modules.blocks.chain.deleteLastBlock(doDuringCb);
 					},
-					(deleteLastBlockStatus, testCallBb) => {
+					(deleteLastBlockStatus, testCb) => {
 						__private.validateBlock(
 							modules.blocks.lastBlock.get(),
-							validateError => setImmediate(testCallBb, null, !!validateError)
+							validateError => setImmediate(testCb, null, !!validateError)
 						);
 					},
 					doDuringErr => setImmediate(seriesCb, doDuringErr)
