@@ -676,9 +676,6 @@ __private.loadBlocksFromNetwork = function(cb) {
 								library.logger.error(
 									`Failed to load blocks from: ${peer.string}`
 								);
-								// Ban a peer if block validation fails
-								// Invalid peers won't get chosen in the next sync attempt
-								library.logic.peers.ban(peer);
 								errorCount += 1;
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
