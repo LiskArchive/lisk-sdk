@@ -53,7 +53,7 @@ BanManager.prototype.banTemporarily = function(peer, onBanFinished) {
 	}
 
 	this.bannedPeers[peer.string] = {
-		peer: peer,
+		peer,
 		banTimeoutId: setTimeout(() => {
 			onBanFinished(peer);
 			delete this.bannedPeers[peer.string];
