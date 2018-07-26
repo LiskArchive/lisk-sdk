@@ -256,6 +256,19 @@ Utils.prototype.getIdSequence = function(height, cb) {
 		});
 };
 
+Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
+	(tx || library.db).blocks
+		.loadBlocksOffset(height, height + 1)
+		.then(rows => {
+			const blocks = self.readDbRows(rows);
+			return setImmediate(cb, null, blocks[0]);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadBlockByHeight error');
+		});
+};
+
 /**
  * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
  *

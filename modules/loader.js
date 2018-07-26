@@ -542,20 +542,18 @@ __private.loadBlockChain = function() {
 							return reload(blocksCount, 'No delegates found');
 						}
 
-						__private.validateOwnChain(validateOwnChainError => {
-							if (validateOwnChainError) {
-								throw validateOwnChainError;
+						modules.blocks.utils.loadLastBlock((err, block) => {
+							if (err) {
+								return reload(blocksCount, err || 'Failed to load last block');
 							}
 
-							modules.blocks.utils.loadLastBlock((err, block) => {
-								if (err) {
-									return reload(
-										blocksCount,
-										err || 'Failed to load last block'
-									);
+							__private.lastBlock = block;
+
+							__private.validateOwnChain(validateOwnChainError => {
+								if (validateOwnChainError) {
+									throw validateOwnChainError;
 								}
 
-								__private.lastBlock = block;
 								library.logger.info('Blockchain ready');
 								library.bus.message('blockchainReady');
 							});
@@ -570,6 +568,38 @@ __private.loadBlockChain = function() {
 };
 
 /**
+ * Validate given block
+ *
+ * @param {object} block
+ * @param {function} cb
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.validateBlock = (blockToVerify, cb) => {
+	const lastBlock = modules.blocks.lastBlock.get();
+
+	modules.blocks.utils.loadBlockByHeight(
+		blockToVerify.height - 1,
+		(lastBlockError, secondLastBlockToVerify) => {
+			if (lastBlockError) {
+				return setImmediate(cb, lastBlockError);
+			}
+
+			// Set the block temporarily for block verification
+			modules.blocks.lastBlock.set(secondLastBlockToVerify);
+			const result = modules.blocks.verify.verifyBlock(blockToVerify);
+
+			// Revert last block changes
+			modules.blocks.lastBlock.set(lastBlock);
+
+			if (result.verified) {
+				return setImmediate(cb, null);
+			}
+			return setImmediate(cb, result.errors);
+		}
+	);
+};
+
+/**
  * Validate own block chain before startup
  *
  * @private
@@ -577,88 +607,89 @@ __private.loadBlockChain = function() {
  * @returns {setImmediateCallback} cb, err
  */
 __private.validateOwnChain = cb => {
-	const invalidBlocks = [];
-	let lastValidBlock = null;
+	const currentBlock = modules.blocks.lastBlock.get();
+	const currentHeight = currentBlock.height;
+	const currentRound = slots.calcRound(currentHeight);
 
-	// Load last 2 rounds + additional 1 block
-	library.db.blocks
-		.loadLastNBlockIds(constants.activeDelegates * 2 + 1)
-		.then(blockIds => {
-			async.eachSeries(
-				blockIds,
-				(blockId, eachSeriesCb) => {
-					modules.blocks.utils.loadBlocksPart(
-						{ id: blockId.id },
-						(getBlocksErr, block) => {
-							block = block[0];
+	// Starting height should be end height of second last round
+	let startHeight;
+	if (currentRound === 1) {
+		// Skip the genesis block validation
+		startHeight = 2;
+	} else {
+		startHeight = slots.calcRoundEndHeight(currentRound - 2);
+	}
 
-							if (block.height === 1) {
-								lastValidBlock = block;
-								eachSeriesCb(true);
-							}
+	async.series(
+		[
+			// Validate the top most block
+			seriesCb => {
+				library.logger.info(
+					`Validating current block with height ${currentHeight.height}`
+				);
 
-							modules.blocks.utils.loadBlocksPart(
-								{ id: block.previousBlock },
-								(lastBlockError, lastBlock) => {
-									lastBlock = lastBlock[0];
-
-									modules.blocks.lastBlock.set(lastBlock);
-
-									const result = modules.blocks.verify.verifyBlock(block);
-
-									if (!result.verified) {
-										invalidBlocks.push(block);
-										eachSeriesCb(null);
-									} else {
-										lastValidBlock = block;
-										eachSeriesCb(true);
-									}
-								}
-							);
-						}
-					);
-				},
-				eachSeriesError => {
-					if (eachSeriesError && !lastValidBlock) {
-						library.logger.error(eachSeriesError);
-						return process.emit(
-							'cleanup',
-							'Some error occurred while validating chain.'
-						);
+				__private.validateBlock(currentBlock, validateBlockErr => {
+					if (validateBlockErr) {
+						// Current block is invalid move to next step in async.series
+						return setImmediate(seriesCb, null);
 					}
+					// Current block is valid don't need to do any thing exit async.series
+					return setImmediate(seriesCb, true);
+				});
+			},
 
-					if (invalidBlocks.length > constants.activeDelegates * 2) {
-						return process.emit(
-							'cleanup',
-							'Your block chain is invalid. Please rebuild from snapshot.'
-						);
-					}
+			// Validate last block of second last round
+			seriesCb => {
+				library.logger.info(
+					`Validating last block of second last round with height ${startHeight}`
+				);
 
-					library.logger.info(
-						`Deleting ${invalidBlocks.length} invalid blocks.`
-					);
-					library.logger.debug(invalidBlocks);
-
-					modules.blocks.lastBlock.set(invalidBlocks[0]);
-
-					async.eachSeries(
-						invalidBlocks,
-						(invalidBlock, eachSeriesCb) => {
-							modules.blocks.chain.deleteLastBlock(eachSeriesCb);
-						},
-						deleteLastBlockError => {
-							if (deleteLastBlockError) {
+				modules.blocks.utils.loadBlockByHeight(
+					startHeight,
+					(lastBlockError, startBlock) => {
+						__private.validateBlock(startBlock, validateBlockErr => {
+							if (validateBlockErr) {
 								library.logger.error(
-									'Error occurred while deleting blocks',
-									deleteLastBlockError
+									`There are ${currentHeight -
+										startHeight} invalid blocks. Can't delete those to recover the chain.`
+								);
+								return process.emit(
+									'cleanup',
+									'Your block chain is invalid. Please rebuild from snapshot.'
 								);
 							}
-							return setImmediate(cb, deleteLastBlockError);
-						}
-					);
-				}
+							// Now move to next step
+							return setImmediate(seriesCb, null);
+						});
+					}
+				);
+			},
+
+			// Delete all invalid blocks in that range
+			seriesCb => {
+				async.doDuring(
+					doWhilstCb => {
+						modules.blocks.chain.deleteLastBlock(doWhilstCb);
+					},
+					(deleteLastBlockStatus, testCallBb) => {
+						__private.validateBlock(
+							modules.blocks.lastBlock.get(),
+							validateError => setImmediate(testCallBb, null, !!validateError)
+						);
+					},
+					doDuringErr => setImmediate(seriesCb, doDuringErr)
+				);
+			},
+		],
+		() => {
+			library.logger.info(
+				`Finished validating the chain. You are at height ${
+					modules.blocks.lastBlock.get().height
+				}.`
 			);
-		});
+			return setImmediate(cb, null);
+		}
+	);
 };
 
 /**
