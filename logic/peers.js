@@ -122,13 +122,16 @@ Peers.prototype.ban = function(peer) {
 	// Happens when we cannot obtain the proper address of a given peer.
 	// In such a case peer will be removed.
 	if (self.upsert(peer) === false) {
+		library.logger.info('Failed to ban peer', peer.string);
+		library.logger.debug('Failed to ban peer', {
+			err: 'INVALID_PEER',
+			peer: peer.object(),
+		});
 		self.remove(peer);
-		library.logger.info(
-			'Attempt to ban a peer failed and resulted with removal'
-		);
 	}
 	self.banManager.banTemporarily(peer, self.unban);
-	library.logger.info(`Peer ${peer.string} banned successfully`);
+	library.logger.info('Banned peer', peer.string);
+	library.logger.debug('Banned peer', { peer: peer.object() });
 };
 
 /**
@@ -142,14 +145,15 @@ Peers.prototype.unban = function(peer) {
 	// Happens when we cannot obtain the proper address of a given peer.
 	// In such a case peer will be removed.
 	if (self.upsert(peer) === false) {
+		library.logger.info('Failed to unban peer', peer.string);
+		library.logger.debug('Failed to unban peer', {
+			err: 'INVALID_PEER',
+			peer: peer.object(),
+		});
 		self.remove(peer);
-		library.logger.info(
-			'Attempt to unban a peer failed and resulted with removal'
-		);
 	}
-	library.logger.info(
-		`Peer ${peer.string} unbanned successfully and moved to disconnected`
-	);
+	library.logger.info('Unbanned peer', peer.string);
+	library.logger.debug('Unbanned peer', { peer: peer.object() });
 };
 
 /**
