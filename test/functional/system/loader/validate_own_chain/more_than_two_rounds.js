@@ -66,6 +66,8 @@ describe('validateOwnChain', () => {
 		// Setting exception to height 50 will cause chain to delete 303 - 50 = 253 blocks
 		// which is more than 2 rounds (202 blocks) so system should be stopped with error
 		describe('increase block version = 1 and exceptions for height = 50', () => {
+			let validateOwnChainError = null;
+
 			before(done => {
 				const __private = library.rewiredModules.loader.__get__('__private');
 
@@ -77,19 +79,17 @@ describe('validateOwnChain', () => {
 					0: { start: 0, end: 50 },
 				};
 
-				sinonSandbox.spy(process, 'emit');
-
-				setTimeout(done, 5000);
-
-				__private.loadBlockChain();
+				__private.validateOwnChain(error => {
+					validateOwnChainError = error;
+					done();
+				});
 			});
 
-			it('system should stop with error', () => {
+			it('should fail with error', () => {
 				expect(library.logger.error).to.be.calledWith(
 					"There are more than 202 invalid blocks. Can't delete those to recover the chain."
 				);
-				return expect(process.emit).to.be.calledWithExactly(
-					'cleanup',
+				return expect(validateOwnChainError.message).to.be.eql(
 					'Your block chain is invalid. Please rebuild from snapshot.'
 				);
 			});

@@ -64,6 +64,8 @@ describe('validateOwnChain', () => {
 		});
 
 		describe('increase block version = 1 and exceptions for height = 101', () => {
+			let validateOwnChainError = null;
+
 			before(done => {
 				const __private = library.rewiredModules.loader.__get__('__private');
 
@@ -75,12 +77,17 @@ describe('validateOwnChain', () => {
 					0: { start: 0, end: 101 },
 				};
 
-				library.modules.loader.onBlockchainReady = () => {
-					__private.loaded = true;
+				__private.validateOwnChain(error => {
+					validateOwnChainError = error;
 					done();
-				};
+				});
+			});
 
-				__private.loadBlockChain();
+			it('there should be no error during chain validation', () => {
+				expect(library.logger.info).to.be.calledWith(
+					'Finished validating the chain. You are at height 101.'
+				);
+				return expect(validateOwnChainError).to.be.eql(null);
 			});
 
 			it('blockchain should be at height 101', () => {
