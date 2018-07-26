@@ -123,7 +123,9 @@ Peers.prototype.ban = function(peer) {
 	// In such a case peer will be removed.
 	if (self.upsert(peer) === false) {
 		self.remove(peer);
-		library.logger.info('Attempt to ban a peer failed and resulted with removal');
+		library.logger.info(
+			'Attempt to ban a peer failed and resulted with removal'
+		);
 	}
 	self.banManager.ban(peer);
 	library.logger.info(`Peer ${peer.string} banned successfully`);
@@ -141,9 +143,13 @@ Peers.prototype.unban = function(peer) {
 	// In such a case peer will be removed.
 	if (self.upsert(peer) === false) {
 		self.remove(peer);
-		library.logger.info('Attempt to unban a peer failed and resulted with removal');
+		library.logger.info(
+			'Attempt to unban a peer failed and resulted with removal'
+		);
 	}
-	library.logger.info(`Peer ${peer.string} unbanned successfully and moved to disconnected`);
+	library.logger.info(
+		`Peer ${peer.string} unbanned successfully and moved to disconnected`
+	);
 };
 
 /**
@@ -305,7 +311,8 @@ Peers.prototype.listRandomConnected = function(options) {
 		.map(key => self.peersManager.peers[key])
 		.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const shuffledPeerList = _.shuffle(peerList);
-	return options.limit ? shuffledPeerList.slice(0, options.limit)
+	return options.limit
+		? shuffledPeerList.slice(0, options.limit)
 		: shuffledPeerList;
 };
 
