@@ -15,10 +15,10 @@
 'use strict';
 
 const Promise = require('bluebird');
-const exceptions = require('../../../../helpers/exceptions');
-const blockVersion = require('../../../../logic/block_version.js');
-const queriesHelper = require('../../common/sql/queriesHelper.js');
-const localCommon = require('../common');
+const exceptions = require('../../../../../helpers/exceptions');
+const blockVersion = require('../../../../../logic/block_version.js');
+const queriesHelper = require('../../../common/sql/queriesHelper.js');
+const localCommon = require('../../common');
 
 describe('validateOwnChain', () => {
 	let library;
@@ -26,7 +26,7 @@ describe('validateOwnChain', () => {
 	let addTransactionsAndForgePromise;
 
 	localCommon.beforeBlock(
-		'lisk_functional_validate_own_chain_first_round',
+		'lisk_functional_validate_own_chain_full_two_rounds',
 		lib => {
 			library = lib;
 			Queries = new queriesHelper(lib, lib.db);
@@ -37,20 +37,20 @@ describe('validateOwnChain', () => {
 		}
 	);
 
-	describe('forge 101 blocks with version = 0', () => {
+	describe('forge 3 rounds (303 blocks) with version = 0', () => {
 		before(() => {
 			// Set current block version to 0
 			blockVersion.currentBlockVersion = 0;
 
-			// 9 blocks with 1 genesis block
-			return Promise.mapSeries([...Array(100)], () => {
+			// Not consider the genesis block
+			return Promise.mapSeries([...Array(101 * 3 - 1)], () => {
 				return addTransactionsAndForgePromise(library, [], 0);
 			});
 		});
 
-		it('blockchain should be at height 101', () => {
+		it('blockchain should be at height 303', () => {
 			const lastBlock = library.modules.blocks.lastBlock.get();
-			return expect(lastBlock.height).to.eql(101);
+			return expect(lastBlock.height).to.eql(303);
 		});
 
 		it('all blocks should have version = 0', () => {
@@ -63,7 +63,7 @@ describe('validateOwnChain', () => {
 			});
 		});
 
-		describe('increase block version = 1 and exceptions for height = 5', () => {
+		describe('increase block version = 1 and exceptions for height = 101', () => {
 			before(done => {
 				const __private = library.rewiredModules.loader.__get__('__private');
 
@@ -72,15 +72,28 @@ describe('validateOwnChain', () => {
 
 				// Set proper exceptions for blocks versions
 				exceptions.blockVersions = {
-					0: { start: 0, end: 5 },
+					0: { start: 0, end: 101 },
 				};
 
-				library.rewiredModules.loader.prototype.onBlockchainReady = () => {
+				library.modules.loader.onBlockchainReady = () => {
 					__private.loaded = true;
 					done();
 				};
 
 				__private.loadBlockChain();
+			});
+
+			it('blockchain should be at height 101', () => {
+				const lastBlock = library.modules.blocks.lastBlock.get();
+				return expect(lastBlock.height).to.eql(101);
+			});
+
+			it('remaining blocks have version = 0', () => {
+				return Queries.getAllBlocks().then(rows => {
+					_.each(rows, row => {
+						expect(row.version).to.be.equal(0);
+					});
+				});
 			});
 
 			describe('forge 5 more blocks', () => {
@@ -90,25 +103,15 @@ describe('validateOwnChain', () => {
 					});
 				});
 
-				it('blockchain should be at height 10', () => {
+				it('blockchain should be at height 106', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.height).to.eql(10);
-				});
-
-				it('first 5 blocks should have version = 0', () => {
-					return Queries.getAllBlocks().then(rows => {
-						_.each(rows, row => {
-							if (row.height <= 5) {
-								expect(row.version).to.be.equal(0);
-							}
-						});
-					});
+					return expect(lastBlock.height).to.eql(106);
 				});
 
 				it('last 5 blocks should have version = 1', () => {
 					return Queries.getAllBlocks().then(rows => {
 						_.each(rows, row => {
-							if (row.height > 5) {
+							if (row.height > 101) {
 								expect(row.version).to.be.equal(1);
 							}
 						});

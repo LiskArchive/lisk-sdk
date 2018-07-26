@@ -15,10 +15,10 @@
 'use strict';
 
 const Promise = require('bluebird');
-const exceptions = require('../../../../helpers/exceptions');
-const blockVersion = require('../../../../logic/block_version.js');
-const queriesHelper = require('../../common/sql/queriesHelper.js');
-const localCommon = require('../common');
+const exceptions = require('../../../../../helpers/exceptions');
+const blockVersion = require('../../../../../logic/block_version.js');
+const queriesHelper = require('../../../common/sql/queriesHelper.js');
+const localCommon = require('../../common');
 
 describe('validateOwnChain', () => {
 	let library;
@@ -79,7 +79,7 @@ describe('validateOwnChain', () => {
 
 				sinonSandbox.spy(process, 'emit');
 
-				setTimeout(done, 2000);
+				setTimeout(done, 5000);
 
 				__private.loadBlockChain();
 			});
