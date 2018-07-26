@@ -624,78 +624,84 @@ __private.validateOwnChain = cb => {
 		validateTillHeight = slots.calcRoundEndHeight(secondLastRound);
 	}
 
-	const breakSeries = cb => setImmediate(cb, true);
-	const continueNextStep = cb => setImmediate(cb, null);
+	// Validate the top most block
+	const isCurrentBlockInvalid = cb => {
+		library.logger.info(
+			`Validating current block with height ${currentHeight}`
+		);
+
+		__private.validateBlock(currentBlock, validateBlockErr =>
+			setImmediate(cb, !validateBlockErr)
+		);
+	};
+
+	const isStartBlockValid = cb => {
+		library.logger.info(
+			`Validating last block of second last round with height ${validateTillHeight}`
+		);
+
+		modules.blocks.utils.loadBlockByHeight(
+			validateTillHeight,
+			(lastBlockError, startBlock) => {
+				__private.validateBlock(startBlock, validateBlockErr => {
+					if (validateBlockErr) {
+						library.logger.error(
+							`There are more than ${currentHeight -
+								validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
+						);
+						return setImmediate(
+							cb,
+							new Error(
+								'Your block chain is invalid. Please rebuild from snapshot.'
+							)
+						);
+					}
+
+					return setImmediate(cb, null);
+				});
+			}
+		);
+	};
+
+	const deleteInvalidBlocks = cb => {
+		async.doDuring(
+			// Iterator
+			doDuringCb => {
+				modules.blocks.chain.deleteLastBlock(doDuringCb);
+			},
+			// Test condition
+			(deleteLastBlockStatus, testCb) => {
+				__private.validateBlock(modules.blocks.lastBlock.get(), validateError =>
+					setImmediate(testCb, null, !!validateError)
+				);
+			},
+			doDuringErr => {
+				if (doDuringErr) {
+					library.logger.error(
+						'Error occurred during deleting invalid blocks',
+						doDuringErr
+					);
+					return setImmediate(
+						cb,
+						new Error(
+							"Your block chain can't be recovered. Please rebuild from snapshot."
+						)
+					);
+				}
+
+				library.logger.info(
+					`Finished validating the chain. You are at height ${
+						modules.blocks.lastBlock.get().height
+					}.`
+				);
+				return setImmediate(cb, null);
+			}
+		);
+	};
 
 	async.series(
-		[
-			// Validate the top most block
-			seriesCb => {
-				library.logger.info(
-					`Validating current block with height ${currentHeight.height}`
-				);
-
-				__private.validateBlock(currentBlock, validateBlockErr => {
-					if (validateBlockErr) {
-						// Current block is invalid move to next step in async.series
-						return continueNextStep(seriesCb);
-					}
-					// Current block is valid don't need to do any thing exit async.series
-					return breakSeries(seriesCb);
-				});
-			},
-
-			// Validate last block of second last round
-			seriesCb => {
-				library.logger.info(
-					`Validating last block of second last round with height ${validateTillHeight}`
-				);
-
-				modules.blocks.utils.loadBlockByHeight(
-					validateTillHeight,
-					(lastBlockError, startBlock) => {
-						__private.validateBlock(startBlock, validateBlockErr => {
-							if (validateBlockErr) {
-								library.logger.error(
-									`There are more than ${currentHeight -
-										validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
-								);
-								return process.emit(
-									'cleanup',
-									'Your block chain is invalid. Please rebuild from snapshot.'
-								);
-							}
-							// Now move to next step
-							return continueNextStep(seriesCb);
-						});
-					}
-				);
-			},
-
-			// Delete all invalid blocks in that range
-			seriesCb => {
-				async.doDuring(
-					doDuringCb => {
-						modules.blocks.chain.deleteLastBlock(doDuringCb);
-					},
-					(deleteLastBlockStatus, testCb) => {
-						__private.validateBlock(
-							modules.blocks.lastBlock.get(),
-							validateError => setImmediate(testCb, null, !!validateError)
-						);
-					},
-					doDuringErr => setImmediate(seriesCb, doDuringErr)
-				);
-			},
-		],
-		() => {
-			library.logger.info(
-				`Finished validating the chain. You are at height ${
-					modules.blocks.lastBlock.get().height
-				}.`
-			);
-			return setImmediate(cb, null);
-		}
+		[isCurrentBlockInvalid, isStartBlockValid, deleteInvalidBlocks],
+		seriesErr => setImmediate(cb, seriesErr)
 	);
 };
 
