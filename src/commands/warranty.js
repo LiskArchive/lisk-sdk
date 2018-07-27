@@ -28,7 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 export default class WarrantyCommand extends BaseCommand {
 	async run() {
-		this.log({ warranty });
+		this.print({ warranty });
 	}
 }
 

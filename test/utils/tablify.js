@@ -14,7 +14,7 @@
  *
  */
 import tablify from '../../src/utils/tablify';
-import { objectToKeyValueString } from '../utils';
+import { objectToKeyValueString } from '../helpers/utils';
 
 describe('tablify utils', () => {
 	describe('when an empty object is used', () => {

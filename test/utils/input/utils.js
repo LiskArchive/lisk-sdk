@@ -18,7 +18,7 @@ import readline from 'readline';
 import inquirer from 'inquirer';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
-import { createStreamStub, createFakeInterface } from '../../utils';
+import { createStreamStub, createFakeInterface } from '../../helpers/utils';
 
 describe('input/utils utils', () => {
 	describe('#splitSource', () => {
