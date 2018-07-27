@@ -596,14 +596,14 @@ __private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 					transaction,
 					oldLastBlock,
 					sender,
-					undoErr => {
-						if (undoErr) {
+					undoConfirmedErr => {
+						if (undoConfirmedErr) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error(
 								'Failed to undoConfirmed transactions',
-								undoErr
+								undoConfirmedErr
 							);
-							return setImmediate(reject, undoErr);
+							return setImmediate(reject, undoConfirmedErr);
 						}
 						return setImmediate(resolve);
 					},

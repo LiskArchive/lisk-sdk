@@ -920,15 +920,16 @@ class Transaction {
 					transaction,
 					block,
 					sender,
-					undoErr => {
-						if (undoErr) {
+					undoConfirmedErr => {
+						if (undoConfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
 									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
 								},
-								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),
+								reverseMergeErr =>
+									setImmediate(cb, reverseMergeErr || undoConfirmedErr),
 								tx
 							);
 						} else {
