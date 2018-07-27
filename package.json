@@ -1,7 +1,7 @@
 {
 	"name": "lisk-elements-monorepo",
 	"private": true,
-	"version": "1.0.0-rc.0",
+	"version": "1.0.0-rc.1",
 	"description": "Reusable packages for use with the Lisk ecosystem",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
