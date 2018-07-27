@@ -25,7 +25,7 @@ const schemaMap = {
 	5: validator.compile(schemas.dappTransaction),
 };
 
-const getTransactionValidator = type => {
+const getTransactionSchemaValidator = type => {
 	const schema = schemaMap[type];
 	if (!schema) {
 		throw new Error('Unsupported transaction type.');
@@ -41,7 +41,7 @@ const validateMultiTransaction = tx => {
 				{
 					dataPath: '.asset.multisignature.min',
 					message:
-						'.asset.multisignature.min cannot be greater than the keysgroup',
+						'.asset.multisignature.min cannot be greater than .asset.multisignature.keysgroup.length',
 				},
 			],
 		};
@@ -53,11 +53,11 @@ const validateMultiTransaction = tx => {
 };
 
 const validateTransaction = tx => {
-	const validate = getTransactionValidator(tx.type);
-	const valid = validate(tx);
+	const validateSchema = getTransactionSchemaValidator(tx.type);
+	const valid = validateSchema(tx);
 	// Ajv produces merge error when error happens within $merge
-	const errors = validate.errors
-		? validate.errors.filter(e => e.keyword !== '$merge')
+	const errors = validateSchema.errors
+		? validateSchema.errors.filter(e => e.keyword !== '$merge')
 		: null;
 	if (valid && tx.type === 4) {
 		return validateMultiTransaction(tx);
