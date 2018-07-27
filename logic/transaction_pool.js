@@ -1058,7 +1058,7 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 							`Failed to undo unconfirmed transaction: ${transaction.id}`,
 							undoUnconfirmErr
 						);
-						return setImmediate(cb);
+						return setImmediate(eachSeriesCb);
 					}
 					// Remove transaction from unconfirmed, queued and multisignature lists
 					self.removeUnconfirmedTransaction(transaction.id);
@@ -1067,9 +1067,11 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 							transaction.id
 						} received at: ${transaction.receivedAt.toUTCString()}`
 					);
+					return setImmediate(eachSeriesCb);
 				});
+			} else {
+				return setImmediate(eachSeriesCb);
 			}
-			return setImmediate(eachSeriesCb);
 		},
 		() => setImmediate(cb)
 	);
