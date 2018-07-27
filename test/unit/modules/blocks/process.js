@@ -107,6 +107,8 @@ describe('blocks/process', () => {
 				return 'me';
 			},
 			applyHeaders: peerStub.applyHeaders,
+			ban: sinonSandbox.stub(),
+			unban: sinonSandbox.stub(),
 		};
 
 		transactionStub = {
