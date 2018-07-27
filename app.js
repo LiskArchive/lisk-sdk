@@ -798,7 +798,7 @@ d.run(() => {
 
 			if (err) {
 				logger.fatal(err);
-				process.emit('cleanup');
+				process.emit('cleanup', err);
 			} else {
 				scope.logger.info('Modules ready and launched');
 			}
