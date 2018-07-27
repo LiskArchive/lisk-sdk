@@ -546,9 +546,17 @@ __private.loadBlockChain = function() {
 							if (err) {
 								return reload(blocksCount, err || 'Failed to load last block');
 							}
+
 							__private.lastBlock = block;
-							library.logger.info('Blockchain ready');
-							library.bus.message('blockchainReady');
+
+							__private.validateOwnChain(validateOwnChainError => {
+								if (validateOwnChainError) {
+									throw validateOwnChainError;
+								}
+
+								library.logger.info('Blockchain ready');
+								library.bus.message('blockchainReady');
+							});
 						});
 					});
 			}
@@ -557,6 +565,162 @@ __private.loadBlockChain = function() {
 			library.logger.error(err.stack || err);
 			return process.emit('exit');
 		});
+};
+
+/**
+ * Validate given block
+ *
+ * @param {object} block
+ * @param {function} cb
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.validateBlock = (blockToVerify, cb) => {
+	const lastBlock = modules.blocks.lastBlock.get();
+
+	modules.blocks.utils.loadBlockByHeight(
+		blockToVerify.height - 1,
+		(secondLastBlockError, secondLastBlockToVerify) => {
+			if (secondLastBlockError) {
+				return setImmediate(cb, secondLastBlockError);
+			}
+
+			// Set the block temporarily for block verification
+			modules.blocks.lastBlock.set(secondLastBlockToVerify);
+			const result = modules.blocks.verify.verifyBlock(blockToVerify);
+
+			// Revert last block changes
+			modules.blocks.lastBlock.set(lastBlock);
+
+			if (result.verified) {
+				return setImmediate(cb, null);
+			}
+			return setImmediate(cb, result.errors);
+		}
+	);
+};
+
+/**
+ * Validate own block chain before startup
+ *
+ * @private
+ * @param {function} cb
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.validateOwnChain = cb => {
+	// Validation should be done backward starting from higher height to the lower height
+	const currentBlock = modules.blocks.lastBlock.get();
+	const currentHeight = currentBlock.height;
+	const currentRound = slots.calcRound(currentHeight);
+	const secondLastRound = currentRound - 2;
+
+	// Validate till the end height of second last round
+	let validateTillHeight;
+
+	if (secondLastRound < 1) {
+		// Skip the genesis block validation
+		validateTillHeight = 2;
+	} else {
+		// Till last block of second last round
+		validateTillHeight = slots.calcRoundEndHeight(secondLastRound);
+	}
+
+	// Validate the top most block
+	const validateCurrentBlock = cb => {
+		library.logger.info(
+			`Validating current block with height ${currentHeight}`
+		);
+
+		__private.validateBlock(currentBlock, validateBlockErr => {
+			if (!validateBlockErr) {
+				library.logger.info(
+					`Finished validating the chain. You are at height ${
+						modules.blocks.lastBlock.get().height
+					}.`
+				);
+			}
+			return setImmediate(cb, validateBlockErr);
+		});
+	};
+
+	const validateStartBlock = cb => {
+		library.logger.info(
+			`Validating last block of second last round with height ${validateTillHeight}`
+		);
+
+		modules.blocks.utils.loadBlockByHeight(
+			validateTillHeight,
+			(lastBlockError, startBlock) => {
+				__private.validateBlock(startBlock, validateBlockErr => {
+					if (validateBlockErr) {
+						library.logger.error(
+							`There are more than ${currentHeight -
+								validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
+						);
+						return setImmediate(
+							cb,
+							new Error(
+								'Your block chain is invalid. Please rebuild from snapshot.'
+							)
+						);
+					}
+
+					return setImmediate(cb, null);
+				});
+			}
+		);
+	};
+
+	const deleteInvalidBlocks = cb => {
+		async.doDuring(
+			// Iterator
+			doDuringCb => {
+				modules.blocks.chain.deleteLastBlock(doDuringCb);
+			},
+			// Test condition
+			(deleteLastBlockStatus, testCb) => {
+				__private.validateBlock(modules.blocks.lastBlock.get(), validateError =>
+					setImmediate(testCb, null, !!validateError)
+				);
+			},
+			doDuringErr => {
+				if (doDuringErr) {
+					library.logger.error(
+						'Error occurred during deleting invalid blocks',
+						doDuringErr
+					);
+					return setImmediate(
+						cb,
+						new Error(
+							"Your block chain can't be recovered. Please rebuild from snapshot."
+						)
+					);
+				}
+
+				library.logger.info(
+					`Finished validating the chain. You are at height ${
+						modules.blocks.lastBlock.get().height
+					}.`
+				);
+				return setImmediate(cb, null);
+			}
+		);
+	};
+
+	validateCurrentBlock(currentBlockError => {
+		// If current block is valid no need to check further
+		if (!currentBlockError) {
+			return setImmediate(cb, null);
+		}
+
+		validateStartBlock(startBlockError => {
+			// If start block is invalid can't proceed further
+			if (startBlockError) {
+				return setImmediate(cb, startBlockError);
+			}
+
+			deleteInvalidBlocks(cb);
+		});
+	});
 };
 
 /**
