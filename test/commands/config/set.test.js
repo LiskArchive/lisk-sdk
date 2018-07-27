@@ -56,6 +56,20 @@ describe('config:set', () => {
 				),
 			)
 			.it('should throw an error when the value is not supported');
+
+		setupTest()
+			.stdout()
+			.command(['config:set', 'api.nodes'])
+			.it('should set api.nodes to empty array', () => {
+				const newConfig = {
+					...defaultConfig,
+					api: {
+						network: defaultConfig.api.network,
+						nodes: [],
+					},
+				};
+				return expect(config.setConfig).to.be.calledWith(defaultDir, newConfig);
+			});
 	});
 
 	describe('config:set key value ', () => {
@@ -100,27 +114,10 @@ describe('config:set', () => {
 
 			setupTest()
 				.stdout()
-				.command(['config:set', 'api.nodes'])
-				.it('should set api.nodes to empty array', () => {
-					const newConfig = {
-						...defaultConfig,
-						api: {
-							network: defaultConfig.api.network,
-							nodes: [],
-						},
-					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
-				});
-
-			setupTest()
-				.stdout()
 				.command(['config:set', 'api.nodes', 'ws://hostname'])
 				.catch(error =>
 					expect(error.message).to.contain(
-						'Node URLs must include a supported protocol',
+						'Node URLs must include a supported protocol (http, https) and a hostname.',
 					),
 				)
 				.it(
@@ -182,23 +179,16 @@ describe('config:set', () => {
 					expect(error.message).to.contain('Value must be a boolean.'),
 				)
 				.it('should throw error when json value is not boolean');
-		});
 
-		describe('config:set name value', () => {
 			setupTest()
 				.stdout()
-				.command(['config:set', 'name', 'new name'])
-				.it('should set name to provided value', () => {
-					const newConfig = {
-						...defaultConfig,
-						name: 'new name',
-					};
-					return expect(config.setConfig).to.be.calledWith(
-						defaultDir,
-						newConfig,
-					);
-				});
+				.command(['config:set', 'json'])
+				.catch(error =>
+					expect(error.message).to.contain('Value must be a boolean.'),
+				)
+				.it('should throw error when json value is not specified');
 		});
+
 		describe('config:set api.network value', () => {
 			const validNethash =
 				'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d';
@@ -248,7 +238,9 @@ describe('config:set', () => {
 						'Value must be a hex string with 64 characters, or one of main, test or beta.',
 					),
 				)
-				.it('should throw error when api.network value is not length of 64');
+				.it(
+					'should throw error when api.network value is unknown and does not have length 64',
+				);
 
 			setupTest()
 				.stdout()
@@ -263,7 +255,7 @@ describe('config:set', () => {
 					),
 				)
 				.it(
-					'should throw error when api.network value is not valid hex string',
+					'should throw error when api.network value is unknown and not a valid hex string',
 				);
 		});
 	});

@@ -43,45 +43,41 @@ describe('base command', () => {
 	describe('#init', () => {
 		setupTest()
 			.env({ LISK_COMMANDER_CONFIG_DIR: undefined })
-			.do(async ctx => {
-				await ctx.command.init();
-				return expect(process.env.XDG_CONFIG_HOME).to.equal(
+			.do(async ctx => ctx.command.init())
+			.it('should set XDG_CONFIG_HOME to default value', () =>
+				expect(process.env.XDG_CONFIG_HOME).to.equal(
 					`${os.homedir()}/${defaultConfigFolder}`,
-				);
-			})
-			.it('should set XDG_CONFIG_HOME to default value');
-
-		setupTest()
-			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
-			.do(async ctx => {
-				await ctx.command.init();
-				return expect(process.env.XDG_CONFIG_HOME).to.equal(configFolder);
-			})
-			.it('should set XDG_CONFIG_HOME to LISK_COMMANDER_CONFIG_DIR');
-
-		setupTest()
-			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
-			.do(async ctx => {
-				await ctx.command.init();
-				return expect(config.getConfig).to.be.calledWithExactly(configFolder);
-			})
-			.it(
-				'should call getConfig with the config folder set by the environment variable',
+				),
 			);
 
 		setupTest()
-			.do(async ctx => {
-				await ctx.command.init();
-				return expect(ctx.command.flags).to.equal(defaultFlags);
-			})
-			.it('should set the flags to the return value of the parse function');
+			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
+			.do(async ctx => ctx.command.init())
+			.it('should set XDG_CONFIG_HOME to LISK_COMMANDER_CONFIG_DIR', () =>
+				expect(process.env.XDG_CONFIG_HOME).to.equal(configFolder),
+			);
 
 		setupTest()
-			.do(async ctx => {
-				await ctx.command.init();
-				return expect(ctx.command.userConfig).to.equal(defaultConfig);
-			})
-			.it('should set the userConfig to the return value of the getConfig');
+			.env({ LISK_COMMANDER_CONFIG_DIR: configFolder })
+			.do(async ctx => ctx.command.init())
+			.it(
+				'should call getConfig with the config folder set by the environment variable',
+				() => expect(config.getConfig).to.be.calledWithExactly(configFolder),
+			);
+
+		setupTest()
+			.do(async ctx => ctx.command.init())
+			.it(
+				'should set the flags to the return value of the parse function',
+				ctx => expect(ctx.command.flags).to.equal(defaultFlags),
+			);
+
+		setupTest()
+			.do(async ctx => ctx.command.init())
+			.it(
+				'should set the userConfig to the return value of the getConfig',
+				ctx => expect(ctx.command.userConfig).to.equal(defaultConfig),
+			);
 	});
 
 	describe('#finally', () => {
@@ -90,24 +86,24 @@ describe('base command', () => {
 		setupTest()
 			.do(async ctx => {
 				const error = new Error(errorMsg);
-				await ctx.command.finally(error);
-				return expect(ctx.command.error).to.be.calledWithExactly(errorMsg);
+				return ctx.command.finally(error);
 			})
-			.it('should log error with the message');
+			.it('should log error with the message', ctx =>
+				expect(ctx.command.error).to.be.calledWithExactly(errorMsg),
+			);
 
 		setupTest()
-			.do(async ctx => {
-				await ctx.command.finally(errorMsg);
-				return expect(ctx.command.error).to.be.calledWithExactly(errorMsg);
-			})
-			.it('should log error with input');
+			.do(async ctx => ctx.command.finally(errorMsg))
+			.it('should log error with input', ctx =>
+				expect(ctx.command.error).to.be.calledWithExactly(errorMsg),
+			);
 
 		setupTest()
-			.do(async ctx => {
-				await ctx.command.finally();
-				return expect(ctx.command.error).not.to.be.called;
-			})
-			.it('should do nothing if no error is provided');
+			.do(async ctx => ctx.command.finally())
+			.it(
+				'should do nothing if no error is provided',
+				ctx => expect(ctx.command.error).not.to.be.called,
+			);
 	});
 
 	describe('#print', () => {
@@ -117,59 +113,63 @@ describe('base command', () => {
 
 		setupTest()
 			.env({ XDG_CONFIG_HOME: 'home' })
-			.do(async ctx => {
-				await ctx.command.print(result, true);
-				return expect(config.getConfig).to.be.calledWithExactly(
-					process.env.XDG_CONFIG_HOME,
-				);
-			})
+			.do(async ctx => ctx.command.print(result, true))
 			.it(
 				'should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true',
+				() =>
+					expect(config.getConfig).to.be.calledWithExactly(
+						process.env.XDG_CONFIG_HOME,
+					),
 			);
 
 		setupTest()
 			.do(async ctx => {
 				ctx.command.userConfig = {};
-				ctx.command.print(result);
-				return expect(config.getConfig).not.to.be.called;
+				return ctx.command.print(result);
 			})
-			.it('should not call getConfig when readAgain is falsy');
+			.it(
+				'should not call getConfig when readAgain is falsy',
+				() => expect(config.getConfig).not.to.be.called,
+			);
 
 		setupTest()
 			.do(async ctx => {
 				ctx.command.userConfig = {};
-				ctx.command.print(result);
-				return expect(printMethodStub).to.be.calledWithExactly(result);
+				return ctx.command.print(result);
 			})
-			.it('should call print method with the result');
+			.it('should call print method with the result', () =>
+				expect(printMethodStub).to.be.calledWithExactly(result),
+			);
 
 		setupTest()
 			.do(async ctx => {
 				ctx.command.userConfig = {
 					json: false,
 				};
-				ctx.command.print(result);
-				return expect(print.default).to.be.calledWithExactly({
+				return ctx.command.print(result);
+			})
+			.it('should call print with the userConfig', () =>
+				expect(print.default).to.be.calledWithExactly({
 					json: false,
 					pretty: undefined,
-				});
-			})
-			.it('should call print with the userConfig');
+				}),
+			);
 
 		setupTest()
+			.add('overwritingFlags', {
+				json: true,
+				pretty: false,
+			})
 			.do(async ctx => {
 				ctx.command.userConfig = {
 					json: false,
 					pretty: true,
 				};
-				const overwritingFlags = {
-					json: true,
-					pretty: false,
-				};
-				ctx.command.flags = overwritingFlags;
+				ctx.command.flags = ctx.overwritingFlags;
 				ctx.command.print(result);
-				return expect(print.default).to.be.calledWithExactly(overwritingFlags);
 			})
-			.it('should call print method with the result');
+			.it('should call print method with flags overriding the config', ctx =>
+				expect(print.default).to.be.calledWithExactly(ctx.overwritingFlags),
+			);
 	});
 });
