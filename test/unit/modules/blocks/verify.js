@@ -456,6 +456,12 @@ describe('blocks/verify', () => {
 	describe('__private.verifyVersion', () => {
 		let verifyVersion;
 
+		before(done => {
+			// Reset exceptions for blocks versions
+			exceptions.blockVersions = {};
+			done();
+		});
+
 		describe('when there are no exceptions for block versions', () => {
 			describe('when block height provided', () => {
 				it('should return no error when block version = 1', () => {
