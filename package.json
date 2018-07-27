@@ -23,6 +23,8 @@
 	},
 	"scripts": {
 		"bootstrap": "lerna bootstrap",
+		"clean": "lerna run clean",
+		"clean:node_modules": "lerna clean",
 		"format": "lerna run format",
 		"lint": "lerna run lint",
 		"lint:fix": "lerna run lint:fix",
@@ -32,6 +34,7 @@
 		"build": "lerna run build",
 		"build:browsertest": "lerna run build:browsertest",
 		"cover": "lerna run cover",
+		"init": "./scripts/init.sh",
 		"postinstall": "npm run bootstrap",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint && npm test"

@@ -28,6 +28,7 @@
 		"browserify:browsertest": "browserify ./browsertest.build/test/*.js ./browsertest.build/test/**/*.js -o ./browsertest.build/browsertest.js -s lisk",
 		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
+		"clean": "./scripts/clean.sh",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
