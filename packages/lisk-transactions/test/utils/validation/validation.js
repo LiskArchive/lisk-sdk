@@ -13,13 +13,17 @@
  *
  */
 import cryptography from 'lisk-cryptography';
+import bignum from 'browserify-bignum';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-} from '../../src/utils/validation';
+	isGreaterThanMaxTransactionAmount,
+	isGreaterThanMaxTransactionId,
+	isNumberString,
+} from '../../../src/utils/validation/validation';
 
 describe('public key validation', () => {
 	describe('#validatePublicKey', () => {
@@ -236,6 +240,48 @@ describe('public key validation', () => {
 			it('should throw', () => {
 				return expect(validateAddress.bind(null, address)).to.throw(error);
 			});
+		});
+	});
+
+	describe('#isGreaterThanMaxTransactionAmount', () => {
+		it('should return false when amount is less than 8 bytes integer maximum', () => {
+			return expect(
+				isGreaterThanMaxTransactionAmount(bignum('10000000000000000000')),
+			).to.be.false;
+		});
+
+		it('should return true when amount is more than 8 bytes integer maximum', () => {
+			return expect(
+				isGreaterThanMaxTransactionAmount(bignum('18446744073709551616')),
+			).to.be.true;
+		});
+	});
+
+	describe('#isGreaterThanMaxTransactionId', () => {
+		it('should return false when id is less than 8 bytes integer maximum', () => {
+			return expect(
+				isGreaterThanMaxTransactionId(bignum('10000000000000000000')),
+			).to.be.false;
+		});
+
+		it('should return true when id is more than 8 bytes integer maximum', () => {
+			return expect(
+				isGreaterThanMaxTransactionId(bignum('18446744073709551616')),
+			).to.be.true;
+		});
+	});
+
+	describe('#isNumberString', () => {
+		it('should return false when number is not string', () => {
+			return expect(isNumberString(1)).to.be.false;
+		});
+
+		it('should return false when string contains non number', () => {
+			return expect(isNumberString('12345abc68789')).to.be.false;
+		});
+
+		it('should return true when string contains only number', () => {
+			return expect(isNumberString('1234568789')).to.be.true;
 		});
 	});
 });
