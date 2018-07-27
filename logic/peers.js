@@ -50,7 +50,7 @@ class Peers {
 		self = this;
 
 		this.peersManager = new PeersManager(logger);
-		this.banManager = new BanManager(logger, config, self.unban);
+		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
 	}
