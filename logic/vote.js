@@ -44,11 +44,12 @@ let self;
  * @todo Add description for the params
  */
 class Vote {
-	constructor(logger, schema) {
+	constructor(logger, schema, account) {
 		self = this;
 		library = {
 			logger,
 			schema,
+			account,
 		};
 	}
 
@@ -63,6 +64,7 @@ class Vote {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	undo(transaction, block, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
@@ -70,7 +72,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		this.scope.account.merge(
+		library.account.merge(
 			sender.address,
 			{
 				delegates: votesInvert,
@@ -91,6 +93,7 @@ class Vote {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	undoUnconfirmed(transaction, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
@@ -98,7 +101,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		this.scope.account.merge(
+		library.account.merge(
 			sender.address,
 			{ u_delegates: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
@@ -325,19 +328,16 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
-	const parent = this;
-
 	async.series(
 		[
 			function(seriesCb) {
 				self.checkConfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function() {
-				parent.scope.account.merge(
+				library.account.merge(
 					sender.address,
 					{
 						delegates: transaction.asset.votes,
@@ -359,19 +359,16 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
-	const parent = this;
-
 	async.series(
 		[
 			function(seriesCb) {
 				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				parent.scope.account.merge(
+				library.account.merge(
 					sender.address,
 					{
 						u_delegates: transaction.asset.votes,
