@@ -51,6 +51,25 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+// If old release was a 1.0.0-rc.1 release
+if (oldConfig.version === '1.0.0-rc.1') {
+	// Values to keep from new config file
+	delete oldConfig.version;
+	delete oldConfig.minVersion;
+
+	// https://github.com/LiskHQ/lisk/issues/2154
+	oldConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+	delete oldConfig.ssl;
+
+	// https://github.com/LiskHQ/lisk/issues/2208
+	delete oldConfig.forging.defaultPassword;
+
+	copyTheConfigFile();
+
+	// No further changes required
+	process.exit(0);
+}
+
 newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
 delete oldConfig.ssl;
 
@@ -155,15 +174,12 @@ function migrateSecrets(password) {
 function copyTheConfigFile() {
 	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
 
-	fs.writeFile(
-		newConfigPath,
-		JSON.stringify(modifiedConfig, null, '\t'),
-		err => {
-			if (err) {
-				throw err;
-			} else {
-				console.info('Configuration migration completed.');
-			}
-		}
-	);
+	try {
+		fs.writeFileSync(newConfigPath, JSON.stringify(modifiedConfig, null, '\t'));
+	} catch (error) {
+		console.error('Error writing configuration file', error);
+		process.exit(1);
+	}
+
+	console.info('Configuration migration completed.');
 }

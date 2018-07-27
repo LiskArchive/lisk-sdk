@@ -257,6 +257,29 @@ Utils.prototype.getIdSequence = function(height, cb) {
 };
 
 /**
+ * Load full block with a particular height
+ *
+ * @param {number} height - Block height
+ * @param {function} cb - Callback function
+ * @param {object} tx - Database transaction object
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.block - Block with requested height
+ */
+Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
+	(tx || library.db).blocks
+		.loadBlocksOffset(height, height + 1)
+		.then(rows => {
+			const blocks = self.readDbRows(rows);
+			return setImmediate(cb, null, blocks[0]);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadBlockByHeight error');
+		});
+};
+
+/**
  * Generates a list of full blocks for another node upon sync request from that node, see: modules.transport.internal.blocks.
  *
  * @param {Object} filter - Filter options
