@@ -31,7 +31,7 @@ describe('account:create', () => {
 		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = () =>
+	const setupTest = () =>
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
@@ -48,7 +48,7 @@ describe('account:create', () => {
 			);
 
 	describe('account:create', () => {
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['account:create'])
 			.it('should create account', () => {
@@ -57,11 +57,11 @@ describe('account:create', () => {
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
 					defaultKeys.publicKey,
 				);
-				return expect(printMethodStub).to.be.calledWith(
-					Object.assign({}, defaultKeys, defaultAddress, {
-						passphrase: defaultMnemonic,
-					}),
-				);
+				return expect(printMethodStub).to.be.calledWith({
+					...defaultKeys,
+					...defaultAddress,
+					passphrase: defaultMnemonic,
+				});
 			});
 	});
 });

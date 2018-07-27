@@ -27,14 +27,14 @@ describe('account:get command', () => {
 	};
 	const printMethodStub = sandbox.stub();
 	const apiClientStub = sandbox.stub();
-	const setupStub = () =>
+	const setupTest = () =>
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
 			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
 
 	describe('account:get', () => {
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['account:get'])
 			.catch(error =>
@@ -50,7 +50,7 @@ describe('account:get command', () => {
 			name: 'i am owner',
 		};
 
-		setupStub()
+		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.stdout()
 			.command(['account:get', account])
@@ -77,7 +77,7 @@ describe('account:get command', () => {
 			},
 		];
 
-		setupStub()
+		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.stdout()
 			.command(['account:get', accounts.join(',')])

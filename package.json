@@ -57,9 +57,8 @@
 			"@oclif/plugin-help"
 		],
 		"topics": {
-			"config": {
-				"description": "Manages Lisk Commander configuration."
-			}
+			"config": { "description": "Manages Lisk Commander configuration." },
+			"account": { "description": "Manages account." }
 		}
 	},
 	"files": [

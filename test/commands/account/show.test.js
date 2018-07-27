@@ -33,7 +33,7 @@ describe('account:show', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = () =>
+	const setupTest = () =>
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
@@ -50,7 +50,7 @@ describe('account:show', () => {
 			);
 
 	describe('account:show', () => {
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['account:show'])
 			.it('should show account with prompt', () => {
@@ -61,12 +61,13 @@ describe('account:show', () => {
 						repeatPrompt: true,
 					},
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					Object.assign({}, defaultKeys, defaultAddress),
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultKeys,
+					...defaultAddress,
+				});
 			});
 
-		setupStub()
+		setupTest()
 			.stdout()
 			.command(['account:show', '--passphrase=pass:123'])
 			.it('should show account with pass', () => {
@@ -77,9 +78,10 @@ describe('account:show', () => {
 						repeatPrompt: true,
 					},
 				});
-				return expect(printMethodStub).to.be.calledWith(
-					Object.assign({}, defaultKeys, defaultAddress),
-				);
+				return expect(printMethodStub).to.be.calledWith({
+					...defaultKeys,
+					...defaultAddress,
+				});
 			});
 	});
 });
