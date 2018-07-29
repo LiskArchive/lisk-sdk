@@ -161,4 +161,24 @@ module.exports = {
 	calcRound(height) {
 		return Math.ceil(height / this.delegates);
 	},
+
+	/**
+	 * Calculate starting height of the round
+	 *
+	 * @param round
+	 * @return {number}
+	 */
+	calcRoundStartHeight(round) {
+		return (round < 1 ? 0 : round - 1) * this.delegates + 1;
+	},
+
+	/**
+	 * Calculating end height of the round
+	 *
+	 * @param round
+	 * @return {number}
+	 */
+	calcRoundEndHeight(round) {
+		return (round < 1 ? 1 : round) * this.delegates;
+	},
 };
