@@ -520,6 +520,20 @@ Verify.prototype.verifyBlock = function(block) {
 
 	result.verified = result.errors.length === 0;
 	result.errors.reverse();
+	if (result.verified) {
+		library.logger.info(
+			`Verify->verifyBlock succeeded for block ${block.id} at height ${
+				block.height
+			}.`
+		);
+	} else {
+		library.logger.error(
+			`Verify->verifyBlock failed for block ${block.id} at height ${
+				block.height
+			}.`,
+			result.errors
+		);
+	}
 
 	return result;
 };
