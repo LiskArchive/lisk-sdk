@@ -806,8 +806,12 @@ d.run(() => {
 	);
 });
 
+// TODO: This should be the only place in the master process where
+// 'uncaughtException' is handled. Right now, one of our dependencies (js-nacl;
+// which is a dependency of lisk-elements) adds its own handler which interferes
+// with our own process exit logic.
 process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
-	process.emit('cleanup');
+	process.emit('cleanup', err);
 });
