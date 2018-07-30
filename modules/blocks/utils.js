@@ -270,8 +270,25 @@ Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
 	(tx || library.db).blocks
 		.loadBlocksOffset(height, height + 1)
 		.then(rows => {
-			const blocks = self.readDbRows(rows);
-			return setImmediate(cb, null, blocks[0]);
+			// Normalize block
+			const block = modules.blocks.utils.readDbRows(rows)[0];
+
+			// Sort block's transactions
+			block.transactions = block.transactions.sort(a => {
+				if (block.id === library.genesisblock.block.id) {
+					if (a.type === transactionTypes.VOTE) {
+						return 1;
+					}
+				}
+
+				if (a.type === transactionTypes.SIGNATURE) {
+					return 1;
+				}
+
+				return 0;
+			});
+
+			return setImmediate(cb, null, block);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
