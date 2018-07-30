@@ -40,27 +40,23 @@ const currentBlockVersion = 1;
  * @returns {boolean}
  */
 function isValid(version, height) {
-	// Check if there is an exception for particular block version
-	const heightsRange = exceptions.blockVersions[version];
+	// Check is there an exception for provided height and if yes assing its version
+	const exceptionVersion = Object.keys(exceptions.blockVersions).find(
+		exceptionVersion => {
+			// Get height range of current exceptions
+			const heightsRange = exceptions.blockVersions[exceptionVersion];
+			// Check if provided height is between the range boundaries
+			return height >= heightsRange.start && height <= heightsRange.end;
+		}
+	);
 
-	const isCurrentVersion = version === this.currentBlockVersion;
-
-	// If there is no exception - check against current block version
-	if (!heightsRange && isCurrentVersion) {
-		return true;
+	if (exceptionVersion === undefined) {
+		// If there is no exception for provided height - check against current block version
+		return version === this.currentBlockVersion;
 	}
 
-	const isInExceptionRange =
-		heightsRange &&
-		(height >= heightsRange.start && height <= heightsRange.end);
-
-	// Return true if block version is in exceptions and between range
-	if (isInExceptionRange) {
-		return true;
-	}
-
-	// Block version for specified height is invalid
-	return false;
+	// If there is an exception - check if version match
+	return Number(exceptionVersion) === version;
 }
 
 module.exports = {
