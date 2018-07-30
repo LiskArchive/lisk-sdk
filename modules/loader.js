@@ -580,7 +580,7 @@ __private.validateBlock = (blockToVerify, cb) => {
 			blockToVerify.height
 		}`
 	);
-	library.logger.debug(blockToVerify);
+	library.logger.debug(JSON.stringify(blockToVerify));
 
 	const lastBlock = modules.blocks.lastBlock.get();
 
