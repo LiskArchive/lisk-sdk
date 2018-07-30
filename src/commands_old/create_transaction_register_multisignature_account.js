@@ -20,7 +20,7 @@ import {
 	validatePublicKeys,
 } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 import transactions from '../utils/transactions';
 
 const description = `Creates a transaction which will register the account as a multisignature account if broadcast to the network, using the following parameters:

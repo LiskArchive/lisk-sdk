@@ -44,35 +44,39 @@ describe('account:get command', () => {
 	});
 
 	describe('account:get account', () => {
-		const account = '3520445367460290306L';
-		const queryResult = {
-			address: account,
-			name: 'i am owner',
-		};
+		const address = '3520445367460290306L';
+		const queryResult = [
+			{
+				address,
+				name: 'i am owner',
+			},
+		];
 
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.stdout()
-			.command(['account:get', account])
+			.command(['account:get', address])
 			.it('should get an account info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, {
-					limit: 1,
-					address: account,
-				});
+				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						limit: 1,
+						address,
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
 
 	describe('account:get accounts', () => {
-		const accounts = ['3520445367460290306L', '2802325248134221536L'];
+		const addresses = ['3520445367460290306L', '2802325248134221536L'];
 		const queryResult = [
 			{
-				address: accounts[0],
+				address: addresses[0],
 				name: 'i am owner',
 			},
 			{
-				address: accounts[1],
+				address: addresses[1],
 				name: 'some name',
 			},
 		];
@@ -80,17 +84,17 @@ describe('account:get command', () => {
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.stdout()
-			.command(['account:get', accounts.join(',')])
+			.command(['account:get', addresses.join(',')])
 			.it('should get accounts info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
 						limit: 1,
-						address: accounts[0],
+						address: addresses[0],
 					},
 					{
 						limit: 1,
-						address: accounts[1],
+						address: addresses[1],
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);

@@ -19,7 +19,7 @@ import {
 	normalizeAmount,
 	validateAddress,
 } from '../utils/helpers';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 import transactions from '../utils/transactions';
 
 const description = `Creates a transaction which will transfer the specified amount to an address if broadcast to the network.

@@ -16,7 +16,7 @@
 import * as cryptography from '../utils/cryptography';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 
 const description = `Encrypts your secret passphrase under a password.
 

@@ -36,6 +36,6 @@ CreateCommand.flags = {
 };
 
 CreateCommand.description = `
-Returns a randomly-generated mnemonic passphrase with its corresponding public key and address.
+Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
 `;
 CreateCommand.examples = ['account:create'];

@@ -17,7 +17,7 @@ import * as cryptography from '../utils/cryptography';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources, { getFirstLineFromString } from '../utils/input';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 
 const description = `Decrypts your secret passphrase using a password using the initialisation vector (IV) which was provided at the time of encryption.
 

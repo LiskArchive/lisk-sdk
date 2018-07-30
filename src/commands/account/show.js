@@ -17,7 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getInputsFromSources from '../../utils/input';
 import cryptography from '../../utils/cryptography';
-import commonOptions from '../../utils/options';
+import commonFlags from '../../utils/flags';
 
 const processInput = ({ passphrase }) => {
 	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
@@ -44,7 +44,7 @@ export default class ShowCommand extends BaseCommand {
 
 ShowCommand.flags = {
 	...BaseCommand.flags,
-	passphrase: flagParser.string(commonOptions.passphrase),
+	passphrase: flagParser.string(commonFlags.passphrase),
 };
 
 ShowCommand.description = `

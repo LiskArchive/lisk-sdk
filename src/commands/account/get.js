@@ -20,13 +20,10 @@ import query from '../../utils/query';
 export default class GetCommand extends BaseCommand {
 	async run() {
 		const { args: { addresses } } = this.parse(GetCommand);
-		const req =
-			addresses.length === 1
-				? { limit: 1, address: addresses[0] }
-				: addresses.map(address => ({
-						limit: 1,
-						address,
-					}));
+		const req = addresses.map(address => ({
+			limit: 1,
+			address,
+		}));
 		const client = getAPIClient(this.userConfig.api);
 		const results = await query(client, 'accounts', req);
 		this.print(results);
@@ -37,8 +34,7 @@ GetCommand.args = [
 	{
 		name: 'addresses',
 		required: true,
-		description:
-			'Comma separated address(es) which you want to get the information of.',
+		description: 'Comma-separated address(es) to get information about.',
 		parse: input => input.split(','),
 	},
 ];

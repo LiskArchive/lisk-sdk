@@ -17,7 +17,7 @@ import * as cryptography from '../utils/cryptography';
 import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 
 const description = `Decrypts a previously encrypted message from a given sender public key for a known nonce using your secret passphrase.
 
