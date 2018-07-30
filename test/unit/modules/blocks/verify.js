@@ -542,7 +542,7 @@ describe('blocks/verify', () => {
 					return expect(verifyVersion.errors.length).to.equal(0);
 				});
 
-				it('should return error when block version 1', () => {
+				it('should return error when block version = 1', () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 1, height: 1 },
 						{ errors: [] }
@@ -552,7 +552,7 @@ describe('blocks/verify', () => {
 					);
 				});
 
-				it('should return error when block version 2', () => {
+				it('should return error when block version = 2', () => {
 					verifyVersion = __private.verifyVersion(
 						{ version: 2, height: 1 },
 						{ errors: [] }
