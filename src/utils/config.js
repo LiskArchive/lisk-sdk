@@ -20,20 +20,18 @@ import defaultConfig from '../../default_config.json';
 import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
-import logger from './logger';
 
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';
 
 const fileWriteErrorMessage = filePath =>
-	`ERROR: Could not write to \`${filePath}\`. Your configuration will not be persisted.`;
+	`Could not write to \`${filePath}\`. Your configuration will not be persisted.`;
 
 const attemptCallWithError = (fn, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		logger.error(errorMessage);
-		return process.exit(1);
+		throw new Error(errorMessage);
 	}
 };
 
@@ -51,8 +49,7 @@ const checkLockfile = filePath => {
 	const locked = lockfile.checkSync(filePath);
 	const errorMessage = `Config lockfile at ${filePath} found. Are you running Lisk Commander in another process?`;
 	if (locked) {
-		logger.error(errorMessage);
-		process.exit(1);
+		throw new Error(errorMessage);
 	}
 };
 
