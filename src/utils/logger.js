@@ -15,16 +15,7 @@
  */
 import chalk from 'chalk';
 
-// TODO: Include commented placeholders when we support Node 8
-const PLACEHOLDERS = [
-	'%s',
-	'%d',
-	// '%i',
-	// '%f',
-	'%j',
-	// '%o',
-	// '%O',
-];
+const PLACEHOLDERS = ['%s', '%d', '%i', '%f', '%j', '%o', '%O'];
 
 const wrapLogFunction = (fn, colour) => (...args) => {
 	const colourArg = arg => chalk[colour](arg);
