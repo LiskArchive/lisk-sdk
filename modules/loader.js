@@ -575,6 +575,13 @@ __private.loadBlockChain = function() {
  * @returns {setImmediateCallback} cb, err
  */
 __private.validateBlock = (blockToVerify, cb) => {
+	library.logger.info(
+		`Loader->validateBlock Validating block ${blockToVerify.id} at height ${
+			blockToVerify.height
+		}`
+	);
+	library.logger.debug(blockToVerify);
+
 	const lastBlock = modules.blocks.lastBlock.get();
 
 	modules.blocks.utils.loadBlockByHeight(
@@ -586,14 +593,35 @@ __private.validateBlock = (blockToVerify, cb) => {
 
 			// Set the block temporarily for block verification
 			modules.blocks.lastBlock.set(secondLastBlockToVerify);
+			library.logger.debug(
+				`Loader->validateBlock Setting temporarily last block to height ${
+					secondLastBlockToVerify.height
+				}.`
+			);
 			const result = modules.blocks.verify.verifyBlock(blockToVerify);
 
 			// Revert last block changes
 			modules.blocks.lastBlock.set(lastBlock);
+			library.logger.debug(
+				`Loader->validateBlock Reverting last block to height ${
+					lastBlock.height
+				}.`
+			);
 
 			if (result.verified) {
+				library.logger.info(
+					`Loader->validateBlock Validating block succeed for ${
+						blockToVerify.id
+					} at height ${blockToVerify.height}.`
+				);
 				return setImmediate(cb, null);
 			}
+			library.logger.error(
+				`Loader->validateBlock Validating block failed for ${
+					blockToVerify.id
+				} at height ${blockToVerify.height}.`,
+				result.errors
+			);
 			return setImmediate(cb, result.errors);
 		}
 	);
@@ -678,8 +706,9 @@ __private.validateOwnChain = cb => {
 			},
 			// Test condition
 			(deleteLastBlockStatus, testCb) => {
-				__private.validateBlock(modules.blocks.lastBlock.get(), validateError =>
-					setImmediate(testCb, null, !!validateError)
+				__private.validateBlock(
+					modules.blocks.lastBlock.get(),
+					validateError => setImmediate(testCb, null, !!validateError) // Continue deleting if there is an error
 				);
 			},
 			doDuringErr => {
