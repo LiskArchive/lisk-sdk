@@ -49,13 +49,9 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('should call API client', () => {
-			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters,
-			);
-		});
+		it('should call API client and should reject with an error', () => {
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters);
 
-		it('should reject with an error', () => {
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
 				'No data was returned.',
@@ -77,13 +73,9 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('should call API client', () => {
-			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters,
-			);
-		});
+		it('should call API client and should reject with an error', () => {
+			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters);
 
-		it('should reject with an error', () => {
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
 				'No accounts found using specified parameters.',
