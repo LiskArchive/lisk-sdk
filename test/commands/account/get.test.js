@@ -43,7 +43,7 @@ describe('account:get command', () => {
 			.it('should throw an error when arg is not provided');
 	});
 
-	describe('account:get account', () => {
+	describe('account:get address', () => {
 		const address = '3520445367460290306L';
 		const queryResult = [
 			{
@@ -60,15 +60,21 @@ describe('account:get command', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
-						limit: 1,
-						address,
+						query: {
+							limit: 1,
+							address,
+						},
+						placeholder: {
+							address,
+							message: 'No data was returned.',
+						},
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
 
-	describe('account:get accounts', () => {
+	describe('account:get addresses', () => {
 		const addresses = ['3520445367460290306L', '2802325248134221536L'];
 		const queryResult = [
 			{
@@ -89,12 +95,24 @@ describe('account:get command', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
-						limit: 1,
-						address: addresses[0],
+						query: {
+							limit: 1,
+							address: addresses[0],
+						},
+						placeholder: {
+							address: addresses[0],
+							message: 'No data was returned.',
+						},
 					},
 					{
-						limit: 1,
-						address: addresses[1],
+						query: {
+							limit: 1,
+							address: addresses[1],
+						},
+						placeholder: {
+							address: addresses[1],
+							message: 'No data was returned.',
+						},
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
