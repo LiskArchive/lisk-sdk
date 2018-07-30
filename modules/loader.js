@@ -576,7 +576,7 @@ __private.loadBlockChain = function() {
  */
 __private.validateBlock = (blockToVerify, cb) => {
 	library.logger.info(
-		`[Loader][validateBlock] Validating block ${blockToVerify.id} at height ${
+		`Loader->validateBlock Validating block ${blockToVerify.id} at height ${
 			blockToVerify.height
 		}`
 	);
@@ -594,7 +594,7 @@ __private.validateBlock = (blockToVerify, cb) => {
 			// Set the block temporarily for block verification
 			modules.blocks.lastBlock.set(secondLastBlockToVerify);
 			library.logger.debug(
-				`[Loader][validateBlock] Setting temporarily last block to height ${
+				`Loader->validateBlock Setting temporarily last block to height ${
 					secondLastBlockToVerify.height
 				}.`
 			);
@@ -603,21 +603,21 @@ __private.validateBlock = (blockToVerify, cb) => {
 			// Revert last block changes
 			modules.blocks.lastBlock.set(lastBlock);
 			library.logger.debug(
-				`[Loader][validateBlock] Reverting last block to height ${
+				`Loader->validateBlock Reverting last block to height ${
 					lastBlock.height
 				}.`
 			);
 
 			if (result.verified) {
 				library.logger.info(
-					`[Loader][validateBlock] Validating block succeed for ${
+					`Loader->validateBlock Validating block succeed for ${
 						blockToVerify.id
 					} at height ${blockToVerify.height}.`
 				);
 				return setImmediate(cb, null);
 			}
 			library.logger.error(
-				`[Loader][validateBlock] Validating block failed for ${
+				`Loader->validateBlock Validating block failed for ${
 					blockToVerify.id
 				} at height ${blockToVerify.height}.`,
 				result.errors
