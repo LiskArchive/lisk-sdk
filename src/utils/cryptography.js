@@ -15,10 +15,12 @@
  */
 import elements from 'lisk-elements';
 
-const liskCrypto = elements.cryptography;
-
 export const encryptMessage = ({ message, passphrase, recipient }) =>
-	liskCrypto.encryptMessageWithPassphrase(message, passphrase, recipient);
+	elements.cryptography.encryptMessageWithPassphrase(
+		message,
+		passphrase,
+		recipient,
+	);
 
 export const decryptMessage = ({
 	cipher,
@@ -26,7 +28,7 @@ export const decryptMessage = ({
 	passphrase,
 	senderPublicKey,
 }) => ({
-	message: liskCrypto.decryptMessageWithPassphrase(
+	message: elements.cryptography.decryptMessageWithPassphrase(
 		cipher,
 		nonce,
 		passphrase,
@@ -35,38 +37,38 @@ export const decryptMessage = ({
 });
 
 export const encryptPassphrase = ({ passphrase, password }) => {
-	const encryptedPassphraseObject = liskCrypto.encryptPassphraseWithPassword(
+	const encryptedPassphraseObject = elements.cryptography.encryptPassphraseWithPassword(
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase = liskCrypto.stringifyEncryptedPassphrase(
+	const encryptedPassphrase = elements.cryptography.stringifyEncryptedPassphrase(
 		encryptedPassphraseObject,
 	);
 	return { encryptedPassphrase };
 };
 
 export const decryptPassphrase = ({ encryptedPassphrase, password }) => {
-	const encryptedPassphraseObject = liskCrypto.parseEncryptedPassphrase(
+	const encryptedPassphraseObject = elements.cryptography.parseEncryptedPassphrase(
 		encryptedPassphrase,
 	);
-	const passphrase = liskCrypto.decryptPassphraseWithPassword(
+	const passphrase = elements.cryptography.decryptPassphraseWithPassword(
 		encryptedPassphraseObject,
 		password,
 	);
 	return { passphrase };
 };
 
-export const getKeys = passphrase => liskCrypto.getKeys(passphrase);
+export const getKeys = passphrase => elements.cryptography.getKeys(passphrase);
 
 export const getAddressFromPublicKey = publicKey => ({
-	address: liskCrypto.getAddressFromPublicKey(publicKey),
+	address: elements.cryptography.getAddressFromPublicKey(publicKey),
 });
 
 export const signMessage = ({ message, passphrase }) =>
-	liskCrypto.signMessageWithPassphrase(message, passphrase);
+	elements.cryptography.signMessageWithPassphrase(message, passphrase);
 
 export const verifyMessage = ({ publicKey, signature, message }) => ({
-	verified: liskCrypto.verifyMessageWithPublicKey({
+	verified: elements.cryptography.verifyMessageWithPublicKey({
 		publicKey,
 		signature,
 		message,

@@ -14,7 +14,7 @@
  *
  */
 import elements from 'lisk-elements';
-import * as crypto from '../../src/utils/cryptography';
+import * as cryptography from '../../src/utils/cryptography';
 
 describe('crypto utils', () => {
 	describe('elements throws error', () => {
@@ -26,9 +26,9 @@ describe('crypto utils', () => {
 		});
 
 		it('should result in error object with the errorMessage', () => {
-			return expect(crypto.encryptMessage.bind(null, 'random input')).to.throw(
-				errorMessage,
-			);
+			return expect(
+				cryptography.encryptMessage.bind(null, 'random input'),
+			).to.throw(errorMessage);
 		});
 	});
 
@@ -50,7 +50,7 @@ describe('crypto utils', () => {
 		});
 
 		it('should call encryptMessageWithPassphrase', () => {
-			crypto.encryptMessage(input);
+			cryptography.encryptMessage(input);
 			return expect(
 				elements.cryptography.encryptMessageWithPassphrase,
 			).to.be.calledWithExactly(
@@ -61,7 +61,7 @@ describe('crypto utils', () => {
 		});
 
 		it('message should be equal to the result of encryptMessageWithPassphrase', () => {
-			const encryptedMessage = crypto.encryptMessage(input);
+			const encryptedMessage = cryptography.encryptMessage(input);
 			return expect(encryptedMessage).to.equal(result);
 		});
 	});
@@ -83,7 +83,7 @@ describe('crypto utils', () => {
 		});
 
 		it('should call decryptMessageWithPassphrase', () => {
-			crypto.decryptMessage(input);
+			cryptography.decryptMessage(input);
 			return expect(
 				elements.cryptography.decryptMessageWithPassphrase,
 			).to.be.calledWithExactly(
@@ -95,7 +95,7 @@ describe('crypto utils', () => {
 		});
 
 		it('message should be equal to the result of the decryptMessageWithPassphrase', () => {
-			const decryptedMessage = crypto.decryptMessage(input);
+			const decryptedMessage = cryptography.decryptMessage(input);
 			return expect(decryptedMessage.message).to.equal(result);
 		});
 	});
@@ -125,7 +125,7 @@ describe('crypto utils', () => {
 				passphrase: 'random-passphrase',
 				password: 'password',
 			};
-			const encryptedPassphrase = crypto.encryptPassphrase(input);
+			const encryptedPassphrase = cryptography.encryptPassphrase(input);
 			return expect(encryptedPassphrase.encryptedPassphrase).to.equal(result);
 		});
 
@@ -134,7 +134,7 @@ describe('crypto utils', () => {
 				passphrase: 'random-passphrase',
 				password: 'password',
 			};
-			crypto.encryptPassphrase(input);
+			cryptography.encryptPassphrase(input);
 
 			return expect(
 				elements.cryptography.encryptPassphraseWithPassword,
@@ -146,7 +146,7 @@ describe('crypto utils', () => {
 				passphrase: 'random-passphrase',
 				password: 'password',
 			};
-			crypto.encryptPassphrase(input);
+			cryptography.encryptPassphrase(input);
 
 			return expect(
 				elements.cryptography.stringifyEncryptedPassphrase,
@@ -179,19 +179,19 @@ describe('crypto utils', () => {
 		});
 
 		it('passphrase should equal to the result of decryptPassphraseWithPassword', () => {
-			const decryptedPassphrase = crypto.decryptPassphrase(input);
+			const decryptedPassphrase = cryptography.decryptPassphrase(input);
 			return expect(decryptedPassphrase.passphrase).to.equal(result);
 		});
 
 		it('should call parseEncryptedPassphrase', () => {
-			crypto.decryptPassphrase(input);
+			cryptography.decryptPassphrase(input);
 			return expect(
 				elements.cryptography.parseEncryptedPassphrase,
 			).to.be.calledWithExactly(input.encryptedPassphrase);
 		});
 
 		it('should call decryptPassphraseWithPassword', () => {
-			crypto.decryptPassphrase(input);
+			cryptography.decryptPassphrase(input);
 			return expect(
 				elements.cryptography.decryptPassphraseWithPassword,
 			).to.be.calledWithExactly(passphraseObject, input.password);
@@ -210,12 +210,12 @@ describe('crypto utils', () => {
 		});
 
 		it('keys should equal to the result of getKeys', () => {
-			const keys = crypto.getKeys(input);
+			const keys = cryptography.getKeys(input);
 			return expect(keys).to.equal(result);
 		});
 
 		it('should call getKeys', () => {
-			crypto.getKeys(input);
+			cryptography.getKeys(input);
 			return expect(elements.cryptography.getKeys).to.be.calledWithExactly(
 				input,
 			);
@@ -233,12 +233,12 @@ describe('crypto utils', () => {
 		});
 
 		it('address should equal to the result of getAddressFromPublicKey', () => {
-			const addressObject = crypto.getAddressFromPublicKey(input);
+			const addressObject = cryptography.getAddressFromPublicKey(input);
 			return expect(addressObject.address).to.equal(result);
 		});
 
 		it('should call getAddressFromPublicKey', () => {
-			crypto.getAddressFromPublicKey(input);
+			cryptography.getAddressFromPublicKey(input);
 			return expect(
 				elements.cryptography.getAddressFromPublicKey,
 			).to.be.calledWithExactly(input);
@@ -259,12 +259,12 @@ describe('crypto utils', () => {
 		});
 
 		it('singed message should equal to the result of signMessageWithPassphrase', () => {
-			const signedMessage = crypto.signMessage(input);
+			const signedMessage = cryptography.signMessage(input);
 			return expect(signedMessage).to.equal(result);
 		});
 
 		it('should call signMessageWithPassphrase', () => {
-			crypto.signMessage(input);
+			cryptography.signMessage(input);
 			return expect(
 				elements.cryptography.signMessageWithPassphrase,
 			).to.be.calledWithExactly(input.message, input.passphrase);
@@ -286,12 +286,12 @@ describe('crypto utils', () => {
 		});
 
 		it('verified should equal to the result of verifyMessageWithPublicKey', () => {
-			const verifiedResult = crypto.verifyMessage(input);
+			const verifiedResult = cryptography.verifyMessage(input);
 			return expect(verifiedResult.verified).to.equal(result);
 		});
 
 		it('should call verifyMessageWithPublicKey', () => {
-			crypto.verifyMessage(input);
+			cryptography.verifyMessage(input);
 			return expect(
 				elements.cryptography.verifyMessageWithPublicKey,
 			).to.be.calledWithExactly(input);
