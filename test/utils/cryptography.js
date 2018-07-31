@@ -14,7 +14,7 @@
  *
  */
 import elements from 'lisk-elements';
-import crypto from '../../src/utils/cryptography';
+import * as crypto from '../../src/utils/cryptography';
 
 describe('crypto utils', () => {
 	describe('elements throws error', () => {
@@ -26,9 +26,9 @@ describe('crypto utils', () => {
 		});
 
 		it('should result in error object with the errorMessage', () => {
-			const result = crypto.encryptMessage('random input');
-			expect(result).to.be.an('Object');
-			return expect(result.error).to.eql(errorMessage);
+			return expect(crypto.encryptMessage.bind(null, 'random input')).to.throw(
+				errorMessage,
+			);
 		});
 	});
 
