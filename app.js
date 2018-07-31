@@ -815,3 +815,12 @@ process.on('uncaughtException', err => {
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup', err);
 });
+
+process.on('unhandledRejection', err => {
+	// Handle unhandledRejection safely
+	logger.fatal('System promise rejection', {
+		message: err.message,
+		stack: err.stack,
+	});
+	process.emit('cleanup', err);
+});
