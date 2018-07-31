@@ -761,7 +761,9 @@ __private.sync = function(cb) {
 	async.series(
 		{
 			getPeersBefore(seriesCb) {
-				library.logger.debug(`Establishing broadhash consensus before sync: ${ modules.peers.calculateConsensus() } %`);
+				library.logger.debug(
+					`Establishing broadhash consensus before sync: ${modules.peers.getLastConsensus()} %`
+				);
 				return seriesCb();
 			},
 			loadBlocksFromNetwork(seriesCb) {
@@ -776,7 +778,9 @@ __private.sync = function(cb) {
 				modules.transport.broadcastHeaders(seriesCb);
 			},
 			getPeersAfter(seriesCb) {
-				library.logger.debug(`Establishing broadhash consensus after sync: ${ modules.peers.calculateConsensus() } %`);
+				library.logger.debug(
+					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
+				);
 				return seriesCb();
 			},
 		},
