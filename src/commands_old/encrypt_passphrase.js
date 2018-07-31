@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '../utils/cryptography';
+import * as cryptography from '../utils/cryptography';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import commonOptions from '../utils/options';
