@@ -13,14 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import { cryptography } from 'lisk-elements';
 
 export const encryptMessage = ({ message, passphrase, recipient }) =>
-	elements.cryptography.encryptMessageWithPassphrase(
-		message,
-		passphrase,
-		recipient,
-	);
+	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);
 
 export const decryptMessage = ({
 	cipher,
@@ -28,7 +24,7 @@ export const decryptMessage = ({
 	passphrase,
 	senderPublicKey,
 }) => ({
-	message: elements.cryptography.decryptMessageWithPassphrase(
+	message: cryptography.decryptMessageWithPassphrase(
 		cipher,
 		nonce,
 		passphrase,
@@ -37,38 +33,38 @@ export const decryptMessage = ({
 });
 
 export const encryptPassphrase = ({ passphrase, password }) => {
-	const encryptedPassphraseObject = elements.cryptography.encryptPassphraseWithPassword(
+	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase = elements.cryptography.stringifyEncryptedPassphrase(
+	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
 		encryptedPassphraseObject,
 	);
 	return { encryptedPassphrase };
 };
 
 export const decryptPassphrase = ({ encryptedPassphrase, password }) => {
-	const encryptedPassphraseObject = elements.cryptography.parseEncryptedPassphrase(
+	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
 		encryptedPassphrase,
 	);
-	const passphrase = elements.cryptography.decryptPassphraseWithPassword(
+	const passphrase = cryptography.decryptPassphraseWithPassword(
 		encryptedPassphraseObject,
 		password,
 	);
 	return { passphrase };
 };
 
-export const getKeys = passphrase => elements.cryptography.getKeys(passphrase);
+export const { getKeys } = cryptography;
 
 export const getAddressFromPublicKey = publicKey => ({
-	address: elements.cryptography.getAddressFromPublicKey(publicKey),
+	address: cryptography.getAddressFromPublicKey(publicKey),
 });
 
 export const signMessage = ({ message, passphrase }) =>
-	elements.cryptography.signMessageWithPassphrase(message, passphrase);
+	cryptography.signMessageWithPassphrase(message, passphrase);
 
 export const verifyMessage = ({ publicKey, signature, message }) => ({
-	verified: elements.cryptography.verifyMessageWithPublicKey({
+	verified: cryptography.verifyMessageWithPublicKey({
 		publicKey,
 		signature,
 		message,
