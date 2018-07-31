@@ -15,7 +15,6 @@
 'use strict';
 
 const rewire = require('rewire');
-const ed = require('../../../helpers/ed.js');
 const application = require('../../common/application.js');
 const modulesLoader = require('../../common/modules_loader');
 const Bignum = require('../../../helpers/bignum.js');
@@ -148,27 +147,6 @@ describe('account', () => {
 					'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a2'
 				);
 			}).to.not.throw();
-		});
-	});
-
-	describe('toDB', () => {
-		it('should normalize address and transform publicKey and secondPublicKey to Buffer hex', done => {
-			const raw = {
-				address: '16313739661670634666l',
-				publicKey:
-					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-				secondPublicKey:
-					'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
-			};
-			const toDBRes = _.cloneDeep(raw);
-
-			account.toDB(toDBRes);
-			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
-			expect(toDBRes.publicKey).to.deep.equal(ed.hexToBuffer(raw.publicKey));
-			expect(toDBRes.secondPublicKey).to.deep.equal(
-				ed.hexToBuffer(raw.secondPublicKey)
-			);
-			done();
 		});
 	});
 
