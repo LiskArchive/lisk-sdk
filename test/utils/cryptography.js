@@ -183,6 +183,12 @@ describe('crypto utils', () => {
 		});
 	});
 
+	describe('#getKeys', () => {
+		it('should be a function', () => {
+			return expect(cryptography.getKeys).to.be.a('function');
+		});
+	});
+
 	describe('#getAddressFromPublicKey', () => {
 		const result = 'address';
 		const input = 'publicKey';
