@@ -18,11 +18,10 @@ import os from 'os';
 import lockfile from 'lockfile';
 import { getConfig, setConfig } from '../../src/utils/config';
 import * as fsUtils from '../../src/utils/fs';
-import logger from '../../src/utils/logger';
 import defaultConfig from '../../default_config.json';
 
 describe('config utils', () => {
-	const configDirName = '.lisk-commander';
+	const configDirName = '.lisk';
 	const configFileName = 'config.json';
 	const lockfileName = 'config.lock';
 
@@ -30,8 +29,6 @@ describe('config utils', () => {
 
 	beforeEach(() => {
 		sandbox.stub(fsUtils, 'writeJSONSync');
-		sandbox.stub(logger, 'error');
-		sandbox.stub(process, 'exit');
 		return Promise.resolve();
 	});
 
@@ -55,10 +52,8 @@ describe('config utils', () => {
 
 			it('should log error when it fails to write', () => {
 				fs.mkdirSync.throws(new Error('failed to create folder'));
-				getConfig(defaultPath);
-				expect(process.exit).to.be.calledWithExactly(1);
-				return expect(logger.error).to.be.calledWithExactly(
-					`ERROR: Could not write to \`${defaultPath}\`. Your configuration will not be persisted.`,
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
+					`Could not write to \`${defaultPath}\`. Your configuration will not be persisted.`,
 				);
 			});
 		});
@@ -79,10 +74,8 @@ describe('config utils', () => {
 
 			it('should log error when it fails to write', () => {
 				fsUtils.writeJSONSync.throws(new Error('failed to write to the file'));
-				getConfig(defaultPath);
-				expect(process.exit).to.be.calledWithExactly(1);
-				return expect(logger.error).to.be.calledWithExactly(
-					`ERROR: Could not write to \`${defaultPath}/${configFileName}\`. Your configuration will not be persisted.`,
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
+					`Could not write to \`${defaultPath}/${configFileName}\`. Your configuration will not be persisted.`,
 				);
 			});
 		});
@@ -106,18 +99,14 @@ describe('config utils', () => {
 
 			it('should log error and exit when it fails to read', () => {
 				fsUtils.readJSONSync.throws(new Error('failed to read to the file'));
-				getConfig(defaultPath);
-				expect(process.exit).to.be.calledWithExactly(1);
-				return expect(logger.error).to.be.calledWithExactly(
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Config file cannot be read or is not valid JSON. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
 
 			it('should log error and exit when it has invalid keys', () => {
 				fsUtils.readJSONSync.returns({ random: 'values' });
-				getConfig(defaultPath);
-				expect(process.exit).to.be.calledWithExactly(1);
-				return expect(logger.error).to.be.calledWithExactly(
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Config file seems to be corrupted: missing required keys. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
@@ -140,9 +129,9 @@ describe('config utils', () => {
 		describe('when lockfile exists', () => {
 			it('should log error and exit', () => {
 				lockfile.checkSync.returns(true);
-				setConfig(defaultPath, newConfigValue);
-				expect(process.exit).to.be.calledWithExactly(1);
-				return expect(logger.error).to.be.calledWithExactly(
+				return expect(
+					setConfig.bind(null, defaultPath, newConfigValue),
+				).to.throw(
 					`Config lockfile at ${defaultPath}/${lockfileName} found. Are you running Lisk Commander in another process?`,
 				);
 			});
