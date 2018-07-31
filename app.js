@@ -808,3 +808,9 @@ process.on('uncaughtException', err => {
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
 });
+
+process.on('unhandledRejection', err => {
+	// Handle error safely
+	logger.fatal('System error', { message: err.message, stack: err.stack });
+	process.emit('cleanup', err);
+});
