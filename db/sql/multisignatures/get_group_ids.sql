@@ -22,4 +22,4 @@
 
 SELECT array_agg("accountId") AS "groupAccountIds"
 FROM mem_accounts2multisignatures
-WHERE "dependentId" = ${publicKey}
+WHERE "dependentId" = DECODE(${publicKey}, 'hex')
