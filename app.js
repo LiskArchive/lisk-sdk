@@ -180,7 +180,7 @@ try {
 // Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.emit('cleanup', err);
 });
 
 // Run domain
