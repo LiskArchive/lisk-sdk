@@ -57,7 +57,9 @@
 			"@oclif/plugin-help"
 		],
 		"topics": {
-			"config": { "description": "Manages Lisk Commander configuration." }
+			"config": {
+				"description": "Manages Lisk Commander configuration."
+			}
 		}
 	},
 	"files": [
@@ -76,7 +78,7 @@
 		"chalk": "2.3.0",
 		"cli-table2": "LiskHQ/cli-table2#187c6ae80b9d963c598d0cb3379153387bfb15c4",
 		"inquirer": "6.0.0",
-		"lisk-elements": "1.0.0-beta.3",
+		"lisk-elements": "1.0.0-rc.0",
 		"lockfile": "1.0.3",
 		"semver": "5.5.0",
 		"strip-ansi": "4.0.0"
