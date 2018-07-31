@@ -17,21 +17,6 @@ import elements from 'lisk-elements';
 import * as cryptography from '../../src/utils/cryptography';
 
 describe('crypto utils', () => {
-	describe('elements throws error', () => {
-		const errorMessage = 'some error';
-		beforeEach(() => {
-			return sandbox
-				.stub(elements.cryptography, 'encryptMessageWithPassphrase')
-				.throws(new Error(errorMessage));
-		});
-
-		it('should result in error object with the errorMessage', () => {
-			return expect(
-				cryptography.encryptMessage.bind(null, 'random input'),
-			).to.throw(errorMessage);
-		});
-	});
-
 	describe('#encryptMessage', () => {
 		const result = {
 			result: 'result',
