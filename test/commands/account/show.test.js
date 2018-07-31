@@ -16,7 +16,7 @@
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
+import * as cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('account:show', () => {

@@ -14,7 +14,7 @@
  *
  */
 import BaseCommand from '../../base';
-import cryptography from '../../utils/cryptography';
+import * as cryptography from '../../utils/cryptography';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
 export default class CreateCommand extends BaseCommand {

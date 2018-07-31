@@ -16,7 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getInputsFromSources from '../../utils/input';
-import cryptography from '../../utils/cryptography';
+import * as cryptography from '../../utils/cryptography';
 import commonFlags from '../../utils/flags';
 
 const processInput = ({ passphrase }) => {
