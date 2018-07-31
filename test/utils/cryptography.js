@@ -183,30 +183,6 @@ describe('crypto utils', () => {
 		});
 	});
 
-	describe('#getKeys', () => {
-		const result = {
-			publicKey: 'publicKey',
-			privateKey: 'privateKey',
-		};
-		const input = 'passphrase';
-
-		beforeEach(() => {
-			return sandbox.stub(elements.cryptography, 'getKeys').returns(result);
-		});
-
-		it('keys should equal to the result of getKeys', () => {
-			const keys = cryptography.getKeys(input);
-			return expect(keys).to.equal(result);
-		});
-
-		it('should call getKeys', () => {
-			cryptography.getKeys(input);
-			return expect(elements.cryptography.getKeys).to.be.calledWithExactly(
-				input,
-			);
-		});
-	});
-
 	describe('#getAddressFromPublicKey', () => {
 		const result = 'address';
 		const input = 'publicKey';
