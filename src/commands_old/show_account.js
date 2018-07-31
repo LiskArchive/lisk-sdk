@@ -16,7 +16,7 @@
 import getInputsFromSources from '../utils/input';
 import { createCommand } from '../utils/helpers';
 import commonOptions from '../utils/options';
-import cryptography from '../utils/cryptography';
+import * as cryptography from '../utils/cryptography';
 
 const description = `Shows account information for a given passphrase.
 
