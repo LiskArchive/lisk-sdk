@@ -760,7 +760,7 @@ __private.sync = function(cb) {
 
 	async.series(
 		{
-			getPeersBefore(seriesCb) {
+			getConsensusBefore(seriesCb) {
 				library.logger.debug(
 					`Establishing broadhash consensus before sync: ${modules.peers.getLastConsensus()} %`
 				);
@@ -777,7 +777,7 @@ __private.sync = function(cb) {
 				// Notify all remote peers about our new headers
 				modules.transport.broadcastHeaders(seriesCb);
 			},
-			getPeersAfter(seriesCb) {
+			calculateConsensusAfter(seriesCb) {
 				library.logger.debug(
 					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
 				);
