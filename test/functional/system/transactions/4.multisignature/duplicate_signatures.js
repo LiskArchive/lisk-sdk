@@ -187,5 +187,92 @@ describe('duplicate_signatures', () => {
 			});
 		});
 
+		it('should reject signature when there is a duplicate', done => {
+			// Create random accounts that we will sent funds to
+			accounts.random = randomUtil.account();
+
+			// Create transfer transaction (fund new account)
+			let transaction = elements.transaction.transfer({
+				recipientId: accounts.random.address,
+				amount: 100000000,
+				passphrase: accounts.multisignature.passphrase,
+			});
+
+			// Create signatures (objects)
+			const signature1 = elements.transaction.createSignatureObject(
+				transaction,
+				accounts.multisignatureMembers[0].passphrase
+			);
+			const signature2 = elements.transaction.createSignatureObject(
+				transaction,
+				accounts.multisignatureMembers[1].passphrase
+			);
+
+			localCommon.addTransaction(library, transaction, err => {
+				// There should be no error when add transaction to transaction pool
+				expect(err).to.be.null;
+				// Transaction should be present in transaction pool
+				expect(transactionPool.transactionInPool(transaction.id)).to.equal(
+					true
+				);
+				// Transaction should exists in multisignature queue
+				expect(
+					transactionPool.getMultisignatureTransaction(transaction.id)
+				).to.be.an('object');
+
+				// Block balancesSequence for 5 seconds
+				library.balancesSequence.add(cb => {
+					setTimeout(cb, 5000);
+				});
+
+				// Make node receive 3 signatures in parallel (1 duplicated)
+				async.parallel(
+					async.reflectAll([
+						parallelCb => {
+							library.modules.multisignatures.processSignature(
+								signature1,
+								parallelCb
+							);
+						},
+						parallelCb => {
+							library.modules.multisignatures.processSignature(
+								signature1,
+								parallelCb
+							);
+						},
+						parallelCb => {
+							library.modules.multisignatures.processSignature(
+								signature2,
+								parallelCb
+							);
+						},
+					]),
+					(err, results) => {
+						// There should be an error from processing only for duplicated signature
+						expect(results[0].value).to.be.undefined;
+						expect(results[1].error).to.eql('Signature already exists');
+						expect(results[2].value).to.be.undefined;
+
+						// Get multisignature transaction from pool
+						transaction = transactionPool.getMultisignatureTransaction(
+							transaction.id
+						);
+
+						// There should be 2 signatures
+						expect(transaction.signatures).to.have.lengthOf(2);
+
+						// Forge a block
+						addTransactionsAndForgePromise(library, [], 0).then(() => {
+							const lastBlock = library.modules.blocks.lastBlock.get();
+							// Block should contain transaction sent from multisignature account
+							expect(lastBlock.transactions[0].id).to.eql(transaction.id);
+							// There should be 2 signatures
+							expect(transaction.signatures).to.have.lengthOf(2);
+							done();
+						});
+					}
+				);
+			});
+		});
 	});
 });
