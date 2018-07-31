@@ -34,6 +34,7 @@ import {
 	validatePublicKey,
 	validatePublicKeys,
 	wrapTransactionCreator,
+	validateTransaction,
 } from '../../src/utils';
 
 describe('transaction utils', () => {
@@ -122,6 +123,10 @@ describe('transaction utils', () => {
 
 		it('should have wrapTransactionCreator', () => {
 			return expect(wrapTransactionCreator).to.be.a('function');
+		});
+
+		it('should have validateTransaction', () => {
+			return expect(validateTransaction).to.be.a('function');
 		});
 	});
 });

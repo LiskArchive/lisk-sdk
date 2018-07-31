@@ -22,4 +22,4 @@ export {
 	isGreaterThanMaxTransactionAmount,
 } from './validation';
 
-export { validateTransaction } from './validator';
+export { default as validateTransaction } from './validate_transaction';
