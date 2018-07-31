@@ -52,7 +52,7 @@ describe('config utils', () => {
 
 			it('should log error when it fails to write', () => {
 				fs.mkdirSync.throws(new Error('failed to create folder'));
-				return expect(() => getConfig(defaultPath)).to.throw(
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Could not write to \`${defaultPath}\`. Your configuration will not be persisted.`,
 				);
 			});
@@ -74,7 +74,7 @@ describe('config utils', () => {
 
 			it('should log error when it fails to write', () => {
 				fsUtils.writeJSONSync.throws(new Error('failed to write to the file'));
-				return expect(() => getConfig(defaultPath)).to.throw(
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Could not write to \`${defaultPath}/${configFileName}\`. Your configuration will not be persisted.`,
 				);
 			});
@@ -99,14 +99,14 @@ describe('config utils', () => {
 
 			it('should log error and exit when it fails to read', () => {
 				fsUtils.readJSONSync.throws(new Error('failed to read to the file'));
-				return expect(() => getConfig(defaultPath)).to.throw(
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Config file cannot be read or is not valid JSON. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
 
 			it('should log error and exit when it has invalid keys', () => {
 				fsUtils.readJSONSync.returns({ random: 'values' });
-				return expect(() => getConfig(defaultPath)).to.throw(
+				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Config file seems to be corrupted: missing required keys. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
@@ -129,7 +129,9 @@ describe('config utils', () => {
 		describe('when lockfile exists', () => {
 			it('should log error and exit', () => {
 				lockfile.checkSync.returns(true);
-				return expect(() => setConfig(defaultPath, newConfigValue)).to.throw(
+				return expect(
+					setConfig.bind(null, defaultPath, newConfigValue),
+				).to.throw(
 					`Config lockfile at ${defaultPath}/${lockfileName} found. Are you running Lisk Commander in another process?`,
 				);
 			});
