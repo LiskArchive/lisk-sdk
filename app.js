@@ -180,7 +180,7 @@ try {
 // Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.emit('cleanup', err);
 });
 
 // Run domain
@@ -807,4 +807,10 @@ process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
+});
+
+process.on('unhandledRejection', err => {
+	// Handle error safely
+	logger.fatal('System error', { message: err.message, stack: err.stack });
+	process.emit('cleanup', err);
 });
