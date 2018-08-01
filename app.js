@@ -764,6 +764,8 @@ d.run(() => {
 					scope.socketCluster.removeAllListeners('fail');
 					scope.socketCluster.destroy();
 				}
+				// Run cleanup operation on each module before shutting down the node;
+				// this includes operations like snapshotting database tables.
 				async.eachSeries(
 					modules,
 					(module, cb) => {
