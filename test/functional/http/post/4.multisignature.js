@@ -714,7 +714,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						expect(res)
 							.to.have.nested.property('body.message')
 							.to.equal(
-								'Error processing signature: Failed to verify signature'
+								'Error processing signature: Unable to process signature, verification failed'
 							);
 					});
 			});
