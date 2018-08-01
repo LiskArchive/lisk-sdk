@@ -206,150 +206,53 @@ __private.processSignatureFromMultisignatureAccount = (
  * @returns {setImmediateCallback} cb, err
  * @todo Add test coverage.
  */
-Multisignatures.prototype.processSignature = function(transaction, cb) {
-	if (!transaction) {
-		return setImmediate(
-			cb,
-			'Unable to process signature. Signature is undefined.'
+Multisignatures.prototype.processSignature = function(signature, cb) {
+	if (!signature) {
+		const message = 'Unable to process signature, signature not provided';
+		library.logger.error(message);
+		return setImmediate(cb, message);
+	}
+
+	// From now perform all the operations via balanceSequence
+	library.balancesSequence.add(balanceSequenceCb => {
+		// Grab transaction with corresponding ID from transaction pool
+		const transaction = modules.transactions.getMultisignatureTransaction(
+			signature.transactionId
 		);
-	}
-	const multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
-		transaction.transactionId
-	);
 
-	function done(cb) {
-		library.balancesSequence.add(cb => {
-			const multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
-				transaction.transactionId
+		if (!transaction) {
+			const message =
+				'Unable to process signature, corresponding transaction not found';
+			library.logger.error(message, { signature });
+			return setImmediate(balanceSequenceCb, message);
+		}
+
+		// If there are no signatures yet - initialise with empty array
+		transaction.signatures = transaction.signatures || [];
+
+		// Check if received signature already exists in transaction
+		if (transaction.signatures.indexOf(signature.signature) !== -1) {
+			const message = 'Unable to process signature, signature already exists';
+			library.logger.error(message, { signature, transaction });
+			return setImmediate(balanceSequenceCb, message);
+		}
+
+		// Process signature for multisignature account creation transaction
+		if (transaction.type === transactionTypes.MULTI) {
+			return __private.processSignatureForMultisignatureCreation(
+				signature,
+				transaction,
+				balanceSequenceCb
 			);
-
-			if (!multisignatureTransaction) {
-				return setImmediate(cb, 'Transaction not found');
-			}
-
-			modules.accounts.getAccount(
-				{
-					address: multisignatureTransaction.senderId,
-				},
-				(err, sender) => {
-					if (err) {
-						return setImmediate(cb, err);
-					} else if (!sender) {
-						return setImmediate(cb, 'Sender not found');
-					}
-					multisignatureTransaction.signatures =
-						multisignatureTransaction.signatures || [];
-					multisignatureTransaction.signatures.push(transaction.signature);
-					multisignatureTransaction.ready = Multisignature.prototype.ready(
-						multisignatureTransaction,
-						sender
-					);
-
-					library.bus.message('signature', transaction, true);
-					return setImmediate(cb);
-				}
-			);
-		}, cb);
-	}
-
-	if (!multisignatureTransaction) {
-		return setImmediate(cb, 'Transaction not found');
-	}
-
-	if (multisignatureTransaction.type === transactionTypes.MULTI) {
-		multisignatureTransaction.signatures =
-			multisignatureTransaction.signatures || [];
-
-		if (
-			multisignatureTransaction.asset.multisignature.signatures ||
-			multisignatureTransaction.signatures.indexOf(transaction.signature) !== -1
-		) {
-			return setImmediate(cb, 'Permission to sign transaction denied');
 		}
 
-		// Find public key
-		let verify = false;
-
-		try {
-			for (
-				let i = 0;
-				i < multisignatureTransaction.asset.multisignature.keysgroup.length &&
-				!verify;
-				i++
-			) {
-				const key = multisignatureTransaction.asset.multisignature.keysgroup[
-					i
-				].substring(1);
-				verify = library.logic.transaction.verifySignature(
-					multisignatureTransaction,
-					key,
-					transaction.signature
-				);
-			}
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, 'Failed to verify signature');
-		}
-
-		if (!verify) {
-			return setImmediate(cb, 'Failed to verify signature');
-		}
-
-		return done(cb);
-	}
-	modules.accounts.getAccount(
-		{
-			address: multisignatureTransaction.senderId,
-		},
-		(err, account) => {
-			if (err) {
-				return setImmediate(cb, 'Multisignature account not found');
-			}
-
-			let verify = false;
-			const multisignatures = account.multisignatures;
-
-			if (multisignatureTransaction.requesterPublicKey) {
-				multisignatures.push(multisignatureTransaction.senderPublicKey);
-			}
-
-			if (!account) {
-				return setImmediate(cb, 'Account not found');
-			}
-
-			multisignatureTransaction.signatures =
-				multisignatureTransaction.signatures || [];
-
-			if (
-				multisignatureTransaction.signatures.indexOf(transaction.signature) >= 0
-			) {
-				return setImmediate(cb, 'Signature already exists');
-			}
-
-			try {
-				for (let i = 0; i < multisignatures.length && !verify; i++) {
-					verify = library.logic.transaction.verifySignature(
-						multisignatureTransaction,
-						multisignatures[i],
-						transaction.signature
-					);
-				}
-			} catch (e) {
-				library.logger.error(e.stack);
-				return setImmediate(cb, 'Failed to verify signature');
-			}
-
-			if (!verify) {
-				return setImmediate(cb, 'Failed to verify signature');
-			}
-
-			library.network.io.sockets.emit(
-				'multisignatures/signature/change',
-				multisignatureTransaction
-			);
-			return done(cb);
-		}
-	);
+		// Process signature for send from multisignature account transaction
+		return __private.processSignatureFromMultisignatureAccount(
+			signature,
+			transaction,
+			balanceSequenceCb
+		);
+	}, cb);
 };
 
 /**
