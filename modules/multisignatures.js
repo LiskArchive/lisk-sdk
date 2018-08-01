@@ -124,6 +124,38 @@ __private.isValidSignature = (signature, members, transaction) => {
 	return isValid;
 };
 
+__private.processSignatureForMultisignatureCreation = (
+	signature,
+	transaction,
+	cb
+) => {
+	// Normalize members of multisignature account from transaction
+	const members = transaction.asset.multisignature.keysgroup.map(member =>
+		member.substring(1) // Remove first character, which is '+'
+	);
+
+	// Check if signature is valid
+	if (!__private.isValidSignature(signature, members, transaction)) {
+		return setImmediate(cb, 'Unable to process signature, verification failed');
+	}
+
+	// Add signature to transaction
+	transaction.signatures.push(signature.signature);
+	// Check if transaction is ready to be processed
+	transaction.ready = Multisignature.prototype.ready(
+		transaction,
+		{} // Pass empty object, as we don't need sender in case of multisignature registration
+	);
+
+	// Emit events
+	library.network.io.sockets.emit(
+		'multisignatures/signature/change',
+		transaction
+	);
+	library.bus.message('signature', signature, true);
+	return setImmediate(cb);
+};
+
 /**
  * Gets transaction from transaction id and add it to sequence and bus.
  *
