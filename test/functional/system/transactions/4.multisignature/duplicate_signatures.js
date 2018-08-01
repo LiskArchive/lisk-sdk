@@ -76,11 +76,11 @@ describe('duplicate_signatures', () => {
 			});
 
 			// Create signatures (strings)
-			const signature1 = elements.transaction.utils.multiSignTransaction(
+			const signature1 = elements.transaction.createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[0].passphrase
 			);
-			const signature2 = elements.transaction.utils.multiSignTransaction(
+			const signature2 = elements.transaction.createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[1].passphrase
 			);
@@ -88,7 +88,7 @@ describe('duplicate_signatures', () => {
 			// Mark transaction as ready, so it can get processed instantly
 			transaction.ready = true;
 			// Add signatures to transaction
-			transaction.signatures = [signature1, signature2];
+			transaction.signatures = [signature1.signature, signature2.signature];
 			transactions.multisignature.push(transaction);
 
 			// Execute transfer transaction - credit new account
