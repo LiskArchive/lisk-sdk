@@ -80,6 +80,50 @@ function Multisignatures(cb, scope) {
 }
 
 // Public methods
+
+__private.isValidSignature = (signature, members, transaction) => {
+	let isValid = false;
+
+	try {
+		// If publicKey is provided we can perform direct verify
+		if (signature.publicKey) {
+			// Check if publicKey is present as member of multisignature account in transaction
+			if (members.indexOf(signature.publicKey) === -1) {
+				library.logger.error(
+					'Unable to process signature, signer not in keysgroup.',
+					{ signature, members, transaction }
+				);
+				return isValid;
+			}
+
+			// Try to verify the signature
+			isValid = library.logic.transaction.verifySignature(
+				transaction,
+				signature.publicKey,
+				signature.signature
+			);
+		} else {
+			// publicKey is not there - we need to iterate through all members of multisignature account in transaction
+			isValid = members.find(member =>
+				// Try to verify the signature
+				library.logic.transaction.verifySignature(
+					transaction,
+					member,
+					signature.signature
+				)
+			);
+		}
+	} catch (e) {
+		library.logger.error('Unable to process signature, verification failed.', {
+			signature,
+			members,
+			transaction,
+			error: e.stack,
+		});
+	}
+	return isValid;
+};
+
 /**
  * Gets transaction from transaction id and add it to sequence and bus.
  *
