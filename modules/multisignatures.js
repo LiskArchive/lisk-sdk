@@ -100,7 +100,7 @@ __private.isValidSignature = (signature, members, transaction) => {
 		// If publicKey is provided we can perform direct verify
 		if (signature.publicKey) {
 			// Check if publicKey is present as member of multisignature account in transaction
-			if (members.indexOf(signature.publicKey) === -1) {
+			if (!members.includes(signature.publicKey)) {
 				library.logger.error(
 					'Unable to process signature, signer not in keysgroup.',
 					{ signature, members, transaction }
@@ -273,7 +273,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 		transaction.signatures = transaction.signatures || [];
 
 		// Check if received signature already exists in transaction
-		if (transaction.signatures.indexOf(signature.signature) !== -1) {
+		if (!transaction.signatures.includes(signature.signature)) {
 			const message = 'Unable to process signature, signature already exists';
 			library.logger.error(message, { signature, transaction });
 			return setImmediate(balanceSequenceCb, message);
