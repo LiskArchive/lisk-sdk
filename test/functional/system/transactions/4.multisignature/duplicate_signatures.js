@@ -75,7 +75,7 @@ describe('duplicate_signatures', () => {
 				minimum: 2,
 			});
 
-			// Create signatures (strings)
+			// Create signatures (object)
 			const signature1 = elements.transaction.createSignatureObject(
 				transaction,
 				accounts.multisignatureMembers[0].passphrase
@@ -135,7 +135,7 @@ describe('duplicate_signatures', () => {
 				}
 			);
 
-			// Create signatures (strings)
+			// Create signatures (object)
 			const signature1 = elements.transaction.createSignatureObject(
 				multisignatureTransaction,
 				multisignatureMembers[0].passphrase
