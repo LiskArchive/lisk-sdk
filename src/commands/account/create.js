@@ -13,15 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
-import * as cryptography from '../../utils/cryptography';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
 export default class CreateCommand extends BaseCommand {
 	async run() {
 		const passphrase = createMnemonicPassphrase();
 		const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-		const { address } = cryptography.getAddressFromPublicKey(publicKey);
+		const address = cryptography.getAddressFromPublicKey(publicKey);
 		this.print({
 			passphrase,
 			privateKey,

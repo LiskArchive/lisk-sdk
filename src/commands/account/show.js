@@ -13,15 +13,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { cryptography } from 'lisk-elements';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getInputsFromSources from '../../utils/input';
-import * as cryptography from '../../utils/cryptography';
 import commonFlags from '../../utils/flags';
 
 const processInput = ({ passphrase }) => {
 	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-	const { address } = cryptography.getAddressFromPublicKey(publicKey);
+	const address = cryptography.getAddressFromPublicKey(publicKey);
 	return {
 		privateKey,
 		publicKey,

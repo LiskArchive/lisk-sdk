@@ -14,9 +14,9 @@
  *
  */
 import { expect, test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import * as cryptography from '../../../src/utils/cryptography';
 import * as mnemonic from '../../../src/utils/mnemonic';
 
 describe('account:create', () => {
@@ -24,9 +24,7 @@ describe('account:create', () => {
 		publicKey: 'somePublicKey',
 		privateKey: 'somePrivateKey',
 	};
-	const defaultAddress = {
-		address: 'someAddress',
-	};
+	const defaultAddress = 'someAddress';
 	const defaultMnemonic =
 		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
 
@@ -59,7 +57,7 @@ describe('account:create', () => {
 				);
 				return expect(printMethodStub).to.be.calledWith({
 					...defaultKeys,
-					...defaultAddress,
+					address: defaultAddress,
 					passphrase: defaultMnemonic,
 				});
 			});

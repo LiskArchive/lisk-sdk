@@ -14,9 +14,9 @@
  *
  */
 import { expect, test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import * as cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('account:show', () => {
@@ -24,9 +24,7 @@ describe('account:show', () => {
 		publicKey: 'somePublicKey',
 		privateKey: 'somePrivateKey',
 	};
-	const defaultAddress = {
-		address: 'someAddress',
-	};
+	const defaultAddress = 'someAddress';
 	const passphraseInput = {
 		passphrase:
 			'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry',
@@ -63,7 +61,7 @@ describe('account:show', () => {
 				});
 				return expect(printMethodStub).to.be.calledWithExactly({
 					...defaultKeys,
-					...defaultAddress,
+					address: defaultAddress,
 				});
 			});
 
@@ -80,7 +78,7 @@ describe('account:show', () => {
 				});
 				return expect(printMethodStub).to.be.calledWith({
 					...defaultKeys,
-					...defaultAddress,
+					address: defaultAddress,
 				});
 			});
 	});
