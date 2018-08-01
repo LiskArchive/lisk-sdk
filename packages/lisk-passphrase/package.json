@@ -1,6 +1,6 @@
 {
 	"name": "lisk-passphrase",
-	"version": "0.5.1",
+	"version": "1.0.0-rc.1",
 	"description":
 		"Mnemonic passphrase helpers for use with Lisk-related software",
 	"author":

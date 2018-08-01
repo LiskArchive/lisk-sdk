@@ -1,6 +1,6 @@
 {
 	"name": "lisk-api-client",
-	"version": "0.5.1",
+	"version": "1.0.0-rc.1",
 	"description": "An API client for the Lisk network",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -58,7 +58,7 @@
 	},
 	"dependencies": {
 		"axios": "0.18.0",
-		"lisk-constants": "0.5.1"
+		"lisk-constants": "1.0.0-rc.1"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",

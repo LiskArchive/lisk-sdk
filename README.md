@@ -105,7 +105,7 @@ You should have received a copy of the [GNU General Public License](https://gith
 
 ***
 
-This program also incorporates work previously released with lisk-js `v0.5.1` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
+This program also incorporates work previously released with lisk-js `v0.5.2` (and earlier) versions under the [MIT License](https://opensource.org/licenses/MIT). To comply with the requirements of that license, the following permission notice, applicable to those parts of the code only, is included below:
 
 Copyright © 2016-2017 Lisk Foundation
 
