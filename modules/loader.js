@@ -760,9 +760,9 @@ __private.sync = function(cb) {
 
 	async.series(
 		{
-			getConsensusBefore(seriesCb) {
+			calculateConsensusBefore(seriesCb) {
 				library.logger.debug(
-					`Establishing broadhash consensus before sync: ${modules.peers.getLastConsensus()} %`
+					`Establishing broadhash consensus before sync: ${modules.peers.calculateConsensus()} %`
 				);
 				return seriesCb();
 			},
