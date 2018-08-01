@@ -1,6 +1,0 @@
-{
-	"baseUrl": "http://localhost:8080",
-	"defaultCommandTimeout": 300e3,
-	"fixturesFolder": false,
-	"supportFile": false
-}

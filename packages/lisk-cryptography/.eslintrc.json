@@ -1,0 +1,6 @@
+{
+	"extends": ["../../.eslintrc.json"],
+	"globals": {
+		"naclInstance": true
+	}
+}

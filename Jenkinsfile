@@ -51,21 +51,21 @@ pipeline {
 			steps {
 				ansiColor('xterm') {
 					sh 'npm run test'
-					sh '''
-					cp ~/.coveralls.yml .coveralls.yml
-					npm run cover
-					'''
+				}
+			}
+		}
+		stage('Run node tests') {
+			steps {
+				ansiColor('xterm') {
+					sh 'npm run test:node'
 				}
 			}
 		}
 		stage('Run browser tests') {
 			steps {
 				sh '''
-				npm run build:check
 				npm run build:browsertest
-				HTTP_PORT=808${EXECUTOR_NUMBER:-0}
-				npm run serve:browsertest -- -p $HTTP_PORT >access.log 2>&1 &
-				npm run test:browser -- --config baseUrl=http://localhost:$HTTP_PORT
+				npm run test:browser
 				'''
 			}
 		}

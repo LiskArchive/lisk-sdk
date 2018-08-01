@@ -1,0 +1,17 @@
+# cypress media
+cypress/screenshots
+cypress/videos
+cypress/plugins
+
+# Distribution folders
+dist-browser/*.js
+dist-browser/*.json
+dist-node/
+dist/
+
+# Built test files
+browsertest/package.json
+browsertest/browsertest.js
+browsertest/browsertest.min.js
+browsertest/src
+browsertest/test

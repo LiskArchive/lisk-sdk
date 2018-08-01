@@ -24,9 +24,10 @@ test/.coverage-unit
 .nyc_output
 
 # cypress media
-cypress/screenshots
-cypress/videos
-cypress/plugins
+templates/cypress.tmpl/screenshots/
+templates/cypress.tmpl/videos/
+templates/cypress.tmpl/plugins/
+templates/cypress.tmpl/support/
 
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
@@ -52,15 +53,9 @@ jspm_packages
 tmp
 
 # Distribution folders
-dist-browser/
 dist-node/
+dist-browser/
+browsertest.build/
 
-# Built test files
-browsertest/package.json
-browsertest/browsertest.js
-browsertest/browsertest.min.js
-browsertest/src
-browsertest/test
-
-# Lock files
+# Unsupported lock files
 yarn.lock
