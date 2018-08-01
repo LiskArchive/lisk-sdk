@@ -148,7 +148,7 @@ __private.isValidSignature = (signature, members, transaction) => {
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err
  */
-__private.processSignatureForMultisignatureCreation = (
+__private.processSignatureForMultisignatureAccountCreation = (
 	signature,
 	transaction,
 	cb
@@ -281,7 +281,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 
 		// Process signature for multisignature account creation transaction
 		if (transaction.type === transactionTypes.MULTI) {
-			return __private.processSignatureForMultisignatureCreation(
+			return __private.processSignatureForMultisignatureAccountCreation(
 				signature,
 				transaction,
 				balanceSequenceCb
