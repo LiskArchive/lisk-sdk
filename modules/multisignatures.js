@@ -199,12 +199,18 @@ __private.processSignatureFromMultisignatureAccount = (
 };
 
 /**
- * Gets transaction from transaction id and add it to sequence and bus.
+ * Main function for processing received signature, includes:
+ * - multisignature account creation
+ * - send from multisignature account
  *
- * @param {Object} transaction - Contains transaction and signature
+ * @public
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
  * @param {function} cb - Callback function
+ * @implements {library.balancesSequence.add} - All processing here is done through balancesSequence
  * @returns {setImmediateCallback} cb, err
- * @todo Add test coverage.
  */
 Multisignatures.prototype.processSignature = function(signature, cb) {
 	if (!signature) {
