@@ -106,7 +106,7 @@ describe('duplicate_signatures', () => {
 			});
 		});
 
-		it('should accept all signatures when unique', done => {
+		it('should accept all signatures when unique, during spend from multisignature account', done => {
 			// Create random accounts that we will sent funds to
 			accounts.random = randomUtil.account();
 
@@ -187,7 +187,7 @@ describe('duplicate_signatures', () => {
 			});
 		});
 
-		it('should reject signature when there is a duplicate', done => {
+		it('should reject signature when there is a duplicate, during spend from multisignature account', done => {
 			// Create random accounts that we will sent funds to
 			accounts.random = randomUtil.account();
 
