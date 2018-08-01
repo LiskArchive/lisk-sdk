@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '../../test';
+import { test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
@@ -51,10 +51,18 @@ describe('block:get', () => {
 			.command(['block:get', block])
 			.it('should get an block info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, {
-					limit: 1,
-					blockId: block,
-				});
+				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							blockId: block,
+						},
+						placeholder: {
+							blockId: block,
+							message: 'Block not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -80,12 +88,24 @@ describe('block:get', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
-						limit: 1,
-						blockId: blocks[0],
+						query: {
+							limit: 1,
+							blockId: blocks[0],
+						},
+						placeholder: {
+							blockId: blocks[0],
+							message: 'Block not found.',
+						},
 					},
 					{
-						limit: 1,
-						blockId: blocks[1],
+						query: {
+							limit: 1,
+							blockId: blocks[1],
+						},
+						placeholder: {
+							blockId: blocks[1],
+							message: 'Block not found.',
+						},
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);

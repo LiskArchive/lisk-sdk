@@ -20,13 +20,16 @@ import query from '../../utils/query';
 export default class GetCommand extends BaseCommand {
 	async run() {
 		const { args: { blockIds } } = this.parse(GetCommand);
-		const req =
-			blockIds.length === 1
-				? { limit: 1, blockId: blockIds[0] }
-				: blockIds.map(blockId => ({
-						limit: 1,
-						blockId,
-					}));
+		const req = blockIds.map(blockId => ({
+			query: {
+				limit: 1,
+				blockId,
+			},
+			placeholder: {
+				blockId,
+				message: 'Block not found.',
+			},
+		}));
 		const client = getAPIClient(this.userConfig.api);
 		const results = await query(client, 'blocks', req);
 		this.print(results);
