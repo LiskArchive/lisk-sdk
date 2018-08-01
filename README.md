@@ -226,11 +226,15 @@ You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for 
 
 1. The Lisk configuration is managed under different folder structures.
 2. Root folder for all configuration is `./config/`.
-3. You can find network specific configuration folder there as well.
-4. Main file that used as base is `config/default/config.json`
-5. Don't override any value in above mentioned file if you need custom configuration.
-6. Either modify network specific `config.json` or create your own `json` file and pass it as command line options.
-7. What ever `config.json` provided will be merged on top of `config/default/config.json` to generate final configuration to start the lisk.
+3. Default configuration file that used as base is `config/default/config.json`
+4. You can find network specific configurations under `config/<network>/config.json`
+5. Don't override any value in above mentioned files if you need custom configuration.
+6. Create your own `json` file and pass it as command line options `-c` or `LISK_CONFIG_FILE`
+7. Configurations will be loaded in following order, lowest in the list have highest priority:
+   * Default configuration file
+   * Network specific configuration file
+   * Custom configuration file (if specified by user)
+   * Command line configurations, specified as command `flags` or `env` variables
 8. For development purposes use `devnet` as network option, others network are specific to public lisk networks.
 
 ### Command Line Options
