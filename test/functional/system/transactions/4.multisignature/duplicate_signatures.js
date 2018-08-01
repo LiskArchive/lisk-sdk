@@ -106,6 +106,107 @@ describe('duplicate_signatures', () => {
 			});
 		});
 
+		it('should accept all signatures when unique, during multisignature registration', done => {
+			// Create random account to use as multisignature owner
+			const multisignature = randomUtil.account();
+			// Create 2 random accounts to use as multisignature members
+			const multisignatureMembers = [
+				randomUtil.account(),
+				randomUtil.account(),
+			];
+
+			// Create transfer transaction (fund new account)
+			const transferTransaction = elements.transaction.transfer({
+				recipientId: multisignature.address,
+				amount: 5000000000,
+				passphrase: accountsFixtures.genesis.passphrase,
+			});
+
+			// Create multisignature registration transaction
+			const multisignatureTransaction = elements.transaction.registerMultisignature({
+				passphrase: multisignature.passphrase,
+				keysgroup: [
+					multisignatureMembers[0].publicKey,
+					multisignatureMembers[1].publicKey,
+				],
+				lifetime: 4,
+				minimum: 2,
+			});
+
+			// Create signatures (strings)
+			const signature1 = elements.transaction.createSignatureObject(
+				multisignatureTransaction,
+				multisignatureMembers[0].passphrase
+			);
+			const signature2 = elements.transaction.createSignatureObject(
+				multisignatureTransaction,
+				multisignatureMembers[1].passphrase
+			);
+
+			addTransactionsAndForgePromise(library, [transferTransaction], 0).then(
+				() => {
+					localCommon.addTransaction(library, multisignatureTransaction, err => {
+						// There should be no error when add transaction to transaction pool
+						expect(err).to.be.null;
+						// Transaction should be present in transaction pool
+						expect(transactionPool.transactionInPool(multisignatureTransaction.id)).to.equal(
+							true
+						);
+						// Transaction should exists in multisignature queue
+						expect(
+							transactionPool.getMultisignatureTransaction(multisignatureTransaction.id)
+						).to.be.an('object');
+
+						// Block balancesSequence for 5 seconds
+						library.balancesSequence.add(cb => {
+							setTimeout(cb, 5000);
+						});
+
+						// Make node receive 2 different signatures in parallel
+						async.parallel(
+							async.reflectAll([
+								parallelCb => {
+									library.modules.multisignatures.processSignature(
+										signature1,
+										parallelCb
+									);
+								},
+								parallelCb => {
+									library.modules.multisignatures.processSignature(
+										signature2,
+										parallelCb
+									);
+								},
+							]),
+							(err, results) => {
+								// There should be no error from processing
+								expect(results[0].value).to.be.undefined;
+								expect(results[1].value).to.be.undefined;
+
+								// Get multisignature transaction from pool
+								const transaction = transactionPool.getMultisignatureTransaction(
+									multisignatureTransaction.id
+								);
+
+								// There should be 2 signatures
+								expect(transaction.signatures).to.have.lengthOf(2);
+
+								// Forge a block
+								addTransactionsAndForgePromise(library, [], 0).then(() => {
+									const lastBlock = library.modules.blocks.lastBlock.get();
+									// Block should contain transaction sent from multisignature account
+									expect(lastBlock.transactions[0].id).to.eql(multisignatureTransaction.id);
+									// There should be 2 signatures
+									expect(transaction.signatures).to.have.lengthOf(2);
+									done();
+								});
+							}
+						);
+					});
+				}
+			);
+		});
+
 		it('should accept all signatures when unique, during spend from multisignature account', done => {
 			// Create random accounts that we will sent funds to
 			accounts.random = randomUtil.account();
