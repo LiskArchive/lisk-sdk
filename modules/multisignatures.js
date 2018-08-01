@@ -273,7 +273,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 		transaction.signatures = transaction.signatures || [];
 
 		// Check if received signature already exists in transaction
-		if (!transaction.signatures.includes(signature.signature)) {
+		if (transaction.signatures.includes(signature.signature)) {
 			const message = 'Unable to process signature, signature already exists';
 			library.logger.error(message, { signature, transaction });
 			return setImmediate(balanceSequenceCb, message);
