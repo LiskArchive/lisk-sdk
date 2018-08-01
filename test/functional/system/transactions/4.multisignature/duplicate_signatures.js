@@ -123,15 +123,17 @@ describe('duplicate_signatures', () => {
 			});
 
 			// Create multisignature registration transaction
-			const multisignatureTransaction = elements.transaction.registerMultisignature({
-				passphrase: multisignature.passphrase,
-				keysgroup: [
-					multisignatureMembers[0].publicKey,
-					multisignatureMembers[1].publicKey,
-				],
-				lifetime: 4,
-				minimum: 2,
-			});
+			const multisignatureTransaction = elements.transaction.registerMultisignature(
+				{
+					passphrase: multisignature.passphrase,
+					keysgroup: [
+						multisignatureMembers[0].publicKey,
+						multisignatureMembers[1].publicKey,
+					],
+					lifetime: 4,
+					minimum: 2,
+				}
+			);
 
 			// Create signatures (strings)
 			const signature1 = elements.transaction.createSignatureObject(
@@ -145,64 +147,72 @@ describe('duplicate_signatures', () => {
 
 			addTransactionsAndForgePromise(library, [transferTransaction], 0).then(
 				() => {
-					localCommon.addTransaction(library, multisignatureTransaction, err => {
-						// There should be no error when add transaction to transaction pool
-						expect(err).to.be.null;
-						// Transaction should be present in transaction pool
-						expect(transactionPool.transactionInPool(multisignatureTransaction.id)).to.equal(
-							true
-						);
-						// Transaction should exists in multisignature queue
-						expect(
-							transactionPool.getMultisignatureTransaction(multisignatureTransaction.id)
-						).to.be.an('object');
-
-						// Block balancesSequence for 5 seconds
-						library.balancesSequence.add(cb => {
-							setTimeout(cb, 5000);
-						});
-
-						// Make node receive 2 different signatures in parallel
-						async.parallel(
-							async.reflectAll([
-								parallelCb => {
-									library.modules.multisignatures.processSignature(
-										signature1,
-										parallelCb
-									);
-								},
-								parallelCb => {
-									library.modules.multisignatures.processSignature(
-										signature2,
-										parallelCb
-									);
-								},
-							]),
-							(err, results) => {
-								// There should be no error from processing
-								expect(results[0].value).to.be.undefined;
-								expect(results[1].value).to.be.undefined;
-
-								// Get multisignature transaction from pool
-								const transaction = transactionPool.getMultisignatureTransaction(
+					localCommon.addTransaction(
+						library,
+						multisignatureTransaction,
+						err => {
+							// There should be no error when add transaction to transaction pool
+							expect(err).to.be.null;
+							// Transaction should be present in transaction pool
+							expect(
+								transactionPool.transactionInPool(multisignatureTransaction.id)
+							).to.equal(true);
+							// Transaction should exists in multisignature queue
+							expect(
+								transactionPool.getMultisignatureTransaction(
 									multisignatureTransaction.id
-								);
+								)
+							).to.be.an('object');
 
-								// There should be 2 signatures
-								expect(transaction.signatures).to.have.lengthOf(2);
+							// Block balancesSequence for 5 seconds
+							library.balancesSequence.add(cb => {
+								setTimeout(cb, 5000);
+							});
 
-								// Forge a block
-								addTransactionsAndForgePromise(library, [], 0).then(() => {
-									const lastBlock = library.modules.blocks.lastBlock.get();
-									// Block should contain transaction sent from multisignature account
-									expect(lastBlock.transactions[0].id).to.eql(multisignatureTransaction.id);
+							// Make node receive 2 different signatures in parallel
+							async.parallel(
+								async.reflectAll([
+									parallelCb => {
+										library.modules.multisignatures.processSignature(
+											signature1,
+											parallelCb
+										);
+									},
+									parallelCb => {
+										library.modules.multisignatures.processSignature(
+											signature2,
+											parallelCb
+										);
+									},
+								]),
+								(err, results) => {
+									// There should be no error from processing
+									expect(results[0].value).to.be.undefined;
+									expect(results[1].value).to.be.undefined;
+
+									// Get multisignature transaction from pool
+									const transaction = transactionPool.getMultisignatureTransaction(
+										multisignatureTransaction.id
+									);
+
 									// There should be 2 signatures
 									expect(transaction.signatures).to.have.lengthOf(2);
-									done();
-								});
-							}
-						);
-					});
+
+									// Forge a block
+									addTransactionsAndForgePromise(library, [], 0).then(() => {
+										const lastBlock = library.modules.blocks.lastBlock.get();
+										// Block should contain transaction sent from multisignature account
+										expect(lastBlock.transactions[0].id).to.eql(
+											multisignatureTransaction.id
+										);
+										// There should be 2 signatures
+										expect(transaction.signatures).to.have.lengthOf(2);
+										done();
+									});
+								}
+							);
+						}
+					);
 				}
 			);
 		});
