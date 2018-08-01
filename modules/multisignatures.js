@@ -124,6 +124,18 @@ __private.isValidSignature = (signature, members, transaction) => {
 	return isValid;
 };
 
+/**
+ * Process signature for multisignature account creation, transaction type 4 (MULTI)
+ *
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err
+ */
 __private.processSignatureForMultisignatureCreation = (
 	signature,
 	transaction,
