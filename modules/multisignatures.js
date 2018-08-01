@@ -82,7 +82,7 @@ function Multisignatures(cb, scope) {
 // Public methods
 
 /**
- * Check is provided signature is valid
+ * Check if the provided signature is valid
  *
  * @private
  * @param {Object} signature - Signature data
