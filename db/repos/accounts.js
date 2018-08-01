@@ -17,6 +17,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const sql = require('../sql').accounts;
+const ed = require('../../helpers/ed.js');
 
 const cs = {}; // Reusable ColumnSet objects
 
@@ -495,6 +496,10 @@ class AccountsRepository {
 			);
 		}
 
+		// Convert dependentId (publicKey) to binary
+		// TODO: Remove these dynamic insert queries and use raw queries
+		dependentId = ed.hexToBuffer(dependentId);
+
 		return this.db.none(sql.removeAccountDependencies, {
 			table: `${this.dbTable}2${dependency}`,
 			address,
@@ -526,6 +531,10 @@ class AccountsRepository {
 				)
 			);
 		}
+
+		// Convert dependentId (publicKey) to binary
+		// TODO: Remove these dynamic insert queries and use raw queries
+		dependentId = ed.hexToBuffer(dependentId);
 
 		const dependentTable = `${this.dbTable}2${dependency}`;
 
