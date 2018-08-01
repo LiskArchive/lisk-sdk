@@ -14,21 +14,19 @@
 
 'use strict';
 
-const liskElements = require('lisk-elements').default;
+const lisk = require('lisk-elements').default;
 const randomUtil = require('../../../common/utils/random');
 const accountsFixtures = require('../../../fixtures/accounts');
-const Scenarios = require('../../common/scenarios');
 const queriesHelper = require('../../common/sql/queriesHelper.js');
 const localCommon = require('../common');
 const Bignum = require('../../../../helpers/bignum.js');
-
-const multiSig = new Scenarios.Multisig();
 
 describe('expire transaction', () => {
 	let library;
 	let queries;
 	let memAccountsSnapshotBeforeUndo;
 
+	const multisigAccount = randomUtil.account();
 	const { expiryInterval } = __testContext.config.transactions;
 	const unconfirmedTransactionTimeOut =
 		global.constants.unconfirmedTransactionTimeOut;
@@ -42,11 +40,43 @@ describe('expire transaction', () => {
 		global.constants.unconfirmedTransactionTimeOut = timeout;
 	};
 
+	const validateMemAccountSnapshot = () => {
+		return queries.getAccounts().then(memAccountsSnapshotAfterUndo => {
+			const beforeResult = _.sortBy(memAccountsSnapshotBeforeUndo, ['address']);
+			const afterResult = _.sortBy(memAccountsSnapshotAfterUndo, ['address']);
+			expect(beforeResult).to.deep.equal(afterResult);
+		});
+	};
+
+	const createMultiSigTransaction = (creditTransaction, cb) => {
+		let multisigTransaction;
+		const signer1 = randomUtil.account();
+		const signer2 = randomUtil.account();
+		localCommon.addTransactionsAndForge(library, [creditTransaction], () => {
+			const keysgroup = [signer1.publicKey, signer2.publicKey];
+
+			multisigTransaction = lisk.transaction.registerMultisignature({
+				passphrase: multisigAccount.passphrase,
+				keysgroup,
+				lifetime: 4,
+				minimum: 2,
+			});
+
+			cb(null, multisigTransaction);
+		});
+	};
+
 	// override transaction expiryInterval and unconfirmedTransactionTimeOut
 	// to test undo unConfirmed expired transactions
 	before(done => {
 		__testContext.config.transactions.expiryInterval = 5000;
 		setunconfirmedTransactionTimeOut(0);
+		done();
+	});
+
+	after('reset states', done => {
+		__testContext.config.transactions.expiryInterval = expiryInterval;
+		global.constants.unconfirmedTransactionTimeOut = unconfirmedTransactionTimeOut;
 		done();
 	});
 
@@ -62,7 +92,7 @@ describe('expire transaction', () => {
 	});
 
 	it('should expire transaction from unconfirmed transaction list', done => {
-		const transaction = liskElements.transaction.transfer({
+		const transaction = lisk.transaction.transfer({
 			recipientId: randomUtil.account().address,
 			amount: randomUtil.number(100000000, 1000000000),
 			passphrase: accountsFixtures.genesis.passphrase,
@@ -72,44 +102,88 @@ describe('expire transaction', () => {
 			// Wait for transaction to get expired and
 			// undo the unconfirmed transaction, so that mem accounts
 			// balance is updated
-			setTimeout(done, 10000);
+			setTimeout(() => {
+				validateMemAccountSnapshot()
+					.then(() => {
+						done();
+					})
+					.catch(done);
+			}, 3000);
 		});
 	});
 
 	it('should expire transaction from multi-signature transaction list', done => {
-		const transaction = liskElements.transaction.registerMultisignature({
-			passphrase: multiSig.account.passphrase,
-			keysgroup: multiSig.keysgroup,
-			lifetime: multiSig.lifetime,
-			minimum: multiSig.minimum,
+		const amount = 1000 * global.constants.normalizer;
+
+		const creditTransaction = lisk.transaction.transfer({
+			amount,
+			passphrase: accountsFixtures.genesis.passphrase,
+			recipientId: multisigAccount.address,
 		});
 
-		// Get sender address
-		const address = getSenderAddress(transaction);
+		createMultiSigTransaction(creditTransaction, (err, multisigTransaction) => {
+			// Get sender address
+			const address = getSenderAddress(multisigTransaction);
 
-		// Get multi-signature account created as part of
-		// transaction which is irreversible from mem account
-		const multiSigAccount = accountsFixtures.dbAccount({
-			address,
-			balance: new Bignum(transaction.amount).toString(),
-		});
+			// Get multi-signature account created as part of
+			// transaction which is irreversible from mem account
+			const multiSigAccount = accountsFixtures.dbAccount({
+				address,
+				balance: new Bignum(multisigTransaction.amount).toString(),
+			});
 
-		// Set public key if not present
-		if (!multiSigAccount.publicKey) {
-			multiSigAccount.publicKey = Buffer.from(
-				transaction.senderPublicKey,
-				'hex'
-			);
-		}
+			// Set public key if not present
+			if (!multiSigAccount.publicKey) {
+				multiSigAccount.publicKey = Buffer.from(
+					multisigTransaction.senderPublicKey,
+					'hex'
+				);
+			}
 
-		// update mem account snapshot for comparision
-		memAccountsSnapshotBeforeUndo.push(multiSigAccount);
+			// update mem account snapshot for comparision
+			memAccountsSnapshotBeforeUndo.push(multiSigAccount);
 
-		localCommon.addTransaction(library, transaction, () => {
-			// Wait for transaction to get expired and
-			// undo the unconfirmed transaction, so that mem accounts
-			// balance is updated
-			setTimeout(done, 1000);
+			localCommon.addTransaction(library, multisigTransaction, (err, res) => {
+				// Wait for transaction to get expired and
+				// undo the unconfirmed transaction, so that mem accounts
+				// balance is updated
+				expect(err).to.be.null;
+				expect(res).to.equal(multisigTransaction.id);
+				setTimeout(() => {
+					queries
+						.getAccounts()
+						.then(memAccountsSnapshotAfterUndo => {
+							const beforeAccountState = memAccountsSnapshotBeforeUndo.find(
+								account => account.address === address
+							);
+							const afterAccountState = memAccountsSnapshotAfterUndo.find(
+								account => account.address === address
+							);
+
+							expect(
+								new Bignum(beforeAccountState.u_balance)
+									.plus(amount)
+									.equals(afterAccountState.u_balance)
+							).to.be.true;
+
+							const genesisAccountBefore = memAccountsSnapshotBeforeUndo.find(
+								account => account.address === accountsFixtures.genesis.address
+							);
+							const genesisAccountAfter = memAccountsSnapshotAfterUndo.find(
+								account => account.address === accountsFixtures.genesis.address
+							);
+
+							expect(
+								new Bignum(genesisAccountBefore.u_balance)
+									.minus(amount)
+									.minus(creditTransaction.fee)
+									.equals(genesisAccountAfter.u_balance)
+							).to.be.true;
+							done();
+						})
+						.catch(done);
+				}, 2000);
+			});
 		});
 	});
 
@@ -118,10 +192,10 @@ describe('expire transaction', () => {
 			// set unconfirmed transaction timeout to 10 seconds
 			// to ensure the transaction is not expired for the
 			// next 10 seconds
-			setunconfirmedTransactionTimeOut(10000);
+			setunconfirmedTransactionTimeOut(1000);
 
 			const amount = randomUtil.number(100000000, 1000000000);
-			const transaction = liskElements.transaction.transfer({
+			const transaction = lisk.transaction.transfer({
 				recipientId: randomUtil.account().address,
 				amount,
 				passphrase: accountsFixtures.genesis.passphrase,
@@ -130,6 +204,7 @@ describe('expire transaction', () => {
 			const address = getSenderAddress(transaction);
 
 			localCommon.addTransactionToUnconfirmedQueue(library, transaction, () => {
+				setunconfirmedTransactionTimeOut(0);
 				queries
 					.getAccounts()
 					.then(memAccountsSnapshotAfterUndo => {
@@ -142,32 +217,24 @@ describe('expire transaction', () => {
 						expect(
 							new Bignum(afterAccountState.u_balance)
 								.plus(amount)
+								.plus(transaction.fee)
 								.equals(beforeAccountState.u_balance)
-						);
-						setunconfirmedTransactionTimeOut(0);
+						).to.be.true;
 						// Wait for transaction to get expired and
 						// undo the unconfirmed transaction, so that mem accounts
 						// balance is updated back
-						setTimeout(done, 10000);
+						setTimeout(() => {
+							validateMemAccountSnapshot()
+								.then(() => {
+									done();
+								})
+								.catch(done);
+						}, 5000);
 					})
 					.catch(err => {
 						done(err);
 					});
 			});
 		});
-	});
-
-	afterEach('validate mem accounts snapshot', () => {
-		return queries.getAccounts().then(memAccountsSnapshotAfterUndo => {
-			const beforeResult = _.sortBy(memAccountsSnapshotBeforeUndo, ['address']);
-			const afterResult = _.sortBy(memAccountsSnapshotAfterUndo, ['address']);
-			expect(beforeResult).to.deep.equal(afterResult);
-		});
-	});
-
-	after('reset states', done => {
-		__testContext.config.transactions.expiryInterval = expiryInterval;
-		global.constants.unconfirmedTransactionTimeOut = unconfirmedTransactionTimeOut;
-		done();
 	});
 });
