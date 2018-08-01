@@ -66,7 +66,7 @@ describe('account:get command', () => {
 						},
 						placeholder: {
 							address,
-							message: 'No data was returned.',
+							message: 'Address not found.',
 						},
 					},
 				]);
@@ -101,7 +101,7 @@ describe('account:get command', () => {
 						},
 						placeholder: {
 							address: addresses[0],
-							message: 'No data was returned.',
+							message: 'Address not found.',
 						},
 					},
 					{
@@ -111,7 +111,7 @@ describe('account:get command', () => {
 						},
 						placeholder: {
 							address: addresses[1],
-							message: 'No data was returned.',
+							message: 'Address not found.',
 						},
 					},
 				]);

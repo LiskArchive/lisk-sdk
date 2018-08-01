@@ -27,7 +27,7 @@ export default class GetCommand extends BaseCommand {
 			},
 			placeholder: {
 				address,
-				message: 'No data was returned.',
+				message: 'Address not found.',
 			},
 		}));
 		const client = getAPIClient(this.userConfig.api);
