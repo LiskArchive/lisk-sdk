@@ -17,7 +17,7 @@ import { ValidationError } from '../utils/error';
 import getInputsFromSources from '../utils/input';
 import { getData } from '../utils/input/utils';
 import { createCommand, validatePublicKeys } from '../utils/helpers';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 import transactions from '../utils/transactions';
 
 const description = `Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.

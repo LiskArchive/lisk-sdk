@@ -14,7 +14,7 @@
  *
  */
 import url from 'url';
-import elements from 'lisk-elements';
+import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
 import {
 	CONFIG_VARIABLES,
@@ -112,7 +112,7 @@ const setNethash = (config, dotNotation, value) => {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 		try {
-			elements.cryptography.hexToBuffer(value, 'utf8');
+			cryptography.hexToBuffer(value, 'utf8');
 		} catch (error) {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}

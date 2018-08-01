@@ -18,17 +18,23 @@ import query from '../../src/utils/query';
 describe('query utils', () => {
 	const defaultEndpoint = 'accounts';
 	const defaultParameters = {
-		address: 'address1',
-		limit: 1,
-	};
-	const defaultArrayParameters = [
-		{
+		query: {
 			address: 'address1',
 			limit: 1,
 		},
+	};
+	const defaultArrayParameters = [
 		{
-			address: 'address2',
-			limit: 1,
+			query: {
+				address: 'address1',
+				limit: 1,
+			},
+		},
+		{
+			query: {
+				address: 'address2',
+				limit: 1,
+			},
 		},
 	];
 
@@ -50,7 +56,9 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and should reject with an error', () => {
-			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
+			);
 
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
@@ -69,17 +77,35 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
-			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
 		it('should call API client and should reject with an error', () => {
-			expect(apiClient.accounts.get).to.be.calledWithExactly(defaultParameters);
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
+			);
 
 			return expect(queryResult).to.be.rejectedWith(
 				Error,
 				'No accounts found using specified parameters.',
 			);
+		});
+
+		it('should call API client and should return placeholder when it is set', () => {
+			const placeholder = {
+				id: 'default id',
+			};
+			const paramWithPlaceholder = {
+				...defaultParameters,
+				placeholder,
+			};
+			queryResult = query(apiClient, defaultEndpoint, paramWithPlaceholder);
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
+			);
+
+			return expect(queryResult).to.be.eventually.equal(placeholder);
 		});
 	});
 
@@ -102,13 +128,10 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('should call API client', () => {
-			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters,
+		it('should call API client and resolve to an object', () => {
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
 			);
-		});
-
-		it('should resolve to an object', () => {
 			return expect(queryResult).to.eventually.eql(response.data[0]);
 		});
 	});
@@ -130,13 +153,10 @@ describe('query utils', () => {
 			return Promise.resolve();
 		});
 
-		it('should call API client', () => {
-			return expect(apiClient.accounts.get).to.be.calledWithExactly(
-				defaultParameters,
+		it('should call API client and resolve to an object', () => {
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
 			);
-		});
-
-		it('should resolve to an object', () => {
 			return expect(queryResult).to.eventually.eql(response.data);
 		});
 	});
@@ -161,7 +181,7 @@ describe('query utils', () => {
 
 		it('should call API client', () => {
 			defaultArrayParameters.forEach(param =>
-				expect(apiClient.accounts.get).to.be.calledWithExactly(param),
+				expect(apiClient.accounts.get).to.be.calledWithExactly(param.query),
 			);
 			return Promise.resolve();
 		});

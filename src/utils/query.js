@@ -14,13 +14,16 @@
  *
  */
 
-const handleResponse = (endpoint, res) => {
+const handleResponse = (endpoint, res, placeholder) => {
 	// Get endpoints with 2xx status code should always return with data key.
 	if (!res.data) {
 		throw new Error('No data was returned.');
 	}
 	if (Array.isArray(res.data)) {
 		if (res.data.length === 0) {
+			if (placeholder) {
+				return placeholder;
+			}
 			throw new Error(`No ${endpoint} found using specified parameters.`);
 		}
 		return res.data[0];
@@ -33,10 +36,10 @@ export default async (client, endpoint, parameters) =>
 		? Promise.all(
 				parameters.map(param =>
 					client[endpoint]
-						.get(param)
-						.then(res => handleResponse(endpoint, res)),
+						.get(param.query)
+						.then(res => handleResponse(endpoint, res, param.placeholder)),
 				),
 			)
 		: client[endpoint]
-				.get(parameters)
-				.then(res => handleResponse(endpoint, res));
+				.get(parameters.query)
+				.then(res => handleResponse(endpoint, res, parameters.placeholder));

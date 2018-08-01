@@ -18,7 +18,7 @@ import { ValidationError } from '../utils/error';
 import { createCommand } from '../utils/helpers';
 import getInputsFromSources from '../utils/input';
 import { getStdIn } from '../utils/input/utils';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 
 const description = `Sign a transaction using your secret passphrase.
 

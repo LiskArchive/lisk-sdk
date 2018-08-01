@@ -18,7 +18,7 @@ import getInputsFromSources from '../utils/input';
 import { ValidationError } from '../utils/error';
 import getAPIClient from '../utils/api';
 import { createCommand } from '../utils/helpers';
-import commonOptions from '../utils/options';
+import commonOptions from '../utils/flags';
 
 const description = `Updates the forging status of a node.
 
