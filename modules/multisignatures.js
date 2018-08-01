@@ -81,6 +81,18 @@ function Multisignatures(cb, scope) {
 
 // Public methods
 
+/**
+ * Check is provided signature is valid
+ *
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Array} members - Array of multisignature account members - public keys
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @returns {boolean} isValid - true if signature passed verification, false otherwise
+ */
 __private.isValidSignature = (signature, members, transaction) => {
 	let isValid = false;
 
