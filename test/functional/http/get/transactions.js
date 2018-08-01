@@ -913,8 +913,8 @@ describe('GET /api/transactions', () => {
 				});
 			});
 		});
-
-		describe('assets', () => {
+		/* eslint-disable mocha/no-skipped-tests */
+		describe.skip('assets', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
 					.then(result => {
