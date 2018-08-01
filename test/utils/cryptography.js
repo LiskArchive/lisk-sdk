@@ -17,21 +17,6 @@ import elements from 'lisk-elements';
 import * as cryptography from '../../src/utils/cryptography';
 
 describe('crypto utils', () => {
-	describe('elements throws error', () => {
-		const errorMessage = 'some error';
-		beforeEach(() => {
-			return sandbox
-				.stub(elements.cryptography, 'encryptMessageWithPassphrase')
-				.throws(new Error(errorMessage));
-		});
-
-		it('should result in error object with the errorMessage', () => {
-			return expect(
-				cryptography.encryptMessage.bind(null, 'random input'),
-			).to.throw(errorMessage);
-		});
-	});
-
 	describe('#encryptMessage', () => {
 		const result = {
 			result: 'result',
@@ -199,26 +184,8 @@ describe('crypto utils', () => {
 	});
 
 	describe('#getKeys', () => {
-		const result = {
-			publicKey: 'publicKey',
-			privateKey: 'privateKey',
-		};
-		const input = 'passphrase';
-
-		beforeEach(() => {
-			return sandbox.stub(elements.cryptography, 'getKeys').returns(result);
-		});
-
-		it('keys should equal to the result of getKeys', () => {
-			const keys = cryptography.getKeys(input);
-			return expect(keys).to.equal(result);
-		});
-
-		it('should call getKeys', () => {
-			cryptography.getKeys(input);
-			return expect(elements.cryptography.getKeys).to.be.calledWithExactly(
-				input,
-			);
+		it('should be a function', () => {
+			return expect(cryptography.getKeys).to.be.a('function');
 		});
 	});
 

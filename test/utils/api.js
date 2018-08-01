@@ -30,7 +30,7 @@ describe('api utils', () => {
 		'https://node07.lisk.io:443',
 		'https://node08.lisk.io:443',
 	];
-	const testnetNode = 'http://testnet.lisk.io:7000';
+	const testnetNode = 'https://testnet.lisk.io:443';
 
 	let apiClient;
 	let apiConfig;
