@@ -35,6 +35,10 @@ describe('transfer.js', function () {
 			(inTransferTransaction).should.be.type('object');
 		});
 
+		it('should have id as string', function () {
+			(inTransferTransaction).should.have.property('id').be.type('string');
+		});
+
 		it('should create an in transfer dapp transaction type 6', function () {
 			(inTransferTransaction).should.have.property('type').be.equal(6);
 		});
@@ -127,6 +131,10 @@ describe('transfer.js', function () {
 
 		it('should create an out transfer dapp transaction', function () {
 			(outTransferTransaction).should.be.type('object');
+		});
+
+		it('should have id as string', function () {
+			(outTransferTransaction).should.have.property('id').be.type('string');
 		});
 
 		it('should create an out transfer dapp transaction type 7', function () {
