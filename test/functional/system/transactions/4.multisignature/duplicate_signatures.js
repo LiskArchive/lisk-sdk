@@ -361,7 +361,9 @@ describe('duplicate_signatures', () => {
 					(err, results) => {
 						// There should be an error from processing only for duplicated signature
 						expect(results[0].value).to.be.undefined;
-						expect(results[1].error).to.eql('Signature already exists');
+						expect(results[1].error).to.eql(
+							'Unable to process signature, signature already exists'
+						);
 						expect(results[2].value).to.be.undefined;
 
 						// Get multisignature transaction from pool
