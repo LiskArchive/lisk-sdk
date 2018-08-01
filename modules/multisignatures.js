@@ -156,6 +156,48 @@ __private.processSignatureForMultisignatureCreation = (
 	return setImmediate(cb);
 };
 
+__private.processSignatureFromMultisignatureAccount = (
+	signature,
+	transaction,
+	cb
+) => {
+	// Get sender account of correscponding transaction
+	modules.accounts.getAccount(
+		{ address: transaction.senderId },
+		(err, sender) => {
+			if (err || !sender) {
+				const message = 'Unable to process signature, account not found';
+				library.logger.error(message, { signature, transaction, error: err });
+				return setImmediate(cb, message);
+			}
+
+			// Assign members of multisignature account from transaction
+			const members = sender.multisignatures;
+
+			// Check if signature is valid
+			if (!__private.isValidSignature(signature, members, transaction)) {
+				return setImmediate(
+					cb,
+					'Unable to process signature, verification failed'
+				);
+			}
+
+			// Add signature to transaction
+			transaction.signatures.push(signature.signature);
+			// Check if transaction is ready to be processed
+			transaction.ready = Multisignature.prototype.ready(transaction, sender);
+
+			// Emit events
+			library.network.io.sockets.emit(
+				'multisignatures/signature/change',
+				transaction
+			);
+			library.bus.message('signature', signature, true);
+			return setImmediate(cb);
+		}
+	);
+};
+
 /**
  * Gets transaction from transaction id and add it to sequence and bus.
  *
