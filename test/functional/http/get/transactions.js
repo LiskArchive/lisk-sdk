@@ -82,7 +82,7 @@ describe('GET /api/transactions', () => {
 			'074ad8f2fc4146c1122913a147e71b67ceccbd9a45d769b4bc9ed1cdbdf4404eaa4475f30e9ea5d33d715e3208506aee18425cf03f971d85f027e5dbc0530a02',
 		id: '3173899516019557774',
 	};
-	var inTransferTransaction = {
+	var transactionType6 = {
 		type: 6,
 		amount: '0',
 		fee: '10000000',
@@ -933,13 +933,13 @@ describe('GET /api/transactions', () => {
 						return waitFor.confirmations([transactionType5.id]); // wait for confirmation
 					})
 					.then(() => {
-						return sendTransactionPromise(inTransferTransaction); // send type 6 transaction
+						return sendTransactionPromise(transactionType6); // send type 6 transaction
 					})
 					.then(res => {
 						expect(res.body.data.message).to.be.equal(
 							'Transaction(s) accepted'
 						);
-						return waitFor.confirmations([inTransferTransaction.id]); // wait for confirmation
+						return waitFor.confirmations([transactionType6.id]); // wait for confirmation
 					});
 			});
 			it('assets for type 6 transactions should contain key dappId', () => {
