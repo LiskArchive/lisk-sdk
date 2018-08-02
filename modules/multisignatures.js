@@ -140,6 +140,32 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 	return isValid;
 };
 
+__private.validateSignature = (signature, membersPublicKeys, transaction, sender, cb) => {
+	// Check if signature is valid
+	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
+		return setImmediate(
+			cb,
+			new Error('Unable to process signature, verification failed')
+		);
+	}
+
+	// Add signature to transaction
+	transaction.signatures.push(signature.signature);
+	// Check if transaction is ready to be processed
+	transaction.ready = library.logic.multisignature.ready(
+		transaction,
+		sender
+	);
+
+	// Emit events
+	library.network.io.sockets.emit(
+		'multisignatures/signature/change',
+		transaction
+	);
+	library.bus.message('signature', signature, true);
+	return setImmediate(cb);
+}
+
 /**
  * Process signature for multisignature account creation, transaction type 4 (MULTI)
  *
