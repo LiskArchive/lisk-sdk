@@ -163,7 +163,7 @@ __private.processSignatureForMultisignatureAccountCreation = (
 
 	// Check if signature is valid
 	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
-		return setImmediate(cb, 'Unable to process signature, verification failed');
+		return setImmediate(cb, new Error('Unable to process signature, verification failed'));
 	}
 
 	// Add signature to transaction
@@ -207,7 +207,7 @@ __private.processSignatureFromMultisignatureAccount = (
 			if (err || !sender) {
 				const message = 'Unable to process signature, account not found';
 				library.logger.error(message, { signature, transaction, error: err });
-				return setImmediate(cb, message);
+				return setImmediate(cb, new Error(message));
 			}
 
 			// Assign members of multisignature account from transaction
@@ -219,7 +219,7 @@ __private.processSignatureFromMultisignatureAccount = (
 			) {
 				return setImmediate(
 					cb,
-					'Unable to process signature, verification failed'
+					new Error('Unable to process signature, verification failed')
 				);
 			}
 
@@ -257,7 +257,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 	if (!signature) {
 		const message = 'Unable to process signature, signature not provided';
 		library.logger.error(message);
-		return setImmediate(cb, message);
+		return setImmediate(cb, new Error(message));
 	}
 
 	// From now perform all the operations via balanceSequence
@@ -271,7 +271,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 			const message =
 				'Unable to process signature, corresponding transaction not found';
 			library.logger.error(message, { signature });
-			return setImmediate(balanceSequenceCb, message);
+			return setImmediate(balanceSequenceCb, new Error(message));
 		}
 
 		// If there are no signatures yet - initialise with empty array
@@ -281,7 +281,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 		if (transaction.signatures.includes(signature.signature)) {
 			const message = 'Unable to process signature, signature already exists';
 			library.logger.error(message, { signature, transaction });
-			return setImmediate(balanceSequenceCb, message);
+			return setImmediate(balanceSequenceCb, new Error(message));
 		}
 
 		// Process signature for multisignature account creation transaction
