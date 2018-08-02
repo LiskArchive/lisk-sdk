@@ -164,7 +164,10 @@ __private.processSignatureForMultisignatureAccountCreation = (
 
 	// Check if signature is valid
 	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
-		return setImmediate(cb, new Error('Unable to process signature, verification failed'));
+		return setImmediate(
+			cb,
+			new Error('Unable to process signature, verification failed')
+		);
 	}
 
 	// Add signature to transaction
@@ -227,7 +230,10 @@ __private.processSignatureFromMultisignatureAccount = (
 			// Add signature to transaction
 			transaction.signatures.push(signature.signature);
 			// Check if transaction is ready to be processed
-			transaction.ready = library.logic.multisignature.ready(transaction, sender);
+			transaction.ready = library.logic.multisignature.ready(
+				transaction,
+				sender
+			);
 
 			// Emit events
 			library.network.io.sockets.emit(
