@@ -170,7 +170,7 @@ __private.processSignatureForMultisignatureAccountCreation = (
 	// Add signature to transaction
 	transaction.signatures.push(signature.signature);
 	// Check if transaction is ready to be processed
-	transaction.ready = Multisignature.prototype.ready(
+	transaction.ready = library.logic.multisignature.ready(
 		transaction,
 		{} // Pass empty object, as we don't need sender in case of multisignature registration
 	);
@@ -227,7 +227,7 @@ __private.processSignatureFromMultisignatureAccount = (
 			// Add signature to transaction
 			transaction.signatures.push(signature.signature);
 			// Check if transaction is ready to be processed
-			transaction.ready = Multisignature.prototype.ready(transaction, sender);
+			transaction.ready = library.logic.multisignature.ready(transaction, sender);
 
 			// Emit events
 			library.network.io.sockets.emit(
