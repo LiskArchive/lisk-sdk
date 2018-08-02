@@ -155,7 +155,13 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
  * @implements {library.logic.multisignature.ready}
  * @returns {setImmediateCallback} cb, err
  */
-__private.validateSignature = (signature, membersPublicKeys, transaction, sender, cb) => {
+__private.validateSignature = (
+	signature,
+	membersPublicKeys,
+	transaction,
+	sender,
+	cb
+) => {
 	// Check if signature is valid
 	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
 		return setImmediate(
@@ -167,10 +173,7 @@ __private.validateSignature = (signature, membersPublicKeys, transaction, sender
 	// Add signature to transaction
 	transaction.signatures.push(signature.signature);
 	// Check if transaction is ready to be processed
-	transaction.ready = library.logic.multisignature.ready(
-		transaction,
-		sender
-	);
+	transaction.ready = library.logic.multisignature.ready(transaction, sender);
 
 	// Emit events
 	library.network.io.sockets.emit(
@@ -179,7 +182,7 @@ __private.validateSignature = (signature, membersPublicKeys, transaction, sender
 	);
 	library.bus.message('signature', signature, true);
 	return setImmediate(cb);
-}
+};
 
 /**
  * Process signature for multisignature account creation, transaction type 4 (MULTI)
@@ -207,7 +210,13 @@ __private.processSignatureForMultisignatureAccountCreation = (
 	// Set empty object as sender, as we don't need sender in case of multisignature registration
 	const sender = {};
 
-	return __private.validateSignature(signature, membersPublicKeys, transaction, sender, cb);
+	return __private.validateSignature(
+		signature,
+		membersPublicKeys,
+		transaction,
+		sender,
+		cb
+	);
 };
 
 /**
@@ -241,7 +250,13 @@ __private.processSignatureFromMultisignatureAccount = (
 			// Assign members of multisignature account from transaction
 			const membersPublicKeys = sender.multisignatures;
 
-			return __private.validateSignature(signature, membersPublicKeys, transaction, sender, cb);
+			return __private.validateSignature(
+				signature,
+				membersPublicKeys,
+				transaction,
+				sender,
+				cb
+			);
 		}
 	);
 };
