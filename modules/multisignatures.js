@@ -94,7 +94,7 @@ function Multisignatures(cb, scope) {
  * @returns {boolean} isValid - true if signature passed verification, false otherwise
  */
 __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
-	let isValid = false;
+	let isValid;
 
 	try {
 		// If publicKey is provided we can perform direct verify
@@ -105,7 +105,7 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 					'Unable to process signature, signer not in keysgroup.',
 					{ signature, membersPublicKeys, transaction }
 				);
-				return isValid;
+				return false;
 			}
 
 			// Try to verify the signature
@@ -133,7 +133,7 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 			error: e.stack,
 		});
 	}
-	return isValid;
+	return !!isValid;
 };
 
 /**
@@ -154,8 +154,8 @@ __private.processSignatureForMultisignatureAccountCreation = (
 	cb
 ) => {
 	// Normalize members of multisignature account from transaction
-	const membersPublicKeys = transaction.asset.multisignature.keysgroup.map(member =>
-		member.substring(1) // Remove first character, which is '+'
+	const membersPublicKeys = transaction.asset.multisignature.keysgroup.map(
+		member => member.substring(1) // Remove first character, which is '+'
 	);
 
 	// Check if signature is valid
@@ -211,7 +211,9 @@ __private.processSignatureFromMultisignatureAccount = (
 			const membersPublicKeys = sender.multisignatures;
 
 			// Check if signature is valid
-			if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
+			if (
+				!__private.isValidSignature(signature, membersPublicKeys, transaction)
+			) {
 				return setImmediate(
 					cb,
 					'Unable to process signature, verification failed'
