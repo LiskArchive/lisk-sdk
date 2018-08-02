@@ -38,6 +38,57 @@ describe('duplicate_signatures', () => {
 		);
 	});
 
+	const prepareMultisignatureAccountRegistration = () => {
+		const accounts = {
+			multisignatureMembers: [],
+		};
+		const transactions = {
+			transfer: [],
+			multisignature: [],
+		};
+		const signatures = [];
+
+		// Create random account to use as multisignature owner
+		accounts.multisignature = randomUtil.account();
+		// Create 2 random accounts to use as multisignature members
+		accounts.multisignatureMembers.push(
+			randomUtil.account(),
+			randomUtil.account()
+		);
+
+		// Create transfer transaction (fund new account)
+		let transaction = elements.transaction.transfer({
+			recipientId: accounts.multisignature.address,
+			amount: 5000000000,
+			passphrase: accountsFixtures.genesis.passphrase,
+		});
+		transactions.transfer = transaction;
+
+		// Create multisignature registration transaction
+		transaction = elements.transaction.registerMultisignature({
+			passphrase: accounts.multisignature.passphrase,
+			keysgroup: [
+				accounts.multisignatureMembers[0].publicKey,
+				accounts.multisignatureMembers[1].publicKey,
+			],
+			lifetime: 4,
+			minimum: 2,
+		});
+		transactions.multisignature = transaction;
+
+		// Create signatures (object)
+		signatures.push(elements.transaction.createSignatureObject(
+			transaction,
+			accounts.multisignatureMembers[0].passphrase
+		));
+		signatures.push(elements.transaction.createSignatureObject(
+			transaction,
+			accounts.multisignatureMembers[1].passphrase
+		));
+
+		return [accounts, transactions, signatures];
+	};
+
 	describe('process multiple signatures for the same transaction', () => {
 		describe('when signatures are unique', () => {
 			describe('during multisignature account registration', () => {
