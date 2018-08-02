@@ -160,7 +160,7 @@ __private.receiveSignature = function(query, cb) {
 
 		modules.multisignatures.processSignature(query, err => {
 			if (err) {
-				return setImmediate(cb, `Error processing signature: ${err}`);
+				return setImmediate(cb, `Error processing signature: ${err.message}`);
 			}
 			return setImmediate(cb);
 		});
