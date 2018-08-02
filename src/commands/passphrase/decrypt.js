@@ -14,10 +14,10 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
-import cryptography from '../../utils/cryptography';
 import { ValidationError } from '../../utils/error';
-import commonOptions from '../../utils/options';
+import commonFlags from '../../utils/flags';
 import getInputsFromSources, {
 	getFirstLineFromString,
 } from '../../utils/input';
@@ -31,11 +31,16 @@ const passphraseOptionDescription = `Specifies a source for providing an encrypt
 		- --passphrase stdin (takes the first line only)
 `;
 
-const processInputs = encryptedPassphrase => ({ password, data }) =>
-	cryptography.decryptPassphrase({
-		encryptedPassphrase: encryptedPassphrase || getFirstLineFromString(data),
+const processInputs = encryptedPassphrase => ({ password, data }) => {
+	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
+		encryptedPassphrase || getFirstLineFromString(data),
+	);
+	const passphrase = cryptography.decryptPassphraseWithPassword(
+		encryptedPassphraseObject,
 		password,
-	});
+	);
+	return { passphrase };
+};
 
 export default class DecryptCommand extends BaseCommand {
 	async run() {
@@ -71,7 +76,7 @@ DecryptCommand.args = [
 
 DecryptCommand.flags = {
 	...BaseCommand.flags,
-	password: flagParser.string(commonOptions.password),
+	password: flagParser.string(commonFlags.password),
 	passphrase: flagParser.string({
 		description: passphraseOptionDescription,
 	}),

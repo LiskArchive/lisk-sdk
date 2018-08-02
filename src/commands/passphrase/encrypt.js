@@ -14,16 +14,23 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
-import commonOptions from '../../utils/options';
+import commonFlags from '../../utils/flags';
 import getInputsFromSources from '../../utils/input';
-import cryptography from '../../utils/cryptography';
 
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
 
 const processInputs = outputPublicKey => ({ passphrase, password }) => {
-	const cipherAndIv = cryptography.encryptPassphrase({ passphrase, password });
+	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
+		passphrase,
+		password,
+	);
+	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
+		encryptedPassphraseObject,
+	);
+	const cipherAndIv = { encryptedPassphrase };
 	return outputPublicKey
 		? Object.assign({}, cipherAndIv, {
 				publicKey: cryptography.getKeys(passphrase).publicKey,
@@ -57,8 +64,8 @@ export default class EncryptCommand extends BaseCommand {
 
 EncryptCommand.flags = {
 	...BaseCommand.flags,
-	password: flagParser.string(commonOptions.password),
-	passphrase: flagParser.string(commonOptions.passphrase),
+	password: flagParser.string(commonFlags.password),
+	passphrase: flagParser.string(commonFlags.passphrase),
 	outputPublicKey: flagParser.boolean({
 		description: outputPublicKeyOptionDescription,
 	}),

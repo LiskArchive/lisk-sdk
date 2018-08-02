@@ -13,24 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { expect, test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('passphrase:decrypt', () => {
-	const defaultConfig = {
-		api: {
-			network: 'main',
-			nodes: ['http://localhost:4000'],
-		},
-	};
-
 	const defaultEncryptedPassphrase =
 		'salt=d3887df959ed2bfe5961a6831da6e177&cipherText=1c08a1&iv=096ede534df9092fd4523ec7&tag=2a055e1c860b3ef76084a6c9aca68ce9&version=1';
-	const passphrase = {
-		passphrase: '123',
+	const passphrase = '123';
+	const encryptedPassphraseObject = {
+		salt: 'salt',
+		cipherText: 'cipherText',
+		iv: 'iv',
+		tag: 'tag',
+		version: 1,
 	};
 	const defaultInputs = {
 		password: '456',
@@ -40,8 +38,17 @@ describe('passphrase:decrypt', () => {
 	const printMethodStub = sandbox.stub();
 	const setupStub = test
 		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig))
-		.stub(cryptography, 'decryptPassphrase', sandbox.stub().returns(passphrase))
+		.stub(config, 'getConfig', sandbox.stub().returns({}))
+		.stub(
+			cryptography,
+			'parseEncryptedPassphrase',
+			sandbox.stub().returns(encryptedPassphraseObject),
+		)
+		.stub(
+			cryptography,
+			'decryptPassphraseWithPassword',
+			sandbox.stub().returns(passphrase),
+		)
 		.stub(
 			getInputsFromSources,
 			'default',
@@ -71,11 +78,16 @@ describe('passphrase:decrypt', () => {
 					},
 					data: null,
 				});
-				expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
-					encryptedPassphrase: defaultEncryptedPassphrase,
-					password: defaultInputs.password,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(passphrase);
+				expect(cryptography.parseEncryptedPassphrase).to.be.calledWithExactly(
+					defaultEncryptedPassphrase,
+				);
+				expect(
+					cryptography.decryptPassphraseWithPassword,
+				).to.be.calledWithExactly(
+					encryptedPassphraseObject,
+					defaultInputs.password,
+				);
+				return expect(printMethodStub).to.be.calledWithExactly({ passphrase });
 			});
 	});
 
@@ -93,11 +105,16 @@ describe('passphrase:decrypt', () => {
 						source: passphraseSource,
 					},
 				});
-				expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
-					encryptedPassphrase: defaultEncryptedPassphrase,
-					password: defaultInputs.password,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(passphrase);
+				expect(cryptography.parseEncryptedPassphrase).to.be.calledWithExactly(
+					defaultEncryptedPassphrase,
+				);
+				expect(
+					cryptography.decryptPassphraseWithPassword,
+				).to.be.calledWithExactly(
+					encryptedPassphraseObject,
+					defaultInputs.password,
+				);
+				return expect(printMethodStub).to.be.calledWithExactly({ passphrase });
 			});
 	});
 
@@ -121,11 +138,18 @@ describe('passphrase:decrypt', () => {
 							source: passphraseSource,
 						},
 					});
-					expect(cryptography.decryptPassphrase).to.be.calledWithExactly({
-						encryptedPassphrase: defaultEncryptedPassphrase,
-						password: defaultInputs.password,
+					expect(cryptography.parseEncryptedPassphrase).to.be.calledWithExactly(
+						defaultEncryptedPassphrase,
+					);
+					expect(
+						cryptography.decryptPassphraseWithPassword,
+					).to.be.calledWithExactly(
+						encryptedPassphraseObject,
+						defaultInputs.password,
+					);
+					return expect(printMethodStub).to.be.calledWithExactly({
+						passphrase,
 					});
-					return expect(printMethodStub).to.be.calledWithExactly(passphrase);
 				},
 			);
 	});

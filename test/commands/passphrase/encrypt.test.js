@@ -13,20 +13,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { expect, test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('passphrase:encrypt', () => {
-	const defaultEncryptedPassphrase = {
-		encryptedPassphrase:
-			'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1',
-	};
+	const encryptedPassphraseString =
+		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1';
 	const defaultKeys = {
 		publicKey:
 			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+	};
+	const encryptedPassphraseObject = {
+		salt: 'salt',
+		cipherText: 'cipherText',
+		iv: 'iv',
+		tag: 'tag',
+		version: 1,
 	};
 	const defaultInputs = {
 		passphrase: '123',
@@ -40,8 +45,13 @@ describe('passphrase:encrypt', () => {
 		.stub(cryptography, 'getKey', sandbox.stub().returns(defaultKeys))
 		.stub(
 			cryptography,
-			'encryptPassphrase',
-			sandbox.stub().returns(defaultEncryptedPassphrase),
+			'encryptPassphraseWithPassword',
+			sandbox.stub().returns(encryptedPassphraseObject),
+		)
+		.stub(
+			cryptography,
+			'stringifyEncryptedPassphrase',
+			sandbox.stub().returns(encryptedPassphraseString),
 		)
 		.stub(
 			getInputsFromSources,
@@ -54,9 +64,15 @@ describe('passphrase:encrypt', () => {
 			.stdout()
 			.command(['passphrase:encrypt'])
 			.it('should encrypt passphrase', () => {
-				expect(cryptography.encryptPassphrase).to.be.calledWithExactly(
-					defaultInputs,
+				expect(
+					cryptography.encryptPassphraseWithPassword,
+				).to.be.calledWithExactly(
+					defaultInputs.passphrase,
+					defaultInputs.password,
 				);
+				expect(
+					cryptography.stringifyEncryptedPassphrase,
+				).to.be.calledWithExactly(encryptedPassphraseObject);
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
@@ -67,9 +83,9 @@ describe('passphrase:encrypt', () => {
 						repeatPrompt: true,
 					},
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultEncryptedPassphrase,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					encryptedPassphrase: encryptedPassphraseString,
+				});
 			});
 	});
 
@@ -78,9 +94,15 @@ describe('passphrase:encrypt', () => {
 			.stdout()
 			.command(['passphrase:encrypt', '--outputPublicKey'])
 			.it('should encrypt passphrase and output public key', () => {
-				expect(cryptography.encryptPassphrase).to.be.calledWithExactly(
-					defaultInputs,
+				expect(
+					cryptography.encryptPassphraseWithPassword,
+				).to.be.calledWithExactly(
+					defaultInputs.passphrase,
+					defaultInputs.password,
 				);
+				expect(
+					cryptography.stringifyEncryptedPassphrase,
+				).to.be.calledWithExactly(encryptedPassphraseObject);
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
@@ -91,9 +113,10 @@ describe('passphrase:encrypt', () => {
 						repeatPrompt: true,
 					},
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					Object.assign({}, defaultEncryptedPassphrase, defaultKeys),
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					encryptedPassphrase: encryptedPassphraseString,
+					...defaultKeys,
+				});
 			});
 	});
 
@@ -102,9 +125,15 @@ describe('passphrase:encrypt', () => {
 			.stdout()
 			.command(['passphrase:encrypt', '--passphrase=pass:123'])
 			.it('should call print with the user config', () => {
-				expect(cryptography.encryptPassphrase).to.be.calledWithExactly(
-					defaultInputs,
+				expect(
+					cryptography.encryptPassphraseWithPassword,
+				).to.be.calledWithExactly(
+					defaultInputs.passphrase,
+					defaultInputs.password,
 				);
+				expect(
+					cryptography.stringifyEncryptedPassphrase,
+				).to.be.calledWithExactly(encryptedPassphraseObject);
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
 					passphrase: {
 						source: 'pass:123',
@@ -115,9 +144,9 @@ describe('passphrase:encrypt', () => {
 						repeatPrompt: true,
 					},
 				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultEncryptedPassphrase,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					encryptedPassphrase: encryptedPassphraseString,
+				});
 			});
 	});
 
@@ -132,9 +161,15 @@ describe('passphrase:encrypt', () => {
 			.it(
 				'should encrypt passphrase from passphrase and password flags',
 				() => {
-					expect(cryptography.encryptPassphrase).to.be.calledWithExactly(
-						defaultInputs,
+					expect(
+						cryptography.encryptPassphraseWithPassword,
+					).to.be.calledWithExactly(
+						defaultInputs.passphrase,
+						defaultInputs.password,
 					);
+					expect(
+						cryptography.stringifyEncryptedPassphrase,
+					).to.be.calledWithExactly(encryptedPassphraseObject);
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
@@ -145,9 +180,9 @@ describe('passphrase:encrypt', () => {
 							repeatPrompt: true,
 						},
 					});
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultEncryptedPassphrase,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly({
+						encryptedPassphrase: encryptedPassphraseString,
+					});
 				},
 			);
 	});
