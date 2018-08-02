@@ -140,6 +140,21 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 	return isValid;
 };
 
+/**
+ * Validate signature against provided transaction, add signature to transaction if valid and emit events
+ *
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Array} membersPublicKeys - Public keys of multisignature account members
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @param {Object} sender - Account data of sender of the transaction provided above
+ * @param {function} cb - Callback function
+ * @implements {library.logic.multisignature.ready}
+ * @returns {setImmediateCallback} cb, err
+ */
 __private.validateSignature = (signature, membersPublicKeys, transaction, sender, cb) => {
 	// Check if signature is valid
 	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
