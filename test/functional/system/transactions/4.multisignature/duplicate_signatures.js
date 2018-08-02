@@ -122,7 +122,7 @@ describe('duplicate_signatures', () => {
 			describe('during multisignature account registration', () => {
 				let accounts, transactions, signatures;
 
-				before(() => {
+				before('credit new account', () => {
 					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
 					// Execute transfer transaction - credit new account
 					return addTransactionsAndForgePromise(library, [transactions.transfer], 0);
@@ -184,7 +184,7 @@ describe('duplicate_signatures', () => {
 			describe('during multisignature account registration', () => {
 				let accounts, transactions, signatures;
 
-				before(() => {
+				before('credit new account', () => {
 					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
 					// Execute transfer transaction - credit new account
 					return addTransactionsAndForgePromise(library, [transactions.transfer], 0);
