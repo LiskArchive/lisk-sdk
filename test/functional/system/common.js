@@ -231,10 +231,10 @@ function getAccountFromDb(library, address) {
 	return Promise.all([
 		library.db.query(`SELECT * FROM mem_accounts where address = '${address}'`),
 		library.db.query(
-			`SELECT * FROM mem_accounts2multisignatures where "accountId" = '${address}'`
+			`SELECT "accountId", ENCODE("dependentId", 'hex') as "dependentId" FROM mem_accounts2multisignatures where "accountId" = '${address}'`
 		),
 		library.db.query(
-			`SELECT * FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
+			`SELECT "accountId", ENCODE("dependentId", 'hex') as "dependentId" FROM mem_accounts2u_multisignatures where "accountId" = '${address}'`
 		),
 	]).then(res => {
 		return {

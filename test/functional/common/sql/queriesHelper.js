@@ -95,7 +95,7 @@ class Queries {
 
 	getVoters() {
 		return self.db.query(
-			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
+			'SELECT ENCODE("dependentId", \'hex\') as "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
 		);
 	}
 }
