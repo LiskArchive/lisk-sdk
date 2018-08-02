@@ -208,7 +208,18 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should forge a block', () => {});
+				it('should forge a block', () => {
+					// Forge a block
+					return addTransactionsAndForgePromise(library, [], 0).then(() => {
+						const lastBlock = library.modules.blocks.lastBlock.get();
+						// Block should contain transaction sent from multisignature account
+						expect(lastBlock.transactions[0].id).to.eql(
+							transactions.multisignature.id
+						);
+						// There should be 2 signatures
+						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
+					});
+				});
 			});
 
 			describe('during spend from multisignature account', () => {
@@ -307,7 +318,18 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should forge a block', () => {});
+				it('should forge a block', () => {
+					// Forge a block
+					return addTransactionsAndForgePromise(library, [], 0).then(() => {
+						const lastBlock = library.modules.blocks.lastBlock.get();
+						// Block should contain transaction sent from multisignature account
+						expect(lastBlock.transactions[0].id).to.eql(
+							transactions.transfer.id
+						);
+						// There should be 2 signatures
+						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
+					});
+				});
 			});
 		});
 
@@ -402,7 +424,18 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should forge a block', () => {});
+				it('should forge a block', () => {
+					// Forge a block
+					return addTransactionsAndForgePromise(library, [], 0).then(() => {
+						const lastBlock = library.modules.blocks.lastBlock.get();
+						// Block should contain transaction sent from multisignature account
+						expect(lastBlock.transactions[0].id).to.eql(
+							transactions.multisignature.id
+						);
+						// There should be 2 signatures
+						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
+					});
+				});
 			});
 
 			describe('during spend from multisignature account', () => {
@@ -510,7 +543,18 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should forge a block', () => {});
+				it('should forge a block', () => {
+					// Forge a block
+					return addTransactionsAndForgePromise(library, [], 0).then(() => {
+						const lastBlock = library.modules.blocks.lastBlock.get();
+						// Block should contain transaction sent from multisignature account
+						expect(lastBlock.transactions[0].id).to.eql(
+							transactions.transfer.id
+						);
+						// There should be 2 signatures
+						expect(lastBlock.transactions[0].signatures).to.have.lengthOf(2);
+					});
+				});
 			});
 		});
 	});
