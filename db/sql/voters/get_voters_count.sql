@@ -21,4 +21,4 @@
 
 SELECT count(*)
 FROM mem_accounts2delegates
-WHERE "dependentId" = $1
+WHERE "dependentId" = DECODE($1, 'hex')
