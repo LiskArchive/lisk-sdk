@@ -196,7 +196,7 @@ describe('duplicate_signatures', () => {
 							expect(results[0].value).to.be.undefined;
 							expect(results[1].value).to.be.undefined;
 
-							// Get multisignature transaction from pool
+							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
 								transactions.multisignature.id
 							);
@@ -212,7 +212,7 @@ describe('duplicate_signatures', () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
 						const lastBlock = library.modules.blocks.lastBlock.get();
-						// Block should contain transaction sent from multisignature account
+						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.multisignature.id
 						);
@@ -306,7 +306,7 @@ describe('duplicate_signatures', () => {
 							expect(results[0].value).to.be.undefined;
 							expect(results[1].value).to.be.undefined;
 
-							// Get multisignature transaction from pool
+							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
 								transactions.transfer.id
 							);
@@ -382,7 +382,7 @@ describe('duplicate_signatures', () => {
 						setTimeout(cb, 2000);
 					});
 
-					// Make node receive 2 different signatures in parallel
+					// Make node receive 3 signatures in parallel (1 duplicated)
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
@@ -412,7 +412,7 @@ describe('duplicate_signatures', () => {
 							);
 							expect(results[2].value).to.be.undefined;
 
-							// Get multisignature transaction from pool
+							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
 								transactions.multisignature.id
 							);
@@ -428,7 +428,7 @@ describe('duplicate_signatures', () => {
 					// Forge a block
 					return addTransactionsAndForgePromise(library, [], 0).then(() => {
 						const lastBlock = library.modules.blocks.lastBlock.get();
-						// Block should contain transaction sent from multisignature account
+						// Block should contain multisignature registration transaction
 						expect(lastBlock.transactions[0].id).to.eql(
 							transactions.multisignature.id
 						);
@@ -501,7 +501,7 @@ describe('duplicate_signatures', () => {
 						setTimeout(cb, 2000);
 					});
 
-					// Make node receive 2 different signatures in parallel
+					// Make node receive 3 signatures in parallel (1 duplicated)
 					async.parallel(
 						async.reflectAll([
 							parallelCb => {
@@ -531,7 +531,7 @@ describe('duplicate_signatures', () => {
 							);
 							expect(results[2].value).to.be.undefined;
 
-							// Get multisignature transaction from pool
+							// Get transaction from pool
 							const transaction = transactionPool.getMultisignatureTransaction(
 								transactions.transfer.id
 							);
