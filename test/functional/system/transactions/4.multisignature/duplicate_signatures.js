@@ -354,7 +354,53 @@ describe('duplicate_signatures', () => {
 					);
 				});
 
-				it('should reject duplicated signature', () => {});
+				it('should reject duplicated signature', done => {
+					// Block balancesSequence for 5 seconds
+					library.balancesSequence.add(cb => {
+						setTimeout(cb, 5000);
+					});
+
+					// Make node receive 2 different signatures in parallel
+					async.parallel(
+						async.reflectAll([
+							parallelCb => {
+								library.modules.multisignatures.processSignature(
+									signatures[0],
+									parallelCb
+								);
+							},
+							parallelCb => {
+								library.modules.multisignatures.processSignature(
+									signatures[0],
+									parallelCb
+								);
+							},
+							parallelCb => {
+								library.modules.multisignatures.processSignature(
+									signatures[1],
+									parallelCb
+								);
+							},
+						]),
+						(err, results) => {
+							// There should be an error from processing only for duplicated signature
+							expect(results[0].value).to.be.undefined;
+							expect(results[1].error.message).to.eql(
+								'Unable to process signature, signature already exists'
+							);
+							expect(results[2].value).to.be.undefined;
+
+							// Get multisignature transaction from pool
+							const transaction = transactionPool.getMultisignatureTransaction(
+								transactions.multisignature.id
+							);
+
+							// There should be 2 signatures
+							expect(transaction.signatures).to.have.lengthOf(2);
+							done();
+						}
+					);
+				});
 
 				it('should forge a block', () => {});
 			});
@@ -416,7 +462,53 @@ describe('duplicate_signatures', () => {
 					});
 				});
 
-				it('should reject duplicated signature', () => {});
+				it('should reject duplicated signature', done => {
+					// Block balancesSequence for 5 seconds
+					library.balancesSequence.add(cb => {
+						setTimeout(cb, 5000);
+					});
+
+					// Make node receive 2 different signatures in parallel
+					async.parallel(
+						async.reflectAll([
+							parallelCb => {
+								library.modules.multisignatures.processSignature(
+									signatures[0],
+									parallelCb
+								);
+							},
+							parallelCb => {
+								library.modules.multisignatures.processSignature(
+									signatures[0],
+									parallelCb
+								);
+							},
+							parallelCb => {
+								library.modules.multisignatures.processSignature(
+									signatures[1],
+									parallelCb
+								);
+							},
+						]),
+						(err, results) => {
+							// There should be an error from processing only for duplicated signature
+							expect(results[0].value).to.be.undefined;
+							expect(results[1].error.message).to.eql(
+								'Unable to process signature, signature already exists'
+							);
+							expect(results[2].value).to.be.undefined;
+
+							// Get multisignature transaction from pool
+							const transaction = transactionPool.getMultisignatureTransaction(
+								transactions.transfer.id
+							);
+
+							// There should be 2 signatures
+							expect(transaction.signatures).to.have.lengthOf(2);
+							done();
+						}
+					);
+				});
 
 				it('should forge a block', () => {});
 			});
