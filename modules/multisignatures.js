@@ -58,6 +58,13 @@ function Multisignatures(cb, scope) {
 		logic: {
 			transaction: scope.logic.transaction,
 			account: scope.logic.account,
+			multisignature: new Multisignature(
+				scope.schema,
+				scope.network,
+				scope.logic.transaction,
+				scope.logic.account,
+				scope.logger
+			),
 		},
 	};
 	genesisBlock = library.genesisBlock;
@@ -67,13 +74,7 @@ function Multisignatures(cb, scope) {
 		transactionTypes.MULTI
 	] = library.logic.transaction.attachAssetType(
 		transactionTypes.MULTI,
-		new Multisignature(
-			scope.schema,
-			scope.network,
-			scope.logic.transaction,
-			scope.logic.account,
-			scope.logger
-		)
+		library.logic.multisignature
 	);
 
 	setImmediate(cb, null, self);
