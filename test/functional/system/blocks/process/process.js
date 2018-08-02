@@ -16,6 +16,7 @@
 'use strict';
 
 var async = require('async');
+const blockVersion = require('../../../../../logic/block_version.js');
 var application = require('../../../../common/application');
 var modulesLoader = require('../../../../common/modules_loader');
 var clearDatabaseTable = require('../../../../common/db_sandbox')
@@ -35,6 +36,10 @@ describe('system test (blocks) - process', () => {
 		// Force rewards start at 150-th block
 		originalBlockRewardsOffset = constants.rewards.offset;
 		constants.rewards.offset = 150;
+
+		// Set current block version to 0
+		blockVersion.currentBlockVersion = 0;
+
 		application.init(
 			{ sandbox: { name: 'system_blocks_process' } },
 			(err, scopeInit) => {

@@ -49,4 +49,6 @@ module.exports = {
 		'11613486949732674475', // 123300
 		'14164134775432642506', // 123333
 	],
+	// <version>: { start: <start_height>, end: <end_height> }
+	blockVersions: {},
 };

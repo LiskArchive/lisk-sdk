@@ -19,6 +19,7 @@
  * 		A user manual can be found on documentation site under /documentation/lisk-core/upgrade/upgrade-configurations
  */
 
+const extend = require('extend');
 const fs = require('fs');
 const path = require('path');
 const program = require('commander');
@@ -45,11 +46,41 @@ if (!oldConfigPath || !newConfigPath) {
 	process.exit(1);
 }
 
-console.info('Running config migration from 1.0.x to 1.1.x');
 console.info('Starting configuration migration...');
+let oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
+let newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
+// If old release was a 1.0.0-rc.1 release
+if (oldConfig.version === '1.0.0-rc.1') {
+	// Values to keep from new config file
+	delete oldConfig.version;
+	delete oldConfig.minVersion;
+
+	// https://github.com/LiskHQ/lisk/issues/2154
+	oldConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+	delete oldConfig.ssl;
+
+	// https://github.com/LiskHQ/lisk/issues/2208
+	delete oldConfig.forging.defaultPassword;
+
+	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
+
+	try {
+		fs.writeFileSync(newConfigPath, JSON.stringify(modifiedConfig, null, '\t'));
+	} catch (error) {
+		console.error('Error writing configuration file', error);
+		process.exit(1);
+	}
+
+	console.info('Configuration migration completed.');
+
+	// No further changes required
+	process.exit(0);
+}
+
+console.info('Running config migration from 1.0.x to 1.1.x');
 
 // Old config in 1.0.x will be single unified config file.
-const oldConfig = loadJSONFile(oldConfigPath);
+oldConfig = loadJSONFile(oldConfigPath);
 
 // Had dedicated ssl config only for API
 // https://github.com/LiskHQ/lisk/issues/2154
