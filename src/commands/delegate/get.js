@@ -21,8 +21,14 @@ export default class GetCommand extends BaseCommand {
 	async run() {
 		const { args: { usernames } } = this.parse(GetCommand);
 		const req = usernames.map(username => ({
-			limit: 1,
-			username,
+			query: {
+				limit: 1,
+				username,
+			},
+			placeholder: {
+				username,
+				message: 'Delegate not found.',
+			},
 		}));
 		const client = getAPIClient(this.userConfig.api);
 		const results = await query(client, 'delegates', req);

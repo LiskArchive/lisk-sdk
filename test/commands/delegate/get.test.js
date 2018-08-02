@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '../../test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
@@ -40,10 +40,12 @@ describe('delegate:get', () => {
 
 	describe('delegate:get delegate', () => {
 		const username = '3520445367460290306L';
-		const queryResult = {
-			username,
-			name: 'i am owner',
-		};
+		const queryResult = [
+			{
+				username,
+				name: 'i am owner',
+			},
+		];
 
 		setupStub
 			.stdout()
@@ -53,8 +55,14 @@ describe('delegate:get', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
-						limit: 1,
-						username,
+						query: {
+							limit: 1,
+							username,
+						},
+						placeholder: {
+							username,
+							message: 'Delegate not found.',
+						},
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
@@ -82,12 +90,24 @@ describe('delegate:get', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
-						limit: 1,
-						username: usernames[0],
+						query: {
+							username: usernames[0],
+							limit: 1,
+						},
+						placeholder: {
+							username: usernames[0],
+							message: 'Delegate not found.',
+						},
 					},
 					{
-						limit: 1,
-						username: usernames[1],
+						query: {
+							username: usernames[1],
+							limit: 1,
+						},
+						placeholder: {
+							username: usernames[1],
+							message: 'Delegate not found.',
+						},
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
