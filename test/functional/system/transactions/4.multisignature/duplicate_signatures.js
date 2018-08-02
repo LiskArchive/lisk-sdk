@@ -90,7 +90,7 @@ describe('duplicate_signatures', () => {
 			)
 		);
 
-		return [accounts, transactions, signatures];
+		return [transactions, signatures, accounts];
 	};
 
 	const prepareSendFromMultisignatureAccount = accounts => {
@@ -122,17 +122,17 @@ describe('duplicate_signatures', () => {
 			)
 		);
 
-		return [accounts, transactions, signatures];
+		return [transactions, signatures];
 	};
 
 	describe('process multiple signatures for the same transaction', () => {
 		describe('when signatures are unique', () => {
 			describe('during multisignature account registration', () => {
-				let accounts, transactions, signatures;
+				let transactions;
+				let signatures;
 
 				before('credit new account', () => {
 					[
-						accounts,
 						transactions,
 						signatures,
 					] = prepareMultisignatureAccountRegistration();
@@ -223,13 +223,15 @@ describe('duplicate_signatures', () => {
 			});
 
 			describe('during spend from multisignature account', () => {
-				let accounts, transactions, signatures;
+				let accounts;
+				let transactions;
+				let signatures;
 
 				before('create multisignature account', () => {
 					[
-						accounts,
 						transactions,
 						signatures,
+						accounts,
 					] = prepareMultisignatureAccountRegistration();
 					// Mark transaction as ready, so it can get processed instantly
 					transactions.multisignature.ready = true;
@@ -255,11 +257,9 @@ describe('duplicate_signatures', () => {
 				});
 
 				it('should add transaction to transaction pool', done => {
-					[
-						accounts,
-						transactions,
-						signatures,
-					] = prepareSendFromMultisignatureAccount(accounts);
+					[transactions, signatures] = prepareSendFromMultisignatureAccount(
+						accounts
+					);
 
 					// Add multisignature transaction to transaction pool
 					localCommon.addTransaction(library, transactions.transfer, err => {
@@ -335,11 +335,11 @@ describe('duplicate_signatures', () => {
 
 		describe('when signatures contains duplicate', () => {
 			describe('during multisignature account registration', () => {
-				let accounts, transactions, signatures;
+				let transactions;
+				let signatures;
 
 				before('credit new account', () => {
 					[
-						accounts,
 						transactions,
 						signatures,
 					] = prepareMultisignatureAccountRegistration();
@@ -439,13 +439,15 @@ describe('duplicate_signatures', () => {
 			});
 
 			describe('during spend from multisignature account', () => {
-				let accounts, transactions, signatures;
+				let accounts;
+				let transactions;
+				let signatures;
 
 				before('create multisignature account', () => {
 					[
-						accounts,
 						transactions,
 						signatures,
+						accounts,
 					] = prepareMultisignatureAccountRegistration();
 					// Mark transaction as ready, so it can get processed instantly
 					transactions.multisignature.ready = true;
@@ -471,11 +473,9 @@ describe('duplicate_signatures', () => {
 				});
 
 				it('should add transaction to transaction pool', done => {
-					[
-						accounts,
-						transactions,
-						signatures,
-					] = prepareSendFromMultisignatureAccount(accounts);
+					[transactions, signatures] = prepareSendFromMultisignatureAccount(
+						accounts
+					);
 
 					// Add multisignature transaction to transaction pool
 					localCommon.addTransaction(library, transactions.transfer, err => {
