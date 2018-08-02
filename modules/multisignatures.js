@@ -89,21 +89,21 @@ function Multisignatures(cb, scope) {
  * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
  * @param {string} signature.transactionId - Id of transaction that signature was created for
  * @param {string} signature.signature - Actual signature
- * @param {Array} members - Array of multisignature account members - public keys
+ * @param {Array} membersPublicKeys - Public keys of multisignature account members
  * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
  * @returns {boolean} isValid - true if signature passed verification, false otherwise
  */
-__private.isValidSignature = (signature, members, transaction) => {
+__private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 	let isValid = false;
 
 	try {
 		// If publicKey is provided we can perform direct verify
 		if (signature.publicKey) {
 			// Check if publicKey is present as member of multisignature account in transaction
-			if (!members.includes(signature.publicKey)) {
+			if (!membersPublicKeys.includes(signature.publicKey)) {
 				library.logger.error(
 					'Unable to process signature, signer not in keysgroup.',
-					{ signature, members, transaction }
+					{ signature, membersPublicKeys, transaction }
 				);
 				return isValid;
 			}
@@ -116,11 +116,11 @@ __private.isValidSignature = (signature, members, transaction) => {
 			);
 		} else {
 			// publicKey is not there - we need to iterate through all members of multisignature account in transaction
-			isValid = members.find(member =>
+			isValid = membersPublicKeys.find(memberPublicKey =>
 				// Try to verify the signature
 				library.logic.transaction.verifySignature(
 					transaction,
-					member,
+					memberPublicKey,
 					signature.signature
 				)
 			);
@@ -128,7 +128,7 @@ __private.isValidSignature = (signature, members, transaction) => {
 	} catch (e) {
 		library.logger.error('Unable to process signature, verification failed.', {
 			signature,
-			members,
+			membersPublicKeys,
 			transaction,
 			error: e.stack,
 		});
@@ -154,12 +154,12 @@ __private.processSignatureForMultisignatureAccountCreation = (
 	cb
 ) => {
 	// Normalize members of multisignature account from transaction
-	const members = transaction.asset.multisignature.keysgroup.map(member =>
+	const membersPublicKeys = transaction.asset.multisignature.keysgroup.map(member =>
 		member.substring(1) // Remove first character, which is '+'
 	);
 
 	// Check if signature is valid
-	if (!__private.isValidSignature(signature, members, transaction)) {
+	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
 		return setImmediate(cb, 'Unable to process signature, verification failed');
 	}
 
@@ -208,10 +208,10 @@ __private.processSignatureFromMultisignatureAccount = (
 			}
 
 			// Assign members of multisignature account from transaction
-			const members = sender.multisignatures;
+			const membersPublicKeys = sender.multisignatures;
 
 			// Check if signature is valid
-			if (!__private.isValidSignature(signature, members, transaction)) {
+			if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
 				return setImmediate(
 					cb,
 					'Unable to process signature, verification failed'
