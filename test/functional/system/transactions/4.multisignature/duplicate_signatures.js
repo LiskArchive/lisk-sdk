@@ -120,6 +120,14 @@ describe('duplicate_signatures', () => {
 	describe('process multiple signatures for the same transaction', () => {
 		describe('when signatures are unique', () => {
 			describe('during multisignature account registration', () => {
+				let accounts, transactions, signatures;
+
+				before(() => {
+					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					// Execute transfer transaction - credit new account
+					return addTransactionsAndForgePromise(library, [transactions.transfer], 0);
+				});
+
 				it('should add transaction to transaction pool', () => {
 
 				});
@@ -150,6 +158,14 @@ describe('duplicate_signatures', () => {
 
 		describe('when signatures contains duplicate', () => {
 			describe('during multisignature account registration', () => {
+				let accounts, transactions, signatures;
+
+				before(() => {
+					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					// Execute transfer transaction - credit new account
+					return addTransactionsAndForgePromise(library, [transactions.transfer], 0);
+				});
+
 				it('should add transaction to transaction pool', () => {
 
 				});
