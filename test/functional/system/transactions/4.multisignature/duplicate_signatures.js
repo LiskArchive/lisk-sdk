@@ -24,6 +24,7 @@ const localCommon = require('../../common');
 describe('duplicate_signatures', () => {
 	let library;
 	let addTransactionsAndForgePromise;
+	let transactionPool;
 
 	localCommon.beforeBlock('lisk_functional_duplicate_signatures', lib => {
 		library = lib;
@@ -31,10 +32,13 @@ describe('duplicate_signatures', () => {
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge
 		);
+
+		transactionPool = library.rewiredModules.transactions.__get__(
+			'__private.transactionPool'
+		);
 	});
 
 	describe('process multiple signatures (including duplicated) for the same transaction', () => {
-		let transactionPool;
 		const accounts = {
 			multisignatureMembers: [],
 		};
@@ -44,9 +48,6 @@ describe('duplicate_signatures', () => {
 		};
 
 		before(() => {
-			transactionPool = library.rewiredModules.transactions.__get__(
-				'__private.transactionPool'
-			);
 
 			// Create random account to use as multisignature owner
 			accounts.multisignature = randomUtil.account();
