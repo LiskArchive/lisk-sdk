@@ -191,6 +191,7 @@ __private.validateSignature = (signature, membersPublicKeys, transaction, sender
  * @param {string} signature.signature - Actual signature
  * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
  * @param {function} cb - Callback function
+ * @implements {__private.validateSignature}
  * @returns {setImmediateCallback} cb, err
  */
 __private.processSignatureForMultisignatureAccountCreation = (
@@ -219,6 +220,7 @@ __private.processSignatureForMultisignatureAccountCreation = (
  * @param {string} signature.signature - Actual signature
  * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
  * @param {function} cb - Callback function
+ * @implements {__private.validateSignature}
  * @returns {setImmediateCallback} cb, err
  */
 __private.processSignatureFromMultisignatureAccount = (
