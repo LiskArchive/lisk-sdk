@@ -77,14 +77,18 @@ describe('duplicate_signatures', () => {
 		transactions.multisignature = transaction;
 
 		// Create signatures (object)
-		signatures.push(elements.transaction.createSignatureObject(
-			transaction,
-			accounts.multisignatureMembers[0].passphrase
-		));
-		signatures.push(elements.transaction.createSignatureObject(
-			transaction,
-			accounts.multisignatureMembers[1].passphrase
-		));
+		signatures.push(
+			elements.transaction.createSignatureObject(
+				transaction,
+				accounts.multisignatureMembers[0].passphrase
+			)
+		);
+		signatures.push(
+			elements.transaction.createSignatureObject(
+				transaction,
+				accounts.multisignatureMembers[1].passphrase
+			)
+		);
 
 		return [accounts, transactions, signatures];
 	};
@@ -105,14 +109,18 @@ describe('duplicate_signatures', () => {
 		transactions.transfer = transaction;
 
 		// Create signatures (object)
-		signatures.push(elements.transaction.createSignatureObject(
-			transaction,
-			accounts.multisignatureMembers[0].passphrase
-		));
-		signatures.push(elements.transaction.createSignatureObject(
-			transaction,
-			accounts.multisignatureMembers[1].passphrase
-		));
+		signatures.push(
+			elements.transaction.createSignatureObject(
+				transaction,
+				accounts.multisignatureMembers[0].passphrase
+			)
+		);
+		signatures.push(
+			elements.transaction.createSignatureObject(
+				transaction,
+				accounts.multisignatureMembers[1].passphrase
+			)
+		);
 
 		return [accounts, transactions, signatures];
 	};
@@ -123,33 +131,65 @@ describe('duplicate_signatures', () => {
 				let accounts, transactions, signatures;
 
 				before('credit new account', () => {
-					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					[
+						accounts,
+						transactions,
+						signatures,
+					] = prepareMultisignatureAccountRegistration();
 					// Execute transfer transaction - credit new account
-					return addTransactionsAndForgePromise(library, [transactions.transfer], 0);
+					return addTransactionsAndForgePromise(
+						library,
+						[transactions.transfer],
+						0
+					);
 				});
 
-				it('should add transaction to transaction pool', () => {
-
+				it('should add transaction to transaction pool', done => {
+					// Add transaction to transaction pool
+					localCommon.addTransaction(
+						library,
+						transactions.multisignature,
+						err => {
+							// There should be no error when add transaction to transaction pool
+							expect(err).to.be.null;
+							// Transaction should be present in transaction pool
+							expect(
+								transactionPool.transactionInPool(
+									transactions.multisignature.id
+								)
+							).to.equal(true);
+							// Transaction should exists in multisignature queue
+							expect(
+								transactionPool.getMultisignatureTransaction(
+									transactions.multisignature.id
+								)
+							).to.be.an('object');
+							done();
+						}
+					);
 				});
 
-				it('should accept all signatures', () => {
+				it('should accept all signatures', () => {});
 
-				});
-
-				it('should forge a block', () => {
-
-				});
+				it('should forge a block', () => {});
 			});
 
 			describe('during spend from multisignature account', () => {
 				let accounts, transactions, signatures;
 
 				before('create multisignature account', () => {
-					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					[
+						accounts,
+						transactions,
+						signatures,
+					] = prepareMultisignatureAccountRegistration();
 					// Mark transaction as ready, so it can get processed instantly
 					transactions.multisignature.ready = true;
 					// Add signatures to transaction
-					transactions.multisignature.signatures = [signatures[0].signature, signatures[1].signature];
+					transactions.multisignature.signatures = [
+						signatures[0].signature,
+						signatures[1].signature,
+					];
 
 					// Execute transfer transaction - credit new account
 					return addTransactionsAndForgePromise(
@@ -166,17 +206,34 @@ describe('duplicate_signatures', () => {
 					});
 				});
 
-				it('should add transaction to transaction pool', () => {
+				it('should add transaction to transaction pool', done => {
+					[
+						accounts,
+						transactions,
+						signatures,
+					] = prepareSendFromMultisignatureAccount(accounts);
 
+					// Add multisignature transaction to transaction pool
+					localCommon.addTransaction(library, transactions.transfer, err => {
+						// There should be no error when add transaction to transaction pool
+						expect(err).to.be.null;
+						// Transaction should be present in transaction pool
+						expect(
+							transactionPool.transactionInPool(transactions.transfer.id)
+						).to.equal(true);
+						// Transaction should exists in multisignature queue
+						expect(
+							transactionPool.getMultisignatureTransaction(
+								transactions.transfer.id
+							)
+						).to.be.an('object');
+						done();
+					});
 				});
 
-				it('should accept all signatures', () => {
+				it('should accept all signatures', () => {});
 
-				});
-
-				it('should forge a block', () => {
-
-				});
+				it('should forge a block', () => {});
 			});
 		});
 
@@ -185,33 +242,65 @@ describe('duplicate_signatures', () => {
 				let accounts, transactions, signatures;
 
 				before('credit new account', () => {
-					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					[
+						accounts,
+						transactions,
+						signatures,
+					] = prepareMultisignatureAccountRegistration();
 					// Execute transfer transaction - credit new account
-					return addTransactionsAndForgePromise(library, [transactions.transfer], 0);
+					return addTransactionsAndForgePromise(
+						library,
+						[transactions.transfer],
+						0
+					);
 				});
 
-				it('should add transaction to transaction pool', () => {
-
+				it('should add transaction to transaction pool', done => {
+					// Add multisignature transaction to transaction pool
+					localCommon.addTransaction(
+						library,
+						transactions.multisignature,
+						err => {
+							// There should be no error when add transaction to transaction pool
+							expect(err).to.be.null;
+							// Transaction should be present in transaction pool
+							expect(
+								transactionPool.transactionInPool(
+									transactions.multisignature.id
+								)
+							).to.equal(true);
+							// Transaction should exists in multisignature queue
+							expect(
+								transactionPool.getMultisignatureTransaction(
+									transactions.multisignature.id
+								)
+							).to.be.an('object');
+							done();
+						}
+					);
 				});
 
-				it('should reject duplicated signature', () => {
+				it('should reject duplicated signature', () => {});
 
-				});
-
-				it('should forge a block', () => {
-
-				});
+				it('should forge a block', () => {});
 			});
 
 			describe('during spend from multisignature account', () => {
 				let accounts, transactions, signatures;
 
 				before('create multisignature account', () => {
-					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					[
+						accounts,
+						transactions,
+						signatures,
+					] = prepareMultisignatureAccountRegistration();
 					// Mark transaction as ready, so it can get processed instantly
 					transactions.multisignature.ready = true;
 					// Add signatures to transaction
-					transactions.multisignature.signatures = [signatures[0].signature, signatures[1].signature];
+					transactions.multisignature.signatures = [
+						signatures[0].signature,
+						signatures[1].signature,
+					];
 
 					// Execute transfer transaction - credit new account
 					return addTransactionsAndForgePromise(
@@ -228,17 +317,34 @@ describe('duplicate_signatures', () => {
 					});
 				});
 
-				it('should add transaction to transaction pool', () => {
+				it('should add transaction to transaction pool', done => {
+					[
+						accounts,
+						transactions,
+						signatures,
+					] = prepareSendFromMultisignatureAccount(accounts);
 
+					// Add multisignature transaction to transaction pool
+					localCommon.addTransaction(library, transactions.transfer, err => {
+						// There should be no error when add transaction to transaction pool
+						expect(err).to.be.null;
+						// Transaction should be present in transaction pool
+						expect(
+							transactionPool.transactionInPool(transactions.transfer.id)
+						).to.equal(true);
+						// Transaction should exists in multisignature queue
+						expect(
+							transactionPool.getMultisignatureTransaction(
+								transactions.transfer.id
+							)
+						).to.be.an('object');
+						done();
+					});
 				});
 
-				it('should reject duplicated signature', () => {
+				it('should reject duplicated signature', () => {});
 
-				});
-
-				it('should forge a block', () => {
-
-				});
+				it('should forge a block', () => {});
 			});
 		});
 	});
