@@ -142,6 +142,30 @@ describe('duplicate_signatures', () => {
 			});
 
 			describe('during spend from multisignature account', () => {
+				let accounts, transactions, signatures;
+
+				before('create multisignature account', () => {
+					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					// Mark transaction as ready, so it can get processed instantly
+					transactions.multisignature.ready = true;
+					// Add signatures to transaction
+					transactions.multisignature.signatures = [signatures[0].signature, signatures[1].signature];
+
+					// Execute transfer transaction - credit new account
+					return addTransactionsAndForgePromise(
+						library,
+						[transactions.transfer],
+						0
+					).then(() => {
+						// Execute multisignature creation on account credited above
+						return addTransactionsAndForgePromise(
+							library,
+							[transactions.multisignature],
+							0
+						);
+					});
+				});
+
 				it('should add transaction to transaction pool', () => {
 
 				});
@@ -180,6 +204,30 @@ describe('duplicate_signatures', () => {
 			});
 
 			describe('during spend from multisignature account', () => {
+				let accounts, transactions, signatures;
+
+				before('create multisignature account', () => {
+					[accounts, transactions, signatures] = prepareMultisignatureAccountRegistration();
+					// Mark transaction as ready, so it can get processed instantly
+					transactions.multisignature.ready = true;
+					// Add signatures to transaction
+					transactions.multisignature.signatures = [signatures[0].signature, signatures[1].signature];
+
+					// Execute transfer transaction - credit new account
+					return addTransactionsAndForgePromise(
+						library,
+						[transactions.transfer],
+						0
+					).then(() => {
+						// Execute multisignature creation on account credited above
+						return addTransactionsAndForgePromise(
+							library,
+							[transactions.multisignature],
+							0
+						);
+					});
+				});
+
 				it('should add transaction to transaction pool', () => {
 
 				});
