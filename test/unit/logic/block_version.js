@@ -14,8 +14,8 @@
 
 'use strict';
 
-const exceptions = require('../../../helpers/exceptions.js');
 const blockVersion = require('../../../logic/block_version.js');
+const exceptions = global.exceptions;
 
 describe('block_version', () => {
 	describe('isValid', () => {
