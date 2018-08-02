@@ -188,29 +188,10 @@ __private.processSignatureForMultisignatureAccountCreation = (
 		member => member.substring(1) // Remove first character, which is '+'
 	);
 
-	// Check if signature is valid
-	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
-		return setImmediate(
-			cb,
-			new Error('Unable to process signature, verification failed')
-		);
-	}
+	// Set empty object as sender, as we don't need sender in case of multisignature registration
+	const sender = {};
 
-	// Add signature to transaction
-	transaction.signatures.push(signature.signature);
-	// Check if transaction is ready to be processed
-	transaction.ready = library.logic.multisignature.ready(
-		transaction,
-		{} // Pass empty object, as we don't need sender in case of multisignature registration
-	);
-
-	// Emit events
-	library.network.io.sockets.emit(
-		'multisignatures/signature/change',
-		transaction
-	);
-	library.bus.message('signature', signature, true);
-	return setImmediate(cb);
+	return __private.validateSignature(signature, membersPublicKeys, transaction, sender, cb);
 };
 
 /**
@@ -243,31 +224,7 @@ __private.processSignatureFromMultisignatureAccount = (
 			// Assign members of multisignature account from transaction
 			const membersPublicKeys = sender.multisignatures;
 
-			// Check if signature is valid
-			if (
-				!__private.isValidSignature(signature, membersPublicKeys, transaction)
-			) {
-				return setImmediate(
-					cb,
-					new Error('Unable to process signature, verification failed')
-				);
-			}
-
-			// Add signature to transaction
-			transaction.signatures.push(signature.signature);
-			// Check if transaction is ready to be processed
-			transaction.ready = library.logic.multisignature.ready(
-				transaction,
-				sender
-			);
-
-			// Emit events
-			library.network.io.sockets.emit(
-				'multisignatures/signature/change',
-				transaction
-			);
-			library.bus.message('signature', signature, true);
-			return setImmediate(cb);
+			return __private.validateSignature(signature, membersPublicKeys, transaction, sender, cb);
 		}
 	);
 };
