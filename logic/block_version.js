@@ -14,7 +14,7 @@
 
 'use strict';
 
-const exceptions = require('../helpers/exceptions.js');
+const exceptions = global.exceptions;
 
 /**
  * Main blockVersion logic

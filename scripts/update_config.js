@@ -90,7 +90,7 @@ if (oldConfig.ssl) {
 }
 
 // New config in 1.1.x will be partial config other than default/config.json
-const newConfig = loadJSONFile(newConfigPath);
+newConfig = loadJSONFile(newConfigPath);
 
 // Now get a unified config.json for 1.1.x version
 const defaultConfig = loadJSONFile(
