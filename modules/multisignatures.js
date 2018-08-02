@@ -94,7 +94,7 @@ function Multisignatures(cb, scope) {
  * @returns {boolean} isValid - true if signature passed verification, false otherwise
  */
 __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
-	let isValid;
+	let isValid = false;
 
 	try {
 		// If publicKey is provided we can perform direct verify
@@ -116,7 +116,8 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 			);
 		} else {
 			// publicKey is not there - we need to iterate through all members of multisignature account in transaction
-			isValid = membersPublicKeys.find(memberPublicKey =>
+			// Try to find public key for which the signature is passing validation
+			const found = membersPublicKeys.find(memberPublicKey =>
 				// Try to verify the signature
 				library.logic.transaction.verifySignature(
 					transaction,
@@ -124,6 +125,8 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 					signature.signature
 				)
 			);
+			// When public key found - mark signature as valid
+			isValid = !!found;
 		}
 	} catch (e) {
 		library.logger.error('Unable to process signature, verification failed.', {
@@ -133,7 +136,7 @@ __private.isValidSignature = (signature, membersPublicKeys, transaction) => {
 			error: e.stack,
 		});
 	}
-	return !!isValid;
+	return isValid;
 };
 
 /**
