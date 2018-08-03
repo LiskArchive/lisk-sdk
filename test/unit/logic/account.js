@@ -612,11 +612,22 @@ describe('account', () => {
 		it('should merge diff when values are correct', done => {
 			account.merge(
 				validAccount.address,
-				{ multisignatures: ['MS1'], delegates: ['DLG1'] },
+				{
+					multisignatures: [
+						'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+					],
+					delegates: [
+						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+					],
+				},
 				(err, res) => {
 					expect(err).to.not.exist;
-					expect(res.delegates).to.deep.equal(['DLG1']);
-					expect(res.multisignatures).to.deep.equal(['MS1']);
+					expect(res.delegates).to.deep.equal([
+						'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8',
+					]);
+					expect(res.multisignatures).to.deep.equal([
+						'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d',
+					]);
 					done();
 				}
 			);

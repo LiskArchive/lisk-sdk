@@ -16,6 +16,7 @@
 
 const Promise = require('bluebird');
 const randomstring = require('randomstring');
+const ed = require('../../../../helpers/ed.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const accountFixtures = require('../../../fixtures').accounts;
 const accountsSQL = require('../../../../db/sql').accounts;
@@ -1361,7 +1362,11 @@ describe('db', () => {
 		describe('removeDependencies()', () => {
 			it('should use the correct SQL', function*() {
 				sinonSandbox.spy(db, 'none');
-				yield db.accounts.removeDependencies('12L', '12345', 'delegates');
+				yield db.accounts.removeDependencies(
+					'12L',
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					'delegates'
+				);
 
 				return expect(db.none.firstCall.args[0]).to.eql(
 					accountsSQL.removeAccountDependencies
@@ -1370,7 +1375,11 @@ describe('db', () => {
 
 			it('should throw error if wrong dependency is passed', () => {
 				return expect(
-					db.accounts.removeDependencies('12L', '12345', 'unknown')
+					db.accounts.removeDependencies(
+						'12L',
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+						'unknown'
+					)
 				).to.eventually.rejectedWith(
 					'Error: db.accounts.removeDependencies called with invalid argument dependency=unknown'
 				);
@@ -1389,15 +1398,10 @@ describe('db', () => {
 						{ limit: 2 }
 					);
 
-					yield db.query(
-						db.$config.pgp.helpers.insert(
-							{
-								accountId: accounts[0].address,
-								dependentId: accounts[1].publicKey,
-							},
-							null,
-							{ table: `mem_accounts2${dependentTable}` }
-						)
+					yield db.accounts.insertDependencies(
+						accounts[0].address,
+						accounts[1].publicKey,
+						dependentTable
 					);
 
 					const before = yield db.one(
@@ -1421,7 +1425,11 @@ describe('db', () => {
 		describe('insertDependencies()', () => {
 			it('should throw error if wrong dependency is passed', () => {
 				return expect(
-					db.accounts.insertDependencies('12L', '12345', 'unknown')
+					db.accounts.insertDependencies(
+						'12L',
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+						'unknown'
+					)
 				).to.eventually.rejectedWith(
 					'Error: db.accounts.insertDependencies called with invalid argument dependency=unknown'
 				);
@@ -1453,7 +1461,7 @@ describe('db', () => {
 						).to.be.calledWithExactly(
 							{
 								accountId: accounts[0].address,
-								dependentId: accounts[1].publicKey,
+								dependentId: ed.hexToBuffer(accounts[1].publicKey),
 							},
 							null,
 							`mem_accounts2${dependentTable}`
