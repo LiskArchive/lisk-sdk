@@ -121,7 +121,8 @@ describe('db', () => {
 		describe('getGroupIds()', () => {
 			it('should use the correct SQL with given params', function*() {
 				sinonSandbox.spy(db, 'one');
-				const publicKey = '111111111111111';
+				const publicKey =
+					'73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b';
 				yield db.multisignatures.getGroupIds(publicKey);
 
 				expect(db.one.firstCall.args[0]).to.eql(multisignaturesSQL.getGroupIds);
@@ -156,7 +157,9 @@ describe('db', () => {
 
 			it('should resolve with null for a non-existing public key', () => {
 				return expect(
-					db.multisignatures.getGroupIds('111111111')
+					db.multisignatures.getGroupIds(
+						'73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b'
+					)
 				).to.be.eventually.eql(null);
 			});
 		});
