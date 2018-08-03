@@ -655,7 +655,7 @@ describe('blocks/chain', () => {
 						'a1',
 						err => {
 							expect(err.message).to.equal(
-								'Failed to applyConfirmed transaction: 1'
+								'Failed to apply transaction: 1 to confirmed state of account:'
 							);
 							expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
 							expect(err.block).to.deep.equal(blockWithTransactions);
@@ -810,10 +810,10 @@ describe('blocks/chain', () => {
 							.catch(err => {
 								expect(err).instanceOf(Error);
 								expect(err.message).to.equal(
-									'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
+									'Failed to apply transaction: 6 to unconfirmed state of account - applyUnconfirmed-ERR'
 								);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
+									'Failed to apply transaction: 6 to unconfirmed state of account - applyUnconfirmed-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 								expect(loggerStub.error.args[1][1]).to.deep.equal(
@@ -896,12 +896,12 @@ describe('blocks/chain', () => {
 						.catch(err => {
 							expect(err).instanceOf(Error);
 							expect(err.message).to.equal(
-								'Failed to get account to applyConfirmed transaction: 6 - getAccount-ERR'
+								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
 							);
 							expect(modules.accounts.getAccount.callCount).to.equal(1);
 							expect(modules.transactions.applyConfirmed.callCount).to.equal(0);
 							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to get account to applyConfirmed transaction: 6 - getAccount-ERR'
+								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
 							);
 							expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 							expect(loggerStub.error.args[1][1]).to.deep.equal(
@@ -932,14 +932,14 @@ describe('blocks/chain', () => {
 							.catch(err => {
 								expect(err).instanceOf(Error);
 								expect(err.message).to.equal(
-									'Failed to applyConfirmed transaction: 6 - apply-ERR'
+									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
 								);
 								expect(modules.accounts.getAccount.callCount).to.equal(1);
 								expect(modules.transactions.applyConfirmed.callCount).to.equal(
 									1
 								);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to applyConfirmed transaction: 6 - apply-ERR'
+									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 								expect(loggerStub.error.args[1][1]).to.deep.equal(
