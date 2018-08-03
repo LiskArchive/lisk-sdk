@@ -41,7 +41,7 @@ GetCommand.args = [
 		name: 'blockIds',
 		required: true,
 		description: 'Comma-separated block ID(s) to get information about.',
-		parse: input => input.split(',').filter(val => val),
+		parse: input => input.split(',').filter(Boolean),
 	},
 ];
 
