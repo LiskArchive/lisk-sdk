@@ -40,8 +40,7 @@ GetCommand.args = [
 	{
 		name: 'usernames',
 		required: true,
-		description:
-			'Comma separated username(s) which you want to get the information of.',
+		description: 'Comma-separated username(s) to get information about.',
 		parse: input => input.split(',').filter(Boolean),
 	},
 ];
