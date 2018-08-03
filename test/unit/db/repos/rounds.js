@@ -15,6 +15,7 @@
 'use strict';
 
 const BigNumber = require('bignumber.js');
+const ed = require('../../../../helpers/ed.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const roundsFixtures = require('../../../fixtures').rounds;
 const accountsFixtures = require('../../../fixtures').accounts;
@@ -79,21 +80,43 @@ describe('db', () => {
 			});
 
 			it('should return unique round numbers', function*() {
-				const round1 = roundsFixtures.Round({ round: 1 });
-				const round2 = roundsFixtures.Round({ round: 2 });
-				const round3 = roundsFixtures.Round({ round: 1 });
+				const rounds = [
+					roundsFixtures.Round({ round: 1 }),
+					roundsFixtures.Round({ round: 2 }),
+					roundsFixtures.Round({ round: 1 }),
+				];
 
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[0], {
+							delegate: ed.hexToBuffer(rounds[0].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round2, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[1], {
+							delegate: ed.hexToBuffer(rounds[1].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round3, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[2], {
+							delegate: ed.hexToBuffer(rounds[2].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
-				const result1 = yield db.query('SELECT * FROM mem_round;');
+				const result1 = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 				const result2 = yield db.rounds.getMemRounds();
 
 				// Actually there are three records but getMemRounds return unique round
@@ -115,18 +138,37 @@ describe('db', () => {
 			});
 
 			it('should remove round information for provided round number', function*() {
-				const round1 = roundsFixtures.Round({ round: 1 });
-				const round2 = roundsFixtures.Round({ round: 2 });
+				const rounds = [
+					roundsFixtures.Round({ round: 1 }),
+					roundsFixtures.Round({ round: 2 }),
+				];
+
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[0], {
+							delegate: ed.hexToBuffer(rounds[0].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round2, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[1], {
+							delegate: ed.hexToBuffer(rounds[1].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
-				const before = yield db.query('SELECT * FROM mem_round;');
-				const result = yield db.rounds.flush(round1.round);
-				const after = yield db.query('SELECT * FROM mem_round;');
+				const before = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
+				const result = yield db.rounds.flush(rounds[0].round);
+				const after = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				// Before flushing there were two records
 				expect(before).to.have.lengthOf(2);
@@ -138,7 +180,7 @@ describe('db', () => {
 				expect(after).to.have.lengthOf(1);
 
 				// And the only record available is what was not flushed
-				return expect(after[0].round).to.be.eql(round2.round);
+				return expect(after[0].round).to.be.eql(rounds[1].round);
 			});
 
 			it('should resolve with null if round does not exists', () => {
@@ -218,26 +260,52 @@ describe('db', () => {
 			it('should return votes for a round in correct format', function*() {
 				const account = accountsFixtures.Account();
 
-				const round1 = roundsFixtures.Round({
-					round: 1,
-					delegate: account.publicKey,
-				});
-				const round2 = roundsFixtures.Round({
-					round: 1,
-					delegate: account.publicKey,
-				});
-				const round3 = roundsFixtures.Round({ round: 2 });
+				const rounds = [
+					roundsFixtures.Round({
+						round: 1,
+						delegate: account.publicKey,
+					}),
+					roundsFixtures.Round({
+						round: 1,
+						delegate: account.publicKey,
+					}),
+					roundsFixtures.Round({
+						round: 2,
+						delegate: account.publicKey,
+					}),
+				];
+
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[0], {
+							delegate: ed.hexToBuffer(rounds[0].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round2, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[1], {
+							delegate: ed.hexToBuffer(rounds[1].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round3, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[2], {
+							delegate: ed.hexToBuffer(rounds[2].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
-				const allRecords = yield db.query('SELECT * FROM mem_round');
+				const allRecords = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount FROM mem_round"
+				);
 				const result = yield db.rounds.getVotes(1);
 
 				expect(allRecords).to.have.lengthOf(3);
@@ -246,7 +314,9 @@ describe('db', () => {
 				expect(result[0]).to.be.have.all.keys('delegate', 'amount');
 				return expect(result[0]).to.be.eql({
 					delegate: account.publicKey,
-					amount: new BigNumber(round1.amount).plus(round2.amount).toString(),
+					amount: new BigNumber(rounds[0].amount)
+						.plus(rounds[1].amount)
+						.toString(),
 				});
 			});
 
@@ -386,20 +456,40 @@ describe('db', () => {
 				];
 
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[0], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[0], {
+							delegate: ed.hexToBuffer(rounds[0].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[1], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[1], {
+							delegate: ed.hexToBuffer(rounds[1].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[2], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[2], {
+							delegate: ed.hexToBuffer(rounds[2].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
 				// Perform the snapshot
 				yield db.rounds.performRoundSnapshot();
 
 				// Load records from the snapshot table
-				const result = yield db.query('SELECT * FROM mem_round_snapshot');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round_snapshot"
+				);
 
 				return expect(result).to.be.eql(rounds);
 			});
@@ -442,7 +532,13 @@ describe('db', () => {
 				});
 
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, round1, {
+							delegate: ed.hexToBuffer(round1.delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
 				// Perform round snapshot
@@ -462,7 +558,13 @@ describe('db', () => {
 				});
 
 				yield db.query(
-					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, round1, {
+							delegate: ed.hexToBuffer(round1.delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
 				// Perform round snapshot
@@ -518,13 +620,31 @@ describe('db', () => {
 				];
 
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[0], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[0], {
+							delegate: ed.hexToBuffer(rounds[0].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[1], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[1], {
+							delegate: ed.hexToBuffer(rounds[1].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[2], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[2], {
+							delegate: ed.hexToBuffer(rounds[2].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
 				// Perform round snapshot
@@ -608,9 +728,7 @@ describe('db', () => {
 
 				const result = yield db.rounds.getDelegatesSnapshot(3);
 
-				return expect(
-					result.map(r => Buffer.from(r.publicKey).toString('hex'))
-				).to.be.eql(
+				return expect(result.map(r => r.publicKey)).to.be.eql(
 					_.orderBy(accounts, ['vote', 'publicKey'], ['desc', 'asc']).map(
 						r => r.publicKey
 					)
@@ -763,13 +881,31 @@ describe('db', () => {
 				];
 
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[0], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[0], {
+							delegate: ed.hexToBuffer(rounds[0].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[1], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[1], {
+							delegate: ed.hexToBuffer(rounds[1].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 				yield db.query(
-					db.rounds.pgp.helpers.insert(rounds[2], null, { table: 'mem_round' })
+					db.rounds.pgp.helpers.insert(
+						Object.assign({}, rounds[2], {
+							delegate: ed.hexToBuffer(rounds[2].delegate),
+						}),
+						null,
+						{ table: 'mem_round' }
+					)
 				);
 
 				// Perform the snapshot
@@ -778,10 +914,14 @@ describe('db', () => {
 				// Delete the records from round table
 				yield db.query('DELETE FROM mem_round');
 
-				const before = yield db.query('SELECT * FROM mem_round');
+				const before = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 				// Restore the snapshot
 				yield db.rounds.restoreRoundSnapshot();
-				const after = yield db.query('SELECT * FROM mem_round');
+				const after = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				expect(before).to.have.lengthOf(0);
 				expect(after).to.have.lengthOf(3);
@@ -887,7 +1027,9 @@ describe('db', () => {
 					params.amount
 				);
 
-				const result = yield db.query('SELECT * FROM mem_round');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				return expect(result).to.have.lengthOf(0);
 			});
@@ -895,7 +1037,8 @@ describe('db', () => {
 			it('should insert one record to "mem_round" for valid parameters', function*() {
 				// Prepare an account first
 				const account = accountsFixtures.Account({ isDelegate: true });
-				const delegate = '12345678';
+				const delegate =
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f';
 				yield db.accounts.insert(account);
 				yield db.accounts.insertDependencies(
 					account.address,
@@ -915,7 +1058,9 @@ describe('db', () => {
 				);
 				params.delegate = delegate;
 
-				const result = yield db.query('SELECT * FROM mem_round');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql(params);
@@ -928,7 +1073,8 @@ describe('db', () => {
 				const params = {
 					address: '123L',
 					round: 1,
-					delegate: '456',
+					delegate:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					balanceMode: '-',
 				};
 				yield db.rounds.insertRoundInformationWithDelegate(
@@ -949,7 +1095,8 @@ describe('db', () => {
 				const params = {
 					address: '123L',
 					round: 1,
-					delegate: '456',
+					delegate:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					balanceMode: '-',
 				};
 				yield db.rounds.insertRoundInformationWithDelegate(
@@ -959,7 +1106,9 @@ describe('db', () => {
 					params.balanceMode
 				);
 
-				const result = yield db.query('SELECT * FROM mem_round');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				return expect(result).to.have.lengthOf(0);
 			});
@@ -982,7 +1131,9 @@ describe('db', () => {
 					balanceMode
 				);
 
-				const result = yield db.query('SELECT * FROM mem_round');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql({
@@ -1011,7 +1162,9 @@ describe('db', () => {
 					balanceMode
 				);
 
-				const result = yield db.query('SELECT * FROM mem_round');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql({
@@ -1040,7 +1193,9 @@ describe('db', () => {
 					balanceMode
 				);
 
-				const result = yield db.query('SELECT * FROM mem_round');
+				const result = yield db.query(
+					"SELECT ENCODE(delegate, 'hex') as delegate, amount, address, round FROM mem_round"
+				);
 
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql({
