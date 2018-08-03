@@ -52,6 +52,13 @@ class TransactionPool {
 		balancesSequence,
 		config
 	) {
+		const {
+			maxTransactionsPerQueue,
+			expiryInterval,
+			multiSignatureTimeoutMultiplier,
+			signaturesTimeoutMultiplier,
+		} = config.transactions;
+
 		library = {
 			logger,
 			bus,
@@ -64,8 +71,10 @@ class TransactionPool {
 					releaseLimit,
 				},
 				transactions: {
-					maxTransactionsPerQueue: config.transactions.maxTransactionsPerQueue,
-					expiryInterval: config.transactions.expiryInterval,
+					maxTransactionsPerQueue,
+					expiryInterval,
+					multiSignatureTimeoutMultiplier,
+					signaturesTimeoutMultiplier,
 				},
 			},
 			balancesSequence,
@@ -981,11 +990,32 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
  */
 __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
-		return transaction.asset.multisignature.lifetime * 3600;
+		return (
+			transaction.asset.multisignature.lifetime *
+			library.config.transactions.multiSignatureTimeoutMultiplier
+		);
 	} else if (Array.isArray(transaction.signatures)) {
-		return constants.unconfirmedTransactionTimeOut * 8;
+		return (
+			constants.unconfirmedTransactionTimeOut *
+			library.config.transactions.signaturesTimeoutMultiplier
+		);
 	}
 	return constants.unconfirmedTransactionTimeOut;
+};
+
+/**
+ * Check if transaction is expired.
+ *
+ * @private
+ * @param {Object} transactions - transaction to be expired
+ * @returns {Boolean} true if transactions expired
+ */
+__private.isExpired = transaction => {
+	const timeNow = Math.floor(Date.now() / 1000);
+	const timeOut = __private.transactionTimeOut(transaction);
+	// transaction.receivedAt is instance of Date
+	const seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+	return seconds > timeOut;
 };
 
 /**
@@ -1018,21 +1048,6 @@ __private.expireTransactions = function(transactions, cb) {
 		},
 		() => setImmediate(cb)
 	);
-};
-
-/**
- * Check if transaction is expired.
- *
- * @private
- * @param {Object} transactions - transaction to be expired
- * @returns {Boolean} true if transactions expired
- */
-__private.isExpired = transaction => {
-	const timeNow = Math.floor(Date.now() / 1000);
-	const timeOut = __private.transactionTimeOut(transaction);
-	// transaction.receivedAt is instance of Date
-	const seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
-	return seconds > timeOut;
 };
 
 /**
