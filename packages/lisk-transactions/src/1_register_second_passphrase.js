@@ -17,7 +17,7 @@ import { SIGNATURE_FEE } from './constants';
 import { wrapTransactionCreator } from './utils';
 
 const validateInputs = ({ secondPassphrase }) => {
-	if (!secondPassphrase || typeof secondPassphrase !== 'string') {
+	if (typeof secondPassphrase !== 'string') {
 		throw new Error('Please provide a secondPassphrase. Expected string.');
 	}
 };
