@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const constants = require('../../helpers/constants.js');
-const transactionTypes = require('../../helpers/transaction_types.js');
 
 const __private = {};
 let modules;
@@ -160,21 +159,6 @@ Utils.prototype.loadLastBlock = function(cb) {
 		.then(rows => {
 			// Normalize block
 			const block = modules.blocks.utils.readDbRows(rows)[0];
-
-			// Sort block's transactions
-			block.transactions = block.transactions.sort(a => {
-				if (block.id === library.genesisblock.block.id) {
-					if (a.type === transactionTypes.VOTE) {
-						return 1;
-					}
-				}
-
-				if (a.type === transactionTypes.SIGNATURE) {
-					return 1;
-				}
-
-				return 0;
-			});
 
 			// Update last block
 			modules.blocks.lastBlock.set(block);
