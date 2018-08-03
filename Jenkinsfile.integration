@@ -20,8 +20,8 @@ def cleanUp() {
 	'''
 }
 
-node('lisk-integration') {
-	lock(resource: "core-integration-tests", inversePrecedence: true) {
+node('lisk-network') {
+	lock(resource: "core-network-tests", inversePrecedence: true) {
 
 		properties([
 			parameters([
@@ -48,15 +48,15 @@ node('lisk-integration') {
 			}
 		}
 
-		stage('Run integration tests') {
+		stage('Run network tests') {
 			try {
 				sh '''#!/bin/bash -xe
 					set -o pipefail
 					cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
 					if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
-						npm test -- mocha:extensive:integration |& tee integrationTests.logs
+						npm test -- mocha:extensive:network |& tee networkTests.logs
 					else
-						npm test -- mocha:default:integration |& tee integrationTests.logs
+						npm test -- mocha:default:network |& tee networkTests.logs
 					fi
 				'''
 			} catch (err) {

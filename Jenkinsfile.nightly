@@ -21,14 +21,14 @@ pipeline {
 				'''
 			}
 		}
-		stage('Run integration tests with syncing only') {
+		stage('Run network tests with syncing only') {
 			steps {
-				sh 'TOTAL_PEERS=2 BROADCASTING=false npm test -- mocha:stress:integration'
+				sh 'TOTAL_PEERS=2 BROADCASTING=false npm test -- mocha:stress:network'
 			}
 		}
-		stage('Run integration tests with syncing and broadcasting') {
+		stage('Run network tests with syncing and broadcasting') {
 			steps {
-				sh 'npm test -- mocha:extensive:integration'
+				sh 'npm test -- mocha:extensive:network'
 			}
 		}
 	}
