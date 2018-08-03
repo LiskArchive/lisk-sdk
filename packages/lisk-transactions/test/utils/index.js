@@ -31,6 +31,7 @@ import {
 	verifyTransaction,
 	validateAddress,
 	validateAmount,
+	isValidInteger,
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
@@ -112,6 +113,10 @@ describe('transaction utils', () => {
 
 		it('should have validateAmount', () => {
 			return expect(validateAmount).to.be.a('function');
+		});
+
+		it('should have isValidInteger', () => {
+			return expect(isValidInteger).to.be.a('function');
 		});
 
 		it('should have validateKeysgroup', () => {
