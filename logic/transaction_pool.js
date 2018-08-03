@@ -717,22 +717,22 @@ TransactionPool.prototype.expireTransactions = function(cb) {
 		balancesSequenceCb => {
 			async.waterfall(
 				[
-					function(seriesCb) {
+					function(waterfallCb) {
 						__private.expireAndUndoUnconfirmedTransactions(
 							self.getUnconfirmedTransactionList(true),
-							seriesCb
+							waterfallCb
 						);
 					},
-					function(seriesCb) {
+					function(waterfallCb) {
 						__private.expireTransactions(
 							self.getQueuedTransactionList(true),
-							seriesCb
+							waterfallCb
 						);
 					},
-					function(seriesCb) {
+					function(waterfallCb) {
 						__private.expireTransactions(
 							self.getMultisignatureTransactionList(true),
-							seriesCb
+							waterfallCb
 						);
 					},
 				],
