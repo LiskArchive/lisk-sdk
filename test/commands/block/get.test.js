@@ -46,7 +46,7 @@ describe('block:get', () => {
 	describe('block:get blockId', () => {
 		const blockId = '9249767683252385637';
 		const queryResult = {
-			blockId,
+			id: blockId,
 			height: 1,
 		};
 
@@ -60,10 +60,10 @@ describe('block:get', () => {
 					{
 						query: {
 							limit: 1,
-							blockId,
+							id: blockId,
 						},
 						placeholder: {
-							blockId,
+							id: blockId,
 							message: 'Block not found.',
 						},
 					},
@@ -76,11 +76,11 @@ describe('block:get', () => {
 		const blockIds = ['9249767683252385637', '12690684816503689985'];
 		const queryResult = [
 			{
-				blockId: blockIds[0],
+				id: blockIds[0],
 				height: 3,
 			},
 			{
-				blockId: blockIds[1],
+				id: blockIds[1],
 				height: 4,
 			},
 		];
@@ -95,20 +95,20 @@ describe('block:get', () => {
 					{
 						query: {
 							limit: 1,
-							blockId: blockIds[0],
+							id: blockIds[0],
 						},
 						placeholder: {
-							blockId: blockIds[0],
+							id: blockIds[0],
 							message: 'Block not found.',
 						},
 					},
 					{
 						query: {
 							limit: 1,
-							blockId: blockIds[1],
+							id: blockIds[1],
 						},
 						placeholder: {
-							blockId: blockIds[1],
+							id: blockIds[1],
 							message: 'Block not found.',
 						},
 					},
