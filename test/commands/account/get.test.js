@@ -134,10 +134,10 @@ describe('account:get command', () => {
 							{
 								query: {
 									limit: 1,
-									address: addresses[0],
+									address: addressesWithEmpty[0],
 								},
 								placeholder: {
-									address: addresses[0],
+									address: addressesWithEmpty[0],
 									message: 'Address not found.',
 								},
 							},
