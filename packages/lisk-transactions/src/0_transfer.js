@@ -29,7 +29,7 @@ const createAsset = data => {
 
 const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 	if (!validateAmount(amount)) {
-		// throw new Error('Please enter a valid amount!');
+		throw new Error('Please enter a valid amount!');
 	}
 
 	if (recipientId && recipientPublicKey) {
