@@ -1,0 +1,114 @@
+{
+	"apps": [
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_0",
+			"args": " -c ./test/network/configs/config.node-0.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-0.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-0.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_1",
+			"args": " -c ./test/network/configs/config.node-1.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-1.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-1.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_2",
+			"args": " -c ./test/network/configs/config.node-2.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-2.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-2.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_3",
+			"args": " -c ./test/network/configs/config.node-3.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-3.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-3.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_4",
+			"args": " -c ./test/network/configs/config.node-4.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-4.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-4.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_5",
+			"args": " -c ./test/network/configs/config.node-5.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-5.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-5.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_6",
+			"args": " -c ./test/network/configs/config.node-6.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-6.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-6.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_7",
+			"args": " -c ./test/network/configs/config.node-7.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-7.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-7.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_8",
+			"args": " -c ./test/network/configs/config.node-8.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-8.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-8.out.log"
+		},
+		{
+			"exec_mode": "fork",
+			"script": "app.js",
+			"name": "node_9",
+			"args": " -c ./test/network/configs/config.node-9.json",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"error_file": "./test/network/logs/lisk-test-node-9.err.log",
+			"out_file": "./test/network/logs/lisk-test-node-9.out.log"
+		}
+	]
+}

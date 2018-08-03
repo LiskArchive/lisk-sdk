@@ -93,12 +93,12 @@ module.exports = {
 					exec_mode: 'fork',
 					script: 'app.js',
 					name: `node_${index}`,
-					args: ` -c ./test/integration/configs/config.node-${index}.json`,
+					args: ` -c ./test/network/configs/config.node-${index}.json`,
 					env: {
 						NODE_ENV: 'test',
 					},
-					error_file: `./test/integration/logs/lisk-test-node-${index}.err.log`,
-					out_file: `./test/integration/logs/lisk-test-node-${index}.out.log`,
+					error_file: `./test/network/logs/lisk-test-node-${index}.err.log`,
+					out_file: `./test/network/logs/lisk-test-node-${index}.out.log`,
 				});
 				return pm2Config;
 			},
@@ -106,7 +106,7 @@ module.exports = {
 		);
 		try {
 			fs.writeFileSync(
-				`${__dirname}/../pm2.integration.json`,
+				`${__dirname}/../pm2.network.json`,
 				JSON.stringify(pm2Config, null, 4)
 			);
 		} catch (ex) {

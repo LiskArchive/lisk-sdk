@@ -35,7 +35,7 @@ module.exports = {
 
 	launchTestNodes(cb) {
 		child_process.exec(
-			'node_modules/.bin/pm2 start test/integration/pm2.integration.json',
+			'node_modules/.bin/pm2 start test/network/pm2.network.json',
 			err => {
 				return cb(err);
 			}
@@ -43,7 +43,7 @@ module.exports = {
 	},
 
 	clearLogs(cb) {
-		child_process.exec('rm -rf test/integration/logs/*', err => {
+		child_process.exec('rm -rf test/network/logs/*', err => {
 			return cb(err);
 		});
 	},
