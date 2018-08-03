@@ -18,13 +18,16 @@ const time = require('../src/utils/time');
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
-	const recipientId = '58191285901858109L';
 	const testData = 'data';
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
 	const transactionType = 0;
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const recipientId = '18160565574430594874L';
+	// const recipientPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
+	const recipientPublicKeyThatDoesNotMatchRecipientId =
+		'12345a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
 	const fee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
@@ -218,6 +221,18 @@ describe('#transfer transaction', () => {
 					amount,
 				});
 				return Promise.resolve();
+			});
+
+			it('recipientId & non-matching publicKey should throw error', () => {
+				return expect(
+					transfer.bind(null, {
+						recipientId,
+						amount,
+						recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
+					}),
+				).to.throw(
+					'Could not create transaction: recipientId does not match recipientPublicKey.',
+				);
 			});
 
 			it('should handle too much data', () => {

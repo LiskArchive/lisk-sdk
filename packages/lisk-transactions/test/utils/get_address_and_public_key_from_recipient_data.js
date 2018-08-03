@@ -18,8 +18,6 @@ describe('#getAddressAndPublicKeyFromRecipientData', () => {
 	const recipientId = '18160565574430594874L';
 	const recipientPublicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
-	const recipientPublicKeyThatDoesNotMatchRecipientId =
-		'12345a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 
 	describe('When both recipientPublicKey and an address are given', () => {
 		it('when they match, it should return the address and publicKey', () => {
@@ -29,17 +27,6 @@ describe('#getAddressAndPublicKeyFromRecipientData', () => {
 					recipientPublicKey,
 				}),
 			).to.be.eql({ address: recipientId, publicKey: recipientPublicKey });
-		});
-
-		it('when they do not match, it should throw', () => {
-			return expect(
-				getAddressAndPublicKeyFromRecipientData.bind(null, {
-					recipientId,
-					recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
-				}),
-			).to.throw(
-				'Could not create transaction: recipientId does not match recipientPublicKey.',
-			);
 		});
 	});
 

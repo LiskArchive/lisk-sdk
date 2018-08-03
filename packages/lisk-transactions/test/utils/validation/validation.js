@@ -20,6 +20,7 @@ import {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
+	validateAmount,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
@@ -240,6 +241,12 @@ describe('validation', () => {
 			it('should throw', () => {
 				return expect(validateAddress.bind(null, address)).to.throw(error);
 			});
+		});
+	});
+
+	describe('#validateAmount', () => {
+		it('should return true when amount is a number and is not greater than MaxTransactionAmount', () => {
+			return expect(validateAmount('10000000000000000000')).to.be.true;
 		});
 	});
 

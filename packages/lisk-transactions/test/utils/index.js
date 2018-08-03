@@ -30,6 +30,7 @@ import {
 	multiSignTransaction,
 	verifyTransaction,
 	validateAddress,
+	validateAmount,
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
@@ -107,6 +108,10 @@ describe('transaction utils', () => {
 
 		it('should have validateAddress', () => {
 			return expect(validateAddress).to.be.a('function');
+		});
+
+		it('should have validateAmount', () => {
+			return expect(validateAmount).to.be.a('function');
 		});
 
 		it('should have validateKeysgroup', () => {
