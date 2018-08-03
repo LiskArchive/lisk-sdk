@@ -78,7 +78,9 @@
 	},
 	"transactions": {
 		"maxTransactionsPerQueue": 1000,
-		"expiryInterval": 30000
+		"expiryInterval": 30000,
+		"multiSignatureTimeoutMultiplier": 3600,
+		"signaturesTimeoutMultiplier": 8
 	},
 	"forging": {
 		"force": false,
