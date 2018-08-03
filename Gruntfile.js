@@ -66,7 +66,7 @@ module.exports = function(grunt) {
 							filter = '--grep @stress';
 						} else {
 							grunt.fail.fatal(
-								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | functional | network (required)\n- Where section can be one of get | post | ws | system (optional)'
+								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | functional | integration | network (required)\n- Where section can be one of get | post | ws (optional)'
 							);
 						}
 						return `./node_modules/.bin/_mocha --bail test/network/index.js ${filter}`;

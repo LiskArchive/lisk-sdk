@@ -236,7 +236,7 @@ describe('blocks/verify', () => {
 		var RewiredVerify;
 
 		before(done => {
-			RewiredVerify = rewire('../../../../../modules/blocks/verify.js');
+			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
 			var verify = new RewiredVerify(
 				library.logger,
 				library.logic.block,
