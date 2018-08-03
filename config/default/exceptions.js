@@ -51,4 +51,5 @@ module.exports = {
 	precedent: {
 		disableDappTransfer: 0,
 	},
+	blockVersions: {},
 };
