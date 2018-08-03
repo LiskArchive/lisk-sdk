@@ -76,6 +76,7 @@ describe('account:get command', () => {
 
 	describe('account:get addresses', () => {
 		const addresses = ['3520445367460290306L', '2802325248134221536L'];
+		const addressesWithEmpty = ['3520445367460290306L', ''];
 		const queryResult = [
 			{
 				address: addresses[0],
@@ -117,5 +118,33 @@ describe('account:get command', () => {
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
+
+		setupTest()
+			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stdout()
+			.command(['account:get', addressesWithEmpty.join(',')])
+			.it(
+				'should get accounts info only using non-empty args and display as an array',
+				() => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(query.default).to.be.calledWithExactly(
+						apiClientStub,
+						endpoint,
+						[
+							{
+								query: {
+									limit: 1,
+									address: addressesWithEmpty[0],
+								},
+								placeholder: {
+									address: addressesWithEmpty[0],
+									message: 'Address not found.',
+								},
+							},
+						],
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				},
+			);
 	});
 });

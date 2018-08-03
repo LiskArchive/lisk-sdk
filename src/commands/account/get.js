@@ -41,7 +41,7 @@ GetCommand.args = [
 		name: 'addresses',
 		required: true,
 		description: 'Comma-separated address(es) to get information about.',
-		parse: input => input.split(','),
+		parse: input => input.split(',').filter(Boolean),
 	},
 ];
 
