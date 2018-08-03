@@ -69,6 +69,9 @@
 			"copyright": {
 				"description": "Displays copyright notice."
 			},
+			"delegate": {
+				"description": "Manages Lisk delegates."
+			},
 			"help": {
 				"description": "Displays help."
 			},

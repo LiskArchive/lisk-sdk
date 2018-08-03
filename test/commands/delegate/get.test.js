@@ -27,27 +27,32 @@ describe('delegate:get', () => {
 	};
 	const printMethodStub = sandbox.stub();
 	const apiClientStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-		.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
 
-	setupStub
-		.stdout()
-		.command(['delegate:get'])
-		.catch(error => expect(error.message).to.contain('Missing 1 required arg'))
-		.it('should throw an error when arg is not provided');
+	describe('delegate:get', () => {
+		setupTest()
+			.stdout()
+			.command(['delegate:get'])
+			.catch(error =>
+				expect(error.message).to.contain('Missing 1 required arg'),
+			)
+			.it('should throw an error when arg is not provided');
+	});
 
 	describe('delegate:get delegate', () => {
-		const username = '3520445367460290306L';
+		const username = 'genesis_5';
 		const queryResult = [
 			{
 				username,
-				name: 'i am owner',
+				vote: 1000000,
 			},
 		];
 
-		setupStub
+		setupTest()
 			.stdout()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['delegate:get', username])
@@ -70,19 +75,19 @@ describe('delegate:get', () => {
 	});
 
 	describe('delegate:get delegates', () => {
-		const usernames = ['3520445367460290306L', '2802325248134221536L'];
+		const usernames = ['genesis_5', 'genesis_6'];
 		const queryResult = [
 			{
 				username: usernames[0],
-				name: 'i am owner',
+				vote: 1000000,
 			},
 			{
 				username: usernames[1],
-				name: 'some name',
+				vote: 2000000,
 			},
 		];
 
-		setupStub
+		setupTest()
 			.stdout()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['delegate:get', usernames.join(',')])
