@@ -19,9 +19,9 @@
  * 		A user manual can be found on documentation site under /documentation/lisk-core/upgrade/upgrade-configurations
  */
 
-const extend = require('extend');
 const fs = require('fs');
 const path = require('path');
+const extend = require('extend');
 const program = require('commander');
 const merge = require('lodash/merge');
 const observableDiff = require('deep-diff').observableDiff;
