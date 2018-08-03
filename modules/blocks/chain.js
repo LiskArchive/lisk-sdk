@@ -293,7 +293,9 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 		modules.transactions.applyConfirmed(transaction, block, sender, err => {
 			if (err) {
 				return setImmediate(cb, {
-					message: `Failed to applyConfirmed transaction: ${transaction.id}`,
+					message: `Failed to apply transaction: ${
+						transaction.id
+					} to confirmed state of account:`,
 					transaction,
 					block,
 				});
@@ -353,9 +355,9 @@ __private.applyUnconfirmedStep = function(block, tx) {
 							sender,
 							err => {
 								if (err) {
-									err = `Failed to apply unconfirmed transaction: ${
+									err = `Failed to apply transaction: ${
 										transaction.id
-									} - ${err}`;
+									} to unconfirmed state of account - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 									return setImmediate(reject, new Error(err));
@@ -389,7 +391,7 @@ __private.applyConfirmedStep = function(block, tx) {
 					{ publicKey: transaction.senderPublicKey },
 					(accountErr, sender) => {
 						if (accountErr) {
-							const err = `Failed to get account to applyConfirmed transaction: ${
+							const err = `Failed to get account for applying transaction to confirmed state: ${
 								transaction.id
 							} - ${accountErr}`;
 							library.logger.error(err);
@@ -404,9 +406,9 @@ __private.applyConfirmedStep = function(block, tx) {
 							err => {
 								if (err) {
 									// Fatal error, memory tables will be inconsistent
-									err = `Failed to applyConfirmed transaction: ${
+									err = `Failed to apply transaction: ${
 										transaction.id
-									} - ${err}`;
+									} to confirmed state of account - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 
@@ -585,7 +587,7 @@ __private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 				if (accountErr) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error(
-						'Failed to get account to undoConfirmed transactions',
+						'Failed to get account for undoing transaction to confirmed state',
 						accountErr
 					);
 					return setImmediate(reject, accountErr);
@@ -600,7 +602,7 @@ __private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 						if (undoConfirmedErr) {
 							// Fatal error, memory tables will be inconsistent
 							library.logger.error(
-								'Failed to undoConfirmed transactions',
+								'Failed to undo transaction to confirmed state of account',
 								undoConfirmedErr
 							);
 							return setImmediate(reject, undoConfirmedErr);
@@ -631,7 +633,7 @@ __private.undoUnconfirmStep = function(transaction, tx) {
 				if (undoUnconfirmedErr) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error(
-						'Failed to undoUnconfirmed transactions',
+						'Failed to undo transaction to unconfirmed state of account',
 						undoUnconfirmedErr
 					);
 					return setImmediate(reject, undoUnconfirmedErr);
