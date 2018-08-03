@@ -15,226 +15,281 @@
 'use strict';
 
 const lisk = require('lisk-elements').default;
+const Promise = require('bluebird');
 const randomUtil = require('../../../common/utils/random');
 const accountsFixtures = require('../../../fixtures/accounts');
 const queriesHelper = require('../../common/sql/queriesHelper.js');
 const localCommon = require('../common');
 const Bignum = require('../../../../helpers/bignum.js');
 
-describe('expire transaction', () => {
+const addTransactionsAndForgePromise = Promise.promisify(
+	localCommon.addTransactionsAndForge
+);
+const addTransactionToUnconfirmedQueuePromise = Promise.promisify(
+	localCommon.addTransactionToUnconfirmedQueue
+);
+
+describe('expire transactions', () => {
 	let library;
 	let queries;
-	let memAccountsSnapshotBeforeUndo;
 
-	const multisigAccount = randomUtil.account();
-	const { expiryInterval } = __testContext.config.transactions;
+	const {
+		expiryInterval,
+		multiSignatureTimeoutMultiplier,
+	} = __testContext.config.transactions;
+
+	// Override transaction expire interval to every 1 second
+	__testContext.config.transactions.expiryInterval = 1000;
+
+	// Override multi-signature transaction timeout multiplier to 1 second
+	__testContext.config.transactions.multiSignatureTimeoutMultiplier = 1;
+
 	const unconfirmedTransactionTimeOut =
 		global.constants.unconfirmedTransactionTimeOut;
+
+	const setunconfirmedTransactionTimeOut = timeout => {
+		global.constants.unconfirmedTransactionTimeOut = timeout;
+	};
 
 	const getSenderAddress = transaction =>
 		transaction.senderId ||
 		library.modules.accounts.generateAddressByPublicKey(
 			transaction.senderPublicKey
 		);
-	const setunconfirmedTransactionTimeOut = timeout => {
-		global.constants.unconfirmedTransactionTimeOut = timeout;
-	};
 
-	const validateMemAccountSnapshot = () => {
-		return queries.getAccounts().then(memAccountsSnapshotAfterUndo => {
-			const beforeResult = _.sortBy(memAccountsSnapshotBeforeUndo, ['address']);
-			const afterResult = _.sortBy(memAccountsSnapshotAfterUndo, ['address']);
-			expect(beforeResult).to.deep.equal(afterResult);
+	const createTransaction = (amount, recipientId) => {
+		return lisk.transaction.transfer({
+			recipientId,
+			amount,
+			passphrase: accountsFixtures.genesis.passphrase,
 		});
 	};
 
-	const createMultiSigTransaction = (creditTransaction, cb) => {
-		let multisigTransaction;
-		const signer1 = randomUtil.account();
-		const signer2 = randomUtil.account();
-		localCommon.addTransactionsAndForge(library, [creditTransaction], () => {
-			const keysgroup = [signer1.publicKey, signer2.publicKey];
+	const transactionFilter = transaction => ({
+		id: transaction.id,
+		offset: 0,
+		limit: 10,
+	});
 
-			multisigTransaction = lisk.transaction.registerMultisignature({
-				passphrase: multisigAccount.passphrase,
-				keysgroup,
-				lifetime: 4,
-				minimum: 2,
-			});
-
-			cb(null, multisigTransaction);
-		});
+	const checkUnconfirmedQueue = (transaction, cb) => {
+		localCommon.getUnconfirmedTransactionFromModule(
+			library,
+			transactionFilter(transaction),
+			(err, res) => {
+				expect(err).to.be.null;
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
+				cb(res);
+			}
+		);
 	};
 
-	// override transaction expiryInterval and unconfirmedTransactionTimeOut
-	// to test undo unConfirmed expired transactions
-	before(done => {
-		__testContext.config.transactions.expiryInterval = 5000;
-		setunconfirmedTransactionTimeOut(0);
-		done();
-	});
-
-	after('reset states', done => {
-		__testContext.config.transactions.expiryInterval = expiryInterval;
-		global.constants.unconfirmedTransactionTimeOut = unconfirmedTransactionTimeOut;
-		done();
-	});
+	const checkMultisignatureQueue = (transaction, cb) => {
+		localCommon.getMultisignatureTransactions(
+			library,
+			transactionFilter(transaction),
+			(err, res) => {
+				expect(err).to.be.null;
+				expect(res)
+					.to.have.property('transactions')
+					.which.is.an('Array');
+				cb(res);
+			}
+		);
+	};
 
 	localCommon.beforeBlock('lisk_functional_expire_transactions', lib => {
 		library = lib;
 		queries = new queriesHelper(lib, lib.db);
 	});
 
-	beforeEach('take mem accounts snapshot', () => {
-		return queries.getAccounts().then(accounts => {
-			memAccountsSnapshotBeforeUndo = _.cloneDeep(accounts);
-		});
+	// override transaction expiryInterval and unconfirmedTransactionTimeOut
+	// to test undo unConfirmed expired transactions
+	before(done => {
+		setunconfirmedTransactionTimeOut(0);
+		done();
 	});
 
-	it('should expire transaction from unconfirmed transaction list', done => {
-		const transaction = lisk.transaction.transfer({
-			recipientId: randomUtil.account().address,
-			amount: randomUtil.number(100000000, 1000000000),
-			passphrase: accountsFixtures.genesis.passphrase,
-		});
-
-		localCommon.addTransactionToUnconfirmedQueue(library, transaction, () => {
-			// Wait for transaction to get expired and
-			// undo the unconfirmed transaction, so that mem accounts
-			// balance is updated
-			setTimeout(() => {
-				validateMemAccountSnapshot()
-					.then(() => {
-						done();
-					})
-					.catch(done);
-			}, 3000);
-		});
+	after('reset states', done => {
+		__testContext.config.transactions.expiryInterval = expiryInterval;
+		__testContext.config.transactions.multiSignatureTimeoutMultiplier = multiSignatureTimeoutMultiplier;
+		global.constants.unconfirmedTransactionTimeOut = unconfirmedTransactionTimeOut;
+		done();
 	});
 
-	it('should expire transaction from multi-signature transaction list', done => {
-		const amount = 1000 * global.constants.normalizer;
+	describe('from unconfirmed queue', () => {
+		let transaction;
+		let address;
+		let memAccountBefore;
 
-		const creditTransaction = lisk.transaction.transfer({
-			amount,
-			passphrase: accountsFixtures.genesis.passphrase,
-			recipientId: multisigAccount.address,
-		});
+		const amount = randomUtil.number(100000000, 1000000000);
+		const recipientId = randomUtil.account().address;
 
-		createMultiSigTransaction(creditTransaction, (err, multisigTransaction) => {
-			// Get sender address
-			const address = getSenderAddress(multisigTransaction);
+		before(() => {
+			transaction = createTransaction(amount, recipientId);
+			address = getSenderAddress(transaction);
 
-			// Get multi-signature account created as part of
-			// transaction which is irreversible from mem account
-			const multiSigAccount = accountsFixtures.dbAccount({
-				address,
-				balance: new Bignum(multisigTransaction.amount).toString(),
-			});
-
-			// Set public key if not present
-			if (!multiSigAccount.publicKey) {
-				multiSigAccount.publicKey = Buffer.from(
-					multisigTransaction.senderPublicKey,
-					'hex'
-				);
-			}
-
-			// update mem account snapshot for comparision
-			memAccountsSnapshotBeforeUndo.push(multiSigAccount);
-
-			localCommon.addTransaction(library, multisigTransaction, (err, res) => {
-				// Wait for transaction to get expired and
-				// undo the unconfirmed transaction, so that mem accounts
-				// balance is updated
-				expect(err).to.be.null;
-				expect(res).to.equal(multisigTransaction.id);
-				setTimeout(() => {
-					queries
-						.getAccounts()
-						.then(memAccountsSnapshotAfterUndo => {
-							const beforeAccountState = memAccountsSnapshotBeforeUndo.find(
-								account => account.address === address
-							);
-							const afterAccountState = memAccountsSnapshotAfterUndo.find(
-								account => account.address === address
-							);
-
-							expect(
-								new Bignum(beforeAccountState.u_balance)
-									.plus(amount)
-									.equals(afterAccountState.u_balance)
-							).to.be.true;
-
-							const genesisAccountBefore = memAccountsSnapshotBeforeUndo.find(
-								account => account.address === accountsFixtures.genesis.address
-							);
-							const genesisAccountAfter = memAccountsSnapshotAfterUndo.find(
-								account => account.address === accountsFixtures.genesis.address
-							);
-
-							expect(
-								new Bignum(genesisAccountBefore.u_balance)
-									.minus(amount)
-									.minus(creditTransaction.fee)
-									.equals(genesisAccountAfter.u_balance)
-							).to.be.true;
-							done();
-						})
-						.catch(done);
-				}, 2000);
+			return queries.getAccount(address).then(account => {
+				memAccountBefore = account;
 			});
 		});
-	});
 
-	describe('unconfirmed transaction', () => {
-		it('should be applied on mem accounts before transaction is expired', done => {
-			// set unconfirmed transaction timeout to 10 seconds
-			// to ensure the transaction is not expired for the
-			// next 10 seconds
-			setunconfirmedTransactionTimeOut(1000);
-
-			const amount = randomUtil.number(100000000, 1000000000);
-			const transaction = lisk.transaction.transfer({
-				recipientId: randomUtil.account().address,
-				amount,
-				passphrase: accountsFixtures.genesis.passphrase,
-			});
-
-			const address = getSenderAddress(transaction);
-
+		it('should be able to add transaction to unconfirmed queue', done => {
 			localCommon.addTransactionToUnconfirmedQueue(library, transaction, () => {
-				setunconfirmedTransactionTimeOut(0);
-				queries
-					.getAccounts()
-					.then(memAccountsSnapshotAfterUndo => {
-						const beforeAccountState = memAccountsSnapshotBeforeUndo.find(
-							account => account.address === address
-						);
-						const afterAccountState = memAccountsSnapshotAfterUndo.find(
-							account => account.address === address
-						);
-						expect(
-							new Bignum(afterAccountState.u_balance)
-								.plus(amount)
-								.plus(transaction.fee)
-								.equals(beforeAccountState.u_balance)
-						).to.be.true;
-						// Wait for transaction to get expired and
-						// undo the unconfirmed transaction, so that mem accounts
-						// balance is updated back
-						setTimeout(() => {
-							validateMemAccountSnapshot()
-								.then(() => {
-									done();
-								})
-								.catch(done);
-						}, 5000);
-					})
-					.catch(err => {
-						done(err);
-					});
+				checkUnconfirmedQueue(transaction, res => {
+					expect(res.transactions.length).to.equal(1);
+					expect(res.transactions[0].id).to.equal(transaction.id);
+					expect(res.count).to.equal(1);
+					done();
+				});
 			});
+		});
+
+		it('validate mem account balance and u_balance before transaction expiry', () => {
+			return queries.getAccount(address).then(memAccountAfter => {
+				expect(
+					new Bignum(memAccountAfter[0].u_balance)
+						.plus(amount)
+						.plus(transaction.fee)
+						.equals(memAccountBefore[0].u_balance)
+				).to.be.true;
+
+				// Balance will not be confirmed unless the block is forged
+				expect(
+					new Bignum(memAccountBefore[0].balance).equals(
+						memAccountAfter[0].balance
+					)
+				).to.be.true;
+			});
+		});
+
+		it('once transaction is expired the mem account u_balance should be restored', done => {
+			setunconfirmedTransactionTimeOut(0);
+
+			// Expiry interval is set to 1 second
+			// and unconfirmed transaction timeout is set to 0
+			// so waiting 5 seconds for the transaction to expire and
+			// apply undo unconfirmed so the balance will be reflected
+			setTimeout(() => {
+				checkUnconfirmedQueue(transaction, res => {
+					expect(res.transactions.length).to.equal(0);
+					expect(res.count).to.equal(0);
+					queries.getAccount(address).then(memAccountAfter => {
+						expect(
+							new Bignum(memAccountBefore[0].u_balance).equals(
+								memAccountAfter[0].u_balance
+							)
+						).to.be.true;
+
+						expect(
+							new Bignum(memAccountBefore[0].balance).equals(
+								memAccountAfter[0].balance
+							)
+						).to.be.true;
+						done();
+					});
+				});
+			}, 5000);
+		});
+	});
+
+	describe('multi-signature', () => {
+		let transaction;
+		let address;
+		let memAccountBefore;
+		let multiSigTransaction;
+
+		const amount = 1000 * global.constants.normalizer;
+		const account = randomUtil.account();
+		const signer1 = randomUtil.account();
+		const signer2 = randomUtil.account();
+		const recipientId = account.address;
+		const lifetime = 1; // minimum lifetime should be >= 1
+
+		before(() => {
+			transaction = createTransaction(amount, recipientId);
+			address = getSenderAddress(transaction);
+
+			return queries.getAccount(address).then(account => {
+				memAccountBefore = account;
+				// Transfer balance to multi-signature account
+				// so that register multi-signature account can be done
+				return addTransactionsAndForgePromise(library, [transaction]);
+			});
+		});
+
+		it('transfer account should be updated with balance and u_balance', done => {
+			queries
+				.getAccount(address)
+				.then(memAccountAfter => {
+					expect(
+						new Bignum(memAccountAfter[0].u_balance)
+							.plus(amount)
+							.plus(transaction.fee)
+							.equals(memAccountBefore[0].u_balance)
+					).to.be.true;
+
+					expect(
+						new Bignum(memAccountAfter[0].balance)
+							.plus(amount)
+							.plus(transaction.fee)
+							.equals(memAccountBefore[0].balance)
+					).to.be.true;
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should be able to add multi-signature transaction to unconfirmed queue', done => {
+			const keysgroup = [signer1.publicKey, signer2.publicKey];
+
+			multiSigTransaction = lisk.transaction.registerMultisignature({
+				passphrase: account.passphrase,
+				keysgroup,
+				lifetime,
+				minimum: 2,
+			});
+
+			addTransactionToUnconfirmedQueuePromise(library, multiSigTransaction)
+				.then(() => {
+					// Verify if the multi-signature transaction was added to queue
+					checkMultisignatureQueue(multiSigTransaction, res => {
+						expect(res.transactions.length).to.equal(1);
+						expect(res.transactions[0].id).to.equal(multiSigTransaction.id);
+						done();
+					});
+				})
+				.catch(done);
+		});
+
+		it('once transaction is expired the transaction should be removed from queue', done => {
+			// Multi-signature transaction is created with lifetime 1
+			// and the timeout multiplier is set to 1
+			// so the time to expiry will be 1 seconds + extract 5 second;
+			const timeout = lifetime * 1 * 1000 + 5000;
+			setTimeout(() => {
+				// verify if the multi-signature transaction was removed from queue
+				checkMultisignatureQueue(multiSigTransaction, res => {
+					expect(res.transactions.length).to.equal(0);
+					done();
+				});
+			}, timeout);
+		});
+
+		it('multi-signature account balance should exists with the balance', done => {
+			const address = getSenderAddress(multiSigTransaction);
+			queries
+				.getAccount(address)
+				.then(multiSigAccount => {
+					// Multi-signature transaction was expired, however
+					// the account still exists with the balance
+					console.error(multiSigAccount);
+					expect(new Bignum(multiSigAccount[0].balance).equals(amount)).to.be
+						.true;
+					done();
+				})
+				.catch(done);
 		});
 	});
 });
