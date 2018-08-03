@@ -20,7 +20,7 @@
 */
 
 SELECT
-	delegate,
+	ENCODE(delegate, 'hex') as delegate,
 	sum(amount) AS amount
 FROM mem_round
 WHERE round = ${round}::bigint
