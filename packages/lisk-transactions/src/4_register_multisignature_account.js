@@ -17,10 +17,27 @@ import {
 	prependPlusToPublicKeys,
 	validateKeysgroup,
 	wrapTransactionCreator,
+	isValidInteger,
 } from './utils';
 
-const registerMultisignatureAccount = ({ keysgroup, lifetime, minimum }) => {
+const validateInputs = ({ keysgroup, lifetime, minimum }) => {
 	validateKeysgroup(keysgroup);
+
+	if (!isValidInteger(lifetime) || lifetime < 1 || lifetime > 72) {
+		throw new Error(
+			'Please provide a valid lifetime value. Expected integer between 1 and 72.',
+		);
+	}
+
+	if (!isValidInteger(minimum) || minimum < 1 || minimum > 15) {
+		throw new Error(
+			'Please provide a valid minimum value. Expected integer between 1 and 15.',
+		);
+	}
+};
+
+const registerMultisignatureAccount = ({ keysgroup, lifetime, minimum }) => {
+	validateInputs({ keysgroup, lifetime, minimum });
 
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 	const keygroupFees = plusPrependedKeysgroup.length + 1;

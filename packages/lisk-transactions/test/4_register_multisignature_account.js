@@ -312,6 +312,111 @@ describe('#registerMultisignatureAccount transaction', () => {
 				return Promise.resolve();
 			});
 
+			describe('shoud throw error', () => {
+				describe('when #lifetime', () => {
+					const lifetimeErrorMessage =
+						'Please provide a valid lifetime value. Expected integer between 1 and 72.';
+
+					it('was not provided', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('is float', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: 23.45,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('is not number type', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: '123',
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('was more than expected', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: 73,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('was less than expected', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: -1,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+				});
+			});
+
+			describe('when #minimum', () => {
+				const minimumErrorMessage =
+					'Please provide a valid minimum value. Expected integer between 1 and 15.';
+
+				it('was not provided', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('is float', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: 1.45,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('is not number type', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: '12',
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('was more than expected', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: 16,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('was less than expected', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: -1,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+			});
+
 			it('should have the type', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.property('type')

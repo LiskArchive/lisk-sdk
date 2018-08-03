@@ -39,6 +39,7 @@ export {
 	validateKeysgroup,
 	validateAddress,
 	validateAmount,
+	isValidInteger,
 	validateTransaction,
 } from './validation';
 export { default as wrapTransactionCreator } from './wrap_transaction_creator';

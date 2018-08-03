@@ -20,6 +20,7 @@ export {
 	validateKeysgroup,
 	validateAddress,
 	validateAmount,
+	isValidInteger,
 	isGreaterThanMaxTransactionAmount,
 } from './validation';
 
