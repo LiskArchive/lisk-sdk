@@ -223,7 +223,15 @@ describe('#transfer transaction', () => {
 				return Promise.resolve();
 			});
 
-			it('recipientId & non-matching publicKey should throw error', () => {
+			it('should throw error when invalid amount provided', () => {
+				return expect(
+					transfer.bind(null, {
+						amount: '18446744073709551616',
+					}),
+				).to.throw('Please enter a valid amount!');
+			});
+
+			it('should throw error when recipientId & non-matching publicKey provided', () => {
 				return expect(
 					transfer.bind(null, {
 						recipientId,
