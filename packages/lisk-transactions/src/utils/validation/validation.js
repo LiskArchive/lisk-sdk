@@ -86,3 +86,6 @@ export const isNumberString = str => {
 	}
 	return /^[0-9]+$/g.test(str);
 };
+
+export const validateAmount = data =>
+	isNumberString(data) && !isGreaterThanMaxTransactionAmount(bignum(data));

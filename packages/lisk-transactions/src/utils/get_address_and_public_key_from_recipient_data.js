@@ -18,19 +18,7 @@ const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,
 }) => {
-	if (recipientId && recipientPublicKey) {
-		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
-			recipientPublicKey,
-		);
-		if (recipientId === addressFromPublicKey) {
-			return { address: recipientId, publicKey: recipientPublicKey };
-		}
-		throw new Error(
-			'Could not create transaction: recipientId does not match recipientPublicKey.',
-		);
-	}
-
-	if (!recipientId && recipientPublicKey) {
+	if (recipientPublicKey) {
 		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
 			recipientPublicKey,
 		);
