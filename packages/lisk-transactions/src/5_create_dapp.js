@@ -17,7 +17,7 @@ import { wrapTransactionCreator } from './utils';
 
 const isInt = n => parseInt(n, 10) === n;
 
-const validateOptions = options => {
+const validateInputs = ({ options }) => {
 	if (typeof options !== 'object') {
 		throw new Error('Options must be an object.');
 	}
@@ -38,7 +38,7 @@ const validateOptions = options => {
 };
 
 const createDapp = ({ options }) => {
-	validateOptions(options);
+	validateInputs({ options });
 
 	return {
 		type: 5,
