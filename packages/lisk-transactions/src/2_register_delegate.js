@@ -15,14 +15,30 @@
 import { DELEGATE_FEE } from './constants';
 import { wrapTransactionCreator } from './utils';
 
-const registerDelegate = ({ username }) => ({
-	type: 2,
-	fee: DELEGATE_FEE.toString(),
-	asset: {
-		delegate: {
-			username,
+const validateInputs = ({ username }) => {
+	if (!username || typeof username !== 'string') {
+		throw new Error('Please provide a username. Expected string.');
+	}
+
+	if (username.length > 20) {
+		throw new Error(
+			'Username length does not match requirements. Expected to be less than 20 characters.',
+		);
+	}
+};
+
+const registerDelegate = ({ username }) => {
+	validateInputs({ username });
+
+	return {
+		type: 2,
+		fee: DELEGATE_FEE.toString(),
+		asset: {
+			delegate: {
+				username,
+			},
 		},
-	},
-});
+	};
+};
 
 export default wrapTransactionCreator(registerDelegate);
