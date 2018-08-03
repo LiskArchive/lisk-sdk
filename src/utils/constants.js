@@ -35,7 +35,7 @@ export const PLURALS = {
 
 export const QUERY_INPUT_MAP = {
 	accounts: 'address',
-	blocks: 'id',
+	blocks: 'blockId',
 	delegates: 'username',
 	transactions: 'id',
 };
