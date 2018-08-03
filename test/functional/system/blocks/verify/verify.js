@@ -32,6 +32,7 @@ var accountFixtures = require('../../../../fixtures/accounts');
 var genesisBlock = require('../../../../data/genesis_block.json');
 var genesisDelegates = require('../../../../data/genesis_delegates.json')
 	.delegates;
+const blockVersion = require('../../../../../logic/block_version.js');
 
 var previousBlock = {
 	blockSignature:
@@ -203,6 +204,10 @@ describe('blocks/verify', () => {
 
 				library = scope;
 				library.modules.blocks.lastBlock.set(genesisBlock);
+
+				// Set current block version to 0
+				blockVersion.currentBlockVersion = 0;
+
 				// Bus gets overwritten - waiting for mem_accounts has to be done manually
 				setTimeout(done, 5000);
 			}
