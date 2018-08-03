@@ -60,7 +60,7 @@ describe('block:get', () => {
 					{
 						query: {
 							limit: 1,
-							id: blockId,
+							blockId,
 						},
 						placeholder: {
 							id: blockId,
@@ -74,6 +74,7 @@ describe('block:get', () => {
 
 	describe('block:get blockIds', () => {
 		const blockIds = ['9249767683252385637', '12690684816503689985'];
+		const blockIdsWithEmpty = ['9249767683252385637', ''];
 		const queryResult = [
 			{
 				id: blockIds[0],
@@ -95,7 +96,7 @@ describe('block:get', () => {
 					{
 						query: {
 							limit: 1,
-							id: blockIds[0],
+							blockId: blockIds[0],
 						},
 						placeholder: {
 							id: blockIds[0],
@@ -105,7 +106,7 @@ describe('block:get', () => {
 					{
 						query: {
 							limit: 1,
-							id: blockIds[1],
+							blockId: blockIds[1],
 						},
 						placeholder: {
 							id: blockIds[1],
@@ -115,5 +116,33 @@ describe('block:get', () => {
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
+
+		setupTest()
+			.stdout()
+			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.command(['block:get', blockIdsWithEmpty.join(',')])
+			.it(
+				'should get blocks info only using non-empty args and display as an array',
+				() => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(query.default).to.be.calledWithExactly(
+						apiClientStub,
+						endpoint,
+						[
+							{
+								query: {
+									limit: 1,
+									blockId: blockIdsWithEmpty[0],
+								},
+								placeholder: {
+									id: blockIdsWithEmpty[0],
+									message: 'Block not found.',
+								},
+							},
+						],
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				},
+			);
 	});
 });

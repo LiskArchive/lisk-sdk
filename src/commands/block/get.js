@@ -23,7 +23,7 @@ export default class GetCommand extends BaseCommand {
 		const req = blockIds.map(blockId => ({
 			query: {
 				limit: 1,
-				id: blockId,
+				blockId,
 			},
 			placeholder: {
 				id: blockId,
@@ -41,7 +41,7 @@ GetCommand.args = [
 		name: 'blockIds',
 		required: true,
 		description: 'Comma-separated block ID(s) to get information about.',
-		parse: input => input.split(','),
+		parse: input => input.split(',').filter(val => val),
 	},
 ];
 
