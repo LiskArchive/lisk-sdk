@@ -47,7 +47,7 @@ describe('expire transactions', () => {
 	const unconfirmedTransactionTimeOut =
 		global.constants.unconfirmedTransactionTimeOut;
 
-	const setunconfirmedTransactionTimeOut = timeout => {
+	const setUnconfirmedTransactionTimeOut = timeout => {
 		global.constants.unconfirmedTransactionTimeOut = timeout;
 	};
 
@@ -104,13 +104,6 @@ describe('expire transactions', () => {
 		queries = new queriesHelper(lib, lib.db);
 	});
 
-	// override transaction expiryInterval and unconfirmedTransactionTimeOut
-	// to test undo unConfirmed expired transactions
-	before(done => {
-		setunconfirmedTransactionTimeOut(0);
-		done();
-	});
-
 	after('reset states', done => {
 		__testContext.config.transactions.expiryInterval = expiryInterval;
 		__testContext.config.transactions.multiSignatureTimeoutMultiplier = multiSignatureTimeoutMultiplier;
@@ -127,6 +120,10 @@ describe('expire transactions', () => {
 		const recipientId = randomUtil.account().address;
 
 		before(() => {
+			// override unconfirmedTransactionTimeOut
+			// to test undo unConfirmed expired transactions
+			setUnconfirmedTransactionTimeOut(0);
+
 			transaction = createTransaction(amount, recipientId);
 			address = getSenderAddress(transaction);
 
@@ -165,11 +162,9 @@ describe('expire transactions', () => {
 		});
 
 		it('once transaction is expired the mem account u_balance should be restored', done => {
-			setunconfirmedTransactionTimeOut(0);
-
 			// Expiry interval is set to 1 second
 			// and unconfirmed transaction timeout is set to 0
-			// so waiting 5 seconds for the transaction to expire and
+			// so waiting 5 seconds to ensure the transaction is expired and
 			// apply undo unconfirmed so the balance will be reflected
 			setTimeout(() => {
 				checkUnconfirmedQueue(transaction, res => {
@@ -214,12 +209,12 @@ describe('expire transactions', () => {
 			return queries.getAccount(address).then(account => {
 				memAccountBefore = account;
 				// Transfer balance to multi-signature account
-				// so that register multi-signature account can be done
+				// so that multi-signature account can be registered
 				return addTransactionsAndForgePromise(library, [transaction]);
 			});
 		});
 
-		it('transfer account should be updated with balance and u_balance', done => {
+		it('account should be transfer and updated with balance and u_balance', done => {
 			queries
 				.getAccount(address)
 				.then(memAccountAfter => {
@@ -263,11 +258,13 @@ describe('expire transactions', () => {
 				.catch(done);
 		});
 
-		it('once transaction is expired the transaction should be removed from queue', done => {
+		it('once multi-signature transaction is expired it should be removed from queue', done => {
 			// Multi-signature transaction is created with lifetime 1
 			// and the timeout multiplier is set to 1
-			// so the time to expiry will be 1 seconds + extract 5 second;
+			// so the time to expiry will be 1 second
+			// and extract 5 second to ensure transaction is expired and removed from queue
 			const timeout = lifetime * 1 * 1000 + 5000;
+
 			setTimeout(() => {
 				// verify if the multi-signature transaction was removed from queue
 				checkMultisignatureQueue(multiSigTransaction, res => {
@@ -279,12 +276,12 @@ describe('expire transactions', () => {
 
 		it('multi-signature account balance should exists with the balance', done => {
 			const address = getSenderAddress(multiSigTransaction);
+
 			queries
 				.getAccount(address)
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance
-					console.error(multiSigAccount);
 					expect(new Bignum(multiSigAccount[0].balance).equals(amount)).to.be
 						.true;
 					done();
