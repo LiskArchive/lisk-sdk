@@ -62,6 +62,8 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	}
 
 	const network = program.network || process.env.LISK_NETWORK || 'devnet';
+	// Define lisk network env variable to be used by child processes load config files
+	process.env.LISK_NETWORK = network;
 
 	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
 
@@ -90,9 +92,29 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	let commandLineConfig = {
 		wsPort: +program.port || process.env.LISK_WS_PORT || null,
 		httpPort: +program.httpPort || process.env.LISK_HTTP_PORT || null,
-		address: program.address,
-		consoleLogLevel: program.log || process.env.LISK_CONSOLE_LOG_LEVEL,
-		db: { database: program.database },
+		address: program.address || process.env.LISK_ADDRESS || null,
+		fileLogLevel: program.log || process.env.LISK_FILE_LOG_LEVEL || null,
+		consoleLogLevel: process.env.LISK_CONSOLE_LOG_LEVEL || null,
+		cacheEnabled: process.env.LISK_CACHE_ENABLED === 'true',
+		db: {
+			database: program.database || process.env.LISK_DB_NAME || null,
+			host: process.env.LISK_DB_HOST || null,
+			port: process.env.LISK_DB_PORT || null,
+			user: process.env.LISK_DB_USER || null,
+			password: process.env.LISK_DB_PASSWORD || null,
+		},
+		api: {
+			access: {
+				public: process.env.LISK_API_PUBLIC === 'true',
+				whiteList: extractWhiteListIPs(process.env.LISK_API_WHITELIST),
+			},
+		},
+		forging: {
+			delegates: extractDelegatesList(process.env.LISK_FORGING_DELEGATES),
+			access: {
+				whiteList: extractWhiteListIPs(process.env.LISK_FORGING_WHITELIST),
+			},
+		},
 		loading: { snapshotRound: program.snapshot },
 		peers: {
 			list: extractPeersList(
@@ -100,6 +122,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 				+program.port ||
 					process.env.LISK_WS_PORT ||
 					customConfig.wsPort ||
+					networkConfig.wsPort ||
 					defaultConfig.wsPort
 			),
 		},
@@ -107,12 +130,17 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	};
 	commandLineConfig = cleanDeep(commandLineConfig);
 
-	const appConfig = _.merge(
+	const appConfig = _.mergeWith(
 		defaultConfig,
 		networkConfig,
 		customConfig,
 		commandLineConfig,
-		runtimeConfig
+		runtimeConfig,
+		(objValue, srcValue) => {
+			if (_.isArray(objValue)) {
+				return srcValue;
+			}
+		}
 	);
 
 	var validator = new z_schema();
@@ -152,6 +180,26 @@ function extractPeersList(peers, defaultPort) {
 			return {
 				ip: peer.shift(),
 				wsPort: peer.shift() || defaultPort,
+			};
+		});
+	}
+	return [];
+}
+
+function extractWhiteListIPs(ips) {
+	if (typeof ips === 'string') {
+		return ips.split(',');
+	}
+	return [];
+}
+
+function extractDelegatesList(delegates) {
+	if (typeof delegates === 'string') {
+		return delegates.split(',').map(delegate => {
+			delegate = delegate.split('|');
+			return {
+				publicKey: delegate[0],
+				encryptedPassphrase: delegate[1],
 			};
 		});
 	}
