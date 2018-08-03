@@ -27,38 +27,43 @@ describe('block:get', () => {
 	};
 	const printMethodStub = sandbox.stub();
 	const apiClientStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-		.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
 
-	setupStub
-		.stdout()
-		.command(['block:get'])
-		.catch(error => expect(error.message).to.contain('Missing 1 required arg'))
-		.it('should throw an error when arg is not provided');
+	describe('block:get', () => {
+		setupTest()
+			.stdout()
+			.command(['block:get'])
+			.catch(error =>
+				expect(error.message).to.contain('Missing 1 required arg'),
+			)
+			.it('should throw an error when arg is not provided');
+	});
 
-	describe('block:get block', () => {
-		const block = '3520445367460290306L';
+	describe('block:get blockId', () => {
+		const blockId = '9249767683252385637';
 		const queryResult = {
-			blockId: block,
-			name: 'i am owner',
+			blockId,
+			height: 1,
 		};
 
-		setupStub
+		setupTest()
 			.stdout()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
-			.command(['block:get', block])
-			.it('should get an block info and display as an object', () => {
+			.command(['block:get', blockId])
+			.it('should get block info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
 						query: {
 							limit: 1,
-							blockId: block,
+							blockId,
 						},
 						placeholder: {
-							blockId: block,
+							blockId,
 							message: 'Block not found.',
 						},
 					},
@@ -67,43 +72,43 @@ describe('block:get', () => {
 			});
 	});
 
-	describe('block:get blocks', () => {
-		const blocks = ['3520445367460290306L', '2802325248134221536L'];
+	describe('block:get blockIds', () => {
+		const blockIds = ['9249767683252385637', '12690684816503689985'];
 		const queryResult = [
 			{
-				blockId: blocks[0],
-				name: 'i am owner',
+				blockId: blockIds[0],
+				height: 3,
 			},
 			{
-				blockId: blocks[1],
-				name: 'some name',
+				blockId: blockIds[1],
+				height: 4,
 			},
 		];
 
-		setupStub
+		setupTest()
 			.stdout()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
-			.command(['block:get', blocks.join(',')])
+			.command(['block:get', blockIds.join(',')])
 			.it('should get blocks info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
 						query: {
 							limit: 1,
-							blockId: blocks[0],
+							blockId: blockIds[0],
 						},
 						placeholder: {
-							blockId: blocks[0],
+							blockId: blockIds[0],
 							message: 'Block not found.',
 						},
 					},
 					{
 						query: {
 							limit: 1,
-							blockId: blocks[1],
+							blockId: blockIds[1],
 						},
 						placeholder: {
-							blockId: blocks[1],
+							blockId: blockIds[1],
 							message: 'Block not found.',
 						},
 					},
