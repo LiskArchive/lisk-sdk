@@ -76,6 +76,7 @@ describe('delegate:get', () => {
 
 	describe('delegate:get delegates', () => {
 		const usernames = ['genesis_5', 'genesis_6'];
+		const usernamesWithEmpty = ['genesis_4', ''];
 		const queryResult = [
 			{
 				username: usernames[0],
@@ -117,5 +118,33 @@ describe('delegate:get', () => {
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
+
+		setupTest()
+			.stdout()
+			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.command(['delegate:get', usernamesWithEmpty.join(',')])
+			.it(
+				'should get delegates info only using non-empty args and display as an array',
+				() => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(query.default).to.be.calledWithExactly(
+						apiClientStub,
+						endpoint,
+						[
+							{
+								query: {
+									username: usernamesWithEmpty[0],
+									limit: 1,
+								},
+								placeholder: {
+									username: usernamesWithEmpty[0],
+									message: 'Delegate not found.',
+								},
+							},
+						],
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				},
+			);
 	});
 });
