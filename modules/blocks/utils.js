@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const transactionTypes = require('../../helpers/transaction_types.js');
 
 const constants = global.constants;
 const __private = {};
@@ -159,21 +158,6 @@ Utils.prototype.loadLastBlock = function(cb) {
 		.then(rows => {
 			// Normalize block
 			const block = modules.blocks.utils.readDbRows(rows)[0];
-
-			// Sort block's transactions
-			block.transactions = block.transactions.sort(a => {
-				if (block.id === library.genesisBlock.block.id) {
-					if (a.type === transactionTypes.VOTE) {
-						return 1;
-					}
-				}
-
-				if (a.type === transactionTypes.SIGNATURE) {
-					return 1;
-				}
-
-				return 0;
-			});
 
 			// Update last block
 			modules.blocks.lastBlock.set(block);
