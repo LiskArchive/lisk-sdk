@@ -60,6 +60,9 @@
 			"account": {
 				"description": "Manages Lisk accounts."
 			},
+			"block": {
+				"description": "Manages Lisk blocks."
+			},
 			"config": {
 				"description": "Manages Lisk Commander configuration."
 			},
