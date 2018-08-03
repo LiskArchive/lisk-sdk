@@ -39,28 +39,29 @@ describe('passphrase:encrypt', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(cryptography, 'getKey', sandbox.stub().returns(defaultKeys))
-		.stub(
-			cryptography,
-			'encryptPassphraseWithPassword',
-			sandbox.stub().returns(encryptedPassphraseObject),
-		)
-		.stub(
-			cryptography,
-			'stringifyEncryptedPassphrase',
-			sandbox.stub().returns(encryptedPassphraseString),
-		)
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(defaultInputs),
-		);
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(cryptography, 'getKey', sandbox.stub().returns(defaultKeys))
+			.stub(
+				cryptography,
+				'encryptPassphraseWithPassword',
+				sandbox.stub().returns(encryptedPassphraseObject),
+			)
+			.stub(
+				cryptography,
+				'stringifyEncryptedPassphrase',
+				sandbox.stub().returns(encryptedPassphraseString),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(defaultInputs),
+			);
 
 	describe('passphrase:encrypt', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['passphrase:encrypt'])
 			.it('should encrypt passphrase', () => {
@@ -90,7 +91,7 @@ describe('passphrase:encrypt', () => {
 	});
 
 	describe('passphrase:encrypt --outputPublicKey', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['passphrase:encrypt', '--outputPublicKey'])
 			.it('should encrypt passphrase and output public key', () => {
@@ -121,7 +122,7 @@ describe('passphrase:encrypt', () => {
 	});
 
 	describe('passphrase:encrypt --passphrase=pass:123', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['passphrase:encrypt', '--passphrase=pass:123'])
 			.it('should call print with the user config', () => {
@@ -151,7 +152,7 @@ describe('passphrase:encrypt', () => {
 	});
 
 	describe('passphrase:encrypt --passphrase=pass:123 --password=pass:456', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'passphrase:encrypt',

@@ -36,27 +36,28 @@ describe('passphrase:decrypt', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(
-			cryptography,
-			'parseEncryptedPassphrase',
-			sandbox.stub().returns(encryptedPassphraseObject),
-		)
-		.stub(
-			cryptography,
-			'decryptPassphraseWithPassword',
-			sandbox.stub().returns(passphrase),
-		)
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(defaultInputs),
-		);
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				cryptography,
+				'parseEncryptedPassphrase',
+				sandbox.stub().returns(encryptedPassphraseObject),
+			)
+			.stub(
+				cryptography,
+				'decryptPassphraseWithPassword',
+				sandbox.stub().returns(passphrase),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(defaultInputs),
+			);
 
 	describe('passphrase:decrypt', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['passphrase:decrypt'])
 			.catch(error =>
@@ -68,7 +69,7 @@ describe('passphrase:decrypt', () => {
 	});
 
 	describe('passphrase:decrypt encryptedPassphrase', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['passphrase:decrypt', defaultEncryptedPassphrase])
 			.it('should decrypt passphrase with arg', () => {
@@ -93,7 +94,7 @@ describe('passphrase:decrypt', () => {
 
 	describe('passphrase:decrypt --passphrase=file:./path/to/encrypted_passphrase.txt', () => {
 		const passphraseSource = 'file:./path/to/encrypted_passphrase.txt';
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['passphrase:decrypt', `--passphrase=${passphraseSource}`])
 			.it('should decrypt passphrase with passphrase flag', () => {
@@ -120,7 +121,7 @@ describe('passphrase:decrypt', () => {
 
 	describe('passphrase:decrypt --passphrase=filePath --password=pass:456', () => {
 		const passphraseSource = 'file:./path/to/encrypted_passphrase.txt';
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'passphrase:decrypt',
