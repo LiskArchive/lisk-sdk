@@ -86,10 +86,10 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 	});
 
 	describe('when WS connections to all nodes all established', () => {
-		const suiteFolder = 'test/integration/scenarios/';
+		const suiteFolder = 'test/network/scenarios/';
 		const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
 		filepaths.forEach(filepath => {
-			const currentFilePath = filepath.replace('test/integration', '.');
+			const currentFilePath = filepath.replace('test/network', '.');
 			// eslint-disable-next-line import/no-dynamic-require
 			const test = require(currentFilePath);
 			test(

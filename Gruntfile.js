@@ -48,7 +48,7 @@ module.exports = function(grunt) {
 
 			mocha: {
 				cmd(tagFilter, suite, section) {
-					if (suite === 'integration') {
+					if (suite === 'network') {
 						var filter = '';
 						if (tagFilter === 'default') {
 							filter = "--grep '@slow|@unstable' --invert";
@@ -66,10 +66,10 @@ module.exports = function(grunt) {
 							filter = '--grep @stress';
 						} else {
 							grunt.fail.fatal(
-								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
+								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | functional | network (required)\n- Where section can be one of get | post | ws | system (optional)'
 							);
 						}
-						return `./node_modules/.bin/_mocha --bail test/integration/integration.js ${filter}`;
+						return `./node_modules/.bin/_mocha --bail test/network/index.js ${filter}`;
 					}
 					var toExecute = [tagFilter, suite, section]
 						.filter(val => val)
