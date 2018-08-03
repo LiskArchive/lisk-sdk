@@ -21,9 +21,12 @@ import {
 	wrapTransactionCreator,
 } from './utils';
 
-const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
+const validateInputs = ({ votes, unvotes }) => {
 	validatePublicKeys([...votes, ...unvotes]);
+};
 
+const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
+	validateInputs({ votes, unvotes });
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
 		: null;
