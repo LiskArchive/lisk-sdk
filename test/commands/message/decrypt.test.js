@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('message:decrypt', () => {
@@ -33,18 +33,23 @@ describe('message:decrypt', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(cryptography, 'decryptMessage', sandbox.stub().returns({ message }))
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(defaultInputs),
-		);
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				cryptography,
+				'decryptMessageWithPassphrase',
+				sandbox.stub().returns({ message }),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(defaultInputs),
+			);
 
 	describe('message:decrypt', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:decrypt'])
 			.catch(error =>
@@ -54,7 +59,7 @@ describe('message:decrypt', () => {
 	});
 
 	describe('message:decrypt senderPublicKey', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:decrypt', defaultSenderPublicKey])
 			.catch(error =>
@@ -64,7 +69,7 @@ describe('message:decrypt', () => {
 	});
 
 	describe('message:decrypt senderPublicKey nonce', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:decrypt', defaultSenderPublicKey, defaultNonce])
 			.catch(error =>
@@ -74,7 +79,7 @@ describe('message:decrypt', () => {
 	});
 
 	describe('message:decrypt senderPublicKey nonce message', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:decrypt',
@@ -89,7 +94,9 @@ describe('message:decrypt', () => {
 					},
 					data: null,
 				});
-				expect(cryptography.decryptMessage).to.be.calledWithExactly({
+				expect(
+					cryptography.decryptMessageWithPassphrase,
+				).to.be.calledWithExactly({
 					cipher: defaultEncryptedMessage,
 					nonce: defaultNonce,
 					passphrase: defaultInputs.passphrase,
@@ -100,7 +107,7 @@ describe('message:decrypt', () => {
 	});
 
 	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:decrypt',
@@ -119,8 +126,10 @@ describe('message:decrypt', () => {
 							source: 'file:./message.txt',
 						},
 					});
-					expect(cryptography.decryptMessage).to.be.calledWithExactly({
-						cipher: defaultEncryptedMessage,
+					expect(
+						cryptography.decryptMessageWithPassphrase,
+					).to.be.calledWithExactly({
+						cipher: defaultInputs.data,
 						nonce: defaultNonce,
 						passphrase: defaultInputs.passphrase,
 						senderPublicKey: defaultSenderPublicKey,
@@ -131,7 +140,7 @@ describe('message:decrypt', () => {
 	});
 
 	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt --passphrase=pass:123', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:decrypt',
@@ -151,8 +160,10 @@ describe('message:decrypt', () => {
 							source: 'file:./message.txt',
 						},
 					});
-					expect(cryptography.decryptMessage).to.be.calledWithExactly({
-						cipher: defaultEncryptedMessage,
+					expect(
+						cryptography.decryptMessageWithPassphrase,
+					).to.be.calledWithExactly({
+						cipher: defaultInputs.data,
 						nonce: defaultNonce,
 						passphrase: defaultInputs.passphrase,
 						senderPublicKey: defaultSenderPublicKey,

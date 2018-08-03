@@ -14,18 +14,18 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
-import cryptography from '../../utils/cryptography';
 import { ValidationError } from '../../utils/error';
 import getInputsFromSources from '../../utils/input';
-import commonOptions from '../../utils/options';
+import commonFlags from '../../utils/flags';
 
 const processInputs = (recipient, message) => ({ passphrase, data }) =>
-	cryptography.encryptMessage({
-		message: message || data,
+	cryptography.encryptMessageWithPassphrase(
+		message || data,
 		passphrase,
 		recipient,
-	});
+	);
 
 export default class EncryptCommand extends BaseCommand {
 	async run() {
@@ -68,8 +68,8 @@ EncryptCommand.args = [
 
 EncryptCommand.flags = {
 	...BaseCommand.flags,
-	passphrase: flagParser.string(commonOptions.passphrase),
-	message: flagParser.string(commonOptions.message),
+	passphrase: flagParser.string(commonFlags.passphrase),
+	message: flagParser.string(commonFlags.message),
 };
 
 EncryptCommand.description = `

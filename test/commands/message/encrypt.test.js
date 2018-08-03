@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('message:encrypt', () => {
@@ -34,22 +34,23 @@ describe('message:encrypt', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(
-			cryptography,
-			'encryptMessage',
-			sandbox.stub().returns(defaultEncryptedMessage),
-		)
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(defaultInputs),
-		);
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				cryptography,
+				'encryptMessageWithPassphrase',
+				sandbox.stub().returns(defaultEncryptedMessage),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(defaultInputs),
+			);
 
 	describe('message:encrypt', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:encrypt'])
 			.catch(error =>
@@ -59,7 +60,7 @@ describe('message:encrypt', () => {
 	});
 
 	describe('message:encrypt recipient', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:encrypt', defaultRecipientPublicKey])
 			.catch(error =>
@@ -69,7 +70,7 @@ describe('message:encrypt', () => {
 	});
 
 	describe('message:encrypt recipient message', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:encrypt', defaultRecipientPublicKey, message])
 			.it('should encrypt the message with the arg', () => {
@@ -80,11 +81,13 @@ describe('message:encrypt', () => {
 					},
 					data: null,
 				});
-				expect(cryptography.encryptMessage).to.be.calledWithExactly({
+				expect(
+					cryptography.encryptMessageWithPassphrase,
+				).to.be.calledWithExactly(
 					message,
-					passphrase: defaultInputs.passphrase,
-					recipient: defaultRecipientPublicKey,
-				});
+					defaultInputs.passphrase,
+					defaultRecipientPublicKey,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultEncryptedMessage,
 				);
@@ -92,7 +95,7 @@ describe('message:encrypt', () => {
 	});
 
 	describe('message:encrypt recipient --message=file:./message.txt', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:encrypt',
@@ -111,11 +114,13 @@ describe('message:encrypt', () => {
 							source: 'file:./message.txt',
 						},
 					});
-					expect(cryptography.encryptMessage).to.be.calledWithExactly({
-						message: defaultInputs.data,
-						passphrase: defaultInputs.passphrase,
-						recipient: defaultRecipientPublicKey,
-					});
+					expect(
+						cryptography.encryptMessageWithPassphrase,
+					).to.be.calledWithExactly(
+						defaultInputs.data,
+						defaultInputs.passphrase,
+						defaultRecipientPublicKey,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultEncryptedMessage,
 					);
@@ -124,7 +129,7 @@ describe('message:encrypt', () => {
 	});
 
 	describe('message:encrypt recipient --message=file:./message.txt --passphrase=pass:123', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:encrypt',
@@ -144,11 +149,13 @@ describe('message:encrypt', () => {
 							source: 'file:./message.txt',
 						},
 					});
-					expect(cryptography.encryptMessage).to.be.calledWithExactly({
-						message: defaultInputs.data,
-						passphrase: defaultInputs.passphrase,
-						recipient: defaultRecipientPublicKey,
-					});
+					expect(
+						cryptography.encryptMessageWithPassphrase,
+					).to.be.calledWithExactly(
+						defaultInputs.data,
+						defaultInputs.passphrase,
+						defaultRecipientPublicKey,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultEncryptedMessage,
 					);

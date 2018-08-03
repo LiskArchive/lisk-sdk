@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('message:verify', () => {
@@ -29,27 +29,26 @@ describe('message:verify', () => {
 		passphrase: '123',
 		data: 'message',
 	};
-	const defaultVerifyMessageResult = {
-		verified: true,
-	};
+	const defaultVerifyMessageResult = true;
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(
-			cryptography,
-			'verifyMessage',
-			sandbox.stub().returns(defaultVerifyMessageResult),
-		)
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(defaultInputs),
-		);
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				cryptography,
+				'verifyMessageWithPublicKey',
+				sandbox.stub().returns(defaultVerifyMessageResult),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(defaultInputs),
+			);
 
 	describe('message:verify', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:verify'])
 			.catch(error =>
@@ -59,7 +58,7 @@ describe('message:verify', () => {
 	});
 
 	describe('message:verify publicKey', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:verify', defaultPublicKey])
 			.catch(error =>
@@ -69,7 +68,7 @@ describe('message:verify', () => {
 	});
 
 	describe('message:verify publicKey signature', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:verify', defaultPublicKey, defaultSignature])
 			.catch(error =>
@@ -79,27 +78,29 @@ describe('message:verify', () => {
 	});
 
 	describe('message:verify publicKey signature message', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:verify', defaultPublicKey, defaultSignature, message])
 			.it('should verify message from the arg', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
 					data: null,
 				});
-				expect(cryptography.verifyMessage).to.be.calledWithExactly({
-					publicKey: defaultPublicKey,
-					signature: defaultSignature,
-					message,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyMessageResult,
+				expect(cryptography.verifyMessageWithPublicKey).to.be.calledWithExactly(
+					{
+						publicKey: defaultPublicKey,
+						signature: defaultSignature,
+						message,
+					},
 				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					verified: defaultVerifyMessageResult,
+				});
 			});
 	});
 
 	describe('message:verify publicKey signature --message=file:./message.txt', () => {
 		const messageSource = 'file:/message.txt';
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:verify',
@@ -113,14 +114,16 @@ describe('message:verify', () => {
 						source: messageSource,
 					},
 				});
-				expect(cryptography.verifyMessage).to.be.calledWithExactly({
-					publicKey: defaultPublicKey,
-					signature: defaultSignature,
-					message: defaultInputs.data,
-				});
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyMessageResult,
+				expect(cryptography.verifyMessageWithPublicKey).to.be.calledWithExactly(
+					{
+						publicKey: defaultPublicKey,
+						signature: defaultSignature,
+						message: defaultInputs.data,
+					},
 				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					verified: defaultVerifyMessageResult,
+				});
 			});
 	});
 });

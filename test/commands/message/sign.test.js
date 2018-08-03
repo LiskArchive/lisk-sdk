@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { expect, test } from '../../test';
+import { test } from '@oclif/test';
+import { cryptography } from 'lisk-elements';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
-import cryptography from '../../../src/utils/cryptography';
 import * as getInputsFromSources from '../../../src/utils/input';
 
 describe('message:sign', () => {
@@ -34,22 +34,23 @@ describe('message:sign', () => {
 	};
 
 	const printMethodStub = sandbox.stub();
-	const setupStub = test
-		.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-		.stub(config, 'getConfig', sandbox.stub().returns({}))
-		.stub(
-			cryptography,
-			'signMessage',
-			sandbox.stub().returns(defaultSignedMessage),
-		)
-		.stub(
-			getInputsFromSources,
-			'default',
-			sandbox.stub().resolves(defaultInputs),
-		);
+	const setupTest = () =>
+		test
+			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(
+				cryptography,
+				'signMessageWithPassphrase',
+				sandbox.stub().returns(defaultSignedMessage),
+			)
+			.stub(
+				getInputsFromSources,
+				'default',
+				sandbox.stub().resolves(defaultInputs),
+			);
 
 	describe('message:sign', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:sign'])
 			.catch(error =>
@@ -59,7 +60,7 @@ describe('message:sign', () => {
 	});
 
 	describe('message:sign message', () => {
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:sign', message])
 			.it('should sign the message with the arg', () => {
@@ -70,10 +71,10 @@ describe('message:sign', () => {
 					},
 					data: null,
 				});
-				expect(cryptography.signMessage).to.be.calledWithExactly({
+				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
 					message,
-					passphrase: defaultInputs.passphrase,
-				});
+					defaultInputs.passphrase,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedMessage,
 				);
@@ -82,7 +83,7 @@ describe('message:sign', () => {
 
 	describe('message:sign --message=file:./message.txt', () => {
 		const messageSource = 'file:/message.txt';
-		setupStub
+		setupTest()
 			.stdout()
 			.command(['message:sign', `--message=${messageSource}`])
 			.it('should sign the message from flag', () => {
@@ -95,10 +96,10 @@ describe('message:sign', () => {
 						source: messageSource,
 					},
 				});
-				expect(cryptography.signMessage).to.be.calledWithExactly({
-					message: defaultInputs.data,
-					passphrase: defaultInputs.passphrase,
-				});
+				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
+					defaultInputs.data,
+					defaultInputs.passphrase,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedMessage,
 				);
@@ -108,7 +109,7 @@ describe('message:sign', () => {
 	describe('message:sign --message=file:./message.txt --passphrase=pass:123', () => {
 		const messageSource = 'file:/message.txt';
 		const passphraseSource = 'pass:123';
-		setupStub
+		setupTest()
 			.stdout()
 			.command([
 				'message:sign',
@@ -125,10 +126,10 @@ describe('message:sign', () => {
 						source: messageSource,
 					},
 				});
-				expect(cryptography.signMessage).to.be.calledWithExactly({
-					message: defaultInputs.data,
-					passphrase: defaultInputs.passphrase,
-				});
+				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
+					defaultInputs.data,
+					defaultInputs.passphrase,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignedMessage,
 				);

@@ -14,18 +14,19 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
+import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
-import cryptography from '../../utils/cryptography';
 import { ValidationError } from '../../utils/error';
 import getInputsFromSources from '../../utils/input';
-import commonOptions from '../../utils/options';
+import commonFlags from '../../utils/flags';
 
-const processInputs = (publicKey, signature, message) => ({ data }) =>
-	cryptography.verifyMessage({
+const processInputs = (publicKey, signature, message) => ({ data }) => ({
+	verified: cryptography.verifyMessageWithPublicKey({
 		publicKey,
 		signature,
 		message: message || data,
-	});
+	}),
+});
 
 export default class VerifyCommand extends BaseCommand {
 	async run() {
@@ -65,7 +66,7 @@ VerifyCommand.args = [
 
 VerifyCommand.flags = {
 	...BaseCommand.flags,
-	message: flagParser.string(commonOptions.message),
+	message: flagParser.string(commonFlags.message),
 };
 
 VerifyCommand.description = `
