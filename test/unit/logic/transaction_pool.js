@@ -1170,7 +1170,7 @@ describe('transactionPool', () => {
 					after(resetStates);
 				});
 
-				describe('that results with error on modules.transactions.undoUnconfirme', () => {
+				describe('that results with error on modules.transactions.undoUnconfirmed', () => {
 					const badTransaction = { id: 'badTx' };
 					const transactions = [badTransaction];
 					const error = 'undo error';

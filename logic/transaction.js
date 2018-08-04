@@ -795,7 +795,7 @@ class Transaction {
 	}
 
 	/**
-	 * Merges account into sender address, Calls `apply` based on transaction type (privateTypes).
+	 * Merges account into sender address, Calls `applyConfirmed` based on transaction type (privateTypes).
 	 *
 	 * @see {@link privateTypes}
 	 * @param {transaction} transaction
@@ -805,7 +805,7 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	apply(transaction, block, sender, cb, tx) {
+	applyConfirmed(transaction, block, sender, cb, tx) {
 		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
@@ -830,7 +830,7 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		this.scope.logger.trace('Logic/Transaction->apply', {
+		this.scope.logger.trace('Logic/Transaction->applyConfirmed', {
 			sender: sender.address,
 			balance: `-${amount}`,
 			blockId: block.id,
@@ -848,15 +848,15 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 				/**
-				 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
+				 * Calls applyConfirmed for Transfer, Signature, Delegate, Vote, Multisignature,
 				 * DApp, InTransfer or OutTransfer.
 				 */
-				__private.types[transaction.type].apply(
+				__private.types[transaction.type].applyConfirmed(
 					transaction,
 					block,
 					sender,
-					applyErr => {
-						if (applyErr) {
+					applyConfirmedErr => {
+						if (applyConfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -864,7 +864,7 @@ class Transaction {
 									round: slots.calcRound(block.height),
 								},
 								reverseMergeErr =>
-									setImmediate(cb, reverseMergeErr || applyErr),
+									setImmediate(cb, reverseMergeErr || applyConfirmedErr),
 								tx
 							);
 						} else {
@@ -889,7 +889,7 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undo(transaction, block, sender, cb, tx) {
+	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
@@ -898,7 +898,7 @@ class Transaction {
 
 		const amount = transaction.amount.plus(transaction.fee);
 
-		this.scope.logger.trace('Logic/Transaction->undo', {
+		this.scope.logger.trace('Logic/Transaction->undoConfirmed', {
 			sender: sender.address,
 			balance: amount,
 			blockId: block.id,
@@ -916,19 +916,20 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undo(
+				__private.types[transaction.type].undoConfirmed(
 					transaction,
 					block,
 					sender,
-					undoErr => {
-						if (undoErr) {
+					undoConfirmedErr => {
+						if (undoConfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
 									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
 								},
-								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),
+								reverseMergeErr =>
+									setImmediate(cb, reverseMergeErr || undoConfirmedErr),
 								tx
 							);
 						} else {
@@ -1213,8 +1214,8 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
 		typeof instance.verify === 'function' &&
 		typeof instance.objectNormalize === 'function' &&
 		typeof instance.dbRead === 'function' &&
-		typeof instance.apply === 'function' &&
-		typeof instance.undo === 'function' &&
+		typeof instance.applyConfirmed === 'function' &&
+		typeof instance.undoConfirmed === 'function' &&
 		typeof instance.applyUnconfirmed === 'function' &&
 		typeof instance.undoUnconfirmed === 'function' &&
 		typeof instance.ready === 'function' &&

@@ -296,9 +296,9 @@ describe('signature', () => {
 			});
 		});
 
-		describe('apply', () => {
+		describe('applyConfirmed', () => {
 			beforeEach(done => {
-				signature.apply(validTransaction, dummyBlock, sender, done);
+				signature.applyConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
@@ -332,9 +332,9 @@ describe('signature', () => {
 			});
 		});
 
-		describe('undo', () => {
+		describe('undoConfirmed', () => {
 			beforeEach(done => {
-				signature.undo(validTransaction, dummyBlock, sender, done);
+				signature.undoConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
