@@ -280,7 +280,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
  * @returns {Object} cb.err - Error if occurred
  */
 __private.applyTransaction = function(block, transaction, sender, cb) {
-	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'apply' can be ok
+	// FIXME: Not sure about flow here, when nodes have different transactions - 'applyUnconfirmed' can fail but 'applyConfirmed' can be ok
 	modules.transactions.applyUnconfirmed(transaction, sender, err => {
 		if (err) {
 			return setImmediate(cb, {
@@ -290,10 +290,12 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			});
 		}
 
-		modules.transactions.apply(transaction, block, sender, err => {
+		modules.transactions.applyConfirmed(transaction, block, sender, err => {
 			if (err) {
 				return setImmediate(cb, {
-					message: `Failed to apply transaction: ${transaction.id}`,
+					message: `Failed to apply transaction: ${
+						transaction.id
+					} to confirmed state of account:`,
 					transaction,
 					block,
 				});
@@ -353,9 +355,9 @@ __private.applyUnconfirmedStep = function(block, tx) {
 							sender,
 							err => {
 								if (err) {
-									err = `Failed to apply unconfirmed transaction: ${
+									err = `Failed to apply transaction: ${
 										transaction.id
-									} - ${err}`;
+									} to unconfirmed state of account - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 									return setImmediate(reject, new Error(err));
@@ -373,7 +375,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
  * @param {Object} block - Block object
@@ -389,7 +391,7 @@ __private.applyConfirmedStep = function(block, tx) {
 					{ publicKey: transaction.senderPublicKey },
 					(accountErr, sender) => {
 						if (accountErr) {
-							const err = `Failed to get account to apply transaction: ${
+							const err = `Failed to get account for applying transaction to confirmed state: ${
 								transaction.id
 							} - ${accountErr}`;
 							library.logger.error(err);
@@ -397,7 +399,7 @@ __private.applyConfirmedStep = function(block, tx) {
 							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
-						modules.transactions.apply(
+						modules.transactions.applyConfirmed(
 							transaction,
 							block,
 							sender,
@@ -406,7 +408,7 @@ __private.applyConfirmedStep = function(block, tx) {
 									// Fatal error, memory tables will be inconsistent
 									err = `Failed to apply transaction: ${
 										transaction.id
-									} - ${err}`;
+									} to confirmed state of account - ${err}`;
 									library.logger.error(err);
 									library.logger.error('Transaction', transaction);
 
@@ -424,7 +426,7 @@ __private.applyConfirmedStep = function(block, tx) {
 };
 
 /**
- * Calls apply from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
+ * Calls applyConfirmed from modules.transactions for each transaction in block after get serder with modules.accounts.getAccount
  *
  * @private
  * @param {Object} block - Block object
@@ -576,7 +578,7 @@ __private.loadSecondLastBlockStep = function(secondLastBlockId, tx) {
  * @param {Object} oldLastBlock - secondLastBlock
  * @param {Object} tx - database transaction
  */
-__private.undoStep = function(transaction, oldLastBlock, tx) {
+__private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 	return new Promise((resolve, reject) => {
 		// Retrieve sender by public key
 		modules.accounts.getAccount(
@@ -585,22 +587,25 @@ __private.undoStep = function(transaction, oldLastBlock, tx) {
 				if (accountErr) {
 					// Fatal error, memory tables will be inconsistent
 					library.logger.error(
-						'Failed to get account to undo transactions',
+						'Failed to get account for undoing transaction to confirmed state',
 						accountErr
 					);
 					return setImmediate(reject, accountErr);
 				}
 				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
 				// WARNING: DB_WRITE
-				modules.transactions.undo(
+				modules.transactions.undoConfirmed(
 					transaction,
 					oldLastBlock,
 					sender,
-					undoErr => {
-						if (undoErr) {
+					undoConfirmedErr => {
+						if (undoConfirmedErr) {
 							// Fatal error, memory tables will be inconsistent
-							library.logger.error('Failed to undo transactions', undoErr);
-							return setImmediate(reject, undoErr);
+							library.logger.error(
+								'Failed to undo transaction to confirmed state of account',
+								undoConfirmedErr
+							);
+							return setImmediate(reject, undoConfirmedErr);
 						}
 						return setImmediate(resolve);
 					},
@@ -624,11 +629,14 @@ __private.undoUnconfirmStep = function(transaction, tx) {
 		// WARNING: DB_WRITE
 		modules.transactions.undoUnconfirmed(
 			transaction,
-			undoUnconfirmErr => {
-				if (undoUnconfirmErr) {
+			undoUnconfirmedErr => {
+				if (undoUnconfirmedErr) {
 					// Fatal error, memory tables will be inconsistent
-					library.logger.error('Failed to undo transactions', undoUnconfirmErr);
-					return setImmediate(reject, undoUnconfirmErr);
+					library.logger.error(
+						'Failed to undo transaction to unconfirmed state of account',
+						undoUnconfirmedErr
+					);
+					return setImmediate(reject, undoUnconfirmedErr);
 				}
 				return setImmediate(resolve);
 			},
@@ -711,7 +719,7 @@ __private.popLastBlock = function(oldLastBlock, cb) {
 						oldLastBlock.transactions.reverse(),
 						transaction =>
 							__private
-								.undoStep(transaction, oldLastBlock, tx)
+								.undoConfirmedStep(transaction, oldLastBlock, tx)
 								.then(() => __private.undoUnconfirmStep(transaction, tx))
 					);
 				})

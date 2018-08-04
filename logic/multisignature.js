@@ -334,7 +334,13 @@ Multisignature.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
+Multisignature.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	__private.unconfirmedSignatures[sender.address] = false;
 
 	library.logic.account.merge(
@@ -385,7 +391,13 @@ Multisignature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Multisignature.prototype.undo = function(transaction, block, sender, cb, tx) {
+Multisignature.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	const multiInvert = Diff.reverse(transaction.asset.multisignature.keysgroup);
 
 	__private.unconfirmedSignatures[sender.address] = true;
