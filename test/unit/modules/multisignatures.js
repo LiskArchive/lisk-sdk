@@ -850,7 +850,18 @@ describe('multisignatures', () => {
 
 		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
 			it('should call a callback with Error instance', done => {
-
+				stubs.getMultisignatureTransaction.returns(undefined);
+				self.processSignature(data.signature, err => {
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, corresponding transaction not found'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, corresponding transaction not found',
+						{ signature: data.signature }
+					);
+					done();
+				});
 			});
 		});
 
