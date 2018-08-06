@@ -117,7 +117,10 @@ function nextBundle(cb) {
 function nextExpiry(cb) {
 	self.expireTransactions(err => {
 		if (err) {
-			library.logger.log('Transaction expiry timer', err);
+			library.logger.log(
+				'Error while processing the expired transactions',
+				err
+			);
 		}
 		return setImmediate(cb);
 	});
@@ -739,7 +742,7 @@ TransactionPool.prototype.expireTransactions = function(cb) {
 				balancesSequenceCb
 			);
 		},
-		() => setImmediate(cb)
+		err => setImmediate(cb, err)
 	);
 };
 
@@ -1014,8 +1017,9 @@ __private.isExpired = transaction => {
 	const timeNow = Math.floor(Date.now() / 1000);
 	const timeOut = __private.transactionTimeOut(transaction);
 	// transaction.receivedAt is instance of Date
-	const seconds = timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
-	return seconds > timeOut;
+	const timeElapsed =
+		timeNow - Math.floor(transaction.receivedAt.getTime() / 1000);
+	return timeElapsed > timeOut;
 };
 
 /**
@@ -1046,7 +1050,7 @@ __private.expireTransactions = function(transactions, cb) {
 			}
 			return setImmediate(eachSeriesCb);
 		},
-		() => setImmediate(cb)
+		err => setImmediate(cb, err)
 	);
 };
 
@@ -1073,7 +1077,7 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 							`Failed to undo unconfirmed transaction: ${transaction.id}`,
 							undoUnconfirmErr
 						);
-						return setImmediate(eachSeriesCb);
+						return setImmediate(eachSeriesCb, undoUnconfirmErr);
 					}
 					// Remove transaction from unconfirmed, queued and multisignature lists
 					self.removeUnconfirmedTransaction(transaction.id);
@@ -1084,11 +1088,10 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 					);
 					return setImmediate(eachSeriesCb);
 				});
-			} else {
-				return setImmediate(eachSeriesCb);
 			}
+			return setImmediate(eachSeriesCb);
 		},
-		() => setImmediate(cb)
+		err => setImmediate(cb, err)
 	);
 };
 
