@@ -784,32 +784,80 @@ describe('multisignatures', () => {
 	});
 
 	describe('processSignature', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.sender = accountsFixtures.Account();
+			data.sender.multisignatures = ['publicKey1', 'publicKey2'];
+
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.signature = {
+				transactionId: data.transaction.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+			data.transaction.signatures = [];
+
+			// Initialize stubs
+			stubs.balancesSequence = sinonSandbox
+				.stub()
+				.callsFake((callback, doneCallback) => {
+					callback(doneCallback);
+				});
+			library.balancesSequence.add = stubs.balancesSequence;
+
+			stubs.getMultisignatureTransaction = sinonSandbox.stub();
+			stubs.getMultisignatureTransaction.returns(data.transaction);
+			stubs.modules.transactions.getMultisignatureTransaction =
+				stubs.getMultisignatureTransaction;
+
+			stubs.processSignatureForMultisignatureAccountCreation = sinonSandbox
+				.stub()
+				.callsArgWith(2, null);
+			set(
+				'__private.processSignatureForMultisignatureAccountCreation',
+				stubs.processSignatureForMultisignatureAccountCreation
+			);
+
+			stubs.processSignatureFromMultisignatureAccount = sinonSandbox
+				.stub()
+				.callsArgWith(2, null);
+			__private.processSignatureFromMultisignatureAccount =
+				stubs.processSignatureFromMultisignatureAccount;
+			set(
+				'__private.processSignatureFromMultisignatureAccount',
+				stubs.processSignatureFromMultisignatureAccount
+			);
+			done();
+		});
+
 		describe('when signature is not present', () => {
-			it('should call a callback with Error instance', () => {
+			it('should call a callback with Error instance', done => {
 
 			});
 		});
 
 		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
-			it('should call a callback with Error instance', () => {
+			it('should call a callback with Error instance', done => {
 
 			});
 		});
 
 		describe('when signature already exists in transaction', () => {
-			it('should call a callback with Error instance', () => {
+			it('should call a callback with Error instance', done => {
 
 			});
 		});
 
 		describe('when transaction have type MULTI', () => {
-			it('should call __private.processSignatureForMultisignatureAccountCreation with proper params', () => {
+			it('should call __private.processSignatureForMultisignatureAccountCreation with proper params', done => {
 
 			});
 		});
 
 		describe('when transaction have type other than MULTI', () => {
-			it('should call __private.processSignatureFromMultisignatureAccount with proper params', () => {
+			it('should call __private.processSignatureFromMultisignatureAccount with proper params', done => {
 
 			});
 		});
