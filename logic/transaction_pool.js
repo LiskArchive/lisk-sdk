@@ -52,12 +52,7 @@ class TransactionPool {
 		balancesSequence,
 		config
 	) {
-		const {
-			maxTransactionsPerQueue,
-			expiryInterval,
-			multiSignatureTimeoutMultiplier,
-			signaturesTimeoutMultiplier,
-		} = config.transactions;
+		const { maxTransactionsPerQueue } = config.transactions;
 
 		library = {
 			logger,
@@ -72,9 +67,6 @@ class TransactionPool {
 				},
 				transactions: {
 					maxTransactionsPerQueue,
-					expiryInterval,
-					multiSignatureTimeoutMultiplier,
-					signaturesTimeoutMultiplier,
 				},
 			},
 			balancesSequence,
@@ -84,10 +76,11 @@ class TransactionPool {
 		self.bundled = { transactions: [], index: {} };
 		self.queued = { transactions: [], index: {} };
 		self.multisignature = { transactions: [], index: {} };
-		self.expiryInterval = library.config.transactions.expiryInterval;
+		self.expiryInterval = constants.expiryInterval;
 		self.bundledInterval = library.config.broadcasts.broadcastInterval;
 		self.bundleLimit = library.config.broadcasts.releaseLimit;
 		self.processed = 0;
+		self.hourInSeconds = 3600;
 
 		jobsQueue.register(
 			'transactionPoolNextBundle',
@@ -993,15 +986,9 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
  */
 __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
-		return (
-			transaction.asset.multisignature.lifetime *
-			library.config.transactions.multiSignatureTimeoutMultiplier
-		);
+		return transaction.asset.multisignature.lifetime * self.hourInSeconds;
 	} else if (Array.isArray(transaction.signatures)) {
-		return (
-			constants.unconfirmedTransactionTimeOut *
-			library.config.transactions.signaturesTimeoutMultiplier
-		);
+		return constants.unconfirmedTransactionTimeOut * 8;
 	}
 	return constants.unconfirmedTransactionTimeOut;
 };
@@ -1070,26 +1057,26 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 				return setImmediate(eachSeriesCb);
 			}
 
-			if (__private.isExpired(transaction)) {
-				modules.transactions.undoUnconfirmed(transaction, undoUnconfirmErr => {
-					if (undoUnconfirmErr) {
-						library.logger.error(
-							`Failed to undo unconfirmed transaction: ${transaction.id}`,
-							undoUnconfirmErr
-						);
-						return setImmediate(eachSeriesCb, undoUnconfirmErr);
-					}
-					// Remove transaction from unconfirmed, queued and multisignature lists
-					self.removeUnconfirmedTransaction(transaction.id);
-					library.logger.info(
-						`Expired transaction: ${
-							transaction.id
-						} received at: ${transaction.receivedAt.toUTCString()}`
-					);
-					return setImmediate(eachSeriesCb);
-				});
+			if (!__private.isExpired(transaction)) {
+				return setImmediate(eachSeriesCb);
 			}
-			return setImmediate(eachSeriesCb);
+			modules.transactions.undoUnconfirmed(transaction, undoUnconfirmErr => {
+				if (undoUnconfirmErr) {
+					library.logger.error(
+						`Failed to undo unconfirmed transaction: ${transaction.id}`,
+						undoUnconfirmErr
+					);
+					return setImmediate(eachSeriesCb, undoUnconfirmErr);
+				}
+				// Remove transaction from unconfirmed, queued and multisignature lists
+				self.removeUnconfirmedTransaction(transaction.id);
+				library.logger.info(
+					`Expired transaction: ${
+						transaction.id
+					} received at: ${transaction.receivedAt.toUTCString()}`
+				);
+				return setImmediate(eachSeriesCb);
+			});
 		},
 		err => setImmediate(cb, err)
 	);
