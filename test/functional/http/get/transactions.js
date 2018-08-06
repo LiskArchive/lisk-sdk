@@ -914,6 +914,11 @@ describe('GET /api/transactions', () => {
 			});
 		});
 		/* eslint-disable mocha/no-skipped-tests */
+		/**
+		 * This test will fail because type 6 transactions got disabled in Lisk Core v1.0
+		 * To make it pass locally, change the value for disableDappTransfer
+		 * in config/default/exceptions to a value bigger than 0
+		 * */
 		describe.skip('assets', () => {
 			before(() => {
 				return sendTransactionPromise(transaction4) // send type 0 transaction
