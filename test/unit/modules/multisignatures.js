@@ -285,7 +285,7 @@ describe('multisignatures', () => {
 						data.membersPublicKeys = [data.membersPublicKeys[0]];
 						done();
 					});
-					
+
 					describe('when validation is successfull', () => {
 						it('should return true', () => {
 							stubs.verifySignature.returns(true);
@@ -355,11 +355,67 @@ describe('multisignatures', () => {
 				describe('when membersPublicKeys contains 2 entries', () => {
 					describe('when first entry passes validation', () => {
 						describe('when second entry fails validation', () => {
-							it('should return true', () => {});
+							it('should return true', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.returns(true);
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.returns(false);
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledOnce;
+								return expect(result).to.be.true;
+							});
 						});
 
 						describe('when error is thrown for second entry', () => {
-							it('should return true', () => {});
+							it('should return true', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.returns(true);
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.throws('verifySignature#ERR');
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledOnce;
+								return expect(result).to.be.true;
+							});
 						});
 					});
 
