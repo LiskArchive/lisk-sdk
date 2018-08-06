@@ -167,81 +167,85 @@ describe('multisignatures', () => {
 		describe('when signature data contains publicKey', () => {
 			describe('when publicKey is not present as member of multisignature account in transaction', () => {
 				it('should return false', () => {
+					data.signature.publicKey = 'not_present';
+					const result = __private.isValidSignature(
+						data.signature,
+						data.membersPublicKeys,
+						data.transaction
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, signer not in keysgroup.',
+						{
+							signature: data.signature,
+							membersPublicKeys: data.membersPublicKeys,
+							transaction: data.transaction,
+						}
+					);
+					expect(stubs.verifySignature).to.have.not.been.called;
+					return expect(result).to.be.false;
 				});
 			});
 
 			describe('when publicKey is present as member of multisignature account in transaction', () => {
 				describe('library.logic.transaction.verifySignature', () => {
 					describe('when validation is successfull', () => {
-						it('should return true', () => {
-						});
+						it('should return true', () => {});
 					});
 
 					describe('when validation fails', () => {
-						it('should return false', () => {
-						});
+						it('should return false', () => {});
 					});
 
 					describe('when error is thrown', () => {
-						it('should return true', () => {
-						});
+						it('should return true', () => {});
 					});
 				});
 			});
+		});
 
-			describe('when signature data contains no publicKey', () => {
-				describe('library.logic.transaction.verifySignature', () => {
-					describe('when membersPublicKeys is empty', () => {
-						it('should return false', () => {
+		describe('when signature data contains no publicKey', () => {
+			describe('library.logic.transaction.verifySignature', () => {
+				describe('when membersPublicKeys is empty', () => {
+					it('should return false', () => {});
+				});
+
+				describe('when membersPublicKeys contains 1 entry', () => {
+					describe('when validation is successfull', () => {
+						it('should return true', () => {});
+					});
+
+					describe('when validation fails', () => {
+						it('should return false', () => {});
+					});
+
+					describe('when error is thrown', () => {
+						it('should return true', () => {});
+					});
+				});
+
+				describe('when membersPublicKeys contains 2 entries', () => {
+					describe('when first entry passes validation', () => {
+						describe('when second entry fails validation', () => {
+							it('should return true', () => {});
+						});
+
+						describe('when error is thrown for second entry', () => {
+							it('should return true', () => {});
 						});
 					});
 
-					describe('when membersPublicKeys contains 1 entry', () => {
-						describe('when validation is successfull', () => {
-							it('should return true', () => {
-							});
+					describe('when second entry passes validation', () => {
+						describe('when first entry fails validation', () => {
+							it('should return true', () => {});
 						});
 
-						describe('when validation fails', () => {
-							it('should return false', () => {
-							});
-						});
-
-						describe('when error is thrown', () => {
-							it('should return true', () => {
-							});
+						describe('when error is thrown for first entry', () => {
+							it('should return false', () => {});
 						});
 					});
 
-					describe('when membersPublicKeys contains 2 entries', () => {
-						describe('when first entry passes validation', () => {
-							describe('when second entry fails validation', () => {
-								it('should return true', () => {
-								});
-							});
-
-							describe('when error is thrown for second entry', () => {
-								it('should return true', () => {
-								});
-							});
-						});
-
-						describe('when second entry passes validation', () => {
-							describe('when first entry fails validation', () => {
-								it('should return true', () => {
-								});
-							});
-
-							describe('when error is thrown for first entry', () => {
-								it('should return false', () => {
-								});
-							});
-						});
-
-						describe('when no entry passes validation', () => {
-							it('should return false', () => {
-							});
-						});
+					describe('when no entry passes validation', () => {
+						it('should return false', () => {});
 					});
 				});
 			});
