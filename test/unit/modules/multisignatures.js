@@ -707,6 +707,26 @@ describe('multisignatures', () => {
 
 		describe('when modules.accounts.getAccount returns no error but sender = undefined', () => {
 			it('should call a callback with Error instance', done => {
+				const sender = undefined;
+				stubs.getAccount.callsArgWith(1, null, sender);
+
+				__private.processSignatureFromMultisignatureAccount(data.signature, data.transaction, err => {
+					expect(stubs.getAccount).to.have.been.calledWith({ address: data.transaction.senderId });
+					expect(stubs.getAccount).to.have.been.calledOnce;
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, account not found'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, account not found',
+						{
+							signature: data.signature,
+							transaction: data.transaction,
+							error: null,
+						}
+					);
+					done();
+				});
 			});
 		});
 
