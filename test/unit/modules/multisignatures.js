@@ -626,4 +626,11 @@ describe('multisignatures', () => {
 			});
 		});
 	});
+
+	describe('__private.processSignatureForMultisignatureAccountCreation', () => {
+		describe('normalize members of multisignature account from transaction', () => {
+			it('should call __private.validateSignature with proper data', () => {
+			});
+		});
+	});
 });
