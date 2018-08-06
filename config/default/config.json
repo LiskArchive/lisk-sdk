@@ -77,10 +77,7 @@
 		"relayLimit": 3
 	},
 	"transactions": {
-		"maxTransactionsPerQueue": 1000,
-		"expiryInterval": 30000,
-		"multiSignatureTimeoutMultiplier": 3600,
-		"signaturesTimeoutMultiplier": 8
+		"maxTransactionsPerQueue": 1000
 	},
 	"forging": {
 		"force": false,
