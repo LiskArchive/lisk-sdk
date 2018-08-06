@@ -17,6 +17,7 @@
 const rewire = require('rewire');
 
 const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
+const accountsFixtures = require('../../fixtures/index').accounts;
 const transactionsFixtures = require('../../fixtures/index').transactions;
 const transactionTypes = require('../../../helpers/transaction_types.js');
 
@@ -547,6 +548,12 @@ describe('multisignatures', () => {
 	});
 
 	describe('__private.validateSignature', () => {
+		beforeEach(done => {
+			data.sender = accountsFixtures.Account();
+			stubs.isValidSignature = sinonSandbox.stub();
+			__private.isValidSignature = stubs.isValidSignature;
+			done();
+		});
 		describe('after calling __private.isValidSignature', () => {
 			describe('when signature is invalid', () => {
 				it('should call a callback with Error instance', () => {
