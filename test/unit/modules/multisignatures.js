@@ -189,15 +189,70 @@ describe('multisignatures', () => {
 			describe('when publicKey is present as member of multisignature account in transaction', () => {
 				describe('library.logic.transaction.verifySignature', () => {
 					describe('when validation is successfull', () => {
-						it('should return true', () => {});
+						it('should return true', () => {
+							stubs.verifySignature.returns(true);
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.signature.publicKey,
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.not.been.called;
+							return expect(result).to.be.true;
+						});
 					});
 
 					describe('when validation fails', () => {
-						it('should return false', () => {});
+						it('should return false', () => {
+							stubs.verifySignature.returns(false);
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.signature.publicKey,
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.not.been.called;
+							return expect(result).to.be.false;
+						});
 					});
 
 					describe('when error is thrown', () => {
-						it('should return true', () => {});
+						it('should return true', () => {
+							stubs.verifySignature.throws('verifySignature#ERR');
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.signature.publicKey,
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.been.calledWithMatch(
+								'Unable to process signature, verification failed.',
+								{
+									signature: data.signature,
+									membersPublicKeys: data.membersPublicKeys,
+									transaction: data.transaction,
+								}
+							);
+							expect(library.logger.error.args[0][1].error).to.include(
+								'verifySignature#ERR'
+							);
+							return expect(result).to.be.false;
+						});
 					});
 				});
 			});
