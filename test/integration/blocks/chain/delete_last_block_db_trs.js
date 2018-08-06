@@ -91,7 +91,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 				});
 			});
 
-			describe('when undoStep fails', () => {
+			describe('when undoConfirmedStep fails', () => {
 				let setAccountAndGet;
 				beforeEach(done => {
 					// Artifically fail setAccountAndGet so we can check that test fails
@@ -117,7 +117,7 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 						done();
 					});
 				});
-				it('should not have perform undoStep on transactions of block', done => {
+				it('should not have perform undoConfirmedStep on transactions of block', done => {
 					library.modules.blocks.chain.deleteLastBlock(err => {
 						expect(err).to.exist;
 						expect(err).to.eql('err');
