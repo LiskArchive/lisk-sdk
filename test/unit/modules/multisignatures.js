@@ -570,6 +570,13 @@ describe('multisignatures', () => {
 			});
 
 			describe('when signature is valid', () => {
+				beforeEach(done => {
+					stubs.ready = sinonSandbox.stub().returns('ready');
+					library.logic.multisignature = { ready: stubs.ready };
+					stubs.isValidSignature.returns(true);
+					__private.validateSignature(data.signature, data.membersPublicKeys, data.transaction, data.sender, done);
+				});
+
 				it('should set transaction.signature', () => {
 				});
 
