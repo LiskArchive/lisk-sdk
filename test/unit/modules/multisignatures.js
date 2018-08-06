@@ -888,7 +888,17 @@ describe('multisignatures', () => {
 
 		describe('when transaction have type MULTI', () => {
 			it('should call __private.processSignatureForMultisignatureAccountCreation with proper params', done => {
-
+				self.processSignature(data.signature, err => {
+					expect(
+						stubs.processSignatureForMultisignatureAccountCreation
+					).to.have.been.calledWith(data.signature, data.transaction);
+					expect(stubs.processSignatureForMultisignatureAccountCreation).to.have
+						.been.calledOnce;
+					expect(stubs.processSignatureFromMultisignatureAccount).to.have.not
+						.been.called;
+					expect(err).to.not.exist;
+					done();
+				});
 			});
 		});
 
