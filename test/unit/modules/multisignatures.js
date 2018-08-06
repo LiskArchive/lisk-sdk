@@ -834,7 +834,17 @@ describe('multisignatures', () => {
 
 		describe('when signature is not present', () => {
 			it('should call a callback with Error instance', done => {
-
+				const signature = undefined;
+				self.processSignature(signature, err => {
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, signature not provided'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, signature not provided'
+					);
+					done();
+				});
 			});
 		});
 
