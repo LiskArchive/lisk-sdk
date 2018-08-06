@@ -15,6 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
+
 const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
 const transactionsFixtures = require('../../fixtures/index').transactions;
 const transactionTypes = require('../../../helpers/transaction_types.js');
