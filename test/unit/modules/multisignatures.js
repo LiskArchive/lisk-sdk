@@ -658,6 +658,29 @@ describe('multisignatures', () => {
 	});
 
 	describe('__private.processSignatureFromMultisignatureAccount', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.sender = accountsFixtures.Account();
+			data.sender.multisignatures = ['publicKey1', 'publicKey2'];
+
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.signature = {
+				transactionId: data.transaction.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+
+			// Initialize stubs
+			stubs.validateSignature = sinonSandbox.stub().callsArgWith(4, null);
+			set('__private.validateSignature', stubs.validateSignature);
+
+			stubs.getAccount = sinonSandbox.stub();
+			stubs.modules.accounts.getAccount = stubs.getAccount;
+			done();
+		});
+
 		describe('when modules.accounts.getAccount returns an error', () => {
 			it('should call a callback with Error instance', done => {
 			});
