@@ -560,6 +560,8 @@ describe('multisignatures', () => {
 				it('should call a callback with Error instance', done => {
 					stubs.isValidSignature.returns(false);
 					__private.validateSignature(data.signature, data.membersPublicKeys, data.transaction, data.sender, err => {
+						expect(stubs.isValidSignature).to.have.been.calledWith(data.signature, data.membersPublicKeys, data.transaction);
+						expect(stubs.isValidSignature).to.have.been.calledOnce;
 						expect(err).to.be.an.instanceof(Error);
 						expect(err.message).to.eql('Unable to process signature, verification failed');
 						done();
