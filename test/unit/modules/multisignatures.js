@@ -786,8 +786,6 @@ describe('multisignatures', () => {
 	describe('processSignature', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
-			data.sender = accountsFixtures.Account();
-			data.sender.multisignatures = ['publicKey1', 'publicKey2'];
 
 			data.transaction = transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
@@ -815,20 +813,14 @@ describe('multisignatures', () => {
 			stubs.processSignatureForMultisignatureAccountCreation = sinonSandbox
 				.stub()
 				.callsArgWith(2, null);
-			set(
-				'__private.processSignatureForMultisignatureAccountCreation',
-				stubs.processSignatureForMultisignatureAccountCreation
-			);
+			__private.processSignatureForMultisignatureAccountCreation =
+				stubs.processSignatureForMultisignatureAccountCreation;
 
 			stubs.processSignatureFromMultisignatureAccount = sinonSandbox
 				.stub()
 				.callsArgWith(2, null);
 			__private.processSignatureFromMultisignatureAccount =
 				stubs.processSignatureFromMultisignatureAccount;
-			set(
-				'__private.processSignatureFromMultisignatureAccount',
-				stubs.processSignatureFromMultisignatureAccount
-			);
 			done();
 		});
 
