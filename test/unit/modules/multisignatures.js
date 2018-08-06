@@ -16,6 +16,8 @@
 
 const rewire = require('rewire');
 const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
+const transactionsFixtures = require('../../fixtures/index').transactions;
+const transactionTypes = require('../../../helpers/transaction_types.js');
 
 describe('multisignatures', () => {
 	let __private;
@@ -23,6 +25,7 @@ describe('multisignatures', () => {
 	let library;
 	let validScope;
 	const stubs = {};
+	const data = {};
 	let multisignaturesInstance;
 
 	function get(variable) {
@@ -99,5 +102,106 @@ describe('multisignatures', () => {
 			},
 			validScope
 		);
+	});
+
+	describe('constructor', () => {
+		it('should assign params to library', () => {
+		});
+
+		it('should instantiate Multisignature logic with proper params', () => {
+		});
+
+		it('should call callback with result = self', () => {
+		});
+	});
+
+	describe('onBind', () => {
+		it('should set modules', () => {
+		});
+	});
+
+	describe('__private.isValidSignature', () => {
+		describe('when signature data contains publicKey', () => {
+			describe('when publicKey is not present as member of multisignature account in transaction', () => {
+				it('should return false', () => {
+				});
+			});
+
+			describe('when publicKey is present as member of multisignature account in transaction', () => {
+				describe('library.logic.transaction.verifySignature', () => {
+					describe('when validation is successfull', () => {
+						it('should return true', () => {
+						});
+					});
+
+					describe('when validation fails', () => {
+						it('should return false', () => {
+						});
+					});
+
+					describe('when error is thrown', () => {
+						it('should return true', () => {
+						});
+					});
+				});
+			});
+
+			describe('when signature data contains no publicKey', () => {
+				describe('library.logic.transaction.verifySignature', () => {
+					describe('when membersPublicKeys is empty', () => {
+						it('should return false', () => {
+						});
+					});
+
+					describe('when membersPublicKeys contains 1 entry', () => {
+						describe('when validation is successfull', () => {
+							it('should return true', () => {
+							});
+						});
+
+						describe('when validation fails', () => {
+							it('should return false', () => {
+							});
+						});
+
+						describe('when error is thrown', () => {
+							it('should return true', () => {
+							});
+						});
+					});
+
+					describe('when membersPublicKeys contains 2 entries', () => {
+						describe('when first entry passes validation', () => {
+							describe('when second entry fails validation', () => {
+								it('should return true', () => {
+								});
+							});
+
+							describe('when error is thrown for second entry', () => {
+								it('should return true', () => {
+								});
+							});
+						});
+
+						describe('when second entry passes validation', () => {
+							describe('when first entry fails validation', () => {
+								it('should return true', () => {
+								});
+							});
+
+							describe('when error is thrown for first entry', () => {
+								it('should return false', () => {
+								});
+							});
+						});
+
+						describe('when no entry passes validation', () => {
+							it('should return false', () => {
+							});
+						});
+					});
+				});
+			});
+		});
 	});
 });
