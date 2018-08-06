@@ -26,19 +26,14 @@ describe('format', () => {
 				'Cannot convert non-string amount',
 			);
 		});
-		it('should error on 18446744073709551615.1', () => {
-			return expect(
-				convertBeddowsToLSK.bind(null, '18446744073709551615.1'),
-			).to.throw('Beddows amount should not have decimal points');
-		});
 		it('should error on 0.1', () => {
 			return expect(convertBeddowsToLSK.bind(null, '0.1')).to.throw(
 				'Beddows amount should not have decimal points',
 			);
 		});
-		it('should error on 18446744073709551616', () => {
+		it('should error on 10000000000000001', () => {
 			return expect(
-				convertBeddowsToLSK.bind(null, '18446744073709551616'),
+				convertBeddowsToLSK.bind(null, '10000000000000001'),
 			).to.throw('Beddows amount out of range');
 		});
 		it('should convert 100000000 to 1', () => {
@@ -47,9 +42,14 @@ describe('format', () => {
 		it('should convert 1 to 0.00000001', () => {
 			return expect(convertBeddowsToLSK('1')).to.equal('0.00000001');
 		});
-		it('should convert 18446744073709551615 to 184467440737.09551615', () => {
-			return expect(convertBeddowsToLSK('18446744073709551615')).to.equal(
-				'184467440737.09551615',
+		it('should convert 10000000000000000 to 100000000', () => {
+			return expect(convertBeddowsToLSK('10000000000000000')).to.equal(
+				'100000000',
+			);
+		});
+		it('should convert 9999999999999999 to 99999999.99999999', () => {
+			return expect(convertBeddowsToLSK('9999999999999999')).to.equal(
+				'99999999.99999999',
 			);
 		});
 	});
@@ -59,19 +59,14 @@ describe('format', () => {
 				'Cannot convert non-string amount',
 			);
 		});
-		it('should error on 184467440737.095516151', () => {
-			return expect(
-				convertLSKToBeddows.bind(null, '184467440737.095516151'),
-			).to.throw('LSK amount has too many decimal points');
-		});
 		it('should error on 0.000000001', () => {
 			return expect(convertLSKToBeddows.bind(null, '0.000000001')).to.throw(
 				'LSK amount has too many decimal points',
 			);
 		});
-		it('should error on 184467440737.09551616', () => {
+		it('should error on 100000000.00000001', () => {
 			return expect(
-				convertLSKToBeddows.bind(null, '184467440737.09551616'),
+				convertLSKToBeddows.bind(null, '100000000.00000001'),
 			).to.throw('LSK amount out of range');
 		});
 		it('should convert 1 to 100000000', () => {
@@ -80,9 +75,14 @@ describe('format', () => {
 		it('should convert 0.00000001 to 1', () => {
 			return expect(convertLSKToBeddows('0.00000001')).to.equal('1');
 		});
-		it('should convert 184467440737.09551615 to 18446744073709551615', () => {
-			return expect(convertLSKToBeddows('184467440737.09551615')).to.equal(
-				'18446744073709551615',
+		it('should convert 100000000 to 10000000000000000', () => {
+			return expect(convertLSKToBeddows('100000000')).to.equal(
+				'10000000000000000',
+			);
+		});
+		it('should convert 99999999.99999999 to 9999999999999999', () => {
+			return expect(convertLSKToBeddows('99999999.99999999')).to.equal(
+				'9999999999999999',
 			);
 		});
 	});
