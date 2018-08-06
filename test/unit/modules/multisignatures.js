@@ -142,6 +142,28 @@ describe('multisignatures', () => {
 	});
 
 	describe('__private.isValidSignature', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.signatures = [
+				{
+					transactionId: data.transaction.id,
+					publicKey: 'publicKey1',
+					signature: 'signature1',
+				},
+				{
+					transactionId: data.transaction.id,
+					publicKey: 'publicKey2',
+					signature: 'signature2',
+				},
+			];
+			data.signature = data.signatures[0];
+			data.membersPublicKeys = ['publicKey1', 'publicKey2'];
+			done();
+		});
+
 		describe('when signature data contains publicKey', () => {
 			describe('when publicKey is not present as member of multisignature account in transaction', () => {
 				it('should return false', () => {
