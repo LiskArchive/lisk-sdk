@@ -733,6 +733,16 @@ describe('multisignatures', () => {
 		describe('when modules.accounts.getAccount returns no error', () => {
 			describe('when calling __private.validateSignature', () => {
 				it('should be called with proper data', done => {
+					stubs.getAccount.callsArgWith(1, null, data.sender);
+
+					__private.processSignatureFromMultisignatureAccount(data.signature, data.transaction, err => {
+						expect(stubs.getAccount).to.have.been.calledWith({ address: data.transaction.senderId });
+						expect(stubs.getAccount).to.have.been.calledOnce;
+						expect(err).to.not.exist;
+						expect(stubs.validateSignature).to.have.been.calledWith(data.signature, data.sender.multisignatures, data.transaction, data.sender);
+						expect(stubs.validateSignature).to.have.been.calledOnce;
+						done();
+					});
 				});
 			});
 		});
