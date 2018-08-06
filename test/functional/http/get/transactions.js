@@ -745,6 +745,31 @@ describe('GET /api/transactions', () => {
 						});
 				});
 			});
+			describe('height', () => {
+				it('sorted by height:asc should be ok', () => {
+					return transactionsEndpoint
+						.makeRequest({ sort: 'height:asc', minAmount: 100 }, 200)
+						.then(res => {
+							expect(
+								_(res.body.data)
+									.map('height')
+									.sortNumbers('asc')
+							).to.be.eql(_.map(res.body.data, 'height'));
+						});
+				});
+
+				it('sorted by height:desc should be ok', () => {
+					return transactionsEndpoint
+						.makeRequest({ sort: 'height:desc' }, 200)
+						.then(res => {
+							expect(
+								_(res.body.data)
+									.map('height')
+									.sortNumbers('desc')
+							).to.be.eql(_.map(res.body.data, 'height'));
+						});
+				});
+			});
 
 			it('using sort with any of sort fields should not place NULLs first', () => {
 				var transactionSortFields = [
@@ -794,7 +819,7 @@ describe('GET /api/transactions', () => {
 
 			it('using any other sort field should fail', () => {
 				return transactionsEndpoint
-					.makeRequest({ sort: 'height:asc' }, 400)
+					.makeRequest({ sort: 'recipientId:asc' }, 400)
 					.then(res => {
 						expectSwaggerParamError(res, 'sort');
 					});
