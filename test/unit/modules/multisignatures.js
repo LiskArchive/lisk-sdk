@@ -578,14 +578,20 @@ describe('multisignatures', () => {
 				});
 
 				it('should set transaction.signature', () => {
+					return expect(data.transaction.signatures).to.eql([data.signature.signature]);
 				});
 
 				it('should set transaction.ready', () => {
-				});
-				it('should emit events with proper data', () => {
+					expect(stubs.ready).to.have.been.calledWith(data.transaction, data.sender);
+					expect(stubs.ready).to.have.been.calledOnce;
+					return expect(data.transaction.ready).to.eql('ready');
 				});
 
-				it('should call a callback without error', () => {
+				it('should emit events with proper data', () => {
+					expect(stubs.networkIoSocketsEmit).to.have.been.calledWith('multisignatures/signature/change', data.transaction);
+					expect(stubs.networkIoSocketsEmit).to.have.been.calledOnce;
+					expect(stubs.busMessage).to.have.been.calledWith('signature', data.signature, true);
+					return expect(stubs.busMessage).to.have.been.calledOnce;
 				});
 			});
 		});
