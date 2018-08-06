@@ -15,11 +15,11 @@
 'use strict';
 
 const rewire = require('rewire');
-
-const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
 const accountsFixtures = require('../../fixtures/index').accounts;
 const transactionsFixtures = require('../../fixtures/index').transactions;
 const transactionTypes = require('../../../helpers/transaction_types.js');
+
+const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
 
 describe('multisignatures', () => {
 	let __private;
@@ -559,13 +559,25 @@ describe('multisignatures', () => {
 			describe('when signature is invalid', () => {
 				it('should call a callback with Error instance', done => {
 					stubs.isValidSignature.returns(false);
-					__private.validateSignature(data.signature, data.membersPublicKeys, data.transaction, data.sender, err => {
-						expect(stubs.isValidSignature).to.have.been.calledWith(data.signature, data.membersPublicKeys, data.transaction);
-						expect(stubs.isValidSignature).to.have.been.calledOnce;
-						expect(err).to.be.an.instanceof(Error);
-						expect(err.message).to.eql('Unable to process signature, verification failed');
-						done();
-					});
+					__private.validateSignature(
+						data.signature,
+						data.membersPublicKeys,
+						data.transaction,
+						data.sender,
+						err => {
+							expect(stubs.isValidSignature).to.have.been.calledWith(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.isValidSignature).to.have.been.calledOnce;
+							expect(err).to.be.an.instanceof(Error);
+							expect(err.message).to.eql(
+								'Unable to process signature, verification failed'
+							);
+							done();
+						}
+					);
 				});
 			});
 
@@ -574,23 +586,41 @@ describe('multisignatures', () => {
 					stubs.ready = sinonSandbox.stub().returns('ready');
 					library.logic.multisignature = { ready: stubs.ready };
 					stubs.isValidSignature.returns(true);
-					__private.validateSignature(data.signature, data.membersPublicKeys, data.transaction, data.sender, done);
+					__private.validateSignature(
+						data.signature,
+						data.membersPublicKeys,
+						data.transaction,
+						data.sender,
+						done
+					);
 				});
 
 				it('should set transaction.signature', () => {
-					return expect(data.transaction.signatures).to.eql([data.signature.signature]);
+					return expect(data.transaction.signatures).to.eql([
+						data.signature.signature,
+					]);
 				});
 
 				it('should set transaction.ready', () => {
-					expect(stubs.ready).to.have.been.calledWith(data.transaction, data.sender);
+					expect(stubs.ready).to.have.been.calledWith(
+						data.transaction,
+						data.sender
+					);
 					expect(stubs.ready).to.have.been.calledOnce;
 					return expect(data.transaction.ready).to.eql('ready');
 				});
 
 				it('should emit events with proper data', () => {
-					expect(stubs.networkIoSocketsEmit).to.have.been.calledWith('multisignatures/signature/change', data.transaction);
+					expect(stubs.networkIoSocketsEmit).to.have.been.calledWith(
+						'multisignatures/signature/change',
+						data.transaction
+					);
 					expect(stubs.networkIoSocketsEmit).to.have.been.calledOnce;
-					expect(stubs.busMessage).to.have.been.calledWith('signature', data.signature, true);
+					expect(stubs.busMessage).to.have.been.calledWith(
+						'signature',
+						data.signature,
+						true
+					);
 					return expect(stubs.busMessage).to.have.been.calledOnce;
 				});
 			});
