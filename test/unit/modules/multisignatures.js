@@ -137,6 +137,7 @@ describe('multisignatures', () => {
 
 	describe('onBind', () => {
 		it('should set modules', () => {
+			return expect(get('modules')).to.deep.equal(stubs.modules);
 		});
 	});
 
