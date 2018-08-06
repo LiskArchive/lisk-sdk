@@ -545,4 +545,26 @@ describe('multisignatures', () => {
 			});
 		});
 	});
+
+	describe('__private.validateSignature', () => {
+		describe('after calling __private.isValidSignature', () => {
+			describe('when signature is invalid', () => {
+				it('should call a callback with Error instance', () => {
+				});
+			});
+			
+			describe('when signature is valid', () => {
+				it('should set transaction.signature', () => {
+				});
+
+				it('should set transaction.ready', () => {
+				});
+				it('should emit events with proper data', () => {
+				});
+
+				it('should call a callback without error', () => {
+				});
+			});
+		});
+	});
 });
