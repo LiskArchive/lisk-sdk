@@ -33,19 +33,12 @@ describe('expire transactions', () => {
 	let library;
 	let queries;
 
-	const {
-		expiryInterval,
-		multiSignatureTimeoutMultiplier,
-	} = __testContext.config.transactions;
+	const constants = global.constants;
+
+	const { expiryInterval, unconfirmedTransactionTimeOut } = constants;
 
 	// Override transaction expire interval to every 1 second
-	__testContext.config.transactions.expiryInterval = 1000;
-
-	// Override multi-signature transaction timeout multiplier to 1 second
-	__testContext.config.transactions.multiSignatureTimeoutMultiplier = 1;
-
-	const unconfirmedTransactionTimeOut =
-		global.constants.unconfirmedTransactionTimeOut;
+	global.constants.expiryInterval = 1000;
 
 	const setUnconfirmedTransactionTimeOut = timeout => {
 		global.constants.unconfirmedTransactionTimeOut = timeout;
@@ -101,12 +94,16 @@ describe('expire transactions', () => {
 
 	localCommon.beforeBlock('lisk_functional_expire_transactions', lib => {
 		library = lib;
+		const transactionPool = library.rewiredModules.transactions.__get__(
+			'__private.transactionPool'
+		);
+		// Set hourInSeconds to zero to test multi-signature transaction expiry
+		transactionPool.hourInSeconds = 0;
 		queries = new queriesHelper(lib, lib.db);
 	});
 
 	after('reset states', done => {
-		__testContext.config.transactions.expiryInterval = expiryInterval;
-		__testContext.config.transactions.multiSignatureTimeoutMultiplier = multiSignatureTimeoutMultiplier;
+		global.constants.expiryInterval = expiryInterval;
 		global.constants.unconfirmedTransactionTimeOut = unconfirmedTransactionTimeOut;
 		done();
 	});
