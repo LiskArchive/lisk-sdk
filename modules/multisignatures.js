@@ -20,8 +20,6 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const ApiError = require('../helpers/api_error');
 const errorCodes = require('../helpers/api_codes');
 
-let genesisBlock = null; // eslint-disable-line no-unused-vars
-
 // Private fields
 let modules;
 let library;
@@ -52,7 +50,6 @@ function Multisignatures(cb, scope) {
 		db: scope.db,
 		network: scope.network,
 		schema: scope.schema,
-		ed: scope.ed,
 		bus: scope.bus,
 		balancesSequence: scope.balancesSequence,
 		logic: {
@@ -67,7 +64,6 @@ function Multisignatures(cb, scope) {
 			),
 		},
 	};
-	genesisBlock = library.genesisBlock;
 	self = this;
 
 	__private.assetTypes[
@@ -412,7 +408,6 @@ Multisignatures.prototype.onBind = function(scope) {
 	modules = {
 		accounts: scope.accounts,
 		transactions: scope.transactions,
-		multisignatures: scope.multisignatures,
 	};
 
 	__private.assetTypes[transactionTypes.MULTI].bind(scope.accounts);
@@ -442,7 +437,7 @@ Multisignatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	getGroups(filters, cb) {
-		modules.multisignatures.getGroup(filters.address, (err, group) => {
+		self.getGroup(filters.address, (err, group) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -495,7 +490,7 @@ Multisignatures.prototype.shared = {
 							async.each(
 								groupAccountIds,
 								(groupId, callback) => {
-									modules.multisignatures.getGroup(groupId, (err, group) => {
+									self.getGroup(groupId, (err, group) => {
 										scope.groups.push(group);
 
 										return setImmediate(callback);
