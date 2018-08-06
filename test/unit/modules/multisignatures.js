@@ -639,6 +639,8 @@ describe('multisignatures', () => {
 				publicKey: 'publicKey1',
 				signature: 'signature1',
 			};
+
+			// Initialize stubs
 			stubs.validateSignature = sinonSandbox.stub().callsArgWith(4, null);
 
 			set('__private.validateSignature', stubs.validateSignature);
@@ -651,7 +653,26 @@ describe('multisignatures', () => {
 				const sender = {};
 				expect(stubs.validateSignature).to.have.been.calledWith(data.signature, memberPublicKeys, data.transaction, sender);
 				return expect(stubs.validateSignature).to.have.been.calledOnce;
-			})
+			});
+		});
+	});
+
+	describe('__private.processSignatureFromMultisignatureAccount', () => {
+		describe('when modules.accounts.getAccount returns an error', () => {
+			it('should call a callback with Error instance', done => {
+			});
+		});
+
+		describe('when modules.accounts.getAccount returns no error but sender = undefined', () => {
+			it('should call a callback with Error instance', done => {
+			});
+		});
+
+		describe('when modules.accounts.getAccount returns no error', () => {
+			describe('when calling __private.validateSignature', () => {
+				it('should be called with proper data', done => {
+				});
+			});
 		});
 	});
 });
