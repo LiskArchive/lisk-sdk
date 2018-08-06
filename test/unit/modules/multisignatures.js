@@ -554,9 +554,16 @@ describe('multisignatures', () => {
 			__private.isValidSignature = stubs.isValidSignature;
 			done();
 		});
+
 		describe('after calling __private.isValidSignature', () => {
 			describe('when signature is invalid', () => {
-				it('should call a callback with Error instance', () => {
+				it('should call a callback with Error instance', done => {
+					stubs.isValidSignature.returns(false);
+					__private.validateSignature(data.signature, data.membersPublicKeys, data.transaction, data.sender, err => {
+						expect(err).to.be.an.instanceof(Error);
+						expect(err.message).to.eql('Unable to process signature, verification failed');
+						done();
+					});
 				});
 			});
 
