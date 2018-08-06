@@ -37,6 +37,7 @@ describe('multisignatures', () => {
 	}
 
 	beforeEach(done => {
+		// Initialize stubs
 		stubs.logger = {
 			trace: sinonSandbox.spy(),
 			info: sinonSandbox.spy(),
@@ -75,6 +76,7 @@ describe('multisignatures', () => {
 		);
 		stubs.multisignature.resetHistory();
 
+		// Create stubbed scope
 		validScope = {
 			logger: stubs.logger,
 			db: {
@@ -92,6 +94,7 @@ describe('multisignatures', () => {
 			transactions: sinonSandbox.stub(),
 		};
 
+		// Create instance of multisignatures module
 		multisignaturesInstance = new rewiredMultisignatures(
 			(err, __multisignatures) => {
 				self = __multisignatures;
