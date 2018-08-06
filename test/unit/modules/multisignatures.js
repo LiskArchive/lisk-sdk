@@ -628,6 +628,23 @@ describe('multisignatures', () => {
 	});
 
 	describe('__private.processSignatureForMultisignatureAccountCreation', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.transaction.asset.multisignature.keysgroup = ['+publicKey1', '+publicKey2']
+			data.signature = {
+				transactionId: data.transaction.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+			stubs.validateSignature = sinonSandbox.stub().callsArgWith(4, null);
+
+			set('__private.validateSignature', stubs.validateSignature);
+			__private.processSignatureForMultisignatureAccountCreation(data.signature, data.transaction, done);
+		});
+
 		describe('when calling __private.validateSignature', () => {
 			it('should be called with proper data', () => {
 				const memberPublicKeys = ['publicKey1', 'publicKey2'];
