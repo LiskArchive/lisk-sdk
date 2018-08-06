@@ -867,7 +867,22 @@ describe('multisignatures', () => {
 
 		describe('when signature already exists in transaction', () => {
 			it('should call a callback with Error instance', done => {
-
+				data.transaction.signatures = ['signature1'];
+				self.processSignature(data.signature, err => {
+					expect(stubs.getMultisignatureTransaction).to.have.been.calledWith(
+						data.signature.transactionId
+					);
+					expect(stubs.getMultisignatureTransaction).to.have.been.calledOnce;
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, signature already exists'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, signature already exists',
+						{ signature: data.signature, transaction: data.transaction }
+					);
+					done();
+				});
 			});
 		});
 
