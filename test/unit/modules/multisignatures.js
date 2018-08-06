@@ -421,16 +421,121 @@ describe('multisignatures', () => {
 
 					describe('when second entry passes validation', () => {
 						describe('when first entry fails validation', () => {
-							it('should return true', () => {});
+							it('should return true', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.returns(false);
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.returns(true);
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[1],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledTwice;
+								return expect(result).to.be.true;
+							});
 						});
 
 						describe('when error is thrown for first entry', () => {
-							it('should return false', () => {});
+							it('should return false', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.throws('verifySignature#ERR');
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.returns(true);
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledOnce;
+								expect(library.logger.error).to.have.been.calledWithMatch(
+									'Unable to process signature, verification failed.',
+									{
+										signature: data.signature,
+										membersPublicKeys: data.membersPublicKeys,
+										transaction: data.transaction,
+									}
+								);
+								expect(library.logger.error.args[0][1].error).to.include(
+									'verifySignature#ERR'
+								);
+								return expect(result).to.be.false;
+							});
 						});
 					});
 
 					describe('when no entry passes validation', () => {
-						it('should return false', () => {});
+						it('should return false', () => {
+							stubs.verifySignature
+								.withArgs(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								)
+								.returns(false);
+							stubs.verifySignature
+								.withArgs(
+									data.transaction,
+									data.membersPublicKeys[1],
+									data.signature.signature
+								)
+								.returns(false);
+
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[0],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[1],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledTwice;
+							return expect(result).to.be.false;
+						});
 					});
 				});
 			});
