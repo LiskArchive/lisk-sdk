@@ -628,9 +628,13 @@ describe('multisignatures', () => {
 	});
 
 	describe('__private.processSignatureForMultisignatureAccountCreation', () => {
-		describe('normalize members of multisignature account from transaction', () => {
-			it('should call __private.validateSignature with proper data', () => {
-			});
+		describe('when calling __private.validateSignature', () => {
+			it('should be called with proper data', () => {
+				const memberPublicKeys = ['publicKey1', 'publicKey2'];
+				const sender = {};
+				expect(stubs.validateSignature).to.have.been.calledWith(data.signature, memberPublicKeys, data.transaction, sender);
+				return expect(stubs.validateSignature).to.have.been.calledOnce;
+			})
 		});
 	});
 });
