@@ -106,12 +106,32 @@ describe('multisignatures', () => {
 
 	describe('constructor', () => {
 		it('should assign params to library', () => {
+			expect(library.logger).to.eql(validScope.logger);
+			expect(library.db).to.eql(validScope.db);
+			expect(library.network).to.eql(validScope.network);
+			expect(library.schema).to.eql(validScope.schema);
+			expect(library.bus).to.eql(validScope.bus);
+			expect(library.balancesSequence).to.eql(validScope.balancesSequence);
+			expect(library.logic.transaction).to.eql(validScope.logic.transaction);
+			expect(library.logic.account).to.eql(validScope.logic.account);
+			return expect(library.logic.multisignature).to.eql(
+				validScope.logic.multisignature
+			);
 		});
 
 		it('should instantiate Multisignature logic with proper params', () => {
+			expect(stubs.multisignature).to.have.been.calledOnce;
+			return expect(stubs.multisignature).to.have.been.calledWith(
+				validScope.schema,
+				validScope.network,
+				validScope.logic.transaction,
+				validScope.logic.account,
+				validScope.logger
+			);
 		});
 
 		it('should call callback with result = self', () => {
+			return expect(self).to.be.deep.equal(multisignaturesInstance);
 		});
 	});
 
