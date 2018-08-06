@@ -3,15 +3,18 @@
 .eslintignore
 .eslintrc.json
 .gitignore
+.lintstagedrc.json
+.nycrc
+.prettierrc.json
 cypress.json
-Gruntfile.js
-Jenkinsfile
 index.html
+Jenkinsfile*
 
 .nyc_output/
 bin/
 browsertest/
 coverage/
 cypress/
+fixtures/
 src/
 test/
