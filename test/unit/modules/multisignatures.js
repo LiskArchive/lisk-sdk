@@ -782,4 +782,36 @@ describe('multisignatures', () => {
 			});
 		});
 	});
+
+	describe('processSignature', () => {
+		describe('when signature is not present', () => {
+			it('should call a callback with Error instance', () => {
+
+			});
+		});
+
+		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
+			it('should call a callback with Error instance', () => {
+
+			});
+		});
+
+		describe('when signature already exists in transaction', () => {
+			it('should call a callback with Error instance', () => {
+
+			});
+		});
+
+		describe('when transaction have type MULTI', () => {
+			it('should call __private.processSignatureForMultisignatureAccountCreation with proper params', () => {
+
+			});
+		});
+
+		describe('when transaction have type other than MULTI', () => {
+			it('should call __private.processSignatureFromMultisignatureAccount with proper params', () => {
+
+			});
+		});
+	});
 });
