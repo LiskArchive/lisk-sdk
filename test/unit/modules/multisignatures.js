@@ -904,7 +904,18 @@ describe('multisignatures', () => {
 
 		describe('when transaction have type other than MULTI', () => {
 			it('should call __private.processSignatureFromMultisignatureAccount with proper params', done => {
-
+				data.transaction.type = transactionTypes.SEND;
+				self.processSignature(data.signature, err => {
+					expect(
+						stubs.processSignatureFromMultisignatureAccount
+					).to.have.been.calledWith(data.signature, data.transaction);
+					expect(stubs.processSignatureFromMultisignatureAccount).to.have.been
+						.calledOnce;
+					expect(stubs.processSignatureForMultisignatureAccountCreation).to.have
+						.not.been.called;
+					expect(err).to.not.exist;
+					done();
+				});
 			});
 		});
 	});
