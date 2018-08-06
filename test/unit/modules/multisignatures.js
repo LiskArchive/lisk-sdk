@@ -633,7 +633,10 @@ describe('multisignatures', () => {
 			data.transaction = transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
 			});
-			data.transaction.asset.multisignature.keysgroup = ['+publicKey1', '+publicKey2']
+			data.transaction.asset.multisignature.keysgroup = [
+				'+publicKey1',
+				'+publicKey2',
+			];
 			data.signature = {
 				transactionId: data.transaction.id,
 				publicKey: 'publicKey1',
@@ -644,14 +647,23 @@ describe('multisignatures', () => {
 			stubs.validateSignature = sinonSandbox.stub().callsArgWith(4, null);
 
 			set('__private.validateSignature', stubs.validateSignature);
-			__private.processSignatureForMultisignatureAccountCreation(data.signature, data.transaction, done);
+			__private.processSignatureForMultisignatureAccountCreation(
+				data.signature,
+				data.transaction,
+				done
+			);
 		});
 
 		describe('when calling __private.validateSignature', () => {
 			it('should be called with proper data', () => {
 				const memberPublicKeys = ['publicKey1', 'publicKey2'];
 				const sender = {};
-				expect(stubs.validateSignature).to.have.been.calledWith(data.signature, memberPublicKeys, data.transaction, sender);
+				expect(stubs.validateSignature).to.have.been.calledWith(
+					data.signature,
+					memberPublicKeys,
+					data.transaction,
+					sender
+				);
 				return expect(stubs.validateSignature).to.have.been.calledOnce;
 			});
 		});
@@ -685,23 +697,29 @@ describe('multisignatures', () => {
 			it('should call a callback with Error instance', done => {
 				stubs.getAccount.callsArgWith(1, 'getAccount#ERR');
 
-				__private.processSignatureFromMultisignatureAccount(data.signature, data.transaction, err => {
-					expect(stubs.getAccount).to.have.been.calledWith({ address: data.transaction.senderId });
-					expect(stubs.getAccount).to.have.been.calledOnce;
-					expect(err).to.be.an.instanceof(Error);
-					expect(err.message).to.eql(
-						'Unable to process signature, account not found'
-					);
-					expect(library.logger.error).to.have.been.calledWith(
-						'Unable to process signature, account not found',
-						{
-							signature: data.signature,
-							transaction: data.transaction,
-							error: 'getAccount#ERR',
-						}
-					);
-					done();
-				});
+				__private.processSignatureFromMultisignatureAccount(
+					data.signature,
+					data.transaction,
+					err => {
+						expect(stubs.getAccount).to.have.been.calledWith({
+							address: data.transaction.senderId,
+						});
+						expect(stubs.getAccount).to.have.been.calledOnce;
+						expect(err).to.be.an.instanceof(Error);
+						expect(err.message).to.eql(
+							'Unable to process signature, account not found'
+						);
+						expect(library.logger.error).to.have.been.calledWith(
+							'Unable to process signature, account not found',
+							{
+								signature: data.signature,
+								transaction: data.transaction,
+								error: 'getAccount#ERR',
+							}
+						);
+						done();
+					}
+				);
 			});
 		});
 
@@ -710,23 +728,29 @@ describe('multisignatures', () => {
 				const sender = undefined;
 				stubs.getAccount.callsArgWith(1, null, sender);
 
-				__private.processSignatureFromMultisignatureAccount(data.signature, data.transaction, err => {
-					expect(stubs.getAccount).to.have.been.calledWith({ address: data.transaction.senderId });
-					expect(stubs.getAccount).to.have.been.calledOnce;
-					expect(err).to.be.an.instanceof(Error);
-					expect(err.message).to.eql(
-						'Unable to process signature, account not found'
-					);
-					expect(library.logger.error).to.have.been.calledWith(
-						'Unable to process signature, account not found',
-						{
-							signature: data.signature,
-							transaction: data.transaction,
-							error: null,
-						}
-					);
-					done();
-				});
+				__private.processSignatureFromMultisignatureAccount(
+					data.signature,
+					data.transaction,
+					err => {
+						expect(stubs.getAccount).to.have.been.calledWith({
+							address: data.transaction.senderId,
+						});
+						expect(stubs.getAccount).to.have.been.calledOnce;
+						expect(err).to.be.an.instanceof(Error);
+						expect(err.message).to.eql(
+							'Unable to process signature, account not found'
+						);
+						expect(library.logger.error).to.have.been.calledWith(
+							'Unable to process signature, account not found',
+							{
+								signature: data.signature,
+								transaction: data.transaction,
+								error: null,
+							}
+						);
+						done();
+					}
+				);
 			});
 		});
 
@@ -735,14 +759,25 @@ describe('multisignatures', () => {
 				it('should be called with proper data', done => {
 					stubs.getAccount.callsArgWith(1, null, data.sender);
 
-					__private.processSignatureFromMultisignatureAccount(data.signature, data.transaction, err => {
-						expect(stubs.getAccount).to.have.been.calledWith({ address: data.transaction.senderId });
-						expect(stubs.getAccount).to.have.been.calledOnce;
-						expect(err).to.not.exist;
-						expect(stubs.validateSignature).to.have.been.calledWith(data.signature, data.sender.multisignatures, data.transaction, data.sender);
-						expect(stubs.validateSignature).to.have.been.calledOnce;
-						done();
-					});
+					__private.processSignatureFromMultisignatureAccount(
+						data.signature,
+						data.transaction,
+						err => {
+							expect(stubs.getAccount).to.have.been.calledWith({
+								address: data.transaction.senderId,
+							});
+							expect(stubs.getAccount).to.have.been.calledOnce;
+							expect(err).to.not.exist;
+							expect(stubs.validateSignature).to.have.been.calledWith(
+								data.signature,
+								data.sender.multisignatures,
+								data.transaction,
+								data.sender
+							);
+							expect(stubs.validateSignature).to.have.been.calledOnce;
+							done();
+						}
+					);
 				});
 			});
 		});
