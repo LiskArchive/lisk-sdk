@@ -191,7 +191,7 @@ describe('multisignatures', () => {
 			});
 
 			describe('when publicKey is present as member of multisignature account in transaction', () => {
-				describe('library.logic.transaction.verifySignature', () => {
+				describe('after calling library.logic.transaction.verifySignature', () => {
 					describe('when validation is successfull', () => {
 						it('should return true', () => {
 							stubs.verifySignature.returns(true);
@@ -268,7 +268,7 @@ describe('multisignatures', () => {
 				done();
 			});
 
-			describe('library.logic.transaction.verifySignature', () => {
+			describe('after calling library.logic.transaction.verifySignature', () => {
 				describe('when membersPublicKeys is empty', () => {
 					it('should return false', () => {
 						data.membersPublicKeys = [];
@@ -552,7 +552,7 @@ describe('multisignatures', () => {
 				it('should call a callback with Error instance', () => {
 				});
 			});
-			
+
 			describe('when signature is valid', () => {
 				it('should set transaction.signature', () => {
 				});
