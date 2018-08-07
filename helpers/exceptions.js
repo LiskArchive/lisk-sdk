@@ -67,5 +67,7 @@ module.exports = {
 	],
 	transactionFee: [],
 	// <version>: { start: <start_height>, end: <end_height> }
-	blockVersions: {},
+	blockVersions: {
+		0: { start: 1, end: 5932033 },
+	},
 };
