@@ -61,7 +61,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		program.parse(process.argv);
 	}
 
-	const network = program.network || process.env.LISK_NETWORK || 'devnet';
+	const network = program.network || getenv(process.env.LISK_NETWORK, 'devnet');
 	// Define lisk network env variable to be used by child processes load config files
 	process.env.LISK_NETWORK = network;
 
@@ -75,6 +75,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 	const defaultConfig = loadJSONFile('config/default/config.json');
 	const networkConfig = loadJSONFile(`config/${network}/config.json`);
+
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {
 		customConfig = loadJSONFile(program.config || process.env.LISK_CONFIG_FILE);
@@ -90,22 +91,22 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	};
 
 	let commandLineConfig = {
-		wsPort: +program.port || process.env.LISK_WS_PORT || null,
-		httpPort: +program.httpPort || process.env.LISK_HTTP_PORT || null,
-		address: program.address || process.env.LISK_ADDRESS || null,
-		fileLogLevel: program.log || process.env.LISK_FILE_LOG_LEVEL || null,
-		consoleLogLevel: process.env.LISK_CONSOLE_LOG_LEVEL || null,
-		cacheEnabled: process.env.LISK_CACHE_ENABLED === 'true',
+		wsPort: +program.port || getenv(process.env.LISK_WS_PORT),
+		httpPort: +program.httpPort || getenv(process.env.LISK_HTTP_PORT),
+		address: program.address || getenv(process.env.LISK_ADDRESS),
+		fileLogLevel: program.log || getenv(process.env.LISK_FILE_LOG_LEVEL),
+		consoleLogLevel: getenv(process.env.LISK_CONSOLE_LOG_LEVEL),
+		cacheEnabled: getenv(process.env.LISK_CACHE_ENABLED, null, true),
 		db: {
-			database: program.database || process.env.LISK_DB_NAME || null,
-			host: process.env.LISK_DB_HOST || null,
-			port: process.env.LISK_DB_PORT || null,
-			user: process.env.LISK_DB_USER || null,
-			password: process.env.LISK_DB_PASSWORD || null,
+			database: program.database || getenv(process.env.LISK_DB_NAME),
+			host: getenv(process.env.LISK_DB_HOST),
+			port: getenv(process.env.LISK_DB_PORT),
+			user: getenv(process.env.LISK_DB_USER),
+			password: getenv(process.env.LISK_DB_PASSWORD),
 		},
 		api: {
 			access: {
-				public: process.env.LISK_API_PUBLIC === 'true',
+				public: getenv(process.env.LISK_API_PUBLIC, null, true),
 				whiteList: extractWhiteListIPs(process.env.LISK_API_WHITELIST),
 			},
 		},
@@ -118,19 +119,20 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		loading: { snapshotRound: program.snapshot },
 		peers: {
 			list: extractPeersList(
-				program.peers || process.env.LISK_PEERS,
+				program.peers || getenv(process.env.LISK_PEERS),
 				+program.port ||
-					process.env.LISK_WS_PORT ||
+					getenv(process.env.LISK_WS_PORT) ||
 					customConfig.wsPort ||
 					networkConfig.wsPort ||
 					defaultConfig.wsPort
 			),
 		},
-		coverage: process.env.NODE_ENV === 'test',
+		coverage: getenv(process.env.NODE_ENV) === 'test',
 	};
 	commandLineConfig = cleanDeep(commandLineConfig);
 
 	const appConfig = _.mergeWith(
+		{},
 		defaultConfig,
 		networkConfig,
 		customConfig,
@@ -161,6 +163,14 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		return appConfig;
 	}
 }
+
+const getenv = (variable, defaultValue = null, isBoolean = false) => {
+	if (isBoolean) {
+		return variable ? variable === 'true' : defaultValue;
+	}
+
+	return variable || defaultValue;
+};
 
 function loadJSONFile(filePath) {
 	try {
