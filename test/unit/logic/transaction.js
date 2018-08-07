@@ -737,14 +737,25 @@ describe('transaction', () => {
 		});
 
 		it('should return error when transaction amount is invalid', done => {
-			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount + 10;
+			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
+			var transaction = {
+				type: 0,
+				amount: '1000000000000000000000000000',
+				senderId: '16313739661670634666L',
+				fee: 10000000,
+				recipientId: '16313739661670634666L',
+				senderPublicKey:
+					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				timestamp: 69548399,
+				asset: {},
+				signature:
+					'd6a9824d7b88bdde4426f3496881e54d42b6b1d1f06e2d11e46b3f1901d2b2b826a992104e618ec62ba01deb1e3b31820eb77bd26aa6d4a972e0bbd2503db60c',
+				id: '16729891751827725251',
+			};
 
-			createAndProcess(transactionDataClone, sender, (err, transaction) => {
-				transactionLogic.verify(transaction, sender, null, null, err => {
-					expect(err).to.include('Invalid transaction amount');
-					done();
-				});
+			transactionLogic.verify(transaction, sender, null, null, err => {
+				expect(err).to.include('Invalid transaction amount');
+				done();
 			});
 		});
 
