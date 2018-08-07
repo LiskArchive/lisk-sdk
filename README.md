@@ -22,7 +22,7 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 * Create a new user
 
-  * Ubuntu/ Debian:
+  * Ubuntu 14|16 / Debian:
 
   ```
   sudo adduser lisk
@@ -36,7 +36,7 @@ The next section details the prerequisites to install Lisk Core from source usin
 
     ```
     sudo apt-get update
-    sudo apt-get install -y python build-essential curl automake autoconf libtool ntp
+    sudo apt-get install -y python build-essential curl automake autoconf libtool
     ```
 
   * MacOS 10.12-10.13 (Sierra/High Sierra):
@@ -101,12 +101,15 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### PostgreSQL (version 9.6):
 
-### Ubuntu
+* Ubuntu 14|16 / Debian:
 
-Firstly, download and run the postgres install script:
+Firstly, download and install postgreSQL:
 
 ```
-curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $( lsb_release -cs )-pgdg main" |sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+sudo apt-get install --assume-yes postgresql-9.6 postgresql-contrib-9.6 libpq-dev
 ```
 
 After installation, you should see the postgres database cluster, by running
@@ -128,15 +131,13 @@ Create a new database user called `lisk` and grant it rights to create databases
   sudo -u postgres createuser --createdb lisk
 ```
 
-Switch to the lisk user and create the databases:
+Create the databases for Testnet and Mainnet:
 
 ```
-  su - lisk
-  createdb lisk_test
-  createdb lisk_main
+  createdb -O lisk lisk_test
+  createdb -O lisk lisk_main
 ```
 
-For the following steps, logout from the lisk user again with `CTRL+D`, and continue with your user with sudo rights.
 Change `'password'` to a secure password of your choice.
 
 ```
@@ -144,11 +145,11 @@ sudo -u postgres psql -d lisk_test -c "alter user lisk with password 'password';
 sudo -u postgres psql -d lisk_main -c "alter user lisk with password 'password';"
 ```
 
-### MacOS
+* MacOS 10.12-10.13 (Sierra/High Sierra):
 
 ```
 brew install postgresql@9.6
-initdb /usr/local/var/postgres -E utf8 --locale=en_US.UTF-8
+initdb /usr/local/var/postgres --encoding utf8 --locale=en_US.UTF-8
 brew services start postgresql@9.6
 createdb lisk_test
 createdb lisk_main
