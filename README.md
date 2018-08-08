@@ -308,17 +308,18 @@ npm test -- mocha:<tag>:<suite>:[section]
 ```
 
 * Where **tag** can be one of `default | unstable | slow | extensive` (required)
-* Where **suite** can be one of `unit | functional | integration` (required)
+* Where **suite** can be one of `unit | integration | functional | network` (required)
 * Where **section** depending of the chosen suite can be:
-  * when `functional` --> `get | post | ws | system` (optional)
+  * when `functional` --> `get | post | ws` (optional)
 
 Examples:
 
 ```
-npm test -- mocha:default:functional:get
 npm test -- mocha:slow:unit
-npm test -- mocha:unstable:functional:ws
 npm test -- mocha:extensive:integration
+npm test -- mocha:default:functional
+npm test -- mocha:unstable:functional:get
+npm test -- mocha:untagged:network
 ```
 
 Individual test files can be run using the following command:
