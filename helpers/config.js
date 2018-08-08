@@ -91,8 +91,9 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	};
 
 	let commandLineConfig = {
-		wsPort: +program.port || getenv(process.env.LISK_WS_PORT),
-		httpPort: +program.httpPort || getenv(process.env.LISK_HTTP_PORT),
+		wsPort: +program.port || parseInt(getenv(process.env.LISK_WS_PORT)) || null,
+		httpPort:
+			+program.httpPort || parseInt(getenv(process.env.LISK_HTTP_PORT)) || null,
 		address: program.address || getenv(process.env.LISK_ADDRESS),
 		fileLogLevel: program.log || getenv(process.env.LISK_FILE_LOG_LEVEL),
 		consoleLogLevel: getenv(process.env.LISK_CONSOLE_LOG_LEVEL),
@@ -100,7 +101,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		db: {
 			database: program.database || getenv(process.env.LISK_DB_NAME),
 			host: getenv(process.env.LISK_DB_HOST),
-			port: getenv(process.env.LISK_DB_PORT),
+			port: parseInt(getenv(process.env.LISK_DB_PORT)) || null,
 			user: getenv(process.env.LISK_DB_USER),
 			password: getenv(process.env.LISK_DB_PASSWORD),
 		},
@@ -121,7 +122,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			list: extractPeersList(
 				program.peers || getenv(process.env.LISK_PEERS),
 				+program.port ||
-					getenv(process.env.LISK_WS_PORT) ||
+					parseInt(getenv(process.env.LISK_WS_PORT)) ||
 					customConfig.wsPort ||
 					networkConfig.wsPort ||
 					defaultConfig.wsPort
