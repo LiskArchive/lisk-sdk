@@ -29,7 +29,9 @@ const createAsset = data => {
 
 const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 	if (!validateAmount(amount)) {
-		throw new Error('Please enter a valid amount!');
+		throw new Error(
+			'Please provide an amount. Expected a valid number in string format!',
+		);
 	}
 
 	if (recipientId && recipientPublicKey) {
@@ -55,8 +57,9 @@ const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 	}
 };
 
-const transfer = ({ amount, recipientId, recipientPublicKey, data }) => {
-	validateInputs({ amount, recipientId, recipientPublicKey, data });
+const transfer = inputs => {
+	validateInputs(inputs);
+	const { amount, recipientId, recipientPublicKey, data } = inputs;
 	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
 		recipientId,
 		recipientPublicKey,

@@ -25,7 +25,8 @@ const validateInputs = ({ votes, unvotes }) => {
 	validatePublicKeys([...votes, ...unvotes]);
 };
 
-const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
+const castVotes = inputs => {
+	const { passphrase, votes = [], unvotes = [] } = inputs;
 	validateInputs({ votes, unvotes });
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address

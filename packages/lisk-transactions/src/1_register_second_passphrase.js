@@ -22,8 +22,9 @@ const validateInputs = ({ secondPassphrase }) => {
 	}
 };
 
-const registerSecondPassphrase = ({ secondPassphrase }) => {
-	validateInputs({ secondPassphrase });
+const registerSecondPassphrase = inputs => {
+	validateInputs(inputs);
+	const { secondPassphrase } = inputs;
 	const { publicKey } = cryptography.getKeys(secondPassphrase);
 
 	return {

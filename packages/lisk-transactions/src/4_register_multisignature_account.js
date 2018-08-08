@@ -12,7 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MULTISIGNATURE_FEE } from './constants';
+import {
+	MULTISIGNATURE_FEE,
+	MULTISIGNATURE_MAX_LIFETIME,
+	MULTISIGNATURE_MIN_LIFETIME,
+	MULTISIGNATURE_MAX_SIGNATURES,
+	MULTISIGNATURE_MIN_SIGNATURES,
+} from './constants';
 import {
 	prependPlusToPublicKeys,
 	validateKeysgroup,
@@ -23,22 +29,30 @@ import {
 const validateInputs = ({ keysgroup, lifetime, minimum }) => {
 	validateKeysgroup(keysgroup);
 
-	if (!isValidInteger(lifetime) || lifetime < 1 || lifetime > 72) {
+	if (
+		!isValidInteger(lifetime) ||
+		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
+		lifetime > MULTISIGNATURE_MAX_LIFETIME
+	) {
 		throw new Error(
-			'Please provide a valid lifetime value. Expected integer between 1 and 72.',
+			`Please provide a valid lifetime value. Expected integer between ${MULTISIGNATURE_MIN_LIFETIME} and ${MULTISIGNATURE_MAX_LIFETIME}.`,
 		);
 	}
 
-	if (!isValidInteger(minimum) || minimum < 1 || minimum > 15) {
+	if (
+		!isValidInteger(minimum) ||
+		minimum < MULTISIGNATURE_MIN_SIGNATURES ||
+		minimum > MULTISIGNATURE_MAX_SIGNATURES
+	) {
 		throw new Error(
-			'Please provide a valid minimum value. Expected integer between 1 and 15.',
+			`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_SIGNATURES} and ${MULTISIGNATURE_MAX_SIGNATURES}.`,
 		);
 	}
 };
 
-const registerMultisignatureAccount = ({ keysgroup, lifetime, minimum }) => {
-	validateInputs({ keysgroup, lifetime, minimum });
-
+const registerMultisignatureAccount = inputs => {
+	validateInputs(inputs);
+	const { keysgroup, lifetime, minimum } = inputs;
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 	const keygroupFees = plusPrependedKeysgroup.length + 1;
 

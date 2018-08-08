@@ -37,8 +37,9 @@ const validateInputs = ({ options }) => {
 	}
 };
 
-const createDapp = ({ options }) => {
-	validateInputs({ options });
+const createDapp = inputs => {
+	validateInputs(inputs);
+	const { options } = inputs;
 
 	return {
 		type: 5,

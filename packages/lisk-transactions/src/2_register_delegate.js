@@ -27,8 +27,9 @@ const validateInputs = ({ username }) => {
 	}
 };
 
-const registerDelegate = ({ username }) => {
-	validateInputs({ username });
+const registerDelegate = inputs => {
+	validateInputs(inputs);
+	const { username } = inputs;
 
 	return {
 		type: 2,
