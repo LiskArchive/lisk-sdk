@@ -36,6 +36,15 @@
 			"public": {{getv "/lisk/api/access/public" "false"}},
 			{{$whiteListEntries := getvs "/lisk/api/access/whitelist/*"}}"whiteList": [{{range $index, $element := $whiteListEntries}}{{if $index}}, {{end}}"{{$element}}"{{end}}]
 		},
+		"ssl": {
+			"enabled": {{getv "/lisk/api/ssl/enabled" "false"}},
+			"options": {
+				"port": {{getv "/lisk/api/ssl/options/port" "443"}},
+				"address": "{{getv "/lisk/api/ssl/options/address" "0.0.0.0"}}",
+				"key": "{{getv "/lisk/api/ssl/options/key" "./ssl/lisk.key"}}",
+				"cert": "{{getv "/lisk/api/ssl/options/cert" "./ssl/lisk.crt"}}"
+			}
+		},
 		"options": {
 			"limits": {
 				"max": {{getv "/lisk/api/options/limits/max" "0"}},
@@ -129,15 +138,6 @@
 	},
 	"loading": {
 		"loadPerIteration": {{getv "/lisk/loading/loadperiteration" "5000"}}
-	},
-	"ssl": {
-		"enabled": {{getv "/lisk/ssl/enabled" "false"}},
-		"options": {
-			"port": {{getv "/lisk/ssl/options/port" "443"}},
-			"address": "{{getv "/lisk/ssl/options/address" "0.0.0.0"}}",
-			"key": "{{getv "/lisk/ssl/options/key" "./ssl/lisk.key"}}",
-			"cert": "{{getv "/lisk/ssl/options/cert" "./ssl/lisk.crt"}}"
-		}
 	},
 	"nethash": "{{getv "/lisk/nethash" "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"}}"
 }
