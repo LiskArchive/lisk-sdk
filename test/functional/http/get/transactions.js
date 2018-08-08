@@ -99,6 +99,24 @@ describe('GET /api/transactions', () => {
 			'89a5d3abe53815d2cc36aaf04d242735bb8eaa767c8e8d9a31c049968189b500e87b61188a5ec80a1c191aa1bcf6bb7980f726c837fa3d3d753673ce7ab3060e',
 		id: '9616264103046411489',
 	};
+	var transactionType7 = {
+		type: 7,
+		amount: '0',
+		fee: '10000000',
+		recipientId: '10881167371402274308L',
+		senderPublicKey:
+			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		timestamp: 69520900,
+		asset: {
+			outTransfer: {
+				dappId: '3173899516019557774',
+				transactionId: '3173899516019557774',
+			},
+		},
+		signature:
+			'8249786301f5cc7184b0681563dc5c5856568ff967bec22b778f773b0a86532b13d1ede9234f581e62388ada2d1e1366adaa03151a9e6508fb7c3a3e59425109',
+		id: '18307756018345914129',
+	};
 	// Crediting accounts'
 	before(() => {
 		var promises = [];
@@ -915,8 +933,8 @@ describe('GET /api/transactions', () => {
 		});
 		/* eslint-disable mocha/no-skipped-tests */
 		/**
-		 * This test will fail because type 6 transactions got disabled in Lisk Core v1.0
-		 * To make it pass locally, change the value for disableDappTransfer
+		 * This tests will fail because type 6 and type 7 transactions got disabled in Lisk Core v1.0
+		 * You can make it pass locally, by changing the value for disableDappTransfer
 		 * in config/default/exceptions to a value bigger than 0
 		 * */
 		describe.skip('assets', () => {
@@ -945,6 +963,15 @@ describe('GET /api/transactions', () => {
 							'Transaction(s) accepted'
 						);
 						return waitFor.confirmations([transactionType6.id]); // wait for confirmation
+					})
+					.then(() => {
+						return sendTransactionPromise(transactionType7); // send type 7 transaction
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						return waitFor.confirmations([transactionType7.id]); // wait for confirmation
 					});
 			});
 			it('assets for type 6 transactions should contain key dappId', () => {
@@ -955,6 +982,20 @@ describe('GET /api/transactions', () => {
 						res.body.data.map(transaction => {
 							expect(transaction.asset).to.have.key('inTransfer');
 							expect(transaction.asset.inTransfer).to.have.key('dappId');
+						});
+					});
+			});
+			it('assets for type 7 transactions should contain key dappId and transactionId', () => {
+				return transactionsEndpoint
+					.makeRequest({ type: transactionTypes.OUT_TRANSFER }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							expect(transaction.asset).to.have.key('outTransfer');
+							expect(transaction.asset.outTransfer).to.have.all.keys(
+								'dappId',
+								'transactionId'
+							);
 						});
 					});
 			});
