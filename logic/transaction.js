@@ -691,7 +691,7 @@ class Transaction {
 
 		if (checkExists) {
 			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
-				if (checkConfirmedErr || !isConfirmed) {
+				if (checkConfirmedErr || isConfirmed) {
 					return setImmediate(
 						cb,
 						`Transaction is already confirmed: ${transaction.id}`
