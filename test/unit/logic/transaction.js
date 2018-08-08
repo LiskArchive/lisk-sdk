@@ -376,20 +376,24 @@ describe('transaction', () => {
 			});
 
 			transactionLogic.checkConfirmed(transaction, err => {
-				expect(err).to.not.exist;
+				expect(err).to.be.a('null');
 				done();
 			});
 		});
 
-		it('should return error for transaction which is already confirmed', done => {
+		it('should return true for transaction which is already confirmed', done => {
 			var dummyConfirmedTransaction = {
 				id: '1465651642158264047',
 			};
 
-			transactionLogic.checkConfirmed(dummyConfirmedTransaction, err => {
-				expect(err).to.include('Transaction is already confirmed');
-				done();
-			});
+			transactionLogic.checkConfirmed(
+				dummyConfirmedTransaction,
+				(err, isConfirmed) => {
+					expect(err).to.be.a('null');
+					expect(isConfirmed).to.be.true;
+					done();
+				}
+			);
 		});
 	});
 
