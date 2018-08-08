@@ -830,7 +830,7 @@ __private.snapshotFinished = err => {
 	} else {
 		library.logger.info('Snapshot creation finished');
 	}
-	process.emit('cleanup');
+	process.emit('cleanup', err);
 };
 
 /**
