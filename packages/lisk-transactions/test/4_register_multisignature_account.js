@@ -312,8 +312,8 @@ describe('#registerMultisignatureAccount transaction', () => {
 				return Promise.resolve();
 			});
 
-			describe('shoud throw error', () => {
-				describe('when #lifetime', () => {
+			describe('validation errors:', () => {
+				describe('when lifetime', () => {
 					const lifetimeErrorMessage =
 						'Please provide a valid lifetime value. Expected integer between 1 and 72.';
 
@@ -363,7 +363,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				});
 			});
 
-			describe('when #minimum', () => {
+			describe('when minimum', () => {
 				const minimumErrorMessage =
 					'Please provide a valid minimum value. Expected integer between 1 and 15.';
 

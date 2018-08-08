@@ -190,7 +190,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			it('should not throw error when secondPassphrase is empty string', () => {
 				return expect(
 					registerSecondPassphrase.bind(null, { secondPassphrase: '' }),
-				).to.not.throw('Please provide a secondPassphrase. Expected string.');
+				).to.not.throw();
 			});
 
 			it('should have the type', () => {

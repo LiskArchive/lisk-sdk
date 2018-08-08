@@ -25,7 +25,6 @@ describe('#transfer transaction', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientId = '18160565574430594874L';
-	// const recipientPublicKey = '5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientPublicKeyThatDoesNotMatchRecipientId =
 		'12345a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
@@ -231,7 +230,7 @@ describe('#transfer transaction', () => {
 				).to.throw('Please enter a valid amount!');
 			});
 
-			it('should throw error when recipientId & non-matching publicKey provided', () => {
+			it('should throw error when recipientId & non-matching recipientPublicKey provided', () => {
 				return expect(
 					transfer.bind(null, {
 						recipientId,
