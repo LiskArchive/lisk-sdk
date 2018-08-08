@@ -21,7 +21,7 @@ const network = require('./network');
 const devConfig = __testContext.config;
 
 module.exports = {
-	generateLiskConfigs(BROADCASTING = true, TOTAL_PEERS = 10) {
+	generateLiskConfigs(TOTAL_PEERS = 10) {
 		utils.http.setVersion('1.0.0');
 
 		// Generate config objects
@@ -31,7 +31,6 @@ module.exports = {
 			devConfigCopy.wsPort = 5000 + index;
 			devConfigCopy.httpPort = 4000 + index;
 			devConfigCopy.logFileName = `../logs/lisk_node_${index}.log`;
-			devConfigCopy.broadcasts.active = BROADCASTING;
 			return devConfigCopy;
 		});
 
@@ -53,27 +52,14 @@ module.exports = {
 		);
 		const delegates = _.clone(devConfig.forging.delegates);
 
-		if (!BROADCASTING) {
-			configurations.forEach(configuration => {
-				if (configuration.httpPort === 4000) {
-					// Set forging force to true
-					// When sync only enabled to forge a block
-					configuration.forging.force = true;
-					configuration.forging.delegates = delegates;
-				} else {
-					configuration.forging.force = false;
-					configuration.forging.delegates = [];
-				}
-			});
-		} else {
-			configurations.forEach((configuration, index) => {
-				configuration.forging.force = false;
-				configuration.forging.delegates = delegates.slice(
-					index * delegatesMaxLength,
-					(index + 1) * delegatesMaxLength
-				);
-			});
-		}
+		configurations.forEach((configuration, index) => {
+			configuration.forging.force = false;
+			configuration.forging.delegates = delegates.slice(
+				index * delegatesMaxLength,
+				(index + 1) * delegatesMaxLength
+			);
+		});
+
 		return configurations;
 	},
 	generatePM2json(configurations, cb) {
