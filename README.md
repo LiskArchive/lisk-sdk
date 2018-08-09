@@ -312,6 +312,61 @@ Individual test files can be run using the following command:
 npm run mocha -- path/to/test.js
 ```
 
+## Utility scripts
+
+There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
+
+#### Generate Config
+
+This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
+
+```
+Usage: generate_config [options] <network>
+
+Options:
+
+  -h, --help     output usage information
+  -V, --version  output the version number
+```
+
+Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any other network folder available under `./config` directory.
+
+#### Update Config
+
+This script keep track of all changes introduced in Lisk over time in different versions. If you have one config file in any of specific version and you want to make it compatible with other version of the Lisk, this scripts will do it for you.
+
+```
+Usage: update_config [options] <input_file> <from_version> [to_version]
+
+Options:
+
+-h, --help     output usage information
+-V, --version  output the version number
+--output       Output file path
+--diff         Show only difference from default config file.
+```
+
+As you can see from the usage guide, `input_file` and `from_version` are required. So if you have a config file, you must be aware to which version of Lisk this belongs. You can skip the `to_version` argument and it will apply changes up-to latest version of Lisk. If you don't specify `--output` path the final config json will be printed to console. Option `--diff` is useful if you just want to know what are the changes in your version compared to default config located in `./config/default/config.json`.
+
+#### Console
+
+This script is really useful in development. It will initialize the components of Lisk and load these into ndoejs REPL.
+
+```
+node scripts/console.js
+
+initApplication: Application initialization inside test environment started...
+initApplication: Target database - lisk_dev
+initApplication: Rewired modules available
+initApplication: Fake onBlockchainReady event called
+initApplication: Loading delegates...
+initApplication: Delegates loaded from config file - 101
+initApplication: Done
+lisk-core [lisk_dev] >
+```
+
+Once you get the prompt, you can use `modules`, `helpers`, `logic`, `db` and `config` objects and play with these in REPL.
+
 ## Contributors
 
 https://github.com/LiskHQ/lisk/graphs/contributors
