@@ -104,9 +104,6 @@ if (typeof gc !== 'undefined') {
  */
 var appConfig = AppConfig(require('./package.json'));
 
-// Define lisk network env variable to be used by child processes load config files
-process.env.LISK_NETWORK = appConfig.network;
-
 // Global objects to be utilized under modules/helpers where scope is not accessible
 global.constants = appConfig.constants;
 global.exceptions = appConfig.exceptions;
@@ -181,7 +178,7 @@ try {
 // Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.emit('cleanup', err);
 });
 
 logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
@@ -750,15 +747,22 @@ d.run(() => {
 		},
 		(err, scope) => {
 			// Receives a 'cleanup' signal and cleans all modules
-			process.once('cleanup', error => {
+			process.once('cleanup', (error, code) => {
 				if (error) {
 					logger.fatal(error.toString());
+					if (code === undefined) {
+						code = 1;
+					}
+				} else if (code === undefined || code === null) {
+					code = 0;
 				}
 				logger.info('Cleaning up...');
 				if (scope.socketCluster) {
 					scope.socketCluster.removeAllListeners('fail');
 					scope.socketCluster.destroy();
 				}
+				// Run cleanup operation on each module before shutting down the node;
+				// this includes operations like snapshotting database tables.
 				async.eachSeries(
 					modules,
 					(module, cb) => {
@@ -774,7 +778,7 @@ d.run(() => {
 						} else {
 							logger.info('Cleaned up successfully');
 						}
-						process.exit(1);
+						process.exit(code);
 					}
 				);
 			});
@@ -783,8 +787,8 @@ d.run(() => {
 				process.emit('cleanup');
 			});
 
-			process.once('exit', () => {
-				process.emit('cleanup');
+			process.once('exit', code => {
+				process.emit('cleanup', null, code);
 			});
 
 			process.once('SIGINT', () => {
@@ -793,7 +797,7 @@ d.run(() => {
 
 			if (err) {
 				logger.fatal(err);
-				process.emit('cleanup');
+				process.emit('cleanup', err);
 			} else {
 				scope.logger.info('Modules ready and launched');
 			}
@@ -801,8 +805,21 @@ d.run(() => {
 	);
 });
 
+// TODO: This should be the only place in the master process where
+// 'uncaughtException' is handled. Right now, one of our dependencies (js-nacl;
+// which is a dependency of lisk-elements) adds its own handler which interferes
+// with our own process exit logic.
 process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
-	process.emit('cleanup');
+	process.emit('cleanup', err);
+});
+
+process.on('unhandledRejection', err => {
+	// Handle unhandledRejection safely
+	logger.fatal('System promise rejection', {
+		message: err.message,
+		stack: err.stack,
+	});
+	process.emit('cleanup', err);
 });

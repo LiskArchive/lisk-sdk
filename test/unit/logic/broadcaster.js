@@ -203,10 +203,6 @@ describe('Broadcaster', () => {
 				expect(peersStub.listRandomConnected.args[0][1]).to.not.be.a(
 					'function'
 				);
-				expect(loggerStub.info.calledOnce).to.be.true;
-				expect(loggerStub.info.args[0][0]).to.eql(
-					'Broadhash consensus now 101 %'
-				);
 				done();
 			});
 		});

@@ -815,7 +815,7 @@ describe('delegate', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		var checkConfirmedStub;
 
 		describe('when username was not registered before', () => {
@@ -841,12 +841,17 @@ describe('delegate', () => {
 			});
 
 			it('should call accounts.setAccountAndGet module with correct parameter', done => {
-				delegate.apply(validTransaction, dummyBlock, validSender, () => {
-					expect(
-						accountsMock.setAccountAndGet.calledWith(validConfirmedAccount)
-					).to.be.true;
-					done();
-				});
+				delegate.applyConfirmed(
+					validTransaction,
+					dummyBlock,
+					validSender,
+					() => {
+						expect(
+							accountsMock.setAccountAndGet.calledWith(validConfirmedAccount)
+						).to.be.true;
+						done();
+					}
+				);
 			});
 		});
 
@@ -863,17 +868,27 @@ describe('delegate', () => {
 			});
 
 			it('should not call accounts.setAccountAndGet', done => {
-				delegate.apply(validTransaction, dummyBlock, validSender, () => {
-					expect(accountsMock.setAccountAndGet.notCalled).to.be.true;
-					done();
-				});
+				delegate.applyConfirmed(
+					validTransaction,
+					dummyBlock,
+					validSender,
+					() => {
+						expect(accountsMock.setAccountAndGet.notCalled).to.be.true;
+						done();
+					}
+				);
 			});
 
 			it('should return an error', done => {
-				delegate.apply(validTransaction, dummyBlock, validSender, err => {
-					expect(err).to.be.equal('Username already exists');
-					done();
-				});
+				delegate.applyConfirmed(
+					validTransaction,
+					dummyBlock,
+					validSender,
+					err => {
+						expect(err).to.be.equal('Username already exists');
+						done();
+					}
+				);
 			});
 		});
 	});
@@ -940,9 +955,9 @@ describe('delegate', () => {
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		it('should call accounts.setAccountAndGet module with correct parameters', done => {
-			delegate.undo(transaction, dummyBlock, sender, () => {
+			delegate.undoConfirmed(transaction, dummyBlock, sender, () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,
@@ -961,7 +976,7 @@ describe('delegate', () => {
 			delete sender.username;
 			sender.nameexist = 0;
 
-			delegate.undo(transaction, dummyBlock, sender, () => {
+			delegate.undoConfirmed(transaction, dummyBlock, sender, () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,

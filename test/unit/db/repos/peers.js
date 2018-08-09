@@ -14,6 +14,7 @@
 
 'use strict';
 
+const ed = require('../../../../helpers/ed.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const peersFixtures = require('../../../fixtures').peers;
 const peersSQL = require('../../../../db/sql').peers;
@@ -95,7 +96,7 @@ describe('db', () => {
 				for (let i = 0; i < numSeedRecords; i++) {
 					const peer = peersFixtures.DBPeer();
 					const peer2 = Object.assign({}, peer);
-					peer2.broadhash = Buffer.from(peer2.broadhash, 'hex');
+					peer2.broadhash = ed.hexToBuffer(peer2.broadhash);
 					yield db.query(
 						db.$config.pgp.helpers.insert(peer2, null, { table: 'peers' })
 					);
@@ -133,7 +134,7 @@ describe('db', () => {
 				// Prepare some fixture data to seed the database
 				for (let i = 0; i < 5; i++) {
 					const peer = peersFixtures.DBPeer();
-					peer.broadhash = Buffer.from(peer.broadhash, 'hex');
+					peer.broadhash = ed.hexToBuffer(peer.broadhash);
 					yield db.query(
 						db.$config.pgp.helpers.insert(peer, null, { table: 'peers' })
 					);

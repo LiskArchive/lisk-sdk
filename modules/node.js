@@ -169,6 +169,7 @@ Node.prototype.shared = {
 			setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
 				consensus: modules.peers.getLastConsensus() || null,
+				currentTime: Date.now(),
 				height: modules.blocks.lastBlock.get().height,
 				loaded: modules.loader.loaded(),
 				networkHeight,
