@@ -8,7 +8,7 @@ The following is a set of guidelines for contributing to Lisk Commander, which a
 
 1. [Code of Conduct](#code-of-conduct)
 
-1. [Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help!-i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
+1. [Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help-i-dont-want-to-read-this-whole-thing-i-just-have-a-question-mag_right)
 
 1. [How Can I Contribute?](#how-can-i-contribute)
 	1. [Reporting Bugs](#reporting-bugs)
