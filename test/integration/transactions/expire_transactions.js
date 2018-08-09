@@ -16,11 +16,11 @@
 
 const lisk = require('lisk-elements').default;
 const Promise = require('bluebird');
-const randomUtil = require('../../../common/utils/random');
-const accountsFixtures = require('../../../fixtures/accounts');
-const queriesHelper = require('../../common/sql/queriesHelper.js');
+const randomUtil = require('../../common/utils/random');
+const accountsFixtures = require('../../fixtures/accounts');
+const queriesHelper = require('../../common/integration/sql/queriesHelper.js');
 const localCommon = require('../common');
-const Bignum = require('../../../../helpers/bignum.js');
+const Bignum = require('../../../helpers/bignum.js');
 
 const addTransactionsAndForgePromise = Promise.promisify(
 	localCommon.addTransactionsAndForge
