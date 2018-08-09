@@ -183,10 +183,8 @@ history.version('1.0.0-rc.2', version => {
 		}
 	);
 });
-history.version('1.0.0');
-history.version('1.0.1');
-history.version('1.1.x');
-history.version('1.2.x');
+history.version('1.1.0-alpha.0');
+history.version('1.2.0-alpha.0');
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
@@ -211,8 +209,7 @@ const askPassword = (message, cb) => {
 };
 
 if (!toVersion) {
-	const versions = history.getVersions();
-	toVersion = versions[versions.length - 1];
+	toVersion = require('../package.json').version;
 }
 
 // Old config in 1.0.x will be single unified config file.
