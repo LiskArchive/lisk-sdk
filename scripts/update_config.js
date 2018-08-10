@@ -21,150 +21,219 @@
 
 const fs = require('fs');
 const path = require('path');
-const extend = require('extend');
+const readline = require('readline');
 const program = require('commander');
-const merge = require('lodash/merge');
+const lisk = require('lisk-elements').default;
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
+const JSONHistory = require('../helpers/json_history');
 
 const rootPath = path.resolve(path.dirname(__filename), '../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
-let oldConfigPath;
-let newConfigPath;
-
-program
-	.version('0.1.1')
-	.arguments('<old_config_file> <new_config_file>')
-	.action((oldConfig, newConfig) => {
-		oldConfigPath = oldConfig;
-		newConfigPath = newConfig;
-	})
-	.parse(process.argv);
-
-if (!oldConfigPath || !newConfigPath) {
-	console.error('error: no config file provided.');
-	process.exit(1);
-}
-
-console.info('Starting configuration migration...');
-let oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
-let newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
-// If old release was a 1.0.0-rc.1 release
-if (oldConfig.version === '1.0.0-rc.1') {
-	// Values to keep from new config file
-	delete oldConfig.version;
-	delete oldConfig.minVersion;
-
-	// https://github.com/LiskHQ/lisk/issues/2154
-	oldConfig.api.ssl = extend(true, {}, oldConfig.ssl);
-	delete oldConfig.ssl;
-
-	// https://github.com/LiskHQ/lisk/issues/2208
-	delete oldConfig.forging.defaultPassword;
-
-	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
-
-	try {
-		fs.writeFileSync(newConfigPath, JSON.stringify(modifiedConfig, null, '\t'));
-	} catch (error) {
-		console.error('Error writing configuration file', error);
-		process.exit(1);
-	}
-
-	console.info('Configuration migration completed.');
-
-	// No further changes required
-	process.exit(0);
-}
-
-console.info('Running config migration from 1.0.x to 1.1.x');
-
-// Old config in 1.0.x will be single unified config file.
-oldConfig = loadJSONFile(oldConfigPath);
-
-// Had dedicated ssl config only for API
-// https://github.com/LiskHQ/lisk/issues/2154
-if (oldConfig.ssl) {
-	oldConfig.api.ssl = merge({}, oldConfig.ssl);
-	delete oldConfig.ssl;
-}
-
-// New config in 1.1.x will be partial config other than default/config.json
-newConfig = loadJSONFile(newConfigPath);
-
 // Now get a unified config.json for 1.1.x version
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
-const unifiedNewConfig = merge({}, defaultConfig, newConfig);
+let configFilePath;
+let fromVersion;
+let toVersion;
 
-const changesMap = {
-	N: '  Added',
-	E: 'Skipped', // Don't apply changes, preserve user configured value
-	D: 'Deleted',
-	A: 'Skipped', // Updated element of array
-};
+program
+	.version('0.1.1')
+	.arguments('<input_file> <from_version> [to_version]')
+	.option('--output', 'Output file path')
+	.option('--diff', 'Show only difference from default config file.')
+	.action((inputFile, version1, version2) => {
+		fromVersion = version1;
+		toVersion = version2;
+		configFilePath = inputFile;
+	})
+	.parse(process.argv);
 
-const arrayItemChangesMap = {
-	D: 'Addition', // It was added in new config and deleted from old
-};
+const history = new JSONHistory('lisk config file', console);
 
-console.info('\nChanges summary: ');
+history.version('0.9.x');
+history.version('1.0.0-rc.1', version => {
+	version.change('removed version and minVersion', config => {
+		delete config.version;
+		delete config.minVersion;
+		return config;
+	});
+	version.change('renamed port to httpPort', config => {
+		config.httpPort = config.port;
+		delete config.port;
+		return config;
+	});
+	version.change('added new config wsPort', config => {
+		config.wsPort = config.httpPort + 1;
+		return config;
+	});
+	version.change('updated db.poolSize to min and max', config => {
+		config.db.max = config.db.poolSize;
+		config.db.min = 10;
+		return config;
+	});
+	version.change('removed peers.options.limits', config => {
+		delete config.peers.options.limits;
+		return config;
+	});
+	version.change(
+		'renamed transactions.maxTxsPerQueue to transactions.maxTransactionsPerQueue',
+		config => {
+			config.transactions.maxTransactionsPerQueue =
+				config.transactions.maxTxsPerQueue;
+			delete config.transactions.maxTxsPerQueue;
+			return config;
+		}
+	);
+	version.change('removed loading.verifyOnLoading', config => {
+		delete config.loading.verifyOnLoading;
+		return config;
+	});
+	version.change('removed dapp', config => {
+		delete config.dapp;
+		return config;
+	});
+	version.change('updated port to wsPort for peers.list', config => {
+		config.peers.list = config.peers.list.map(p => {
+			p.wsPort = p.port + 1;
+			delete p.port;
+			return p;
+		});
+		return config;
+	});
+	version.change('added db.logFileName for db related logs', config => {
+		config.db.logFileName = config.logFileName;
+		return config;
+	});
+	version.change(
+		'added api.options.cors to manage CORS settings for http API',
+		config => {
+			config.api.options.cors = {
+				origin: '*',
+				methods: ['GET', 'POST', 'PUT'],
+			};
+			return config;
+		}
+	);
+	version.change(
+		'added broadcasts.active=true as boolean value to enable/disable the broadcasting behavior',
+		config => {
+			config.broadcasts.active = true;
+			return config;
+		}
+	);
+	version.change(
+		'convert forging.secret to forging.delegates',
+		(config, cb) => {
+			if (!config.forging.secret || config.forging.secret.length === 0) {
+				console.info('No forging secret. So skipping conversion.');
+				return setImmediate(cb, null, config);
+			}
 
-// Since the structure of both files should be same now
-// We just need to extract the value custom values user had modified
-observableDiff(oldConfig, unifiedNewConfig, d => {
-	switch (d.kind) {
-		case 'N':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${JSON.stringify(d.rhs)}`
+			askPassword(
+				'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
+				(err, password) => {
+					config.forging.delegates = [];
+
+					if (password.trim().length === 0) {
+						delete config.forging.secret;
+
+						return setImmediate(cb, null, config);
+					}
+					if (password.length < 5) {
+						console.error(
+							`error: Password is too short (${
+								password.length
+							} characters), minimum 5 characters.`
+						);
+						process.exit(1);
+					}
+
+					console.info('\nMigrating your secrets...');
+					config.forging.secret.forEach(secret => {
+						console.info('.......');
+						config.forging.delegates.push({
+							encryptedPassphrase: lisk.cryptography.stringifyEncryptedPassphrase(
+								lisk.cryptography.encryptPassphraseWithPassword(
+									secret,
+									password
+								)
+							),
+							publicKey: lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
+								secret
+							).publicKey,
+						});
+					});
+
+					delete config.forging.secret;
+					return setImmediate(cb, null, config);
+				}
 			);
-			applyChange(oldConfig, unifiedNewConfig, d);
-			break;
+		}
+	);
+});
+history.version('1.0.0-rc.2', version => {
+	version.change(
+		'moved ssl to api.ssl to make SSL as API only config',
+		config => {
+			config.api.ssl = config.ssl;
+			delete config.ssl;
+			return config;
+		}
+	);
+});
+history.version('1.1.0-alpha.0');
+history.version('1.2.0-alpha.0');
 
-		case 'E':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${d.lhs} -> ${d.rhs}`
-			);
-			// Don't apply changes, preserve user configured value
-			// applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		case 'D':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${JSON.stringify(d.lhs)}`
-			);
-			applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		case 'A':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${
-					arrayItemChangesMap[d.item.kind]
-				} -> ${d.item.lhs}`
-			);
-			// Preserve user configured value
-			// applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		default:
-			console.warn(`Unknown change type detected '${d.kind}'`);
+const askPassword = (message, cb) => {
+	if (program.password && program.password.trim().length !== 0) {
+		return setImmediate(cb, null, program.password);
 	}
-});
 
-// Old configuration is up-to-date with new configuration.
-// now we need to extract differences from default config file
-// to write those in network specific directory
-const customConfig = {};
-observableDiff(defaultConfig, oldConfig, d => {
-	applyChange(customConfig, oldConfig, d);
-});
+	const rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	});
 
-console.info(`\nWriting updated configuration to ${newConfigPath}`);
-fs.writeFile(newConfigPath, JSON.stringify(customConfig, null, '\t'), err => {
+	rl.question(message, password => {
+		rl.close();
+		return setImmediate(cb, null, password);
+	});
+	// To Patch the password support
+	rl.stdoutMuted = true;
+	rl._writeToOutput = function _writeToOutput(stringToWrite) {
+		if (rl.stdoutMuted) rl.output.write('*');
+		else rl.output.write(stringToWrite);
+	};
+};
+
+if (!toVersion) {
+	toVersion = require('../package.json').version;
+}
+
+// Old config in 1.0.x will be single unified config file.
+const configFile = loadJSONFile(configFilePath);
+
+history.migrate(configFile, fromVersion, toVersion, (err, json) => {
 	if (err) {
 		throw err;
+	}
+	let customConfig = {};
+
+	if (program.diff) {
+		observableDiff(defaultConfig, json, d => {
+			applyChange(customConfig, json, d);
+		});
 	} else {
-		console.info('\nConfiguration migration completed.');
+		customConfig = json;
+	}
+
+	if (program.output) {
+		console.info(`\nWriting updated configuration to ${program.output}`);
+		fs.writeFileSync(program.output, JSON.stringify(customConfig, null, '\t'));
+	} else {
+		console.info('\n\n------------ OUTPUT -------------');
+		console.info(JSON.stringify(customConfig, null, '\t'));
 	}
 });

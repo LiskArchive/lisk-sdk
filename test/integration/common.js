@@ -261,6 +261,15 @@ function getUnconfirmedTransactionFromModule(library, filter, cb) {
 	);
 }
 
+function getMultisignatureTransactions(library, filter, cb) {
+	library.modules.transactions.shared.getMultisignatureTransactions(
+		filter,
+		(err, res) => {
+			cb(err, res);
+		}
+	);
+}
+
 function beforeBlock(type, cb) {
 	// eslint-disable-next-line mocha/no-top-level-hooks
 	before(
@@ -356,4 +365,5 @@ module.exports = {
 	getUnconfirmedTransactionFromModule,
 	beforeBlock,
 	loadTransactionType,
+	getMultisignatureTransactions,
 };
