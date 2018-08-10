@@ -32,15 +32,6 @@ describe('tick', () => {
 		library = lib;
 	});
 
-	afterEach('delete blocks', () => {
-		return Promise.all([
-			library.db.none('DELETE FROM blocks WHERE "height" > 1;'),
-			library.db.none('DELETE FROM forks_stat;'),
-		]).then(() => {
-			library.modules.blocks.lastBlock.set(__testContext.config.genesisBlock);
-		});
-	});
-
 	describe('when forging second last block of the round', () => {
 		beforeEach('forge 99 blocks', done => {
 			async.eachSeries(
@@ -51,7 +42,18 @@ describe('tick', () => {
 			);
 		});
 
-		describe('when (block.height + 1) % slots.delegates === 0 returns true', () => {
+		describe('when connection is not lost', () => {
+			afterEach('delete blocks', () => {
+				return Promise.all([
+					library.db.none('DELETE FROM blocks WHERE "height" > 1;'),
+					library.db.none('DELETE FROM forks_stat;'),
+				]).then(() => {
+					library.modules.blocks.lastBlock.set(
+						__testContext.config.genesisBlock
+					);
+				});
+			});
+
 			describe('when rounds.clearRoundSnapshot() fails', () => {
 				// For stubbing the rounds.clearRoundSnapshot query, I need to override this method.
 				let clearRoundSnapshotStub;
@@ -156,36 +158,36 @@ describe('tick', () => {
 					});
 				});
 			});
+		});
 
-			describe('when there is a loss of connection', () => {
-				// For stubbing the rounds.performVotesSnapshot query, I need to override this method.
-				let performVotesSnapshotTemp;
+		describe('when there is a loss of connection', () => {
+			// For stubbing the rounds.performVotesSnapshot query, I need to override this method.
+			let performVotesSnapshotTemp;
 
-				beforeEach(done => {
-					performVotesSnapshotTemp =
-						RoundsRepository.prototype.performVotesSnapshot;
-					RoundsRepository.prototype.performVotesSnapshot = () => {
-						return library.db.query(
-							"SELECT pg_terminate_backend(pid) FROM pg_stat_activity where datname = 'lisk_test_lisk_functional_rounds'"
-						);
-					};
+			beforeEach(done => {
+				performVotesSnapshotTemp =
+					RoundsRepository.prototype.performVotesSnapshot;
+				RoundsRepository.prototype.performVotesSnapshot = () => {
+					return library.db.query(
+						"SELECT pg_terminate_backend(pid) FROM pg_stat_activity where datname = 'lisk_test_lisk_functional_rounds'"
+					);
+				};
+				done();
+			});
+
+			afterEach(done => {
+				RoundsRepository.prototype.performVotesSnapshot = performVotesSnapshotTemp;
+				done();
+			});
+
+			it('should fail forging block with err', done => {
+				localCommon.addTransactionsAndForge(library, [], err => {
+					// One of these two errors based on the query
+					expect([
+						'Querying against a released or lost connection.',
+						'terminating connection due to administrator command',
+					]).to.include(err.message);
 					done();
-				});
-
-				afterEach(done => {
-					RoundsRepository.prototype.performVotesSnapshot = performVotesSnapshotTemp;
-					done();
-				});
-
-				it('should fail forging block with err', done => {
-					localCommon.addTransactionsAndForge(library, [], err => {
-						// One of these two errors based on the query
-						expect([
-							'Querying against a released or lost connection.',
-							'terminating connection due to administrator command',
-						]).to.include(err.message);
-						done();
-					});
 				});
 			});
 		});
