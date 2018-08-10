@@ -6,9 +6,6 @@ ifeq ($(lisk_net),)
 $(error .env file does not exist or ENV_LISK_NETWORK variable is not set.)
 endif
 
-debug:
-	echo $(lisk_net)
-
 %blockchain.db.gz:
 	curl --output $(lisk_net)_blockchain.db.gz https://downloads.lisk.io/lisk/$(lisk_net)/blockchain.db.gz
 
