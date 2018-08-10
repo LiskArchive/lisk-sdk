@@ -137,9 +137,17 @@ function JSONHistory(title, logger) {
 
 		// Get the version from which to start the migration
 		// Skip the matched version, as json is already in that particular version
-		const startFromVersion =
-			versions.findIndex(version => semver.satisfies(fromVersion, version)) +
-			(includeStart ? 0 : 1);
+		let startFromVersion = versions.findIndex(version =>
+			semver.satisfies(fromVersion, version)
+		);
+
+		if (startFromVersion === -1) {
+			throw new Error(
+				`Can't find supported version to start migration from  version "${fromVersion}"`
+			);
+		}
+
+		startFromVersion += includeStart ? 0 : 1;
 
 		// Apply changes till that version
 		const tillVersion =

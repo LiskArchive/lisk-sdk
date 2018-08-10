@@ -195,7 +195,6 @@ describe('helpers/JSONHistory', () => {
 					done();
 				});
 			});
-
 			it('should provide migrated data as second argument of the callback', done => {
 				history.migrate({}, (error, data) => {
 					expect(error).to.be.null;
@@ -208,7 +207,6 @@ describe('helpers/JSONHistory', () => {
 					done();
 				});
 			});
-
 			it('should migrate through all versions if not specified start and end version', done => {
 				history.migrate({}, (error, data) => {
 					expect(error).to.be.null;
@@ -240,6 +238,11 @@ describe('helpers/JSONHistory', () => {
 					validMigrationExpectations(history, ['2.0.0', '3.0.0', '4.0.0'], []);
 					done();
 				});
+			});
+			it('should throw error if start version is registered in history', () => {
+				return expect(() => history.migrate({}, '0.0.0', () => {})).to.throw(
+					'Can\'t find supported version to start migration from  version "0.0.0"'
+				);
 			});
 			it('should migrate changes till end version if provided', done => {
 				history.migrate({}, '1.0.0', '3.0.0', (error, data) => {
