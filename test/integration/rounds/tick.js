@@ -17,7 +17,7 @@
 const async = require('async');
 const sinon = require('sinon');
 const Promise = require('bluebird');
-const RoundsRepository = require('../../../../db/repos/rounds.js');
+const RoundsRepository = require('../../../db/repos/rounds.js');
 const localCommon = require('./../common');
 
 const constants = global.constants;
