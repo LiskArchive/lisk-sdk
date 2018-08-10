@@ -42,6 +42,13 @@ class Queries {
 		return self.db.query('SELECT * FROM mem_accounts');
 	}
 
+	getAccount(address) {
+		return self.db.query(
+			'SELECT * FROM mem_accounts WHERE address = ${address}',
+			{ address }
+		);
+	}
+
 	getDelegates() {
 		return self.db.query(
 			'SELECT * FROM mem_accounts m LEFT JOIN delegates d ON d.username = m.username WHERE d."transactionId" IS NOT NULL'
