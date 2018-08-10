@@ -328,6 +328,7 @@ class Account {
 				'missedBlocks',
 				'vote',
 				'publicKey',
+				'address',
 			];
 			sort = sortBy.sortBy(filter.sort, {
 				sortFields: allowedSortFields,

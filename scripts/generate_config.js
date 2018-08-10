@@ -24,6 +24,7 @@ const path = require('path');
 const program = require('commander');
 const merge = require('lodash/merge');
 
+const rootPath = path.resolve(path.dirname(__filename), '../');
 let networkName;
 
 program
@@ -43,7 +44,7 @@ if (!networkName) {
 }
 
 function loadFile(fileName) {
-	return JSON.parse(fs.readFileSync(path.resolve(process.cwd(), fileName)));
+	return JSON.parse(fs.readFileSync(path.resolve(rootPath, fileName)));
 }
 
 const config = merge(

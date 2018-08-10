@@ -225,20 +225,20 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
 
-		function undoTransaction(transaction, sender, done) {
-			transfer.undo(transaction, dummyBlock, sender, done);
+		function undoConfirmedTransaction(transaction, sender, done) {
+			transfer.undoConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
-			transfer.apply(transaction, dummyBlock, validSender, err => {
+			transfer.applyConfirmed(transaction, dummyBlock, validSender, err => {
 				expect(err).to.equal('Invalid public key');
 				done();
 			});
@@ -254,43 +254,50 @@ describe('transfer', () => {
 					var amount = new Bignum(validTransaction.amount.toString());
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transfer.apply(validTransaction, dummyBlock, validSender, err => {
-						expect(err).to.not.exist;
+					transfer.applyConfirmed(
+						validTransaction,
+						dummyBlock,
+						validSender,
+						err => {
+							expect(err).to.not.exist;
 
-						accountModule.getAccount(
-							{ address: validTransaction.recipientId },
-							(err, accountAfter) => {
-								expect(err).to.not.exist;
-								expect(accountAfter).to.exist;
+							accountModule.getAccount(
+								{ address: validTransaction.recipientId },
+								(err, accountAfter) => {
+									expect(err).to.not.exist;
+									expect(accountAfter).to.exist;
 
-								var balanceAfter = new Bignum(accountAfter.balance.toString());
-								expect(
-									balanceBefore.plus(amount).equals(balanceAfter.toString())
-								).to.be.true;
-								undoTransaction(validTransaction, validSender, done);
-							}
-						);
-					});
+									var balanceAfter = new Bignum(
+										accountAfter.balance.toString()
+									);
+									expect(
+										balanceBefore.plus(amount).equals(balanceAfter.toString())
+									).to.be.true;
+									undoConfirmedTransaction(validTransaction, validSender, done);
+								}
+							);
+						}
+					);
 				}
 			);
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
 
-		function applyTransaction(transaction, sender, done) {
-			transfer.apply(transaction, dummyBlock, sender, done);
+		function applyConfirmedTransaction(transaction, sender, done) {
+			transfer.applyConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
 
-			transfer.undo(transaction, dummyBlock, validSender, err => {
+			transfer.undoConfirmed(transaction, dummyBlock, validSender, err => {
 				expect(err).to.equal('Invalid public key');
 				done();
 			});
@@ -305,22 +312,33 @@ describe('transfer', () => {
 					var amount = new Bignum(validTransaction.amount.toString());
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transfer.undo(validTransaction, dummyBlock, validSender, err => {
-						expect(err).to.not.exist;
+					transfer.undoConfirmed(
+						validTransaction,
+						dummyBlock,
+						validSender,
+						err => {
+							expect(err).to.not.exist;
 
-						accountModule.getAccount(
-							{ address: validTransaction.recipientId },
-							(err, accountAfter) => {
-								var balanceAfter = new Bignum(accountAfter.balance.toString());
+							accountModule.getAccount(
+								{ address: validTransaction.recipientId },
+								(err, accountAfter) => {
+									var balanceAfter = new Bignum(
+										accountAfter.balance.toString()
+									);
 
-								expect(err).to.not.exist;
-								expect(
-									balanceAfter.plus(amount).equals(balanceBefore.toString())
-								).to.be.true;
-								applyTransaction(validTransaction, validSender, done);
-							}
-						);
-					});
+									expect(err).to.not.exist;
+									expect(
+										balanceAfter.plus(amount).equals(balanceBefore.toString())
+									).to.be.true;
+									applyConfirmedTransaction(
+										validTransaction,
+										validSender,
+										done
+									);
+								}
+							);
+						}
+					);
 				}
 			);
 		});

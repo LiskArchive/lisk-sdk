@@ -308,7 +308,7 @@ DApp.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate}
  * @todo Add description for the function and the params
  */
-DApp.prototype.apply = function(transaction, block, sender, cb) {
+DApp.prototype.applyConfirmed = function(transaction, block, sender, cb) {
 	delete __private.unconfirmedNames[transaction.asset.dapp.name];
 	delete __private.unconfirmedLinks[transaction.asset.dapp.link];
 
@@ -325,7 +325,7 @@ DApp.prototype.apply = function(transaction, block, sender, cb) {
  * @returns {SetImmediate}
  * @todo Add description for the function and the params
  */
-DApp.prototype.undo = function(transaction, block, sender, cb) {
+DApp.prototype.undoConfirmed = function(transaction, block, sender, cb) {
 	return setImmediate(cb);
 };
 

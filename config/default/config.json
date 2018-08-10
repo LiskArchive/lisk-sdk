@@ -13,7 +13,7 @@
 		"host": "localhost",
 		"port": 5432,
 		"database": "",
-		"user": "",
+		"user": "lisk",
 		"password": "password",
 		"min": 10,
 		"max": 95,

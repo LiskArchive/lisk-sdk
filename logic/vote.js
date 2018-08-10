@@ -65,7 +65,7 @@ class Vote {
 	 * @todo Add description for the params
 	 */
 	/* eslint-disable class-methods-use-this */
-	undo(transaction, block, sender, cb, tx) {
+	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
 		}
@@ -330,7 +330,7 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
+Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 	async.series(
 		[
 			function(seriesCb) {

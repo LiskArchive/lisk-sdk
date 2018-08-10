@@ -2309,6 +2309,7 @@ definitions:
     required:
       - broadhash
       - consensus
+      - currentTime
       - height
       - loaded
       - networkHeight
@@ -2330,6 +2331,10 @@ definitions:
         minimum: 0
         maximum: 100
         description: Percentage of the connected peers, that have the same broadhash as the querying node.
+      currentTime:
+        type: integer
+        example: 1533558858128
+        description: Current time of the node (Unix Time Stamp).
       height:
         type: integer
         example: 123
