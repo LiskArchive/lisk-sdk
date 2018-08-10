@@ -18,7 +18,7 @@
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var Bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');

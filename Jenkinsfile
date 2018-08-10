@@ -326,12 +326,12 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 						archiveLogs()
 					}
 				}, // End node-04 tests
-				"Functional system tests" : {
+				"Integration tests" : {
 					node('node-05') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							runAction('mocha:extensive:functional:system')
+							runAction('mocha:extensive:integration')
 						} else {
-							runAction('mocha:default:functional:system')
+							runAction('mocha:default:integration')
 						}
 						archiveLogs()
 					}

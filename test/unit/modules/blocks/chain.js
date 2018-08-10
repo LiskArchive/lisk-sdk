@@ -158,9 +158,9 @@ describe('blocks/chain', () => {
 
 		const modulesTransactionsStub = {
 			applyUnconfirmed: sinonSandbox.stub(),
-			apply: sinonSandbox.stub(),
+			applyConfirmed: sinonSandbox.stub(),
 			receiveTransactions: sinonSandbox.stub(),
-			undo: sinonSandbox.stub(),
+			undoConfirmed: sinonSandbox.stub(),
 			undoUnconfirmed: sinonSandbox.stub(),
 			undoUnconfirmedList: sinonSandbox.stub(),
 			removeUnconfirmedTransaction: sinonSandbox.stub(),
@@ -639,9 +639,13 @@ describe('blocks/chain', () => {
 				);
 			});
 
-			describe('when modules.transactions.apply fails', () => {
+			describe('when modules.transactions.applyConfirmed fails', () => {
 				beforeEach(() => {
-					return modules.transactions.apply.callsArgWith(3, 'apply-ERR', null);
+					return modules.transactions.applyConfirmed.callsArgWith(
+						3,
+						'apply-ERR',
+						null
+					);
 				});
 
 				it('should call a callback with error', done => {
@@ -650,7 +654,9 @@ describe('blocks/chain', () => {
 						{ id: 1, type: 1 },
 						'a1',
 						err => {
-							expect(err.message).to.equal('Failed to apply transaction: 1');
+							expect(err.message).to.equal(
+								'Failed to apply transaction: 1 to confirmed state of account:'
+							);
 							expect(err.transaction).to.deep.equal({ id: 1, type: 1 });
 							expect(err.block).to.deep.equal(blockWithTransactions);
 							done();
@@ -659,9 +665,13 @@ describe('blocks/chain', () => {
 				});
 			});
 
-			describe('when modules.transactions.apply succeeds', () => {
+			describe('when modules.transactions.applyConfirmed succeeds', () => {
 				beforeEach(() => {
-					return modules.transactions.apply.callsArgWith(3, null, true);
+					return modules.transactions.applyConfirmed.callsArgWith(
+						3,
+						null,
+						true
+					);
 				});
 
 				it('should call a callback with no error', done => {
@@ -672,7 +682,7 @@ describe('blocks/chain', () => {
 						() => {
 							expect(modules.transactions.applyUnconfirmed.calledOnce).to.be
 								.true;
-							expect(modules.transactions.apply.calledOnce).to.be.true;
+							expect(modules.transactions.applyConfirmed.calledOnce).to.be.true;
 							done();
 						}
 					);
@@ -800,10 +810,10 @@ describe('blocks/chain', () => {
 							.catch(err => {
 								expect(err).instanceOf(Error);
 								expect(err.message).to.equal(
-									'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
+									'Failed to apply transaction: 6 to unconfirmed state of account - applyUnconfirmed-ERR'
 								);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to apply unconfirmed transaction: 6 - applyUnconfirmed-ERR'
+									'Failed to apply transaction: 6 to unconfirmed state of account - applyUnconfirmed-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 								expect(loggerStub.error.args[1][1]).to.deep.equal(
@@ -886,12 +896,12 @@ describe('blocks/chain', () => {
 						.catch(err => {
 							expect(err).instanceOf(Error);
 							expect(err.message).to.equal(
-								'Failed to get account to apply transaction: 6 - getAccount-ERR'
+								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
 							);
 							expect(modules.accounts.getAccount.callCount).to.equal(1);
-							expect(modules.transactions.apply.callCount).to.equal(0);
+							expect(modules.transactions.applyConfirmed.callCount).to.equal(0);
 							expect(loggerStub.error.args[0][0]).to.equal(
-								'Failed to get account to apply transaction: 6 - getAccount-ERR'
+								'Failed to get account for applying transaction to confirmed state: 6 - getAccount-ERR'
 							);
 							expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 							expect(loggerStub.error.args[1][1]).to.deep.equal(
@@ -909,7 +919,7 @@ describe('blocks/chain', () => {
 
 				describe('when library.logic.transaction.apply fails', () => {
 					beforeEach(() => {
-						return modules.transactions.apply.callsArgWith(
+						return modules.transactions.applyConfirmed.callsArgWith(
 							3,
 							'apply-ERR',
 							null
@@ -922,12 +932,14 @@ describe('blocks/chain', () => {
 							.catch(err => {
 								expect(err).instanceOf(Error);
 								expect(err.message).to.equal(
-									'Failed to apply transaction: 6 - apply-ERR'
+									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
 								);
 								expect(modules.accounts.getAccount.callCount).to.equal(1);
-								expect(modules.transactions.apply.callCount).to.equal(1);
+								expect(modules.transactions.applyConfirmed.callCount).to.equal(
+									1
+								);
 								expect(loggerStub.error.args[0][0]).to.equal(
-									'Failed to apply transaction: 6 - apply-ERR'
+									'Failed to apply transaction: 6 to confirmed state of account - apply-ERR'
 								);
 								expect(loggerStub.error.args[1][0]).to.equal('Transaction');
 								expect(loggerStub.error.args[1][1]).to.deep.equal(
@@ -938,9 +950,13 @@ describe('blocks/chain', () => {
 					});
 				});
 
-				describe('when library.logic.transaction.apply succeeds', () => {
+				describe('when library.logic.transaction.applyConfirmed succeeds', () => {
 					beforeEach(() => {
-						return modules.transactions.apply.callsArgWith(3, null, true);
+						return modules.transactions.applyConfirmed.callsArgWith(
+							3,
+							null,
+							true
+						);
 					});
 					it('should return resolved promise with no error', done => {
 						__private
@@ -1268,7 +1284,7 @@ describe('blocks/chain', () => {
 		});
 	});
 
-	describe('__private.undoStep', () => {
+	describe('__private.undoConfirmedStep', () => {
 		let tx;
 		describe('when oldLastBlock.transactions is not empty', () => {
 			describe('when modules.accounts.getAccount fails', () => {
@@ -1282,7 +1298,7 @@ describe('blocks/chain', () => {
 
 				it('should reject promise with "getAccount-ERR"', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx
@@ -1297,13 +1313,13 @@ describe('blocks/chain', () => {
 			describe('when modules.accounts.getAccount succeeds', () => {
 				beforeEach(done => {
 					modules.accounts.getAccount.callsArgWith(1, null, '12ab');
-					modules.transactions.undo.callsArgWith(3, null, true);
+					modules.transactions.undoConfirmed.callsArgWith(3, null, true);
 					done();
 				});
 
 				it('should call modules.accounts.getAccount', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx
@@ -1314,22 +1330,22 @@ describe('blocks/chain', () => {
 						});
 				});
 
-				it('should call modules.transactions.undo', done => {
+				it('should call modules.transactions.undoConfirmed', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx
 						)
 						.then(() => {
-							expect(modules.transactions.undo.callCount).to.equal(1);
+							expect(modules.transactions.undoConfirmed.callCount).to.equal(1);
 							done();
 						});
 				});
 
 				it('should resolve the promise', done => {
 					__private
-						.undoStep(
+						.undoConfirmedStep(
 							blockWithTransactions.transactions[0],
 							blockWithTransactions,
 							tx

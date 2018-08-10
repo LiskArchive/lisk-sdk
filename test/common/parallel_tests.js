@@ -37,23 +37,23 @@ function parallelTests(tag, suite, section) {
 				case 'ws':
 					suiteFolder = 'test/functional/ws/';
 					break;
-				case 'system':
-					suiteFolder = 'test/functional/system/';
-					break;
 				case undefined:
 					suiteFolder = 'test/functional/';
 					break;
 				default:
-					console.warn(
-						'Invalid section argument. Options are: get, post, ws or system'
-					);
+					console.warn('Invalid section argument. Options are: get, post, ws');
 					process.exit();
 					break;
 			}
 			break;
+		case 'integration':
+			suiteFolder = 'test/integration/';
+			break;
 
 		default:
-			console.warn('Invalid suite argument. Options are: unit or functional');
+			console.warn(
+				'Invalid suite argument. Options are: unit, functional and integration'
+			);
 			process.exit();
 			break;
 	}

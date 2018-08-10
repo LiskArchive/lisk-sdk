@@ -16,7 +16,7 @@
 
 require('../../../functional.js');
 
-var Scenarios = require('../../../common/scenarios');
+var Scenarios = require('../../../../common/scenarios');
 var accountFixtures = require('../../../../fixtures/accounts');
 var apiHelpers = require('../../../../common/helpers/api');
 var waitFor = require('../../../../common/utils/wait_for');
