@@ -1,4 +1,4 @@
-FROM node:6 AS builder
+FROM node:8 AS builder
 
 ENV NODE_ENV=production
 
@@ -15,7 +15,7 @@ WORKDIR /home/lisk/lisk
 RUN npm install
 
 
-FROM node:6
+FROM node:8
 
 ENV NODE_ENV=production
 ENV WFI_SHA=0f75de5c9d9c37a933bb9744ffd710750d5773892930cfe40509fa505788835c
