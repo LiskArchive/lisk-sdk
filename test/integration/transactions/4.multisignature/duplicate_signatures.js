@@ -17,8 +17,8 @@
 const Promise = require('bluebird');
 const async = require('async');
 const elements = require('lisk-elements').default;
-const accountsFixtures = require('../../../../fixtures/accounts');
-const randomUtil = require('../../../../common/utils/random');
+const accountsFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 
 describe('duplicate_signatures', () => {
