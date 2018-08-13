@@ -17,13 +17,13 @@
 const async = require('async');
 const elements = require('lisk-elements').default;
 const Promise = require('bluebird');
-const ed = require('../../helpers/ed.js');
-const slots = require('../../helpers/slots');
-const Bignum = require('../../helpers/bignum.js');
-const accountsFixtures = require('../fixtures/accounts');
-const randomUtil = require('../common/utils/random');
-const queriesHelper = require('../common/integration/sql/queriesHelper.js');
-const localCommon = require('./common');
+const ed = require('../../../helpers/ed.js');
+const slots = require('../../../helpers/slots');
+const Bignum = require('../../../helpers/bignum.js');
+const accountsFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../../common/utils/random');
+const queriesHelper = require('../../common/integration/sql/queriesHelper.js');
+const localCommon = require('../common');
 
 const constants = global.constants;
 
