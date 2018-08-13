@@ -28,7 +28,7 @@ describe('tick', () => {
 	// Set rewards start at 150-th block
 	constants.rewards.offset = 150;
 
-	localCommon.beforeBlock('lisk_functional_rounds', lib => {
+	localCommon.beforeBlock('lisk_functional_rounds_tick', lib => {
 		library = lib;
 	});
 
@@ -169,7 +169,7 @@ describe('tick', () => {
 					RoundsRepository.prototype.performVotesSnapshot;
 				RoundsRepository.prototype.performVotesSnapshot = () => {
 					return library.db.query(
-						"SELECT pg_terminate_backend(pid) FROM pg_stat_activity where datname = 'lisk_test_lisk_functional_rounds'"
+						"SELECT pg_terminate_backend(pid) FROM pg_stat_activity where datname = 'lisk_test_lisk_functional_rounds_tick'"
 					);
 				};
 				done();
