@@ -169,7 +169,7 @@ describe('tick', () => {
 					RoundsRepository.prototype.performVotesSnapshot;
 				RoundsRepository.prototype.performVotesSnapshot = () => {
 					return library.db.query(
-						"SELECT pg_terminate_backend(pid) FROM pg_stat_activity where datname = 'lisk_test_lisk_functional_rounds_tick'"
+						'SELECT pg_terminate_backend(${pid})', { pid: library.db.$pool._clients[0].processID }
 					);
 				};
 				done();
