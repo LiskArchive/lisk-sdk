@@ -18,6 +18,7 @@
 const path = require('path');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
+const ed = require('../../../../helpers/ed');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const fixtures = require('../../../fixtures');
 const migrationsSQL = require('../../../../db/sql').migrations;
@@ -176,15 +177,23 @@ describe('db', () => {
 				const data = fixtures.accounts.Dependent({
 					accountId: account.address,
 				});
-
 				yield db.query(
-					db.$config.pgp.helpers.insert(data, null, {
-						table: 'mem_accounts2delegates',
-					})
+					db.$config.pgp.helpers.insert(
+						{
+							dependentId: ed.hexToBuffer(data.dependentId),
+							accountId: data.accountId,
+						},
+						null,
+						{
+							table: 'mem_accounts2delegates',
+						}
+					)
 				);
 				yield db.migrations.applyRuntime();
 
-				const result = yield db.query('SELECT * FROM mem_accounts2u_delegates');
+				const result = yield db.query(
+					'SELECT ENCODE("dependentId", \'hex\') AS "dependentId", "accountId" FROM mem_accounts2u_delegates'
+				);
 
 				expect(result).to.have.lengthOf(1);
 				return expect(result[0]).to.be.eql(data);
@@ -198,14 +207,21 @@ describe('db', () => {
 				});
 
 				yield db.query(
-					db.$config.pgp.helpers.insert(data, null, {
-						table: 'mem_accounts2multisignatures',
-					})
+					db.$config.pgp.helpers.insert(
+						{
+							dependentId: ed.hexToBuffer(data.dependentId),
+							accountId: data.accountId,
+						},
+						null,
+						{
+							table: 'mem_accounts2multisignatures',
+						}
+					)
 				);
 				yield db.migrations.applyRuntime();
 
 				const result = yield db.query(
-					'SELECT * FROM mem_accounts2u_multisignatures'
+					'SELECT ENCODE("dependentId", \'hex\') AS "dependentId", "accountId" FROM mem_accounts2u_multisignatures'
 				);
 
 				expect(result).to.have.lengthOf(1);

@@ -14,14 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Alter 'mem_account2u_delegate' table - change data type of 'dependentId' from VARCHAR(64) to bytea.
 
-  PARAMETERS: ?
+  PARAMETERS: None
 */
 
-INSERT INTO mem_round
-	("address", "amount", "delegate", "round")
-SELECT
-	${address}, (${balanceMode:raw}balance)::bigint, DECODE(${delegate}, 'hex'), ${round}
-	FROM mem_accounts
-	WHERE address = ${address}
+ALTER TABLE mem_accounts2u_delegates ALTER COLUMN "dependentId" TYPE bytea USING DECODE("dependentId", 'hex');

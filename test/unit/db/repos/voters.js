@@ -1,5 +1,6 @@
 'use strict';
 
+const ed = require('../../../../helpers/ed');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const accountsFixtures = require('../../../fixtures').accounts;
 const votersSQL = require('../../../../db/sql').voters;
@@ -61,7 +62,8 @@ describe('db', () => {
 		describe('list', () => {
 			it('should use the correct SQL with correct parameters', function*() {
 				params = {
-					publicKey: '123',
+					publicKey:
+						'73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b',
 					limit: 10,
 					offset: 0,
 				};
@@ -162,10 +164,24 @@ describe('db', () => {
 					dependentId: delegate.publicKey,
 				});
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote1, null, 'mem_accounts2delegates')
+					db.$config.pgp.helpers.insert(
+						{
+							accountId: vote1.accountId,
+							dependentId: ed.hexToBuffer(vote1.dependentId),
+						},
+						null,
+						'mem_accounts2delegates'
+					)
 				);
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote2, null, 'mem_accounts2delegates')
+					db.$config.pgp.helpers.insert(
+						{
+							accountId: vote2.accountId,
+							dependentId: ed.hexToBuffer(vote2.dependentId),
+						},
+						null,
+						'mem_accounts2delegates'
+					)
 				);
 
 				const result = yield db.voters.list({
@@ -189,7 +205,8 @@ describe('db', () => {
 			});
 
 			it('should use the correct SQL with correct parameters', function*() {
-				params = '123';
+				params =
+					'73ec4adbd8f99f0d46794aeda3c3d86b245bd9d27be2b282cdd38ad21988556b';
 				sinonSandbox.spy(db, 'one');
 				yield db.voters.count(params);
 
@@ -215,10 +232,24 @@ describe('db', () => {
 					dependentId: delegate.publicKey,
 				});
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote1, null, 'mem_accounts2delegates')
+					db.$config.pgp.helpers.insert(
+						{
+							accountId: vote1.accountId,
+							dependentId: ed.hexToBuffer(vote1.dependentId),
+						},
+						null,
+						'mem_accounts2delegates'
+					)
 				);
 				yield db.query(
-					db.$config.pgp.helpers.insert(vote2, null, 'mem_accounts2delegates')
+					db.$config.pgp.helpers.insert(
+						{
+							accountId: vote2.accountId,
+							dependentId: ed.hexToBuffer(vote2.dependentId),
+						},
+						null,
+						'mem_accounts2delegates'
+					)
 				);
 
 				const result = yield db.voters.count(delegate.publicKey);

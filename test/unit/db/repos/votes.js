@@ -1,5 +1,6 @@
 'use strict';
 
+const ed = require('../../../../helpers/ed');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const accountsFixtures = require('../../../fixtures').accounts;
 const votesSQL = require('../../../../db/sql').votes;
@@ -143,7 +144,14 @@ describe('db', () => {
 						accountId: account.address,
 					});
 					yield db.query(
-						db.$config.pgp.helpers.insert(vote, null, 'mem_accounts2delegates')
+						db.$config.pgp.helpers.insert(
+							{
+								accountId: vote.accountId,
+								dependentId: ed.hexToBuffer(vote.dependentId),
+							},
+							null,
+							'mem_accounts2delegates'
+						)
 					);
 					votes.push(vote);
 				}

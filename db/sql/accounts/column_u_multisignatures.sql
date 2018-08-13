@@ -20,7 +20,10 @@
 */
 
 (
-  SELECT array_agg("dependentId")
-  FROM mem_accounts2u_multisignatures
-  WHERE "accountId" = mem_accounts.address
+	SELECT array_agg("dependentId")
+	FROM (
+		SELECT ENCODE("dependentId", 'hex') AS "dependentId"
+		FROM mem_accounts2u_multisignatures
+		WHERE "accountId" = mem_accounts.address
+	) AS u_multisignature_public_keys_for_account
 )

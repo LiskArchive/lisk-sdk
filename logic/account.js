@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const ed = require('../helpers/ed.js');
 const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
@@ -83,14 +82,6 @@ class Account {
 			_tmp.computedField = field.computedField || false;
 
 			return _tmp;
-		});
-
-		// Obtains binary fields from model
-		this.binary = [];
-		this.model.forEach(field => {
-			if (field.type === 'Binary') {
-				this.binary.push(field.name);
-			}
 		});
 
 		// Obtains conv from model
@@ -192,25 +183,6 @@ class Account {
 				throw 'Invalid public key, must be a hex string';
 			}
 		}
-	}
-
-	/**
-	 * Normalizes address and creates binary buffers to insert.
-	 *
-	 * @param {Object} raw - With address and public key
-	 * @returns {Object} Normalized address
-	 */
-	toDB(raw) {
-		this.binary.forEach(field => {
-			if (raw[field]) {
-				raw[field] = ed.hexToBuffer(raw[field]);
-			}
-		});
-
-		// Normalize address
-		raw.address = String(raw.address).toUpperCase();
-
-		return raw;
 	}
 
 	/**

@@ -136,10 +136,7 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
 	(tx || library.db).rounds
 		.getDelegatesSnapshot(slots.delegates)
 		.then(rows => {
-			const delegatesPublicKeys = [];
-			rows.forEach(row => {
-				delegatesPublicKeys.push(row.publicKey.toString('hex'));
-			});
+			const delegatesPublicKeys = rows.map(row => row.publicKey);
 			return setImmediate(cb, null, delegatesPublicKeys);
 		})
 		.catch(err => {

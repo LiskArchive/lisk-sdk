@@ -20,7 +20,10 @@
 */
 
 (
-  SELECT array_agg("dependentId")
-  FROM mem_accounts2delegates
-  WHERE "accountId" = mem_accounts.address
+	SELECT array_agg("dependentId")
+	FROM (
+		SELECT ENCODE("dependentId", 'hex') AS "dependentId"
+		FROM mem_accounts2delegates
+		WHERE "accountId" = mem_accounts.address
+	) AS delegates_public_keys_for_account
 )

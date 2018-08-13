@@ -25,7 +25,7 @@ module.exports = function(grunt) {
 			name: String(name),
 		};
 
-		if (!migration.name.match(/^[a-z_]+$/i)) {
+		if (!migration.name.match(/^[a-z_0-9]+$/i)) {
 			grunt.fail.fatal('Invalid migration name');
 		}
 

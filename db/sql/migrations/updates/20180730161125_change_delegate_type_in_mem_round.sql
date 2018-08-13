@@ -14,14 +14,9 @@
 
 
 /*
-  DESCRIPTION: ?
+  DESCRIPTION: Alter 'mem_round' table - change data type of 'round' from BIGINT to INT.
 
-  PARAMETERS: ?
+  PARAMETERS: None
 */
 
-INSERT INTO mem_round
-	("address", "amount", "delegate", "round")
-SELECT
-	${address}, (${balanceMode:raw}balance)::bigint, DECODE(${delegate}, 'hex'), ${round}
-	FROM mem_accounts
-	WHERE address = ${address}
+ALTER TABLE mem_round ALTER COLUMN delegate TYPE bytea USING DECODE(delegate, 'hex');

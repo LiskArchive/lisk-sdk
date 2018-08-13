@@ -21,5 +21,5 @@
 
 SELECT "accountId"
 FROM mem_accounts2delegates
-WHERE "dependentId" = ${publicKey}
+WHERE "dependentId" = DECODE(${publicKey}, 'hex')
 LIMIT ${limit} OFFSET ${offset}

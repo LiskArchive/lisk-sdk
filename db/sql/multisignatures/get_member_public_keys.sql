@@ -15,11 +15,14 @@
 
 /*
   DESCRIPTION: Gets list of public keys for a member address
+	TODO: Remove since it's duplicate of 'column_multisignatures'
 
   PARAMETERS:
   		- address: Address of a member (string)
 */
 
-SELECT array_agg("dependentId") AS "memberAccountKeys"
-FROM mem_accounts2multisignatures
-WHERE "accountId" = ${address}
+SELECT array_agg("dependentId") AS "memberAccountKeys" FROM (
+	SELECT ENCODE("dependentId", 'hex') AS "dependentId"
+	FROM mem_accounts2multisignatures
+	WHERE "accountId" = ${address}
+) AS multisignature_public_keys_for_account
