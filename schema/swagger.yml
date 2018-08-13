@@ -928,6 +928,8 @@ paths:
             - amount:desc
             - fee:asc
             - fee:desc
+            - height:asc
+            - height:desc
             - type:asc
             - type:desc
             - timestamp:asc
