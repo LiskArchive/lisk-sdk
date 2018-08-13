@@ -277,24 +277,24 @@ class Transaction {
 	}
 
 	/**
-	 * Description of the function.
+	 * Returns true if a transaction was confirmed.
 	 *
 	 * @param {transaction} transaction
 	 * @param {function} cb
-	 * @returns {SetImmediate} error
+	 * @returns {SetImmediate} error, isConfirmed
 	 * @todo Add description for the params
 	 */
 	checkConfirmed(transaction, cb) {
+		if (!transaction || !transaction.id) {
+			return setImmediate(cb, 'Invalid transaction id', false);
+		}
 		this.countById(transaction, (err, count) => {
 			if (err) {
-				return setImmediate(cb, err);
+				return setImmediate(cb, err, false);
 			} else if (count > 0) {
-				return setImmediate(
-					cb,
-					`Transaction is already confirmed: ${transaction.id}`
-				);
+				return setImmediate(cb, null, true);
 			}
-			return setImmediate(cb);
+			return setImmediate(cb, null, false);
 		});
 	}
 
@@ -693,9 +693,16 @@ class Transaction {
 		};
 
 		if (checkExists) {
-			this.checkConfirmed(transaction, checkConfirmedErr => {
+			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
 				if (checkConfirmedErr) {
 					return setImmediate(cb, checkConfirmedErr);
+				}
+
+				if (isConfirmed) {
+					return setImmediate(
+						cb,
+						`Transaction is already confirmed: ${transaction.id}`
+					);
 				}
 
 				verifyTransactionTypes(transaction, sender, tx, cb);
