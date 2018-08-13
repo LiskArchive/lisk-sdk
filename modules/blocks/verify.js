@@ -821,7 +821,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'false' if block comes from chain synchronisation process
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				broadcast ? modules.system.update(seriesCb) : seriesCb();
+				modules.system.update(seriesCb);
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
