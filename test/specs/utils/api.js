@@ -85,7 +85,7 @@ describe('API util', () => {
 						then.theLiskAPIInstanceShouldHaveNethashEqualTo,
 					);
 					Then(
-						'the lisk instance should have nethash equal to "http://testnet.lisk.io:7000"',
+						'the lisk instance should have nethash equal to "https://testnet.lisk.io:443"',
 						then.theLiskAPIInstanceShouldHaveCurrentNodeEqualTo,
 					);
 				},
