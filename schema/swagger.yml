@@ -2334,7 +2334,7 @@ definitions:
       currentTime:
         type: integer
         example: 1533558858128
-        description: Current time of the node in miliseconds (Unix Time Stamp).
+        description: Current time of the node in miliseconds (Unix Timestamp).
       epochTime:
         type: integer
         example: 1533558858
