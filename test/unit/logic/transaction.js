@@ -343,7 +343,9 @@ describe('transaction', () => {
 
 	describe('countById', () => {
 		it('should throw an error with no param', () => {
-			return expect(transactionLogic.countById).to.throw();
+			return expect(transactionLogic.countById.bind(transactionLogic)).to.throw(
+				"Cannot read property 'id' of undefined"
+			);
 		});
 
 		it('should return count of transaction in db with transaction id', done => {
@@ -365,7 +367,16 @@ describe('transaction', () => {
 
 	describe('checkConfirmed', () => {
 		it('should throw an error with no param', () => {
-			return expect(transactionLogic.checkConfirmed).to.throw();
+			return expect(
+				transactionLogic.checkConfirmed.bind(transactionLogic)
+			).to.throw('"callback" argument must be a function');
+		});
+
+		it('should return an error with no transaction', done => {
+			transactionLogic.checkConfirmed(null, err => {
+				expect(err).to.equal('Invalid transaction id');
+				done();
+			});
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
@@ -376,20 +387,24 @@ describe('transaction', () => {
 			});
 
 			transactionLogic.checkConfirmed(transaction, err => {
-				expect(err).to.not.exist;
+				expect(err).to.be.a('null');
 				done();
 			});
 		});
 
-		it('should return error for transaction which is already confirmed', done => {
+		it('should return true for transaction which is already confirmed', done => {
 			var dummyConfirmedTransaction = {
 				id: '1465651642158264047',
 			};
 
-			transactionLogic.checkConfirmed(dummyConfirmedTransaction, err => {
-				expect(err).to.include('Transaction is already confirmed');
-				done();
-			});
+			transactionLogic.checkConfirmed(
+				dummyConfirmedTransaction,
+				(err, isConfirmed) => {
+					expect(err).to.be.a('null');
+					expect(isConfirmed).to.be.true;
+					done();
+				}
+			);
 		});
 	});
 
