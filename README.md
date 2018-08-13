@@ -20,6 +20,16 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### System Install
 
+* Create a new user
+
+  * Ubuntu 14|16 / Debian:
+
+  ```
+  sudo adduser lisk
+  ```
+
+  Note: The lisk user itself does not need any sudo rights to run Lisk Core.
+
 * Tool chain components -- Used for compiling dependencies
 
   * Ubuntu 14|16 / Debian:
@@ -93,20 +103,53 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 * Ubuntu 14|16 / Debian:
 
+Firstly, download and install postgreSQL:
+
 ```
-curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-sudo -u postgres createuser --createdb $USER
-createdb lisk_test
-createdb lisk_main
-sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $( lsb_release -cs )-pgdg main" |sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+sudo apt-get install --assume-yes postgresql-9.6 postgresql-contrib-9.6 libpq-dev
+```
+
+After installation, you should see the postgres database cluster, by running
+
+```
+  pg_lsclusters
+```
+
+Drop the existing database cluster, and replace it with a cluster with the locale `en_US.UTF-8`:
+
+```
+  sudo pg_dropcluster --stop 9.6 main
+  sudo pg_createcluster --locale en_US.UTF-8 --start 9.6 main
+```
+
+Create a new database user called `lisk` and grant it rights to create databases:
+
+```
+  sudo -u postgres createuser --createdb lisk
+```
+
+Create the databases for Testnet and Mainnet:
+
+```
+  createdb -O lisk lisk_test
+  createdb -O lisk lisk_main
+```
+
+Change `'password'` to a secure password of your choice.
+
+```
+sudo -u postgres psql -d lisk_test -c "alter user lisk with password 'password';"
+sudo -u postgres psql -d lisk_main -c "alter user lisk with password 'password';"
 ```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
 ```
 brew install postgresql@9.6
-initdb /usr/local/var/postgres -E utf8
+initdb /usr/local/var/postgres --encoding utf8 --locale=en_US.UTF-8
 brew services start postgresql@9.6
 createdb lisk_test
 createdb lisk_main
