@@ -37,7 +37,7 @@ describe('tick', () => {
 			async.eachSeries(
 				_.range(0, 98),
 				(index, eachSeriesCb) =>
-					localCommon.addTransactionsAndForge(library, [], eachSeriesCb),
+					localCommon.addTransactionsAndForge(library, [], 0, eachSeriesCb),
 				done
 			);
 		});
@@ -71,7 +71,7 @@ describe('tick', () => {
 				});
 
 				it('should fail forging block with err = "ERR"', done => {
-					localCommon.addTransactionsAndForge(library, [], err => {
+					localCommon.addTransactionsAndForge(library, [], 0, err => {
 						expect(err.message).to.equal('ERR');
 						done();
 					});
@@ -95,7 +95,7 @@ describe('tick', () => {
 				});
 
 				it('should fail forging block with err = "ERR"', done => {
-					localCommon.addTransactionsAndForge(library, [], err => {
+					localCommon.addTransactionsAndForge(library, [], 0, err => {
 						expect(err.message).to.equal('ERR');
 						done();
 					});
@@ -119,7 +119,7 @@ describe('tick', () => {
 				});
 
 				it('should fail forging block with err = "ERR"', done => {
-					localCommon.addTransactionsAndForge(library, [], err => {
+					localCommon.addTransactionsAndForge(library, [], 0, err => {
 						expect(err.message).to.equal('ERR');
 						done();
 					});
@@ -143,7 +143,7 @@ describe('tick', () => {
 				});
 
 				it('should fail forging block with err = "ERR"', done => {
-					localCommon.addTransactionsAndForge(library, [], err => {
+					localCommon.addTransactionsAndForge(library, [], 0, err => {
 						expect(err.message).to.equal('ERR');
 						done();
 					});
@@ -152,7 +152,7 @@ describe('tick', () => {
 
 			describe('when all promises succeed', () => {
 				it('should be able to forge block ', done => {
-					localCommon.addTransactionsAndForge(library, [], err => {
+					localCommon.addTransactionsAndForge(library, [], 0, err => {
 						expect(err).to.not.exist;
 						done();
 					});
@@ -181,7 +181,7 @@ describe('tick', () => {
 			});
 
 			it('should fail forging block with err', done => {
-				localCommon.addTransactionsAndForge(library, [], err => {
+				localCommon.addTransactionsAndForge(library, [], 0, err => {
 					// One of these two errors based on the query
 					expect([
 						'Querying against a released or lost connection.',
