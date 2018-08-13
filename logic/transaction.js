@@ -285,6 +285,9 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	checkConfirmed(transaction, cb) {
+		if (!transaction || !transaction.id) {
+			return setImmediate(cb, 'Invalid transaction id', false);
+		}
 		this.countById(transaction, (err, count) => {
 			if (err) {
 				return setImmediate(cb, err, false);
@@ -691,7 +694,11 @@ class Transaction {
 
 		if (checkExists) {
 			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
-				if (checkConfirmedErr || isConfirmed) {
+				if (checkConfirmedErr) {
+					return setImmediate(cb, checkConfirmedErr);
+				}
+
+				if (isConfirmed) {
 					return setImmediate(
 						cb,
 						`Transaction is already confirmed: ${transaction.id}`
