@@ -18,7 +18,6 @@ const find = require('find');
 const utils = require('./utils');
 const setup = require('./setup');
 
-const BROADCASTING = process.env.BROADCASTING !== 'false';
 const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Full mesh network with 2 connection for bi-directional communication
 const EXPECTED_OUTOGING_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
@@ -29,10 +28,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 	_.range(TOTAL_PEERS).map(index => {
 		wsPorts.push(5000 + index);
 	});
-	const configurations = setup.config.generateLiskConfigs(
-		BROADCASTING,
-		TOTAL_PEERS
-	);
+	const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 	let testFailedError;
 
 	before(done => {
@@ -96,7 +92,6 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				configurations,
 				TOTAL_PEERS,
 				EXPECTED_OUTOGING_CONNECTIONS,
-				BROADCASTING,
 				NUMBER_OF_TRANSACTIONS
 			);
 		});

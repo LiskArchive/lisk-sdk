@@ -2113,7 +2113,7 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.false;
+							expect(modules.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
@@ -2132,7 +2132,7 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.false;
+							expect(modules.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.not.called;
 							done();
