@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,7 @@
  */
 import chalk from 'chalk';
 import {
-	shouldUseJsonOutput,
+	shouldUseJSONOutput,
 	shouldUsePrettyOutput,
 } from '../../../src/utils/helpers';
 import tablify from '../../../src/utils/tablify';
@@ -23,173 +23,178 @@ import tablify from '../../../src/utils/tablify';
 export function consoleErrorShouldBeCalledWithTheFirstStringInRedAndTheOtherArguments() {
 	const { testArguments } = this.test.ctx;
 	const redArgument = chalk.red(testArguments[0]);
-	(console.error).should.be.calledWithExactly(redArgument, ...testArguments.slice(1));
+	expect(console.error).to.be.calledWithExactly(
+		redArgument,
+		...testArguments.slice(1),
+	);
 }
 
 export function consoleErrorShouldBeCalledWithTheStringsInRed() {
 	const { testArguments } = this.test.ctx;
 	const redArguments = testArguments.map(arg => chalk.red(arg));
-	(console.error).should.be.calledWithExactly(...redArguments);
+	expect(console.error).to.be.calledWithExactly(...redArguments);
 }
 
 export function consoleWarnShouldBeCalledWithTheFirstStringInYellowAndTheOtherArguments() {
 	const { testArguments } = this.test.ctx;
 	const yellowArgument = chalk.yellow(testArguments[0]);
-	(console.warn).should.be.calledWithExactly(yellowArgument, ...testArguments.slice(1));
+	expect(console.warn).to.be.calledWithExactly(
+		yellowArgument,
+		...testArguments.slice(1),
+	);
 }
 
 export function consoleWarnShouldBeCalledWithTheStringsInYellow() {
 	const { testArguments } = this.test.ctx;
 	const yellowArguments = testArguments.map(arg => chalk.yellow(arg));
-	(console.warn).should.be.calledWithExactly(...yellowArguments);
+	expect(console.warn).to.be.calledWithExactly(...yellowArguments);
 }
 
 export function itShouldPrintTheErrorMessageInRed() {
-	const { testError: { message }, validationErrorMessage } = this.test.ctx;
-	return (message).should.be.equal(chalk.red(validationErrorMessage));
+	const { testError: { message }, errorMessage } = this.test.ctx;
+	return expect(message).to.equal(chalk.red(errorMessage));
 }
 
 export function theErrorShouldBePrintedWithThePrefix() {
 	const { printFunction, errorMessage, prefix } = this.test.ctx;
-	return (printFunction).should.be.calledWithExactly({
+	return expect(printFunction).to.be.calledWithExactly({
 		error: `${prefix}: ${errorMessage}`,
 	});
 }
 
+export function theActiveCommandShouldBeUsedToLog() {
+	const { activeCommand } = this.test.ctx;
+	return expect(activeCommand.log).to.be.calledOnce;
+}
+
 export function theObjectShouldBePrinted() {
 	const { printFunction, testObject } = this.test.ctx;
-	return (printFunction).should.be.calledWithExactly(testObject);
+	return expect(printFunction).to.be.calledWithExactly(testObject);
 }
 
 export function aTableShouldBeLogged() {
 	const { result, vorpal } = this.test.ctx;
 	const tableOutput = tablify(result).toString();
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(tableOutput);
-}
-
-export function prettyJSONOutputShouldBeLogged() {
-	const { result, vorpal } = this.test.ctx;
-	const prettyJsonOutput = JSON.stringify(result, null, '\t');
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+	return expect(vorpal.log).to.be.calledWithExactly(tableOutput);
 }
 
 export function prettyJSONOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
-	const prettyJsonOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(prettyJsonOutput);
+	const prettyJSONOutput = JSON.stringify(resultWithoutANSICodes, null, '\t');
+	return expect(vorpal.log).to.be.calledWithExactly(prettyJSONOutput);
 }
 
-export function jSONOutputShouldBeLogged() {
-	const { result, vorpal } = this.test.ctx;
-	const jsonOutput = JSON.stringify(result);
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
-}
-
-export function jSONOutputShouldBeLoggedWithoutANSICodes() {
+export function jsonOutputShouldBeLoggedWithoutANSICodes() {
 	const { resultWithoutANSICodes, vorpal } = this.test.ctx;
 	const jsonOutput = JSON.stringify(resultWithoutANSICodes);
-	return (vorpal.activeCommand.log).should.be.calledWithExactly(jsonOutput);
+	return expect(vorpal.log).to.be.calledWithExactly(jsonOutput);
 }
 
-export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
+export function prettyJSONOutputsShouldBeLoggedWithoutANSICodes() {
+	const { resultsWithoutANSICodes, vorpal } = this.test.ctx;
+	const prettyJSONOutput = JSON.stringify(resultsWithoutANSICodes, null, '\t');
+	return expect(vorpal.log).to.be.calledWithExactly(prettyJSONOutput);
+}
+
+export function jsonOutputsShouldBeLoggedWithoutANSICodes() {
+	const { resultsWithoutANSICodes, vorpal } = this.test.ctx;
+	const jsonOutput = JSON.stringify(resultsWithoutANSICodes);
+	return expect(vorpal.log).to.be.calledWithExactly(jsonOutput);
+}
+
+export function shouldUseJSONOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
-	return (shouldUseJsonOutput).should.be.calledWithExactly(config, {});
+	return expect(shouldUseJSONOutput).to.be.calledWithExactly(config, {});
 }
 
 export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndAnEmptyOptionsObject() {
 	const { config } = this.test.ctx;
-	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, {});
+	return expect(shouldUsePrettyOutput).to.be.calledWithExactly(config, {});
 }
 
-export function shouldUseJsonOutputShouldBeCalledWithTheConfigAndTheOptions() {
+export function shouldUseJSONOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
-	return (shouldUseJsonOutput).should.be.calledWithExactly(config, options);
+	return expect(shouldUseJSONOutput).to.be.calledWithExactly(config, options);
 }
 
 export function shouldUsePrettyOutputShouldBeCalledWithTheConfigAndTheOptions() {
 	const { config, options } = this.test.ctx;
-	return (shouldUsePrettyOutput).should.be.calledWithExactly(config, options);
+	return expect(shouldUsePrettyOutput).to.be.calledWithExactly(config, options);
 }
 
 export function theReturnedTableShouldHaveNoHead() {
 	const { returnValue } = this.test.ctx;
-	return (returnValue.options).should.have.property('head').eql([]);
+	return expect(returnValue.options)
+		.to.have.property('head')
+		.eql([]);
 }
 
 export function theReturnedTableShouldHaveNoRows() {
 	const { returnValue } = this.test.ctx;
-	return (returnValue).should.have.length(0);
+	return expect(returnValue).to.have.length(0);
 }
 
-export function theReturnedTableShouldHaveAHeadWithTheObjectKeys() {
+export function theReturnedTableShouldHaveARowWithTheObjectKeyValues() {
 	const { returnValue, testObject } = this.test.ctx;
-	const keys = Object.keys(testObject);
-	return (returnValue.options).should.have.property('head').eql(keys);
-}
-
-export function theReturnedTableShouldHaveARowWithTheObjectValues() {
-	const { returnValue, testObject } = this.test.ctx;
-	const values = Object.values(testObject);
-	return (returnValue[0]).should.eql(values);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys() {
-	const { returnValue } = this.test.ctx;
-	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue'];
-	return (returnValue.options).should.have.property('head').eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys() {
-	const { returnValue } = this.test.ctx;
-	const keys = ['root', 'nested.object', 'nested.testing', 'nested.nullValue', 'nested.asset.publicKey', 'nested.asset.keys.more'];
-	return (returnValue.options).should.have.property('head').eql(keys);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectNestedValues() {
-	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null];
-	return (returnValue[0]).should.eql(values);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues() {
-	const { returnValue } = this.test.ctx;
-	const values = ['value', 'values', 123, null, 'aPublicKeyString', 'publicKey1\npublicKey2'];
-	return (returnValue[0]).should.eql(values);
-}
-
-export function theReturnedTableShouldHaveAHeadWithTheObjectsKeys() {
-	const { returnValue, testArray } = this.test.ctx;
-	const keys = Object.keys(testArray[0]);
-	return (returnValue.options).should.have.property('head').eql(keys);
-}
-
-export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues() {
-	const { returnValue, testArray } = this.test.ctx;
-	return testArray.forEach((testObject, i) => {
-		const values = Object.values(testObject);
-		return (returnValue[i]).should.eql(values);
+	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
+		expect({ [key]: value }).to.eql(returnValue[arrayKey]);
 	});
 }
 
-export function theReturnedTableShouldHaveAHeadWithEveryUniqueKey() {
-	const { returnValue, testArray } = this.test.ctx;
-	const uniqueKeys = testArray
-		.reduce((keys, testObject) => {
-			const newKeys = Object.keys(testObject).filter(key => !keys.includes(key));
-			return [...keys, ...newKeys];
-		}, []);
-	return (returnValue.options).should.have.property('head').eql(uniqueKeys);
+export function theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues() {
+	const { returnValue, testObject } = this.test.ctx;
+	return Object.entries(testObject).forEach(([key, value], arrayKey) => {
+		const strValue =
+			typeof value === 'object' && value !== null
+				? Object.entries(value)
+						.map(
+							([vKey, vValue]) =>
+								`${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
+						)
+						.join('\n')
+				: value;
+		expect({ [key]: strValue }).to.eql(returnValue[arrayKey]);
+	});
 }
 
-export function theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues() {
+export function theReturnedTableShouldHaveHeaderRows() {
 	const { returnValue, testArray } = this.test.ctx;
-	return testArray.forEach((testObject, i) => {
-		const row = returnValue[i];
-		const values = Object.values(testObject);
+	testArray.forEach((value, key) => {
+		expect(
+			returnValue[key * (Object.keys(value).length + 1)][0],
+		).to.have.property('colSpan');
+	});
+}
 
-		values.forEach(value => (row).should.containEql(value));
-		return row
-			.filter(value => !values.includes(value))
-			.forEach(value => should(value).be.undefined());
+export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues() {
+	const { returnValue, testArray } = this.test.ctx;
+	return testArray.forEach((values, i) => {
+		Object.keys(values).forEach((key, keyIndex) => {
+			expect(returnValue[i * testArray.length + 1 + keyIndex]).eql({
+				[key]: values[key],
+			});
+		});
+	});
+}
+
+export function theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedNestedValues() {
+	const { returnValue, testArray } = this.test.ctx;
+	return testArray.forEach((values, i) => {
+		const innerObjectKeys = Object.keys(values);
+		innerObjectKeys.forEach((key, keyIndex) => {
+			let strValue = values[key];
+			if (Array.isArray(values[key])) {
+				strValue = values[key].join('\n');
+			} else if (typeof values[key] === 'object') {
+				strValue = Object.entries(values[key])
+					.map(
+						([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`,
+					)
+					.join('\n');
+			}
+			expect(returnValue[i * (innerObjectKeys.length + 1) + keyIndex + 1]).eql({
+				[key]: strValue,
+			});
+		});
 	});
 }

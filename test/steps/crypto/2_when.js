@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,104 +13,198 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
-import {
-	DEFAULT_ERROR_MESSAGE,
-} from '../utils';
+import elements from 'lisk-elements';
+import { DEFAULT_ERROR_MESSAGE } from '../utils';
 
-export function anErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
-	const { cryptoInstance, keys: { publicKey } } = this.test.ctx;
+export function anErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature() {
+	const { cryptography, publicKey, message, signature } = this.test.ctx;
 
-	lisk.crypto.getAddressFromPublicKey.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.verifyMessageWithPublicKey.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+	this.test.ctx.returnValue = cryptography.verifyMessage({
+		publicKey,
+		signature,
+		message,
+	});
+}
+
+export function noErrorOccursAttemptingToVerifyTheMessageUsingThePublicKeyAndTheSignature() {
+	const {
+		cryptography,
+		message,
+		keys: { publicKey },
+		signature,
+	} = this.test.ctx;
+	const verifyReturnMessage = true;
+
+	elements.cryptography.verifyMessageWithPublicKey.returns(verifyReturnMessage);
+
+	this.test.ctx.returnValue = cryptography.verifyMessage({
+		publicKey,
+		signature,
+		message,
+	});
+}
+
+export function noErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
+	const { cryptography, message, passphrase, signature } = this.test.ctx;
+
+	elements.cryptography.signMessageWithPassphrase.returns(signature);
+
+	this.test.ctx.returnValue = cryptography.signMessage({
+		message,
+		passphrase,
+	});
+}
+
+export function anErrorOccursAttemptingToSignTheMessageUsingThePassphrase() {
+	const { cryptography, message, passphrase } = this.test.ctx;
+
+	elements.cryptography.signMessageWithPassphrase.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
+
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.returnValue = cryptography.signMessage({
+		message,
+		passphrase,
+	});
+}
+
+export function anErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
+	const { cryptography, keys: { publicKey } } = this.test.ctx;
+
+	elements.cryptography.getAddressFromPublicKey.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
+
+	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
+	this.test.ctx.returnValue = cryptography.getAddressFromPublicKey(publicKey);
 }
 
 export function noErrorOccursAttemptingToGetTheAddressFromThePublicKey() {
-	const { cryptoInstance, keys: { publicKey }, address } = this.test.ctx;
-	lisk.crypto.getAddressFromPublicKey.returns(address);
-	this.test.ctx.returnValue = cryptoInstance.getAddressFromPublicKey(publicKey);
+	const { cryptography, keys: { publicKey }, address } = this.test.ctx;
+	elements.cryptography.getAddressFromPublicKey.returns(address);
+	this.test.ctx.returnValue = cryptography.getAddressFromPublicKey(publicKey);
 }
 
 export function noErrorOccursAttemptingToGetTheKeysForThePassphrase() {
-	const { cryptoInstance, passphrase } = this.test.ctx;
-	this.test.ctx.returnValue = cryptoInstance.getKeys(passphrase);
+	const { cryptography, passphrase } = this.test.ctx;
+	this.test.ctx.returnValue = cryptography.getKeys(passphrase);
 }
 
 export function anErrorOccursAttemptingToGetTheKeysForThePassphrase() {
-	const { cryptoInstance, passphrase } = this.test.ctx;
+	const { cryptography, passphrase } = this.test.ctx;
 
-	lisk.crypto.getKeys.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.getKeys.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.getKeys(passphrase);
+	this.test.ctx.returnValue = cryptography.getKeys(passphrase);
 }
 
 export function noErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
-	const { cryptoInstance, passphrase, password } = this.test.ctx;
-	this.test.ctx.returnValue = cryptoInstance.encryptPassphrase({ passphrase, password });
+	const { cryptography, passphrase, password } = this.test.ctx;
+	this.test.ctx.returnValue = cryptography.encryptPassphrase({
+		passphrase,
+		password,
+	});
 }
 
 export function anErrorOccursAttemptingToEncryptThePassphraseWithThePassword() {
-	const { cryptoInstance, passphrase, password } = this.test.ctx;
+	const { cryptography, passphrase, password } = this.test.ctx;
 
-	lisk.crypto.encryptPassphraseWithPassword.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.encryptPassphraseWithPassword.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.encryptPassphrase({ passphrase, password });
+	this.test.ctx.returnValue = cryptography.encryptPassphrase({
+		passphrase,
+		password,
+	});
 }
 
 export function noErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
-	const { cryptoInstance, cipherAndIv: { cipher, iv }, password } = this.test.ctx;
-	this.test.ctx.returnValue = cryptoInstance.decryptPassphrase({ cipher, iv, password });
+	const { cryptography, encryptedPassphrase, password } = this.test.ctx;
+	this.test.ctx.returnValue = cryptography.decryptPassphrase({
+		encryptedPassphrase,
+		password,
+	});
 }
 
 export function anErrorOccursAttemptingToDecryptThePassphraseWithThePassword() {
-	const { cryptoInstance, cipherAndIv: { cipher, iv }, password } = this.test.ctx;
+	const { cryptography, encryptedPassphrase, password } = this.test.ctx;
 
-	lisk.crypto.decryptPassphraseWithPassword.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.decryptPassphraseWithPassword.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.decryptPassphrase({ cipher, iv, password });
+	this.test.ctx.returnValue = cryptography.decryptPassphrase({
+		encryptedPassphrase,
+		password,
+	});
 }
 
 export function noErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
-	const {
-		cryptoInstance, message, passphrase, recipientKeys,
-	} = this.test.ctx;
-	this.test.ctx.returnValue = cryptoInstance.encryptMessage({ message, passphrase, recipient: recipientKeys.publicKey });
+	const { cryptography, message, passphrase, recipientKeys } = this.test.ctx;
+	this.test.ctx.returnValue = cryptography.encryptMessage({
+		message,
+		passphrase,
+		recipient: recipientKeys.publicKey,
+	});
 }
 
 export function anErrorOccursAttemptingToEncryptTheMessageForTheRecipientUsingThePassphrase() {
-	const {
-		cryptoInstance, message, passphrase, recipientKeys,
-	} = this.test.ctx;
+	const { cryptography, message, passphrase, recipientKeys } = this.test.ctx;
 
-	lisk.crypto.encryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.encryptMessageWithPassphrase.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.encryptMessage({ message, passphrase, recipient: recipientKeys.publicKey });
+	this.test.ctx.returnValue = cryptography.encryptMessage({
+		message,
+		passphrase,
+		recipient: recipientKeys.publicKey,
+	});
 }
 
 export function noErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
 	const {
-		cryptoInstance, cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys,
+		cryptography,
+		cipherAndNonce: { cipher, nonce },
+		recipientPassphrase,
+		keys,
 	} = this.test.ctx;
-	this.test.ctx.returnValue = cryptoInstance.decryptMessage({
-		cipher, nonce, passphrase: recipientPassphrase, senderPublicKey: keys.publicKey,
+	this.test.ctx.returnValue = cryptography.decryptMessage({
+		cipher,
+		nonce,
+		passphrase: recipientPassphrase,
+		senderPublicKey: keys.publicKey,
 	});
 }
 
 export function anErrorOccursAttemptingToDecryptTheMessageUsingTheRecipientPassphraseAndSenderPublicKey() {
 	const {
-		cryptoInstance, cipherAndNonce: { cipher, nonce }, recipientPassphrase, keys,
+		cryptography,
+		cipherAndNonce: { cipher, nonce },
+		recipientPassphrase,
+		keys,
 	} = this.test.ctx;
 
-	lisk.crypto.decryptMessageWithSecret.throws(new TypeError(DEFAULT_ERROR_MESSAGE));
+	elements.cryptography.decryptMessageWithPassphrase.throws(
+		new TypeError(DEFAULT_ERROR_MESSAGE),
+	);
 
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.returnValue = cryptoInstance.decryptMessage({
-		cipher, nonce, recipientPassphrase, senderPublicKey: keys.publicKey,
+	this.test.ctx.returnValue = cryptography.decryptMessage({
+		cipher,
+		nonce,
+		recipientPassphrase,
+		senderPublicKey: keys.publicKey,
 	});
 }

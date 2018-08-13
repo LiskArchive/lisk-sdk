@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,13 +15,13 @@
  */
 import { readFileSync, writeFileSync } from 'fs';
 
-export const readJsonSync = (path) => {
+export const readJSONSync = path => {
 	const contents = readFileSync(path, 'utf8');
 	const stripped = contents.replace(/^\uFEFF/, '');
 	return JSON.parse(stripped);
 };
 
-export const writeJsonSync = (path, contents) => {
+export const writeJSONSync = (path, contents) => {
 	const json = JSON.stringify(contents, null, '\t');
 	return writeFileSync(path, json);
 };

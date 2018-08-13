@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -38,7 +38,9 @@ export function anAction() {
 
 export function anOptionsListIncluding() {
 	const options = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.optionsList = options.map(optionName => commonOptions[optionName]);
+	this.test.ctx.optionsList = options.map(
+		optionName => commonOptions[optionName],
+	);
 }
 
 export function aDescription() {
@@ -53,18 +55,28 @@ export function aCommand() {
 	this.test.ctx.command = getFirstQuotedString(this.test.parent.title);
 }
 
+export function anActiveCommandThatCanLog() {
+	this.test.ctx.activeCommand = {
+		log: sinon.spy(),
+	};
+}
+
 export function anActionCreatorThatCreatesAnActionThatResolvesToAnObject() {
 	const testObject = {
 		lisk: 'js',
 		testing: 123,
 	};
 	this.test.ctx.testObject = testObject;
-	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().resolves(testObject));
+	this.test.ctx.actionCreator = sandbox
+		.stub()
+		.returns(sandbox.stub().resolves(testObject));
 }
 
 export function anActionCreatorThatCreatesAnActionThatRejectsWithAnError() {
 	this.test.ctx.errorMessage = DEFAULT_ERROR_MESSAGE;
-	this.test.ctx.actionCreator = sandbox.stub().returns(sandbox.stub().rejects(new Error(DEFAULT_ERROR_MESSAGE)));
+	this.test.ctx.actionCreator = sandbox
+		.stub()
+		.returns(sandbox.stub().rejects(new Error(DEFAULT_ERROR_MESSAGE)));
 }
 
 export function aParametersObjectWithTheOptions() {
@@ -75,22 +87,13 @@ export function aParametersObjectWithTheOptions() {
 export function aVorpalInstance() {
 	const vorpal = new Vorpal();
 	const capturedOutput = [];
-	const handleOutput = output => capturedOutput.push(output);
-	vorpal.pipe((outputs) => {
-		if (capturedOutput) {
-			outputs.forEach(handleOutput);
-		}
-		return '';
-	});
 	this.test.ctx.capturedOutput = capturedOutput;
 	this.test.ctx.vorpal = vorpal;
 }
 
-export function aVorpalInstanceWithAnActiveCommandThatCanLog() {
+export function aVorpalInstanceThatCanLog() {
 	this.test.ctx.vorpal = {
-		activeCommand: {
-			log: sandbox.spy(),
-		},
+		log: sandbox.spy(),
 	};
 }
 
@@ -116,9 +119,9 @@ export function theVorpalInstanceHasAUIParent() {
 	vorpal.ui.parent = parent;
 }
 
-export function aLiskyInstance() {
-	const lisky = {
+export function aLiskCommanderInstance() {
+	const liskCommander = {
 		log: sandbox.spy(),
 	};
-	this.test.ctx.lisky = lisky;
+	this.test.ctx.liskCommander = liskCommander;
 }

@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,13 +13,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as inputUtils from '../../../src/utils/input/utils';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
 	getFirstBoolean,
-	hasAncestorWithTitleMatching,
+	getBooleans,
 } from '../utils';
+
+export function anOptionsObjectWithSignatureSetTo() {
+	const signature = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { signature };
+}
 
 export function anArrayOfOptions() {
 	const options = getQuotedStrings(this.test.parent.title);
@@ -27,13 +31,25 @@ export function anArrayOfOptions() {
 }
 
 export function anOptionsObjectWithUnvotesSetToPassphraseSetToAndSecondPassphraseSetTo() {
-	const [unvotes, passphrase, secondPassphrase] = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.options = { unvotes, passphrase, 'second-passphrase': secondPassphrase };
+	const [unvotes, passphrase, secondPassphrase] = getQuotedStrings(
+		this.test.parent.title,
+	);
+	this.test.ctx.options = {
+		unvotes,
+		passphrase,
+		'second-passphrase': secondPassphrase,
+	};
 }
 
 export function anOptionsObjectWithVotesSetToPassphraseSetToAndSecondPassphraseSetTo() {
-	const [votes, passphrase, secondPassphrase] = getQuotedStrings(this.test.parent.title);
-	this.test.ctx.options = { votes, passphrase, 'second-passphrase': secondPassphrase };
+	const [votes, passphrase, secondPassphrase] = getQuotedStrings(
+		this.test.parent.title,
+	);
+	this.test.ctx.options = {
+		votes,
+		passphrase,
+		'second-passphrase': secondPassphrase,
+	};
 }
 
 export function anOptionsObjectWithUnvotesSetToAndPassphraseSetTo() {
@@ -61,14 +77,25 @@ export function anOptionsObjectWithVotesSetTo() {
 	this.test.ctx.options = { votes };
 }
 
+export function anOptionsObjectWithSignatureSetToAndVotesSetTo() {
+	const votes = getFirstQuotedString(this.test.parent.title);
+	const signature = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { votes, signature };
+}
+
 export function anOptionsObjectWithPassphraseSetToAndSecondPassphraseSetTo() {
-	const { secondPassphrase, passphrase } = this.test.ctx;
-	const [passphraseSource, secondPassphraseSource] = getQuotedStrings(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
-	}
-	this.test.ctx.options = { passphrase: passphraseSource, 'second-passphrase': secondPassphraseSource };
+	const [passphraseSource, secondPassphraseSource] = getQuotedStrings(
+		this.test.parent.title,
+	);
+	this.test.ctx.options = {
+		passphrase: passphraseSource,
+		'second-passphrase': secondPassphraseSource,
+	};
+}
+
+export function anOptionsObjectWithSecondPublicKeySetTo() {
+	const key = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.options = { 'second-public-key': key };
 }
 
 export function anOptionsObjectWithKeySetToBoolean() {
@@ -110,25 +137,18 @@ export function anOptionsObjectWithPassphraseSetToAndPasswordSetTo() {
 }
 
 export function anOptionsObjectWithPasswordSetTo() {
-	const { password } = this.test.ctx;
 	const passwordSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		if (hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/)) {
-			inputUtils.getPassphrase.onFirstCall().resolves(password);
-		} else {
-			inputUtils.getPassphrase.onSecondCall().resolves(password);
-		}
-	}
 	this.test.ctx.options = { password: passwordSource };
 }
 
 export function anOptionsObjectWithPassphraseSetToAndMessageSetTo() {
-	const { passphrase } = this.test.ctx;
-	const [passphraseSource, messageSource] = getQuotedStrings(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.resolves(passphrase);
-	}
-	this.test.ctx.options = { passphrase: passphraseSource, message: messageSource };
+	const [passphraseSource, messageSource] = getQuotedStrings(
+		this.test.parent.title,
+	);
+	this.test.ctx.options = {
+		passphrase: passphraseSource,
+		message: messageSource,
+	};
 }
 
 export function anOptionsObjectWithMessageSetTo() {
@@ -137,29 +157,28 @@ export function anOptionsObjectWithMessageSetTo() {
 }
 
 export function anOptionsObjectWithPassphraseSetTo() {
-	const { passphrase } = this.test.ctx;
 	const passphraseSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		if (!hasAncestorWithTitleMatching(this.test, /Given an action "decrypt passphrase"/)) {
-			inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-			this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.firstCall;
-		}
-	}
 	this.test.ctx.options = { passphrase: passphraseSource };
 }
 
 export function anOptionsObjectWithSecondPassphraseSetTo() {
-	const { secondPassphrase } = this.test.ctx;
 	const secondPassphraseSource = getFirstQuotedString(this.test.parent.title);
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
-	}
 	this.test.ctx.options = { 'second-passphrase': secondPassphraseSource };
 }
 
 export function anOptionsObjectWithJsonSetTo() {
 	const json = getFirstBoolean(this.test.parent.title);
 	this.test.ctx.options = { json };
+}
+
+export function anOptionsObjectWithTableSetTo() {
+	const table = getFirstBoolean(this.test.parent.title);
+	this.test.ctx.options = { table };
+}
+
+export function anOptionsObjectWithJsonSetToAndTableSetTo() {
+	const [json, table] = getBooleans(this.test.parent.title);
+	this.test.ctx.options = { json, table };
 }
 
 export function anOptionsObjectWithPrettySetTo() {

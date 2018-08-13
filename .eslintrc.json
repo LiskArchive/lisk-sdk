@@ -1,5 +1,4 @@
 {
-	"extends": [
-		"lisk-base"
-	]
+	"extends": ["lisk-base"],
+	"plugins": ["mocha"]
 }

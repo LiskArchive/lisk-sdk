@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,24 +13,37 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	getFirstQuotedString,
-	getQuotedStrings,
-} from '../utils';
-import { ValidationError } from '../../../src/utils/error';
+import { getFirstQuotedString, getQuotedStrings } from '../utils';
+import { FileSystemError, ValidationError } from '../../../src/utils/error';
 
 export function stringArguments() {
 	this.test.ctx.testArguments = getQuotedStrings(this.test.parent.title);
 }
 
-export function aFunctionThatThrowsAValidationError() {
-	const validationErrorMessage = getFirstQuotedString(this.test.parent.title);
-	const validationErrorFn = () => {
-		throw new ValidationError(validationErrorMessage);
+export function aFunctionThatThrowsAFileSystemError() {
+	const errorMessage = getFirstQuotedString(this.test.parent.title);
+	const fileSystemErrorFn = () => {
+		throw new FileSystemError(errorMessage);
 	};
 
-	this.test.ctx.validationErrorMessage = validationErrorMessage;
+	this.test.ctx.errorMessage = errorMessage;
+	this.test.ctx.fileSystemErrorFn = fileSystemErrorFn;
+}
+
+export function aFunctionThatThrowsAValidationError() {
+	const errorMessage = getFirstQuotedString(this.test.parent.title);
+	const validationErrorFn = () => {
+		throw new ValidationError(errorMessage);
+	};
+
+	this.test.ctx.errorMessage = errorMessage;
 	this.test.ctx.validationErrorFn = validationErrorFn;
+}
+
+export function anErrorObject() {
+	this.test.ctx.errorObject = {
+		error: 'Some error',
+	};
 }
 
 export function anEmptyObject() {
@@ -47,6 +60,7 @@ export function aNonEmptyObject() {
 export function aDeeplyNestedObject() {
 	this.test.ctx.testObject = {
 		root: 'value',
+		nullObject: null,
 		nested: {
 			object: 'values',
 			testing: 123,
@@ -61,6 +75,19 @@ export function aDeeplyNestedObject() {
 	};
 }
 
+export function aCyclicObject() {
+	const obj = {
+		root: 'value',
+		nested: {
+			object: 'values',
+			testing: 123,
+			nullValue: null,
+		},
+	};
+	obj.circular = obj;
+	this.test.ctx.testObject = obj;
+}
+
 export function aNestedObject() {
 	this.test.ctx.testObject = {
 		root: 'value',
@@ -68,6 +95,9 @@ export function aNestedObject() {
 			object: 'values',
 			testing: 123,
 			nullValue: null,
+			keys: {
+				more: ['publicKey1', 'publicKey2'],
+			},
 		},
 	};
 }
@@ -89,6 +119,49 @@ export function anArrayOfObjectsWithTheSameKeys() {
 	];
 }
 
+export function anArrayOfObjectsWithNestedKeys() {
+	this.test.ctx.testArray = [
+		{
+			lisk: 'js',
+			version: 1,
+			assets: {
+				type: 0,
+			},
+			signatures: ['publicKey1', 'publicKey2'],
+		},
+		{
+			lisk: 'ts',
+			version: 2,
+			data: {
+				testing: 'test-string',
+			},
+			assets: {
+				type: 1,
+			},
+		},
+		{
+			lisk: 'jsx',
+			version: 3,
+			assets: {
+				type: 3,
+			},
+			signatures: [],
+		},
+	];
+	this.test.ctx.testArrayKeysResult = [
+		'lisk',
+		'version',
+		'assets.type',
+		'signatures',
+		'data.testing',
+	];
+	this.test.ctx.testArrayValuesResult = [
+		['js', 1, 0, 'publicKey1\npublicKey2', ''],
+		['ts', 2, 1, undefined, 'test-string'],
+		['jsx', 3, 3, '', ''],
+	];
+}
+
 export function anArrayOfObjectsWithDivergentKeys() {
 	this.test.ctx.testArray = [
 		{
@@ -96,11 +169,11 @@ export function anArrayOfObjectsWithDivergentKeys() {
 			version: 1,
 		},
 		{
-			lisky: 'ts',
+			'lisk-commander': 'ts',
 			version: 2,
 		},
 		{
-			nano: 'jsx',
+			hub: 'jsx',
 			react: true,
 		},
 	];
@@ -145,7 +218,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 export function aCopyrightInformationText() {
 	this.test.ctx.copyright = `
-Lisky  Copyright (C) 2017  Lisk Foundation
+Lisk Commander  Copyright (C) 2017–2018  Lisk Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

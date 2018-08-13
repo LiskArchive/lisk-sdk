@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,54 +14,68 @@
  *
  */
 import fs from 'fs';
+import lockfile from 'lockfile';
 import * as fsUtils from '../../../src/utils/fs';
-
-export function itShouldWriteTheUpdatedConfigToTheConfigFile() {
-	const { filePath, config } = this.test.ctx;
-	return (fsUtils.writeJsonSync).should.be.calledWithExactly(filePath, config);
-}
 
 export function fsReadFileSyncShouldBeCalledWithThePathAndEncoding() {
 	const { filePath } = this.test.ctx;
-	return (fs.readFileSync).should.be.calledWithExactly(filePath, 'utf8');
+	return expect(fs.readFileSync).to.be.calledWithExactly(filePath, 'utf8');
 }
 
-export function jSONParseShouldBeCalledWithTheFileContentsAsAString() {
+export function jsonParseShouldBeCalledWithTheFileContentsAsAString() {
 	const { fileContents } = this.test.ctx;
-	return (JSON.parse).should.be.calledWithExactly(fileContents);
+	return expect(JSON.parse).to.be.calledWithExactly(fileContents);
 }
 
-export function jSONParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
+export function jsonParseShouldBeCalledWithTheFileContentsAsAStringWithoutTheBOM() {
 	const { fileContents } = this.test.ctx;
-	return (JSON.parse).should.be.calledWithExactly(fileContents.slice(1));
+	return expect(JSON.parse).to.be.calledWithExactly(fileContents.slice(1));
 }
 
 export function theParsedFileContentsShouldBeReturned() {
 	const { returnValue, parsedFileContents } = this.test.ctx;
-	return (returnValue).should.equal(parsedFileContents);
+	return expect(returnValue).to.equal(parsedFileContents);
 }
 
-export function jSONStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
+export function jsonStringifyShouldBeCalledWithTheObjectUsingTabIndentation() {
 	const { objectToWrite } = this.test.ctx;
 	const tab = '\t';
-	return (JSON.stringify).should.be.calledWithExactly(objectToWrite, null, tab);
+	return expect(JSON.stringify).to.be.calledWithExactly(
+		objectToWrite,
+		null,
+		tab,
+	);
 }
 
 export function fsWriteFileSyncShouldBeCalledWithThePathAndTheStringifiedJSON() {
 	const { filePath, stringifiedObject } = this.test.ctx;
-	return (fs.writeFileSync).should.be.calledWithExactly(filePath, stringifiedObject);
+	return expect(fs.writeFileSync).to.be.calledWithExactly(
+		filePath,
+		stringifiedObject,
+	);
 }
 
 export function theDefaultConfigShouldBeWrittenToTheConfigFile() {
 	const { filePath, defaultConfig } = this.test.ctx;
-	return (fsUtils.writeJsonSync).should.be.calledWithExactly(filePath, defaultConfig);
+	return expect(fsUtils.writeJSONSync).to.be.calledWithExactly(
+		filePath,
+		defaultConfig,
+	);
 }
 
 export function theConfigFileShouldNotBeWritten() {
-	return (fsUtils.writeJsonSync).should.not.be.called();
+	return expect(fsUtils.writeJSONSync).not.to.be.called;
 }
 
 export function itShouldResolveToTheFirstLineOfTheFile() {
 	const { returnValue, passphrase } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(passphrase);
+	return expect(returnValue).to.eventually.equal(passphrase);
+}
+
+export function itShouldLockTheFile() {
+	return expect(lockfile.lockSync).to.be.called;
+}
+
+export function itShouldUnlockTheFile() {
+	return expect(lockfile.unlockSync).to.be.called;
 }

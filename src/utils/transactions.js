@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,13 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
+import elements from 'lisk-elements';
 
-export default Object.assign(
-	{},
-	lisk.transaction,
-	lisk.multisignature,
-	lisk.signature,
-	lisk.delegate,
-	lisk.vote,
-);
+export default elements.transaction;

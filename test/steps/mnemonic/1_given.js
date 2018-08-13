@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -14,16 +14,18 @@
  *
  */
 import * as mnemonicInstance from '../../../src/utils/mnemonic';
-import {
-	getFirstQuotedString,
-} from '../utils';
+import { getFirstQuotedString } from '../utils';
 
 export function aValidMnemonicPassphrase() {
-	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(
+		this.test.parent.title,
+	);
 }
 
 export function anInvalidMnemonicPassphrase() {
-	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(this.test.parent.title);
+	this.test.ctx.mnemonicPassphrase = getFirstQuotedString(
+		this.test.parent.title,
+	);
 }
 
 export function thePassphraseIsGeneratedByTheCreateMnemonicPassphraseFunction() {

@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,6 +15,7 @@
  */
 import fs from 'fs';
 import readline from 'readline';
+import { FileSystemError } from '../../../src/utils/error';
 import * as fsUtils from '../../../src/utils/fs';
 import {
 	getFirstQuotedString,
@@ -28,10 +29,6 @@ export function aFilePath() {
 }
 
 export function theConfigFileCanBeWritten() {}
-
-export function theConfigFileCannotBeWritten() {
-	fsUtils.writeJsonSync.throws('EACCES: permission denied');
-}
 
 export function thereIsAFileWithUtf8EncodedJSONContentsAtPath() {
 	const fileContents = '{\n\t"lisk": "js",\n\t"version": 1\n}';
@@ -86,7 +83,7 @@ export function aConfigFileName() {
 export function theDirectoryDoesNotExist() {
 	const { directoryPath } = this.test.ctx;
 	fs.existsSync.withArgs(directoryPath).returns(false);
-	fsUtils.readJsonSync.throws('Cannot read file');
+	fsUtils.readJSONSync.throws('Cannot read file');
 }
 
 export function theDirectoryDoesExist() {
@@ -103,12 +100,14 @@ export function theDirectoryCanBeCreated() {}
 export function theFileDoesNotExist() {
 	const { filePath } = this.test.ctx;
 	const error = new Error('ENOENT: no such file or directory');
-	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
+	const streamStub = createStreamStub(
+		(type, callback) => type === 'error' && callback(error),
+	);
 
 	fs.existsSync.withArgs(filePath).returns(false);
 	fs.readFileSync.throws(error);
 	fs.createReadStream.returns(streamStub);
-	fsUtils.readJsonSync.throws('Cannot read file');
+	fsUtils.readJSONSync.throws('Cannot read file');
 }
 
 export function theFileDoesExist() {
@@ -117,25 +116,33 @@ export function theFileDoesExist() {
 }
 
 export function theFileCannotBeWritten() {
-	fsUtils.writeJsonSync.throws('Cannot write to file');
+	fsUtils.writeJSONSync.throws('Cannot write to file');
 }
 
 export function theFileCanBeWritten() {}
 
 export function theFileCannotBeRead() {
 	const { filePath } = this.test.ctx;
-	const error = new Error('EACCES: permission denied');
-	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
+	const error = new FileSystemError('EACCES: permission denied');
+	const streamStub = createStreamStub(
+		(type, callback) => type === 'error' && callback(error),
+	);
 
-	fs.accessSync.withArgs(filePath, fs.constants.R_OK).throws('Cannot read file');
+	fs.accessSync
+		.withArgs(filePath, fs.constants.R_OK)
+		.throws('Cannot read file');
 	fs.readFileSync.throws(error);
 	fs.createReadStream.returns(streamStub);
-	fsUtils.readJsonSync.throws('Cannot read file');
+	fsUtils.readJSONSync.throws('Cannot read file');
 }
 
 export function theFileCanBeRead() {
 	const { fileContents } = this.test.ctx;
-	const streamStub = createStreamStub((type, callback) => type === 'data' && setImmediate(() => callback(fileContents)));
+	const streamStub = createStreamStub(
+		(type, callback) =>
+			// istanbul ignore next
+			type === 'data' && setImmediate(() => callback(fileContents)),
+	);
 
 	if (typeof readline.createInterface.returns === 'function') {
 		readline.createInterface.returns(createFakeInterface(fileContents));
@@ -147,7 +154,9 @@ export function theFileCanBeRead() {
 export function anUnknownErrorOccursWhenReadingTheFile() {
 	const errorMessage = getFirstQuotedString(this.test.parent.title);
 	const error = new Error(errorMessage);
-	const streamStub = createStreamStub((type, callback) => type === 'error' && callback(error));
+	const streamStub = createStreamStub(
+		(type, callback) => type === 'error' && callback(error),
+	);
 
 	fs.createReadStream.returns(streamStub);
 	fs.readFileSync.throws(error);
@@ -161,22 +170,31 @@ export function theFileAtTheFilePathHasContents() {
 }
 
 export function theFileIsNotValidJSON() {
-	fsUtils.readJsonSync.throws('Invalid JSON');
+	fsUtils.readJSONSync.throws('Invalid JSON');
 }
 
-export function theFileIsValidJSON() {
+export function theFileIsMissingRequiredKeys() {
 	const userConfig = {
 		name: 'custom-name',
 		json: true,
-		liskJS: {
-			testnet: true,
-			node: 'my-node',
-			port: 7357,
-			ssl: true,
+	};
+
+	this.test.ctx.userConfig = userConfig;
+
+	fsUtils.readJSONSync.returns(userConfig);
+}
+
+export function theFileIsValid() {
+	const userConfig = {
+		name: 'custom-name',
+		json: true,
+		api: {
+			network: 'beta',
+			nodes: ['http://localhost:4000'],
 		},
 	};
 
 	this.test.ctx.userConfig = userConfig;
 
-	fsUtils.readJsonSync.returns(userConfig);
+	fsUtils.readJSONSync.returns(userConfig);
 }

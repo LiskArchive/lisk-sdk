@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,14 +13,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const COMMAND_TYPES = ['account', 'address', 'block', 'delegate', 'transaction'];
+import elements from 'lisk-elements';
 
-export const SINGULARS = {
-	accounts: 'account',
-	addresses: 'address',
-	blocks: 'block',
-	delegates: 'delegate',
-	transactions: 'transaction',
+const { constants } = elements;
+
+export const COMMAND_TYPES = [
+	'accounts',
+	'addresses',
+	'blocks',
+	'delegates',
+	'transactions',
+];
+
+export const PLURALS = {
+	account: 'accounts',
+	address: 'addresses',
+	block: 'blocks',
+	delegate: 'delegates',
+	transaction: 'transactions',
 };
 
-export const CONFIG_VARIABLES = ['json', 'name', 'pretty', 'testnet'];
+export const QUERY_INPUT_MAP = {
+	accounts: 'address',
+	blocks: 'blockId',
+	delegates: 'username',
+	transactions: 'id',
+};
+
+export const CONFIG_VARIABLES = [
+	'api.nodes',
+	'api.network',
+	'json',
+	'name',
+	'pretty',
+];
+
+export const API_PROTOCOLS = ['http:', 'https:'];
+
+export const NETHASHES = {
+	main: constants.MAINNET_NETHASH,
+	test: constants.TESTNET_NETHASH,
+	beta: constants.BETANET_NETHASH,
+};

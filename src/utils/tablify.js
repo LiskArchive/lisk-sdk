@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Table from 'cli-table2';
+import Table from 'cli-table3';
 
 const chars = {
 	top: '═',
@@ -33,47 +33,40 @@ const chars = {
 	middle: '│',
 };
 
-const getNestedValue = data => keyString => keyString.split('.').reduce((obj, key) => obj[key], data);
+const getKeyValueObject = object => {
+	if (!object || typeof object !== 'object') {
+		return object;
+	}
+	return Object.entries(object)
+		.map(([key, value]) => `${key}: ${JSON.stringify(value, null, ' ')}`)
+		.join('\n');
+};
 
 const addValuesToTable = (table, data) => {
-	const nestedValues = table.options.head.map(getNestedValue(data));
-	const valuesToPush = nestedValues.map(value => (Array.isArray(value) ? value.join('\n') : value));
-	return valuesToPush.length && table.push(valuesToPush);
+	Object.entries(data).forEach(([key, values]) => {
+		const strValue = Array.isArray(values)
+			? values.join('\n')
+			: getKeyValueObject(values);
+		table.push({ [key]: strValue });
+	});
 };
 
-const reduceKeys = (keys, row) => {
-	const newKeys = Object.keys(row)
-		.filter(key =>
-			!keys.includes(key)
-			&& row[key] !== undefined
-			&& !(row[key] instanceof Error));
-	return keys.concat(newKeys);
-};
-
-const getKeys = data => Object.entries(data).map(([parentKey, value]) => (
-	Object.prototype.toString.call(value) === '[object Object]'
-		? getKeys(value).reduce((nestedKeys, childKey) => [...nestedKeys, `${parentKey}.${childKey}`], [])
-		: [parentKey]
-))
-	.reduce((flattenedKeys, keysToBeFlattened) => [...flattenedKeys, ...keysToBeFlattened], []);
-
-const tablify = (data) => {
+const tablify = data => {
 	const dataIsArray = Array.isArray(data);
-	const head = dataIsArray
-		? data.reduce(reduceKeys, [])
-		: getKeys(data);
 
 	const table = new Table({
-		head,
 		chars,
 		style: {
-			head: ['cyan'],
+			head: [],
 			border: [],
 		},
 	});
 
 	if (dataIsArray) {
-		data.map(addValuesToTable.bind(null, table));
+		data.forEach((value, key) => {
+			table.push([{ colSpan: 2, content: `data ${key + 1}` }]);
+			addValuesToTable(table, value);
+		});
 	} else {
 		addValuesToTable(table, data);
 	}

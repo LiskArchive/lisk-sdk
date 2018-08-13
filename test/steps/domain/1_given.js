@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -18,7 +18,6 @@ import {
 	getQuotedStrings,
 	getFirstNumber,
 } from '../utils';
-
 
 export function publicKeysThatShouldBeVotedFor() {
 	this.test.ctx.votePublicKeys = getQuotedStrings(this.test.parent.title);
@@ -38,6 +37,12 @@ export const invalidPublicKeys = publicKeys;
 
 export function anAmount() {
 	this.test.ctx.amount = getFirstQuotedString(this.test.parent.title);
+}
+
+export function anAmountWithNormalizedAmount() {
+	const [amount, normalizedAmount] = getQuotedStrings(this.test.parent.title);
+	this.test.ctx.amount = amount;
+	this.test.ctx.normalizedAmount = normalizedAmount;
 }
 
 export const anInvalidAmount = anAmount;
@@ -119,19 +124,11 @@ export function aVariable() {
 
 export const anUnknownVariable = aVariable;
 
-export function aBlockID() {
-	this.test.ctx.blockID = getFirstQuotedString(this.test.parent.title);
-}
-
 export function anAddress() {
 	this.test.ctx.address = getFirstQuotedString(this.test.parent.title);
 }
 
 export const anInvalidAddress = anAddress;
-
-export function aTransactionID() {
-	this.test.ctx.transactionId = getFirstQuotedString(this.test.parent.title);
-}
 
 export function aDelegateUsername() {
 	this.test.ctx.delegateUsername = getFirstQuotedString(this.test.parent.title);

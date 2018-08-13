@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,32 +13,64 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import {
-	processQueryResult,
-} from '../../../src/utils/helpers';
+import query from '../../../src/utils/query';
 
-export function processQueryResultIsCalledWithTheTypeThenTheResult() {
-	const { type, result } = this.test.ctx;
-	const returnValue = processQueryResult(type)(result);
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulArrayDataResponse() {
+	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
+
+	const queryResult = {
+		data: [{ some: 'value' }],
+	};
+	liskAPIInstance[endpoint].get.resolves(queryResult);
+	this.test.ctx.queryResult = queryResult;
+
+	const returnValue = query(endpoint, parameters, options);
 	this.test.ctx.returnValue = returnValue;
+
+	return returnValue.catch(e => e);
 }
 
-export function theQueryInstanceGetsABlockUsingTheID() {
-	const { queryInstance, blockId } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.getBlock(blockId);
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulObjectDataResponse() {
+	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
+
+	const queryResult = {
+		data: { message: 'value' },
+	};
+	liskAPIInstance[endpoint].get.resolves(queryResult);
+	this.test.ctx.queryResult = queryResult;
+
+	const returnValue = query(endpoint, parameters, options);
+	this.test.ctx.returnValue = returnValue;
+
+	return returnValue.catch(e => e);
 }
 
-export function theQueryInstanceGetsAnAccountUsingTheAddress() {
-	const { queryInstance, address } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.getAccount(address);
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAFailedResponse() {
+	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
+
+	const queryResult = {
+		message: 'request failed',
+	};
+	liskAPIInstance[endpoint].get.resolves(queryResult);
+	this.test.ctx.queryResult = queryResult;
+
+	const returnValue = query(endpoint, parameters, options);
+	this.test.ctx.returnValue = returnValue;
+
+	return returnValue.catch(e => e);
 }
 
-export function theQueryInstanceGetsATransactionUsingTheID() {
-	const { queryInstance, transactionId } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.getTransaction(transactionId);
-}
+export function theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulEmptyArrayDataResponse() {
+	const { liskAPIInstance, endpoint, parameters, options } = this.test.ctx;
 
-export function theQueryInstanceGetsADelegateUsingTheUsername() {
-	const { queryInstance, delegateUsername } = this.test.ctx;
-	this.test.ctx.returnValue = queryInstance.getDelegate(delegateUsername);
+	const queryResult = {
+		data: [],
+	};
+	liskAPIInstance[endpoint].get.resolves(queryResult);
+	this.test.ctx.queryResult = queryResult;
+
+	const returnValue = query(endpoint, parameters, options);
+	this.test.ctx.returnValue = returnValue;
+
+	return returnValue.catch(e => e);
 }

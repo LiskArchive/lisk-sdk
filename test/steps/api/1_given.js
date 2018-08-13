@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import liskAPIInstance from '../../../src/utils/api';
+import getAPIClient from '../../../src/utils/api';
 
 export function aLiskAPIInstance() {
-	this.test.ctx.liskAPIInstance = liskAPIInstance;
+	this.test.ctx.liskAPIInstance = getAPIClient();
 }

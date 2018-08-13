@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,45 +13,90 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { setUpUtilQuery } from '../../steps/setup';
 import * as given from '../../steps/1_given';
 import * as when from '../../steps/2_when';
 import * as then from '../../steps/3_then';
 
-describe('Query class', () => {
-	Given('a lisk API instance', given.aLiskAPIInstance, () => {
-		Given('a query instance', given.aQueryInstance, () => {
-			Then('the query instance should have the Lisk API instance as a client', then.theQueryInstanceShouldHaveTheLiskAPIInstanceAsAClient);
-			Then('the query instance should have a handler for "account"', then.theQueryInstanceShouldHaveAHandlerFor);
-			Then('the query instance should have a handler for "block"', then.theQueryInstanceShouldHaveAHandlerFor);
-			Then('the query instance should have a handler for "delegate"', then.theQueryInstanceShouldHaveAHandlerFor);
-			Then('the query instance should have a handler for "transaction"', then.theQueryInstanceShouldHaveAHandlerFor);
-			describe('#getBlock', () => {
-				Given('a block ID "5650160629533476718"', given.aBlockID, () => {
-					When('the query instance gets a block using the ID', when.theQueryInstanceGetsABlockUsingTheID, () => {
-						Then('the lisk instance should send a request to the blocks/get API endpoint with the block ID', then.theLiskAPIInstanceShouldSendARequestToTheBlocksGetAPIEndpointWithTheBlockID);
-					});
-				});
-			});
-			describe('#getAccount', () => {
-				Given('an address "13782017140058682841L"', given.anAddress, () => {
-					When('the query instance gets an account using the address', when.theQueryInstanceGetsAnAccountUsingTheAddress, () => {
-						Then('the lisk instance should send a request to the accounts API endpoint with the address', then.theLiskAPIInstanceShouldSendARequestToTheAccountsAPIEndpointWithTheAddress);
-					});
-				});
-			});
-			describe('#getTransaction', () => {
-				Given('a transaction ID "16388447461355055139"', given.aTransactionID, () => {
-					When('the query instance gets a transaction using the ID', when.theQueryInstanceGetsATransactionUsingTheID, () => {
-						Then('the lisk instance should send a request to the transactions/get API endpoint with the transaction ID', then.theLiskAPIInstanceShouldSendARequestToTheTransactionsGetAPIEndpointWithTheTransactionID);
-					});
-				});
-			});
-			describe('#getDelegate', () => {
-				Given('a delegate username "lightcurve"', given.aDelegateUsername, () => {
-					When('the query instance gets a delegate using the username', when.theQueryInstanceGetsADelegateUsingTheUsername, () => {
-						Then('the lisk instance should send a request to the delegates/get API endpoint with the username', then.theLiskAPIInstanceShouldSendARequestToTheDelegatesGetAPIEndpointWithTheUsername);
-					});
-				});
+describe('Query function', () => {
+	beforeEach(setUpUtilQuery);
+	Given('a Lisk API instance', given.aLiskAPIInstance, () => {
+		Given('an endpoint "accounts"', given.anEndpoint, () => {
+			Given('a parameters object', given.aParametersObject, () => {
+				Given(
+					'the parameters object has key "address" set to "new-address""',
+					given.theParametersObjectHasKeySetTo,
+					() => {
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a successful array data response',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulArrayDataResponse,
+							() => {
+								Then(
+									'it should resolve to an object',
+									then.itShouldResolveToAnObject,
+								);
+								Then(
+									'it should resolve to the first element of data of the response',
+									then.itShouldResolveToTheFirstElementOfDataOfTheResponse,
+								);
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+							},
+						);
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a successful object data response',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulObjectDataResponse,
+							() => {
+								Then(
+									'it should resolve to an object',
+									then.itShouldResolveToAnObject,
+								);
+								Then(
+									'it should resolve to the data of the response',
+									then.itShouldResolveToTheDataOfTheResponse,
+								);
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+								Then(
+									'the "getAPIClient" should be called',
+									then.theGetAPIClientShouldBeCalled,
+								);
+							},
+						);
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a failed response',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithAFailedResponse,
+							() => {
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+								Then(
+									'it should reject with the error and message "No data was returned."',
+									then.itShouldRejectWithErrorAndMessage,
+								);
+							},
+						);
+						When(
+							'the query instance sends a request and the lisk api instance resolves with a successful response of empty array',
+							when.theQueryInstanceSendsARequestAndTheLiskAPIInstanceResolvesWithASuccessfulEmptyArrayDataResponse,
+							() => {
+								Then(
+									'it should use the lisk api instance to send a request to the endpoint using the parameters',
+									then.itShouldUseTheLiskAPIInstanceToSendARequestToTheEndpointUsingTheParameters,
+								);
+								Then(
+									'it should reject with the error and message "No accounts found using specified parameters."',
+									then.itShouldRejectWithErrorAndMessage,
+								);
+							},
+						);
+					},
+				);
 			});
 		});
 	});

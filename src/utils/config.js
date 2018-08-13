@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,90 +16,101 @@
 import os from 'os';
 import fs from 'fs';
 import lockfile from 'lockfile';
-import defaultConfig from '../../defaultConfig.json';
-import {
-	readJsonSync,
-	writeJsonSync,
-} from './fs';
-import {
-	logWarning,
-	logError,
-} from './print';
+import defaultConfig from '../../default_config.json';
+import { CONFIG_VARIABLES } from './constants';
+import { ValidationError } from './error';
+import { readJSONSync, writeJSONSync } from './fs';
+import logger from './logger';
 
-const configDirName = '.lisky';
+const configDirName = '.lisk-commander';
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';
 const homedir = os.homedir();
-const configDirPath = process.env.LISKY_CONFIG_DIR || `${homedir}/${configDirName}`;
-export const configFilePath = `${configDirPath}/${configFileName}`;
-const lockfilePath = `${configDirPath}/${lockfileName}`;
+const configDirPath = () =>
+	process.env.LISK_COMMANDER_CONFIG_DIR || `${homedir}/${configDirName}`;
+export const configFilePath = () => `${configDirPath()}/${configFileName}`;
+const lockfilePath = () => `${configDirPath()}/${lockfileName}`;
 
 const attemptCallWithWarning = (fn, path) => {
 	try {
 		return fn();
 	} catch (_) {
 		const warning = `WARNING: Could not write to \`${path}\`. Your configuration will not be persisted.`;
-		return logWarning(warning);
+		return logger.warn(warning);
 	}
 };
 
-const attemptCallWithError = (fn, errorCode, errorMessage) => {
+const attemptCallWithError = (fn, errorMessage) => {
 	try {
 		return fn();
 	} catch (_) {
-		logError(errorMessage);
-		return process.exit(errorCode);
+		logger.error(errorMessage);
+		return process.exit(1);
 	}
 };
 
-const attemptToCreateDir = (path) => {
+const attemptToCreateDir = path => {
 	const fn = fs.mkdirSync.bind(null, path);
 	return attemptCallWithWarning(fn, path);
 };
 
-const attemptToCreateFile = (path) => {
-	const fn = writeJsonSync.bind(null, path, defaultConfig);
+const attemptToCreateFile = path => {
+	const fn = writeJSONSync.bind(null, path, defaultConfig);
 	return attemptCallWithWarning(fn, path);
 };
 
-const checkReadAccess = (path) => {
-	const fn = fs.accessSync.bind(null, path, fs.constants.R_OK);
-	const errorCode = 1;
-	const errorMessage = `Could not read config file. Please check permissions for ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+const checkLockfile = path => {
+	const locked = lockfile.checkSync(path);
+	const errorMessage = `Config lockfile at ${lockfilePath()} found. Are you running Lisk Commander in another process?`;
+	if (locked) {
+		logger.error(errorMessage);
+		process.exit(1);
+	}
 };
 
-const checkLockfile = (path) => {
-	const fn = lockfile.lockSync.bind(null, path);
-	const errorCode = 3;
-	const errorMessage = `Config lockfile at ${lockfilePath} found. Are you running Lisky in another process?`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+const attemptToReadJSONFile = path => {
+	const fn = readJSONSync.bind(null, path);
+	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorMessage);
 };
 
-const attemptToReadJsonFile = (path) => {
-	const fn = readJsonSync.bind(null, path);
-	const errorCode = 2;
-	const errorMessage = `Config file is not valid JSON. Please check ${path} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorCode, errorMessage);
+const attemptToValidateConfig = (config, path) => {
+	const rootKeys = CONFIG_VARIABLES.map(key => key.split('.')[0]);
+	const fn = () =>
+		rootKeys.forEach(key => {
+			if (!Object.keys(config).includes(key)) {
+				throw new ValidationError(`Key ${key} not found in config file.`);
+			}
+		});
+	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${path} or delete the file so we can create a new one from defaults.`;
+	return attemptCallWithError(fn, errorMessage);
 };
 
-const getConfig = () => {
-	if (!fs.existsSync(configDirPath)) {
-		attemptToCreateDir(configDirPath);
+export const setConfig = newConfig => {
+	checkLockfile(lockfilePath());
+	lockfile.lockSync(lockfilePath());
+	try {
+		writeJSONSync(configFilePath(), newConfig);
+		return true;
+	} catch (e) {
+		return false;
+	} finally {
+		lockfile.unlockSync(lockfilePath());
+	}
+};
+
+export const getConfig = () => {
+	if (!fs.existsSync(configDirPath())) {
+		attemptToCreateDir(configDirPath());
 	}
 
-	if (!fs.existsSync(configFilePath)) {
-		attemptToCreateFile(configFilePath);
+	if (!fs.existsSync(configFilePath())) {
+		attemptToCreateFile(configFilePath());
 		return defaultConfig;
 	}
 
-	if (!process.env.EXEC_FILE_CHILD) {
-		checkLockfile(lockfilePath);
-	}
+	const config = attemptToReadJSONFile(configFilePath());
+	attemptToValidateConfig(config, configFilePath());
 
-	checkReadAccess(configFilePath);
-
-	return attemptToReadJsonFile(configFilePath);
+	return config;
 };
-
-export default getConfig();

@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -20,38 +20,94 @@ import * as then from '../../steps/3_then';
 describe('tablify util', () => {
 	Given('an empty object', given.anEmptyObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
-			Then('the returned table should have no head', then.theReturnedTableShouldHaveNoHead);
-			Then('the returned table should have no rows', then.theReturnedTableShouldHaveNoRows);
+			Then(
+				'the returned table should have no head',
+				then.theReturnedTableShouldHaveNoHead,
+			);
+			Then(
+				'the returned table should have no rows',
+				then.theReturnedTableShouldHaveNoRows,
+			);
 		});
 	});
 	Given('a non-empty object', given.aNonEmptyObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
-			Then('the returned table should have a head with the object’s keys', then.theReturnedTableShouldHaveAHeadWithTheObjectKeys);
-			Then('the returned table should have a row with the object’s values', then.theReturnedTableShouldHaveARowWithTheObjectValues);
+			Then(
+				'the returned table should have a row with the object’s key values',
+				then.theReturnedTableShouldHaveARowWithTheObjectKeyValues,
+			);
 		});
 	});
 	Given('a nested object', given.aNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
-			Then('the returned table should have a head with the object’s nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedKeys);
-			Then('the returned table should have a row with the object’s nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectNestedValues);
+			Then(
+				'the returned table should have a row with the object key and stringified nested values',
+				then.theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues,
+			);
 		});
 	});
 	Given('a deeply nested object', given.aDeeplyNestedObject, () => {
 		When('the object is tablified', when.theObjectIsTablified, () => {
-			Then('the returned table should have a head with the object’s deeply nested keys', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedKeys);
-			Then('the returned table should have a row with the object’s deeply nested values', then.theReturnedTableShouldHaveAHeadWithTheObjectDeeplyNestedValues);
+			Then(
+				'the returned table should have a row with the object key and stringified nested values',
+				then.theReturnedTableShouldHaveARowWithTheObjectKeyAndStringifiedNestedValues,
+			);
 		});
 	});
-	Given('an array of objects with the same keys', given.anArrayOfObjectsWithTheSameKeys, () => {
-		When('the array is tablified', when.theArrayIsTablified, () => {
-			Then('the returned table should have a head with the objects’ keys', then.theReturnedTableShouldHaveAHeadWithTheObjectsKeys);
-			Then('the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectValues);
+	Given('a cyclic object', given.aCyclicObject, () => {
+		When('the object is tablified', when.theObjectIsTablified, () => {
+			Then(
+				'it should throw type error "Converting circular structure to JSON"',
+				then.itShouldThrowTypeError,
+			);
 		});
 	});
-	Given('an array of objects with divergent keys', given.anArrayOfObjectsWithDivergentKeys, () => {
-		When('the array is tablified', when.theArrayIsTablified, () => {
-			Then('the returned table should have a head with every unique key', then.theReturnedTableShouldHaveAHeadWithEveryUniqueKey);
-			Then('the returned table should have a row for each object with the object’s values', then.theReturnedTableShouldHaveARowForEachObjectWithTheObjectsValues);
-		});
-	});
+	Given(
+		'an array of objects with the same keys',
+		given.anArrayOfObjectsWithTheSameKeys,
+		() => {
+			When('the array is tablified', when.theArrayIsTablified, () => {
+				Then(
+					'the returned table should have head rows',
+					then.theReturnedTableShouldHaveHeaderRows,
+				);
+				Then(
+					'the returned table should have rows with the object key and stringified values',
+					then.theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues,
+				);
+			});
+		},
+	);
+	Given(
+		'an array of objects with divergent keys',
+		given.anArrayOfObjectsWithDivergentKeys,
+		() => {
+			When('the array is tablified', when.theArrayIsTablified, () => {
+				Then(
+					'the returned table should have head rows',
+					then.theReturnedTableShouldHaveHeaderRows,
+				);
+				Then(
+					'the returned table should have rows with the object key and stringified values',
+					then.theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedValues,
+				);
+			});
+		},
+	);
+	Given(
+		'an array of objects with nested keys',
+		given.anArrayOfObjectsWithNestedKeys,
+		() => {
+			When('the array is tablified', when.theArrayIsTablified, () => {
+				Then(
+					'the returned table should have head rows',
+					then.theReturnedTableShouldHaveHeaderRows,
+				);
+				Then(
+					'the returned table should have rows with the object key and stringified values',
+					then.theReturnedTableShouldHaveRowsWithTheObjectKeyAndStringifiedNestedValues,
+				);
+			});
+		},
+	);
 });

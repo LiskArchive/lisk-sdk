@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,18 +15,25 @@
  */
 import fs from 'fs';
 import readline from 'readline';
+import { FileSystemError, ValidationError } from '../error';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
-const getPassphraseVerificationFailError = displayName => `${capitalise(displayName)} was not successfully repeated.`;
-const getPassphraseSourceTypeUnknownError = displayName => `${capitalise(displayName)} was provided with an unknown source type. Must be one of \`env\`, \`file\`, or \`stdin\`. Leave blank for prompt.`;
-const getPassphraseEnvVariableNotSetError = displayName => `Environmental variable for ${displayName} not set.`;
+const getPassphraseVerificationFailError = displayName =>
+	`${capitalise(displayName)} was not successfully repeated.`;
+const getPassphraseSourceTypeUnknownError = displayName =>
+	`${capitalise(
+		displayName,
+	)} was provided with an unknown source type. Must be one of \`env\`, \`file\`, or \`stdin\`. Leave blank for prompt.`;
+const getPassphraseEnvVariableNotSetError = displayName =>
+	`Environmental variable for ${displayName} not set.`;
 const getFileDoesNotExistError = path => `File at ${path} does not exist.`;
 const getFileUnreadableError = path => `File at ${path} could not be read.`;
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
+const DEFAULT_TIMEOUT = 100;
 
-export const splitSource = (source) => {
+export const splitSource = source => {
 	const delimiter = ':';
 	const sourceParts = source.split(delimiter);
 	return {
@@ -35,19 +42,29 @@ export const splitSource = (source) => {
 	};
 };
 
+const timeoutPromise = ms =>
+	new Promise((resolve, reject) => {
+		const id = setTimeout(() => {
+			clearTimeout(id);
+			reject(new Error(`Timed out after ${ms} ms`));
+		}, ms);
+	});
+
 export const getStdIn = ({
 	passphraseIsRequired,
 	secondPassphraseIsRequired,
 	passwordIsRequired,
 	dataIsRequired,
-} = {}) =>
-	new Promise((resolve) => {
-		if (!(
-			passphraseIsRequired
-			|| secondPassphraseIsRequired
-			|| passwordIsRequired
-			|| dataIsRequired
-		)) {
+} = {}) => {
+	const readFromStd = new Promise(resolve => {
+		if (
+			!(
+				passphraseIsRequired ||
+				secondPassphraseIsRequired ||
+				passwordIsRequired ||
+				dataIsRequired
+			)
+		) {
 			return resolve({});
 		}
 
@@ -64,9 +81,7 @@ export const getStdIn = ({
 				: null;
 
 			const passwordIndex = secondPassphraseIndex + (secondPassphrase !== null);
-			const password = passwordIsRequired
-				? lines[passwordIndex]
-				: null;
+			const password = passwordIsRequired ? lines[passwordIndex] : null;
 
 			const dataStartIndex = passwordIndex + (password !== null);
 			const dataLines = lines.slice(dataStartIndex);
@@ -79,10 +94,10 @@ export const getStdIn = ({
 			});
 		};
 
-		return rl
-			.on('line', line => lines.push(line))
-			.on('close', handleClose);
+		return rl.on('line', line => lines.push(line)).on('close', handleClose);
 	});
+	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+};
 
 export const createPromptOptions = message => ({
 	type: 'password',
@@ -90,7 +105,10 @@ export const createPromptOptions = message => ({
 	message,
 });
 
-export const getPassphraseFromPrompt = (vorpal, { displayName, shouldRepeat }) => {
+export const getPassphraseFromPrompt = (
+	vorpal,
+	{ displayName, shouldRepeat },
+) => {
 	// IMPORTANT: prompt will exit if UI has no parent, but calling
 	// ui.attach(vorpal) will start a prompt, which will complain when we call
 	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
@@ -99,106 +117,113 @@ export const getPassphraseFromPrompt = (vorpal, { displayName, shouldRepeat }) =
 		vorpal.ui.parent = vorpal;
 	}
 
-	const handlePassphraseRepeat = passphrase => vorpal.activeCommand.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
-		.then(({ passphrase: passphraseRepeat }) => {
-			if (passphrase !== passphraseRepeat) {
-				throw new Error(getPassphraseVerificationFailError(displayName));
-			}
-			return passphrase;
-		});
+	const handlePassphraseRepeat = passphrase =>
+		vorpal.activeCommand
+			.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
+			.then(({ passphrase: passphraseRepeat }) => {
+				if (passphrase !== passphraseRepeat) {
+					throw new ValidationError(
+						getPassphraseVerificationFailError(displayName),
+					);
+				}
+				return passphrase;
+			});
 
-	const handlePassphrase = ({ passphrase }) => (
-		shouldRepeat
-			? handlePassphraseRepeat(passphrase)
-			: passphrase
-	);
+	const handlePassphrase = ({ passphrase }) =>
+		shouldRepeat ? handlePassphraseRepeat(passphrase) : passphrase;
 
-	return vorpal.activeCommand.prompt(createPromptOptions(`Please enter ${displayName}: `))
+	return vorpal.activeCommand
+		.prompt(createPromptOptions(`Please enter ${displayName}: `))
 		.then(handlePassphrase);
 };
 
 export const getPassphraseFromEnvVariable = async (key, displayName) => {
 	const passphrase = process.env[key];
 	if (!passphrase) {
-		throw new Error(getPassphraseEnvVariableNotSetError(displayName));
+		throw new ValidationError(getPassphraseEnvVariableNotSetError(displayName));
 	}
 	return passphrase;
 };
 
+export const getPassphraseFromFile = path =>
+	new Promise((resolve, reject) => {
+		const stream = fs.createReadStream(path);
+		const handleReadError = error => {
+			stream.close();
+			const { message } = error;
 
-export const getPassphraseFromFile = path => new Promise((resolve, reject) => {
-	const stream = fs.createReadStream(path);
-	const handleReadError = (error) => {
-		stream.close();
-		const { message } = error;
+			if (message.match(/ENOENT/)) {
+				return reject(new FileSystemError(getFileDoesNotExistError(path)));
+			}
+			if (message.match(/EACCES/)) {
+				return reject(new FileSystemError(getFileUnreadableError(path)));
+			}
 
-		if (message.match(/ENOENT/)) {
-			return reject(new Error(getFileDoesNotExistError(path)));
-		}
-		if (message.match(/EACCES/)) {
-			return reject(new Error(getFileUnreadableError(path)));
-		}
+			return reject(error);
+		};
+		const handleLine = line => {
+			stream.close();
+			resolve(line);
+		};
 
-		return reject(error);
-	};
-	const handleLine = (line) => {
-		stream.close();
-		resolve(line);
-	};
+		stream.on('error', handleReadError);
 
-	stream.on('error', handleReadError);
-
-	readline.createInterface({ input: stream })
-		.on('error', handleReadError)
-		.on('line', handleLine);
-});
+		readline
+			.createInterface({ input: stream })
+			.on('error', handleReadError)
+			.on('line', handleLine);
+	});
 
 export const getPassphraseFromSource = async (source, { displayName }) => {
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
-	case 'env':
-		return getPassphraseFromEnvVariable(sourceIdentifier, displayName);
-	case 'file':
-		return getPassphraseFromFile(sourceIdentifier);
-	case 'pass':
-		return sourceIdentifier;
-	default:
-		throw new Error(getPassphraseSourceTypeUnknownError(displayName));
+		case 'env':
+			return getPassphraseFromEnvVariable(sourceIdentifier, displayName);
+		case 'file':
+			return getPassphraseFromFile(sourceIdentifier);
+		case 'pass':
+			return sourceIdentifier;
+		default:
+			throw new ValidationError(
+				getPassphraseSourceTypeUnknownError(displayName),
+			);
 	}
 };
 
 export const getPassphrase = async (vorpal, passphraseSource, options) => {
-	const optionsWithDefaults = Object.assign({ displayName: 'your secret passphrase' }, options);
+	const optionsWithDefaults = Object.assign(
+		{ displayName: 'your secret passphrase' },
+		options,
+	);
 	return passphraseSource && passphraseSource !== 'prompt'
 		? getPassphraseFromSource(passphraseSource, optionsWithDefaults)
 		: getPassphraseFromPrompt(vorpal, optionsWithDefaults);
 };
 
-export const handleReadFileErrors = path => (error) => {
+export const handleReadFileErrors = path => error => {
 	const { message } = error;
 	if (message.match(/ENOENT/)) {
-		throw new Error(getFileDoesNotExistError(path));
+		throw new FileSystemError(getFileDoesNotExistError(path));
 	}
 	if (message.match(/EACCES/)) {
-		throw new Error(getFileUnreadableError(path));
+		throw new FileSystemError(getFileUnreadableError(path));
 	}
 	throw error;
 };
 
 export const getDataFromFile = async path => fs.readFileSync(path, 'utf8');
 
-export const getData = async (source) => {
+export const getData = async source => {
 	if (!source) {
-		throw new Error(ERROR_DATA_MISSING);
+		throw new ValidationError(ERROR_DATA_MISSING);
 	}
 
 	const { sourceType, sourceIdentifier: path } = splitSource(source);
 
 	if (sourceType !== 'file') {
-		throw new Error(ERROR_DATA_SOURCE);
+		throw new ValidationError(ERROR_DATA_SOURCE);
 	}
 
-	return getDataFromFile(path)
-		.catch(handleReadFileErrors(path));
+	return getDataFromFile(path).catch(handleReadFileErrors(path));
 };

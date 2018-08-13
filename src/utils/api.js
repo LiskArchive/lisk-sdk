@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,7 +13,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import lisk from 'lisk-js';
-import config from './config';
+import elements from 'lisk-elements';
+import { getConfig } from './config';
+import { NETHASHES } from './constants';
 
-export default lisk.api(config.liskJS);
+const { APIClient } = elements;
+
+const seedNodes = {
+	main: APIClient.constants.MAINNET_NODES,
+	test: APIClient.constants.TESTNET_NODES,
+	beta: APIClient.constants.BETANET_NODES,
+};
+
+const getAPIClient = () => {
+	const { api: { nodes, network } } = getConfig();
+	const nethash = NETHASHES[network] || network;
+	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
+	return new APIClient(clientNodes, { nethash });
+};
+
+export default getAPIClient;

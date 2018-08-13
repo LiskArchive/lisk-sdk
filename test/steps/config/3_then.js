@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -13,71 +13,100 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import os from 'os';
-import {
-	getFirstQuotedString,
-	getFirstBoolean,
-} from '../utils';
-import {
-	logError,
-	logWarning,
-} from '../../../src/utils/print';
+import { getFirstQuotedString, getFirstBoolean } from '../utils';
+import logger from '../../../src/utils/logger';
+import * as configUtils from '../../../src/utils/config';
 
-export function aDefaultConfigDirectoryPathShouldBeSet() {
-	(process.env).should.have.property('LISKY_CONFIG_DIR').equal(`${os.homedir()}/.lisky`);
+export function itShouldCallSetConfigWithTheUpdatedConfig() {
+	const { config } = this.test.ctx;
+	return expect(configUtils.setConfig).to.be.calledWithExactly(config);
 }
 
-export function itShouldUpdateTheConfigVariableToTheValue() {
-	const { config, value } = this.test.ctx;
+export function itShouldUpdateTheConfigVariableToTheFirstValue() {
+	const { config, values } = this.test.ctx;
 	const variable = getFirstQuotedString(this.test.title);
-	return (config).should.have.property(variable).equal(value);
+	return expect(config)
+		.to.have.property(variable)
+		.equal(values[0]);
 }
 
-export function itShouldUpdateTheConfigNestedVariableToBoolean() {
+export function itShouldUpdateTheConfigNestedVariableToTheFirstValue() {
+	const { config, values } = this.test.ctx;
+	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
+	const configValue = nestedVariable.reduce(
+		(currentObject, nextKey) => currentObject[nextKey],
+		config,
+	);
+	return expect(configValue).to.equal(values[0]);
+}
+
+export function itShouldUpdateTheConfigNestedVariableToTheValues() {
+	const { config, values } = this.test.ctx;
+	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
+	const configValue = nestedVariable.reduce(
+		(currentObject, nextKey) => currentObject[nextKey],
+		config,
+	);
+	return expect(configValue).to.equal(values);
+}
+
+export function itShouldUpdateTheConfigNestedVariableToEmptyArray() {
 	const { config } = this.test.ctx;
 	const nestedVariable = getFirstQuotedString(this.test.title).split('.');
-	const boolean = getFirstBoolean(this.test.title);
-	const value = nestedVariable.reduce((currentObject, nextKey) => currentObject[nextKey], config);
-	return (value).should.equal(boolean);
+	const configValue = nestedVariable.reduce(
+		(currentObject, nextKey) => currentObject[nextKey],
+		config,
+	);
+	return expect(configValue).to.eql([]);
 }
 
 export function itShouldUpdateTheConfigVariableToBoolean() {
 	const { config } = this.test.ctx;
 	const variable = getFirstQuotedString(this.test.title);
 	const boolean = getFirstBoolean(this.test.title);
-	return (config).should.have.property(variable).equal(boolean);
+	return expect(config)
+		.to.have.property(variable)
+		.equal(boolean);
 }
 
 export function itShouldResolveToTheConfig() {
 	const { returnValue, config } = this.test.ctx;
-	return (returnValue).should.be.fulfilledWith(config);
+	return expect(returnValue).to.eventually.eql(config);
 }
 
-export function theDefaultConfigShouldBeExported() {
+export function theDefaultConfigShouldBeReturned() {
 	const { config, defaultConfig } = this.test.ctx;
-	return (config).should.eql(defaultConfig);
+	return expect(config).to.eql(defaultConfig);
 }
 
-export function theUsersConfigShouldBeExported() {
+export function theUsersConfigShouldBeReturned() {
 	const { config, userConfig } = this.test.ctx;
-	return (config).should.eql(userConfig);
+	return expect(config).to.eql(userConfig);
 }
 
 export function theUserShouldBeWarnedThatTheConfigWillNotBePersisted() {
-	return (logWarning).should.be.calledWithMatch(/Your configuration will not be persisted\./);
+	return expect(logger.warn).to.be.calledWithMatch(
+		/Your configuration will not be persisted\./,
+	);
 }
 
-export function theUserShouldBeInformedThatTheConfigFilePermissionsAreIncorrect() {
+export function theUserShouldBeInformedThatTheConfigFileCannotBeReadOrIsNotValidJSON() {
 	const { filePath } = this.test.ctx;
-	return (logError).should.be.calledWithExactly(`Could not read config file. Please check permissions for ${filePath} or delete the file so we can create a new one from defaults.`);
-}
-
-export function theUserShouldBeInformedThatTheConfigFileIsNotValidJSON() {
-	const { filePath } = this.test.ctx;
-	return (logError).should.be.calledWithExactly(`Config file is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`);
+	return expect(logger.error).to.be.calledWithExactly(
+		`Config file cannot be read or is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`,
+	);
 }
 
 export function theUserShouldBeInformedThatAConfigLockfileWasFoundAtPath() {
 	const path = getFirstQuotedString(this.test.title);
-	return (logError).should.be.calledWithExactly(`Config lockfile at ${path} found. Are you running Lisky in another process?`);
+	return expect(logger.error).to.be.calledWithExactly(
+		`Config lockfile at ${path} found. Are you running Lisk Commander in another process?`,
+	);
+}
+
+export function theUserShouldBeInformedThatTheConfigFileIsCorrupted() {
+	const path = getFirstQuotedString(this.test.title);
+	return expect(logger.error).to.be.calledWithExactly(
+		`Config file seems to be corrupted: missing required keys. Please check ${path} or delete the file so we can create a new one from defaults.`,
+	);
 }

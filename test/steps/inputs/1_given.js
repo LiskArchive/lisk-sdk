@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -16,6 +16,7 @@
 import readline from 'readline';
 import getInputsFromSources from '../../../src/utils/input';
 import * as inputUtils from '../../../src/utils/input/utils';
+import { ValidationError } from '../../../src/utils/error';
 import {
 	getFirstQuotedString,
 	getQuotedStrings,
@@ -75,6 +76,16 @@ export function thePassphraseCanBeRetrievedFromItsSource() {
 	});
 }
 
+export function theSecondPassphraseCanBeRetrievedFromItsSource() {
+	const { secondPassphrase } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase,
+		password: null,
+		data: null,
+	});
+}
+
 export function thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources() {
 	const { passphrase, secondPassphrase } = this.test.ctx;
 	getInputsFromSources.resolves({
@@ -86,12 +97,12 @@ export function thePassphraseAndSecondPassphraseCanBeRetrievedFromTheirSources()
 }
 
 export function thePasswordAndEncryptedPassphraseCanBeRetrievedFromTheirSources() {
-	const { password, cipherAndIv: { cipher } } = this.test.ctx;
+	const { password, encryptedPassphrase } = this.test.ctx;
 	getInputsFromSources.resolves({
 		passphrase: null,
 		secondPassphrase: null,
 		password,
-		data: cipher,
+		data: encryptedPassphrase,
 	});
 }
 
@@ -115,6 +126,16 @@ export function thePassphraseAndPasswordCanBeRetrievedFromTheirSources() {
 	});
 }
 
+export function theMessageCanBeRetrievedFromItsSource() {
+	const { message } = this.test.ctx;
+	getInputsFromSources.resolves({
+		passphrase: null,
+		secondPassphrase: null,
+		password: null,
+		data: message,
+	});
+}
+
 export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
 	const { passphrase, message } = this.test.ctx;
 	getInputsFromSources.resolves({
@@ -125,21 +146,10 @@ export function thePassphraseAndMessageCanBeRetrievedFromTheirSources() {
 	});
 }
 
-export function thePassphraseAndTheSecondPassphraseAreProvidedViaStdIn() {
-	const { passphrase, secondPassphrase } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ passphrase, data: secondPassphrase });
-	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-	inputUtils.getPassphrase.onSecondCall().resolves(secondPassphrase);
-}
+export function theTransactionIsProvidedViaStdIn() {
+	const { transaction } = this.test.ctx;
 
-export function thePassphraseAndThePasswordAreProvidedViaStdIn() {
-	const { passphrase, password, stdInInputs = [] } = this.test.ctx;
-
-	inputUtils.getStdIn.resolves({ passphrase, data: password });
-	inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-	inputUtils.getPassphrase.onSecondCall().resolves(password);
-
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'password'];
+	readline.createInterface.returns(createFakeInterface(transaction));
 }
 
 export function thePasswordIsProvidedViaStdIn() {
@@ -156,20 +166,12 @@ export function thePasswordIsProvidedViaStdIn() {
 	this.test.ctx.passwordIsRequired = true;
 }
 
-export function thePassphraseAndTheMessageAreProvidedViaStdIn() {
-	const { passphrase, message, stdInInputs = [] } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ passphrase, data: message });
-	this.test.ctx.stdInInputs = [...stdInInputs, 'passphrase', 'message'];
-}
-
-export function theMessageIsProvidedViaStdIn() {
-	const { message, stdInInputs = [] } = this.test.ctx;
-	inputUtils.getStdIn.resolves({ data: message });
-	this.test.ctx.stdInInputs = [...stdInInputs, 'message'];
-}
-
 export function inputs() {
 	this.test.ctx.inputs = getQuotedStrings(this.test.parent.title);
+}
+
+export function values() {
+	this.test.ctx.values = getQuotedStrings(this.test.parent.title);
 }
 
 export function anInput() {
@@ -195,14 +197,7 @@ export function aPromptDisplayName() {
 
 export function thePassphraseIsProvidedViaThePrompt() {
 	const { vorpal, passphrase } = this.test.ctx;
-
 	vorpal.activeCommand.prompt.onFirstCall().resolves({ passphrase });
-	this.test.ctx.getPromptPassphraseCall = () => vorpal.activeCommand.prompt.firstCall;
-
-	if (typeof inputUtils.getPassphrase.resolves === 'function') {
-		inputUtils.getPassphrase.onFirstCall().resolves(passphrase);
-		this.test.ctx.getGetPassphrasePassphraseCall = () => inputUtils.getPassphrase.firstCall;
-	}
 }
 
 export function thePassphraseShouldNotBeRepeated() {
@@ -270,20 +265,20 @@ export function theDataIsProvidedViaStdIn() {
 export function theSecondPassphraseAndTheDataAreProvidedViaStdIn() {
 	const { secondPassphrase, data } = this.test.ctx;
 
-	if (typeof inputUtils.getStdIn.resolves === 'function') {
-		inputUtils.getStdIn.resolves({ secondPassphrase, data });
-	}
+	inputUtils.getStdIn.resolves({ secondPassphrase, data });
 
 	this.test.ctx.secondPassphraseIsRequired = true;
 	this.test.ctx.dataIsRequired = true;
 }
 
 export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvidedViaStdIn() {
-	const {
-		passphrase, secondPassphrase, password, data,
-	} = this.test.ctx;
+	const { passphrase, secondPassphrase, password, data } = this.test.ctx;
 
-	readline.createInterface.returns(createFakeInterface(`${passphrase}\n${secondPassphrase}\n${password}\n${data}`));
+	readline.createInterface.returns(
+		createFakeInterface(
+			`${passphrase}\n${secondPassphrase}\n${password}\n${data}`,
+		),
+	);
 
 	this.test.ctx.passphraseIsRequired = true;
 	this.test.ctx.secondPassphraseIsRequired = true;
@@ -293,7 +288,9 @@ export function thePassphraseTheSecondPassphraseThePasswordAndTheDataAreProvided
 
 export function thePassphraseIsStoredInEnvironmentalVariable() {
 	const { passphrase } = this.test.ctx;
-	const environmentalVariableName = getFirstQuotedString(this.test.parent.title);
+	const environmentalVariableName = getFirstQuotedString(
+		this.test.parent.title,
+	);
 
 	process.env[environmentalVariableName] = passphrase;
 
@@ -302,7 +299,9 @@ export function thePassphraseIsStoredInEnvironmentalVariable() {
 }
 
 export function environmentalVariableIsNotSet() {
-	const environmentalVariableName = getFirstQuotedString(this.test.parent.title);
+	const environmentalVariableName = getFirstQuotedString(
+		this.test.parent.title,
+	);
 
 	delete process.env[environmentalVariableName];
 
@@ -344,4 +343,15 @@ export function dataIsProvidedViaAnUnknownSource() {
 export function dataIsProvidedViaAFileSource() {
 	const { filePath } = this.test.ctx;
 	this.test.ctx.sourceData = `file:${filePath}`;
+}
+
+export function getDataResolvesWith() {
+	const data = getFirstQuotedString(this.test.parent.title);
+	inputUtils.getData.resolves(data);
+	this.test.ctx.data = data;
+}
+
+export function getDataRejectsWithValidationError() {
+	const message = getFirstQuotedString(this.test.title);
+	inputUtils.getData.rejects(new ValidationError(message));
 }

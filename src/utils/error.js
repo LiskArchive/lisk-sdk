@@ -1,6 +1,6 @@
 /*
- * LiskHQ/lisky
- * Copyright © 2017 Lisk Foundation
+ * LiskHQ/lisk-commander
+ * Copyright © 2017–2018 Lisk Foundation
  *
  * See the LICENSE file at the top-level directory of this distribution
  * for licensing information.
@@ -15,7 +15,14 @@
  */
 import chalk from 'chalk';
 
-// eslint-disable-next-line import/prefer-default-export
+export class FileSystemError extends Error {
+	constructor(message) {
+		super(message);
+		this.message = chalk.red(message);
+		this.name = 'FileSystemError';
+	}
+}
+
 export class ValidationError extends Error {
 	constructor(message) {
 		super(message);
