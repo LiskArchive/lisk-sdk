@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const sinon = require('sinon');
 const Promise = require('bluebird');
 const RoundsRepository = require('../../../db/repos/rounds.js');
 const localCommon = require('./../common');
@@ -59,7 +58,7 @@ describe('tick', () => {
 				let clearRoundSnapshotStub;
 
 				beforeEach(done => {
-					clearRoundSnapshotStub = sinon
+					clearRoundSnapshotStub = sinonSandbox
 						.stub(RoundsRepository.prototype, 'clearRoundSnapshot')
 						.rejects(new Error('ERR'));
 					done();
@@ -83,7 +82,7 @@ describe('tick', () => {
 				let clearVotesSnapshotStub;
 
 				beforeEach(done => {
-					clearVotesSnapshotStub = sinon
+					clearVotesSnapshotStub = sinonSandbox
 						.stub(RoundsRepository.prototype, 'clearVotesSnapshot')
 						.rejects(new Error('ERR'));
 					done();
@@ -107,7 +106,7 @@ describe('tick', () => {
 				let performRoundSnapshotStub;
 
 				beforeEach(done => {
-					performRoundSnapshotStub = sinon
+					performRoundSnapshotStub = sinonSandbox
 						.stub(RoundsRepository.prototype, 'performRoundSnapshot')
 						.rejects(new Error('ERR'));
 					done();
@@ -131,7 +130,7 @@ describe('tick', () => {
 				let performVotesSnapshotStub;
 
 				beforeEach(done => {
-					performVotesSnapshotStub = sinon
+					performVotesSnapshotStub = sinonSandbox
 						.stub(RoundsRepository.prototype, 'performVotesSnapshot')
 						.rejects(new Error('ERR'));
 					done();
