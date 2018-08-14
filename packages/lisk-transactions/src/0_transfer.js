@@ -18,6 +18,8 @@ import {
 	getAddressAndPublicKeyFromRecipientData,
 	wrapTransactionCreator,
 	validateAmount,
+	validateAddress,
+	validatePublicKey,
 } from './utils';
 
 const createAsset = data => {
@@ -32,6 +34,14 @@ const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 		throw new Error(
 			'Please provide an amount. Expected a valid number in string format!',
 		);
+	}
+
+	if (recipientId) {
+		validateAddress(recipientId);
+	}
+
+	if (recipientPublicKey) {
+		validatePublicKey(recipientPublicKey);
 	}
 
 	if (recipientId && recipientPublicKey) {
