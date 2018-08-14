@@ -136,7 +136,7 @@ describe('validation', () => {
 			});
 			it('should throw the error', () => {
 				return expect(validateKeysgroup.bind(null, keysgroup)).to.throw(
-					'Expected between 1 and 16 public keys in the keysgroup.',
+					'Expected between 1 and 15 public keys in the keysgroup.',
 				);
 			});
 		});
@@ -155,7 +155,7 @@ describe('validation', () => {
 			});
 			it('should throw the error', () => {
 				return expect(validateKeysgroup.bind(null, keysgroup)).to.throw(
-					'Expected between 1 and 16 public keys in the keysgroup.',
+					'Expected between 1 and 15 public keys in the keysgroup.',
 				);
 			});
 		});

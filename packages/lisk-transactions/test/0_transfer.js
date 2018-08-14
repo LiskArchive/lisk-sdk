@@ -227,7 +227,9 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						amount: '18446744073709551616',
 					}),
-				).to.throw('Please enter a valid amount!');
+				).to.throw(
+					'Please provide an amount. Expected a valid number in string format!',
+				);
 			});
 
 			it('should throw error when recipientId & non-matching recipientPublicKey provided', () => {
