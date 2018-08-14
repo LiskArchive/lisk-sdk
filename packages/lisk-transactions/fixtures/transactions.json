@@ -1,9 +1,9 @@
 [
 	{
 		"type": 1,
-		"amount": 0,
+		"amount": "0",
 		"fee": "500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54316324,
@@ -55,7 +55,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196076,
@@ -74,7 +74,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -99,7 +99,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -122,7 +122,7 @@
 		"type": 6,
 		"amount": "405432",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -183,7 +183,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -202,7 +202,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -227,7 +227,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -250,7 +250,7 @@
 		"type": 6,
 		"amount": "897386",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -311,7 +311,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -330,7 +330,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -355,7 +355,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -378,7 +378,7 @@
 		"type": 6,
 		"amount": "737434",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -439,7 +439,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -458,7 +458,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -483,7 +483,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -506,7 +506,7 @@
 		"type": 6,
 		"amount": "33067",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -571,7 +571,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -592,7 +592,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -619,7 +619,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -644,7 +644,7 @@
 		"type": 6,
 		"amount": "693810",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -709,7 +709,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -728,7 +728,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -753,7 +753,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -776,7 +776,7 @@
 		"type": 6,
 		"amount": "166413",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196078,
@@ -841,7 +841,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -862,7 +862,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -889,7 +889,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -914,7 +914,7 @@
 		"type": 6,
 		"amount": "270355",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -979,7 +979,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -995,35 +995,10 @@
 		"id": "4535306837758230670"
 	},
 	{
-		"type": 4,
-		"amount": "0",
-		"fee": "3000000000",
-		"recipientId": null,
-		"senderPublicKey":
-			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-		"timestamp": 54196079,
-		"asset": {
-			"multisignature": {
-				"min": 0,
-				"lifetime": 35,
-				"keysgroup": [
-					"+cac3545e2fa5b9fe4a41a66ce86adbb0322587137e5289b06ba4527673a85574",
-					"+09e85edafad8b6e6191e1d989c58c5825b0596d5d5f5598e854eeabdffd2a850",
-					"+29d8260d35f110f33d988f6a23d29153c1a344a339894774690fb9b6b6bb494e",
-					"+346719e114848b4fbf9839836ebeb066b2898d872aef0dd315594b83d2fca1a2",
-					"+01b014d50765d9f705b720d6376c792afca3da4ba2798bc65626a97494579790"
-				]
-			}
-		},
-		"signature":
-			"5d2acb6cc15f8de7a2531ba6a1e7725d82d07789672605e286f4ff11a19e0fb69034411f99c66267ead9245ceee54977d46a5427bdf651f8277d6908d2fd5e03",
-		"id": "14026504139568973606"
-	},
-	{
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -1046,7 +1021,7 @@
 		"type": 6,
 		"amount": "825188",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196079,
@@ -1107,7 +1082,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
@@ -1123,35 +1098,10 @@
 		"id": "13972423096514804371"
 	},
 	{
-		"type": 4,
-		"amount": "0",
-		"fee": "3000000000",
-		"recipientId": null,
-		"senderPublicKey":
-			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
-		"timestamp": 54196080,
-		"asset": {
-			"multisignature": {
-				"min": 0,
-				"lifetime": 18,
-				"keysgroup": [
-					"+740834a59435d283fd3fb30ad5d7cbde2550e82471b73abedcffb61eaa6298e4",
-					"+9bc8972fb01b70eb4624df5d4d4c7c00a51fd73958c50efaefe55260889aedd6",
-					"+66a68de8047bbe788f5ec5fbae6baf84c6438606f4e6fdf91b791113a0506ea6",
-					"+5f7c4b9b6f976a400dba8d0cc7f904603ea4ffe1d8702c80576a396037c49970",
-					"+4e4a6b5cf7b8840ba521dfae5914f55ec3805c7d5cf25dfbf44fac57f9c5f183"
-				]
-			}
-		},
-		"signature":
-			"57b54da646c7567df86fec60aa57a40bfadb6cdc65cccecfc442c822a7b0372f4958a280edd3fc2d83d38e2d3bf922a1da01249c500f0309a9638e941a21c501",
-		"id": "13916871066741078807"
-	},
-	{
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
@@ -1174,7 +1124,7 @@
 		"type": 6,
 		"amount": "369464",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
@@ -1239,7 +1189,7 @@
 		"type": 2,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
@@ -1260,7 +1210,7 @@
 		"type": 4,
 		"amount": "0",
 		"fee": "3000000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
@@ -1287,7 +1237,7 @@
 		"type": 5,
 		"amount": "0",
 		"fee": "2500000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
@@ -1312,7 +1262,7 @@
 		"type": 6,
 		"amount": "881374",
 		"fee": "10000000",
-		"recipientId": null,
+		"recipientId": "",
 		"senderPublicKey":
 			"c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
 		"timestamp": 54196080,
