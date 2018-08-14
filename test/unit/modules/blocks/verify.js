@@ -1937,8 +1937,8 @@ describe('blocks/verify', () => {
 			done();
 		});
 
-		describe('system headers', () => {
-			it('should be updated if snapshotting was not activated', done => {
+		describe('system update', () => {
+			it('should be called if snapshotting was not activated', done => {
 				blocksVerifyModule.processBlock(
 					dummyBlock,
 					broadcast,
@@ -1951,7 +1951,7 @@ describe('blocks/verify', () => {
 				);
 			});
 
-			it('should not be updated if snapshotting was activated', done => {
+			it('should not be called if snapshotting was activated', done => {
 				const blocksVerifyModule = new BlocksVerify(
 					loggerStub,
 					logicBlockStub,
