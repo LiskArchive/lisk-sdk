@@ -12,16 +12,26 @@ Lisk is a next generation crypto-currency and decentralized application platform
 [Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
 This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
-If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
+If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](#installation).
 
 ## Index
 
-* [Setup](#pre-installation)
-  * [Pre-Installation](#pre-installation)
-  * [Installation](#installation)
-* [Managing Lisk](#managing-lisk)
+* [Pre-Installation](#pre-installation)
+  * [Create lisk user](#create-the-lisk-user)
+  * [Tool Chain Components](#tool-chain-components)
+  * [Git](#git)
+  * [Node.JS](#nodejs)
+  * [PostgreSQL](#postgresql)
+  * [Redis](#redis)
+* [Installation](#installation)
+* [Managing Lisk](#tool)
 * [Configuring Lisk](#configuring-lisk)
-* [Tests](#Tests)
+  * [Structure](#structure)
+  * [Command Line Options](#command-line-options)
+  * [Examples](#examples)
+* [Tests](#tests)
+  * [Preparing Node](#preparing-node)
+  * [Running Tests](#running-tests)
 
 ## Pre-Installation
 
@@ -29,7 +39,7 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### System Install
 
-#### Create a new user
+#### Create the lisk user
 
 * Ubuntu:
 
@@ -62,7 +72,9 @@ brew doctor
 brew install curl automake autoconf libtool
 ```
 
-### [Git](https://github.com/git/git) -- Used for cloning and updating Lisk
+### [Git](https://github.com/git/git)
+
+Used for cloning and updating Lisk
 
 * Ubuntu:
 
@@ -95,7 +107,7 @@ sudo apt-get install -y nodejs
 brew install node@6.14.1
 ```
 
-#### _(Recommended)_ Install using a version manager such as nvm.
+#### _(Recommended)_ Using a version manager such as [nvm](https://github.com/creationix/nvm).
 
 1. Login as lisk user, that has been created in the first step:
 
@@ -120,11 +132,11 @@ PM2 manages the node process for Lisk.
 npm install -g pm2
 ```
 
-### PostgreSQL (version 9.6):
+### PostgreSQL:
 
 * Ubuntu:
 
-Firstly, download and install postgreSQL:
+Firstly, download and install postgreSQL 9.6:
 
 ```
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
@@ -176,7 +188,7 @@ createdb lisk_test
 createdb lisk_main
 ```
 
-### Installing Redis
+### Redis
 
 * Ubuntu:
 
