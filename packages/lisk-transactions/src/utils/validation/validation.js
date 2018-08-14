@@ -99,5 +99,4 @@ export const isNumberString = str => {
 export const validateAmount = data =>
 	isNumberString(data) && !isGreaterThanMaxTransactionAmount(bignum(data));
 
-export const isValidInteger = num =>
-	typeof num === 'number' && parseInt(num, 10) === num;
+export const isValidInteger = num => parseInt(num, 10) === num;
