@@ -2335,7 +2335,7 @@ definitions:
         type: integer
         example: 1533558858128
         description: Current time of the node in miliseconds (Unix Timestamp).
-      epochTime:
+      secondsSinceEpoch:
         type: integer
         example: 1533558858
         description: Number of seconds that have elapsed since the Lisk epoch time (Lisk Timestamp).

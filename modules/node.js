@@ -171,7 +171,7 @@ Node.prototype.shared = {
 				broadhash: modules.system.getBroadhash(),
 				consensus: modules.peers.getLastConsensus() || null,
 				currentTime: Date.now(),
-				epochTime: slots.getTime(),
+				secondsSinceEpoch: slots.getTime(),
 				height: modules.blocks.lastBlock.get().height,
 				loaded: modules.loader.loaded(),
 				networkHeight,
