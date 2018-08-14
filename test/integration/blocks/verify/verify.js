@@ -241,7 +241,8 @@ describe('blocks/verify', () => {
 				library.logger,
 				library.logic.block,
 				library.logic.transaction,
-				library.db
+				library.db,
+				library.config
 			);
 			verify.onBind(library.modules);
 			privateFunctions = RewiredVerify.__get__('__private');
