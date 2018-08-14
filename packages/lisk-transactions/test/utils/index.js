@@ -16,7 +16,6 @@ import {
 	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getAddressAndPublicKeyFromRecipientData,
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
 	getTransactionBytes,
@@ -51,12 +50,6 @@ describe('transaction utils', () => {
 
 		it('should have convertLSKToBeddows', () => {
 			return expect(convertLSKToBeddows).to.be.a('function');
-		});
-
-		it('should have getAddressAndPublicKeyFromRecipientData', () => {
-			return expect(getAddressAndPublicKeyFromRecipientData).to.be.a(
-				'function',
-			);
 		});
 
 		it('should have getTimeFromBlockchainEpoch', () => {

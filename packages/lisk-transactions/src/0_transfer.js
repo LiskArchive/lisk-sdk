@@ -15,7 +15,6 @@
 import cryptography from 'lisk-cryptography';
 import { BYTESIZES, TRANSFER_FEE } from './constants';
 import {
-	getAddressAndPublicKeyFromRecipientData,
 	wrapTransactionCreator,
 	validateAmount,
 	validateAddress,
@@ -70,10 +69,13 @@ const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 const transfer = inputs => {
 	validateInputs(inputs);
 	const { amount, recipientId, recipientPublicKey, data } = inputs;
-	const { address, publicKey } = getAddressAndPublicKeyFromRecipientData({
-		recipientId,
-		recipientPublicKey,
-	});
+	let address = recipientId;
+	let publicKey = null;
+
+	if (recipientPublicKey) {
+		address = cryptography.getAddressFromPublicKey(recipientPublicKey);
+		publicKey = recipientPublicKey;
+	}
 
 	const transaction = {
 		type: 0,

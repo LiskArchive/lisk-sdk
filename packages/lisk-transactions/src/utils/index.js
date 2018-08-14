@@ -12,9 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export {
-	default as getAddressAndPublicKeyFromRecipientData,
-} from './get_address_and_public_key_from_recipient_data';
 export { default as getTransactionBytes } from './get_transaction_bytes';
 export { default as getTransactionHash } from './get_transaction_hash';
 export { default as getTransactionId } from './get_transaction_id';
