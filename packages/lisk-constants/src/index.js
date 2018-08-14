@@ -21,8 +21,9 @@ export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / 1000);
 const MAX_EIGHT_BYTE_NUMBER = '18446744073709551615';
 
 export const MAX_ADDRESS_NUMBER = MAX_EIGHT_BYTE_NUMBER;
-export const MAX_TRANSACTION_AMOUNT = MAX_EIGHT_BYTE_NUMBER;
 export const MAX_TRANSACTION_ID = MAX_EIGHT_BYTE_NUMBER;
+// Largest possible amount. Equal to the initial supply.
+export const MAX_TRANSACTION_AMOUNT = '10000000000000000';
 
 export const SIGNED_MESSAGE_PREFIX = 'Lisk Signed Message:\n';
 
