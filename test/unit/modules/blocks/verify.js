@@ -63,7 +63,9 @@ describe('blocks/verify', () => {
 		};
 
 		configMock = {
-			loading: {},
+			loading: {
+				snapshotRound: null,
+			},
 		};
 
 		blocksVerifyModule = new BlocksVerify(
@@ -137,6 +139,7 @@ describe('blocks/verify', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
 			expect(library.logic.block).to.eql(logicBlockStub);
+			expect(library.config).to.eql(configMock);
 			return expect(library.logic.transaction).to.eql(logicTransactionStub);
 		});
 
