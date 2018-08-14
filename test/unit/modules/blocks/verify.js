@@ -1952,7 +1952,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should not be updated if snapshotting was activated', done => {
-				blocksVerifyModule = new BlocksVerify(
+				const blocksVerifyModule = new BlocksVerify(
 					loggerStub,
 					logicBlockStub,
 					logicTransactionStub,
