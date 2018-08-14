@@ -19,6 +19,10 @@ import {
 	MAX_TRANSACTION_ID,
 	MAX_TRANSACTION_AMOUNT,
 } from 'lisk-constants';
+import {
+	MULTISIGNATURE_MAX_SIGNATURES,
+	MULTISIGNATURE_MIN_SIGNATURES,
+} from '../../constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);
@@ -44,8 +48,13 @@ export const validatePublicKeys = publicKeys =>
 	checkPublicKeysForDuplicates(publicKeys);
 
 export const validateKeysgroup = keysgroup => {
-	if (keysgroup.length === 0 || keysgroup.length > 16) {
-		throw new Error('Expected between 1 and 16 public keys in the keysgroup.');
+	if (
+		keysgroup.length < MULTISIGNATURE_MIN_SIGNATURES ||
+		keysgroup.length > MULTISIGNATURE_MAX_SIGNATURES
+	) {
+		throw new Error(
+			`Expected between ${MULTISIGNATURE_MIN_SIGNATURES} and ${MULTISIGNATURE_MAX_SIGNATURES} public keys in the keysgroup.`,
+		);
 	}
 	return validatePublicKeys(keysgroup);
 };

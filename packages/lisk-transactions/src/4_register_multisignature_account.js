@@ -27,8 +27,6 @@ import {
 } from './utils';
 
 const validateInputs = ({ keysgroup, lifetime, minimum }) => {
-	validateKeysgroup(keysgroup);
-
 	if (
 		!isValidInteger(lifetime) ||
 		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
@@ -48,6 +46,13 @@ const validateInputs = ({ keysgroup, lifetime, minimum }) => {
 			`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_SIGNATURES} and ${MULTISIGNATURE_MAX_SIGNATURES}.`,
 		);
 	}
+
+	if (keysgroup.length < minimum) {
+		throw new Error(
+			`Expected minimum ${minimum} public keys in the keysgroup.`,
+		);
+	}
+	validateKeysgroup(keysgroup);
 };
 
 const registerMultisignatureAccount = inputs => {
