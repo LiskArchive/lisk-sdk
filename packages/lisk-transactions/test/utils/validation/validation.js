@@ -25,7 +25,7 @@ import {
 	isNumberString,
 } from '../../../src/utils/validation/validation';
 
-describe('public key validation', () => {
+describe('validation', () => {
 	describe('#validatePublicKey', () => {
 		describe('Given a hex string with odd length', () => {
 			const invalidHexPublicKey =
@@ -244,15 +244,15 @@ describe('public key validation', () => {
 	});
 
 	describe('#isGreaterThanMaxTransactionAmount', () => {
-		it('should return false when amount is less than 8 bytes integer maximum', () => {
+		it('should return false when amount is less than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('10000000000000000000')),
+				isGreaterThanMaxTransactionAmount(bignum('10000000000000000')),
 			).to.be.false;
 		});
 
-		it('should return true when amount is more than 8 bytes integer maximum', () => {
+		it('should return true when amount is more than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('18446744073709551616')),
+				isGreaterThanMaxTransactionAmount(bignum('10000000000000001')),
 			).to.be.true;
 		});
 	});
@@ -260,7 +260,7 @@ describe('public key validation', () => {
 	describe('#isGreaterThanMaxTransactionId', () => {
 		it('should return false when id is less than 8 bytes integer maximum', () => {
 			return expect(
-				isGreaterThanMaxTransactionId(bignum('10000000000000000000')),
+				isGreaterThanMaxTransactionId(bignum('18446744073709551615')),
 			).to.be.false;
 		});
 
