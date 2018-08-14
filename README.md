@@ -14,6 +14,15 @@ Lisk is a next generation crypto-currency and decentralized application platform
 This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
 If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
+## Index
+
+* [Setup](#pre-installation)
+  * [Pre-Installation](#pre-installation)
+  * [Installation](#installation)
+* [Managing Lisk](#managing-lisk)
+* [Configuring Lisk](#configuring-lisk)
+* [Tests](#Tests)
+
 ## Pre-Installation
 
 The next section details the prerequisites to install Lisk Core from source using the different tagged releases.
@@ -232,7 +241,7 @@ And you should get the result `PONG`.
 
 To update the redis port in the Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
 
-## Installation Steps
+## Installation
 
 Clone the Lisk Core repository using Git and initialize the modules.
 
