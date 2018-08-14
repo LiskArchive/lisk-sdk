@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "1.0.0-rc.1",
+	"version": "1.0.0",
 	"description":
 		"A default set of elements for use by clients of the Lisk network",
 	"author":
@@ -63,11 +63,11 @@
 		"postpublish": "npm run publish:browser"
 	},
 	"dependencies": {
-		"lisk-api-client": "1.0.0-rc.1",
-		"lisk-constants": "1.0.0-rc.1",
-		"lisk-cryptography": "1.0.0-rc.1",
-		"lisk-passphrase": "1.0.0-rc.1",
-		"lisk-transactions": "1.0.0-rc.1"
+		"lisk-api-client": "1.0.0",
+		"lisk-constants": "1.0.0",
+		"lisk-cryptography": "1.0.0",
+		"lisk-passphrase": "1.0.0",
+		"lisk-transactions": "1.0.0"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
