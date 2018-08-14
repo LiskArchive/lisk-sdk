@@ -53,7 +53,11 @@ class Verify {
 				block,
 				transaction,
 			},
-			config,
+			config: {
+				loading: {
+					snapshotRound: config.loading.snapshotRound,
+				},
+			},
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
