@@ -69,7 +69,8 @@ class Blocks {
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db
+				scope.db,
+				scope.config
 			),
 			process: new blocksProcess(
 				scope.logger,
