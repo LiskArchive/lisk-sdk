@@ -13,18 +13,63 @@
  *
  */
 import fixtures from '../../../fixtures/transactions.json';
+import invalidFixtures from '../../../fixtures/invalid_transactions.json';
 import validateTransaction from '../../../src/utils/validation/validate_transaction';
 
-describe('#validateTransaction', () => {
-	describe('fixture', () => {
-		it('should be all valid for the fixtures', () => {
-			return fixtures
-				.filter(tx => tx.type !== 6 && tx.type !== 7)
-				.forEach(tx => {
+describe('validateTransaction', () => {
+	describe('#validateTransaction', () => {
+		describe('when fixtures nad invalid fixtures provided', () => {
+			it('should be all valid for the fixtures', () => {
+				return fixtures.forEach(tx => {
 					const { valid, errors } = validateTransaction(tx);
 					expect(valid).to.be.true;
 					expect(errors).to.be.null;
 				});
+			});
+
+			it('should be all invalid for the invalid fixtures (except type 6 and 7)', () => {
+				return invalidFixtures
+					.filter(tx => tx.type !== 6 && tx.type !== 7)
+					.forEach(tx => {
+						const { valid, errors } = validateTransaction(tx);
+						expect(valid).to.be.false;
+						expect(errors).not.to.be.null;
+					});
+			});
+
+			it('should thrown an error unsupported transactions for invalid fixtures (only type 6 and 7)', () => {
+				return invalidFixtures
+					.filter(tx => tx.type === 6 || tx.type === 7)
+					.forEach(tx => {
+						expect(validateTransaction.bind(null, tx)).to.throw(
+							Error,
+							'Unsupported transaction type.',
+						);
+					});
+			});
+		});
+
+		describe('when the transaction contains invalid data in merged schema', () => {
+			const invalidTransaction = {
+				type: 0,
+				amount: '0',
+				fee: '10000000',
+				recipientId: 'recipientID',
+				senderPublicKey:
+					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				timestamp: 54196078,
+				asset: {},
+				signature:
+					'4c8a3bfaacfab18a7ef34ce8d7176ea2701dfd7221a1c95ecbc1cce778bbccdb7cbbe1a87b3e9e47330f1cae6665c4a44666e132aa324de9a5ab9b6a1e2b1d0c',
+				id: '18066659039293493823',
+			};
+
+			it('should not include $merge error when the merged schema has error', () => {
+				const { valid, errors } = validateTransaction(invalidTransaction);
+				expect(valid).to.be.false;
+				expect(errors[0].dataPath).to.equal('.recipientId');
+				return expect(errors).to.have.length(1);
+			});
 		});
 	});
 
@@ -84,7 +129,7 @@ describe('#validateTransaction', () => {
 			timestamp: 54196078,
 			asset: {
 				multisignature: {
-					min: 7,
+					min: 6,
 					lifetime: 1,
 					keysgroup: [
 						'+e64df51060a2ce43f91b24ae75cc83f1866f9fead2ca2420cf3df153e6368a97',
@@ -100,36 +145,13 @@ describe('#validateTransaction', () => {
 			id: '18066659039293493823',
 		};
 
-		it('should be invalid when min is greater than the keysgroup + sender', () => {
+		it('should be invalid when min is greater than the keysgroup', () => {
 			const { valid, errors } = validateTransaction(invalidMultiTransaction);
-			expect(valid).to.false;
+			expect(valid).to.be.false;
 			expect(errors[0].dataPath).to.equal('.asset.multisignature.min');
 			return expect(errors[0].message).to.equal(
 				'.asset.multisignature.min cannot be greater than .asset.multisignature.keysgroup.length',
 			);
-		});
-	});
-
-	describe('#validateTransaction', () => {
-		const invalidTransaction = {
-			type: 0,
-			amount: '0',
-			fee: '10000000',
-			recipientId: 'recipientID',
-			senderPublicKey:
-				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-			timestamp: 54196078,
-			asset: {},
-			signature:
-				'4c8a3bfaacfab18a7ef34ce8d7176ea2701dfd7221a1c95ecbc1cce778bbccdb7cbbe1a87b3e9e47330f1cae6665c4a44666e132aa324de9a5ab9b6a1e2b1d0c',
-			id: '18066659039293493823',
-		};
-
-		it('should not include $merge error when the merged schema has error', () => {
-			const { valid, errors } = validateTransaction(invalidTransaction);
-			expect(valid).to.false;
-			expect(errors[0].dataPath).to.equal('.recipientId');
-			return expect(errors).to.have.length(1);
 		});
 	});
 });

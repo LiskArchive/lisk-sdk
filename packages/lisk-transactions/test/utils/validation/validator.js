@@ -62,6 +62,15 @@ describe('validator', () => {
 			).to.be.false;
 		});
 
+		it('should validate to false when the signature is under 128 characters', () => {
+			return expect(
+				validate({
+					target:
+						'd5bdb0577f53fe5d79009c42facdf295a555e9542c851ec49feef1680f824a1ebae00733d935f078c3ef621bc20ee88d81390f9c97f75adb14731504861b730',
+				}),
+			).to.be.false;
+		});
+
 		it('should validate to false when the signature is over 128 characters', () => {
 			return expect(
 				validate({
@@ -93,6 +102,10 @@ describe('validator', () => {
 
 		it('should validate to true when valid id is provided', () => {
 			return expect(validate({ target: '3543510233978718399' })).to.be.true;
+		});
+
+		it('should validate to true when valid id with leading zeros is provided', () => {
+			return expect(validate({ target: '00123' })).to.be.true;
 		});
 
 		it('should validate to false when number greater than maximum is provided', () => {
@@ -131,12 +144,20 @@ describe('validator', () => {
 			return expect(validate({ target: '14815133512790761431L' })).to.be.true;
 		});
 
+		it('should validate to true when valid address with leading zeros is provided', () => {
+			return expect(validate({ target: '00015133512790761431L' })).to.be.true;
+		});
+
 		it('should validate to false when number greater than maximum is provided', () => {
 			return expect(validate({ target: '18446744073709551616L' })).to.be.false;
 		});
 
 		it('should validate to false when the address does not end with "L"', () => {
-			return expect(validate({ target: '18446744073709551616X' })).to.be.false;
+			return expect(validate({ target: '14815133512790761431X' })).to.be.false;
+		});
+
+		it('should validate to false when the address only contains numbers', () => {
+			return expect(validate({ target: '18446744073709551616' })).to.be.false;
 		});
 
 		it('should validate to false when the address is less than 2 characters', () => {
@@ -171,12 +192,16 @@ describe('validator', () => {
 			return expect(validate({ target: '190105310' })).to.be.true;
 		});
 
+		it('should validate to true when valid amount with leading zeros is provided', () => {
+			return expect(validate({ target: '00190105310' })).to.be.true;
+		});
+
 		it('should validate to false when number greater than maximum is provided', () => {
-			return expect(validate({ target: '18446744073709551616' })).to.be.false;
+			return expect(validate({ target: '10000000000000001' })).to.be.false;
 		});
 
 		it('should validate to false when number is provided', () => {
-			return expect(validate({ target: 3543510233978718399 })).to.be.false;
+			return expect(validate({ target: 190105310 })).to.be.false;
 		});
 
 		it('should validate to false when it is empty', () => {
@@ -308,6 +333,15 @@ describe('validator', () => {
 			).to.be.false;
 		});
 
+		it('should validate to false when non-signed publicKey is provided', () => {
+			return expect(
+				validate({
+					target:
+						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
+				}),
+			).to.be.false;
+		});
+
 		it('should validate to false when it is empty', () => {
 			return expect(validate({ target: '' })).to.be.false;
 		});
@@ -377,6 +411,15 @@ describe('validator', () => {
 			).to.be.false;
 		});
 
+		it('should validate to false when non-signed publicKey is provided', () => {
+			return expect(
+				validate({
+					target:
+						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
+				}),
+			).to.be.false;
+		});
+
 		it('should validate to false when it is empty', () => {
 			return expect(validate({ target: '' })).to.be.false;
 		});
@@ -417,6 +460,17 @@ describe('validator', () => {
 				validate({
 					target: [
 						'-05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
+						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
+					],
+				}),
+			).to.be.false;
+		});
+
+		it('should validate to false when publicKeys are duplicated with the same sign', () => {
+			return expect(
+				validate({
+					target: [
+						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b',
 					],
 				}),

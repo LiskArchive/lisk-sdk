@@ -34,10 +34,7 @@ const getTransactionSchemaValidator = type => {
 };
 
 const validateMultiTransaction = tx => {
-	if (
-		tx.asset.multisignature.min >
-		tx.asset.multisignature.keysgroup.length + 1
-	) {
+	if (tx.asset.multisignature.min > tx.asset.multisignature.keysgroup.length) {
 		return {
 			valid: false,
 			errors: [
