@@ -76,7 +76,7 @@
 				"description": "Displays help."
 			},
 			"passphrase": {
-				"description": "Provides cryptographic utility functions for passphrases."
+				"description": "Commands relating to Lisk passphrases."
 			},
 			"warranty": {
 				"description": "Displays warranty notice."
