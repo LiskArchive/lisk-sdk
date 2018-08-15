@@ -16,8 +16,8 @@ import {
 	MULTISIGNATURE_FEE,
 	MULTISIGNATURE_MAX_LIFETIME,
 	MULTISIGNATURE_MIN_LIFETIME,
-	MULTISIGNATURE_MAX_SIGNATURES,
-	MULTISIGNATURE_MIN_SIGNATURES,
+	MULTISIGNATURE_MAX_KEYSGROUP,
+	MULTISIGNATURE_MIN_KEYSGROUP,
 } from './constants';
 import {
 	prependPlusToPublicKeys,
@@ -39,11 +39,11 @@ const validateInputs = ({ keysgroup, lifetime, minimum }) => {
 
 	if (
 		!isValidInteger(minimum) ||
-		minimum < MULTISIGNATURE_MIN_SIGNATURES ||
-		minimum > MULTISIGNATURE_MAX_SIGNATURES
+		minimum < MULTISIGNATURE_MIN_KEYSGROUP ||
+		minimum > MULTISIGNATURE_MAX_KEYSGROUP
 	) {
 		throw new Error(
-			`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_SIGNATURES} and ${MULTISIGNATURE_MAX_SIGNATURES}.`,
+			`Please provide a valid minimum value. Expected integer between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP}.`,
 		);
 	}
 

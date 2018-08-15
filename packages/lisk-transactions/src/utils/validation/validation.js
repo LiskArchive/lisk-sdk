@@ -20,8 +20,8 @@ import {
 	MAX_TRANSACTION_AMOUNT,
 } from 'lisk-constants';
 import {
-	MULTISIGNATURE_MAX_SIGNATURES,
-	MULTISIGNATURE_MIN_SIGNATURES,
+	MULTISIGNATURE_MAX_KEYSGROUP,
+	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
 
 export const validatePublicKey = publicKey => {
@@ -49,11 +49,11 @@ export const validatePublicKeys = publicKeys =>
 
 export const validateKeysgroup = keysgroup => {
 	if (
-		keysgroup.length < MULTISIGNATURE_MIN_SIGNATURES ||
-		keysgroup.length > MULTISIGNATURE_MAX_SIGNATURES
+		keysgroup.length < MULTISIGNATURE_MIN_KEYSGROUP ||
+		keysgroup.length > MULTISIGNATURE_MAX_KEYSGROUP
 	) {
 		throw new Error(
-			`Expected between ${MULTISIGNATURE_MIN_SIGNATURES} and ${MULTISIGNATURE_MAX_SIGNATURES} public keys in the keysgroup.`,
+			`Expected between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP} public keys in the keysgroup.`,
 		);
 	}
 	return validatePublicKeys(keysgroup);
