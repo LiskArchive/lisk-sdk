@@ -21,25 +21,19 @@ import {
 	wrapTransactionCreator,
 } from './utils';
 
-const validateInputs = ({ votes, unvotes }) => {
-	const publicKeys = [];
-	if (typeof votes !== 'undefined') {
-		if (!Array.isArray(votes)) {
-			throw new Error('Please provide a valid votes value. Expected an array.');
-		}
-		publicKeys.push(...votes);
+const validateInputs = ({ votes = [], unvotes = [] }) => {
+	if (!Array.isArray(votes)) {
+		throw new Error(
+			'Please provide a valid votes value. Expected an array if present.',
+		);
+	}
+	if (!Array.isArray(unvotes)) {
+		throw new Error(
+			'Please provide a valid unvotes value. Expected an array if present.',
+		);
 	}
 
-	if (typeof unvotes !== 'undefined') {
-		if (!Array.isArray(unvotes)) {
-			throw new Error(
-				'Please provide a valid unvotes value. Expected an array.',
-			);
-		}
-		publicKeys.push(...unvotes);
-	}
-
-	validatePublicKeys(publicKeys);
+	validatePublicKeys([...votes, ...unvotes]);
 };
 
 const castVotes = inputs => {

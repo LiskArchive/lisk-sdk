@@ -37,15 +37,15 @@ const validateInputs = ({ options }) => {
 	}
 
 	if (typeof description !== 'undefined' && typeof description !== 'string') {
-		throw new Error('Dapp description must be a string.');
+		throw new Error('Dapp description must be a string if provided.');
 	}
 
 	if (typeof tags !== 'undefined' && typeof tags !== 'string') {
-		throw new Error('Dapp tags must be a string.');
+		throw new Error('Dapp tags must be a string if provided.');
 	}
 
 	if (typeof icon !== 'undefined' && typeof icon !== 'string') {
-		throw new Error('Dapp icon must be a string.');
+		throw new Error('Dapp icon must be a string if provided.');
 	}
 };
 

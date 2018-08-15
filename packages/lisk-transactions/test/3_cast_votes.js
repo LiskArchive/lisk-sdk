@@ -213,7 +213,9 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					votes: null,
 				}),
-			).to.throw('Please provide a valid votes value. Expected an array.');
+			).to.throw(
+				'Please provide a valid votes value. Expected an array if present.',
+			);
 		});
 
 		it('should throw error when string was provided for votes', () => {
@@ -222,7 +224,9 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					votes: `+${firstPublicKey}`,
 				}),
-			).to.throw('Please provide a valid votes value. Expected an array.');
+			).to.throw(
+				'Please provide a valid votes value. Expected an array if present.',
+			);
 		});
 
 		it('should throw error when null was provided for unvotes', () => {
@@ -231,7 +235,9 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					unvotes: null,
 				}),
-			).to.throw('Please provide a valid unvotes value. Expected an array.');
+			).to.throw(
+				'Please provide a valid unvotes value. Expected an array if present.',
+			);
 		});
 
 		it('should throw error when string was provided for unvotes', () => {
@@ -240,7 +246,9 @@ describe('#castVotes transaction', () => {
 					passphrase,
 					unvotes: `-${firstPublicKey}`,
 				}),
-			).to.throw('Please provide a valid unvotes value. Expected an array.');
+			).to.throw(
+				'Please provide a valid unvotes value. Expected an array if present.',
+			);
 		});
 	});
 

@@ -41,9 +41,10 @@ describe('#createDapp transaction', () => {
 	const nameStringError = 'Dapp name must be a string.';
 	const typeIntegerError = 'Dapp type must be an integer.';
 	const linkStringError = 'Dapp link must be a string.';
-	const descriptionStringError = 'Dapp description must be a string.';
-	const tagsStringError = 'Dapp tags must be a string.';
-	const iconStringError = 'Dapp icon must be a string.';
+	const descriptionStringError =
+		'Dapp description must be a string if provided.';
+	const tagsStringError = 'Dapp tags must be a string if provided.';
+	const iconStringError = 'Dapp icon must be a string if provided.';
 
 	let getTimeWithOffsetStub;
 	let options;

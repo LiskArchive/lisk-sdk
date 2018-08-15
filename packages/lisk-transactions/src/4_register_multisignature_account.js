@@ -49,7 +49,7 @@ const validateInputs = ({ keysgroup, lifetime, minimum }) => {
 
 	if (keysgroup.length < minimum) {
 		throw new Error(
-			`Expected minimum ${minimum} public keys in the keysgroup.`,
+			'Minimum number of signatures is larger than the number of keys in the keysgroup.',
 		);
 	}
 	validateKeysgroup(keysgroup);
