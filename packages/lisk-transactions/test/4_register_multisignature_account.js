@@ -312,7 +312,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 				return Promise.resolve();
 			});
 
-			describe('validation errors:', () => {
+			describe('validation errors', () => {
 				describe('when lifetime', () => {
 					const lifetimeErrorMessage =
 						'Please provide a valid lifetime value. Expected integer between 1 and 72.';

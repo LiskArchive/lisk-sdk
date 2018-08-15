@@ -31,7 +31,7 @@ const createAsset = data => {
 const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 	if (!validateAmount(amount)) {
 		throw new Error(
-			'Please provide an amount. Expected a valid number in string format!',
+			'Please provide an amount. Expected a valid number in string format.',
 		);
 	}
 
