@@ -186,7 +186,7 @@ describe('#registerDelegate transaction', () => {
 				return expect(
 					registerDelegate.bind(null, { username: '12345678901234567890a' }),
 				).to.throw(
-					'Username length does not match requirements. Expected to be less than 20 characters.',
+					'Username length does not match requirements. Expected to be no more than 20 characters.',
 				);
 			});
 

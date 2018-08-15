@@ -231,7 +231,7 @@ describe('#transfer transaction', () => {
 						amount: '18446744073709551616',
 					}),
 				).to.throw(
-					'Please provide an amount. Expected a valid number in string format.',
+					'Could not create transaction: Amount must be a valid number in string format.',
 				);
 			});
 

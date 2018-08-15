@@ -251,7 +251,9 @@ describe('#registerMultisignatureAccount transaction', () => {
 					lifetime,
 					minimum,
 				}),
-			).to.throw(`Expected minimum ${minimum} public keys in the keysgroup.`);
+			).to.throw(
+				'Minimum number of signatures is larger than the number of keys in the keysgroup.',
+			);
 		});
 	});
 
