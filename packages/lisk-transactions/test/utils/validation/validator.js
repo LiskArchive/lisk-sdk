@@ -200,6 +200,10 @@ describe('validator', () => {
 			return expect(validate({ target: '10000000000000001' })).to.be.false;
 		});
 
+		it('should validate to false when decimal number is provided', () => {
+			return expect(validate({ target: '190.105310' })).to.be.false;
+		});
+
 		it('should validate to false when number is provided', () => {
 			return expect(validate({ target: 190105310 })).to.be.false;
 		});
@@ -260,6 +264,15 @@ describe('validator', () => {
 				validate({
 					target:
 						'05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
+				}),
+			).to.be.false;
+		});
+
+		it('should validate to false when signed publicKey is provided', () => {
+			return expect(
+				validate({
+					target:
+						'+05e1ce75b98d6051030e4e416483515cf8360be1a1bd6d2c14d925700dae021b1',
 				}),
 			).to.be.false;
 		});

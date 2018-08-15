@@ -18,7 +18,7 @@ import validateTransaction from '../../../src/utils/validation/validate_transact
 
 describe('validateTransaction', () => {
 	describe('#validateTransaction', () => {
-		describe('when fixtures nad invalid fixtures provided', () => {
+		describe('when fixtures provided', () => {
 			it('should be all valid for the fixtures', () => {
 				return fixtures.forEach(tx => {
 					const { valid, errors } = validateTransaction(tx);
@@ -26,7 +26,9 @@ describe('validateTransaction', () => {
 					expect(errors).to.be.null;
 				});
 			});
+		});
 
+		describe('when invalid fixtures provided', () => {
 			it('should be all invalid for the invalid fixtures (except type 6 and 7)', () => {
 				return invalidFixtures
 					.filter(tx => tx.type !== 6 && tx.type !== 7)
@@ -37,7 +39,7 @@ describe('validateTransaction', () => {
 					});
 			});
 
-			it('should thrown an error unsupported transactions for invalid fixtures (only type 6 and 7)', () => {
+			it('should throw an unsupported transaction type error for type 6 and 7', () => {
 				return invalidFixtures
 					.filter(tx => tx.type === 6 || tx.type === 7)
 					.forEach(tx => {
