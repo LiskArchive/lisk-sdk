@@ -30,14 +30,12 @@ const createAsset = data => {
 
 const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 	if (!validateAmount(amount)) {
-		throw new Error(
-			'Could not create transaction: Amount must be a valid number in string format.',
-		);
+		throw new Error('Amount must be a valid number in string format.');
 	}
 
 	if (!recipientId && !recipientPublicKey) {
 		throw new Error(
-			'Could not create transaction: Either recipientId or recipientPublicKey must be provided.',
+			'Either recipientId or recipientPublicKey must be provided.',
 		);
 	}
 
@@ -54,9 +52,7 @@ const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 		recipientPublicKey &&
 		recipientId !== cryptography.getAddressFromPublicKey(recipientPublicKey)
 	) {
-		throw new Error(
-			'Could not create transaction: recipientId does not match recipientPublicKey.',
-		);
+		throw new Error('recipientId does not match recipientPublicKey.');
 	}
 
 	if (data && data.length > 0) {

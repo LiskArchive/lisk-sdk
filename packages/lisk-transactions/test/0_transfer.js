@@ -230,9 +230,7 @@ describe('#transfer transaction', () => {
 					transfer.bind(null, {
 						amount: '18446744073709551616',
 					}),
-				).to.throw(
-					'Could not create transaction: Amount must be a valid number in string format.',
-				);
+				).to.throw('Amount must be a valid number in string format.');
 			});
 
 			it('should throw error when recipientId & non-matching recipientPublicKey provided', () => {
@@ -242,9 +240,7 @@ describe('#transfer transaction', () => {
 						recipientId,
 						recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
 					}),
-				).to.throw(
-					'Could not create transaction: recipientId does not match recipientPublicKey.',
-				);
+				).to.throw('recipientId does not match recipientPublicKey.');
 			});
 
 			it('should non throw error when recipientId & matching recipientPublicKey provided', () => {
@@ -265,7 +261,7 @@ describe('#transfer transaction', () => {
 						data: Buffer.from('hello'),
 					}),
 				).to.throw(
-					'Could not create transaction: Either recipientId or recipientPublicKey must be provided.',
+					'Either recipientId or recipientPublicKey must be provided.',
 				);
 			});
 
