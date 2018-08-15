@@ -129,8 +129,11 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 		migrateSecrets(program.password);
 		copyTheConfigFile();
 	}
-} else {
-	migrateSecrets('');
+} else {		// migration not necessary, initialize key, if not yet exist
+	if (!oldConfig.forging.delegates) {
+		oldConfig.forging.delegates = [];
+	}
+
 	copyTheConfigFile();
 }
 
