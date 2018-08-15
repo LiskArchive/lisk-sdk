@@ -22,12 +22,29 @@ import {
 } from './utils';
 
 const validateInputs = ({ votes, unvotes }) => {
-	validatePublicKeys([...votes, ...unvotes]);
+	const publicKeys = [];
+	if (typeof votes !== 'undefined') {
+		if (!Array.isArray(votes)) {
+			throw new Error('Please provide a valid votes value. Expected an array.');
+		}
+		publicKeys.push(...votes);
+	}
+
+	if (typeof unvotes !== 'undefined') {
+		if (!Array.isArray(unvotes)) {
+			throw new Error(
+				'Please provide a valid unvotes value. Expected an array.',
+			);
+		}
+		publicKeys.push(...unvotes);
+	}
+
+	validatePublicKeys(publicKeys);
 };
 
 const castVotes = inputs => {
+	validateInputs(inputs);
 	const { passphrase, votes = [], unvotes = [] } = inputs;
-	validateInputs({ votes, unvotes });
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
 		: null;
