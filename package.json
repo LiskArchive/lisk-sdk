@@ -58,16 +58,19 @@
 		],
 		"topics": {
 			"account": {
-				"description": "Manages Lisk accounts."
+				"description": "Commands relating to Lisk accounts."
 			},
 			"block": {
-				"description": "Manages Lisk blocks."
+				"description": "Commands relating to Lisk blocks."
 			},
 			"config": {
 				"description": "Manages Lisk Commander configuration."
 			},
 			"copyright": {
 				"description": "Displays copyright notice."
+			},
+			"delegate": {
+				"description": "Commands relating to Lisk delegates."
 			},
 			"help": {
 				"description": "Displays help."
