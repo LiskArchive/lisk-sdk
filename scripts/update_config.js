@@ -135,6 +135,7 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 }
 
 function migrateSecrets(password) {
+	oldConfig.forging.delegates = [];
 	password = password.trim();
 	if (!password) {
 		console.info('\nSkipping the secret migration.');
@@ -152,7 +153,6 @@ function migrateSecrets(password) {
 	}
 
 	console.info('\nMigrating your secrets...');
-	oldConfig.forging.delegates = [];
 	oldConfig.forging.secret.forEach(secret => {
 		console.info('.......');
 		oldConfig.forging.delegates.push({
