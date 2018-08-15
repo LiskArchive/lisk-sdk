@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptography from 'lisk-cryptography';
 import transfer from '../src/0_transfer';
 // Require is used for stubbing
 const time = require('../src/utils/time');
@@ -25,6 +26,8 @@ describe('#transfer transaction', () => {
 	const publicKey =
 		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientId = '18160565574430594874L';
+	const recipientPublicKey =
+		'5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const recipientPublicKeyThatDoesNotMatchRecipientId =
 		'12345a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09';
 	const amount = '1000';
@@ -235,13 +238,47 @@ describe('#transfer transaction', () => {
 			it('should throw error when recipientId & non-matching recipientPublicKey provided', () => {
 				return expect(
 					transfer.bind(null, {
-						recipientId,
 						amount,
+						recipientId,
 						recipientPublicKey: recipientPublicKeyThatDoesNotMatchRecipientId,
 					}),
 				).to.throw(
 					'Could not create transaction: recipientId does not match recipientPublicKey.',
 				);
+			});
+
+			it('should non throw error when recipientId & matching recipientPublicKey provided', () => {
+				return expect(
+					transfer.bind(null, {
+						amount,
+						recipientId,
+						recipientPublicKey,
+					}),
+				).to.not.throw();
+			});
+
+			it('should throw error when both recipientId and recipientPublicKey were not provided', () => {
+				return expect(
+					transfer.bind(null, {
+						amount,
+						passphrase,
+						data: Buffer.from('hello'),
+					}),
+				).to.throw(
+					'Could not create transaction: Either recipientId or recipientPublicKey must be provided.',
+				);
+			});
+
+			it('should set recipientId when recipientId was not provided but recipientPublicKey was provided', () => {
+				const tx = transfer({
+					amount,
+					passphrase,
+					recipientPublicKey: publicKey,
+				});
+				return expect(tx)
+					.to.have.property('recipientId')
+					.and.be.a('string')
+					.to.equal(cryptography.getAddressFromPublicKey(publicKey));
 			});
 
 			it('should handle too much data', () => {

@@ -35,11 +35,17 @@ const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 		);
 	}
 
-	if (recipientId) {
+	if (!recipientId && !recipientPublicKey) {
+		throw new Error(
+			'Could not create transaction: Either recipientId or recipientPublicKey must be provided.',
+		);
+	}
+
+	if (typeof recipientId !== 'undefined') {
 		validateAddress(recipientId);
 	}
 
-	if (recipientPublicKey) {
+	if (typeof recipientPublicKey !== 'undefined') {
 		validatePublicKey(recipientPublicKey);
 	}
 
@@ -68,21 +74,19 @@ const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
 
 const transfer = inputs => {
 	validateInputs(inputs);
-	const { amount, recipientId, recipientPublicKey, data } = inputs;
-	let address = recipientId;
-	let publicKey = null;
-
-	if (recipientPublicKey) {
-		address = cryptography.getAddressFromPublicKey(recipientPublicKey);
-		publicKey = recipientPublicKey;
-	}
+	const {
+		amount,
+		recipientPublicKey = null,
+		recipientId = cryptography.getAddressFromPublicKey(recipientPublicKey),
+		data,
+	} = inputs;
 
 	const transaction = {
 		type: 0,
 		amount: amount.toString(),
 		fee: TRANSFER_FEE.toString(),
-		recipientId: address,
-		recipientPublicKey: publicKey,
+		recipientId,
+		recipientPublicKey,
 		asset: createAsset(data),
 	};
 
