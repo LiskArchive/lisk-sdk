@@ -27,6 +27,7 @@ export const MULTISIGNATURE_MIN_LIFETIME = 1;
 export const MULTISIGNATURE_MAX_KEYSGROUP = 15;
 export const MULTISIGNATURE_MIN_KEYSGROUP = 1;
 export const DAPP_FEE = 25 * FIXED_POINT;
+export const USERNAME_LENGTH = 20;
 
 export const BYTESIZES = {
 	TYPE: 1,

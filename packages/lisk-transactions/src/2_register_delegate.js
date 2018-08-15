@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DELEGATE_FEE } from './constants';
+import { DELEGATE_FEE, USERNAME_LENGTH } from './constants';
 import { wrapTransactionCreator } from './utils';
 
 const validateInputs = ({ username }) => {
@@ -20,9 +20,9 @@ const validateInputs = ({ username }) => {
 		throw new Error('Please provide a username. Expected string.');
 	}
 
-	if (username.length > 20) {
+	if (username.length > USERNAME_LENGTH) {
 		throw new Error(
-			'Username length does not match requirements. Expected to be less than 20 characters.',
+			`Username length does not match requirements. Expected to be less than ${USERNAME_LENGTH} characters.`,
 		);
 	}
 };
