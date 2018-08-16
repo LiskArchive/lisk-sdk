@@ -2313,6 +2313,7 @@ definitions:
       - height
       - loaded
       - networkHeight
+      - secondsSinceEpoch
       - syncing
       - transactions
     properties:
@@ -2335,10 +2336,6 @@ definitions:
         type: integer
         example: 1533558858128
         description: Current time of the node in miliseconds (Unix Timestamp).
-      secondsSinceEpoch:
-        type: integer
-        example: 1533558858
-        description: Number of seconds that have elapsed since the Lisk epoch time (Lisk Timestamp).
       height:
         type: integer
         example: 123
@@ -2356,6 +2353,10 @@ definitions:
         description: |
           Current block height of the network.
           Represents the current number of blocks in the chain on the network.
+      secondsSinceEpoch:
+        type: integer
+        example: 1533558858
+        description: Number of seconds that have elapsed since the Lisk epoch time (Lisk Timestamp).
       syncing:
         type: boolean
         example: false
