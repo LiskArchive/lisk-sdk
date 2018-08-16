@@ -94,6 +94,11 @@ delete oldConfig.transactions.maxTxsPerQueue;
 delete oldConfig.loading.verifyOnLoading;
 delete oldConfig.dapp;
 
+if (typeof oldConfig.broadcasts === 'object') {
+	delete oldConfig.broadcasts.broadcastLimit;
+	delete oldConfig.broadcasts.relayLimit;
+}
+
 if (oldConfig.db.user.trim() === '') {
 	oldConfig.db.user = 'lisk';
 }
