@@ -24,5 +24,5 @@
  * @todo Add description for the namespace and the properties
  */
 module.exports = {
-	disableDappTransfers: 9000000,
+	disableDappTransfers: 6901027,
 };
