@@ -29,7 +29,8 @@ describe('message:encrypt', () => {
 	};
 
 	const defaultInputs = {
-		passphrase: '123',
+		passphrase:
+			'card earn shift valley learn scorpion cage select help title control satoshi',
 		data: 'message',
 	};
 
@@ -47,11 +48,11 @@ describe('message:encrypt', () => {
 				getInputsFromSources,
 				'default',
 				sandbox.stub().resolves(defaultInputs),
-			);
+			)
+			.stdout();
 
 	describe('message:encrypt', () => {
 		setupTest()
-			.stdout()
 			.command(['message:encrypt'])
 			.catch(error =>
 				expect(error.message).to.contain('Missing 1 required arg'),
@@ -61,7 +62,6 @@ describe('message:encrypt', () => {
 
 	describe('message:encrypt recipient', () => {
 		setupTest()
-			.stdout()
 			.command(['message:encrypt', defaultRecipientPublicKey])
 			.catch(error =>
 				expect(error.message).to.contain('No message was provided.'),
@@ -71,7 +71,6 @@ describe('message:encrypt', () => {
 
 	describe('message:encrypt recipient message', () => {
 		setupTest()
-			.stdout()
 			.command(['message:encrypt', defaultRecipientPublicKey, message])
 			.it('should encrypt the message with the arg', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -96,7 +95,6 @@ describe('message:encrypt', () => {
 
 	describe('message:encrypt recipient --message=file:./message.txt', () => {
 		setupTest()
-			.stdout()
 			.command([
 				'message:encrypt',
 				defaultRecipientPublicKey,
@@ -128,21 +126,21 @@ describe('message:encrypt', () => {
 			);
 	});
 
-	describe('message:encrypt recipient --message=file:./message.txt --passphrase=pass:123', () => {
+	describe('message:encrypt recipient --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
 		setupTest()
-			.stdout()
 			.command([
 				'message:encrypt',
 				defaultRecipientPublicKey,
 				'--message=file:./message.txt',
-				'--passphrase=pass:123',
+				'--passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
 			])
 			.it(
 				'should encrypt the message with the arg and the message flag',
 				() => {
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						passphrase: {
-							source: 'pass:123',
+							source:
+								'pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
 							repeatPrompt: true,
 						},
 						data: {

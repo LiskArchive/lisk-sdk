@@ -29,7 +29,8 @@ describe('message:sign', () => {
 			'0c70c0ed6ca16312c6acab46dd8b801fd3f3a2bd68018651c2792b40a7d1d3ee276a6bafb6b4185637edfa4d282e18362e135c5e2cf0c68002bfd58307ddb30b',
 	};
 	const defaultInputs = {
-		passphrase: '123',
+		passphrase:
+			'card earn shift valley learn scorpion cage select help title control satoshi',
 		data: 'message',
 	};
 
@@ -47,11 +48,11 @@ describe('message:sign', () => {
 				getInputsFromSources,
 				'default',
 				sandbox.stub().resolves(defaultInputs),
-			);
+			)
+			.stdout();
 
 	describe('message:sign', () => {
 		setupTest()
-			.stdout()
 			.command(['message:sign'])
 			.catch(error =>
 				expect(error.message).to.contain('No message was provided.'),
@@ -61,7 +62,6 @@ describe('message:sign', () => {
 
 	describe('message:sign message', () => {
 		setupTest()
-			.stdout()
 			.command(['message:sign', message])
 			.it('should sign the message with the arg', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -84,7 +84,6 @@ describe('message:sign', () => {
 	describe('message:sign --message=file:./message.txt', () => {
 		const messageSource = 'file:/message.txt';
 		setupTest()
-			.stdout()
 			.command(['message:sign', `--message=${messageSource}`])
 			.it('should sign the message from flag', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -106,11 +105,11 @@ describe('message:sign', () => {
 			});
 	});
 
-	describe('message:sign --message=file:./message.txt --passphrase=pass:123', () => {
+	describe('message:sign --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
 		const messageSource = 'file:/message.txt';
-		const passphraseSource = 'pass:123';
+		const passphraseSource =
+			'pass:"card earn shift valley learn scorpion cage select help title control satoshi"';
 		setupTest()
-			.stdout()
 			.command([
 				'message:sign',
 				`--message=${messageSource}`,

@@ -28,7 +28,8 @@ describe('message:decrypt', () => {
 		'c9d369291997bf34abe505d48ac394175b68fc90f8f1d16fd1351e';
 
 	const defaultInputs = {
-		passphrase: '123',
+		passphrase:
+			'card earn shift valley learn scorpion cage select help title control satoshi',
 		data: 'message',
 	};
 
@@ -46,11 +47,11 @@ describe('message:decrypt', () => {
 				getInputsFromSources,
 				'default',
 				sandbox.stub().resolves(defaultInputs),
-			);
+			)
+			.stdout();
 
 	describe('message:decrypt', () => {
 		setupTest()
-			.stdout()
 			.command(['message:decrypt'])
 			.catch(error =>
 				expect(error.message).to.contain('Missing 2 required arg'),
@@ -60,7 +61,6 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey', () => {
 		setupTest()
-			.stdout()
 			.command(['message:decrypt', defaultSenderPublicKey])
 			.catch(error =>
 				expect(error.message).to.contain('Missing 1 required arg'),
@@ -70,7 +70,6 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey nonce', () => {
 		setupTest()
-			.stdout()
 			.command(['message:decrypt', defaultSenderPublicKey, defaultNonce])
 			.catch(error =>
 				expect(error.message).to.contain('No message was provided.'),
@@ -80,7 +79,6 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey nonce message', () => {
 		setupTest()
-			.stdout()
 			.command([
 				'message:decrypt',
 				defaultSenderPublicKey,
@@ -108,7 +106,6 @@ describe('message:decrypt', () => {
 
 	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt', () => {
 		setupTest()
-			.stdout()
 			.command([
 				'message:decrypt',
 				defaultSenderPublicKey,
@@ -139,22 +136,22 @@ describe('message:decrypt', () => {
 			);
 	});
 
-	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt --passphrase=pass:123', () => {
+	describe('message:decrypt senderPublicKey nonce --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
 		setupTest()
-			.stdout()
 			.command([
 				'message:decrypt',
 				defaultSenderPublicKey,
 				defaultNonce,
 				'--message=file:./message.txt',
-				'--passphrase=pass:123',
+				'--passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
 			])
 			.it(
 				'should decrypt the message with the arg and the message flag',
 				() => {
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						passphrase: {
-							source: 'pass:123',
+							source:
+								'pass:"card earn shift valley learn scorpion cage select help title control satoshi"',
 						},
 						data: {
 							source: 'file:./message.txt',

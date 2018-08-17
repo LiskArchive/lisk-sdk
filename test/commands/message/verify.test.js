@@ -26,7 +26,8 @@ describe('message:verify', () => {
 	const defaultSignature =
 		'0c70c0ed6ca16312c6acab46dd8b801fd3f3a2bd68018651c2792b40a7d1d3ee276a6bafb6b4185637edfa4d282e18362e135c5e2cf0c68002bfd58307ddb30b';
 	const defaultInputs = {
-		passphrase: '123',
+		passphrase:
+			'card earn shift valley learn scorpion cage select help title control satoshi',
 		data: 'message',
 	};
 	const defaultVerifyMessageResult = true;
@@ -45,11 +46,11 @@ describe('message:verify', () => {
 				getInputsFromSources,
 				'default',
 				sandbox.stub().resolves(defaultInputs),
-			);
+			)
+			.stdout();
 
 	describe('message:verify', () => {
 		setupTest()
-			.stdout()
 			.command(['message:verify'])
 			.catch(error =>
 				expect(error.message).to.contain('Missing 2 required arg'),
@@ -59,7 +60,6 @@ describe('message:verify', () => {
 
 	describe('message:verify publicKey', () => {
 		setupTest()
-			.stdout()
 			.command(['message:verify', defaultPublicKey])
 			.catch(error =>
 				expect(error.message).to.contain('Missing 1 required arg'),
@@ -69,7 +69,6 @@ describe('message:verify', () => {
 
 	describe('message:verify publicKey signature', () => {
 		setupTest()
-			.stdout()
 			.command(['message:verify', defaultPublicKey, defaultSignature])
 			.catch(error =>
 				expect(error.message).to.contain('No message was provided.'),
@@ -79,7 +78,6 @@ describe('message:verify', () => {
 
 	describe('message:verify publicKey signature message', () => {
 		setupTest()
-			.stdout()
 			.command(['message:verify', defaultPublicKey, defaultSignature, message])
 			.it('should verify message from the arg', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -101,7 +99,6 @@ describe('message:verify', () => {
 	describe('message:verify publicKey signature --message=file:./message.txt', () => {
 		const messageSource = 'file:/message.txt';
 		setupTest()
-			.stdout()
 			.command([
 				'message:verify',
 				defaultPublicKey,
