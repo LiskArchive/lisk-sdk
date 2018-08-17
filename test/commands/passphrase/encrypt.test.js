@@ -121,11 +121,11 @@ describe('passphrase:encrypt', () => {
 			});
 	});
 
-	describe('passphrase:encrypt --passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon', () => {
+	describe('passphrase:encrypt --passphrase=pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"', () => {
 		setupTest()
 			.command([
 				'passphrase:encrypt',
-				'--passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+				'--passphrase=pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"',
 			])
 			.it(
 				'should encrypt passphrase from passphrase flag and stdout password',
@@ -142,7 +142,7 @@ describe('passphrase:encrypt', () => {
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						passphrase: {
 							source:
-								'pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+								'pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"',
 							repeatPrompt: true,
 						},
 						password: {
@@ -157,11 +157,11 @@ describe('passphrase:encrypt', () => {
 			);
 	});
 
-	describe('passphrase:encrypt --passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon --password=pass:LbYpLpV9Wpec6ux8', () => {
+	describe('passphrase:encrypt --passphrase=pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon" --password=pass:LbYpLpV9Wpec6ux8', () => {
 		setupTest()
 			.command([
 				'passphrase:encrypt',
-				'--passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+				'--passphrase=pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"',
 				'--password=pass:LbYpLpV9Wpec6ux8',
 			])
 			.it(
@@ -179,7 +179,7 @@ describe('passphrase:encrypt', () => {
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						passphrase: {
 							source:
-								'pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+								'pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"',
 							repeatPrompt: true,
 						},
 						password: {
