@@ -50,17 +50,17 @@ export default class VerifyCommand extends BaseCommand {
 VerifyCommand.args = [
 	{
 		name: 'publicKey',
-		description: 'Public key which signed the message.',
+		description: 'Public key of the signer of the message.',
 		required: true,
 	},
 	{
 		name: 'signature',
-		description: 'Signature of the message.',
+		description: 'Signature to verify.',
 		required: true,
 	},
 	{
 		name: 'message',
-		description: 'Message to to verify.',
+		description: 'Message to verify.',
 	},
 ];
 
@@ -70,7 +70,7 @@ VerifyCommand.flags = {
 };
 
 VerifyCommand.description = `
-Verify a message using the public key, the signature and the message.
+Verifies a signature for a message using the signer’s public key.
 `;
 
 VerifyCommand.examples = [

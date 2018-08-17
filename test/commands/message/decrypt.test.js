@@ -41,7 +41,7 @@ describe('message:decrypt', () => {
 			.stub(
 				cryptography,
 				'decryptMessageWithPassphrase',
-				sandbox.stub().returns({ message }),
+				sandbox.stub().returns(message),
 			)
 			.stub(
 				getInputsFromSources,
@@ -53,27 +53,27 @@ describe('message:decrypt', () => {
 	describe('message:decrypt', () => {
 		setupTest()
 			.command(['message:decrypt'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 2 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 2 required arg');
+			})
 			.it('should throw an error');
 	});
 
 	describe('message:decrypt senderPublicKey', () => {
 		setupTest()
 			.command(['message:decrypt', defaultSenderPublicKey])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error');
 	});
 
 	describe('message:decrypt senderPublicKey nonce', () => {
 		setupTest()
 			.command(['message:decrypt', defaultSenderPublicKey, defaultNonce])
-			.catch(error =>
-				expect(error.message).to.contain('No message was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No message was provided.');
+			})
 			.it('should throw an error');
 	});
 
@@ -94,12 +94,12 @@ describe('message:decrypt', () => {
 				});
 				expect(
 					cryptography.decryptMessageWithPassphrase,
-				).to.be.calledWithExactly({
-					cipher: defaultEncryptedMessage,
-					nonce: defaultNonce,
-					passphrase: defaultInputs.passphrase,
-					senderPublicKey: defaultSenderPublicKey,
-				});
+				).to.be.calledWithExactly(
+					defaultEncryptedMessage,
+					defaultNonce,
+					defaultInputs.passphrase,
+					defaultSenderPublicKey,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly({ message });
 			});
 	});
@@ -125,12 +125,12 @@ describe('message:decrypt', () => {
 					});
 					expect(
 						cryptography.decryptMessageWithPassphrase,
-					).to.be.calledWithExactly({
-						cipher: defaultInputs.data,
-						nonce: defaultNonce,
-						passphrase: defaultInputs.passphrase,
-						senderPublicKey: defaultSenderPublicKey,
-					});
+					).to.be.calledWithExactly(
+						defaultInputs.data,
+						defaultNonce,
+						defaultInputs.passphrase,
+						defaultSenderPublicKey,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly({ message });
 				},
 			);
@@ -159,12 +159,12 @@ describe('message:decrypt', () => {
 					});
 					expect(
 						cryptography.decryptMessageWithPassphrase,
-					).to.be.calledWithExactly({
-						cipher: defaultInputs.data,
-						nonce: defaultNonce,
-						passphrase: defaultInputs.passphrase,
-						senderPublicKey: defaultSenderPublicKey,
-					});
+					).to.be.calledWithExactly(
+						defaultInputs.data,
+						defaultNonce,
+						defaultInputs.passphrase,
+						defaultSenderPublicKey,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly({ message });
 				},
 			);

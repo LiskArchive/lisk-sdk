@@ -20,12 +20,14 @@ import { ValidationError } from '../../utils/error';
 import getInputsFromSources from '../../utils/input';
 import commonFlags from '../../utils/flags';
 
-const processInputs = (recipient, message) => ({ passphrase, data }) =>
-	cryptography.encryptMessageWithPassphrase(
+const processInputs = (recipient, message) => ({ passphrase, data }) => ({
+	...cryptography.encryptMessageWithPassphrase(
 		message || data,
 		passphrase,
 		recipient,
-	);
+	),
+	recipient,
+});
 
 export default class EncryptCommand extends BaseCommand {
 	async run() {
@@ -57,7 +59,7 @@ export default class EncryptCommand extends BaseCommand {
 EncryptCommand.args = [
 	{
 		name: 'recipient',
-		description: 'Public key of the recipient of this message.',
+		description: 'Public key of the recipient of the message.',
 		required: true,
 	},
 	{

@@ -64,7 +64,7 @@ SignCommand.flags = {
 };
 
 SignCommand.description = `
-Sign a message using your secret passphrase.
+Signs a message using your secret passphrase.
 `;
 
 SignCommand.examples = ['message:sign "Hello world"'];

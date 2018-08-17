@@ -54,9 +54,9 @@ describe('message:sign', () => {
 	describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign'])
-			.catch(error =>
-				expect(error.message).to.contain('No message was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No message was provided.');
+			})
 			.it('should throw an error');
 	});
 

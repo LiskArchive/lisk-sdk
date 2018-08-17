@@ -52,27 +52,27 @@ describe('message:verify', () => {
 	describe('message:verify', () => {
 		setupTest()
 			.command(['message:verify'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 2 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 2 required arg');
+			})
 			.it('should throw an error');
 	});
 
 	describe('message:verify publicKey', () => {
 		setupTest()
 			.command(['message:verify', defaultPublicKey])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error');
 	});
 
 	describe('message:verify publicKey signature', () => {
 		setupTest()
 			.command(['message:verify', defaultPublicKey, defaultSignature])
-			.catch(error =>
-				expect(error.message).to.contain('No message was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No message was provided.');
+			})
 			.it('should throw an error');
 	});
 

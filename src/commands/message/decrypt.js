@@ -24,12 +24,12 @@ const processInputs = (nonce, senderPublicKey, message) => ({
 	passphrase,
 	data,
 }) =>
-	cryptography.decryptMessageWithPassphrase({
-		cipher: message || data,
+	cryptography.decryptMessageWithPassphrase(
+		message || data,
 		nonce,
 		passphrase,
 		senderPublicKey,
-	});
+	);
 
 export default class DecryptCommand extends BaseCommand {
 	async run() {
@@ -53,7 +53,7 @@ export default class DecryptCommand extends BaseCommand {
 					},
 		});
 		const result = processInputs(nonce, senderPublicKey, message)(inputs);
-		this.print(result);
+		this.print({ message: result });
 	}
 }
 
@@ -65,7 +65,7 @@ DecryptCommand.args = [
 	},
 	{
 		name: 'nonce',
-		description: 'Specified nonce of the encryption.',
+		description: 'Nonce used during encryption.',
 		required: true,
 	},
 	{
@@ -85,5 +85,5 @@ Decrypts a previously encrypted message from a given sender public key for a kno
 `;
 
 DecryptCommand.examples = [
-	'message:decrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 349d300c906a113340ff0563ef14a96c092236f331ca4639 e501c538311d38d3857afefa26207408f4bf7f1228',
+	'message:decrypt bba7e2e6a4639c431b68e31115a71ffefcb4e025a4d1656405dfdcd8384719e0 4b800d90d54eda4d093b5e4e6bf9ed203bc90e1560bd628d dcaa605af45a4107a699755237b4c08e1ef75036743d7e4814dea7',
 ];

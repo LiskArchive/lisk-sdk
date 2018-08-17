@@ -54,18 +54,18 @@ describe('message:encrypt', () => {
 	describe('message:encrypt', () => {
 		setupTest()
 			.command(['message:encrypt'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error');
 	});
 
 	describe('message:encrypt recipient', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey])
-			.catch(error =>
-				expect(error.message).to.contain('No message was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No message was provided.');
+			})
 			.it('should throw an error');
 	});
 
@@ -87,9 +87,10 @@ describe('message:encrypt', () => {
 					defaultInputs.passphrase,
 					defaultRecipientPublicKey,
 				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultEncryptedMessage,
-				);
+				return expect(printMethodStub).to.be.calledWithExactly({
+					...defaultEncryptedMessage,
+					recipient: defaultRecipientPublicKey,
+				});
 			});
 	});
 
@@ -119,9 +120,10 @@ describe('message:encrypt', () => {
 						defaultInputs.passphrase,
 						defaultRecipientPublicKey,
 					);
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultEncryptedMessage,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly({
+						...defaultEncryptedMessage,
+						recipient: defaultRecipientPublicKey,
+					});
 				},
 			);
 	});
@@ -154,9 +156,10 @@ describe('message:encrypt', () => {
 						defaultInputs.passphrase,
 						defaultRecipientPublicKey,
 					);
-					return expect(printMethodStub).to.be.calledWithExactly(
-						defaultEncryptedMessage,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly({
+						...defaultEncryptedMessage,
+						recipient: defaultRecipientPublicKey,
+					});
 				},
 			);
 	});
