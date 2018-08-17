@@ -24,7 +24,7 @@ describe('passphrase:encrypt', () => {
 		'salt=683425ca06c9ff88a5ab292bb5066dc5&cipherText=4ce151&iv=bfaeef79a466e370e210f3c6&tag=e84bf097b1ec5ae428dd7ed3b4cce522&version=1';
 	const defaultKeys = {
 		publicKey:
-			'a4465fd76c16fcc458448076372abf1912cc5b150663a64dffefe550f96feadd',
+			'337600533a1f734c84b738d5f634c284a80ecc8b92bae4f30c1f22f8fd001e6a',
 	};
 	const encryptedPassphraseObject = {
 		salt: 'salt',
@@ -34,8 +34,9 @@ describe('passphrase:encrypt', () => {
 		version: 1,
 	};
 	const defaultInputs = {
-		passphrase: '123',
-		password: '456',
+		passphrase:
+			'enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+		password: 'LbYpLpV9Wpec6ux8',
 	};
 
 	const printMethodStub = sandbox.stub();
@@ -58,11 +59,11 @@ describe('passphrase:encrypt', () => {
 				getInputsFromSources,
 				'default',
 				sandbox.stub().resolves(defaultInputs),
-			);
+			)
+			.stdout();
 
 	describe('passphrase:encrypt', () => {
 		setupTest()
-			.stdout()
 			.command(['passphrase:encrypt'])
 			.it('should encrypt passphrase', () => {
 				expect(
@@ -92,7 +93,6 @@ describe('passphrase:encrypt', () => {
 
 	describe('passphrase:encrypt --outputPublicKey', () => {
 		setupTest()
-			.stdout()
 			.command(['passphrase:encrypt', '--outputPublicKey'])
 			.it('should encrypt passphrase and output public key', () => {
 				expect(
@@ -121,43 +121,48 @@ describe('passphrase:encrypt', () => {
 			});
 	});
 
-	describe('passphrase:encrypt --passphrase=pass:123', () => {
+	describe('passphrase:encrypt --passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon', () => {
 		setupTest()
-			.stdout()
-			.command(['passphrase:encrypt', '--passphrase=pass:123'])
-			.it('should call print with the user config', () => {
-				expect(
-					cryptography.encryptPassphraseWithPassword,
-				).to.be.calledWithExactly(
-					defaultInputs.passphrase,
-					defaultInputs.password,
-				);
-				expect(
-					cryptography.stringifyEncryptedPassphrase,
-				).to.be.calledWithExactly(encryptedPassphraseObject);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
-					passphrase: {
-						source: 'pass:123',
-						repeatPrompt: true,
-					},
-					password: {
-						source: undefined,
-						repeatPrompt: true,
-					},
-				});
-				return expect(printMethodStub).to.be.calledWithExactly({
-					encryptedPassphrase: encryptedPassphraseString,
-				});
-			});
-	});
-
-	describe('passphrase:encrypt --passphrase=pass:123 --password=pass:456', () => {
-		setupTest()
-			.stdout()
 			.command([
 				'passphrase:encrypt',
-				'--passphrase=pass:123',
-				'--password=pass:456',
+				'--passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+			])
+			.it(
+				'should encrypt passphrase from passphrase flag and stdout password',
+				() => {
+					expect(
+						cryptography.encryptPassphraseWithPassword,
+					).to.be.calledWithExactly(
+						defaultInputs.passphrase,
+						defaultInputs.password,
+					);
+					expect(
+						cryptography.stringifyEncryptedPassphrase,
+					).to.be.calledWithExactly(encryptedPassphraseObject);
+					expect(getInputsFromSources.default).to.be.calledWithExactly({
+						passphrase: {
+							source:
+								'pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+							repeatPrompt: true,
+						},
+						password: {
+							source: undefined,
+							repeatPrompt: true,
+						},
+					});
+					return expect(printMethodStub).to.be.calledWithExactly({
+						encryptedPassphrase: encryptedPassphraseString,
+					});
+				},
+			);
+	});
+
+	describe('passphrase:encrypt --passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon --password=pass:LbYpLpV9Wpec6ux8', () => {
+		setupTest()
+			.command([
+				'passphrase:encrypt',
+				'--passphrase=pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
+				'--password=pass:LbYpLpV9Wpec6ux8',
 			])
 			.it(
 				'should encrypt passphrase from passphrase and password flags',
@@ -173,11 +178,12 @@ describe('passphrase:encrypt', () => {
 					).to.be.calledWithExactly(encryptedPassphraseObject);
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						passphrase: {
-							source: 'pass:123',
+							source:
+								'pass:enemy pill squeeze gold spoil aisle awake thumb congress false box wagon',
 							repeatPrompt: true,
 						},
 						password: {
-							source: 'pass:456',
+							source: 'pass:LbYpLpV9Wpec6ux8',
 							repeatPrompt: true,
 						},
 					});

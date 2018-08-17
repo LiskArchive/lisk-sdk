@@ -30,12 +30,12 @@ const processInputs = outputPublicKey => ({ passphrase, password }) => {
 	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
 		encryptedPassphraseObject,
 	);
-	const cipherAndIv = { encryptedPassphrase };
 	return outputPublicKey
-		? Object.assign({}, cipherAndIv, {
+		? {
+				encryptedPassphrase,
 				publicKey: cryptography.getKeys(passphrase).publicKey,
-			})
-		: cipherAndIv;
+			}
+		: { encryptedPassphrase };
 };
 
 export default class EncryptCommand extends BaseCommand {

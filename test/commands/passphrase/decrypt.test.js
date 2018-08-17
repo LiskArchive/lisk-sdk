@@ -22,7 +22,8 @@ import * as getInputsFromSources from '../../../src/utils/input';
 describe('passphrase:decrypt', () => {
 	const defaultEncryptedPassphrase =
 		'salt=d3887df959ed2bfe5961a6831da6e177&cipherText=1c08a1&iv=096ede534df9092fd4523ec7&tag=2a055e1c860b3ef76084a6c9aca68ce9&version=1';
-	const passphrase = '123';
+	const passphrase =
+		'enemy pill squeeze gold spoil aisle awake thumb congress false box wagon';
 	const encryptedPassphraseObject = {
 		salt: 'salt',
 		cipherText: 'cipherText',
@@ -31,7 +32,7 @@ describe('passphrase:decrypt', () => {
 		version: 1,
 	};
 	const defaultInputs = {
-		password: '456',
+		password: 'LbYpLpV9Wpec6ux8',
 		data: `${defaultEncryptedPassphrase}\nshould not be used`,
 	};
 
@@ -54,23 +55,22 @@ describe('passphrase:decrypt', () => {
 				getInputsFromSources,
 				'default',
 				sandbox.stub().resolves(defaultInputs),
-			);
+			)
+			.stdout();
 
 	describe('passphrase:decrypt', () => {
 		setupTest()
-			.stdout()
 			.command(['passphrase:decrypt'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'No encrypted passphrase was provided.',
-				),
-			)
+				);
+			})
 			.it('should throw an error');
 	});
 
 	describe('passphrase:decrypt encryptedPassphrase', () => {
 		setupTest()
-			.stdout()
 			.command(['passphrase:decrypt', defaultEncryptedPassphrase])
 			.it('should decrypt passphrase with arg', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -95,7 +95,6 @@ describe('passphrase:decrypt', () => {
 	describe('passphrase:decrypt --passphrase=file:./path/to/encrypted_passphrase.txt', () => {
 		const passphraseSource = 'file:./path/to/encrypted_passphrase.txt';
 		setupTest()
-			.stdout()
 			.command(['passphrase:decrypt', `--passphrase=${passphraseSource}`])
 			.it('should decrypt passphrase with passphrase flag', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -119,21 +118,20 @@ describe('passphrase:decrypt', () => {
 			});
 	});
 
-	describe('passphrase:decrypt --passphrase=filePath --password=pass:456', () => {
+	describe('passphrase:decrypt --passphrase=filePath --password=pass:LbYpLpV9Wpec6ux8', () => {
 		const passphraseSource = 'file:./path/to/encrypted_passphrase.txt';
 		setupTest()
-			.stdout()
 			.command([
 				'passphrase:decrypt',
 				`--passphrase=${passphraseSource}`,
-				'--password=pass:456',
+				'--password=pass:LbYpLpV9Wpec6ux8',
 			])
 			.it(
 				'should decrypt passphrase with passphrase flag and password flag',
 				() => {
 					expect(getInputsFromSources.default).to.be.calledWithExactly({
 						password: {
-							source: 'pass:456',
+							source: 'pass:LbYpLpV9Wpec6ux8',
 						},
 						data: {
 							source: passphraseSource,
