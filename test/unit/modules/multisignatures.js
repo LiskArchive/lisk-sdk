@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -18,8 +19,44 @@ const rewire = require('rewire');
 const accountsFixtures = require('../../fixtures/index').accounts;
 const transactionsFixtures = require('../../fixtures/index').transactions;
 const transactionTypes = require('../../../helpers/transaction_types.js');
+const Bignum = require('../../../helpers/bignum.js');
+const ApiError = require('../../../helpers/api_error');
+const errorCodes = require('../../../helpers/api_codes');
 
 const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
+
+const validAccount = {
+	username: 'genesis_100',
+	isDelegate: 1,
+	u_isDelegate: 0,
+	secondSignature: 0,
+	u_secondSignature: 0,
+	u_username: null,
+	address: '10881167371402274308L',
+	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+	secondPublicKey: null,
+	balance: new Bignum('0'),
+	u_balance: new Bignum('0'),
+	rate: 0,
+	delegates: null,
+	u_delegates: null,
+	multisignatures: null,
+	u_multisignatures: null,
+	multimin: 0,
+	u_multimin: 0,
+	multilifetime: 1,
+	u_multilifetime: 1,
+	nameexist: 0,
+	u_nameexist: 0,
+	fees: new Bignum('0'),
+	rank: 70,
+	rewards: new Bignum('0'),
+	vote: 10000000000000000,
+	producedBlocks: 0,
+	missedBlocks: 0,
+	approval: 100,
+	productivity: 0,
+};
 
 describe('multisignatures', () => {
 	let __private;
@@ -29,6 +66,8 @@ describe('multisignatures', () => {
 	const stubs = {};
 	const data = {};
 	let multisignaturesInstance;
+	let error;
+	let attachAssetTypeStubResponse;
 
 	function get(variable) {
 		return rewiredMultisignatures.__get__(variable);
@@ -54,9 +93,10 @@ describe('multisignatures', () => {
 		stubs.balancesSequence = sinonSandbox.stub();
 		stubs.bind = sinonSandbox.stub();
 
-		stubs.attachAssetType = () => {
-			return { bind: stubs.bind };
-		};
+		attachAssetTypeStubResponse = { bind: stubs.bind };
+		stubs.attachAssetType = sinonSandbox
+			.stub()
+			.returns(attachAssetTypeStubResponse);
 		stubs.verifySignature = sinonSandbox.stub();
 
 		stubs.logic = {};
@@ -65,6 +105,7 @@ describe('multisignatures', () => {
 			verifySignature: stubs.verifySignature,
 		};
 		stubs.logic.account = sinonSandbox.stub();
+		stubs.logic.account.getMultiSignature = sinonSandbox.stub();
 
 		stubs.multisignature = sinonSandbox.stub();
 		set('Multisignature', stubs.multisignature);
@@ -99,6 +140,7 @@ describe('multisignatures', () => {
 		// Create instance of multisignatures module
 		multisignaturesInstance = new rewiredMultisignatures(
 			(err, __multisignatures) => {
+				error = err;
 				self = __multisignatures;
 				__private = get('__private');
 				library = get('library');
@@ -137,6 +179,23 @@ describe('multisignatures', () => {
 
 		it('should call callback with result = self', () => {
 			return expect(self).to.be.deep.equal(multisignaturesInstance);
+		});
+
+		it('should return error = null', () => {
+			return expect(error).to.equal(null);
+		});
+
+		describe('__private', () => {
+			it('should call library.logic.transaction.attachAssetType', () => {
+				return expect(library.logic.transaction.attachAssetType).to.have.been
+					.calledOnce;
+			});
+
+			it('assign __private.assetTypes[transactionTypes.MULTI]', () => {
+				return expect(__private.assetTypes)
+					.to.have.property(transactionTypes.MULTI)
+					.which.is.equal(attachAssetTypeStubResponse);
+			});
 		});
 	});
 
@@ -907,6 +966,229 @@ describe('multisignatures', () => {
 						.not.been.called;
 					expect(err).to.not.exist;
 					done();
+				});
+			});
+		});
+	});
+
+	describe('getGroup', () => {
+		beforeEach(done => {
+			library.logic.account.getMultiSignature = sinonSandbox
+				.stub()
+				.callsFake((filters, cb) => {
+					cb(null, validAccount);
+				});
+			library.db.multisignatures.getMemberPublicKeys = sinonSandbox
+				.stub()
+				.callsFake(() => Promise.resolve([]));
+			get('modules').accounts.getAccounts = sinonSandbox
+				.stub()
+				.callsFake((param1, param2, cb) => cb(null, []));
+			done();
+		});
+
+		it('should accept address as parameter', done => {
+			self.getGroup(validAccount.address, (err, scopeGroup) => {
+				expect(library.logic.account.getMultiSignature).to.be.calledWith({
+					address: validAccount.address,
+				});
+				expect(scopeGroup.address).to.equal(validAccount.address);
+				done();
+			});
+		});
+
+		it('should fail if wrong address is provided', done => {
+			library.logic.account.getMultiSignature = sinonSandbox
+				.stub()
+				.callsFake((filters, cb) => {
+					cb(null, null);
+				});
+			self.getGroup('', (err, scopeGroup) => {
+				expect(err).to.be.an.instanceof(ApiError);
+				expect(err.message).to.equal('Multisignature account not found');
+				expect(err.code).to.equal(errorCodes.NOT_FOUND);
+				expect(scopeGroup).to.not.exist;
+				done();
+			});
+		});
+
+		it('should fail if valid address but not a multisig account', done => {
+			library.logic.account.getMultiSignature = sinonSandbox
+				.stub()
+				.callsFake((filters, cb) => {
+					cb('Err', null);
+				});
+			self.getGroup(validAccount.address, (err, scopeGroup) => {
+				expect(err).to.equal('Err');
+				expect(scopeGroup).to.not.exist;
+				done();
+			});
+		});
+
+		it('should return a group if provided with a valid multisig account', done => {
+			self.getGroup(validAccount.address, (err, scopeGroup) => {
+				expect(err).to.not.exist;
+				expect(scopeGroup).to.have.property('address');
+				expect(scopeGroup).to.have.property('publicKey');
+				expect(scopeGroup).to.have.property('secondPublicKey');
+				expect(scopeGroup).to.have.property('balance');
+				expect(scopeGroup).to.have.property('unconfirmedBalance');
+				expect(scopeGroup).to.have.property('min');
+				expect(scopeGroup).to.have.property('lifetime');
+				expect(scopeGroup).to.have.property('members');
+				done();
+			});
+		});
+	});
+
+	describe('isLoaded', () => {
+		it('should return true if modules exists', () => {
+			return expect(self.isLoaded()).to.equal(true);
+		});
+
+		it('should return true if modules does not exist', () => {
+			set('modules', null);
+			return expect(self.isLoaded()).to.equal(false);
+		});
+	});
+
+	describe('shared', () => {
+		describe('getGroups', () => {
+			it('should accept fitlers.address parameter');
+
+			describe('when schema validation fails', () => {
+				it('should call callback with schema error');
+			});
+
+			describe('when schema validation succeeds', () => {
+				it('should call library.db.one');
+
+				it('should call library.db.one with sql.getAccountIds');
+
+				it('should call library.db.one with { publicKey: req.body.publicKey }');
+
+				describe('when library.db.one fails', () => {
+					it('should call the logger.error with error stack');
+
+					it('should call callback with "Multisignature#getAccountIds error"');
+				});
+
+				describe('when library.db.one succeeds', () => {
+					it('should call modules.accounts.getAccounts');
+
+					it(
+						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
+					);
+
+					it(
+						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
+					);
+
+					describe('when modules.accounts.getAccounts fails', () => {
+						it('should call callback with error');
+					});
+
+					describe('when modules.accounts.getAccounts succeeds', () => {
+						describe('for every account', () => {
+							describe('for every account.multisignature', () => {
+								it('should call modules.accounts.generateAddressByPublicKey');
+
+								it(
+									'should call modules.accounts.generateAddressByPublicKey with multisignature'
+								);
+							});
+
+							it('should call modules.accounts.getAccounts');
+
+							it(
+								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
+							);
+
+							it(
+								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
+							);
+
+							describe('when modules.accounts.getAccounts fails', () => {
+								it('should call callback with error');
+							});
+
+							describe('when modules.accounts.getAccounts succeeds', () => {
+								it('should call callback with error = null');
+
+								it('should call callback with result containing accounts');
+							});
+						});
+					});
+				});
+			});
+		});
+
+		describe('getMemberships', () => {
+			it('should accept fitlers.address parameter');
+
+			describe('when schema validation fails', () => {
+				it('should call callback with schema error');
+			});
+
+			describe('when schema validation succeeds', () => {
+				it('should call library.db.one');
+
+				it('should call library.db.one with sql.getAccountIds');
+
+				it('should call library.db.one with { publicKey: req.body.publicKey }');
+
+				describe('when library.db.one fails', () => {
+					it('should call the logger.error with error stack');
+
+					it('should call callback with "Multisignature#getAccountIds error"');
+				});
+
+				describe('when library.db.one succeeds', () => {
+					it('should call modules.accounts.getAccounts');
+
+					it(
+						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
+					);
+
+					it(
+						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
+					);
+
+					describe('when modules.accounts.getAccounts fails', () => {
+						it('should call callback with error');
+					});
+
+					describe('when modules.accounts.getAccounts succeeds', () => {
+						describe('for every account', () => {
+							describe('for every account.multisignature', () => {
+								it('should call modules.accounts.generateAddressByPublicKey');
+
+								it(
+									'should call modules.accounts.generateAddressByPublicKey with multisignature'
+								);
+							});
+
+							it('should call modules.accounts.getAccounts');
+
+							it(
+								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
+							);
+
+							it(
+								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
+							);
+
+							describe('when modules.accounts.getAccounts fails', () => {
+								it('should call callback with error');
+							});
+
+							describe('when modules.accounts.getAccounts succeeds', () => {
+								it('should call callback with error = null');
+
+								it('should call callback with result containing accounts');
+							});
+						});
+					});
 				});
 			});
 		});
