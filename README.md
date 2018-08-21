@@ -17,12 +17,12 @@ If you have satisfied the requirements from the Pre-Installation section, you ca
 ## Index
 
 * [Pre-Installation](#pre-installation)
-  * [Create lisk user](#create-the-lisk-user)
+  * [Create lisk user](#create-new-user-lisk)
   * [Tool Chain Components](#tool-chain-components)
   * [Git](#git)
   * [Node.JS](#nodejs)
   * [PostgreSQL](#postgresql)
-  * [Redis](#redis)
+  * [Redis (optional)](#redis-optional)
 * [Installation](#installation)
 * [Managing Lisk](#tool)
 * [Configuring Lisk](#configuring-lisk)
@@ -117,7 +117,9 @@ node -v
 
 Compare with [package.json](https://github.com/LiskHQ/lisk/blob/development/package.json#L19)
 
-##### Recommended: Using a version manager such as [nvm](https://github.com/creationix/nvm).
+Best practice to manage node version is to install a node version manager like `nvm` or `n`.
+
+##### [nvm](https://github.com/creationix/nvm) (recommended)
 
 1. Login as lisk user, that has been created in the first step:
 
@@ -134,7 +136,7 @@ nvm install 6.14.1
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
 
-### _(Recommended)_ [PM2](https://github.com/Unitech/pm2)
+### [PM2](https://github.com/Unitech/pm2) (recommended)
 
 PM2 manages the node process for Lisk.
 
@@ -198,7 +200,13 @@ createdb lisk_test
 createdb lisk_main
 ```
 
-### Redis
+### Redis (optional)
+
+If you do not plan to use the API of your node for some reason, you can skip this step.
+
+Redis is an optional dependency, that caches database queries that need to be done to answer API requests.
+
+It is recommended to install Redis to improve the performance of API responses.
 
 * Ubuntu:
 
@@ -252,7 +260,7 @@ The following is one example:
 
 Now confirm that redis is running on `port 6380`:
 
-```shell
+```
 redis-cli -p 6380
 ping
 ```
@@ -267,7 +275,7 @@ To update the redis port in the Lisk configuration, check the section [Configuri
 
 Clone the Lisk Core repository using Git and initialize the modules.
 
-```shell
+```
 git clone https://github.com/LiskHQ/lisk.git
 cd lisk
 git checkout master
