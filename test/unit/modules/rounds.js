@@ -751,24 +751,23 @@ describe('rounds', () => {
 					});
 
 					it('should result with BatchError and first error = fail', () => {
-						expect(res.name).to.equal('BatchError');
-						return expect(res.first.name).to.equal('clearRoundSnapshot');
+						return expect(res.name).to.equal('clearRoundSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
 						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', () => {
-						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					it('performRoundSnapshot query should not be called', () => {
+						return expect(performRoundSnapshot_stub.called).to.be.false;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
 						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', () => {
-						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					it('performVotesSnapshot query should not be called', () => {
+						return expect(performVotesSnapshot_stub.called).to.be.false;
 					});
 				});
 
@@ -809,8 +808,7 @@ describe('rounds', () => {
 					});
 
 					it('should result with BatchError and first error = fail', () => {
-						expect(res.name).to.equal('BatchError');
-						return expect(res.first.name).to.equal('performRoundSnapshot');
+						return expect(res.name).to.equal('performRoundSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
@@ -867,24 +865,23 @@ describe('rounds', () => {
 					});
 
 					it('should result with BatchError and first error = fail', () => {
-						expect(res.name).to.equal('BatchError');
-						return expect(res.first.name).to.equal('clearVotesSnapshot');
+						return expect(res.name).to.equal('clearVotesSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
 						return expect(clearRoundSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performRoundSnapshot query should be called once', () => {
-						return expect(performRoundSnapshot_stub.calledOnce).to.be.true;
+					it('performRoundSnapshot query should not be called', () => {
+						return expect(performRoundSnapshot_stub.called).to.be.false;
 					});
 
 					it('clearVotesSnapshot query should be called once', () => {
 						return expect(clearVotesSnapshot_stub.calledOnce).to.be.true;
 					});
 
-					it('performVotesSnapshot query should be called once', () => {
-						return expect(performVotesSnapshot_stub.calledOnce).to.be.true;
+					it('performVotesSnapshot query should not be called', () => {
+						return expect(performVotesSnapshot_stub.called).to.be.false;
 					});
 				});
 
@@ -925,8 +922,7 @@ describe('rounds', () => {
 					});
 
 					it('should result with BatchError and first error = fail', () => {
-						expect(res.name).to.equal('BatchError');
-						return expect(res.first.name).to.equal('performVotesSnapshot');
+						return expect(res.name).to.equal('performVotesSnapshot');
 					});
 
 					it('clearRoundSnapshot query should be called once', () => {
@@ -961,19 +957,19 @@ describe('rounds', () => {
 				});
 
 				it('clearRoundSnapshot query should be not called', () => {
-					return expect(clearRoundSnapshot_stub.calledOnce).to.be.false;
+					return expect(clearRoundSnapshot_stub.called).to.be.false;
 				});
 
 				it('performRoundSnapshot query should be not called', () => {
-					return expect(performRoundSnapshot_stub.calledOnce).to.be.false;
+					return expect(performRoundSnapshot_stub.called).to.be.false;
 				});
 
 				it('clearVotesSnapshot query should be not called', () => {
-					return expect(clearVotesSnapshot_stub.calledOnce).to.be.false;
+					return expect(clearVotesSnapshot_stub.called).to.be.false;
 				});
 
 				it('performVotesSnapshot query should be not called', () => {
-					return expect(performVotesSnapshot_stub.calledOnce).to.be.false;
+					return expect(performVotesSnapshot_stub.called).to.be.false;
 				});
 			});
 		});
