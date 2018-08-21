@@ -1051,7 +1051,7 @@ describe('multisignatures', () => {
 			return expect(self.isLoaded()).to.equal(true);
 		});
 
-		it('should return true if modules does not exist', () => {
+		it('should return false if modules does not exist', () => {
 			set('modules', null);
 			return expect(self.isLoaded()).to.equal(false);
 		});
