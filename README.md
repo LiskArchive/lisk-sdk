@@ -39,7 +39,7 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### System Install
 
-#### Create the lisk user
+#### Create new user `lisk`
 
 * Ubuntu:
 
@@ -107,24 +107,34 @@ sudo apt-get install -y nodejs
 brew install node@6.14.1
 ```
 
-#### _(Recommended)_ Using a version manager such as [nvm](https://github.com/creationix/nvm).
+#### Check correct version
+
+Especially when installing on Ubuntu, check if you have a compatible node version runnging:
+
+```
+node -v
+```
+
+Compare with [package.json](https://github.com/LiskHQ/lisk/blob/development/package.json#L19)
+
+##### Recommended: Using a version manager such as [nvm](https://github.com/creationix/nvm).
 
 1. Login as lisk user, that has been created in the first step:
 
-```shell
+```
 su - lisk
 ```
 
 2. Install nvm following these [instructions](https://github.com/creationix/nvm#installation)
 3. Install the correct version of Node.js using nvm:
 
-```shell
+```
 nvm install 6.14.1
 ```
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
 
-#### _(Recommended)_ [PM2](https://github.com/Unitech/pm2)
+### _(Recommended)_ [PM2](https://github.com/Unitech/pm2)
 
 PM2 manages the node process for Lisk.
 
