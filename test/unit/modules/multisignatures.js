@@ -105,7 +105,6 @@ describe('multisignatures', () => {
 			verifySignature: stubs.verifySignature,
 		};
 		stubs.logic.account = sinonSandbox.stub();
-		stubs.logic.account.getMultiSignature = sinonSandbox.stub();
 
 		stubs.multisignature = sinonSandbox.stub();
 		set('Multisignature', stubs.multisignature);
@@ -973,17 +972,23 @@ describe('multisignatures', () => {
 
 	describe('getGroup', () => {
 		beforeEach(done => {
-			library.logic.account.getMultiSignature = sinonSandbox
+			stubs.logic.account.getMultiSignature = sinonSandbox
 				.stub()
-				.callsFake((filters, cb) => {
-					cb(null, validAccount);
-				});
-			library.db.multisignatures.getMemberPublicKeys = sinonSandbox
+				.callsFake((filters, cb) => cb(null, validAccount));
+
+			stubs.getMemberPublicKeys = sinonSandbox
 				.stub()
 				.callsFake(() => Promise.resolve([]));
-			get('modules').accounts.getAccounts = sinonSandbox
+
+			stubs.modules.accounts.getAccounts = sinonSandbox
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, []));
+
+			library.logic.account.getMultiSignature =
+				stubs.logic.account.getMultiSignature;
+			library.db.multisignatures.getMemberPublicKeys =
+				stubs.getMemberPublicKeys;
+			get('modules').accounts.getAccounts = stubs.modules.accounts.getAccounts;
 			done();
 		});
 
