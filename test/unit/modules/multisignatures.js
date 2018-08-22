@@ -984,11 +984,18 @@ describe('multisignatures', () => {
 				.stub()
 				.callsFake((param1, param2, cb) => cb(null, []));
 
+			stubs.modules.accounts.generateAddressByPublicKey = sinonSandbox
+				.stub()
+				.withArgs('key1')
+				.returns('address1');
+
 			library.logic.account.getMultiSignature =
 				stubs.logic.account.getMultiSignature;
 			library.db.multisignatures.getMemberPublicKeys =
 				stubs.getMemberPublicKeys;
 			get('modules').accounts.getAccounts = stubs.modules.accounts.getAccounts;
+			get('modules').accounts.generateAddressByPublicKey =
+				stubs.modules.accounts.generateAddressByPublicKey;
 			done();
 		});
 
@@ -1002,7 +1009,20 @@ describe('multisignatures', () => {
 			});
 		});
 
-		it('should fail if wrong address is provided', done => {
+		it('should fail if getMultiSignature function returns an error', done => {
+			library.logic.account.getMultiSignature = sinonSandbox
+				.stub()
+				.callsFake((filters, cb) => {
+					cb('Err', null);
+				});
+			self.getGroup(validAccount.address, (err, scopeGroup) => {
+				expect(err).to.equal('Err');
+				expect(scopeGroup).to.not.exist;
+				done();
+			});
+		});
+
+		it('should fail if given address does not return an account', done => {
 			library.logic.account.getMultiSignature = sinonSandbox
 				.stub()
 				.callsFake((filters, cb) => {
@@ -1017,20 +1037,7 @@ describe('multisignatures', () => {
 			});
 		});
 
-		it('should fail if valid address but not a multisig account', done => {
-			library.logic.account.getMultiSignature = sinonSandbox
-				.stub()
-				.callsFake((filters, cb) => {
-					cb('Err', null);
-				});
-			self.getGroup(validAccount.address, (err, scopeGroup) => {
-				expect(err).to.equal('Err');
-				expect(scopeGroup).to.not.exist;
-				done();
-			});
-		});
-
-		it('should return a group if provided with a valid multisig account', done => {
+		it('should return a group if getMultiSignature function returns a valid multisig account', done => {
 			self.getGroup(validAccount.address, (err, scopeGroup) => {
 				expect(err).to.not.exist;
 				expect(scopeGroup).to.have.property('address');
@@ -1041,6 +1048,34 @@ describe('multisignatures', () => {
 				expect(scopeGroup).to.have.property('min');
 				expect(scopeGroup).to.have.property('lifetime');
 				expect(scopeGroup).to.have.property('members');
+				done();
+			});
+		});
+
+		it('should return group members if getMemberPublicKeys function returns an array of member account keys', done => {
+			library.db.multisignatures.getMemberPublicKeys = sinonSandbox
+				.stub()
+				.callsFake(() => Promise.resolve(['key1']));
+
+			const member = {
+				address: 'address',
+				publicKey: 'publicKey',
+				secondPublicKey: 'secondPublicKey',
+			};
+
+			stubs.modules.accounts.getAccounts = sinonSandbox
+				.stub()
+				.callsFake((param1, param2, cb) => cb(null, [member]));
+
+			self.getGroup(validAccount.address, (err, scopeGroup) => {
+				expect(err).to.not.exist;
+				expect(get('modules').accounts.getAccounts).to.be.calledWith({
+					address: ['address1'],
+				});
+				expect(scopeGroup.members)
+					.to.be.an('array')
+					.which.have.lengthOf(1);
+				expect(scopeGroup.members[0]).to.deep.equal(member);
 				done();
 			});
 		});
@@ -1059,142 +1094,126 @@ describe('multisignatures', () => {
 
 	describe('shared', () => {
 		describe('getGroups', () => {
-			it('should accept fitlers.address parameter');
+			const getGroupResponse = 'getGroupResponse';
+			beforeEach(done => {
+				stubs.getGroup = sinonSandbox
+					.stub()
+					.callsFake((address, cb) => cb(null, getGroupResponse));
 
-			describe('when schema validation fails', () => {
-				it('should call callback with schema error');
+				self.getGroup = stubs.getGroup;
+				done();
 			});
 
-			describe('when schema validation succeeds', () => {
-				it('should call library.db.one');
-
-				it('should call library.db.one with sql.getAccountIds');
-
-				it('should call library.db.one with { publicKey: req.body.publicKey }');
-
-				describe('when library.db.one fails', () => {
-					it('should call the logger.error with error stack');
-
-					it('should call callback with "Multisignature#getAccountIds error"');
+			it('should call getGroup with fitlers.address parameter and return getGroup response as an array', done => {
+				const filters = {
+					address: validAccount.address,
+				};
+				self.shared.getGroups(filters, (err, groups) => {
+					expect(err).to.not.exist;
+					expect(self.getGroup).to.be.calledWith(validAccount.address);
+					expect(groups).to.be.an('array');
+					expect(groups[0]).to.equal(getGroupResponse);
+					done();
 				});
+			});
 
-				describe('when library.db.one succeeds', () => {
-					it('should call modules.accounts.getAccounts');
+			it('should return error if getGroup returns an error', done => {
+				self.getGroup = sinonSandbox
+					.stub()
+					.callsFake((address, cb) => cb('Err', getGroupResponse));
 
-					it(
-						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
-					);
-
-					it(
-						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
-					);
-
-					describe('when modules.accounts.getAccounts fails', () => {
-						it('should call callback with error');
-					});
-
-					describe('when modules.accounts.getAccounts succeeds', () => {
-						describe('for every account', () => {
-							describe('for every account.multisignature', () => {
-								it('should call modules.accounts.generateAddressByPublicKey');
-
-								it(
-									'should call modules.accounts.generateAddressByPublicKey with multisignature'
-								);
-							});
-
-							it('should call modules.accounts.getAccounts');
-
-							it(
-								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
-							);
-
-							it(
-								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
-							);
-
-							describe('when modules.accounts.getAccounts fails', () => {
-								it('should call callback with error');
-							});
-
-							describe('when modules.accounts.getAccounts succeeds', () => {
-								it('should call callback with error = null');
-
-								it('should call callback with result containing accounts');
-							});
-						});
-					});
+				self.shared.getGroups('invalidinput', (err, groups) => {
+					expect(err).to.equal('Err');
+					expect(groups).to.not.exist;
+					done();
 				});
 			});
 		});
 
 		describe('getMemberships', () => {
-			it('should accept fitlers.address parameter');
+			const getGroupResponse = 'getGroupResponse';
+			const stubGroupId = 'groupId1';
+			beforeEach(done => {
+				stubs.logic.account.get = sinonSandbox
+					.stub()
+					.callsFake((filters, cb) => cb(null, validAccount));
 
-			describe('when schema validation fails', () => {
-				it('should call callback with schema error');
+				stubs.getGroupIds = sinonSandbox
+					.stub()
+					.callsFake(() => Promise.resolve([stubGroupId]));
+
+				stubs.getGroup = sinonSandbox
+					.stub()
+					.withArgs(stubGroupId)
+					.callsFake((address, cb) => cb(null, getGroupResponse));
+
+				library.logic.account.get = stubs.logic.account.get;
+				library.db.multisignatures.getGroupIds = stubs.getGroupIds;
+				self.getGroup = stubs.getGroup;
+				done();
 			});
 
-			describe('when schema validation succeeds', () => {
-				it('should call library.db.one');
-
-				it('should call library.db.one with sql.getAccountIds');
-
-				it('should call library.db.one with { publicKey: req.body.publicKey }');
-
-				describe('when library.db.one fails', () => {
-					it('should call the logger.error with error stack');
-
-					it('should call callback with "Multisignature#getAccountIds error"');
+			it('should fail library.logic.account.get function returns an error', done => {
+				library.logic.account.get = sinonSandbox
+					.stub()
+					.callsFake((filters, cb) => {
+						cb('Err', null);
+					});
+				self.shared.getMemberships(validAccount.address, (err, scopeGroups) => {
+					expect(err).to.equal('Err');
+					expect(scopeGroups).to.not.exist;
+					done();
 				});
+			});
 
-				describe('when library.db.one succeeds', () => {
-					it('should call modules.accounts.getAccounts');
-
-					it(
-						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
-					);
-
-					it(
-						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
-					);
-
-					describe('when modules.accounts.getAccounts fails', () => {
-						it('should call callback with error');
+			it('should throw Error when filters provided as null', () => {
+				library.logic.account.get = sinonSandbox
+					.stub()
+					.callsFake((filters, cb) => {
+						cb(null, null);
 					});
 
-					describe('when modules.accounts.getAccounts succeeds', () => {
-						describe('for every account', () => {
-							describe('for every account.multisignature', () => {
-								it('should call modules.accounts.generateAddressByPublicKey');
+				return expect(self.shared.getMemberships.bind(null, null)).to.throw(
+					"Cannot read property 'address' of null"
+				);
+			});
 
-								it(
-									'should call modules.accounts.generateAddressByPublicKey with multisignature'
-								);
-							});
+			it('should fail if it can not find an account with given address', done => {
+				library.logic.account.get = sinonSandbox
+					.stub()
+					.callsFake((filters, cb) => {
+						cb(null, null);
+					});
+				self.shared.getMemberships('', (err, scopeGroups) => {
+					expect(err).to.be.an.instanceof(ApiError);
+					expect(err.message).to.equal(
+						'Multisignature membership account not found'
+					);
+					expect(err.code).to.equal(errorCodes.NOT_FOUND);
+					expect(scopeGroups).to.not.exist;
+					done();
+				});
+			});
 
-							it('should call modules.accounts.getAccounts');
-
-							it(
-								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
-							);
-
-							it(
-								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
-							);
-
-							describe('when modules.accounts.getAccounts fails', () => {
-								it('should call callback with error');
-							});
-
-							describe('when modules.accounts.getAccounts succeeds', () => {
-								it('should call callback with error = null');
-
-								it('should call callback with result containing accounts');
-							});
+			it('should accept filters.address as parameter and return scope groups as an array', done => {
+				self.shared.getMemberships(
+					{ address: validAccount.address },
+					(err, scopeGroups) => {
+						expect(err).not.to.exist;
+						expect(library.logic.account.get).to.be.calledWith({
+							address: validAccount.address,
 						});
-					});
-				});
+						expect(library.db.multisignatures.getGroupIds).to.be.calledWith(
+							validAccount.publicKey
+						);
+						expect(self.getGroup).to.be.calledWith(stubGroupId);
+						expect(scopeGroups)
+							.to.be.an('array')
+							.which.have.lengthOf(1);
+						expect(scopeGroups[0]).to.equal(getGroupResponse);
+						done();
+					}
+				);
 			});
 		});
 	});
