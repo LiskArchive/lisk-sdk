@@ -418,21 +418,29 @@ describe('node', () => {
 						done();
 					});
 
-					it('should call modules.peers.networkHeight and call callback with result containing networkHeight = network.height', done => {
-						node_module.shared.getStatus(null, (err, status) => {
+					it('should call modules.peers.networkHeight', done => {
+						node_module.shared.getStatus(null, () => {
 							expect(library.modules.peers.networkHeight).to.have.been.called;
+							done();
+						});
+					});
+
+					it('should call callback with result containing networkHeight = network.height', done => {
+						node_module.shared.getStatus(null, (err, status) => {
 							expect(status.networkHeight).to.equal(123);
 							done();
 						});
 					});
 
-					it('should call callback with result containing networkHeight = null if modules.peers.networkHeight returns networkHeight as null', done => {
-						library.modules.peers.networkHeight = sinonSandbox
-							.stub()
-							.callsFake((filters, cb) => cb(null, null));
-						node_module.shared.getStatus(null, (err, status) => {
-							expect(status.networkHeight).to.equal(null);
-							done();
+					describe('if modules.peers.networkHeight returns networkHeight as null', () => {
+						it('should call callback with result containing networkHeight = null', done => {
+							library.modules.peers.networkHeight = sinonSandbox
+								.stub()
+								.callsFake((filters, cb) => cb(null, null));
+							node_module.shared.getStatus(null, (err, status) => {
+								expect(status.networkHeight).to.equal(null);
+								done();
+							});
 						});
 					});
 				});
