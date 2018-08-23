@@ -443,6 +443,11 @@ describe('node', () => {
 							});
 						});
 					});
+
+					afterEach(done => {
+						sinonSandbox.restore();
+						done();
+					});
 				});
 			});
 		});
