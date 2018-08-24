@@ -51,6 +51,13 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+// If old release was a 1.0.0-rc.2 release
+if (oldConfig.version === '1.0.0-rc.2') {
+	copyTheConfigFile();
+	// No further changes required
+	process.exit(0);
+}
+
 // If old release was a 1.0.0-rc.1 release
 if (oldConfig.version === '1.0.0-rc.1') {
 	// Values to keep from new config file
