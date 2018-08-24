@@ -2,7 +2,7 @@
 	"wsPort": 7001,
 	"httpPort": 7000,
 	"address": "0.0.0.0",
-	"version": "1.0.0-rc.2",
+	"version": "1.0.0-rc.3",
 	"minVersion": ">=1.0.0-rc.2",
 	"fileLogLevel": "info",
 	"logFileName": "logs/lisk.log",
