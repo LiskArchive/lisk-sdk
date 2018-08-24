@@ -36,6 +36,15 @@
 			"public": {{getv "/lisk/api/access/public" "false"}},
 			{{$whiteListEntries := getvs "/lisk/api/access/whitelist/*"}}"whiteList": [{{range $index, $element := $whiteListEntries}}{{if $index}}, {{end}}"{{$element}}"{{end}}]
 		},
+		"ssl": {
+			"enabled": {{getv "/lisk/api/ssl/enabled" "false"}},
+			"options": {
+				"port": {{getv "/lisk/api/ssl/options/port" "443"}},
+				"address": "{{getv "/lisk/api/ssl/options/address" "0.0.0.0"}}",
+				"key": "{{getv "/lisk/api/ssl/options/key" "./ssl/lisk.key"}}",
+				"cert": "{{getv "/lisk/api/ssl/options/cert" "./ssl/lisk.crt"}}"
+			}
+		},
 		"options": {
 			"limits": {
 				"max": {{getv "/lisk/api/options/limits/max" "0"}},
@@ -54,43 +63,43 @@
 		"list": [
 			{
 				"ip": "83.136.254.92",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "83.136.249.76",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "94.237.28.66",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "94.237.24.199",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "209.50.49.23",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "209.50.49.40",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "94.237.64.70",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "94.237.64.73",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "94.237.40.140",
-				"wsPort": 8000
+				"wsPort": 8001
 			},
 			{
 				"ip": "94.237.40.141",
-				"wsPort": 8000
+				"wsPort": 8001
 			}
 		],
 		"access": {
@@ -104,10 +113,10 @@
 	"broadcasts": {
 		"active": {{getv "/lisk/broadcasts/active" "true"}},
 		"broadcastInterval": {{getv "/lisk/broadcasts/broadcastinterval" "5000"}},
-		"broadcastLimit": {{getv "/lisk/broadcasts/broadcastlimit" "20"}},
+		"broadcastLimit": {{getv "/lisk/broadcasts/broadcastlimit" "25"}},
 		"parallelLimit": {{getv "/lisk/broadcasts/parallellimit" "20"}},
 		"releaseLimit": {{getv "/lisk/broadcasts/releaselimit" "25"}},
-		"relayLimit": {{getv "/lisk/broadcasts/relaylimit" "2"}}
+		"relayLimit": {{getv "/lisk/broadcasts/relaylimit" "3"}}
 	},
 	"transactions": {
 		"maxTransactionsPerQueue": {{getv "/lisk/transactions/maxtransactionsperqueue" "1000"}}
@@ -129,15 +138,6 @@
 	},
 	"loading": {
 		"loadPerIteration": {{getv "/lisk/loading/loadperiteration" "5000"}}
-	},
-	"ssl": {
-		"enabled": {{getv "/lisk/ssl/enabled" "false"}},
-		"options": {
-			"port": {{getv "/lisk/ssl/options/port" "443"}},
-			"address": "{{getv "/lisk/ssl/options/address" "0.0.0.0"}}",
-			"key": "{{getv "/lisk/ssl/options/key" "./ssl/lisk.key"}}",
-			"cert": "{{getv "/lisk/ssl/options/cert" "./ssl/lisk.crt"}}"
-		}
 	},
 	"nethash": "{{getv "/lisk/nethash" "ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511"}}"
 }
