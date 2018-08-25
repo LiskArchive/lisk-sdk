@@ -51,6 +51,10 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+// Values to keep from new config file
+delete oldConfig.version;
+delete oldConfig.minVersion;
+
 // 1.0.1 doesn't add any changes to 1.0.0 config.json
 if (oldConfig.version === '1.0.0') {
 	copyTheConfigFile();
@@ -60,10 +64,6 @@ if (oldConfig.version === '1.0.0') {
 
 newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
 delete oldConfig.ssl;
-
-// Values to keep from new config file
-delete oldConfig.version;
-delete oldConfig.minVersion;
 
 // Rename old port to new wsPort
 oldConfig.httpPort = oldConfig.port;
