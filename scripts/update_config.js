@@ -51,6 +51,10 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+// Values to always keep from new config file
+delete oldConfig.version;
+delete oldConfig.minVersion;
+
 // If old release was a 1.0.0-rc.2 release
 if (oldConfig.version === '1.0.0-rc.2') {
 	copyTheConfigFile();
@@ -60,10 +64,6 @@ if (oldConfig.version === '1.0.0-rc.2') {
 
 // If old release was a 1.0.0-rc.1 release
 if (oldConfig.version === '1.0.0-rc.1') {
-	// Values to keep from new config file
-	delete oldConfig.version;
-	delete oldConfig.minVersion;
-
 	// https://github.com/LiskHQ/lisk/issues/2154
 	oldConfig.api.ssl = extend(true, {}, oldConfig.ssl);
 	delete oldConfig.ssl;
