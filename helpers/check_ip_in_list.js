@@ -28,49 +28,27 @@ var ip = require('ip');
  */
 function CheckIpInList(list, addr, returnListIsEmpty) {
 	var i;
-	var n;
 
 	if (!_.isBoolean(returnListIsEmpty)) {
 		returnListIsEmpty = true;
 	}
-
 	if (!_.isArray(list) || list.length === 0) {
 		return returnListIsEmpty;
 	}
+	if (!ip.isV4Format(addr)) {
+		throw new TypeError('Provided address is not in IPv4 format');
+	}
 
-	if (!list._subNets) {
-		// First call, create subnet list
-		list._subNets = [];
-		for (i = list.length - 1; i >= 0; i--) {
-			var entry = list[i];
-			if (ip.isV4Format(entry)) {
-				// IPv4 host entry
-				entry += '/32';
-			} else if (ip.isV6Format(entry)) {
-				// IPv6 host entry
-				entry += '/128';
-			}
-			try {
-				var subnet = ip.cidrSubnet(entry);
-				list._subNets.push(subnet);
-			} catch (err) {
-				console.error('CheckIpInList:', err.toString());
-			}
+	for (i = 0; i < list.length; i++) {
+		if (!ip.isV4Format(list[i])) {
+			console.error('CheckIpInList:', 'Entry with wrong format in list of IPs');
+			return returnListIsEmpty;
 		}
-	}
-
-	if (list._subNets.length === 0) {
-		return returnListIsEmpty;
-	}
-
-	// Check subnets
-	for (i = 0, n = list._subNets.length; i < n; i++) {
-		if (list._subNets[i].contains(addr)) {
+		if (ip.isEqual(list[i], addr)) {
 			return true;
 		}
 	}
 
-	// IP address not found
 	return false;
 }
 
