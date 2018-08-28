@@ -41,18 +41,6 @@ describe('checkIpInList', () => {
 			done();
 		});
 
-		describe('when returnListIsEmpty is not a boolean', () => {
-			before(done => {
-				validReturnListIsEmpty = null;
-				done();
-			});
-
-			it('should set returnListIsEmpty to true', done => {
-				expect(checkIpInListResult).to.eq(true);
-				done();
-			});
-		});
-
 		describe('when validList is not an array', () => {
 			before(done => {
 				validReturnListIsEmpty = true;
@@ -60,8 +48,8 @@ describe('checkIpInList', () => {
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+			it('should return false', done => {
+				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
 		});
@@ -72,8 +60,8 @@ describe('checkIpInList', () => {
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+			it('should return false', done => {
+				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
 		});
@@ -84,8 +72,8 @@ describe('checkIpInList', () => {
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+			it('should return false', done => {
+				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
 
@@ -114,7 +102,7 @@ describe('checkIpInList', () => {
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
+			it('should return false', done => {
 				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
@@ -126,7 +114,7 @@ describe('checkIpInList', () => {
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
+			it('should return true', done => {
 				expect(checkIpInListResult).to.eq(true);
 				done();
 			});
