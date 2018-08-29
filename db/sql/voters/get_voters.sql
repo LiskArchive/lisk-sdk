@@ -19,7 +19,8 @@
   PARAMETERS: ?
 */
 
-SELECT "accountId"
-FROM mem_accounts2delegates
-WHERE "dependentId" = ${publicKey}
+SELECT address, balance, encode("publicKey", 'hex') AS publicKey FROM mem_accounts2delegates t1
+INNER JOIN mem_accounts t2 ON t1."accountId" = t2.address
+WHERE t1."dependentId" = ${publicKey}
+ORDER BY ${sortField:raw} ${sortMethod:raw}
 LIMIT ${limit} OFFSET ${offset}
