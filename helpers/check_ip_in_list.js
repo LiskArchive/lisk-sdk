@@ -26,12 +26,12 @@ var ip = require('ip');
  * @returns {boolean} True if ip is in the list, false otherwise
  */
 function CheckIpInList(list, addr) {
-	var i;
+	var entry;
 	if (!_.isArray(list) || list.length === 0) {
 		return false;
 	}
-	for (i = 0; i < list.length; i++) {
-		var entry = list[i];
+	for (let i = 0; i < list.length; i++) {
+		entry = list[i];
 		if (ip.isV4Format(entry)) {
 			// IPv4 host entry
 			entry += '/32';
