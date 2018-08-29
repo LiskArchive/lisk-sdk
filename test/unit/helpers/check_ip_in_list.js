@@ -24,7 +24,7 @@ describe('checkIpInList', () => {
 		var checkIpInListResult;
 
 		before(done => {
-			validList = ['1.2.3.4', '5.6.7.8'];
+			validList = ['1.2.3.0/24', '5.6.7.8'];
 			validAddress = '1.2.3.4';
 			spyConsoleError = sinonSandbox.spy(console, 'error');
 			done();
@@ -90,7 +90,7 @@ describe('checkIpInList', () => {
 
 		describe('when validList does not contain validAddress', () => {
 			before(done => {
-				validList = ['1.2.3.4', '5.6.7.8'];
+				validList = ['1.2.3.0/24', '5.6.7.8'];
 				validAddress = '127.0.0.1';
 				done();
 			});
@@ -101,9 +101,21 @@ describe('checkIpInList', () => {
 			});
 		});
 
-		describe('when validList contains validAddress', () => {
+		describe('when validList contains validAddress as subnet', () => {
 			before(done => {
 				validAddress = '1.2.3.4';
+				done();
+			});
+
+			it('should return true', done => {
+				expect(checkIpInListResult).to.eq(true);
+				done();
+			});
+		});
+
+		describe('when validList contains validAddress', () => {
+			before(done => {
+				validAddress = '5.6.7.8';
 				done();
 			});
 
