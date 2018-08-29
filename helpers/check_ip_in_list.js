@@ -23,7 +23,6 @@ var ip = require('ip');
  * @memberof helpers
  * @param {Array} list - An array of ip addresses or ip subnets
  * @param {string} addr - The ip address to check if in array
- * @param {boolean} returnListIsEmpty - The return value, if list is empty
  * @returns {boolean} True if ip is in the list, false otherwise
  */
 function CheckIpInList(list, addr) {
@@ -31,15 +30,22 @@ function CheckIpInList(list, addr) {
 	if (!_.isArray(list) || list.length === 0) {
 		return false;
 	}
-	if (!ip.isV4Format(addr)) {
-		throw new TypeError('Provided address is not in IPv4 format');
-	}
 	for (i = 0; i < list.length; i++) {
-		if (!ip.isV4Format(list[i])) {
-			var message = `Entry with wrong format in list of IPs: ${list[i]}`;
-			console.error('CheckIpInList:', message);
-		} else if (ip.isEqual(list[i], addr)) {
-			return true;
+		var entry = list[i];
+		if (ip.isV4Format(entry)) {
+			// IPv4 host entry
+			entry += '/32';
+		} else if (ip.isV6Format(entry)) {
+			// IPv6 host entry
+			entry += '/128';
+		}
+		try {
+			entry = ip.cidrSubnet(entry);
+			if (entry.contains(addr)) {
+				return true;
+			}
+		} catch (err) {
+			console.error('CheckIpInList:', err.toString());
 		}
 	}
 	return false;

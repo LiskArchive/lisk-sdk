@@ -68,7 +68,7 @@ describe('checkIpInList', () => {
 
 		describe('when all the entries in validList are not in the right format', () => {
 			before(done => {
-				validList = ['abc', 'shzduvsg'];
+				validList = ['abcxyz', 'shzduvsg'];
 				done();
 			});
 
@@ -85,7 +85,7 @@ describe('checkIpInList', () => {
 
 		describe('when some entries in validList are not in the right format', () => {
 			before(done => {
-				validList = ['abc', '1.2.3.4'];
+				validList = ['abcxyz', '1.2.3.4'];
 				done();
 			});
 
