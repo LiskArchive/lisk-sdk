@@ -187,7 +187,15 @@ describe('db', () => {
 				yield db.accounts.insert(delegate);
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
-				const voters = [account1, account2].sort();
+				const voters = [account1, account2].sort((a, b) => {
+					if (a.publicKey > b.publicKey) {
+						return 1;
+					}
+					if (a.publicKey < b.publicKey) {
+						return -1;
+					}
+					return 0;
+				});
 
 				const vote1 = accountsFixtures.Dependent({
 					accountId: account1.address,
