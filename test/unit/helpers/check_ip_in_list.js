@@ -18,14 +18,12 @@ var checkIpInList = require('../../../helpers/check_ip_in_list');
 
 describe('checkIpInList', () => {
 	describe('CheckIpInList', () => {
-		var validReturnListIsEmpty;
 		var validList;
 		var validAddress;
 		var spyConsoleError;
 		var checkIpInListResult;
 
 		before(done => {
-			validReturnListIsEmpty = true;
 			validList = ['1.2.3.4', '5.6.7.8'];
 			validAddress = '1.2.3.4';
 			spyConsoleError = sinonSandbox.spy(console, 'error');
@@ -33,17 +31,12 @@ describe('checkIpInList', () => {
 		});
 
 		beforeEach(done => {
-			checkIpInListResult = checkIpInList(
-				validList,
-				validAddress,
-				validReturnListIsEmpty
-			);
+			checkIpInListResult = checkIpInList(validList, validAddress);
 			done();
 		});
 
 		describe('when validList is not an array', () => {
 			before(done => {
-				validReturnListIsEmpty = true;
 				validList = null;
 				done();
 			});
