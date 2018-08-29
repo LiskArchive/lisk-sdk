@@ -64,6 +64,8 @@ describe('db', () => {
 					publicKey: '123',
 					limit: 10,
 					offset: 0,
+					sortField: 'publicKey',
+					sortMethod: 'ASC',
 				};
 				sinonSandbox.spy(db, 'query');
 				yield db.voters.list(params);
@@ -78,6 +80,8 @@ describe('db', () => {
 						// publicKey: '123L',
 						limit: 10,
 						offset: 0,
+						sortField: 'publicKey',
+						sortMethod: 'ASC',
 					})
 				).to.be.rejectedWith("Property 'publicKey' doesn't exist");
 			});
@@ -88,6 +92,8 @@ describe('db', () => {
 						publicKey: '123',
 						// limit: 10,
 						offset: 0,
+						sortField: 'publicKey',
+						sortMethod: 'ASC',
 					})
 				).to.be.rejectedWith("Property 'limit' doesn't exist");
 			});
@@ -97,9 +103,35 @@ describe('db', () => {
 					db.voters.list({
 						publicKey: '123',
 						limit: 10,
-						// offset: 0
+						// offset: 0,
+						sortField: 'publicKey',
+						sortMethod: 'ASC',
 					})
 				).to.be.rejectedWith("Property 'offset' doesn't exist");
+			});
+
+			it('should be rejected with error if "sortField" is not provided', () => {
+				return expect(
+					db.voters.list({
+						publicKey: '123',
+						limit: 10,
+						offset: 0,
+						// sortField: 'publicKey',
+						sortMethod: 'ASC',
+					})
+				).to.be.rejectedWith("Property 'sortField' doesn't exist");
+			});
+
+			it('should be rejected with error if "sortMethod" is not provided', () => {
+				return expect(
+					db.voters.list({
+						publicKey: '123',
+						limit: 10,
+						offset: 0,
+						sortField: 'publicKey',
+						// sortMethod: 'ASC',
+					})
+				).to.be.rejectedWith("Property 'sortMethod' doesn't exist");
 			});
 
 			it('should paginate the result properly', function*() {
@@ -133,12 +165,16 @@ describe('db', () => {
 					publicKey: delegate.publicKey,
 					limit: 10,
 					offset: 0,
+					sortField: 'publicKey',
+					sortMethod: 'ASC',
 				});
 
 				const secondResult = yield db.voters.list({
 					publicKey: delegate.publicKey,
 					limit: 10,
 					offset: 1,
+					sortField: 'publicKey',
+					sortMethod: 'ASC',
 				});
 
 				return expect(firstResult[1]).to.be.eql(secondResult[0]);
@@ -151,7 +187,7 @@ describe('db', () => {
 				yield db.accounts.insert(delegate);
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
-				const voters = [account1, account2];
+				const voters = [account1, account2].sort();
 
 				const vote1 = accountsFixtures.Dependent({
 					accountId: account1.address,
@@ -172,10 +208,12 @@ describe('db', () => {
 					publicKey: delegate.publicKey,
 					limit: 10,
 					offset: 0,
+					sortField: 'publicKey',
+					sortMethod: 'ASC',
 				});
 
 				expect(result).to.be.an('array');
-				return expect(result.map(r => r.accountId)).to.be.eql(
+				return expect(result.map(r => r.address)).to.be.eql(
 					voters.map(v => v.address)
 				);
 			});
