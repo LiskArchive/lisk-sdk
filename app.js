@@ -181,7 +181,7 @@ try {
 // Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.emit('cleanup', err);
 });
 
 logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
@@ -430,7 +430,9 @@ d.run(() => {
 				db
 					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
-					.catch(cb);
+					.catch(err => {
+						console.error(err);
+					});
 			},
 
 			/**
@@ -545,6 +547,9 @@ d.run(() => {
 							bus(cb) {
 								cb(null, scope.bus);
 							},
+							config(cb) {
+								cb(null, scope.config);
+							},
 							db(cb) {
 								cb(null, scope.db);
 							},
@@ -605,8 +610,9 @@ d.run(() => {
 							],
 							peers: [
 								'logger',
+								'config',
 								function(scope, cb) {
-									new Peers(scope.logger, cb);
+									new Peers(scope.logger, scope.config, cb);
 								},
 							],
 						},
@@ -805,4 +811,10 @@ process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
+});
+
+process.on('unhandledRejection', err => {
+	// Handle error safely
+	logger.fatal('System error', { message: err.message, stack: err.stack });
+	process.emit('cleanup', err);
 });

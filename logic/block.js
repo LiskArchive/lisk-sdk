@@ -18,6 +18,7 @@ const crypto = require('crypto');
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
+const blockVersion = require('./block_version.js');
 const BlockReward = require('./block_reward.js');
 
 const constants = global.constants;
@@ -124,7 +125,7 @@ class Block {
 		}
 
 		let block = {
-			version: 0,
+			version: blockVersion.currentBlockVersion,
 			totalAmount,
 			totalFee,
 			reward,

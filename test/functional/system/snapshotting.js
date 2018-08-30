@@ -99,7 +99,8 @@ describe('snapshotting', () => {
 				2
 			);
 
-			__private.snapshotFinished = function() {
+			__private.snapshotFinished = function(err) {
+				expect(err).to.not.exist;
 				getMemAccounts()
 					.then(_accounts => {
 						expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);

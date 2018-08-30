@@ -67,6 +67,15 @@ class Queries {
 			});
 	}
 
+	getAllBlocks() {
+		return self.db
+			.query('SELECT * FROM full_blocks_list ORDER BY b_height DESC')
+			.then(rows => {
+				// Normalize blocks
+				return self.library.modules.blocks.utils.readDbRows(rows);
+			});
+	}
+
 	getBlocks(round) {
 		return self.db.query(
 			'SELECT * FROM blocks WHERE CEIL(height / 101::float)::int = ${round} ORDER BY height ASC',
