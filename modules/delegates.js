@@ -24,6 +24,7 @@ const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Delegate = require('../logic/delegate.js');
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
@@ -1076,6 +1077,58 @@ Delegates.prototype.shared = {
 			}
 			return setImmediate(cb, null, delegates);
 		});
+	},
+
+	/**
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Address of the delegate
+	 * @param {string} filters.start - Start time to aggregate
+	 * @param {string} filters.end - End time to aggregate
+	 * @params {function} cb - Callback function
+	 * @param {SetImmediateCallback} cb
+	 */
+	getForgingStatistics(filters, cb) {
+		// If need to aggregate all data then just fetch from the account
+		if (!filters.start && !filters.end) {
+			modules.delegates.getDelegates(
+				{ address: filters.address },
+				['rewards', 'fees', 'producedBlocks'],
+				(err, data) => {
+					if (err) {
+						return setImmediate(cb, err);
+					}
+
+					if (!data) {
+						return setImmediate(cb, 'Account not found');
+					}
+
+					processStatistics({
+						rewards: data[0].rewards,
+						fees: data[0].fees,
+						count: data[0].producedBlocks,
+					});
+				}
+			);
+
+			// If need to aggregate some period of time
+		} else {
+			modules.blocks.utils.aggregateBlocksReward(filters, (err, reward) => {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				processStatistics(reward);
+			});
+		}
+
+		const processStatistics = reward => {
+			reward.forged = new Bignum(reward.fees)
+				.plus(new Bignum(reward.rewards))
+				.toString();
+
+			return setImmediate(cb, null, reward);
+		};
 	},
 };
 
