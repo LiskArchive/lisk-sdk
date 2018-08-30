@@ -19,6 +19,7 @@ var rewire = require('rewire');
 var Bignum = require('../../../../helpers/bignum.js');
 
 var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+const exceptions = global.exceptions;
 
 describe('blocks/verify', () => {
 	let library;

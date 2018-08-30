@@ -15,10 +15,11 @@
 'use strict';
 
 const Promise = require('bluebird');
-const exceptions = require('../../../../../helpers/exceptions');
 const blockVersion = require('../../../../../logic/block_version.js');
 const queriesHelper = require('../../../common/sql/queriesHelper.js');
 const localCommon = require('../../common');
+
+const exceptions = global.exceptions;
 
 describe('validateOwnChain', () => {
 	let library;
