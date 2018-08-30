@@ -16,6 +16,7 @@
 
 const Promise = require('bluebird');
 const _ = require('lodash');
+const async = require('async');
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const sortBy = require('../helpers/sort_by.js').sortBy;
@@ -729,6 +730,7 @@ Transactions.prototype.onBind = function(scope) {
 	modules = {
 		accounts: scope.accounts,
 		transport: scope.transport,
+		cache: scope.cache,
 	};
 
 	__private.transactionPool.bind(
@@ -818,23 +820,86 @@ Transactions.prototype.shared = {
 	 * @todo Add description of the function
 	 */
 	getTransactionsCount(cb) {
-		library.db.transactions.count().then(
-			transactionsCount =>
-				setImmediate(cb, null, {
-					confirmed: transactionsCount,
-					unconfirmed: Object.keys(__private.transactionPool.unconfirmed.index)
-						.length,
-					unprocessed: Object.keys(__private.transactionPool.queued.index)
-						.length,
-					unsigned: Object.keys(__private.transactionPool.multisignature.index)
-						.length,
-					total:
-						transactionsCount +
-						Object.keys(__private.transactionPool.unconfirmed.index).length +
-						Object.keys(__private.transactionPool.queued.index).length +
-						Object.keys(__private.transactionPool.multisignature.index).length,
-				}),
-			() => setImmediate(cb, 'Failed to count transactions')
+		async.waterfall(
+			[
+				function getTransactionCountFromCache(waterCb) {
+					modules.cache.getJsonForKey(
+						modules.cache.KEYS.transactionCount,
+						(err, data) => {
+							if (err) {
+								// If some issue in cache we will fallback to database
+								return setImmediate(waterCb, null, null);
+							}
+
+							return setImmediate(waterCb, null, data ? data.total : null);
+						}
+					);
+				},
+
+				function getTransactionCountFromDb(cachedCount, waterCb) {
+					if (cachedCount) {
+						return setImmediate(waterCb, null, cachedCount, null);
+					}
+
+					library.db.transactions
+						.count()
+						.then(transactionsCount =>
+							setImmediate(waterCb, null, cachedCount, transactionsCount)
+						);
+				},
+
+				function getTransactionCountToCache(cachedCount, dbCount, waterCb) {
+					if (cachedCount) {
+						// Cache already persisted, no need to set cache again
+						return setImmediate(waterCb, null, cachedCount);
+					}
+
+					modules.cache.setJsonForKey(
+						modules.cache.KEYS.transactionCount,
+						{
+							total: dbCount,
+						},
+						err => {
+							if (err) {
+								library.logger.err(
+									'Error writing cache count for transactions',
+									err
+								);
+							}
+
+							return setImmediate(waterCb, null, dbCount);
+						}
+					);
+				},
+
+				function getAllCount(transactionCount, waterCb) {
+					setImmediate(waterCb, null, {
+						confirmed: transactionCount,
+						unconfirmed: Object.keys(
+							__private.transactionPool.unconfirmed.index
+						).length,
+						unprocessed: Object.keys(__private.transactionPool.queued.index)
+							.length,
+						unsigned: Object.keys(
+							__private.transactionPool.multisignature.index
+						).length,
+					});
+				},
+			],
+			(err, result) => {
+				if (err) {
+					library.logger.error('Error in getTransactionsCount', err, result);
+					return setImmediate(cb, 'Failed to count transactions');
+				}
+
+				result.total =
+					result.confirmed +
+					result.unconfirmed +
+					result.unprocessed +
+					result.unsigned;
+
+				return setImmediate(cb, null, result);
+			}
 		);
 	},
 

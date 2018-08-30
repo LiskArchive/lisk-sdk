@@ -354,7 +354,20 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 			return cb(err);
 		});
 	} else {
-		cb();
+		self.deleteJsonForKey(self.KEYS.transactionCount, err => {
+			if (err) {
+				logger.error(
+					`Cache - Error clearing keys: ${self.KEYS.transactionCount}`
+				);
+			} else {
+				logger.debug(
+					`Cache - Keys with keys ${
+						self.KEYS.transactionCount
+					} cleared from cache on delegate transaction`
+				);
+			}
+			return setImmediate(cb, err);
+		});
 	}
 };
 
@@ -370,6 +383,10 @@ Cache.prototype.onSyncStarted = function() {
  */
 Cache.prototype.onSyncFinished = function() {
 	cacheReady = true;
+};
+
+Cache.prototype.KEYS = {
+	transactionCount: 'transactionCount',
 };
 
 module.exports = Cache;
