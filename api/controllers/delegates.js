@@ -15,7 +15,6 @@
 'use strict';
 
 var _ = require('lodash');
-var bignum = require('../../helpers/bignum.js');
 var swaggerHelper = require('../../helpers/swagger');
 var constants = require('../../helpers/constants.js');
 
@@ -128,11 +127,11 @@ DelegatesController.getForgingStatistics = function(context, next) {
 
 	var filters = {
 		address: params.address.value,
-		start: params.fromTimestamp.value || constants.epochTime.getTime(),
-		end: params.toTimestamp.value || Date.now(),
+		start: params.fromTimestamp.value,
+		end: params.toTimestamp.value,
 	};
 
-	modules.blocks.utils.aggregateBlocksReward(filters, (err, reward) => {
+	modules.delegates.shared.getForgingStatistics(filters, (err, reward) => {
 		if (err) {
 			if (err === 'Account not found' || err === 'Account is not a delegate') {
 				return next(
@@ -142,23 +141,19 @@ DelegatesController.getForgingStatistics = function(context, next) {
 			return next(err);
 		}
 
-		var forged = new bignum(reward.fees)
-			.plus(new bignum(reward.rewards))
-			.toString();
-		var response = {
+		return next(null, {
 			data: {
 				fees: reward.fees,
 				rewards: reward.rewards,
-				forged,
+				forged: reward.forged,
 				count: reward.count,
 			},
 			meta: {
-				fromTimestamp: filters.start,
-				toTimestamp: filters.end,
+				fromTimestamp: filters.start || constants.epochTime.getTime(),
+				toTimestamp: filters.end || Date.now(),
 			},
 			links: {},
-		};
-		return next(null, response);
+		});
 	});
 };
 
