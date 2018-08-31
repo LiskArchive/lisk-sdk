@@ -1091,22 +1091,30 @@ Delegates.prototype.shared = {
 	getForgingStatistics(filters, cb) {
 		// If need to aggregate all data then just fetch from the account
 		if (!filters.start && !filters.end) {
-			modules.delegates.getDelegates(
+			// TODO: Need to move modules.delegates.getDelegates after adding "fees" in its list
+			modules.accounts.getAccount(
 				{ address: filters.address },
-				['rewards', 'fees', 'producedBlocks'],
-				(err, data) => {
+				['rewards', 'fees', 'producedBlocks', 'isDelegate'],
+				(err, delegate) => {
 					if (err) {
 						return setImmediate(cb, err);
 					}
 
-					if (!data) {
+					if (!delegate) {
 						return setImmediate(cb, 'Account not found');
 					}
 
-					processStatistics({
-						rewards: data[0].rewards,
-						fees: data[0].fees,
-						count: data[0].producedBlocks,
+					if (!delegate.isDelegate) {
+						return setImmediate(cb, 'Account is not a delegate');
+					}
+
+					return setImmediate(cb, null, {
+						rewards: delegate.rewards,
+						fees: delegate.fees,
+						count: new Bignum(delegate.producedBlocks).toString(),
+						forged: new Bignum(delegate.rewards)
+							.plus(new Bignum(delegate.fees))
+							.toString(),
 					});
 				}
 			);
@@ -1118,17 +1126,13 @@ Delegates.prototype.shared = {
 					return setImmediate(cb, err);
 				}
 
-				processStatistics(reward);
+				reward.forged = new Bignum(reward.fees)
+					.plus(new Bignum(reward.rewards))
+					.toString();
+
+				return setImmediate(cb, null, reward);
 			});
 		}
-
-		const processStatistics = reward => {
-			reward.forged = new Bignum(reward.fees)
-				.plus(new Bignum(reward.rewards))
-				.toString();
-
-			return setImmediate(cb, null, reward);
-		};
 	},
 };
 
