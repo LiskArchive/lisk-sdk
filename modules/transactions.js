@@ -816,13 +816,13 @@ Transactions.prototype.shared = {
 	/**
 	 * Description of getTransactionsCount.
 	 *
-	 * @todo Add @param tags
-	 * @todo Add description of the function
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
 	 */
 	getTransactionsCount(cb) {
 		async.waterfall(
 			[
-				function getTransactionCountFromCache(waterCb) {
+				function getConfirmedCountFromCache(waterCb) {
 					modules.cache.getJsonForKey(
 						modules.cache.KEYS.transactionCount,
 						(err, data) => {
@@ -831,12 +831,12 @@ Transactions.prototype.shared = {
 								return setImmediate(waterCb, null, null);
 							}
 
-							return setImmediate(waterCb, null, data ? data.total : null);
+							return setImmediate(waterCb, null, data ? data.confirmed : null);
 						}
 					);
 				},
 
-				function getTransactionCountFromDb(cachedCount, waterCb) {
+				function getConfirmedCountFromDb(cachedCount, waterCb) {
 					if (cachedCount) {
 						return setImmediate(waterCb, null, cachedCount, null);
 					}
@@ -844,11 +844,11 @@ Transactions.prototype.shared = {
 					library.db.transactions
 						.count()
 						.then(transactionsCount =>
-							setImmediate(waterCb, null, cachedCount, transactionsCount)
+							setImmediate(waterCb, null, null, transactionsCount)
 						);
 				},
 
-				function getTransactionCountToCache(cachedCount, dbCount, waterCb) {
+				function updateConfirmedCountToCache(cachedCount, dbCount, waterCb) {
 					if (cachedCount) {
 						// Cache already persisted, no need to set cache again
 						return setImmediate(waterCb, null, cachedCount);
@@ -857,7 +857,7 @@ Transactions.prototype.shared = {
 					modules.cache.setJsonForKey(
 						modules.cache.KEYS.transactionCount,
 						{
-							total: dbCount,
+							confirmed: dbCount,
 						},
 						err => {
 							if (err) {
@@ -872,9 +872,9 @@ Transactions.prototype.shared = {
 					);
 				},
 
-				function getAllCount(transactionCount, waterCb) {
+				function getAllCount(confirmedTransactionCount, waterCb) {
 					setImmediate(waterCb, null, {
-						confirmed: transactionCount,
+						confirmed: confirmedTransactionCount,
 						unconfirmed: Object.keys(
 							__private.transactionPool.unconfirmed.index
 						).length,
