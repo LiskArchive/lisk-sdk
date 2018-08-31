@@ -328,7 +328,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 
 	async.parallel(
 		[
-			function deleteDelegateCache(parallelCb) {
+			async.reflect(reflectCb => {
 				const pattern = '/api/delegates*';
 
 				const delegateTransaction = transactions.find(
@@ -337,7 +337,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 				);
 
 				if (!delegateTransaction) {
-					return setImmediate(parallelCb, null);
+					return setImmediate(reflectCb, null);
 				}
 
 				self.removeByPattern(pattern, removeByPatternErr => {
@@ -358,13 +358,13 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 							].join(' ')
 						);
 					}
-					return setImmediate(parallelCb, removeByPatternErr);
+					return setImmediate(reflectCb, removeByPatternErr);
 				});
-			},
+			}),
 
-			function deleteTransactionCount(parallelCb) {
+			async.reflect(reflectCb => {
 				if (transactions.length === 0) {
-					return setImmediate(parallelCb, null);
+					return setImmediate(reflectCb, null);
 				}
 
 				self.deleteJsonForKey(
@@ -379,10 +379,10 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 								`Cache - Keys ${self.KEYS.transactionCount} cleared from cache`
 							);
 						}
-						return setImmediate(parallelCb, deleteJsonForKeyErr);
+						return setImmediate(reflectCb, deleteJsonForKeyErr);
 					}
 				);
-			},
+			}),
 		],
 		() => setImmediate(cb, null) // Don't propagate cache error to continue normal operations
 	);
