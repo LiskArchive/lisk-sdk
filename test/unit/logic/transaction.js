@@ -717,9 +717,9 @@ describe('transaction', () => {
 			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
 			var transaction = {
 				type: 0,
-				amount: '1000000000000000000000000000',
+				amount: new Bignum('1000000000000000000000000000'),
 				senderId: '16313739661670634666L',
-				fee: 10000000,
+				fee: new Bignum(10000000),
 				recipientId: '16313739661670634666L',
 				senderPublicKey:
 					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
