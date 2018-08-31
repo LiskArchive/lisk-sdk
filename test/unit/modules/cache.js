@@ -372,6 +372,48 @@ describe('cache', () => {
 			});
 		});
 
+		it('should remove keys "transactionCount" if there is any transaction saved', done => {
+			const key = cache.KEYS.transactionCount;
+
+			const value = { confirmed: 34 };
+
+			cache.setJsonForKey(key, value, (err, status) => {
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
+
+				const transaction = lisk.transaction.registerDelegate({
+					passphrase: randomUtil.password(),
+					username: randomUtil.delegateName().toLowerCase(),
+				});
+
+				cache.onTransactionsSaved([transaction], () => {
+					cache.getJsonForKey(key, (err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.equal(null);
+						done();
+					});
+				});
+			});
+		});
+
+		it('should not remove keys "transactionCount" if no transaction saved', done => {
+			const key = cache.KEYS.transactionCount;
+			const value = { confirmed: 34 };
+
+			cache.setJsonForKey(key, value, (err, status) => {
+				expect(err).to.not.exist;
+				expect(status).to.equal('OK');
+
+				cache.onTransactionsSaved([], () => {
+					cache.getJsonForKey(key, (err, res) => {
+						expect(err).to.not.exist;
+						expect(res).to.eql(value);
+						done();
+					});
+				});
+			});
+		});
+
 		it('should not remove keys when cacheReady = false', done => {
 			var key = '/api/delegates?123';
 			var value = { testObject: 'testValue' };
