@@ -56,7 +56,7 @@ delete oldConfig.version;
 delete oldConfig.minVersion;
 
 // If old release was a 1.0.0-rc.2 release
-if (oldConfig.version === '1.0.0-rc.2') {
+if (oldConfig.version === '1.0.0-rc.2' || oldConfig.version === '1.0.0-rc.3') {
 	copyTheConfigFile();
 	// No further changes required
 	process.exit(0);
@@ -154,7 +154,7 @@ function migrateSecrets(password) {
 		console.error(
 			`error: Password is too short (${
 				password.length
-				} characters), minimum 5 characters.`
+			} characters), minimum 5 characters.`
 		);
 		process.exit(1);
 	}
