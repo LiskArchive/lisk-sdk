@@ -560,11 +560,10 @@ Transport.prototype.shared = {
 					if (block.tf_data) {
 						try {
 							block.tf_data = block.tf_data.toString('utf8');
-						} catch (err) {
-							library.logger.info('Block with invalid data field: ', data);
+						} catch (e) {
 							library.logger.error(
-								'Modules-Transport-shared-blocks: Failed to convert data field into utf8',
-								err
+								'Transport->blocks: Failed to convert data field to UTF-8',
+								{ block, error: e }
 							);
 						}
 					}
