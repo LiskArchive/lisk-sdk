@@ -53,6 +53,8 @@ describe('snapshotting', () => {
 		let memAccountsBeforeSnapshot;
 
 		before(() => {
+			const data = '\u0000 Lindsay 💖';
+
 			// Forge 99 blocks to reach height 100 (genesis block is already there)
 			return (
 				Promise.mapSeries([...Array(99)], () => {
@@ -64,6 +66,7 @@ describe('snapshotting', () => {
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000),
 							passphrase: accountsFixtures.genesis.passphrase,
+							data,
 						});
 						return addTransactionsAndForgePromise(library, [transaction], 0);
 					})
