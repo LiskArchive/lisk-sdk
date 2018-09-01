@@ -51,10 +51,6 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
-// Values to always keep from new config file
-delete oldConfig.version;
-delete oldConfig.minVersion;
-
 // If old release was a 1.0.0-rc.2 release
 if (oldConfig.version === '1.0.0-rc.2' || oldConfig.version === '1.0.0-rc.3') {
 	copyTheConfigFile();
@@ -179,6 +175,10 @@ function migrateSecrets(password) {
 }
 
 function copyTheConfigFile() {
+	// Values to always keep from new config file
+	delete oldConfig.version;
+	delete oldConfig.minVersion;
+
 	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
 
 	try {
