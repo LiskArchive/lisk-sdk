@@ -563,7 +563,7 @@ Transport.prototype.shared = {
 						} catch (err) {
 							library.logger.info('Block with invalid data field: ', data);
 							library.logger.error(
-								'Logic-Transfer-dbRead: Failed to convert data field into utf8',
+								'Modules-Transport-shared-blocks: Failed to convert data field into utf8',
 								err
 							);
 						}
