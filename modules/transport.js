@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const _ = require('lodash');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster.js');
 const constants = require('../helpers/constants.js');
@@ -555,6 +556,19 @@ Transport.prototype.shared = {
 				lastId: query.lastBlockId,
 			},
 			(err, data) => {
+				_.each(data, block => {
+					if (block.tf_data) {
+						try {
+							block.tf_data = block.tf_data.toString('utf8');
+						} catch (err) {
+							library.logger.info('Block with invalid data field: ', data);
+							library.logger.error(
+								'Logic-Transfer-dbRead: Failed to convert data field into utf8',
+								err
+							);
+						}
+					}
+				});
 				if (err) {
 					return setImmediate(cb, null, { blocks: [] });
 				}
