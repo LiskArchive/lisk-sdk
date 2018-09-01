@@ -560,6 +560,7 @@ describe('rounds', () => {
 			const blocksToForge = 97;
 			let blocksProcessed = 0;
 			const transactionsPerBlock = 1;
+			const data = '\u0000 Lindsay 💖';
 
 			async.doUntil(
 				untilCb => {
@@ -570,6 +571,7 @@ describe('rounds', () => {
 							recipientId: randomUtil.account().address,
 							amount: randomUtil.number(100000000, 1000000000),
 							passphrase: accountsFixtures.genesis.passphrase,
+							data,
 						});
 						transactions.push(transaction);
 					}
