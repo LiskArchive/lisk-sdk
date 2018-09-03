@@ -374,7 +374,7 @@ describe('GET /api/votes', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				var account = randomUtil.account();
 				var creditTransaction = lisk.transaction.transfer({
-					amount: new Bignum(constants.fees.delegate).plus(constants.fees.vote),
+					amount: new Bignum(constants.FEES.DELEGATE).plus(constants.FEES.VOTE),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});

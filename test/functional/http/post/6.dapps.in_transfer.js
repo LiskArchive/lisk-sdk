@@ -47,7 +47,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.dappRegistration,
+			amount: constants.FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});

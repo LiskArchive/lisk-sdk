@@ -52,17 +52,17 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.delegate,
+			amount: constants.FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
-			amount: constants.fees.delegate,
+			amount: constants.FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountUpperCase.address,
 		});
 		var transaction4 = lisk.transaction.transfer({
-			amount: constants.fees.delegate,
+			amount: constants.FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFormerDelegate.address,
 		});

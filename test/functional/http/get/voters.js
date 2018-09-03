@@ -241,9 +241,9 @@ describe('GET /api/voters', () => {
 			var validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				const amount = new Bignum(constants.fees.delegate)
-					.plus(constants.fees.vote)
-					.plus(constants.fees.secondSignature);
+				const amount = new Bignum(constants.FEES.DELEGATE)
+					.plus(constants.FEES.VOTE)
+					.plus(constants.FEES.SECOND_SIGNATURE);
 				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,

@@ -146,7 +146,7 @@ describe('transfer', () => {
 			return expect(
 				transfer
 					.calculateFee(validTransaction)
-					.equals(new Bignum(constants.fees.send))
+					.equals(new Bignum(constants.FEES.SEND))
 			).to.be.true;
 		});
 
@@ -158,7 +158,7 @@ describe('transfer', () => {
 			return expect(
 				transfer
 					.calculateFee(transaction)
-					.equals(new Bignum(constants.fees.send))
+					.equals(new Bignum(constants.FEES.SEND))
 			).to.be.true;
 		});
 	});

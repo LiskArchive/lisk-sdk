@@ -145,7 +145,7 @@ Node.prototype.shared = {
 			build: library.build,
 			commit: library.lastCommit,
 			epoch: constants.EPOCH_TIME,
-			fees: constants.fees,
+			fees: constants.FEES,
 			nethash: library.config.nethash,
 			nonce: library.config.nonce,
 			milestone: blockReward.calcMilestone(height),

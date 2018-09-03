@@ -69,7 +69,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			recipientId: delegateAccount.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.vote,
+			amount: constants.FEES.VOTE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -116,7 +116,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
-						amount: constants.fees.delegate,
+						amount: constants.FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -146,7 +146,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
-						amount: constants.fees.delegate,
+						amount: constants.FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});

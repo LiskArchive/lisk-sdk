@@ -23,17 +23,18 @@
  * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
  * @property {number} ADDITIONAL_DATA.MIN_LENGTH - Additional Data (Min Length)
  * @property {number} ADDITIONAL_DATA.MAX_LENGTH - Additional Data (Max Length)
- * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} BLOCK_RECEIPT_TIMEOUT - Seconds to check if the block is fresh or not.
  * @property {Date} EPOCH_TIME	- Timestamp indicating the start of lisk core.
- * @property {Object} fees - Object representing amount of fees for different types of transactions.
- * @property {number} fees.send	- Fee for sending a transaction.
- * @property {number} fees.vote - Fee for voting a delegate.
- * @property {number} fees.secondSignature	- Fee for creating a secondSignature.
- * @property {number} fees.delegate - Fee for registering as a delegate.
- * @property {number} fees.multisignature - Fee for multisignature transaction.
- * @property {number} fees.dapp	- Fee for registering as a dapp.
+ * @property {Object} FEES - Object representing amount of fees for different types of transactions.
+ * @property {number} FEES.SEND	- Fee for sending a transaction.
+ * @property {number} FEES.VOTE - Fee for voting a delegate.
+ * @property {number} FEES.SECOND_SIGNATURE	- Fee for creating a secondSignature.
+ * @property {number} FEES.DELEGATE - Fee for registering as a delegate.
+ * @property {number} FEES.MULTISIGNATURE - Fee for multisignature transaction.
+ * @property {number} FEES.DAPP_REGISTRATION	- Fee for registering as a dapp.
+ * @property {number} FEES.DAPP_WITHDRAWAL	- Fee for registering as a dapp.
+ * @property {number} FEES.DAPP_DEPOSIT	- Fee for registering as a dapp.
  // TODO: Needs additional check to revise max payload length
  // for each transaction type for consistency
  // FYI: https://lisk.io/documentation/the-lisk-protocol/blocks {Block Payload Section}
@@ -41,6 +42,7 @@
  * @property {number} maxPeers - Maximum number of peers allowed to connect while broadcasting a block.
  * @property {number} maxSharedTxs - Maximum number of in-memory transactions/signatures shared accros peers.
  * @property {number} maxTxsPerBlock -	Maximum Number of transactions allowed per block.
+ * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} minBroadhashConsensus - Minimum broadhash consensus(%) among connected {maxPeers} peers.
  * @property {string[]} nethashes - For mainnet and testnet.
  * @property {number} constants.normalizer - Use this to convert LISK amount to normal value.
@@ -62,15 +64,15 @@ module.exports = {
 	},
 	BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
 	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
-	fees: {
-		send: '10000000',
-		vote: '100000000',
-		secondSignature: '500000000',
-		delegate: '2500000000',
-		multisignature: '500000000',
-		dappRegistration: '2500000000',
-		dappWithdrawal: '10000000',
-		dappDeposit: '10000000',
+	FEES: {
+		SEND: '10000000',
+		VOTE: '100000000',
+		SECOND_SIGNATURE: '500000000',
+		DELEGATE: '2500000000',
+		MULTISIGNATURE: '500000000',
+		DAPP_REGISTRATION: '2500000000',
+		DAPP_WITHDRAWAL: '10000000',
+		DAPP_DEPOSIT: '10000000',
 	},
 	maxPayloadLength: 1024 * 1024,
 	maxPeers: 100,

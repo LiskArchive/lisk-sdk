@@ -480,7 +480,7 @@ Block.prototype.getId = function(block) {
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(constants.FEES.SEND);
 };
 
 /**

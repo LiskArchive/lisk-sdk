@@ -291,7 +291,7 @@ describe('node', () => {
 					'should call callback with result containing epoch = constants.EPOCH_TIME'
 				);
 
-				it('should call callback with result containing fees = constants.fees');
+				it('should call callback with result containing fees = constants.FEES');
 
 				it(
 					'should call callback with result containing nethash = library.config.nethash'

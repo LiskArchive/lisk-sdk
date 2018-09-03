@@ -37,7 +37,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			amount: 0,
 		}),
 		minimal_funds: new Scenarios.Multisig({
-			amount: constants.fees.multisignature * 3,
+			amount: constants.FEES.MULTISIGNATURE * 3,
 		}),
 		max_members: new Scenarios.Multisig({
 			members: constants.multisigConstraints.keysgroup.maxItems + 1,
