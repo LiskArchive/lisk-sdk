@@ -1899,6 +1899,7 @@ describe('rounds', () => {
 		var roundOutsiders_stub;
 		var updateVotes_stub;
 		var getVotes_stub;
+		let updateDelegatesRanks_stub;
 		var flush_stub;
 		var res;
 		var scope;
@@ -1932,6 +1933,9 @@ describe('rounds', () => {
 				updateVotes_stub = sinonSandbox
 					.stub(t.rounds, 'updateVotes')
 					.resolves('QUERY');
+				updateDelegatesRanks_stub = sinonSandbox
+					.stub(t.rounds, 'updateDelegatesRanks')
+					.resolves();
 				flush_stub = sinonSandbox.stub(t.rounds, 'flush').resolves();
 
 				round = new Round(_.cloneDeep(scope), t);
@@ -1957,6 +1961,10 @@ describe('rounds', () => {
 
 		it('query flushRound should be called once', () => {
 			return expect(flush_stub.callCount).to.equal(1);
+		});
+
+		it('query updateDelegatesRanks should be called once', () => {
+			return expect(updateDelegatesRanks_stub.callCount).to.equal(1);
 		});
 
 		it('modules.accounts.mergeAccountAndGet should be called 4 times', () => {
