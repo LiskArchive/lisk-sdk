@@ -637,14 +637,14 @@ describe('blocks/verify', () => {
 			});
 
 			describe(`for slot number ${
-				constants.blockSlotWindow
+				constants.BLOCK_SLOT_WINDOW
 			} slots in the past`, () => {
 				var dummyBlock;
 
 				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - constants.blockSlotWindow
+							slots.getSlotNumber() - constants.BLOCK_SLOT_WINDOW
 						),
 					};
 					done();
@@ -674,14 +674,14 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe(`for slot number ${constants.blockSlotWindow +
+			describe(`for slot number ${constants.BLOCK_SLOT_WINDOW +
 				1} slots in the past`, () => {
 				var dummyBlock;
 
 				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - (constants.blockSlotWindow + 1)
+							slots.getSlotNumber() - (constants.BLOCK_SLOT_WINDOW + 1)
 						),
 					};
 					done();
@@ -712,7 +712,7 @@ describe('blocks/verify', () => {
 					var lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
 					expect(lastNBlockIds)
 						.to.be.an('array')
-						.and.to.have.length.below(constants.blockSlotWindow + 1);
+						.and.to.have.length.below(constants.BLOCK_SLOT_WINDOW + 1);
 					_.each(lastNBlockIds, value => {
 						expect(value).to.be.a('string');
 					});
@@ -746,12 +746,12 @@ describe('blocks/verify', () => {
 				});
 
 				describe(`when onNewBlock function is called ${
-					constants.blockSlotWindow
+					constants.BLOCK_SLOT_WINDOW
 				}times`, () => {
 					var blockIds = [];
 
 					before(() => {
-						return _.map(_.range(0, constants.blockSlotWindow), () => {
+						return _.map(_.range(0, constants.BLOCK_SLOT_WINDOW), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -769,14 +769,14 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				describe(`when onNewBlock function is called ${constants.blockSlotWindow *
+				describe(`when onNewBlock function is called ${constants.BLOCK_SLOT_WINDOW *
 					2} times`, () => {
 					var recentNBlockIds;
 					var olderThanNBlockIds;
 
 					before(done => {
 						var blockIds = [];
-						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
+						_.map(_.range(0, constants.BLOCK_SLOT_WINDOW * 2), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -789,17 +789,17 @@ describe('blocks/verify', () => {
 						});
 
 						recentNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index < constants.blockSlotWindow;
+							return blockIds.length - 1 - index < constants.BLOCK_SLOT_WINDOW;
 						});
 
 						olderThanNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index >= constants.blockSlotWindow;
+							return blockIds.length - 1 - index >= constants.BLOCK_SLOT_WINDOW;
 						});
 						done();
 					});
 
 					it(`should maintain last ${
-						constants.blockSlotWindow
+						constants.BLOCK_SLOT_WINDOW
 					} blockIds in lastNBlockIds queue`, () => {
 						expect(lastNBlockIds).to.include.members(recentNBlockIds);
 						return expect(lastNBlockIds).to.not.include.members(
@@ -865,7 +865,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
+	// TODO: Refactor this test, dataset being used is no longer valid because of BLOCK_SLOT_WINDOW check
 	describe('verifyReceipt', () => {});
 
 	describe('verifyBlock', () => {});

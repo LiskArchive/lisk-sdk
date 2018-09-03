@@ -196,7 +196,7 @@ __private.verifyPreviousBlock = function(block, result) {
 };
 
 /**
- * Verify block is not one of the last {constants.blockSlotWindow} saved blocks.
+ * Verify block is not one of the last {constants.BLOCK_SLOT_WINDOW} saved blocks.
  *
  * @private
  * @func verifyAgainstLastNBlockIds
@@ -422,8 +422,8 @@ __private.verifyBlockSlotWindow = function(block, result) {
 	const currentApplicationSlot = slots.getSlotNumber();
 	const blockSlot = slots.getSlotNumber(block.timestamp);
 
-	// Reject block if it's slot is older than constants.blockSlotWindow
-	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
+	// Reject block if it's slot is older than constants.BLOCK_SLOT_WINDOW
+	if (currentApplicationSlot - blockSlot > constants.BLOCK_SLOT_WINDOW) {
 		result.errors.push('Block slot is too old');
 	}
 
@@ -466,24 +466,24 @@ Verify.prototype.verifyReceipt = function(block) {
 };
 
 /**
- * Loads last {constants.blockSlotWindow} blocks from the database into memory. Called when application triggeres blockchainReady event.
+ * Loads last {constants.BLOCK_SLOT_WINDOW} blocks from the database into memory. Called when application triggeres blockchainReady event.
  */
 Verify.prototype.onBlockchainReady = function() {
 	return library.db.blocks
-		.loadLastNBlockIds(constants.blockSlotWindow)
+		.loadLastNBlockIds(constants.BLOCK_SLOT_WINDOW)
 		.then(blockIds => {
 			__private.lastNBlockIds = _.map(blockIds, 'id');
 		})
 		.catch(err => {
 			library.logger.error(
-				`Unable to load last ${constants.blockSlotWindow} block ids`
+				`Unable to load last ${constants.BLOCK_SLOT_WINDOW} block ids`
 			);
 			library.logger.error(err);
 		});
 };
 
 /**
- * Maintains __private.lastNBlock constiable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
+ * Maintains __private.lastNBlock constiable - a queue of fixed length (constants.BLOCK_SLOT_WINDOW). Called when application triggers newBlock event.
  *
  * @func onNewBlock
  * @param {block} block
@@ -491,7 +491,7 @@ Verify.prototype.onBlockchainReady = function() {
  */
 Verify.prototype.onNewBlock = function(block) {
 	__private.lastNBlockIds.push(block.id);
-	if (__private.lastNBlockIds.length > constants.blockSlotWindow) {
+	if (__private.lastNBlockIds.length > constants.BLOCK_SLOT_WINDOW) {
 		__private.lastNBlockIds.shift();
 	}
 };

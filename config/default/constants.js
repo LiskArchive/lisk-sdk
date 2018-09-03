@@ -22,7 +22,7 @@
  * @see Parent: {@link config}
  * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
  * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
- * @property {number} blockSlotWindow - The default number of previous blocks to keep in memory.
+ * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} blockReceiptTimeOut - Seconds to check if the block is fresh or not.
  * @property {Date} epochTime	- Timestamp indicating the start of lisk core.
  * @property {Object} fees - Object representing amount of fees for different types of transactions.
@@ -53,7 +53,7 @@
  */
 module.exports = {
 	ACTIVE_DELEGATES: 101,
-	blockSlotWindow: 5,
+	BLOCK_SLOT_WINDOW: 5,
 	additionalData: {
 		minLength: 1,
 		maxLength: 64,
