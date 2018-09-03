@@ -1983,6 +1983,7 @@ describe('rounds', () => {
 		var restoreRoundSnapshot_stub;
 		var restoreVotesSnapshot_stub;
 		let checkSnapshotAvailability_stub;
+		let updateDelegatesRanks_stub;
 		var deleteRoundRewards_stub;
 		var flush_stub;
 		var res;
@@ -2030,6 +2031,9 @@ describe('rounds', () => {
 				deleteRoundRewards_stub = sinonSandbox
 					.stub(t.rounds, 'deleteRoundRewards')
 					.resolves();
+				updateDelegatesRanks_stub = sinonSandbox
+					.stub(t.rounds, 'updateDelegatesRanks')
+					.resolves();
 
 				round = new Round(_.cloneDeep(scope), t);
 				res = round.backwardLand();
@@ -2050,6 +2054,10 @@ describe('rounds', () => {
 
 		it('query updateMissedBlocks not be called', () => {
 			return expect(roundOutsiders_stub.called).to.be.false;
+		});
+
+		it('query updateDelegatesRanks should be called once', () => {
+			return expect(updateDelegatesRanks_stub.callCount).to.equal(1);
 		});
 
 		it('query flushRound should be called once', () => {
