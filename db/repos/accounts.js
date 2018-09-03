@@ -58,7 +58,10 @@ const normalFields = [
 ];
 
 // Only used in SELECT and INSERT queries
-const immutableFields = [{ name: 'address' }];
+const immutableFields = [
+	{ name: 'address' },
+	{ name: 'rank', cast: 'bigint', def: null, skip: ifNotExists },
+];
 
 // Only used in SELECT queries
 const dynamicFields = [
