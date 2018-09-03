@@ -63,7 +63,6 @@ const immutableFields = [{ name: 'address' }];
 
 // Only used in SELECT queries
 const dynamicFields = [
-	{ name: 'rank', init: () => sql.columnRank },
 	{ name: 'delegates', init: () => sql.columnDelegates },
 	{ name: 'u_delegates', init: () => sql.columnUDelegates },
 	{ name: 'multisignatures', init: () => sql.columnMultisignatures },
