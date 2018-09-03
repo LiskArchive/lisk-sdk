@@ -26,7 +26,7 @@
  * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} BLOCK_RECEIPT_TIMEOUT - Seconds to check if the block is fresh or not.
- * @property {Date} epochTime	- Timestamp indicating the start of lisk core.
+ * @property {Date} EPOCH_TIME	- Timestamp indicating the start of lisk core.
  * @property {Object} fees - Object representing amount of fees for different types of transactions.
  * @property {number} fees.send	- Fee for sending a transaction.
  * @property {number} fees.vote - Fee for voting a delegate.
@@ -61,7 +61,7 @@ module.exports = {
 		MAX_LENGTH: 64,
 	},
 	BLOCK_RECEIPT_TIMEOUT: 20, // 2 blocks
-	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
+	EPOCH_TIME: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
 	fees: {
 		send: '10000000',
 		vote: '100000000',

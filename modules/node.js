@@ -144,7 +144,7 @@ Node.prototype.shared = {
 		return setImmediate(cb, null, {
 			build: library.build,
 			commit: library.lastCommit,
-			epoch: constants.epochTime,
+			epoch: constants.EPOCH_TIME,
 			fees: constants.fees,
 			nethash: library.config.nethash,
 			nonce: library.config.nonce,

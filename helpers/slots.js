@@ -33,7 +33,7 @@ const constants = global.constants;
  * @returns {number} Lisk epoch time
  */
 function beginEpochTime() {
-	var d = constants.epochTime;
+	var d = constants.EPOCH_TIME;
 
 	return d;
 }

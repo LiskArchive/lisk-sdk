@@ -154,7 +154,7 @@ Blocks.prototype.lastBlock = {
 		// Current time in seconds - (epoch start in seconds + block timestamp)
 		const secondsAgo =
 			Math.floor(Date.now() / 1000) -
-			(Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
+			(Math.floor(constants.EPOCH_TIME / 1000) + __private.lastBlock.timestamp);
 		return secondsAgo < constants.BLOCK_RECEIPT_TIMEOUT;
 	},
 };

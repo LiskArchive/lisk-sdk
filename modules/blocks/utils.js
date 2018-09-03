@@ -409,12 +409,12 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		params.delegates = constants.ACTIVE_DELEGATES;
 
 		if (filter.start !== undefined) {
-			params.start = (filter.start - constants.epochTime.getTime()) / 1000;
+			params.start = (filter.start - constants.EPOCH_TIME.getTime()) / 1000;
 			params.start = params.start.toFixed();
 		}
 
 		if (filter.end !== undefined) {
-			params.end = (filter.end - constants.epochTime.getTime()) / 1000;
+			params.end = (filter.end - constants.EPOCH_TIME.getTime()) / 1000;
 			params.end = params.end.toFixed();
 		}
 

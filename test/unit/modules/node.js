@@ -288,7 +288,7 @@ describe('node', () => {
 				);
 
 				it(
-					'should call callback with result containing epoch = constants.epochTime'
+					'should call callback with result containing epoch = constants.EPOCH_TIME'
 				);
 
 				it('should call callback with result containing fees = constants.fees');
