@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const _ = require('lodash');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
@@ -565,6 +566,18 @@ Transport.prototype.shared = {
 				lastId: query.lastBlockId,
 			},
 			(err, data) => {
+				_.each(data, block => {
+					if (block.tf_data) {
+						try {
+							block.tf_data = block.tf_data.toString('utf8');
+						} catch (e) {
+							library.logger.error(
+								'Transport->blocks: Failed to convert data field to UTF-8',
+								{ block, error: e }
+							);
+						}
+					}
+				});
 				if (err) {
 					return setImmediate(cb, null, { blocks: [] });
 				}
