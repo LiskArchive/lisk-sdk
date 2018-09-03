@@ -97,14 +97,14 @@ Install System wide via package manager:
 * Ubuntu:
 
 ```
-curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
 ```
-brew install node@6.14.1
+brew install node@8.11.3
 ```
 
 #### Check correct version
@@ -131,7 +131,7 @@ su - lisk
 3. Install the correct version of Node.js using nvm:
 
 ```
-nvm install 6.14.1
+nvm install 8.11.3
 ```
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
@@ -308,6 +308,14 @@ To stop Lisk after it has been started with `pm2`, issue the following command:
 ```
 pm2 stop lisk
 ```
+
+**NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
+
+```
+pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
+```
+
+You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
 
 ## Configuring Lisk
 
