@@ -502,6 +502,32 @@ describe('rounds', () => {
 		});
 	});
 
+	describe('updateDelegatesRanks', () => {
+		let stub;
+		let res;
+		let scope;
+
+		before(done => {
+			scope = _.cloneDeep(validScope);
+			stub = sinonSandbox.stub(db.rounds, 'updateDelegatesRanks');
+			stub.resolves('success');
+			round = new Round(_.cloneDeep(scope), db);
+			res = round.updateDelegatesRanks();
+			done();
+		});
+
+		it('should return promise', () => {
+			return expect(isPromise(res)).to.be.true;
+		});
+
+		it('query should be called with proper args', () => {
+			return res.then(res => {
+				expect(res).to.equal('success');
+				expect(stub.calledOnce).to.be.true;
+			});
+		});
+	});
+
 	describe('restoreRoundSnapshot', () => {
 		var res;
 
