@@ -405,6 +405,7 @@ class Round {
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
+			.then(this.updateDelegatesRanks.bind(this))
 			.then(() => this.t);
 	}
 
@@ -427,6 +428,7 @@ class Round {
 			.then(this.restoreRoundSnapshot.bind(this))
 			.then(this.restoreVotesSnapshot.bind(this))
 			.then(this.deleteRoundRewards.bind(this))
+			.then(this.updateDelegatesRanks.bind(this))
 			.then(() => this.t);
 	}
 }
