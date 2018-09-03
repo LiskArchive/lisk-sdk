@@ -447,23 +447,22 @@ d.run(() => {
 				},
 			],
 
-			db: [
-				'config',
-				/**
-				 * Description of the function.
-				 *
-				 * @memberof! app
-				 * @param {function} cb - Callback function
-				 * @todo Add description for the function and its params
-				 */
-				function(scope, cb) {
-					var db = require('./db');
-					db
-						.connect(config.db, dbLogger)
-						.then(db => cb(null, db))
-						.catch(cb);
-				},
-			],
+			/**
+			 * Description of the function.
+			 *
+			 * @memberof! app
+			 * @param {function} cb - Callback function
+			 * @todo Add description for the function and its params
+			 */
+			db(cb) {
+				var db = require('./db');
+				db
+					.connect(config.db, dbLogger)
+					.then(db => cb(null, db))
+					.catch(err => {
+						console.error(err);
+					});
+			},
 
 			/**
 			 * Description of the function.
@@ -577,6 +576,9 @@ d.run(() => {
 							bus(cb) {
 								cb(null, scope.bus);
 							},
+							config(cb) {
+								cb(null, scope.config);
+							},
 							db(cb) {
 								cb(null, scope.db);
 							},
@@ -637,8 +639,9 @@ d.run(() => {
 							],
 							peers: [
 								'logger',
+								'config',
 								function(scope, cb) {
-									new Peers(scope.logger, cb);
+									new Peers(scope.logger, scope.config, cb);
 								},
 							],
 						},
@@ -856,5 +859,11 @@ process.on('unhandledRejection', err => {
 		message: err.message,
 		stack: err.stack,
 	});
+	process.emit('cleanup', err);
+});
+
+process.on('unhandledRejection', err => {
+	// Handle error safely
+	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup', err);
 });

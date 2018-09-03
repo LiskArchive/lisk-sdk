@@ -15,7 +15,6 @@
 'use strict';
 
 const _ = require('lodash');
-const transactionTypes = require('../../helpers/transaction_types.js');
 
 const constants = global.constants;
 const __private = {};
@@ -160,21 +159,6 @@ Utils.prototype.loadLastBlock = function(cb) {
 			// Normalize block
 			const block = modules.blocks.utils.readDbRows(rows)[0];
 
-			// Sort block's transactions
-			block.transactions = block.transactions.sort(a => {
-				if (block.id === library.genesisBlock.block.id) {
-					if (a.type === transactionTypes.VOTE) {
-						return 1;
-					}
-				}
-
-				if (a.type === transactionTypes.SIGNATURE) {
-					return 1;
-				}
-
-				return 0;
-			});
-
 			// Update last block
 			modules.blocks.lastBlock.set(block);
 			return setImmediate(cb, null, block);
@@ -252,6 +236,29 @@ Utils.prototype.getIdSequence = function(height, cb) {
 		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(cb, 'Blocks#getIdSequence error');
+		});
+};
+
+/**
+ * Load full block with a particular height
+ *
+ * @param {number} height - Block height
+ * @param {function} cb - Callback function
+ * @param {object} tx - Database transaction object
+ * @returns {function} cb - Callback function from params (through setImmediate)
+ * @returns {Object} cb.err - Error if occurred
+ * @returns {Object} cb.block - Block with requested height
+ */
+Utils.prototype.loadBlockByHeight = function(height, cb, tx) {
+	(tx || library.db).blocks
+		.loadBlocksOffset(height, height + 1)
+		.then(rows => {
+			const blocks = self.readDbRows(rows);
+			return setImmediate(cb, null, blocks[0]);
+		})
+		.catch(err => {
+			library.logger.error(err.stack);
+			return setImmediate(cb, 'Blocks#loadBlockByHeight error');
 		});
 };
 

@@ -281,9 +281,16 @@ Transfer.prototype.objectNormalize = function(transaction) {
  */
 Transfer.prototype.dbRead = function(raw) {
 	if (raw.tf_data) {
-		return { data: raw.tf_data };
+		try {
+			const data = raw.tf_data.toString('utf8');
+			return { data };
+		} catch (e) {
+			library.logger.error(
+				'Logic-Transfer-dbRead: Failed to convert data field into utf8'
+			);
+			return null;
+		}
 	}
-
 	return null;
 };
 

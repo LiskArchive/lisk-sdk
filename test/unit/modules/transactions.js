@@ -37,6 +37,7 @@ var TransactionModule = rewire('../../../modules/transactions.js');
 
 describe('transactions', () => {
 	var transactionsModule;
+	var cacheModule;
 	var dbStub;
 	var TransactionTypeMap = {};
 	TransactionTypeMap[transactionTypes.SEND] = 'getTransferByIds';
@@ -142,21 +143,19 @@ describe('transactions', () => {
 					'confirmations',
 					'height',
 				],
-				countList: sinonSandbox.stub().resolves(),
-				list: sinonSandbox.stub().resolves(),
+				countList: null,
+				list: null,
+				count: null,
 			},
 		};
-
-		Object.keys(TransactionTypeMap).forEach(key => {
-			dbStub.transactions[
-				TransactionTypeMap[key]
-			] = sinonSandbox.stub().resolves();
-		});
 
 		async.auto(
 			{
 				accountLogic(cb) {
 					modulesLoader.initLogic(AccountLogic, { db: dbStub }, cb);
+				},
+				cacheModule(cb) {
+					modulesLoader.initCache(cb);
 				},
 				transactionLogic: [
 					'accountLogic',
@@ -231,6 +230,9 @@ describe('transactions', () => {
 			},
 			(err, result) => {
 				expect(err).to.not.exist;
+
+				cacheModule = result.cacheModule;
+
 				modulesLoader.initModule(
 					TransactionModule,
 					{ db: dbStub, logic: { transaction: result.transactionLogic } },
@@ -253,6 +255,7 @@ describe('transactions', () => {
 						__transactionModule.onBind({
 							accounts: result.accountsModule,
 							loader: result.loaderModule,
+							cache: result.cacheModule,
 						});
 
 						attachAllAssets(
@@ -269,12 +272,19 @@ describe('transactions', () => {
 	});
 
 	beforeEach(() => {
-		dbStub.transactions.countList.reset();
-		dbStub.transactions.list.reset();
+		dbStub.transactions.countList = sinonSandbox.stub().resolves();
+		dbStub.transactions.list = sinonSandbox.stub().resolves();
+		dbStub.transactions.count = sinonSandbox.stub().resolves();
 
 		return Object.keys(TransactionTypeMap).forEach(key => {
-			dbStub.transactions[TransactionTypeMap[key]].reset();
+			dbStub.transactions[
+				TransactionTypeMap[key]
+			] = sinonSandbox.stub().resolves();
 		});
+	});
+
+	afterEach(() => {
+		return sinonSandbox.restore();
 	});
 
 	describe('Transaction#shared', () => {
@@ -877,6 +887,174 @@ describe('transactions', () => {
 			});
 
 			it('should get transaction with outtransfer asset for transaction id');
+		});
+
+		describe('getTransactionsCount', () => {
+			beforeEach(() => {
+				sinonSandbox.spy(async, 'waterfall');
+				return dbStub.transactions.count.onCall(0).resolves(10);
+			});
+
+			const expectValidCountResponse = data => {
+				expect(data).to.have.keys(
+					'total',
+					'confirmed',
+					'unconfirmed',
+					'unprocessed',
+					'unsigned'
+				);
+				expect(data.total).to.be.a('number');
+				expect(data.confirmed).to.be.a('number');
+				expect(data.unconfirmed).to.be.a('number');
+				expect(data.unprocessed).to.be.a('number');
+				expect(data.unsigned).to.be.a('number');
+				expect(data.total).to.be.eql(
+					data.confirmed + data.unconfirmed + data.unprocessed + data.unsigned
+				);
+			};
+
+			it('should return transaction count in correct format', done => {
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					done();
+				});
+			});
+
+			it('should try to get transaction count from cache first', done => {
+				sinonSandbox.spy(cacheModule, 'getJsonForKey');
+
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					expect(async.waterfall).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+
+					done();
+				});
+			});
+
+			it('should use cached transaction count if found', done => {
+				sinonSandbox
+					.stub(cacheModule, 'getJsonForKey')
+					.callsArgWith(1, null, { confirmed: 999 });
+
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					expect(async.waterfall).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+					expect(dbStub.transactions.count).to.be.not.calledOnce;
+
+					expect(data.confirmed).to.be.eql(999);
+
+					done();
+				});
+			});
+
+			it('should get transaction count from db if cache fails', done => {
+				sinonSandbox
+					.stub(cacheModule, 'getJsonForKey')
+					.callsArgWith(1, new Error('Cache error'));
+
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					expect(async.waterfall).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+					expect(dbStub.transactions.count).to.be.calledOnce;
+					expect(data.confirmed).to.be.eql(10);
+
+					done();
+				});
+			});
+
+			it('should get transaction count from db if no cache exists', done => {
+				sinonSandbox
+					.stub(cacheModule, 'getJsonForKey')
+					.callsArgWith(1, null, null);
+
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					expect(async.waterfall).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+					expect(dbStub.transactions.count).to.be.calledOnce;
+					expect(data.confirmed).to.be.eql(10);
+					done();
+				});
+			});
+
+			it('should update the transaction count in cache if not already persisted', done => {
+				sinonSandbox
+					.stub(cacheModule, 'getJsonForKey')
+					.callsArgWith(1, null, null);
+				sinonSandbox.spy(cacheModule, 'setJsonForKey');
+
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					expect(async.waterfall).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+					expect(data.confirmed).to.be.eql(10);
+					expect(dbStub.transactions.count).to.be.calledOnce;
+
+					expect(cacheModule.setJsonForKey).to.be.calledOnce;
+					expect(cacheModule.setJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+					expect(cacheModule.setJsonForKey.firstCall.args[1]).to.be.eql({
+						confirmed: 10,
+					});
+
+					done();
+				});
+			});
+
+			it('should skip updating transaction count cache if already persisted', done => {
+				sinonSandbox
+					.stub(cacheModule, 'getJsonForKey')
+					.callsArgWith(1, null, { confirmed: 999 });
+				sinonSandbox.spy(cacheModule, 'setJsonForKey');
+
+				transactionsModule.shared.getTransactionsCount((err, data) => {
+					expect(err).to.be.null;
+					expectValidCountResponse(data);
+
+					expect(async.waterfall).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey).to.be.calledOnce;
+					expect(cacheModule.getJsonForKey.firstCall.args[0]).to.be.eql(
+						cacheModule.KEYS.transactionCount
+					);
+					expect(data.confirmed).to.be.eql(999);
+					expect(dbStub.transactions.count).to.not.be.called;
+
+					expect(cacheModule.setJsonForKey).to.be.not.called;
+
+					done();
+				});
+			});
 		});
 	});
 });

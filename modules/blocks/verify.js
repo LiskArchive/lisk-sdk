@@ -19,6 +19,7 @@ const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
+const blockVersion = require('../../logic/block_version.js');
 const Bignum = require('../../helpers/bignum.js');
 
 let modules;
@@ -225,7 +226,7 @@ __private.verifyAgainstLastNBlockIds = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyVersion = function(block, result) {
-	if (block.version > 0) {
+	if (!blockVersion.isValid(block.version, block.height)) {
 		result.errors.push('Invalid block version');
 	}
 
@@ -522,6 +523,20 @@ Verify.prototype.verifyBlock = function(block) {
 
 	result.verified = result.errors.length === 0;
 	result.errors.reverse();
+	if (result.verified) {
+		library.logger.info(
+			`Verify->verifyBlock succeeded for block ${block.id} at height ${
+				block.height
+			}.`
+		);
+	} else {
+		library.logger.error(
+			`Verify->verifyBlock failed for block ${block.id} at height ${
+				block.height
+			}.`,
+			result.errors
+		);
+	}
 
 	return result;
 };
