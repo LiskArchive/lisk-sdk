@@ -222,6 +222,16 @@ class Round {
 	}
 
 	/**
+	 * Calls sql updateDelegatesRanks: Update current ranks of all delegates
+	 *
+	 * @returns {Promise}
+	 */
+	updateDelegatesRanks() {
+		this.scope.library.logger.debug('Updating ranks of all delegates...');
+		return this.t.rounds.updateDelegatesRanks();
+	}
+
+	/**
 	 * Calls sql deleteRoundRewards:
 	 * - Removes rewards for entire round from round_rewards table.
 	 * - Performed only when rollback last block of round.
