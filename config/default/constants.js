@@ -20,7 +20,7 @@
  * @namespace constants
  * @memberof config
  * @see Parent: {@link config}
- * @property {number} activeDelegates - The default number of delegates allowed to forge a block.
+ * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
  * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} blockSlotWindow - The default number of previous blocks to keep in memory.
  * @property {number} blockReceiptTimeOut - Seconds to check if the block is fresh or not.
@@ -52,7 +52,7 @@
  * @todo Add description for the namespace and the properties.
  */
 module.exports = {
-	activeDelegates: 101,
+	ACTIVE_DELEGATES: 101,
 	blockSlotWindow: 5,
 	additionalData: {
 		minLength: 1,

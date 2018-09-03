@@ -423,7 +423,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 					beforeEach(() => {
 						blockFromPreviousRound =
-							forgedBlocks[forgedBlocks.length - constants.activeDelegates];
+							forgedBlocks[forgedBlocks.length - constants.ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
 						return library.modules.blocks.process.onReceiveBlock(
 							blockFromPreviousRound

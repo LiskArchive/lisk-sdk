@@ -358,7 +358,7 @@ describe('account', () => {
 				.map(v => {
 					return { username: v.username };
 				})
-				.slice(0, constants.activeDelegates);
+				.slice(0, constants.ACTIVE_DELEGATES);
 
 			account.getAll(
 				{
@@ -379,7 +379,7 @@ describe('account', () => {
 				.map(v => {
 					return { username: v.username };
 				})
-				.slice(0, constants.activeDelegates);
+				.slice(0, constants.ACTIVE_DELEGATES);
 
 			account.getAll(
 				{

@@ -188,7 +188,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 		.getIdSequence({
 			height,
 			limit: 5,
-			delegates: constants.activeDelegates,
+			delegates: constants.ACTIVE_DELEGATES,
 		})
 		.then(rows => {
 			if (rows.length === 0) {
@@ -406,7 +406,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		}
 
 		params.generatorPublicKey = account.publicKey;
-		params.delegates = constants.activeDelegates;
+		params.delegates = constants.ACTIVE_DELEGATES;
 
 		if (filter.start !== undefined) {
 			params.start = (filter.start - constants.epochTime.getTime()) / 1000;

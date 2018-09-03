@@ -306,7 +306,7 @@ class Account {
 			}
 		});
 
-		let limit = constants.activeDelegates;
+		let limit = constants.ACTIVE_DELEGATES;
 		let offset = 0;
 		let sort = { sortField: '', sortMethod: '' };
 

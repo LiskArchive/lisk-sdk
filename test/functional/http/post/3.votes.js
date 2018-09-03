@@ -142,7 +142,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				var transactionsCreditMaxVotesPerAccount = [];
 				var promisesCreditsMaxVotesPerAccount = [];
-				for (var i = 0; i < constants.activeDelegates; i++) {
+				for (var i = 0; i < constants.ACTIVE_DELEGATES; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
@@ -211,7 +211,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				var transactionsDelegateMaxVotesPerAccount = [];
 				var promisesDelegatesMaxVotesPerAccount = [];
-				for (var i = 0; i < constants.activeDelegates; i++) {
+				for (var i = 0; i < constants.ACTIVE_DELEGATES; i++) {
 					var transaction = lisk.transaction.registerDelegate({
 						passphrase: delegatesMaxVotesPerAccount[i].passphrase,
 						username: delegatesMaxVotesPerAccount[i].username,
@@ -490,7 +490,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		});
 
 		it(`upvoting ${
-			constants.activeDelegates
+			constants.ACTIVE_DELEGATES
 		} delegates (number of actived delegates) separately should be ok`, () => {
 			var transaction1 = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
@@ -586,7 +586,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		});
 
 		it(`exceeding maximum of ${
-			constants.activeDelegates
+			constants.ACTIVE_DELEGATES
 		} votes (number of actived delegates + 1) should fail`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
@@ -599,7 +599,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			).then(res => {
 				expect(res.body.message).to.be.equal(
 					`Maximum number of ${
-						constants.activeDelegates
+						constants.ACTIVE_DELEGATES
 					} votes exceeded (1 too many)`
 				);
 				badTransactionsEnforcement.push(transaction);
@@ -644,7 +644,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		});
 
 		it(`downvoting ${
-			constants.activeDelegates
+			constants.ACTIVE_DELEGATES
 		} delegates (number of actived delegates) separately should be ok`, () => {
 			var transaction1 = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
