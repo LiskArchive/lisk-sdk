@@ -135,7 +135,7 @@ describe('db', () => {
 					'publicKey',
 					'secondPublicKey',
 					'address',
-					'rank'
+					'rank',
 				]);
 				return expect(db.accounts.cs.update.columns.map(c => c.name)).to.be.eql(
 					[
