@@ -73,7 +73,9 @@ var liskFormats = {
 		if (typeof str !== 'string') {
 			return false;
 		}
-		return Buffer.from(str).length <= global.constants.additionalData.maxLength;
+		return (
+			Buffer.from(str).length <= global.constants.ADDITIONAL_DATA.MAX_LENGTH
+		);
 	},
 	/**
 	 * Description of the function.

@@ -237,8 +237,8 @@ Transfer.prototype.schema = {
 		data: {
 			type: 'string',
 			format: 'additionalData',
-			minLength: constants.additionalData.minLength,
-			maxLength: constants.additionalData.maxLength,
+			minLength: constants.ADDITIONAL_DATA.MIN_LENGTH,
+			maxLength: constants.ADDITIONAL_DATA.MAX_LENGTH,
 		},
 	},
 };

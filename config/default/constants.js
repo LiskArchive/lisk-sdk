@@ -21,6 +21,8 @@
  * @memberof config
  * @see Parent: {@link config}
  * @property {number} ACTIVE_DELEGATES - The default number of delegates allowed to forge a block.
+ * @property {number} ADDITIONAL_DATA.MIN_LENGTH - Additional Data (Min Length)
+ * @property {number} ADDITIONAL_DATA.MAX_LENGTH - Additional Data (Max Length)
  * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} blockReceiptTimeOut - Seconds to check if the block is fresh or not.
@@ -54,9 +56,9 @@
 module.exports = {
 	ACTIVE_DELEGATES: 101,
 	BLOCK_SLOT_WINDOW: 5,
-	additionalData: {
-		minLength: 1,
-		maxLength: 64,
+	ADDITIONAL_DATA: {
+		MIN_LENGTH: 1,
+		MAX_LENGTH: 64,
 	},
 	blockReceiptTimeOut: 20, // 2 blocks
 	epochTime: new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0)),
