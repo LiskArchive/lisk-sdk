@@ -111,7 +111,7 @@ class Block {
 			const transaction = transactions[i];
 			const bytes = this.scope.transaction.getBytes(transaction);
 
-			if (size + bytes.length > constants.maxPayloadLength) {
+			if (size + bytes.length > constants.MAX_PAYLOAD_LENGTH) {
 				break;
 			}
 

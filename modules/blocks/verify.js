@@ -296,7 +296,7 @@ __private.verifyId = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPayload = function(block, result) {
-	if (block.payloadLength > constants.maxPayloadLength) {
+	if (block.payloadLength > constants.MAX_PAYLOAD_LENGTH) {
 		result.errors.push('Payload length is too long');
 	}
 

@@ -38,7 +38,7 @@
  // TODO: Needs additional check to revise max payload length
  // for each transaction type for consistency
  // FYI: https://lisk.io/documentation/the-lisk-protocol/blocks {Block Payload Section}
- * @property {number} maxPayloadLength - Maximum transaction bytes length for 25 transactions in a single block.
+ * @property {number} MAX_PAYLOAD_LENGTH - Maximum transaction bytes length for 25 transactions in a single block.
  * @property {number} maxPeers - Maximum number of peers allowed to connect while broadcasting a block.
  * @property {number} maxSharedTxs - Maximum number of in-memory transactions/signatures shared accros peers.
  * @property {number} maxTxsPerBlock -	Maximum Number of transactions allowed per block.
@@ -74,7 +74,7 @@ module.exports = {
 		DAPP_WITHDRAWAL: '10000000',
 		DAPP_DEPOSIT: '10000000',
 	},
-	maxPayloadLength: 1024 * 1024,
+	MAX_PAYLOAD_LENGTH: 1024 * 1024,
 	maxPeers: 100,
 	maxSharedTransactions: 100,
 	maxTransactionsPerBlock: 25,

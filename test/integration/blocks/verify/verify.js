@@ -418,7 +418,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyPayload', () => {
-			it('should fail when payload length greater than maxPayloadLength constant value', done => {
+			it('should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value', done => {
 				var payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
