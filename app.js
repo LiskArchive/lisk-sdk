@@ -17,6 +17,8 @@
 var path = require('path');
 var fs = require('fs');
 var d = require('domain').create();
+var dns = require('dns');
+var net = require('net');
 var SocketCluster = require('socketcluster');
 var async = require('async');
 var Logger = require('./logger.js');
@@ -188,7 +190,7 @@ d.run(() => {
 	async.auto(
 		{
 			/**
-			 * Attempts to determine nethash from genesis block.
+			 * Prepare the config object.
 			 *
 			 * @func config
 			 * @memberof! app
@@ -199,7 +201,37 @@ d.run(() => {
 				if (!appConfig.nethash) {
 					throw Error('Failed to assign nethash from genesis block');
 				}
-				cb(null, appConfig);
+
+				// In case domain names are used, resolve those to IP addresses.
+				var peerDomainLookupTasks = appConfig.peers.list.map(
+					peer => callback => {
+						if (net.isIPv4(peer.ip)) {
+							return setImmediate(() => {
+								callback(null, peer);
+							});
+						}
+						dns.lookup(peer.ip, { family: 4 }, (err, address) => {
+							if (err) {
+								console.error(
+									`Failed to resolve peer domain name ${
+										peer.ip
+									} to an IP address`
+								);
+								return callback(err, peer);
+							}
+							callback(null, Object.assign({}, peer, { ip: address }));
+						});
+					}
+				);
+
+				async.parallel(peerDomainLookupTasks, (err, results) => {
+					if (err) {
+						cb(err, appConfig);
+						return;
+					}
+					appConfig.peers.list = results;
+					cb(null, appConfig);
+				});
 			},
 
 			logger(cb) {

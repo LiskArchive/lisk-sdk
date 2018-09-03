@@ -49,6 +49,9 @@ module.exports = {
 		'11613486949732674475', // 123300
 		'14164134775432642506', // 123333
 	],
+	precedent: {
+		disableDappTransfer: 6901027, // Disable Dapp Transfer at this block height
+	},
 	// <version>: { start: <start_height>, end: <end_height> }
 	blockVersions: {
 		0: { start: 1, end: 6901027 },

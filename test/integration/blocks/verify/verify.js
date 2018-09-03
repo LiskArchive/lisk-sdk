@@ -31,7 +31,7 @@ var slots = require('../../../../helpers/slots.js');
 var accountFixtures = require('../../../fixtures/accounts');
 var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-const blockVersion = require('../../../../../logic/block_version.js');
+const blockVersion = require('../../../../logic/block_version.js');
 
 const constants = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;

@@ -22,7 +22,6 @@ const exceptions = global.exceptions;
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @requires helpers/exceptions
  */
 
 /**

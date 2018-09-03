@@ -11,8 +11,27 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 [Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
-This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [Binary](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
-If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
+This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
+If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](#installation).
+
+## Index
+
+* [Pre-Installation](#pre-installation)
+  * [Create lisk user](#create-new-user-lisk)
+  * [Tool Chain Components](#tool-chain-components)
+  * [Git](#git)
+  * [Node.JS](#nodejs)
+  * [PostgreSQL](#postgresql)
+  * [Redis (optional)](#redis-optional)
+* [Installation](#installation)
+* [Managing Lisk](#tool)
+* [Configuring Lisk](#configuring-lisk)
+  * [Structure](#structure)
+  * [Command Line Options](#command-line-options)
+  * [Examples](#examples)
+* [Tests](#tests)
+  * [Preparing Node](#preparing-node)
+  * [Running Tests](#running-tests)
 
 ## Pre-Installation
 
@@ -20,101 +39,176 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 ### System Install
 
-* Tool chain components -- Used for compiling dependencies
+#### Create new user `lisk`
 
-  * Ubuntu 14|16 / Debian:
-
-    ```
-    sudo apt-get update
-    sudo apt-get install -y python build-essential curl automake autoconf libtool
-    ```
-
-  * MacOS 10.12-10.13 (Sierra/High Sierra):
-
-    Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
-
-    Update homebrew and install dependencies:
-
-    ```
-    brew update
-    brew doctor
-    brew install curl automake autoconf libtool
-    ```
-
-* Git (<https://github.com/git/git>) -- Used for cloning and updating Lisk
-
-  * Ubuntu 14|16 / Debian:
-
-    ```
-    sudo apt-get install -y git
-    ```
-
-  * MacOS 10.12-10.13 (Sierra/High Sierra):
-
-    ```
-    brew install git
-    ```
-
-### Node.js (<https://nodejs.org/>)
-
-* Node.js serves as the underlying engine for code execution.
-
-  Install System wide via package manager:
-
-  * Ubuntu 14|16 / Debian:
-
-    ```
-    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    ```
-
-  * MacOS 10.12-10.13 (Sierra/High Sierra):
-
-    ```
-    brew install node@8.11.3
-    ```
-
-* _(Recommended)_ Install using a version manager such as nvm.
-
-  1. Install nvm following their instructions (https://github.com/creationix/nvm#installation)
-  2. Install the correct version of Node.js using nvm:
-
-  ```
-  nvm install v8.11.3
-  ```
-
-* _(Recommended)_ PM2 (<https://github.com/Unitech/pm2>) -- PM2 manages the node process for Lisk
-
-  ```
-  npm install -g pm2
-  ```
-
-### PostgreSQL (version 9.6):
-
-* Ubuntu 14|16 / Debian:
+* Ubuntu:
 
 ```
-curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
-sudo -u postgres createuser --createdb $USER
-createdb lisk_test
-createdb lisk_main
-sudo -u postgres psql -d lisk_test -c "alter user "$USER" with password 'password';"
-sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'password';"
+sudo adduser lisk
+```
+
+Note: The lisk user itself does not need any sudo rights to run Lisk Core.
+
+#### Tool chain components
+
+Used for compiling dependencies.
+
+* Ubuntu:
+
+```
+sudo apt-get update
+sudo apt-get install -y python build-essential curl automake autoconf libtool ntp
+```
+
+* MacOS 10.12-10.13 (Sierra/High Sierra):
+
+Make sure that you have both [XCode](https://developer.apple.com/xcode/) and [Homebrew](https://brew.sh/) installed on your machine.
+
+Update homebrew and install dependencies:
+
+```
+brew update
+brew doctor
+brew install curl automake autoconf libtool
+```
+
+### [Git](https://github.com/git/git)
+
+Used for cloning and updating Lisk
+
+* Ubuntu:
+
+```
+sudo apt-get install -y git
+```
+
+* MacOS 10.12-10.13 (Sierra/High Sierra):
+
+```
+brew install git
+```
+
+### [Node.js](https://nodejs.org/)
+
+Node.js serves as the underlying engine for code execution.
+
+Install System wide via package manager:
+
+* Ubuntu:
+
+```
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+* MacOS 10.12-10.13 (Sierra/High Sierra):
+
+```
+brew install node@8.11.3
+```
+
+#### Check correct version
+
+Especially when installing on Ubuntu, check if you have a compatible node version runnging:
+
+```
+node -v
+```
+
+Compare with [package.json](https://github.com/LiskHQ/lisk/blob/development/package.json#L19)
+
+Best practice to manage node version is to install a node version manager like `nvm` or `n`.
+
+##### [nvm](https://github.com/creationix/nvm) (recommended)
+
+1. Login as lisk user, that has been created in the first step:
+
+```
+su - lisk
+```
+
+2. Install nvm following these [instructions](https://github.com/creationix/nvm#installation)
+3. Install the correct version of Node.js using nvm:
+
+```
+nvm install 8.11.3
+```
+
+For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
+
+### [PM2](https://github.com/Unitech/pm2) (recommended)
+
+PM2 manages the node process for Lisk.
+
+```
+npm install -g pm2
+```
+
+### PostgreSQL:
+
+* Ubuntu:
+
+Firstly, download and install postgreSQL 9.6:
+
+```
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $( lsb_release -cs )-pgdg main" |sudo tee /etc/apt/sources.list.d/pgdg.list
+sudo apt-get update
+sudo apt-get install --assume-yes postgresql-9.6 postgresql-contrib-9.6 libpq-dev
+```
+
+After installation, you should see the postgres database cluster, by running
+
+```
+  pg_lsclusters
+```
+
+Drop the existing database cluster, and replace it with a cluster with the locale `en_US.UTF-8`:
+
+```
+  sudo pg_dropcluster --stop 9.6 main
+  sudo pg_createcluster --locale en_US.UTF-8 --start 9.6 main
+```
+
+Create a new database user called `lisk` and grant it rights to create databases:
+
+```
+  sudo -u postgres createuser --createdb lisk
+```
+
+Create the databases for Testnet and Mainnet:
+
+```
+  createdb -O lisk lisk_test
+  createdb -O lisk lisk_main
+```
+
+Change `'password'` to a secure password of your choice.
+
+```
+sudo -u postgres psql -d lisk_test -c "alter user lisk with password 'password';"
+sudo -u postgres psql -d lisk_main -c "alter user lisk with password 'password';"
 ```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
 ```
 brew install postgresql@9.6
-initdb /usr/local/var/postgres -E utf8
+initdb /usr/local/var/postgres --encoding utf8 --locale=en_US.UTF-8
 brew services start postgresql@9.6
 createdb lisk_test
 createdb lisk_main
 ```
 
-### Installing Redis
+### Redis (optional)
 
-* Ubuntu 14|16 / Debian:
+If you do not plan to use the API of your node for some reason, you can skip this step.
+
+Redis is an optional dependency, that caches database queries that need to be done to answer API requests.
+
+It is recommended to install Redis to improve the performance of API responses.
+
+* Ubuntu:
 
 ```
 sudo apt-get install redis-server
@@ -152,17 +246,15 @@ brew services stop redis
 
 **NOTE:** Lisk does not run on the Redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
-1. **Change the Lisk configuration**
+1. **Change the Redis launch configuration**
 
-Update the redis port configuration in the `config.json` file to the Redis default `redis.port=6379`. This is the easiest option, however, be mindful of reverting the changes when you make a pull request.
+Update the launch configuration file on your system. Note that there are a number of ways to do this.
 
-2. **Change the Redis launch configuration**
-
-Update the Redis launch configuration file on your system. Note that their a number of ways to do this. The following is one way:
+The following is one example:
 
 1. Stop redis-server
 2. Edit the file `redis.conf` and change: `port 6379` to `port 6380`
-   * Ubuntu 14|16 / Debian: `/etc/redis/redis.conf`
+   * Ubuntu: `/etc/redis/redis.conf`
    * MacOS: `/usr/local/etc/redis.conf`
 3. Start redis-server
 
@@ -173,11 +265,15 @@ redis-cli -p 6380
 ping
 ```
 
-And you should get the result `PONG`. TO update the redis port in Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
+And you should get the result `PONG`.
 
-## Installation Steps
+2. **Change the Lisk configuration**
 
-Before you proceed, you need to decide if you want to connect your node to the Testnet (Test Network), to the Mainnet (Main Network) or to work in your own network. In order to connect your node with the _Mainnet_ for example, clone this Lisk Core repository from the master branch and initialize the modules.
+To update the redis port in the Lisk configuration, check the section [Configuring Lisk](#configuring-lisk)
+
+## Installation
+
+Clone the Lisk Core repository using Git and initialize the modules.
 
 ```
 git clone https://github.com/LiskHQ/lisk.git
@@ -194,7 +290,8 @@ To test Lisk is built and configured correctly, issue the following command:
 node app.js
 ```
 
-This will start the lisk instance with `devnet` configuration. Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`. This will fork the process into the background and automatically recover the process if it fails.
+This will start the lisk instance with `devnet` configuration. Once the process is verified as running correctly, `CTRL+C` and start the process with `pm2`.
+This will fork the process into the background and automatically recover the process if it fails.
 
 ```
 pm2 start --name lisk app.js

@@ -25,6 +25,14 @@ describe('BigNumber', () => {
 	var validBufferSeedSize2;
 	var validBufferSeedMpint;
 
+	describe('exponential values', () => {
+		it('should not return exponential value for a long number', () => {
+			const amount = '10000000000000000000000000000000000000000000000000000';
+			const value = new Bignum(amount).toString();
+			return expect(value.match(/[e]/i)).to.be.null;
+		});
+	});
+
 	describe('fromBuffer', () => {
 		before(done => {
 			validSeed = '782910138827292261791972728324982';

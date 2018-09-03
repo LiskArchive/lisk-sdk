@@ -7,23 +7,23 @@
 	"peers": {
 		"list": [
 			{
-				"ip": "94.237.29.221",
+				"ip": "testnet-seed-01.lisk.io",
 				"wsPort": 7001
 			},
 			{
-				"ip": "83.136.254.104",
+				"ip": "testnet-seed-02.lisk.io",
 				"wsPort": 7001
 			},
 			{
-				"ip": "209.50.48.177",
+				"ip": "testnet-seed-03.lisk.io",
 				"wsPort": 7001
 			},
 			{
-				"ip": "94.237.64.33",
+				"ip": "testnet-seed-04.lisk.io",
 				"wsPort": 7001
 			},
 			{
-				"ip": "94.237.30.23",
+				"ip": "testnet-seed-05.lisk.io",
 				"wsPort": 7001
 			}
 		]

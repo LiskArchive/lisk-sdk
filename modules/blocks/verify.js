@@ -18,8 +18,8 @@ const crypto = require('crypto');
 const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
-const blockVersion = require('../../logic/block_version.js');
 const slots = require('../../helpers/slots.js');
+const blockVersion = require('../../logic/block_version.js');
 const Bignum = require('../../helpers/bignum.js');
 
 let modules;

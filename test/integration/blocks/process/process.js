@@ -16,10 +16,10 @@
 'use strict';
 
 var async = require('async');
-const blockVersion = require('../../../../../logic/block_version.js');
-var application = require('../../../../common/application');
-var modulesLoader = require('../../../../common/modules_loader');
-var clearDatabaseTable = require('../../../../common/db_sandbox')
+const blockVersion = require('../../../../logic/block_version.js');
+var application = require('../../../common/application');
+var modulesLoader = require('../../../common/modules_loader');
+var clearDatabaseTable = require('../../../common/db_sandbox')
 	.clearDatabaseTable;
 var loadTables = require('./process_tables_data.json');
 
