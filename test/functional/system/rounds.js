@@ -228,9 +228,10 @@ describe('rounds', () => {
 							: // If first is null - return -1, if not return 1
 								aPK === null ? -1 : 1;
 
-				// If first is less than second - return -1,
+				// Compare vote weights first:
+				// if first is less than second - return -1,
 				// if first is greather than second - return 1,
-				// if both are equal - return 0
+				// if both are equal - compare public keys
 				return aVote.lt(bVote) ? -1 : aVote.gt(bVote) ? 1 : bufferComp;
 			})
 			.map(key => accounts[key])
