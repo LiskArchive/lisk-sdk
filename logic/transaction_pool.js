@@ -275,7 +275,7 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
  * @todo Limit is only implemented with queued transactions, reverse param is unused
  */
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
-	const minLimit = constants.maxTransactionsPerBlock + 2;
+	const minLimit = constants.MAX_TRANSACTIONS_PER_BLOCK + 2;
 
 	if (limit <= minLimit || limit > constants.MAX_SHARED_TRANSACTIONS) {
 		limit = minLimit;
@@ -283,13 +283,13 @@ TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
 
 	const unconfirmed = self.getUnconfirmedTransactionList(
 		false,
-		constants.maxTransactionsPerBlock
+		constants.MAX_TRANSACTIONS_PER_BLOCK
 	);
 	limit -= unconfirmed.length;
 
 	const multisignatures = self.getMultisignatureTransactionList(
 		false,
-		constants.maxTransactionsPerBlock
+		constants.MAX_TRANSACTIONS_PER_BLOCK
 	);
 	limit -= multisignatures.length;
 
@@ -750,20 +750,20 @@ TransactionPool.prototype.fillPool = function(cb) {
 	const unconfirmedCount = self.countUnconfirmed();
 	library.logger.debug(`Transaction pool size: ${unconfirmedCount}`);
 
-	if (unconfirmedCount >= constants.maxTransactionsPerBlock) {
+	if (unconfirmedCount >= constants.MAX_TRANSACTIONS_PER_BLOCK) {
 		return setImmediate(cb);
 	}
 	let spare = 0;
 	const multisignaturesLimit = 5;
 
-	spare = constants.maxTransactionsPerBlock - unconfirmedCount;
+	spare = constants.MAX_TRANSACTIONS_PER_BLOCK - unconfirmedCount;
 	const spareMulti = spare >= multisignaturesLimit ? multisignaturesLimit : 0;
 	const multisignatures = self
 		.getMultisignatureTransactionList(true, multisignaturesLimit, true)
 		.slice(0, spareMulti);
 	spare = Math.abs(spare - multisignatures.length);
 	const queuedTransactions = self
-		.getQueuedTransactionList(true, constants.maxTransactionsPerBlock)
+		.getQueuedTransactionList(true, constants.MAX_TRANSACTIONS_PER_BLOCK)
 		.slice(0, spare);
 
 	return __private.applyUnconfirmedList(

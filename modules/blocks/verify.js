@@ -306,7 +306,7 @@ __private.verifyPayload = function(block, result) {
 		);
 	}
 
-	if (block.transactions.length > constants.maxTransactionsPerBlock) {
+	if (block.transactions.length > constants.MAX_TRANSACTIONS_PER_BLOCK) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
