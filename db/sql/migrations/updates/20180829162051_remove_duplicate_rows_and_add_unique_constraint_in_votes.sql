@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-BEGIN;
-	DELETE FROM "dapps" "d0"
-		USING "dapps" "d1"
-	WHERE "d0"."ctid" < "d1"."ctid"
-		AND "d0"."transactionId" = "d1"."transactionId";
+DELETE FROM "votes" "v0"
+	USING "votes" "v1"
+WHERE "v0"."ctid" < "v1"."ctid"
+	AND "v0"."transactionId" = "v1"."transactionId";
 
-	ALTER TABLE "dapps"
-		ADD PRIMARY KEY ("transactionId");
-
-COMMIT;
+-- Add unique constraint on votes table --
+ALTER TABLE "votes"
+	ADD UNIQUE ("transactionId");
+	

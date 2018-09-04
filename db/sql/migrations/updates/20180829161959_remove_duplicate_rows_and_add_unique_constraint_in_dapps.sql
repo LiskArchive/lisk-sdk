@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-BEGIN;
-	DELETE FROM "multisignatures" "m0"
-		USING "multisignatures" "m1"
-	WHERE "m0"."ctid" < "m1"."ctid"
-		AND "m0"."transactionId" = "m1"."transactionId";
+DELETE FROM "dapps" "d0"
+	USING "dapps" "d1"
+WHERE "d0"."ctid" < "d1"."ctid"
+	AND "d0"."transactionId" = "d1"."transactionId";
 
-	ALTER TABLE "multisignatures"
-		ADD PRIMARY KEY ("transactionId");
-COMMIT;
+-- Add unique constraint on dapps table --
+ALTER TABLE "dapps"
+	ADD UNIQUE ("transactionId");

@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-BEGIN;
-	DELETE FROM "votes" "v0"
-		USING "votes" "v1"
-	WHERE "v0"."ctid" < "v1"."ctid"
-		AND "v0"."transactionId" = "v1"."transactionId";
-
-	ALTER TABLE "votes"
-		ADD PRIMARY KEY ("transactionId");
-COMMIT;
+DELETE FROM "multisignatures" "m0"
+	USING "multisignatures" "m1"
+WHERE "m0"."ctid" < "m1"."ctid"
+	AND "m0"."transactionId" = "m1"."transactionId";
+	
+-- Add unique constraint on multisignatures table --
+ALTER TABLE "multisignatures"
+	ADD UNIQUE ("transactionId");
