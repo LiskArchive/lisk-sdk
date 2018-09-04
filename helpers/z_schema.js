@@ -291,6 +291,15 @@ var liskFormats = {
 		}
 		return false;
 	},
+	/**
+	 * Returns true for integer or null.
+	 *
+	 * @param {Object} value
+	 * @returns {boolean}
+	 */
+	integerOrNull(value) {
+		return Number.isInteger(value) || value === null;
+	},
 };
 
 // Register the formats
