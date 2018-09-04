@@ -277,7 +277,7 @@ TransactionPool.prototype.getMultisignatureTransactionList = function(
 TransactionPool.prototype.getMergedTransactionList = function(reverse, limit) {
 	const minLimit = constants.maxTransactionsPerBlock + 2;
 
-	if (limit <= minLimit || limit > constants.maxSharedTransactions) {
+	if (limit <= minLimit || limit > constants.MAX_SHARED_TRANSACTIONS) {
 		limit = minLimit;
 	}
 

@@ -40,7 +40,8 @@
  // FYI: https://lisk.io/documentation/the-lisk-protocol/blocks {Block Payload Section}
  * @property {number} MAX_PAYLOAD_LENGTH - Maximum transaction bytes length for 25 transactions in a single block.
  * @property {number} MAX_PEERS - Maximum number of peers allowed to connect while broadcasting a block.
- * @property {number} maxTxsPerBlock -	Maximum Number of transactions allowed per block.
+ * @property {number} MAX_SHARED_TRANSACTIONS -	Maximum number of in-memory transactions/signatures shared accros peers.
+ * @property {number} maxTransactionsPerBlock -	Maximum Number of transactions allowed per block.
  * @property {number} maxVotesPerTransaction - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} minBroadhashConsensus - Minimum broadhash consensus(%) among connected {MAX_PEERS} peers.
  * @property {string[]} nethashes - For mainnet and testnet.
@@ -75,7 +76,7 @@ module.exports = {
 	},
 	MAX_PAYLOAD_LENGTH: 1024 * 1024,
 	MAX_PEERS: 100,
-	maxSharedTransactions: 100,
+	MAX_SHARED_TRANSACTIONS: 100,
 	maxTransactionsPerBlock: 25,
 	maxVotesPerTransaction: 33,
 	maxVotesPerAccount: 101,
