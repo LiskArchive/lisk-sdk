@@ -59,7 +59,7 @@ describe('GET /api/voters', () => {
 			describe('when only sort param provided', () => {
 				it('should fail with error message requiring any of param', () => {
 					return votersEndpoint
-						.makeRequest({ sort: 'username:asc' }, 400)
+						.makeRequest({ sort: 'publicKey:asc' }, 400)
 						.then(res => {
 							expect(res.body.errors).to.have.length(4);
 							expectSwaggerParamError(res, 'username');
@@ -85,7 +85,7 @@ describe('GET /api/voters', () => {
 			describe('when sort params provided', () => {
 				it('should fail with error message requiring any of param', () => {
 					return votersEndpoint
-						.makeRequest({ sort: 'username:asc' }, 400)
+						.makeRequest({ sort: 'publicKey:asc' }, 400)
 						.then(res => {
 							expect(res.body.errors).to.have.length(4);
 							expectSwaggerParamError(res, 'username');
@@ -296,12 +296,12 @@ describe('GET /api/voters', () => {
 			});
 
 			describe('sort with any of required field (username)', () => {
-				describe('username', () => {
+				describe('publicKey', () => {
 					it('should return voters in ascending order', () => {
 						return votersEndpoint
 							.makeRequest(
 								{
-									sort: 'username:asc',
+									sort: 'publicKey:asc',
 									username: validVotedDelegate.delegateName,
 								},
 								200
@@ -313,10 +313,10 @@ describe('GET /api/voters', () => {
 								);
 								expect(
 									_(res.body.data.voters)
-										.sortBy('username')
-										.map('username')
+										.sortBy('publicKey')
+										.map('publicKey')
 										.value()
-								).to.to.be.eql(_.map(res.body.data.voters, 'username'));
+								).to.be.eql(_.map(res.body.data.voters, 'publicKey'));
 							});
 					});
 
@@ -324,7 +324,7 @@ describe('GET /api/voters', () => {
 						return votersEndpoint
 							.makeRequest(
 								{
-									sort: 'username:desc',
+									sort: 'publicKey:desc',
 									username: validVotedDelegate.delegateName,
 								},
 								200
@@ -336,11 +336,11 @@ describe('GET /api/voters', () => {
 								);
 								expect(
 									_(res.body.data.voters)
-										.sortBy('username')
+										.sortBy('publicKey')
 										.reverse()
-										.map('username')
+										.map('publicKey')
 										.value()
-								).to.to.be.eql(_.map(res.body.data.voters, 'username'));
+								).to.to.be.eql(_.map(res.body.data.voters, 'publicKey'));
 							});
 					});
 				});

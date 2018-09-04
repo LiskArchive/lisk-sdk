@@ -761,11 +761,11 @@ paths:
           required: false
           type: string
           enum:
-            - username:asc
-            - username:desc
+            - publicKey:asc
+            - publicKey:desc
             - balance:asc
             - balance:desc
-          default: username:asc
+          default: publicKey:asc
       responses:
         200:
           description: Voters list
@@ -2675,7 +2675,7 @@ definitions:
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
       rank:
-        type: integer
+        format: integerOrNull
         example: 70
         description: |
           Rank of the delegate.
@@ -2726,7 +2726,7 @@ definitions:
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
       rank:
-        type: integer
+        format: integerOrNull
         example: 70
         description: |
           Rank of the delegate.
