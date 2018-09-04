@@ -363,7 +363,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it(`using more_than_max_members scenario(${constants.MULTISIG_CONSTRAINTS
-				.keysgroup.maxItems + 2},2) should fail`, () => {
+				.KEYSGROUP.MAX_ITEMS + 2},2) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.more_than_max_members.account.passphrase,
 					keysgroup: scenarios.more_than_max_members.keysgroup,
