@@ -882,9 +882,6 @@ Account.prototype.schema = {
 			type: 'object',
 			format: 'amount',
 		},
-		rate: {
-			type: 'integer',
-		},
 		delegates: {
 			anyOf: [
 				{
