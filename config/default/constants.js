@@ -79,7 +79,7 @@ module.exports = {
 	MAX_SHARED_TRANSACTIONS: 100,
 	MAX_TRANSACTIONS_PER_BLOCK: 25,
 	MAX_VOTES_PER_TRANSACTION: 33,
-	maxVotesPerAccount: 101,
+	MAX_VOTES_PER_ACCOUNT: 101,
 	minBroadhashConsensus: 51,
 	multisigConstraints: {
 		min: {
