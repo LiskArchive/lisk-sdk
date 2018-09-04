@@ -254,7 +254,24 @@ Accounts.prototype.shared = {
 	 * @todo Add description for the return value
 	 */
 	getAccounts(filters, cb) {
-		library.logic.account.getAll(filters, (err, accounts) => {
+		const fields = [
+			'address',
+			'publicKey',
+			'secondPublicKey',
+			'secondSignature',
+			'u_secondSignature',
+			'username',
+			'balance',
+			'u_balance',
+			'vote',
+			'rewards',
+			'producedBlocks',
+			'missedBlocks',
+			'rank',
+			'approval',
+			'productivity',
+		];
+		library.logic.account.getAll(filters, fields, (err, accounts) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
