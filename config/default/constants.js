@@ -57,9 +57,9 @@
  * @property {number[]} REWARDS.MILESTONES - Initial 5, and decreasing until 1.
  * @property {number} REWARDS.OFFSET - Start rewards at block (n).
  * @property {number} REWARDS.DISTANCE - Distance between each milestone.
- * @property {number} totalAmount - Total amount of LSK available in network before rewards milestone started.
- * @property {number} unconfirmedTransactionTimeOut - Expiration time for unconfirmed transaction/signatures in transaction pool.
- * @property {number} expiryInterval - Transaction pool expiry timer in milliseconds
+ * @property {number} TOTAL_AMOUNT - Total amount of LSK available in network before rewards milestone started.
+ * @property {number} UNCONFIRMED_TRANSACTION_TIME_OUT - Expiration time for unconfirmed transaction/signatures in transaction pool.
+ * @property {number} EXPIRY_INTERVAL - Transaction pool expiry timer in milliseconds
  * @todo Add description for the namespace and the properties.
  */
 module.exports = {
@@ -121,7 +121,7 @@ module.exports = {
 		DISTANCE: 3000000, // Distance between each milestone
 	},
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
-	totalAmount: '10000000000000000',
-	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
-	expiryInterval: 30000,
+	TOTAL_AMOUNT: '10000000000000000',
+	UNCONFIRMED_TRANSACTION_TIME_OUT: 10800, // 1080 blocks
+	EXPIRY_INTERVAL: 30000,
 };

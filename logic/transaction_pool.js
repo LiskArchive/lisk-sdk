@@ -76,7 +76,7 @@ class TransactionPool {
 		self.bundled = { transactions: [], index: {} };
 		self.queued = { transactions: [], index: {} };
 		self.multisignature = { transactions: [], index: {} };
-		self.expiryInterval = constants.expiryInterval;
+		self.expiryInterval = constants.EXPIRY_INTERVAL;
 		self.bundledInterval = library.config.broadcasts.broadcastInterval;
 		self.bundleLimit = library.config.broadcasts.releaseLimit;
 		self.processed = 0;
@@ -988,9 +988,9 @@ __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
 		return transaction.asset.multisignature.lifetime * self.hourInSeconds;
 	} else if (Array.isArray(transaction.signatures)) {
-		return constants.unconfirmedTransactionTimeOut * 8;
+		return constants.UNCONFIRMED_TRANSACTION_TIME_OUT * 8;
 	}
-	return constants.unconfirmedTransactionTimeOut;
+	return constants.UNCONFIRMED_TRANSACTION_TIME_OUT;
 };
 
 /**

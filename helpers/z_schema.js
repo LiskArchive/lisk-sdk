@@ -288,7 +288,7 @@ var liskFormats = {
 		if (value instanceof Bignum) {
 			return (
 				value.greaterThanOrEqualTo(0) &&
-				value.lessThanOrEqualTo(global.constants.totalAmount)
+				value.lessThanOrEqualTo(global.constants.TOTAL_AMOUNT)
 			);
 		}
 		return false;

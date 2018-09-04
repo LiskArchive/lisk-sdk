@@ -38,10 +38,10 @@ describe('expire transactions', () => {
 	const { expiryInterval, unconfirmedTransactionTimeOut } = constants;
 
 	// Override transaction expire interval to every 1 second
-	global.constants.expiryInterval = 1000;
+	global.constants.EXPIRY_INTERVAL = 1000;
 
 	const setUnconfirmedTransactionTimeOut = timeout => {
-		global.constants.unconfirmedTransactionTimeOut = timeout;
+		global.constants.UNCONFIRMED_TRANSACTION_TIME_OUT = timeout;
 	};
 
 	const getSenderAddress = transaction =>
@@ -103,8 +103,8 @@ describe('expire transactions', () => {
 	});
 
 	after('reset states', done => {
-		global.constants.expiryInterval = expiryInterval;
-		global.constants.unconfirmedTransactionTimeOut = unconfirmedTransactionTimeOut;
+		global.constants.EXPIRY_INTERVAL = expiryInterval;
+		global.constants.UNCONFIRMED_TRANSACTION_TIME_OUT = unconfirmedTransactionTimeOut;
 		done();
 	});
 

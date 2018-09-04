@@ -472,7 +472,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 1; i < 1451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(constants.totalAmount));
+						expect(supply.equals(constants.TOTAL_AMOUNT));
 					}
 					done();
 				});

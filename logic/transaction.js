@@ -636,7 +636,7 @@ class Transaction {
 		let amount = transaction.amount;
 		if (
 			amount.lessThan(0) ||
-			amount.greaterThan(constants.totalAmount) ||
+			amount.greaterThan(constants.TOTAL_AMOUNT) ||
 			!amount.isInteger()
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
