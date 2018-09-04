@@ -40,15 +40,15 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			amount: constants.FEES.MULTISIGNATURE * 3,
 		}),
 		max_members: new Scenarios.Multisig({
-			members: constants.multisigConstraints.keysgroup.maxItems + 1,
+			members: constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems + 1,
 			minimum: 2,
 		}),
 		max_members_max_min: new Scenarios.Multisig({
-			members: constants.multisigConstraints.keysgroup.maxItems + 1,
-			minimum: constants.multisigConstraints.min.maximum,
+			members: constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems + 1,
+			minimum: constants.MULTISIG_CONSTRAINTS.min.maximum,
 		}),
 		more_than_max_members: new Scenarios.Multisig({
-			members: constants.multisigConstraints.keysgroup.maxItems + 2,
+			members: constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems + 2,
 		}),
 		unsigned: new Scenarios.Multisig(),
 		regular: new Scenarios.Multisig(),
@@ -106,7 +106,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Array is too short (0), minimum ${
-							constants.multisigConstraints.keysgroup.minItems
+							constants.MULTISIG_CONSTRAINTS.keysgroup.minItems
 						}`
 					);
 					badTransactions.push(transaction);
@@ -362,7 +362,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				});
 			});
 
-			it(`using more_than_max_members scenario(${constants.multisigConstraints
+			it(`using more_than_max_members scenario(${constants.MULTISIG_CONSTRAINTS
 				.keysgroup.maxItems + 2},2) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.more_than_max_members.account.passphrase,
@@ -377,8 +377,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Array is too long (${constants
-							.multisigConstraints.keysgroup.maxItems + 1}), maximum ${
-							constants.multisigConstraints.keysgroup.maxItems
+							.MULTISIG_CONSTRAINTS.keysgroup.maxItems + 1}), maximum ${
+							constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems
 						}`
 					);
 					badTransactions.push(transaction);
@@ -407,13 +407,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it(`using min greater than maximum(${
-				constants.multisigConstraints.min.maximum
+				constants.MULTISIG_CONSTRAINTS.min.maximum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.max_members_max_min.account.passphrase,
 					keysgroup: scenarios.max_members_max_min.keysgroup,
 					lifetime: 1,
-					minimum: constants.multisigConstraints.min.maximum + 1,
+					minimum: constants.MULTISIG_CONSTRAINTS.min.maximum + 1,
 				});
 
 				return sendTransactionPromise(
@@ -422,8 +422,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${constants
-							.multisigConstraints.min.maximum + 1} is greater than maximum ${
-							constants.multisigConstraints.min.maximum
+							.MULTISIG_CONSTRAINTS.min.maximum + 1} is greater than maximum ${
+							constants.MULTISIG_CONSTRAINTS.min.maximum
 						}`
 					);
 					badTransactions.push(transaction);
@@ -431,13 +431,13 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it(`using min less than minimum(${
-				constants.multisigConstraints.min.minimum
+				constants.MULTISIG_CONSTRAINTS.min.minimum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.max_members.account.passphrase,
 					keysgroup: scenarios.max_members.keysgroup,
 					lifetime: 1,
-					minimum: constants.multisigConstraints.min.minimum - 1,
+					minimum: constants.MULTISIG_CONSTRAINTS.min.minimum - 1,
 				});
 
 				return sendTransactionPromise(
@@ -446,8 +446,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${constants
-							.multisigConstraints.min.minimum - 1} is less than minimum ${
-							constants.multisigConstraints.min.minimum
+							.MULTISIG_CONSTRAINTS.min.minimum - 1} is less than minimum ${
+							constants.MULTISIG_CONSTRAINTS.min.minimum
 						}`
 					);
 					badTransactions.push(transaction);
@@ -457,12 +457,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		describe('lifetime', () => {
 			it(`using greater than maximum(${
-				constants.multisigConstraints.lifetime.maximum
+				constants.MULTISIG_CONSTRAINTS.lifetime.maximum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
-					lifetime: constants.multisigConstraints.lifetime.maximum + 1,
+					lifetime: constants.MULTISIG_CONSTRAINTS.lifetime.maximum + 1,
 					minimum: 2,
 				});
 
@@ -472,9 +472,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${constants
-							.multisigConstraints.lifetime.maximum +
+							.MULTISIG_CONSTRAINTS.lifetime.maximum +
 							1} is greater than maximum ${
-							constants.multisigConstraints.lifetime.maximum
+							constants.MULTISIG_CONSTRAINTS.lifetime.maximum
 						}`
 					);
 					badTransactions.push(transaction);
@@ -482,12 +482,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it(`using less than minimum(${
-				constants.multisigConstraints.lifetime.minimum
+				constants.MULTISIG_CONSTRAINTS.lifetime.minimum
 			}) should fail`, () => {
 				transaction = lisk.transaction.registerMultisignature({
 					passphrase: scenarios.regular.account.passphrase,
 					keysgroup: scenarios.regular.keysgroup,
-					lifetime: constants.multisigConstraints.lifetime.minimum - 1,
+					lifetime: constants.MULTISIG_CONSTRAINTS.lifetime.minimum - 1,
 					minimum: 2,
 				});
 
@@ -497,8 +497,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				).then(res => {
 					expect(res.body.message).to.be.equal(
 						`Invalid transaction body - Failed to validate multisignature schema: Value ${constants
-							.multisigConstraints.lifetime.minimum - 1} is less than minimum ${
-							constants.multisigConstraints.lifetime.minimum
+							.MULTISIG_CONSTRAINTS.lifetime.minimum -
+							1} is less than minimum ${
+							constants.MULTISIG_CONSTRAINTS.lifetime.minimum
 						}`
 					);
 					badTransactions.push(transaction);

@@ -116,17 +116,17 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 
 	if (
 		transaction.asset.multisignature.min <
-			constants.multisigConstraints.min.minimum ||
+			constants.MULTISIG_CONSTRAINTS.min.minimum ||
 		transaction.asset.multisignature.min >
-			constants.multisigConstraints.min.maximum
+			constants.MULTISIG_CONSTRAINTS.min.maximum
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Invalid multisignature min. Must be between',
-				constants.multisigConstraints.min.minimum,
+				constants.MULTISIG_CONSTRAINTS.min.minimum,
 				'and',
-				constants.multisigConstraints.min.maximum,
+				constants.MULTISIG_CONSTRAINTS.min.maximum,
 			].join(' ')
 		);
 	}
@@ -148,17 +148,17 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 
 	if (
 		transaction.asset.multisignature.lifetime <
-			constants.multisigConstraints.lifetime.minimum ||
+			constants.MULTISIG_CONSTRAINTS.lifetime.minimum ||
 		transaction.asset.multisignature.lifetime >
-			constants.multisigConstraints.lifetime.maximum
+			constants.MULTISIG_CONSTRAINTS.lifetime.maximum
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Invalid multisignature lifetime. Must be between',
-				constants.multisigConstraints.lifetime.minimum,
+				constants.MULTISIG_CONSTRAINTS.lifetime.minimum,
 				'and',
-				constants.multisigConstraints.lifetime.maximum,
+				constants.MULTISIG_CONSTRAINTS.lifetime.maximum,
 			].join(' ')
 		);
 	}
@@ -497,18 +497,18 @@ Multisignature.prototype.schema = {
 	properties: {
 		min: {
 			type: 'integer',
-			minimum: constants.multisigConstraints.min.minimum,
-			maximum: constants.multisigConstraints.min.maximum,
+			minimum: constants.MULTISIG_CONSTRAINTS.min.minimum,
+			maximum: constants.MULTISIG_CONSTRAINTS.min.maximum,
 		},
 		keysgroup: {
 			type: 'array',
-			minItems: constants.multisigConstraints.keysgroup.minItems,
-			maxItems: constants.multisigConstraints.keysgroup.maxItems,
+			minItems: constants.MULTISIG_CONSTRAINTS.keysgroup.minItems,
+			maxItems: constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems,
 		},
 		lifetime: {
 			type: 'integer',
-			minimum: constants.multisigConstraints.lifetime.minimum,
-			maximum: constants.multisigConstraints.lifetime.maximum,
+			minimum: constants.MULTISIG_CONSTRAINTS.lifetime.minimum,
+			maximum: constants.MULTISIG_CONSTRAINTS.lifetime.maximum,
 		},
 	},
 	required: ['min', 'keysgroup', 'lifetime'],
