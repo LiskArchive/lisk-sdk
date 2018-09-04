@@ -1132,7 +1132,7 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when modules.peers.calculateConsensus() < constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() < constants.MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
 						isPoorConsensusResult = transportInstance.poorConsensus();
@@ -1144,7 +1144,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when modules.peers.calculateConsensus() >= constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() >= constants.MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
 						isPoorConsensusResult = transportInstance.poorConsensus();

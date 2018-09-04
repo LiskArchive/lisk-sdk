@@ -43,7 +43,7 @@
  * @property {number} MAX_SHARED_TRANSACTIONS -	Maximum number of in-memory transactions/signatures shared accros peers.
  * @property {number} MAX_TRANSACTIONS_PER_BLOCK -	Maximum Number of transactions allowed per block.
  * @property {number} MAX_VOTES_PER_TRANSACTION - The maximum number of votes allowed in transaction type(3) votes.
- * @property {number} minBroadhashConsensus - Minimum broadhash consensus(%) among connected {MAX_PEERS} peers.
+ * @property {number} MIN_BROADHASH_CONSENSUS - Minimum broadhash consensus(%) among connected {MAX_PEERS} peers.
  * @property {string[]} nethashes - For mainnet and testnet.
  * @property {number} constants.normalizer - Use this to convert LISK amount to normal value.
  * @property {Object} rewards - Object representing LSK rewards milestone.
@@ -80,7 +80,7 @@ module.exports = {
 	MAX_TRANSACTIONS_PER_BLOCK: 25,
 	MAX_VOTES_PER_TRANSACTION: 33,
 	MAX_VOTES_PER_ACCOUNT: 101,
-	minBroadhashConsensus: 51,
+	MIN_BROADHASH_CONSENSUS: 51,
 	multisigConstraints: {
 		min: {
 			minimum: 1,
