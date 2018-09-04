@@ -104,11 +104,6 @@ class Broadcaster {
 	getPeers(params, cb) {
 		params.limit = params.limit || this.config.peerLimit;
 		const peers = library.logic.peers.listRandomConnected(params);
-		library.logger.info(
-			['Broadhash consensus now', modules.peers.getLastConsensus(), '%'].join(
-				' '
-			)
-		);
 		return setImmediate(cb, null, peers);
 	}
 
@@ -260,8 +255,9 @@ __private.filterTransaction = function(transaction, cb) {
 		if (modules.transactions.transactionInPool(transaction.id)) {
 			return setImmediate(cb, null, true);
 		}
-		return library.logic.transaction.checkConfirmed(transaction, err =>
-			setImmediate(cb, null, !err)
+		return library.logic.transaction.checkConfirmed(
+			transaction,
+			(err, isConfirmed) => setImmediate(cb, null, !err && !isConfirmed)
 		);
 	}
 	return setImmediate(cb, null, false);

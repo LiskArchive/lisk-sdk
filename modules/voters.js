@@ -18,6 +18,7 @@ const _ = require('lodash');
 const async = require('async');
 const apiCodes = require('../helpers/api_codes');
 const ApiError = require('../helpers/api_error');
+const sortBy = require('../helpers/sort_by.js');
 
 const constants = global.constants;
 
@@ -82,16 +83,25 @@ const getVotersForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
+
+	let sort = { sortField: 'publicKey', sortMethod: 'ASC' };
+	if (filters.sort) {
+		const allowedSortFields = ['balance', 'publicKey'];
+		sort = sortBy.sortBy(filters.sort, {
+			sortFields: allowedSortFields,
+			quoteField: false,
+		});
+	}
+
 	library.db.voters
 		.list({
 			publicKey: delegate.publicKey,
 			limit: filters.limit,
 			offset: filters.offset,
+			sortField: sort.sortField,
+			sortMethod: sort.sortMethod,
 		})
-		.then(rows => {
-			const addresses = rows.map(a => a.accountId);
-			return setImmediate(cb, null, addresses);
-		})
+		.then(voters => setImmediate(cb, null, voters))
 		.catch(err => {
 			library.logger.error(err.stack);
 			return setImmediate(
@@ -99,21 +109,6 @@ const getVotersForDelegates = function(filters, delegate, cb) {
 				`Failed to get voters for delegate: ${delegate.publicKey}`
 			);
 		});
-};
-
-/**
- * Description of populateVoters.
- *
- * @todo Add @param tags
- * @todo Add @returns tag
- * @todo Add description of the function
- */
-const populateVoters = function(sort, addresses, cb) {
-	modules.accounts.getAccounts(
-		{ address: addresses, sort },
-		['address', 'balance', 'publicKey'],
-		cb
-	);
 };
 
 /**
@@ -246,17 +241,13 @@ Voters.prototype.shared = {
 					'delegate',
 					getVotersForDelegates.bind(null, filters),
 				],
-				populatedVoters: [
-					'votersAddresses',
-					populateVoters.bind(null, filters.sort),
-				],
 			},
 			(err, results) => {
 				if (err) {
 					return setImmediate(cb, err);
 				}
 
-				results.delegate.voters = results.populatedVoters;
+				results.delegate.voters = results.votersAddresses;
 				results.delegate.votes = results.votersCount;
 
 				return setImmediate(cb, null, results.delegate);

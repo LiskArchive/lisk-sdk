@@ -325,37 +325,67 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
 	}
-	const pattern = '/api/delegates*';
 
-	const delegateTransaction = transactions.find(
-		transaction =>
-			!!transaction && transaction.type === transactionTypes.DELEGATE
+	async.parallel(
+		[
+			async.reflect(reflectCb => {
+				const pattern = '/api/delegates*';
+
+				const delegateTransaction = transactions.find(
+					transaction =>
+						!!transaction && transaction.type === transactionTypes.DELEGATE
+				);
+
+				if (!delegateTransaction) {
+					return setImmediate(reflectCb, null);
+				}
+
+				self.removeByPattern(pattern, removeByPatternErr => {
+					if (removeByPatternErr) {
+						logger.error(
+							[
+								'Cache - Error clearing keys with pattern:',
+								pattern,
+								'on delegate transaction',
+							].join(' ')
+						);
+					} else {
+						logger.debug(
+							[
+								'Cache - Keys with pattern:',
+								pattern,
+								'cleared from cache on delegate transaction',
+							].join(' ')
+						);
+					}
+					return setImmediate(reflectCb, removeByPatternErr);
+				});
+			}),
+
+			async.reflect(reflectCb => {
+				if (transactions.length === 0) {
+					return setImmediate(reflectCb, null);
+				}
+
+				self.deleteJsonForKey(
+					self.KEYS.transactionCount,
+					deleteJsonForKeyErr => {
+						if (deleteJsonForKeyErr) {
+							logger.error(
+								`Cache - Error clearing keys: ${self.KEYS.transactionCount}`
+							);
+						} else {
+							logger.debug(
+								`Cache - Keys ${self.KEYS.transactionCount} cleared from cache`
+							);
+						}
+						return setImmediate(reflectCb, deleteJsonForKeyErr);
+					}
+				);
+			}),
+		],
+		() => setImmediate(cb, null) // Don't propagate cache error to continue normal operations
 	);
-
-	if (delegateTransaction) {
-		self.removeByPattern(pattern, err => {
-			if (err) {
-				logger.error(
-					[
-						'Cache - Error clearing keys with pattern:',
-						pattern,
-						'on delegate transaction',
-					].join(' ')
-				);
-			} else {
-				logger.debug(
-					[
-						'Cache - Keys with pattern:',
-						pattern,
-						'cleared from cache on delegate transaction',
-					].join(' ')
-				);
-			}
-			return cb(err);
-		});
-	} else {
-		cb();
-	}
 };
 
 /**
@@ -370,6 +400,10 @@ Cache.prototype.onSyncStarted = function() {
  */
 Cache.prototype.onSyncFinished = function() {
 	cacheReady = true;
+};
+
+Cache.prototype.KEYS = {
+	transactionCount: 'transactionCount',
 };
 
 module.exports = Cache;

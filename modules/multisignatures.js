@@ -20,8 +20,6 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const ApiError = require('../helpers/api_error');
 const errorCodes = require('../helpers/api_codes');
 
-let genesisBlock = null; // eslint-disable-line no-unused-vars
-
 // Private fields
 let modules;
 let library;
@@ -52,186 +50,274 @@ function Multisignatures(cb, scope) {
 		db: scope.db,
 		network: scope.network,
 		schema: scope.schema,
-		ed: scope.ed,
 		bus: scope.bus,
 		balancesSequence: scope.balancesSequence,
 		logic: {
 			transaction: scope.logic.transaction,
 			account: scope.logic.account,
+			multisignature: new Multisignature(
+				scope.schema,
+				scope.network,
+				scope.logic.transaction,
+				scope.logic.account,
+				scope.logger
+			),
 		},
 	};
-	genesisBlock = library.genesisBlock;
 	self = this;
 
 	__private.assetTypes[
 		transactionTypes.MULTI
 	] = library.logic.transaction.attachAssetType(
 		transactionTypes.MULTI,
-		new Multisignature(
-			scope.schema,
-			scope.network,
-			scope.logic.transaction,
-			scope.logic.account,
-			scope.logger
-		)
+		library.logic.multisignature
 	);
 
 	setImmediate(cb, null, self);
 }
 
 // Public methods
+
 /**
- * Gets transaction from transaction id and add it to sequence and bus.
+ * Check if the provided signature is valid
  *
- * @param {Object} transaction - Contains transaction and signature
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add test coverage.
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Array} membersPublicKeys - Public keys of multisignature account members
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @returns {boolean} isValid - true if signature passed verification, false otherwise
  */
-Multisignatures.prototype.processSignature = function(transaction, cb) {
-	if (!transaction) {
+__private.isValidSignature = (signature, membersPublicKeys, transaction) => {
+	let isValid = false;
+
+	try {
+		// If publicKey is provided we can perform direct verify
+		if (signature.publicKey) {
+			// Check if publicKey is present as member of multisignature account in transaction
+			if (!membersPublicKeys.includes(signature.publicKey)) {
+				library.logger.error(
+					'Unable to process signature, signer not in keysgroup.',
+					{ signature, membersPublicKeys, transaction }
+				);
+				return false;
+			}
+
+			// Try to verify the signature
+			isValid = library.logic.transaction.verifySignature(
+				transaction,
+				signature.publicKey,
+				signature.signature
+			);
+		} else {
+			// publicKey is not there - we need to iterate through all members of multisignature account in transaction
+			// Try to find public key for which the signature is passing validation
+			const found = membersPublicKeys.find(memberPublicKey =>
+				// Try to verify the signature
+				library.logic.transaction.verifySignature(
+					transaction,
+					memberPublicKey,
+					signature.signature
+				)
+			);
+			// When public key found - mark signature as valid
+			isValid = !!found;
+		}
+	} catch (e) {
+		library.logger.error('Unable to process signature, verification failed.', {
+			signature,
+			membersPublicKeys,
+			transaction,
+			error: e.stack,
+		});
+	}
+	return isValid;
+};
+
+/**
+ * Validate signature against provided transaction, add signature to transaction if valid and emit events
+ *
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Array} membersPublicKeys - Public keys of multisignature account members
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @param {Object} sender - Account data of sender of the transaction provided above
+ * @param {function} cb - Callback function
+ * @implements {library.logic.multisignature.ready}
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.validateSignature = (
+	signature,
+	membersPublicKeys,
+	transaction,
+	sender,
+	cb
+) => {
+	// Check if signature is valid
+	if (!__private.isValidSignature(signature, membersPublicKeys, transaction)) {
 		return setImmediate(
 			cb,
-			'Unable to process signature. Signature is undefined.'
+			new Error('Unable to process signature, verification failed')
 		);
 	}
-	const multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
-		transaction.transactionId
+
+	// Add signature to transaction
+	transaction.signatures.push(signature.signature);
+	// Check if transaction is ready to be processed
+	transaction.ready = library.logic.multisignature.ready(transaction, sender);
+
+	// Emit events
+	library.network.io.sockets.emit(
+		'multisignatures/signature/change',
+		transaction
+	);
+	library.bus.message('signature', signature, true);
+	return setImmediate(cb);
+};
+
+/**
+ * Process signature for multisignature account creation, transaction type 4 (MULTI)
+ *
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @param {function} cb - Callback function
+ * @implements {__private.validateSignature}
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.processSignatureForMultisignatureAccountCreation = (
+	signature,
+	transaction,
+	cb
+) => {
+	// Normalize members of multisignature account from transaction
+	const membersPublicKeys = transaction.asset.multisignature.keysgroup.map(
+		member => member.substring(1) // Remove first character, which is '+'
 	);
 
-	function done(cb) {
-		library.balancesSequence.add(cb => {
-			const multisignatureTransaction = modules.transactions.getMultisignatureTransaction(
-				transaction.transactionId
-			);
+	// Set empty object as sender, as we don't need sender in case of multisignature registration
+	const sender = {};
 
-			if (!multisignatureTransaction) {
-				return setImmediate(cb, 'Transaction not found');
-			}
+	return __private.validateSignature(
+		signature,
+		membersPublicKeys,
+		transaction,
+		sender,
+		cb
+	);
+};
 
-			modules.accounts.getAccount(
-				{
-					address: multisignatureTransaction.senderId,
-				},
-				(err, sender) => {
-					if (err) {
-						return setImmediate(cb, err);
-					} else if (!sender) {
-						return setImmediate(cb, 'Sender not found');
-					}
-					multisignatureTransaction.signatures =
-						multisignatureTransaction.signatures || [];
-					multisignatureTransaction.signatures.push(transaction.signature);
-					multisignatureTransaction.ready = Multisignature.prototype.ready(
-						multisignatureTransaction,
-						sender
-					);
-
-					library.bus.message('signature', transaction, true);
-					return setImmediate(cb);
-				}
-			);
-		}, cb);
-	}
-
-	if (!multisignatureTransaction) {
-		return setImmediate(cb, 'Transaction not found');
-	}
-
-	if (multisignatureTransaction.type === transactionTypes.MULTI) {
-		multisignatureTransaction.signatures =
-			multisignatureTransaction.signatures || [];
-
-		if (
-			multisignatureTransaction.asset.multisignature.signatures ||
-			multisignatureTransaction.signatures.indexOf(transaction.signature) !== -1
-		) {
-			return setImmediate(cb, 'Permission to sign transaction denied');
-		}
-
-		// Find public key
-		let verify = false;
-
-		try {
-			for (
-				let i = 0;
-				i < multisignatureTransaction.asset.multisignature.keysgroup.length &&
-				!verify;
-				i++
-			) {
-				const key = multisignatureTransaction.asset.multisignature.keysgroup[
-					i
-				].substring(1);
-				verify = library.logic.transaction.verifySignature(
-					multisignatureTransaction,
-					key,
-					transaction.signature
-				);
-			}
-		} catch (e) {
-			library.logger.error(e.stack);
-			return setImmediate(cb, 'Failed to verify signature');
-		}
-
-		if (!verify) {
-			return setImmediate(cb, 'Failed to verify signature');
-		}
-
-		return done(cb);
-	}
+/**
+ * Process signature for transactions that comes from already estabilished multisignature account
+ *
+ * @private
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {Object} transaction - Corresponding transaction grabbed from transaction pool
+ * @param {function} cb - Callback function
+ * @implements {__private.validateSignature}
+ * @returns {setImmediateCallback} cb, err
+ */
+__private.processSignatureFromMultisignatureAccount = (
+	signature,
+	transaction,
+	cb
+) => {
+	// Get sender account of correscponding transaction
 	modules.accounts.getAccount(
-		{
-			address: multisignatureTransaction.senderId,
-		},
-		(err, account) => {
-			if (err) {
-				return setImmediate(cb, 'Multisignature account not found');
+		{ address: transaction.senderId },
+		(err, sender) => {
+			if (err || !sender) {
+				const message = 'Unable to process signature, account not found';
+				library.logger.error(message, { signature, transaction, error: err });
+				return setImmediate(cb, new Error(message));
 			}
 
-			let verify = false;
-			const multisignatures = account.multisignatures;
+			// Assign members of multisignature account from transaction
+			const membersPublicKeys = sender.multisignatures;
 
-			if (multisignatureTransaction.requesterPublicKey) {
-				multisignatures.push(multisignatureTransaction.senderPublicKey);
-			}
-
-			if (!account) {
-				return setImmediate(cb, 'Account not found');
-			}
-
-			multisignatureTransaction.signatures =
-				multisignatureTransaction.signatures || [];
-
-			if (
-				multisignatureTransaction.signatures.indexOf(transaction.signature) >= 0
-			) {
-				return setImmediate(cb, 'Signature already exists');
-			}
-
-			try {
-				for (let i = 0; i < multisignatures.length && !verify; i++) {
-					verify = library.logic.transaction.verifySignature(
-						multisignatureTransaction,
-						multisignatures[i],
-						transaction.signature
-					);
-				}
-			} catch (e) {
-				library.logger.error(e.stack);
-				return setImmediate(cb, 'Failed to verify signature');
-			}
-
-			if (!verify) {
-				return setImmediate(cb, 'Failed to verify signature');
-			}
-
-			library.network.io.sockets.emit(
-				'multisignatures/signature/change',
-				multisignatureTransaction
+			return __private.validateSignature(
+				signature,
+				membersPublicKeys,
+				transaction,
+				sender,
+				cb
 			);
-			return done(cb);
 		}
 	);
+};
+
+/**
+ * Main function for processing received signature, includes:
+ * - multisignature account creation
+ * - send from multisignature account
+ *
+ * @public
+ * @param {Object} signature - Signature data
+ * @param {string} [signature.publicKey] - Public key of account that created the signature (optional)
+ * @param {string} signature.transactionId - Id of transaction that signature was created for
+ * @param {string} signature.signature - Actual signature
+ * @param {function} cb - Callback function
+ * @implements {library.balancesSequence.add} - All processing here is done through balancesSequence
+ * @returns {setImmediateCallback} cb, err
+ */
+Multisignatures.prototype.processSignature = function(signature, cb) {
+	if (!signature) {
+		const message = 'Unable to process signature, signature not provided';
+		library.logger.error(message);
+		return setImmediate(cb, new Error(message));
+	}
+
+	// From now perform all the operations via balanceSequence
+	library.balancesSequence.add(balanceSequenceCb => {
+		// Grab transaction with corresponding ID from transaction pool
+		const transaction = modules.transactions.getMultisignatureTransaction(
+			signature.transactionId
+		);
+
+		if (!transaction) {
+			const message =
+				'Unable to process signature, corresponding transaction not found';
+			library.logger.error(message, { signature });
+			return setImmediate(balanceSequenceCb, new Error(message));
+		}
+
+		// If there are no signatures yet - initialise with empty array
+		transaction.signatures = transaction.signatures || [];
+
+		// Check if received signature already exists in transaction
+		if (transaction.signatures.includes(signature.signature)) {
+			const message = 'Unable to process signature, signature already exists';
+			library.logger.error(message, { signature, transaction });
+			return setImmediate(balanceSequenceCb, new Error(message));
+		}
+
+		// Process signature for multisignature account creation transaction
+		if (transaction.type === transactionTypes.MULTI) {
+			return __private.processSignatureForMultisignatureAccountCreation(
+				signature,
+				transaction,
+				balanceSequenceCb
+			);
+		}
+
+		// Process signature for send from multisignature account transaction
+		return __private.processSignatureFromMultisignatureAccount(
+			signature,
+			transaction,
+			balanceSequenceCb
+		);
+	}, cb);
 };
 
 /**
@@ -322,7 +408,6 @@ Multisignatures.prototype.onBind = function(scope) {
 	modules = {
 		accounts: scope.accounts,
 		transactions: scope.transactions,
-		multisignatures: scope.multisignatures,
 	};
 
 	__private.assetTypes[transactionTypes.MULTI].bind(scope.accounts);
@@ -352,7 +437,7 @@ Multisignatures.prototype.shared = {
 	 * @returns {setImmediateCallback} cb
 	 */
 	getGroups(filters, cb) {
-		modules.multisignatures.getGroup(filters.address, (err, group) => {
+		self.getGroup(filters.address, (err, group) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
@@ -405,7 +490,7 @@ Multisignatures.prototype.shared = {
 							async.each(
 								groupAccountIds,
 								(groupId, callback) => {
-									modules.multisignatures.getGroup(groupId, (err, group) => {
+									self.getGroup(groupId, (err, group) => {
 										scope.groups.push(group);
 
 										return setImmediate(callback);

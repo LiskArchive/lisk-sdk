@@ -16,8 +16,8 @@
 
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
-var phases = require('../../common/phases');
-var Scenarios = require('../../common/scenarios');
+var phases = require('../../../common/phases');
+var Scenarios = require('../../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
 var apiCodes = require('../../../../helpers/api_codes');
 var randomUtil = require('../../../common/utils/random');
@@ -697,7 +697,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						expect(res)
 							.to.have.nested.property('body.message')
 							.to.equal(
-								'Error processing signature: Permission to sign transaction denied'
+								'Error processing signature: Unable to process signature, signature already exists'
 							);
 					});
 			});
@@ -714,7 +714,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						expect(res)
 							.to.have.nested.property('body.message')
 							.to.equal(
-								'Error processing signature: Failed to verify signature'
+								'Error processing signature: Unable to process signature, verification failed'
 							);
 					});
 			});

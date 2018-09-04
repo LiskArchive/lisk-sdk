@@ -15,10 +15,13 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var Bignum = require('../../../../helpers/bignum.js');
+const rewire = require('rewire');
+const Bignum = require('../../../../helpers/bignum.js');
 
-var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+const BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+
+const exceptions = global.exceptions;
+
 
 describe('blocks/verify', () => {
 	let library;
@@ -27,6 +30,7 @@ describe('blocks/verify', () => {
 	let dbStub;
 	let logicBlockStub;
 	let logicTransactionStub;
+	let configMock;
 	let blocksVerifyModule;
 	let modulesStub;
 	let modules;
@@ -61,11 +65,18 @@ describe('blocks/verify', () => {
 			getBytes: sinonSandbox.stub(),
 		};
 
+		configMock = {
+			loading: {
+				snapshotRound: null,
+			},
+		};
+
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
 			logicBlockStub,
 			logicTransactionStub,
-			dbStub
+			dbStub,
+			configMock
 		);
 
 		library = BlocksVerify.__get__('library');
@@ -131,6 +142,7 @@ describe('blocks/verify', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
 			expect(library.logic.block).to.eql(logicBlockStub);
+			expect(library.config).to.eql(configMock);
 			return expect(library.logic.transaction).to.eql(logicTransactionStub);
 		});
 
@@ -456,14 +468,142 @@ describe('blocks/verify', () => {
 	describe('__private.verifyVersion', () => {
 		let verifyVersion;
 
-		it('should return error when block version > 0', () => {
-			verifyVersion = __private.verifyVersion({ version: 3 }, { errors: [] });
-			return expect(verifyVersion.errors[0]).to.equal('Invalid block version');
+		describe('when there are no exceptions for block versions', () => {
+			describe('when block height provided', () => {
+				it('should return no error when block version = 1', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 1, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return error when block version = 0', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 0, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return error when block version 2', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 2, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+			});
+
+			describe('when block height is missing', () => {
+				it('should return no error when block version = 1', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return error when block version = 2', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 2 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return error when block version = 3', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+			});
 		});
 
-		it('should return no error when block version = 0', () => {
-			verifyVersion = __private.verifyVersion({ version: 0 }, { errors: [] });
-			return expect(verifyVersion.errors.length).to.equal(0);
+		describe('when there are proper exceptions set for block versions', () => {
+			before(done => {
+				// Set proper exceptions for blocks versions
+				exceptions.blockVersions = {
+					0: { start: 1, end: 101 },
+				};
+				done();
+			});
+
+			after(done => {
+				// Reset exceptions
+				exceptions.blockVersions = {};
+				done();
+			});
+
+			describe('when block height provided', () => {
+				it('should return no error when block version = 0', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 0, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return error when block version = 1', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 1, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return error when block version = 2', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 2, height: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+			});
+
+			describe('when block height is missing', () => {
+				it('should return no error when block version = 1', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 1 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors.length).to.equal(0);
+				});
+
+				it('should return error when block version = 2', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 2 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+
+				it('should return error when block version = 3', () => {
+					verifyVersion = __private.verifyVersion(
+						{ version: 3 },
+						{ errors: [] }
+					);
+					return expect(verifyVersion.errors[0]).to.equal(
+						'Invalid block version'
+					);
+				});
+			});
 		});
 	});
 
@@ -1931,6 +2071,44 @@ describe('blocks/verify', () => {
 			done();
 		});
 
+		describe('system update', () => {
+			it('should be called if snapshotting was not activated', done => {
+				blocksVerifyModule.processBlock(
+					dummyBlock,
+					broadcast,
+					saveBlock,
+					err => {
+						expect(err).to.be.null;
+						expect(modules.system.update.calledOnce).to.be.true;
+						done();
+					}
+				);
+			});
+
+			it('should not be called if snapshotting was activated', done => {
+				const blocksVerifyModule = new BlocksVerify(
+					loggerStub,
+					logicBlockStub,
+					logicTransactionStub,
+					dbStub,
+					{
+						loading: { snapshotRound: 123 },
+					}
+				);
+
+				blocksVerifyModule.processBlock(
+					dummyBlock,
+					broadcast,
+					saveBlock,
+					err => {
+						expect(err).to.be.null;
+						expect(modules.system.update.calledOnce).to.be.false;
+						done();
+					}
+				);
+			});
+		});
+
 		describe('when broadcast = true', () => {
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
@@ -1942,7 +2120,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
@@ -1961,7 +2138,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.not.called;
 							done();
@@ -1982,7 +2158,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.false;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
@@ -2001,7 +2176,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.false;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.not.called;
 							done();

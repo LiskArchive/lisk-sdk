@@ -79,4 +79,26 @@ ed.verify = function(hash, signature, publicKey) {
 	return sodium.crypto_sign_verify_detached(signature, hash, publicKey);
 };
 
+/**
+ * Converts hex string to buffer
+ * throws error for invalid hex strings.
+ *
+ * @func hexToBuffer
+ * @param {String} hex
+ * @returns {Buffer}
+ * @todo Add description for the params
+ */
+ed.hexToBuffer = hex => {
+	if (typeof hex !== 'string') {
+		throw new TypeError('Argument must be a string.');
+	}
+	// Regex to match valid hex string with even length
+	const hexRegex = /^([0-9a-f]{2})+$/i;
+	const matchedHex = (hex.match(hexRegex) || [])[0];
+	if (!matchedHex) {
+		throw new TypeError('Argument must be a valid hex string.');
+	}
+	return Buffer.from(matchedHex, 'hex');
+};
+
 module.exports = ed;

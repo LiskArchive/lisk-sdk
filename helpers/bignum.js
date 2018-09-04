@@ -24,6 +24,14 @@
  */
 var BigNumber = require('bignumber.js');
 
+// The BigNumber by default beyond a number range
+// converts the number representation to exponential format
+// In our application we are using BigNumber everywhere for amount field
+// due to which the signatures can lead to different results
+// in order to keep the consistency updating BigNumber config to
+// Almost never return exponential notation: ref http://mikemcl.github.io/bignumber.js/#exponential-at
+BigNumber.config({ EXPONENTIAL_AT: 1e9 });
+
 /**
  * Creates an instance from a Buffer.
  *

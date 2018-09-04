@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const ed = require('../../../helpers/ed.js');
 
 const cs = {}; // Static namespace for reusable ColumnSet objects
 
@@ -60,7 +61,7 @@ class SignatureTransactionsRepository {
 
 			transactions = transactions.map(transaction => ({
 				transactionId: transaction.id,
-				publicKey: Buffer.from(transaction.asset.signature.publicKey, 'hex'),
+				publicKey: ed.hexToBuffer(transaction.asset.signature.publicKey),
 			}));
 
 			return this.pgp.helpers.insert(transactions, this.cs.insert);

@@ -22,6 +22,6 @@
 
 SELECT
     "transactionId" AS transaction_id,
-    convert_from(data, 'utf8') AS tf_data
+    data AS tf_data
 FROM transfer
 WHERE "transactionId" IN (${ids:csv})

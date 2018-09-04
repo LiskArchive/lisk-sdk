@@ -761,11 +761,11 @@ paths:
           required: false
           type: string
           enum:
-            - username:asc
-            - username:desc
+            - publicKey:asc
+            - publicKey:desc
             - balance:asc
             - balance:desc
-          default: username:asc
+          default: publicKey:asc
       responses:
         200:
           description: Voters list
@@ -2309,9 +2309,11 @@ definitions:
     required:
       - broadhash
       - consensus
+      - currentTime
       - height
       - loaded
       - networkHeight
+      - secondsSinceEpoch
       - syncing
       - transactions
     properties:
@@ -2330,6 +2332,10 @@ definitions:
         minimum: 0
         maximum: 100
         description: Percentage of the connected peers, that have the same broadhash as the querying node.
+      currentTime:
+        type: integer
+        example: 1533558858128
+        description: Current time of the node in miliseconds (Unix Timestamp).
       height:
         type: integer
         example: 123
@@ -2347,6 +2353,10 @@ definitions:
         description: |
           Current block height of the network.
           Represents the current number of blocks in the chain on the network.
+      secondsSinceEpoch:
+        type: integer
+        example: 1533558858
+        description: Number of seconds that have elapsed since the Lisk epoch time (Lisk Timestamp).
       syncing:
         type: boolean
         example: false
@@ -2665,7 +2675,7 @@ definitions:
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
       rank:
-        type: integer
+        format: integerOrNull
         example: 70
         description: |
           Rank of the delegate.
@@ -2716,7 +2726,7 @@ definitions:
           Productivity rate.
           Percentage of successfully forged blocks (not missed) by the delegate.
       rank:
-        type: integer
+        format: integerOrNull
         example: 70
         description: |
           Rank of the delegate.

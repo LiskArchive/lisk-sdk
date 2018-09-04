@@ -390,9 +390,9 @@ describe('inTransfer', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		beforeEach(done => {
-			inTransfer.apply(trs, dummyBlock, sender, done);
+			inTransfer.applyConfirmed(trs, dummyBlock, sender, done);
 		});
 
 		it('should call shared.getGenesis', () => {
@@ -416,7 +416,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return inTransfer.apply(trs, dummyBlock, sender, err => {
+				return inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -474,7 +474,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return inTransfer.apply(trs, dummyBlock, sender, err => {
+				return inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -482,22 +482,27 @@ describe('inTransfer', () => {
 
 		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', () => {
-				return inTransfer.apply(trs, dummyBlock, sender, err => {
+				return inTransfer.applyConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
 				});
 			});
 
 			it('should call callback with result = undefined', () => {
-				return inTransfer.apply(trs, dummyBlock, sender, (err, res) => {
-					expect(res).to.be.undefined;
-				});
+				return inTransfer.applyConfirmed(
+					trs,
+					dummyBlock,
+					sender,
+					(err, res) => {
+						expect(res).to.be.undefined;
+					}
+				);
 			});
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		beforeEach(done => {
-			inTransfer.undo(trs, dummyBlock, sender, done);
+			inTransfer.undoConfirmed(trs, dummyBlock, sender, done);
 		});
 
 		it('should call shared.getGenesis', () => {
@@ -521,7 +526,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return inTransfer.undo(trs, dummyBlock, sender, err => {
+				return inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -579,7 +584,7 @@ describe('inTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return inTransfer.undo(trs, dummyBlock, sender, err => {
+				return inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).not.to.be.empty;
 				});
 			});
@@ -587,13 +592,13 @@ describe('inTransfer', () => {
 
 		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', () => {
-				return inTransfer.undo(trs, dummyBlock, sender, err => {
+				return inTransfer.undoConfirmed(trs, dummyBlock, sender, err => {
 					expect(err).to.be.undefined;
 				});
 			});
 
 			it('should call callback with result = undefined', () => {
-				return inTransfer.undo(trs, dummyBlock, sender, (err, res) => {
+				return inTransfer.undoConfirmed(trs, dummyBlock, sender, (err, res) => {
 					expect(res).to.be.undefined;
 				});
 			});

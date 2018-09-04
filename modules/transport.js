@@ -15,6 +15,7 @@
 'use strict';
 
 const async = require('async');
+const _ = require('lodash');
 // eslint-disable-next-line prefer-const
 let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
@@ -160,7 +161,7 @@ __private.receiveSignature = function(query, cb) {
 
 		modules.multisignatures.processSignature(query, err => {
 			if (err) {
-				return setImmediate(cb, `Error processing signature: ${err}`);
+				return setImmediate(cb, `Error processing signature: ${err.message}`);
 			}
 			return setImmediate(cb);
 		});
@@ -286,18 +287,6 @@ Transport.prototype.poorConsensus = function() {
 		return false;
 	}
 	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
-};
-
-/**
- * Calls getPeers method from Broadcaster class.
- *
- * @param {Object} params
- * @param {function} cb - Callback function
- * @returns {Broadcaster.getPeers} Calls getPeers
- * @todo Add description for the params
- */
-Transport.prototype.getPeers = function(params, cb) {
-	return __private.broadcaster.getPeers(params, cb);
 };
 
 // Events
@@ -565,6 +554,18 @@ Transport.prototype.shared = {
 				lastId: query.lastBlockId,
 			},
 			(err, data) => {
+				_.each(data, block => {
+					if (block.tf_data) {
+						try {
+							block.tf_data = block.tf_data.toString('utf8');
+						} catch (e) {
+							library.logger.error(
+								'Transport->blocks: Failed to convert data field to UTF-8',
+								{ block, error: e }
+							);
+						}
+					}
+				});
 				if (err) {
 					return setImmediate(cb, null, { blocks: [] });
 				}

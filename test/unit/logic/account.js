@@ -15,6 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
+const ed = require('../../../helpers/ed.js');
 const application = require('../../common/application.js');
 const modulesLoader = require('../../common/modules_loader');
 const Bignum = require('../../../helpers/bignum.js');
@@ -35,7 +36,6 @@ const validAccount = {
 	secondPublicKey: null,
 	balance: new Bignum('0'),
 	u_balance: new Bignum('0'),
-	rate: 0,
 	delegates: null,
 	u_delegates: null,
 	multisignatures: null,
@@ -47,7 +47,7 @@ const validAccount = {
 	nameexist: 0,
 	u_nameexist: 0,
 	fees: new Bignum('0'),
-	rank: 70,
+	rank: '70',
 	rewards: new Bignum('0'),
 	vote: 10000000000000000,
 	producedBlocks: 0,
@@ -163,11 +163,9 @@ describe('account', () => {
 
 			account.toDB(toDBRes);
 			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
-			expect(toDBRes.publicKey).to.deep.equal(
-				Buffer.from(raw.publicKey, 'hex')
-			);
+			expect(toDBRes.publicKey).to.deep.equal(ed.hexToBuffer(raw.publicKey));
 			expect(toDBRes.secondPublicKey).to.deep.equal(
-				Buffer.from(raw.secondPublicKey, 'hex')
+				ed.hexToBuffer(raw.secondPublicKey)
 			);
 			done();
 		});
@@ -507,6 +505,22 @@ describe('account', () => {
 				account.getAll({ sort: 'username:desc' }, ['username'], (err, res) => {
 					expect(err).to.not.exist;
 					expect(res).to.eql(_.sortBy(res, 'username').reverse());
+					done();
+				});
+			});
+
+			it('should sort the result according to address in ascending order', done => {
+				account.getAll({ sort: 'address:asc' }, ['address'], (err, res) => {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'address'));
+					done();
+				});
+			});
+
+			it('should sort the result according to address in descending order', done => {
+				account.getAll({ sort: 'address:desc' }, ['address'], (err, res) => {
+					expect(err).to.not.exist;
+					expect(res).to.eql(_.sortBy(res, 'address').reverse());
 					done();
 				});
 			});

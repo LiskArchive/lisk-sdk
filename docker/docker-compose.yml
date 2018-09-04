@@ -1,0 +1,64 @@
+version: "2"
+services:
+
+  lisk:
+    image: lisk/core:${ENV_LISK_VERSION}
+    volumes:
+      - lisk-logs:/home/lisk/lisk/logs/
+    ports:
+      - ${ENV_LISK_HTTP_PORT}:${ENV_LISK_HTTP_PORT}
+      - ${ENV_LISK_WS_PORT}:${ENV_LISK_WS_PORT}
+    networks:
+      - lisk
+    depends_on:
+      - db
+    restart: on-failure
+    entrypoint: ["/home/lisk/wait-for-it.sh", "db:5432", "--", "node", "/home/lisk/lisk/app.js"]
+    command: ["-n", "${ENV_LISK_NETWORK}"]
+    environment:
+      - LISK_DB_HOST=db
+      - LISK_DB_USER=${ENV_LISK_DB_USER}
+      - LISK_DB_PASSWORD=${ENV_LISK_DB_PASSWORD}
+      - LISK_DB_NAME=${ENV_LISK_DB_DATABASE}
+      - LISK_CACHE_ENABLED=false
+# uncomment the following line if you want to see debug messages in the docker logs
+      #- LISK_CONSOLE_LOG_LEVEL=debug
+# uncomment the following line if you want the API to be public
+      #- LISK_API_PUBLIC=true
+# uncomment and change the following line if you want to forge:
+# you will need to use your own encrypted key (use lisk-commander to encrypt it)
+      #- LISK_FORGING_DELEGATES=salt=d25cb9fd7c0b9935f4abc59388aceb74&cipherText=122096545efdd048eda72552883db00ff62ca3925a8d870a5c6380a043b45372adea1698755b73b7ef8c2f2269907b04c77aac38f7094f08c147eccbc6a3bb62c374252e39acf4519b8d&iv=03781f7ba5ba16ffd8d93edb&tag=55e7d26c9dbd35d011938d38fea13602&version=1:eadd8a8bb1a7283147aa7006c8b5f9f2b871d789f36207dfd44039ed44c1d572
+# uncomment the following lines to allow access to the API
+# change 'YOUR_IP' to you actual IP address
+      #- LISK_API_WHITELIST=YOUR_IP
+      #- LISK_FORGING_WHITELIST=YOUR_IP
+
+  db:
+    image: postgres:10-alpine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - lisk
+    restart: on-failure
+    environment:
+      - POSTGRES_DB=${ENV_LISK_DB_DATABASE}
+      - POSTGRES_PASSWORD=${ENV_LISK_DB_PASSWORD}
+      - POSTGRES_USER=${ENV_LISK_DB_USER}
+
+  task:
+    image: postgres:10-alpine
+    networks:
+      - lisk
+    environment:
+      - PGUSER=${ENV_LISK_DB_USER}
+      - PGPASSWORD=${ENV_LISK_DB_PASSWORD}
+      - PGDATABASE=${ENV_LISK_DB_DATABASE}
+      - PGHOST=db
+    command: /bin/true
+
+networks:
+  lisk:
+
+volumes:
+  db-data:
+  lisk-logs:

@@ -131,7 +131,13 @@ Transfer.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
+Transfer.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
@@ -165,7 +171,13 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Transfer.prototype.undo = function(transaction, block, sender, cb, tx) {
+Transfer.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
@@ -269,9 +281,16 @@ Transfer.prototype.objectNormalize = function(transaction) {
  */
 Transfer.prototype.dbRead = function(raw) {
 	if (raw.tf_data) {
-		return { data: raw.tf_data };
+		try {
+			const data = raw.tf_data.toString('utf8');
+			return { data };
+		} catch (e) {
+			library.logger.error(
+				'Logic-Transfer-dbRead: Failed to convert data field into utf8'
+			);
+			return null;
+		}
 	}
-
 	return null;
 };
 

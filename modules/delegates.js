@@ -24,6 +24,7 @@ const BlockReward = require('../logic/block_reward.js');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const Delegate = require('../logic/delegate.js');
 const slots = require('../helpers/slots.js');
+const Bignum = require('../helpers/bignum.js');
 const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
@@ -419,6 +420,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 					{
 						address: voteAddressesWithActions.map(({ address }) => address),
 						isDelegate: 1,
+						sort: 'address:desc',
 					},
 					(err, votesAccounts) => {
 						if (err) {
@@ -764,7 +766,7 @@ Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
 
 /**
  * Gets a list of delegates:
- * - Calculating individual rate, rank, approval, productivity.
+ * - Calculating individual rank, approval, productivity.
  * - Sorting based on query parameter.
  *
  * @param {Object} query
@@ -1075,6 +1077,62 @@ Delegates.prototype.shared = {
 			}
 			return setImmediate(cb, null, delegates);
 		});
+	},
+
+	/**
+	 *
+	 * @param {Object} filters - Filters applied to results
+	 * @param {string} filters.address - Address of the delegate
+	 * @param {string} filters.start - Start time to aggregate
+	 * @param {string} filters.end - End time to aggregate
+	 * @params {function} cb - Callback function
+	 * @param {SetImmediateCallback} cb
+	 */
+	getForgingStatistics(filters, cb) {
+		// If need to aggregate all data then just fetch from the account
+		if (!filters.start && !filters.end) {
+			// TODO: Need to move modules.delegates.getDelegates after adding "fees" in its list
+			modules.accounts.getAccount(
+				{ address: filters.address },
+				['rewards', 'fees', 'producedBlocks', 'isDelegate'],
+				(err, delegate) => {
+					if (err) {
+						return setImmediate(cb, err);
+					}
+
+					if (!delegate) {
+						return setImmediate(cb, 'Account not found');
+					}
+
+					if (!delegate.isDelegate) {
+						return setImmediate(cb, 'Account is not a delegate');
+					}
+
+					return setImmediate(cb, null, {
+						rewards: delegate.rewards,
+						fees: delegate.fees,
+						count: new Bignum(delegate.producedBlocks).toString(),
+						forged: new Bignum(delegate.rewards)
+							.plus(new Bignum(delegate.fees))
+							.toString(),
+					});
+				}
+			);
+
+			// If need to aggregate some period of time
+		} else {
+			modules.blocks.utils.aggregateBlocksReward(filters, (err, reward) => {
+				if (err) {
+					return setImmediate(cb, err);
+				}
+
+				reward.forged = new Bignum(reward.fees)
+					.plus(new Bignum(reward.rewards))
+					.toString();
+
+				return setImmediate(cb, null, reward);
+			});
+		}
 	},
 };
 

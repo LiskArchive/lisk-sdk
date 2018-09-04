@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const ed = require('../helpers/ed.js');
 const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
@@ -202,7 +203,7 @@ class Account {
 	toDB(raw) {
 		this.binary.forEach(field => {
 			if (raw[field]) {
-				raw[field] = Buffer.from(raw[field], 'hex');
+				raw[field] = ed.hexToBuffer(raw[field]);
 			}
 		});
 
@@ -327,6 +328,7 @@ class Account {
 				'missedBlocks',
 				'vote',
 				'publicKey',
+				'address',
 			];
 			sort = sortBy.sortBy(filter.sort, {
 				sortFields: allowedSortFields,
@@ -497,7 +499,7 @@ class Account {
 						);
 						break;
 
-					// [u_]balance, [u_]multimin, [u_]multilifetime, rate, fees, rank, rewards, votes, producedBlocks, missedBlocks
+					// [u_]balance, [u_]multimin, [u_]multilifetime, fees, rewards, votes, producedBlocks, missedBlocks
 					// eslint-disable-next-line no-case-declarations
 					case Number:
 						const value = new Bignum(updatedValue);
@@ -638,7 +640,7 @@ class Account {
  * @property {number} balance - Between 0 and totalAmount from constants
  * @property {number} u_balance - Between 0 and totalAmount from constants
  * @property {number} vote
- * @property {number} rate
+ * @property {number} rank
  * @property {String[]} delegates - From mem_account2delegates table, filtered by address
  * @property {String[]} u_delegates - From mem_account2u_delegates table, filtered by address
  * @property {String[]} multisignatures - From mem_account2multisignatures table, filtered by address
@@ -719,9 +721,9 @@ Account.prototype.model = [
 		conv: Number,
 	},
 	{
-		name: 'rate',
+		name: 'rank',
 		type: 'BigInt',
-		conv: Number,
+		conv: String,
 	},
 	{
 		name: 'delegates',
@@ -881,9 +883,6 @@ Account.prototype.schema = {
 			type: 'object',
 			format: 'amount',
 		},
-		rate: {
-			type: 'integer',
-		},
 		delegates: {
 			anyOf: [
 				{
@@ -963,7 +962,7 @@ Account.prototype.schema = {
 			format: 'amount',
 		},
 		rank: {
-			type: 'integer',
+			type: 'string',
 		},
 		rewards: {
 			type: 'object',

@@ -16,6 +16,7 @@
 
 const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum.js');
+const ed = require('../helpers/ed.js');
 
 const constants = global.constants;
 let modules;
@@ -87,7 +88,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 	try {
 		if (
 			!transaction.asset.signature.publicKey ||
-			Buffer.from(transaction.asset.signature.publicKey, 'hex').length !== 32
+			ed.hexToBuffer(transaction.asset.signature.publicKey).length !== 32
 		) {
 			return setImmediate(cb, 'Invalid public key');
 		}
@@ -125,9 +126,8 @@ Signature.prototype.process = function(transaction, sender, cb) {
 Signature.prototype.getBytes = function(transaction) {
 	try {
 		const byteBuffer = new ByteBuffer(32, true);
-		const publicKeyBuffer = Buffer.from(
-			transaction.asset.signature.publicKey,
-			'hex'
+		const publicKeyBuffer = ed.hexToBuffer(
+			transaction.asset.signature.publicKey
 		);
 
 		for (let i = 0; i < publicKeyBuffer.length; i++) {
@@ -150,7 +150,13 @@ Signature.prototype.getBytes = function(transaction) {
  * @param {function} cb - Callback function
  * @returns {SetImmediate} error
  */
-Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
+Signature.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,
@@ -171,7 +177,13 @@ Signature.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {function} cb - Callback function
  * @todo Add description for the params
  */
-Signature.prototype.undo = function(transaction, block, sender, cb, tx) {
+Signature.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{
 			address: sender.address,

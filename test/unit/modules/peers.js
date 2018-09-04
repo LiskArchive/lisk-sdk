@@ -378,27 +378,41 @@ describe('peers', () => {
 		});
 
 		describe('networkHeight', () => {
-			before(done => {
-				randomPeers = _.range(1000).map(() => {
-					return generateRandomActivePeer();
-				});
-				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
-				done();
-			});
-
-			const randomPeerNetworkHeight = randomPeers => {
-				const peersGroupedByHeight = _.groupBy(randomPeers, 'height');
-				const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
-				return _.max(popularHeights);
-			};
-
-			it('should return all 1000 peers', done => {
+			it('should return networkHeight 0 when no peers available', done => {
+				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				peers.networkHeight(validOptions, (err, networkHeight) => {
 					expect(err).to.be.null;
 					expect(networkHeight);
 					expect(networkHeight)
 						.to.be.an('number')
-						.and.to.deep.eql(randomPeerNetworkHeight(randomPeers));
+						.and.to.deep.eql(0);
+					done();
+				});
+			});
+
+			it('should return the height of maximum number of peers at one particular height', done => {
+				// generate 10 peer list with height 0
+				const peerList = _.range(10).map(() => {
+					return generateRandomActivePeer();
+				});
+
+				// create group of peers with height 5,3,2
+				// and they also indicate the number of peers
+				// in that specific height, so the majority is 5
+				let count = 0;
+				[5, 3, 2].map(height => {
+					_.range(height).map(() => {
+						peerList[count].height = height;
+						count++;
+					});
+				});
+				peersLogicMock.list = sinonSandbox.stub().returns(peerList);
+				peers.networkHeight(validOptions, (err, networkHeight) => {
+					expect(err).to.be.null;
+					expect(networkHeight);
+					expect(networkHeight)
+						.to.be.an('number')
+						.and.to.deep.eql(5);
 					done();
 				});
 			});

@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const BlockReward = require('../logic/block_reward.js');
+const slots = require('../helpers/slots.js');
 
 const constants = global.constants;
 
@@ -168,7 +169,9 @@ Node.prototype.shared = {
 		modules.peers.networkHeight({ normalized: false }, (err, networkHeight) => {
 			setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
-				consensus: modules.peers.getLastConsensus() || null,
+				consensus: modules.peers.getLastConsensus(),
+				currentTime: Date.now(),
+				secondsSinceEpoch: slots.getTime(),
 				height: modules.blocks.lastBlock.get().height,
 				loaded: modules.loader.loaded(),
 				networkHeight,

@@ -540,7 +540,7 @@ describe('transport', () => {
 					var processSignatureError;
 
 					beforeEach(done => {
-						processSignatureError = 'Transaction not found';
+						processSignatureError = new Error('Transaction not found');
 						modules.multisignatures.processSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, processSignatureError);
@@ -553,7 +553,7 @@ describe('transport', () => {
 
 					it('should call callback with error', () => {
 						return expect(error).to.equal(
-							`Error processing signature: ${processSignatureError}`
+							`Error processing signature: ${processSignatureError.message}`
 						);
 					});
 				});
@@ -1155,29 +1155,6 @@ describe('transport', () => {
 						return expect(isPoorConsensusResult).to.be.false;
 					});
 				});
-			});
-		});
-
-		describe('getPeers', () => {
-			var paramsArg = {};
-			var callbackArg = {};
-
-			beforeEach(done => {
-				__private.broadcaster = {
-					getPeers: sinonSandbox.stub().callsArgWith(1, null, []),
-				};
-
-				paramsArg = {};
-				callbackArg = () => {};
-
-				transportInstance.getPeers(paramsArg, callbackArg);
-				done();
-			});
-
-			it('should call __private.broadcaster.getPeers with paramsArg and callbackArg as arguments', () => {
-				return expect(
-					__private.broadcaster.getPeers.calledWith(paramsArg, callbackArg)
-				).to.be.true;
 			});
 		});
 

@@ -222,6 +222,16 @@ class Round {
 	}
 
 	/**
+	 * Calls sql updateDelegatesRanks: Update current ranks of all delegates
+	 *
+	 * @returns {Promise}
+	 */
+	updateDelegatesRanks() {
+		this.scope.library.logger.debug('Updating ranks of all delegates...');
+		return this.t.rounds.updateDelegatesRanks();
+	}
+
+	/**
 	 * Calls sql deleteRoundRewards:
 	 * - Removes rewards for entire round from round_rewards table.
 	 * - Performed only when rollback last block of round.
@@ -395,6 +405,7 @@ class Round {
 			.then(this.applyRound.bind(this))
 			.then(this.updateVotes.bind(this))
 			.then(this.flushRound.bind(this))
+			.then(this.updateDelegatesRanks.bind(this))
 			.then(() => this.t);
 	}
 
@@ -417,6 +428,7 @@ class Round {
 			.then(this.restoreRoundSnapshot.bind(this))
 			.then(this.restoreVotesSnapshot.bind(this))
 			.then(this.deleteRoundRewards.bind(this))
+			.then(this.updateDelegatesRanks.bind(this))
 			.then(() => this.t);
 	}
 }

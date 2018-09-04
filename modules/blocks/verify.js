@@ -19,6 +19,7 @@ const _ = require('lodash');
 const async = require('async');
 const BlockReward = require('../../logic/block_reward.js');
 const slots = require('../../helpers/slots.js');
+const blockVersion = require('../../logic/block_version.js');
 const Bignum = require('../../helpers/bignum.js');
 
 let modules;
@@ -45,13 +46,18 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, db) {
+	constructor(logger, block, transaction, db, config) {
 		library = {
 			logger,
 			db,
 			logic: {
 				block,
 				transaction,
+			},
+			config: {
+				loading: {
+					snapshotRound: config.loading.snapshotRound,
+				},
 			},
 		};
 		self = this;
@@ -220,7 +226,7 @@ __private.verifyAgainstLastNBlockIds = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyVersion = function(block, result) {
-	if (block.version > 0) {
+	if (!blockVersion.isValid(block.version, block.height)) {
 		result.errors.push('Invalid block version');
 	}
 
@@ -517,6 +523,20 @@ Verify.prototype.verifyBlock = function(block) {
 
 	result.verified = result.errors.length === 0;
 	result.errors.reverse();
+	if (result.verified) {
+		library.logger.info(
+			`Verify->verifyBlock succeeded for block ${block.id} at height ${
+				block.height
+			}.`
+		);
+	} else {
+		library.logger.error(
+			`Verify->verifyBlock failed for block ${block.id} at height ${
+				block.height
+			}.`,
+			result.errors
+		);
+	}
 
 	return result;
 };
@@ -821,7 +841,9 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'false' if block comes from chain synchronisation process
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				broadcast ? modules.system.update(seriesCb) : seriesCb();
+				!library.config.loading.snapshotRound
+					? modules.system.update(seriesCb)
+					: seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers
