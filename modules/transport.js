@@ -366,7 +366,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 Transport.prototype.broadcastHeaders = cb => {
 	// Grab a random list of connected peers.
 	const peers = library.logic.peers.listRandomConnected({
-		limit: constants.maxPeers,
+		limit: constants.MAX_PEERS,
 	});
 
 	if (peers.length === 0) {
@@ -630,7 +630,7 @@ Transport.prototype.shared = {
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
-			Object.assign({}, { limit: constants.maxPeers }, req.query),
+			Object.assign({}, { limit: constants.MAX_PEERS }, req.query),
 			(err, peers) => {
 				peers = !err ? peers : [];
 				return setImmediate(cb, null, { success: !err, peers });

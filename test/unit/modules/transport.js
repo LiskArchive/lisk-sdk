@@ -1331,11 +1331,11 @@ describe('transport', () => {
 				transportInstance.broadcastHeaders(done);
 			});
 
-			it('should call ibrary.logic.peers.listRandomConnected with {limit: constants.maxPeers}', () => {
+			it('should call ibrary.logic.peers.listRandomConnected with {limit: constants.MAX_PEERS}', () => {
 				expect(library.logic.peers.listRandomConnected.calledOnce).to.be.true;
 				return expect(
 					library.logic.peers.listRandomConnected.calledWith({
-						limit: constants.maxPeers,
+						limit: constants.MAX_PEERS,
 					})
 				).to.be.true;
 			});
@@ -1801,8 +1801,9 @@ describe('transport', () => {
 
 					it('should invoke callback with empty result', () => {
 						expect(modules.peers.list.calledOnce).to.be.true;
-						expect(modules.peers.list.calledWith({ limit: constants.maxPeers }))
-							.to.be.true;
+						expect(
+							modules.peers.list.calledWith({ limit: constants.MAX_PEERS })
+						).to.be.true;
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')

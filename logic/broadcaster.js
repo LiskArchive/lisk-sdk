@@ -64,7 +64,7 @@ class Broadcaster {
 
 		self.queue = [];
 		self.config = library.config.broadcasts;
-		self.config.peerLimit = constants.maxPeers;
+		self.config.peerLimit = constants.MAX_PEERS;
 
 		// Broadcast routes
 		self.routes = [

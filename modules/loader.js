@@ -1058,7 +1058,7 @@ Loader.prototype.findGoodPeers = function(peers) {
  */
 Loader.prototype.getNetwork = function(cb) {
 	const peers = library.logic.peers.listRandomConnected({
-		limit: constants.maxPeers,
+		limit: constants.MAX_PEERS,
 	});
 	__private.network = self.findGoodPeers(peers);
 
