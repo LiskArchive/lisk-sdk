@@ -282,8 +282,7 @@ describe('httpApi', () => {
 				expect(checkIpInListStub).to.be.calledOnce;
 				expect(checkIpInListStub).to.be.calledWith(
 					['192.168.99.100'],
-					'192.168.99.100',
-					false
+					'192.168.99.100'
 				);
 				expect(validNextSpy).to.be.calledOnce;
 				expect(validNextSpy.firstCall.args).to.be.empty;
@@ -306,8 +305,7 @@ describe('httpApi', () => {
 				expect(checkIpInListStub).to.be.calledOnce;
 				expect(checkIpInListStub).to.be.calledWith(
 					['192.168.99.100'],
-					'192.168.99.101',
-					false
+					'192.168.99.101'
 				);
 				expect(validNextSpy).to.be.not.called;
 				expect(resMock.status).to.be.calledWith(apiCodes.FORBIDDEN);
