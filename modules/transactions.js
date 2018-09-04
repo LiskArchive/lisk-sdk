@@ -861,7 +861,7 @@ Transactions.prototype.shared = {
 						},
 						err => {
 							if (err) {
-								library.logger.err(
+								library.logger.error(
 									'Error writing cache count for transactions',
 									err
 								);

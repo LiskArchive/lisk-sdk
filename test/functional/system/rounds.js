@@ -206,6 +206,52 @@ describe('rounds', () => {
 		return accounts;
 	}
 
+	function recalculateRanks(_accounts) {
+		let accounts = _.cloneDeep(_accounts);
+
+		// Sort accounts - vote DESC, publicKey ASC
+		accounts = Object.keys(accounts)
+			.sort((a, b) => {
+				const aVote = new Bignum(accounts[a].vote);
+				const bVote = new Bignum(accounts[b].vote);
+				const aPK = accounts[a].publicKey;
+				const bPK = accounts[b].publicKey;
+
+				const bufferComp =
+					// If both are buffers
+					aPK && bPK
+						? // Return result of the compare
+							Buffer.compare(bPK, aPK)
+						: // If both are null - return 0
+							aPK === null && bPK === null
+							? 0
+							: // If first is null - return -1, if not return 1
+								aPK === null ? -1 : 1;
+
+				// Compare vote weights first:
+				// if first is less than second - return -1,
+				// if first is greather than second - return 1,
+				// if both are equal - compare public keys
+				return aVote.lt(bVote) ? -1 : aVote.gt(bVote) ? 1 : bufferComp;
+			})
+			.map(key => accounts[key])
+			.reverse();
+
+		const tmpAccounts = {};
+		let rank = 0;
+		_.each(accounts, account => {
+			if (account.isDelegate) {
+				++rank;
+				account.rank = rank.toString();
+			} else {
+				account.rank = null;
+			}
+			tmpAccounts[account.address] = account;
+		});
+
+		return tmpAccounts;
+	}
+
 	function applyOutsiders(_accounts, delegatesList, blocks) {
 		const accounts = _.cloneDeep(_accounts);
 
@@ -439,6 +485,7 @@ describe('rounds', () => {
 							tick.before.delegatesList,
 							tick.roundBlocks
 						);
+						expected = recalculateRanks(expected);
 					}
 
 					expect(tick.after.accounts).to.deep.equal(expected);
