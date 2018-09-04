@@ -761,11 +761,11 @@ paths:
           required: false
           type: string
           enum:
-            - username:asc
-            - username:desc
+            - publicKey:asc
+            - publicKey:desc
             - balance:asc
             - balance:desc
-          default: username:asc
+          default: publicKey:asc
       responses:
         200:
           description: Voters list
