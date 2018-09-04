@@ -78,7 +78,7 @@ describe('db', () => {
 				expect(db.accounts.dbTable).to.be.eql('mem_accounts');
 
 				expect(db.accounts.dbFields).to.an('array');
-				expect(db.accounts.dbFields).to.have.lengthOf(28);
+				expect(db.accounts.dbFields).to.have.lengthOf(27);
 
 				expect(db.accounts.cs).to.an('object');
 				expect(db.accounts.cs).to.not.empty;
@@ -90,7 +90,6 @@ describe('db', () => {
 					'u_secondSignature',
 					'balance',
 					'u_balance',
-					'rate',
 					'multimin',
 					'u_multimin',
 					'multilifetime',
@@ -120,7 +119,6 @@ describe('db', () => {
 					'u_secondSignature',
 					'balance',
 					'u_balance',
-					'rate',
 					'multimin',
 					'u_multimin',
 					'multilifetime',
@@ -137,6 +135,7 @@ describe('db', () => {
 					'publicKey',
 					'secondPublicKey',
 					'address',
+					'rank',
 				]);
 				return expect(db.accounts.cs.update.columns.map(c => c.name)).to.be.eql(
 					[
@@ -146,7 +145,6 @@ describe('db', () => {
 						'u_secondSignature',
 						'balance',
 						'u_balance',
-						'rate',
 						'multimin',
 						'u_multimin',
 						'multilifetime',
@@ -180,7 +178,7 @@ describe('db', () => {
 			it('should return only immutable account fields', () => {
 				const immutableFields = db.accounts.getImmutableFields();
 
-				return expect(immutableFields).to.eql(['address']);
+				return expect(immutableFields).to.eql(['address', 'rank']);
 			});
 		});
 
@@ -384,7 +382,7 @@ describe('db', () => {
 				return db.accounts.upsert(account, 'address').then(() => {
 					return db.accounts.list({ address: account.address }).then(result => {
 						expect(result.length).to.be.eql(1);
-						expect(account).to.be.eql(_.omit(result[0], 'rank'));
+						expect(account).to.be.eql(result[0]);
 					});
 				});
 			});
@@ -522,7 +520,7 @@ describe('db', () => {
 							.then(result => {
 								expect(result.length).to.eql(1);
 
-								expect(_.omit(result[0], 'rank')).to.eql(updatedAccount);
+								expect(result[0]).to.eql(updatedAccount);
 							});
 					});
 				});
@@ -1063,9 +1061,9 @@ describe('db', () => {
 							});
 					});
 
-					it('should return "rate" as "bigint"', () => {
-						return db.accounts.list({}, ['rate'], { limit: 1 }).then(data => {
-							expect(data[0].rate).to.be.a('string');
+					it('should return "rank" as null', () => {
+						return db.accounts.list({}, ['rank'], { limit: 1 }).then(data => {
+							expect(data[0].rank).to.eql(null);
 						});
 					});
 

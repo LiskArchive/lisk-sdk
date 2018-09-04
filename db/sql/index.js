@@ -41,7 +41,6 @@ module.exports = {
 		columnUDelegates: link('accounts/column_u_delegates.sql'),
 		columnMultisignatures: link('accounts/column_multisignatures.sql'),
 		columnUMultisignatures: link('accounts/column_u_multisignatures.sql'),
-		columnRank: link('accounts/column_rank.sql'),
 	},
 	blocks: {
 		aggregateBlocksReward: link('blocks/aggregate_blocks_reward.sql'),
@@ -88,6 +87,7 @@ module.exports = {
 		clear: link('peers/clear.sql'),
 	},
 	rounds: {
+		updateDelegatesRanks: link('rounds/update_delegates_ranks.sql'),
 		getVotes: link('rounds/get_votes.sql'),
 		updateVotes: link('rounds/update_votes.sql'),
 		updateMissedBlocks: link('rounds/update_missed_blocks.sql'),

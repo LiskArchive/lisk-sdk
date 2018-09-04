@@ -14,16 +14,17 @@
 
 
 /*
-  DESCRIPTION: Dynamic-field query for column "rank"
+  DESCRIPTION: Update ranks of all delegates.
 
-  PARAMETERS: None
+  PARAMETERS: none
 */
 
-(
-SELECT m.row_number FROM (SELECT row_number()
-  OVER (ORDER BY r.vote DESC, r."publicKey" ASC), address
-    FROM (SELECT d."isDelegate", d.vote, d."publicKey", d.address
-      FROM mem_accounts AS d
-      WHERE d."isDelegate" = 1) AS r) m
-    WHERE m.address = mem_accounts.address
-)::bigint
+UPDATE mem_accounts
+SET rank = new.rank
+FROM (
+	SELECT row_number() OVER (
+	ORDER BY vote DESC, "publicKey" ASC) AS rank, "publicKey"
+	FROM mem_accounts
+	WHERE "isDelegate" = 1
+) new
+WHERE mem_accounts."publicKey" = new."publicKey" AND mem_accounts."isDelegate" = 1;

@@ -70,6 +70,15 @@ class RoundsRepository {
 		});
 	}
 
+	/**
+	 * Update rank for all delegates.
+	 *
+	 * @returns {Promise}
+	 */
+	updateDelegatesRanks() {
+		return this.db.none(sql.updateDelegatesRanks);
+	}
+
 	// TODO: Move usage of RoundsRepository#getVotes to db/votes
 	/**
 	 * Get votes for a round.
