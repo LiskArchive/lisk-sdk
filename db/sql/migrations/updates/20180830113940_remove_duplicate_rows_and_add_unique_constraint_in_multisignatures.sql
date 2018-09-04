@@ -17,6 +17,9 @@ DELETE FROM "multisignatures" "m0"
 WHERE "m0"."ctid" < "m1"."ctid"
 	AND "m0"."transactionId" = "m1"."transactionId";
 	
+-- Drop existing index on multisignatures table --
+DROP INDEX "multisignatures_trs_id";
+
 -- Add unique constraint on multisignatures table --
 ALTER TABLE "multisignatures"
 	ADD UNIQUE ("transactionId");

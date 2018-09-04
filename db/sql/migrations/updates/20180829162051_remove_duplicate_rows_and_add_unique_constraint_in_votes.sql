@@ -17,6 +17,9 @@ DELETE FROM "votes" "v0"
 WHERE "v0"."ctid" < "v1"."ctid"
 	AND "v0"."transactionId" = "v1"."transactionId";
 
+-- Drop existing index on votes table --
+DROP INDEX "votes_trs_id";
+
 -- Add unique constraint on votes table --
 ALTER TABLE "votes"
 	ADD UNIQUE ("transactionId");

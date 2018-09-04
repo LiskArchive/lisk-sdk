@@ -17,6 +17,9 @@ DELETE FROM "transfer" "tf0"
 WHERE "tf0"."ctid" < "tf1"."ctid"
 	AND "tf0"."transactionId" = "tf1"."transactionId";
 
+-- Drop existing index on transfer table --
+DROP INDEX "transfer_trs_id";
+
 -- Add unique constraint on transfer table --
 ALTER TABLE "transfer"
 	ADD UNIQUE ("transactionId");
