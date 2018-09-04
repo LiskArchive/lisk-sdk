@@ -909,8 +909,8 @@ Account.prototype.schema = {
 			anyOf: [
 				{
 					type: 'array',
-					minItems: constants.MULTISIG_CONSTRAINTS.keysgroup.minItems,
-					maxItems: constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems,
+					minItems: constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
+					maxItems: constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
 				},
 				{
 					type: 'null',
@@ -921,8 +921,8 @@ Account.prototype.schema = {
 			anyOf: [
 				{
 					type: 'array',
-					minItems: constants.MULTISIG_CONSTRAINTS.keysgroup.minItems,
-					maxItems: constants.MULTISIG_CONSTRAINTS.keysgroup.maxItems,
+					minItems: constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
+					maxItems: constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
 				},
 				{
 					type: 'null',
@@ -932,22 +932,22 @@ Account.prototype.schema = {
 		multimin: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.MULTISIG_CONSTRAINTS.min.maximum,
+			maximum: constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
 		u_multimin: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.MULTISIG_CONSTRAINTS.min.maximum,
+			maximum: constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
 		multilifetime: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.MULTISIG_CONSTRAINTS.lifetime.maximum,
+			maximum: constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
 		u_multilifetime: {
 			type: 'integer',
 			minimum: 0,
-			maximum: constants.MULTISIG_CONSTRAINTS.lifetime.maximum,
+			maximum: constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
 		nameexist: {
 			type: 'integer',
