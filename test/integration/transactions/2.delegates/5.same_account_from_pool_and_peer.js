@@ -52,7 +52,7 @@ describe('delegate', () => {
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * constants.NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});

@@ -35,7 +35,7 @@ describe('rounds', () => {
 	let deleteLastBlockPromise;
 
 	// Set rewards start at 150-th block
-	constants.rewards.offset = 150;
+	constants.REWARDS.OFFSET = 150;
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
@@ -1142,7 +1142,7 @@ describe('rounds', () => {
 					transactionPool.queued.transactions = [];
 
 					// Set expected reward per block as first milestone
-					expectedRewardsPerBlock = constants.rewards.milestones[0];
+					expectedRewardsPerBlock = constants.REWARDS.MILESTONES[0];
 					done();
 				});
 

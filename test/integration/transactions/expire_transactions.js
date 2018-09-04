@@ -192,7 +192,7 @@ describe('expire transactions', () => {
 		let memAccountBefore;
 		let multiSigTransaction;
 
-		const amount = 1000 * global.constants.normalizer;
+		const amount = 1000 * global.constants.NORMALIZER;
 		const account = randomUtil.account();
 		const signer1 = randomUtil.account();
 		const signer2 = randomUtil.account();

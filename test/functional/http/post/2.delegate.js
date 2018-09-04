@@ -47,7 +47,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	before(() => {
 		var transactions = [];
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});

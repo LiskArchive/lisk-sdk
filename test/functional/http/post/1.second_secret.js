@@ -41,7 +41,7 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});

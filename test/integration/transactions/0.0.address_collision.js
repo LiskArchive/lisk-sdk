@@ -45,26 +45,26 @@ describe('system test (type 0) - address collision', () => {
 	];
 
 	var firstTransaction = lisk.transaction.transfer({
-		amount: 10 * constants.normalizer,
+		amount: 10 * constants.NORMALIZER,
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	var secondTransaction = lisk.transaction.transfer({
-		amount: 10 * constants.normalizer,
+		amount: 10 * constants.NORMALIZER,
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 	});
 
 	var firstTransactionWithData = lisk.transaction.transfer({
-		amount: 10 * constants.normalizer,
+		amount: 10 * constants.NORMALIZER,
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 1',
 	});
 
 	var secondTransactionWithData = lisk.transaction.transfer({
-		amount: 10 * constants.normalizer,
+		amount: 10 * constants.NORMALIZER,
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 2',
@@ -72,7 +72,7 @@ describe('system test (type 0) - address collision', () => {
 
 	before(done => {
 		var creditTransaction = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
 			data: 'addtional data from 2',

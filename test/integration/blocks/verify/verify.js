@@ -1101,7 +1101,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
 					const transaction = lisk.transaction.transfer({
-						amount: new Bignum(constants.normalizer).mul(1000),
+						amount: new Bignum(constants.NORMALIZER).mul(1000),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

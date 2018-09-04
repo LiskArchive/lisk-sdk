@@ -44,6 +44,7 @@
  * @property {number} MAX_TRANSACTIONS_PER_BLOCK -	Maximum Number of transactions allowed per block.
  * @property {number} MAX_VOTES_PER_TRANSACTION - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} MIN_BROADHASH_CONSENSUS - Minimum broadhash consensus(%) among connected {MAX_PEERS} peers.
+ * @property {number} MULTISIG_CONSTRAINTS - Description needed
  * @property {number} MULTISIG_CONSTRAINTS.MIN.MINIMUM - Description needed
  * @property {number} MULTISIG_CONSTRAINTS.MIN.MAXIMUM - Description needed
  * @property {number} MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - Description needed
@@ -51,11 +52,11 @@
  * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS - Description needed
  * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS - Description needed
  * @property {string[]} NETHASHES - For mainnet and testnet.
- * @property {number} constants.normalizer - Use this to convert LISK amount to normal value.
- * @property {Object} rewards - Object representing LSK rewards milestone.
- * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
- * @property {number} rewards.offset - Start rewards at block (n).
- * @property {number} rewards.distance - Distance between each milestone.
+ * @property {number} NORMALIZER - Use this to convert LISK amount to normal value.
+ * @property {Object} REWARDS - Object representing LSK rewards milestone.
+ * @property {number[]} REWARDS.MILESTONES - Initial 5, and decreasing until 1.
+ * @property {number} REWARDS.OFFSET - Start rewards at block (n).
+ * @property {number} REWARDS.DISTANCE - Distance between each milestone.
  * @property {number} totalAmount - Total amount of LSK available in network before rewards milestone started.
  * @property {number} unconfirmedTransactionTimeOut - Expiration time for unconfirmed transaction/signatures in transaction pool.
  * @property {number} expiryInterval - Transaction pool expiry timer in milliseconds
@@ -107,17 +108,17 @@ module.exports = {
 		// Testnet
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba',
 	],
-	normalizer: '100000000',
-	rewards: {
-		milestones: [
+	NORMALIZER: '100000000',
+	REWARDS: {
+		MILESTONES: [
 			'500000000', // Initial Reward
 			'400000000', // Milestone 1
 			'300000000', // Milestone 2
 			'200000000', // Milestone 3
 			'100000000', // Milestone 4
 		],
-		offset: 2160, // Start rewards at first block of the second round
-		distance: 3000000, // Distance between each milestone
+		OFFSET: 2160, // Start rewards at first block of the second round
+		DISTANCE: 3000000, // Distance between each milestone
 	},
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: '10000000000000000',
