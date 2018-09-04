@@ -161,13 +161,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 
 	if (
 		transaction.asset.votes &&
-		transaction.asset.votes.length > constants.maxVotesPerTransaction
+		transaction.asset.votes.length > constants.MAX_TRANSACTIONS_PER_BLOCK
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Voting limit exceeded. Maximum is',
-				constants.maxVotesPerTransaction,
+				constants.MAX_TRANSACTIONS_PER_BLOCK,
 				'votes per transaction',
 			].join(' ')
 		);
@@ -394,7 +394,7 @@ Vote.prototype.schema = {
 		votes: {
 			type: 'array',
 			minItems: 1,
-			maxItems: constants.maxVotesPerTransaction,
+			maxItems: constants.MAX_TRANSACTIONS_PER_BLOCK,
 			uniqueItems: true,
 		},
 	},
