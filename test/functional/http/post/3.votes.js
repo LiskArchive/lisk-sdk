@@ -112,7 +112,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 				var transactionsCreditMaxVotesPerTransaction = [];
 				var promisesCreditsMaxVotesPerTransaction = [];
-				for (var i = 0; i < constants.MAX_TRANSACTIONS_PER_BLOCK; i++) {
+				for (var i = 0; i < constants.MAX_VOTES_PER_TRANSACTION; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
@@ -184,7 +184,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				var promisesDelegatesMaxVotesPerTransaction = [];
 				var transactionsDelegateMaxForPerTransaction = [];
-				for (var i = 0; i < constants.MAX_TRANSACTIONS_PER_BLOCK; i++) {
+				for (var i = 0; i < constants.MAX_VOTES_PER_TRANSACTION; i++) {
 					var transaction = lisk.transaction.registerDelegate({
 						passphrase: delegatesMaxVotesPerTransaction[i].passphrase,
 						username: delegatesMaxVotesPerTransaction[i].username,
@@ -452,7 +452,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		});
 
 		it(`upvoting ${
-			constants.MAX_TRANSACTIONS_PER_BLOCK
+			constants.MAX_VOTES_PER_TRANSACTION
 		} delegates (maximum votes per transaction) at once should be ok`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerTransaction.passphrase,
@@ -467,12 +467,12 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`upvoting ${constants.MAX_TRANSACTIONS_PER_BLOCK +
+		it(`upvoting ${constants.MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount
-					.slice(0, constants.MAX_TRANSACTIONS_PER_BLOCK + 1)
+					.slice(0, constants.MAX_VOTES_PER_TRANSACTION + 1)
 					.map(delegate => {
 						return `${delegate.publicKey}`;
 					}),
@@ -607,7 +607,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 		});
 
 		it(`downvoting ${
-			constants.MAX_TRANSACTIONS_PER_BLOCK
+			constants.MAX_VOTES_PER_TRANSACTION
 		} delegates (maximum votes per transaction) at once should be ok`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerTransaction.passphrase,
@@ -622,7 +622,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`downvoting ${constants.MAX_TRANSACTIONS_PER_BLOCK +
+		it(`downvoting ${constants.MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
@@ -636,8 +636,8 @@ describe('POST /api/transactions (type 3) votes', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Invalid transaction body - Failed to validate vote schema: Array is too long (${constants.MAX_TRANSACTIONS_PER_BLOCK +
-						1}), maximum ${constants.MAX_TRANSACTIONS_PER_BLOCK}`
+					`Invalid transaction body - Failed to validate vote schema: Array is too long (${constants.MAX_VOTES_PER_TRANSACTION +
+						1}), maximum ${constants.MAX_VOTES_PER_TRANSACTION}`
 				);
 				badTransactionsEnforcement.push(transaction);
 			});

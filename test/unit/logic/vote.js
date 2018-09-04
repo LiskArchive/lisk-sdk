@@ -714,7 +714,7 @@ describe('vote', () => {
 		it('should return error when votes array is longer than maximum acceptable', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(
-				...Array(constants.MAX_TRANSACTIONS_PER_BLOCK + 1)
+				...Array(constants.MAX_VOTES_PER_TRANSACTION + 1)
 			).map(() => {
 				return `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});
