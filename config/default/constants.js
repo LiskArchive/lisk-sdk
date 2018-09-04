@@ -50,7 +50,7 @@
  * @property {number} MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM - Description needed
  * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS - Description needed
  * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS - Description needed
- * @property {string[]} nethashes - For mainnet and testnet.
+ * @property {string[]} NETHASHES - For mainnet and testnet.
  * @property {number} constants.normalizer - Use this to convert LISK amount to normal value.
  * @property {Object} rewards - Object representing LSK rewards milestone.
  * @property {number[]} rewards.milestones - Initial 5, and decreasing until 1.
@@ -101,7 +101,7 @@ module.exports = {
 			MAX_ITEMS: 15,
 		},
 	},
-	nethashes: [
+	NETHASHES: [
 		// Mainnet
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511',
 		// Testnet

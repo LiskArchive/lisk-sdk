@@ -282,7 +282,7 @@ function cleanDeep(
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
-		var index = configData.constants.nethashes.indexOf(configData.nethash);
+		var index = configData.constants.NETHASHES.indexOf(configData.nethash);
 
 		if (index !== -1) {
 			console.info('Forced forging disabled for nethash', configData.nethash);
