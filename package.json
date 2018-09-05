@@ -94,7 +94,7 @@
 		"@oclif/config": "1.7.4",
 		"@oclif/errors": "1.2.0",
 		"@oclif/plugin-help": "2.1.1",
-		"babel-polyfill": "^6.26.0",
+		"babel-polyfill": "6.26.0",
 		"bip39": "2.5.0",
 		"chalk": "2.4.1",
 		"cli-table2": "github:LiskHQ/cli-table2#187c6ae80b9d963c598d0cb3379153387bfb15c4",
