@@ -63,7 +63,9 @@ describe('node:get', () => {
 				sandbox.stub().rejects(new Error('getConstants failed')),
 			)
 			.command(['node:get'])
-			.catch(error => expect(error.message).to.contain('getConstants failed'))
+			.catch(error => {
+				return expect(error.message).to.contain('getConstants failed');
+			})
 			.it('should throw error when getConstants fails');
 
 		setupTest()
@@ -73,7 +75,9 @@ describe('node:get', () => {
 				sandbox.stub().rejects(new Error('getStatus failed')),
 			)
 			.command(['node:get'])
-			.catch(error => expect(error.message).to.contain('getStatus failed'))
+			.catch(error => {
+				return expect(error.message).to.contain('getStatus failed');
+			})
 			.it('should throw error when getStatus fails');
 
 		setupTest()

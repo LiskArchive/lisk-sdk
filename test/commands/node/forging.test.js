@@ -54,9 +54,9 @@ describe('node:forging', () => {
 	describe('node:forging', () => {
 		setupTest()
 			.command(['node:forging'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 2 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 2 required arg');
+			})
 			.it('should throw an error');
 	});
 
@@ -70,11 +70,11 @@ describe('node:forging', () => {
 
 		setupTest()
 			.command(['node:forging', 'wrong'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Expected wrong to be one of: enable, disable',
-				),
-			)
+				);
+			})
 			.it('should throw an error when status is not enable or disable');
 	});
 
@@ -85,11 +85,11 @@ describe('node:forging', () => {
 				'enable',
 				'479b0fdb56199a211062203fa5c431bafe6a0a628661fc58f30fxxxxxxxxxxxx',
 			])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Argument must be a valid hex string.',
-				),
-			)
+				);
+			})
 			.it('should throw an error with invalid public key');
 
 		setupTest()
