@@ -40,16 +40,29 @@ describe('input/utils utils', () => {
 	});
 
 	describe('#getRawStdIn', () => {
-		const stdContents = 'some contents';
 		beforeEach(() => {
-			return sandbox
-				.stub(readline, 'createInterface')
-				.returns(createFakeInterface(stdContents));
+			return sandbox.stub(readline, 'createInterface');
 		});
 
 		it('should resolve to the std constns', () => {
+			const stdContents = 'some contents';
+			readline.createInterface.returns(createFakeInterface(stdContents));
 			const result = inputUtils.getRawStdIn();
-			return expect(result).to.eventually.eql(['some contents']);
+			return expect(result).to.eventually.eql([stdContents]);
+		});
+
+		it('should resolve to the std constns with two elements of array', () => {
+			const stdContents = 'some \n contents';
+			readline.createInterface.returns(createFakeInterface(stdContents));
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql(['some ', ' contents']);
+		});
+
+		it('should resolve to the std constns with empty array', () => {
+			const stdContents = '';
+			readline.createInterface.returns(createFakeInterface(stdContents));
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql(['']);
 		});
 	});
 
