@@ -19,7 +19,7 @@
   PARAMETERS: ?
 */
 
-SELECT accounts.address, accounts.balance, accounts.username, encode(accounts."publicKey", 'hex') AS "publicKey" FROM mem_accounts2delegates delegates
+SELECT accounts.address, accounts.balance, encode(accounts."publicKey", 'hex') AS "publicKey" FROM mem_accounts2delegates delegates
 INNER JOIN mem_accounts accounts ON delegates."accountId" = accounts.address
 WHERE delegates."dependentId" = ${publicKey}
 ORDER BY "${sortField:raw}" ${sortMethod:raw}
