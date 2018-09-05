@@ -9,7 +9,7 @@ Lisk Commander allows you to communicate with a remote or local node and carry o
 
 ## Prerequisites
 
-Lisk Commander requires [Node.js](https://nodejs.org/) as the underlying engine for code execution. Node.js is supported on most operating systems. Follow the instructions for your operating system on the [Node.js downloads page](https://nodejs.org/en/download/). You will need version 6.11.x or higher. NPM is automatically installed along with Node.js.
+Lisk Commander requires [Node.js](https://nodejs.org/) as the underlying engine for code execution. Node.js is supported on most operating systems. Follow the instructions for your operating system on the [Node.js downloads page](https://nodejs.org/en/download/). You will need version between 6.12 and 6.14. NPM is automatically installed along with Node.js.
 
 ## Installation
 
