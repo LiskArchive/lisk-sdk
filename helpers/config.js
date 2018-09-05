@@ -21,6 +21,7 @@ const _ = require('lodash');
 const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
 const z_schema = require('./z_schema.js');
+const deepFreeze = require('./deep_freeze_object.js');
 
 const rootPath = path.dirname(path.resolve(__filename, '..'));
 
@@ -155,7 +156,9 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	} else {
 		appConfig.genesisBlock = genesisBlock;
 
-		appConfig.constants = _.merge(defaultConstants, networkConstants);
+		appConfig.constants = deepFreeze(
+			_.merge(defaultConstants, networkConstants)
+		);
 
 		appConfig.exceptions = _.merge(defaultExceptions, networkExceptions);
 
