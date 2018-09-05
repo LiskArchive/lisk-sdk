@@ -72,6 +72,9 @@
 			"delegate": {
 				"description": "Commands relating to Lisk delegates."
 			},
+			"forging": {
+				"description": "Commands relating to Lisk forging."
+			},
 			"help": {
 				"description": "Displays help."
 			},
