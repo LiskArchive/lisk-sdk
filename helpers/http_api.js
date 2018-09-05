@@ -143,7 +143,7 @@ var middleware = {
 				.send({ success: false, error: 'API access disabled' });
 		} else if (
 			!config.api.access.public &&
-			!checkIpInList(config.api.access.whiteList, req.ip, false)
+			!checkIpInList(config.api.access.whiteList, req.ip)
 		) {
 			res
 				.status(apiCodes.FORBIDDEN)
