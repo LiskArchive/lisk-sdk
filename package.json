@@ -78,6 +78,9 @@
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
 			},
+			"message": {
+				"description": "Commands relating to user messages."
+			},
 			"warranty": {
 				"description": "Displays warranty notice."
 			}
