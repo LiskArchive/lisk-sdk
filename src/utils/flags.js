@@ -72,6 +72,7 @@ const flags = {
 	},
 	noSignature: {
 		description: noSignatureDescription,
+		allowNo: true,
 	},
 	passphrase: {
 		char: 'p',
