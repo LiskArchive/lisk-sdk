@@ -15,12 +15,14 @@
 'use strict';
 
 const Promise = require('bluebird');
+const _ = require('lodash');
 const elements = require('lisk-elements').default;
 const randomUtil = require('../common/utils/random');
 const accountsFixtures = require('../fixtures/accounts');
 const queriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
+global.constants = _.cloneDeep(global.constants);
 const constants = global.constants;
 
 describe('snapshotting', () => {
