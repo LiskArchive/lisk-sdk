@@ -378,9 +378,36 @@ describe('vote', () => {
 	});
 
 	describe('verifyVote', () => {
-		it('should throw if vote is of invalid length', done => {
+		it('should return error if vote is of invalid length', done => {
 			var invalidVote =
 				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote contains non-hex value', done => {
+			const invalidVote =
+				'-z1389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d7466';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote length is less than 65', done => {
+			const invalidVote =
+				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d745';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote length is more than 65', done => {
+			const invalidVote =
+				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d74667';
 			vote.verifyVote(invalidVote, err => {
 				expect(err).to.equal('Invalid vote format');
 				done();
