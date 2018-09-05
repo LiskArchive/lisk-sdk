@@ -60,7 +60,7 @@ describe('message:encrypt', () => {
 			.it('should throw an error');
 	});
 
-	describe('message:encrypt recipient', () => {
+	describe('message:encrypt recipientPublicKey', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey])
 			.catch(error => {
@@ -69,7 +69,7 @@ describe('message:encrypt', () => {
 			.it('should throw an error');
 	});
 
-	describe('message:encrypt recipient message', () => {
+	describe('message:encrypt recipientPublicKey message', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey, message])
 			.it('should encrypt the message with the arg', () => {
@@ -89,12 +89,12 @@ describe('message:encrypt', () => {
 				);
 				return expect(printMethodStub).to.be.calledWithExactly({
 					...defaultEncryptedMessage,
-					recipient: defaultRecipientPublicKey,
+					recipientPublicKey: defaultRecipientPublicKey,
 				});
 			});
 	});
 
-	describe('message:encrypt recipient --message=file:./message.txt', () => {
+	describe('message:encrypt recipientPublicKey --message=file:./message.txt', () => {
 		setupTest()
 			.command([
 				'message:encrypt',
@@ -122,13 +122,13 @@ describe('message:encrypt', () => {
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({
 						...defaultEncryptedMessage,
-						recipient: defaultRecipientPublicKey,
+						recipientPublicKey: defaultRecipientPublicKey,
 					});
 				},
 			);
 	});
 
-	describe('message:encrypt recipient --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
+	describe('message:encrypt recipientPublicKey --message=file:./message.txt --passphrase=pass:"card earn shift valley learn scorpion cage select help title control satoshi"', () => {
 		setupTest()
 			.command([
 				'message:encrypt',
@@ -158,7 +158,7 @@ describe('message:encrypt', () => {
 					);
 					return expect(printMethodStub).to.be.calledWithExactly({
 						...defaultEncryptedMessage,
-						recipient: defaultRecipientPublicKey,
+						recipientPublicKey: defaultRecipientPublicKey,
 					});
 				},
 			);

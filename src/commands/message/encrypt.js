@@ -20,19 +20,22 @@ import { ValidationError } from '../../utils/error';
 import getInputsFromSources from '../../utils/input';
 import commonFlags from '../../utils/flags';
 
-const processInputs = (recipient, message) => ({ passphrase, data }) => ({
+const processInputs = (recipientPublicKey, message) => ({
+	passphrase,
+	data,
+}) => ({
 	...cryptography.encryptMessageWithPassphrase(
 		message || data,
 		passphrase,
-		recipient,
+		recipientPublicKey,
 	),
-	recipient,
+	recipientPublicKey,
 });
 
 export default class EncryptCommand extends BaseCommand {
 	async run() {
 		const {
-			args: { recipient, message },
+			args: { recipientPublicKey, message },
 			flags: { passphrase: passphraseSource, message: messageSource },
 		} = this.parse(EncryptCommand);
 
@@ -51,14 +54,14 @@ export default class EncryptCommand extends BaseCommand {
 						source: messageSource,
 					},
 		});
-		const result = processInputs(recipient, message)(inputs);
+		const result = processInputs(recipientPublicKey, message)(inputs);
 		this.print(result);
 	}
 }
 
 EncryptCommand.args = [
 	{
-		name: 'recipient',
+		name: 'recipientPublicKey',
 		description: 'Public key of the recipient of the message.',
 		required: true,
 	},
