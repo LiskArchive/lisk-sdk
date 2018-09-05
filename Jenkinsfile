@@ -4,7 +4,11 @@ pipeline {
 	stages {
 		stage('Install dependencies') {
 			steps {
-				sh 'npm install --verbose'
+				script {
+					cache_file = restoreCache("package.json")
+					sh 'npm install --verbose'
+					saveCache(cache_file, './node_modules', 10)
+				}
 			}
 		}
 		stage('Run lint') {
