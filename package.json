@@ -87,6 +87,9 @@
 			"signature": {
 				"description": "Commands relating to signatures for Lisk transactions from multisignature accounts."
 			},
+			"transaction": {
+				"description": "Commands relating to Lisk transactions."
+			},
 			"warranty": {
 				"description": "Displays warranty notice."
 			}
