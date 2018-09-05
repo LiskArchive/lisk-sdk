@@ -86,7 +86,7 @@ const getVotersForDelegates = function(filters, delegate, cb) {
 
 	let sort = { sortField: 'publicKey', sortMethod: 'ASC' };
 	if (filters.sort) {
-		const allowedSortFields = ['balance', 'publicKey'];
+		const allowedSortFields = ['balance', 'publicKey', 'username'];
 		sort = sortBy.sortBy(filters.sort, {
 			sortFields: allowedSortFields,
 			quoteField: false,

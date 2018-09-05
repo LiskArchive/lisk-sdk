@@ -388,6 +388,50 @@ describe('GET /api/voters', () => {
 							});
 					});
 				});
+
+				describe('username', () => {
+					it('should return voters in ascending order', () => {
+						return votersEndpoint
+							.makeRequest(
+								{
+									sort: 'username:asc',
+									username: validVotedDelegate.delegateName,
+								},
+								200
+							)
+							.then(res => {
+								expectValidVotedDelegateResponse(res);
+								expect(res.body.data.username).to.equal(
+									validVotedDelegate.delegateName
+								);
+								expect(
+									_.map(res.body.data.voters, 'username').sort()
+								).to.to.be.eql(_.map(res.body.data.voters, 'username'));
+							});
+					});
+
+					it('should return voters in descending order', () => {
+						return votersEndpoint
+							.makeRequest(
+								{
+									sort: 'username:desc',
+									username: validVotedDelegate.delegateName,
+								},
+								200
+							)
+							.then(res => {
+								expectValidVotedDelegateResponse(res);
+								expect(res.body.data.username).to.equal(
+									validVotedDelegate.delegateName
+								);
+								expect(
+									_.map(res.body.data.voters, 'username')
+										.sort()
+										.reverse()
+								).to.to.be.eql(_.map(res.body.data.voters, 'username'));
+							});
+					});
+				});
 			});
 		});
 
