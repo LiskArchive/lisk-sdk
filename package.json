@@ -75,11 +75,14 @@
 			"help": {
 				"description": "Displays help."
 			},
+			"message": {
+				"description": "Commands relating to user messages."
+			},
 			"passphrase": {
 				"description": "Commands relating to Lisk passphrases."
 			},
-			"message": {
-				"description": "Commands relating to user messages."
+			"signature": {
+				"description": "Commands relating to Lisk signature."
 			},
 			"warranty": {
 				"description": "Displays warranty notice."

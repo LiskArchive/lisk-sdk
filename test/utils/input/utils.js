@@ -39,6 +39,20 @@ describe('input/utils utils', () => {
 		});
 	});
 
+	describe('#getRawStdIn', () => {
+		const stdContents = 'some contents';
+		beforeEach(() => {
+			return sandbox
+				.stub(readline, 'createInterface')
+				.returns(createFakeInterface(stdContents));
+		});
+
+		it('should resolve to the std constns', () => {
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql(['some contents']);
+		});
+	});
+
 	describe('#getStdIn', () => {
 		const stdContents = 'some contents';
 		beforeEach(() => {
