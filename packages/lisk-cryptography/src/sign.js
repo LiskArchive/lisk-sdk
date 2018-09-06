@@ -12,13 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import nacl from 'tweetnacl';
 import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { SIGNED_MESSAGE_PREFIX } from 'lisk-constants';
 import hash from './hash';
 import { hexToBuffer, bufferToHex } from './buffer';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+import nacl from './nacl';
 
+const {
+	signDetached,
+	detachedVerify,
+	naclSignPublicKeyLength,
+	naclSignSignatureLength,
+} = nacl;
 const createHeader = text => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
 const messageHeader = createHeader('MESSAGE');
@@ -45,14 +51,14 @@ export const digestMessage = message => {
 
 export const signMessageWithPassphrase = (message, passphrase) => {
 	const msgBytes = digestMessage(message);
-	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
-		passphrase,
-	);
-	const signature = nacl.sign.detached(msgBytes, privateKey);
-
+	const {
+		privateKeyBytes,
+		publicKeyBytes,
+	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
+	const signature = signDetached(msgBytes, privateKeyBytes);
 	return {
 		message,
-		publicKey: bufferToHex(publicKey),
+		publicKey: bufferToHex(publicKeyBytes),
 		signature: bufferToHex(signature),
 	};
 };
@@ -66,15 +72,15 @@ export const verifyMessageWithPublicKey = ({
 	const signatureBytes = hexToBuffer(signature);
 	const publicKeyBytes = hexToBuffer(publicKey);
 
-	if (publicKeyBytes.length !== nacl.sign.publicKeyLength) {
+	if (publicKeyBytes.length !== naclSignPublicKeyLength) {
 		throw new Error('Invalid publicKey, expected 32-byte publicKey');
 	}
 
-	if (signatureBytes.length !== nacl.sign.signatureLength) {
+	if (signatureBytes.length !== naclSignSignatureLength) {
 		throw new Error('Invalid signature length, expected 64-byte signature');
 	}
 
-	return nacl.sign.detached.verify(msgBytes, signatureBytes, publicKeyBytes);
+	return detachedVerify(msgBytes, signatureBytes, publicKeyBytes);
 };
 
 export const signMessageWithTwoPassphrases = (
@@ -88,16 +94,16 @@ export const signMessageWithTwoPassphrases = (
 		secondPassphrase,
 	);
 
-	const signature = nacl.sign.detached(msgBytes, keypairBytes.privateKey);
-	const secondSignature = nacl.sign.detached(
+	const signature = signDetached(msgBytes, keypairBytes.privateKeyBytes);
+	const secondSignature = signDetached(
 		msgBytes,
-		secondKeypairBytes.privateKey,
+		secondKeypairBytes.privateKeyBytes,
 	);
 
 	return {
 		message,
-		publicKey: bufferToHex(keypairBytes.publicKey),
-		secondPublicKey: bufferToHex(secondKeypairBytes.publicKey),
+		publicKey: bufferToHex(keypairBytes.publicKeyBytes),
+		secondPublicKey: bufferToHex(secondKeypairBytes.publicKeyBytes),
 		signature: bufferToHex(signature),
 		secondSignature: bufferToHex(secondSignature),
 	};
@@ -116,34 +122,30 @@ export const verifyMessageWithTwoPublicKeys = ({
 	const publicKeyBytes = hexToBuffer(publicKey);
 	const secondPublicKeyBytes = hexToBuffer(secondPublicKey);
 
-	if (signatureBytes.length !== nacl.sign.signatureLength) {
+	if (signatureBytes.length !== naclSignSignatureLength) {
 		throw new Error(
 			'Invalid first signature length, expected 64-byte signature',
 		);
 	}
 
-	if (secondSignatureBytes.length !== nacl.sign.signatureLength) {
+	if (secondSignatureBytes.length !== naclSignSignatureLength) {
 		throw new Error(
 			'Invalid second signature length, expected 64-byte signature',
 		);
 	}
 
-	if (publicKeyBytes.length !== nacl.sign.publicKeyLength) {
+	if (publicKeyBytes.length !== naclSignPublicKeyLength) {
 		throw new Error('Invalid first publicKey, expected 32-byte publicKey');
 	}
 
-	if (secondPublicKeyBytes.length !== nacl.sign.publicKeyLength) {
+	if (secondPublicKeyBytes.length !== naclSignPublicKeyLength) {
 		throw new Error('Invalid second publicKey, expected 32-byte publicKey');
 	}
 
 	const verifyFirstSignature = () =>
-		nacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
+		detachedVerify(messageBytes, signatureBytes, publicKeyBytes);
 	const verifySecondSignature = () =>
-		nacl.sign.detached.verify(
-			messageBytes,
-			secondSignatureBytes,
-			secondPublicKeyBytes,
-		);
+		detachedVerify(messageBytes, secondSignatureBytes, secondPublicKeyBytes);
 
 	return verifyFirstSignature() && verifySecondSignature();
 };
@@ -181,20 +183,18 @@ export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
 };
 
 export const signDataWithPrivateKey = (data, privateKey) => {
-	const signature = nacl.sign.detached(data, privateKey);
+	const signature = signDetached(data, privateKey);
 	return bufferToHex(signature);
 };
 
 export const signDataWithPassphrase = (data, passphrase) => {
-	const { privateKey } = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	return signDataWithPrivateKey(data, privateKey);
+	const { privateKeyBytes } = getPrivateAndPublicKeyBytesFromPassphrase(
+		passphrase,
+	);
+	return signDataWithPrivateKey(data, privateKeyBytes);
 };
 
 export const signData = signDataWithPassphrase;
 
 export const verifyData = (data, signature, publicKey) =>
-	nacl.sign.detached.verify(
-		data,
-		hexToBuffer(signature),
-		hexToBuffer(publicKey),
-	);
+	detachedVerify(data, hexToBuffer(signature), hexToBuffer(publicKey));

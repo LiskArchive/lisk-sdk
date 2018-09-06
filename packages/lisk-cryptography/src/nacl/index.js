@@ -12,20 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as nacl from './nacl';  /* eslint-disable-line */
-import * as buffer from './buffer';
-import * as convert from './convert';
-import * as encrypt from './encrypt';
-import hash from './hash';
-import * as keys from './keys';
-import * as sign from './sign';
+let lib; /* eslint-disable-line */
 
-export default Object.assign(
-	{},
-	buffer,
-	convert,
-	encrypt,
-	{ hash },
-	keys,
-	sign,
-);
+try {
+	if (process.env.NACL_FAST === 'disable') throw new Error('Use tweetnacl');
+	lib = require('./sodium'); /* eslint-disable-line */
+} catch (err) {
+	process.env.NACL_FAST = 'disable';
+	lib = require('./nacl'); /* eslint-disable-line */
+}
+
+export default lib;

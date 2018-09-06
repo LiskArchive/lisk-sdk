@@ -13,11 +13,12 @@
  *
  */
 import crypto from 'crypto';
-import nacl from 'tweetnacl';
 import { hexToBuffer, bufferToHex } from './buffer';
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+import nacl from './nacl';
 
+const { randombytes, box, boxOpen } = nacl;
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
@@ -29,15 +30,16 @@ export const encryptMessageWithPassphrase = (
 	recipientPublicKey,
 ) => {
 	const {
-		privateKey: senderPrivateKeyBytes,
+		privateKeyBytes: senderPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 	const messageInBytes = Buffer.from(message, 'utf8');
 
-	const nonce = nacl.randomBytes(24);
-	const cipherBytes = nacl.box(
+	const nonce = randombytes(24);
+
+	const cipherText = box(
 		messageInBytes,
 		nonce,
 		convertedPublicKey,
@@ -45,7 +47,7 @@ export const encryptMessageWithPassphrase = (
 	);
 
 	const nonceHex = bufferToHex(nonce);
-	const encryptedMessage = bufferToHex(cipherBytes);
+	const encryptedMessage = bufferToHex(cipherText);
 
 	return {
 		nonce: nonceHex,
@@ -60,7 +62,7 @@ export const decryptMessageWithPassphrase = (
 	senderPublicKey,
 ) => {
 	const {
-		privateKey: recipientPrivateKeyBytes,
+		privateKeyBytes: recipientPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(
 		recipientPrivateKeyBytes,
@@ -71,7 +73,7 @@ export const decryptMessageWithPassphrase = (
 	const nonceBytes = hexToBuffer(nonce);
 
 	try {
-		const decoded = nacl.box.open(
+		const decoded = boxOpen(
 			cipherBytes,
 			nonceBytes,
 			convertedPublicKey,
@@ -79,7 +81,11 @@ export const decryptMessageWithPassphrase = (
 		);
 		return Buffer.from(decoded).toString();
 	} catch (error) {
-		if (error.message.match(/bad nonce size/)) {
+		if (
+			error.message.match(
+				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
+			)
+		) {
 			throw new Error('Expected 24-byte nonce but got length 1.');
 		}
 		throw new Error(

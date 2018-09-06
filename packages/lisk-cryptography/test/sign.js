@@ -106,14 +106,14 @@ ${defaultSecondSignature}
 		getPrivateAndPublicKeyBytesFromPassphraseStub
 			.withArgs(defaultPassphrase)
 			.returns({
-				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-				publicKey: Buffer.from(defaultPublicKey, 'hex'),
+				privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
+				publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
 			});
 		return getPrivateAndPublicKeyBytesFromPassphraseStub
 			.withArgs(defaultSecondPassphrase)
 			.returns({
-				privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
-				publicKey: Buffer.from(defaultSecondPublicKey, 'hex'),
+				privateKeyBytes: Buffer.from(defaultSecondPrivateKey, 'hex'),
+				publicKeyBytes: Buffer.from(defaultSecondPublicKey, 'hex'),
 			});
 	});
 

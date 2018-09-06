@@ -12,29 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import nacl from 'tweetnacl';
+
+import nacl from './nacl';
 import { bufferToHex } from './buffer';
 import { getAddressFromPublicKey } from './convert';
 import hash from './hash';
 
+const { signKeyPair } = nacl;
+
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
-	const { publicKey, secretKey } = nacl.sign.keyPair.fromSeed(hashed);
-
+	const { publicKeyBytes, privateKeyBytes } = signKeyPair(hashed);
 	return {
-		privateKey: secretKey,
-		publicKey,
+		privateKeyBytes,
+		publicKeyBytes,
 	};
 };
 
 export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
-	const { privateKey, publicKey } = getPrivateAndPublicKeyBytesFromPassphrase(
-		passphrase,
-	);
+	const {
+		privateKeyBytes,
+		publicKeyBytes,
+	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 
 	return {
-		privateKey: bufferToHex(privateKey),
-		publicKey: bufferToHex(publicKey),
+		privateKey: bufferToHex(privateKeyBytes),
+		publicKey: bufferToHex(publicKeyBytes),
 	};
 };
 

@@ -65,6 +65,9 @@
 		"tweetnacl": "1.0.0",
 		"varuint-bitcoin": "1.1.0"
 	},
+	"optionalDependencies": {
+		"sodium-native": "2.2.1"
+	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
 		"babel-plugin-istanbul": "5.0.1",
