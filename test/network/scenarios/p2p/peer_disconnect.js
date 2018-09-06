@@ -48,10 +48,14 @@ module.exports = function(
 
 			describe('when a node is stopped', () => {
 				before(done => {
-					common.stopNode('node_1');
-					setTimeout(() => {
-						done();
-					}, 2000);
+					common
+						.stopNode('node_1')
+						.then(() => {
+							done();
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
 				it(`peer manager should remove peer from the list and there should be ${EXPECTED_OUTOGING_CONNECTIONS -
@@ -77,10 +81,14 @@ module.exports = function(
 
 			describe('when a stopped node is started', () => {
 				before(done => {
-					common.startNode('node_1');
-					setTimeout(() => {
-						done();
-					}, 2000);
+					common
+						.startNode('node_1')
+						.then(() => {
+							done();
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
 				it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS} established connections from 500[0-9] ports`, done => {
@@ -108,23 +116,33 @@ module.exports = function(
 				// Need to keep one peer so that we can validate
 				// Duplicate socket connection exists or not
 				it('stop all the nodes in the network except node_0', done => {
+					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
-						common.stopNode(`node_${i}`);
+						peersPromises.push(common.stopNode(`node_${i}`));
 					}
-					setTimeout(() => {
-						console.info('Wait for nodes to be stopped');
-						done();
-					}, 10000);
+					console.info('Wait for nodes to be stopped');
+					Promise.all(peersPromises)
+						.then(() => {
+							done();
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
 				it('start all nodes that were stopped', done => {
+					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
-						common.startNode(`node_${i}`);
+						peersPromises.push(common.startNode(`node_${i}`));
 					}
-					setTimeout(() => {
-						console.info('Wait for nodes to be started');
-						done();
-					}, 10000);
+					console.info('Wait for nodes to be started');
+					Promise.all(peersPromises)
+						.then(() => {
+							done();
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
 				describe('after all the node restarts', () => {
