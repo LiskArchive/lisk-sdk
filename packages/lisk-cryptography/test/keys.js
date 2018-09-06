@@ -20,7 +20,7 @@ import {
 	getAddressFromPassphrase,
 } from '../src/keys';
 // Require is used for stubbing
-const convert = require('../src/convert');
+const buffer = require('../src/buffer');
 const hash = require('../src/hash');
 
 describe('keys', () => {
@@ -40,7 +40,7 @@ describe('keys', () => {
 	let bufferToHexStub;
 
 	beforeEach(() => {
-		bufferToHexStub = sandbox.stub(convert, 'bufferToHex');
+		bufferToHexStub = sandbox.stub(buffer, 'bufferToHex');
 		bufferToHexStub
 			.withArgs(Buffer.from(defaultPrivateKey, 'hex'))
 			.returns(defaultPrivateKey);

@@ -13,7 +13,7 @@
  *
  */
 import crypto from 'crypto';
-import { hexToBuffer } from './convert';
+import { hexToBuffer } from './buffer';
 
 const cryptoHashSha256 = data => {
 	const hash = crypto.createHash('sha256');

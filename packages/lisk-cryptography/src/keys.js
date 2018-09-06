@@ -13,7 +13,8 @@
  *
  */
 import nacl from 'tweetnacl';
-import { bufferToHex, getAddressFromPublicKey } from './convert';
+import { bufferToHex } from './buffer';
+import { getAddressFromPublicKey } from './convert';
 import hash from './hash';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
