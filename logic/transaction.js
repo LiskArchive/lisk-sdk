@@ -22,7 +22,6 @@ const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
-const constants = global.constants;
 const __private = {};
 
 /**
@@ -634,11 +633,7 @@ class Transaction {
 
 		// Check amount
 		let amount = transaction.amount;
-		if (
-			amount.lessThan(0) ||
-			amount.greaterThan(constants.totalAmount) ||
-			!amount.isInteger()
-		) {
+		if (!amount.isInteger() || amount.lessThan(0)) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
 
