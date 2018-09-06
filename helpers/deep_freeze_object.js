@@ -5,9 +5,8 @@ module.exports = function deepFreeze(o) {
 
 	Object.getOwnPropertyNames(o).forEach(prop => {
 		if (
-			Object.prototype.hasOwnProperty.call(o, prop) &&
 			o[prop] !== null &&
-			(typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
+			typeof o[prop] === 'object' &&
 			!Object.isFrozen(o[prop])
 		) {
 			deepFreeze(o[prop]);
