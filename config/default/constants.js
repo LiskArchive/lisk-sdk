@@ -25,7 +25,7 @@
  * @property {number} ADDITIONAL_DATA.MAX_LENGTH - Additional Data (Max Length)
  * @property {number} BLOCK_SLOT_WINDOW - The default number of previous blocks to keep in memory.
  * @property {number} BLOCK_RECEIPT_TIMEOUT - Seconds to check if the block is fresh or not.
- * @property {Date} EPOCH_TIME	- Timestamp indicating the start of lisk core.
+ * @property {Date} EPOCH_TIME - Timestamp indicating the start of lisk core.
  * @property {Object} FEES - Object representing amount of fees for different types of transactions.
  * @property {number} FEES.SEND	- Fee for sending a transaction.
  * @property {number} FEES.VOTE - Fee for voting a delegate.

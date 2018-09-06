@@ -27,18 +27,6 @@ const constants = global.constants;
  */
 
 /**
- * Gets constant time from Lisk epoch.
- *
- * @private
- * @returns {number} Lisk epoch time
- */
-function beginEpochTime() {
-	var d = constants.EPOCH_TIME;
-
-	return d;
-}
-
-/**
  * Calculates time since Lisk epoch.
  *
  * @private
@@ -50,7 +38,7 @@ function getEpochTime(time) {
 		time = Date.now();
 	}
 
-	var d = beginEpochTime();
+	var d = constants.EPOCH_TIME;
 	var t = d.getTime();
 
 	return Math.floor((time - t) / 1000);
@@ -83,7 +71,7 @@ module.exports = {
 			epochTime = this.getTime();
 		}
 
-		var d = beginEpochTime();
+		var d = constants.EPOCH_TIME;
 		var t = Math.floor(d.getTime() / 1000) * 1000;
 
 		return t + epochTime * 1000;
