@@ -16,7 +16,6 @@
 'use strict';
 
 var async = require('async');
-const _ = require('lodash');
 const blockVersion = require('../../../../logic/block_version.js');
 var application = require('../../../common/application');
 var modulesLoader = require('../../../common/modules_loader');
@@ -24,7 +23,6 @@ var clearDatabaseTable = require('../../../common/db_sandbox')
 	.clearDatabaseTable;
 var loadTables = require('./process_tables_data.json');
 
-global.constants = _.cloneDeep(global.constants);
 const constants = global.constants;
 
 describe('system test (blocks) - process', () => {

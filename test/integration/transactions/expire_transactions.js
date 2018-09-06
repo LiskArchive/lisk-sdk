@@ -15,7 +15,6 @@
 'use strict';
 
 const lisk = require('lisk-elements').default;
-const _ = require('lodash');
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
@@ -34,7 +33,6 @@ describe('expire transactions', () => {
 	let library;
 	let queries;
 
-	global.constants = _.cloneDeep(global.constants);
 	const constants = global.constants;
 
 	const { expiryInterval, unconfirmedTransactionTimeOut } = constants;

@@ -14,11 +14,9 @@
 
 'use strict';
 
-const _ = require('lodash');
 const BlockReward = require('../../../logic/block_reward.js');
 const Bignum = require('../../../helpers/bignum.js');
 
-__testContext.config.constants = _.cloneDeep(__testContext.config.constants);
 const constants = __testContext.config.constants;
 
 constants.REWARDS.DISTANCE = 3000000;

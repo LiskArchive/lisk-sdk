@@ -152,6 +152,8 @@ _.mixin(
 	{ chain: false }
 );
 
+// Clonning the constant object remove immutability
+testContext.config.constants = _.cloneDeep(testContext.config.constants);
 global.expect = chai.expect;
 global.sinonSandbox = sinon.createSandbox();
 global.__testContext = testContext;
