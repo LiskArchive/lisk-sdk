@@ -57,7 +57,7 @@ info:
     ## List of Endpoints
     All possible API endpoints for Lisk Core are listed below.
     Click on an endpoint to show descriptions, details and examples.
-  version: '1.0.31'
+  version: '1.0.32'
   contact:
     email: admin@lisk.io
   license:
@@ -765,6 +765,8 @@ paths:
             - publicKey:desc
             - balance:asc
             - balance:desc
+            - username:asc
+            - username:desc
           default: publicKey:asc
       responses:
         200:

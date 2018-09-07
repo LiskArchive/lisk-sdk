@@ -289,7 +289,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote length'
+					'Invalid vote at index 0 - Invalid vote format'
 				);
 				badTransactions.push(transaction);
 			});

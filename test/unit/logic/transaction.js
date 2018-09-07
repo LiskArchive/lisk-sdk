@@ -751,7 +751,7 @@ describe('transaction', () => {
 			});
 		});
 
-		it('should return error when transaction amount is invalid', done => {
+		it("should return error when transaction amount is bigger than postgreSQL's Max BigInt value", done => {
 			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
 			var transaction = {
 				type: 0,

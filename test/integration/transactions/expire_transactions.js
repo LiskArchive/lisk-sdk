@@ -207,7 +207,7 @@ describe('expire transactions', () => {
 				memAccountBefore = account;
 				// Transfer balance to multi-signature account
 				// so that multi-signature account can be registered
-				return addTransactionsAndForgePromise(library, [transaction]);
+				return addTransactionsAndForgePromise(library, [transaction], 0);
 			});
 		});
 

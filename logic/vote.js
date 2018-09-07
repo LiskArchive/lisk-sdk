@@ -227,12 +227,8 @@ Vote.prototype.verifyVote = function(vote, cb) {
 		return setImmediate(cb, 'Invalid vote type');
 	}
 
-	if (!/[-+]{1}[0-9a-z]{64}/.test(vote)) {
+	if (!/^[-+]{1}[0-9a-f]{64}$/.test(vote)) {
 		return setImmediate(cb, 'Invalid vote format');
-	}
-
-	if (vote.length !== 65) {
-		return setImmediate(cb, 'Invalid vote length');
 	}
 
 	return setImmediate(cb);
