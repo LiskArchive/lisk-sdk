@@ -14,7 +14,44 @@
 
 'use strict';
 
+// eslint-disable-next-line import/order
 const newrelic = require('newrelic');
+
+const fs = require('fs');
+const path = require('path');
+
+const rootPath = process.cwd();
+
+const controllerMethodExtractor = (shim, controller) =>
+	Object.getOwnPropertyNames(controller).filter(name =>
+		shim.isFunction(controller[name])
+	);
+
+// callBackMethods array only support one level of nesting
+const modulesToInstrument = {
+	'./modules/node.js': {
+		identifier: 'modules.node',
+		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
+	},
+	[`${rootPath}/api/controllers/node.js`]: {
+		identifier: 'api.controllers.node',
+		methodExtractor: controllerMethodExtractor,
+	},
+};
+
+const controllerFolder = '/api/controllers/';
+fs.readdirSync(rootPath + controllerFolder).forEach(file => {
+	if (path.basename(file) !== 'index.js') {
+		modulesToInstrument[`${rootPath}${controllerFolder}${file}`] = {
+			identifier: `api.controllers.${path
+				.basename(file)
+				.split('.')
+				.slice(0, -1)
+				.join('.')}`,
+			methodExtractor: controllerMethodExtractor,
+		};
+	}
+});
 
 function instrumentError(error) {
 	console.error(error);
@@ -30,7 +67,9 @@ function instrumentSwaggerNodeRunnerFramework(shim, swaggerNodeRunner) {
 	function swaggerNodeRunnerMiddleware(req, res, next) {
 		const operation = runner.getOperation(req);
 
-		shim.setTransactionUri(operation.pathObject.path);
+		if (operation) {
+			shim.setTransactionUri(operation.pathObject.path);
+		}
 
 		middleware.apply(runner, [req, res, next]);
 	}
@@ -95,23 +134,47 @@ function instrumentPgPromise(shim, pgPromise, moduleName) {
 }
 
 function instrumentModulesWithCallback(shim, module, moduleName) {
-	const moduleIdentifier = moduleName.split('.')[0];
+	const moduleIdentifier = modulesToInstrument[moduleName].identifier;
+	let methods = null;
 
-	shim.wrap(
-		module.prototype,
-		modulesInstrument[moduleName].callbackMethods,
-		(shim, fn, fnName) =>
-			function() {
-				const args = shim.argsToArray(...arguments);
-				const segment = shim.createSegment(
-					`${moduleIdentifier}.${fnName}`,
-					null,
-					null
-				);
-				shim.bindCallbackSegment(args, shim.LAST, segment);
-				fn.apply(this, args);
-			}
-	);
+	if (modulesToInstrument[moduleName].methodExtractor) {
+		methods = modulesToInstrument[moduleName].methodExtractor(shim, module);
+	} else {
+		methods = modulesToInstrument[moduleName].callbackMethods;
+	}
+
+	methods.forEach(method => {
+		const methods = method.split('.');
+		let object;
+		let methodToWrap;
+
+		if (methods.length > 2) {
+			throw new Error(
+				'callBackMethods array only support one level of nesting'
+			);
+		}
+
+		if (methods.length === 2) {
+			object = module.prototype[methods[0]];
+			methodToWrap = methods[1];
+		} else {
+			object = module;
+			methodToWrap = method;
+		}
+
+		shim.wrap(
+			object,
+			[methodToWrap],
+			// eslint-disable-next-line no-unused-vars
+			(shim, fn, fnName) =>
+				function() {
+					const args = shim.argsToArray(...arguments);
+					const segment = shim.createSegment(`${moduleIdentifier}.${method}`);
+					shim.bindCallbackSegment(args, shim.LAST, segment);
+					fn.apply(this, args);
+				}
+		);
+	});
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -138,13 +201,7 @@ function instrumentJobQueue(shim, jobQueue, moduleName) {
 	});
 }
 
-const modulesInstrument = {
-	'./modules/node.js': {
-		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
-	},
-};
-
-Object.keys(modulesInstrument).forEach(modulePath => {
+Object.keys(modulesToInstrument).forEach(modulePath => {
 	newrelic.instrument({
 		moduleName: modulePath,
 		onRequire: instrumentModulesWithCallback,
