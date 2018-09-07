@@ -57,12 +57,12 @@ ForgingCommand.args = [
 	{
 		name: 'status',
 		options: [STATUS_ENABLE, STATUS_DISABLE],
-		description: 'Status of forging to change to.',
+		description: 'Desired forging status.',
 		required: true,
 	},
 	{
 		name: 'publicKey',
-		description: 'Public key of the delegate to change the status.',
+		description: 'Public key of the delegate whose status should be updated.',
 		required: true,
 	},
 ];

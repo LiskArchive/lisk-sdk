@@ -24,23 +24,25 @@ export default class GetCommand extends BaseCommand {
 		const baseInfo = await Promise.all([
 			client.node.getConstants(),
 			client.node.getStatus(),
-		]).then(([constantsResponse, statusResponse]) =>
-			Object.assign({}, constantsResponse.data, statusResponse.data),
-		);
+		]).then(([constantsResponse, statusResponse]) => ({
+			...constantsResponse.data,
+			...statusResponse.data,
+		}));
 		if (!all) {
 			return this.print(baseInfo);
 		}
-		const fullInfo = await client.node
-			.getForgingStatus()
-			.then(forgingResponse =>
-				Object.assign({}, baseInfo, {
-					forgingStatus: forgingResponse.data,
-				}),
-			)
-			.catch(error =>
-				Object.assign({}, baseInfo, { forgingStatus: error.message }),
-			);
-		return this.print(fullInfo);
+		try {
+			const forgingResponse = await client.node.getForgingStatus();
+			return this.print({
+				...baseInfo,
+				forgingStatus: forgingResponse.data || [],
+			});
+		} catch (error) {
+			return this.print({
+				...baseInfo,
+				forgingStatus: error.message,
+			});
+		}
 	}
 }
 

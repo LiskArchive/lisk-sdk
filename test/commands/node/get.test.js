@@ -95,7 +95,7 @@ describe('node:get', () => {
 	});
 
 	describe('node:get --all', () => {
-		const errorMessage = 'Error 403: Unautorized';
+		const errorMessage = 'Error 403: Unauthorized';
 		setupTest()
 			.stub(
 				apiClientStub.node,
@@ -118,7 +118,7 @@ describe('node:get', () => {
 
 		setupTest()
 			.command(['node:get', '--all'])
-			.it('should get the node status with forging status error', () => {
+			.it('should get the node status and forging status', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
 					Object.assign(
 						{},
