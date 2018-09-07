@@ -103,7 +103,7 @@
 		"babel-polyfill": "6.26.0",
 		"bip39": "2.5.0",
 		"chalk": "2.4.1",
-		"cli-table2": "github:LiskHQ/cli-table2#187c6ae80b9d963c598d0cb3379153387bfb15c4",
+		"cli-table3": "0.5.0",
 		"inquirer": "6.2.0",
 		"lisk-elements": "1.0.0",
 		"lockfile": "1.0.4",
