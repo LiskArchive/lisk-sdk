@@ -32,9 +32,9 @@
  * @property {number} FEES.SECOND_SIGNATURE	- Fee for creating a secondSignature.
  * @property {number} FEES.DELEGATE - Fee for registering as a delegate.
  * @property {number} FEES.MULTISIGNATURE - Fee for multisignature transaction.
- * @property {number} FEES.DAPP_REGISTRATION	- Fee for registering as a dapp.
- * @property {number} FEES.DAPP_WITHDRAWAL	- Fee for registering as a dapp.
- * @property {number} FEES.DAPP_DEPOSIT	- Fee for registering as a dapp.
+ * @property {number} FEES.DAPP_REGISTRATION - Fee for registering as a dapp.
+ * @property {number} FEES.DAPP_WITHDRAWAL - ? To be defined
+ * @property {number} FEES.DAPP_DEPOSIT	- ? To be defined
  // TODO: Needs additional check to revise max payload length
  // for each transaction type for consistency
  // FYI: https://lisk.io/documentation/the-lisk-protocol/blocks {Block Payload Section}
@@ -44,13 +44,12 @@
  * @property {number} MAX_TRANSACTIONS_PER_BLOCK -	Maximum Number of transactions allowed per block.
  * @property {number} MAX_VOTES_PER_TRANSACTION - The maximum number of votes allowed in transaction type(3) votes.
  * @property {number} MIN_BROADHASH_CONSENSUS - Minimum broadhash consensus(%) among connected {MAX_PEERS} peers.
- * @property {number} MULTISIG_CONSTRAINTS - Description needed
- * @property {number} MULTISIG_CONSTRAINTS.MIN.MINIMUM - Description needed
- * @property {number} MULTISIG_CONSTRAINTS.MIN.MAXIMUM - Description needed
- * @property {number} MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - Description needed
- * @property {number} MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM - Description needed
- * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS - Description needed
- * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS - Description needed
+ * @property {number} MULTISIG_CONSTRAINTS.MIN.MINIMUM - Minimum allowed number of signatures required to process a Multisignature transaction
+ * @property {number} MULTISIG_CONSTRAINTS.MIN.MAXIMUM - Maximum allowed number of signatures required to process a Multisignature transaction
+ * @property {number} MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - Minimum timeframe in which a Multisignature transaction will exist in memory before the transaction is confirmed
+ * @property {number} MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM - Maximum timeframe in which Multisignature transaction will exist in memory before the transaction is confirmed
+ * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS - Minimum allowed number of keys inside a Multisignature pool
+ * @property {number} MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS - Maximum allowed number of keys inside a Multisignature pool
  * @property {string[]} NETHASHES - For mainnet and testnet.
  * @property {number} NORMALIZER - Use this to convert LISK amount to normal value.
  * @property {Object} REWARDS - Object representing LSK rewards milestone.
