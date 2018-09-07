@@ -751,7 +751,7 @@ describe('transaction', () => {
 			});
 		});
 
-		it('should not return "Invalid transaction amount" error when transaction amount is bigger than total amount of Lisk tokens', done => {
+		it("should return error when transaction amount is bigger than postgreSQL's Max BigInt value", done => {
 			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
 			var transaction = {
 				type: 0,
@@ -769,8 +769,7 @@ describe('transaction', () => {
 			};
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
-				expect(err).to.not.include('Invalid transaction amount');
-				expect(err).to.include('Account does not have enough LSK:');
+				expect(err).to.include('Invalid transaction amount');
 				done();
 			});
 		});
