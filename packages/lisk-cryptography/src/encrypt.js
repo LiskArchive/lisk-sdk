@@ -14,12 +14,8 @@
  */
 import crypto from 'crypto';
 import nacl from 'tweetnacl';
-import {
-	hexToBuffer,
-	bufferToHex,
-	convertPrivateKeyEd2Curve,
-	convertPublicKeyEd2Curve,
-} from './convert';
+import { hexToBuffer, bufferToHex } from './buffer';
+import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 
 const PBKDF2_ITERATIONS = 1e6;
