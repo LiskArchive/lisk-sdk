@@ -94,7 +94,7 @@ describe('node:get', () => {
 			});
 	});
 
-	describe('node:get --all', () => {
+	describe('node:get --forging-status', () => {
 		const errorMessage = 'Error 403: Unauthorized';
 		setupTest()
 			.stub(
@@ -102,7 +102,7 @@ describe('node:get', () => {
 				'getForgingStatus',
 				sandbox.stub().rejects(new Error(errorMessage)),
 			)
-			.command(['node:get', '--all'])
+			.command(['node:get', '--forging-status'])
 			.it('should get the node status with forging status error', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
 					Object.assign(
@@ -118,7 +118,7 @@ describe('node:get', () => {
 
 		setupTest()
 			.stub(apiClientStub.node, 'getForgingStatus', sandbox.stub().resolves({}))
-			.command(['node:get', '--all'])
+			.command(['node:get', '--forging-status'])
 			.it('should get the node status and empty forging status', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
 					Object.assign(
@@ -133,7 +133,7 @@ describe('node:get', () => {
 			});
 
 		setupTest()
-			.command(['node:get', '--all'])
+			.command(['node:get', '--forging-status'])
 			.it('should get the node status and forging status', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
 					Object.assign(

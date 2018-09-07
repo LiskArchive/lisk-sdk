@@ -19,7 +19,9 @@ import getAPIClient from '../../utils/api';
 
 export default class GetCommand extends BaseCommand {
 	async run() {
-		const { flags: { all } } = this.parse(GetCommand);
+		const { flags: { 'forging-status': showForgingStatus } } = this.parse(
+			GetCommand,
+		);
 		const client = getAPIClient(this.userConfig.api);
 		const baseInfo = await Promise.all([
 			client.node.getConstants(),
@@ -28,27 +30,26 @@ export default class GetCommand extends BaseCommand {
 			...constantsResponse.data,
 			...statusResponse.data,
 		}));
-		if (!all) {
+		if (!showForgingStatus) {
 			return this.print(baseInfo);
 		}
-		try {
-			const forgingResponse = await client.node.getForgingStatus();
-			return this.print({
+		const fullInfo = await client.node
+			.getForgingStatus()
+			.then(forgingResponse => ({
 				...baseInfo,
 				forgingStatus: forgingResponse.data || [],
-			});
-		} catch (error) {
-			return this.print({
+			}))
+			.catch(error => ({
 				...baseInfo,
 				forgingStatus: error.message,
-			});
-		}
+			}));
+		return this.print(fullInfo);
 	}
 }
 
 GetCommand.flags = {
 	...BaseCommand.flags,
-	all: flagParser.boolean({
+	'forging-status': flagParser.boolean({
 		description: 'Additionally provides information about forging status.',
 	}),
 };
@@ -57,4 +58,4 @@ GetCommand.description = `
 Gets information about a node.
 `;
 
-GetCommand.examples = ['node:get', 'node:get --all'];
+GetCommand.examples = ['node:get', 'node:get --forging-status'];
