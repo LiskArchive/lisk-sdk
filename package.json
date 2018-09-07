@@ -72,6 +72,9 @@
 			"delegate": {
 				"description": "Commands relating to Lisk delegates."
 			},
+			"node": {
+				"description": "Commands relating to Lisk node."
+			},
 			"help": {
 				"description": "Displays help."
 			},
