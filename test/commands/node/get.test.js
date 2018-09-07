@@ -117,6 +117,22 @@ describe('node:get', () => {
 			});
 
 		setupTest()
+			.stub(apiClientStub.node, 'getForgingStatus', sandbox.stub().resolves({}))
+			.command(['node:get', '--all'])
+			.it('should get the node status and empty forging status', () => {
+				return expect(printMethodStub).to.be.calledWithExactly(
+					Object.assign(
+						{},
+						defaultGetConstantsResponse.data,
+						defaultGetStatusResponse.data,
+						{
+							forgingStatus: [],
+						},
+					),
+				);
+			});
+
+		setupTest()
 			.command(['node:get', '--all'])
 			.it('should get the node status and forging status', () => {
 				return expect(printMethodStub).to.be.calledWithExactly(
