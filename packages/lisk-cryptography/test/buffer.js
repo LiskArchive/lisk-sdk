@@ -102,24 +102,24 @@ describe('buffer', () => {
 				'Custom must have a valid length of hex string.',
 			);
 		});
+	});
 
-		describe('#bigNumberToBuffer', () => {
-			it('should convert a big number to a buffer', () => {
-				const bigNumber = '58191285901858109';
-				const addressSize = 8;
-				const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
-				return expect(bigNumberToBuffer(bigNumber, addressSize)).to.be.eql(
-					expectedBuffer,
-				);
-			});
+	describe('#bigNumberToBuffer', () => {
+		it('should convert a big number to a buffer', () => {
+			const bigNumber = '58191285901858109';
+			const addressSize = 8;
+			const expectedBuffer = Buffer.from('00cebcaa8d34153d', 'hex');
+			return expect(bigNumberToBuffer(bigNumber, addressSize)).to.be.eql(
+				expectedBuffer,
+			);
 		});
+	});
 
-		describe('#bufferToBigNumberString', () => {
-			it('should convert a buffer to a big number', () => {
-				const bigNumber = '58191285901858109';
-				const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
-				return expect(bufferToBigNumberString(buffer)).to.be.equal(bigNumber);
-			});
+	describe('#bufferToBigNumberString', () => {
+		it('should convert a buffer to a big number', () => {
+			const bigNumber = '58191285901858109';
+			const buffer = Buffer.from('00cebcaa8d34153d', 'hex');
+			return expect(bufferToBigNumberString(buffer)).to.be.equal(bigNumber);
 		});
 	});
 });
