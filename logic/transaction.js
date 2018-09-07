@@ -22,7 +22,7 @@ const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
-const constants = global.constants;
+const POSTGRESQL_BIGINT_MAX_VALUE = '9223372036854775807';
 const __private = {};
 
 /**
@@ -635,9 +635,9 @@ class Transaction {
 		// Check amount
 		let amount = transaction.amount;
 		if (
-			amount.lessThan(0) ||
-			amount.greaterThan(constants.totalAmount) ||
-			!amount.isInteger()
+			!amount.isInteger() ||
+			amount.greaterThan(POSTGRESQL_BIGINT_MAX_VALUE) ||
+			amount.lessThan(0)
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}
