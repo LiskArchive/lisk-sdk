@@ -150,7 +150,10 @@ module.exports = function(
 									return done(err);
 								}
 
-								if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS + 18) {
+								if (
+									numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+									EXPECTED_TOTAL_CONNECTIONS
+								) {
 									done();
 								} else {
 									done(
