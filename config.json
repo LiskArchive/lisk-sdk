@@ -2,8 +2,8 @@
 	"wsPort": 5000,
 	"httpPort": 4000,
 	"address": "0.0.0.0",
-	"version": "1.0.0-beta.8.3",
-	"minVersion": ">=1.0.0-beta.8.3",
+	"version": "1.0.2",
+	"minVersion": ">=1.0.0",
 	"fileLogLevel": "debug",
 	"logFileName": "logs/lisk.log",
 	"consoleLogLevel": "error",
@@ -35,6 +35,15 @@
 		"access": {
 			"public": true,
 			"whiteList": ["127.0.0.1"]
+		},
+		"ssl": {
+			"enabled": false,
+			"options": {
+				"port": 443,
+				"address": "0.0.0.0",
+				"key": "./ssl/lisk.key",
+				"cert": "./ssl/lisk.crt"
+			}
 		},
 		"options": {
 			"limits": {
@@ -696,15 +705,6 @@
 	},
 	"loading": {
 		"loadPerIteration": 5000
-	},
-	"ssl": {
-		"enabled": false,
-		"options": {
-			"port": 443,
-			"address": "0.0.0.0",
-			"key": "./ssl/lisk.key",
-			"cert": "./ssl/lisk.crt"
-		}
 	},
 	"nethash": "198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f783d"
 }

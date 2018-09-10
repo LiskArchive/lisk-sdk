@@ -133,7 +133,7 @@ var modulesLoader = new function() {
 				);
 				break;
 			case 'Peers':
-				new Logic(scope.logger, cb);
+				new Logic(scope.logger, scope.config, cb);
 				break;
 			default:
 				console.info('no Logic case initLogic');

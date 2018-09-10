@@ -51,13 +51,19 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
-// Values to keep from new config file
-delete oldConfig.version;
-delete oldConfig.minVersion;
+// 1.0.1 and 1.0.2 doesn't add any changes to 1.0.0 config.json
+if (oldConfig.version === '1.0.0' || oldConfig.version === '1.0.1') {
+	copyTheConfigFile();
+	// No further changes required
+	process.exit(0);
+}
+
+newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+delete oldConfig.ssl;
 
 // Rename old port to new wsPort
 oldConfig.httpPort = oldConfig.port;
-oldConfig.wsPort = oldConfig.httpPort + 1;
+oldConfig.wsPort = oldConfig.port + 1;
 delete oldConfig.port;
 
 oldConfig.db.max = oldConfig.db.poolSize;
@@ -72,9 +78,18 @@ delete oldConfig.transactions.maxTxsPerQueue;
 delete oldConfig.loading.verifyOnLoading;
 delete oldConfig.dapp;
 
+if (typeof oldConfig.broadcasts === 'object') {
+	delete oldConfig.broadcasts.broadcastLimit;
+	delete oldConfig.broadcasts.relayLimit;
+}
+
+if (oldConfig.db.user.trim() === '') {
+	oldConfig.db.user = 'lisk';
+}
+
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
-	p.wsPort = p.port;
+	p.wsPort = p.port + 1;
 	delete p.port;
 	return p;
 });
@@ -86,7 +101,7 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 			output: process.stdout,
 		});
 		rl.question(
-			'We found some secrets in your config, if you want to migrate, please type in your password (enter to skip): ',
+			'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
 			password => {
 				rl.close();
 				migrateSecrets(password);
@@ -110,15 +125,23 @@ if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
 
 function migrateSecrets(password) {
 	oldConfig.forging.delegates = [];
-
-	if (!password.trim()) {
+	password = password.trim();
+	if (!password) {
 		console.info('\nSkipping the secret migration.');
 		delete oldConfig.forging.secret;
 		return;
 	}
 
+	if (password.length < 5) {
+		console.error(
+			`error: Password is too short (${
+				password.length
+			} characters), minimum 5 characters.`
+		);
+		process.exit(1);
+	}
+
 	console.info('\nMigrating your secrets...');
-	oldConfig.forging.defaultPassword = password;
 	oldConfig.forging.secret.forEach(secret => {
 		console.info('.......');
 		oldConfig.forging.delegates.push({
@@ -138,17 +161,18 @@ function migrateSecrets(password) {
 }
 
 function copyTheConfigFile() {
+	// Values to keep from new config file
+	delete oldConfig.version;
+	delete oldConfig.minVersion;
+
 	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
 
-	fs.writeFile(
-		newConfigPath,
-		JSON.stringify(modifiedConfig, null, '\t'),
-		err => {
-			if (err) {
-				throw err;
-			} else {
-				console.info('Configuration migration completed.');
-			}
-		}
-	);
+	try {
+		fs.writeFileSync(newConfigPath, JSON.stringify(modifiedConfig, null, '\t'));
+	} catch (error) {
+		console.error('Error writing configuration file', error);
+		process.exit(1);
+	}
+
+	console.info('Configuration migration completed.');
 }

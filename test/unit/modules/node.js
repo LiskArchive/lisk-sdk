@@ -72,17 +72,15 @@ describe('node', () => {
 			done();
 		});
 
-		function updateForgingStatus(testDelegate, action, cb) {
+		function updateForgingStatus(testDelegate, forging, cb) {
 			node_module.internal.getForgingStatus(
 				testDelegate.publicKey,
 				(err, res) => {
-					if (
-						(res[0].forging && action === 'disable') ||
-						(!res[0].forging && action === 'enable')
-					) {
-						node_module.internal.toggleForgingStatus(
+					if (res.length) {
+						node_module.internal.updateForgingStatus(
 							testDelegate.publicKey,
 							testDelegate.password,
+							forging,
 							cb
 						);
 					} else {
@@ -95,16 +93,17 @@ describe('node', () => {
 			);
 		}
 
-		describe('toggleForgingStatus', () => {
+		describe('updateForgingStatus', () => {
 			before(done => {
 				defaultPassword = library.config.forging.defaultPassword;
 				done();
 			});
 
 			it('should return error with invalid password', done => {
-				node_module.internal.toggleForgingStatus(
+				node_module.internal.updateForgingStatus(
 					testDelegate.publicKey,
 					'Invalid password',
+					true,
 					err => {
 						expect(err).to.equal('Invalid password and public key combination');
 						done();
@@ -116,9 +115,10 @@ describe('node', () => {
 				var invalidPublicKey =
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
-				node_module.internal.toggleForgingStatus(
+				node_module.internal.updateForgingStatus(
 					invalidPublicKey,
 					defaultPassword,
+					true,
 					err => {
 						expect(err).equal(
 							'Delegate with publicKey: 9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a not found'
@@ -129,9 +129,10 @@ describe('node', () => {
 			});
 
 			it('should return error with non delegate account', done => {
-				node_module.internal.toggleForgingStatus(
+				node_module.internal.updateForgingStatus(
 					accountFixtures.genesis.publicKey,
 					accountFixtures.genesis.password,
+					true,
 					err => {
 						expect(err).equal(
 							'Delegate with publicKey: c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f not found'
@@ -141,13 +142,14 @@ describe('node', () => {
 				);
 			});
 
-			it('should toggle forging from enabled to disabled', done => {
-				updateForgingStatus(testDelegate, 'enable', err => {
+			it('should update forging from enabled to disabled', done => {
+				updateForgingStatus(testDelegate, true, err => {
 					expect(err).to.not.exist;
 
-					node_module.internal.toggleForgingStatus(
+					node_module.internal.updateForgingStatus(
 						testDelegate.publicKey,
 						defaultPassword,
+						false,
 						(err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.eql({
@@ -160,13 +162,14 @@ describe('node', () => {
 				});
 			});
 
-			it('should toggle forging from disabled to enabled', done => {
-				updateForgingStatus(testDelegate, 'disable', err => {
+			it('should update forging from disabled to enabled', done => {
+				updateForgingStatus(testDelegate, false, err => {
 					expect(err).to.not.exist;
 
-					node_module.internal.toggleForgingStatus(
+					node_module.internal.updateForgingStatus(
 						testDelegate.publicKey,
 						defaultPassword,
+						true,
 						(err, res) => {
 							expect(err).to.not.exist;
 							expect(res).to.eql({
@@ -208,10 +211,11 @@ describe('node', () => {
 				);
 			});
 
-			it('should return delegate status when publicKey is provided and toggle forging from enabled to disabled', done => {
-				node_module.internal.toggleForgingStatus(
+			it('should return delegate status when publicKey is provided and updated forging from enabled to disabled', done => {
+				node_module.internal.updateForgingStatus(
 					testDelegate.publicKey,
 					defaultPassword,
+					false,
 					(err, res) => {
 						expect(err).to.not.exist;
 						expect(res).to.eql({

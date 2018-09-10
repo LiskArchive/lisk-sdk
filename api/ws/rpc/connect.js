@@ -28,11 +28,13 @@ const wampClient = new WAMPClient(TIMEOUT); // Timeout failed requests after 1 s
 const socketConnections = {};
 
 const connect = (peer, logger) => {
+	const wsServer = wsRPC.getServer();
+
 	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer, logger);
-
-	connectSteps.upgradeSocket(peer);
-	connectSteps.registerRPC(peer, logger);
+	connectSteps.upgradeSocketAsWAMPClient(peer);
+	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);
+	connectSteps.registerRPC(peer, logger, wsServer);
 
 	connectSteps.registerSocketListeners(peer, logger);
 
@@ -104,20 +106,19 @@ const connectSteps = {
 		return peer;
 	},
 
-	upgradeSocket: peer => {
+	upgradeSocketAsWAMPClient: peer => {
 		wampClient.upgradeToWAMP(peer.socket);
 		return peer;
 	},
 
-	registerRPC: (peer, logger) => {
+	upgradeSocketAsWAMPServer: (peer, wsServer) => {
+		wsServer.upgradeToWAMP(peer.socket);
+		return peer;
+	},
+
+	registerRPC: (peer, logger, wsServer) => {
 		// Assemble empty RPC entry
 		peer.rpc = {};
-		let wsServer;
-		try {
-			wsServer = wsRPC.getServer();
-		} catch (wsServerNotInitializedException) {
-			return peer;
-		}
 		// Register RPC methods on peer
 		peer = _.reduce(
 			wsServer.endpoints.rpc,

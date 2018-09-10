@@ -1,6 +1,6 @@
 {
 	"name": "lisk",
-	"version": "1.0.0-beta.8.3",
+	"version": "1.0.2",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -63,6 +63,7 @@
 		"ip": "=1.1.5",
 		"js-yaml": "=3.10.0",
 		"json-refs": "=3.0.3",
+		"lisk-elements": "=1.0.0",
 		"lodash": "=4.17.4",
 		"memwatch-next": "=0.3.0",
 		"method-override": "=2.3.10",
@@ -109,7 +110,6 @@
 		"jsdoc": "=3.4.3",
 		"jsdox": "=0.4.10",
 		"lint-staged": "=6.1.0",
-		"lisk-elements": "1.0.0-beta.4",
 		"mocha": "=4.0.1",
 		"moment": "=2.19.3",
 		"node-mocks-http": "^1.6.6",

@@ -19,6 +19,7 @@ const failureCodes = require('../api/ws/rpc/failure_codes.js');
 const Peer = require('../logic/peer.js');
 const System = require('../modules/system.js');
 const PeersManager = require('../helpers/peers_manager.js');
+const BanManager = require('../helpers/ban_manager.js');
 
 // Private fields
 let self;
@@ -42,13 +43,14 @@ let modules;
  * @todo Add description for the params
  */
 class Peers {
-	constructor(logger, cb) {
+	constructor(logger, config, cb) {
 		library = {
 			logger,
 		};
 		self = this;
 
 		this.peersManager = new PeersManager(logger);
+		this.banManager = new BanManager(logger, config);
 
 		return setImmediate(cb, null, this);
 	}
@@ -109,6 +111,52 @@ Peers.prototype.get = function(peer) {
 };
 
 /**
+ * Ban peer by setting BANNED state. Make it temporarily using banManager.
+ *
+ * @param {Peer} peer
+ *
+ */
+Peers.prototype.ban = function(peer) {
+	peer.state = Peer.STATE.BANNED;
+	// Banning peer can only fail with ON_MASTER.UPDATE.INVALID_PEER error.
+	// Happens when we cannot obtain the proper address of a given peer.
+	// In such a case peer will be removed.
+	if (self.upsert(peer) === false) {
+		library.logger.info('Failed to ban peer', peer.string);
+		library.logger.debug('Failed to ban peer', {
+			err: 'INVALID_PEER',
+			peer: peer.object(),
+		});
+		return self.remove(peer);
+	}
+	self.banManager.banTemporarily(peer, self.unban);
+	library.logger.info('Banned peer', peer.string);
+	library.logger.debug('Banned peer', { peer: peer.object() });
+};
+
+/**
+ * Unban peer by setting DISCONNECTED state.
+ *
+ * @param {Peer} peer
+ */
+Peers.prototype.unban = function(peer) {
+	peer.state = Peer.STATE.DISCONNECTED;
+	// Banning peer can only fail with ON_MASTER.UPDATE.INVALID_PEER error.
+	// Happens when we cannot obtain the proper address of a given peer.
+	// In such a case peer will be removed.
+	if (self.upsert(peer) === false) {
+		library.logger.info('Failed to unban peer', peer.string);
+		library.logger.debug('Failed to unban peer', {
+			err: 'INVALID_PEER',
+			peer: peer.object(),
+		});
+		return self.remove(peer);
+	}
+	library.logger.info('Unbanned peer', peer.string);
+	library.logger.debug('Unbanned peer', { peer: peer.object() });
+};
+
+/**
  * Inserts or updates a peer.
  *
  * @param {peer} peer
@@ -124,11 +172,10 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	};
 
 	// Update existing peer
-	const update = function(peer) {
+	const update = function(recentPeer, peer) {
 		peer.updated = Date.now();
 		const diff = {};
 
-		const recentPeer = self.peersManager.getByAddress(peer.string);
 		// Make a copy for logging difference purposes only
 		const recentPeerBeforeUpdate = Object.assign({}, recentPeer);
 
@@ -165,7 +212,20 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	if (self.exists(peer)) {
 		// Skip update if insert-only is forced
 		if (!insertOnly) {
-			update(peer);
+			const recentPeer = self.peersManager.getByAddress(peer.string);
+			// If an entry exists in Ban Manager don't allow to change the state during updates.
+			// Prevents intentionally disconnections of temporarily banned peers.
+			if (
+				self.banManager.bannedPeers[peer.string] &&
+				peer.state !== Peer.STATE.BANNED
+			) {
+				library.logger.info('Attempt to unban peer rejected', peer.string);
+				library.logger.debug('Attempt to unban peer rejected', {
+					peer: peer.object(),
+				});
+				return failureCodes.ON_MASTER.UPDATE.BANNED;
+			}
+			update(recentPeer, peer);
 		} else {
 			return failureCodes.ON_MASTER.INSERT.INSERT_ONLY_FAILURE;
 		}
@@ -267,7 +327,8 @@ Peers.prototype.listRandomConnected = function(options) {
 		.map(key => self.peersManager.peers[key])
 		.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const shuffledPeerList = _.shuffle(peerList);
-	return options.limit ? shuffledPeerList.slice(0, options.limit)
+	return options.limit
+		? shuffledPeerList.slice(0, options.limit)
 		: shuffledPeerList;
 };
 

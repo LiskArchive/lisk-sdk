@@ -17,7 +17,6 @@
 var path = require('path');
 var fs = require('fs');
 var d = require('domain').create();
-var extend = require('extend');
 var SocketCluster = require('socketcluster');
 var async = require('async');
 var randomstring = require('randomstring');
@@ -38,7 +37,6 @@ var swaggerHelper = require('./helpers/swagger');
  * @namespace app
  * @requires async
  * @requires domain.create
- * @requires extend
  * @requires fs
  * @requires socketcluster
  * @requires genesis_block.json
@@ -182,7 +180,7 @@ try {
 // Domain error handler
 d.on('error', err => {
 	logger.fatal('Domain master', { message: err.message, stack: err.stack });
-	process.exit(0);
+	process.emit('cleanup', err);
 });
 
 // Run domain
@@ -279,9 +277,9 @@ d.run(() => {
 					var https;
 					var https_io;
 
-					if (scope.config.ssl.enabled) {
-						privateKey = fs.readFileSync(scope.config.ssl.options.key);
-						certificate = fs.readFileSync(scope.config.ssl.options.cert);
+					if (scope.config.api.ssl.enabled) {
+						privateKey = fs.readFileSync(scope.config.api.ssl.options.key);
+						certificate = fs.readFileSync(scope.config.api.ssl.options.cert);
 
 						https = require('https').createServer(
 							{
@@ -433,7 +431,9 @@ d.run(() => {
 				db
 					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
-					.catch(cb);
+					.catch(err => {
+						console.error(err);
+					});
 			},
 
 			/**
@@ -482,18 +482,6 @@ d.run(() => {
 						processTermTimeout: 10000,
 						logLevel: 0,
 					};
-
-					if (scope.config.ssl.enabled) {
-						extend(webSocketConfig, {
-							protocol: 'https',
-							protocolOptions: {
-								key: fs.readFileSync(scope.config.ssl.options.key),
-								cert: fs.readFileSync(scope.config.ssl.options.cert),
-								ciphers:
-									'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384:DHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA256:DHE-RSA-AES256-SHA256:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA',
-							},
-						});
-					}
 
 					var childProcessOptions = {
 						version: scope.config.version,
@@ -553,6 +541,9 @@ d.run(() => {
 						{
 							bus(cb) {
 								cb(null, scope.bus);
+							},
+							config(cb) {
+								cb(null, scope.config);
 							},
 							db(cb) {
 								cb(null, scope.db);
@@ -616,8 +607,9 @@ d.run(() => {
 							],
 							peers: [
 								'logger',
+								'config',
 								function(scope, cb) {
-									new Peers(scope.logger, cb);
+									new Peers(scope.logger, scope.config, cb);
 								},
 							],
 						},
@@ -734,15 +726,15 @@ d.run(() => {
 							);
 
 							if (!err) {
-								if (scope.config.ssl.enabled) {
+								if (scope.config.api.ssl.enabled) {
 									scope.network.https.listen(
-										scope.config.ssl.options.port,
-										scope.config.ssl.options.address,
+										scope.config.api.ssl.options.port,
+										scope.config.api.ssl.options.address,
 										err => {
 											scope.logger.info(
 												`Lisk https started: ${
-													scope.config.ssl.options.address
-												}:${scope.config.ssl.options.port}`
+													scope.config.api.ssl.options.address
+												}:${scope.config.api.ssl.options.port}`
 											);
 
 											cb(err, scope.network);
@@ -821,4 +813,10 @@ process.on('uncaughtException', err => {
 	// Handle error safely
 	logger.fatal('System error', { message: err.message, stack: err.stack });
 	process.emit('cleanup');
+});
+
+process.on('unhandledRejection', err => {
+	// Handle error safely
+	logger.fatal('System error', { message: err.message, stack: err.stack });
+	process.emit('cleanup', err);
 });
