@@ -18,7 +18,7 @@ const childProcess = require('child_process');
 const utils = require('../utils');
 
 const NODE_FINISHED_SYNC_REGEX = /Finished sync/;
-const NODE_READY_TIMEOUT = 40000;
+const NODE_FINISHED_SYNC_TIMEOUT = 40000;
 
 const getPeersStatus = peers => {
 	return Promise.all(
@@ -107,7 +107,7 @@ const common = {
 					pm2LogProcess.stdout.removeAllListeners('data');
 					pm2LogProcess.removeAllListeners('error');
 					reject(new Error(`Failed to start node ${nodeName} before timeout`));
-				}, NODE_READY_TIMEOUT);
+				}, NODE_FINISHED_SYNC_TIMEOUT);
 
 				pm2LogProcess.once('error', err => {
 					clearTimeout(nodeReadyTimeout);
