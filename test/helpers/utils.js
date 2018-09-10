@@ -25,6 +25,12 @@ export const createFakeInterface = value => ({
 	},
 });
 
+export const createFakeBrokenInterface = () => ({
+	on: () => {
+		return createFakeInterface();
+	},
+});
+
 export const createStreamStub = on => ({
 	resume: () => {},
 	close: () => {},

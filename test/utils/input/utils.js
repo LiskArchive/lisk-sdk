@@ -18,7 +18,11 @@ import readline from 'readline';
 import inquirer from 'inquirer';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
-import { createStreamStub, createFakeInterface } from '../../helpers/utils';
+import {
+	createStreamStub,
+	createFakeBrokenInterface,
+	createFakeInterface,
+} from '../../helpers/utils';
 
 describe('input/utils utils', () => {
 	describe('#splitSource', () => {
@@ -63,6 +67,12 @@ describe('input/utils utils', () => {
 			readline.createInterface.returns(createFakeInterface(stdInContents));
 			const result = inputUtils.getRawStdIn();
 			return expect(result).to.eventually.eql(['']);
+		});
+
+		it('should resolve to the an empty array', () => {
+			readline.createInterface.returns(createFakeBrokenInterface());
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql([]);
 		});
 	});
 
