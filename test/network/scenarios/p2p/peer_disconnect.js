@@ -56,12 +56,8 @@ module.exports = function(
 				before(done => {
 					common
 						.stopNode('node_1')
-						.then(() => {
-							done();
-						})
-						.catch(err => {
-							done(err.message);
-						});
+						.then(done)
+						.catch(done);
 				});
 
 				it(`peer manager should remove peer from the list and there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
@@ -91,12 +87,8 @@ module.exports = function(
 				before(done => {
 					common
 						.startNode('node_1')
-						.then(() => {
-							done();
-						})
-						.catch(err => {
-							done(err.message);
-						});
+						.then(done)
+						.catch(done);
 				});
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
@@ -123,34 +115,22 @@ module.exports = function(
 				// To validate peers holding socket connection
 				// Need to keep one peer so that we can validate
 				// Duplicate socket connection exists or not
-				it('stop all the nodes in the network except node_0', done => {
+				it('stop all the nodes in the network except node_0', () => {
 					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
 						peersPromises.push(common.stopNode(`node_${i}`));
 					}
 					console.info('Wait for nodes to be stopped');
-					Promise.all(peersPromises)
-						.then(() => {
-							done();
-						})
-						.catch(err => {
-							done(err.message);
-						});
+					return Promise.all(peersPromises);
 				});
 
-				it('start all nodes that were stopped', done => {
+				it('start all nodes that were stopped', () => {
 					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
 						peersPromises.push(common.startNode(`node_${i}`));
 					}
 					console.info('Wait for nodes to be started');
-					Promise.all(peersPromises)
-						.then(() => {
-							done();
-						})
-						.catch(err => {
-							done(err.message);
-						});
+					return Promise.all(peersPromises);
 				});
 
 				describe('after all the node restarts', () => {
