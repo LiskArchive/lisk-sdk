@@ -52,20 +52,20 @@ describe('signature:broadcast', () => {
 		setupTest()
 			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
 			.command(['signature:broadcast'])
-			.catch(error =>
-				expect(error.message).to.contain('No signature was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No signature was provided.');
+			})
 			.it('should throw an error when no signature was provided');
 	});
 
 	describe('signature:broadcast signature', () => {
 		setupTest()
 			.command(['signature:broadcast', '{invalid: json, format: bad}'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Could not parse signature JSON. Did you use the `--json` option?',
-				),
-			)
+				);
+			})
 			.it('should throw an error when invalid signature was provided');
 
 		setupTest()
@@ -88,11 +88,11 @@ describe('signature:broadcast', () => {
 				sandbox.stub().resolves(['{invalid: json, format: bad}']),
 			)
 			.command(['signature:broadcast'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Could not parse signature JSON. Did you use the `--json` option?',
-				),
-			)
+				);
+			})
 			.it('should throw an error when invalid signature was provided');
 
 		setupTest()

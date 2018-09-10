@@ -56,7 +56,7 @@ BroadcastCommand.flags = {
 };
 
 BroadcastCommand.description = `
-Broadcasts a signature to the network via the node specified in the current config.
+Broadcasts a signature for a transaction from a multisignature account.
 Accepts a stringified JSON signature as an argument, or a signature can be piped from a previous command.
 If piping make sure to quote out the entire command chain to avoid piping-related conflicts in your shell.
 `;

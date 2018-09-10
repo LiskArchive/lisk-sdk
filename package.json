@@ -82,7 +82,7 @@
 				"description": "Commands relating to Lisk passphrases."
 			},
 			"signature": {
-				"description": "Commands relating to Lisk signature."
+				"description": "Commands relating to signatures for Lisk transactions from multisignature accounts."
 			},
 			"warranty": {
 				"description": "Displays warranty notice."
