@@ -17,8 +17,8 @@
 const childProcess = require('child_process');
 const utils = require('../utils');
 
-const NODE_READY_REGEX = /Finished sync/;
-const NODE_READY_TIMEOUT = 20000;
+const NODE_FINISHED_SYNC_REGEX = /Finished sync/;
+const NODE_READY_TIMEOUT = 40000;
 
 const getPeersStatus = peers => {
 	return Promise.all(
@@ -114,7 +114,7 @@ const common = {
 				});
 				pm2LogProcess.stdout.on('data', data => {
 					const dataString = data.toString();
-					if (NODE_READY_REGEX.test(dataString)) {
+					if (NODE_FINISHED_SYNC_REGEX.test(dataString)) {
 						clearTimeout(nodeReadyTimeout);
 						pm2LogProcess.stdout.removeAllListeners('error');
 						pm2LogProcess.stdout.removeAllListeners('data');
