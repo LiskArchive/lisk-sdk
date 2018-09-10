@@ -100,13 +100,15 @@ const common = {
 						new Error(`Failed to start node ${nodeName}: ${err.message}`)
 					);
 				}
+
+				const pm2LogProcess = childProcess.spawn('pm2', ['logs', nodeName]);
+
 				const nodeReadyTimeout = setTimeout(() => {
 					pm2LogProcess.stdout.removeAllListeners('data');
 					pm2LogProcess.removeAllListeners('error');
 					reject(new Error(`Failed to start node ${nodeName} before timeout`));
 				}, NODE_READY_TIMEOUT);
 
-				let pm2LogProcess = childProcess.spawn('pm2', ['logs', nodeName]);
 				pm2LogProcess.once('error', err => {
 					clearTimeout(nodeReadyTimeout);
 					pm2LogProcess.stdout.removeAllListeners('data');
