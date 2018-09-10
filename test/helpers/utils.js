@@ -27,7 +27,7 @@ export const createFakeInterface = value => ({
 
 export const createFakeBrokenInterface = () => ({
 	on: () => {
-		return createFakeInterface();
+		return createFakeBrokenInterface();
 	},
 });
 

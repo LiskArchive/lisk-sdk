@@ -69,10 +69,10 @@ describe('input/utils utils', () => {
 			return expect(result).to.eventually.eql(['']);
 		});
 
-		it('should resolve to the an empty array', () => {
+		it('should reject with timeout error', () => {
 			readline.createInterface.returns(createFakeBrokenInterface());
 			const result = inputUtils.getRawStdIn();
-			return expect(result).to.eventually.eql([]);
+			return expect(result).to.be.rejectedWith(Error, 'Timed out after 100 ms');
 		});
 	});
 
