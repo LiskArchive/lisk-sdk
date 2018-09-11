@@ -18,7 +18,11 @@ import readline from 'readline';
 import inquirer from 'inquirer';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
-import { createStreamStub, createFakeInterface } from '../../helpers/utils';
+import {
+	createStreamStub,
+	createFakeBrokenInterface,
+	createFakeInterface,
+} from '../../helpers/utils';
 
 describe('input/utils utils', () => {
 	describe('#splitSource', () => {
@@ -39,12 +43,45 @@ describe('input/utils utils', () => {
 		});
 	});
 
+	describe('#getRawStdIn', () => {
+		beforeEach(() => {
+			return sandbox.stub(readline, 'createInterface');
+		});
+
+		it('should resolve to the stdin contents', () => {
+			const stdInContents = 'some contents';
+			readline.createInterface.returns(createFakeInterface(stdInContents));
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql([stdInContents]);
+		});
+
+		it('should resolve to the stdin contents with two elements of array', () => {
+			const stdInContents = 'some \n contents';
+			readline.createInterface.returns(createFakeInterface(stdInContents));
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql(['some ', ' contents']);
+		});
+
+		it('should resolve to the an array with empty string', () => {
+			const stdInContents = '';
+			readline.createInterface.returns(createFakeInterface(stdInContents));
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.eventually.eql(['']);
+		});
+
+		it('should reject with timeout error', () => {
+			readline.createInterface.returns(createFakeBrokenInterface());
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.be.rejectedWith(Error, 'Timed out after 100 ms');
+		});
+	});
+
 	describe('#getStdIn', () => {
-		const stdContents = 'some contents';
+		const stdInContents = 'some contents';
 		beforeEach(() => {
 			return sandbox
 				.stub(readline, 'createInterface')
-				.returns(createFakeInterface(stdContents));
+				.returns(createFakeInterface(stdInContents));
 		});
 
 		it('should resolve to empty object', () => {
@@ -59,7 +96,7 @@ describe('input/utils utils', () => {
 			const result = inputUtils.getStdIn(options);
 			return expect(result).to.eventually.eql({
 				data: null,
-				passphrase: stdContents,
+				passphrase: stdInContents,
 				password: null,
 				secondPassphrase: null,
 			});
@@ -73,7 +110,7 @@ describe('input/utils utils', () => {
 			return expect(result).to.eventually.eql({
 				data: null,
 				passphrase: null,
-				password: stdContents,
+				password: stdInContents,
 				secondPassphrase: null,
 			});
 		});
@@ -87,7 +124,7 @@ describe('input/utils utils', () => {
 				data: null,
 				passphrase: null,
 				password: null,
-				secondPassphrase: stdContents,
+				secondPassphrase: stdInContents,
 			});
 		});
 
@@ -97,7 +134,7 @@ describe('input/utils utils', () => {
 			};
 			const result = inputUtils.getStdIn(options);
 			return expect(result).to.eventually.eql({
-				data: stdContents,
+				data: stdInContents,
 				passphrase: null,
 				password: null,
 				secondPassphrase: null,

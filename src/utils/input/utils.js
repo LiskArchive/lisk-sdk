@@ -51,6 +51,17 @@ const timeoutPromise = ms =>
 		}, ms);
 	});
 
+export const getRawStdIn = () => {
+	const readFromStd = new Promise(resolve => {
+		const rl = readline.createInterface({ input: process.stdin });
+		const lines = [];
+		return rl
+			.on('line', line => lines.push(line))
+			.on('close', () => resolve(lines));
+	});
+	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+};
+
 export const getStdIn = ({
 	passphraseIsRequired,
 	secondPassphraseIsRequired,
