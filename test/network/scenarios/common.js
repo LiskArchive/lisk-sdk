@@ -116,6 +116,8 @@ const common = {
 				});
 				pm2LogProcess.stdout.on('data', data => {
 					const dataString = data.toString();
+					// Make sure that all nodes have fully synced before we
+					// run the test cases.
 					if (NODE_FINISHED_SYNC_REGEX.test(dataString)) {
 						clearTimeout(nodeReadyTimeout);
 						pm2LogProcess.stdout.removeAllListeners('error');
