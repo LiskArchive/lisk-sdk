@@ -33,9 +33,85 @@ const modulesToInstrument = {
 		identifier: 'modules.node',
 		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
 	},
-	[`${rootPath}/api/controllers/node.js`]: {
-		identifier: 'api.controllers.node',
-		methodExtractor: controllerMethodExtractor,
+	'./modules/accounts.js': {
+		identifier: 'modules.accounts',
+		callbackMethods: ['shared.getAccounts'],
+	},
+	'./modules/blocks.js': {
+		identifier: 'modules.blocks',
+		callbackMethods: ['shared.getBlocks'],
+	},
+	'./modules/cache.js': {
+		identifier: 'modules.cache',
+		callbackMethods: [
+			'onNewBlock',
+			'onFinishRound',
+			'onTransactionsSaved',
+			'getJsonForKey',
+			'setJsonForKey',
+			'deleteJsonForKey',
+			'removeByPattern',
+		],
+	},
+	'./modules/dapps.js': {
+		identifier: 'modules.dapps',
+		callbackMethods: ['getDapps'],
+	},
+	'./modules/delegates.js': {
+		identifier: 'modules.delegates',
+		callbackMethods: ['getForgers', 'getDelegates'],
+	},
+	'./modules/loader.js': {
+		identifier: 'modules.loader',
+		callbackMethods: ['getNetwork'],
+	},
+	'./modules/multisignatures.js': {
+		identifier: 'modules.multisignatures',
+		callbackMethods: ['shared.getGroups', 'shared.getMemberships'],
+	},
+	'./modules/peers.js': {
+		identifier: 'modules.peers',
+		callbackMethods: ['shared.getPeers'],
+	},
+	'./modules/rounds.js': {
+		identifier: 'modules.rounds',
+		callbackMethods: ['flush'],
+	},
+	'./modules/signatures.js': {
+		identifier: 'modules.signatures',
+		callbackMethods: ['shared.postSignature', 'shared.postSignatures'],
+	},
+	'./modules/system.js': {
+		identifier: 'modules.system',
+		callbackMethods: ['update'],
+	},
+	'./modules/transactions.js': {
+		identifier: 'modules.transactions',
+		callbackMethods: [
+			'shared.getTransactions',
+			'shared.getTransactionsCount',
+			'shared.getUnProcessedTransactions',
+			'shared.getMultisignatureTransactions',
+			'shared.getUnconfirmedTransactions',
+			'shared.postTransaction',
+			'shared.postTransactions',
+		],
+	},
+	'./modules/transport.js': {
+		identifier: 'modules.transport',
+		callbackMethods: [
+			'broadcastHeaders',
+			'shared.blocksCommon',
+			'shared.blocks',
+			'shared.list',
+			'shared.height',
+			'shared.status',
+			'shared.postSignature',
+			'shared.getSignatures',
+			'shared.getTransactions',
+			'shared.postTransaction',
+			'internal.updatePeer',
+		],
 	},
 };
 
