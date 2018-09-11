@@ -51,6 +51,31 @@ console.info('Starting configuration migration...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
+// If old release was a 1.0.0-rc.2 release
+if (oldConfig.version === '1.0.0-rc.2' || oldConfig.version === '1.0.0-rc.3') {
+	copyTheConfigFile();
+	// No further changes required
+	process.exit(0);
+}
+
+// If old release was a 1.0.0-rc.1 release
+if (oldConfig.version === '1.0.0-rc.1') {
+	// https://github.com/LiskHQ/lisk/issues/2154
+	oldConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+	delete oldConfig.ssl;
+
+	// https://github.com/LiskHQ/lisk/issues/2208
+	delete oldConfig.forging.defaultPassword;
+
+	copyTheConfigFile();
+
+	// No further changes required
+	process.exit(0);
+}
+
+newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
+delete oldConfig.ssl;
+
 // Values to keep from new config file
 delete oldConfig.version;
 delete oldConfig.minVersion;
@@ -71,6 +96,10 @@ delete oldConfig.transactions.maxTxsPerQueue;
 
 delete oldConfig.loading.verifyOnLoading;
 delete oldConfig.dapp;
+
+if (oldConfig.db.user.trim() === '') {
+	oldConfig.db.user = 'lisk';
+}
 
 // Peers migration
 oldConfig.peers.list = oldConfig.peers.list.map(p => {
@@ -121,13 +150,12 @@ function migrateSecrets(password) {
 		console.error(
 			`error: Password is too short (${
 				password.length
-				} characters), minimum 5 characters.`
+			} characters), minimum 5 characters.`
 		);
 		process.exit(1);
 	}
 
 	console.info('\nMigrating your secrets...');
-	oldConfig.forging.defaultPassword = password;
 	oldConfig.forging.secret.forEach(secret => {
 		console.info('.......');
 		oldConfig.forging.delegates.push({
@@ -147,17 +175,18 @@ function migrateSecrets(password) {
 }
 
 function copyTheConfigFile() {
+	// Values to always keep from new config file
+	delete oldConfig.version;
+	delete oldConfig.minVersion;
+
 	const modifiedConfig = extend(true, {}, newConfig, oldConfig);
 
-	fs.writeFile(
-		newConfigPath,
-		JSON.stringify(modifiedConfig, null, '\t'),
-		err => {
-			if (err) {
-				throw err;
-			} else {
-				console.info('Configuration migration completed.');
-			}
-		}
-	);
+	try {
+		fs.writeFileSync(newConfigPath, JSON.stringify(modifiedConfig, null, '\t'));
+	} catch (error) {
+		console.error('Error writing configuration file', error);
+		process.exit(1);
+	}
+
+	console.info('Configuration migration completed.');
 }

@@ -1,6 +1,6 @@
 {
 	"name": "lisk",
-	"version": "1.0.0-rc.1",
+	"version": "1.0.0-rc.4",
 	"description": "Lisk blockchain application platform",
 	"author":
 		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
@@ -63,7 +63,7 @@
 		"ip": "=1.1.5",
 		"js-yaml": "=3.10.0",
 		"json-refs": "=3.0.3",
-		"lisk-elements": "=1.0.0-beta.4",
+		"lisk-elements": "=1.0.0",
 		"lodash": "=4.17.4",
 		"method-override": "=2.3.10",
 		"pg-monitor": "=0.9.0",

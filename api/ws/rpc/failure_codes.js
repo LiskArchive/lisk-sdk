@@ -76,6 +76,7 @@ module.exports = {
 			CHECK_PRESENCE: 4200,
 			INVALID_PEER: 4201,
 			TRANSPORT: 4202,
+			BANNED: 4203,
 		},
 		REMOVE: {
 			NOT_ON_LIST: 4210,
@@ -103,6 +104,7 @@ module.exports.errorMessages = {
 	4200: 'Failed to check if peer is already present',
 	4201: 'Unable to match an address to the peer',
 	4202: 'Transport error while invoking update procedure',
+	4203: 'Attempt to update a state of banned peer',
 	4210: 'Peer is not listed',
 	4211: 'Attempting to remove a frozen peer',
 	4230: 'Insert only update failed - peer is already listed',

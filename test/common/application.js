@@ -281,6 +281,9 @@ function __init(initScope, done) {
 									bus(cb) {
 										cb(null, scope.bus);
 									},
+									config(cb) {
+										cb(null, scope.config);
+									},
 									db(cb) {
 										cb(null, scope.db);
 									},
@@ -343,8 +346,9 @@ function __init(initScope, done) {
 									],
 									peers: [
 										'logger',
+										'config',
 										function(scope, cb) {
-											new Peers(scope.logger, cb);
+											new Peers(scope.logger, scope.config, cb);
 										},
 									],
 									multisignature: [

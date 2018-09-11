@@ -11,7 +11,7 @@ Lisk is a next generation crypto-currency and decentralized application platform
 
 [Lisk Core](https://lisk.io/documentation/lisk-core) is the program that implements the [Lisk Protocol](https://lisk.io/documentation/lisk-protocol). In other words, Lisk Core is what every machine needs to set-up in order to run a node that allows for participation in the network.
 
-This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [binaries](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://docs.liskdev.net/documentation/lisk-core/setup/pre-install/docker).
+This document details how to install Lisk Core from source, but there are two other ways to participate in the network: [Binary](https://lisk.io/documentation/lisk-core/setup/pre-install/binary) and [Docker images](https://lisk.io/documentation/lisk-core/setup/pre-install/docker).
 If you have satisfied the requirements from the Pre-Installation section, you can jumpt directly to the next section [Installation Steps](https://github.com/LiskHQ/lisk#installation-steps).
 
 ## Pre-Installation
@@ -93,7 +93,6 @@ The next section details the prerequisites to install Lisk Core from source usin
 
 * Ubuntu 14|16 / Debian:
 
-
 ```
 curl -sL "https://downloads.lisk.io/scripts/setup_postgresql.Linux" | bash -
 sudo -u postgres createuser --createdb $USER
@@ -105,51 +104,51 @@ sudo -u postgres psql -d lisk_main -c "alter user "$USER" with password 'passwor
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  ```
-  brew install postgresql@9.6
-  initdb /usr/local/var/postgres -E utf8
-  brew services start postgresql@9.6
-  createdb lisk_test
-  createdb lisk_main
-  ```
+```
+brew install postgresql@9.6
+initdb /usr/local/var/postgres -E utf8
+brew services start postgresql@9.6
+createdb lisk_test
+createdb lisk_main
+```
 
 ### Installing Redis
 
 * Ubuntu 14|16 / Debian:
 
-  ```
-  sudo apt-get install redis-server
-  ```
+```
+sudo apt-get install redis-server
+```
 
-  Start redis:
+Start redis:
 
-  ```
-  service redis start
-  ```
+```
+service redis start
+```
 
-  Stop redis:
+Stop redis:
 
-  ```
-  service redis stop
-  ```
+```
+service redis stop
+```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
-  ```
-  brew install redis
-  ```
+```
+brew install redis
+```
 
-  Start redis:
+Start redis:
 
-  ```
-  brew services start redis
-  ```
+```
+brew services start redis
+```
 
-  Stop redis:
+Stop redis:
 
-  ```
-  brew services stop redis
-  ```
+```
+brew services stop redis
+```
 
 **NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 

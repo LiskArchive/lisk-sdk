@@ -151,6 +151,34 @@ module.exports = {
 						},
 						required: ['public', 'whiteList'],
 					},
+					ssl: {
+						type: 'object',
+						properties: {
+							enabled: {
+								type: 'boolean',
+							},
+							options: {
+								type: 'object',
+								properties: {
+									port: {
+										type: 'integer',
+									},
+									address: {
+										type: 'string',
+										format: 'ip',
+									},
+									key: {
+										type: 'string',
+									},
+									cert: {
+										type: 'string',
+									},
+								},
+								required: ['port', 'address', 'key', 'cert'],
+							},
+						},
+						required: ['enabled', 'options'],
+					},
 					options: {
 						type: 'object',
 						properties: {
@@ -188,7 +216,7 @@ module.exports = {
 						required: ['limits', 'cors'],
 					},
 				},
-				required: ['enabled', 'access', 'options'],
+				required: ['enabled', 'access', 'ssl', 'options'],
 			},
 			peers: {
 				type: 'object',
@@ -315,34 +343,6 @@ module.exports = {
 				},
 				required: ['loadPerIteration'],
 			},
-			ssl: {
-				type: 'object',
-				properties: {
-					enabled: {
-						type: 'boolean',
-					},
-					options: {
-						type: 'object',
-						properties: {
-							port: {
-								type: 'integer',
-							},
-							address: {
-								type: 'string',
-								format: 'ip',
-							},
-							key: {
-								type: 'string',
-							},
-							cert: {
-								type: 'string',
-							},
-						},
-						required: ['port', 'address', 'key', 'cert'],
-					},
-				},
-				required: ['enabled', 'options'],
-			},
 			nethash: {
 				type: 'string',
 				format: 'hex',
@@ -366,7 +366,6 @@ module.exports = {
 			'transactions',
 			'forging',
 			'loading',
-			'ssl',
 			'nethash',
 			'cacheEnabled',
 			'redis',
