@@ -66,18 +66,20 @@ describe('transaction:sign', () => {
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:sign'])
-			.catch(error =>
-				expect(error.message).to.contain('No transaction was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No transaction was provided.');
+			})
 			.it('should throw an error');
 	});
 
 	describe('transaction:sign transaction', () => {
 		setupTest()
 			.command(['transaction:sign', invalidTransaction])
-			.catch(error =>
-				expect(error.message).to.contain('Could not parse transaction JSON.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Could not parse transaction JSON.',
+				);
+			})
 			.it('should throw an error');
 
 		setupTest()
@@ -171,9 +173,9 @@ describe('transaction:sign', () => {
 		setupTest()
 			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
 			.command(['transaction:sign'])
-			.catch(error =>
-				expect(error.message).to.contain('No transaction was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No transaction was provided.');
+			})
 			.it('should throw an error when stdin is empty');
 
 		setupTest()
@@ -183,9 +185,11 @@ describe('transaction:sign', () => {
 				sandbox.stub().resolves([invalidTransaction]),
 			)
 			.command(['transaction:sign'])
-			.catch(error =>
-				expect(error.message).to.contain('Could not parse transaction JSON.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Could not parse transaction JSON.',
+				);
+			})
 			.it('should throw an error when std is an invalid JSON format');
 
 		setupTest()

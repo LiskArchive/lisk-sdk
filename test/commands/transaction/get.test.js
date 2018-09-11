@@ -36,7 +36,9 @@ describe('transaction:get', () => {
 
 	setupTest()
 		.command(['transaction:get'])
-		.catch(error => expect(error.message).to.contain('Missing 1 required arg'))
+		.catch(error => {
+			return expect(error.message).to.contain('Missing 1 required arg');
+		})
 		.it('should throw an error when arg is not provided');
 
 	describe('transaction:get transaction', () => {

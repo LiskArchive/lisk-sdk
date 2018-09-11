@@ -64,20 +64,20 @@ describe('transaction:broadcast', () => {
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:broadcast'])
-			.catch(error =>
-				expect(error.message).to.contain('No transaction was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No transaction was provided.');
+			})
 			.it('should throw an error without transaction');
 	});
 
 	describe('transaction:broadcast transaction', () => {
 		setupTest()
 			.command(['transaction:broadcast', wrongTransaction])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Could not parse transaction JSON. Did you use the `--json` option?',
-				),
-			)
+				);
+			})
 			.it('should throw an error with invalid transaction');
 
 		setupTest()
@@ -96,9 +96,9 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
 			.command(['transaction:broadcast'])
-			.catch(error =>
-				expect(error.message).to.contain('No transaction was provided.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('No transaction was provided.');
+			})
 			.it('should throw an error with invalid transaction from stdin');
 
 		setupTest()
@@ -108,11 +108,11 @@ describe('transaction:broadcast', () => {
 				sandbox.stub().resolves(wrongTransaction),
 			)
 			.command(['transaction:broadcast'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Could not parse transaction JSON. Did you use the `--json` option?',
-				),
-			)
+				);
+			})
 			.it('should throw an error with invalid transaction from stdin');
 
 		setupTest()
