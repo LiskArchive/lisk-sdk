@@ -66,18 +66,18 @@ describe('transaction:create:multisignature', () => {
 	describe('transaction:create:multisignature', () => {
 		setupTest()
 			.command(['transaction:create:multisignature'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 3 required args'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 3 required args');
+			})
 			.it('should throw an error');
 	});
 
 	describe('transaction:create:multisignature lifetime', () => {
 		setupTest()
 			.command(['transaction:create:multisignature', defaultLifetime])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 2 required args'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 2 required args');
+			})
 			.it('should throw an error');
 	});
 
@@ -88,9 +88,9 @@ describe('transaction:create:multisignature', () => {
 				defaultLifetime,
 				defaultMinimum,
 			])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error');
 	});
 
@@ -102,9 +102,9 @@ describe('transaction:create:multisignature', () => {
 				defaultMinimum,
 				defaultKeysgroup.join(','),
 			])
-			.catch(error =>
-				expect(error.message).to.contain('Lifetime must be an integer.'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Lifetime must be an integer.');
+			})
 			.it('should throw an error when lifetime is not integer');
 
 		setupTest()
@@ -114,11 +114,11 @@ describe('transaction:create:multisignature', () => {
 				'minimum',
 				defaultKeysgroup.join(','),
 			])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Minimum number of signatures must be an integer.',
-				),
-			)
+				);
+			})
 			.it('should throw an error when minimum is not integer');
 
 		setupTest()

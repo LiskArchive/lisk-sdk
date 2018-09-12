@@ -57,9 +57,9 @@ describe('transaction:create:delegate', () => {
 	describe('transaction:create:delegate', () => {
 		setupTest()
 			.command(['transaction:create:delegate'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error');
 	});
 

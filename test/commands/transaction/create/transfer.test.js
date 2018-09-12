@@ -63,18 +63,18 @@ describe('transaction:create:transfer', () => {
 	describe('transaction:create:transfer', () => {
 		setupTest()
 			.command(['transaction:create:transfer'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 2 required args'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 2 required args');
+			})
 			.it('should throw an error');
 	});
 
 	describe('transaction:create:transfer amount', () => {
 		setupTest()
 			.command(['transaction:create:transfer', defaultAmount])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error');
 	});
 

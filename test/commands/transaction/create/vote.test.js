@@ -74,11 +74,11 @@ describe('transaction:create:transfer', () => {
 	describe('transaction:create:vote', () => {
 		setupStub()
 			.command(['transaction:create:vote'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'At least one of votes and/or unvotes options must be provided.',
-				),
-			)
+				);
+			})
 			.it('should throw an error without vote or unvote');
 	});
 
@@ -194,11 +194,11 @@ describe('transaction:create:transfer', () => {
 				`--votes=${defaultVote.join(',')}`,
 				`--unvotes=${defaultVote.join(',')}`,
 			])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Votes and unvotes sources must not be the same.',
-				),
-			)
+				);
+			})
 			.it('should throw an error when vote and unvote are the same');
 
 		setupStub()
