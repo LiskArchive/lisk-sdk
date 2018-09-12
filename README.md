@@ -1,6 +1,6 @@
 # Lisk Commander
 
-Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality using an interactive or non-interactive command line tool.
+Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality.
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-commander/development)](https://jenkins.lisk.io/job/lisk-commander/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
