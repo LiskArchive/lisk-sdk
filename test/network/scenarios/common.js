@@ -82,7 +82,7 @@ const common = {
 
 	stopNode: nodeName => {
 		return new Promise((resolve, reject) => {
-			childProcess.exec(`pm2 stop ${nodeName}`, err => {
+			childProcess.exec(`node_modules/.bin/pm2 stop ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to stop node ${nodeName}: ${err.message}`)
@@ -94,14 +94,17 @@ const common = {
 	},
 	startNode: nodeName => {
 		return new Promise((resolve, reject) => {
-			childProcess.exec(`pm2 start ${nodeName}`, err => {
+			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
 				if (err) {
 					return reject(
 						new Error(`Failed to start node ${nodeName}: ${err.message}`)
 					);
 				}
 
-				const pm2LogProcess = childProcess.spawn('pm2', ['logs', nodeName]);
+				const pm2LogProcess = childProcess.spawn('node_modules/.bin/pm2', [
+					'logs',
+					nodeName,
+				]);
 
 				const nodeReadyTimeout = setTimeout(() => {
 					pm2LogProcess.stdout.removeAllListeners('data');
