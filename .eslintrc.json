@@ -2,7 +2,9 @@
 	"extends": ["lisk-base"],
 	"plugins": ["mocha"],
 	"rules": {
+		"implicit-arrow-linebreak": "off",
 		"no-mixed-spaces-and-tabs": "off",
+		"operator-linebreak": "off",
 		"import/no-extraneous-dependencies": [
 			"error",
 			{

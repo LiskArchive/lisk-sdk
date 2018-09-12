@@ -23,10 +23,11 @@ const createAsset = data => {
 		if (data.length > BYTESIZES.DATA) {
 			throw new Error('Transaction data field cannot exceed 64 bytes.');
 		}
-		if (data !== data.toString('utf8'))
+		if (data !== data.toString('utf8')) {
 			throw new Error(
 				'Invalid encoding in transaction data. Data must be utf-8 encoded.',
 			);
+		}
 		return { data };
 	}
 	return {};

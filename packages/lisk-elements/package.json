@@ -1,14 +1,14 @@
 {
 	"name": "lisk-elements",
 	"version": "1.0.0",
-	"description":
-		"A default set of elements for use by clients of the Lisk network",
-	"author":
-		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"description": "A default set of elements for use by clients of the Lisk network",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
-	"keywords": ["lisk", "blockchain"],
-	"homepage":
-		"https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-elements#readme",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-elements#readme",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
@@ -17,8 +17,8 @@
 		"url": "https://github.com/LiskHQ/lisk-elements/issues"
 	},
 	"engines": {
-		"node": ">=6.3 <=9.5",
-		"npm": ">=3 <=5"
+		"node": ">=6.3 <=10",
+		"npm": ">=3 <=6"
 	},
 	"browser": "dist-browser/index.min.js",
 	"main": "dist-node/index.js",
@@ -71,24 +71,24 @@
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
-		"babel-plugin-istanbul": "4.1.6",
+		"babel-plugin-istanbul": "5.0.1",
 		"babel-plugin-module-resolver": "3.1.1",
 		"babel-plugin-transform-runtime": "6.23.0",
-		"babel-preset-env": "1.6.1",
+		"babel-preset-env": "1.7.0",
 		"babel-register": "6.26.0",
-		"browserify": "16.0.0",
+		"browserify": "16.2.2",
 		"chai": "4.1.2",
-		"cypress": "3.0.2",
-		"eslint": "4.19.1",
-		"eslint-config-airbnb-base": "12.1.0",
+		"cypress": "3.1.0",
+		"eslint": "5.5.0",
+		"eslint-config-airbnb-base": "13.1.0",
 		"eslint-config-lisk-base": "1.0.0",
-		"eslint-plugin-import": "2.11.0",
-		"eslint-plugin-mocha": "5.0.0",
+		"eslint-plugin-import": "2.14.0",
+		"eslint-plugin-mocha": "5.2.0",
 		"http-server": "0.11.1",
-		"mocha": "5.1.1",
-		"nyc": "11.7.1",
-		"prettier": "1.12.1",
+		"mocha": "5.2.0",
+		"nyc": "13.0.1",
+		"prettier": "1.14.2",
 		"uglify-es": "3.3.9",
-		"wait-on": "2.1.0"
+		"wait-on": "3.0.1"
 	}
 }
