@@ -57,7 +57,7 @@ const connectSteps = {
 				semver.prerelease(systemHeaders.version) !== null &&
 				semver.prerelease(peer.version) !== null &&
 				semver.lte(peer.version, '1.0.0-rc.3') &&
-				semver.gt(peer.version, '0.9.16')
+				semver.gte(peer.version, '1.0.0-rc.0')
 			) {
 				const versionComponents = semver.parse(systemHeaders.version);
 
