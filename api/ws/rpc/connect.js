@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const semver = require('semver');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
@@ -47,7 +48,28 @@ const connectSteps = {
 		const queryParams = {};
 
 		if (systemHeaders.version != null) {
-			queryParams.version = systemHeaders.version;
+			/*
+				if current node is also running a prelease version
+				if destination node is running a pre-release and
+				if destination node version is >0.9.16 and <=1.0.0-rc.3
+			 */
+			if (
+				semver.prerelease(systemHeaders.version) !== null &&
+				semver.prerelease(peer.version) !== null &&
+				semver.lte(peer.version, '1.0.0-rc.3') &&
+				semver.gt(peer.version, '0.9.16')
+			) {
+				const versionComponents = systemHeaders.version;
+
+				// Strip the prelease tag from the version so it can work
+				// with semver.satisfies at modules.system.versionCompatible
+				// https://github.com/LiskHQ/lisk/issues/2389
+				queryParams.version = `${versionComponents.major}.${
+					versionComponents.minor
+				}.${versionComponents.patch}`;
+			} else {
+				queryParams.version = systemHeaders.version;
+			}
 		}
 		if (systemHeaders.wsPort != null) {
 			queryParams.wsPort = systemHeaders.wsPort;
