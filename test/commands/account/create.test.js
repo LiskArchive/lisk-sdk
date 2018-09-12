@@ -43,11 +43,11 @@ describe('account:create', () => {
 				mnemonic,
 				'createMnemonicPassphrase',
 				sandbox.stub().returns(defaultMnemonic),
-			);
+			)
+			.stdout();
 
 	describe('account:create', () => {
 		setupTest()
-			.stdout()
 			.command(['account:create'])
 			.it('should create account', () => {
 				expect(print.default).to.be.called;
@@ -55,11 +55,52 @@ describe('account:create', () => {
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
 					defaultKeys.publicKey,
 				);
-				return expect(printMethodStub).to.be.calledWith({
-					...defaultKeys,
-					address: defaultAddress,
-					passphrase: defaultMnemonic,
-				});
+				return expect(printMethodStub).to.be.calledWith([
+					{
+						...defaultKeys,
+						address: defaultAddress,
+						passphrase: defaultMnemonic,
+					},
+				]);
 			});
+	});
+
+	describe('account:create --number x', () => {
+		const defaultNumber = 3;
+		setupTest()
+			.command(['account:create', `--number=${defaultNumber}`])
+			.it('should create account', () => {
+				expect(print.default).to.be.calledOnce;
+				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
+				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
+					defaultKeys.publicKey,
+				);
+				const result = Array(defaultNumber)
+					.fill()
+					.map(() => ({
+						...defaultKeys,
+						address: defaultAddress,
+						passphrase: defaultMnemonic,
+					}));
+				return expect(printMethodStub).to.be.calledWith(result);
+			});
+
+		setupTest()
+			.command(['account:create', '--number=NaN'])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Number flag must be a number and greater than 0',
+				);
+			})
+			.it('should throw an error if the flag is invalid number');
+
+		setupTest()
+			.command(['account:create', '--number=0'])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Number flag must be a number and greater than 0',
+				);
+			})
+			.it('should throw an error if the number flag is less than 1');
 	});
 });

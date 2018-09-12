@@ -13,29 +13,45 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
 export default class CreateCommand extends BaseCommand {
 	async run() {
-		const passphrase = createMnemonicPassphrase();
-		const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-		const address = cryptography.getAddressFromPublicKey(publicKey);
-		this.print({
-			passphrase,
-			privateKey,
-			publicKey,
-			address,
-		});
+		const { flags: { number: numberStr } } = this.parse(CreateCommand);
+		const number = parseInt(numberStr, 10);
+		if (!Number.isInteger(number) || number <= 0) {
+			throw new Error('Number flag must be a number and greater than 0');
+		}
+		const accounts = Array(number)
+			.fill()
+			.map(() => {
+				const passphrase = createMnemonicPassphrase();
+				const { privateKey, publicKey } = cryptography.getKeys(passphrase);
+				const address = cryptography.getAddressFromPublicKey(publicKey);
+				return {
+					passphrase,
+					privateKey,
+					publicKey,
+					address,
+				};
+			});
+		this.print(accounts);
 	}
 }
 
 CreateCommand.flags = {
 	...BaseCommand.flags,
+	number: flagParser.string({
+		char: 'n',
+		description: 'Number of account to create.',
+		default: '1',
+	}),
 };
 
 CreateCommand.description = `
 Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
 `;
-CreateCommand.examples = ['account:create'];
+CreateCommand.examples = ['account:create', 'account:create --number=3'];
