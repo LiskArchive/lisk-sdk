@@ -46,7 +46,7 @@ CreateCommand.flags = {
 	...BaseCommand.flags,
 	number: flagParser.string({
 		char: 'n',
-		description: 'Number of account to create.',
+		description: 'Number of accounts to create.',
 		default: '1',
 	}),
 };
