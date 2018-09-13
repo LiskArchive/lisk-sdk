@@ -26,12 +26,12 @@ describe('system test - get unconfirmed transactions', () => {
 	var account1 = randomUtil.account();
 	var account2 = randomUtil.account();
 	var transaction1 = lisk.transaction.transfer({
-		amount: 1100 * constants.normalizer,
+		amount: 1100 * constants.NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account1.address,
 	});
 	var transaction2 = lisk.transaction.transfer({
-		amount: 1100 * constants.normalizer,
+		amount: 1100 * constants.NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 	});

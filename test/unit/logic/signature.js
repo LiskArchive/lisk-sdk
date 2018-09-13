@@ -165,8 +165,8 @@ describe('signature', () => {
 				done();
 			});
 
-			it('should return constants.fees.secondSignature', () => {
-				return expect(fee.equals(constants.fees.secondSignature)).to.be.true;
+			it('should return constants.FEES.SECOND_SIGNATURE', () => {
+				return expect(fee.equals(constants.FEES.SECOND_SIGNATURE)).to.be.true;
 			});
 		});
 

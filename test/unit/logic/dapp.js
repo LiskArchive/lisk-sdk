@@ -110,9 +110,11 @@ describe('dapp', () => {
 		});
 
 		describe('calculateFee', () => {
-			it('should return constants.fees.dappRegistration', () => {
+			it('should return constants.FEES.DAPP_REGISTRATION', () => {
 				return expect(
-					dapp.calculateFee(transaction).equals(constants.fees.dappRegistration)
+					dapp
+						.calculateFee(transaction)
+						.equals(constants.FEES.DAPP_REGISTRATION)
 				);
 			});
 		});

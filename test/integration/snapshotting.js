@@ -29,7 +29,7 @@ describe('snapshotting', () => {
 	let addTransactionsAndForgePromise;
 
 	// Set rewards start at 150-th block
-	constants.rewards.offset = 150;
+	constants.REWARDS.OFFSET = 150;
 
 	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
 		library = lib;

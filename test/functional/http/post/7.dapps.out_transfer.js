@@ -43,12 +43,12 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.dappRegistration,
+			amount: constants.FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -623,7 +623,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 				randomUtil.guestbookDapp.id,
 				randomUtil.transaction().id,
 				accountFixtures.genesis.address,
-				10 * constants.normalizer,
+				10 * constants.NORMALIZER,
 				account.passphrase
 			);
 
@@ -639,7 +639,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 					randomUtil.blockDataDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
-					10 * constants.normalizer,
+					10 * constants.NORMALIZER,
 					accountMinimalFunds.passphrase
 				);
 
@@ -659,7 +659,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
 					accountFixtures.genesis.address,
-					10 * constants.normalizer,
+					10 * constants.NORMALIZER,
 					account.passphrase
 				);
 

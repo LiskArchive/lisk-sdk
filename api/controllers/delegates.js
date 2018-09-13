@@ -147,7 +147,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 				count: reward.count,
 			},
 			meta: {
-				fromTimestamp: filters.start || constants.epochTime.getTime(),
+				fromTimestamp: filters.start || constants.EPOCH_TIME.getTime(),
 				toTimestamp: filters.end || Date.now(),
 			},
 			links: {},

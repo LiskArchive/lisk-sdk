@@ -64,7 +64,7 @@ Transfer.prototype.bind = function(accounts) {
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(constants.FEES.SEND);
 };
 
 /**
@@ -237,8 +237,8 @@ Transfer.prototype.schema = {
 		data: {
 			type: 'string',
 			format: 'additionalData',
-			minLength: constants.additionalData.minLength,
-			maxLength: constants.additionalData.maxLength,
+			minLength: constants.ADDITIONAL_DATA.MIN_LENGTH,
+			maxLength: constants.ADDITIONAL_DATA.MAX_LENGTH,
 		},
 	},
 };

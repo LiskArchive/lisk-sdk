@@ -34,8 +34,8 @@ describe('system test (blocks) - process', () => {
 
 	before(done => {
 		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = constants.rewards.offset;
-		constants.rewards.offset = 150;
+		originalBlockRewardsOffset = constants.REWARDS.OFFSET;
+		constants.REWARDS.OFFSET = 150;
 
 		// Set current block version to 0
 		blockVersion.currentBlockVersion = 0;
@@ -53,7 +53,7 @@ describe('system test (blocks) - process', () => {
 	});
 
 	after(done => {
-		constants.rewards.offset = originalBlockRewardsOffset;
+		constants.REWARDS.OFFSET = originalBlockRewardsOffset;
 		application.cleanup(done);
 	});
 

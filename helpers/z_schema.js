@@ -73,7 +73,9 @@ var liskFormats = {
 		if (typeof str !== 'string') {
 			return false;
 		}
-		return Buffer.from(str).length <= global.constants.additionalData.maxLength;
+		return (
+			Buffer.from(str).length <= global.constants.ADDITIONAL_DATA.MAX_LENGTH
+		);
 	},
 	/**
 	 * Description of the function.
@@ -286,7 +288,7 @@ var liskFormats = {
 		if (value instanceof Bignum) {
 			return (
 				value.greaterThanOrEqualTo(0) &&
-				value.lessThanOrEqualTo(global.constants.totalAmount)
+				value.lessThanOrEqualTo(global.constants.TOTAL_AMOUNT)
 			);
 		}
 		return false;

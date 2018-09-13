@@ -39,7 +39,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction1;
 			var transaction2;
 			transaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * constants.NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -54,12 +54,12 @@ describe('system test (type 2) - double delegate registrations', () => {
 			describe('with two different accounts using different username', () => {
 				before(done => {
 					transaction1 = lisk.transaction.transfer({
-						amount: 1000 * constants.normalizer,
+						amount: 1000 * constants.NORMALIZER,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
 					transaction2 = lisk.transaction.transfer({
-						amount: 1000 * constants.normalizer,
+						amount: 1000 * constants.NORMALIZER,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});

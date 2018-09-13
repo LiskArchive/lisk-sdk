@@ -496,13 +496,13 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 						const downvotes = downvoteAccounts.length;
 						const totalVotes = existingVotes + upvotes - downvotes;
 
-						if (totalVotes > constants.activeDelegates) {
-							const exceeded = totalVotes - constants.activeDelegates;
+						if (totalVotes > constants.ACTIVE_DELEGATES) {
+							const exceeded = totalVotes - constants.ACTIVE_DELEGATES;
 
 							return setImmediate(
 								waterfallCb,
 								`Maximum number of ${
-									constants.activeDelegates
+									constants.ACTIVE_DELEGATES
 								} votes exceeded (${exceeded} too many)`
 							);
 						}
