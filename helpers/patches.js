@@ -45,7 +45,7 @@ const Patches = {
 
 			const isSeedPeer = !isPeerVersionDefined;
 
-			if (isSeedPeer || isPeerInPreReleaseRange) {
+			if ((isSeedPeer || isPeerInPreReleaseRange) && headers.version) {
 				logger.info('Patching SystemHeaders.versionForPreRelease', forVersion);
 				logger.debug(`Before patching version: ${headersData.version}`);
 
