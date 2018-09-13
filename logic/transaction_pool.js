@@ -988,9 +988,9 @@ __private.transactionTimeOut = function(transaction) {
 	if (transaction.type === transactionTypes.MULTI) {
 		return transaction.asset.multisignature.lifetime * self.hourInSeconds;
 	} else if (Array.isArray(transaction.signatures)) {
-		return constants.UNCONFIRMED_TRANSACTION_TIME_OUT * 8;
+		return constants.UNCONFIRMED_TRANSACTION_TIMEOUT * 8;
 	}
-	return constants.UNCONFIRMED_TRANSACTION_TIME_OUT;
+	return constants.UNCONFIRMED_TRANSACTION_TIMEOUT;
 };
 
 /**
