@@ -151,7 +151,7 @@ def report() {
 	}
 }
 
-lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
+lock(resource: "Lisk-Core-Nodes8", inversePrecedence: true) {
 
 	properties([
 		parameters([
@@ -186,27 +186,27 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 				}
 			},
 			"Initialize node-01" : {
-				node('node-01') {
+				node('node8-01') {
 					initializeNode()
 				}
 			},
 			"Initialize node-02" : {
-				node('node-02') {
+				node('node8-02') {
 					initializeNode()
 				}
 			},
 			"Initialize node-03" : {
-				node('node-03') {
+				node('node8-03') {
 					initializeNode()
 				}
 			},
 			"Initialize node-04" : {
-				node('node-04') {
+				node('node8-04') {
 					initializeNode()
 				}
 			},
 			"Initialize node-05" : {
-				node('node-05') {
+				node('node8-05') {
 					initializeNode()
 				}
 			},
@@ -221,27 +221,27 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	stage('Build dependencies') {
 		parallel(
 			"Build dependencies node-01" : {
-				node('node-01') {
+				node('node8-01') {
 					buildDependencies()
 				}
 			},
 			"Build dependencies node-02" : {
-				node('node-02') {
+				node('node8-02') {
 					buildDependencies()
 				}
 			},
 			"Build dependencies node-03" : {
-				node('node-03') {
+				node('node8-03') {
 					buildDependencies()
 				}
 			},
 			"Build dependencies node-04" : {
-				node('node-04') {
+				node('node8-04') {
 					buildDependencies()
 				}
 			},
 			"Build dependencies node-05" : {
-				node('node-05') {
+				node('node8-05') {
 					buildDependencies()
 				}
 			}
@@ -251,27 +251,27 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	stage('Start Lisk') {
 		parallel(
 			"Start Lisk node-01" : {
-				node('node-01') {
+				node('node8-01') {
 					startLisk()
 				}
 			},
 			"Start Lisk node-02" : {
-				node('node-02') {
+				node('node8-02') {
 					startLisk()
 				}
 			},
 			"Start Lisk node-03" : {
-				node('node-03') {
+				node('node8-03') {
 					startLisk()
 				}
 			},
 			"Start Lisk node-04" : {
-				node('node-04') {
+				node('node8-04') {
 					startLisk()
 				}
 			},
 			"Start Lisk node-05" : {
-				node('node-05') {
+				node('node8-05') {
 					startLisk()
 				}
 			}
@@ -282,12 +282,12 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 		timestamps {
 			parallel(
 				"Lint" : {
-					node('node-01') {
+					node('node8-01') {
 						runAction('lint')
 					}
 				},
 				"Functional HTTP GET tests" : {
-					node('node-01') {
+					node('node8-01') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:get')
 						} else {
@@ -297,7 +297,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					}
 				}, // End node-01 tests
 				"Functional HTTP POST tests" : {
-					node('node-02') {
+					node('node8-02') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:post')
 						} else {
@@ -307,7 +307,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					}
 				}, // End node-02 tests
 				"Functional WS tests" : {
-					node('node-03') {
+					node('node8-03') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:functional:ws')
 						} else {
@@ -317,7 +317,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					}
 				}, // End node-03 tests
 				"Unit tests" : {
-					node('node-04') {
+					node('node8-04') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:unit')
 						} else {
@@ -327,7 +327,7 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 					}
 				}, // End node-04 tests
 				"Integration tests" : {
-					node('node-05') {
+					node('node8-05') {
 						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
 							runAction('mocha:extensive:integration')
 						} else {
@@ -343,27 +343,27 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	stage('Gather coverage') {
 		parallel(
 			"Gather coverage node-01" : {
-				node('node-01') {
+				node('node8-01') {
 					reportCoverage('01')
 				}
 			},
 			"Gather coverage node-02" : {
-				node('node-02') {
+				node('node8-02') {
 					reportCoverage('02')
 				}
 			},
 			"Gather coverage node-03" : {
-				node('node-03') {
+				node('node8-03') {
 					reportCoverage('03')
 				}
 			},
 			"Gather coverage node-04" : {
-				node('node-04') {
+				node('node8-04') {
 					reportCoverage('04')
 				}
 			},
 			"Gather coverage node-05" : {
-				node('node-05') {
+				node('node8-05') {
 					reportCoverage('05')
 				}
 			}
@@ -398,27 +398,27 @@ lock(resource: "Lisk-Core-Nodes", inversePrecedence: true) {
 	stage('Clean up') {
 		parallel(
 			"Clean up node-01" : {
-				node('node-01') {
+				node('node8-01') {
 					cleanUp()
 				}
 			},
 			"Clean up node-02" : {
-				node('node-02') {
+				node('node8-02') {
 					cleanUp()
 				}
 			},
 			"Clean up node-03" : {
-				node('node-03') {
+				node('node8-03') {
 					cleanUp()
 				}
 			},
 			"Clean up node-04" : {
-				node('node-04') {
+				node('node8-04') {
 					cleanUp()
 				}
 			},
 			"Clean up node-05" : {
-				node('node-05') {
+				node('node8-05') {
 					cleanUp()
 				}
 			},
