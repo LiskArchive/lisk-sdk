@@ -16,6 +16,7 @@ let lib; /* eslint-disable-line */
 
 try {
 	if (process.env.NACL_FAST === 'disable') throw new Error('Use tweetnacl');
+	// Require used for conditional importing
 	lib = require('./sodium'); /* eslint-disable-line */
 } catch (err) {
 	process.env.NACL_FAST = 'disable';

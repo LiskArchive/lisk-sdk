@@ -88,6 +88,7 @@
 		"nyc": "13.0.1",
 		"prettier": "1.14.2",
 		"sinon": "6.2.0",
+		"sodium-native": "2.2.1",
 		"uglify-es": "3.3.9",
 		"wait-on": "3.0.1"
 	}

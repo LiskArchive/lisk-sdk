@@ -23,6 +23,7 @@ const { signKeyPair } = nacl;
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
 	const { publicKeyBytes, privateKeyBytes } = signKeyPair(hashed);
+
 	return {
 		privateKeyBytes,
 		publicKeyBytes,

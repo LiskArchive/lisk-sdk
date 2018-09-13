@@ -28,46 +28,34 @@ export const signKeyPair = hashedSeed => {
 	};
 };
 
-export const signDetached = (messageBytes, privateKeyBytes) => {
-	return tweetnacl.sign.detached(messageBytes, privateKeyBytes);
-};
+export const signDetached = (messageBytes, privateKeyBytes) =>
+	tweetnacl.sign.detached(messageBytes, privateKeyBytes);
 
-export const detachedVerify = (
-	messageBytes,
-	signatureBytes,
-	publicKeyBytes,
-) => {
-	return tweetnacl.sign.detached.verify(
-		messageBytes,
-		signatureBytes,
-		publicKeyBytes,
-	);
-};
+export const detachedVerify = (messageBytes, signatureBytes, publicKeyBytes) =>
+	tweetnacl.sign.detached.verify(messageBytes, signatureBytes, publicKeyBytes);
 
 export const box = (
 	messageInBytes,
 	nonceInBytes,
 	convertedPublicKey,
 	convertedPrivateKey,
-) => {
-	return tweetnacl.box(
+) =>
+	tweetnacl.box(
 		messageInBytes,
 		nonceInBytes,
 		convertedPublicKey,
 		convertedPrivateKey,
 	);
-};
 
 export const boxOpen = (
 	cipherBytes,
 	nonceBytes,
 	convertedPublicKey,
 	convertedPrivateKey,
-) => {
-	return tweetnacl.box.open(
+) =>
+	tweetnacl.box.open(
 		cipherBytes,
 		nonceBytes,
 		convertedPublicKey,
 		convertedPrivateKey,
 	);
-};

@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import sodium from 'sodium-native';
+import sodium from 'sodium-native'; /* eslint-disable-line */
 
 export const naclSignPublicKeyLength = 32;
 
@@ -41,16 +41,12 @@ export const signDetached = (messageBytes, privateKeyBytes) => {
 	return signatureBytes;
 };
 
-export const detachedVerify = (
-	messageBytes,
-	signatureBytes,
-	publicKeyBytes,
-) => sodium.crypto_sign_verify_detached(
+export const detachedVerify = (messageBytes, signatureBytes, publicKeyBytes) =>
+	sodium.crypto_sign_verify_detached(
 		signatureBytes,
 		messageBytes,
 		publicKeyBytes,
 	);
-
 
 export const box = (
 	messageInBytes,
