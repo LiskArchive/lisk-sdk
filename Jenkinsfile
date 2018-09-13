@@ -5,8 +5,14 @@ pipeline {
 	stages {
 		stage('Install dependencies') {
 			steps {
+				script {
+					cache_file = restoreCache("package.json")
+				}
 				nvm(getNodejsVersion()) {
 					sh 'npm install --verbose'
+				}
+				script {
+					saveCache(cache_file, './node_modules', 10)
 				}
 			}
 		}
