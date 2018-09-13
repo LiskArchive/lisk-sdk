@@ -635,7 +635,7 @@ class Transaction {
 		// Check amount
 		let amount = transaction.amount;
 		if (
-      !amount.isInteger() ||
+			!amount.isInteger() ||
 			amount.greaterThan(POSTGRESQL_BIGINT_MAX_VALUE) ||
 			amount.lessThan(0)
 		) {
