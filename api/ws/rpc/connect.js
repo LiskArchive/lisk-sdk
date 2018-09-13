@@ -51,12 +51,12 @@ const connectSteps = {
 			/*
 				if current node is also running a prelease version
 				if destination node is running a pre-release and
-				if destination node Testnet version is >=1.0.0-rc.0 and <=1.0.0-rc.3
+				if destination node Testnet version is >=1.0.0-rc.0 and <=1.0.0-rc.4
 			 */
 			if (
 				semver.prerelease(systemHeaders.version) !== null &&
 				semver.prerelease(peer.version) !== null &&
-				semver.lte(peer.version, '1.0.0-rc.3') &&
+				semver.lte(peer.version, '1.0.0-rc.4') &&
 				semver.gte(peer.version, '1.0.0-rc.0')
 			) {
 				const versionComponents = semver.parse(systemHeaders.version);
