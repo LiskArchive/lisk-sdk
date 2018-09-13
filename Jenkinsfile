@@ -1,36 +1,45 @@
 @Library('lisk-jenkins') _
+properties([
+  parameters([
+    string(defaultValue: "v8.12.0", description: 'Node.js version:', name: 'NODEJS_VERSION'),
+   ])
+])
 pipeline {
 	agent { node { label 'lisk-commander' } }
 	stages {
 		stage('Install dependencies') {
 			steps {
-				script {
-					cache_file = restoreCache("package.json")
-					sh 'npm install --verbose'
-					saveCache(cache_file, './node_modules', 10)
-				}
+			    nvm(NODEJS_VERSION) {
+				sh 'npm install --verbose'
+			    }
 			}
 		}
 		stage('Run lint') {
 			steps {
 				ansiColor('xterm') {
+				    nvm(NODEJS_VERSION) {
 					sh 'npm run lint'
+				    }
 				}
 			}
 		}
 		stage('Build') {
 			steps {
-				sh 'npm run build'
+			    nvm(NODEJS_VERSION) {
+				    sh 'npm run build'
+			    }
 			}
 		}
 		stage('Run tests') {
 			steps {
 				ansiColor('xterm') {
+				    nvm(NODEJS_VERSION) {
 					sh 'LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test'
 					sh '''
 					cp ~/.coveralls.yml-lisk-commander .coveralls.yml
 					npm run cover
 					'''
+				    }
 				}
 			}
 		}
