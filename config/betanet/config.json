@@ -13,7 +13,7 @@
 				"wsPort": 5001
 			},
 			{
-				"ip": "betanet-seed-02.lisk.io",
+				"ip": "betanet-seed-02.lisk-nodes.net",
 				"wsPort": 5001
 			},
 			{
@@ -21,7 +21,7 @@
 				"wsPort": 5001
 			},
 			{
-				"ip": "betanet-seed-04.lisk.io",
+				"ip": "betanet-seed-04.lisk-nodes.net",
 				"wsPort": 5001
 			},
 			{
