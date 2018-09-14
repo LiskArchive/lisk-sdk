@@ -66,7 +66,7 @@ DApp.prototype.bind = function() {};
  * @returns {Bignumber} Transaction fee
  */
 DApp.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.dappRegistration);
+	return new Bignum(constants.FEES.DAPP_REGISTRATION);
 };
 
 /**

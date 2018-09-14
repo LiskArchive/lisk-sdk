@@ -109,10 +109,10 @@ describe('schema - custom formats', () => {
 		it('should return false if string is longer than maxLength (either chars or bytes)', function() {
 			var invalidData = [];
 			invalidData.push(
-				`${randomstring.generate(constants.additionalData.maxLength - 1)}现`
+				`${randomstring.generate(constants.ADDITIONAL_DATA.MAX_LENGTH - 1)}现`
 			);
 			invalidData.push(
-				randomstring.generate(constants.additionalData.maxLength + 1)
+				randomstring.generate(constants.ADDITIONAL_DATA.MAX_LENGTH + 1)
 			);
 
 			return invalidData.forEach(function(item) {
@@ -122,8 +122,12 @@ describe('schema - custom formats', () => {
 
 		it('should return true if string is between minLength and maxLength', function() {
 			var validData = [];
-			validData.push(randomstring.generate(constants.additionalData.minLength));
-			validData.push(randomstring.generate(constants.additionalData.maxLength));
+			validData.push(
+				randomstring.generate(constants.ADDITIONAL_DATA.MIN_LENGTH)
+			);
+			validData.push(
+				randomstring.generate(constants.ADDITIONAL_DATA.MAX_LENGTH)
+			);
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);

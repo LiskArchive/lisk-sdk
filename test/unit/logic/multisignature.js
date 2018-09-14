@@ -174,7 +174,7 @@ describe('multisignature', () => {
 	describe('verify', () => {
 		describe('from multisignature.verify tests', () => {
 			it('should return error when min value is smaller than minimum acceptable value', done => {
-				var minimum = constants.multisigConstraints.min.minimum - 1;
+				var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -197,7 +197,7 @@ describe('multisignature', () => {
 		});
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
-			var minimum = constants.multisigConstraints.min.maximum + 1;
+			var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
 			var keysgroup = [multiSigAccount1.publicKey, multiSigAccount2.publicKey];
 			var transaction = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
@@ -949,7 +949,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var minimum = constants.multisigConstraints.min.minimum - 1;
+				var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -969,7 +969,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var minimum = constants.multisigConstraints.min.maximum + 1;
+				var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -1033,7 +1033,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var lifetime = constants.multisigConstraints.lifetime.minimum - 1;
+				var lifetime = constants.MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -1053,7 +1053,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var lifetime = constants.multisigConstraints.lifetime.maximum + 1;
+				var lifetime = constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -1131,7 +1131,7 @@ describe('multisignature', () => {
 
 			it('should return error when array length is greater than maximum acceptable value', () => {
 				var keysgroup = Array(
-					...Array(constants.multisigConstraints.keysgroup.maxItems + 1)
+					...Array(constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS + 1)
 				).map(() => {
 					return `${
 						lisk.cryptography.getKeys(randomUtil.password()).publicKey

@@ -776,7 +776,7 @@ describe('transaction', () => {
 
 		it('should return error when account balance is less than transaction amount', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount;
+			transactionDataClone.amount = constants.TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, null, null, err => {

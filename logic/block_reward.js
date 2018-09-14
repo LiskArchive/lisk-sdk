@@ -33,13 +33,13 @@ const __private = {};
 class BlockReward {
 	constructor() {
 		// Array of milestones
-		this.milestones = constants.rewards.milestones;
+		this.milestones = constants.REWARDS.MILESTONES;
 
 		// Distance between each milestone
-		this.distance = Math.floor(constants.rewards.distance);
+		this.distance = Math.floor(constants.REWARDS.DISTANCE);
 
 		// Start rewards at block (n)
-		this.rewardOffset = Math.floor(constants.rewards.offset);
+		this.rewardOffset = Math.floor(constants.REWARDS.OFFSET);
 	}
 
 	/**
@@ -86,7 +86,7 @@ class BlockReward {
 	 */
 	calcSupply(height) {
 		height = __private.parseHeight(height);
-		const supply = new Bignum(constants.totalAmount);
+		const supply = new Bignum(constants.TOTAL_AMOUNT);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
