@@ -10,7 +10,7 @@ exports.config = {
 	/**
 	 * Array of application names.
 	 */
-	app_name: [''],
+	app_name: [`lisk-${process.env.LISK_NETWORK}`],
 	/**
 	 * Your New Relic license key.
 	 */
