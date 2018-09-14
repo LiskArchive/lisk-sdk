@@ -1,5 +1,5 @@
 pipeline {
-	agent { node { label 'dependencies-check' } }
+	agent { node { label 'dependencies-check-v8' } }
 	stages {
 		stage('Prepare workspace') {
 			steps {
