@@ -92,6 +92,7 @@ const common = {
 			});
 		});
 	},
+
 	startNode: nodeName => {
 		return new Promise((resolve, reject) => {
 			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
@@ -131,11 +132,13 @@ const common = {
 			});
 		});
 	},
+
 	restartNode: nodeName => {
 		return common.stopNode(nodeName).then(() => {
 			return common.startNode(nodeName);
 		});
 	},
+
 	getNodesStatus: (sockets, cb) => {
 		getAllPeers(sockets)
 			.then(peers => {
