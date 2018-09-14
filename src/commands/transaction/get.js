@@ -20,13 +20,16 @@ import query from '../../utils/query';
 export default class GetCommand extends BaseCommand {
 	async run() {
 		const { args: { ids } } = this.parse(GetCommand);
-		const req =
-			ids.length === 1
-				? { limit: 1, id: ids[0] }
-				: ids.map(id => ({
-						limit: 1,
-						id,
-					}));
+		const req = ids.map(id => ({
+			query: {
+				limit: 1,
+				id,
+			},
+			placeholder: {
+				id,
+				message: 'Transaction not found.',
+			},
+		}));
 		const client = getAPIClient(this.userConfig.api);
 		const results = await query(client, 'transactions', req);
 		this.print(results);
@@ -37,9 +40,8 @@ GetCommand.args = [
 	{
 		name: 'ids',
 		required: true,
-		description:
-			'Comma separated transaction id(s) which you want to get the information of.',
-		parse: input => input.split(','),
+		description: 'Comma-separated transaction ID(s) to get information about.',
+		parse: input => input.split(',').filter(Boolean),
 	},
 ];
 

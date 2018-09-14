@@ -42,54 +42,102 @@ describe('transaction:get', () => {
 		.it('should throw an error when arg is not provided');
 
 	describe('transaction:get transaction', () => {
-		const transaction = '3520445367460290306L';
+		const transactionId = '3520445367460290306';
 		const queryResult = {
-			id: transaction,
-			name: 'i am owner',
+			id: transactionId,
+			type: 2,
 		};
 
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
-			.command(['transaction:get', transaction])
-			.it('should get an transaction info and display as an object', () => {
+			.command(['transaction:get', transactionId])
+			.it('should get an transaction info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, {
-					limit: 1,
-					id: transaction,
-				});
+				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
+					{
+						query: {
+							limit: 1,
+							id: transactionId,
+						},
+						placeholder: {
+							id: transactionId,
+							message: 'Transaction not found.',
+						},
+					},
+				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
 
 	describe('transaction:get transactions', () => {
-		const transactions = ['3520445367460290306L', '2802325248134221536L'];
+		const transactionIds = ['3520445367460290306', '2802325248134221536'];
+		const transactionIdsWithEmpty = ['3520445367460290306', ''];
 		const queryResult = [
 			{
-				id: transactions[0],
-				name: 'i am owner',
+				id: transactionIds[0],
+				type: 0,
 			},
 			{
-				id: transactions[1],
-				name: 'some name',
+				id: transactionIds[1],
+				type: 3,
 			},
 		];
 
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
-			.command(['transaction:get', transactions.join(',')])
+			.command(['transaction:get', transactionIds.join(',')])
 			.it('should get transactions info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
-						limit: 1,
-						id: transactions[0],
+						query: {
+							limit: 1,
+							id: transactionIds[0],
+						},
+						placeholder: {
+							id: transactionIds[0],
+							message: 'Transaction not found.',
+						},
 					},
 					{
-						limit: 1,
-						id: transactions[1],
+						query: {
+							limit: 1,
+							id: transactionIds[1],
+						},
+						placeholder: {
+							id: transactionIds[1],
+							message: 'Transaction not found.',
+						},
 					},
 				]);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
+
+		setupTest()
+			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.command(['transaction:get', transactionIdsWithEmpty.join(',')])
+			.it(
+				'should get transactions info only using non-empty args and display as an array',
+				() => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(query.default).to.be.calledWithExactly(
+						apiClientStub,
+						endpoint,
+						[
+							{
+								query: {
+									limit: 1,
+									id: transactionIdsWithEmpty[0],
+								},
+								placeholder: {
+									id: transactionIdsWithEmpty[0],
+									message: 'Transaction not found.',
+								},
+							},
+						],
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				},
+			);
 	});
 });
