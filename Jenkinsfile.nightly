@@ -1,5 +1,5 @@
 pipeline {
-	agent { node { label 'node-06' } }
+	agent { node { label 'node-v8-06' } }
 	parameters {
 		string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', )
 		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', )
