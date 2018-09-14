@@ -203,8 +203,8 @@ describe('inTransfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should return constants.fees.send', () => {
-			return expect(inTransfer.calculateFee(trs).equals(constants.fees.send));
+		it('should return constants.FEES.SEND', () => {
+			return expect(inTransfer.calculateFee(trs).equals(constants.FEES.SEND));
 		});
 	});
 

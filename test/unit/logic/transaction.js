@@ -751,7 +751,7 @@ describe('transaction', () => {
 			});
 		});
 
-		it('should return error when transaction amount is invalid', done => {
+		it("should return error when transaction amount is bigger than postgreSQL's Max BigInt value", done => {
 			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
 			var transaction = {
 				type: 0,
@@ -776,7 +776,7 @@ describe('transaction', () => {
 
 		it('should return error when account balance is less than transaction amount', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount;
+			transactionDataClone.amount = constants.TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, null, null, err => {

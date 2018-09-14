@@ -38,7 +38,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction2;
 			var differentDelegateName = randomUtil.delegateName();
 			transaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * constants.NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});

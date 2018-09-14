@@ -68,7 +68,7 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
  * @todo Add description for the params
  */
 InTransfer.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(constants.FEES.SEND);
 };
 
 /**

@@ -146,7 +146,7 @@ describe('transfer', () => {
 			return expect(
 				transfer
 					.calculateFee(validTransaction)
-					.equals(new Bignum(constants.fees.send))
+					.equals(new Bignum(constants.FEES.SEND))
 			).to.be.true;
 		});
 
@@ -158,7 +158,7 @@ describe('transfer', () => {
 			return expect(
 				transfer
 					.calculateFee(transaction)
-					.equals(new Bignum(constants.fees.send))
+					.equals(new Bignum(constants.FEES.SEND))
 			).to.be.true;
 		});
 	});
@@ -404,10 +404,10 @@ describe('transfer', () => {
 		});
 
 		it(`should throw error if data field length is greater than ${
-			constants.additionalData.maxLength
+			constants.ADDITIONAL_DATA.MAX_LENGTH
 		} characters`, () => {
 			var invalidString = randomstring.generate(
-				constants.additionalData.maxLength + 1
+				constants.ADDITIONAL_DATA.MAX_LENGTH + 1
 			);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
@@ -422,10 +422,10 @@ describe('transfer', () => {
 		});
 
 		it(`should throw error if data field length is greater than ${
-			constants.additionalData.maxLength
+			constants.ADDITIONAL_DATA.MAX_LENGTH
 		} bytes`, () => {
 			var invalidString = `${randomstring.generate(
-				constants.additionalData.maxLength - 1
+				constants.ADDITIONAL_DATA.MAX_LENGTH - 1
 			)}现`;
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {

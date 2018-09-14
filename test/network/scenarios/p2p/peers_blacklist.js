@@ -24,10 +24,12 @@ const common = require('../common');
 module.exports = function(
 	configurations,
 	TOTAL_PEERS,
-	EXPECTED_OUTOGING_CONNECTIONS
+	EXPECTED_TOTAL_CONNECTIONS,
+	NUMBER_OF_TRANSACTIONS,
+	NUMBER_OF_MONITORING_CONNECTIONS
 ) {
 	// Full mesh network with 2 connection for bi-directional communication without the blacklisted peer
-	const EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING =
+	const EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING =
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
 	describe('@network : peer Blacklisted', () => {
@@ -50,7 +52,7 @@ module.exports = function(
 				});
 			});
 
-			it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS} established connections from 500[0-9] ports`, done => {
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 				utils.getEstablishedConnections(
 					Array.from(wsPorts),
 					(err, numOfConnections) => {
@@ -58,7 +60,10 @@ module.exports = function(
 							return done(err);
 						}
 
-						if (numOfConnections - 20 <= EXPECTED_OUTOGING_CONNECTIONS) {
+						if (
+							numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+							EXPECTED_TOTAL_CONNECTIONS
+						) {
 							done();
 						} else {
 							done(
@@ -77,13 +82,17 @@ module.exports = function(
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					common.restartNode('node_0');
-					setTimeout(() => {
-						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-					}, 8000);
+					common
+						.restartNode('node_0')
+						.then(() => {
+							blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
-				it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, numOfConnections) => {
@@ -92,8 +101,8 @@ module.exports = function(
 							}
 
 							if (
-								numOfConnections - 20 <=
-								EXPECTED_OUTOGING_CONNECTIONS_AFTER_BLACKLISTING
+								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+								EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING
 							) {
 								done();
 							} else {
@@ -148,13 +157,17 @@ module.exports = function(
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					common.restartNode('node_0');
-					setTimeout(() => {
-						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-					}, 8000);
+					common
+						.restartNode('node_0')
+						.then(() => {
+							blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
-				it(`there should be ${EXPECTED_OUTOGING_CONNECTIONS} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, numOfConnections) => {
@@ -162,7 +175,10 @@ module.exports = function(
 								return done(err);
 							}
 
-							if (numOfConnections - 20 <= EXPECTED_OUTOGING_CONNECTIONS) {
+							if (
+								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+								EXPECTED_TOTAL_CONNECTIONS
+							) {
 								done();
 							} else {
 								done(

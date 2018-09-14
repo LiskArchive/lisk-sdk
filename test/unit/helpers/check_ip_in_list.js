@@ -18,50 +18,31 @@ var checkIpInList = require('../../../helpers/check_ip_in_list');
 
 describe('checkIpInList', () => {
 	describe('CheckIpInList', () => {
-		var validReturnListIsEmpty;
 		var validList;
 		var validAddress;
 		var spyConsoleError;
 		var checkIpInListResult;
 
 		before(done => {
-			validReturnListIsEmpty = true;
-			validList = ['1.2.3.4', '5.6.7.8'];
+			validList = ['1.2.3.0/24', '5.6.7.8'];
 			validAddress = '1.2.3.4';
 			spyConsoleError = sinonSandbox.spy(console, 'error');
 			done();
 		});
 
 		beforeEach(done => {
-			checkIpInListResult = checkIpInList(
-				validList,
-				validAddress,
-				validReturnListIsEmpty
-			);
+			checkIpInListResult = checkIpInList(validList, validAddress);
 			done();
-		});
-
-		describe('when returnListIsEmpty is not a boolean', () => {
-			before(done => {
-				validReturnListIsEmpty = null;
-				done();
-			});
-
-			it('should set returnListIsEmpty to true', done => {
-				expect(checkIpInListResult).to.eq(true);
-				done();
-			});
 		});
 
 		describe('when validList is not an array', () => {
 			before(done => {
-				validReturnListIsEmpty = true;
 				validList = null;
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+			it('should return false', done => {
+				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
 		});
@@ -72,20 +53,20 @@ describe('checkIpInList', () => {
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+			it('should return false', done => {
+				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
 		});
 
 		describe('when all the entries in validList are not in the right format', () => {
 			before(done => {
-				validList = ['abc', 'shzduvsg'];
+				validList = ['abcxyz', 'shzduvsg'];
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
-				expect(checkIpInListResult).to.eq(validReturnListIsEmpty);
+			it('should return false', done => {
+				expect(checkIpInListResult).to.eq(false);
 				done();
 			});
 
@@ -97,7 +78,7 @@ describe('checkIpInList', () => {
 
 		describe('when some entries in validList are not in the right format', () => {
 			before(done => {
-				validList = ['abc', '1.2.3.4'];
+				validList = ['abcxyz', '1.2.3.4'];
 				done();
 			});
 
@@ -109,24 +90,36 @@ describe('checkIpInList', () => {
 
 		describe('when validList does not contain validAddress', () => {
 			before(done => {
-				validList = ['1.2.3.4', '5.6.7.8'];
+				validList = ['1.2.3.0/24', '5.6.7.8'];
 				validAddress = '127.0.0.1';
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
+			it('should return false', done => {
 				expect(checkIpInListResult).to.eq(false);
+				done();
+			});
+		});
+
+		describe('when validList contains validAddress as subnet', () => {
+			before(done => {
+				validAddress = '1.2.3.4';
+				done();
+			});
+
+			it('should return true', done => {
+				expect(checkIpInListResult).to.eq(true);
 				done();
 			});
 		});
 
 		describe('when validList contains validAddress', () => {
 			before(done => {
-				validAddress = '1.2.3.4';
+				validAddress = '5.6.7.8';
 				done();
 			});
 
-			it('should return validReturnListIsEmpty', done => {
+			it('should return true', done => {
 				expect(checkIpInListResult).to.eq(true);
 				done();
 			});

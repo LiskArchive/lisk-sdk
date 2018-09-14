@@ -232,7 +232,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee().equals(constants.fees.vote.toString()));
+			return expect(vote.calculateFee().equals(constants.FEES.VOTE.toString()));
 		});
 	});
 
@@ -378,9 +378,27 @@ describe('vote', () => {
 	});
 
 	describe('verifyVote', () => {
-		it('should throw if vote is of invalid length', done => {
-			var invalidVote =
-				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746';
+		it('should return error if vote contains non-hex value', done => {
+			const invalidVote =
+				'-z1389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d7466';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote length is less than 65', done => {
+			const invalidVote =
+				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d745';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote length is more than 65', done => {
+			const invalidVote =
+				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d74667';
 			vote.verifyVote(invalidVote, err => {
 				expect(err).to.equal('Invalid vote format');
 				done();
@@ -714,7 +732,7 @@ describe('vote', () => {
 		it('should return error when votes array is longer than maximum acceptable', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(
-				...Array(constants.maxVotesPerTransaction + 1)
+				...Array(constants.MAX_VOTES_PER_TRANSACTION + 1)
 			).map(() => {
 				return `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});

@@ -537,7 +537,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
 	const transactions = modules.transactions.getUnconfirmedTransactionList(
 		false,
-		constants.maxTransactionsPerBlock
+		constants.MAX_TRANSACTIONS_PER_BLOCK
 	);
 	const ready = [];
 
