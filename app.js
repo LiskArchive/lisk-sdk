@@ -14,6 +14,10 @@
 
 'use strict';
 
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 var path = require('path');
 var fs = require('fs');
 var d = require('domain').create();
