@@ -110,9 +110,11 @@ describe('dapp', () => {
 		});
 
 		describe('calculateFee', () => {
-			it('should return constants.fees.dappRegistration', () => {
+			it('should return constants.FEES.DAPP_REGISTRATION', () => {
 				return expect(
-					dapp.calculateFee(transaction).equals(constants.fees.dappRegistration)
+					dapp
+						.calculateFee(transaction)
+						.equals(constants.FEES.DAPP_REGISTRATION)
 				);
 			});
 		});
@@ -496,7 +498,7 @@ describe('dapp', () => {
 			});
 		});
 
-		describe('apply', () => {
+		describe('applyConfirmed', () => {
 			var dummyBlock = {
 				id: '9314232245035524467',
 				height: 1,
@@ -512,21 +514,21 @@ describe('dapp', () => {
 			});
 
 			it('should update private unconfirmed name variable', done => {
-				dapp.apply(transaction, dummyBlock, sender, () => {
+				dapp.applyConfirmed(transaction, dummyBlock, sender, () => {
 					expect(unconfirmedNames[transaction.asset.dapp.name]).to.not.exist;
 					done();
 				});
 			});
 
 			it('should update private unconfirmed links variable', done => {
-				dapp.apply(transaction, dummyBlock, sender, () => {
+				dapp.applyConfirmed(transaction, dummyBlock, sender, () => {
 					expect(unconfirmedLinks[transaction.asset.dapp.link]).to.not.exist;
 					done();
 				});
 			});
 		});
 
-		describe('undo', () => {
+		describe('undoConfirmed', () => {
 			describe('with vaid parameters', () => {
 				var dummyBlock = {
 					id: '9314232245035524467',
@@ -534,7 +536,7 @@ describe('dapp', () => {
 				};
 
 				it('should call the callback function', done => {
-					dapp.undo(transaction, dummyBlock, sender, done);
+					dapp.undoConfirmed(transaction, dummyBlock, sender, done);
 				});
 			});
 		});

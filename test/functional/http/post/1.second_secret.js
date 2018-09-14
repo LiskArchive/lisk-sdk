@@ -17,7 +17,7 @@
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var apiHelpers = require('../../../common/helpers/api');
 var randomUtil = require('../../../common/utils/random');
@@ -41,17 +41,17 @@ describe('POST /api/transactions (type 1) register second passphrase', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.secondSignature,
+			amount: constants.FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
-			amount: constants.fees.secondSignature,
+			amount: constants.FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountNoSecondPassphrase.address,
 		});

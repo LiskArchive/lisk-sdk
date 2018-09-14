@@ -21,6 +21,7 @@ const _ = require('lodash');
 const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
 const z_schema = require('./z_schema.js');
+const deepFreeze = require('./deep_freeze_object.js');
 
 const rootPath = path.dirname(path.resolve(__filename, '..'));
 
@@ -61,7 +62,9 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		program.parse(process.argv);
 	}
 
-	const network = program.network || process.env.LISK_NETWORK || 'devnet';
+	const network = program.network || getenv(process.env.LISK_NETWORK, 'devnet');
+	// Define lisk network env variable to be used by child processes load config files
+	process.env.LISK_NETWORK = network;
 
 	const genesisBlock = loadJSONFile(`./config/${network}/genesis_block.json`);
 
@@ -73,6 +76,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 	const defaultConfig = loadJSONFile('config/default/config.json');
 	const networkConfig = loadJSONFile(`config/${network}/config.json`);
+
 	let customConfig = {};
 	if (program.config || process.env.LISK_CONFIG_FILE) {
 		customConfig = loadJSONFile(program.config || process.env.LISK_CONFIG_FILE);
@@ -88,31 +92,59 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	};
 
 	let commandLineConfig = {
-		wsPort: +program.port || process.env.LISK_WS_PORT || null,
-		httpPort: +program.httpPort || process.env.LISK_HTTP_PORT || null,
-		address: program.address,
-		consoleLogLevel: program.log || process.env.LISK_CONSOLE_LOG_LEVEL,
-		db: { database: program.database },
+		wsPort: +program.port || parseInt(getenv(process.env.LISK_WS_PORT)) || null,
+		httpPort:
+			+program.httpPort || parseInt(getenv(process.env.LISK_HTTP_PORT)) || null,
+		address: program.address || getenv(process.env.LISK_ADDRESS),
+		fileLogLevel: program.log || getenv(process.env.LISK_FILE_LOG_LEVEL),
+		consoleLogLevel: getenv(process.env.LISK_CONSOLE_LOG_LEVEL),
+		cacheEnabled: getenv(process.env.LISK_CACHE_ENABLED, null, true),
+		db: {
+			database: program.database || getenv(process.env.LISK_DB_NAME),
+			host: getenv(process.env.LISK_DB_HOST),
+			port: parseInt(getenv(process.env.LISK_DB_PORT)) || null,
+			user: getenv(process.env.LISK_DB_USER),
+			password: getenv(process.env.LISK_DB_PASSWORD),
+		},
+		api: {
+			access: {
+				public: getenv(process.env.LISK_API_PUBLIC, null, true),
+				whiteList: extractWhiteListIPs(process.env.LISK_API_WHITELIST),
+			},
+		},
+		forging: {
+			delegates: extractDelegatesList(process.env.LISK_FORGING_DELEGATES),
+			access: {
+				whiteList: extractWhiteListIPs(process.env.LISK_FORGING_WHITELIST),
+			},
+		},
 		loading: { snapshotRound: program.snapshot },
 		peers: {
 			list: extractPeersList(
-				program.peers || process.env.LISK_PEERS,
+				program.peers || getenv(process.env.LISK_PEERS),
 				+program.port ||
-					process.env.LISK_WS_PORT ||
+					parseInt(getenv(process.env.LISK_WS_PORT)) ||
 					customConfig.wsPort ||
+					networkConfig.wsPort ||
 					defaultConfig.wsPort
 			),
 		},
-		coverage: process.env.NODE_ENV === 'test',
+		coverage: getenv(process.env.NODE_ENV) === 'test',
 	};
 	commandLineConfig = cleanDeep(commandLineConfig);
 
-	const appConfig = _.merge(
+	const appConfig = _.mergeWith(
+		{},
 		defaultConfig,
 		networkConfig,
 		customConfig,
 		commandLineConfig,
-		runtimeConfig
+		runtimeConfig,
+		(objValue, srcValue) => {
+			if (_.isArray(objValue)) {
+				return srcValue;
+			}
+		}
 	);
 
 	var validator = new z_schema();
@@ -124,7 +156,9 @@ function Config(packageJson, parseCommandLineOptions = true) {
 	} else {
 		appConfig.genesisBlock = genesisBlock;
 
-		appConfig.constants = _.merge(defaultConstants, networkConstants);
+		appConfig.constants = deepFreeze(
+			_.merge(defaultConstants, networkConstants)
+		);
 
 		appConfig.exceptions = _.merge(defaultExceptions, networkExceptions);
 
@@ -133,6 +167,14 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		return appConfig;
 	}
 }
+
+const getenv = (variable, defaultValue = null, isBoolean = false) => {
+	if (isBoolean) {
+		return variable ? variable === 'true' : defaultValue;
+	}
+
+	return variable || defaultValue;
+};
 
 function loadJSONFile(filePath) {
 	try {
@@ -152,6 +194,26 @@ function extractPeersList(peers, defaultPort) {
 			return {
 				ip: peer.shift(),
 				wsPort: peer.shift() || defaultPort,
+			};
+		});
+	}
+	return [];
+}
+
+function extractWhiteListIPs(ips) {
+	if (typeof ips === 'string') {
+		return ips.split(',');
+	}
+	return [];
+}
+
+function extractDelegatesList(delegates) {
+	if (typeof delegates === 'string') {
+		return delegates.split(',').map(delegate => {
+			delegate = delegate.split('|');
+			return {
+				publicKey: delegate[0],
+				encryptedPassphrase: delegate[1],
 			};
 		});
 	}
@@ -223,7 +285,7 @@ function cleanDeep(
  */
 function validateForce(configData) {
 	if (configData.forging.force) {
-		var index = configData.constants.nethashes.indexOf(configData.nethash);
+		var index = configData.constants.NETHASHES.indexOf(configData.nethash);
 
 		if (index !== -1) {
 			console.info('Forced forging disabled for nethash', configData.nethash);

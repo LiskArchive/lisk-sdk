@@ -86,6 +86,7 @@ describe('blocks', () => {
 			genesisBlock: dummyGenesisblock,
 			bus: busStub,
 			balancesSequence: balancesSequenceStub,
+			config: { loading: {} },
 		};
 
 		blocksInstance = new Blocks((err, cbSelf) => {
@@ -175,12 +176,12 @@ describe('blocks', () => {
 				});
 			});
 			describe('when __private.lastBlock exists', () => {
-				describe('when secondsAgo < constants.blockReceiptTimeOut', () => {
+				describe('when secondsAgo < constants.BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						const timestamp =
 							10000 +
 							Math.floor(Date.now() / 1000) -
-							Math.floor(constants.epochTime / 1000);
+							Math.floor(constants.EPOCH_TIME / 1000);
 						__private.lastBlock = { timestamp };
 						done();
 					});
@@ -188,7 +189,7 @@ describe('blocks', () => {
 						return expect(blocksInstance.lastBlock.isFresh()).to.be.true;
 					});
 				});
-				describe('when secondsAgo >= constants.blockReceiptTimeOut', () => {
+				describe('when secondsAgo >= constants.BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						__private.lastBlock = { timestamp: 555555 };
 						done();
@@ -233,7 +234,7 @@ describe('blocks', () => {
 				});
 			});
 			describe('when __private.lastReceipt is set', () => {
-				describe('when secondsAgo > constants.blockReceiptTimeOut', () => {
+				describe('when secondsAgo > constants.BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						__private.lastReceipt = dummyLastReceipt;
 						done();
@@ -242,7 +243,7 @@ describe('blocks', () => {
 						return expect(blocksInstance.lastReceipt.isStale()).to.be.true;
 					});
 				});
-				describe('when secondsAgo <= constants.blockReceiptTimeOut', () => {
+				describe('when secondsAgo <= constants.BLOCK_RECEIPT_TIMEOUT', () => {
 					beforeEach(done => {
 						__private.lastReceipt = Math.floor(Date.now() / 1000) + 10000;
 						done();

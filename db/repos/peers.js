@@ -15,6 +15,7 @@
 'use strict';
 
 const sql = require('../sql').peers;
+const ed = require('../../helpers/ed.js');
 
 const cs = {}; // Reusable ColumnSet objects
 
@@ -47,7 +48,7 @@ class PeersRepository {
 					'clock',
 					{
 						name: 'broadhash',
-						init: c => (c.value ? Buffer.from(c.value, 'hex') : null),
+						init: c => (c.value ? ed.hexToBuffer(c.value) : null),
 					},
 				],
 				{ table: 'peers' }

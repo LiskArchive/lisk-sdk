@@ -97,21 +97,10 @@ describe('vote', () => {
 		async.parallel(
 			[
 				function(cb) {
-					vote.apply.call(
-						transactionLogic,
-						transaction,
-						dummyBlock,
-						validSender,
-						cb
-					);
+					vote.applyConfirmed(transaction, dummyBlock, validSender, cb);
 				},
 				function(cb) {
-					vote.applyUnconfirmed.call(
-						transactionLogic,
-						transaction,
-						validSender,
-						cb
-					);
+					vote.applyUnconfirmed(transaction, validSender, cb);
 				},
 			],
 			done
@@ -155,7 +144,11 @@ describe('vote', () => {
 			(err, scope) => {
 				accountsModule = scope.modules.accounts;
 				delegatesModule = scope.modules.delegates;
-				vote = new Vote(modulesLoader.scope.logger, modulesLoader.scope.schema);
+				vote = new Vote(
+					modulesLoader.scope.logger,
+					modulesLoader.scope.schema,
+					scope.logic.account
+				);
 				voteBindings = {
 					delegate: delegatesModule,
 					account: accountsModule,
@@ -209,7 +202,7 @@ describe('vote', () => {
 			blockId: '8505659485551877884',
 		};
 
-		transactionLogic.apply(sendTransaction, dummyBlock, sender, done);
+		transactionLogic.applyConfirmed(sendTransaction, dummyBlock, sender, done);
 	});
 
 	before(done => {
@@ -239,7 +232,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee().equals(constants.fees.vote.toString()));
+			return expect(vote.calculateFee().equals(constants.FEES.VOTE.toString()));
 		});
 	});
 
@@ -385,9 +378,27 @@ describe('vote', () => {
 	});
 
 	describe('verifyVote', () => {
-		it('should throw if vote is of invalid length', done => {
-			var invalidVote =
-				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746';
+		it('should return error if vote contains non-hex value', done => {
+			const invalidVote =
+				'-z1389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d7466';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote length is less than 65', done => {
+			const invalidVote =
+				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d745';
+			vote.verifyVote(invalidVote, err => {
+				expect(err).to.equal('Invalid vote format');
+				done();
+			});
+		});
+
+		it('should return error if vote length is more than 65', done => {
+			const invalidVote =
+				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d74667';
 			vote.verifyVote(invalidVote, err => {
 				expect(err).to.equal('Invalid vote format');
 				done();
@@ -565,27 +576,21 @@ describe('vote', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		it('should remove votes for delegates', done => {
 			var transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.apply.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.applyConfirmed(transaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 
 		it('should add vote for delegate', done => {
@@ -593,67 +598,49 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.apply.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.applyConfirmed(transaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 	});
 
-	describe('undo', () => {
-		it('should undo remove votes for delegates', done => {
+	describe('undoConfirmed', () => {
+		it('should undoConfirmed remove votes for delegates', done => {
 			var transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.undo.call(
-				transactionLogic,
-				validTransaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undoConfirmed(validTransaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 
-		it('should undo add vote for delegate', done => {
+		it('should undoConfirmed add vote for delegate', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.undo.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'confirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undoConfirmed(transaction, dummyBlock, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'confirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 	});
 
@@ -663,20 +650,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.applyUnconfirmed.call(
-				transactionLogic,
-				validTransaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.applyUnconfirmed(validTransaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 
 		it('should add vote for delegate', done => {
@@ -684,20 +666,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.applyUnconfirmed.call(
-				transactionLogic,
-				transaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'apply',
-						done
-					);
-				}
-			);
+			vote.applyUnconfirmed(transaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'apply',
+					done
+				);
+			});
 		});
 	});
 
@@ -707,20 +684,15 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
-			vote.undoUnconfirmed.call(
-				transactionLogic,
-				validTransaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undoUnconfirmed(validTransaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 
 		it('should undo add vote for delegate', done => {
@@ -728,35 +700,30 @@ describe('vote', () => {
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
-			vote.undoUnconfirmed.call(
-				transactionLogic,
-				transaction,
-				validSender,
-				() => {
-					checkAccountVotes(
-						transaction.senderPublicKey,
-						'unconfirmed',
-						transaction.asset.votes,
-						'undo',
-						done
-					);
-				}
-			);
+			vote.undoUnconfirmed(transaction, validSender, () => {
+				checkAccountVotes(
+					transaction.senderPublicKey,
+					'unconfirmed',
+					transaction.asset.votes,
+					'undo',
+					done
+				);
+			});
 		});
 	});
 
 	describe('objectNormalize', () => {
 		it('should normalize object for valid transaction', () => {
-			return expect(
-				vote.objectNormalize.call(transactionLogic, validTransaction)
-			).to.eql(validTransaction);
+			return expect(vote.objectNormalize(validTransaction)).to.eql(
+				validTransaction
+			);
 		});
 
 		it('should throw error for duplicate votes in a transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes.push(transaction.asset.votes[0]);
 			return expect(() => {
-				vote.objectNormalize.call(transactionLogic, transaction);
+				vote.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate vote schema: Array items are not unique (indexes 0 and 3)'
 			);
@@ -765,12 +732,12 @@ describe('vote', () => {
 		it('should return error when votes array is longer than maximum acceptable', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(
-				...Array(constants.maxVotesPerTransaction + 1)
+				...Array(constants.MAX_VOTES_PER_TRANSACTION + 1)
 			).map(() => {
 				return `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});
 			return expect(() => {
-				vote.objectNormalize.call(transactionLogic, transaction);
+				vote.objectNormalize(transaction);
 			}).to.throw(
 				'Failed to validate vote schema: Array is too long (34), maximum 33'
 			);

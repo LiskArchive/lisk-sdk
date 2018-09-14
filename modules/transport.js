@@ -162,7 +162,7 @@ __private.receiveSignature = function(query, cb) {
 
 		modules.multisignatures.processSignature(query, err => {
 			if (err) {
-				return setImmediate(cb, `Error processing signature: ${err}`);
+				return setImmediate(cb, `Error processing signature: ${err.message}`);
 			}
 			return setImmediate(cb);
 		});
@@ -277,7 +277,7 @@ __private.receiveTransaction = function(
 // Public methods
 
 /**
- * Returns true if broadcaster consensus is less than minBroadhashConsensus.
+ * Returns true if broadcaster consensus is less than MIN_BROADHASH_CONSENSUS.
  * Returns false if library.config.forging.force is true.
  *
  * @returns {boolean}
@@ -287,19 +287,7 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
-};
-
-/**
- * Calls getPeers method from Broadcaster class.
- *
- * @param {Object} params
- * @param {function} cb - Callback function
- * @returns {Broadcaster.getPeers} Calls getPeers
- * @todo Add description for the params
- */
-Transport.prototype.getPeers = function(params, cb) {
-	return __private.broadcaster.getPeers(params, cb);
+	return modules.peers.calculateConsensus() < constants.MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
@@ -379,7 +367,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 Transport.prototype.broadcastHeaders = cb => {
 	// Grab a random list of connected peers.
 	const peers = library.logic.peers.listRandomConnected({
-		limit: constants.maxPeers,
+		limit: constants.MAX_PEERS,
 	});
 
 	if (peers.length === 0) {
@@ -648,7 +636,7 @@ Transport.prototype.shared = {
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
-			Object.assign({}, { limit: constants.maxPeers }, req.query),
+			Object.assign({}, { limit: constants.MAX_PEERS }, req.query),
 			(err, peers) => {
 				peers = !err ? peers : [];
 				return setImmediate(cb, null, { success: !err, peers });
@@ -737,7 +725,7 @@ Transport.prototype.shared = {
 	getSignatures(req, cb) {
 		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			constants.maxSharedTransactions
+			constants.MAX_SHARED_TRANSACTIONS
 		);
 		const signatures = [];
 
@@ -766,7 +754,7 @@ Transport.prototype.shared = {
 	getTransactions(query, cb) {
 		const transactions = modules.transactions.getMergedTransactionList(
 			true,
-			constants.maxSharedTransactions
+			constants.MAX_SHARED_TRANSACTIONS
 		);
 		return setImmediate(cb, null, {
 			success: true,

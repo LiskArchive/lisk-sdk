@@ -1170,7 +1170,7 @@ describe('transactionPool', () => {
 					after(resetStates);
 				});
 
-				describe('that results with error on modules.transactions.undoUnconfirme', () => {
+				describe('that results with error on modules.transactions.undoUnconfirmed', () => {
 					const badTransaction = { id: 'badTx' };
 					const transactions = [badTransaction];
 					const error = 'undo error';
@@ -1633,7 +1633,7 @@ describe('transactionPool', () => {
 					signatures: [],
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
-					constants.unconfirmedTransactionTimeOut * 8
+					constants.UNCONFIRMED_TRANSACTION_TIMEOUT * 8
 				);
 			});
 
@@ -1642,7 +1642,7 @@ describe('transactionPool', () => {
 					id: '103111423423423',
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
-					constants.unconfirmedTransactionTimeOut
+					constants.UNCONFIRMED_TRANSACTION_TIMEOUT
 				);
 			});
 		});

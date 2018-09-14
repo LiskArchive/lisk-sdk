@@ -18,7 +18,7 @@ require('../../functional.js');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
 var lisk = require('lisk-elements').default;
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
@@ -42,12 +42,12 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.dappRegistration,
+			amount: constants.FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});

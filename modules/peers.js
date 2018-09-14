@@ -469,7 +469,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
-	const activeCount = Math.min(active.length, constants.maxPeers);
+	const activeCount = Math.min(active.length, constants.MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
 	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
 	self.consensus = isNaN(consensus) ? 0 : consensus;
@@ -651,7 +651,7 @@ Peers.prototype.acceptable = function(peers) {
  * Gets peers list and calculated consensus.
  *
  * @param {Object} options
- * @param {number} [options.limit=constants.maxPeers] - Maximum number of peers to get
+ * @param {number} [options.limit=constants.MAX_PEERS] - Maximum number of peers to get
  * @param {string} [options.broadhash=null] - Broadhash to match peers by
  * @param {string} [options.normalized=undefined] - Return peers in normalized (json) form
  * @param {Array} [options.allowedStates=[2]] - Allowed peer states
@@ -662,7 +662,7 @@ Peers.prototype.acceptable = function(peers) {
  * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
-	let limit = options.limit || constants.maxPeers;
+	let limit = options.limit || constants.MAX_PEERS;
 	const broadhash = options.broadhash || modules.system.getBroadhash();
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =
@@ -736,17 +736,31 @@ Peers.prototype.list = function(options, cb) {
 	);
 };
 
+/**
+ * Gets the height of maximum number of peers at one particular height.
+ *
+ * @param {Object} options
+ * @param {string} [options.normalized=false] - Return peers in normalized (json) form
+ * @param {function} cb - Callback function
+ * @returns {setImmediateCallback} cb, err, peers
+ */
 Peers.prototype.networkHeight = function(options, cb) {
 	self.list(options, (err, peers) => {
-		if (err) {
+		if (err || peers.length === 0) {
 			return setImmediate(cb, err, 0);
 		}
-		const peersGroupedByHeight = _.groupBy(peers, 'height');
-		const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
-		const networkHeight = _.max(popularHeights);
+		// count by number of peers at one height
+		const mostPopularHeight = _(peers)
+			.countBy('height')
+			.map((count, height) => ({
+				height,
+				count,
+			}))
+			.maxBy('count');
+		const networkHeight = Number(mostPopularHeight.height);
 
 		library.logger.debug(`Network height is: ${networkHeight}`);
-		library.logger.trace(popularHeights);
+		library.logger.trace(mostPopularHeight);
 
 		return setImmediate(cb, null, networkHeight);
 	});

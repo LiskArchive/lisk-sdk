@@ -64,7 +64,7 @@ Transfer.prototype.bind = function(accounts) {
  * @todo Add description for the params
  */
 Transfer.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(constants.FEES.SEND);
 };
 
 /**
@@ -131,7 +131,13 @@ Transfer.prototype.getBytes = function(transaction) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
+Transfer.prototype.applyConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
@@ -165,7 +171,13 @@ Transfer.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @returns {SetImmediate} error
  * @todo Add description for the params
  */
-Transfer.prototype.undo = function(transaction, block, sender, cb, tx) {
+Transfer.prototype.undoConfirmed = function(
+	transaction,
+	block,
+	sender,
+	cb,
+	tx
+) {
 	modules.accounts.setAccountAndGet(
 		{ address: transaction.recipientId },
 		setAccountAndGetErr => {
@@ -225,8 +237,8 @@ Transfer.prototype.schema = {
 		data: {
 			type: 'string',
 			format: 'additionalData',
-			minLength: constants.additionalData.minLength,
-			maxLength: constants.additionalData.maxLength,
+			minLength: constants.ADDITIONAL_DATA.MIN_LENGTH,
+			maxLength: constants.ADDITIONAL_DATA.MAX_LENGTH,
 		},
 	},
 };

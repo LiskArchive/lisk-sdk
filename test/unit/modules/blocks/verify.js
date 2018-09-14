@@ -15,11 +15,13 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var Bignum = require('../../../../helpers/bignum.js');
+const rewire = require('rewire');
+const Bignum = require('../../../../helpers/bignum.js');
 
-var BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+const BlocksVerify = rewire('../../../../modules/blocks/verify.js');
+
 const exceptions = global.exceptions;
+
 
 describe('blocks/verify', () => {
 	let library;
@@ -28,6 +30,7 @@ describe('blocks/verify', () => {
 	let dbStub;
 	let logicBlockStub;
 	let logicTransactionStub;
+	let configMock;
 	let blocksVerifyModule;
 	let modulesStub;
 	let modules;
@@ -62,11 +65,18 @@ describe('blocks/verify', () => {
 			getBytes: sinonSandbox.stub(),
 		};
 
+		configMock = {
+			loading: {
+				snapshotRound: null,
+			},
+		};
+
 		blocksVerifyModule = new BlocksVerify(
 			loggerStub,
 			logicBlockStub,
 			logicTransactionStub,
-			dbStub
+			dbStub,
+			configMock
 		);
 
 		library = BlocksVerify.__get__('library');
@@ -132,6 +142,7 @@ describe('blocks/verify', () => {
 			expect(library.logger).to.eql(loggerStub);
 			expect(library.db).to.eql(dbStub);
 			expect(library.logic.block).to.eql(logicBlockStub);
+			expect(library.config).to.eql(configMock);
 			return expect(library.logic.transaction).to.eql(logicTransactionStub);
 		});
 
@@ -1044,7 +1055,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when __private.verifyBlockSlotWindow fails', () => {
-			describe('when currentApplicationSlot - blockSlot > constants.blockSlotWindow', () => {
+			describe('when currentApplicationSlot - blockSlot > constants.BLOCK_SLOT_WINDOW', () => {
 				it('should return error', () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
 						{ timestamp: 10 },
@@ -1212,7 +1223,7 @@ describe('blocks/verify', () => {
 	});
 
 	describe('onNewBlock', () => {
-		describe('when __private.lastNBlockIds.length > constants.blockSlotWindow', () => {
+		describe('when __private.lastNBlockIds.length > constants.BLOCK_SLOT_WINDOW', () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
 				done();
@@ -1228,7 +1239,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when __private.lastNBlockIds.length <= constants.blockSlotWindow', () => {
+		describe('when __private.lastNBlockIds.length <= constants.BLOCK_SLOT_WINDOW', () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4];
 				done();
@@ -2060,6 +2071,44 @@ describe('blocks/verify', () => {
 			done();
 		});
 
+		describe('system update', () => {
+			it('should be called if snapshotting was not activated', done => {
+				blocksVerifyModule.processBlock(
+					dummyBlock,
+					broadcast,
+					saveBlock,
+					err => {
+						expect(err).to.be.null;
+						expect(modules.system.update.calledOnce).to.be.true;
+						done();
+					}
+				);
+			});
+
+			it('should not be called if snapshotting was activated', done => {
+				const blocksVerifyModule = new BlocksVerify(
+					loggerStub,
+					logicBlockStub,
+					logicTransactionStub,
+					dbStub,
+					{
+						loading: { snapshotRound: 123 },
+					}
+				);
+
+				blocksVerifyModule.processBlock(
+					dummyBlock,
+					broadcast,
+					saveBlock,
+					err => {
+						expect(err).to.be.null;
+						expect(modules.system.update.calledOnce).to.be.false;
+						done();
+					}
+				);
+			});
+		});
+
 		describe('when broadcast = true', () => {
 			describe('when saveBlock = true', () => {
 				it('should call private functions with correct parameters', done => {
@@ -2071,7 +2120,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
@@ -2090,7 +2138,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.true;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.true;
 							expect(__private.checkExists).to.not.called;
 							done();
@@ -2111,7 +2158,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.false;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.have.been.calledWith(dummyBlock);
 							done();
@@ -2130,7 +2176,6 @@ describe('blocks/verify', () => {
 						saveBlock,
 						err => {
 							expect(err).to.be.null;
-							expect(modules.system.update.calledOnce).to.be.false;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.not.called;
 							done();

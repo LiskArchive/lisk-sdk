@@ -69,7 +69,8 @@ class Blocks {
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
-				scope.db
+				scope.db,
+				scope.config
 			),
 			process: new blocksProcess(
 				scope.logger,
@@ -153,8 +154,8 @@ Blocks.prototype.lastBlock = {
 		// Current time in seconds - (epoch start in seconds + block timestamp)
 		const secondsAgo =
 			Math.floor(Date.now() / 1000) -
-			(Math.floor(constants.epochTime / 1000) + __private.lastBlock.timestamp);
-		return secondsAgo < constants.blockReceiptTimeOut;
+			(Math.floor(constants.EPOCH_TIME / 1000) + __private.lastBlock.timestamp);
+		return secondsAgo < constants.BLOCK_RECEIPT_TIMEOUT;
 	},
 };
 
@@ -184,7 +185,7 @@ Blocks.prototype.lastReceipt = {
 		}
 		// Current time in seconds - lastReceipt (seconds)
 		const secondsAgo = Math.floor(Date.now() / 1000) - __private.lastReceipt;
-		return secondsAgo > constants.blockReceiptTimeOut;
+		return secondsAgo > constants.BLOCK_RECEIPT_TIMEOUT;
 	},
 };
 

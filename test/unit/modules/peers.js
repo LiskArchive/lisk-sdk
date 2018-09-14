@@ -152,10 +152,10 @@ describe('peers', () => {
 				});
 
 				describe('when no options.limit passed', () => {
-					it('should return [constants.maxPeers] results', () => {
+					it('should return [constants.MAX_PEERS] results', () => {
 						return expect(listResult)
 							.be.an('array')
-							.and.have.lengthOf(constants.maxPeers);
+							.and.have.lengthOf(constants.MAX_PEERS);
 					});
 				});
 			});
@@ -282,10 +282,10 @@ describe('peers', () => {
 				});
 
 				describe('when no options.limit passed', () => {
-					it('should return [constants.maxPeers] results', () => {
+					it('should return [constants.MAX_PEERS] results', () => {
 						return expect(listResult)
 							.be.an('array')
-							.and.have.lengthOf(constants.maxPeers);
+							.and.have.lengthOf(constants.MAX_PEERS);
 					});
 				});
 			});
@@ -378,27 +378,41 @@ describe('peers', () => {
 		});
 
 		describe('networkHeight', () => {
-			before(done => {
-				randomPeers = _.range(1000).map(() => {
-					return generateRandomActivePeer();
-				});
-				peersLogicMock.list = sinonSandbox.stub().returns(randomPeers);
-				done();
-			});
-
-			const randomPeerNetworkHeight = randomPeers => {
-				const peersGroupedByHeight = _.groupBy(randomPeers, 'height');
-				const popularHeights = Object.keys(peersGroupedByHeight).map(Number);
-				return _.max(popularHeights);
-			};
-
-			it('should return all 1000 peers', done => {
+			it('should return networkHeight 0 when no peers available', done => {
+				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				peers.networkHeight(validOptions, (err, networkHeight) => {
 					expect(err).to.be.null;
 					expect(networkHeight);
 					expect(networkHeight)
 						.to.be.an('number')
-						.and.to.deep.eql(randomPeerNetworkHeight(randomPeers));
+						.and.to.deep.eql(0);
+					done();
+				});
+			});
+
+			it('should return the height of maximum number of peers at one particular height', done => {
+				// generate 10 peer list with height 0
+				const peerList = _.range(10).map(() => {
+					return generateRandomActivePeer();
+				});
+
+				// create group of peers with height 5,3,2
+				// and they also indicate the number of peers
+				// in that specific height, so the majority is 5
+				let count = 0;
+				[5, 3, 2].map(height => {
+					_.range(height).map(() => {
+						peerList[count].height = height;
+						count++;
+					});
+				});
+				peersLogicMock.list = sinonSandbox.stub().returns(peerList);
+				peers.networkHeight(validOptions, (err, networkHeight) => {
+					expect(err).to.be.null;
+					expect(networkHeight);
+					expect(networkHeight)
+						.to.be.an('number')
+						.and.to.deep.eql(5);
 					done();
 				});
 			});
@@ -701,12 +715,12 @@ describe('peers', () => {
 				});
 			});
 
-			describe('when there are [constants.maxPeers] active and [constants.maxPeers] matched peers', () => {
+			describe('when there are [constants.MAX_PEERS] active and [constants.MAX_PEERS] matched peers', () => {
 				before(done => {
-					validActive = _.range(constants.maxPeers).map(
+					validActive = _.range(constants.MAX_PEERS).map(
 						generateRandomActivePeer
 					);
-					validMatched = _.range(constants.maxPeers).map(
+					validMatched = _.range(constants.MAX_PEERS).map(
 						generateRandomActivePeer
 					);
 					done();
@@ -717,12 +731,12 @@ describe('peers', () => {
 				});
 			});
 
-			describe('when there are [constants.maxPeers] x 10 active and [constants.maxPeers] matched peers', () => {
+			describe('when there are [constants.MAX_PEERS] x 10 active and [constants.MAX_PEERS] matched peers', () => {
 				before(done => {
-					validActive = _.range(10 * constants.maxPeers).map(
+					validActive = _.range(10 * constants.MAX_PEERS).map(
 						generateRandomActivePeer
 					);
-					validMatched = _.range(constants.maxPeers).map(
+					validMatched = _.range(constants.MAX_PEERS).map(
 						generateRandomActivePeer
 					);
 					done();
@@ -733,12 +747,12 @@ describe('peers', () => {
 				});
 			});
 
-			describe('when there are [constants.maxPeers] active and [constants.maxPeers] x 10 matched peers', () => {
+			describe('when there are [constants.MAX_PEERS] active and [constants.MAX_PEERS] x 10 matched peers', () => {
 				before(done => {
-					validActive = _.range(constants.maxPeers).map(
+					validActive = _.range(constants.MAX_PEERS).map(
 						generateRandomActivePeer
 					);
-					validMatched = _.range(10 * constants.maxPeers).map(
+					validMatched = _.range(10 * constants.MAX_PEERS).map(
 						generateRandomActivePeer
 					);
 					done();

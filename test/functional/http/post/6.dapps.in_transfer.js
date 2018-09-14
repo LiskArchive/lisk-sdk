@@ -18,7 +18,7 @@
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var Bignum = require('../../../../helpers/bignum.js');
 var randomUtil = require('../../../common/utils/random');
@@ -42,12 +42,12 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 	// Crediting accounts
 	before(() => {
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * constants.NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.dappRegistration,
+			amount: constants.FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
@@ -342,7 +342,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 		it('with correct data should be ok', () => {
 			transaction = lisk.transfer.createInTransfer(
 				randomUtil.guestbookDapp.id,
-				10 * constants.normalizer,
+				10 * constants.NORMALIZER,
 				accountFixtures.genesis.passphrase
 			);
 
@@ -374,7 +374,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			it('with enough funds should be ok', () => {
 				transaction = lisk.transfer.createInTransfer(
 					randomUtil.guestbookDapp.id,
-					10 * constants.normalizer,
+					10 * constants.NORMALIZER,
 					account.passphrase
 				);
 

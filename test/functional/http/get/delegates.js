@@ -104,8 +104,8 @@ describe('GET /delegates', () => {
 			var secondPassphraseAccount = randomUtil.account();
 
 			var creditTransaction = lisk.transaction.transfer({
-				amount: new Bignum(constants.fees.secondSignature).plus(
-					constants.fees.delegate
+				amount: new Bignum(constants.FEES.SECOND_SIGNATURE).plus(
+					constants.FEES.DELEGATE
 				),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,

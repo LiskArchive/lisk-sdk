@@ -174,7 +174,7 @@ describe('multisignature', () => {
 	describe('verify', () => {
 		describe('from multisignature.verify tests', () => {
 			it('should return error when min value is smaller than minimum acceptable value', done => {
-				var minimum = constants.multisigConstraints.min.minimum - 1;
+				var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -197,7 +197,7 @@ describe('multisignature', () => {
 		});
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
-			var minimum = constants.multisigConstraints.min.maximum + 1;
+			var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
 			var keysgroup = [multiSigAccount1.publicKey, multiSigAccount2.publicKey];
 			var transaction = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
@@ -492,10 +492,10 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		beforeEach(done => {
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
-			multisignature.apply(transaction, dummyBlock, sender, done);
+			multisignature.applyConfirmed(transaction, dummyBlock, sender, done);
 		});
 
 		it('should set __private.unconfirmedSignatures[sender.address] = false', () => {
@@ -532,9 +532,14 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with error', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return multisignature.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
@@ -596,7 +601,7 @@ describe('multisignature', () => {
 							});
 
 							it('should call callback with error', () => {
-								return multisignature.apply(
+								return multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -609,7 +614,7 @@ describe('multisignature', () => {
 
 						describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 							it('should call callback with error = null', () => {
-								return multisignature.apply(
+								return multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -620,7 +625,7 @@ describe('multisignature', () => {
 							});
 
 							it('should call callback with result = undefined', () => {
-								return multisignature.apply(
+								return multisignature.applyConfirmed(
 									transaction,
 									dummyBlock,
 									sender,
@@ -636,12 +641,12 @@ describe('multisignature', () => {
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
-			multisignature.undo(transaction, dummyBlock, sender, done);
+			multisignature.undoConfirmed(transaction, dummyBlock, sender, done);
 		});
 		/* eslint-enable */
 
@@ -682,21 +687,31 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with error', () => {
-				return multisignature.undo(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return multisignature.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
 		describe('when library.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, err => {
-					expect(err).to.be.null;
-				});
+				return multisignature.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).to.be.null;
+					}
+				);
 			});
 
 			it('should call callback with result = undefined', () => {
-				return multisignature.apply(
+				return multisignature.applyConfirmed(
 					transaction,
 					dummyBlock,
 					sender,
@@ -853,21 +868,31 @@ describe('multisignature', () => {
 			});
 
 			it('should call callback with error', () => {
-				return multisignature.undo(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return multisignature.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
 		describe('when library.logic.account.merge succeeds', () => {
 			it('should call callback with error = null', () => {
-				return multisignature.apply(transaction, dummyBlock, sender, err => {
-					expect(err).to.be.null;
-				});
+				return multisignature.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).to.be.null;
+					}
+				);
 			});
 
 			it('should call callback with result = undefined', () => {
-				return multisignature.apply(
+				return multisignature.applyConfirmed(
 					transaction,
 					dummyBlock,
 					sender,
@@ -924,7 +949,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var minimum = constants.multisigConstraints.min.minimum - 1;
+				var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -944,7 +969,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var minimum = constants.multisigConstraints.min.maximum + 1;
+				var minimum = constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -1008,7 +1033,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var lifetime = constants.multisigConstraints.lifetime.minimum - 1;
+				var lifetime = constants.MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -1028,7 +1053,7 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var lifetime = constants.multisigConstraints.lifetime.maximum + 1;
+				var lifetime = constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1;
 				var keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
@@ -1106,7 +1131,7 @@ describe('multisignature', () => {
 
 			it('should return error when array length is greater than maximum acceptable value', () => {
 				var keysgroup = Array(
-					...Array(constants.multisigConstraints.keysgroup.maxItems + 1)
+					...Array(constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS + 1)
 				).map(() => {
 					return `${
 						lisk.cryptography.getKeys(randomUtil.password()).publicKey

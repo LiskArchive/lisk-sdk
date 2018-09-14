@@ -44,11 +44,12 @@ let self;
  * @todo Add description for the params
  */
 class Vote {
-	constructor(logger, schema) {
+	constructor(logger, schema, account) {
 		self = this;
 		library = {
 			logger,
 			schema,
+			account,
 		};
 	}
 
@@ -63,14 +64,15 @@ class Vote {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undo(transaction, block, sender, cb, tx) {
+	/* eslint-disable class-methods-use-this */
+	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
 		}
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		this.scope.account.merge(
+		library.account.merge(
 			sender.address,
 			{
 				delegates: votesInvert,
@@ -91,6 +93,7 @@ class Vote {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	undoUnconfirmed(transaction, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
 			return setImmediate(cb);
@@ -98,7 +101,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		this.scope.account.merge(
+		library.account.merge(
 			sender.address,
 			{ u_delegates: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
@@ -127,7 +130,7 @@ Vote.prototype.bind = function(delegates) {
  * @returns {Bignumber} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.vote);
+	return new Bignum(constants.FEES.VOTE);
 };
 
 /**
@@ -158,13 +161,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 
 	if (
 		transaction.asset.votes &&
-		transaction.asset.votes.length > constants.maxVotesPerTransaction
+		transaction.asset.votes.length > constants.MAX_VOTES_PER_TRANSACTION
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Voting limit exceeded. Maximum is',
-				constants.maxVotesPerTransaction,
+				constants.MAX_VOTES_PER_TRANSACTION,
 				'votes per transaction',
 			].join(' ')
 		);
@@ -224,12 +227,8 @@ Vote.prototype.verifyVote = function(vote, cb) {
 		return setImmediate(cb, 'Invalid vote type');
 	}
 
-	if (!/[-+]{1}[0-9a-z]{64}/.test(vote)) {
+	if (!/^[-+]{1}[0-9a-f]{64}$/.test(vote)) {
 		return setImmediate(cb, 'Invalid vote format');
-	}
-
-	if (vote.length !== 65) {
-		return setImmediate(cb, 'Invalid vote length');
 	}
 
 	return setImmediate(cb);
@@ -325,19 +324,16 @@ Vote.prototype.getBytes = function(transaction) {
  * @param {block} block
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
-Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
-	const parent = this;
-
+Vote.prototype.applyConfirmed = function(transaction, block, sender, cb, tx) {
 	async.series(
 		[
 			function(seriesCb) {
 				self.checkConfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function() {
-				parent.scope.account.merge(
+				library.account.merge(
 					sender.address,
 					{
 						delegates: transaction.asset.votes,
@@ -359,19 +355,16 @@ Vote.prototype.apply = function(transaction, block, sender, cb, tx) {
  * @param {transaction} transaction
  * @param {account} sender
  * @param {function} cb - Callback function
- * @todo Delete unnecessary const parent = this
  * @todo Add description for the params
  */
 Vote.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
-	const parent = this;
-
 	async.series(
 		[
 			function(seriesCb) {
 				self.checkUnconfirmedDelegates(transaction, seriesCb, tx);
 			},
 			function(seriesCb) {
-				parent.scope.account.merge(
+				library.account.merge(
 					sender.address,
 					{
 						u_delegates: transaction.asset.votes,
@@ -397,7 +390,7 @@ Vote.prototype.schema = {
 		votes: {
 			type: 'array',
 			minItems: 1,
-			maxItems: constants.maxVotesPerTransaction,
+			maxItems: constants.MAX_VOTES_PER_TRANSACTION,
 			uniqueItems: true,
 		},
 	},

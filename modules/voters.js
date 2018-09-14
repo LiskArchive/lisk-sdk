@@ -287,7 +287,7 @@ Voters.prototype.shared = {
 				results.delegate.votes = results.populatedVotes;
 				results.delegate.votesUsed = results.votesCount;
 				results.delegate.votesAvailable =
-					constants.maxVotesPerAccount - results.votesCount;
+					constants.MAX_VOTES_PER_ACCOUNT - results.votesCount;
 
 				return setImmediate(cb, null, results.delegate);
 			}

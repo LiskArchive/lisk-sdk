@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const BlockReward = require('../logic/block_reward.js');
+const slots = require('../helpers/slots.js');
 
 const constants = global.constants;
 
@@ -143,8 +144,17 @@ Node.prototype.shared = {
 		return setImmediate(cb, null, {
 			build: library.build,
 			commit: library.lastCommit,
-			epoch: constants.epochTime,
-			fees: constants.fees,
+			epoch: constants.EPOCH_TIME,
+			fees: {
+				send: constants.FEES.SEND,
+				vote: constants.FEES.VOTE,
+				secondSignature: constants.FEES.SECOND_SIGNATURE,
+				delegate: constants.FEES.DELEGATE,
+				multisignature: constants.FEES.MULTISIGNATURE,
+				dappRegistration: constants.FEES.DAPP_REGISTRATION,
+				dappWithdrawal: constants.FEES.DAPP_WITHDRAWAL,
+				dappDeposit: constants.FEES.DAPP_DEPOSIT,
+			},
 			nethash: library.config.nethash,
 			nonce: library.config.nonce,
 			milestone: blockReward.calcMilestone(height),
@@ -168,7 +178,9 @@ Node.prototype.shared = {
 		modules.peers.networkHeight({ normalized: false }, (err, networkHeight) => {
 			setImmediate(cb, null, {
 				broadhash: modules.system.getBroadhash(),
-				consensus: modules.peers.getLastConsensus() || null,
+				consensus: modules.peers.getLastConsensus(),
+				currentTime: Date.now(),
+				secondsSinceEpoch: slots.getTime(),
 				height: modules.blocks.lastBlock.get().height,
 				loaded: modules.loader.loaded(),
 				networkHeight,
