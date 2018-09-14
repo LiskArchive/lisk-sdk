@@ -54,10 +54,10 @@ module.exports = function(
 
 			describe('when a node is stopped', () => {
 				before(done => {
-					common.stopNode('node_1');
-					setTimeout(() => {
-						done();
-					}, 2000);
+					common
+						.stopNode('node_1')
+						.then(done)
+						.catch(done);
 				});
 
 				it(`peer manager should remove peer from the list and there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
@@ -85,10 +85,10 @@ module.exports = function(
 
 			describe('when a stopped node is started', () => {
 				before(done => {
-					common.startNode('node_1');
-					setTimeout(() => {
-						done();
-					}, 2000);
+					common
+						.startNode('node_1')
+						.then(done)
+						.catch(done);
 				});
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
@@ -115,24 +115,22 @@ module.exports = function(
 				// To validate peers holding socket connection
 				// Need to keep one peer so that we can validate
 				// Duplicate socket connection exists or not
-				it('stop all the nodes in the network except node_0', done => {
+				it('stop all the nodes in the network except node_0', () => {
+					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
-						common.stopNode(`node_${i}`);
+						peersPromises.push(common.stopNode(`node_${i}`));
 					}
-					setTimeout(() => {
-						console.info('Wait for nodes to be stopped');
-						done();
-					}, 10000);
+					console.info('Wait for nodes to be stopped');
+					return Promise.all(peersPromises);
 				});
 
-				it('start all nodes that were stopped', done => {
+				it('start all nodes that were stopped', () => {
+					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
-						common.startNode(`node_${i}`);
+						peersPromises.push(common.startNode(`node_${i}`));
 					}
-					setTimeout(() => {
-						console.info('Wait for nodes to be started');
-						done();
-					}, 10000);
+					console.info('Wait for nodes to be started');
+					return Promise.all(peersPromises);
 				});
 
 				describe('after all the node restarts', () => {

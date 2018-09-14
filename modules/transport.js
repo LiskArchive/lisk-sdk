@@ -21,6 +21,7 @@ let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
+const patches = require('../helpers/patches');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -276,7 +277,7 @@ __private.receiveTransaction = function(
 // Public methods
 
 /**
- * Returns true if broadcaster consensus is less than minBroadhashConsensus.
+ * Returns true if broadcaster consensus is less than MIN_BROADHASH_CONSENSUS.
  * Returns false if library.config.forging.force is true.
  *
  * @returns {boolean}
@@ -286,7 +287,7 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
+	return modules.peers.calculateConsensus() < constants.MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
@@ -366,7 +367,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 Transport.prototype.broadcastHeaders = cb => {
 	// Grab a random list of connected peers.
 	const peers = library.logic.peers.listRandomConnected({
-		limit: constants.maxPeers,
+		limit: constants.MAX_PEERS,
 	});
 
 	if (peers.length === 0) {
@@ -383,7 +384,12 @@ Transport.prototype.broadcastHeaders = cb => {
 	async.each(
 		peers,
 		(peer, eachCb) => {
-			peer.rpc.updateMyself(library.logic.peers.me(), err => {
+			const peerObject = patches.systemHeaders.versionForPreRelease(
+				peer.version,
+				library.logic.peers.me(),
+				library.logger
+			);
+			peer.rpc.updateMyself(peerObject, err => {
 				if (err) {
 					library.logger.debug(
 						'Transport->broadcastHeaders: Failed to notify peer about self',
@@ -630,7 +636,7 @@ Transport.prototype.shared = {
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
-			Object.assign({}, { limit: constants.maxPeers }, req.query),
+			Object.assign({}, { limit: constants.MAX_PEERS }, req.query),
 			(err, peers) => {
 				peers = !err ? peers : [];
 				return setImmediate(cb, null, { success: !err, peers });
@@ -719,7 +725,7 @@ Transport.prototype.shared = {
 	getSignatures(req, cb) {
 		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			constants.maxSharedTransactions
+			constants.MAX_SHARED_TRANSACTIONS
 		);
 		const signatures = [];
 
@@ -748,7 +754,7 @@ Transport.prototype.shared = {
 	getTransactions(query, cb) {
 		const transactions = modules.transactions.getMergedTransactionList(
 			true,
-			constants.maxSharedTransactions
+			constants.MAX_SHARED_TRANSACTIONS
 		);
 		return setImmediate(cb, null, {
 			success: true,

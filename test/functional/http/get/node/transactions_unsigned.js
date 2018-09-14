@@ -47,7 +47,7 @@ describe('GET /api/node', () => {
 			before(() => {
 				// Credit account with some funds
 				transaction = lisk.transaction.transfer({
-					amount: 1000 * constants.normalizer,
+					amount: 1000 * constants.NORMALIZER,
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: senderAccount.address,
 				});
@@ -110,7 +110,7 @@ describe('GET /api/node', () => {
 						for (var i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
 								lisk.transaction.transfer({
-									amount: (i + 1) * constants.normalizer,
+									amount: (i + 1) * constants.NORMALIZER,
 									passphrase: senderAccount.passphrase,
 									secondPassphrase: senderAccount.secondPassphrase,
 									recipientId: recipientAccount.address,

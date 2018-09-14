@@ -72,8 +72,9 @@ module.exports = function(configurations) {
 			it('should confirm all transactions on all nodes', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
-					2;
+					Math.ceil(
+						numberOfTransactions / constants.MAX_TRANSACTIONS_PER_BLOCK
+					) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
@@ -138,8 +139,9 @@ module.exports = function(configurations) {
 			it('check all the nodes received the transactions', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
-					2;
+					Math.ceil(
+						numberOfTransactions / constants.MAX_TRANSACTIONS_PER_BLOCK
+					) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)

@@ -111,7 +111,7 @@ class Block {
 			const transaction = transactions[i];
 			const bytes = this.scope.transaction.getBytes(transaction);
 
-			if (size + bytes.length > constants.maxPayloadLength) {
+			if (size + bytes.length > constants.MAX_PAYLOAD_LENGTH) {
 				break;
 			}
 
@@ -480,7 +480,7 @@ Block.prototype.getId = function(block) {
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(constants.FEES.SEND);
 };
 
 /**

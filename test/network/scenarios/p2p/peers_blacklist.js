@@ -82,10 +82,14 @@ module.exports = function(
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					common.restartNode('node_0');
-					setTimeout(() => {
-						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-					}, 8000);
+					common
+						.restartNode('node_0')
+						.then(() => {
+							blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
@@ -153,10 +157,14 @@ module.exports = function(
 						JSON.stringify(params.configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					common.restartNode('node_0');
-					setTimeout(() => {
-						blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-					}, 8000);
+					common
+						.restartNode('node_0')
+						.then(() => {
+							blockchainReady(done, null, null, 'http://127.0.0.1:4000');
+						})
+						.catch(err => {
+							done(err.message);
+						});
 				});
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {

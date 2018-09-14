@@ -45,6 +45,7 @@ WSClient.prototype.start = function() {
 			log() {},
 			debug() {},
 			error() {},
+			info() {},
 		},
 		this.stop.bind(this)
 	);
