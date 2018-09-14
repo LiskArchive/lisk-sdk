@@ -17,6 +17,9 @@
 const childProcess = require('child_process');
 const utils = require('../utils');
 
+const NODE_FINISHED_SYNC_REGEX = /Finished sync/;
+const NODE_FINISHED_SYNC_TIMEOUT = 40000;
+
 const getPeersStatus = peers => {
 	return Promise.all(
 		peers.map(peer => {
@@ -52,7 +55,7 @@ const getAllPeers = sockets => {
 	);
 };
 
-module.exports = {
+const common = {
 	setMonitoringSocketsConnections: (params, configurations) => {
 		// eslint-disable-next-line mocha/no-top-level-hooks
 		before(done => {
@@ -78,13 +81,60 @@ module.exports = {
 	getAllPeers,
 
 	stopNode: nodeName => {
-		return childProcess.execSync(`pm2 stop ${nodeName}`);
+		return new Promise((resolve, reject) => {
+			childProcess.exec(`node_modules/.bin/pm2 stop ${nodeName}`, err => {
+				if (err) {
+					return reject(
+						new Error(`Failed to stop node ${nodeName}: ${err.message}`)
+					);
+				}
+				resolve();
+			});
+		});
 	},
 	startNode: nodeName => {
-		childProcess.execSync(`pm2 start ${nodeName}`);
+		return new Promise((resolve, reject) => {
+			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
+				if (err) {
+					return reject(
+						new Error(`Failed to start node ${nodeName}: ${err.message}`)
+					);
+				}
+
+				const pm2LogProcess = childProcess.spawn('node_modules/.bin/pm2', [
+					'logs',
+					nodeName,
+				]);
+
+				const nodeReadyTimeout = setTimeout(() => {
+					pm2LogProcess.stdout.removeAllListeners('data');
+					pm2LogProcess.removeAllListeners('error');
+					reject(new Error(`Failed to start node ${nodeName} before timeout`));
+				}, NODE_FINISHED_SYNC_TIMEOUT);
+
+				pm2LogProcess.once('error', err => {
+					clearTimeout(nodeReadyTimeout);
+					pm2LogProcess.stdout.removeAllListeners('data');
+					reject(new Error(`Failed to start node ${nodeName}: ${err.message}`));
+				});
+				pm2LogProcess.stdout.on('data', data => {
+					const dataString = data.toString();
+					// Make sure that all nodes have fully synced before we
+					// run the test cases.
+					if (NODE_FINISHED_SYNC_REGEX.test(dataString)) {
+						clearTimeout(nodeReadyTimeout);
+						pm2LogProcess.stdout.removeAllListeners('error');
+						pm2LogProcess.stdout.removeAllListeners('data');
+						resolve();
+					}
+				});
+			});
+		});
 	},
 	restartNode: nodeName => {
-		return childProcess.execSync(`pm2 restart ${nodeName}`);
+		return common.stopNode(nodeName).then(() => {
+			return common.startNode(nodeName);
+		});
 	},
 	getNodesStatus: (sockets, cb) => {
 		getAllPeers(sockets)
@@ -109,3 +159,5 @@ module.exports = {
 			});
 	},
 };
+
+module.exports = common;
