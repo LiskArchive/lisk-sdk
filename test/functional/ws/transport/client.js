@@ -38,6 +38,7 @@ describe('RPC Client', () => {
 			log: sinonSandbox.stub(),
 			debug: sinonSandbox.stub(),
 			trace: sinonSandbox.stub(),
+			info: sinonSandbox.stub(),
 		};
 		return loggerMock;
 	}
@@ -426,7 +427,7 @@ describe('RPC Client', () => {
 				expect(closeErrorReason).equal(
 					`Expected version: ${
 						__testContext.config.minVersion
-					} but received: 0.0.0-beta.1`
+					} but received: 0.0.0`
 				);
 				done();
 			});

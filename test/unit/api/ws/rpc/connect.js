@@ -16,7 +16,9 @@
 
 const rewire = require('rewire');
 const sinon = require('sinon');
+const semver = require('semver');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
+const modulesLoader = require('../../../../common/modules_loader');
 const System = require('../../../../../modules/system');
 const wsRPC = require('../../../../../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -24,6 +26,16 @@ const connectRewired = rewire('../../../../../api/ws/rpc/connect');
 
 const validRPCProcedureName = 'rpcProcedureA';
 const validEventProcedureName = 'eventProcedureB';
+
+const getQueryObjectFromHeaders = headers => {
+	return {
+		version: headers.version,
+		wsPort: headers.wsPort,
+		httpPort: headers.httpPort,
+		nethash: headers.nethash,
+		nonce: headers.nonce,
+	};
+};
 
 describe('connect', () => {
 	let validPeer;
@@ -57,7 +69,8 @@ describe('connect', () => {
 			connectionSteps,
 			'registerSocketListeners'
 		);
-		done();
+
+		new System(() => done(), modulesLoader.scope);
 	});
 
 	after('restore spies on connectSteps', done => {
@@ -156,16 +169,31 @@ describe('connect', () => {
 		let peerAsResult;
 
 		describe('addConnectionOptions', () => {
+			const addConnectionOptions = connectRewired.__get__(
+				'connectSteps.addConnectionOptions'
+			);
+
 			beforeEach(done => {
-				const addConnectionOptions = connectRewired.__get__(
-					'connectSteps.addConnectionOptions'
-				);
 				peerAsResult = addConnectionOptions(validPeer);
 				done();
 			});
 
 			it('should add connectionOptions field to peer', () => {
 				return expect(peerAsResult).to.have.property('connectionOptions');
+			});
+
+			it('should strip pre-release tag from connectionOptions.query.version if peer is running a 1.0.0-rc.* release', () => {
+				const peer = Object.assign({}, validPeer);
+				const version = semver.parse(System.getHeaders().version);
+				const currentVersionWithoutTag = `${version.major}.${version.minor}.${
+					version.patch
+				}`;
+				peer.version = '1.0.0-rc.2';
+				peerAsResult = addConnectionOptions(peer, modulesLoader.logger);
+
+				return expect(peerAsResult.connectionOptions.query.version).to.be.eql(
+					currentVersionWithoutTag
+				);
 			});
 
 			it('should add connectionOptions containing autoConnect = false', () => {
@@ -186,10 +214,10 @@ describe('connect', () => {
 					.to.equal(validPeer.ip);
 			});
 
-			it('should add connectionOptions containing query', () => {
+			it('should add immutable connectionOptions containing query', () => {
 				return expect(peerAsResult)
 					.to.have.nested.property('connectionOptions.query')
-					.to.eql(System.getHeaders());
+					.to.eql(getQueryObjectFromHeaders(System.getHeaders()));
 			});
 
 			it('should return [peer]', () => {
