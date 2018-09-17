@@ -80,7 +80,7 @@ describe('transaction:verify', () => {
 					'Could not parse transaction JSON.',
 				);
 			})
-			.it('should throw an error');
+			.it('should throw an error for invalid JSON');
 
 		setupTest()
 			.command(['transaction:verify', JSON.stringify(defaultTransaction)])
@@ -160,7 +160,7 @@ describe('transaction:verify', () => {
 				'getRawStdIn',
 				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
-			.command(['transaction:verify', JSON.stringify(defaultTransaction)])
+			.command(['transaction:verify'])
 			.it('should verify transaction from arg', () => {
 				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
 					defaultTransaction,
@@ -179,20 +179,19 @@ describe('transaction:verify', () => {
 				'getRawStdIn',
 				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
-			.command([
-				'transaction:verify',
-				JSON.stringify(defaultTransaction),
-				'--second-public-key=file:key.txt',
-			])
-			.it('should verify transaction from arg', () => {
-				expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
-				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
-					defaultTransaction,
-					defaultSecondPublicKey,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyTransactionResult,
-				);
-			});
+			.command(['transaction:verify', '--second-public-key=file:key.txt'])
+			.it(
+				'should verify transaction from stdIn and the second public key flag',
+				() => {
+					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
+					expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
+						defaultTransaction,
+						defaultSecondPublicKey,
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(
+						defaultVerifyTransactionResult,
+					);
+				},
+			);
 	});
 });

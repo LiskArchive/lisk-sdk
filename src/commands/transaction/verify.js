@@ -16,6 +16,7 @@
 import elements from 'lisk-elements';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
+import parseTransactionString from '../../utils/transactions';
 import { getRawStdIn, getData } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
 
@@ -51,13 +52,7 @@ export default class VerifyCommand extends BaseCommand {
 		} = this.parse(VerifyCommand);
 
 		const transactionInput = transaction || (await getTransactionInput());
-
-		let transactionObject;
-		try {
-			transactionObject = JSON.parse(transactionInput);
-		} catch (error) {
-			throw new ValidationError('Could not parse transaction JSON.');
-		}
+		const transactionObject = parseTransactionString(transactionInput);
 
 		const secondPublicKey = secondPublicKeySource
 			? await processSecondPublicKey(secondPublicKeySource)
@@ -74,7 +69,7 @@ export default class VerifyCommand extends BaseCommand {
 VerifyCommand.args = [
 	{
 		name: 'transaction',
-		description: 'Transaction to verify.',
+		description: 'Transaction to verify in JSON format.',
 	},
 ];
 

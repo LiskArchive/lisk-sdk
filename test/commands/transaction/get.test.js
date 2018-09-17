@@ -51,7 +51,7 @@ describe('transaction:get', () => {
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionId])
-			.it('should get an transaction info and display as an array', () => {
+			.it('should get a transaction’s info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
@@ -71,7 +71,11 @@ describe('transaction:get', () => {
 
 	describe('transaction:get transactions', () => {
 		const transactionIds = ['3520445367460290306', '2802325248134221536'];
-		const transactionIdsWithEmpty = ['3520445367460290306', ''];
+		const transactionIdsWithEmpty = [
+			'3520445367460290306',
+			'',
+			'2802325248134221536',
+		];
 		const queryResult = [
 			{
 				id: transactionIds[0],
@@ -86,7 +90,7 @@ describe('transaction:get', () => {
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIds.join(',')])
-			.it('should get transactions info and display as an array', () => {
+			.it('should get two transaction’s info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
@@ -131,6 +135,16 @@ describe('transaction:get', () => {
 								},
 								placeholder: {
 									id: transactionIdsWithEmpty[0],
+									message: 'Transaction not found.',
+								},
+							},
+							{
+								query: {
+									limit: 1,
+									id: transactionIdsWithEmpty[2],
+								},
+								placeholder: {
+									id: transactionIdsWithEmpty[2],
 									message: 'Transaction not found.',
 								},
 							},

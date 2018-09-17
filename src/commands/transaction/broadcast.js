@@ -14,6 +14,7 @@
  *
  */
 import BaseCommand from '../../base';
+import parseTransactionString from '../../utils/transactions';
 import { ValidationError } from '../../utils/error';
 import { getRawStdIn } from '../../utils/input/utils';
 import getAPIClient from '../../utils/api';
@@ -35,14 +36,7 @@ export default class BroadcastCommand extends BaseCommand {
 		const { args: { transaction } } = this.parse(BroadcastCommand);
 		const transactionInput =
 			transaction || (await getTransactionInput(transaction));
-		let transactionObject;
-		try {
-			transactionObject = JSON.parse(transactionInput);
-		} catch (error) {
-			throw new ValidationError(
-				'Could not parse transaction JSON. Did you use the `--json` option?',
-			);
-		}
+		const transactionObject = parseTransactionString(transactionInput);
 		const client = getAPIClient(this.userConfig.api);
 		const response = await client.transactions.broadcast(transactionObject);
 		this.print(response.data);
@@ -52,7 +46,7 @@ export default class BroadcastCommand extends BaseCommand {
 BroadcastCommand.args = [
 	{
 		name: 'transaction',
-		description: 'Transaction to broadcast.',
+		description: 'Transaction to broadcast in JSON format.',
 	},
 ];
 

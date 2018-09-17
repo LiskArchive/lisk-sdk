@@ -75,7 +75,7 @@ describe('transaction:broadcast', () => {
 			.command(['transaction:broadcast', wrongTransaction])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Could not parse transaction JSON. Did you use the `--json` option?',
+					'Could not parse transaction JSON.',
 				);
 			})
 			.it('should throw an error with invalid transaction');
@@ -110,7 +110,7 @@ describe('transaction:broadcast', () => {
 			.command(['transaction:broadcast'])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Could not parse transaction JSON. Did you use the `--json` option?',
+					'Could not parse transaction JSON.',
 				);
 			})
 			.it('should throw an error with invalid transaction from stdin');

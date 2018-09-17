@@ -18,6 +18,7 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { getRawStdIn } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
+import parseTransactionString from '../../utils/transactions';
 import getInputsFromSources from '../../utils/input';
 import commonFlags from '../../utils/flags';
 
@@ -46,12 +47,7 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput =
 			transaction || (await getTransactionInput(transaction));
 
-		let transactionObject;
-		try {
-			transactionObject = JSON.parse(transactionInput);
-		} catch (error) {
-			throw new ValidationError('Could not parse transaction JSON.');
-		}
+		const transactionObject = parseTransactionString(transactionInput);
 
 		const { passphrase, secondPassphrase } = await getInputsFromSources({
 			passphrase: {
@@ -79,7 +75,7 @@ export default class SignCommand extends BaseCommand {
 SignCommand.args = [
 	{
 		name: 'transaction',
-		description: 'Transaction to sign.',
+		description: 'Transaction to sign in JSON format.',
 	},
 ];
 

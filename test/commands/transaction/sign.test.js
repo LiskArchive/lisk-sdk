@@ -38,7 +38,8 @@ describe('transaction:sign', () => {
 	};
 
 	const defaultSignedTransaction = Object.assign({}, defaultTransaction, {
-		signature: 'signed',
+		signature:
+			'c9c8a9a0d0ba1c8ee519792f286d751071de588448eb984ddd9fe4ea0fe34db474692407004047068dee785abca22a744203fb0342b5404349fa9d6abab1480d',
 	});
 
 	const transactionUtilStub = {
@@ -103,7 +104,7 @@ describe('transaction:sign', () => {
 			});
 	});
 
-	describe('transaction:sign transaction --passphrase=pass:123', () => {
+	describe('transaction:sign transaction --passphrase=pass:xxx', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
@@ -134,7 +135,7 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction:sign transaction --passphrase=pass:123 --second-passphrase=pass:456', () => {
+	describe('transaction:sign transaction --passphrase=pass:xxx --second-passphrase=pass:xxx', () => {
 		setupTest()
 			.command([
 				'transaction:sign',
@@ -218,7 +219,7 @@ describe('transaction:sign', () => {
 			});
 	});
 
-	describe('transaction | transaction:sign --passphrase=pass:123', () => {
+	describe('transaction | transaction:sign --passphrase=pass:xxx', () => {
 		setupTest()
 			.stub(
 				inputUtils,
@@ -250,7 +251,7 @@ describe('transaction:sign', () => {
 			);
 	});
 
-	describe('transaction | transaction:sign --passphrase=pass:123 --second-passphrase=pass:456', () => {
+	describe('transaction | transaction:sign --passphrase=pass:xxx --second-passphrase=pass:xxx', () => {
 		setupTest()
 			.stub(
 				inputUtils,
