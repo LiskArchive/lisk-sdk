@@ -20,6 +20,10 @@ import * as api from '../../../src/utils/api';
 import * as inputUtils from '../../../src/utils/input/utils';
 
 describe('transaction:broadcast', () => {
+	const apiConfig = {
+		nodes: ['http://local.host'],
+		network: 'main',
+	};
 	const defaultTransaction = {
 		amount: '10000000000',
 		recipientId: '123L',
@@ -52,7 +56,7 @@ describe('transaction:broadcast', () => {
 	const setupTest = () =>
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns({}))
+			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
 			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
@@ -83,6 +87,7 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.command(['transaction:broadcast', JSON.stringify(defaultTransaction)])
 			.it('should broadcast the transaction', () => {
+				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(
 					defaultTransaction,
 				);

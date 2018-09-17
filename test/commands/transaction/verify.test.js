@@ -102,16 +102,19 @@ describe('transaction:verify', () => {
 				JSON.stringify(defaultTransaction),
 				'--second-public-key=file:key.txt',
 			])
-			.it('should verify transaction from arg', () => {
-				expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
-				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
-					defaultTransaction,
-					defaultSecondPublicKey,
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyTransactionResult,
-				);
-			});
+			.it(
+				'should verify transaction from arg and second public key from an external source',
+				() => {
+					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
+					expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
+						defaultTransaction,
+						defaultSecondPublicKey,
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(
+						defaultVerifyTransactionResult,
+					);
+				},
+			);
 
 		setupTest()
 			.command([
@@ -119,16 +122,19 @@ describe('transaction:verify', () => {
 				JSON.stringify(defaultTransaction),
 				'--second-public-key=some-second-public-key',
 			])
-			.it('should verify transaction from arg', () => {
-				expect(inputUtils.getData).not.to.be.called;
-				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
-					defaultTransaction,
-					'some-second-public-key',
-				);
-				return expect(printMethodStub).to.be.calledWithExactly(
-					defaultVerifyTransactionResult,
-				);
-			});
+			.it(
+				'should verify transaction from arg and second public key from the flag',
+				() => {
+					expect(inputUtils.getData).not.to.be.called;
+					expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
+						defaultTransaction,
+						'some-second-public-key',
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(
+						defaultVerifyTransactionResult,
+					);
+				},
+			);
 	});
 
 	describe('transaction | transaction:verify', () => {
@@ -161,7 +167,7 @@ describe('transaction:verify', () => {
 				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
 			)
 			.command(['transaction:verify'])
-			.it('should verify transaction from arg', () => {
+			.it('should verify transaction from stdin', () => {
 				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
 					defaultTransaction,
 					null,
@@ -181,7 +187,7 @@ describe('transaction:verify', () => {
 			)
 			.command(['transaction:verify', '--second-public-key=file:key.txt'])
 			.it(
-				'should verify transaction from stdIn and the second public key flag',
+				'should verify transaction from stdin and the second public key flag',
 				() => {
 					expect(inputUtils.getData).to.be.calledWithExactly('file:key.txt');
 					expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(

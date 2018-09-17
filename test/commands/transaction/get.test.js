@@ -90,7 +90,7 @@ describe('transaction:get', () => {
 		setupTest()
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIds.join(',')])
-			.it('should get two transaction’s info and display as an array', () => {
+			.it('should get two transactions’ info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
 					{
