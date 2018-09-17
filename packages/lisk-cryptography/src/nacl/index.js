@@ -32,14 +32,11 @@ export const NACL_SIGN_PUBLICKEY_LENGTH = 32;
 
 export const NACL_SIGN_SIGNATURE_LENGTH = 64;
 
-export const { box } = lib;
-
-export const { boxOpen } = lib;
-
-export const { detachedSign } = lib;
-
-export const { detachedVerify } = lib;
-
-export const { getRandomBytes } = lib;
-
-export const { signKeyPair } = lib;
+export const {
+	box,
+	boxOpen,
+	detachedSign,
+	detachedVerify,
+	getRandomBytes,
+	signKeyPair,
+} = lib;

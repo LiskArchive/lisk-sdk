@@ -3,7 +3,6 @@ import * as slow from '../../src/nacl/slow';
 // Require is used for stubbing
 // eslint-disable-next-line
 const _module = require('module');
-let loadedLibrary;
 
 const resetTest = () => {
 	// Reset environment variable
@@ -12,7 +11,17 @@ const resetTest = () => {
 	delete require.cache[require.resolve('../../src/nacl/index')];
 };
 
+const removeConstants = lib => {
+	// Constants are added in /src/index.js
+	// eslint-disable-next-line
+	delete lib.NACL_SIGN_PUBLICKEY_LENGTH;
+	// eslint-disable-next-line
+	delete lib.NACL_SIGN_SIGNATURE_LENGTH;
+	return lib;
+};
+
 describe('nacl index.js', () => {
+	let loadedLibrary;
 	// Store current env variable and set it back after tests are run
 	let initialEnvVar;
 	before(() => {
@@ -38,9 +47,7 @@ describe('nacl index.js', () => {
 		process.env.NACL_FAST = 'disable';
 		// eslint-disable-next-line
 		loadedLibrary = require('../../src/nacl/index');
-		// Constants are added in index.js
-		delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-		delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+		loadedLibrary = removeConstants(loadedLibrary);
 		return expect(loadedLibrary).to.be.eql(slow);
 	});
 
@@ -54,24 +61,23 @@ describe('nacl index.js', () => {
 			process.env.NACL_FAST = 'enable';
 			// eslint-disable-next-line
 			loadedLibrary = require('../../src/nacl/index');
-			delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-			delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+			loadedLibrary = removeConstants(loadedLibrary);
 			return expect(loadedLibrary).to.be.eql(fast);
 		});
+
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			process.env.NACL_FAST = 'disable';
 			// eslint-disable-next-line
 			loadedLibrary = require('../../src/nacl/index');
-			delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-			delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+			loadedLibrary = removeConstants(loadedLibrary);
 			return expect(loadedLibrary).to.be.eql(slow);
 		});
+
 		it('should load nacl fast if process.env.NACL_FAST is undefined', () => {
 			process.env.NACL_FAST = undefined;
 			// eslint-disable-next-line
 			loadedLibrary = require('../../src/nacl/index');
-			delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-			delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+			loadedLibrary = removeConstants(loadedLibrary);
 			return expect(loadedLibrary).to.be.eql(fast);
 		});
 	});
@@ -93,24 +99,23 @@ describe('nacl index.js', () => {
 			process.env.NACL_FAST = 'enable';
 			// eslint-disable-next-line
 			loadedLibrary = require('../../src/nacl/index');
-			delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-			delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+			loadedLibrary = removeConstants(loadedLibrary);
 			return expect(loadedLibrary).to.eql(slow);
 		});
+
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			process.env.NACL_FAST = 'disable';
 			// eslint-disable-next-line
 			loadedLibrary = require('../../src/nacl/index');
-			delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-			delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+			loadedLibrary = removeConstants(loadedLibrary);
 			return expect(loadedLibrary).to.eql(slow);
 		});
+
 		it('should load nacl slow if process.env.NACL_FAST is undefined', () => {
 			process.env.NACL_FAST = undefined;
 			// eslint-disable-next-line
 			loadedLibrary = require('../../src/nacl/index');
-			delete loadedLibrary.NACL_SIGN_PUBLICKEY_LENGTH;
-			delete loadedLibrary.NACL_SIGN_SIGNATURE_LENGTH;
+			loadedLibrary = removeConstants(loadedLibrary);
 			return expect(loadedLibrary).to.eql(slow);
 		});
 	});
