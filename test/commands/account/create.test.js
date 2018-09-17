@@ -89,7 +89,7 @@ describe('account:create', () => {
 			.command(['account:create', '--number=NaN'])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Number flag must be a number and greater than 0',
+					'Number flag must be an integer and greater than 0',
 				);
 			})
 			.it('should throw an error if the flag is invalid number');
@@ -98,7 +98,7 @@ describe('account:create', () => {
 			.command(['account:create', '--number=0'])
 			.catch(error => {
 				return expect(error.message).to.contain(
-					'Number flag must be a number and greater than 0',
+					'Number flag must be an integer and greater than 0',
 				);
 			})
 			.it('should throw an error if the number flag is less than 1');

@@ -18,26 +18,28 @@ import { cryptography } from 'lisk-elements';
 import BaseCommand from '../../base';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
+const createAccount = () => {
+	const passphrase = createMnemonicPassphrase();
+	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
+	const address = cryptography.getAddressFromPublicKey(publicKey);
+	return {
+		passphrase,
+		privateKey,
+		publicKey,
+		address,
+	};
+};
+
 export default class CreateCommand extends BaseCommand {
 	async run() {
 		const { flags: { number: numberStr } } = this.parse(CreateCommand);
 		const number = parseInt(numberStr, 10);
 		if (!Number.isInteger(number) || number <= 0) {
-			throw new Error('Number flag must be a number and greater than 0');
+			throw new Error('Number flag must be an integer and greater than 0');
 		}
 		const accounts = Array(number)
 			.fill()
-			.map(() => {
-				const passphrase = createMnemonicPassphrase();
-				const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-				const address = cryptography.getAddressFromPublicKey(publicKey);
-				return {
-					passphrase,
-					privateKey,
-					publicKey,
-					address,
-				};
-			});
+			.map(createAccount);
 		this.print(accounts);
 	}
 }
