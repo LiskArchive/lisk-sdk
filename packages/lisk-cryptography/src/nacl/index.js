@@ -12,15 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-let lib; /* eslint-disable-line */
+// eslint-disable-next-line
+let lib;
 
 try {
-	if (process.env.NACL_FAST === 'disable') throw new Error('Use tweetnacl');
+	if (process.env.NACL_FAST === 'disable') {
+		throw new Error('Use tweetnacl');
+	}
 	// Require used for conditional importing
-	lib = require('./sodium'); /* eslint-disable-line */
+	// eslint-disable-next-line
+	lib = require('./fast');
 } catch (err) {
 	process.env.NACL_FAST = 'disable';
-	lib = require('./nacl'); /* eslint-disable-line */
+	// eslint-disable-next-line
+	lib = require('./slow');
 }
 
-export default lib;
+export const NACL_SIGN_PUBLICKEY_LENGTH = 32;
+
+export const NACL_SIGN_SIGNATURE_LENGTH = 64;
+
+export const { box } = lib;
+
+export const { boxOpen } = lib;
+
+export const { detachedSign } = lib;
+
+export const { detachedVerify } = lib;
+
+export const { getRandomBytes } = lib;
+
+export const { signKeyPair } = lib;

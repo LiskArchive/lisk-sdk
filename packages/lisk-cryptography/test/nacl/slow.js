@@ -12,30 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// Require is used for stubbing
-const hash = require('../src/hash');
-const sign = require('../src/sign');
-const convert = require('../src/convert');
-const nacl = require('../src/nacl/nacl');
-
-const {
-	randombytes,
-	signKeyPair,
-	signDetached,
-	detachedVerify,
+import { makeInvalid } from '../helpers';
+import {
 	box,
 	boxOpen,
-} = nacl;
-
-const makeInvalid = str => {
-	const char = str[0] === '0' ? '1' : '0';
-	return `${char}${str.slice(1)}`;
-};
+	detachedSign,
+	detachedVerify,
+	getRandomBytes,
+	signKeyPair,
+} from '../../src/nacl/slow';
 
 describe('nacl', () => {
-	const CRYPTO_SIGN_PUBLICKEYBYTES = 32;
-	const CRYPTO_SIGN_PRIVATEKEYBYTES = 64;
-	const CRYPTO_SIGN_BYTES = 64;
 	const defaultPublicKey =
 		'7ef45cd525e95b7a86244bbd4eb4550914ad06301013958f4dd64d32ef7bc588';
 	const defaultPrivateKey =
@@ -46,138 +33,89 @@ describe('nacl', () => {
 	const defaultEncryptedMessage =
 		'a232e5ea10e18249efc5a0aa8ed68271fc494d02245c52277ee2e14cddd960144a65';
 	const defaultNonce = 'df4c8b09e270d2cb3f7b3d53dfa8a6f3441ad3b14a13fb66';
+	const defaultHash =
+		'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d97';
+	const defaultDigest =
+		'aba8462bb7a1460f1e36c36a71f0b7f67d1606562001907c1b2dad08a8ce74ae';
+	const defaultConvertedPublicKeyEd2Curve =
+		'b8c0eecfd16c1cc4f057a6fc6d8dd3d46e4aa9625408d4bd0ba00e991326fe00';
+	const defaultConvertedPrivateKeyEd2Curve =
+		'b0e3276b64b086b381e11928e56f966d062dc677b7801cc594aeb2d4193e8d57';
 
-	let hashStub;
-	let digestMessageStub;
-	let convertPublicKeyEd2CurveStub;
-	let convertPrivateKeyEd2CurveStub;
-
-	beforeEach(() => {
-		hashStub = sandbox
-			.stub(hash, 'default')
-			.returns(
-				Buffer.from(
-					'314852d7afb0d4c283692fef8a2cb40e30c7a5df2ed79994178c10ac168d6d97',
-					'hex',
-				),
-			);
-		digestMessageStub = sandbox
-			.stub(sign, 'digestMessage')
-			.withArgs(defaultMessage)
-			.returns(
-				Buffer.from(
-					'aba8462bb7a1460f1e36c36a71f0b7f67d1606562001907c1b2dad08a8ce74ae',
-					'hex',
-				),
-			);
-		convertPublicKeyEd2CurveStub = sandbox
-			.stub(convert, 'convertPublicKeyEd2Curve')
-			.returns(
-				Buffer.from(
-					'b8c0eecfd16c1cc4f057a6fc6d8dd3d46e4aa9625408d4bd0ba00e991326fe00',
-					'hex',
-				),
-			);
-		convertPrivateKeyEd2CurveStub = sandbox
-			.stub(convert, 'convertPrivateKeyEd2Curve')
-			.returns(
-				Buffer.from(
-					'b0e3276b64b086b381e11928e56f966d062dc677b7801cc594aeb2d4193e8d57',
-					'hex',
-				),
-			);
-		return Promise.resolve();
-	});
-
-	describe('#randombytes', () => {
+	describe('#getRandomBytes', () => {
 		const size = 24;
 		let randomBuffer;
 		beforeEach(() => {
-			randomBuffer = randombytes(size);
+			randomBuffer = getRandomBytes(size);
 			return Promise.resolve();
 		});
 
-		it('should return a buffer', () => {
-			return expect(Buffer.from(randomBuffer)).to.be.instanceOf(Buffer);
+		it('should return an uint8array', () => {
+			return expect(randomBuffer).to.be.instanceOf(Uint8Array);
 		});
 	});
 
 	describe('#signKeyPair', () => {
-		let hashedSeed;
 		let signedKeys;
 		beforeEach(() => {
-			hashedSeed = hashStub();
-			signedKeys = signKeyPair(Buffer.from(hashedSeed));
+			signedKeys = signKeyPair(Buffer.from(defaultHash, 'hex'));
 			return Promise.resolve();
 		});
 
-		it('should create a buffer publicKey', () => {
+		it('should create a publicKey', () => {
 			return expect(
 				Buffer.from(signedKeys.publicKeyBytes).toString('hex'),
 			).to.be.eql(defaultPublicKey);
 		});
 
-		it('should create a buffer privateKey', () => {
+		it('should create a publicKey of type uint8array', () => {
+			return expect(signedKeys.publicKeyBytes).to.be.instanceOf(Uint8Array);
+		});
+
+		it('should create a privateKey', () => {
 			return expect(
 				Buffer.from(signedKeys.privateKeyBytes).toString('hex'),
 			).to.be.eql(defaultPrivateKey);
 		});
 
-		it('should return publicKeyBytes with buffer of length 32', () => {
-			return expect(signedKeys.publicKeyBytes.length).to.be.eql(
-				CRYPTO_SIGN_PUBLICKEYBYTES,
-			);
-		});
-
-		it('should return privateKeyBytes with buffer of length 64', () => {
-			return expect(signedKeys.privateKeyBytes.length).to.be.eql(
-				CRYPTO_SIGN_PRIVATEKEYBYTES,
-			);
+		it('should create a privateKey of type uint8array', () => {
+			return expect(signedKeys.privateKeyBytes).to.be.instanceOf(Uint8Array);
 		});
 	});
 
-	describe('#signDetached', () => {
-		let msgBytes;
+	describe('#detachedSign', () => {
 		let signatureBytes;
+
 		beforeEach(() => {
-			msgBytes = digestMessageStub();
-			signatureBytes = signDetached(
-				msgBytes,
+			signatureBytes = detachedSign(
+				Buffer.from(defaultDigest, 'hex'),
 				Buffer.from(defaultPrivateKey, 'hex'),
 			);
 			return Promise.resolve();
 		});
 
-		it('should create a buffer signature', () => {
+		it('should create a signature', () => {
 			return expect(Buffer.from(signatureBytes).toString('hex')).to.be.eql(
 				defaultSignature,
 			);
 		});
-
-		it('should return signatureBytes with buffer of length 64', () => {
-			return expect(signatureBytes.length).to.be.eql(CRYPTO_SIGN_BYTES);
+		it('should create a signature of type uint8array', () => {
+			return expect(signatureBytes).to.be.instanceOf(Uint8Array);
 		});
 	});
 
 	describe('#detachedVerify', () => {
-		let msgBytes;
-		beforeEach(() => {
-			msgBytes = digestMessageStub();
-			return Promise.resolve();
-		});
-
 		it('should return false if the signature is invalid', () => {
 			const verification = detachedVerify(
-				msgBytes,
+				Buffer.from(defaultDigest, 'hex'),
 				Buffer.from(makeInvalid(defaultSignature), 'hex'),
 				Buffer.from(defaultPublicKey, 'hex'),
 			);
 			return expect(verification).to.be.false;
 		});
-
 		it('should return true if the signature is valid', () => {
 			const verification = detachedVerify(
-				msgBytes,
+				Buffer.from(defaultDigest, 'hex'),
 				Buffer.from(defaultSignature, 'hex'),
 				Buffer.from(defaultPublicKey, 'hex'),
 			);
@@ -186,15 +124,6 @@ describe('nacl', () => {
 	});
 
 	describe('encrypt and decrypt message with converted key pair and nonce', () => {
-		let convertedPublicKey;
-		let convertedPrivateKey;
-
-		beforeEach(() => {
-			convertedPublicKey = convertPublicKeyEd2CurveStub();
-			convertedPrivateKey = convertPrivateKeyEd2CurveStub();
-			return Promise.resolve();
-		});
-
 		describe('#box', () => {
 			let encryptedMessageBytes;
 
@@ -202,8 +131,8 @@ describe('nacl', () => {
 				encryptedMessageBytes = box(
 					Buffer.from(defaultMessage, 'utf8'),
 					Buffer.from(defaultNonce, 'hex'),
-					convertedPublicKey,
-					convertedPrivateKey,
+					Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
+					Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
 				);
 				return Promise.resolve();
 			});
@@ -222,8 +151,8 @@ describe('nacl', () => {
 				decryptedMessageBytes = boxOpen(
 					Buffer.from(defaultEncryptedMessage, 'hex'),
 					Buffer.from(defaultNonce, 'hex'),
-					Buffer.from(convertedPublicKey, 'hex'),
-					Buffer.from(convertedPrivateKey, 'hex'),
+					Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
+					Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
 				);
 				return Promise.resolve();
 			});
@@ -233,6 +162,38 @@ describe('nacl', () => {
 					Buffer.from(decryptedMessageBytes).toString('utf8'),
 				).to.be.eql(defaultMessage);
 			});
+		});
+	});
+
+	describe('integration test', () => {
+		it('should encrypt a given message with a nonce and converted key pair, and decrypt it back to the original message', () => {
+			const encryptedMessageBytes = box(
+				Buffer.from(defaultMessage, 'utf8'),
+				Buffer.from(defaultNonce, 'hex'),
+				Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
+				Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
+			);
+			const decryptedMessageBytes = boxOpen(
+				encryptedMessageBytes,
+				Buffer.from(defaultNonce, 'hex'),
+				Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
+				Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
+			);
+			return expect(
+				Buffer.from(decryptedMessageBytes).toString('utf8'),
+			).to.equal(defaultMessage);
+		});
+		it('should sign a given message and verify it using the same signature', () => {
+			const signatureBytes = detachedSign(
+				Buffer.from(defaultDigest, 'hex'),
+				Buffer.from(defaultPrivateKey, 'hex'),
+			);
+			const verification = detachedVerify(
+				Buffer.from(defaultDigest, 'hex'),
+				signatureBytes,
+				Buffer.from(defaultPublicKey, 'hex'),
+			);
+			return expect(verification).to.be.true;
 		});
 	});
 });

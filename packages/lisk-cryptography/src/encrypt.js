@@ -16,9 +16,8 @@ import crypto from 'crypto';
 import { hexToBuffer, bufferToHex } from './buffer';
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
-import nacl from './nacl';
+import { getRandomBytes, box, boxOpen } from './nacl';
 
-const { randombytes, box, boxOpen } = nacl;
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
@@ -37,7 +36,7 @@ export const encryptMessageWithPassphrase = (
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 	const messageInBytes = Buffer.from(message, 'utf8');
 
-	const nonce = randombytes(24);
+	const nonce = getRandomBytes(24);
 
 	const cipherText = box(
 		messageInBytes,

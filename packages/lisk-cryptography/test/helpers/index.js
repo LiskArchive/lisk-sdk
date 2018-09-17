@@ -12,19 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as buffer from './buffer';
-import * as convert from './convert';
-import * as encrypt from './encrypt';
-import hash from './hash';
-import * as keys from './keys';
-import * as sign from './sign';
-
-export default Object.assign(
-	{},
-	buffer,
-	convert,
-	encrypt,
-	{ hash },
-	keys,
-	sign,
-);
+// eslint-disable-next-line
+export const makeInvalid = str => {
+	const char = str[0] === '0' ? '1' : '0';
+	return `${char}${str.slice(1)}`;
+};

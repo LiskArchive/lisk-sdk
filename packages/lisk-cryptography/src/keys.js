@@ -12,13 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import nacl from './nacl';
 import { bufferToHex } from './buffer';
 import { getAddressFromPublicKey } from './convert';
 import hash from './hash';
-
-const { signKeyPair } = nacl;
+import { signKeyPair } from './nacl';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
