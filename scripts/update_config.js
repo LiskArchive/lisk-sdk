@@ -47,118 +47,14 @@ if (!oldConfigPath || !newConfigPath) {
 	process.exit(1);
 }
 
-console.info('Starting configuration migration...');
+console.info('No config migration for Devnet...');
 const oldConfig = JSON.parse(fs.readFileSync(oldConfigPath, 'utf8'));
 const newConfig = JSON.parse(fs.readFileSync(newConfigPath, 'utf8'));
 
-// 1.0.1 and 1.0.2 doesn't add any changes to 1.0.0 config.json
-if (oldConfig.version === '1.0.0' || oldConfig.version === '1.0.1') {
-	copyTheConfigFile();
-	// No further changes required
-	process.exit(0);
-}
+copyTheConfigFile();
+// No further changes required
+process.exit(0);
 
-newConfig.api.ssl = extend(true, {}, oldConfig.ssl);
-delete oldConfig.ssl;
-
-// Rename old port to new wsPort
-oldConfig.httpPort = oldConfig.port;
-oldConfig.wsPort = oldConfig.port + 1;
-delete oldConfig.port;
-
-oldConfig.db.max = oldConfig.db.poolSize;
-delete oldConfig.db.poolSize;
-
-delete oldConfig.peers.options.limits;
-
-oldConfig.transactions.maxTransactionsPerQueue =
-	oldConfig.transactions.maxTxsPerQueue;
-delete oldConfig.transactions.maxTxsPerQueue;
-
-delete oldConfig.loading.verifyOnLoading;
-delete oldConfig.dapp;
-
-if (typeof oldConfig.broadcasts === 'object') {
-	delete oldConfig.broadcasts.broadcastLimit;
-	delete oldConfig.broadcasts.relayLimit;
-}
-
-if (oldConfig.db.user.trim() === '') {
-	oldConfig.db.user = 'lisk';
-}
-
-// Peers migration
-oldConfig.peers.list = oldConfig.peers.list.map(p => {
-	p.wsPort = p.port + 1;
-	delete p.port;
-	return p;
-});
-
-if (oldConfig.forging.secret && oldConfig.forging.secret.length) {
-	if (!program.password.trim()) {
-		const rl = readline.createInterface({
-			input: process.stdin,
-			output: process.stdout,
-		});
-		rl.question(
-			'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
-			password => {
-				rl.close();
-				migrateSecrets(password);
-				copyTheConfigFile();
-			}
-		);
-		// To Patch the password support
-		rl.stdoutMuted = true;
-		rl._writeToOutput = function _writeToOutput(stringToWrite) {
-			if (rl.stdoutMuted) rl.output.write('*');
-			else rl.output.write(stringToWrite);
-		};
-	} else {
-		migrateSecrets(program.password);
-		copyTheConfigFile();
-	}
-} else {
-	migrateSecrets('');
-	copyTheConfigFile();
-}
-
-function migrateSecrets(password) {
-	oldConfig.forging.delegates = [];
-	password = password.trim();
-	if (!password) {
-		console.info('\nSkipping the secret migration.');
-		delete oldConfig.forging.secret;
-		return;
-	}
-
-	if (password.length < 5) {
-		console.error(
-			`error: Password is too short (${
-				password.length
-			} characters), minimum 5 characters.`
-		);
-		process.exit(1);
-	}
-
-	console.info('\nMigrating your secrets...');
-	oldConfig.forging.secret.forEach(secret => {
-		console.info('.......');
-		oldConfig.forging.delegates.push({
-			encryptedPassphrase: lisk.default.cryptography.stringifyEncryptedPassphrase(
-				lisk.default.cryptography.encryptPassphraseWithPassword(
-					secret,
-					password
-				)
-			),
-			publicKey: lisk.default.cryptography.getPrivateAndPublicKeyFromPassphrase(
-				secret
-			).publicKey,
-		});
-	});
-
-	delete oldConfig.forging.secret;
-}
 
 function copyTheConfigFile() {
 	// Values to keep from new config file
