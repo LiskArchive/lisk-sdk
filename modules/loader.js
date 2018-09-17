@@ -306,7 +306,7 @@ __private.loadTransactions = function(cb) {
 								['Transaction', id, 'is not valid, peer removed'].join(' '),
 								peer.string
 							);
-							modules.peers.remove(peer.ip, peer.wsPort);
+							modules.peers.remove(peer);
 
 							return setImmediate(eachSeriesCb, e);
 						}
