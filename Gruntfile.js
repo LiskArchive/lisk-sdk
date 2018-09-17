@@ -1,128 +1,98 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var moment = require('moment');
-var util = require('util');
+const path = require('path');
+const moment = require('moment');
 
-module.exports = function (grunt) {
-	var files = [
-		'logger.js',
-		'api/**/*.js',
-		'helpers/**/*.js',
-		'modules/**/*.js',
-		'logic/*.js',
-		'schema/**/*.js',
-		'sql/**/*.js',
-		'app.js'
-	];
+module.exports = function(grunt) {
+	const today = moment().format('HH:mm:ss DD/MM/YYYY');
+	const release_dir = path.join(__dirname, '/release/');
+	const config = require('./package.json');
 
-	var today = moment().format('HH:mm:ss DD/MM/YYYY');
-
-	var config = require('./config.json');
-
-	var release_dir = __dirname + '/release/';
-	var version_dir = release_dir + config.version;
-
-	var maxBufferSize = require('buffer').kMaxLength - 1;
+	const maxBufferSize = require('buffer').kMaxLength - 1;
 
 	grunt.initConfig({
-		obfuscator: {
-			files: files,
-			entry: 'app.js',
-			out: 'release/app.js',
-			strings: true,
-			root: __dirname
-		},
-
 		exec: {
-			package: {
-				command: function () {
-					return [
-						util.format('mkdir -p %s', version_dir),
-						util.format('mkdir -p %s/logs', version_dir),
-						util.format('mkdir -p %s/pids', version_dir),
-						util.format('mkdir -p %s/public', version_dir),
-						util.format('cp %s/app.js %s', release_dir, version_dir),
-						util.format('cp %s/config.json %s', __dirname, version_dir),
-						util.format('cp %s/package.json %s', __dirname, version_dir),
-						util.format('cp %s/genesisBlock.json %s', __dirname, version_dir),
-						util.format('cp %s/LICENSE %s', __dirname, version_dir),
-						util.format('mkdir -p %s/sql/migrations', version_dir),
-						util.format('cp %s/sql/*.sql %s/sql/', __dirname, version_dir),
-						util.format('cp %s/sql/migrations/*.sql %s/sql/migrations/', __dirname, version_dir)
-					].join(' && ');
-				}
+			build: {
+				command: `cd ${__dirname}/ && echo "v${today}" > build`,
+			},
+
+			revision: {
+				command: `cd ${__dirname}/ && git rev-parse HEAD > REVISION`,
+			},
+
+			pack: {
+				command: 'npm pack',
 			},
 
 			folder: {
-				command: 'mkdir -p ' + release_dir
+				command: `mkdir -p ${release_dir}`,
 			},
 
-			build: {
-				command: 'cd ' + version_dir + '/ && touch build && echo "v' + today + '" > build'
+			copy: {
+				command: `cp lisk-${config.version}.tgz ${release_dir}`,
 			},
 
-			coverage: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha',
-				maxBuffer: maxBufferSize
-			},
-
-			coverageSingle: {
-				command: 'export NODE_ENV=TEST && node_modules/.bin/istanbul cover --dir test/.coverage-unit ./node_modules/.bin/_mocha $TEST',
-				maxBuffer: maxBufferSize
+			mocha: {
+				cmd(tag, suite, section) {
+					if (suite === 'integration') {
+						var slowTag = '';
+						if (tag === 'untagged') {
+							slowTag = "--grep '@slow|@unstable' --invert";
+						} else if (tag === 'extensive') {
+							slowTag = '--grep @unstable --invert';
+						} else if (tag === 'slow') {
+							slowTag = '--grep @slow';
+						} else if (tag === 'unstable') {
+							slowTag = '--grep @unstable';
+						} else {
+							grunt.fail.fatal(
+								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
+							);
+						}
+						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
+					}
+					var toExecute = [tag, suite, section].filter(val => val).join(' ');
+					return `node test/common/parallel_tests.js ${toExecute}`;
+				},
+				maxBuffer: maxBufferSize,
 			},
 
 			fetchCoverage: {
-				command: 'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
-				maxBuffer: maxBufferSize
-			}
-		},
-
-		compress: {
-			main: {
-				options: {
-					archive: version_dir + '.tar.gz',
-					mode: 'tgz',
-					level: 6
-				},
-				files: [
-					{ expand: true, cwd: release_dir, src: [config.version + '/**'], dest: './' }
-				]
-			}
-		},
-
-		eslint: {
-			options: {
-				configFile: '.eslintrc.json',
-				format: 'codeframe',
-				fix: false
+				command:
+					'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
+				maxBuffer: maxBufferSize,
 			},
-			target: [
-				'api',
-				'helpers',
-				'modules',
-				'logic',
-				'schema',
-				// 'sql',
-				'tasks',
-				'test'
-			]
-		}
+
+			coverageReport: {
+				command:
+					'rm -f ./test/.coverage-unit/lcov.info; ./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit',
+			},
+		},
 	});
 
 	grunt.loadTasks('tasks');
-
-	grunt.loadNpmTasks('grunt-obfuscator');
 	grunt.loadNpmTasks('grunt-exec');
-	grunt.loadNpmTasks('grunt-contrib-compress');
-	grunt.loadNpmTasks('grunt-eslint');
-
-	grunt.registerTask('default', ['release']);
-	grunt.registerTask('release', ['exec:folder', 'obfuscator', 'exec:package', 'exec:build', 'compress']);
-	grunt.registerTask('jenkins', ['exec:coverageSingle']);
-	grunt.registerTask('eslint-nofix', ['eslint']);
-
-	grunt.registerTask('eslint-fix', 'Run eslint and fix formatting', function () {
-		grunt.config.set('eslint.options.fix', true);
-		grunt.task.run('eslint');
-	});
+	grunt.registerTask('release', [
+		'exec:build',
+		'exec:revision',
+		'exec:pack',
+		'exec:folder',
+		'exec:copy',
+	]);
+	grunt.registerTask('coverageReport', ['exec:coverageReport']);
+	grunt.registerTask('default', 'mocha');
 };

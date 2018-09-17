@@ -1,220 +1,155 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
 'use strict';
 
-var async = require('async');
-var constants = require('../helpers/constants.js');
-var crypto = require('crypto');
-var sandboxHelper = require('../helpers/sandbox.js');
-var schema = require('../schema/signatures.js');
-var Signature = require('../logic/signature.js');
-var transactionTypes = require('../helpers/transactionTypes.js');
+const apiCodes = require('../helpers/api_codes.js');
+const ApiError = require('../helpers/api_error.js');
+const Signature = require('../logic/signature.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 // Private fields
-var modules, library, self, __private = {}, shared = {};
+let modules;
+let library;
+let self;
+const __private = {};
 
 __private.assetTypes = {};
 
 /**
- * Initializes library with scope content and generates a Signature instance.
+ * Main signatures methods. Initializes library with scope content and generates a Signature instance.
  * Calls logic.transaction.attachAssetType().
- * @memberof module:signatures
+ *
  * @class
- * @classdesc Main signatures methods.
- * @param {function} cb - Callback function.
- * @param {scope} scope - App instance.
- * @return {setImmediateCallback} Callback function with `self` as data.
+ * @memberof modules
+ * @see Parent: {@link modules}
+ * @requires helpers/api_codes
+ * @requires helpers/api_error
+ * @requires helpers/transaction_types
+ * @requires logic/signature
+ * @param {function} cb - Callback function
+ * @param {scope} scope - App instance
+ * @returns {setImmediateCallback} cb, null, self
  */
-// Constructor
-function Signatures (cb, scope) {
-	library = {
-		schema: scope.schema,
-		ed: scope.ed,
-		balancesSequence: scope.balancesSequence,
-		logic: {
-			transaction: scope.logic.transaction,
-		},
-	};
-	self = this;
+class Signatures {
+	constructor(cb, scope) {
+		library = {
+			schema: scope.schema,
+			ed: scope.ed,
+			balancesSequence: scope.balancesSequence,
+			logic: {
+				transaction: scope.logic.transaction,
+			},
+		};
+		self = this;
 
-	__private.assetTypes[transactionTypes.SIGNATURE] = library.logic.transaction.attachAssetType(
-		transactionTypes.SIGNATURE,
-		new Signature(
-			scope.schema,
-			scope.logger
-		)
-	);
+		__private.assetTypes[
+			transactionTypes.SIGNATURE
+		] = library.logic.transaction.attachAssetType(
+			transactionTypes.SIGNATURE,
+			new Signature(scope.schema, scope.logger)
+		);
 
-	setImmediate(cb, null, self);
+		setImmediate(cb, null, self);
+	}
 }
 
 // Public methods
 /**
  * Checks if `modules` is loaded.
- * @return {boolean} True if `modules` is loaded.
+ *
+ * @returns {boolean} True if `modules` is loaded
  */
-Signatures.prototype.isLoaded = function () {
+Signatures.prototype.isLoaded = function() {
 	return !!modules;
-};
-
-/**
- * Calls helpers.sandbox.callMethod().
- * @implements module:helpers#callMethod
- * @param {function} call - Method to call.
- * @param {} args - List of arguments.
- * @param {function} cb - Callback function.
- */
-Signatures.prototype.sandboxApi = function (call, args, cb) {
-	sandboxHelper.callMethod(shared, call, args, cb);
 };
 
 // Events
 /**
  * Calls Signature.bind() with modules params.
- * @implements module:signatures#Signature~bind
- * @param {modules} scope - Loaded modules.
+ *
+ * @param {modules} scope - Loaded modules
  */
-Signatures.prototype.onBind = function (scope) {
+Signatures.prototype.onBind = function(scope) {
 	modules = {
 		accounts: scope.accounts,
 		transactions: scope.transactions,
+		transport: scope.transport,
 	};
 
-	__private.assetTypes[transactionTypes.SIGNATURE].bind(
-		scope.accounts
-	);
+	__private.assetTypes[transactionTypes.SIGNATURE].bind(scope.accounts);
+};
+
+__private.processPostResult = function(err, res, cb) {
+	let error = null;
+	let response = null;
+
+	// TODO: Need to improve error handling so that we don't
+	// need to parse the error message to determine the error type.
+	const processingError = /^Error processing signature/;
+	const badRequestBodyError = /^Invalid signature body/;
+
+	if (err) {
+		error = new ApiError(err, apiCodes.PROCESSING_ERROR);
+	} else if (res.success) {
+		response = { status: 'Signature Accepted' };
+	} else if (processingError.test(res.message)) {
+		error = new ApiError(res.message, apiCodes.PROCESSING_ERROR);
+	} else if (badRequestBodyError.test(res.message)) {
+		error = new ApiError(res.message, apiCodes.BAD_REQUEST);
+	} else {
+		error = new ApiError(res.message, apiCodes.INTERNAL_SERVER_ERROR);
+	}
+	return setImmediate(cb, error, response);
 };
 
 // Shared API
 /**
- * @todo implement API comments with apidoc.
- * @see {@link http://apidocjs.com/}
+ * Public methods, accessible via API.
+ *
+ * @property {function} postSignature - Post signature for transaction
+ * @property {function} postSignatures - Post signatures for transactions
  */
 Signatures.prototype.shared = {
-	getFee: function (req, cb) {
-		var fee = constants.fees.secondsignature;
-
-		return setImmediate(cb, null, {fee: fee});
+	/**
+	 * Post signature for a transaction.
+	 *
+	 * @param {Object.<{transactionId: string, publicKey: string, signature: string}>} - Signature
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 */
+	postSignature(signature, cb) {
+		return modules.transport.shared.postSignature({ signature }, (err, res) => {
+			__private.processPostResult(err, res, cb);
+		});
 	},
 
-	addSignature: function (req, cb) {
-		library.schema.validate(req.body, schema.addSignature, function (err) {
-			if (err) {
-				return setImmediate(cb, err[0].message);
+	/**
+	 * Post signatures for transactions.
+	 *
+	 * @param {Array.<{transactionId: string, publicKey: string, signature: string}>} signatures - Array of signatures
+	 * @param {function} cb - Callback function
+	 * @returns {setImmediateCallback} cb
+	 */
+	postSignatures(signatures, cb) {
+		return modules.transport.shared.postSignatures(
+			{ signatures },
+			(err, res) => {
+				__private.processPostResult(err, res, cb);
 			}
-
-			if (req.body.multisigAccountPublicKey || req.body.requesterPublicKey) {
-				return setImmediate(cb, 'Multisig request is not allowed');
-			}
-
-			var hash = crypto.createHash('sha256').update(req.body.secret, 'utf8').digest();
-			var keypair = library.ed.makeKeypair(hash);
-
-			if (req.body.publicKey) {
-				if (keypair.publicKey.toString('hex') !== req.body.publicKey) {
-					return setImmediate(cb, 'Invalid passphrase');
-				}
-			}
-
-			library.balancesSequence.add(function (cb) {
-				if (req.body.multisigAccountPublicKey && req.body.multisigAccountPublicKey !== keypair.publicKey.toString('hex')) {
-					modules.accounts.getAccount({publicKey: req.body.multisigAccountPublicKey}, function (err, account) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!account || !account.publicKey) {
-							return setImmediate(cb, 'Multisignature account not found');
-						}
-
-						if (!account.multisignatures || !account.multisignatures) {
-							return setImmediate(cb, 'Account does not have multisignatures enabled');
-						}
-
-						if (account.multisignatures.indexOf(keypair.publicKey.toString('hex')) < 0) {
-							return setImmediate(cb, 'Account does not belong to multisignature group');
-						}
-
-						if (account.secondSignature || account.u_secondSignature) {
-							return setImmediate(cb, 'Account already has a second passphrase');
-						}
-
-						modules.accounts.getAccount({publicKey: keypair.publicKey}, function (err, requester) {
-							if (err) {
-								return setImmediate(cb, err);
-							}
-
-							if (!requester || !requester.publicKey) {
-								return setImmediate(cb, 'Requester not found');
-							}
-
-							if (requester.secondSignature && !req.body.secondSecret) {
-								return setImmediate(cb, 'Missing requester second passphrase');
-							}
-
-							if (requester.publicKey === account.publicKey) {
-								return setImmediate(cb, 'Invalid requester public key');
-							}
-
-							var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-							var secondKeypair = library.ed.makeKeypair(secondHash);
-							var transaction;
-
-							try {
-								transaction = library.logic.transaction.create({
-									type: transactionTypes.SIGNATURE,
-									sender: account,
-									keypair: keypair,
-									requester: keypair,
-									secondKeypair: secondKeypair,
-
-								});
-							} catch (e) {
-								return setImmediate(cb, e.toString());
-							}
-
-							modules.transactions.receiveTransactions([transaction], true, cb);
-						});
-					});
-				} else {
-					modules.accounts.setAccountAndGet({publicKey: keypair.publicKey.toString('hex')}, function (err, account) {
-						if (err) {
-							return setImmediate(cb, err);
-						}
-
-						if (!account || !account.publicKey) {
-							return setImmediate(cb, 'Account not found');
-						}
-
-						if (account.secondSignature || account.u_secondSignature) {
-							return setImmediate(cb, 'Account already has a second passphrase');
-						}
-
-						var secondHash = crypto.createHash('sha256').update(req.body.secondSecret, 'utf8').digest();
-						var secondKeypair = library.ed.makeKeypair(secondHash);
-						var transaction;
-
-						try {
-							transaction = library.logic.transaction.create({
-								type: transactionTypes.SIGNATURE,
-								sender: account,
-								keypair: keypair,
-								secondKeypair: secondKeypair
-							});
-						} catch (e) {
-							return setImmediate(cb, e.toString());
-						}
-						modules.transactions.receiveTransactions([transaction], true, cb);
-					});
-				}
-
-			}, function (err, transaction) {
-				if (err) {
-					return setImmediate(cb, err);
-				}
-				return setImmediate(cb, null, {transaction: transaction[0]});
-			});
-
-		});
-	}
+		);
+	},
 };
 
 // Export

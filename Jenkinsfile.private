@@ -1,0 +1,30 @@
+pipeline {
+	agent { node { label 'dependencies-check' } }
+	stages {
+		stage('Prepare workspace') {
+			steps {
+				checkout scm
+			}
+		}
+		stage('Install dependencies') {
+			steps {
+				sh 'npm install --verbose'
+			}
+		}
+		stage('Run vulnerabilities check') {
+			steps {
+				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
+					sh '''
+					if [ -r ~/.lisk.package.json.sha1sum ]; then
+						if sha1sum --status --check ~/.lisk.package.json.sha1sum; then
+							echo "Skipping vulnerabilities check since package.json has not changed."
+							exit 0
+						fi
+					fi
+					snyk test
+					'''
+				}
+			}
+		}
+	}
+}
