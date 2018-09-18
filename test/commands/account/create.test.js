@@ -65,7 +65,7 @@ describe('account:create', () => {
 			});
 	});
 
-	describe('account:create --number x', () => {
+	describe('account:create --number=x', () => {
 		const defaultNumber = 3;
 		setupTest()
 			.command(['account:create', `--number=${defaultNumber}`])
@@ -102,5 +102,16 @@ describe('account:create', () => {
 				);
 			})
 			.it('should throw an error if the number flag is less than 1');
+
+		setupTest()
+			.command(['account:create', '--number=10sk24'])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Number flag must be an integer and greater than 0',
+				);
+			})
+			.it(
+				'should throw an error if the number flag contains non-number characters',
+			);
 	});
 });
