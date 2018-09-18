@@ -51,13 +51,15 @@ module.exports = function(grunt) {
 					if (suite === 'network') {
 						var filter = '';
 						if (tagFilter === 'default') {
-							filter = "--grep '@slow|@unstable' --invert";
+							filter = "--grep '@slow|@unstable|@standalone' --invert";
 						} else if (tagFilter === 'extensive') {
 							filter = '--grep @unstable --invert';
 						} else if (tagFilter === 'slow') {
 							filter = '--grep @slow';
 						} else if (tagFilter === 'unstable') {
 							filter = '--grep @unstable';
+						} else if (tagFilter === 'standalone') {
+							filter = '--grep @standalone';
 						} else if (tagFilter === 'network') {
 							filter = '--grep @network';
 						} else if (tagFilter === 'propagation') {
