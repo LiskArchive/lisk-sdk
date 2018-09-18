@@ -576,7 +576,7 @@ describe('db', () => {
 		});
 
 		describe('getCommonBlock()', () => {
-			it('should call a function with SQL parameters', function*() {
+			it('should call a normal SQL file with parameters if previousBlock is not provided', function*() {
 				sinonSandbox.spy(db, 'any');
 
 				const params = {
@@ -585,7 +585,24 @@ describe('db', () => {
 				};
 				yield db.blocks.getCommonBlock(params);
 
-				expect(db.any.firstCall.args[0]).to.be.a('function');
+				expect(db.any.firstCall.args[0]).to.eql(sql.getCommonBlock);
+				expect(db.any.firstCall.args[1]).to.eql(params);
+				return expect(db.any).to.be.calledOnce;
+			});
+
+			it('should call different SQL file with parameters if previousBlock is provided', function*() {
+				sinonSandbox.spy(db, 'any');
+
+				const params = {
+					id: '1111',
+					height: 1,
+					previousBlock: '12345',
+				};
+				yield db.blocks.getCommonBlock(params);
+
+				expect(db.any.firstCall.args[0]).to.eql(
+					sql.getCommonBlockByPreviousBlock
+				);
 				expect(db.any.firstCall.args[1]).to.eql(params);
 				return expect(db.any).to.be.calledOnce;
 			});
