@@ -5,6 +5,9 @@
  *
  * See lib/config/default.js in the agent distribution for a more complete
  * description of configuration variables and their potential values.
+ *
+ * Further information can also be found on
+ * https://docs.newrelic.com/docs/agents/nodejs-agent/installation-configuration/nodejs-agent-configuration
  */
 exports.config = {
 	/**
@@ -13,6 +16,9 @@ exports.config = {
 	app_name: [`lisk-${process.env.LISK_NETWORK}`],
 	/**
 	 * Your New Relic license key.
+	 *
+	 * MUST set the license key using `NEW_RELIC_LICENSE_KEY` env variable
+	 * if you want to enable the monitoring of the liskf node
 	 */
 	license_key: '',
 	logging: {
