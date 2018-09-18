@@ -21,28 +21,58 @@ import * as mnemonic from '../../../src/utils/mnemonic';
 
 describe('account:create', () => {
 	const defaultKeys = {
-		publicKey: 'somePublicKey',
-		privateKey: 'somePrivateKey',
+		publicKey:
+			'88b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
+		privateKey:
+			'1a8ea0ceed1b85c9cff5eb12ae8d9ccdac93b5d5c668775e12b86dd63a8cefa688b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
 	};
-	const defaultAddress = 'someAddress';
+	const secondDefaultKeys = {
+		publicKey:
+			'90215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
+		privateKey:
+			'bec5ac9d074d1684f9dd184fc44c4b37fb73ca9d013b6ddf5a92578a98f8848990215077294ac1c727b357978df9291b77a8a700e6e42545dc0e6e5ba9582f13',
+	};
+	const defaultAddress = '14389576228799148035L';
+	const secondDefaultAddress = '10498496668550693658L';
 	const defaultMnemonic =
-		'whale acoustic sword work scene frame assume ensure hawk federal upgrade angry';
+		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
+	const secondDefaultMnemonic =
+		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
+			.stub(
+				cryptography,
+				'getKeys',
+				sandbox
+					.stub()
+					.onFirstCall()
+					.returns(defaultKeys)
+					.onSecondCall()
+					.returns(secondDefaultKeys),
+			)
 			.stub(
 				cryptography,
 				'getAddressFromPublicKey',
-				sandbox.stub().returns(defaultAddress),
+				sandbox
+					.stub()
+					.onFirstCall()
+					.returns(defaultAddress)
+					.onSecondCall()
+					.returns(secondDefaultAddress),
 			)
 			.stub(
 				mnemonic,
 				'createMnemonicPassphrase',
-				sandbox.stub().returns(defaultMnemonic),
+				sandbox
+					.stub()
+					.onFirstCall()
+					.returns(defaultMnemonic)
+					.onSecondCall()
+					.returns(secondDefaultMnemonic),
 			)
 			.stdout();
 
@@ -66,7 +96,7 @@ describe('account:create', () => {
 	});
 
 	describe('account:create --number=x', () => {
-		const defaultNumber = 3;
+		const defaultNumber = 2;
 		setupTest()
 			.command(['account:create', `--number=${defaultNumber}`])
 			.it('should create account', () => {
@@ -75,13 +105,18 @@ describe('account:create', () => {
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
 					defaultKeys.publicKey,
 				);
-				const result = Array(defaultNumber)
-					.fill()
-					.map(() => ({
+				const result = [
+					{
 						...defaultKeys,
 						address: defaultAddress,
 						passphrase: defaultMnemonic,
-					}));
+					},
+					{
+						...secondDefaultKeys,
+						address: secondDefaultAddress,
+						passphrase: secondDefaultMnemonic,
+					},
+				];
 				return expect(printMethodStub).to.be.calledWith(result);
 			});
 
