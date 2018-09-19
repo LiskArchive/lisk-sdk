@@ -130,8 +130,7 @@ const spawnParallelTest = (testFile, mochaArguments) => {
 		child.on('close', code => {
 			if (code === 0) {
 				console.info(`Test finished successfully: ${testFile}`);
-				resolve(testFile);
-				return child.kill('SIGTERM');
+				return resolve(testFile);
 			}
 
 			console.error('Test failed:', testFile);
@@ -142,7 +141,8 @@ const spawnParallelTest = (testFile, mochaArguments) => {
 		child.on('error', err => {
 			console.error(err);
 			reject(err);
-			process.exit();
+			child.kill('SIGTERM');
+			return process.exit();
 		});
 	});
 };
@@ -198,7 +198,6 @@ const runSequentialTests = (suiteFolder, mochaArguments) => {
 			}
 
 			console.error('Sequential tests failed:', suiteFolder);
-			child.kill('SIGTERM');
 			reject(code);
 			return process.exit(code);
 		});
