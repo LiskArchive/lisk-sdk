@@ -427,7 +427,7 @@ npm run mocha -- path/to/test.js
 
 ## Utility scripts
 
-There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
+There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
 
 #### Generate Config
 
@@ -463,7 +463,7 @@ As you can see from the usage guide, `input_file` and `from_version` are require
 
 #### Console
 
-This script is really useful in development. It will initialize the components of Lisk and load these into ndoejs REPL.
+This script is really useful in development. It will initialize the components of Lisk and load these into Node.js REPL.
 
 ```
 node scripts/console.js
