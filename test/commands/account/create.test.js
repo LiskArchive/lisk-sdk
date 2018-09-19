@@ -19,7 +19,13 @@ import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as mnemonic from '../../../src/utils/mnemonic';
 
+process.env.TEST_OUTPUT = 1;
+
 describe('account:create', () => {
+	const defaultMnemonic =
+		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
+	const secondDefaultMnemonic =
+		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 	const defaultKeys = {
 		publicKey:
 			'88b182d9f2d8a7c3b481a8962ae7d445b7a118fbb6a6f3afcedf4e0e8c46ecac',
@@ -34,36 +40,24 @@ describe('account:create', () => {
 	};
 	const defaultAddress = '14389576228799148035L';
 	const secondDefaultAddress = '10498496668550693658L';
-	const defaultMnemonic =
-		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
-	const secondDefaultMnemonic =
-		'alone cabin buffalo blast region upper jealous basket brush put answer twice';
 
 	const printMethodStub = sandbox.stub();
-	const setupTest = () =>
-		test
+	const setupTest = () => {
+		const getKeysStub = sandbox.stub();
+		getKeysStub.withArgs(defaultMnemonic).returns(defaultKeys);
+		getKeysStub.withArgs(secondDefaultMnemonic).returns(secondDefaultKeys);
+
+		const getAddressFromPublicKeyStub = sandbox.stub();
+		getAddressFromPublicKeyStub
+			.withArgs(defaultKeys.publicKey)
+			.returns(defaultAddress);
+		getAddressFromPublicKeyStub
+			.withArgs(secondDefaultKeys.publicKey)
+			.returns(secondDefaultAddress);
+
+		return test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(
-				cryptography,
-				'getKeys',
-				sandbox
-					.stub()
-					.onFirstCall()
-					.returns(defaultKeys)
-					.onSecondCall()
-					.returns(secondDefaultKeys),
-			)
-			.stub(
-				cryptography,
-				'getAddressFromPublicKey',
-				sandbox
-					.stub()
-					.onFirstCall()
-					.returns(defaultAddress)
-					.onSecondCall()
-					.returns(secondDefaultAddress),
-			)
 			.stub(
 				mnemonic,
 				'createMnemonicPassphrase',
@@ -74,7 +68,14 @@ describe('account:create', () => {
 					.onSecondCall()
 					.returns(secondDefaultMnemonic),
 			)
+			.stub(cryptography, 'getKeys', getKeysStub)
+			.stub(
+				cryptography,
+				'getAddressFromPublicKey',
+				getAddressFromPublicKeyStub,
+			)
 			.stdout();
+	};
 
 	describe('account:create', () => {
 		setupTest()
