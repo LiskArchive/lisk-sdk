@@ -540,7 +540,7 @@ describe('transport', () => {
 					var processSignatureError;
 
 					beforeEach(done => {
-						processSignatureError = 'Transaction not found';
+						processSignatureError = new Error('Transaction not found');
 						modules.multisignatures.processSignature = sinonSandbox
 							.stub()
 							.callsArgWith(1, processSignatureError);
@@ -553,7 +553,7 @@ describe('transport', () => {
 
 					it('should call callback with error', () => {
 						return expect(error).to.equal(
-							`Error processing signature: ${processSignatureError}`
+							`Error processing signature: ${processSignatureError.message}`
 						);
 					});
 				});
