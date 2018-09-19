@@ -58,8 +58,13 @@ module.exports = function(grunt) {
 							filter = '--grep @slow';
 						} else if (tagFilter === 'unstable') {
 							filter = '--grep @unstable';
-						} else if (tagFilter === 'standalone') {
-							filter = '--grep @standalone';
+						} else if (tagFilter === 'sequential') {
+							/**
+							 * Tests or test suites which contains @sequential tag
+							 * are going to be run sequentially after all parallel
+							 * tests were executed.
+							 */
+							filter = '--grep @sequential';
 						} else if (tagFilter === 'network') {
 							filter = '--grep @network';
 						} else if (tagFilter === 'propagation') {

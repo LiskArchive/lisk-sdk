@@ -19,7 +19,7 @@ const find = require('find');
 
 const maxParallelism = 20;
 
-const executeIstanbul = (path, mochaArguments) => {
+const executeWithIstanbul = (path, mochaArguments) => {
 	const coverageArguments = [
 		'cover',
 		'--dir',
@@ -89,17 +89,27 @@ const getMochaArguments = tag => {
 		case 'unstable':
 			mochaArguments.push('--', '--grep', '@unstable');
 			break;
-		case 'standalone':
-			mochaArguments.push('--', '--grep', '@standalone');
+		case 'sequential':
+			/**
+			 * Tests or test suites which contains @sequential tag
+			 * are going to be run sequentially after all parallel
+			 * tests were executed.
+			 */
+			mochaArguments.push('--', '--grep', '@sequential');
 			break;
 		case 'extensive':
-			mochaArguments.push('--', '--grep', '@unstable|@standalone', '--invert');
+			mochaArguments.push('--', '--grep', '@unstable|@sequential', '--invert');
 			break;
 		default:
+			/**
+			 * We are excluding sequential tests if default tag
+			 * is provided because sequential tests can conflict if
+			 * they are run in parallel with other tests.
+			 */
 			mochaArguments.push(
 				'--',
 				'--grep',
-				'@slow|@unstable|@standalone',
+				'@slow|@unstable|@sequential',
 				'--invert'
 			);
 			break;
@@ -109,7 +119,7 @@ const getMochaArguments = tag => {
 
 const spawnParallelTest = (testFile, mochaArguments) => {
 	return new Promise((resolve, reject) => {
-		const child = executeIstanbul(testFile, mochaArguments);
+		const child = executeWithIstanbul(testFile, mochaArguments);
 
 		console.info(
 			`Running parallel the test: ${testFile} as a separate process - pid: ${
@@ -178,16 +188,16 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 	});
 };
 
-const runStandaloneTests = (suiteFolder, mochaArguments) => {
+const runSequentialTests = (suiteFolder, mochaArguments) => {
 	return new Promise((resolve, reject) => {
-		const child = executeIstanbul(suiteFolder, mochaArguments);
+		const child = executeWithIstanbul(suiteFolder, mochaArguments);
 		child.on('close', code => {
 			if (code === 0) {
-				console.info('All standalone tests finished successfully.');
+				console.info('All sequential tests finished successfully.');
 				return resolve();
 			}
 
-			console.error('Standalone tests failed:', suiteFolder);
+			console.error('Sequential tests failed:', suiteFolder);
 			child.kill('SIGTERM');
 			reject(code);
 			return process.exit(code);
@@ -212,7 +222,7 @@ function executeTests(tag, suite, section) {
 		const suiteFolder = getSuiteFolder(suite, section);
 		const mochaArguments = getMochaArguments(tag);
 
-		if (tag !== 'standalone') {
+		if (tag !== 'sequential') {
 			try {
 				const result = await runParallelTests(suiteFolder, mochaArguments);
 				return resolve(result);
@@ -222,10 +232,10 @@ function executeTests(tag, suite, section) {
 			}
 		} else {
 			try {
-				const result = await runStandaloneTests(suiteFolder, mochaArguments);
+				const result = await runSequentialTests(suiteFolder, mochaArguments);
 				return resolve(result);
 			} catch (err) {
-				console.error('Standalone tests failed!', err);
+				console.error('Sequential tests failed!', err);
 				return reject(err);
 			}
 		}
@@ -234,8 +244,8 @@ function executeTests(tag, suite, section) {
 
 (async () => {
 	await executeTests(process.argv[2], process.argv[3], process.argv[4]);
-	if (process.argv[2] !== 'standalone') {
-		await executeTests('standalone', process.argv[3], process.argv[4]);
+	if (process.argv[2] !== 'sequential') {
+		await executeTests('sequential', process.argv[3], process.argv[4]);
 	}
 })();
 
