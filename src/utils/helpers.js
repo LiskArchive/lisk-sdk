@@ -50,3 +50,9 @@ export const validateAmount = amount => {
 export const createErrorHandler = prefix => ({ message }) => ({
 	error: `${prefix}: ${message}`,
 });
+
+export const handleEPIPE = err => {
+	if (err.errno !== 'EPIPE') {
+		throw err;
+	}
+};

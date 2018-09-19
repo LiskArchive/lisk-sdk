@@ -16,6 +16,7 @@
 import os from 'os';
 import { Command, flags as flagParser } from '@oclif/command';
 import { getConfig } from './utils/config';
+import { handleEPIPE } from './utils/helpers';
 import print from './utils/print';
 
 export const defaultConfigFolder = '.lisk';
@@ -24,6 +25,10 @@ export default class BaseCommand extends Command {
 	async init() {
 		const { flags } = this.parse(this.constructor);
 		this.flags = flags;
+
+		process.stdout.on('error', handleEPIPE);
+
+		process.stderr.on('error', handleEPIPE);
 
 		process.env.XDG_CONFIG_HOME =
 			process.env.LISK_COMMANDER_CONFIG_DIR ||
