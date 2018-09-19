@@ -40,6 +40,7 @@ export default class BaseCommand extends Command {
 		if (error) {
 			this.error(error.message ? error.message : error);
 		}
+		process.exit(0);
 	}
 
 	print(result, readAgain = false) {
