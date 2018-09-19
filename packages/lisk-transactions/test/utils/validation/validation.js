@@ -247,20 +247,20 @@ describe('validation', () => {
 
 	describe('#validateAmount', () => {
 		it('should return true when amount is a number and is not greater than maximum transaction amount', () => {
-			return expect(validateAmount('1000000000000000')).to.be.true;
+			return expect(validateAmount('9223372036854775807')).to.be.true;
 		});
 	});
 
 	describe('#isGreaterThanMaxTransactionAmount', () => {
 		it('should return false when amount is less than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('10000000000000000')),
+				isGreaterThanMaxTransactionAmount(bignum('9223372036854775807')),
 			).to.be.false;
 		});
 
 		it('should return true when amount is more than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('10000000000000001')),
+				isGreaterThanMaxTransactionAmount(bignum('9223372036854775808')),
 			).to.be.true;
 		});
 	});
