@@ -27,7 +27,7 @@ describe('transactions utils', () => {
 			);
 		});
 
-		it('should throw an validation error when the input is not valid JSON format', () => {
+		it('should throw a validation error when the input is not valid JSON format', () => {
 			return expect(
 				parseTransactionString.bind(
 					null,
@@ -36,14 +36,14 @@ describe('transactions utils', () => {
 			).to.throw(ValidationError, 'Could not parse transaction JSON.');
 		});
 
-		it('should throw an validation error when the input is empty', () => {
+		it('should throw a validation error when the input is empty', () => {
 			return expect(parseTransactionString.bind(null, '')).to.throw(
 				ValidationError,
 				'Could not parse transaction JSON.',
 			);
 		});
 
-		it('should throw an validation error when the input is undefined', () => {
+		it('should throw a validation error when the input is undefined', () => {
 			return expect(parseTransactionString.bind(null)).to.throw(
 				ValidationError,
 				'Could not parse transaction JSON.',

@@ -128,6 +128,7 @@ describe('transaction:broadcast', () => {
 			)
 			.command(['transaction:broadcast'])
 			.it('should broadcast the transaction', () => {
+				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(
 					defaultTransaction,
 				);
