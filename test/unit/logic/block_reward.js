@@ -17,10 +17,10 @@
 const BlockReward = require('../../../logic/block_reward.js');
 const Bignum = require('../../../helpers/bignum.js');
 
-const constants = __testContext.config.constants;
+const { REWARDS, TOTAL_AMOUNT } = __testContext.config.constants;
 
-constants.REWARDS.DISTANCE = 3000000;
-constants.REWARDS.OFFSET = 1451520;
+REWARDS.DISTANCE = 3000000;
+REWARDS.OFFSET = 1451520;
 
 describe('BlockReward @slow', () => {
 	let blockReward;
@@ -472,7 +472,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 1; i < 1451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(constants.TOTAL_AMOUNT));
+						expect(supply.equals(TOTAL_AMOUNT));
 					}
 					done();
 				});
@@ -485,7 +485,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 1451520; i < 4451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(prev.plus(constants.REWARDS.MILESTONES[0])));
+						expect(supply.equals(prev.plus(REWARDS.MILESTONES[0])));
 						prev = supply;
 					}
 					done();
@@ -499,7 +499,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 4451520; i < 7451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(prev.plus(constants.REWARDS.MILESTONES[1])));
+						expect(supply.equals(prev.plus(REWARDS.MILESTONES[1])));
 						prev = supply;
 					}
 					done();
@@ -513,7 +513,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 7451520; i < 10451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(prev.plus(constants.REWARDS.MILESTONES[2])));
+						expect(supply.equals(prev.plus(REWARDS.MILESTONES[2])));
 						prev = supply;
 					}
 					done();
@@ -527,7 +527,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 10451520; i < 13451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(prev.plus(constants.REWARDS.MILESTONES[3])));
+						expect(supply.equals(prev.plus(REWARDS.MILESTONES[3])));
 						prev = supply;
 					}
 					done();
@@ -541,7 +541,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 13451520; i < 13451520 + 100; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.equals(prev.plus(constants.REWARDS.MILESTONES[4])));
+						expect(supply.equals(prev.plus(REWARDS.MILESTONES[4])));
 						prev = supply;
 					}
 					done();

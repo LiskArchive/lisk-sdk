@@ -16,7 +16,7 @@
 
 const Bignum = require('../helpers/bignum.js');
 
-const constants = global.constants;
+const { REWARDS, TOTAL_AMOUNT } = global.constants;
 
 const __private = {};
 /**
@@ -33,13 +33,13 @@ const __private = {};
 class BlockReward {
 	constructor() {
 		// Array of milestones
-		this.milestones = constants.REWARDS.MILESTONES;
+		this.milestones = REWARDS.MILESTONES;
 
 		// Distance between each milestone
-		this.distance = Math.floor(constants.REWARDS.DISTANCE);
+		this.distance = Math.floor(REWARDS.DISTANCE);
 
 		// Start rewards at block (n)
-		this.rewardOffset = Math.floor(constants.REWARDS.OFFSET);
+		this.rewardOffset = Math.floor(REWARDS.OFFSET);
 	}
 
 	/**
@@ -86,7 +86,7 @@ class BlockReward {
 	 */
 	calcSupply(height) {
 		height = __private.parseHeight(height);
-		const supply = new Bignum(constants.TOTAL_AMOUNT);
+		const supply = new Bignum(TOTAL_AMOUNT);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet

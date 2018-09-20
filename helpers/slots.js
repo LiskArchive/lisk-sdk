@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = global.constants;
+const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 
 /**
  * Description of the module.
@@ -38,7 +38,7 @@ function getEpochTime(time) {
 		time = Date.now();
 	}
 
-	var d = constants.EPOCH_TIME;
+	var d = EPOCH_TIME;
 	var t = d.getTime();
 
 	return Math.floor((time - t) / 1000);
@@ -46,7 +46,7 @@ function getEpochTime(time) {
 
 module.exports = {
 	interval: 10,
-	delegates: constants.ACTIVE_DELEGATES,
+	delegates: ACTIVE_DELEGATES,
 
 	/**
 	 * Description of the function.
@@ -71,7 +71,7 @@ module.exports = {
 			epochTime = this.getTime();
 		}
 
-		var d = constants.EPOCH_TIME;
+		var d = EPOCH_TIME;
 		var t = Math.floor(d.getTime() / 1000) * 1000;
 
 		return t + epochTime * 1000;

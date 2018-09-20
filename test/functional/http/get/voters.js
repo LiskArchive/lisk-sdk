@@ -24,7 +24,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var Bignum = require('../../../../helpers/bignum.js');
 
-const constants = global.constants;
+const { FEES } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', () => {
@@ -241,9 +241,9 @@ describe('GET /api/voters', () => {
 			var validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
-				const amount = new Bignum(constants.FEES.DELEGATE)
-					.plus(constants.FEES.VOTE)
-					.plus(constants.FEES.SECOND_SIGNATURE);
+				const amount = new Bignum(FEES.DELEGATE)
+					.plus(FEES.VOTE)
+					.plus(FEES.SECOND_SIGNATURE);
 				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,

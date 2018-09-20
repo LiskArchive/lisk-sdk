@@ -16,7 +16,7 @@
 
 const _ = require('lodash');
 
-const constants = global.constants;
+const { ACTIVE_DELEGATES, EPOCH_TIME } = global.constants;
 const __private = {};
 let modules;
 let library;
@@ -188,7 +188,7 @@ Utils.prototype.getIdSequence = function(height, cb) {
 		.getIdSequence({
 			height,
 			limit: 5,
-			delegates: constants.ACTIVE_DELEGATES,
+			delegates: ACTIVE_DELEGATES,
 		})
 		.then(rows => {
 			if (rows.length === 0) {
@@ -406,15 +406,15 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		}
 
 		params.generatorPublicKey = account.publicKey;
-		params.delegates = constants.ACTIVE_DELEGATES;
+		params.delegates = ACTIVE_DELEGATES;
 
 		if (filter.start !== undefined) {
-			params.start = (filter.start - constants.EPOCH_TIME.getTime()) / 1000;
+			params.start = (filter.start - EPOCH_TIME.getTime()) / 1000;
 			params.start = params.start.toFixed();
 		}
 
 		if (filter.end !== undefined) {
-			params.end = (filter.end - constants.EPOCH_TIME.getTime()) / 1000;
+			params.end = (filter.end - EPOCH_TIME.getTime()) / 1000;
 			params.end = params.end.toFixed();
 		}
 

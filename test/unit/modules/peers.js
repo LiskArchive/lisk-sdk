@@ -28,7 +28,7 @@ const modulesLoader = require('../../common/modules_loader');
 const random = require('../../common/utils/random');
 const swagerHelper = require('../../../helpers/swagger');
 
-const constants = __testContext.config.constants;
+const { MAX_PEERS } = __testContext.config.constants;
 
 describe('peers', () => {
 	var dbMock;
@@ -152,10 +152,10 @@ describe('peers', () => {
 				});
 
 				describe('when no options.limit passed', () => {
-					it('should return [constants.MAX_PEERS] results', () => {
+					it('should return [MAX_PEERS] results', () => {
 						return expect(listResult)
 							.be.an('array')
-							.and.have.lengthOf(constants.MAX_PEERS);
+							.and.have.lengthOf(MAX_PEERS);
 					});
 				});
 			});
@@ -282,10 +282,10 @@ describe('peers', () => {
 				});
 
 				describe('when no options.limit passed', () => {
-					it('should return [constants.MAX_PEERS] results', () => {
+					it('should return [MAX_PEERS] results', () => {
 						return expect(listResult)
 							.be.an('array')
-							.and.have.lengthOf(constants.MAX_PEERS);
+							.and.have.lengthOf(MAX_PEERS);
 					});
 				});
 			});
@@ -715,14 +715,10 @@ describe('peers', () => {
 				});
 			});
 
-			describe('when there are [constants.MAX_PEERS] active and [constants.MAX_PEERS] matched peers', () => {
+			describe('when there are [MAX_PEERS] active and [MAX_PEERS] matched peers', () => {
 				before(done => {
-					validActive = _.range(constants.MAX_PEERS).map(
-						generateRandomActivePeer
-					);
-					validMatched = _.range(constants.MAX_PEERS).map(
-						generateRandomActivePeer
-					);
+					validActive = _.range(MAX_PEERS).map(generateRandomActivePeer);
+					validMatched = _.range(MAX_PEERS).map(generateRandomActivePeer);
 					done();
 				});
 
@@ -731,14 +727,10 @@ describe('peers', () => {
 				});
 			});
 
-			describe('when there are [constants.MAX_PEERS] x 10 active and [constants.MAX_PEERS] matched peers', () => {
+			describe('when there are [MAX_PEERS] x 10 active and [MAX_PEERS] matched peers', () => {
 				before(done => {
-					validActive = _.range(10 * constants.MAX_PEERS).map(
-						generateRandomActivePeer
-					);
-					validMatched = _.range(constants.MAX_PEERS).map(
-						generateRandomActivePeer
-					);
+					validActive = _.range(10 * MAX_PEERS).map(generateRandomActivePeer);
+					validMatched = _.range(MAX_PEERS).map(generateRandomActivePeer);
 					done();
 				});
 
@@ -747,14 +739,10 @@ describe('peers', () => {
 				});
 			});
 
-			describe('when there are [constants.MAX_PEERS] active and [constants.MAX_PEERS] x 10 matched peers', () => {
+			describe('when there are [MAX_PEERS] active and [MAX_PEERS] x 10 matched peers', () => {
 				before(done => {
-					validActive = _.range(constants.MAX_PEERS).map(
-						generateRandomActivePeer
-					);
-					validMatched = _.range(10 * constants.MAX_PEERS).map(
-						generateRandomActivePeer
-					);
+					validActive = _.range(MAX_PEERS).map(generateRandomActivePeer);
+					validMatched = _.range(10 * MAX_PEERS).map(generateRandomActivePeer);
 					done();
 				});
 

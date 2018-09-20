@@ -22,7 +22,7 @@ const Bignum = require('../../../helpers/bignum.js');
 
 const Account = rewire('../../../logic/account.js');
 
-const constants = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 
 const validAccount = {
 	username: 'genesis_100',
@@ -358,7 +358,7 @@ describe('account', () => {
 				.map(v => {
 					return { username: v.username };
 				})
-				.slice(0, constants.ACTIVE_DELEGATES);
+				.slice(0, ACTIVE_DELEGATES);
 
 			account.getAll(
 				{
@@ -379,7 +379,7 @@ describe('account', () => {
 				.map(v => {
 					return { username: v.username };
 				})
-				.slice(0, constants.ACTIVE_DELEGATES);
+				.slice(0, ACTIVE_DELEGATES);
 
 			account.getAll(
 				{

@@ -27,7 +27,7 @@ var apiHelpers = require('../../../common/helpers/api');
 var Bignum = require('../../../../helpers/bignum.js');
 
 Promise.promisify(waitFor.newRound);
-const constants = global.constants;
+const { FEES } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
@@ -104,9 +104,7 @@ describe('GET /delegates', () => {
 			var secondPassphraseAccount = randomUtil.account();
 
 			var creditTransaction = lisk.transaction.transfer({
-				amount: new Bignum(constants.FEES.SECOND_SIGNATURE).plus(
-					constants.FEES.DELEGATE
-				),
+				amount: new Bignum(FEES.SECOND_SIGNATURE).plus(FEES.DELEGATE),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,
 			});

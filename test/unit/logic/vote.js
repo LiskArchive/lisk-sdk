@@ -28,7 +28,7 @@ var Bignum = require('../../../helpers/bignum.js');
 var Vote = require('../../../logic/vote');
 var Transfer = require('../../../logic/transfer');
 
-const constants = __testContext.config.constants;
+const { FEES, MAX_VOTES_PER_TRANSACTION } = __testContext.config.constants;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
@@ -232,7 +232,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee().equals(constants.FEES.VOTE.toString()));
+			return expect(vote.calculateFee().equals(FEES.VOTE.toString()));
 		});
 	});
 
@@ -732,7 +732,7 @@ describe('vote', () => {
 		it('should return error when votes array is longer than maximum acceptable', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(
-				...Array(constants.MAX_VOTES_PER_TRANSACTION + 1)
+				...Array(MAX_VOTES_PER_TRANSACTION + 1)
 			).map(() => {
 				return `+${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});

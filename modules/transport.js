@@ -25,7 +25,11 @@ const patches = require('../helpers/patches');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
-const constants = global.constants;
+const {
+	MIN_BROADHASH_CONSENSUS,
+	MAX_PEERS,
+	MAX_SHARED_TRANSACTIONS,
+} = global.constants;
 // Private fields
 let modules;
 let definitions;
@@ -287,7 +291,7 @@ Transport.prototype.poorConsensus = function() {
 	if (library.config.forging.force) {
 		return false;
 	}
-	return modules.peers.calculateConsensus() < constants.MIN_BROADHASH_CONSENSUS;
+	return modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS;
 };
 
 // Events
@@ -367,7 +371,7 @@ Transport.prototype.onUnconfirmedTransaction = function(
 Transport.prototype.broadcastHeaders = cb => {
 	// Grab a random list of connected peers.
 	const peers = library.logic.peers.listRandomConnected({
-		limit: constants.MAX_PEERS,
+		limit: MAX_PEERS,
 	});
 
 	if (peers.length === 0) {
@@ -636,7 +640,7 @@ Transport.prototype.shared = {
 			? modules.peers.list
 			: modules.peers.shared.getPeers;
 		peersFinder(
-			Object.assign({}, { limit: constants.MAX_PEERS }, req.query),
+			Object.assign({}, { limit: MAX_PEERS }, req.query),
 			(err, peers) => {
 				peers = !err ? peers : [];
 				return setImmediate(cb, null, { success: !err, peers });
@@ -725,7 +729,7 @@ Transport.prototype.shared = {
 	getSignatures(req, cb) {
 		const transactions = modules.transactions.getMultisignatureTransactionList(
 			true,
-			constants.MAX_SHARED_TRANSACTIONS
+			MAX_SHARED_TRANSACTIONS
 		);
 		const signatures = [];
 
@@ -754,7 +758,7 @@ Transport.prototype.shared = {
 	getTransactions(query, cb) {
 		const transactions = modules.transactions.getMergedTransactionList(
 			true,
-			constants.MAX_SHARED_TRANSACTIONS
+			MAX_SHARED_TRANSACTIONS
 		);
 		return setImmediate(cb, null, {
 			success: true,
