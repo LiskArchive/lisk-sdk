@@ -1,14 +1,7 @@
 {
 	"defaultSeverity": "error",
 	"extends": [
-		"tslint:all"
-	],
-	"jsRules": {
-		"indent": [true, "tabs"],
-		"quotemark": [true, "single", "avoid-template"]
-	},
-	"rules": {
-		"indent": [true, "tabs"],
-		"quotemark": [true, "single", "avoid-template"]
-	}
+		"tslint:all",
+		"tslint-config-prettier"
+	]
 }
