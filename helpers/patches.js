@@ -40,7 +40,7 @@ const Patches = {
 			const isPeerInPreReleaseRange =
 				isPeerVersionDefined &&
 				semver.prerelease(forVersion) !== null &&
-				semver.lte(forVersion, '1.0.0-rc.4') &&
+				semver.lte(forVersion, '1.0.0-rc.5') &&
 				semver.gte(forVersion, '1.0.0-rc.0');
 
 			const isSeedPeer = !isPeerVersionDefined;
