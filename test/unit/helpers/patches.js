@@ -32,17 +32,17 @@ describe('Patches', () => {
 
 				return expect(headersAfter).to.be.eql(headersBefore);
 			});
-			it('should not strip pre-release tag from headers if version is greater than 1.0.0-rc.4', () => {
+			it('should not strip pre-release tag from headers if version is greater than 1.0.0-rc.5', () => {
 				const headersBefore = { version: '1.1.0-rc.5' };
 				const headersAfter = patches.systemHeaders.versionForPreRelease(
-					'1.0.0-rc.5',
+					'1.0.0-rc.6',
 					headersBefore,
 					logger
 				);
 
 				return expect(headersAfter).to.be.eql(headersBefore);
 			});
-			it('should strip pre-release tag from headers if version is between 1.0.0-rc.0 - 1.0.0-rc.4', () => {
+			it('should strip pre-release tag from headers if version is between 1.0.0-rc.0 - 1.0.0-rc.5', () => {
 				const headersBefore = { version: '1.1.0-rc.5' };
 				const headersAfter = patches.systemHeaders.versionForPreRelease(
 					'1.0.0-rc.3',

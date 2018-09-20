@@ -38,6 +38,10 @@ class Queries {
 		return self.db.query(self.validateAccountsBalancesQuery);
 	}
 
+	getPostgresVersion() {
+		return self.db.query('SELECT version()');
+	}
+
 	getAccounts() {
 		return self.db.query('SELECT * FROM mem_accounts');
 	}
