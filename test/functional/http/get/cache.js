@@ -53,7 +53,7 @@ describe('cached endpoints', () => {
 		cache.quit(done);
 	});
 
-	describe('@standalone tests', () => {
+	describe('@sequential tests', () => {
 		describe('GET /transactions', () => {
 			var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
 

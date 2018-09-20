@@ -51,7 +51,7 @@ module.exports = function(grunt) {
 					if (suite === 'network') {
 						var filter = '';
 						if (tagFilter === 'default') {
-							filter = "--grep '@slow|@unstable|@standalone' --invert";
+							filter = "--grep '@slow|@unstable|@sequential' --invert";
 						} else if (tagFilter === 'extensive') {
 							filter = '--grep @unstable --invert';
 						} else if (tagFilter === 'slow') {
