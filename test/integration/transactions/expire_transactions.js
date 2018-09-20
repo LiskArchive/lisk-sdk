@@ -41,10 +41,7 @@ describe('expire transactions', () => {
 
 	// Override transaction expire interval to every 1 second
 	global.constants.EXPIRY_INTERVAL = 1000;
-
-	const setUnconfirmedTransactionTimeOut = timeout => {
-		global.constants.UNCONFIRMED_TRANSACTION_TIMEOUT = timeout;
-	};
+	global.constants.UNCONFIRMED_TRANSACTION_TIMEOUT = 0;
 
 	const getSenderAddress = transaction =>
 		transaction.senderId ||
@@ -99,6 +96,7 @@ describe('expire transactions', () => {
 		const transactionPool = library.rewiredModules.transactions.__get__(
 			'__private.transactionPool'
 		);
+
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
 		transactionPool.hourInSeconds = 0;
 		queries = new queriesHelper(lib, lib.db);
@@ -121,7 +119,7 @@ describe('expire transactions', () => {
 		before(() => {
 			// override unconfirmedTransactionTimeOut
 			// to test undo unConfirmed expired transactions
-			setUnconfirmedTransactionTimeOut(0);
+			// setUnconfirmedTransactionTimeOut(0);
 
 			transaction = createTransaction(amount, recipientId);
 			address = getSenderAddress(transaction);
