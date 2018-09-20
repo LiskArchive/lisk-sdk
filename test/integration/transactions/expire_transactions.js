@@ -33,15 +33,17 @@ describe('expire transactions', () => {
 	let library;
 	let queries;
 
-	const constants = global.constants;
-
-	const { expiryInterval, unconfirmedTransactionTimeOut } = constants;
+	const {
+		EXPIRY_INTERVAL,
+		UNCONFIRMED_TRANSACTION_TIME_OUT,
+		NORMALIZER,
+	} = global.constants;
 
 	// Override transaction expire interval to every 1 second
-	global.EXPIRY_INTERVAL = 1000;
+	global.constants.EXPIRY_INTERVAL = 1000;
 
 	const setUnconfirmedTransactionTimeOut = timeout => {
-		global.UNCONFIRMED_TRANSACTION_TIMEOUT = timeout;
+		global.constants.UNCONFIRMED_TRANSACTION_TIMEOUT = timeout;
 	};
 
 	const getSenderAddress = transaction =>
@@ -103,8 +105,8 @@ describe('expire transactions', () => {
 	});
 
 	after('reset states', done => {
-		global.EXPIRY_INTERVAL = expiryInterval;
-		global.UNCONFIRMED_TRANSACTION_TIMEOUT = unconfirmedTransactionTimeOut;
+		global.constants.EXPIRY_INTERVAL = EXPIRY_INTERVAL;
+		global.constants.UNCONFIRMED_TRANSACTION_TIMEOUT = UNCONFIRMED_TRANSACTION_TIME_OUT;
 		done();
 	});
 
@@ -158,7 +160,7 @@ describe('expire transactions', () => {
 			});
 		});
 
-		it('once transaction is expired the mem account u_balance should be restored', done => {
+		it('once transaction is expired the mem account u_balance should be restored @sequential', done => {
 			// Expiry interval is set to 1 second
 			// and unconfirmed transaction timeout is set to 0
 			// so waiting 5 seconds to ensure the transaction is expired and
@@ -192,7 +194,7 @@ describe('expire transactions', () => {
 		let memAccountBefore;
 		let multiSigTransaction;
 
-		const amount = 1000 * global.NORMALIZER;
+		const amount = 1000 * NORMALIZER;
 		const account = randomUtil.account();
 		const signer1 = randomUtil.account();
 		const signer2 = randomUtil.account();
