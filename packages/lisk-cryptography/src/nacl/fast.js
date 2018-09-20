@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line
+// eslint-disable-next-line import/no-extraneous-dependencies
 import sodium from 'sodium-native';
 
 export const box = (
@@ -31,10 +31,10 @@ export const box = (
 		convertedPublicKey,
 		convertedPrivateKey,
 	);
-	return cipherBytes;
+	return Uint8Array.from(cipherBytes);
 };
 
-export const boxOpen = (
+export const openBox = (
 	cipherBytes,
 	nonceBytes,
 	convertedPublicKey,
@@ -50,16 +50,16 @@ export const boxOpen = (
 		convertedPublicKey,
 		convertedPrivateKey,
 	);
-	return plainText;
+	return Uint8Array.from(plainText);
 };
 
-export const detachedSign = (messageBytes, privateKeyBytes) => {
+export const signDetached = (messageBytes, privateKeyBytes) => {
 	const signatureBytes = Buffer.alloc(sodium.crypto_sign_BYTES);
 	sodium.crypto_sign_detached(signatureBytes, messageBytes, privateKeyBytes);
 	return signatureBytes;
 };
 
-export const detachedVerify = (messageBytes, signatureBytes, publicKeyBytes) =>
+export const verifyDetached = (messageBytes, signatureBytes, publicKeyBytes) =>
 	sodium.crypto_sign_verify_detached(
 		signatureBytes,
 		messageBytes,
@@ -69,16 +69,16 @@ export const detachedVerify = (messageBytes, signatureBytes, publicKeyBytes) =>
 export const getRandomBytes = length => {
 	const nonce = Buffer.alloc(length);
 	sodium.randombytes_buf(nonce);
-	return nonce;
+	return Uint8Array.from(nonce);
 };
 
-export const signKeyPair = hashedSeed => {
+export const getKeyPair = hashedSeed => {
 	const publicKeyBytes = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
 	const privateKeyBytes = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
 
 	sodium.crypto_sign_seed_keypair(publicKeyBytes, privateKeyBytes, hashedSeed);
 	return {
-		publicKeyBytes,
-		privateKeyBytes,
+		publicKeyBytes: Uint8Array.from(publicKeyBytes),
+		privateKeyBytes: Uint8Array.from(privateKeyBytes),
 	};
 };

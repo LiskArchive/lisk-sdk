@@ -142,7 +142,7 @@ describe('encrypt', () => {
 					defaultPassphrase,
 					defaultPublicKey,
 				),
-			).to.throw('Expected 24-byte nonce but got length 1.');
+			).to.throw('Nonce must be a buffer of size 24.');
 		});
 
 		it('should inform the user if something goes wrong during decryption', () => {

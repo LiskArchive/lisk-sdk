@@ -14,17 +14,18 @@
  */
 import tweetnacl from 'tweetnacl';
 
-export const { box } = tweetnacl;
+// eslint-disable-next-line prefer-destructuring
+export const box = tweetnacl.box;
 
-export const boxOpen = tweetnacl.box.open;
+export const openBox = tweetnacl.box.open;
 
-export const detachedSign = tweetnacl.sign.detached;
+export const signDetached = tweetnacl.sign.detached;
 
-export const detachedVerify = tweetnacl.sign.detached.verify;
+export const verifyDetached = tweetnacl.sign.detached.verify;
 
 export const getRandomBytes = tweetnacl.randomBytes;
 
-export const signKeyPair = hashedSeed => {
+export const getKeyPair = hashedSeed => {
 	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(hashedSeed);
 	return {
 		privateKeyBytes: secretKey,

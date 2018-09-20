@@ -15,11 +15,11 @@
 import { bufferToHex } from './buffer';
 import { getAddressFromPublicKey } from './convert';
 import hash from './hash';
-import { signKeyPair } from './nacl';
+import { getKeyPair } from './nacl';
 
 export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	const hashed = hash(passphrase, 'utf8');
-	const { publicKeyBytes, privateKeyBytes } = signKeyPair(hashed);
+	const { publicKeyBytes, privateKeyBytes } = getKeyPair(hashed);
 
 	return {
 		privateKeyBytes,

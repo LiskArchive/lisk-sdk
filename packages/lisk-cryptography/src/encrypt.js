@@ -16,7 +16,7 @@ import crypto from 'crypto';
 import { hexToBuffer, bufferToHex } from './buffer';
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
-import { getRandomBytes, box, boxOpen } from './nacl';
+import { getRandomBytes, box, openBox } from './nacl';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -72,7 +72,7 @@ export const decryptMessageWithPassphrase = (
 	const nonceBytes = hexToBuffer(nonce);
 
 	try {
-		const decoded = boxOpen(
+		const decoded = openBox(
 			cipherBytes,
 			nonceBytes,
 			convertedPublicKey,
@@ -85,7 +85,7 @@ export const decryptMessageWithPassphrase = (
 				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
 			)
 		) {
-			throw new Error('Expected 24-byte nonce but got length 1.');
+			throw new Error('Nonce must be a buffer of size 24.');
 		}
 		throw new Error(
 			'Something went wrong during decryption. Is this the full encrypted message?',

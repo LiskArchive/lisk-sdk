@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line
+// eslint-disable-next-line prefer-const
 let lib;
 
 try {
@@ -20,11 +20,11 @@ try {
 		throw new Error('Use tweetnacl');
 	}
 	// Require used for conditional importing
-	// eslint-disable-next-line
+	// eslint-disable-next-line global-require
 	lib = require('./fast');
 } catch (err) {
 	process.env.NACL_FAST = 'disable';
-	// eslint-disable-next-line
+	// eslint-disable-next-line global-require
 	lib = require('./slow');
 }
 
@@ -34,9 +34,9 @@ export const NACL_SIGN_SIGNATURE_LENGTH = 64;
 
 export const {
 	box,
-	boxOpen,
-	detachedSign,
-	detachedVerify,
+	openBox,
+	signDetached,
+	verifyDetached,
 	getRandomBytes,
-	signKeyPair,
+	getKeyPair,
 } = lib;

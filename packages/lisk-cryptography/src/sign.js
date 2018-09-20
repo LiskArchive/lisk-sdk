@@ -18,8 +18,8 @@ import hash from './hash';
 import { hexToBuffer, bufferToHex } from './buffer';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 import {
-	detachedVerify,
-	detachedSign,
+	verifyDetached,
+	signDetached,
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
 } from './nacl';
@@ -54,7 +54,7 @@ export const signMessageWithPassphrase = (message, passphrase) => {
 		privateKeyBytes,
 		publicKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const signature = detachedSign(msgBytes, privateKeyBytes);
+	const signature = signDetached(msgBytes, privateKeyBytes);
 	return {
 		message,
 		publicKey: bufferToHex(publicKeyBytes),
@@ -83,7 +83,7 @@ export const verifyMessageWithPublicKey = ({
 		);
 	}
 
-	return detachedVerify(msgBytes, signatureBytes, publicKeyBytes);
+	return verifyDetached(msgBytes, signatureBytes, publicKeyBytes);
 };
 
 export const signMessageWithTwoPassphrases = (
@@ -97,8 +97,8 @@ export const signMessageWithTwoPassphrases = (
 		secondPassphrase,
 	);
 
-	const signature = detachedSign(msgBytes, keypairBytes.privateKeyBytes);
-	const secondSignature = detachedSign(
+	const signature = signDetached(msgBytes, keypairBytes.privateKeyBytes);
+	const secondSignature = signDetached(
 		msgBytes,
 		secondKeypairBytes.privateKeyBytes,
 	);
@@ -150,9 +150,9 @@ export const verifyMessageWithTwoPublicKeys = ({
 	}
 
 	const verifyFirstSignature = () =>
-		detachedVerify(messageBytes, signatureBytes, publicKeyBytes);
+		verifyDetached(messageBytes, signatureBytes, publicKeyBytes);
 	const verifySecondSignature = () =>
-		detachedVerify(messageBytes, secondSignatureBytes, secondPublicKeyBytes);
+		verifyDetached(messageBytes, secondSignatureBytes, secondPublicKeyBytes);
 
 	return verifyFirstSignature() && verifySecondSignature();
 };
@@ -190,7 +190,7 @@ export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
 };
 
 export const signDataWithPrivateKey = (data, privateKey) => {
-	const signature = detachedSign(data, privateKey);
+	const signature = signDetached(data, privateKey);
 	return bufferToHex(signature);
 };
 
@@ -204,4 +204,4 @@ export const signDataWithPassphrase = (data, passphrase) => {
 export const signData = signDataWithPassphrase;
 
 export const verifyData = (data, signature, publicKey) =>
-	detachedVerify(data, hexToBuffer(signature), hexToBuffer(publicKey));
+	verifyDetached(data, hexToBuffer(signature), hexToBuffer(publicKey));
