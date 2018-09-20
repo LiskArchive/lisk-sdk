@@ -68,9 +68,7 @@ module.exports = {
 			epochTime = this.getTime();
 		}
 
-		var t = Math.floor(EPOCH_TIME.getTime() / 1000) * 1000;
-
-		return t + epochTime * 1000;
+		return Math.floor(EPOCH_TIME.getTime() / 1000) * 1000 + epochTime * 1000;
 	},
 
 	/**

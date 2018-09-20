@@ -286,9 +286,8 @@ function cleanDeep(
 function validateForce({ constants, forging, nethash }) {
 	if (forging.force) {
 		const { NETHASHES } = constants;
-		var index = NETHASHES.indexOf(nethash);
 
-		if (index !== -1) {
+		if (NETHASHES.indexOf(nethash) !== -1) {
 			console.info('Forced forging disabled for nethash', nethash);
 			forging.force = false;
 		}
