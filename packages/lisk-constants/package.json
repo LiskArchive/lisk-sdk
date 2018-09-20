@@ -31,7 +31,7 @@
 		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
 		"clean": "./scripts/clean.sh",
 		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
-		"lint": "eslint .",
+		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "NODE_ENV=test nyc mocha test",
 		"test:watch": "npm test -- --watch",
