@@ -2,6 +2,22 @@
 	"defaultSeverity": "error",
 	"extends": [
 		"tslint:all",
+		"tslint-immutable/all",
 		"tslint-config-prettier"
-	]
+	],
+	"jsRules": {
+		"no-class": true,
+		"no-delete": true,
+		"no-expression-statement": true,
+		"no-if-statement": true,
+		"no-let": true,
+		"no-method-signature": true,
+		"no-mixed-interface": true,
+		"no-object-mutation": true,
+		"no-parameter-reassignment": true,
+		"no-this": true,
+		"no-var-keyword": true,
+		"readonly-array": true,
+		"readonly-keyword": true
+	}
 }
