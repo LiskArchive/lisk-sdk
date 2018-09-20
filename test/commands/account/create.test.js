@@ -19,8 +19,6 @@ import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as mnemonic from '../../../src/utils/mnemonic';
 
-process.env.TEST_OUTPUT = 1;
-
 describe('account:create', () => {
 	const defaultMnemonic =
 		'lab mirror fetch tuna village sell sphere truly excite manual planet capable';
