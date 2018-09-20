@@ -193,12 +193,7 @@ class BlocksRepository {
 	 * @todo Add description for the params and the return value
 	 */
 	getCommonBlock(params) {
-		return this.db.any(
-			params.previousBlock
-				? sql.getCommonBlockByPreviousBlock
-				: sql.getCommonBlock,
-			params
-		);
+		return this.db.any(sql.getCommonBlock, params);
 	}
 
 	// TODO: Merge BlocksRepository#getHeightByLastId with BlocksRepository#list

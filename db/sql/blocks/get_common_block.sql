@@ -24,3 +24,5 @@ FROM blocks
 WHERE
   id = ${id}
   AND height = ${height}
+  AND "previousBlock" = ${previousBlock}
+
