@@ -27,6 +27,10 @@ newrelicLisk.instrumentBackgroundJobs();
 
 // callBackMethods array only support one level of nesting
 const modulesToInstrument = {
+	'./helpers/sequence.js': {
+		identifier: 'helpers.sequence',
+		callbackMethods: ['add'],
+	},
 	'./modules/node.js': {
 		identifier: 'modules.node',
 		callbackMethods: ['shared.getStatus', 'shared.getConstants'],
