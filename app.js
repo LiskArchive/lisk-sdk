@@ -31,10 +31,7 @@ const appConfig = AppConfig(require('./package.json'));
 // eslint-disable-next-line import/order
 const NewRelicConfig = require('./newrelic.js').config;
 
-if (
-	NewRelicConfig.license_key.trim() !== '' ||
-	process.env.NEW_RELIC_LICENSE_KEY
-) {
+if (NewRelicConfig.license_key || process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
