@@ -32,7 +32,6 @@ const getFileDoesNotExistError = path => `File at ${path} does not exist.`;
 const getFileUnreadableError = path => `File at ${path} could not be read.`;
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
-const DEFAULT_TIMEOUT = 100;
 
 export const splitSource = source => {
 	const delimiter = ':';
@@ -43,14 +42,6 @@ export const splitSource = source => {
 	};
 };
 
-const timeoutPromise = ms =>
-	new Promise((resolve, reject) => {
-		const id = setTimeout(() => {
-			clearTimeout(id);
-			reject(new Error(`Timed out after ${ms} ms`));
-		}, ms);
-	});
-
 export const getRawStdIn = () => {
 	const readFromStd = new Promise(resolve => {
 		const rl = readline.createInterface({ input: process.stdin });
@@ -59,7 +50,7 @@ export const getRawStdIn = () => {
 			.on('line', line => lines.push(line))
 			.on('close', () => resolve(lines));
 	});
-	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+	return Promise.resolve(readFromStd);
 };
 
 export const getStdIn = ({
@@ -108,7 +99,7 @@ export const getStdIn = ({
 
 		return rl.on('line', line => lines.push(line)).on('close', handleClose);
 	});
-	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+	return Promise.resolve(readFromStd);
 };
 
 export const getPassphraseFromPrompt = async ({
@@ -129,6 +120,14 @@ export const getPassphraseFromPrompt = async ({
 			message: `Please re-enter ${displayName}: `,
 		});
 	}
+
+	// Prompting user for additional input when piping commands causes error with stdin
+	if (!process.stdout.isTTY) {
+		throw new Error(
+			`Please enter ${displayName} using a flag when piping data.`,
+		);
+	}
+
 	const { passphrase, passphraseRepeat } = await inquirer.prompt(questions);
 	if (shouldRepeat && passphrase !== passphraseRepeat) {
 		throw new ValidationError(getPassphraseVerificationFailError(displayName));

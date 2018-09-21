@@ -26,9 +26,7 @@ export default class BaseCommand extends Command {
 		const { flags } = this.parse(this.constructor);
 		this.flags = flags;
 
-		process.stdout.on('error', handleEPIPE);
-
-		process.stderr.on('error', handleEPIPE);
+		process.on('error', handleEPIPE);
 
 		process.env.XDG_CONFIG_HOME =
 			process.env.LISK_COMMANDER_CONFIG_DIR ||
@@ -40,7 +38,6 @@ export default class BaseCommand extends Command {
 		if (error) {
 			this.error(error.message ? error.message : error);
 		}
-		process.exit(0);
 	}
 
 	print(result, readAgain = false) {
