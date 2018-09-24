@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/* eslint-disable global-require */
 import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 // Require is used for stubbing
@@ -21,11 +22,11 @@ const resetTest = () => {
 	// Reset environment variable
 	delete process.env.NACL_FAST;
 	// Delete require cache to force it to re-load module
-	delete require.cache[require.resolve('../../src/nacl/index')];
+	delete require.cache[require.resolve('../../src/nacl')];
 };
 
 const stripConstants = library => {
-	// Constants are added in /src/index.js
+	// Constants are added in ../../src/nacl/index.js
 	const strippedLib = Object.assign({}, library);
 	delete strippedLib.NACL_SIGN_PUBLICKEY_LENGTH;
 	delete strippedLib.NACL_SIGN_SIGNATURE_LENGTH;
@@ -61,7 +62,6 @@ describe('nacl index.js', () => {
 
 		it('should load nacl fast if process.env.NACL_FAST is set to enable', () => {
 			process.env.NACL_FAST = 'enable';
-			// eslint-disable-next-line global-require
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.be.eql(fast);
@@ -69,7 +69,6 @@ describe('nacl index.js', () => {
 
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			process.env.NACL_FAST = 'disable';
-			// eslint-disable-next-line global-require
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.be.eql(slow);
@@ -77,7 +76,6 @@ describe('nacl index.js', () => {
 
 		it('should load nacl fast if process.env.NACL_FAST is undefined', () => {
 			process.env.NACL_FAST = undefined;
-			// eslint-disable-next-line global-require
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.be.eql(fast);
@@ -98,14 +96,12 @@ describe('nacl index.js', () => {
 		});
 
 		it('should set process.env.NACL_FAST to disable', () => {
-			// eslint-disable-next-line global-require
 			require('../../src/nacl');
 			return expect(process.env.NACL_FAST).to.eql('disable');
 		});
 
 		it('should load nacl slow if process.env.NACL_FAST is set to enable', () => {
 			process.env.NACL_FAST = 'enable';
-			// eslint-disable-next-line global-require
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.eql(slow);
@@ -113,7 +109,6 @@ describe('nacl index.js', () => {
 
 		it('should load nacl slow if process.env.NACL_FAST is set to disable', () => {
 			process.env.NACL_FAST = 'disable';
-			// eslint-disable-next-line global-require
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.eql(slow);
@@ -121,7 +116,6 @@ describe('nacl index.js', () => {
 
 		it('should load nacl slow if process.env.NACL_FAST is undefined', () => {
 			process.env.NACL_FAST = undefined;
-			// eslint-disable-next-line global-require
 			const loadedLibrary = require('../../src/nacl');
 			const strippedLibrary = stripConstants(loadedLibrary);
 			return expect(strippedLibrary).to.eql(slow);

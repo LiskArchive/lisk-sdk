@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/* eslint-disable global-require */
 // eslint-disable-next-line prefer-const
 let lib;
 
@@ -20,11 +21,9 @@ try {
 		throw new Error('Use tweetnacl');
 	}
 	// Require used for conditional importing
-	// eslint-disable-next-line global-require
 	lib = require('./fast');
 } catch (err) {
 	process.env.NACL_FAST = 'disable';
-	// eslint-disable-next-line global-require
 	lib = require('./slow');
 }
 

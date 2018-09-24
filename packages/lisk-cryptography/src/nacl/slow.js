@@ -14,8 +14,7 @@
  */
 import tweetnacl from 'tweetnacl';
 
-// eslint-disable-next-line prefer-destructuring
-export const box = tweetnacl.box;
+export const { box } = tweetnacl;
 
 export const openBox = tweetnacl.box.open;
 

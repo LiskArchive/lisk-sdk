@@ -85,7 +85,7 @@ export const decryptMessageWithPassphrase = (
 				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
 			)
 		) {
-			throw new Error('Nonce must be a buffer of size 24.');
+			throw new Error('Expected nonce to be 24 bytes.');
 		}
 		throw new Error(
 			'Something went wrong during decryption. Is this the full encrypted message?',
