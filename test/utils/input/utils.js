@@ -19,7 +19,11 @@ import inquirer from 'inquirer';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
 import * as utilHelpers from '../../../src/utils/helpers';
-import { createStreamStub, createFakeInterface } from '../../helpers/utils';
+import {
+	createStreamStub,
+	createFakeBrokenInterface,
+	createFakeInterface,
+} from '../../helpers/utils';
 
 describe('input/utils utils', () => {
 	describe('#splitSource', () => {
@@ -64,6 +68,12 @@ describe('input/utils utils', () => {
 			readline.createInterface.returns(createFakeInterface(stdInContents));
 			const result = inputUtils.getRawStdIn();
 			return expect(result).to.eventually.eql(['']);
+		});
+
+		it('should reject with timeout error', () => {
+			readline.createInterface.returns(createFakeBrokenInterface());
+			const result = inputUtils.getRawStdIn();
+			return expect(result).to.be.rejectedWith(Error, 'Timed out after 100 ms');
 		});
 	});
 
@@ -255,8 +265,7 @@ describe('input/utils utils', () => {
 		});
 
 		it('should reject with error when in TTY mode', () => {
-			utilHelpers.isTTY.restore();
-			sandbox.stub(utilHelpers, 'isTTY').returns(true);
+			utilHelpers.isTTY.returns(true);
 			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
 			inquirer.prompt.resolves(promptResult);
 			return expect(
