@@ -17,6 +17,7 @@ import fs from 'fs';
 import readline from 'readline';
 import inquirer from 'inquirer';
 import { FileSystemError, ValidationError } from '../error';
+import { isTTY } from '../helpers';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -129,6 +130,14 @@ export const getPassphraseFromPrompt = async ({
 			message: `Please re-enter ${displayName}: `,
 		});
 	}
+
+	// Prompting user for additional input when piping commands causes error with stdin
+	if (isTTY()) {
+		throw new Error(
+			`Please enter ${displayName} using a flag when piping data.`,
+		);
+	}
+
 	const { passphrase, passphraseRepeat } = await inquirer.prompt(questions);
 	if (shouldRepeat && passphrase !== passphraseRepeat) {
 		throw new ValidationError(getPassphraseVerificationFailError(displayName));
