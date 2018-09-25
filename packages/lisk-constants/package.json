@@ -58,6 +58,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"devDependencies": {
+		"@types/chai": "4.1.5",
 		"@types/jquery": "3.3.9",
 		"@types/node": "10.10.1",
 		"babel-cli": "6.26.0",
