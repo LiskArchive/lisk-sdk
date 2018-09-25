@@ -37,10 +37,9 @@ pipeline {
 				ansiColor('xterm') {
 					nvm(getNodejsVersion()) {
 						sh 'LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test'
-						sh '''
-						cp ~/.coveralls.yml-lisk-commander .coveralls.yml
-						npm run cover
-						'''
+						withCredentials([string(credentialsId: 'lisk-commander-coveralls-token', variable: 'COVERALLS_REPO_TOKEN')]) {
+							sh 'npm run cover'
+						}
 					}
 				}
 			}
