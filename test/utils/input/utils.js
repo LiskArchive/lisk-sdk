@@ -18,6 +18,7 @@ import readline from 'readline';
 import inquirer from 'inquirer';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
+import * as utilHelpers from '../../../src/utils/helpers';
 import { createStreamStub, createFakeInterface } from '../../helpers/utils';
 
 describe('input/utils utils', () => {
@@ -191,7 +192,9 @@ describe('input/utils utils', () => {
 
 	describe('#getPassphraseFromPrompt', () => {
 		const displayName = 'password';
+
 		beforeEach(() => {
+			sandbox.stub(utilHelpers, 'isTTY').returns(false);
 			return sandbox.stub(inquirer, 'prompt');
 		});
 
@@ -248,6 +251,18 @@ describe('input/utils utils', () => {
 			).to.be.rejectedWith(
 				ValidationError,
 				'Password was not successfully repeated.',
+			);
+		});
+
+		it('should reject with error when in TTY mode', () => {
+			utilHelpers.isTTY.restore();
+			sandbox.stub(utilHelpers, 'isTTY').returns(true);
+			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
+			inquirer.prompt.resolves(promptResult);
+			return expect(
+				inputUtils.getPassphraseFromPrompt({ displayName }),
+			).to.be.rejectedWith(
+				'Please enter password using a flag when piping data.',
 			);
 		});
 	});
@@ -427,6 +442,7 @@ describe('input/utils utils', () => {
 		const password = 'somepassword';
 
 		beforeEach(() => {
+			sandbox.stub(utilHelpers, 'isTTY').returns(false);
 			return sandbox
 				.stub(inquirer, 'prompt')
 				.resolves({ passphrase: password });

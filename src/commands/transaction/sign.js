@@ -44,6 +44,11 @@ export default class SignCommand extends BaseCommand {
 			},
 		} = this.parse(SignCommand);
 
+		const transactionInput =
+			transaction || (await getTransactionInput(transaction));
+
+		const transactionObject = parseTransactionString(transactionInput);
+
 		const { passphrase, secondPassphrase } = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,
@@ -56,11 +61,6 @@ export default class SignCommand extends BaseCommand {
 						repeatPrompt: true,
 					},
 		});
-
-		const transactionInput =
-			transaction || (await getTransactionInput(transaction));
-
-		const transactionObject = parseTransactionString(transactionInput);
 
 		const result = elements.transaction.utils.prepareTransaction(
 			transactionObject,

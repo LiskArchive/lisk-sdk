@@ -17,6 +17,7 @@ import fs from 'fs';
 import readline from 'readline';
 import inquirer from 'inquirer';
 import { FileSystemError, ValidationError } from '../error';
+import { isTTY } from '../helpers';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -122,7 +123,7 @@ export const getPassphraseFromPrompt = async ({
 	}
 
 	// Prompting user for additional input when piping commands causes error with stdin
-	if (!process.stdout.isTTY) {
+	if (isTTY()) {
 		throw new Error(
 			`Please enter ${displayName} using a flag when piping data.`,
 		);

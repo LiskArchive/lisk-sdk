@@ -18,6 +18,7 @@ import {
 	validateMinimum,
 	validateAmount,
 	createErrorHandler,
+	handleEPIPE,
 } from '../../src/utils/helpers';
 import { ValidationError } from '../../src/utils/error';
 
@@ -105,6 +106,21 @@ describe('helpers utils', () => {
 			const message = 'some error';
 			const result = createErrorHandler(prefix)({ message });
 			return expect(result).to.be.eql({ error: `${prefix}: ${message}` });
+		});
+	});
+
+	describe('#handleEPIPE', () => {
+		it('should handle EPIPE error', () => {
+			const err = new Error();
+			err.errno = 'EPIPE';
+			return expect(handleEPIPE.bind(null, err)).to.not.throw();
+		});
+
+		it('should throw a non-EPIPE error', () => {
+			const message = 'some error';
+			return expect(handleEPIPE.bind(null, new Error(message))).to.throw(
+				message,
+			);
 		});
 	});
 });
