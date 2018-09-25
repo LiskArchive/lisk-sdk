@@ -88,10 +88,10 @@ CreateCommand.args = new Array(MAX_ARG_NUM).fill().map(i => ({
 }));
 
 CreateCommand.description = `
-Create transaction object.
+Create a transaction object.
 `;
 
 CreateCommand.examples = [
 	'transaction:create --type=0 100 13356260975429434553L',
-	'transaction:create --type=delegate username',
+	'transaction:create --type=delegate lightcurve',
 ];
