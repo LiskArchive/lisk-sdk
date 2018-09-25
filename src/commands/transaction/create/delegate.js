@@ -83,4 +83,4 @@ DelegateCommand.description = `
 Creates a transaction which will register the account as a delegate candidate if broadcast to the network.
 `;
 
-DelegateCommand.examples = ['transaction:create:delegate username'];
+DelegateCommand.examples = ['transaction:create:delegate lightcurve'];

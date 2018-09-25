@@ -85,17 +85,20 @@ MultisignatureCommand.args = [
 	{
 		name: 'lifetime',
 		required: true,
-		description: 'Lifetime of the transaction to stay in the transaction pool.',
+		description:
+			'Number of hours the transaction should remain in the transaction pool before becoming invalid.',
 	},
 	{
 		name: 'minimum',
 		required: true,
-		description: 'Minimum number of signature required to be valid.',
+		description:
+			'Minimum number of signatures required for a transaction from the account to be valid.',
 	},
 	{
 		name: 'keysgroup',
 		required: true,
-		description: 'Public key to include in the multi signature account.',
+		description:
+			'Public keys to verify signatures against for the multisignature group.',
 		parse: input => input.split(','),
 	},
 ];
@@ -108,10 +111,10 @@ MultisignatureCommand.flags = {
 };
 
 MultisignatureCommand.description = `
-Creates a transaction which will register the account as a multisignature account if broadcast to the network, using the following parameters:
-	- The lifetime (the number of hours in which the transaction can be signed after being created).
-	- The minimum number of distinct signatures required for a transaction to be successfully approved from the multisignature account.
-	- A list of one or more public keys that will identify the multisignature group.
+Creates a transaction which will register the account as a multisignature account if broadcast to the network, using the following arguments:
+	1. Number of hours the transaction should remain in the transaction pool before becoming invalid.
+	2. Minimum number of signatures required for a transaction from the account to be valid.
+	3. Public keys to verify signatures against for the multisignature group.
 `;
 
 MultisignatureCommand.examples = [

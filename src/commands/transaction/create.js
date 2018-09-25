@@ -17,7 +17,7 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import commonFlags from '../../utils/flags';
 import TransferCommand from './create/transfer';
-import SecondpassphraseCommand from './create/secondpassphrase';
+import SecondPassphraseCommand from './create/second-passphrase';
 import VoteCommand from './create/vote';
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
@@ -26,23 +26,20 @@ const MAX_ARG_NUM = 3;
 
 const typeNumberMap = {
 	0: 'transfer',
-	1: 'secondpassphrase',
+	1: 'second-passphrase',
 	2: 'vote',
 	3: 'delegate',
 	4: 'multisignature',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
-	(accumulated, [key, value]) => {
-		accumulated.push(key, value);
-		return accumulated;
-	},
+	(accumulated, [key, value]) => [...accumulated, key, value],
 	[],
 );
 
 const typeClassMap = {
 	transfer: TransferCommand,
-	secondpassphrase: SecondpassphraseCommand,
+	'second-passphrase': SecondPassphraseCommand,
 	vote: VoteCommand,
 	delegate: DelegateCommand,
 	multisignature: MultisignatureCommand,
@@ -53,22 +50,21 @@ const resolveFlags = (accumulated, [key, value]) => {
 		return accumulated;
 	}
 	if (typeof value === 'string') {
-		accumulated.push(`--${key}`, value);
-		return accumulated;
+		return [...accumulated, `--${key}`, value];
 	}
 	const boolKey = value === false ? `--no-${key}` : `--${key}`;
-	accumulated.push(boolKey);
-	return accumulated;
+	return [...accumulated, boolKey];
 };
 
 export default class CreateCommand extends BaseCommand {
 	async run() {
 		const { argv, flags } = this.parse(CreateCommand);
 		const { type } = flags;
-		const clazz =
-			typeClassMap[type in typeNumberMap ? typeNumberMap[type] : type];
+		const commandType = Object.keys(typeNumberMap).includes(type)
+			? typeNumberMap[type]
+			: type;
 		const resolvedFlags = Object.entries(flags).reduce(resolveFlags, []);
-		await clazz.run([...argv, ...resolvedFlags]);
+		await typeClassMap[commandType].run([...argv, ...resolvedFlags]);
 	}
 }
 
@@ -87,14 +83,12 @@ CreateCommand.flags = {
 	unvotes: flagParser.string(commonFlags.unvotes),
 };
 
-CreateCommand.args = Array(MAX_ARG_NUM)
-	.fill()
-	.map(i => ({
-		name: `${i}_arg`,
-	}));
+CreateCommand.args = new Array(MAX_ARG_NUM).fill().map(i => ({
+	name: `${i}_arg`,
+}));
 
 CreateCommand.description = `
-Create transaction.
+Create transaction object.
 `;
 
 CreateCommand.examples = [

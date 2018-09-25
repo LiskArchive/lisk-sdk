@@ -25,7 +25,7 @@ export const processInputs = () => ({ passphrase, secondPassphrase }) =>
 		secondPassphrase,
 	});
 
-export default class SecondpassphraseCommand extends BaseCommand {
+export default class SecondPassphraseCommand extends BaseCommand {
 	async run() {
 		const {
 			flags: {
@@ -33,7 +33,7 @@ export default class SecondpassphraseCommand extends BaseCommand {
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
 			},
-		} = this.parse(SecondpassphraseCommand);
+		} = this.parse(SecondPassphraseCommand);
 
 		const processFunction = processInputs();
 
@@ -60,15 +60,15 @@ export default class SecondpassphraseCommand extends BaseCommand {
 	}
 }
 
-SecondpassphraseCommand.flags = {
+SecondPassphraseCommand.flags = {
 	...BaseCommand.flags,
 	passphrase: flagParser.string(commonFlags.passphrase),
 	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	'no-signature': flagParser.boolean(commonFlags.noSignature),
 };
 
-SecondpassphraseCommand.description = `
+SecondPassphraseCommand.description = `
 Creates a transaction which will register a second passphrase for the account if broadcast to the network.
 `;
 
-SecondpassphraseCommand.examples = ['transaction:create:secondpassphrase'];
+SecondPassphraseCommand.examples = ['transaction:create:second-passphrase'];

@@ -17,7 +17,7 @@ import { test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
-import SecondpassphraseCommand from '../../../src/commands/transaction/create/secondpassphrase';
+import SecondPassphraseCommand from '../../../src/commands/transaction/create/second-passphrase';
 import VoteCommand from '../../../src/commands/transaction/create/vote';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
 import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
@@ -29,7 +29,7 @@ describe('transaction:create', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(TransferCommand, 'run', sandbox.stub())
-			.stub(SecondpassphraseCommand, 'run', sandbox.stub())
+			.stub(SecondPassphraseCommand, 'run', sandbox.stub())
 			.stub(VoteCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
 			.stub(MultisignatureCommand, 'run', sandbox.stub());
@@ -37,18 +37,20 @@ describe('transaction:create', () => {
 	describe('transaction:create', () => {
 		setupTest()
 			.command(['transaction:create'])
-			.catch(error => expect(error.message).to.contain('Missing required flag'))
+			.catch(error => {
+				return expect(error.message).to.contain('Missing required flag');
+			})
 			.it('should throw an error when type is not provided');
 	});
 
 	describe('transaction:create --type=xxx', () => {
 		setupTest()
 			.command(['transaction:create', '--type=wrongtype'])
-			.catch(error =>
-				expect(error.message).to.contain(
+			.catch(error => {
+				return expect(error.message).to.contain(
 					'Expected --type=wrongtype to be one of',
-				),
-			)
+				);
+			})
 			.it('should throw an error when type is not in the options');
 
 		setupTest()
@@ -58,9 +60,9 @@ describe('transaction:create', () => {
 			});
 
 		setupTest()
-			.command(['transaction:create', '-t=secondpassphrase', '--no-json'])
+			.command(['transaction:create', '-t=second-passphrase', '--no-json'])
 			.it('should call type 1 command', () => {
-				return expect(SecondpassphraseCommand.run).to.be.calledWithExactly([
+				return expect(SecondPassphraseCommand.run).to.be.calledWithExactly([
 					'--no-json',
 				]);
 			});
@@ -85,7 +87,7 @@ describe('transaction:create', () => {
 
 		setupTest()
 			.command(['transaction:create', '-t=4', '24', '2', 'itshouldbe,hex'])
-			.it('should call type 3 command', () => {
+			.it('should call type 4 command', () => {
 				return expect(MultisignatureCommand.run).to.be.calledWithExactly([
 					'24',
 					'2',

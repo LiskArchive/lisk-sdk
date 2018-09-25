@@ -19,7 +19,7 @@ import * as config from '../../../../src/utils/config';
 import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
 
-describe('transaction:create:secondpassphrase', () => {
+describe('transaction:create:second-passphrase', () => {
 	const defaultInputs = {
 		passphrase: '123',
 		secondPassphrase: '456',
@@ -53,9 +53,9 @@ describe('transaction:create:secondpassphrase', () => {
 			)
 			.stdout();
 
-	describe('transaction:create:secondpassphrase', () => {
+	describe('transaction:create:second-passphrase', () => {
 		setupTest()
-			.command(['transaction:create:secondpassphrase'])
+			.command(['transaction:create:second-passphrase'])
 			.it('should create second passphrase transaction', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
 					passphrase: {
@@ -76,9 +76,12 @@ describe('transaction:create:secondpassphrase', () => {
 			});
 	});
 
-	describe('transaction:create:secondpassphrase --passphrase=xxx', () => {
+	describe('transaction:create:second-passphrase --passphrase=xxx', () => {
 		setupTest()
-			.command(['transaction:create:secondpassphrase', '--passphrase=pass:123'])
+			.command([
+				'transaction:create:second-passphrase',
+				'--passphrase=pass:123',
+			])
 			.it(
 				'should create second passphrase transaction with passphrase from flag',
 				() => {
@@ -102,10 +105,10 @@ describe('transaction:create:secondpassphrase', () => {
 			);
 	});
 
-	describe('transaction:create:secondpassphrase --passphrase=xxx --second-passphrase=xxx', () => {
+	describe('transaction:create:second-passphrase --passphrase=xxx --second-passphrase=xxx', () => {
 		setupTest()
 			.command([
-				'transaction:create:secondpassphrase',
+				'transaction:create:second-passphrase',
 				'--passphrase=pass:123',
 				'--second-passphrase=pass:456',
 			])
@@ -132,9 +135,9 @@ describe('transaction:create:secondpassphrase', () => {
 			);
 	});
 
-	describe('transaction:create:secondpassphrase --no-signature', () => {
+	describe('transaction:create:second-passphrase --no-signature', () => {
 		setupTest()
-			.command(['transaction:create:secondpassphrase', '--no-signature'])
+			.command(['transaction:create:second-passphrase', '--no-signature'])
 			.it(
 				'should create second passphrase transaction withoug passphrase',
 				() => {

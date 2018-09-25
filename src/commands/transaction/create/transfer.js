@@ -78,7 +78,7 @@ TransferCommand.args = [
 	{
 		name: 'address',
 		required: true,
-		description: 'Address of LSK to send to.',
+		description: 'Address of the recipient.',
 	},
 ];
 
