@@ -88,7 +88,7 @@ CreateCommand.args = new Array(MAX_ARG_NUM).fill().map(i => ({
 }));
 
 CreateCommand.description = `
-Create a transaction object.
+Creates a transaction object.
 `;
 
 CreateCommand.examples = [
