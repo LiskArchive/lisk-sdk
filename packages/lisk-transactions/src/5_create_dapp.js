@@ -17,11 +17,11 @@ import { wrapTransactionCreator } from './utils';
 
 const isInt = n => parseInt(n, 10) === n;
 
-const validateOptions = options => {
+const validateInputs = ({ options }) => {
 	if (typeof options !== 'object') {
 		throw new Error('Options must be an object.');
 	}
-	const { category, name, type, link } = options;
+	const { category, name, type, link, description, tags, icon } = options;
 
 	if (!isInt(category)) {
 		throw new Error('Dapp category must be an integer.');
@@ -35,10 +35,23 @@ const validateOptions = options => {
 	if (typeof link !== 'string') {
 		throw new Error('Dapp link must be a string.');
 	}
+
+	if (typeof description !== 'undefined' && typeof description !== 'string') {
+		throw new Error('Dapp description must be a string if provided.');
+	}
+
+	if (typeof tags !== 'undefined' && typeof tags !== 'string') {
+		throw new Error('Dapp tags must be a string if provided.');
+	}
+
+	if (typeof icon !== 'undefined' && typeof icon !== 'string') {
+		throw new Error('Dapp icon must be a string if provided.');
+	}
 };
 
-const createDapp = ({ options }) => {
-	validateOptions(options);
+const createDapp = inputs => {
+	validateInputs(inputs);
+	const { options } = inputs;
 
 	return {
 		type: 5,

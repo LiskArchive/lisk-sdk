@@ -206,6 +206,52 @@ describe('#castVotes transaction', () => {
 		});
 	});
 
+	describe('when the cast vote transaction is created with the invalid votes and invalid unvotes', () => {
+		it('should throw error when null was provided for votes', () => {
+			return expect(
+				castVotes.bind(null, {
+					passphrase,
+					votes: null,
+				}),
+			).to.throw(
+				'Please provide a valid votes value. Expected an array if present.',
+			);
+		});
+
+		it('should throw error when string was provided for votes', () => {
+			return expect(
+				castVotes.bind(null, {
+					passphrase,
+					votes: `+${firstPublicKey}`,
+				}),
+			).to.throw(
+				'Please provide a valid votes value. Expected an array if present.',
+			);
+		});
+
+		it('should throw error when null was provided for unvotes', () => {
+			return expect(
+				castVotes.bind(null, {
+					passphrase,
+					unvotes: null,
+				}),
+			).to.throw(
+				'Please provide a valid unvotes value. Expected an array if present.',
+			);
+		});
+
+		it('should throw error when string was provided for unvotes', () => {
+			return expect(
+				castVotes.bind(null, {
+					passphrase,
+					unvotes: `-${firstPublicKey}`,
+				}),
+			).to.throw(
+				'Please provide a valid unvotes value. Expected an array if present.',
+			);
+		});
+	});
+
 	describe('when the cast vote transaction is created with the unvotes', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({

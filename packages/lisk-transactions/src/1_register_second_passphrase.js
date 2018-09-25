@@ -16,7 +16,15 @@ import cryptography from 'lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
 import { wrapTransactionCreator } from './utils';
 
-const registerSecondPassphrase = ({ secondPassphrase }) => {
+const validateInputs = ({ secondPassphrase }) => {
+	if (typeof secondPassphrase !== 'string') {
+		throw new Error('Please provide a secondPassphrase. Expected string.');
+	}
+};
+
+const registerSecondPassphrase = inputs => {
+	validateInputs(inputs);
+	const { secondPassphrase } = inputs;
 	const { publicKey } = cryptography.getKeys(secondPassphrase);
 
 	return {

@@ -197,7 +197,7 @@ describe('validator', () => {
 		});
 
 		it('should validate to false when number greater than maximum is provided', () => {
-			return expect(validate({ target: '10000000000000001' })).to.be.false;
+			return expect(validate({ target: '9223372036854775808' })).to.be.false;
 		});
 
 		it('should validate to false when decimal number is provided', () => {

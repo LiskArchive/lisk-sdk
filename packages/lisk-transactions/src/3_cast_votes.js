@@ -21,9 +21,24 @@ import {
 	wrapTransactionCreator,
 } from './utils';
 
-const castVotes = ({ passphrase, votes = [], unvotes = [] }) => {
-	validatePublicKeys([...votes, ...unvotes]);
+const validateInputs = ({ votes = [], unvotes = [] }) => {
+	if (!Array.isArray(votes)) {
+		throw new Error(
+			'Please provide a valid votes value. Expected an array if present.',
+		);
+	}
+	if (!Array.isArray(unvotes)) {
+		throw new Error(
+			'Please provide a valid unvotes value. Expected an array if present.',
+		);
+	}
 
+	validatePublicKeys([...votes, ...unvotes]);
+};
+
+const castVotes = inputs => {
+	validateInputs(inputs);
+	const { passphrase, votes = [], unvotes = [] } = inputs;
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
 		: null;

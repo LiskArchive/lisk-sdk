@@ -19,6 +19,8 @@ export {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
+	validateAmount,
+	isValidInteger,
 	isGreaterThanMaxTransactionAmount,
 } from './validation';
 

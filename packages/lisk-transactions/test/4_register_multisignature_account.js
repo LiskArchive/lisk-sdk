@@ -219,7 +219,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					secondPassphrase,
 					keysgroup: tooShortPublicKeyKeysgroup,
 					lifetime,
-					minimum,
+					minimum: 1,
 				}),
 			).to.throw(
 				'Public key d019a4b6fa37e8ebeb64766c7b239d962fb3b3f265b8d3083206097b912cd9 length differs from the expected 32 bytes for a public key.',
@@ -235,7 +235,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					secondPassphrase,
 					keysgroup: plusPrependedPublicKeyKeysgroup,
 					lifetime,
-					minimum,
+					minimum: 1,
 				}),
 			).to.throw('Argument must be a valid hex string.');
 		});
@@ -251,7 +251,9 @@ describe('#registerMultisignatureAccount transaction', () => {
 					lifetime,
 					minimum,
 				}),
-			).to.throw('Expected between 1 and 16 public keys in the keysgroup.');
+			).to.throw(
+				'Minimum number of signatures is larger than the number of keys in the keysgroup.',
+			);
 		});
 	});
 
@@ -276,7 +278,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 					lifetime,
 					minimum,
 				}),
-			).to.throw('Expected between 1 and 16 public keys in the keysgroup.');
+			).to.throw('Expected between 1 and 15 public keys in the keysgroup.');
 		});
 	});
 
@@ -310,6 +312,111 @@ describe('#registerMultisignatureAccount transaction', () => {
 					minimum,
 				});
 				return Promise.resolve();
+			});
+
+			describe('validation errors', () => {
+				describe('when lifetime', () => {
+					const lifetimeErrorMessage =
+						'Please provide a valid lifetime value. Expected integer between 1 and 72.';
+
+					it('was not provided', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('is float', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: 23.45,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('is not number type', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: '123',
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('was more than expected', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: 73,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+
+					it('was less than expected', () => {
+						return expect(
+							registerMultisignatureAccount.bind(null, {
+								keysgroup,
+								lifetime: -1,
+							}),
+						).to.throw(lifetimeErrorMessage);
+					});
+				});
+			});
+
+			describe('when minimum', () => {
+				const minimumErrorMessage =
+					'Please provide a valid minimum value. Expected integer between 1 and 15.';
+
+				it('was not provided', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('is float', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: 1.45,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('is not number type', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: '12',
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('was more than expected', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: 16,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
+
+				it('was less than expected', () => {
+					return expect(
+						registerMultisignatureAccount.bind(null, {
+							keysgroup,
+							lifetime,
+							minimum: -1,
+						}),
+					).to.throw(minimumErrorMessage);
+				});
 			});
 
 			it('should have the type', () => {

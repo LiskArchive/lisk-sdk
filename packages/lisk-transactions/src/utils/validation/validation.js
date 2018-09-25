@@ -19,6 +19,10 @@ import {
 	MAX_TRANSACTION_ID,
 	MAX_TRANSACTION_AMOUNT,
 } from 'lisk-constants';
+import {
+	MULTISIGNATURE_MAX_KEYSGROUP,
+	MULTISIGNATURE_MIN_KEYSGROUP,
+} from '../../constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);
@@ -44,8 +48,13 @@ export const validatePublicKeys = publicKeys =>
 	checkPublicKeysForDuplicates(publicKeys);
 
 export const validateKeysgroup = keysgroup => {
-	if (keysgroup.length === 0 || keysgroup.length > 16) {
-		throw new Error('Expected between 1 and 16 public keys in the keysgroup.');
+	if (
+		keysgroup.length < MULTISIGNATURE_MIN_KEYSGROUP ||
+		keysgroup.length > MULTISIGNATURE_MAX_KEYSGROUP
+	) {
+		throw new Error(
+			`Expected between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP} public keys in the keysgroup.`,
+		);
 	}
 	return validatePublicKeys(keysgroup);
 };
@@ -86,3 +95,8 @@ export const isNumberString = str => {
 	}
 	return /^[0-9]+$/g.test(str);
 };
+
+export const validateAmount = data =>
+	isNumberString(data) && !isGreaterThanMaxTransactionAmount(bignum(data));
+
+export const isValidInteger = num => parseInt(num, 10) === num;

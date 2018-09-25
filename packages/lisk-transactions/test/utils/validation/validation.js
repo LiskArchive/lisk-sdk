@@ -20,9 +20,11 @@ import {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
+	validateAmount,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
+	isValidInteger,
 } from '../../../src/utils/validation/validation';
 
 describe('validation', () => {
@@ -134,7 +136,7 @@ describe('validation', () => {
 			});
 			it('should throw the error', () => {
 				return expect(validateKeysgroup.bind(null, keysgroup)).to.throw(
-					'Expected between 1 and 16 public keys in the keysgroup.',
+					'Expected between 1 and 15 public keys in the keysgroup.',
 				);
 			});
 		});
@@ -153,7 +155,7 @@ describe('validation', () => {
 			});
 			it('should throw the error', () => {
 				return expect(validateKeysgroup.bind(null, keysgroup)).to.throw(
-					'Expected between 1 and 16 public keys in the keysgroup.',
+					'Expected between 1 and 15 public keys in the keysgroup.',
 				);
 			});
 		});
@@ -243,16 +245,22 @@ describe('validation', () => {
 		});
 	});
 
+	describe('#validateAmount', () => {
+		it('should return true when amount is a number and is not greater than maximum transaction amount', () => {
+			return expect(validateAmount('9223372036854775807')).to.be.true;
+		});
+	});
+
 	describe('#isGreaterThanMaxTransactionAmount', () => {
 		it('should return false when amount is less than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('10000000000000000')),
+				isGreaterThanMaxTransactionAmount(bignum('9223372036854775807')),
 			).to.be.false;
 		});
 
 		it('should return true when amount is more than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('10000000000000001')),
+				isGreaterThanMaxTransactionAmount(bignum('9223372036854775808')),
 			).to.be.true;
 		});
 	});
@@ -282,6 +290,24 @@ describe('validation', () => {
 
 		it('should return true when string contains only number', () => {
 			return expect(isNumberString('1234568789')).to.be.true;
+		});
+	});
+
+	describe('#isValidInteger', () => {
+		it('should return false when string was provided', () => {
+			return expect(isValidInteger('1234')).to.be.false;
+		});
+
+		it('should return false when float was provided', () => {
+			return expect(isValidInteger(123.4)).to.be.false;
+		});
+
+		it('should return true when integer was provided', () => {
+			return expect(isValidInteger(6)).to.be.true;
+		});
+
+		it('should return true when negative integer was provided', () => {
+			return expect(isValidInteger(-6)).to.be.true;
 		});
 	});
 });

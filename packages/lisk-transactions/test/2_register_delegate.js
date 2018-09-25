@@ -170,6 +170,26 @@ describe('#registerDelegate transaction', () => {
 				return Promise.resolve();
 			});
 
+			it('should throw error when username was not provided', () => {
+				return expect(registerDelegate.bind(null, {})).to.throw(
+					'Please provide a username. Expected string.',
+				);
+			});
+
+			it('should throw error when username is empty string', () => {
+				return expect(registerDelegate.bind(null, { username: '' })).to.throw(
+					'Please provide a username. Expected string.',
+				);
+			});
+
+			it('should throw error when invalid username was provided', () => {
+				return expect(
+					registerDelegate.bind(null, { username: '12345678901234567890a' }),
+				).to.throw(
+					'Username length does not match requirements. Expected to be no more than 20 characters.',
+				);
+			});
+
 			it('should have the type', () => {
 				return expect(registerDelegateTransaction)
 					.to.have.property('type')
