@@ -14,14 +14,14 @@
  */
 import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { SIGNED_MESSAGE_PREFIX } from 'lisk-constants';
+import { bufferToHex, hexToBuffer } from './buffer';
 import hash from './hash';
-import { hexToBuffer, bufferToHex } from './buffer';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 import {
-	verifyDetached,
-	signDetached,
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
+	signDetached,
+	verifyDetached,
 } from './nacl';
 
 const createHeader = text => `-----${text}-----`;

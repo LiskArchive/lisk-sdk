@@ -13,10 +13,10 @@
  *
  */
 import crypto from 'crypto';
-import { hexToBuffer, bufferToHex } from './buffer';
+import { bufferToHex, hexToBuffer } from './buffer';
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
-import { getRandomBytes, box, openBox } from './nacl';
+import { box, getRandomBytes, openBox } from './nacl';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -38,7 +38,7 @@ export const encryptMessageWithPassphrase = (
 
 	const nonce = getRandomBytes(24);
 
-	const cipherText = box(
+	const cipherBytes = box(
 		messageInBytes,
 		nonce,
 		convertedPublicKey,
@@ -46,7 +46,7 @@ export const encryptMessageWithPassphrase = (
 	);
 
 	const nonceHex = bufferToHex(nonce);
-	const encryptedMessage = bufferToHex(cipherText);
+	const encryptedMessage = bufferToHex(cipherBytes);
 
 	return {
 		nonce: nonceHex,
