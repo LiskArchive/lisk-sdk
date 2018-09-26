@@ -14,13 +14,33 @@
 
 'use strict';
 
-var child_process = require('child_process');
-var find = require('find');
+const child_process = require('child_process');
+const find = require('find');
 
-var maxParallelism = 20;
+const maxParallelism = 20;
 
-function parallelTests(tag, suite, section) {
-	var suiteFolder = null;
+const executeWithIstanbul = (path, mochaArguments) => {
+	const coverageArguments = [
+		'cover',
+		'--dir',
+		'test/.coverage-unit',
+		'--include-pid',
+		'--print',
+		'none',
+		'node_modules/.bin/_mocha',
+		path,
+	];
+	const istanbulArguments = coverageArguments.concat(mochaArguments);
+
+	return child_process.spawn('node_modules/.bin/istanbul', istanbulArguments, {
+		cwd: `${__dirname}/../..`,
+		detached: true,
+		stdio: 'inherit',
+	});
+};
+
+const getSuiteFolder = (suite, section) => {
+	let suiteFolder = null;
 
 	switch (suite) {
 		case 'unit':
@@ -57,101 +77,177 @@ function parallelTests(tag, suite, section) {
 			process.exit();
 			break;
 	}
+	return suiteFolder;
+};
 
-	var mochaArguments = [];
-
+const getMochaArguments = tag => {
+	const mochaArguments = [];
 	switch (tag) {
-		case 'default':
-			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
-			break;
 		case 'slow':
 			mochaArguments.push('--', '--grep', '@slow');
 			break;
 		case 'unstable':
 			mochaArguments.push('--', '--grep', '@unstable');
 			break;
+		case 'sequential':
+			/**
+			 * Tests or test suites which contains @sequential tag
+			 * are going to be run sequentially after all parallel
+			 * tests were executed.
+			 */
+			mochaArguments.push('--', '--grep', '@sequential');
+			break;
 		case 'extensive':
-			mochaArguments.push('--', '--grep', '@unstable', '--invert');
+			mochaArguments.push('--', '--grep', '@unstable|@sequential', '--invert');
 			break;
 		default:
-			mochaArguments.push('--', '--grep', '@slow|@unstable', '--invert');
+			/**
+			 * We are excluding sequential tests if default tag
+			 * is provided because sequential tests can conflict if
+			 * they are run in parallel with other tests.
+			 */
+			mochaArguments.push(
+				'--',
+				'--grep',
+				'@slow|@unstable|@sequential',
+				'--invert'
+			);
 			break;
 	}
+	return mochaArguments;
+};
 
-	// Looking recursevely for javascript files not containing the word "common"
-	var filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
-	var initFilepaths = filepaths.splice(0, maxParallelism);
-
-	var parallelTestsRunning = {};
-
-	var spawnTest = function(test) {
-		var coverageArguments = [
-			'cover',
-			'--dir',
-			'test/.coverage-unit',
-			'--include-pid',
-			'--print',
-			'none',
-			'node_modules/.bin/_mocha',
-			test,
-		];
-		var istanbulArguments = coverageArguments.concat(mochaArguments);
-
-		var child = child_process.spawn(
-			'node_modules/.bin/istanbul',
-			istanbulArguments,
-			{
-				cwd: `${__dirname}/../..`,
-				detached: true,
-				stdio: 'inherit',
-			}
-		);
+const spawnParallelTest = (testFile, mochaArguments) => {
+	return new Promise((resolve, reject) => {
+		const child = executeWithIstanbul(testFile, mochaArguments);
 
 		console.info(
-			'Running the test:',
-			test,
-			'as a separate process - pid',
-			child.pid
+			`Running parallel the test: ${testFile} as a separate process - pid: ${
+				child.pid
+			}`
 		);
-		parallelTestsRunning[child.pid] = child;
-
-		var cleanupRunningTests = function() {
-			Object.keys(parallelTestsRunning).forEach(k => {
-				parallelTestsRunning[k].kill('SIGTERM');
-			});
-		};
 
 		child.on('close', code => {
 			if (code === 0) {
-				console.info('Test finished successfully:', test);
-				delete parallelTestsRunning[child.pid];
-
-				if (filepaths.length) {
-					spawnTest(filepaths.shift());
-				}
-				if (Object.keys(parallelTestsRunning).length === 0) {
-					return console.info('All tests finished successfully.');
-				}
-				return;
+				console.info(`Test finished successfully: ${testFile}`);
+				return resolve(testFile);
 			}
 
-			console.info('Test failed:', test);
-			cleanupRunningTests();
-			process.exit(code);
+			console.error('Test failed:', testFile);
+			reject(code);
+			return process.exit(code);
 		});
 
 		child.on('error', err => {
 			console.error(err);
-			cleanupRunningTests();
-			process.exit();
+			reject(err);
+			child.kill('SIGTERM');
+			return process.exit();
 		});
-	};
+	});
+};
 
-	initFilepaths.forEach(spawnTest);
+const runParallelTests = (suiteFolder, mochaArguments) => {
+	return new Promise((resolve, reject) => {
+		// Looking recursevely for javascript files not containing the word "common"
+		const allFiles = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+		const allFilesLength = allFiles.length;
+
+		const completedFiles = {};
+
+		const next = () => {
+			const testFile = allFiles.splice(0, 1);
+			spawnParallelTest(testFile, mochaArguments)
+				.then(testFile => {
+					completedFiles[testFile] = 'done';
+					if (
+						allFiles.length === 0 &&
+						Object.keys(completedFiles).length === allFilesLength
+					) {
+						console.info('All parallel tests finished successfully.');
+						return resolve('All parallel tests finished successfully.');
+					}
+
+					if (allFiles.length > 0) {
+						return next();
+					}
+				})
+				.catch(err => {
+					console.error(`Parallel test failed: ${testFile}`);
+					return reject(err);
+				});
+		};
+
+		for (
+			let i = 0, limit = Math.min(allFilesLength, maxParallelism);
+			i < limit;
+			i += 1
+		) {
+			next();
+		}
+	});
+};
+
+const runSequentialTests = (suiteFolder, mochaArguments) => {
+	return new Promise((resolve, reject) => {
+		const child = executeWithIstanbul(suiteFolder, mochaArguments);
+		child.on('close', code => {
+			if (code === 0) {
+				console.info('All sequential tests finished successfully.');
+				return resolve();
+			}
+
+			console.error('Sequential tests failed:', suiteFolder);
+			reject(code);
+			return process.exit(code);
+		});
+
+		child.on('error', err => {
+			console.error(err);
+			child.kill('SIGTERM');
+			reject(err);
+			return process.exit();
+		});
+	});
+};
+
+function executeTests(tag, suite, section) {
+	return new Promise(async (resolve, reject) => {
+		console.info('Executing tests with following configuration:', {
+			tag,
+			suite,
+			section,
+		});
+		const suiteFolder = getSuiteFolder(suite, section);
+		const mochaArguments = getMochaArguments(tag);
+
+		if (tag !== 'sequential') {
+			try {
+				const result = await runParallelTests(suiteFolder, mochaArguments);
+				return resolve(result);
+			} catch (err) {
+				console.error('Parallel tests failed!', err);
+				return reject(err);
+			}
+		} else {
+			try {
+				const result = await runSequentialTests(suiteFolder, mochaArguments);
+				return resolve(result);
+			} catch (err) {
+				console.error('Sequential tests failed!', err);
+				return reject(err);
+			}
+		}
+	});
 }
 
-parallelTests(process.argv[2], process.argv[3], process.argv[4]);
+(async () => {
+	await executeTests(process.argv[2], process.argv[3], process.argv[4]);
+	if (process.argv[2] !== 'sequential') {
+		await executeTests('sequential', process.argv[3], process.argv[4]);
+	}
+})();
 
 module.exports = {
-	parallelTests,
+	executeTests,
 };

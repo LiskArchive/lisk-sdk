@@ -2,3 +2,4 @@
 --exit
 --colors
 --require ./test/setup.js
+--recursive

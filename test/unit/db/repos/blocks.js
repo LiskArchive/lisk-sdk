@@ -576,16 +576,17 @@ describe('db', () => {
 		});
 
 		describe('getCommonBlock()', () => {
-			it('should call a function with SQL parameters', function*() {
+			it('should call SQL file with parameters', function*() {
 				sinonSandbox.spy(db, 'any');
 
 				const params = {
 					id: '1111',
 					height: 1,
+					previousBlock: '6524861224470851795',
 				};
 				yield db.blocks.getCommonBlock(params);
 
-				expect(db.any.firstCall.args[0]).to.be.a('function');
+				expect(db.any.firstCall.args[0]).to.eql(sql.getCommonBlock);
 				expect(db.any.firstCall.args[1]).to.eql(params);
 				return expect(db.any).to.be.calledOnce;
 			});
@@ -606,10 +607,22 @@ describe('db', () => {
 				).to.be.eventually.rejectedWith("Property 'height' doesn't exist.");
 			});
 
+			it('should be rejected if required param "previousBlock" is missing', () => {
+				return expect(
+					db.blocks.getCommonBlock({
+						id: '111111',
+						height: 1,
+					})
+				).to.be.eventually.rejectedWith(
+					"Property 'previousBlock' doesn't exist."
+				);
+			});
+
 			it('should return the count of blocks matching the id and height', function*() {
 				const params = {
 					id: blocksFixtures.GenesisBlock().id,
 					height: 1,
+					previousBlock: null,
 				};
 				const commonBlock = yield db.blocks.getCommonBlock(params);
 
@@ -617,7 +630,7 @@ describe('db', () => {
 				expect(commonBlock).to.be.an('array');
 				expect(commonBlock).to.be.lengthOf(1);
 				expect(commonBlock[0]).to.have.all.keys('count');
-				return expect(commonBlock[0].count).to.be.eql(1);
+				return expect(commonBlock[0].count).to.be.eql(0);
 			});
 
 			it('should return the count of blocks matching "previousBlock", "id" and "height" condition', function*() {
