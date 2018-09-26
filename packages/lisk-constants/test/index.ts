@@ -12,6 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
+///<reference path="_setup.d.ts"/>
+import { expect } from 'chai';
 import {
 	EPOCH_TIME,
 	EPOCH_TIME_SECONDS,
@@ -22,7 +25,7 @@ import {
 	TESTNET_NETHASH,
 	MAINNET_NETHASH,
 	SIGNED_MESSAGE_PREFIX,
-} from '../src';
+} from '../src/index';
 
 describe('lisk-constants', () => {
 	it('EPOCH_TIME should be a Date instance', () => {
