@@ -149,7 +149,11 @@ class Round {
 			const queries = votes.map(vote =>
 				self.t.rounds.updateVotes(
 					self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
-					new Bignum(vote.amount).floor()
+					// Have to revert the logic to not use bignumber. it was causing change
+					// in vote amount. More details can be found on the issue.
+					// 		new Bignum(vote.amount).floor()
+					// TODO: https://github.com/LiskHQ/lisk/issues/2423
+					Math.floor(vote.amount)
 				)
 			);
 
