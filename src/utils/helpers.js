@@ -57,4 +57,6 @@ export const handleEPIPE = err => {
 	}
 };
 
-export const isTTY = () => !process.stdout.isTTY;
+export const stdoutIsTTY = () => process.stdout.isTTY;
+
+export const stdinIsTTY = () => process.stdin.isTTY;

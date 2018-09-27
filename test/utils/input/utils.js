@@ -46,6 +46,7 @@ describe('input/utils utils', () => {
 
 	describe('#getRawStdIn', () => {
 		beforeEach(() => {
+			sandbox.stub(utilHelpers, 'stdinIsTTY').returns(true);
 			return sandbox.stub(readline, 'createInterface');
 		});
 
@@ -204,7 +205,7 @@ describe('input/utils utils', () => {
 		const displayName = 'password';
 
 		beforeEach(() => {
-			sandbox.stub(utilHelpers, 'isTTY').returns(false);
+			sandbox.stub(utilHelpers, 'stdoutIsTTY').returns(true);
 			return sandbox.stub(inquirer, 'prompt');
 		});
 
@@ -265,7 +266,7 @@ describe('input/utils utils', () => {
 		});
 
 		it('should reject with error when in TTY mode', () => {
-			utilHelpers.isTTY.returns(true);
+			utilHelpers.stdoutIsTTY.returns(false);
 			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
 			inquirer.prompt.resolves(promptResult);
 			return expect(
@@ -451,7 +452,7 @@ describe('input/utils utils', () => {
 		const password = 'somepassword';
 
 		beforeEach(() => {
-			sandbox.stub(utilHelpers, 'isTTY').returns(false);
+			sandbox.stub(utilHelpers, 'stdoutIsTTY').returns(true);
 			return sandbox
 				.stub(inquirer, 'prompt')
 				.resolves({ passphrase: password });

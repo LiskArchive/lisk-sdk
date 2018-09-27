@@ -17,7 +17,7 @@ import fs from 'fs';
 import readline from 'readline';
 import inquirer from 'inquirer';
 import { FileSystemError, ValidationError } from '../error';
-import { isTTY } from '../helpers';
+import { stdinIsTTY, stdoutIsTTY } from '../helpers';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -44,12 +44,15 @@ export const splitSource = source => {
 	};
 };
 
-const timeoutPromise = ms =>
+const timeoutPromise = readFromStd =>
 	new Promise((resolve, reject) => {
 		const id = setTimeout(() => {
 			clearTimeout(id);
-			reject(new Error(`Timed out after ${ms} ms`));
-		}, ms);
+			if (stdinIsTTY()) {
+				reject(new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`));
+			}
+			resolve(readFromStd);
+		}, DEFAULT_TIMEOUT);
 	});
 
 export const getRawStdIn = () => {
@@ -60,7 +63,7 @@ export const getRawStdIn = () => {
 			.on('line', line => lines.push(line))
 			.on('close', () => resolve(lines));
 	});
-	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+	return Promise.race([readFromStd, timeoutPromise(readFromStd)]);
 };
 
 export const getStdIn = ({
@@ -132,7 +135,7 @@ export const getPassphraseFromPrompt = async ({
 	}
 
 	// Prompting user for additional input when piping commands causes error with stdin
-	if (isTTY()) {
+	if (!stdoutIsTTY()) {
 		throw new Error(
 			`Please enter ${displayName} using a flag when piping data.`,
 		);
