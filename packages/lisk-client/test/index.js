@@ -20,7 +20,7 @@ import {
 	transaction,
 } from '../src';
 
-describe('lisk-elements', () => {
+describe('lisk-client', () => {
 	it('APIClient should be a function', () => {
 		return expect(APIClient).to.be.a('function');
 	});

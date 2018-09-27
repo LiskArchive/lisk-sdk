@@ -1,1 +1,0 @@
-# lisk-client
