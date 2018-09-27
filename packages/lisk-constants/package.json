@@ -30,7 +30,7 @@
 		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
 		"clean": "./scripts/clean.sh",
-		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
+		"format": "prettier --write \"*.{ts,js,json}\" \"{src,test}/**/*.{ts,js,json}\"",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "NODE_ENV=test TS_NODE_PROJECT=./test/tsconfig.json mocha --require ts-node/register --require test/_setup.ts test/index.ts",

@@ -3,7 +3,7 @@ declare module 'chai' {
 		export namespace Chai {
 			interface ChaiStatic {
 				Assertion: {
-					new(value: any): Assertion;
+					new (value: any): Assertion;
 					addProperty(name: string, handler: Function): void;
 				};
 				_obj: any;

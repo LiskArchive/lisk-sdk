@@ -17,7 +17,9 @@ import { Assertion } from 'chai';
 
 process.env.NODE_ENV = 'test';
 
-Assertion.addProperty('hexString', function handleAssert(this: Chai.ChaiStatic) {
+Assertion.addProperty('hexString', function handleAssert(
+	this: Chai.ChaiStatic,
+) {
 	const actual = this._obj;
 
 	new Assertion(actual).to.be.a('string');
