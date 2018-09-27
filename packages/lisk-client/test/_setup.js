@@ -12,12 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
-import getTransactionBytes from './get_transaction_bytes';
+import 'chai/register-expect';
 
-const getTransactionHash = transaction => {
-	const bytes = getTransactionBytes(transaction);
-	return cryptography.hash(bytes);
-};
-
-export default getTransactionHash;
+process.env.NODE_ENV = 'test';

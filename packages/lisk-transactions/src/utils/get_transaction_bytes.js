@@ -13,8 +13,8 @@
  *
  */
 import bignum from 'browserify-bignum';
-import { MAX_TRANSACTION_AMOUNT } from 'lisk-constants';
-import cryptography from 'lisk-cryptography';
+import { MAX_TRANSACTION_AMOUNT } from '@liskhq/lisk-constants';
+import cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES } from '../constants';
 
 export const isValidValue = value => ![undefined, false, NaN].includes(value);

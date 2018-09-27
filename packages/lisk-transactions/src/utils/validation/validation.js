@@ -13,12 +13,12 @@
  *
  */
 import bignum from 'browserify-bignum';
-import cryptography from 'lisk-cryptography';
+import cryptography from '@liskhq/lisk-cryptography';
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_ID,
 	MAX_TRANSACTION_AMOUNT,
-} from 'lisk-constants';
+} from '@liskhq/lisk-constants';
 
 export const validatePublicKey = publicKey => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);

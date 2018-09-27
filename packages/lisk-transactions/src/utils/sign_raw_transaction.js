@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography';
+import cryptography from '@liskhq/lisk-cryptography';
 import { getTimeWithOffset } from './time';
 import prepareTransaction from './prepare_transaction';
 

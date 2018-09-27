@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from 'lisk-cryptography';
+import cryptography from '@liskhq/lisk-cryptography';
 import getTransactionBytes from './get_transaction_bytes';
 
 const getTransactionId = transaction => {
