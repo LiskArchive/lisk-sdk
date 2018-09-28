@@ -5,6 +5,9 @@
 		"tslint-immutable/all",
 		"tslint-config-prettier"
 	],
+	"rules": {
+		"interface-name": [true, "never-prefix"]
+	},
 	"jsRules": {
 		"no-class": true,
 		"no-delete": true,
