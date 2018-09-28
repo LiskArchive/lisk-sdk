@@ -8,7 +8,7 @@
 		"noEmitOnError": false,
 		"target": "es6",
 		"paths": {
-			"chai": ["../../../@types/chai.d.ts"]
+			"chai": ["../../../types/chai.d.ts"]
 		}
 	},
 	"include": ["./**/*", "../src/**/*"]
