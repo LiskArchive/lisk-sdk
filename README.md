@@ -111,6 +111,8 @@ COMMANDS
 * [`lisk message`](docs/message.md) - Commands relating to user messages.
 * [`lisk node`](docs/node.md) - Commands relating to Lisk node.
 * [`lisk passphrase`](docs/passphrase.md) - Commands relating to Lisk passphrases.
+* [`lisk signature`](docs/signature.md) - Commands relating to signatures for Lisk transactions from multisignature accounts.
+* [`lisk transaction`](docs/transaction.md) - Commands relating to Lisk transactions.
 * [`lisk warranty`](docs/warranty.md) - Displays warranty notice.
 
 <!-- commandsstop -->
