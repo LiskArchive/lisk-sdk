@@ -1,13 +1,14 @@
 {
 	"extends": "../tsconfig",
 	"compilerOptions": {
-		"declaration": false,
 		"baseUrl": ".",
+		"declaration": false,
+		"module": "commonjs",
 		"noEmit": true,
 		"noEmitOnError": false,
 		"target": "es6",
 		"paths": {
-			"*": ["*", "../../../@types/*"]
+			"chai": ["../../../@types/chai.d.ts"]
 		}
 	},
 	"include": ["./**/*", "../src/**/*"]

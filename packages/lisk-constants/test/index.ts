@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import 'mocha';
 import { expect } from 'chai';
 import {
 	EPOCH_TIME,
