@@ -3,6 +3,7 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"lib": ["dom", "es6"],
+		"module": "commonjs",
 		"newLine": "lf",
 		"noEmitOnError": true,
 		"noFallthroughCasesInSwitch": true,

@@ -3,7 +3,6 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"declaration": false,
-		"module": "commonjs",
 		"noEmit": true,
 		"noEmitOnError": false,
 		"target": "es6",
@@ -11,5 +10,5 @@
 			"chai": ["../../../types/chai.d.ts"]
 		}
 	},
-	"include": ["."]
+	"include": ["./**/*"]
 }
