@@ -1,19 +1,21 @@
+/* tslint:disable:callable-types no-any no-method-signature readonly-keyword */
+
 declare module 'chai' {
 	global {
 		export namespace Chai {
 			interface ChaiStatic {
+				_obj: any;
 				Assertion: {
 					new (value: any): Assertion;
-					addProperty(name: string, handler: Function): void;
+					addProperty(name: string, handler: () => void): void;
 				};
-				_obj: any;
 			}
 			interface Assert {
 				(expression: any, message?: string, messageNegative?: string): void;
 			}
 			export interface TypeComparison {
-				integer: Assertion;
 				hexString: Assertion;
+				integer: Assertion;
 			}
 		}
 	}
