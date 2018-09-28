@@ -11,5 +11,5 @@
 			"chai": ["../../../types/chai.d.ts"]
 		}
 	},
-	"include": ["./**/*", "../src/**/*"]
+	"include": ["."]
 }
