@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-///<reference path="typings/chai.d.ts"/>
 import { Assertion } from 'chai';
 
 process.env.NODE_ENV = 'test';

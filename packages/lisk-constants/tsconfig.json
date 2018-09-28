@@ -1,9 +1,9 @@
 {
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
-		"allowJs": true,
+		"declaration": true,
 		"baseUrl": ".",
-		"checkJs": true,
+		"module": "commonjs",
 		"outDir": "dist-node",
 		"rootDir": "src"
 	},
