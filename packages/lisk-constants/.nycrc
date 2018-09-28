@@ -1,1 +1,4 @@
-../../templates/.nycrc.tmpl
+{
+	"exclude": ["test/**", "**/*.d.ts"],
+	"extension": [".ts"]
+}
