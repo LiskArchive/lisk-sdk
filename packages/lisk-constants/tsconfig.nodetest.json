@@ -1,0 +1,16 @@
+{
+	"extends": "../../tsconfig",
+	"compilerOptions": {
+		"allowJs": true,
+		"declaration": false,
+		"baseUrl": ".",
+		"outDir": "browsertest.build",
+		"rootDir": ".",
+		"paths": {
+			"chai": ["../../types/chai.d.ts"],
+			"../src/*": ["./dist-node/*.js"]
+		}
+	},
+	"include": ["test/**/*"],
+	"exclude": ["src/**/*"]
+}

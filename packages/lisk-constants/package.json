@@ -36,7 +36,7 @@
 		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/**/*.ts",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test",
+		"test:node": "npm run build:check && TS_NODE_PROJECT=./tsconfig.nodetest.json mocha test/**/*.ts",
 		"serve:start": "http-server -p 11542 ./browsertest &",
 		"serve:stop": "kill $(lsof -t -i:11542) || true",
 		"pretest:browser": "npm run serve:stop && npm run build:browsertest && npm run serve:start",
