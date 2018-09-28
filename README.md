@@ -71,12 +71,12 @@ This will also add `lisk` to your PATH, but you won't have to repeat the process
 $ lisk COMMAND
 running command...
 $ lisk (-v|--version|version)
-lisk-commander/2.0.0 darwin-x64 node-v8.11.3
+lisk-commander/2.0.0 darwin-x64 node-v8.12.0
 $ lisk --help [COMMAND]
 A command line interface for Lisk
 
 VERSION
-  lisk-commander/2.0.0 darwin-x64 node-v10.6.0
+  lisk-commander/2.0.0 darwin-x64 node-v8.12.0
 
 USAGE
   $ lisk [COMMAND]
