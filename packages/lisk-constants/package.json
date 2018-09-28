@@ -33,7 +33,7 @@
 		"format": "prettier --write \"*.{ts,js,json}\" \"{src,test}/**/*.{ts,js,json}\"",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "NODE_ENV=test TS_NODE_PROJECT=./test/tsconfig.json mocha --require ts-node/register --require test/_setup.ts test/**/*.ts",
+		"test": "TS_NODE_PROJECT=./test/tsconfig.json mocha test/**/*.ts",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
