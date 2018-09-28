@@ -64,5 +64,5 @@ DESCRIPTION
 
 EXAMPLES
   node:get
-  node:get --all
+  node:get --forging-status
 ```
