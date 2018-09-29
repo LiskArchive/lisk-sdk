@@ -2,12 +2,12 @@
 	"extends": "../../tsconfig",
 	"compilerOptions": {
 		"declaration": false,
-		"baseUrl": ".",
 		"outDir": "browsertest.build",
+		"baseUrl": ".",
 		"rootDir": ".",
 		"paths": {
-			"chai": ["../../types/chai.d.ts"]
+			"chai": ["../../types/chai"]
 		}
 	},
-	"include": ["src/**/*", "test/**/*"]
+	"include": ["../../types/**/*", "src/**/*", "test/**/*"]
 }
