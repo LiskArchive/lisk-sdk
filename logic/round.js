@@ -152,7 +152,7 @@ class Round {
 				const actualAmount = new Bignum(Math.floor(vote.amount));
 				if (!actualAmount.eq(expectedAmount)) {
 					const diff = actualAmount.sub(expectedAmount);
-					self.scope.library.logger.warning(
+					self.scope.library.logger.warn(
 						'Round->updateVotes: Incorrect vote amount applied',
 						{
 							actual: actualAmount.toString(),
