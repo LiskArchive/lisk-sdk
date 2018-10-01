@@ -76,7 +76,7 @@ module.exports = function(grunt) {
 								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | integration | functional | network (required)\n- Where section can be one of get | post | ws (optional)'
 							);
 						}
-						return `./node_modules/.bin/_mocha test/network/index.js ${filter}`;
+						return `./node_modules/.bin/_mocha --delay test/network/index.js ${filter}`;
 					}
 					var toExecute = [tagFilter, suite, section]
 						.filter(val => val)
