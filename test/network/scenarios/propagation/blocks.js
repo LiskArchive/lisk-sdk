@@ -16,21 +16,21 @@
 
 const Promise = require('bluebird');
 const utils = require('../../utils');
-const common = require('../common');
 
-module.exports = function(configurations) {
+module.exports = function(configurations, network) {
 	describe('@propagation : blocks', () => {
-		const params = {};
-		common.setMonitoringSocketsConnections(params, configurations);
-
 		let nodesBlocks;
 
 		before(() => {
-			return Promise.all(
-				configurations.map(configuration => {
-					return utils.http.getBlocks(configuration.httpPort);
-				})
-			).then(blocksResults => {
+			return network.waitForBlocksOnAllNodes(1)
+			.then(() => {
+				return Promise.all(
+					configurations.map(configuration => {
+						return utils.http.getBlocks(configuration.httpPort);
+					})
+				);
+			})
+			.then(blocksResults => {
 				nodesBlocks = blocksResults;
 			});
 		});
