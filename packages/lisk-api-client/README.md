@@ -1,5 +1,5 @@
 # @liskhq/lisk-api-client
-@liskhq/lisk-api-client is a package containsAn API client for the Lisk network
+@liskhq/lisk-api-client is a package contains an API client for the Lisk network
 
 ## Installation
 
