@@ -16,7 +16,7 @@ import cryptography from 'lisk-cryptography';
 import { BYTESIZES, TRANSFER_FEE } from './constants';
 import {
 	wrapTransactionCreator,
-	validateAmount,
+	validateTransferAmount,
 	validateAddress,
 	validatePublicKey,
 } from './utils';
@@ -29,7 +29,7 @@ const createAsset = data => {
 };
 
 const validateInputs = ({ amount, recipientId, recipientPublicKey, data }) => {
-	if (!validateAmount(amount)) {
+	if (!validateTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}
 

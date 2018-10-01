@@ -69,8 +69,9 @@ describe('validateTransaction', () => {
 			it('should not include $merge error when the merged schema has error', () => {
 				const { valid, errors } = validateTransaction(invalidTransaction);
 				expect(valid).to.be.false;
-				expect(errors[0].dataPath).to.equal('.recipientId');
-				return expect(errors).to.have.length(1);
+				expect(errors[0].dataPath).to.equal('.amount');
+				expect(errors[1].dataPath).to.equal('.recipientId');
+				return expect(errors).to.have.length(2);
 			});
 		});
 	});

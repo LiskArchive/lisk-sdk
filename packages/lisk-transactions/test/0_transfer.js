@@ -225,7 +225,15 @@ describe('#transfer transaction', () => {
 				return Promise.resolve();
 			});
 
-			it('should throw error when invalid amount provided', () => {
+			it('should throw error when amount is 0', () => {
+				return expect(
+					transfer.bind(null, {
+						amount: '0',
+					}),
+				).to.throw('Amount must be a valid number in string format.');
+			});
+
+			it('should throw error when amount is greater than max transaction amount', () => {
 				return expect(
 					transfer.bind(null, {
 						amount: '18446744073709551616',
