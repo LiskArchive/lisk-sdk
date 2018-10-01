@@ -38,6 +38,10 @@ export default class CopyrightCommand extends BaseCommand {
 	}
 }
 
+CopyrightCommand.flags = {
+	...BaseCommand.flags,
+};
+
 CopyrightCommand.description = `
 Displays copyright notice.
 `;

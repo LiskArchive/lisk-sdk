@@ -32,6 +32,10 @@ export default class WarrantyCommand extends BaseCommand {
 	}
 }
 
+WarrantyCommand.flags = {
+	...BaseCommand.flags,
+};
+
 WarrantyCommand.description = `
 Displays warranty notice.
 `;
