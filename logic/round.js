@@ -149,7 +149,7 @@ class Round {
 			const queries = votes.map(vote => {
 				// Check for difference in vote amount and log when there is a difference
 				const expectedAmount = new Bignum(vote.amount);
-				const actualAmount = new Bignum(Math.floor(vote.amount));
+				const actualAmount = new Bignum(Math.floor(vote.amount).toString());
 				if (!actualAmount.eq(expectedAmount)) {
 					const diff = actualAmount.sub(expectedAmount);
 					self.scope.library.logger.warn(
