@@ -28,6 +28,9 @@ templates/cypress.tmpl/screenshots/
 templates/cypress.tmpl/videos/
 templates/cypress.tmpl/plugins/
 templates/cypress.tmpl/support/
+cypress/screenshots
+cypress/videos
+cypress/plugins
 
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
@@ -56,6 +59,11 @@ tmp
 dist-node/
 dist-browser/
 browsertest.build/
+browsertest/package.json
+browsertest/browsertest.js
+browsertest/browsertest.min.js
+browsertest/src
+browsertest/test
 
 # Unsupported lock files
 yarn.lock
