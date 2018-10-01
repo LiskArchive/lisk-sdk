@@ -120,7 +120,7 @@ Accounts.prototype.getAccount = function(filter, fields, cb, tx) {
 		filter,
 		fields,
 		(err, account) => {
-			if (account && publicKey && account.publicKey !== publicKey) {
+			if (account && publicKey && account.publicKey && account.publicKey !== publicKey) {
 				library.logger.warn(
 					'Accounts->getAccount: Encountered address collision',
 					{ requested: publicKey, actual: account.publicKey, account }
