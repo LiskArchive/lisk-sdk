@@ -55,6 +55,7 @@ class Accounts {
 				account: scope.logic.account,
 				transaction: scope.logic.transaction,
 			},
+			logger: scope.logger,
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
