@@ -110,6 +110,11 @@ Accounts.prototype.getAccount = function(filter, fields, cb, tx) {
 		delete filter.publicKey;
 	}
 
+	if (typeof fields === 'function') {
+		cb = fields;
+		fields = null;
+	}
+
 	library.logic.account.get(
 		filter,
 		fields,
