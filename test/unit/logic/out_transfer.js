@@ -22,6 +22,7 @@ var slots = require('../../../helpers/slots');
 var testData = require('./test_data/out_transfer');
 
 const constants = __testContext.config.constants;
+const exceptions = __testContext.config.exceptions;
 var OutTransfer = rewire('../../../logic/out_transfer');
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
@@ -161,21 +162,50 @@ describe('outTransfer', () => {
 		});
 
 		describe('when transaction.amount does not exist', () => {
-			it('should call callback with error = "Transaction type 7 is frozen"', done => {
-				delete transaction.amount;
-				outTransfer.verify(transaction, sender, err => {
-					expect(err).to.equal('Transaction type 7 is frozen');
-					done();
+			describe('when type 7 is frozen', () => {
+				it('should call callback with error = "Transaction type 7 is frozen"', done => {
+					transaction.amount = undefined;
+					outTransfer.verify(transaction, sender, err => {
+						expect(err).to.equal('Transaction type 7 is frozen');
+						done();
+					});
+				});
+			});
+
+			describe('when type 7 is not frozen', () => {
+				it('should call callback with error = "Invalid transaction amount"', done => {
+					const originalLimit = exceptions.precedent.disableDappTransfer;
+					exceptions.precedent.disableDappTransfer = 5;
+					transaction.amount = undefined;
+					outTransfer.verify(transaction, sender, err => {
+						expect(err).to.equal('Invalid transaction amount');
+						exceptions.precedent.disableDappTransfer = originalLimit;
+						done();
+					});
 				});
 			});
 		});
 
 		describe('when transaction.amount = 0', () => {
-			it('should call callback with error = "Transaction type 7 is frozen"', done => {
-				transaction.amount = 0;
-				outTransfer.verify(transaction, sender, err => {
-					expect(err).to.equal('Transaction type 7 is frozen');
-					done();
+			describe('when type 7 is frozen', () => {
+				it('should call callback with error = "Transaction type 7 is frozen"', done => {
+					transaction.amount = 0;
+					outTransfer.verify(transaction, sender, err => {
+						expect(err).to.equal('Transaction type 7 is frozen');
+						done();
+					});
+				});
+			});
+			describe('when type 7 is not frozen', () => {
+				it('should call callback with error = "Invalid transaction amount"', done => {
+					const originalLimit = exceptions.precedent.disableDappTransfer;
+					exceptions.precedent.disableDappTransfer = 5;
+					transaction.amount = 0;
+					outTransfer.verify(transaction, sender, err => {
+						expect(err).to.equal('Invalid transaction amount');
+						exceptions.precedent.disableDappTransfer = originalLimit;
+						done();
+					});
 				});
 			});
 		});
@@ -190,7 +220,7 @@ describe('outTransfer', () => {
 			});
 		});
 
-		describe('when transaction.asset.inTransfer does not exist', () => {
+		describe('when transaction.asset.outTransfer does not exist', () => {
 			it('should call callback with error = "Transaction type 7 is frozen"', done => {
 				delete transaction.asset.outTransfer;
 				outTransfer.verify(transaction, sender, err => {
