@@ -211,7 +211,7 @@ describe('expire transactions', () => {
 			});
 		});
 
-		it('account should be transfer and updated with balance and u_balance', done => {
+		it('account should be transfer and updated with balance and u_balance @sequential', done => {
 			queries
 				.getAccount(address)
 				.then(memAccountAfter => {
