@@ -89,6 +89,18 @@ client.transactions.broadcast(transaction)
 
 Full documentation can be found on the [Lisk documentation site][].
 
+## Packages
+
+| Package                                                 |                             Version                              | Description                                                        |
+| ------------------------------------------------------- | :--------------------------------------------------------------: | ------------------------------------------------------------------ |
+| [lisk-elements](packages/lisk-elements)                 |       [1.1.0](https://www.npmjs.com/package/lisk-elements)       | Package contains everything                                        |
+| [@liskhq/lisk-client](packages/lisk-client)             |    [1.0.0](https://www.npmjs.com/package/@liskhq/lisk-client)    | A default set of Elements for use by clients of the Lisk network   |
+| [@liskhq/lisk-api-client](packages/lisk-api-client)     |  [1.0.0](https://www.npmjs.com/package/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
+| [@liskhq/lisk-constants](packages/lisk-constants)       |  [1.0.0](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
+| [@liskhq/lisk-cryptography](packages/lisk-cryptography) | [1.0.0](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
+| [@liskhq/lisk-passphrase](packages/lisk-passphrase)     |  [1.0.0](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
+| [@liskhq/lisk-transactions](packages/lisk-transactions) | [1.0.0](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
+
 ## Contributors
 
 https://github.com/LiskHQ/lisk-elements/graphs/contributors
