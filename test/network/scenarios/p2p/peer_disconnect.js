@@ -16,11 +16,10 @@
 
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
-const network = require('../../setup/network');
-const common = require('../common');
 
 module.exports = function(
 	configurations,
+	network,
 	TOTAL_PEERS,
 	EXPECTED_TOTAL_CONNECTIONS,
 	NUMBER_OF_TRANSACTIONS,
@@ -30,15 +29,17 @@ module.exports = function(
 	const EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER =
 		(TOTAL_PEERS_LESS_ONE - 1) * TOTAL_PEERS_LESS_ONE * 2;
 
-	describe('@network : peer Disconnect', () => {
-		const params = {};
-		common.setMonitoringSocketsConnections(params, configurations);
 
+	describe('@network : peer Disconnect', () => {
 		const wsPorts = new Set();
+
+		before(() => {
+			return network.waitForAllNodesToBeReady();
+		});
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return common.getAllPeers(params.sockets).then(mutualPeers => {
+				return network.getAllPeersLists().then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -54,7 +55,7 @@ module.exports = function(
 
 			describe('when a node is stopped', () => {
 				before(done => {
-					common
+					network
 						.stopNode('node_1')
 						.then(done)
 						.catch(done);
@@ -85,8 +86,8 @@ module.exports = function(
 
 			describe('when a stopped node is started', () => {
 				before(done => {
-					common
-						.startNode('node_1')
+					network
+						.startNode('node_1', true)
 						.then(done)
 						.catch(done);
 				});
@@ -111,33 +112,29 @@ module.exports = function(
 				});
 			});
 
-			describe('node stop and start', () => {
+			describe('node restart', () => {
 				// To validate peers holding socket connection
 				// Need to keep one peer so that we can validate
 				// Duplicate socket connection exists or not
-				it('stop all the nodes in the network except node_0', () => {
+				before('restart all nodes in the network except node_0', () => {
 					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
-						peersPromises.push(common.stopNode(`node_${i}`));
-					}
-					console.info('Wait for nodes to be stopped');
-					return Promise.all(peersPromises);
-				});
-
-				it('start all nodes that were stopped', () => {
-					const peersPromises = [];
-					for (let i = 1; i < TOTAL_PEERS; i++) {
-						peersPromises.push(common.startNode(`node_${i}`));
+						const nodeName = `node_${i}`;
+						peersPromises.push(
+							network.restartNode(nodeName, true)
+						);
 					}
 					console.info('Wait for nodes to be started');
-					return Promise.all(peersPromises);
+					return Promise.all(peersPromises)
+						.then(() => {
+							return network.enableForgingForDelegates();
+						})
+						.then(() => {
+							return network.waitForBlocksOnAllNodes(1);
+						});
 				});
 
-				describe('after all the node restarts', () => {
-					before(done => {
-						network.enableForgingForDelegates(params.configurations, done);
-					});
-
+				describe('after all the nodes restart', () => {
 					// The expected connection becomes EXPECTED_TOTAL_CONNECTIONS + 18 previously held connections
 					it(`there should be ${EXPECTED_TOTAL_CONNECTIONS +
 						18} established connections from 500[0-9] ports`, done => {
