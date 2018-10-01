@@ -192,8 +192,8 @@ describe('validator', () => {
 			return expect(validate({ target: '0' })).to.be.true;
 		});
 
-		it('should validate to true when valid amount with leading zeros is provided', () => {
-			return expect(validate({ target: '000000' })).to.be.true;
+		it('should validate to false when invalid amount with leading zeros is provided', () => {
+			return expect(validate({ target: '000001' })).to.be.false;
 		});
 
 		it('should validate to false when number greater than maximum is provided', () => {
@@ -238,6 +238,10 @@ describe('validator', () => {
 
 		it('should validate to true when valid amount with leading zeros is provided', () => {
 			return expect(validate({ target: '000000100' })).to.be.true;
+		});
+
+		it('should validate to false when amount is 0', () => {
+			return expect(validate({ target: '0' })).to.be.false;
 		});
 
 		it('should validate to false when number greater than maximum is provided', () => {

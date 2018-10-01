@@ -83,7 +83,7 @@ export const validateAddress = address => {
 	return true;
 };
 
-export const isGreaterThanZero = amount => amount > 0;
+export const isGreaterThanZero = amount => amount.cmp(0) > 0;
 
 export const isGreaterThanMaxTransactionAmount = amount =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;

@@ -276,12 +276,13 @@ describe('validation', () => {
 
 	describe('#isGreaterThanZero', () => {
 		it('should return false when amount is 0', () => {
-			return expect(isGreaterThanZero('0')).to.be.false;
+			return expect(isGreaterThanZero(bignum('0'))).to.be.false;
 		});
 
 		it('should return true when amount is greater than 0', () => {
-			return expect(isGreaterThanZero('9223372036854775808987234289782357')).to
-				.be.true;
+			return expect(
+				isGreaterThanZero(bignum('9223372036854775808987234289782357')),
+			).to.be.true;
 		});
 	});
 
