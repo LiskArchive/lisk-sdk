@@ -61,14 +61,14 @@ describe('keys', () => {
 		});
 
 		it('should create buffer publicKey', () => {
-			return expect(Buffer.from(keyPair.publicKey).toString('hex')).to.be.equal(
-				defaultPublicKey,
-			);
+			return expect(
+				Buffer.from(keyPair.publicKeyBytes).toString('hex'),
+			).to.be.equal(defaultPublicKey);
 		});
 
 		it('should create buffer privateKey', () => {
 			return expect(
-				Buffer.from(keyPair.privateKey).toString('hex'),
+				Buffer.from(keyPair.privateKeyBytes).toString('hex'),
 			).to.be.equal(defaultPrivateKey);
 		});
 	});

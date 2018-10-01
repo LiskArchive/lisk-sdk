@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { makeInvalid } from './helpers';
 import {
 	signMessageWithPassphrase,
 	signMessageWithTwoPassphrases,
@@ -27,11 +28,6 @@ import {
 } from '../src/sign';
 // Require is used for stubbing
 const keys = require('../src/keys');
-
-const makeInvalid = str => {
-	const char = str[0] === '0' ? '1' : '0';
-	return `${char}${str.slice(1)}`;
-};
 
 const changeLength = str => `00${str}`;
 
@@ -106,14 +102,14 @@ ${defaultSecondSignature}
 		getPrivateAndPublicKeyBytesFromPassphraseStub
 			.withArgs(defaultPassphrase)
 			.returns({
-				privateKey: Buffer.from(defaultPrivateKey, 'hex'),
-				publicKey: Buffer.from(defaultPublicKey, 'hex'),
+				privateKeyBytes: Buffer.from(defaultPrivateKey, 'hex'),
+				publicKeyBytes: Buffer.from(defaultPublicKey, 'hex'),
 			});
 		return getPrivateAndPublicKeyBytesFromPassphraseStub
 			.withArgs(defaultSecondPassphrase)
 			.returns({
-				privateKey: Buffer.from(defaultSecondPrivateKey, 'hex'),
-				publicKey: Buffer.from(defaultSecondPublicKey, 'hex'),
+				privateKeyBytes: Buffer.from(defaultSecondPrivateKey, 'hex'),
+				publicKeyBytes: Buffer.from(defaultSecondPublicKey, 'hex'),
 			});
 	});
 
