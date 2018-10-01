@@ -36,6 +36,8 @@ export {
 	validateKeysgroup,
 	validateAddress,
 	validateAmount,
+	validateTransferAmount,
+	validateFee,
 	isValidInteger,
 	validateTransaction,
 } from './validation';

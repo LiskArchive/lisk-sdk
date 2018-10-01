@@ -54,7 +54,7 @@ describe('validateTransaction', () => {
 		describe('when the transaction contains invalid data in merged schema', () => {
 			const invalidTransaction = {
 				type: 0,
-				amount: '0',
+				amount: '1',
 				fee: '10000000',
 				recipientId: 'recipientID',
 				senderPublicKey:

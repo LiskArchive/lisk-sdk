@@ -38,7 +38,7 @@ export const baseTransaction = {
 		},
 		fee: {
 			type: 'string',
-			format: 'amount',
+			format: 'fee',
 		},
 		type: {
 			type: 'integer',
@@ -98,6 +98,9 @@ export const transferTransaction = {
 			properties: {
 				recipientId: {
 					format: 'address',
+				},
+				amount: {
+					format: 'transferAmount',
 				},
 				asset: {
 					type: 'object',
