@@ -64,7 +64,7 @@ Our source code is hosted on GitHub. You can build the distribution yourself by 
 
 ```
 git clone https://github.com/LiskHQ/lisk-elements.git
-cd lisk-elements
+cd lisk-elements/packages/lisk-elements
 npm install
 npm run build
 ```
