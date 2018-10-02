@@ -83,6 +83,8 @@ export const validateAddress = address => {
 	return true;
 };
 
+export const isGreaterThanZero = amount => amount.cmp(0) > 0;
+
 export const isGreaterThanMaxTransactionAmount = amount =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
@@ -97,6 +99,16 @@ export const isNumberString = str => {
 };
 
 export const validateAmount = data =>
-	isNumberString(data) && !isGreaterThanMaxTransactionAmount(bignum(data));
+	isNumberString(data) && !isGreaterThanZero(bignum(data));
+
+export const validateTransferAmount = data =>
+	isNumberString(data) &&
+	isGreaterThanZero(bignum(data)) &&
+	!isGreaterThanMaxTransactionAmount(bignum(data));
+
+export const validateFee = data =>
+	isNumberString(data) &&
+	isGreaterThanZero(bignum(data)) &&
+	!isGreaterThanMaxTransactionAmount(bignum(data));
 
 export const isValidInteger = num => parseInt(num, 10) === num;

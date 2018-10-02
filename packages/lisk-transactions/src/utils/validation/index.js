@@ -20,8 +20,11 @@ export {
 	validateKeysgroup,
 	validateAddress,
 	validateAmount,
+	validateTransferAmount,
+	validateFee,
 	isValidInteger,
 	isGreaterThanMaxTransactionAmount,
+	isGreaterThanZero,
 } from './validation';
 
 export { default as validateTransaction } from './validate_transaction';

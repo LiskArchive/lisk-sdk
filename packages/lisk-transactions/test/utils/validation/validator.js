@@ -189,11 +189,59 @@ describe('validator', () => {
 		});
 
 		it('should validate to true when valid amount is provided', () => {
-			return expect(validate({ target: '190105310' })).to.be.true;
+			return expect(validate({ target: '0' })).to.be.true;
+		});
+
+		it('should validate to false when invalid amount with leading zeros is provided', () => {
+			return expect(validate({ target: '000001' })).to.be.false;
+		});
+
+		it('should validate to false when number greater than maximum is provided', () => {
+			return expect(validate({ target: '9223372036854775808' })).to.be.false;
+		});
+
+		it('should validate to false when decimal number is provided', () => {
+			return expect(validate({ target: '190.105310' })).to.be.false;
+		});
+
+		it('should validate to false when number is provided', () => {
+			return expect(validate({ target: 190105310 })).to.be.false;
+		});
+
+		it('should validate to false when it is empty', () => {
+			return expect(validate({ target: '' })).to.be.false;
+		});
+	});
+
+	describe('transfer amount', () => {
+		let validate;
+		beforeEach(() => {
+			validate = validator.compile({
+				$merge: {
+					source: { $ref: baseSchemaId },
+					with: {
+						properties: {
+							target: {
+								type: 'string',
+								format: 'transferAmount',
+							},
+						},
+					},
+				},
+			});
+			return Promise.resolve();
+		});
+
+		it('should validate to true when valid amount is provided', () => {
+			return expect(validate({ target: '100' })).to.be.true;
 		});
 
 		it('should validate to true when valid amount with leading zeros is provided', () => {
-			return expect(validate({ target: '00190105310' })).to.be.true;
+			return expect(validate({ target: '000000100' })).to.be.true;
+		});
+
+		it('should validate to false when amount is 0', () => {
+			return expect(validate({ target: '0' })).to.be.false;
 		});
 
 		it('should validate to false when number greater than maximum is provided', () => {

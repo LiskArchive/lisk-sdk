@@ -21,7 +21,10 @@ import {
 	validateKeysgroup,
 	validateAddress,
 	validateAmount,
+	validateTransferAmount,
+	validateFee,
 	isGreaterThanMaxTransactionAmount,
+	isGreaterThanZero,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
@@ -246,8 +249,40 @@ describe('validation', () => {
 	});
 
 	describe('#validateAmount', () => {
-		it('should return true when amount is a number and is not greater than maximum transaction amount', () => {
-			return expect(validateAmount('9223372036854775807')).to.be.true;
+		it('should return true when amount is 0', () => {
+			return expect(validateAmount('0')).to.be.true;
+		});
+	});
+
+	describe('#validateTransferAmount', () => {
+		it('should return false is amount is 0', () => {
+			return expect(validateTransferAmount('0')).to.be.false;
+		});
+
+		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
+			return expect(validateTransferAmount('100')).to.be.true;
+		});
+	});
+
+	describe('#validateFee', () => {
+		it('should return false is amount is 0', () => {
+			return expect(validateFee('0')).to.be.false;
+		});
+
+		it('should return true when amount is a number greater than 0 and less than maximum transaction amount', () => {
+			return expect(validateFee('100')).to.be.true;
+		});
+	});
+
+	describe('#isGreaterThanZero', () => {
+		it('should return false when amount is 0', () => {
+			return expect(isGreaterThanZero(bignum('0'))).to.be.false;
+		});
+
+		it('should return true when amount is greater than 0', () => {
+			return expect(
+				isGreaterThanZero(bignum('9223372036854775808987234289782357')),
+			).to.be.true;
 		});
 	});
 
