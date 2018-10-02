@@ -24,12 +24,13 @@ module.exports = function(configurations, network) {
 			let mutualPeers = [];
 
 			before(done => {
-				network.getAllPeersLists()
-				.then(peers => {
-					mutualPeers = peers;
-					done();
-				})
-				.catch(done);
+				network
+					.getAllPeersLists()
+					.then(peers => {
+						mutualPeers = peers;
+						done();
+					})
+					.catch(done);
 			});
 
 			it('should return a list of peers mutually interconnected', () => {
@@ -75,8 +76,7 @@ module.exports = function(configurations, network) {
 
 		describe('forging', () => {
 			before(() => {
-				return network.waitForBlocksOnAllNodes(3)
-				.then(() => {
+				return network.waitForBlocksOnAllNodes(3).then(() => {
 					return new Promise(resolve => {
 						// Add 5 seconds to give time for networkHeight
 						// to update across all nodes.
@@ -91,14 +91,17 @@ module.exports = function(configurations, network) {
 				let getAllNodesStatusError;
 				let networkHeight;
 				let networkAverageHeight;
-				let peersCount;
-				let peerStatusList;
+				// TODO: Uncomment when networkHeight issue has been fixed.
+				// let peersCount;
+				// let peerStatusList;
 
 				before(done => {
-					network.getAllNodesStatus()
+					network
+						.getAllNodesStatus()
 						.then(data => {
-							peersCount = data.peersCount;
-							peerStatusList = data.peerStatusList;
+							// TODO: Uncomment when networkHeight issue has been fixed.
+							// peersCount = data.peersCount;
+							// peerStatusList = data.peerStatusList;
 							networkHeight = data.networkMaxAvgHeight.maxHeight;
 							networkAverageHeight = data.networkMaxAvgHeight.averageHeight;
 							done();
@@ -158,7 +161,8 @@ module.exports = function(configurations, network) {
 
 				// TODO: networkHeight is not updating fast enough across all nodes
 				// so this test currently fails.
-				describe.skip('network height', () => {
+				/*
+				describe('network height', () => {
 					it('should have networkHeight > 1 for all peers', () => {
 						expect(peerStatusList)
 							.to.be.an('Array')
@@ -176,6 +180,7 @@ module.exports = function(configurations, network) {
 						return expect(heights).to.have.lengthOf(1); // TODO 2: This fails sometimes
 					});
 				});
+				*/
 			});
 		});
 	});
