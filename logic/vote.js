@@ -140,6 +140,11 @@ Vote.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 Vote.prototype.verify = function(transaction, sender, cb, tx) {
+	const amount = new Bignum(transaction.amount);
+	if (amount.greaterThan(0)) {
+		return setImmediate(cb, 'Invalid transaction amount');
+	}
+
 	if (transaction.recipientId !== transaction.senderId) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
