@@ -48,8 +48,6 @@ describe('signature:create', () => {
 			'ba8250a2192cb0b70283993d4fa6c6e625a422b16829b38a6c6c14b2ad82411e2e8523abac35162e1c28d8dd35bbe7821b2945640c8baab95b00fb2525bdb807',
 	};
 
-	const transactionStub = sandbox.stub().returns(defaultSignatureObject);
-
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
@@ -58,7 +56,7 @@ describe('signature:create', () => {
 			.stub(
 				elements.default.transaction,
 				'createSignatureObject',
-				transactionStub,
+				sandbox.stub().returns(defaultSignatureObject),
 			)
 			.stub(
 				getInputsFromSources,
@@ -100,10 +98,9 @@ describe('signature:create', () => {
 						repeatPrompt: true,
 					},
 				});
-				expect(transactionStub).to.be.calledWithExactly(
-					defaultTransaction,
-					defaultInputs.passphrase,
-				);
+				expect(
+					elements.default.transaction.createSignatureObject,
+				).to.be.calledWithExactly(defaultTransaction, defaultInputs.passphrase);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignatureObject,
 				);
@@ -126,7 +123,9 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(transactionStub).to.be.calledWithExactly(
+					expect(
+						elements.default.transaction.createSignatureObject,
+					).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
@@ -176,7 +175,9 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(transactionStub).to.be.calledWithExactly(
+					expect(
+						elements.default.transaction.createSignatureObject,
+					).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
@@ -204,7 +205,9 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(transactionStub).to.be.calledWithExactly(
+					expect(
+						elements.default.transaction.createSignatureObject,
+					).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
