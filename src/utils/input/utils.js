@@ -135,7 +135,7 @@ export const getPassphraseFromPrompt = async ({
 	}
 
 	// Prompting user for additional input when piping commands causes error with stdin
-	if (!stdoutIsTTY()) {
+	if (!stdoutIsTTY() || !stdinIsTTY()) {
 		throw new Error(
 			`Please enter ${displayName} using a flag when piping data.`,
 		);

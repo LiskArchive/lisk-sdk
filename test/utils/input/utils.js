@@ -206,6 +206,7 @@ describe('input/utils utils', () => {
 
 		beforeEach(() => {
 			sandbox.stub(utilHelpers, 'stdoutIsTTY').returns(true);
+			sandbox.stub(utilHelpers, 'stdinIsTTY').returns(true);
 			return sandbox.stub(inquirer, 'prompt');
 		});
 
@@ -453,6 +454,7 @@ describe('input/utils utils', () => {
 
 		beforeEach(() => {
 			sandbox.stub(utilHelpers, 'stdoutIsTTY').returns(true);
+			sandbox.stub(utilHelpers, 'stdinIsTTY').returns(true);
 			return sandbox
 				.stub(inquirer, 'prompt')
 				.resolves({ passphrase: password });
