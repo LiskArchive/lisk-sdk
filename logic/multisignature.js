@@ -24,7 +24,7 @@ const Bignum = require('../helpers/bignum.js');
 let modules;
 let library;
 const exceptions = global.exceptions;
-const constants = global.constants;
+const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
 const __private = {};
 
 __private.unconfirmedSignatures = {};
@@ -82,7 +82,7 @@ Multisignature.prototype.bind = function(accounts) {
  */
 Multisignature.prototype.calculateFee = function(transaction) {
 	const keys = transaction.asset.multisignature.keysgroup.length + 1;
-	const amount = new Bignum(constants.FEES.MULTISIGNATURE);
+	const amount = new Bignum(FEES.MULTISIGNATURE);
 	return amount.mul(keys);
 };
 
@@ -115,18 +115,16 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 	}
 
 	if (
-		transaction.asset.multisignature.min <
-			constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM ||
-		transaction.asset.multisignature.min >
-			constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM
+		transaction.asset.multisignature.min < MULTISIG_CONSTRAINTS.MIN.MINIMUM ||
+		transaction.asset.multisignature.min > MULTISIG_CONSTRAINTS.MIN.MAXIMUM
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Invalid multisignature min. Must be between',
-				constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM,
+				MULTISIG_CONSTRAINTS.MIN.MINIMUM,
 				'and',
-				constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
+				MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 			].join(' ')
 		);
 	}
@@ -148,17 +146,17 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 
 	if (
 		transaction.asset.multisignature.lifetime <
-			constants.MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM ||
+			MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM ||
 		transaction.asset.multisignature.lifetime >
-			constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
+			MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Invalid multisignature lifetime. Must be between',
-				constants.MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM,
+				MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM,
 				'and',
-				constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
+				MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 			].join(' ')
 		);
 	}
@@ -497,18 +495,18 @@ Multisignature.prototype.schema = {
 	properties: {
 		min: {
 			type: 'integer',
-			minimum: constants.MULTISIG_CONSTRAINTS.MIN.MINIMUM,
-			maximum: constants.MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
+			minimum: MULTISIG_CONSTRAINTS.MIN.MINIMUM,
+			maximum: MULTISIG_CONSTRAINTS.MIN.MAXIMUM,
 		},
 		keysgroup: {
 			type: 'array',
-			minItems: constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
-			maxItems: constants.MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
+			minItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MIN_ITEMS,
+			maxItems: MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS,
 		},
 		lifetime: {
 			type: 'integer',
-			minimum: constants.MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM,
-			maximum: constants.MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
+			minimum: MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM,
+			maximum: MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM,
 		},
 	},
 	required: ['min', 'keysgroup', 'lifetime'],

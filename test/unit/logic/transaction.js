@@ -32,7 +32,7 @@ var Dapp = require('../../../logic/dapp');
 var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
 
-const constants = __testContext.config.constants;
+const { TOTAL_AMOUNT } = __testContext.config.constants;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
@@ -776,7 +776,7 @@ describe('transaction', () => {
 
 		it('should return error when account balance is less than transaction amount', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.TOTAL_AMOUNT;
+			transactionDataClone.amount = TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, null, null, err => {

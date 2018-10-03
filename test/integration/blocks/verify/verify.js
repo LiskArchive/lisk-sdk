@@ -33,7 +33,7 @@ var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const blockVersion = require('../../../../logic/block_version.js');
 
-const constants = global.constants;
+const { BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
 
 var previousBlock = {
@@ -636,15 +636,13 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe(`for slot number ${
-				constants.BLOCK_SLOT_WINDOW
-			} slots in the past`, () => {
+			describe(`for slot number ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
 				var dummyBlock;
 
 				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - constants.BLOCK_SLOT_WINDOW
+							slots.getSlotNumber() - BLOCK_SLOT_WINDOW
 						),
 					};
 					done();
@@ -674,14 +672,14 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe(`for slot number ${constants.BLOCK_SLOT_WINDOW +
+			describe(`for slot number ${BLOCK_SLOT_WINDOW +
 				1} slots in the past`, () => {
 				var dummyBlock;
 
 				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - (constants.BLOCK_SLOT_WINDOW + 1)
+							slots.getSlotNumber() - (BLOCK_SLOT_WINDOW + 1)
 						),
 					};
 					done();
@@ -712,7 +710,7 @@ describe('blocks/verify', () => {
 					var lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
 					expect(lastNBlockIds)
 						.to.be.an('array')
-						.and.to.have.length.below(constants.BLOCK_SLOT_WINDOW + 1);
+						.and.to.have.length.below(BLOCK_SLOT_WINDOW + 1);
 					_.each(lastNBlockIds, value => {
 						expect(value).to.be.a('string');
 					});
@@ -745,13 +743,11 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				describe(`when onNewBlock function is called ${
-					constants.BLOCK_SLOT_WINDOW
-				}times`, () => {
+				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW}times`, () => {
 					var blockIds = [];
 
 					before(() => {
-						return _.map(_.range(0, constants.BLOCK_SLOT_WINDOW), () => {
+						return _.map(_.range(0, BLOCK_SLOT_WINDOW), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -769,14 +765,14 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				describe(`when onNewBlock function is called ${constants.BLOCK_SLOT_WINDOW *
+				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
 					2} times`, () => {
 					var recentNBlockIds;
 					var olderThanNBlockIds;
 
 					before(done => {
 						var blockIds = [];
-						_.map(_.range(0, constants.BLOCK_SLOT_WINDOW * 2), () => {
+						_.map(_.range(0, BLOCK_SLOT_WINDOW * 2), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -789,18 +785,16 @@ describe('blocks/verify', () => {
 						});
 
 						recentNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index < constants.BLOCK_SLOT_WINDOW;
+							return blockIds.length - 1 - index < BLOCK_SLOT_WINDOW;
 						});
 
 						olderThanNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index >= constants.BLOCK_SLOT_WINDOW;
+							return blockIds.length - 1 - index >= BLOCK_SLOT_WINDOW;
 						});
 						done();
 					});
 
-					it(`should maintain last ${
-						constants.BLOCK_SLOT_WINDOW
-					} blockIds in lastNBlockIds queue`, () => {
+					it(`should maintain last ${BLOCK_SLOT_WINDOW} blockIds in lastNBlockIds queue`, () => {
 						expect(lastNBlockIds).to.include.members(recentNBlockIds);
 						return expect(lastNBlockIds).to.not.include.members(
 							olderThanNBlockIds
@@ -1101,7 +1095,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
 					const transaction = lisk.transaction.transfer({
-						amount: new Bignum(constants.NORMALIZER).mul(1000),
+						amount: new Bignum(NORMALIZER).mul(1000),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

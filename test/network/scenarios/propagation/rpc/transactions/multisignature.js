@@ -28,7 +28,7 @@ const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
 const common = require('../../../common');
 
-const constants = __testContext.config.constants;
+const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
 
 module.exports = function(configurations) {
 	describe('@propagation : multisig transactions', () => {
@@ -72,9 +72,7 @@ module.exports = function(configurations) {
 			it('should confirm all transactions on all nodes', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(
-						numberOfTransactions / constants.MAX_TRANSACTIONS_PER_BLOCK
-					) + 2;
+					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)
@@ -139,9 +137,7 @@ module.exports = function(configurations) {
 			it('check all the nodes received the transactions', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(
-						numberOfTransactions / constants.MAX_TRANSACTIONS_PER_BLOCK
-					) + 2;
+					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
 				waitFor.blocks(blocksToWait, () => {
 					confirmTransactionsOnAllNodes(transactions, configurations)
 						.then(done)

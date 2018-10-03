@@ -283,13 +283,13 @@ function cleanDeep(
  * @param {Object} configData
  * @todo Add description for the params
  */
-function validateForce(configData) {
-	if (configData.forging.force) {
-		var index = configData.constants.NETHASHES.indexOf(configData.nethash);
+function validateForce({ constants, forging, nethash }) {
+	if (forging.force) {
+		const { NETHASHES } = constants;
 
-		if (index !== -1) {
-			console.info('Forced forging disabled for nethash', configData.nethash);
-			configData.forging.force = false;
+		if (NETHASHES.indexOf(nethash) !== -1) {
+			console.info('Forced forging disabled for nethash', nethash);
+			forging.force = false;
 		}
 	}
 }
