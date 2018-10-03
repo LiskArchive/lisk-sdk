@@ -23,10 +23,15 @@ const AppConfig = require('./helpers/config.js');
  * @memberof! app
  * @default 'config.json'
  */
+// As newrelic is using `LISK_NETWORK` to initialize app name
+// so we have to initialize configuration before requiring the newrelic
 // eslint-disable-next-line import/order
 const appConfig = AppConfig(require('./package.json'));
 
-if (process.env.NEW_RELIC_LICENSE_KEY) {
+// eslint-disable-next-line import/order
+const NewRelicConfig = require('./newrelic.js').config;
+
+if (NewRelicConfig.license_key || process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
