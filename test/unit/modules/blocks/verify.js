@@ -22,7 +22,6 @@ const BlocksVerify = rewire('../../../../modules/blocks/verify.js');
 
 const exceptions = global.exceptions;
 
-
 describe('blocks/verify', () => {
 	let library;
 	let __private;
@@ -1055,7 +1054,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('when __private.verifyBlockSlotWindow fails', () => {
-			describe('when currentApplicationSlot - blockSlot > constants.BLOCK_SLOT_WINDOW', () => {
+			describe('when currentApplicationSlot - blockSlot > BLOCK_SLOT_WINDOW', () => {
 				it('should return error', () => {
 					verifyBlockSlotWindow = __private.verifyBlockSlotWindow(
 						{ timestamp: 10 },
@@ -1223,7 +1222,7 @@ describe('blocks/verify', () => {
 	});
 
 	describe('onNewBlock', () => {
-		describe('when __private.lastNBlockIds.length > constants.BLOCK_SLOT_WINDOW', () => {
+		describe('when __private.lastNBlockIds.length > BLOCK_SLOT_WINDOW', () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4, 5, 6];
 				done();
@@ -1239,7 +1238,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
-		describe('when __private.lastNBlockIds.length <= constants.BLOCK_SLOT_WINDOW', () => {
+		describe('when __private.lastNBlockIds.length <= BLOCK_SLOT_WINDOW', () => {
 			beforeEach(done => {
 				__private.lastNBlockIds = [1, 2, 3, 4];
 				done();

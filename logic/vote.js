@@ -21,7 +21,7 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 
 const exceptions = global.exceptions;
-const constants = global.constants;
+const { FEES, MAX_VOTES_PER_TRANSACTION } = global.constants;
 
 let modules;
 let library;
@@ -130,7 +130,7 @@ Vote.prototype.bind = function(delegates) {
  * @returns {Bignumber} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
-	return new Bignum(constants.FEES.VOTE);
+	return new Bignum(FEES.VOTE);
 };
 
 /**
@@ -161,13 +161,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 
 	if (
 		transaction.asset.votes &&
-		transaction.asset.votes.length > constants.MAX_VOTES_PER_TRANSACTION
+		transaction.asset.votes.length > MAX_VOTES_PER_TRANSACTION
 	) {
 		return setImmediate(
 			cb,
 			[
 				'Voting limit exceeded. Maximum is',
-				constants.MAX_VOTES_PER_TRANSACTION,
+				MAX_VOTES_PER_TRANSACTION,
 				'votes per transaction',
 			].join(' ')
 		);
@@ -390,7 +390,7 @@ Vote.prototype.schema = {
 		votes: {
 			type: 'array',
 			minItems: 1,
-			maxItems: constants.MAX_VOTES_PER_TRANSACTION,
+			maxItems: MAX_VOTES_PER_TRANSACTION,
 			uniqueItems: true,
 		},
 	},

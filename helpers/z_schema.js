@@ -70,12 +70,15 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	additionalData(str) {
+		/**
+		 * This deconstruction has to take place here because
+		 * global.constants will be defined in test/setup.js.
+		 */
+		const { ADDITIONAL_DATA } = global.constants;
 		if (typeof str !== 'string') {
 			return false;
 		}
-		return (
-			Buffer.from(str).length <= global.constants.ADDITIONAL_DATA.MAX_LENGTH
-		);
+		return Buffer.from(str).length <= ADDITIONAL_DATA.MAX_LENGTH;
 	},
 	/**
 	 * Description of the function.
@@ -285,10 +288,14 @@ var liskFormats = {
 	 * @returns {boolean}
 	 */
 	amount(value) {
+		/**
+		 * This deconstruction has to take place here because
+		 * global.constants will be defined in test/setup.js.
+		 */
+		const { TOTAL_AMOUNT } = global.constants;
 		if (value instanceof Bignum) {
 			return (
-				value.greaterThanOrEqualTo(0) &&
-				value.lessThanOrEqualTo(global.constants.TOTAL_AMOUNT)
+				value.greaterThanOrEqualTo(0) && value.lessThanOrEqualTo(TOTAL_AMOUNT)
 			);
 		}
 		return false;
