@@ -15,16 +15,19 @@ USAGE
   $ lisk account:create
 
 OPTIONS
-  -j, --[no-]json  Prints output in JSON format. You can change the default behaviour in your config.json file.
+  -j, --[no-]json      Prints output in JSON format. You can change the default behaviour in your config.json file.
 
-  --[no-]pretty    Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table. You
-                   can change the default behaviour in your config.json file.
+  -n, --number=number  [default: 1] Number of accounts to create.
+
+  --[no-]pretty        Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table.
+                       You can change the default behaviour in your config.json file.
 
 DESCRIPTION
   Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
 
-EXAMPLE
+EXAMPLES
   account:create
+  account:create --number=3
 ```
 
 ## `lisk account:get ADDRESSES`
