@@ -6,9 +6,7 @@
 		"tslint-config-prettier"
 	],
 	"rules": {
-		"interface-name": [true, "never-prefix"]
-	},
-	"jsRules": {
+		"interface-name": [true, "never-prefix"],
 		"no-class": true,
 		"no-delete": true,
 		"no-expression-statement": true,

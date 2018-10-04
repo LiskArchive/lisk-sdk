@@ -23,7 +23,7 @@ import {
 	TESTNET_NETHASH,
 	MAINNET_NETHASH,
 	SIGNED_MESSAGE_PREFIX,
-} from '../src/index';
+} from '../src';
 
 describe('lisk-constants', () => {
 	it('EPOCH_TIME should be a Date instance', () => {
