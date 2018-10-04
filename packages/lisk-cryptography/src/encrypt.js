@@ -13,10 +13,10 @@
  *
  */
 import crypto from 'crypto';
-import nacl from 'tweetnacl';
-import { hexToBuffer, bufferToHex } from './buffer';
+import { bufferToHex, hexToBuffer } from './buffer';
 import { convertPrivateKeyEd2Curve, convertPublicKeyEd2Curve } from './convert';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
+import { box, getRandomBytes, openBox } from './nacl';
 
 const PBKDF2_ITERATIONS = 1e6;
 const PBKDF2_KEYLEN = 32;
@@ -29,15 +29,16 @@ export const encryptMessageWithPassphrase = (
 	recipientPublicKey,
 ) => {
 	const {
-		privateKey: senderPrivateKeyBytes,
+		privateKeyBytes: senderPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 	const messageInBytes = Buffer.from(message, 'utf8');
 
-	const nonce = nacl.randomBytes(24);
-	const cipherBytes = nacl.box(
+	const nonce = getRandomBytes(24);
+
+	const cipherBytes = box(
 		messageInBytes,
 		nonce,
 		convertedPublicKey,
@@ -60,7 +61,7 @@ export const decryptMessageWithPassphrase = (
 	senderPublicKey,
 ) => {
 	const {
-		privateKey: recipientPrivateKeyBytes,
+		privateKeyBytes: recipientPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const convertedPrivateKey = convertPrivateKeyEd2Curve(
 		recipientPrivateKeyBytes,
@@ -71,7 +72,7 @@ export const decryptMessageWithPassphrase = (
 	const nonceBytes = hexToBuffer(nonce);
 
 	try {
-		const decoded = nacl.box.open(
+		const decoded = openBox(
 			cipherBytes,
 			nonceBytes,
 			convertedPublicKey,
@@ -79,8 +80,12 @@ export const decryptMessageWithPassphrase = (
 		);
 		return Buffer.from(decoded).toString();
 	} catch (error) {
-		if (error.message.match(/bad nonce size/)) {
-			throw new Error('Expected 24-byte nonce but got length 1.');
+		if (
+			error.message.match(
+				/bad nonce size|nonce must be a buffer of size crypto_box_NONCEBYTES/,
+			)
+		) {
+			throw new Error('Expected nonce to be 24 bytes.');
 		}
 		throw new Error(
 			'Something went wrong during decryption. Is this the full encrypted message?',

@@ -12,17 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { DELEGATE_FEE } from './constants';
+import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
 import { wrapTransactionCreator } from './utils';
 
-const registerDelegate = ({ username }) => ({
-	type: 2,
-	fee: DELEGATE_FEE.toString(),
-	asset: {
-		delegate: {
-			username,
+const validateInputs = ({ username }) => {
+	if (!username || typeof username !== 'string') {
+		throw new Error('Please provide a username. Expected string.');
+	}
+
+	if (username.length > USERNAME_MAX_LENGTH) {
+		throw new Error(
+			`Username length does not match requirements. Expected to be no more than ${USERNAME_MAX_LENGTH} characters.`,
+		);
+	}
+};
+
+const registerDelegate = inputs => {
+	validateInputs(inputs);
+	const { username } = inputs;
+
+	return {
+		type: 2,
+		fee: DELEGATE_FEE.toString(),
+		asset: {
+			delegate: {
+				username,
+			},
 		},
-	},
-});
+	};
+};
 
 export default wrapTransactionCreator(registerDelegate);

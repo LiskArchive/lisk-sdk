@@ -16,7 +16,6 @@ import {
 	checkPublicKeysForDuplicates,
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
-	getAddressAndPublicKeyFromRecipientData,
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
 	getTransactionBytes,
@@ -30,6 +29,8 @@ import {
 	multiSignTransaction,
 	verifyTransaction,
 	validateAddress,
+	validateAmount,
+	isValidInteger,
 	validateKeysgroup,
 	validatePublicKey,
 	validatePublicKeys,
@@ -49,12 +50,6 @@ describe('transaction utils', () => {
 
 		it('should have convertLSKToBeddows', () => {
 			return expect(convertLSKToBeddows).to.be.a('function');
-		});
-
-		it('should have getAddressAndPublicKeyFromRecipientData', () => {
-			return expect(getAddressAndPublicKeyFromRecipientData).to.be.a(
-				'function',
-			);
 		});
 
 		it('should have getTimeFromBlockchainEpoch', () => {
@@ -107,6 +102,14 @@ describe('transaction utils', () => {
 
 		it('should have validateAddress', () => {
 			return expect(validateAddress).to.be.a('function');
+		});
+
+		it('should have validateAmount', () => {
+			return expect(validateAmount).to.be.a('function');
+		});
+
+		it('should have isValidInteger', () => {
+			return expect(isValidInteger).to.be.a('function');
 		});
 
 		it('should have validateKeysgroup', () => {

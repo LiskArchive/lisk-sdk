@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line:no-magic-numbers
 export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
-export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / 1000);
+const MS_FACTOR = 1000;
+export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / MS_FACTOR);
 
 // Largest possible number which can be stored in eight bytes.
 // Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
@@ -22,8 +24,8 @@ const MAX_EIGHT_BYTE_NUMBER = '18446744073709551615';
 
 export const MAX_ADDRESS_NUMBER = MAX_EIGHT_BYTE_NUMBER;
 export const MAX_TRANSACTION_ID = MAX_EIGHT_BYTE_NUMBER;
-// Largest possible amount. Equal to the initial supply.
-export const MAX_TRANSACTION_AMOUNT = '10000000000000000';
+// Largest possible amount. Maximum value for PostgreSQL bigint.
+export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
 
 export const SIGNED_MESSAGE_PREFIX = 'Lisk Signed Message:\n';
 

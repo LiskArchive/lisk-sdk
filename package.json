@@ -24,10 +24,12 @@
 	"scripts": {
 		"bootstrap": "lerna bootstrap",
 		"clean": "lerna run clean",
-		"clean:node_modules": "lerna clean",
-		"format": "lerna run format",
-		"lint": "lerna run lint",
-		"lint:fix": "lerna run lint:fix",
+		"clean:node_modules": "lerna clean --yes",
+		"format": "npm run format:root && lerna run format",
+		"format:root": "prettier types/**/*.ts --write",
+		"lint": "npm run lint:root && lerna run lint",
+		"lint:fix": "npm run lint:root -- --fix && lerna run lint:fix",
+		"lint:root": "tslint -p tsconfig.json types/**/*.ts",
 		"test": "lerna run test",
 		"test:node": "lerna run test:node",
 		"test:browser": "lerna run test:browser",
@@ -43,6 +45,10 @@
 		"husky": "0.14.3",
 		"lerna": "3.2.1",
 		"lint-staged": "7.2.2",
-		"prettier": "1.14.2"
+		"prettier": "1.14.2",
+		"tslint": "5.11.0",
+		"tslint-config-prettier": "1.15.0",
+		"tslint-immutable": "4.7.0",
+		"typescript": "3.1.1"
 	}
 }

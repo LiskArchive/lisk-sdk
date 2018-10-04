@@ -22,7 +22,12 @@ export const SIGNATURE_FEE = 5 * FIXED_POINT;
 export const DELEGATE_FEE = 25 * FIXED_POINT;
 export const VOTE_FEE = 1 * FIXED_POINT;
 export const MULTISIGNATURE_FEE = 5 * FIXED_POINT;
+export const MULTISIGNATURE_MAX_LIFETIME = 72;
+export const MULTISIGNATURE_MIN_LIFETIME = 1;
+export const MULTISIGNATURE_MAX_KEYSGROUP = 15;
+export const MULTISIGNATURE_MIN_KEYSGROUP = 1;
 export const DAPP_FEE = 25 * FIXED_POINT;
+export const USERNAME_MAX_LENGTH = 20;
 
 export const BYTESIZES = {
 	TYPE: 1,

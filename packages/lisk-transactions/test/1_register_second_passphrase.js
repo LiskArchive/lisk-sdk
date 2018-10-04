@@ -181,6 +181,18 @@ describe('#registerSecondPassphrase transaction', () => {
 				return Promise.resolve();
 			});
 
+			it('should throw error when secondPassphrase was not provided', () => {
+				return expect(registerSecondPassphrase.bind(null, {})).to.throw(
+					'Please provide a secondPassphrase. Expected string.',
+				);
+			});
+
+			it('should not throw error when secondPassphrase is empty string', () => {
+				return expect(
+					registerSecondPassphrase.bind(null, { secondPassphrase: '' }),
+				).to.not.throw();
+			});
+
 			it('should have the type', () => {
 				return expect(registerSecondPassphraseTransaction)
 					.to.have.property('type')

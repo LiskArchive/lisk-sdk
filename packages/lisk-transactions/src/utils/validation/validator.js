@@ -18,9 +18,11 @@ import bignum from 'browserify-bignum';
 import {
 	validateAddress,
 	validatePublicKey,
-	isGreaterThanMaxTransactionAmount,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
+	validateAmount,
+	validateTransferAmount,
+	validateFee,
 } from './validation';
 import * as schemas from './schema';
 
@@ -43,11 +45,11 @@ validator.addFormat('address', data => {
 	}
 });
 
-validator.addFormat(
-	'amount',
-	data =>
-		isNumberString(data) && !isGreaterThanMaxTransactionAmount(bignum(data)),
-);
+validator.addFormat('amount', validateAmount);
+
+validator.addFormat('transferAmount', validateTransferAmount);
+
+validator.addFormat('fee', validateFee);
 
 validator.addFormat('publicKey', data => {
 	try {

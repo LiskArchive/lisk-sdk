@@ -41,6 +41,10 @@ describe('#createDapp transaction', () => {
 	const nameStringError = 'Dapp name must be a string.';
 	const typeIntegerError = 'Dapp type must be an integer.';
 	const linkStringError = 'Dapp link must be a string.';
+	const descriptionStringError =
+		'Dapp description must be a string if provided.';
+	const tagsStringError = 'Dapp tags must be a string if provided.';
+	const iconStringError = 'Dapp icon must be a string if provided.';
 
 	let getTimeWithOffsetStub;
 	let options;
@@ -123,6 +127,27 @@ describe('#createDapp transaction', () => {
 			options.link = 123;
 			return expect(createDapp.bind(null, { passphrase, options })).to.throw(
 				linkStringError,
+			);
+		});
+
+		it('should throw an error if provided description is not a string', () => {
+			options.description = 123;
+			return expect(createDapp.bind(null, { passphrase, options })).to.throw(
+				descriptionStringError,
+			);
+		});
+
+		it('should throw an error if provided tags is not a string', () => {
+			options.tags = 123;
+			return expect(createDapp.bind(null, { passphrase, options })).to.throw(
+				tagsStringError,
+			);
+		});
+
+		it('should throw an error if provided icon is not a string', () => {
+			options.icon = 123;
+			return expect(createDapp.bind(null, { passphrase, options })).to.throw(
+				iconStringError,
 			);
 		});
 
