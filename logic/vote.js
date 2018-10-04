@@ -140,66 +140,80 @@ Vote.prototype.calculateFee = function() {
  * @todo Add description for the params
  */
 Vote.prototype.verify = function(transaction, sender, cb, tx) {
-	const amount = new Bignum(transaction.amount);
-	if (amount.greaterThan(0)) {
-		return setImmediate(cb, 'Invalid transaction amount');
-	}
+	async.waterfall(
+		[
+			waterCb => {
+				const amount = new Bignum(transaction.amount);
+				if (amount.greaterThan(0)) {
+					return setImmediate(cb, 'Invalid transaction amount');
+				}
 
-	if (transaction.recipientId !== transaction.senderId) {
-		return setImmediate(cb, 'Invalid recipient');
-	}
+				if (transaction.recipientId !== transaction.senderId) {
+					return setImmediate(waterCb, 'Invalid recipient');
+				}
 
-	if (!transaction.asset || !transaction.asset.votes) {
-		return setImmediate(cb, 'Invalid transaction asset');
-	}
+				if (!transaction.asset || !transaction.asset.votes) {
+					return setImmediate(waterCb, 'Invalid transaction asset');
+				}
 
-	if (!Array.isArray(transaction.asset.votes)) {
-		return setImmediate(cb, 'Invalid votes. Must be an array');
-	}
+				if (!Array.isArray(transaction.asset.votes)) {
+					return setImmediate(waterCb, 'Invalid votes. Must be an array');
+				}
 
-	if (!transaction.asset.votes.length) {
-		return setImmediate(cb, 'Invalid votes. Must not be empty');
-	}
+				if (!transaction.asset.votes.length) {
+					return setImmediate(waterCb, 'Invalid votes. Must not be empty');
+				}
 
-	if (
-		transaction.asset.votes &&
-		transaction.asset.votes.length > constants.maxVotesPerTransaction
-	) {
-		return setImmediate(
-			cb,
-			[
-				'Voting limit exceeded. Maximum is',
-				constants.maxVotesPerTransaction,
-				'votes per transaction',
-			].join(' ')
-		);
-	}
-
-	async.eachSeries(
-		transaction.asset.votes,
-		(vote, eachSeriesCb) => {
-			self.verifyVote(
-				vote,
-				err => {
-					if (err) {
-						return setImmediate(
-							eachSeriesCb,
-							[
-								'Invalid vote at index',
-								transaction.asset.votes.indexOf(vote),
-								'-',
-								err,
-							].join(' ')
+				if (
+					transaction.asset.votes &&
+					transaction.asset.votes.length > constants.maxVotesPerTransaction
+				) {
+					return setImmediate(
+						waterCb,
+						[
+							'Voting limit exceeded. Maximum is',
+							constants.maxVotesPerTransaction,
+							'votes per transaction',
+						].join(' ')
+					);
+				}
+				return setImmediate(waterCb);
+			},
+			waterCb => {
+				async.eachSeries(
+					transaction.asset.votes,
+					(vote, eachSeriesCb) => {
+						self.verifyVote(
+							vote,
+							err => {
+								if (err) {
+									return setImmediate(
+										eachSeriesCb,
+										[
+											'Invalid vote at index',
+											transaction.asset.votes.indexOf(vote),
+											'-',
+											err,
+										].join(' ')
+									);
+								}
+								return setImmediate(eachSeriesCb);
+							},
+							tx
 						);
-					}
-					return setImmediate(eachSeriesCb);
-				},
-				tx
-			);
-		},
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
+					},
+					waterCb
+				);
+			},
+		],
+		waterErr => {
+			if (waterErr) {
+				if (exceptions.votes.includes(transaction.id)) {
+					library.logger.error(waterErr);
+					library.logger.debug(JSON.stringify(transaction));
+				} else {
+					return setImmediate(cb, waterErr);
+				}
 			}
 			if (
 				transaction.asset.votes.length >
