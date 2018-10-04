@@ -46,6 +46,6 @@ module.exports = {
 	},
 	// <version>: { start: <start_height>, end: <end_height> }
 	blockVersions: {
-		0: { start: 1, end: 5594491 },
+		0: { start: 1, end: 5932033 },
 	},
 };
