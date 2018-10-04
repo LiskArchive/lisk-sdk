@@ -1,6 +1,6 @@
 # @liskhq/lisk-transactions
 
-@liskhq/lisk-transactions is a package contains everything related to transactions according to the Lisk protocol
+@liskhq/lisk-transactions is containing everything related to transactions according to the Lisk protocol
 
 ## Installation
 

@@ -1,6 +1,6 @@
 # @liskhq/lisk-passphrase
 
-@liskhq/lisk-passphrase is a package contains mnemonic passphrase helpers for use with Lisk-related software
+@liskhq/lisk-passphrase is containing mnemonic passphrase helpers for use with Lisk-related software
 
 ## Installation
 

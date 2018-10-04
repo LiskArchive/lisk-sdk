@@ -1,6 +1,6 @@
 # lisk-constants
 
-@liskhq/lisk-constants is a package contains general constants for use with Lisk-related software
+@liskhq/lisk-constants is containing general constants for use with Lisk-related software
 
 ## Installation
 

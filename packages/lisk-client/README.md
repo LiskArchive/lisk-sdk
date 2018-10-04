@@ -6,7 +6,7 @@ A default set of Elements for use by clients of the Lisk network
 
 ### Installation via npm
 
-Add Lisk Elements as a dependency of your project:
+Add Lisk Client as a dependency of your project:
 
 ```sh
 $ npm install --save @liskhq/lisk-client

@@ -1,6 +1,6 @@
 # @liskhq/lisk-cryptography
 
-@liskhq/lisk-cryptography is a package contains general cryptographic functions for use with Lisk-related software
+@liskhq/lisk-cryptography is containing general cryptographic functions for use with Lisk-related software
 
 
 ## Installation
