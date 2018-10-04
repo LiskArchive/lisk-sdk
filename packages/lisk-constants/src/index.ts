@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line:no-magic-numbers
 export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
-export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / 1000);
+const MS_FACTOR = 1000;
+export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / MS_FACTOR);
 
 // Largest possible number which can be stored in eight bytes.
 // Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
