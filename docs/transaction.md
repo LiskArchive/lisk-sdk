@@ -5,7 +5,7 @@ Commands relating to Lisk transactions.
 * [`lisk transaction:broadcast [TRANSACTION]`](#lisk-transaction-broadcast-transaction)
 * [`lisk transaction:create`](#lisk-transaction-create)
 * [`lisk transaction:create:transfer AMOUNT ADDRESS`](#lisk-transaction-create-transfer-amount-address)
-* [`lisk transaction:create:second-passphrase`](#lisk-transaction-createsecond-passphrase)
+* [`lisk transaction:create:second-passphrase`](#lisk-transaction-create-second-passphrase)
 * [`lisk transaction:create:delegate USERNAME`](#lisk-transaction-create-delegate-username)
 * [`lisk transaction:create:vote`](#lisk-transaction-create-vote)
 * [`lisk transaction:create:multisignature LIFETIME MINIMUM KEYSGROUP`](#lisk-transaction-create-multisignature-lifetime-minimum-keysgroup)
