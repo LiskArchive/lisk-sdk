@@ -44,16 +44,17 @@ export const splitSource = source => {
 	};
 };
 
-const timeoutPromise = readFromStd =>
-	new Promise((resolve, reject) => {
-		const id = setTimeout(() => {
-			clearTimeout(id);
-			if (stdinIsTTY()) {
-				reject(new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`));
-			}
-			resolve(readFromStd);
-		}, DEFAULT_TIMEOUT);
-	});
+const timeoutPromise = async readFromStd => {
+	try {
+		await (() =>
+			new Promise(([reject]) => setTimeout(reject, DEFAULT_TIMEOUT)))();
+	} catch (e) {
+		if (stdinIsTTY()) {
+			throw new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`);
+		}
+	}
+	return readFromStd;
+};
 
 export const getRawStdIn = () => {
 	const readFromStd = new Promise(resolve => {
