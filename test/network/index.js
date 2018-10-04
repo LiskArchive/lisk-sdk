@@ -32,89 +32,76 @@ _.range(TOTAL_PEERS).map(index => {
 	wsPorts.push(5000 + index);
 });
 const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
-let failedToLaunchNetworkError;
 
 const network = new Network(configurations);
-network.launchNetwork({ enableForging: true })
-	.then(() => {
-		initTestSuite();
-		run();
-	})
-	.catch(err => {
-		failedToLaunchNetworkError = err;
-		initTestSuite();
-		run();
+
+describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
+	before(() => {
+		return network.launchNetwork({ enableForging: true });
 	});
 
-function initTestSuite() {
-	describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
-		before(done => {
-			failedToLaunchNetworkError ? done(failedToLaunchNetworkError) : done();
-		});
+	afterEach(function(done) {
+		if (this.currentTest.state === 'failed') {
+			console.warn(`Test failed: ${this.currentTest.title}`);
+			return done(this.currentTest.err);
+		}
+		done();
+	});
 
-		afterEach(function(done) {
-			if (this.currentTest.state === 'failed') {
-				console.warn(`Test failed: ${this.currentTest.title}`);
-				return done(this.currentTest.err);
+	after(() => {
+		return network.killNetwork();
+	});
+
+	it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
+		utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
+			if (err) {
+				return done(err);
 			}
-			done();
-		});
 
-		after(() => {
-			return network.killNetwork();
-		});
-
-		it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
-			utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
-				if (err) {
-					return done(err);
-				}
-
-				if (numOfConnections === TOTAL_PEERS) {
-					done();
-				} else {
-					done(
-						`There are ${numOfConnections} listening connections on web socket ports.`
-					);
-				}
-			});
-		});
-
-		it(`there should be a maximum ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-			utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
-				if (err) {
-					return done(err);
-				}
-				// It should be less than EXPECTED_TOTAL_CONNECTIONS, as nodes are just started and establishing the connections
-				if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS) {
-					done();
-				} else {
-					done(
-						`There are ${numOfConnections} established connections on web socket ports.`
-					);
-				}
-			});
-		});
-
-		describe('when WS connections to all nodes all established', () => {
-			const suiteFolder = 'test/network/scenarios/';
-			const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
-			filepaths.forEach(filepath => {
-				const currentFilePath = filepath.replace('test/network', '.');
-				// eslint-disable-next-line import/no-dynamic-require
-				const test = require(currentFilePath);
-				test(
-					configurations,
-					network,
-					TOTAL_PEERS,
-					EXPECTED_TOTAL_CONNECTIONS,
-					NUMBER_OF_TRANSACTIONS,
-					NUMBER_OF_MONITORING_CONNECTIONS
+			if (numOfConnections === TOTAL_PEERS) {
+				done();
+			} else {
+				done(
+					`There are ${numOfConnections} listening connections on web socket ports.`
 				);
-			});
+			}
 		});
 	});
-}
+
+	it(`there should be a maximum ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
+		utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
+			if (err) {
+				return done(err);
+			}
+			// It should be less than EXPECTED_TOTAL_CONNECTIONS, as nodes are just started and establishing the connections
+			if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS) {
+				done();
+			} else {
+				done(
+					`There are ${numOfConnections} established connections on web socket ports.`
+				);
+			}
+		});
+	});
+
+	describe('when WS connections to all nodes all established', () => {
+		const suiteFolder = 'test/network/scenarios/';
+		const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+		filepaths.forEach(filepath => {
+			const currentFilePath = filepath.replace('test/network', '.');
+			// eslint-disable-next-line import/no-dynamic-require
+			const test = require(currentFilePath);
+			test(
+				configurations,
+				network,
+				TOTAL_PEERS,
+				EXPECTED_TOTAL_CONNECTIONS,
+				NUMBER_OF_TRANSACTIONS,
+				NUMBER_OF_MONITORING_CONNECTIONS
+			);
+		});
+	});
+});
 
 process.on('unhandledRejection', err => {
 	throw err;
