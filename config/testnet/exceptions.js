@@ -37,6 +37,7 @@ module.exports = {
 		'17197328760149985951', // 341635
 		'18231026627962552928', // 917323
 		'13238495338830587861', // 1305933
+		'15449731671927352923', // 492382
 	],
 	inertTransactions: [
 		'16394286522174687330', // 1318685 - Vote transaction
@@ -47,6 +48,6 @@ module.exports = {
 	},
 	// <version>: { start: <start_height>, end: <end_height> }
 	blockVersions: {
-		0: { start: 1, end: 5594491 },
+		0: { start: 1, end: 5932033 },
 	},
 };
