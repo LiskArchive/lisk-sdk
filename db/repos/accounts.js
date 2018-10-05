@@ -363,6 +363,20 @@ class AccountsRepository {
 
 		if (
 			filters &&
+			Array.isArray(filters.publicKey) &&
+			filters.publicKey.length
+		) {
+			const decodedPublicKeys = filters.publicKey.map(
+				publicKey => `decode('${publicKey}', 'hex')`
+			);
+			dynamicConditions.push(
+				pgp.as.format(`"publicKey" IN (${decodedPublicKeys.join(',')})`)
+			);
+			delete filters.publicKey;
+		}
+
+		if (
+			filters &&
 			typeof filters.username === 'object' &&
 			filters.username.$like
 		) {

@@ -360,25 +360,21 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 		return setImmediate(cb, 'Votes must be an array');
 	}
 
-	let voteAddressesWithActions;
+	let votesWithAction;
 
 	try {
-		// Converting publicKeys to addresses because module.accounts do not support fetching multiple accounts by publicKeys
 		// TODO: Use Hashmap to improve performance further.
-		voteAddressesWithActions = votes.map(vote => {
+		votesWithAction = votes.map(vote => {
 			const action = vote[0];
 
 			if (action !== '+' && action !== '-') {
 				throw 'Invalid math operator';
 			}
 			const votePublicKey = vote.slice(1);
-			const voteAddress = modules.accounts.generateAddressByPublicKey(
-				votePublicKey
-			);
 
 			return {
 				action,
-				address: voteAddress,
+				publicKey: votePublicKey,
 			};
 		});
 	} catch (e) {
@@ -388,8 +384,8 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 
 	async.waterfall(
 		[
-			// get all the addresses (converted from public keys) the sender has voted for. Confirmed or unconfirmed based on state parameter.
-			function getExistingVotedAddresses(waterfallCb) {
+			// get all  public keys of delegates sender has voted for. Confirmed or unconfirmed based on state parameter.
+			function getExistingVotedPublicKeys(waterfallCb) {
 				modules.accounts.getAccount(
 					{ publicKey: senderPublicKey },
 					(err, account) => {
@@ -403,22 +399,20 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 
 						const delegates =
 							state === 'confirmed' ? account.delegates : account.u_delegates;
-						const votedAddresses = Array.isArray(delegates)
-							? delegates.map(delegate =>
-									modules.accounts.generateAddressByPublicKey(delegate)
-								)
+						const existingVotedPublicKeys = Array.isArray(delegates)
+							? delegates
 							: [];
 
-						return setImmediate(waterfallCb, null, votedAddresses);
+						return setImmediate(waterfallCb, null, existingVotedPublicKeys);
 					},
 					tx
 				);
 			},
 			// Validate votes in the transaction by checking that sender is not voting for an account already, and also that sender is not unvoting an account it did not vote before.
-			function validateVotes(existingVotedAddresses, waterfallCb) {
+			function validateVotes(existingVotedPublicKeys, waterfallCb) {
 				modules.accounts.getAccounts(
 					{
-						address: voteAddressesWithActions.map(({ address }) => address),
+						publicKey: votesWithAction.map(({ publicKey }) => publicKey),
 						isDelegate: 1,
 						sort: 'address:desc',
 					},
@@ -429,69 +423,68 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 
 						if (
 							!votesAccounts ||
-							votesAccounts.length < voteAddressesWithActions.length
+							votesAccounts.length < votesWithAction.length
 						) {
 							library.logger.error(
 								'Delegates with addresses not found',
 								_.differenceWith(
-									voteAddressesWithActions,
+									votesWithAction,
 									votesAccounts,
 									(
-										{ address: addressFromTransaction },
-										{ addressFromAccount }
-									) => addressFromTransaction === addressFromAccount
-								).map(({ address }) => address)
+										{ publicKey: publicKeyFromTransaction },
+										{ publicKey: publicKeyFromAccount }
+									) => publicKeyFromTransaction === publicKeyFromAccount
+								).map(({ publicKey }) => publicKey)
 							);
 							return setImmediate(waterfallCb, 'Delegate not found');
 						}
-
 						const upvoteAccounts = votesAccounts.filter(voteAccount =>
-							voteAddressesWithActions.find(
-								actionWithAddress =>
-									actionWithAddress.action === '+' &&
-									actionWithAddress.address === voteAccount.address
+							votesWithAction.find(
+								({ action, publicKey }) =>
+									action === '+' && publicKey === voteAccount.publicKey
 							)
 						);
 						const downvoteAccounts = votesAccounts.filter(voteAccount =>
-							voteAddressesWithActions.find(
-								actionWithAddress =>
-									actionWithAddress.action === '-' &&
-									actionWithAddress.address === voteAccount.address
+							votesWithAction.find(
+								({ action, publicKey }) =>
+									action === '-' && publicKey === voteAccount.publicKey
 							)
 						);
 
-						const invalidUpvoteAccount = upvoteAccounts.find(
-							voteAccount =>
-								existingVotedAddresses.find(
-									existingVotedAddress =>
-										voteAccount.address === existingVotedAddress
-								) !== undefined
+						const invalidUpvoteAccounts = _.intersectionWith(
+							upvoteAccounts,
+							existingVotedPublicKeys,
+							({ publicKey: upvoteAccountPublicKey }, existingVotedPublicKey) =>
+								upvoteAccountPublicKey === existingVotedPublicKey
 						);
-						if (invalidUpvoteAccount) {
+
+						if (invalidUpvoteAccounts.length > 0) {
 							return setImmediate(
 								waterfallCb,
 								`Failed to add vote, delegate "${
-									invalidUpvoteAccount.username
+									invalidUpvoteAccounts[0].username
 								}" already voted for`
 							);
 						}
 
-						const invalidDownvoteAccount = downvoteAccounts.find(voteAccount =>
-							existingVotedAddresses.every(
-								existingVotedAddress =>
-									voteAccount.address !== existingVotedAddress
-							)
+						const invalidDownvoteAccounts = _.differenceWith(
+							downvoteAccounts,
+							existingVotedPublicKeys,
+							(
+								{ publicKey: downvoteAccountPubicKey },
+								existingVotedPublicKey
+							) => downvoteAccountPubicKey === existingVotedPublicKey
 						);
-						if (invalidDownvoteAccount) {
+						if (invalidDownvoteAccounts.length > 0) {
 							return setImmediate(
 								waterfallCb,
 								`Failed to remove vote, delegate "${
-									invalidDownvoteAccount.username
+									invalidDownvoteAccounts[0].username
 								}" was not voted for`
 							);
 						}
 
-						const existingVotes = existingVotedAddresses.length;
+						const existingVotes = existingVotedPublicKeys.length;
 						const upvotes = upvoteAccounts.length;
 						const downvotes = downvoteAccounts.length;
 						const totalVotes = existingVotes + upvotes - downvotes;
