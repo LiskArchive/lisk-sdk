@@ -12,44 +12,49 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import bignum from 'browserify-bignum';
+import BigNum from 'browserify-bignum';
 import { FIXED_POINT } from '../constants';
 import { isGreaterThanMaxTransactionAmount } from './validation';
 
-const getDecimalPlaces = amount => (amount.split('.')[1] || '').length;
+const BASE_10 = 10;
+const LISK_MAX_DECIMAL_POINTS = 8;
+const getDecimalPlaces = (amount: string) =>
+	(amount.split('.')[1] || '').length;
 
-export const convertBeddowsToLSK = beddowsAmount => {
+export const convertBeddowsToLSK = (beddowsAmount?: string) => {
 	if (typeof beddowsAmount !== 'string') {
 		throw new Error('Cannot convert non-string amount');
 	}
 	if (getDecimalPlaces(beddowsAmount)) {
 		throw new Error('Beddows amount should not have decimal points');
 	}
-	const beddowsAmountBigNum = bignum(beddowsAmount);
+	const beddowsAmountBigNum = new BigNum(beddowsAmount);
 	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
 		throw new Error('Beddows amount out of range');
 	}
 	const lskAmountBigNum = beddowsAmountBigNum.div(FIXED_POINT);
-	return lskAmountBigNum.toString(10);
+
+	return lskAmountBigNum.toString(BASE_10);
 };
 
-export const convertLSKToBeddows = lskAmount => {
+export const convertLSKToBeddows = (lskAmount?: string) => {
 	if (typeof lskAmount !== 'string') {
 		throw new Error('Cannot convert non-string amount');
 	}
-	if (getDecimalPlaces(lskAmount) > 8) {
+	if (getDecimalPlaces(lskAmount) > LISK_MAX_DECIMAL_POINTS) {
 		throw new Error('LSK amount has too many decimal points');
 	}
-	const lskAmountBigNum = bignum(lskAmount);
+	const lskAmountBigNum = new BigNum(lskAmount);
 	const beddowsAmountBigNum = lskAmountBigNum.mul(FIXED_POINT);
 	if (isGreaterThanMaxTransactionAmount(beddowsAmountBigNum)) {
 		throw new Error('LSK amount out of range');
 	}
+
 	return beddowsAmountBigNum.toString();
 };
 
-export const prependPlusToPublicKeys = publicKeys =>
+export const prependPlusToPublicKeys = (publicKeys: ReadonlyArray<string>) =>
 	publicKeys.map(publicKey => `+${publicKey}`);
 
-export const prependMinusToPublicKeys = publicKeys =>
+export const prependMinusToPublicKeys = (publicKeys: ReadonlyArray<string>) =>
 	publicKeys.map(publicKey => `-${publicKey}`);

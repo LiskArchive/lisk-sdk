@@ -12,22 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { default as getTransactionBytes } from './get_transaction_bytes';
-export { default as getTransactionHash } from './get_transaction_hash';
-export { default as getTransactionId } from './get_transaction_id';
+export { getTransactionBytes } from './get_transaction_bytes';
+export { getTransactionHash } from './get_transaction_hash';
+export { getTransactionId } from './get_transaction_id';
 export {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
 } from './format';
-export { default as prepareTransaction } from './prepare_transaction';
+export { prepareTransaction } from './prepare_transaction';
 export {
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
 } from './sign_and_verify';
-export { default as signRawTransaction } from './sign_raw_transaction';
+export { signRawTransaction } from './sign_raw_transaction';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
 export {
 	checkPublicKeysForDuplicates,
@@ -41,4 +41,4 @@ export {
 	isValidInteger,
 	validateTransaction,
 } from './validation';
-export { default as wrapTransactionCreator } from './wrap_transaction_creator';
+export { wrapTransactionCreator } from './wrap_transaction_creator';

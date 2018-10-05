@@ -14,19 +14,33 @@
  */
 import {
 	MULTISIGNATURE_FEE,
-	MULTISIGNATURE_MAX_LIFETIME,
-	MULTISIGNATURE_MIN_LIFETIME,
 	MULTISIGNATURE_MAX_KEYSGROUP,
+	MULTISIGNATURE_MAX_LIFETIME,
 	MULTISIGNATURE_MIN_KEYSGROUP,
+	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
+import { PartialTransaction } from './transaction_types';
 import {
+	isValidInteger,
+	prepareTransaction,
 	prependPlusToPublicKeys,
 	validateKeysgroup,
-	wrapTransactionCreator,
-	isValidInteger,
 } from './utils';
 
-const validateInputs = ({ keysgroup, lifetime, minimum }) => {
+export interface RegisterMultisignatureInputs {
+	readonly keysgroup: ReadonlyArray<string>;
+	readonly lifetime: number;
+	readonly minimum: number;
+	readonly passphrase: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+}
+
+const validateInputs = ({
+	keysgroup,
+	lifetime,
+	minimum,
+}: RegisterMultisignatureInputs) => {
 	if (
 		!isValidInteger(lifetime) ||
 		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
@@ -55,13 +69,15 @@ const validateInputs = ({ keysgroup, lifetime, minimum }) => {
 	validateKeysgroup(keysgroup);
 };
 
-const registerMultisignatureAccount = inputs => {
+export const registerMultisignature = (
+	inputs: RegisterMultisignatureInputs,
+) => {
 	validateInputs(inputs);
-	const { keysgroup, lifetime, minimum } = inputs;
+	const { keysgroup, lifetime, minimum, passphrase, secondPassphrase, timeOffset } = inputs;
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
-	return {
+	const transaction: PartialTransaction = {
 		type: 4,
 		fee: (MULTISIGNATURE_FEE * keygroupFees).toString(),
 		asset: {
@@ -72,6 +88,6 @@ const registerMultisignatureAccount = inputs => {
 			},
 		},
 	};
-};
 
-export default wrapTransactionCreator(registerMultisignatureAccount);
+	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+};

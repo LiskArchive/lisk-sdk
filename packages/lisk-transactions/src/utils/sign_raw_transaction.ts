@@ -13,15 +13,23 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
+import { BaseTransaction } from '../transaction_types';
+import { prepareTransaction } from './prepare_transaction';
 import { getTimeWithOffset } from './time';
-import prepareTransaction from './prepare_transaction';
 
-export default function signRawTransaction({
+interface SignRawTransactionInput {
+	readonly passphrase: string;
+	readonly secondPassphrase: string;
+	readonly timeOffset: number;
+	readonly transaction: BaseTransaction;
+}
+
+export const signRawTransaction = ({
 	transaction,
 	passphrase,
 	secondPassphrase,
 	timeOffset,
-}) {
+}: SignRawTransactionInput): BaseTransaction => {
 	const {
 		publicKey,
 		address,
@@ -29,7 +37,7 @@ export default function signRawTransaction({
 	const senderSecondPublicKey = secondPassphrase
 		? cryptography.getPrivateAndPublicKeyFromPassphrase(secondPassphrase)
 				.publicKey
-		: null;
+		: undefined;
 
 	const propertiesToAdd = {
 		senderPublicKey: publicKey,
@@ -38,15 +46,14 @@ export default function signRawTransaction({
 		timestamp: getTimeWithOffset(timeOffset),
 	};
 
-	const transactionWithProperties = Object.assign(
-		{},
-		transaction,
-		propertiesToAdd,
-	);
+	const transactionWithProperties = {
+		...transaction,
+		...propertiesToAdd,
+	};
 
 	return prepareTransaction(
 		transactionWithProperties,
 		passphrase,
 		secondPassphrase,
 	);
-}
+};

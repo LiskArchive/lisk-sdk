@@ -12,42 +12,47 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import bignum from 'browserify-bignum';
-import cryptography from '@liskhq/lisk-cryptography';
 import {
 	MAX_ADDRESS_NUMBER,
-	MAX_TRANSACTION_ID,
 	MAX_TRANSACTION_AMOUNT,
+	MAX_TRANSACTION_ID,
 } from '@liskhq/lisk-constants';
+import cryptography from '@liskhq/lisk-cryptography';
+import bignum from 'browserify-bignum';
 import {
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
 
-export const validatePublicKey = publicKey => {
+const MAX_PUBLIC_KEY_LENGTH = 32;
+export const validatePublicKey = (publicKey: string) => {
 	const publicKeyBuffer = cryptography.hexToBuffer(publicKey);
-	if (publicKeyBuffer.length !== 32) {
+	if (publicKeyBuffer.length !== MAX_PUBLIC_KEY_LENGTH) {
 		throw new Error(
 			`Public key ${publicKey} length differs from the expected 32 bytes for a public key.`,
 		);
 	}
+
 	return true;
 };
 
-export const checkPublicKeysForDuplicates = publicKeys =>
+export const checkPublicKeysForDuplicates = (
+	publicKeys: ReadonlyArray<string>,
+) =>
 	publicKeys.every((element, index) => {
 		const elementFound = publicKeys.slice(index + 1).indexOf(element);
 		if (elementFound > -1) {
 			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
 		}
+
 		return true;
 	});
 
-export const validatePublicKeys = publicKeys =>
+export const validatePublicKeys = (publicKeys: ReadonlyArray<string>) =>
 	publicKeys.every(validatePublicKey) &&
 	checkPublicKeysForDuplicates(publicKeys);
 
-export const validateKeysgroup = keysgroup => {
+export const validateKeysgroup = (keysgroup: ReadonlyArray<string>) => {
 	if (
 		keysgroup.length < MULTISIGNATURE_MIN_KEYSGROUP ||
 		keysgroup.length > MULTISIGNATURE_MAX_KEYSGROUP
@@ -56,11 +61,17 @@ export const validateKeysgroup = keysgroup => {
 			`Expected between ${MULTISIGNATURE_MIN_KEYSGROUP} and ${MULTISIGNATURE_MAX_KEYSGROUP} public keys in the keysgroup.`,
 		);
 	}
+
 	return validatePublicKeys(keysgroup);
 };
 
-export const validateAddress = address => {
-	if (address.length < 2 || address.length > 22) {
+const MIN_ADDRESS_LENGTH = 2;
+const MAX_ADDRESS_LENGTH = 22;
+export const validateAddress = (address: string) => {
+	if (
+		address.length < MIN_ADDRESS_LENGTH ||
+		address.length > MAX_ADDRESS_LENGTH
+	) {
 		throw new Error(
 			'Address length does not match requirements. Expected between 2 and 22 characters.',
 		);
@@ -72,9 +83,9 @@ export const validateAddress = address => {
 		);
 	}
 
-	const addressAsBignum = bignum(address.slice(0, -1));
+	const addressAsBignum = new bignum(address.slice(0, -1));
 
-	if (addressAsBignum.cmp(bignum(MAX_ADDRESS_NUMBER)) > 0) {
+	if (addressAsBignum.cmp(new bignum(MAX_ADDRESS_NUMBER)) > 0) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
 		);
@@ -83,32 +94,34 @@ export const validateAddress = address => {
 	return true;
 };
 
-export const isGreaterThanZero = amount => amount.cmp(0) > 0;
+export const isGreaterThanZero = (amount: bignum) => amount.cmp(0) > 0;
 
-export const isGreaterThanMaxTransactionAmount = amount =>
+export const isGreaterThanMaxTransactionAmount = (amount: bignum) =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
-export const isGreaterThanMaxTransactionId = id =>
+export const isGreaterThanMaxTransactionId = (id: bignum) =>
 	id.cmp(MAX_TRANSACTION_ID) > 0;
 
-export const isNumberString = str => {
+export const isNumberString = (str: string) => {
 	if (typeof str !== 'string') {
 		return false;
 	}
+
 	return /^[0-9]+$/g.test(str);
 };
 
-export const validateAmount = data =>
-	isNumberString(data) && !isGreaterThanZero(bignum(data));
+export const validateAmount = (data: string) =>
+	isNumberString(data) && !isGreaterThanZero(new bignum(data));
 
-export const validateTransferAmount = data =>
+export const validateTransferAmount = (data: string) =>
 	isNumberString(data) &&
-	isGreaterThanZero(bignum(data)) &&
-	!isGreaterThanMaxTransactionAmount(bignum(data));
+	isGreaterThanZero(new bignum(data)) &&
+	!isGreaterThanMaxTransactionAmount(new bignum(data));
 
-export const validateFee = data =>
+export const validateFee = (data: string) =>
 	isNumberString(data) &&
-	isGreaterThanZero(bignum(data)) &&
-	!isGreaterThanMaxTransactionAmount(bignum(data));
+	isGreaterThanZero(new bignum(data)) &&
+	!isGreaterThanMaxTransactionAmount(new bignum(data));
 
-export const isValidInteger = num => parseInt(num, 10) === num;
+export const isValidInteger = (num: string | number) =>
+	(typeof num === 'string') ? parseInt(num, 10).toString() === num : Math.floor(num) === num;

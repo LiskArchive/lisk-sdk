@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transfer from './0_transfer';
-import registerSecondPassphrase from './1_register_second_passphrase';
-import registerDelegate from './2_register_delegate';
-import castVotes from './3_cast_votes';
-import registerMultisignature from './4_register_multisignature_account';
-import createDapp from './5_create_dapp';
-import createSignatureObject from './create_signature_object';
-import * as utils from './utils';
+import { transfer } from './0_transfer';
+import { registerSecondPassphrase } from './1_register_second_passphrase';
+import { registerDelegate } from './2_register_delegate';
+import { castVotes } from './3_cast_votes';
+import { registerMultisignature } from './4_register_multisignature_account';
+import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
+import { createSignatureObject } from './create_signature_object';
+import * as utils from './utils';
 
+// tslint:disable-next-line no-default-export
 export default {
 	transfer,
 	registerSecondPassphrase,

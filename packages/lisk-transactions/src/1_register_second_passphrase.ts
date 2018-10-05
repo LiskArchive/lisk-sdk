@@ -14,20 +14,27 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
-import { wrapTransactionCreator } from './utils';
+import { PartialTransaction } from './transaction_types';
+import { prepareTransaction } from './utils';
 
-const validateInputs = ({ secondPassphrase }) => {
+export interface SecondPassphraseInputs {
+	readonly passphrase: string;
+	readonly secondPassphrase: string;
+	readonly timeOffset?: number;
+}
+
+const validateInputs = ({ secondPassphrase }: SecondPassphraseInputs) => {
 	if (typeof secondPassphrase !== 'string') {
 		throw new Error('Please provide a secondPassphrase. Expected string.');
 	}
 };
 
-const registerSecondPassphrase = inputs => {
+export const registerSecondPassphrase = (inputs: SecondPassphraseInputs) => {
 	validateInputs(inputs);
-	const { secondPassphrase } = inputs;
+	const { passphrase, secondPassphrase, timeOffset } = inputs;
 	const { publicKey } = cryptography.getKeys(secondPassphrase);
 
-	return {
+	const transaction: PartialTransaction = {
 		type: 1,
 		fee: SIGNATURE_FEE.toString(),
 		asset: {
@@ -36,6 +43,6 @@ const registerSecondPassphrase = inputs => {
 			},
 		},
 	};
-};
 
-export default wrapTransactionCreator(registerSecondPassphrase);
+	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+};

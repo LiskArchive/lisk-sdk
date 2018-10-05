@@ -13,9 +13,17 @@
  *
  */
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
-import { wrapTransactionCreator } from './utils';
+import { PartialTransaction } from './transaction_types';
+import { prepareTransaction } from './utils';
 
-const validateInputs = ({ username }) => {
+export interface RegisterDelegateInputs {
+	readonly passphrase: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+	readonly username: string;
+}
+
+const validateInputs = ({ username }: RegisterDelegateInputs) => {
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
 	}
@@ -27,11 +35,11 @@ const validateInputs = ({ username }) => {
 	}
 };
 
-const registerDelegate = inputs => {
+export const registerDelegate = (inputs: RegisterDelegateInputs) => {
 	validateInputs(inputs);
-	const { username } = inputs;
+	const { passphrase, secondPassphrase, timeOffset, username } = inputs;
 
-	return {
+	const transaction: PartialTransaction = {
 		type: 2,
 		fee: DELEGATE_FEE.toString(),
 		asset: {
@@ -40,6 +48,6 @@ const registerDelegate = inputs => {
 			},
 		},
 	};
-};
 
-export default wrapTransactionCreator(registerDelegate);
+	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+};

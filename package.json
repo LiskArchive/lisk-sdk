@@ -42,7 +42,8 @@
 		"prepush": "npm run lint && npm test"
 	},
 	"devDependencies": {
-		"@types/sinon": "5.0.5",
+		"@types/bignum": "0.0.29",
+		"@types/node": "10.12.0",
 		"husky": "0.14.3",
 		"lerna": "3.4.1",
 		"lint-staged": "7.3.0",

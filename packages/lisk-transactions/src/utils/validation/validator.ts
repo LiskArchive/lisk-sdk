@@ -15,30 +15,32 @@
 import Ajv from 'ajv';
 import addMergePatchKeywords from 'ajv-merge-patch';
 import bignum from 'browserify-bignum';
+import * as schemas from './schema';
 import {
-	validateAddress,
-	validatePublicKey,
 	isGreaterThanMaxTransactionId,
 	isNumberString,
+	validateAddress,
 	validateAmount,
-	validateTransferAmount,
 	validateFee,
+	validatePublicKey,
+	validateTransferAmount,
 } from './validation';
-import * as schemas from './schema';
 
-const validator = new Ajv({ allErrors: true });
+export const validator = new Ajv({ allErrors: true });
 addMergePatchKeywords(validator);
 
 validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
 
 validator.addFormat(
 	'id',
-	data => isNumberString(data) && !isGreaterThanMaxTransactionId(bignum(data)),
+	data =>
+		isNumberString(data) && !isGreaterThanMaxTransactionId(new bignum(data)),
 );
 
 validator.addFormat('address', data => {
 	try {
 		validateAddress(data);
+
 		return true;
 	} catch (error) {
 		return false;
@@ -54,6 +56,7 @@ validator.addFormat('fee', validateFee);
 validator.addFormat('publicKey', data => {
 	try {
 		validatePublicKey(data);
+
 		return true;
 	} catch (error) {
 		return false;
@@ -68,6 +71,7 @@ validator.addFormat('signedPublicKey', data => {
 		}
 		const publicKey = data.slice(1);
 		validatePublicKey(publicKey);
+
 		return true;
 	} catch (error) {
 		return false;
@@ -82,6 +86,7 @@ validator.addFormat('additionPublicKey', data => {
 	try {
 		const publicKey = data.slice(1);
 		validatePublicKey(publicKey);
+
 		return true;
 	} catch (error) {
 		return false;
@@ -91,9 +96,7 @@ validator.addFormat('additionPublicKey', data => {
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
 	compile: () => data =>
-		new Set(data.map(key => key.slice(1))).size === data.length,
+		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
 
 validator.addSchema(schemas.baseTransaction);
-
-export default validator;

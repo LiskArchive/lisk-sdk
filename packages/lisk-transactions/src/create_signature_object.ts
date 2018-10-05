@@ -13,11 +13,24 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import getTransactionBytes from './get_transaction_bytes';
+import { BaseTransaction } from './transaction_types';
+import { multiSignTransaction, verifyTransaction } from './utils';
 
-const getTransactionHash = transaction => {
-	const bytes = getTransactionBytes(transaction);
-	return cryptography.hash(bytes);
+export const createSignatureObject = (
+	transaction: BaseTransaction,
+	passphrase: string,
+) => {
+	if (!verifyTransaction(transaction)) {
+		throw new Error('Invalid transaction.');
+	}
+
+	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(
+		passphrase,
+	);
+
+	return {
+		transactionId: transaction.id,
+		publicKey,
+		signature: multiSignTransaction(transaction, passphrase),
+	};
 };
-
-export default getTransactionHash;

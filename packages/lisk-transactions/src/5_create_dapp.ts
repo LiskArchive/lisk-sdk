@@ -13,23 +13,37 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import { wrapTransactionCreator } from './utils';
+import { PartialTransaction } from './transaction_types';
+import { isValidInteger, prepareTransaction } from './utils';
 
-const isInt = n => parseInt(n, 10) === n;
+export interface DappInputs {
+	readonly options: {
+		readonly category: number;
+		readonly description: string;
+		readonly icon: string;
+		readonly link: string;
+		readonly name: string;
+		readonly tags: string;
+		readonly type: number;
+	};
+	readonly passphrase: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+}
 
-const validateInputs = ({ options }) => {
+const validateInputs = ({ options }: DappInputs) => {
 	if (typeof options !== 'object') {
 		throw new Error('Options must be an object.');
 	}
 	const { category, name, type, link, description, tags, icon } = options;
 
-	if (!isInt(category)) {
+	if (!isValidInteger(category)) {
 		throw new Error('Dapp category must be an integer.');
 	}
 	if (typeof name !== 'string') {
 		throw new Error('Dapp name must be a string.');
 	}
-	if (!isInt(type)) {
+	if (!isValidInteger(type)) {
 		throw new Error('Dapp type must be an integer.');
 	}
 	if (typeof link !== 'string') {
@@ -49,11 +63,11 @@ const validateInputs = ({ options }) => {
 	}
 };
 
-const createDapp = inputs => {
+export const createDapp = (inputs: DappInputs) => {
 	validateInputs(inputs);
-	const { options } = inputs;
+	const { passphrase, secondPassphrase, timeOffset, options } = inputs;
 
-	return {
+	const transaction: PartialTransaction = {
 		type: 5,
 		fee: DAPP_FEE.toString(),
 		asset: {
@@ -68,6 +82,6 @@ const createDapp = inputs => {
 			},
 		},
 	};
-};
 
-export default wrapTransactionCreator(createDapp);
+	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+};

@@ -15,14 +15,18 @@
 
 import { EPOCH_TIME_MILLISECONDS } from '@liskhq/lisk-constants';
 
-export const getTimeFromBlockchainEpoch = givenTimestamp => {
+const MS_TIME = 1000;
+
+export const getTimeFromBlockchainEpoch = (givenTimestamp: number) => {
 	const startingPoint = givenTimestamp || new Date().getTime();
 	const blockchainInitialTime = EPOCH_TIME_MILLISECONDS;
-	return Math.floor((startingPoint - blockchainInitialTime) / 1000);
+
+	return Math.floor((startingPoint - blockchainInitialTime) / MS_TIME);
 };
 
-export const getTimeWithOffset = offset => {
+export const getTimeWithOffset = (offset?: number) => {
 	const now = new Date().getTime();
-	const timeWithOffset = offset ? now + offset * 1000 : now;
+	const timeWithOffset = offset ? now + offset * MS_TIME : now;
+
 	return getTimeFromBlockchainEpoch(timeWithOffset);
 };

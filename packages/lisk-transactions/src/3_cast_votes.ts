@@ -14,14 +14,23 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from './constants';
+import { PartialTransaction } from './transaction_types';
 import {
+	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
 	validatePublicKeys,
-	wrapTransactionCreator,
 } from './utils';
 
-const validateInputs = ({ votes = [], unvotes = [] }) => {
+export interface CastVoteInputs {
+	readonly passphrase: string;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+	readonly unvotes: ReadonlyArray<string>;
+	readonly votes: ReadonlyArray<string>;
+}
+
+const validateInputs = ({ votes = [], unvotes = [] }: CastVoteInputs) => {
 	if (!Array.isArray(votes)) {
 		throw new Error(
 			'Please provide a valid votes value. Expected an array if present.',
@@ -36,18 +45,21 @@ const validateInputs = ({ votes = [], unvotes = [] }) => {
 	validatePublicKeys([...votes, ...unvotes]);
 };
 
-const castVotes = inputs => {
+export const castVotes = (inputs: CastVoteInputs) => {
 	validateInputs(inputs);
-	const { passphrase, votes = [], unvotes = [] } = inputs;
+	const { passphrase, secondPassphrase, timeOffset, votes = [], unvotes = [] } = inputs;
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
-		: null;
+		: undefined;
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);
-	const allVotes = [...plusPrependedVotes, ...minusPrependedUnvotes];
+	const allVotes: ReadonlyArray<string> = [
+		...plusPrependedVotes,
+		...minusPrependedUnvotes,
+	];
 
-	return {
+	const transaction: PartialTransaction = {
 		type: 3,
 		fee: VOTE_FEE.toString(),
 		recipientId,
@@ -55,6 +67,7 @@ const castVotes = inputs => {
 			votes: allVotes,
 		},
 	};
-};
 
-export default wrapTransactionCreator(castVotes);
+	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+	
+};

@@ -14,10 +14,20 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 
-const getAddressAndPublicKeyFromRecipientData = ({
+interface RecipientDataInputs {
+	readonly recipientId: string;
+	readonly recipientPublicKey?: string;
+}
+
+interface AddressAndPublicKeyResult {
+	readonly address: string;
+	readonly publicKey?: string;
+}
+
+export const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,
-}) => {
+}: RecipientDataInputs): AddressAndPublicKeyResult => {
 	if (recipientId && recipientPublicKey) {
 		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
 			recipientPublicKey,
@@ -34,10 +44,9 @@ const getAddressAndPublicKeyFromRecipientData = ({
 		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
 			recipientPublicKey,
 		);
+
 		return { address: addressFromPublicKey, publicKey: recipientPublicKey };
 	}
 
-	return { address: recipientId, publicKey: null };
+	return { address: recipientId, publicKey: undefined };
 };
-
-export default getAddressAndPublicKeyFromRecipientData;
