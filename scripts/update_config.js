@@ -28,6 +28,12 @@ const applyChange = require('deep-diff').applyChange;
 
 const rootPath = path.resolve(path.dirname(__filename), '../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
+const loadJSONFileIfExists = filePath => {
+	if (fs.existsSync(filePath)) {
+		return JSON.parse(fs.readFileSync(filePath), 'utf8');
+	}
+	return {};
+};
 let oldConfigPath;
 let newConfigPath;
 
@@ -59,13 +65,18 @@ if (oldConfig.ssl) {
 }
 
 // New config in 1.1.x will be partial config other than default/config.json
-const newConfig = loadJSONFile(newConfigPath);
+const newConfig = loadJSONFileIfExists(newConfigPath);
 
 // Now get a unified config.json for 1.1.x version
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
-const unifiedNewConfig = merge({}, defaultConfig, newConfig);
+
+const networkConfig = loadJSONFileIfExists(
+	path.resolve(rootPath, `config/${process.env.LISK_NETWORK}/config.json`)
+);
+
+const unifiedNewConfig = merge({}, defaultConfig, networkConfig, newConfig);
 
 const changesMap = {
 	N: '  Added',
@@ -125,7 +136,7 @@ observableDiff(oldConfig, unifiedNewConfig, d => {
 // now we need to extract differences from default config file
 // to write those in network specific directory
 const customConfig = {};
-observableDiff(defaultConfig, oldConfig, d => {
+observableDiff(unifiedNewConfig, oldConfig, d => {
 	applyChange(customConfig, oldConfig, d);
 });
 
