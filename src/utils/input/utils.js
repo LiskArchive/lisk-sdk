@@ -44,36 +44,13 @@ export const splitSource = source => {
 	};
 };
 
-const timeoutPromise = async readFromStd => {
-	try {
-		await (() =>
-			new Promise(([reject]) => setTimeout(reject, DEFAULT_TIMEOUT)))();
-	} catch (e) {
-		if (stdinIsTTY()) {
-			throw new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`);
-		}
-	}
-	return readFromStd;
-};
-
-export const getRawStdIn = () => {
-	const readFromStd = new Promise(resolve => {
-		const rl = readline.createInterface({ input: process.stdin });
-		const lines = [];
-		return rl
-			.on('line', line => lines.push(line))
-			.on('close', () => resolve(lines));
-	});
-	return Promise.race([readFromStd, timeoutPromise(readFromStd)]);
-};
-
 export const getStdIn = ({
 	passphraseIsRequired,
 	secondPassphraseIsRequired,
 	passwordIsRequired,
 	dataIsRequired,
 } = {}) => {
-	const readFromStd = new Promise(resolve => {
+	const readFromStd = new Promise((resolve, reject) => {
 		if (
 			!(
 				passphraseIsRequired ||
@@ -84,9 +61,14 @@ export const getStdIn = ({
 		) {
 			return resolve({});
 		}
-
 		const lines = [];
 		const rl = readline.createInterface({ input: process.stdin });
+
+		// Prevent readline hanging when command called with no input or piped
+		const id = setTimeout(() => {
+			clearTimeout(id);
+			reject(new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`));
+		}, DEFAULT_TIMEOUT);
 
 		const handleClose = () => {
 			const passphraseIndex = 0;
@@ -113,7 +95,7 @@ export const getStdIn = ({
 
 		return rl.on('line', line => lines.push(line)).on('close', handleClose);
 	});
-	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+	return readFromStd;
 };
 
 export const getPassphraseFromPrompt = async ({

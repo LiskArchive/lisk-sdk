@@ -43,14 +43,14 @@ describe('signature:broadcast', () => {
 			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves(defaultSignatureString),
+				'getStdIn',
+				sandbox.stub().resolves({ data: defaultSignatureString }),
 			)
 			.stdout();
 
 	describe('signature:broadcast', () => {
 		setupTest()
-			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
+			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['signature:broadcast'])
 			.catch(error => {
 				return expect(error.message).to.contain('No signature was provided.');
@@ -84,8 +84,8 @@ describe('signature:broadcast', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves(['{invalid: json, format: bad}']),
+				'getStdIn',
+				sandbox.stub().resolves({ data: '{invalid: json, format: bad}' }),
 			)
 			.command(['signature:broadcast'])
 			.catch(error => {
@@ -98,8 +98,8 @@ describe('signature:broadcast', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([defaultSignatureString]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: defaultSignatureString }),
 			)
 			.command(['signature:broadcast'])
 			.it('should broadcast the signature', () => {

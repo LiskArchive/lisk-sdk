@@ -15,21 +15,25 @@
  */
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
-import { getRawStdIn } from '../../utils/input/utils';
+import { getStdIn } from '../../utils/input/utils';
 import getAPIClient from '../../utils/api';
 
 const getSignatureInput = async () => {
-	const rawStdIn = await getRawStdIn();
-	if (rawStdIn.length <= 0) {
+	try {
+		const { data } = await getStdIn({ dataIsRequired: true });
+		if (!data) {
+			throw new ValidationError('No signature was provided.');
+		}
+		return data;
+	} catch (e) {
 		throw new ValidationError('No signature was provided.');
 	}
-	return rawStdIn[0];
 };
 
 export default class BroadcastCommand extends BaseCommand {
 	async run() {
 		const { args: { signature } } = this.parse(BroadcastCommand);
-		const signatureInput = signature || (await getSignatureInput(signature));
+		const signatureInput = signature || (await getSignatureInput());
 		let signatureObject;
 		try {
 			signatureObject = JSON.parse(signatureInput);

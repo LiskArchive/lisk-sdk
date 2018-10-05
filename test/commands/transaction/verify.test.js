@@ -62,7 +62,7 @@ describe('transaction:verify', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
+				'getStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:verify'])
@@ -139,7 +139,7 @@ describe('transaction:verify', () => {
 
 	describe('transaction | transaction:verify', () => {
 		setupTest()
-			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
+			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['transaction:verify'])
 			.catch(error => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -149,8 +149,8 @@ describe('transaction:verify', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([invalidTransaction]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: invalidTransaction }),
 			)
 			.command(['transaction:verify'])
 			.catch(error => {
@@ -163,8 +163,8 @@ describe('transaction:verify', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
 			)
 			.command(['transaction:verify'])
 			.it('should verify transaction from stdin', () => {
@@ -182,8 +182,8 @@ describe('transaction:verify', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
 			)
 			.command(['transaction:verify', '--second-public-key=file:key.txt'])
 			.it(

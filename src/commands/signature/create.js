@@ -16,23 +16,23 @@
 import elements from 'lisk-elements';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import { getRawStdIn } from '../../utils/input/utils';
+import { getStdIn } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
 import parseTransactionString from '../../utils/transactions';
 import getInputsFromSources from '../../utils/input';
 import commonFlags from '../../utils/flags';
 
-const getTransactionInput = async () =>
-	getRawStdIn()
-		.then(rawStdIn => {
-			if (rawStdIn.length <= 0) {
-				throw new ValidationError('No transaction was provided.');
-			}
-			return rawStdIn[0];
-		})
-		.catch(() => {
+const getTransactionInput = async () => {
+	try {
+		const { data } = await getStdIn({ dataIsRequired: true });
+		if (!data) {
 			throw new ValidationError('No transaction was provided.');
-		});
+		}
+		return data;
+	} catch (e) {
+		throw new ValidationError('No transaction was provided.');
+	}
+};
 
 export default class CreateCommand extends BaseCommand {
 	async run() {
@@ -41,8 +41,7 @@ export default class CreateCommand extends BaseCommand {
 			flags: { passphrase: passphraseSource },
 		} = this.parse(CreateCommand);
 
-		const transactionInput =
-			transaction || (await getTransactionInput(transaction));
+		const transactionInput = transaction || (await getTransactionInput());
 
 		const transactionObject = parseTransactionString(transactionInput);
 

@@ -19,11 +19,7 @@ import inquirer from 'inquirer';
 import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
 import * as utilHelpers from '../../../src/utils/helpers';
-import {
-	createStreamStub,
-	createFakeBrokenInterface,
-	createFakeInterface,
-} from '../../helpers/utils';
+import { createStreamStub, createFakeInterface } from '../../helpers/utils';
 
 describe('input/utils utils', () => {
 	describe('#splitSource', () => {
@@ -41,40 +37,6 @@ describe('input/utils utils', () => {
 			);
 			expect(sourceType).to.be.equal('file./utils.js');
 			return expect(sourceIdentifier).to.equal('');
-		});
-	});
-
-	describe('#getRawStdIn', () => {
-		beforeEach(() => {
-			sandbox.stub(utilHelpers, 'stdinIsTTY').returns(true);
-			return sandbox.stub(readline, 'createInterface');
-		});
-
-		it('should resolve to the stdin contents', () => {
-			const stdInContents = 'some contents';
-			readline.createInterface.returns(createFakeInterface(stdInContents));
-			const result = inputUtils.getRawStdIn();
-			return expect(result).to.eventually.eql([stdInContents]);
-		});
-
-		it('should resolve to the stdin contents with two elements of array', () => {
-			const stdInContents = 'some \n contents';
-			readline.createInterface.returns(createFakeInterface(stdInContents));
-			const result = inputUtils.getRawStdIn();
-			return expect(result).to.eventually.eql(['some ', ' contents']);
-		});
-
-		it('should resolve to the an array with empty string', () => {
-			const stdInContents = '';
-			readline.createInterface.returns(createFakeInterface(stdInContents));
-			const result = inputUtils.getRawStdIn();
-			return expect(result).to.eventually.eql(['']);
-		});
-
-		it('should reject with timeout error', () => {
-			readline.createInterface.returns(createFakeBrokenInterface());
-			const result = inputUtils.getRawStdIn();
-			return expect(result).to.be.rejectedWith(Error, 'Timed out after 100 ms');
 		});
 	});
 

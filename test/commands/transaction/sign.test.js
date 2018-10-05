@@ -63,7 +63,7 @@ describe('transaction:sign', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
+				'getStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:sign'])
@@ -172,7 +172,7 @@ describe('transaction:sign', () => {
 
 	describe('transaction | transaction:sign', () => {
 		setupTest()
-			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
+			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['transaction:sign'])
 			.catch(error => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -182,8 +182,8 @@ describe('transaction:sign', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([invalidTransaction]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: invalidTransaction }),
 			)
 			.command(['transaction:sign'])
 			.catch(error => {
@@ -196,8 +196,8 @@ describe('transaction:sign', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
 			)
 			.command(['transaction:sign'])
 			.it('should take transaction from stdin and sign', () => {
@@ -223,8 +223,8 @@ describe('transaction:sign', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
 			)
 			.command(['transaction:sign', '--passphrase=pass:123'])
 			.it(
@@ -255,8 +255,8 @@ describe('transaction:sign', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
 			)
 			.command([
 				'transaction:sign',

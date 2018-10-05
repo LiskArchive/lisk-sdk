@@ -17,7 +17,7 @@ import elements from 'lisk-elements';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import parseTransactionString from '../../utils/transactions';
-import { getRawStdIn, getData } from '../../utils/input/utils';
+import { getStdIn, getData } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
 
 const secondPublicKeyDescription = `Specifies a source for providing a second public key to the command. The second public key must be provided via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
@@ -29,17 +29,17 @@ const secondPublicKeyDescription = `Specifies a source for providing a second pu
 	- --second-public-key 790049f919979d5ea42cca7b7aa0812cbae8f0db3ee39c1fe3cef18e25b67951
 `;
 
-const getTransactionInput = async () =>
-	getRawStdIn()
-		.then(rawStdIn => {
-			if (rawStdIn.length <= 0) {
-				throw new ValidationError('No transaction was provided.');
-			}
-			return rawStdIn[0];
-		})
-		.catch(() => {
+const getTransactionInput = async () => {
+	try {
+		const { data } = await getStdIn({ dataIsRequired: true });
+		if (!data) {
 			throw new ValidationError('No transaction was provided.');
-		});
+		}
+		return data;
+	} catch (e) {
+		throw new ValidationError('No transaction was provided.');
+	}
+};
 
 const processSecondPublicKey = async secondPublicKey =>
 	secondPublicKey.includes(':') ? getData(secondPublicKey) : secondPublicKey;
