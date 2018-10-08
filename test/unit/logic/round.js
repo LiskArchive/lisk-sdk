@@ -1944,20 +1944,21 @@ describe('rounds', () => {
 			return expect(isPromise(res)).to.be.true;
 		});
 
-		it('query getVotes should be called once', () => {
-			return expect(getVotes_stub.callCount).to.equal(1);
+		it('query getVotes should be called twice', () => {
+			// 2x updateVotes which calls 1x getVotes
+			return expect(getVotes_stub.callCount).to.equal(2);
 		});
 
-		it('query updateVotes should be called once', () => {
-			return expect(updateVotes_stub.callCount).to.equal(1);
+		it('query updateVotes should be called twice', () => {
+			return expect(updateVotes_stub.callCount).to.equal(2);
 		});
 
 		it('query updateMissedBlocks should be called once', () => {
 			return expect(roundOutsiders_stub.callCount).to.equal(1);
 		});
 
-		it('query flushRound should be called once', () => {
-			return expect(flush_stub.callCount).to.equal(1);
+		it('query flushRound should be called twice', () => {
+			return expect(flush_stub.callCount).to.equal(2);
 		});
 
 		it('query updateDelegatesRanks should be called once', () => {
