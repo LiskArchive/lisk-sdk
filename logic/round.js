@@ -146,33 +146,16 @@ class Round {
 		const self = this;
 
 		return self.getVotes(self.scope.round).then(votes => {
-			const queries = votes.map(vote => {
-				// Check for difference in vote amount and log when there is a difference
-				const expectedAmount = new Bignum(vote.amount);
-				const actualAmount = new Bignum(Math.floor(vote.amount).toString());
-				if (!actualAmount.eq(expectedAmount)) {
-					const diff = actualAmount.sub(expectedAmount);
-					self.scope.library.logger.warn(
-						'Round->updateVotes: Incorrect vote amount applied',
-						{
-							actual: actualAmount.toString(),
-							expected: expectedAmount.toString(),
-							diff: diff.toString(),
-							delegate: vote.delegate,
-							round: self.scope.round,
-						}
-					);
-				}
-
-				return self.t.rounds.updateVotes(
+			const queries = votes.map(vote =>
+				self.t.rounds.updateVotes(
 					self.scope.modules.accounts.generateAddressByPublicKey(vote.delegate),
 					// Have to revert the logic to not use bignumber. it was causing change
 					// in vote amount. More details can be found on the issue.
 					// 		new Bignum(vote.amount).floor()
 					// TODO: https://github.com/LiskHQ/lisk/issues/2423
 					Math.floor(vote.amount)
-				);
-			});
+				)
+			);
 
 			if (queries.length > 0) {
 				return self.t.batch(queries);
