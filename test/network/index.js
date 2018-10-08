@@ -17,6 +17,7 @@
 const find = require('find');
 const utils = require('./utils');
 const setup = require('./setup');
+const Network = require('./network');
 
 const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Full mesh network with 2 connection for bi-directional communication
@@ -26,30 +27,29 @@ const NUMBER_OF_TRANSACTIONS = process.env.NUMBER_OF_TRANSACTIONS || 1000;
 // monitor and interact with them as part of the test.
 const NUMBER_OF_MONITORING_CONNECTIONS = TOTAL_PEERS * 2;
 
-describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
-	const wsPorts = [];
-	_.range(TOTAL_PEERS).map(index => {
-		wsPorts.push(5000 + index);
-	});
-	const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
-	let testFailedError;
+const wsPorts = [];
+_.range(TOTAL_PEERS).map(index => {
+	wsPorts.push(5000 + index);
+});
+const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 
-	before(done => {
-		setup.createNetwork(configurations, done);
+const network = new Network(configurations);
+
+describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
+	before(() => {
+		return network.launchNetwork({ enableForging: true });
 	});
 
 	afterEach(function(done) {
 		if (this.currentTest.state === 'failed') {
 			console.warn(`Test failed: ${this.currentTest.title}`);
-			testFailedError = this.currentTest.err;
+			return done(this.currentTest.err);
 		}
 		done();
 	});
 
-	after(done => {
-		setup.exit(() => {
-			done(testFailedError);
-		});
+	after(() => {
+		return network.killNetwork();
 	});
 
 	it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
@@ -74,7 +74,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				return done(err);
 			}
 			// It should be less than EXPECTED_TOTAL_CONNECTIONS, as nodes are just started and establishing the connections
-			if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS) {
+			if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS) {
 				done();
 			} else {
 				done(
@@ -93,6 +93,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			const test = require(currentFilePath);
 			test(
 				configurations,
+				network,
 				TOTAL_PEERS,
 				EXPECTED_TOTAL_CONNECTIONS,
 				NUMBER_OF_TRANSACTIONS,
@@ -100,4 +101,8 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			);
 		});
 	});
+});
+
+process.on('unhandledRejection', err => {
+	throw err;
 });

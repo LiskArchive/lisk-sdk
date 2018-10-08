@@ -17,12 +17,10 @@
 const fs = require('fs');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
-const blockchainReady = require('../../../common/utils/wait_for')
-	.blockchainReady;
-const common = require('../common');
 
 module.exports = function(
 	configurations,
+	network,
 	TOTAL_PEERS,
 	EXPECTED_TOTAL_CONNECTIONS,
 	NUMBER_OF_TRANSACTIONS,
@@ -33,14 +31,15 @@ module.exports = function(
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
 	describe('@network : peer Blacklisted', () => {
-		const params = {};
-		common.setMonitoringSocketsConnections(params, configurations);
-
 		const wsPorts = new Set();
+
+		before(() => {
+			return network.waitForAllNodesToBeReady();
+		});
 
 		describe('when peers are mutually connected in the network', () => {
 			before(() => {
-				return common.getAllPeers(params.sockets).then(mutualPeers => {
+				return network.getAllPeersLists().then(mutualPeers => {
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
@@ -76,17 +75,15 @@ module.exports = function(
 
 			describe('when a node blacklists an ip', () => {
 				before(done => {
-					params.configurations[0].peers.access.blackList.push('127.0.0.1');
+					configurations[0].peers.access.blackList.push('127.0.0.1');
 					fs.writeFileSync(
 						`${__dirname}/../../configs/config.node-0.json`,
-						JSON.stringify(params.configurations[0], null, 4)
+						JSON.stringify(configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					common
-						.restartNode('node_0')
-						.then(() => {
-							blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-						})
+					network
+						.restartNode('node_0', true)
+						.then(done)
 						.catch(err => {
 							done(err.message);
 						});
@@ -116,7 +113,7 @@ module.exports = function(
 
 				it(`peers manager should contain ${TOTAL_PEERS -
 					2} active connections`, () => {
-					return common.getAllPeers(params.sockets).then(mutualPeers => {
+					return network.getAllPeersLists().then(mutualPeers => {
 						mutualPeers.forEach(mutualPeer => {
 							if (mutualPeer) {
 								expect(mutualPeer.peers.length).to.be.eql(TOTAL_PEERS - 2);
@@ -151,17 +148,15 @@ module.exports = function(
 
 			describe('when a node remove the just blacklisted ip', () => {
 				before(done => {
-					params.configurations[0].peers.access.blackList = [];
+					configurations[0].peers.access.blackList = [];
 					fs.writeFileSync(
 						`${__dirname}/../../configs/config.node-0.json`,
-						JSON.stringify(params.configurations[0], null, 4)
+						JSON.stringify(configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					common
-						.restartNode('node_0')
-						.then(() => {
-							blockchainReady(done, null, null, 'http://127.0.0.1:4000');
-						})
+					network
+						.restartNode('node_0', true)
+						.then(done)
 						.catch(err => {
 							done(err.message);
 						});
