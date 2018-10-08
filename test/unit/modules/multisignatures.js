@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,396 +14,899 @@
 
 'use strict';
 
+const rewire = require('rewire');
+const accountsFixtures = require('../../fixtures/index').accounts;
+const transactionsFixtures = require('../../fixtures/index').transactions;
+const transactionTypes = require('../../../helpers/transaction_types.js');
+
+const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
+
 describe('multisignatures', () => {
+	let __private;
+	let self;
+	let library;
+	let validScope;
+	const stubs = {};
+	const data = {};
+	let multisignaturesInstance;
+
+	function get(variable) {
+		return rewiredMultisignatures.__get__(variable);
+	}
+
+	function set(variable, value) {
+		return rewiredMultisignatures.__set__(variable, value);
+	}
+
+	beforeEach(done => {
+		// Initialize stubs
+		stubs.logger = {
+			trace: sinonSandbox.spy(),
+			info: sinonSandbox.spy(),
+			error: sinonSandbox.spy(),
+			warn: sinonSandbox.spy(),
+			debug: sinonSandbox.spy(),
+		};
+
+		stubs.networkIoSocketsEmit = sinonSandbox.stub();
+		stubs.schema = sinonSandbox.stub();
+		stubs.busMessage = sinonSandbox.stub();
+		stubs.balancesSequence = sinonSandbox.stub();
+		stubs.bind = sinonSandbox.stub();
+
+		stubs.attachAssetType = () => {
+			return { bind: stubs.bind };
+		};
+		stubs.verifySignature = sinonSandbox.stub();
+
+		stubs.logic = {};
+		stubs.logic.transaction = {
+			attachAssetType: stubs.attachAssetType,
+			verifySignature: stubs.verifySignature,
+		};
+		stubs.logic.account = sinonSandbox.stub();
+
+		stubs.multisignature = sinonSandbox.stub();
+		set('Multisignature', stubs.multisignature);
+
+		stubs.logic.multisignature = new stubs.multisignature(
+			stubs.schema,
+			stubs.network,
+			stubs.logic.transaction,
+			stubs.logic.account,
+			stubs.logger
+		);
+		stubs.multisignature.resetHistory();
+
+		// Create stubbed scope
+		validScope = {
+			logger: stubs.logger,
+			db: {
+				multisignatures: {},
+			},
+			network: { io: { sockets: { emit: stubs.networkIoSocketsEmit } } },
+			schema: stubs.schema,
+			bus: { message: stubs.busMessage },
+			balancesSequence: stubs.balancesSequence,
+			logic: stubs.logic,
+		};
+
+		stubs.modules = {
+			accounts: sinonSandbox.stub(),
+			transactions: sinonSandbox.stub(),
+		};
+
+		// Create instance of multisignatures module
+		multisignaturesInstance = new rewiredMultisignatures(
+			(err, __multisignatures) => {
+				self = __multisignatures;
+				__private = get('__private');
+				library = get('library');
+				self.onBind(stubs.modules);
+				done();
+			},
+			validScope
+		);
+	});
+
 	describe('constructor', () => {
-		describe('library', () => {
-			it('should assign logger');
-
-			it('should assign db');
-
-			it('should assign network');
-
-			it('should assign schema');
-
-			it('should assign ed');
-
-			it('should assign bus');
-
-			it('should assign balancesSequence');
-
-			it('should assign logic.transaction');
-		});
-
-		describe('__private', () => {
-			it('should call library.logic.transaction.attachAssetType');
-
-			it('assign __private.assetTypes[transactionTypes.MULTI]');
-		});
-
-		it('should return error = null');
-
-		it('should return Multisignature instance');
-	});
-
-	describe('processSignature', () => {
-		function continueSignatureProcessing() {
-			it('should call library.balancesSequence.add');
-
-			it('should call modules.transactions.getMultisignatureTransaction');
-
-			it(
-				'should call modules.transactions.getMultisignatureTransaction with transaction.transaction'
-			);
-
-			describe('when multisignature transaction.transaction does not exist', () => {
-				it('should call callback with error = "Transaction not found"');
-			});
-
-			describe('when multisignature transaction.transaction exists', () => {
-				it('should call modules.accounts.getAccount');
-
-				it(
-					'should call modules.accounts.getAccount with {address: transaction.senderId}'
-				);
-
-				describe('when modules.accounts.getAccount fails', () => {
-					it('should call callback with error');
-				});
-
-				describe('when modules.accounts.getAccount succeeds', () => {
-					describe('when sender does not exist', () => {
-						it('should call callback with error = "Sender not found"');
-					});
-
-					describe('when sender exists', () => {
-						it('should call Multisignature.prototype.ready');
-
-						it(
-							'should call Multisignature.prototype.ready with multisignature with signatures containing transaction.signature'
-						);
-
-						it('should call Multisignature.prototype.ready with sender');
-
-						it('should call library.bus.message');
-
-						it('should call library.bus.message with "signature"');
-
-						it(
-							'should call library.bus.message with {transaction: transaction.transaction, signature: transaction.signature}'
-						);
-
-						it('should call library.bus.message with true');
-
-						it('should call callback with error = undefined');
-
-						it('should call callback with result = undefined');
-					});
-				});
-			});
-		}
-
-		describe('when no transaction passed', () => {
-			it(
-				'should call callback with error = "Unable to process signature. Signature is undefined."'
+		it('should assign params to library', () => {
+			expect(library.logger).to.eql(validScope.logger);
+			expect(library.db).to.eql(validScope.db);
+			expect(library.network).to.eql(validScope.network);
+			expect(library.schema).to.eql(validScope.schema);
+			expect(library.bus).to.eql(validScope.bus);
+			expect(library.balancesSequence).to.eql(validScope.balancesSequence);
+			expect(library.logic.transaction).to.eql(validScope.logic.transaction);
+			expect(library.logic.account).to.eql(validScope.logic.account);
+			return expect(library.logic.multisignature).to.eql(
+				validScope.logic.multisignature
 			);
 		});
 
-		describe('when transaction passed', () => {
-			it('should call modules.transactions.getMultisignatureTransaction');
-
-			it(
-				'should call modules.transactions.getMultisignatureTransaction with transaction.transaction'
+		it('should instantiate Multisignature logic with proper params', () => {
+			expect(stubs.multisignature).to.have.been.calledOnce;
+			return expect(stubs.multisignature).to.have.been.calledWith(
+				validScope.schema,
+				validScope.network,
+				validScope.logic.transaction,
+				validScope.logic.account,
+				validScope.logger
 			);
-
-			describe('when multisignature transaction.transaction does not exist', () => {
-				it('should call callback with error = "Transaction not found"');
-			});
-
-			describe('when multisignature transaction.transaction exists', () => {
-				describe('when transaction type != transactionTypes.MULTI', () => {
-					it('should call modules.accounts.getAccount');
-
-					it(
-						'should call modules.accounts.getAccount with {address: transaction.senderId}'
-					);
-
-					describe('when modules.accounts.getAccount fails', () => {
-						it(
-							'should call callback with error = "Multisignature account not found"'
-						);
-					});
-
-					describe('when modules.accounts.getAccount succeeds', () => {
-						describe('when account does not exist', () => {
-							it(
-								'should call callback with error = "Account account not found"'
-							);
-						});
-
-						describe('when account exists', () => {
-							describe('when multisignature already contains transaction.signature', () => {
-								it(
-									'should call callback with error = "Signature already exists"'
-								);
-							});
-
-							describe('for every account.multisignatures', () => {
-								it('should call library.logic.transaction.verifySignature');
-
-								it(
-									'should call library.logic.transaction.verifySignature with multisignature'
-								);
-
-								it(
-									'should call library.logic.transaction.verifySignature with account.multisignatures'
-								);
-
-								it(
-									'should call library.logic.transaction.verifySignature with transaction.signature'
-								);
-
-								describe('when library.logic.transaction.verifySignature throws', () => {
-									it('should call library.logger.error');
-
-									it('should call library.logger.error with error stack');
-
-									it(
-										'should call callback with error = "Failed to verify signature"'
-									);
-								});
-
-								describe('when library.logic.transaction.verifySignature returns false', () => {
-									it(
-										'should call callback with error = "Failed to verify signature"'
-									);
-								});
-
-								describe('when library.logic.transaction.verifySignature returns true', () => {
-									continueSignatureProcessing();
-								});
-							});
-						});
-					});
-				});
-
-				describe('when multisignature transaction type = transactionTypes.MULTI', () => {
-					describe('when multisignature is already signed', () => {
-						it(
-							'should call callback with error = "Permission to sign transaction denied"'
-						);
-					});
-
-					describe('when multisignature already contains transaction.signature', () => {
-						it(
-							'should call callback with error = "Permission to sign transaction denied"'
-						);
-					});
-
-					describe('for every multisignature keysgroup member', () => {
-						it('should call library.logic.transaction.verifySignature');
-
-						it(
-							'should call library.logic.transaction.verifySignature with multisignature'
-						);
-
-						it(
-							'should call library.logic.transaction.verifySignature with keysgroup member'
-						);
-
-						it(
-							'should call library.logic.transaction.verifySignature with transaction.signature'
-						);
-
-						describe('when library.logic.transaction.verifySignature throws', () => {
-							it('should call library.logger.error');
-
-							it('should call library.logger.error with error stack');
-
-							it(
-								'should call callback with error = "Failed to verify signature"'
-							);
-						});
-
-						describe('when library.logic.transaction.verifySignature returns false', () => {
-							it(
-								'should call callback with error = "Failed to verify signature"'
-							);
-						});
-
-						describe('when library.logic.transaction.verifySignature returns true', () => {
-							continueSignatureProcessing();
-						});
-					});
-				});
-			});
 		});
-	});
 
-	describe('getGroup', () => {
-		it('should accept address as parameter');
-
-		it('should fail if wrong address is provided');
-
-		it('should fail if valid address but not a multisig account');
-
-		it('should return a group if provided with a valid multisig account');
-	});
-
-	describe('isLoaded', () => {
-		it('should return true if modules exists');
-
-		it('should return true if modules does not exist');
+		it('should call callback with result = self', () => {
+			return expect(self).to.be.deep.equal(multisignaturesInstance);
+		});
 	});
 
 	describe('onBind', () => {
-		describe('modules', () => {
-			it('should assign accounts');
-
-			it('should assign transactions');
-		});
-
-		describe('assetTypes', () => {
-			it('should call bind on multisignature logic with scope.accounts');
+		it('should set modules', () => {
+			return expect(get('modules')).to.deep.equal(stubs.modules);
 		});
 	});
 
-	describe('shared', () => {
-		describe('getGroups', () => {
-			it('should accept fitlers.address parameter');
+	describe('__private.isValidSignature', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.signatures = [
+				{
+					transactionId: data.transaction.id,
+					publicKey: 'publicKey1',
+					signature: 'signature1',
+				},
+				{
+					transactionId: data.transaction.id,
+					publicKey: 'publicKey2',
+					signature: 'signature2',
+				},
+			];
+			data.signature = data.signatures[0];
+			data.membersPublicKeys = ['publicKey1', 'publicKey2'];
+			done();
+		});
 
-			describe('when schema validation fails', () => {
-				it('should call callback with schema error');
+		describe('when signature data contains publicKey', () => {
+			describe('when publicKey is not present as member of multisignature account in transaction', () => {
+				it('should return false', () => {
+					data.signature.publicKey = 'not_present';
+					const result = __private.isValidSignature(
+						data.signature,
+						data.membersPublicKeys,
+						data.transaction
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, signer not in keysgroup.',
+						{
+							signature: data.signature,
+							membersPublicKeys: data.membersPublicKeys,
+							transaction: data.transaction,
+						}
+					);
+					expect(stubs.verifySignature).to.have.not.been.called;
+					return expect(result).to.be.false;
+				});
 			});
 
-			describe('when schema validation succeeds', () => {
-				it('should call library.db.one');
-
-				it('should call library.db.one with sql.getAccountIds');
-
-				it('should call library.db.one with { publicKey: req.body.publicKey }');
-
-				describe('when library.db.one fails', () => {
-					it('should call the logger.error with error stack');
-
-					it('should call callback with "Multisignature#getAccountIds error"');
-				});
-
-				describe('when library.db.one succeeds', () => {
-					it('should call modules.accounts.getAccounts');
-
-					it(
-						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
-					);
-
-					it(
-						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
-					);
-
-					describe('when modules.accounts.getAccounts fails', () => {
-						it('should call callback with error');
+			describe('when publicKey is present as member of multisignature account in transaction', () => {
+				describe('after calling library.logic.transaction.verifySignature', () => {
+					describe('when validation is successfull', () => {
+						it('should return true', () => {
+							stubs.verifySignature.returns(true);
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.signature.publicKey,
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.not.been.called;
+							return expect(result).to.be.true;
+						});
 					});
 
-					describe('when modules.accounts.getAccounts succeeds', () => {
-						describe('for every account', () => {
-							describe('for every account.multisignature', () => {
-								it('should call modules.accounts.generateAddressByPublicKey');
-
-								it(
-									'should call modules.accounts.generateAddressByPublicKey with multisignature'
-								);
-							});
-
-							it('should call modules.accounts.getAccounts');
-
-							it(
-								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
+					describe('when validation fails', () => {
+						it('should return false', () => {
+							stubs.verifySignature.returns(false);
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
 							);
-
-							it(
-								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.signature.publicKey,
+								data.signature.signature
 							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.not.been.called;
+							return expect(result).to.be.false;
+						});
+					});
 
-							describe('when modules.accounts.getAccounts fails', () => {
-								it('should call callback with error');
-							});
-
-							describe('when modules.accounts.getAccounts succeeds', () => {
-								it('should call callback with error = null');
-
-								it('should call callback with result containing accounts');
-							});
+					describe('when error is thrown', () => {
+						it('should return true', () => {
+							stubs.verifySignature.throws('verifySignature#ERR');
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.signature.publicKey,
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.been.calledWithMatch(
+								'Unable to process signature, verification failed.',
+								{
+									signature: data.signature,
+									membersPublicKeys: data.membersPublicKeys,
+									transaction: data.transaction,
+								}
+							);
+							expect(library.logger.error.args[0][1].error).to.include(
+								'verifySignature#ERR'
+							);
+							return expect(result).to.be.false;
 						});
 					});
 				});
 			});
 		});
 
-		describe('getMemberships', () => {
-			it('should accept fitlers.address parameter');
-
-			describe('when schema validation fails', () => {
-				it('should call callback with schema error');
+		describe('when signature data contains no publicKey', () => {
+			beforeEach(done => {
+				delete data.signature.publicKey;
+				done();
 			});
 
-			describe('when schema validation succeeds', () => {
-				it('should call library.db.one');
+			describe('after calling library.logic.transaction.verifySignature', () => {
+				describe('when membersPublicKeys is empty', () => {
+					it('should return false', () => {
+						data.membersPublicKeys = [];
 
-				it('should call library.db.one with sql.getAccountIds');
-
-				it('should call library.db.one with { publicKey: req.body.publicKey }');
-
-				describe('when library.db.one fails', () => {
-					it('should call the logger.error with error stack');
-
-					it('should call callback with "Multisignature#getAccountIds error"');
+						const result = __private.isValidSignature(
+							data.signature,
+							data.membersPublicKeys,
+							data.transaction
+						);
+						expect(library.logger.error).to.have.not.been.called;
+						expect(stubs.verifySignature).to.have.not.been.called;
+						return expect(result).to.be.false;
+					});
 				});
 
-				describe('when library.db.one succeeds', () => {
-					it('should call modules.accounts.getAccounts');
-
-					it(
-						'should call modules.accounts.getAccounts with {address: {$in: scope.accountIds}, sort: "balance"}'
-					);
-
-					it(
-						'should call modules.accounts.getAccounts with ["address", "balance", "multisignatures", "multilifetime", "multimin"]'
-					);
-
-					describe('when modules.accounts.getAccounts fails', () => {
-						it('should call callback with error');
+				describe('when membersPublicKeys contains 1 entry', () => {
+					beforeEach(done => {
+						data.membersPublicKeys = [data.membersPublicKeys[0]];
+						done();
 					});
 
-					describe('when modules.accounts.getAccounts succeeds', () => {
-						describe('for every account', () => {
-							describe('for every account.multisignature', () => {
-								it('should call modules.accounts.generateAddressByPublicKey');
+					describe('when validation is successfull', () => {
+						it('should return true', () => {
+							stubs.verifySignature.returns(true);
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[0],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							return expect(result).to.be.true;
+						});
+					});
 
-								it(
-									'should call modules.accounts.generateAddressByPublicKey with multisignature'
+					describe('when validation fails', () => {
+						it('should return false', () => {
+							stubs.verifySignature.returns(false);
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[0],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							return expect(result).to.be.false;
+						});
+					});
+
+					describe('when error is thrown', () => {
+						it('should return true', () => {
+							stubs.verifySignature.throws('verifySignature#ERR');
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[0],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledOnce;
+							expect(library.logger.error).to.have.been.calledWithMatch(
+								'Unable to process signature, verification failed.',
+								{
+									signature: data.signature,
+									membersPublicKeys: data.membersPublicKeys,
+									transaction: data.transaction,
+								}
+							);
+							expect(library.logger.error.args[0][1].error).to.include(
+								'verifySignature#ERR'
+							);
+							return expect(result).to.be.false;
+						});
+					});
+				});
+
+				describe('when membersPublicKeys contains 2 entries', () => {
+					describe('when first entry passes validation', () => {
+						describe('when second entry fails validation', () => {
+							it('should return true', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.returns(true);
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.returns(false);
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
 								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledOnce;
+								return expect(result).to.be.true;
 							});
+						});
 
-							it('should call modules.accounts.getAccounts');
+						describe('when error is thrown for second entry', () => {
+							it('should return true', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.returns(true);
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.throws('verifySignature#ERR');
 
-							it(
-								'should call modules.accounts.getAccounts with {address: { $in: addresses }'
-							);
-
-							it(
-								'should call modules.accounts.getAccounts with ["address", "publicKey", "balance"]'
-							);
-
-							describe('when modules.accounts.getAccounts fails', () => {
-								it('should call callback with error');
-							});
-
-							describe('when modules.accounts.getAccounts succeeds', () => {
-								it('should call callback with error = null');
-
-								it('should call callback with result containing accounts');
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledOnce;
+								return expect(result).to.be.true;
 							});
 						});
 					});
+
+					describe('when second entry passes validation', () => {
+						describe('when first entry fails validation', () => {
+							it('should return true', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.returns(false);
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.returns(true);
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[1],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledTwice;
+								return expect(result).to.be.true;
+							});
+						});
+
+						describe('when error is thrown for first entry', () => {
+							it('should return false', () => {
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[0],
+										data.signature.signature
+									)
+									.throws('verifySignature#ERR');
+								stubs.verifySignature
+									.withArgs(
+										data.transaction,
+										data.membersPublicKeys[1],
+										data.signature.signature
+									)
+									.returns(true);
+
+								const result = __private.isValidSignature(
+									data.signature,
+									data.membersPublicKeys,
+									data.transaction
+								);
+								expect(stubs.verifySignature).to.have.been.calledWith(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								);
+								expect(stubs.verifySignature).to.have.been.calledOnce;
+								expect(library.logger.error).to.have.been.calledWithMatch(
+									'Unable to process signature, verification failed.',
+									{
+										signature: data.signature,
+										membersPublicKeys: data.membersPublicKeys,
+										transaction: data.transaction,
+									}
+								);
+								expect(library.logger.error.args[0][1].error).to.include(
+									'verifySignature#ERR'
+								);
+								return expect(result).to.be.false;
+							});
+						});
+					});
+
+					describe('when no entry passes validation', () => {
+						it('should return false', () => {
+							stubs.verifySignature
+								.withArgs(
+									data.transaction,
+									data.membersPublicKeys[0],
+									data.signature.signature
+								)
+								.returns(false);
+							stubs.verifySignature
+								.withArgs(
+									data.transaction,
+									data.membersPublicKeys[1],
+									data.signature.signature
+								)
+								.returns(false);
+
+							const result = __private.isValidSignature(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[0],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledWith(
+								data.transaction,
+								data.membersPublicKeys[1],
+								data.signature.signature
+							);
+							expect(stubs.verifySignature).to.have.been.calledTwice;
+							return expect(result).to.be.false;
+						});
+					});
+				});
+			});
+		});
+	});
+
+	describe('__private.validateSignature', () => {
+		beforeEach(done => {
+			data.sender = accountsFixtures.Account();
+			stubs.isValidSignature = sinonSandbox.stub();
+			__private.isValidSignature = stubs.isValidSignature;
+			done();
+		});
+
+		describe('after calling __private.isValidSignature', () => {
+			describe('when signature is invalid', () => {
+				it('should call a callback with Error instance', done => {
+					stubs.isValidSignature.returns(false);
+					__private.validateSignature(
+						data.signature,
+						data.membersPublicKeys,
+						data.transaction,
+						data.sender,
+						err => {
+							expect(stubs.isValidSignature).to.have.been.calledWith(
+								data.signature,
+								data.membersPublicKeys,
+								data.transaction
+							);
+							expect(stubs.isValidSignature).to.have.been.calledOnce;
+							expect(err).to.be.an.instanceof(Error);
+							expect(err.message).to.eql(
+								'Unable to process signature, verification failed'
+							);
+							done();
+						}
+					);
+				});
+			});
+
+			describe('when signature is valid', () => {
+				beforeEach(done => {
+					stubs.ready = sinonSandbox.stub().returns('ready');
+					library.logic.multisignature = { ready: stubs.ready };
+					stubs.isValidSignature.returns(true);
+					__private.validateSignature(
+						data.signature,
+						data.membersPublicKeys,
+						data.transaction,
+						data.sender,
+						done
+					);
+				});
+
+				it('should set transaction.signature', () => {
+					return expect(data.transaction.signatures).to.eql([
+						data.signature.signature,
+					]);
+				});
+
+				it('should set transaction.ready', () => {
+					expect(stubs.ready).to.have.been.calledWith(
+						data.transaction,
+						data.sender
+					);
+					expect(stubs.ready).to.have.been.calledOnce;
+					return expect(data.transaction.ready).to.eql('ready');
+				});
+
+				it('should emit events with proper data', () => {
+					expect(stubs.networkIoSocketsEmit).to.have.been.calledWith(
+						'multisignatures/signature/change',
+						data.transaction
+					);
+					expect(stubs.networkIoSocketsEmit).to.have.been.calledOnce;
+					expect(stubs.busMessage).to.have.been.calledWith(
+						'signature',
+						data.signature,
+						true
+					);
+					return expect(stubs.busMessage).to.have.been.calledOnce;
+				});
+			});
+		});
+	});
+
+	describe('__private.processSignatureForMultisignatureAccountCreation', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.transaction.asset.multisignature.keysgroup = [
+				'+publicKey1',
+				'+publicKey2',
+			];
+			data.signature = {
+				transactionId: data.transaction.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+
+			// Initialize stubs
+			stubs.validateSignature = sinonSandbox.stub().callsArgWith(4, null);
+
+			set('__private.validateSignature', stubs.validateSignature);
+			__private.processSignatureForMultisignatureAccountCreation(
+				data.signature,
+				data.transaction,
+				done
+			);
+		});
+
+		describe('when calling __private.validateSignature', () => {
+			it('should be called with proper data', () => {
+				const memberPublicKeys = ['publicKey1', 'publicKey2'];
+				const sender = {};
+				expect(stubs.validateSignature).to.have.been.calledWith(
+					data.signature,
+					memberPublicKeys,
+					data.transaction,
+					sender
+				);
+				return expect(stubs.validateSignature).to.have.been.calledOnce;
+			});
+		});
+	});
+
+	describe('__private.processSignatureFromMultisignatureAccount', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+			data.sender = accountsFixtures.Account();
+			data.sender.multisignatures = ['publicKey1', 'publicKey2'];
+
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.signature = {
+				transactionId: data.transaction.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+
+			// Initialize stubs
+			stubs.validateSignature = sinonSandbox.stub().callsArgWith(4, null);
+			set('__private.validateSignature', stubs.validateSignature);
+
+			stubs.getAccount = sinonSandbox.stub();
+			stubs.modules.accounts.getAccount = stubs.getAccount;
+			done();
+		});
+
+		describe('when modules.accounts.getAccount returns an error', () => {
+			it('should call a callback with Error instance', done => {
+				stubs.getAccount.callsArgWith(1, 'getAccount#ERR');
+
+				__private.processSignatureFromMultisignatureAccount(
+					data.signature,
+					data.transaction,
+					err => {
+						expect(stubs.getAccount).to.have.been.calledWith({
+							address: data.transaction.senderId,
+						});
+						expect(stubs.getAccount).to.have.been.calledOnce;
+						expect(err).to.be.an.instanceof(Error);
+						expect(err.message).to.eql(
+							'Unable to process signature, account not found'
+						);
+						expect(library.logger.error).to.have.been.calledWith(
+							'Unable to process signature, account not found',
+							{
+								signature: data.signature,
+								transaction: data.transaction,
+								error: 'getAccount#ERR',
+							}
+						);
+						done();
+					}
+				);
+			});
+		});
+
+		describe('when modules.accounts.getAccount returns no error but sender = undefined', () => {
+			it('should call a callback with Error instance', done => {
+				const sender = undefined;
+				stubs.getAccount.callsArgWith(1, null, sender);
+
+				__private.processSignatureFromMultisignatureAccount(
+					data.signature,
+					data.transaction,
+					err => {
+						expect(stubs.getAccount).to.have.been.calledWith({
+							address: data.transaction.senderId,
+						});
+						expect(stubs.getAccount).to.have.been.calledOnce;
+						expect(err).to.be.an.instanceof(Error);
+						expect(err.message).to.eql(
+							'Unable to process signature, account not found'
+						);
+						expect(library.logger.error).to.have.been.calledWith(
+							'Unable to process signature, account not found',
+							{
+								signature: data.signature,
+								transaction: data.transaction,
+								error: null,
+							}
+						);
+						done();
+					}
+				);
+			});
+		});
+
+		describe('when modules.accounts.getAccount returns no error', () => {
+			describe('when calling __private.validateSignature', () => {
+				it('should be called with proper data', done => {
+					stubs.getAccount.callsArgWith(1, null, data.sender);
+
+					__private.processSignatureFromMultisignatureAccount(
+						data.signature,
+						data.transaction,
+						err => {
+							expect(stubs.getAccount).to.have.been.calledWith({
+								address: data.transaction.senderId,
+							});
+							expect(stubs.getAccount).to.have.been.calledOnce;
+							expect(err).to.not.exist;
+							expect(stubs.validateSignature).to.have.been.calledWith(
+								data.signature,
+								data.sender.multisignatures,
+								data.transaction,
+								data.sender
+							);
+							expect(stubs.validateSignature).to.have.been.calledOnce;
+							done();
+						}
+					);
+				});
+			});
+		});
+	});
+
+	describe('processSignature', () => {
+		beforeEach(done => {
+			// Set some random data used for tests
+
+			data.transaction = transactionsFixtures.Transaction({
+				type: transactionTypes.MULTI,
+			});
+			data.signature = {
+				transactionId: data.transaction.id,
+				publicKey: 'publicKey1',
+				signature: 'signature1',
+			};
+			data.transaction.signatures = [];
+
+			// Initialize stubs
+			stubs.balancesSequence = sinonSandbox
+				.stub()
+				.callsFake((callback, doneCallback) => {
+					callback(doneCallback);
+				});
+			library.balancesSequence.add = stubs.balancesSequence;
+
+			stubs.getMultisignatureTransaction = sinonSandbox.stub();
+			stubs.getMultisignatureTransaction.returns(data.transaction);
+			stubs.modules.transactions.getMultisignatureTransaction =
+				stubs.getMultisignatureTransaction;
+
+			stubs.processSignatureForMultisignatureAccountCreation = sinonSandbox
+				.stub()
+				.callsArgWith(2, null);
+			__private.processSignatureForMultisignatureAccountCreation =
+				stubs.processSignatureForMultisignatureAccountCreation;
+
+			stubs.processSignatureFromMultisignatureAccount = sinonSandbox
+				.stub()
+				.callsArgWith(2, null);
+			__private.processSignatureFromMultisignatureAccount =
+				stubs.processSignatureFromMultisignatureAccount;
+			done();
+		});
+
+		describe('when signature is not present', () => {
+			it('should call a callback with Error instance', done => {
+				const signature = undefined;
+				self.processSignature(signature, err => {
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, signature not provided'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, signature not provided'
+					);
+					done();
+				});
+			});
+		});
+
+		describe('when modules.transactions.getMultisignatureTransaction returns no transaction', () => {
+			it('should call a callback with Error instance', done => {
+				stubs.getMultisignatureTransaction.returns(undefined);
+				self.processSignature(data.signature, err => {
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, corresponding transaction not found'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, corresponding transaction not found',
+						{ signature: data.signature }
+					);
+					done();
+				});
+			});
+		});
+
+		describe('when signature already exists in transaction', () => {
+			it('should call a callback with Error instance', done => {
+				data.transaction.signatures = ['signature1'];
+				self.processSignature(data.signature, err => {
+					expect(stubs.getMultisignatureTransaction).to.have.been.calledWith(
+						data.signature.transactionId
+					);
+					expect(stubs.getMultisignatureTransaction).to.have.been.calledOnce;
+					expect(err).to.be.an.instanceof(Error);
+					expect(err.message).to.eql(
+						'Unable to process signature, signature already exists'
+					);
+					expect(library.logger.error).to.have.been.calledWith(
+						'Unable to process signature, signature already exists',
+						{ signature: data.signature, transaction: data.transaction }
+					);
+					done();
+				});
+			});
+		});
+
+		describe('when transaction have type MULTI', () => {
+			it('should call __private.processSignatureForMultisignatureAccountCreation with proper params', done => {
+				self.processSignature(data.signature, err => {
+					expect(
+						stubs.processSignatureForMultisignatureAccountCreation
+					).to.have.been.calledWith(data.signature, data.transaction);
+					expect(stubs.processSignatureForMultisignatureAccountCreation).to.have
+						.been.calledOnce;
+					expect(stubs.processSignatureFromMultisignatureAccount).to.have.not
+						.been.called;
+					expect(err).to.not.exist;
+					done();
+				});
+			});
+		});
+
+		describe('when transaction have type other than MULTI', () => {
+			it('should call __private.processSignatureFromMultisignatureAccount with proper params', done => {
+				data.transaction.type = transactionTypes.SEND;
+				self.processSignature(data.signature, err => {
+					expect(
+						stubs.processSignatureFromMultisignatureAccount
+					).to.have.been.calledWith(data.signature, data.transaction);
+					expect(stubs.processSignatureFromMultisignatureAccount).to.have.been
+						.calledOnce;
+					expect(stubs.processSignatureForMultisignatureAccountCreation).to.have
+						.not.been.called;
+					expect(err).to.not.exist;
+					done();
 				});
 			});
 		});

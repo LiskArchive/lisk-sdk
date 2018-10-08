@@ -21,6 +21,7 @@ let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
+const patches = require('../helpers/patches');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -161,7 +162,7 @@ __private.receiveSignature = function(query, cb) {
 
 		modules.multisignatures.processSignature(query, err => {
 			if (err) {
-				return setImmediate(cb, `Error processing signature: ${err}`);
+				return setImmediate(cb, `Error processing signature: ${err.message}`);
 			}
 			return setImmediate(cb);
 		});
@@ -395,7 +396,12 @@ Transport.prototype.broadcastHeaders = cb => {
 	async.each(
 		peers,
 		(peer, eachCb) => {
-			peer.rpc.updateMyself(library.logic.peers.me(), err => {
+			const peerObject = patches.systemHeaders.versionForPreRelease(
+				peer.version,
+				library.logic.peers.me(),
+				library.logger
+			);
+			peer.rpc.updateMyself(peerObject, err => {
 				if (err) {
 					library.logger.debug(
 						'Transport->broadcastHeaders: Failed to notify peer about self',

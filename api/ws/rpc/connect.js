@@ -19,6 +19,7 @@ const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
+const patches = require('../../../helpers/patches');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const Peer = require('../../../logic/peer');
 
@@ -30,7 +31,7 @@ const socketConnections = {};
 const connect = (peer, logger) => {
 	const wsServer = wsRPC.getServer();
 
-	connectSteps.addConnectionOptions(peer);
+	connectSteps.addConnectionOptions(peer, logger);
 	connectSteps.addSocket(peer, logger);
 	connectSteps.upgradeSocketAsWAMPClient(peer);
 	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);
@@ -42,8 +43,12 @@ const connect = (peer, logger) => {
 };
 
 const connectSteps = {
-	addConnectionOptions: peer => {
-		const systemHeaders = System.getHeaders();
+	addConnectionOptions: (peer, logger) => {
+		const systemHeaders = patches.systemHeaders.versionForPreRelease(
+			peer.version,
+			System.getHeaders(),
+			logger
+		);
 		const queryParams = {};
 
 		if (systemHeaders.version != null) {
