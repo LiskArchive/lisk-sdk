@@ -55,7 +55,6 @@ class Accounts {
 				account: scope.logic.account,
 				transaction: scope.logic.transaction,
 			},
-			logger: scope.logger,
 		};
 		self = this;
 		__private.blockReward = new BlockReward();
@@ -105,31 +104,12 @@ Accounts.prototype.generateAddressByPublicKey = function(publicKey) {
  * @param {function} cb - Callback function
  */
 Accounts.prototype.getAccount = function(filter, fields, cb, tx) {
-	const publicKey = filter.publicKey;
 	if (filter.publicKey) {
 		filter.address = self.generateAddressByPublicKey(filter.publicKey);
 		delete filter.publicKey;
 	}
 
-	if (typeof fields === 'function') {
-		cb = fields;
-		fields = null;
-	}
-
-	library.logic.account.get(
-		filter,
-		fields,
-		(err, account) => {
-			if (account && publicKey && account.publicKey && account.publicKey !== publicKey) {
-				library.logger.warn(
-					'Accounts->getAccount: Encountered address collision',
-					{ requested: publicKey, actual: account.publicKey, account }
-				);
-			}
-			cb(err, account);
-		},
-		tx
-	);
+	library.logic.account.get(filter, fields, cb, tx);
 };
 
 /**
