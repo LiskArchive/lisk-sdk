@@ -92,6 +92,7 @@ module.exports = function(configurations, network) {
 				let networkHeight;
 				let networkAverageHeight;
 				// TODO: Uncomment when networkHeight issue has been fixed.
+				// See https://github.com/LiskHQ/lisk/issues/2438
 				// let peersCount;
 				// let peerStatusList;
 
@@ -100,6 +101,7 @@ module.exports = function(configurations, network) {
 						.getAllNodesStatus()
 						.then(data => {
 							// TODO: Uncomment when networkHeight issue has been fixed.
+							// See https://github.com/LiskHQ/lisk/issues/2438
 							// peersCount = data.peersCount;
 							// peerStatusList = data.peerStatusList;
 							networkHeight = data.networkMaxAvgHeight.maxHeight;
@@ -161,6 +163,7 @@ module.exports = function(configurations, network) {
 
 				// TODO: networkHeight is not updating fast enough across all nodes
 				// so this test currently fails.
+				// See https://github.com/LiskHQ/lisk/issues/2438
 				/*
 				describe('network height', () => {
 					it('should have networkHeight > 1 for all peers', () => {
