@@ -518,7 +518,7 @@ class Account {
 							);
 
 							// If updated value is negative number
-						} else if (value.lessThan(0)) {
+						} else if (value.isLessThan(0)) {
 							promises.push(
 								dbTx.accounts.decrement(
 									address,

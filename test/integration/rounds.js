@@ -298,7 +298,7 @@ describe('rounds', () => {
 
 		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
 			.dividedBy(slots.delegates)
-			.floor();
+			.integerValue(Bignum.ROUND_FLOOR);
 		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
 			feesPerDelegate.times(slots.delegates)
 		);

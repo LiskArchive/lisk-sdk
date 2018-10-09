@@ -309,7 +309,7 @@ class Transaction {
 	 * @todo Add description for the params
 	 */
 	checkBalance(amount, field, transaction, sender) {
-		const exceededBalance = new Bignum(sender[field]).lessThan(amount);
+		const exceededBalance = new Bignum(sender[field]).isLessThan(amount);
 		const exceeded =
 			transaction.blockId !== this.scope.genesisBlock.block.id &&
 			exceededBalance;
@@ -637,7 +637,7 @@ class Transaction {
 		if (
 			!amount.isInteger() ||
 			amount.greaterThan(POSTGRESQL_BIGINT_MAX_VALUE) ||
-			amount.lessThan(0)
+			amount.isLessThan(0)
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}

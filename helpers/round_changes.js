@@ -41,14 +41,14 @@ function RoundChanges(scope) {
 		this.roundRewards.forEach((reward, index) => {
 			this.roundRewards[index] = new Bignum(reward.toPrecision(15))
 				.times(exceptions.rounds[scope.round].rewards_factor)
-				.floor();
+				.integerValue(Bignum.ROUND_FLOOR);
 		});
 
 		// Apply fees factor and bonus
 		this.roundFees = new Bignum(this.roundFees.toPrecision(15))
 			.times(exceptions.rounds[scope.round].fees_factor)
 			.plus(exceptions.rounds[scope.round].fees_bonus)
-			.floor();
+			.integerValue(Bignum.ROUND_FLOOR);
 	}
 }
 
@@ -64,12 +64,14 @@ function RoundChanges(scope) {
 RoundChanges.prototype.at = function(index) {
 	var fees = new Bignum(this.roundFees.toPrecision(15))
 		.dividedBy(slots.delegates)
-		.floor();
+		.integerValue(Bignum.ROUND_FLOOR);
 	var feesRemaining = new Bignum(this.roundFees.toPrecision(15)).minus(
 		fees.times(slots.delegates)
 	);
 	var rewards =
-		new Bignum(this.roundRewards[index].toPrecision(15)).floor() || 0;
+		new Bignum(this.roundRewards[index].toPrecision(15)).integerValue(
+			Bignum.ROUND_FLOOR
+		) || 0;
 
 	return {
 		fees: Number(fees.toFixed()),
