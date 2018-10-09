@@ -636,7 +636,7 @@ class Transaction {
 		let amount = transaction.amount;
 		if (
 			!amount.isInteger() ||
-			amount.greaterThan(POSTGRESQL_BIGINT_MAX_VALUE) ||
+			amount.isGreaterThan(POSTGRESQL_BIGINT_MAX_VALUE) ||
 			amount.isLessThan(0)
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');

@@ -91,7 +91,7 @@ class Block {
 			if (a.amount.isLessThan(b.amount)) {
 				return -1;
 			}
-			if (a.amount.greaterThan(b.amount)) {
+			if (a.amount.isGreaterThan(b.amount)) {
 				return 1;
 			}
 			return 0;
