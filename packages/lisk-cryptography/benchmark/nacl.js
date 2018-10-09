@@ -12,7 +12,6 @@
 * Removal or modification of this copyright notice is prohibited.
 *
 */
-/* eslint-disable no-console */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Benchmark from 'benchmark';
 import * as fast from '../src/nacl/fast';
@@ -131,13 +130,13 @@ const getKeyPairBenchmark = new Benchmark.Suite('getKeyPair')
 ].forEach(benchmark => {
 	benchmark
 		.on('start', () => {
-			console.log(`Evaluating ${benchmark.name}..`);
+			console.info(`Evaluating ${benchmark.name}..`);
 		})
 		.on('cycle', event => {
-			console.log(String(event.target));
+			console.info(String(event.target));
 		})
 		.on('complete', function callback() {
-			console.log(`Winner is ${this.filter('fastest').map('name')}!`);
+			console.info(`Winner is ${this.filter('fastest').map('name')}!`);
 		})
 		.run();
 });

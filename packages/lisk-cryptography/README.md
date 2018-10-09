@@ -24,20 +24,14 @@ $ npx babel-node ./benchmark/nacl
 
 Benchmark results for nacl functions:
 
-| Function            | Results                                                         | Winner |      
-| ------------------- | ----------------------------------------------------------------| ------ |       
-| fast.box            | fast.box x 23,982 ops/sec ±0.59%                                |   ✓    |
-| slow.box            | slow.box x 771 ops/sec ±0.44%                                   |        |
-| fast.openBox        | fast.openBox x 24,247 ops/sec ±0.42%                            |   ✓    |
-| slow.openBox        | slow.openBox x 770 ops/sec ±0.69%                               |        |
-| fast.signDetached   | fast.signDetached x 46,402 ops/sec ±0.32%                       |   ✓    |
-| slow.signDetached   | slow.signDetached x 236 ops/sec ±1.63%                          |        |
-| fast.verifyDetached | fast.verifyDetached x 17,153 ops/sec ±0.19%                     |   ✓    |
-| slow.verifyDetached | slow.verifyDetached x 122 ops/sec ±0.61%                        |        |
-| fast.getRandomBytes | fast.getRandomBytes x 207,866 ops/sec ±0.23%                    |        |
-| slow.getRandomBytes | slow.getRandomBytes x 299,959 ops/sec ±0.39%                    |   ✓    |
-| fast.getKeyPair     | fast.getKeyPair x 38,815 ops/sec ±0.16%                         |   ✓    |
-| slow.getKeyPair     | slow.getKeyPair x 242 ops/sec ±0.62%                            |        |
+| Function            | Fast                     | Slow                     | Winner |      
+| :-----------------: | :-----------------------:|:-----------------------: | :----: |       
+| box                 | x 23,982 ops/sec ±0.59%  | x 771 ops/sec ±0.44%     |  Fast  |
+| openBox             | x 24,247 ops/sec ±0.42%  | x 770 ops/sec ±0.69%     |  Fast  |
+| signDetached        | x 46,402 ops/sec ±0.32%  | x 236 ops/sec ±1.63%     |  Fast  |
+| verifyDetached      | x 17,153 ops/sec ±0.19%  | x 122 ops/sec ±0.61%     |  Fast  |
+| getRandomBytes      | x 207,866 ops/sec ±0.23% | x 299,959 ops/sec ±0.39% |  Slow  |
+| getKeyPair          | x 38,815 ops/sec ±0.16%  | x 242 ops/sec ±0.62%     |  Fast  |
 
 ## License
 
