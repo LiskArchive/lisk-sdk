@@ -16,26 +16,25 @@
 import BaseCommand from '../../base';
 import parseTransactionString from '../../utils/transactions';
 import { ValidationError } from '../../utils/error';
-import { getRawStdIn } from '../../utils/input/utils';
+import { getStdIn } from '../../utils/input/utils';
 import getAPIClient from '../../utils/api';
 
-const getTransactionInput = async () =>
-	getRawStdIn()
-		.then(rawStdIn => {
-			if (rawStdIn.length <= 0) {
-				throw new ValidationError('No transaction was provided.');
-			}
-			return rawStdIn[0];
-		})
-		.catch(() => {
+const getTransactionInput = async () => {
+	try {
+		const { data } = await getStdIn({ dataIsRequired: true });
+		if (!data) {
 			throw new ValidationError('No transaction was provided.');
-		});
+		}
+		return data;
+	} catch (e) {
+		throw new ValidationError('No transaction was provided.');
+	}
+};
 
 export default class BroadcastCommand extends BaseCommand {
 	async run() {
 		const { args: { transaction } } = this.parse(BroadcastCommand);
-		const transactionInput =
-			transaction || (await getTransactionInput(transaction));
+		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 		const client = getAPIClient(this.userConfig.api);
 		const response = await client.transactions.broadcast(transactionObject);

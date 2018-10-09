@@ -64,7 +64,7 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
+				'getStdIn',
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:broadcast'])
@@ -99,7 +99,7 @@ describe('transaction:broadcast', () => {
 
 	describe('transaction | transaction:broadcast', () => {
 		setupTest()
-			.stub(inputUtils, 'getRawStdIn', sandbox.stub().resolves([]))
+			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['transaction:broadcast'])
 			.catch(error => {
 				return expect(error.message).to.contain('No transaction was provided.');
@@ -109,8 +109,8 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves(wrongTransaction),
+				'getStdIn',
+				sandbox.stub().resolves({ data: wrongTransaction }),
 			)
 			.command(['transaction:broadcast'])
 			.catch(error => {
@@ -123,8 +123,8 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(
 				inputUtils,
-				'getRawStdIn',
-				sandbox.stub().resolves([JSON.stringify(defaultTransaction)]),
+				'getStdIn',
+				sandbox.stub().resolves({ data: JSON.stringify(defaultTransaction) }),
 			)
 			.command(['transaction:broadcast'])
 			.it('should broadcast the transaction', () => {
