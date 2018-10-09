@@ -1012,7 +1012,7 @@ describe('rounds', () => {
 							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(slots.delegates))
 								.toFixed()
 						);
 
@@ -1112,7 +1112,7 @@ describe('rounds', () => {
 							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(slots.delegates))
 								.toFixed()
 						);
 
@@ -1650,7 +1650,7 @@ describe('rounds', () => {
 							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(slots.delegates))
 								.toFixed()
 						);
 
@@ -1826,7 +1826,7 @@ describe('rounds', () => {
 							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(slots.delegates))
 								.toFixed()
 						);
 

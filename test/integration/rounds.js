@@ -300,7 +300,7 @@ describe('rounds', () => {
 			.dividedBy(slots.delegates)
 			.integerValue(Bignum.ROUND_FLOOR);
 		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.times(slots.delegates)
+			feesPerDelegate.multipliedBy(slots.delegates)
 		);
 
 		__testContext.debug(
