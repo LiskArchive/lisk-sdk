@@ -13,13 +13,15 @@
 		"no-if-statement": false,
 		"no-let": true,
 		"no-loop-statement": true,
-		"no-method-signature": true,
+		"no-method-signature": false,
 		"no-mixed-interface": true,
-		"no-object-mutation": true,
+		"no-object-mutation": false,
 		"no-parameter-reassignment": true,
 		"no-this": false,
 		"no-var-keyword": true,
+		"object-literal-sort-keys": [true, "match-declaration-order"],
+		"prefer-method-signature": false,
 		"readonly-array": true,
-		"readonly-keyword": true
+		"readonly-keyword": [true, "ignore-class"]
 	}
 }
