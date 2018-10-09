@@ -620,7 +620,7 @@ class Transaction {
 			transaction,
 			sender
 		);
-		if (!transaction.fee.equals(fee)) {
+		if (!transaction.fee.isEqualTo(fee)) {
 			err = 'Invalid transaction fee';
 
 			if (exceptions.transactionFee.indexOf(transaction.id) > -1) {
