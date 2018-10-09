@@ -77,7 +77,7 @@ RoundChanges.prototype.at = function(index) {
 		fees: Number(fees.toFixed()),
 		feesRemaining: Number(feesRemaining.toFixed()),
 		rewards: Number(rewards.toFixed()),
-		balance: Number(fees.add(rewards).toFixed()),
+		balance: Number(fees.plus(rewards).toFixed()),
 	};
 };
 

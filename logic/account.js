@@ -406,7 +406,8 @@ class Account {
 			.dividedBy(totalSupplyBignum)
 			.multipliedBy(100)
 			.toFixed(2);
-		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
+
+		return !isNaN(approvalBignum) ? Number(approvalBignum) : 0;
 	}
 
 	/**
@@ -424,7 +425,8 @@ class Account {
 			.dividedBy(producedBlocksBignum.plus(missedBlocksBignum))
 			.multipliedBy(100)
 			.toFixed(2);
-		return !percent.isNaN() ? percent.toNumber() : 0;
+
+		return !isNaN(percent) ? Number(percent) : 0;
 	}
 
 	/**
@@ -513,7 +515,7 @@ class Account {
 								dbTx.accounts.increment(
 									address,
 									updatedField,
-									value.floor().toString()
+									value.toFixed().toString()
 								)
 							);
 
@@ -525,7 +527,7 @@ class Account {
 									updatedField,
 									value
 										.abs()
-										.floor()
+										.toFixed()
 										.toString()
 								)
 							);
