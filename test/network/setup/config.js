@@ -17,6 +17,17 @@
 const fs = require('fs');
 const utils = require('../utils');
 
+/**
+ * SYNC_MODES allow us to choose the network topology to use when
+ * executing network tests.
+ * Nodes in the network can form a sparse graph, a dense graph or
+ * a complete graph.
+ *
+ * The supported SYNC_MODES are:
+ * - RANDOM: Each node will connect to random peers in the group.
+ * - ALL_TO_FIRST: Each node will connect to the first peer in the group.
+ * - ALL_TO_GROUP: Each node will connect to every other node in the group.
+ */
 const SYNC_MODES = {
 	RANDOM: 0,
 	ALL_TO_FIRST: 1,
