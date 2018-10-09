@@ -405,7 +405,7 @@ class Account {
 		const approvalBignum = votersBalanceBignum
 			.dividedBy(totalSupplyBignum)
 			.multipliedBy(100)
-			.round(2);
+			.toFixed(2);
 		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
 	}
 
@@ -423,7 +423,7 @@ class Account {
 		const percent = producedBlocksBignum
 			.dividedBy(producedBlocksBignum.plus(missedBlocksBignum))
 			.multipliedBy(100)
-			.round(2);
+			.toFixed(2);
 		return !percent.isNaN() ? percent.toNumber() : 0;
 	}
 
