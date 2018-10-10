@@ -661,7 +661,7 @@ describe('account', () => {
 
 		it('should throw error when a numeric field receives non numeric value', done => {
 			account.merge(validAccount.address, { balance: 'Not a Number' }, err => {
-				expect(err).to.equal('Account#merge error');
+				expect(err).to.equal('Encountered insane number: NaN');
 				done();
 			});
 		});
