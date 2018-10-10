@@ -12,15 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { APIClient } from '../api_client';
+import { apiMethod } from '../api_method';
+import { APIResource } from '../api_resource';
 import { GET } from '../constants';
-import apiMethod from '../api_method';
-import APIResource from '../api_resource';
+import { ApiHandler } from '../types/api_client_types';
 
-export default class BlocksResource extends APIResource {
-	constructor(apiClient) {
+export class VotersResource extends APIResource {
+  public get: ApiHandler;
+  public path: string;
+
+  public constructor(apiClient: APIClient) {
 		super(apiClient);
-		this.path = '/blocks';
+		this.path = '/voters';
 
 		this.get = apiMethod({
 			method: GET,

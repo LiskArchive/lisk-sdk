@@ -12,7 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { APIClient } from '../api_client';
+import { apiMethod } from '../api_method';
+import { APIResource } from '../api_resource';
+import { GET } from '../constants';
+import { ApiHandler } from '../types/api_client_types';
 
-import APIClient from './api_client';
+export class DappsResource extends APIResource {
+	public get: ApiHandler;
+	public path: string;
 
-export default APIClient;
+	public constructor(apiClient: APIClient) {
+		super(apiClient);
+		this.path = '/dapps';
+
+		this.get = apiMethod({
+			method: GET,
+		}).bind(this);
+	}
+}

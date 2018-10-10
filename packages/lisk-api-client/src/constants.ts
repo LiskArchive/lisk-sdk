@@ -16,8 +16,8 @@ export const GET = 'GET';
 export const POST = 'POST';
 export const PUT = 'PUT';
 
-export const TESTNET_NODES = ['https://testnet.lisk.io:443'];
-export const MAINNET_NODES = [
+export const TESTNET_NODES: ReadonlyArray<string> = ['https://testnet.lisk.io:443'];
+export const MAINNET_NODES: ReadonlyArray<string> = [
 	'https://node01.lisk.io:443',
 	'https://node02.lisk.io:443',
 	'https://node03.lisk.io:443',
@@ -27,3 +27,4 @@ export const MAINNET_NODES = [
 	'https://node07.lisk.io:443',
 	'https://node08.lisk.io:443',
 ];
+ 

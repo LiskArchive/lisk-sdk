@@ -12,20 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 import { GET } from './constants';
+import {
+	ApiHandler,
+	ApiResponse,
+	RequestConfig,
+	Resource,
+} from './types/api_client_types';
 import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class
-const apiMethod = ({
-	method = GET,
-	path = '',
-	urlParams = [],
-	validator = null,
-	defaultData = {},
-	retry = false,
-} = {}) =>
-	function apiHandler(...args) {
+export const apiMethod = (
+	{
+		method = GET,
+		path = '',
+		urlParams = [],
+		validator,
+		defaultData = {},
+		retry = false,
+	}: RequestConfig = { method: GET },
+): ApiHandler =>
+	async function apiHandler(
+		this: Resource,
+		// tslint:disable-next-line readonly-array
+		...args: Array<number | string | object>
+	): Promise<ApiResponse | Error> {
 		if (urlParams.length > 0 && args.length < urlParams.length) {
 			return Promise.reject(
 				new Error(
@@ -34,14 +45,13 @@ const apiMethod = ({
 			);
 		}
 
-		const data = Object.assign(
-			{},
-			defaultData,
-			args.length > urlParams.length &&
+		const data = {
+			...defaultData,
+			...(args.length > urlParams.length &&
 			typeof args[urlParams.length] === 'object'
-				? args[urlParams.length]
-				: {},
-		);
+				? (args[urlParams.length] as object)
+				: {}),
+		};
 
 		if (validator) {
 			try {
@@ -52,15 +62,18 @@ const apiMethod = ({
 		}
 
 		const resolvedURLObject = urlParams.reduce(
-			(accumulator, param, i) =>
-				Object.assign({}, accumulator, { [param]: args[i] }),
+			(accumulator: object = {}, param: string, i: number): object => ({
+				...accumulator,
+				[param]: args[i],
+			}),
 			{},
 		);
 
 		const requestData = {
+			data: {},
+			headers: this.headers,
 			method,
 			url: solveURLParams(`${this.resourcePath}${path}`, resolvedURLObject),
-			headers: this.headers,
 		};
 
 		if (Object.keys(data).length > 0) {
@@ -70,7 +83,6 @@ const apiMethod = ({
 				requestData.data = data;
 			}
 		}
+
 		return this.request(requestData, retry);
 	};
-
-export default apiMethod;

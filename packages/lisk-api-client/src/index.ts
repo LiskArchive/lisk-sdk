@@ -12,18 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { APIClient } from './api_client';
 
-import { GET } from '../constants';
-import apiMethod from '../api_method';
-import APIResource from '../api_resource';
-
-export default class VotersResource extends APIResource {
-	constructor(apiClient) {
-		super(apiClient);
-		this.path = '/voters';
-
-		this.get = apiMethod({
-			method: GET,
-		}).bind(this);
-	}
-}
+// tslint:disable-next-line no-default-export
+export default APIClient;

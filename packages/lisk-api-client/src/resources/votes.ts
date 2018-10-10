@@ -12,31 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { APIClient } from '../api_client';
+import { apiMethod } from '../api_method';
+import { APIResource } from '../api_resource';
 import { GET } from '../constants';
-import APIResource from '../api_resource';
-import apiMethod from '../api_method';
+import { ApiHandler } from '../types/api_client_types';
 
-export default class AccountsResource extends APIResource {
-	constructor(apiClient) {
+export class VotesResource extends APIResource {
+  public get: ApiHandler;
+  public path: string;
+
+  public constructor(apiClient: APIClient) {
 		super(apiClient);
-
-		this.path = '/accounts';
-
+		this.path = '/votes';
 		this.get = apiMethod({
 			method: GET,
-		}).bind(this);
-
-		this.getMultisignatureGroups = apiMethod({
-			method: GET,
-			path: '/{address}/multisignature_groups',
-			urlParams: ['address'],
-		}).bind(this);
-
-		this.getMultisignatureMemberships = apiMethod({
-			method: GET,
-			path: '/{address}/multisignature_memberships',
-			urlParams: ['address'],
 		}).bind(this);
 	}
 }

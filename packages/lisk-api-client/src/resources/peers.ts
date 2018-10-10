@@ -12,22 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { APIClient } from '../api_client';
+import { apiMethod } from '../api_method';
+import { APIResource } from '../api_resource';
+import { GET } from '../constants';
+import { ApiHandler } from '../types/api_client_types';
 
-import { GET, POST } from '../constants';
-import apiMethod from '../api_method';
-import APIResource from '../api_resource';
+export class PeersResource extends APIResource {
+  public get: ApiHandler;
+  public path: string;
 
-export default class TransactionsResource extends APIResource {
-	constructor(apiClient) {
+  public constructor(apiClient: APIClient) {
 		super(apiClient);
-		this.path = '/transactions';
+		this.path = '/peers';
 
 		this.get = apiMethod({
 			method: GET,
-		}).bind(this);
-
-		this.broadcast = apiMethod({
-			method: POST,
 		}).bind(this);
 	}
 }

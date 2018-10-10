@@ -12,32 +12,34 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const toQueryString = obj => {
+
+export const toQueryString = (obj: object): string => {
 	const parts = Object.entries(obj).reduce(
-		(accumulator, [key, value]) => [
+		(accumulator: ReadonlyArray<string>, [key, value]: [string, string]): ReadonlyArray<string> => [
 			...accumulator,
 			`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
 		],
 		[],
 	);
-
+	
 	return parts.join('&');
 };
 
 const urlParamRegex = /{[^}]+}/;
-export const solveURLParams = (url, params = {}) => {
+export const solveURLParams = (url: string, params: object = {}): string => {
 	if (Object.keys(params).length === 0) {
-		if (url.match(urlParamRegex)) {
+		if (url.match(urlParamRegex) !== null) {
 			throw new Error('URL is not completely solved');
 		}
+
 		return url;
 	}
 	const solvedURL = Object.entries(params).reduce(
-		(accumulator, [key, value]) => accumulator.replace(`{${key}}`, value),
+		(accumulator: string, [key, value]: [string, string]): string => accumulator.replace(`{${key}}`, value),
 		url,
 	);
 
-	if (solvedURL.match(urlParamRegex)) {
+	if (solvedURL.match(urlParamRegex) !== null) {
 		throw new Error('URL is not completely solved');
 	}
 

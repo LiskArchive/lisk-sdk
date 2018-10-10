@@ -12,39 +12,35 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { APIClient } from '../api_client';
+import { apiMethod } from '../api_method';
+import { APIResource } from '../api_resource';
 import { GET } from '../constants';
-import apiMethod from '../api_method';
-import APIResource from '../api_resource';
+import { ApiHandler } from '../types/api_client_types';
 
-export default class DelegatesResource extends APIResource {
-	constructor(apiClient) {
+export class AccountsResource extends APIResource {
+	public get: ApiHandler;
+	public getMultisignatureGroups: ApiHandler;
+	public getMultisignatureMemberships: ApiHandler;
+	public path: string;
+
+	public constructor(apiClient: APIClient) {
 		super(apiClient);
-		this.path = '/delegates';
+		this.path = '/accounts';
 
 		this.get = apiMethod({
 			method: GET,
-			defaultData: {
-				sort: 'rank:asc',
-			},
 		}).bind(this);
 
-		this.getStandby = apiMethod({
+		this.getMultisignatureGroups = apiMethod({
 			method: GET,
-			defaultData: {
-				sort: 'rank:asc',
-				offset: 101,
-			},
+			path: '/{address}/multisignature_groups',
+			urlParams: ['address'],
 		}).bind(this);
 
-		this.getForgers = apiMethod({
+		this.getMultisignatureMemberships = apiMethod({
 			method: GET,
-			path: '/forgers',
-		}).bind(this);
-
-		this.getForgingStatistics = apiMethod({
-			method: GET,
-			path: '/{address}/forging_statistics',
+			path: '/{address}/multisignature_memberships',
 			urlParams: ['address'],
 		}).bind(this);
 	}
