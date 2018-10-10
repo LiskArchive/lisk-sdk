@@ -232,7 +232,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee().equals(FEES.VOTE.toString()));
+			return expect(vote.calculateFee().isEqualTo(FEES.VOTE.toString()));
 		});
 	});
 

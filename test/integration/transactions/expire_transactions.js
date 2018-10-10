@@ -146,12 +146,12 @@ describe('expire transactions', () => {
 					new Bignum(memAccountAfter[0].u_balance)
 						.plus(amount)
 						.plus(transaction.fee)
-						.equals(memAccountBefore[0].u_balance)
+						.isEqualTo(memAccountBefore[0].u_balance)
 				).to.be.true;
 
 				// Balance will not be confirmed unless the block is forged
 				expect(
-					new Bignum(memAccountBefore[0].balance).equals(
+					new Bignum(memAccountBefore[0].balance).isEqualTo(
 						memAccountAfter[0].balance
 					)
 				).to.be.true;
@@ -169,13 +169,13 @@ describe('expire transactions', () => {
 					expect(res.count).to.equal(0);
 					queries.getAccount(address).then(memAccountAfter => {
 						expect(
-							new Bignum(memAccountBefore[0].u_balance).equals(
+							new Bignum(memAccountBefore[0].u_balance).isEqualTo(
 								memAccountAfter[0].u_balance
 							)
 						).to.be.true;
 
 						expect(
-							new Bignum(memAccountBefore[0].balance).equals(
+							new Bignum(memAccountBefore[0].balance).isEqualTo(
 								memAccountAfter[0].balance
 							)
 						).to.be.true;
@@ -219,14 +219,14 @@ describe('expire transactions', () => {
 						new Bignum(memAccountAfter[0].u_balance)
 							.plus(amount)
 							.plus(transaction.fee)
-							.equals(memAccountBefore[0].u_balance)
+							.isEqualTo(memAccountBefore[0].u_balance)
 					).to.be.true;
 
 					expect(
 						new Bignum(memAccountAfter[0].balance)
 							.plus(amount)
 							.plus(transaction.fee)
-							.equals(memAccountBefore[0].balance)
+							.isEqualTo(memAccountBefore[0].balance)
 					).to.be.true;
 					done();
 				})
@@ -279,7 +279,7 @@ describe('expire transactions', () => {
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance
-					expect(new Bignum(multiSigAccount[0].balance).equals(amount)).to.be
+					expect(new Bignum(multiSigAccount[0].balance).isEqualTo(amount)).to.be
 						.true;
 					done();
 				})

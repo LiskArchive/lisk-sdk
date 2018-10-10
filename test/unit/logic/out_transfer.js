@@ -139,7 +139,7 @@ describe('outTransfer', () => {
 
 	describe('calculateFee', () => {
 		it('should return FEES.SEND', () => {
-			return expect(outTransfer.calculateFee(transaction).equals(FEES.SEND));
+			return expect(outTransfer.calculateFee(transaction).isEqualTo(FEES.SEND));
 		});
 	});
 
