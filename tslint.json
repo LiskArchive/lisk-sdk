@@ -7,18 +7,21 @@
 	],
 	"rules": {
 		"interface-name": [true, "never-prefix"],
-		"no-class": true,
+		"no-class": false,
 		"no-delete": true,
-		"no-expression-statement": true,
-		"no-if-statement": true,
+		"no-expression-statement": false,
+		"no-if-statement": false,
 		"no-let": true,
-		"no-method-signature": true,
+		"no-loop-statement": true,
+		"no-method-signature": false,
 		"no-mixed-interface": true,
-		"no-object-mutation": true,
+		"no-object-mutation": false,
 		"no-parameter-reassignment": true,
-		"no-this": true,
+		"no-this": false,
 		"no-var-keyword": true,
+		"object-literal-sort-keys": [true, "match-declaration-order"],
+		"prefer-method-signature": false,
 		"readonly-array": true,
-		"readonly-keyword": true
+		"readonly-keyword": [true, "ignore-class"]
 	}
 }
