@@ -22,7 +22,7 @@
 const fs = require('fs');
 const path = require('path');
 const program = require('commander');
-const merge = require('lodash/merge');
+const _ = require('lodash');
 const observableDiff = require('deep-diff').observableDiff;
 const applyChange = require('deep-diff').applyChange;
 
@@ -60,7 +60,7 @@ const oldConfig = loadJSONFile(oldConfigPath);
 // Had dedicated ssl config only for API
 // https://github.com/LiskHQ/lisk/issues/2154
 if (oldConfig.ssl) {
-	oldConfig.api.ssl = merge({}, oldConfig.ssl);
+	oldConfig.api.ssl = _.merge({}, oldConfig.ssl);
 	delete oldConfig.ssl;
 }
 
@@ -76,7 +76,7 @@ const networkConfig = loadJSONFileIfExists(
 	path.resolve(rootPath, `config/${process.env.LISK_NETWORK}/config.json`)
 );
 
-const unifiedNewConfig = merge({}, defaultConfig, networkConfig, newConfig);
+const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig, newConfig);
 
 const changesMap = {
 	N: '  Added',
@@ -137,6 +137,12 @@ observableDiff(oldConfig, unifiedNewConfig, d => {
 // to write those in network specific directory
 const customConfig = {};
 observableDiff(unifiedNewConfig, oldConfig, d => {
+	// If there was a change in Array type attributes
+	// copy the original attributes to avoid null values
+	// https://github.com/LiskHQ/lisk/issues/2459
+	if (d.kind === 'A') {
+		_.set(customConfig, d.path, _.get(unifiedNewConfig, d.path, []));
+	}
 	applyChange(customConfig, oldConfig, d);
 });
 
