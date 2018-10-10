@@ -324,8 +324,8 @@ pm2 stop lisk
    * Network specific configuration file
    * Custom configuration file (if specified by user)
    * Command line configurations, specified as command `flags` or `env` variables
-8. If you override any config option of type array, it will completely override. e.g. If you specify one peer at `peers.list` in your custom config file, it will replaces every default peer for the network.
-9. For development purposes use `devnet` as network option, others network are specific to public lisk networks.
+8. Any config option of array type gets completely overridden. If you specify one peer at `peers.list` in your custom config file, it will replace every default peer for the network.
+9. For development use `devnet` as the network option.
 
 ### Command Line Options
 
