@@ -292,7 +292,7 @@ describe('transaction', () => {
 			var firstCalculation = transactionLogic.getBytes(validTransaction);
 			var secondCalculation = transactionLogic.getBytes(validTransaction);
 
-			return expect(firstCalculation.isEqualTo(secondCalculation)).to.be.ok;
+			return expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
 		it('should return same result of getBytes using /logic/transaction and lisk-elements package (without data field)', () => {
@@ -304,7 +304,7 @@ describe('transaction', () => {
 			);
 
 			return expect(
-				transactionBytesFromLogic.isEqualTo(transactionBytesFromLiskJs)
+				transactionBytesFromLogic.equals(transactionBytesFromLiskJs)
 			).to.be.ok;
 		});
 
