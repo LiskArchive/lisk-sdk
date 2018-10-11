@@ -1,21 +1,19 @@
-/*
- * Copyright © 2018 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- *
- */
-import Mnemonic from 'bip39';
-import * as validation from './validation';
-
-export default {
-	Mnemonic,
-	validation,
+'use strict';
+var __importStar =
+	(this && this.__importStar) ||
+	function(mod) {
+		if (mod && mod.__esModule) return mod;
+		var result = {};
+		if (mod != null)
+			for (var k in mod)
+				if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+		result['default'] = mod;
+		return result;
+	};
+var Mnemonic = __importStar(require('bip39'));
+var validation = __importStar(require('./validation'));
+module.exports = {
+	Mnemonic: Mnemonic,
+	validation: validation,
 };
+//# sourceMappingURL=index.js.map
