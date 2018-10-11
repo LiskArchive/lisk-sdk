@@ -37,7 +37,6 @@
  */
 module.exports = {
 	blockRewards: [],
-	delegates: [],
 
 	// In the format:
 	// 27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 }
