@@ -22,6 +22,7 @@
 		"object-literal-sort-keys": [true, "match-declaration-order"],
 		"prefer-method-signature": false,
 		"readonly-array": true,
-		"readonly-keyword": [true, "ignore-class"]
+		"readonly-keyword": [true, "ignore-class"],
+		"file-name-casing": "snake-case"
 	}
 }
