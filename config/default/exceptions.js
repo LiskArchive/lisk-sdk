@@ -47,7 +47,6 @@ module.exports = {
 	multisignatures: [],
 	votes: [],
 	inertTransactions: [],
-	transactionFee: [],
 	precedent: {
 		disableDappTransfer: 0,
 	},

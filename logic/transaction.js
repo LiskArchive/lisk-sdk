@@ -622,14 +622,7 @@ class Transaction {
 		);
 		if (!transaction.fee.equals(fee)) {
 			err = 'Invalid transaction fee';
-
-			if (exceptions.transactionFee.indexOf(transaction.id) > -1) {
-				this.scope.logger.error(err);
-				this.scope.logger.debug(JSON.stringify(transaction));
-				err = null;
-			} else {
-				return setImmediate(cb, err);
-			}
+			return setImmediate(cb, err);
 		}
 
 		// Check amount
