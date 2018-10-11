@@ -1,125 +1,166 @@
-/*
- * Copyright © 2018 Lisk Foundation
- *
- * See the LICENSE file at the top-level directory of this distribution
- * for licensing information.
- *
- * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
- * no part of this software, including this file, may be copied, modified,
- * propagated, or distributed except according to the terms contained in the
- * LICENSE file.
- *
- * Removal or modification of this copyright notice is prohibited.
- *
- */
-import Mnemonic from 'bip39';
-
-const whitespaceRegExp = /\s/g;
-const uppercaseRegExp = /[A-Z]/g;
-
-export const countPassphraseWhitespaces = passphrase => {
-	const whitespaceMatches = passphrase.match(whitespaceRegExp);
-	return whitespaceMatches ? whitespaceMatches.length : 0;
+'use strict';
+var __importStar =
+	(this && this.__importStar) ||
+	function(mod) {
+		if (mod && mod.__esModule) return mod;
+		var result = {};
+		if (mod != null)
+			for (var k in mod)
+				if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+		result['default'] = mod;
+		return result;
+	};
+exports.__esModule = true;
+var Mnemonic = __importStar(require('bip39'));
+var passphraseRegularExpression = {
+	uppercaseRegExp: /[A-Z]/g,
+	whitespaceRegExp: /\s/g,
 };
-
-export const countPassphraseWords = passphrase =>
-	passphrase.split(' ').filter(Boolean).length;
-
-export const countUppercaseCharacters = passphrase => {
-	const uppercaseCharacterMatches = passphrase.match(uppercaseRegExp) || [];
-	return uppercaseCharacterMatches.length;
+exports.countPassphraseWhitespaces = function(passphrase) {
+	var whitespaceMatches = passphrase.match(
+		passphraseRegularExpression.whitespaceRegExp,
+	);
+	return whitespaceMatches !== null ? whitespaceMatches.length : 0;
 };
-
-export const locateUppercaseCharacters = passphrase => {
-	const positions = [];
-	for (let i = 0; i < passphrase.length; i += 1) {
-		if (passphrase[i].match(uppercaseRegExp) !== null) {
-			positions.push(i);
+exports.countPassphraseWords = function(passphrase) {
+	return passphrase.split(' ').filter(Boolean).length;
+};
+exports.countUppercaseCharacters = function(passphrase) {
+	var uppercaseCharacterMatches = passphrase.match(
+		passphraseRegularExpression.uppercaseRegExp,
+	);
+	return uppercaseCharacterMatches !== null
+		? uppercaseCharacterMatches.length
+		: 0;
+};
+exports.locateUppercaseCharacters = function(passphrase) {
+	return passphrase.split('').reduce(function(passphraseArray, element, index) {
+		if (element.match(passphraseRegularExpression.uppercaseRegExp) !== null) {
+			return passphraseArray.concat([index]);
+		} else {
+			return passphraseArray;
 		}
-	}
-	return positions;
+	}, []);
 };
-
-export const locateConsecutiveWhitespaces = passphrase => {
-	const positions = [];
-	const passphraseLength = passphrase.length;
-	const lastIndex = passphraseLength - 1;
-	if (passphrase[0].match(whitespaceRegExp) !== null) {
-		positions.push(0);
-	}
-
-	for (let i = 1; i < lastIndex; i += 1) {
+exports.locateConsecutiveWhitespaces = function(passphrase) {
+	return passphrase.split('').reduce(function(passphraseArray, element, index) {
+		if (index === 0) {
+			if (
+				element.match(passphraseRegularExpression.whitespaceRegExp) !== null
+			) {
+				return passphraseArray.concat([index]);
+			} else {
+				return passphraseArray;
+			}
+		} else if (index !== passphrase.length - 1) {
+			if (
+				element.match(passphraseRegularExpression.whitespaceRegExp) !== null &&
+				passphrase
+					.split('')
+					[index - 1].match(passphraseRegularExpression.whitespaceRegExp) !==
+					null
+			) {
+				return passphraseArray.concat([index]);
+			} else {
+				return passphraseArray;
+			}
+		} else {
+			if (
+				element.match(passphraseRegularExpression.whitespaceRegExp) !== null
+			) {
+				return passphraseArray.concat([index]);
+			} else {
+				return passphraseArray;
+			}
+		}
+	}, []);
+};
+exports.getPassphraseValidationErrors = function(passphrase, wordlists) {
+	var expectedWords = 12;
+	var expectedWhitespaces = 11;
+	var expectedUppercaseCharacterCount = 0;
+	var wordsInPassphrase = exports.countPassphraseWords(passphrase);
+	var whiteSpacesInPassphrase = exports.countPassphraseWhitespaces(passphrase);
+	var uppercaseCharacterInPassphrase = exports.countUppercaseCharacters(
+		passphrase,
+	);
+	var passphraseWordError = {
+		actual: wordsInPassphrase,
+		code: 'INVALID_AMOUNT_OF_WORDS',
+		expected: expectedWords,
+		message:
+			'Passphrase contains ' +
+			wordsInPassphrase +
+			' words instead of expected ' +
+			expectedWords +
+			'. Please check the passphrase.',
+	};
+	var whiteSpaceError = {
+		actual: whiteSpacesInPassphrase,
+		code: 'INVALID_AMOUNT_OF_WHITESPACES',
+		expected: expectedWhitespaces,
+		location: exports.locateConsecutiveWhitespaces(passphrase),
+		message:
+			'Passphrase contains ' +
+			whiteSpacesInPassphrase +
+			' whitespaces instead of expected ' +
+			expectedWhitespaces +
+			'. Please check the passphrase.',
+	};
+	var uppercaseCharacterError = {
+		actual: uppercaseCharacterInPassphrase,
+		code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
+		expected: expectedUppercaseCharacterCount,
+		location: exports.locateUppercaseCharacters(passphrase),
+		message:
+			'Passphrase contains ' +
+			uppercaseCharacterInPassphrase +
+			' uppercase character instead of expected ' +
+			expectedUppercaseCharacterCount +
+			'. Please check the passphrase.',
+	};
+	var validationError = {
+		actual: false,
+		code: 'INVALID_MNEMONIC',
+		expected: true,
+		message:
+			'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
+	};
+	var errors = [
+		passphraseWordError,
+		whiteSpaceError,
+		uppercaseCharacterError,
+		validationError,
+	];
+	var wordlistArgument = [];
+	var finalWordList =
+		wordlists !== undefined
+			? wordlistArgument.concat(wordlists)
+			: Mnemonic.wordlists.english;
+	return errors.reduce(function(errorArray, element) {
 		if (
-			passphrase[i].match(whitespaceRegExp) &&
-			passphrase[i - 1].match(whitespaceRegExp)
+			element.code === 'INVALID_AMOUNT_OF_WORDS' &&
+			wordsInPassphrase !== expectedWords
 		) {
-			positions.push(i);
+			return errorArray.concat([element]);
+		} else if (
+			element.code === 'INVALID_AMOUNT_OF_WHITESPACES' &&
+			whiteSpacesInPassphrase > expectedWhitespaces
+		) {
+			return errorArray.concat([element]);
+		} else if (
+			element.code === 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER' &&
+			uppercaseCharacterInPassphrase !== expectedUppercaseCharacterCount
+		) {
+			return errorArray.concat([element]);
+		} else if (
+			element.code === 'INVALID_MNEMONIC' &&
+			!Mnemonic.validateMnemonic(passphrase, finalWordList)
+		) {
+			return errorArray.concat([element]);
+		} else {
+			return errorArray;
 		}
-	}
-
-	if (passphrase[lastIndex].match(whitespaceRegExp) !== null) {
-		positions.push(lastIndex);
-	}
-
-	return positions;
+	}, []);
 };
-
-export const getPassphraseValidationErrors = (passphrase, wordlist) => {
-	const expectedWords = 12;
-	const expectedWhitespaces = 11;
-	const expectedUppercaseCharacterCount = 0;
-	const wordsInPassphrase = countPassphraseWords(passphrase);
-	const whiteSpacesInPassphrase = countPassphraseWhitespaces(passphrase);
-	const uppercaseCharacterInPassphrase = countUppercaseCharacters(passphrase);
-	const errors = [];
-
-	if (wordsInPassphrase !== expectedWords) {
-		const passphraseWordError = {
-			code: 'INVALID_AMOUNT_OF_WORDS',
-			message: `Passphrase contains ${wordsInPassphrase} words instead of expected ${expectedWords}. Please check the passphrase.`,
-			expected: expectedWords,
-			actual: wordsInPassphrase,
-		};
-		errors.push(passphraseWordError);
-	}
-
-	if (whiteSpacesInPassphrase > expectedWhitespaces) {
-		const whiteSpaceError = {
-			code: 'INVALID_AMOUNT_OF_WHITESPACES',
-			message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
-			expected: expectedWhitespaces,
-			actual: whiteSpacesInPassphrase,
-			location: locateConsecutiveWhitespaces(passphrase),
-		};
-		errors.push(whiteSpaceError);
-	}
-
-	if (uppercaseCharacterInPassphrase !== expectedUppercaseCharacterCount) {
-		const uppercaseCharacterError = {
-			code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
-			message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacterCount}. Please check the passphrase.`,
-			expected: expectedUppercaseCharacterCount,
-			actual: uppercaseCharacterInPassphrase,
-			location: locateUppercaseCharacters(passphrase),
-		};
-		errors.push(uppercaseCharacterError);
-	}
-
-	if (
-		!Mnemonic.validateMnemonic(
-			passphrase,
-			wordlist || Mnemonic.wordlists.english,
-		)
-	) {
-		const validationError = {
-			code: 'INVALID_MNEMONIC',
-			message:
-				'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-			expected: true,
-			actual: false,
-		};
-		errors.push(validationError);
-	}
-
-	return errors;
-};
+//# sourceMappingURL=validation.js.map
