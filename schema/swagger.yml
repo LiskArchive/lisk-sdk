@@ -917,6 +917,7 @@ paths:
         - $ref: '#/parameters/maxAmount'
         - $ref: '#/parameters/fromTimestamp'
         - $ref: '#/parameters/toTimestamp'
+        - $ref: '#/parameters/data'
         - $ref: '#/parameters/blockId'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
@@ -1178,6 +1179,14 @@ parameters:
     description: Ending unix timestamp
     type: integer
     minimum: 1
+  data:
+    name: data
+    in: query
+    description: Additional data field to query
+    type: string
+    format: data
+    minLength: 1
+    maxLength: 64
 
 definitions:
   Meta:

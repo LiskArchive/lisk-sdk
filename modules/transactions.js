@@ -121,6 +121,7 @@ __private.list = function(filter, cb) {
 		maxAmount: '"t_amount" <= ${maxAmount}',
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
+		data: 'data ILIKE ${data}',
 		limit: null,
 		offset: null,
 		sort: null,

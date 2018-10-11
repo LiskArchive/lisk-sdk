@@ -68,6 +68,7 @@ TransactionsController.getTransactions = function(context, next) {
 		toTimestamp: params.toTimestamp.value,
 		minAmount: params.minAmount.value,
 		maxAmount: params.maxAmount.value,
+		data: params.data.value,
 		sort: params.sort.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
