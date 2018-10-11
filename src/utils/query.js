@@ -13,21 +13,33 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import getAPIClient from './api';
 
-export default (endpoint, parameters) =>
-	// prettier-ignore
-	getAPIClient()[endpoint].get(parameters)
-		.then(res => {
-			if (res.data) {
-				if (Array.isArray(res.data)) {
-					if (res.data.length === 0) {
-						throw new Error(`No ${endpoint} found using specified parameters.`);
-					}
-					return res.data[0];
-				}
-				return res.data;
+const handleResponse = (endpoint, res, placeholder) => {
+	// Get endpoints with 2xx status code should always return with data key.
+	if (!res.data) {
+		throw new Error('No data was returned.');
+	}
+	if (Array.isArray(res.data)) {
+		if (res.data.length === 0) {
+			if (placeholder) {
+				return placeholder;
 			}
-			// Get endpoints with 2xx status code should always return with data key.
-			throw new Error('No data was returned.');
-		});
+			throw new Error(`No ${endpoint} found using specified parameters.`);
+		}
+		return res.data[0];
+	}
+	return res.data;
+};
+
+export default async (client, endpoint, parameters) =>
+	Array.isArray(parameters)
+		? Promise.all(
+				parameters.map(param =>
+					client[endpoint]
+						.get(param.query)
+						.then(res => handleResponse(endpoint, res, param.placeholder)),
+				),
+			)
+		: client[endpoint]
+				.get(parameters.query)
+				.then(res => handleResponse(endpoint, res, parameters.placeholder));

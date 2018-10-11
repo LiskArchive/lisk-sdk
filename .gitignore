@@ -41,7 +41,3 @@ tmp
 
 # Distribution directory
 dist
-
-# lock files (supported package manager is npm 3)
-package-lock.json
-yarn.lock

@@ -20,7 +20,6 @@ import 'chai/register-expect';
 import chaiAsPromised from 'chai-as-promised';
 import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
-import mochaBDD from 'mocha-bdd';
 
 process.env.NODE_ENV = 'test';
 process.env.LISK_COMMANDER_CONFIG_DIR =
@@ -47,9 +46,9 @@ Assertion.addMethod('customError', function handleAssert(error) {
 });
 /* eslint-enable no-underscore-dangle */
 
-mochaBDD();
-
 [sinonChai, chaiAsPromised].forEach(chai.use);
 
 global.sinon = sinon;
-global.sandbox = sinon.sandbox.create();
+global.sandbox = sinon.sandbox.create({
+	useFakeTimers: true,
+});
