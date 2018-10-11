@@ -6,6 +6,7 @@
 		"tslint-config-prettier"
 	],
 	"rules": {
+		"file-name-casing": "snake-case",
 		"interface-name": [true, "never-prefix"],
 		"no-class": false,
 		"no-delete": true,
