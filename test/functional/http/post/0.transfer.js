@@ -298,6 +298,26 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 					});
 				});
 			});
+
+			describe('edge cases', () => {
+				it("using '\u0000 hey:)' should be ok", () => {
+					var additioinalData = '\u0000 hey:)';
+					var accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(transaction).then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						goodTransactions.push(transaction);
+					});
+				});
+			});
 		});
 	});
 
