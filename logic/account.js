@@ -512,11 +512,7 @@ class Account {
 						// If updated value is positive number
 						if (value.isGreaterThan(0)) {
 							promises.push(
-								dbTx.accounts.increment(
-									address,
-									updatedField,
-									value.toFixed().toString()
-								)
+								dbTx.accounts.increment(address, updatedField, value.toString())
 							);
 
 							// If updated value is negative number
@@ -525,10 +521,7 @@ class Account {
 								dbTx.accounts.decrement(
 									address,
 									updatedField,
-									value
-										.abs()
-										.toFixed()
-										.toString()
+									value.abs().toString()
 								)
 							);
 						}
