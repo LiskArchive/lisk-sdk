@@ -92,8 +92,7 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 	}
 
 	const amount = new Bignum(transaction.amount);
-
-	if (!amount.isEqualTo(0)) {
+	if (amount.isLessThanOrEqualTo(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

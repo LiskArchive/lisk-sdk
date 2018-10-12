@@ -32,6 +32,7 @@ var validKeypair = ed.makeKeypair(
 );
 
 const { FEES } = __testContext.config.constants;
+const exceptions = __testContext.config.exceptions;
 
 var validSender = {
 	balance: '0',
@@ -223,22 +224,52 @@ describe('inTransfer', () => {
 			});
 		});
 
-		describe('when trs.amount does not exist', () => {
-			it('should call callback with error = "Transaction type 6 is frozen"', done => {
-				trs.amount = undefined;
-				inTransfer.verify(trs, sender, err => {
-					expect(err).to.equal('Transaction type 6 is frozen');
-					done();
+		describe('when trs.amount = 0', () => {
+			describe('when type 6 is frozen', () => {
+				it('should call callback with error = "Transaction type 6 is frozen"', done => {
+					trs.amount = 0;
+					inTransfer.verify(trs, sender, err => {
+						expect(err).to.equal('Transaction type 6 is frozen');
+						done();
+					});
+				});
+			});
+
+			describe('when type 6 is not frozen', () => {
+				it('should call callback with error = "Invalid transaction amount"', done => {
+					const originalLimit = exceptions.precedent.disableDappTransfer;
+					exceptions.precedent.disableDappTransfer = 5;
+					trs.amount = 0;
+					inTransfer.verify(trs, sender, err => {
+						expect(err).to.equal('Invalid transaction amount');
+						exceptions.precedent.disableDappTransfer = originalLimit;
+						done();
+					});
 				});
 			});
 		});
 
-		describe('when trs.amount = 0', () => {
-			it('should call callback with error = "Transaction type 6 is frozen"', done => {
-				trs.amount = 0;
-				inTransfer.verify(trs, sender, err => {
-					expect(err).to.equal('Transaction type 6 is frozen');
-					done();
+		describe('when trs.amount is less than zero', () => {
+			describe('when type 6 is frozen', () => {
+				it('should call callback with error = "Transaction type 6 is frozen"', done => {
+					trs.amount = -1;
+					inTransfer.verify(trs, sender, err => {
+						expect(err).to.equal('Transaction type 6 is frozen');
+						done();
+					});
+				});
+			});
+
+			describe('when type 6 is not frozen', () => {
+				it('should call callback with error = "Invalid transaction amount"', done => {
+					const originalLimit = exceptions.precedent.disableDappTransfer;
+					exceptions.precedent.disableDappTransfer = 5;
+					trs.amount = -1;
+					inTransfer.verify(trs, sender, err => {
+						expect(err).to.equal('Invalid transaction amount');
+						exceptions.precedent.disableDappTransfer = originalLimit;
+						done();
+					});
 				});
 			});
 		});

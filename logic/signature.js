@@ -81,7 +81,7 @@ Signature.prototype.verify = function(transaction, sender, cb) {
 	}
 
 	const amount = new Bignum(transaction.amount);
-	if (!amount.isEqualTo(0)) {
+	if (amount.isGreaterThan(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

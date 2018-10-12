@@ -26,6 +26,11 @@ module.exports = function(
 	NUMBER_OF_TRANSACTIONS,
 	NUMBER_OF_MONITORING_CONNECTIONS
 ) {
+	// One of the bi-directional monitoring connections should be down so
+	// we need to subtract 2.
+	const EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING =
+		NUMBER_OF_MONITORING_CONNECTIONS - 2;
+
 	// Full mesh network with 2 connection for bi-directional communication without the blacklisted peer
 	const EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING =
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
@@ -60,7 +65,7 @@ module.exports = function(
 						}
 
 						if (
-							numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+							numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
 							EXPECTED_TOTAL_CONNECTIONS
 						) {
 							done();
@@ -98,7 +103,8 @@ module.exports = function(
 							}
 
 							if (
-								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+								numOfConnections -
+									EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING ===
 								EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING
 							) {
 								done();
@@ -156,6 +162,11 @@ module.exports = function(
 					// Restart the node to load the just changed configuration
 					network
 						.restartNode('node_0', true)
+						.then(() => {
+							// Make sure that there is enough time for monitoring connection
+							// to be re-established after restart.
+							return network.waitForBlocksOnNode('node_0', 1);
+						})
 						.then(done)
 						.catch(err => {
 							done(err.message);
@@ -171,7 +182,7 @@ module.exports = function(
 							}
 
 							if (
-								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
+								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
 								EXPECTED_TOTAL_CONNECTIONS
 							) {
 								done();

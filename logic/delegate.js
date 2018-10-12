@@ -82,7 +82,8 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid recipient');
 	}
 
-	if (!transaction.amount.isEqualTo(0)) {
+	const amount = new Bignum(transaction.amount);
+	if (amount.isGreaterThan(0)) {
 		return setImmediate(cb, 'Invalid transaction amount');
 	}
 

@@ -17,6 +17,17 @@
 const fs = require('fs');
 const utils = require('../utils');
 
+/**
+ * SYNC_MODES allow us to choose the network topology to use when
+ * executing network tests.
+ * Nodes in the network can form a sparse graph, a dense graph or
+ * a complete graph.
+ *
+ * The supported SYNC_MODES are:
+ * - RANDOM: Each node will connect to random peers in the group.
+ * - ALL_TO_FIRST: Each node will connect to the first peer in the group.
+ * - ALL_TO_GROUP: Each node will connect to every other node in the group.
+ */
 const SYNC_MODES = {
 	RANDOM: 0,
 	ALL_TO_FIRST: 1,
@@ -86,9 +97,11 @@ const config = {
 					JSON.stringify(configuration, null, 4)
 				);
 			} catch (ex) {
-				throw new Error(`Failed to write PM2 config for node ${
-					index
-				} to file system because of exception: ${ex.message}`);
+				throw new Error(
+					`Failed to write PM2 config for node ${index} to file system because of exception: ${
+						ex.message
+					}`
+				);
 			}
 			pm2Config.apps.push({
 				exec_mode: 'fork',
@@ -107,10 +120,7 @@ const config = {
 
 		let combinedPM2Config = null;
 		try {
-			combinedPM2Config = configurations.reduce(
-				configReducer,
-				{ apps: [] }
-			);
+			combinedPM2Config = configurations.reduce(configReducer, { apps: [] });
 		} catch (ex) {
 			return callback(ex);
 		}
