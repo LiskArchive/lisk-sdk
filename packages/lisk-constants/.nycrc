@@ -1,4 +1,1 @@
-{
-	"exclude": ["test/**", "**/*.d.ts"],
-	"extension": [".ts"]
-}
+/Users/ishantiwari/Documents/lisk-repos/lisk-elements/templates/.nycrc-ts.tmpl
