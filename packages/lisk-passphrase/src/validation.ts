@@ -12,16 +12,33 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as Mnemonic from 'bip39';
-import * as PassphraseType from './validation_types';
+import Mnemonic from 'bip39';
 
-const passphraseRegularExpression: PassphraseType.PassphraseRegularExpression = {
+export interface PassphraseRegularExpression {
+	readonly uppercaseRegExp: RegExp;
+	readonly whitespaceRegExp: RegExp;
+}
+export interface PassphraseError {
+	readonly actual: number | boolean | string;
+	readonly code: string;
+	readonly expected: number | boolean | string;
+	readonly location?: ReadonlyArray<number>;
+	readonly message: string;
+}
+
+export type RegExpReturn = RegExpMatchArray | null;
+
+export interface WordListObject {
+	readonly keys: string;
+}
+
+const passphraseRegularExpression: PassphraseRegularExpression = {
 	uppercaseRegExp: /[A-Z]/g,
 	whitespaceRegExp: /\s/g,
 };
 
 export const countPassphraseWhitespaces = (passphrase: string) => {
-	const whitespaceMatches: PassphraseType.RegExpReturn = passphrase.match(
+	const whitespaceMatches: RegExpReturn = passphrase.match(
 		passphraseRegularExpression.whitespaceRegExp,
 	);
 
@@ -32,7 +49,7 @@ export const countPassphraseWords = (passphrase: string) =>
 	passphrase.split(' ').filter(Boolean).length;
 
 export const countUppercaseCharacters = (passphrase: string) => {
-	const uppercaseCharacterMatches: PassphraseType.RegExpReturn = passphrase.match(
+	const uppercaseCharacterMatches: RegExpReturn = passphrase.match(
 		passphraseRegularExpression.uppercaseRegExp,
 	);
 
@@ -61,44 +78,48 @@ export const locateUppercaseCharacters = (passphrase: string) =>
 			[],
 		);
 
-export const locateConsecutiveWhitespaces = (passphrase: string) =>
+export const whitespaceIndexes = (passphrase: string) =>
 	passphrase
 		.split('')
 		.reduce(
 			(
 				passphraseArray: ReadonlyArray<number>,
-				element: string,
+				character: string,
 				index: number,
 			) => {
 				if (index === 0) {
 					if (
-						element.match(passphraseRegularExpression.whitespaceRegExp) !== null
-					) {
-						return [...passphraseArray, index];
-					} else {
-						return passphraseArray;
-					}
-				} else if (index !== passphrase.length - 1) {
-					if (
-						element.match(passphraseRegularExpression.whitespaceRegExp) !==
-							null &&
-						passphrase
-							.split('')
-							[index - 1].match(
-								passphraseRegularExpression.whitespaceRegExp,
-							) !== null
+						character.match(passphraseRegularExpression.whitespaceRegExp) !==
+						null
 					) {
 						return [...passphraseArray, index];
 					} else {
 						return passphraseArray;
 					}
 				} else {
-					if (
-						element.match(passphraseRegularExpression.whitespaceRegExp) !== null
-					) {
-						return [...passphraseArray, index];
+					if (index !== passphrase.length - 1) {
+						if (
+							character.match(passphraseRegularExpression.whitespaceRegExp) !==
+								null &&
+							passphrase
+								.split('')
+								[index - 1].match(
+									passphraseRegularExpression.whitespaceRegExp,
+								) !== null
+						) {
+							return [...passphraseArray, index];
+						} else {
+							return passphraseArray;
+						}
 					} else {
-						return passphraseArray;
+						if (
+							character.match(passphraseRegularExpression.whitespaceRegExp) !==
+							null
+						) {
+							return [...passphraseArray, index];
+						} else {
+							return passphraseArray;
+						}
 					}
 				}
 			},
@@ -119,34 +140,34 @@ export const getPassphraseValidationErrors = (
 	const uppercaseCharacterInPassphrase: number = countUppercaseCharacters(
 		passphrase,
 	);
-	const passphraseWordError: PassphraseType.PassphraseError = {
+	const passphraseWordError: PassphraseError = {
 		actual: wordsInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WORDS',
 		expected: expectedWords,
 		message: `Passphrase contains ${wordsInPassphrase} words instead of expected ${expectedWords}. Please check the passphrase.`,
 	};
-	const whiteSpaceError: PassphraseType.PassphraseError = {
+	const whiteSpaceError: PassphraseError = {
 		actual: whiteSpacesInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WHITESPACES',
 		expected: expectedWhitespaces,
-		location: locateConsecutiveWhitespaces(passphrase),
+		location: whitespaceIndexes(passphrase),
 		message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 	};
-	const uppercaseCharacterError: PassphraseType.PassphraseError = {
+	const uppercaseCharacterError: PassphraseError = {
 		actual: uppercaseCharacterInPassphrase,
 		code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
 		expected: expectedUppercaseCharacterCount,
 		location: locateUppercaseCharacters(passphrase),
 		message: `Passphrase contains ${uppercaseCharacterInPassphrase} uppercase character instead of expected ${expectedUppercaseCharacterCount}. Please check the passphrase.`,
 	};
-	const validationError: PassphraseType.PassphraseError = {
+	const validationError: PassphraseError = {
 		actual: false,
 		code: 'INVALID_MNEMONIC',
 		expected: true,
 		message:
 			'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 	};
-	const errors: ReadonlyArray<PassphraseType.PassphraseError> = [
+	const errors: ReadonlyArray<PassphraseError> = [
 		passphraseWordError,
 		whiteSpaceError,
 		uppercaseCharacterError,
@@ -159,10 +180,7 @@ export const getPassphraseValidationErrors = (
 			: Mnemonic.wordlists.english;
 
 	return errors.reduce(
-		(
-			errorArray: ReadonlyArray<PassphraseType.PassphraseError>,
-			element: PassphraseType.PassphraseError,
-		) => {
+		(errorArray: ReadonlyArray<PassphraseError>, element: PassphraseError) => {
 			if (
 				element.code === 'INVALID_AMOUNT_OF_WORDS' &&
 				wordsInPassphrase !== expectedWords
