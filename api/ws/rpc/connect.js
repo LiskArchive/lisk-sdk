@@ -15,11 +15,11 @@
 'use strict';
 
 const _ = require('lodash');
+const semver = require('semver');
 const scClient = require('socketcluster-client');
 const WAMPClient = require('wamp-socket-cluster/WAMPClient');
 const failureCodes = require('../../../api/ws/rpc/failure_codes');
 const System = require('../../../modules/system');
-const Patch = require('../../../modules/patches');
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 const Peer = require('../../../logic/peer');
 
@@ -31,7 +31,7 @@ const socketConnections = {};
 const connect = (peer, logger) => {
 	const wsServer = wsRPC.getServer();
 
-	connectSteps.addConnectionOptions(peer, logger);
+	connectSteps.addConnectionOptions(peer);
 	connectSteps.addSocket(peer, logger);
 	connectSteps.upgradeSocketAsWAMPClient(peer);
 	connectSteps.upgradeSocketAsWAMPServer(peer, wsServer);
@@ -43,16 +43,33 @@ const connect = (peer, logger) => {
 };
 
 const connectSteps = {
-	addConnectionOptions: (peer, logger) => {
-		const patch = new Patch(logger);
-		const systemHeaders = patch.systemHeaders.versionForPreRelease(
-			peer.version,
-			System.getHeaders()
-		);
+	addConnectionOptions: peer => {
+		const systemHeaders = System.getHeaders();
 		const queryParams = {};
 
 		if (systemHeaders.version != null) {
-			queryParams.version = systemHeaders.version;
+			/*
+				if current node is also running a prelease version
+				if destination node is running a pre-release and
+				if destination node Testnet version is >=1.0.0-rc.0 and <=1.0.0-rc.4
+			 */
+			if (
+				semver.prerelease(systemHeaders.version) !== null &&
+				semver.prerelease(peer.version) !== null &&
+				semver.lte(peer.version, '1.0.0-rc.4') &&
+				semver.gte(peer.version, '1.0.0-rc.0')
+			) {
+				const versionComponents = semver.parse(systemHeaders.version);
+
+				// Strip the pre-release tag from the version so it can work
+				// with semver.satisfies at modules.system.versionCompatible
+				// https://github.com/LiskHQ/lisk/issues/2389
+				queryParams.version = `${versionComponents.major}.${
+					versionComponents.minor
+				}.${versionComponents.patch}`;
+			} else {
+				queryParams.version = systemHeaders.version;
+			}
 		}
 		if (systemHeaders.wsPort != null) {
 			queryParams.wsPort = systemHeaders.wsPort;

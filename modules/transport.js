@@ -21,7 +21,6 @@ let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
-const Patches = require('../modules/patches');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -317,7 +316,6 @@ Transport.prototype.onBind = function(scope) {
 		peers: scope.peers,
 		system: scope.system,
 		transactions: scope.transactions,
-		patches: new Patches(library.logger),
 	};
 
 	definitions = scope.swagger.definitions;
@@ -397,11 +395,7 @@ Transport.prototype.broadcastHeaders = cb => {
 	async.each(
 		peers,
 		(peer, eachCb) => {
-			const peerObject = modules.patches.systemHeaders.versionForPreRelease(
-				peer.version,
-				library.logic.peers.me()
-			);
-			peer.rpc.updateMyself(peerObject, err => {
+			peer.rpc.updateMyself(library.logic.peers.me(), err => {
 				if (err) {
 					library.logger.debug(
 						'Transport->broadcastHeaders: Failed to notify peer about self',
