@@ -38,8 +38,8 @@ module.exports = {
 			monitorWSClient.port = configuration.wsPort;
 			var socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
-			socket.on('connect', () => {
-				sockets.push(socket);
+			sockets.push(socket);
+			socket.once('connect', () => {
 				connectedTo += 1;
 				if (connectedTo === configurations.length) {
 					cb(null, sockets);
