@@ -180,27 +180,27 @@ export const getPassphraseValidationErrors = (
 			: Mnemonic.wordlists.english;
 
 	return errors.reduce(
-		(errorArray: ReadonlyArray<PassphraseError>, element: PassphraseError) => {
+		(errorArray: ReadonlyArray<PassphraseError>, error: PassphraseError) => {
 			if (
-				element.code === 'INVALID_AMOUNT_OF_WORDS' &&
+				error.code === 'INVALID_AMOUNT_OF_WORDS' &&
 				wordsInPassphrase !== expectedWords
 			) {
-				return [...errorArray, element];
+				return [...errorArray, error];
 			} else if (
-				element.code === 'INVALID_AMOUNT_OF_WHITESPACES' &&
+				error.code === 'INVALID_AMOUNT_OF_WHITESPACES' &&
 				whiteSpacesInPassphrase > expectedWhitespaces
 			) {
-				return [...errorArray, element];
+				return [...errorArray, error];
 			} else if (
-				element.code === 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER' &&
+				error.code === 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER' &&
 				uppercaseCharacterInPassphrase !== expectedUppercaseCharacterCount
 			) {
-				return [...errorArray, element];
+				return [...errorArray, error];
 			} else if (
-				element.code === 'INVALID_MNEMONIC' &&
+				error.code === 'INVALID_MNEMONIC' &&
 				!Mnemonic.validateMnemonic(passphrase, finalWordList)
 			) {
-				return [...errorArray, element];
+				return [...errorArray, error];
 			} else {
 				return errorArray;
 			}
