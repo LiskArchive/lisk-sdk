@@ -189,7 +189,7 @@ describe('connect', () => {
 					version.patch
 				}`;
 				peer.version = '1.0.0-rc.2';
-				peerAsResult = addConnectionOptions(peer, modulesLoader.logger);
+				peerAsResult = addConnectionOptions(peer, console);
 
 				return expect(peerAsResult.connectionOptions.query.version).to.be.eql(
 					currentVersionWithoutTag
