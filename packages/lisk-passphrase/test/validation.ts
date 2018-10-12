@@ -20,8 +20,8 @@ import {
 	countPassphraseWords,
 	countUppercaseCharacters,
 	getPassphraseValidationErrors,
-	locateConsecutiveWhitespaces,
 	locateUppercaseCharacters,
+	whitespaceIndexes,
 } from '../src/validation';
 
 /* tslint:disable: no-magic-numbers */
@@ -275,20 +275,20 @@ describe('passphrase validation', () => {
 		describe('given a string without whitespaces', () => {
 			const testString = 'abcdefghijklkmnop';
 			it('should return an empty array', () =>
-				expect(locateConsecutiveWhitespaces(testString)).to.be.eql([]));
+				expect(whitespaceIndexes(testString)).to.be.eql([]));
 		});
 
 		describe('given a string with whitespaces', () => {
 			const testString = 'abc defghijk lkmnop';
 			it('should return an empty array', () =>
-				expect(locateConsecutiveWhitespaces(testString)).to.be.eql([]));
+				expect(whitespaceIndexes(testString)).to.be.eql([]));
 		});
 
 		describe('given a string with a whitespace in the beginning', () => {
 			const testString = ' abc defghijk lkmnop';
 			const expectedWhitespaceLocation = [0];
 			it('should return the array with the location of the whitespace', () =>
-				expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				expect(whitespaceIndexes(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				));
 		});
@@ -297,7 +297,7 @@ describe('passphrase validation', () => {
 			const testString = 'abc defghijk lkmnop ';
 			const expectedWhitespaceLocation = [19];
 			it('should return the array with the location of the whitespace', () =>
-				expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				expect(whitespaceIndexes(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				));
 		});
@@ -306,7 +306,7 @@ describe('passphrase validation', () => {
 			const testString = 'abc  defghijk  lkmnop ';
 			const expectedWhitespaceLocation = [4, 14, 21];
 			it('should return the array with the location of the whitespaces', () =>
-				expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				expect(whitespaceIndexes(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				));
 		});
@@ -315,7 +315,7 @@ describe('passphrase validation', () => {
 			const testString = 'abc  defghijk\t \nlkmnop \u00A0';
 			const expectedWhitespaceLocation = [4, 14, 15, 23];
 			it('should return the array with the location of the whitespaces', () =>
-				expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
+				expect(whitespaceIndexes(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				));
 		});

@@ -37,10 +37,10 @@
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check",
-		"serve:start": "http-server -p 11542 ./browsertest &",
-		"serve:stop": "kill $(lsof -t -i:11542) || true",
+		"serve:start": "http-server -p 11544 ./browsertest &",
+		"serve:stop": "kill $(lsof -t -i:11544) || true",
 		"pretest:browser": "npm run serve:stop && npm run build:browsertest && npm run serve:start",
-		"test:browser": "wait-on http://localhost:11542 && cypress run --config baseUrl=http://localhost:11542 --env ROOT_DIR=\"${PWD##*/}\"",
+		"test:browser": "wait-on http://localhost:11544 && cypress run --config baseUrl=http://localhost:11544 --env ROOT_DIR=\"${PWD##*/}\"",
 		"posttest:browser": "npm run serve:stop",
 		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "nyc report",
@@ -58,10 +58,10 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@types/bip39": "2.4.0",
 		"bip39": "2.5.0"
 	},
 	"devDependencies": {
+		"@types/bip39": "2.4.0",
 		"@types/chai": "4.1.5",
 		"@types/expect": "1.20.3",
 		"@types/jquery": "3.3.9",
