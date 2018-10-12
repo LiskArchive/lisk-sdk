@@ -443,15 +443,15 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	}
 
 	if (block.totalAmount) {
-		block.totalAmount = block.totalAmount.toString();
+		block.totalAmount = block.totalAmount.toNumber();
 	}
 
 	if (block.totalFee) {
-		block.totalFee = block.totalFee.toString();
+		block.totalFee = block.totalFee.toNumber();
 	}
 
 	if (block.reward) {
-		block.reward = block.reward.toString();
+		block.reward = block.reward.toNumber();
 	}
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
