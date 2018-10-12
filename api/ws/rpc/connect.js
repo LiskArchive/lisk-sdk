@@ -61,7 +61,7 @@ const connectSteps = {
 			) {
 				const versionComponents = systemHeaders.version;
 
-				// Strip the pre-release tag from the version so it can work
+				// Strip the prelease tag from the version so it can work
 				// with semver.satisfies at modules.system.versionCompatible
 				// https://github.com/LiskHQ/lisk/issues/2389
 				queryParams.version = `${versionComponents.major}.${
