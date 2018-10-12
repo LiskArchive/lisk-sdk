@@ -59,7 +59,7 @@ const connectSteps = {
 				semver.lte(peer.version, '1.0.0-rc.3') &&
 				semver.gt(peer.version, '0.9.16')
 			) {
-				const versionComponents = semver.parse(systemHeaders.version);
+				const versionComponents = systemHeaders.version;
 
 				// Strip the pre-release tag from the version so it can work
 				// with semver.satisfies at modules.system.versionCompatible
