@@ -332,6 +332,24 @@ describe('transaction', () => {
 				transactionLogic.getBytes(transaction);
 			}).to.throw('Recipient address number exceeds uint64 range');
 		});
+
+		it('should handle legacy transations with recipient exceeding uint64 properly', () => {
+			var transactionWithRecipientExceedingUint64 = _.cloneDeep(validTransaction);
+			transactionWithRecipientExceedingUint64.recipientId = '44444444444444444444L';
+			const exceptions = { recipientExceedingUint64: [transactionWithRecipientExceedingUint64.id] };
+			const transactionBytes = transactionLogic.getBytes(
+				transactionWithRecipientExceedingUint64,
+				undefined,
+				undefined,
+				exceptions
+			);
+
+			// big endian hex representation of 44444444444444444444 padded to 16 bytes:
+			// 0000000000000002 68ca62bed6b1c71c
+			const expectedAddress = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
+
+			return expect(transactionBytes.slice(37, 37 + 8)).to.deep.equal(expectedAddress);
+		});
 	});
 
 	describe('ready', () => {

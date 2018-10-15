@@ -159,6 +159,8 @@ class Transaction {
 
 		const recipientLeadingZero = exceptions && exceptions.recipientLeadingZero
 			? exceptions.recipientLeadingZero : [];
+		const recipientExceedingUint64 = exceptions && exceptions.recipientExceedingUint64
+			? exceptions.recipientExceedingUint64 : [];
 
 		let byteBuffer;
 
@@ -206,8 +208,10 @@ class Transaction {
 					}
 				}
 
-				if (recipientNumber.greaterThan(UINT64_MAX)) {
-					throw 'Recipient address number exceeds uint64 range';
+				if (!recipientExceedingUint64.includes(transaction.id)) {
+					if (recipientNumber.greaterThan(UINT64_MAX)) {
+						throw 'Recipient address number exceeds uint64 range';
+					}
 				}
 
 				// For numbers exceeding the uint64 range, this produces 16 bytes.
