@@ -291,6 +291,14 @@ describe('transaction', () => {
 			return expect(transactionBytes.length).to.equal(53);
 		});
 
+		it('should not throw for recipient address 0L', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.recipientId = '0L';
+			return expect(() => {
+				transactionLogic.getBytes(transaction);
+			}).not.to.throw();
+		});
+
 		it('should throw for recipient address with leading 0s', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = '0123L';
@@ -315,14 +323,6 @@ describe('transaction', () => {
 			);
 
 			return expect(transactionBytesWithLeadingZero).to.deep.equal(transactionBytesOriginal);
-		});
-
-		it('should not throw for recipient address 0L', () => {
-			var transaction = _.cloneDeep(validTransaction);
-			transaction.recipientId = '0L';
-			return expect(() => {
-				transactionLogic.getBytes(transaction);
-			}).not.to.throw();
 		});
 
 		it('should throw for recipient address exceeding uint64 range', () => {
