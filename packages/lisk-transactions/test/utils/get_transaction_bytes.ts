@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import bignum from 'browserify-bignum';
-import getTransactionBytes, {
+import { expect } from 'chai';
+import BigNum from 'browserify-bignum';
+import {
+	getTransactionBytes,
 	getAssetDataForTransferTransaction,
 	getAssetDataForRegisterSecondSignatureTransaction,
 	getAssetDataForRegisterDelegateTransaction,
@@ -26,6 +28,7 @@ import getTransactionBytes, {
 	checkRequiredFields,
 	isValidValue,
 } from '../../src/utils/get_transaction_bytes';
+import { TransferTransaction, PartialTransaction, BaseTransaction, MultiSignatureAsset } from '../../src/transaction_types';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -37,7 +40,7 @@ const defaultSenderSecondPublicKey =
 // Use (1<<62) + 3 to ensure the highest and the lowest bytes are set and contain different data.
 // This exceeds the safe integer range of JavaScript numbers and thus is expressed as a string.
 const defaultAmount = '10000000000000000';
-const defaultNoAmount = 0;
+const defaultNoAmount = '0';
 const defaultTimestamp = 141738;
 const defaultTransactionId = '13987348420913138422';
 const defaultSignature =
@@ -50,12 +53,12 @@ const defaultDelegateUsername = 'MyDelegateUsername';
 describe('getTransactionBytes module', () => {
 	describe('#getTransactionBytes', () => {
 		describe('transfer transaction, type 0', () => {
-			let defaultTransaction;
+			let defaultTransaction: BaseTransaction;
 
 			beforeEach(() => {
 				defaultTransaction = {
 					type: 0,
-					fee: 0.1 * fixedPoint,
+					fee: (0.1 * fixedPoint).toString(),
 					amount: defaultAmount,
 					recipientId: defaultRecipient,
 					timestamp: defaultTimestamp,
@@ -79,67 +82,89 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should return Buffer of type 0 (transfer LSK) with data', () => {
-				defaultTransaction.asset.data = 'Hello Lisk! Some data in here!...';
+				const transferTransaction: TransferTransaction = {
+					...defaultTransaction,
+					asset: {
+						data: 'Hello Lisk! Some data in here!...',
+					}
+				};
 				const expectedBuffer = Buffer.from(
 					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff286230048656c6c6f204c69736b2120536f6d65206461746120696e2068657265212e2e2e618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
-				const transactionBytes = getTransactionBytes(defaultTransaction);
+				const transactionBytes = getTransactionBytes(transferTransaction);
 
 				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should throw on type 0 with too much data', () => {
 				const maxDataLength = 64;
-				defaultTransaction.asset.data = new Array(maxDataLength + 1)
-					.fill('1')
-					.join('');
+				const transferTransaction: TransferTransaction = {
+					...defaultTransaction,
+					asset: {
+						data: new Array(maxDataLength + 1)
+							.fill('1')
+							.join(''),
+					},
+				};
 				return expect(
-					getTransactionBytes.bind(null, defaultTransaction),
+					getTransactionBytes.bind(null, transferTransaction),
 				).to.throw('Transaction asset data exceeds size of 64.');
 			});
 
 			it('should throw on type 0 with an amount that is too small', () => {
 				const amount = -1;
-				defaultTransaction.amount = amount;
+				const transaction = {
+					...defaultTransaction,
+					amount,
+				};
 				return expect(
-					getTransactionBytes.bind(null, defaultTransaction),
+					getTransactionBytes.bind(null, transaction),
 				).to.throw('Transaction amount must not be negative.');
 			});
 
 			it('should not throw on type 0 with an amount that is 0', () => {
 				const amount = 0;
-				defaultTransaction.amount = amount;
+				const transaction = {
+					...defaultTransaction,
+					amount,
+				};
 				return expect(
-					getTransactionBytes.bind(null, defaultTransaction),
+					getTransactionBytes.bind(null, transaction),
 				).not.to.throw();
 			});
 
 			it('should throw on type 0 with an amount that is too large', () => {
-				const amount = bignum
+				const amount = BigNum
 					.fromBuffer(Buffer.from(new Array(8).fill(255)))
 					.plus(1);
-				defaultTransaction.amount = amount;
+				const transaction = {
+					...defaultTransaction,
+					amount,
+				};
 				return expect(
-					getTransactionBytes.bind(null, defaultTransaction),
+					getTransactionBytes.bind(null, transaction),
 				).to.throw('Transaction amount is too large.');
 			});
 
 			it('should return Buffer of transaction with second signature', () => {
-				defaultTransaction.signSignature = defaultSecondSignature;
+				const transaction = {
+					...defaultTransaction,
+					signSignature: defaultSecondSignature,
+				};
 				const expectedBuffer = Buffer.from(
 					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff2862300618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0ab00c4ad1988bca245d74435660a278bfe6bf2f5efa8bda96d927fabf8b4f6fcfdcb2953f6abacaa119d6880987a55dea0e6354bc8366052b45fa23145522020f',
 					'hex',
 				);
-				const transactionBytes = getTransactionBytes(defaultTransaction);
+				const transactionBytes = getTransactionBytes(transaction);
 				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
 			it('should return Buffer from multisignature type 0 (transfer LSK) transaction', () => {
 				const multiSignatureTransaction = {
 					type: 0,
-					amount: 1000,
-					fee: 1 * fixedPoint,
+					amount: '1000',
+					fee: (1 * fixedPoint).toString(),
 					recipientId: defaultRecipient,
 					senderPublicKey: defaultSenderPublicKey,
 					requesterPublicKey:
@@ -160,12 +185,15 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should return Buffer of type 0 (transfer LSK) with additional properties', () => {
-				defaultTransaction.skip = false;
+				const transaction = {
+					...defaultTransaction,
+					skip: false,
+				};
 				const expectedBuffer = Buffer.from(
 					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff2862300618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
-				const transactionBytes = getTransactionBytes(defaultTransaction);
+				const transactionBytes = getTransactionBytes(transaction);
 
 				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
@@ -179,8 +207,7 @@ describe('getTransactionBytes module', () => {
 				];
 
 				return requiredProperties.forEach(parameter => {
-					const defaultTransactionClone = Object.assign({}, defaultTransaction);
-					delete defaultTransactionClone[parameter];
+					const { type, timestamp, senderPublicKey, amount, ...defaultTransactionClone } = defaultTransaction;
 					expect(
 						getTransactionBytes.bind(null, defaultTransactionClone),
 					).to.throw(`${parameter} is a required parameter.`);
@@ -196,8 +223,7 @@ describe('getTransactionBytes module', () => {
 				];
 
 				return requiredProperties.forEach(parameter => {
-					const defaultTransactionClone = Object.assign({}, defaultTransaction);
-					defaultTransactionClone[parameter] = undefined;
+					const { type, timestamp, senderPublicKey, amount, ...defaultTransactionClone } = defaultTransaction;
 					expect(
 						getTransactionBytes.bind(null, defaultTransactionClone),
 					).to.throw(`${parameter} is a required parameter.`);
@@ -209,7 +235,7 @@ describe('getTransactionBytes module', () => {
 			const signatureTransaction = {
 				type: 1,
 				amount: defaultNoAmount,
-				fee: 5 * fixedPoint,
+				fee: (5 * fixedPoint).toString(),
 				recipientId: null,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -233,7 +259,7 @@ describe('getTransactionBytes module', () => {
 			const delegateRegistrationTransaction = {
 				type: 2,
 				amount: defaultNoAmount,
-				fee: 25 * fixedPoint,
+				fee: (25 * fixedPoint).toString(),
 				recipientId: null,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -258,8 +284,8 @@ describe('getTransactionBytes module', () => {
 		describe('vote transaction, type 3', () => {
 			const voteTransaction = {
 				type: 3,
-				amount: 0,
-				fee: 1 * fixedPoint,
+				amount: '0',
+				fee: (1 * fixedPoint).toString(),
 				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -287,8 +313,8 @@ describe('getTransactionBytes module', () => {
 		describe('multisignature transaction, type 4', () => {
 			const createMultiSignatureTransaction = {
 				type: 4,
-				amount: 0,
-				fee: 15 * fixedPoint,
+				amount: '0',
+				fee: (15 * fixedPoint).toString(),
 				recipientId: null,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -322,8 +348,8 @@ describe('getTransactionBytes module', () => {
 		describe('dapp transaction, type 5', () => {
 			const dappTransaction = {
 				type: 5,
-				amount: 0,
-				fee: 25 * fixedPoint,
+				amount: '0',
+				fee: (25 * fixedPoint).toString(),
 				recipientId: null,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -358,7 +384,7 @@ describe('getTransactionBytes module', () => {
 			const inTransferTransction = {
 				type: 6,
 				amount: defaultAmount,
-				fee: 1 * fixedPoint,
+				fee: (1 * fixedPoint).toString(),
 				recipientId: null,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -382,7 +408,7 @@ describe('getTransactionBytes module', () => {
 			const outTransferTransaction = {
 				type: 7,
 				amount: defaultAmount,
-				fee: 1 * fixedPoint,
+				fee: (1 * fixedPoint).toString(),
 				recipientId: defaultRecipient,
 				senderPublicKey: defaultSenderPublicKey,
 				timestamp: defaultTimestamp,
@@ -527,7 +553,7 @@ describe('getTransactionBytes module', () => {
 			const min = 2;
 			const lifetime = 5;
 			const keysgroup = ['+123456789', '-987654321'];
-			let multisignatureAsset;
+			let multisignatureAsset: MultiSignatureAsset;
 
 			beforeEach(() => {
 				multisignatureAsset = {
@@ -561,11 +587,7 @@ describe('getTransactionBytes module', () => {
 				const requiredProperties = ['min', 'lifetime', 'keysgroup'];
 
 				return requiredProperties.forEach(parameter => {
-					const multisigAsset = Object.assign(
-						{},
-						multisignatureAsset.multisignature,
-					);
-					delete multisigAsset[parameter];
+					const { [parameter]: deletedValue, ...multisigAsset } = multisignatureAsset.multisignature;
 					expect(
 						getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
 							multisignature: multisigAsset,
@@ -645,8 +667,7 @@ describe('getTransactionBytes module', () => {
 				const requiredProperties = ['name', 'link', 'type', 'category'];
 
 				return requiredProperties.forEach(parameter => {
-					const dappClone = Object.assign({}, dapp);
-					delete dappClone[parameter];
+					const { [parameter]: deletedValue, ...dappClone } = dapp;
 					expect(
 						getAssetDataForCreateDappTransaction.bind(null, {
 							dapp: dappClone,
@@ -712,11 +733,11 @@ describe('getTransactionBytes module', () => {
 
 		describe('#checkTransaction', () => {
 			const maxDataLength = 64;
-			let defaultTransaction;
+			let defaultTransaction: BaseTransaction;
 			beforeEach(() => {
 				defaultTransaction = {
 					type: 0,
-					fee: 0.1 * fixedPoint,
+					fee: (0.1 * fixedPoint).toString(),
 					amount: defaultAmount,
 					recipientId: defaultRecipient,
 					timestamp: defaultTimestamp,
@@ -730,19 +751,29 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should throw on too many data in transfer asset', () => {
-				defaultTransaction.asset.data = new Array(maxDataLength + 1)
-					.fill('1')
-					.join('');
-				return expect(checkTransaction.bind(null, defaultTransaction)).to.throw(
+				const transaction = {
+					...defaultTransaction,
+					asset: {
+						data: new Array(maxDataLength + 1)
+							.fill('1')
+							.join(''),
+					},
+				};
+				return expect(checkTransaction.bind(null, transaction)).to.throw(
 					'Transaction asset data exceeds size of 64.',
 				);
 			});
 
 			it('should return true on asset data exactly at max data length', () => {
-				defaultTransaction.asset.data = new Array(maxDataLength)
-					.fill('1')
-					.join('');
-				return expect(checkTransaction(defaultTransaction)).to.be.true;
+				const transaction = {
+					...defaultTransaction,
+					asset: {
+						data: new Array(maxDataLength)
+							.fill('1')
+							.join(''),
+					},
+				};
+				return expect(checkTransaction(transaction)).to.be.true;
 			});
 		});
 

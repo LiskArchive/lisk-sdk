@@ -13,15 +13,15 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '../transaction_types';
+import { BaseTransaction, PartialTransaction } from '../transaction_types';
 import { prepareTransaction } from './prepare_transaction';
 import { getTimeWithOffset } from './time';
 
 interface SignRawTransactionInput {
 	readonly passphrase: string;
-	readonly secondPassphrase: string;
-	readonly timeOffset: number;
-	readonly transaction: BaseTransaction;
+	readonly secondPassphrase?: string;
+	readonly timeOffset?: number;
+	readonly transaction: PartialTransaction;
 }
 
 export const signRawTransaction = ({

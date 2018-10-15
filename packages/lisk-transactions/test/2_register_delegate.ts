@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerDelegate from '../src/2_register_delegate';
+import { expect } from 'chai';
+import { registerDelegate } from '../src/2_register_delegate';
+import { BaseTransaction, DelegateAsset } from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -28,8 +30,8 @@ describe('#registerDelegate transaction', () => {
 	const timeWithOffset = 38350076;
 	const amount = '0';
 
-	let getTimeWithOffsetStub;
-	let registerDelegateTransaction;
+	let getTimeWithOffsetStub: sinon.SinonStub;
+	let registerDelegateTransaction: BaseTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -136,7 +138,8 @@ describe('#registerDelegate transaction', () => {
 			});
 
 			it('should have the provided username as a string', () => {
-				return expect(registerDelegateTransaction.asset.delegate)
+				const { delegate } = registerDelegateTransaction.asset as DelegateAsset;
+				return expect(delegate)
 					.to.have.property('username')
 					.and.be.a('string')
 					.and.equal(username);

@@ -18,7 +18,7 @@ import { PartialTransaction } from './transaction_types';
 import { prepareTransaction } from './utils';
 
 export interface SecondPassphraseInputs {
-	readonly passphrase: string;
+	readonly passphrase?: string;
 	readonly secondPassphrase: string;
 	readonly timeOffset?: number;
 }

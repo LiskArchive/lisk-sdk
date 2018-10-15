@@ -12,15 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import fixtures from '../../../fixtures/transactions.json';
 import invalidFixtures from '../../../fixtures/invalid_transactions.json';
-import validateTransaction from '../../../src/utils/validation/validate_transaction';
+import { validateTransaction } from '../../../src/utils/validation/validate_transaction';
+import { PartialTransaction } from '../../../src/transaction_types';
 
 describe('validateTransaction', () => {
 	describe('#validateTransaction', () => {
 		describe('when fixtures provided', () => {
 			it('should be all valid for the fixtures', () => {
-				return fixtures.forEach(tx => {
+				return fixtures.forEach((tx: PartialTransaction) => {
 					const { valid, errors } = validateTransaction(tx);
 					expect(valid).to.be.true;
 					expect(errors).to.be.null;
@@ -31,8 +33,8 @@ describe('validateTransaction', () => {
 		describe('when invalid fixtures provided', () => {
 			it('should be all invalid for the invalid fixtures (except type 6 and 7)', () => {
 				return invalidFixtures
-					.filter(tx => tx.type !== 6 && tx.type !== 7)
-					.forEach(tx => {
+					.filter((tx: PartialTransaction) => tx.type !== 6 && tx.type !== 7)
+					.forEach((tx: PartialTransaction) => {
 						const { valid, errors } = validateTransaction(tx);
 						expect(valid).to.be.false;
 						expect(errors).not.to.be.null;
@@ -41,8 +43,8 @@ describe('validateTransaction', () => {
 
 			it('should throw an unsupported transaction type error for type 6 and 7', () => {
 				return invalidFixtures
-					.filter(tx => tx.type === 6 || tx.type === 7)
-					.forEach(tx => {
+					.filter((tx: PartialTransaction) => tx.type === 6 || tx.type === 7)
+					.forEach((tx: PartialTransaction) => {
 						expect(validateTransaction.bind(null, tx)).to.throw(
 							Error,
 							'Unsupported transaction type.',

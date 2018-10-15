@@ -18,13 +18,13 @@ export interface BaseTransaction {
 	readonly asset: TransactionAsset;
 	readonly fee: string;
 	readonly id?: string;
-	readonly recipientId: string;
-	readonly recipientPublicKey?: string;
+	readonly recipientId: string | null;
+	readonly recipientPublicKey?: string | null;
 	readonly requesterPublicKey?: string;
-	readonly senderId: string;
+	readonly senderId?: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
-	readonly signatures: ReadonlyArray<string>;
+	readonly signatures?: ReadonlyArray<string>;
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
@@ -45,7 +45,7 @@ export type TransactionAsset =
 	| DappAsset
 	| InTransferAsset
 	| OutTransferAsset
-	| undefined;
+	| object;
 
 export interface TransferTransaction extends BaseTransaction {
 	readonly asset: TransferAsset;

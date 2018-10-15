@@ -13,7 +13,8 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import bignum from 'browserify-bignum';
+import { expect } from 'chai';
+import BigNum from 'browserify-bignum';
 import {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
@@ -117,7 +118,7 @@ describe('validation', () => {
 	});
 
 	describe('#validateKeysgroup', () => {
-		let keysgroup;
+		let keysgroup: ReadonlyArray<string>;
 		describe('Given a keysgroup with three public keys', () => {
 			beforeEach(() => {
 				keysgroup = [
@@ -146,10 +147,9 @@ describe('validation', () => {
 
 		describe('Given a keysgroup with 17 public keys', () => {
 			beforeEach(() => {
-				keysgroup = Array(17)
-					.fill()
+				keysgroup = new Array(17).fill(0)
 					.map(
-						(_, index) =>
+						(_: number, index: number) =>
 							cryptography.getPrivateAndPublicKeyFromPassphrase(
 								index.toString(),
 							).publicKey,
@@ -276,12 +276,12 @@ describe('validation', () => {
 
 	describe('#isGreaterThanZero', () => {
 		it('should return false when amount is 0', () => {
-			return expect(isGreaterThanZero(bignum('0'))).to.be.false;
+			return expect(isGreaterThanZero(new BigNum('0'))).to.be.false;
 		});
 
 		it('should return true when amount is greater than 0', () => {
 			return expect(
-				isGreaterThanZero(bignum('9223372036854775808987234289782357')),
+				isGreaterThanZero(new BigNum('9223372036854775808987234289782357')),
 			).to.be.true;
 		});
 	});
@@ -289,13 +289,13 @@ describe('validation', () => {
 	describe('#isGreaterThanMaxTransactionAmount', () => {
 		it('should return false when amount is less than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('9223372036854775807')),
+				isGreaterThanMaxTransactionAmount(new BigNum('9223372036854775807')),
 			).to.be.false;
 		});
 
 		it('should return true when amount is more than maximum transaction amount', () => {
 			return expect(
-				isGreaterThanMaxTransactionAmount(bignum('9223372036854775808')),
+				isGreaterThanMaxTransactionAmount(new BigNum('9223372036854775808')),
 			).to.be.true;
 		});
 	});
@@ -303,20 +303,21 @@ describe('validation', () => {
 	describe('#isGreaterThanMaxTransactionId', () => {
 		it('should return false when id is less than 8 bytes integer maximum', () => {
 			return expect(
-				isGreaterThanMaxTransactionId(bignum('18446744073709551615')),
+				isGreaterThanMaxTransactionId(new BigNum('18446744073709551615')),
 			).to.be.false;
 		});
 
 		it('should return true when id is more than 8 bytes integer maximum', () => {
 			return expect(
-				isGreaterThanMaxTransactionId(bignum('18446744073709551616')),
+				isGreaterThanMaxTransactionId(new BigNum('18446744073709551616')),
 			).to.be.true;
 		});
 	});
 
 	describe('#isNumberString', () => {
 		it('should return false when number is not string', () => {
-			return expect(isNumberString(1)).to.be.false;
+			const invalidFunction = isNumberString as (input: any) => boolean;
+			return expect(invalidFunction(1)).to.be.false;
 		});
 
 		it('should return false when string contains non number', () => {

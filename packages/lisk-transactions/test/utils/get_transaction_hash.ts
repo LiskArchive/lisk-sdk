@@ -12,15 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import { getTransactionHash } from '../../src/utils';
+import { BaseTransaction } from '../../src/transaction_types';
 // Require is used for stubbing
 const getTransactionBytes = require('../../src/utils/get_transaction_bytes');
 
 describe('#getTransactionHash', () => {
 	let defaultTransactionBytes;
-	let transactionBytesStub;
-	let transaction;
-	let result;
+	let transactionBytesStub: sinon.SinonStub;
+	let transaction: BaseTransaction;
+	let result: string;
 
 	beforeEach(() => {
 		defaultTransactionBytes = Buffer.from(
@@ -32,7 +34,8 @@ describe('#getTransactionHash', () => {
 			.returns(defaultTransactionBytes);
 		transaction = {
 			type: 0,
-			amount: 1000,
+			amount: '1000',
+			fee: '0',
 			recipientId: '58191285901858109L',
 			timestamp: 141738,
 			asset: {},

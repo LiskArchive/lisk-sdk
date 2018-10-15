@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import createSignatureObject from '../src/create_signature_object';
+import { expect } from 'chai';
+import { createSignatureObject, SignatureObject } from '../src/create_signature_object';
 
 describe('#createSignatureObject', () => {
 	const transaction = {
 		amount: '10',
 		recipientId: '8050281191221330746L',
+		senderId: '1050281191221330746L',
 		senderPublicKey:
 			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
 		timestamp: 59353522,
@@ -80,7 +82,7 @@ describe('#createSignatureObject', () => {
 	});
 
 	describe('when valid transaction and passphrase is used', () => {
-		let signatureObject;
+		let signatureObject: SignatureObject;
 		beforeEach(() => {
 			signatureObject = createSignatureObject(transaction, account.passphrase);
 			return Promise.resolve();

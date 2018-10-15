@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import { getTransactionId } from '../../src/utils';
+import { BaseTransaction } from '../../src/transaction_types';
 // Require is used for stubbing
 const utils = require('../../src/utils');
 
@@ -25,7 +27,7 @@ describe('#getTransactionId', () => {
 		'f60a26da470b1dc233fd526ed7306c1d84836f9e2ecee82c9ec47319e0910474',
 		'hex',
 	);
-	const defaultAmount = 1000;
+	const defaultAmount = '1000';
 	const defaultTimestamp = 141738;
 	const defaultRecipientId = '58191285901858109L';
 	const defaultSignature =
@@ -37,9 +39,10 @@ describe('#getTransactionId', () => {
 	});
 
 	it('should return an id of 13987348420913138422 for a transaction', () => {
-		const transaction = {
+		const transaction: BaseTransaction = {
 			type: 0,
 			amount: defaultAmount,
+			fee: '0',
 			recipientId: defaultRecipientId,
 			timestamp: defaultTimestamp,
 			asset: {},

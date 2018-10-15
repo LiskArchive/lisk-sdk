@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import validator from '../../../src/utils/validation/validator';
+import { expect } from 'chai';
+import { validator } from '../../../src/utils/validation/validator';
+import { ValidateFunction } from 'ajv';
 
 describe('validator', () => {
 	const baseSchemaId = 'test/schema';
@@ -26,7 +28,7 @@ describe('validator', () => {
 	});
 
 	describe('signature', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -82,7 +84,7 @@ describe('validator', () => {
 	});
 
 	describe('id', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -122,7 +124,7 @@ describe('validator', () => {
 	});
 
 	describe('address', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -170,7 +172,7 @@ describe('validator', () => {
 	});
 
 	describe('amount', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -214,7 +216,7 @@ describe('validator', () => {
 	});
 
 	describe('transfer amount', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -262,7 +264,7 @@ describe('validator', () => {
 	});
 
 	describe('publicKey', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -331,7 +333,7 @@ describe('validator', () => {
 	});
 
 	describe('signedPublicKey', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -409,7 +411,7 @@ describe('validator', () => {
 	});
 
 	describe('additionPublicKey', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {
@@ -487,7 +489,7 @@ describe('validator', () => {
 	});
 
 	describe('uniqueSignedPublicKeys', () => {
-		let validate;
+		let validate: ValidateFunction;
 		beforeEach(() => {
 			validate = validator.compile({
 				$merge: {

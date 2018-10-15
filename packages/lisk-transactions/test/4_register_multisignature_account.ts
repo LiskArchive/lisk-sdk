@@ -12,12 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
-import registerMultisignatureAccount from '../src/4_register_multisignature_account';
+import { registerMultisignature } from '../src/4_register_multisignature_account';
+import { BaseTransaction, MultiSignatureAsset } from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
-describe('#registerMultisignatureAccount transaction', () => {
+describe('#registerMultisignature transaction', () => {
 	const fixedPoint = 10 ** 8;
 	const passphrase = 'secret';
 	const secondPassphrase = 'second secret';
@@ -34,11 +36,11 @@ describe('#registerMultisignatureAccount transaction', () => {
 	const lifetime = 5;
 	const minimum = 2;
 
-	let tooShortPublicKeyKeysgroup;
-	let plusPrependedPublicKeyKeysgroup;
-	let keysgroup;
-	let getTimeWithOffsetStub;
-	let registerMultisignatureTransaction;
+	let tooShortPublicKeyKeysgroup: Array<string>;
+	let plusPrependedPublicKeyKeysgroup: Array<string>;
+	let keysgroup: Array<string>;
+	let getTimeWithOffsetStub: sinon.SinonStub;
+	let registerMultisignatureTransaction: BaseTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -59,7 +61,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 	describe('with first passphrase', () => {
 		beforeEach(() => {
-			registerMultisignatureTransaction = registerMultisignatureAccount({
+			registerMultisignatureTransaction = registerMultisignature({
 				passphrase,
 				keysgroup,
 				lifetime,
@@ -78,7 +80,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		it('should use time.getTimeWithOffset with an offset of -10 seconds to calculate the timestamp', () => {
 			const offset = -10;
-			registerMultisignatureAccount({
+			registerMultisignature({
 				passphrase,
 				keysgroup,
 				lifetime,
@@ -166,14 +168,16 @@ describe('#registerMultisignatureAccount transaction', () => {
 				});
 
 				it('should have a min number equal to provided minimum', () => {
-					return expect(registerMultisignatureTransaction.asset.multisignature)
+					const { multisignature } = registerMultisignatureTransaction.asset as MultiSignatureAsset;
+					return expect(multisignature)
 						.to.have.property('min')
 						.and.be.a('number')
 						.and.be.equal(minimum);
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
-					return expect(registerMultisignatureTransaction.asset.multisignature)
+					const { multisignature } = registerMultisignatureTransaction.asset as MultiSignatureAsset;
+					return expect(multisignature)
 						.to.have.property('lifetime')
 						.and.be.a('number')
 						.and.be.equal(lifetime);
@@ -184,7 +188,8 @@ describe('#registerMultisignatureAccount transaction', () => {
 						'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					];
-					return expect(registerMultisignatureTransaction.asset.multisignature)
+					const { multisignature } = registerMultisignatureTransaction.asset as MultiSignatureAsset;
+					return expect(multisignature)
 						.to.have.property('keysgroup')
 						.and.be.eql(expectedArray);
 				});
@@ -194,7 +199,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 	describe('with first and second passphrase', () => {
 		beforeEach(() => {
-			registerMultisignatureTransaction = registerMultisignatureAccount({
+			registerMultisignatureTransaction = registerMultisignature({
 				passphrase,
 				secondPassphrase,
 				keysgroup,
@@ -214,7 +219,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	describe('when the register multisignature account transaction is created with one too short public key', () => {
 		it('should throw an error', () => {
 			return expect(
-				registerMultisignatureAccount.bind(null, {
+				registerMultisignature.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup: tooShortPublicKeyKeysgroup,
@@ -230,7 +235,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	describe('when the register multisignature account transaction is created with one plus prepended public key', () => {
 		it('should throw an error', () => {
 			return expect(
-				registerMultisignatureAccount.bind(null, {
+				registerMultisignature.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup: plusPrependedPublicKeyKeysgroup,
@@ -244,7 +249,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	describe('when the register multisignature account transaction is created with one empty keysgroup', () => {
 		it('should throw an error', () => {
 			return expect(
-				registerMultisignatureAccount.bind(null, {
+				registerMultisignature.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup: [],
@@ -260,9 +265,9 @@ describe('#registerMultisignatureAccount transaction', () => {
 	describe('when the register multisignature account transaction is created with 17 public keys in keysgroup', () => {
 		beforeEach(() => {
 			keysgroup = Array(17)
-				.fill()
+				.fill(0)
 				.map(
-					(_, index) =>
+					(_: number, index: number) =>
 						cryptography.getPrivateAndPublicKeyFromPassphrase(index.toString())
 							.publicKey,
 				);
@@ -271,7 +276,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		it('should throw an error', () => {
 			return expect(
-				registerMultisignatureAccount.bind(null, {
+				registerMultisignature.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup,
@@ -290,7 +295,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 		it('should throw an error', () => {
 			return expect(
-				registerMultisignatureAccount.bind(null, {
+				registerMultisignature.bind(null, {
 					passphrase,
 					secondPassphrase,
 					keysgroup,
@@ -306,7 +311,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 	describe('unsigned register multisignature account transaction', () => {
 		describe('when the register multisignature transaction is created without a passphrase', () => {
 			beforeEach(() => {
-				registerMultisignatureTransaction = registerMultisignatureAccount({
+				registerMultisignatureTransaction = registerMultisignature({
 					keysgroup,
 					lifetime,
 					minimum,
@@ -321,7 +326,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 					it('was not provided', () => {
 						return expect(
-							registerMultisignatureAccount.bind(null, {
+							registerMultisignature.bind(null, {
 								keysgroup,
 							}),
 						).to.throw(lifetimeErrorMessage);
@@ -329,7 +334,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 					it('is float', () => {
 						return expect(
-							registerMultisignatureAccount.bind(null, {
+							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 23.45,
 							}),
@@ -338,7 +343,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 					it('is not number type', () => {
 						return expect(
-							registerMultisignatureAccount.bind(null, {
+							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: '123',
 							}),
@@ -347,7 +352,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 					it('was more than expected', () => {
 						return expect(
-							registerMultisignatureAccount.bind(null, {
+							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: 73,
 							}),
@@ -356,7 +361,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 					it('was less than expected', () => {
 						return expect(
-							registerMultisignatureAccount.bind(null, {
+							registerMultisignature.bind(null, {
 								keysgroup,
 								lifetime: -1,
 							}),
@@ -371,7 +376,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 				it('was not provided', () => {
 					return expect(
-						registerMultisignatureAccount.bind(null, {
+						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
 						}),
@@ -380,7 +385,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 				it('is float', () => {
 					return expect(
-						registerMultisignatureAccount.bind(null, {
+						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
 							minimum: 1.45,
@@ -390,7 +395,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 				it('is not number type', () => {
 					return expect(
-						registerMultisignatureAccount.bind(null, {
+						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
 							minimum: '12',
@@ -400,7 +405,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 				it('was more than expected', () => {
 					return expect(
-						registerMultisignatureAccount.bind(null, {
+						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
 							minimum: 16,
@@ -410,7 +415,7 @@ describe('#registerMultisignatureAccount transaction', () => {
 
 				it('was less than expected', () => {
 					return expect(
-						registerMultisignatureAccount.bind(null, {
+						registerMultisignature.bind(null, {
 							keysgroup,
 							lifetime,
 							minimum: -1,

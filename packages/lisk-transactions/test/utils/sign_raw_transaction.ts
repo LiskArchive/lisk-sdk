@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import signRawTransaction from '../../src/utils/sign_raw_transaction';
+import { expect } from 'chai';
+import { signRawTransaction } from '../../src/utils/sign_raw_transaction';
+import { BaseTransaction, PartialTransaction } from '../../src/transaction_types';
 // Require is used for stubbing
 const time = require('../../src/utils/time');
 
@@ -24,7 +26,7 @@ describe('#signRawTransaction', () => {
 	const fee = '10000000';
 	const type = 0;
 	const asset = {};
-	let getTimeWithOffsetStub;
+	let getTimeWithOffsetStub: sinon.SinonStub;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -34,13 +36,12 @@ describe('#signRawTransaction', () => {
 	});
 
 	describe('given a raw transaction', () => {
-		let transaction;
+		let transaction: PartialTransaction;
 
 		beforeEach(() => {
 			transaction = {
 				amount,
 				recipientId,
-				senderPublicKey: null,
 				timestamp,
 				type,
 				fee,
@@ -60,7 +61,7 @@ describe('#signRawTransaction', () => {
 				'd09288d22a1ac860f625db950340cd26e435d0d98a00ffb92d55c16b76d83ed4fd1acf974c28c9dede8fb15a49ccaddb6325f4e750d968e515e1f0d90e0fb30d';
 			const transactionId = '9248517814265997446';
 			describe('when executed', () => {
-				let signedTransaction;
+				let signedTransaction: BaseTransaction;
 				let signingProperties;
 
 				beforeEach(() => {
@@ -154,7 +155,7 @@ describe('#signRawTransaction', () => {
 					'31ef8fcf4e1815def245ad32d0d0e3e86993a4029c41e8ca1dc2674c9794d31cefc2226ac539dea8049c7085fdcb29768389b96104ac05a0ddabfb8b523af409';
 				const secondSignedTransactionId = '5702597341252953087';
 				describe('when executed', () => {
-					let signedTransaction;
+					let signedTransaction: BaseTransaction;
 					let signingProperties;
 
 					beforeEach(() => {
@@ -287,7 +288,7 @@ describe('#signRawTransaction', () => {
 		const updatedSignerSignature =
 			'647ca03394d0fefeeaa018e6943feb61c0ec64f3110ab96fe87564f1c915a40f25ac19324802684de87cdc5a0947f774d8b0ae78f9144635996d0450bcd5760c';
 		const updatedSignerId = '9495608349801955934';
-		let transaction;
+		let transaction: PartialTransaction;
 
 		beforeEach(() => {
 			transaction = {
@@ -307,7 +308,7 @@ describe('#signRawTransaction', () => {
 		});
 
 		describe('when executed', () => {
-			let signedTransaction;
+			let signedTransaction: BaseTransaction;
 			let signingProperties;
 
 			beforeEach(() => {

@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import registerSecondPassphrase from '../src/1_register_second_passphrase';
+import { expect } from 'chai';
+import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
+import { BaseTransaction, SecondSignatureAsset } from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -32,8 +34,8 @@ describe('#registerSecondPassphrase transaction', () => {
 	const fee = (5 * fixedPoint).toString();
 	const amount = '0';
 
-	let getTimeWithOffsetStub;
-	let registerSecondPassphraseTransaction;
+	let getTimeWithOffsetStub: sinon.SinonStub;
+	let registerSecondPassphraseTransaction: BaseTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -145,9 +147,10 @@ describe('#registerSecondPassphrase transaction', () => {
 				expect(registerSecondPassphraseTransaction.asset)
 					.to.have.property('signature')
 					.with.property('publicKey').and.be.hexString;
+				const { signature } = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
 				return expect(
 					Buffer.from(
-						registerSecondPassphraseTransaction.asset.signature.publicKey,
+						signature.publicKey,
 						'hex',
 					),
 				).to.have.length(32);
@@ -165,8 +168,9 @@ describe('#registerSecondPassphrase transaction', () => {
 					passphrase,
 					secondPassphrase: '',
 				});
+				const { signature } = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
 				return expect(
-					registerSecondPassphraseTransaction.asset.signature.publicKey,
+					signature.publicKey,
 				).to.be.equal(emptyStringPublicKey);
 			});
 		});

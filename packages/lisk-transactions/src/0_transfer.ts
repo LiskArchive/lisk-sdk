@@ -33,9 +33,9 @@ const createAsset = (data?: string): TransferAsset => {
 export interface TransferInputs {
 	readonly amount: string;
 	readonly data?: string;
-	readonly passphrase: string;
-	readonly recipientId: string;
-	readonly recipientPublicKey: string;
+	readonly passphrase?: string;
+	readonly recipientId?: string;
+	readonly recipientPublicKey?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 }

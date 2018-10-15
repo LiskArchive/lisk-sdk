@@ -16,17 +16,20 @@ import { DAPP_FEE } from './constants';
 import { PartialTransaction } from './transaction_types';
 import { isValidInteger, prepareTransaction } from './utils';
 
+
+export interface DappOptions {
+	readonly category: number;
+	readonly description: string;
+	readonly icon: string;
+	readonly link: string;
+	readonly name: string;
+	readonly tags: string;
+	readonly type: number;
+}
+
 export interface DappInputs {
-	readonly options: {
-		readonly category: number;
-		readonly description: string;
-		readonly icon: string;
-		readonly link: string;
-		readonly name: string;
-		readonly tags: string;
-		readonly type: number;
-	};
-	readonly passphrase: string;
+	readonly options: DappOptions;
+	readonly passphrase?: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
 }

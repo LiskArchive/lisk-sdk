@@ -16,12 +16,22 @@ import cryptography from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from './transaction_types';
 import { multiSignTransaction, verifyTransaction } from './utils';
 
+export interface SignatureObject {
+	readonly publicKey: string;
+	readonly signature: string;
+	readonly transactionId: string;
+}
+
 export const createSignatureObject = (
 	transaction: BaseTransaction,
 	passphrase: string,
-) => {
+): SignatureObject  => {
 	if (!verifyTransaction(transaction)) {
 		throw new Error('Invalid transaction.');
+	}
+
+	if (!transaction.id) {
+		throw new Error('Transaction ID is required to create a signature object.')
 	}
 
 	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(

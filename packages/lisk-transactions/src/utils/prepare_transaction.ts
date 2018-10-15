@@ -35,7 +35,7 @@ const validTransaction = (partial: PartialTransaction): partial is BaseTransacti
 
 export const prepareTransaction = (
 	partialTransaction: PartialTransaction,
-	passphrase: string,
+	passphrase?: string,
 	secondPassphrase?: string,
 	timeOffset?: number,
 ): BaseTransaction => {

@@ -12,8 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
-import transfer from '../src/0_transfer';
+import { transfer } from '../src/0_transfer';
+import { BaseTransaction } from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -34,8 +36,8 @@ describe('#transfer transaction', () => {
 	const fee = (0.1 * fixedPoint).toString();
 	const timeWithOffset = 38350076;
 
-	let getTimeWithOffsetStub;
-	let transferTransaction;
+	let getTimeWithOffsetStub: sinon.SinonStub;
+	let transferTransaction: BaseTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

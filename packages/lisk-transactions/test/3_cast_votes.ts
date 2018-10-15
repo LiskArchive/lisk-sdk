@@ -12,7 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import castVotes from '../src/3_cast_votes';
+import { expect } from 'chai';
+import { castVotes } from '../src/3_cast_votes';
+import { BaseTransaction, VoteAsset } from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -40,8 +42,8 @@ describe('#castVotes transaction', () => {
 	const amount = '0';
 	const fee = (1 * fixedPoint).toString();
 
-	let getTimeWithOffsetStub;
-	let castVotesTransaction;
+	let getTimeWithOffsetStub: sinon.SinonStub;
+	let castVotesTransaction: BaseTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
@@ -150,12 +152,14 @@ describe('#castVotes transaction', () => {
 				});
 
 				it('should contain two elements', () => {
-					return expect(castVotesTransaction.asset.votes).to.have.length(2);
+					const { votes } = castVotesTransaction.asset as VoteAsset;
+					return expect(votes).to.have.length(2);
 				});
 
 				it('should have a vote for the delegate public key', () => {
+					const { votes } = castVotesTransaction.asset as VoteAsset;
 					const expectedArray = [`+${firstPublicKey}`, `+${secondPublicKey}`];
-					return expect(castVotesTransaction.asset.votes).to.be.eql(
+					return expect(votes).to.be.eql(
 						expectedArray,
 					);
 				});
@@ -167,7 +171,7 @@ describe('#castVotes transaction', () => {
 		beforeEach(() => {
 			castVotesTransaction = castVotes({
 				passphrase,
-				vote: [firstPublicKey],
+				votes: [firstPublicKey],
 				secondPassphrase,
 			});
 			return Promise.resolve();
@@ -202,7 +206,8 @@ describe('#castVotes transaction', () => {
 				`-${thirdPublicKey}`,
 				`-${fourthPublicKey}`,
 			];
-			return expect(castVotesTransaction.asset.votes).to.be.eql(expectedArray);
+					const { votes } = castVotesTransaction.asset as VoteAsset;
+			return expect(votes).to.be.eql(expectedArray);
 		});
 	});
 
@@ -269,7 +274,8 @@ describe('#castVotes transaction', () => {
 
 		it('the transaction asset should have the unvotes', () => {
 			const expectedArray = [`-${thirdPublicKey}`, `-${fourthPublicKey}`];
-			return expect(castVotesTransaction.asset.votes).to.be.eql(expectedArray);
+			const { votes } = castVotesTransaction.asset as VoteAsset;
+			return expect(votes).to.be.eql(expectedArray);
 		});
 	});
 
