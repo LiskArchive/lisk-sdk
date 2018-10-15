@@ -121,7 +121,9 @@ __private.list = function(filter, cb) {
 		maxAmount: '"t_amount" <= ${maxAmount}',
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
-		data: 'data ILIKE ${data}',
+		data: `ENCODE((SELECT data FROM transfer WHERE transfer."transactionId" = trs_list."t_id"), 'escape') LIKE '${
+			filter.data
+		}'`,
 		limit: null,
 		offset: null,
 		sort: null,
