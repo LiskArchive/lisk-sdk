@@ -22,7 +22,7 @@ import {
 	getPassphraseValidationErrors,
 	locateUppercaseCharacters,
 	whitespaceIndexes,
-} from '../src/validation';
+} from '../src/index';
 
 /* tslint:disable: no-magic-numbers */
 describe('passphrase validation', () => {
