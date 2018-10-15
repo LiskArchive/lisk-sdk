@@ -696,6 +696,8 @@ paths:
       parameters:
         - $ref: '#/parameters/blockId'
         - $ref: '#/parameters/height'
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - in: query

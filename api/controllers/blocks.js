@@ -46,6 +46,8 @@ BlocksController.getBlocks = function(context, next) {
 		id: params.blockId.value,
 		height: params.height.value,
 		generatorPublicKey: params.generatorPublicKey.value,
+		fromTimestamp: params.fromTimestamp.value,
+		toTimestamp: params.toTimestamp.value,
 		sort: params.sort.value,
 		limit: params.limit.value,
 		offset: params.offset.value,
