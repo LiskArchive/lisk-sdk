@@ -160,7 +160,7 @@ describe('transfer', () => {
 				transfer.calculateFee
 					.call(transactionLogic, transaction)
 					.equals(constants.fees.send)
-			);
+			).to.be.true;
 		});
 	});
 
