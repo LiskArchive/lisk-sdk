@@ -156,9 +156,9 @@ describe('transfer', () => {
 				data: '0',
 			};
 			return expect(
-				transfer
-					.calculateFee(transaction)
-					.equals(new Bignum(constants.fees.send))
+				transfer.calculateFee
+					.call(transactionLogic, transaction)
+					.equals(constants.fees.send)
 			).to.be.true;
 		});
 	});
