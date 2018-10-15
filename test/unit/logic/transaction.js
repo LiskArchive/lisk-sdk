@@ -314,7 +314,9 @@ describe('transaction', () => {
 
 			var transactionWithLeadingZero = _.cloneDeep(validTransaction);
 			transactionWithLeadingZero.recipientId = `0${validTransaction.recipientId}`;
-			const exceptions = { recipientLeadingZero: [transactionWithLeadingZero.id] };
+			const exceptions = { recipientLeadingZero: {} };
+			exceptions.recipientLeadingZero[transactionWithLeadingZero.id] = `0${validTransaction.recipientId}`;
+
 			const transactionBytesWithLeadingZero = transactionLogic.getBytes(
 				transactionWithLeadingZero,
 				undefined,
@@ -323,6 +325,25 @@ describe('transaction', () => {
 			);
 
 			return expect(transactionBytesWithLeadingZero).to.deep.equal(transactionBytesOriginal);
+		});
+
+		it('should throw when address fixed in recipientLeadingZero exception does not match', () => {
+			const legacyRecipient = `0${validTransaction.recipientId}`; // leading 0
+			const modifiedRecipient = validTransaction.recipientId;
+
+			const legazyTransaction = _.cloneDeep(validTransaction);
+			legazyTransaction.recipientId = legacyRecipient;
+			const exceptions = { recipientLeadingZero: {} };
+			exceptions.recipientLeadingZero[legazyTransaction.id] = legacyRecipient;
+
+			const modifiedLegazyTransation = _.cloneDeep(legazyTransaction);
+			modifiedLegazyTransation.recipientId = modifiedRecipient;
+
+			return expect(() => {
+				transactionLogic.getBytes(modifiedLegazyTransation, undefined, undefined, exceptions);
+			}).to.throw(`Recipient address ${modifiedRecipient} does not match the one fixed in exception: ${
+				legacyRecipient
+			}`);
 		});
 
 		it('should throw for recipient address exceeding uint64 range', () => {
@@ -334,11 +355,13 @@ describe('transaction', () => {
 		});
 
 		it('should handle legacy transations with recipient exceeding uint64 properly', () => {
-			var transactionWithRecipientExceedingUint64 = _.cloneDeep(validTransaction);
-			transactionWithRecipientExceedingUint64.recipientId = '44444444444444444444L';
-			const exceptions = { recipientExceedingUint64: [transactionWithRecipientExceedingUint64.id] };
+			const withRecipientExceedingUint64 = _.cloneDeep(validTransaction);
+			withRecipientExceedingUint64.recipientId = '44444444444444444444L';
+			const exceptions = { recipientExceedingUint64: {} };
+			exceptions.recipientExceedingUint64[withRecipientExceedingUint64.id] = '44444444444444444444L';
+
 			const transactionBytes = transactionLogic.getBytes(
-				transactionWithRecipientExceedingUint64,
+				withRecipientExceedingUint64,
 				undefined,
 				undefined,
 				exceptions
@@ -349,6 +372,25 @@ describe('transaction', () => {
 			const expectedAddress = Buffer.from([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
 
 			return expect(transactionBytes.slice(37, 37 + 8)).to.deep.equal(expectedAddress);
+		});
+
+		it('should throw when address fixed in recipientExceedingUint64 exception does not match', () => {
+			const legacyRecipient = '18446744073709551616L'; // exceeds uint64
+			const modifiedRecipient = '1L';
+
+			const legazyTransaction = _.cloneDeep(validTransaction);
+			legazyTransaction.recipientId = legacyRecipient;
+			const exceptions = { recipientExceedingUint64: {} };
+			exceptions.recipientExceedingUint64[legazyTransaction.id] = legacyRecipient;
+
+			const modifiedLegazyTransation = _.cloneDeep(legazyTransaction);
+			modifiedLegazyTransation.recipientId = modifiedRecipient;
+
+			return expect(() => {
+				transactionLogic.getBytes(modifiedLegazyTransation, undefined, undefined, exceptions);
+			}).to.throw(`Recipient address ${modifiedRecipient} does not match the one fixed in exception: ${
+				legacyRecipient
+			}`);
 		});
 	});
 

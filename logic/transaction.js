@@ -157,10 +157,10 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		const recipientLeadingZero = exceptions && exceptions.recipientLeadingZero
-			? exceptions.recipientLeadingZero : [];
-		const recipientExceedingUint64 = exceptions && exceptions.recipientExceedingUint64
-			? exceptions.recipientExceedingUint64 : [];
+		const recipientLeadingZeroExceptions = exceptions && exceptions.recipientLeadingZero
+			? exceptions.recipientLeadingZero : {};
+		const recipientExceedingUint64Exceptions = exceptions && exceptions.recipientExceedingUint64
+			? exceptions.recipientExceedingUint64 : {};
 
 		let byteBuffer;
 
@@ -202,16 +202,24 @@ class Transaction {
 				const recipientString = transaction.recipientId.slice(0, -1);
 				const recipientNumber = new Bignum(recipientString);
 
-				if (!recipientLeadingZero.includes(transaction.id)) {
-					if (recipientString !== recipientNumber.toString(10)) {
-						throw 'Recipient address number does not have natural represenation'; // e.g. leading 0s
+				if (recipientLeadingZeroExceptions[transaction.id]) {
+					if (transaction.recipientId !== recipientLeadingZeroExceptions[transaction.id]) {
+						throw `Recipient address ${transaction.recipientId} does not match the one fixed in exception: ${
+							recipientLeadingZeroExceptions[transaction.id]
+						}`;
 					}
+				} else if (recipientString !== recipientNumber.toString(10)) {
+					throw 'Recipient address number does not have natural represenation'; // e.g. leading 0s
 				}
 
-				if (!recipientExceedingUint64.includes(transaction.id)) {
-					if (recipientNumber.greaterThan(UINT64_MAX)) {
-						throw 'Recipient address number exceeds uint64 range';
+				if (recipientExceedingUint64Exceptions[transaction.id]) {
+					if (transaction.recipientId !== recipientExceedingUint64Exceptions[transaction.id]) {
+						throw `Recipient address ${transaction.recipientId} does not match the one fixed in exception: ${
+							recipientExceedingUint64Exceptions[transaction.id]
+						}`;
 					}
+				} else if (recipientNumber.greaterThan(UINT64_MAX)) {
+					throw 'Recipient address number exceeds uint64 range';
 				}
 
 				// For numbers exceeding the uint64 range, this produces 16 bytes.
