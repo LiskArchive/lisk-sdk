@@ -299,6 +299,24 @@ describe('transaction', () => {
 			}).to.throw('Recipient address number does not have natural represenation');
 		});
 
+		it('should handle legacy transations with leading 0s in recipient properly', () => {
+			const transactionBytesOriginal = transactionLogic.getBytes(
+				validTransaction
+			);
+
+			var transactionWithLeadingZero = _.cloneDeep(validTransaction);
+			transactionWithLeadingZero.recipientId = `0${validTransaction.recipientId}`;
+			const exceptions = { recipientLeadingZero: [transactionWithLeadingZero.id] };
+			const transactionBytesWithLeadingZero = transactionLogic.getBytes(
+				transactionWithLeadingZero,
+				undefined,
+				undefined,
+				exceptions
+			);
+
+			return expect(transactionBytesWithLeadingZero).to.deep.equal(transactionBytesOriginal);
+		});
+
 		it('should not throw for recipient address 0L', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = '0L';

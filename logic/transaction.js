@@ -147,14 +147,18 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {boolean} skipSignature
 	 * @param {boolean} skipSecondSignature
+	 * @param {object} exceptions
 	 * @throws {Error}
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
 	 */
-	getBytes(transaction, skipSignature, skipSecondSignature) {
+	getBytes(transaction, skipSignature, skipSecondSignature, exceptions) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
+
+		const recipientLeadingZero = exceptions && exceptions.recipientLeadingZero
+			? exceptions.recipientLeadingZero : [];
 
 		let byteBuffer;
 
@@ -196,8 +200,10 @@ class Transaction {
 				const recipientString = transaction.recipientId.slice(0, -1);
 				const recipientNumber = new Bignum(recipientString);
 
-				if (recipientString !== recipientNumber.toString(10)) {
-					throw 'Recipient address number does not have natural represenation'; // e.g. leading 0s
+				if (!recipientLeadingZero.includes(transaction.id)) {
+					if (recipientString !== recipientNumber.toString(10)) {
+						throw 'Recipient address number does not have natural represenation'; // e.g. leading 0s
+					}
 				}
 
 				if (recipientNumber.greaterThan(UINT64_MAX)) {
