@@ -21,7 +21,6 @@ let Broadcaster = require('../logic/broadcaster.js');
 const failureCodes = require('../api/ws/rpc/failure_codes');
 const PeerUpdateError = require('../api/ws/rpc/failure_codes').PeerUpdateError;
 const Rules = require('../api/ws/workers/rules');
-const patches = require('../helpers/patches');
 // eslint-disable-next-line prefer-const
 let wsRPC = require('../api/ws/rpc/ws_rpc').wsRPC;
 
@@ -388,12 +387,7 @@ Transport.prototype.broadcastHeaders = cb => {
 	async.each(
 		peers,
 		(peer, eachCb) => {
-			const peerObject = patches.systemHeaders.versionForPreRelease(
-				peer.version,
-				library.logic.peers.me(),
-				library.logger
-			);
-			peer.rpc.updateMyself(peerObject, err => {
+			peer.rpc.updateMyself(library.logic.peers.me(), err => {
 				if (err) {
 					library.logger.debug(
 						'Transport->broadcastHeaders: Failed to notify peer about self',
@@ -435,15 +429,15 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 	}
 
 	if (block.totalAmount) {
-		block.totalAmount = block.totalAmount.toString();
+		block.totalAmount = block.totalAmount.toNumber();
 	}
 
 	if (block.totalFee) {
-		block.totalFee = block.totalFee.toString();
+		block.totalFee = block.totalFee.toNumber();
 	}
 
 	if (block.reward) {
-		block.reward = block.reward.toString();
+		block.reward = block.reward.toNumber();
 	}
 	// Perform actual broadcast operation
 	__private.broadcaster.broadcast(
