@@ -54,6 +54,7 @@ SCWorker.create({
 							echo: config.consoleLogLevel,
 							errorLevel: config.fileLogLevel,
 							filename: config.logFileName,
+							network: config.network,
 						})
 					);
 				},
