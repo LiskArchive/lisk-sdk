@@ -297,6 +297,24 @@ describe('POST /api/transactions (type 0) transfer funds', () => {
 						});
 					});
 				});
+
+				it('using SQL characters escaped as single quote should be ok', () => {
+					var additioinalData = "'0'";
+					var accountAdditionalData = randomUtil.account();
+					transaction = lisk.transaction.transfer({
+						amount: 1,
+						passphrase: accountFixtures.genesis.passphrase,
+						recipientId: accountAdditionalData.address,
+						data: additioinalData,
+					});
+
+					return sendTransactionPromise(transaction).then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						goodTransactions.push(transaction);
+					});
+				});
 			});
 
 			describe('edge cases', () => {
