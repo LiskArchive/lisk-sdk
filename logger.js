@@ -51,16 +51,8 @@ module.exports = function(config) {
 
 	config.errorLevel = config.errorLevel || 'log';
 
-	const logsSubDirectory = config.network || '';
-	const logsDirectory = path.join(
-		path.dirname(config.filename),
-		logsSubDirectory
-	);
-	const logsFullPath = path.join(logsDirectory, path.basename(config.filename));
-
-	child_process.execSync(`mkdir -p ${logsDirectory}`);
-
-	var log_file = fs.createWriteStream(logsFullPath, { flags: 'a' });
+	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
+	var log_file = fs.createWriteStream(config.filename, { flags: 'a' });
 
 	exports.setLevel = function(errorLevel) {
 		config.errorLevel = errorLevel;

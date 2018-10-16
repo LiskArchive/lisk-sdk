@@ -159,7 +159,6 @@ var logger = new Logger({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
-	network: appConfig.network,
 });
 
 /**
@@ -180,7 +179,6 @@ if (
 		echo: process.env.DB_LOG_LEVEL || 'log',
 		errorLevel: process.env.FILE_LOG_LEVEL || 'log',
 		filename: appConfig.db.logFileName,
-		network: appConfig.network,
 	});
 }
 
