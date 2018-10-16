@@ -48,13 +48,13 @@ describe('GET /api/transactions', () => {
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
-		data: 'Transaction2',
+		data: 'transaction2',
 	});
 	var transaction3 = lisk.transaction.transfer({
 		amount: 20 * NORMALIZER, // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
-		data: 'tx3',
+		data: '\u0000 hey :)',
 	});
 	var transaction4 = lisk.transaction.transfer({
 		amount: maxAmount,
@@ -652,7 +652,7 @@ describe('GET /api/transactions', () => {
 		});
 
 		describe('data', () => {
-			it('using specfic string should return transactions', () => {
+			it('using specific string should return transactions', () => {
 				var dataFilter = 'transaction1';
 				return transactionsEndpoint
 					.makeRequest(
@@ -670,12 +670,12 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using regex string should return several transactions', () => {
-				var dataFilter = 'transaction';
+			it('using unicode sequence string should return transactions', () => {
+				var dataFilter = '\u0000 hey :)';
 				return transactionsEndpoint
 					.makeRequest(
 						{
-							data: `${dataFilter}%`,
+							data: dataFilter,
 						},
 						200
 					)
@@ -683,8 +683,22 @@ describe('GET /api/transactions', () => {
 						res.body.data.forEach(transaction => {
 							expect(transaction.asset)
 								.to.have.property('data')
-								.to.match(/transaction.*/i);
+								.to.equal(dataFilter);
 						});
+					});
+			});
+
+			it('using regex string should not return several transactions', () => {
+				var dataFilter = 'transaction%';
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: dataFilter,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data.length).to.equal(0);
 					});
 			});
 		});
