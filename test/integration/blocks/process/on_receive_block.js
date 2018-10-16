@@ -91,7 +91,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				round,
 				keys,
 				(err, delegateList) => {
-					var nextForger = delegateList[(slot + offset) % slots.delegates];
+					var nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
 					return seriesCb(nextForger);
 				}
 			);
@@ -188,7 +188,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 		return generateDelegateListPromisified(round, null)
 			.then(list => {
-				var delegatePublicKey = list[slot % slots.delegates];
+				var delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(
 					_.find(genesisDelegates, delegate => {
 						return delegate.publicKey === delegatePublicKey;

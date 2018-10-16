@@ -111,7 +111,7 @@ __private.getKeysSortByVote = function(cb, tx) {
 		{
 			isDelegate: 1,
 			sort: { vote: -1, publicKey: 1 },
-			limit: slots.delegates,
+			limit: ACTIVE_DELEGATES,
 		},
 		['publicKey'],
 		(err, rows) => {
@@ -135,7 +135,7 @@ __private.getKeysSortByVote = function(cb, tx) {
  */
 __private.getDelegatesFromPreviousRound = function(cb, tx) {
 	(tx || library.db).rounds
-		.getDelegatesSnapshot(slots.delegates)
+		.getDelegatesSnapshot(ACTIVE_DELEGATES)
 		.then(rows => {
 			const delegatesPublicKeys = [];
 			rows.forEach(row => {
@@ -166,7 +166,7 @@ __private.validateBlockSlot = function(block, source, cb) {
 		}
 
 		const currentSlot = slots.getSlotNumber(block.timestamp);
-		const delegateId = activeDelegates[currentSlot % slots.delegates];
+		const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
 
 		if (delegateId && block.generatorPublicKey === delegateId) {
 			return setImmediate(cb);
@@ -201,7 +201,7 @@ __private.getBlockSlotData = function(slot, height, cb) {
 		const lastSlot = slots.getLastSlot(currentSlot);
 
 		for (; currentSlot < lastSlot; currentSlot += 1) {
-			const delegate_pos = currentSlot % slots.delegates;
+			const delegate_pos = currentSlot % ACTIVE_DELEGATES;
 			const delegate_id = activeDelegates[delegate_pos];
 
 			if (delegate_id && __private.keypairs[delegate_id]) {
@@ -821,11 +821,11 @@ Delegates.prototype.getForgers = function(query, cb) {
 
 		for (
 			let i = query.offset + 1;
-			i <= slots.delegates && i <= query.limit + query.offset;
+			i <= ACTIVE_DELEGATES && i <= query.limit + query.offset;
 			i++
 		) {
-			if (activeDelegates[(currentSlot + i) % slots.delegates]) {
-				forgerKeys.push(activeDelegates[(currentSlot + i) % slots.delegates]);
+			if (activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]) {
+				forgerKeys.push(activeDelegates[(currentSlot + i) % ACTIVE_DELEGATES]);
 			}
 		}
 

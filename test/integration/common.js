@@ -23,6 +23,8 @@ var randomUtil = require('../common/utils/random');
 var accountFixtures = require('../fixtures/accounts');
 var Bignum = require('../../helpers/bignum.js');
 
+const { ACTIVE_DELEGATES } = global.constants;
+
 const convertToBigNum = transactions => {
 	return transactions.forEach(transaction => {
 		transaction.amount = new Bignum(transaction.amount);
@@ -35,7 +37,7 @@ function getDelegateForSlot(library, slot, cb) {
 	const round = slots.calcRound(lastBlock.height + 1);
 
 	library.modules.delegates.generateDelegateList(round, null, (err, list) => {
-		var delegatePublicKey = list[slot % slots.delegates];
+		var delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 		return cb(err, delegatePublicKey);
 	});
 }
