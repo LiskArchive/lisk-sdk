@@ -1184,7 +1184,7 @@ parameters:
     in: query
     description: Additional data field to query
     type: string
-    format: data
+    format: additionalData
     minLength: 1
     maxLength: 64
 
