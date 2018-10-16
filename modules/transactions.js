@@ -102,6 +102,11 @@ class Transactions {
 __private.list = function(filter, cb) {
 	const params = {};
 	const where = [];
+
+	if (filter.data) {
+		filter.data = Buffer.from(filter.data, 'utf8').toString('hex');
+	}
+
 	const allowedFieldsMap = {
 		senderIdOrRecipientId:
 			'("t_senderId" = ${senderIdOrRecipientId} OR "t_recipientId" = ${senderIdOrRecipientId})',
@@ -121,9 +126,9 @@ __private.list = function(filter, cb) {
 		maxAmount: '"t_amount" <= ${maxAmount}',
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
-		data: `ENCODE((SELECT data FROM transfer WHERE transfer."transactionId" = trs_list."t_id"), 'escape') = '${
+		data: `(SELECT data FROM transfer WHERE transfer."transactionId" = trs_list."t_id") LIKE decode('${
 			filter.data
-		}'`,
+		}','hex')`,
 		limit: null,
 		offset: null,
 		sort: null,
