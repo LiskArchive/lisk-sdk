@@ -136,7 +136,7 @@ export const getPassphraseValidationErrors = (
 		actual: whiteSpacesInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WHITESPACES',
 		expected: expectedWhitespaces,
-		location: locateUppercaseCharacters(passphrase),
+		location: locateConsecutiveWhitespaces(passphrase),
 		message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 	};
 	const uppercaseCharacterError: PassphraseError = {
