@@ -67,19 +67,19 @@ export const locateUppercaseCharacters = (passphrase: string) =>
 					element.match(passphraseRegularExpression.uppercaseRegExp) !== null
 				) {
 					return [...passphraseArray, index];
-				} else {
-					return passphraseArray;
 				}
+
+				return passphraseArray;
 			},
 			[],
 		);
 
-export const whitespaceIndexes = (passphrase: string) =>
+export const locateConsecutiveWhitespaces = (passphrase: string) =>
 	passphrase
 		.split('')
 		.reduce(
 			(
-				passphraseArray: ReadonlyArray<number>,
+				whitespaceIndexes: ReadonlyArray<number>,
 				character: string,
 				index: number,
 			) => {
@@ -87,7 +87,7 @@ export const whitespaceIndexes = (passphrase: string) =>
 					index === 0 &&
 					character.match(passphraseRegularExpression.whitespaceRegExp) !== null
 				) {
-					return [...passphraseArray, index];
+					return [...whitespaceIndexes, index];
 				}
 				if (
 					index !== passphrase.length - 1 &&
@@ -98,16 +98,16 @@ export const whitespaceIndexes = (passphrase: string) =>
 						[index - 1].match(passphraseRegularExpression.whitespaceRegExp) !==
 						null
 				) {
-					return [...passphraseArray, index];
+					return [...whitespaceIndexes, index];
 				}
 				if (
 					index === passphrase.length - 1 &&
 					character.match(passphraseRegularExpression.whitespaceRegExp) !== null
 				) {
-					return [...passphraseArray, index];
+					return [...whitespaceIndexes, index];
 				}
 
-				return passphraseArray;
+				return whitespaceIndexes;
 			},
 			[],
 		);
@@ -136,7 +136,7 @@ export const getPassphraseValidationErrors = (
 		actual: whiteSpacesInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WHITESPACES',
 		expected: expectedWhitespaces,
-		location: whitespaceIndexes(passphrase),
+		location: locateUppercaseCharacters(passphrase),
 		message: `Passphrase contains ${whiteSpacesInPassphrase} whitespaces instead of expected ${expectedWhitespaces}. Please check the passphrase.`,
 	};
 	const uppercaseCharacterError: PassphraseError = {
