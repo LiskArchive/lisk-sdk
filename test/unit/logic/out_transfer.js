@@ -142,7 +142,7 @@ describe('outTransfer', () => {
 		it('should return constants.fees.send', () => {
 			return expect(
 				outTransfer.calculateFee(transaction).equals(constants.fees.send)
-			);
+			).to.be.true;
 		});
 	});
 
