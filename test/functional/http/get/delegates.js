@@ -656,7 +656,7 @@ describe('GET /delegates', () => {
 
 			describe('?', () => {
 				describe('fromTimestamp', () => {
-					it('using too small fromTimestamp should fail', () => {
+					it('using invalid fromTimestamp should fail', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, fromTimestamp: -1 },
@@ -690,7 +690,7 @@ describe('GET /delegates', () => {
 				});
 
 				describe('toTimestamp', () => {
-					it('using too small toTimestamp should fail', () => {
+					it('using invalid toTimestamp should fail', () => {
 						return forgedEndpoint
 							.makeRequest(
 								{ address: validDelegate.address, toTimestamp: 0 },

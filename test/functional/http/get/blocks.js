@@ -114,7 +114,7 @@ describe('GET /blocks', () => {
 		});
 
 		describe('fromTimestamp', () => {
-			it('using too small fromTimestamp should fail', () => {
+			it('using invalid fromTimestamp should fail', () => {
 				return blocksEndpoint
 					.makeRequest(
 						{
@@ -147,7 +147,7 @@ describe('GET /blocks', () => {
 		});
 
 		describe('toTimestamp', () => {
-			it('using too small toTimestamp should fail', () => {
+			it('using invalid toTimestamp should fail', () => {
 				return blocksEndpoint
 					.makeRequest(
 						{
