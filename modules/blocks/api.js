@@ -111,7 +111,7 @@ __private.list = function(filter, cb) {
 		params.fromTimestamp = filter.fromTimestamp;
 	}
 
-	if (filter.toTimestamp >= 0) {
+	if (filter.toTimestamp >= 1) {
 		where.push('"b_timestamp" <= ${toTimestamp}');
 		params.toTimestamp = filter.toTimestamp;
 	}
