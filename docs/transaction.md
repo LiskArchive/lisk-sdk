@@ -121,6 +121,11 @@ ARGUMENTS
   ADDRESS  Address of the recipient.
 
 OPTIONS
+  -d, --data=data
+      Specifies the data for the transaction type 0. Takes a string.
+      	Examples:
+      	- --data=customInformation
+
   -j, --[no-]json
       Prints output in JSON format. You can change the default behaviour in your config.json file.
 
