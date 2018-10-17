@@ -18,6 +18,7 @@
 var rewire = require('rewire');
 var chai = require('chai');
 var randomstring = require('randomstring');
+var Bignum = require('../../../helpers/bignum.js');
 var swaggerHelper = require('../../../helpers/swagger');
 var WSServer = require('../../common/ws/server_master');
 var generateRandomActivePeer = require('../../fixtures/peers')
@@ -1426,9 +1427,9 @@ describe('transport', () => {
 						generatorPublicKey:
 							'968ba2fa993ea9dc27ed740da0daf49eddd740dbd7cb1cb4fc5db3a20baf341b',
 						numberOfTransactions: 15,
-						totalAmount: '150000000',
-						totalFee: '15000000',
-						reward: '50000000',
+						totalAmount: new Bignum('150000000'),
+						totalFee: new Bignum('15000000'),
+						reward: new Bignum('50000000'),
 						totalForged: '65000000',
 					};
 					__private.broadcaster = {
