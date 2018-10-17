@@ -23,6 +23,7 @@ const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
 const constants = global.constants;
+const UINT64_MAX = new Bignum('18446744073709551615');
 const __private = {};
 
 /**
@@ -192,11 +193,23 @@ class Transaction {
 			}
 
 			if (transaction.recipientId) {
-				let recipient = transaction.recipientId.slice(0, -1);
-				recipient = new Bignum(recipient).toBuffer({ size: 8 });
+				const recipientString = transaction.recipientId.slice(0, -1);
+				const recipientNumber = new Bignum(recipientString);
+
+				if (recipientString !== recipientNumber.toString(10)) {
+					throw 'Recipient address number does not have natural represenation'; // e.g. leading 0s
+				}
+
+				if (recipientNumber.greaterThan(UINT64_MAX)) {
+					throw 'Recipient address number exceeds uint64 range';
+				}
+
+				// For numbers exceeding the uint64 range, this produces 16 bytes.
+				// This behaviour must be preserved to verify legacy data
+				const recipientSerialized = recipientNumber.toBuffer({ size: 8 });
 
 				for (let i = 0; i < 8; i++) {
-					byteBuffer.writeByte(recipient[i] || 0);
+					byteBuffer.writeByte(recipientSerialized[i] || 0);
 				}
 			} else {
 				for (let i = 0; i < 8; i++) {
