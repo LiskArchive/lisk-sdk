@@ -137,7 +137,7 @@ describe('multisignature', () => {
 			];
 			return expect(
 				multisignature.calculateFee(transaction).isEqualTo('1000000000')
-			);
+			).to.be.true;
 		});
 
 		it('should return correct fee based on formula for 4 keysgroup', () => {
@@ -147,7 +147,7 @@ describe('multisignature', () => {
 
 			return expect(
 				multisignature.calculateFee(transaction).isEqualTo('2500000000')
-			);
+			).to.be.true;
 		});
 
 		it('should return correct fee based on formula for 8 keysgroup', () => {
@@ -157,7 +157,7 @@ describe('multisignature', () => {
 
 			return expect(
 				multisignature.calculateFee(transaction).isEqualTo('4500000000')
-			);
+			).to.be.true;
 		});
 
 		it('should return correct fee based on formula for 16 keysgroup', () => {
@@ -167,7 +167,7 @@ describe('multisignature', () => {
 
 			return expect(
 				multisignature.calculateFee(transaction).isEqualTo('8500000000')
-			);
+			).to.be.true;
 		});
 	});
 

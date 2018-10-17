@@ -139,8 +139,9 @@ describe('outTransfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should return FEES.SEND', () => {
-			return expect(outTransfer.calculateFee(transaction).isEqualTo(FEES.SEND));
+		it('should return constants.fees.send', () => {
+			return expect(outTransfer.calculateFee(transaction).isEqualTo(FEES.SEND))
+				.to.be.true;
 		});
 	});
 

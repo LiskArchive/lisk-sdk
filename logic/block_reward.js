@@ -82,7 +82,7 @@ class BlockReward {
 	 */
 	calcSupply(height) {
 		height = __private.parseHeight(height);
-		const supply = new Bignum(TOTAL_AMOUNT);
+		let supply = new Bignum(TOTAL_AMOUNT);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
@@ -123,7 +123,7 @@ class BlockReward {
 
 		for (let i = 0; i < rewards.length; i++) {
 			const reward = rewards[i];
-			supply.plus(new Bignum(reward[0]).multipliedBy(reward[1]));
+			supply = supply.plus(new Bignum(reward[0]).multipliedBy(reward[1]));
 		}
 
 		return supply;

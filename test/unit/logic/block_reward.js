@@ -496,7 +496,7 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 1; i < 1451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(TOTAL_AMOUNT));
+						expect(supply.isEqualTo(TOTAL_AMOUNT)).to.be.true;
 					}
 					done();
 				});
@@ -509,7 +509,8 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 1451520; i < 4451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[0])));
+						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[0]))).to.be
+							.true;
 						prev = supply;
 					}
 					done();
@@ -523,7 +524,8 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 4451520; i < 7451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[1])));
+						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[1]))).to.be
+							.true;
 						prev = supply;
 					}
 					done();
@@ -537,7 +539,8 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 7451520; i < 10451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[2])));
+						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[2]))).to.be
+							.true;
 						prev = supply;
 					}
 					done();
@@ -551,7 +554,8 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 10451520; i < 13451520; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[3])));
+						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[3]))).to.be
+							.true;
 						prev = supply;
 					}
 					done();
@@ -565,7 +569,8 @@ describe('BlockReward @slow', () => {
 
 					for (let i = 13451520; i < 13451520 + 100; i++) {
 						supply = blockReward.calcSupply(i);
-						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[4])));
+						expect(supply.isEqualTo(prev.plus(REWARDS.MILESTONES[4]))).to.be
+							.true;
 						prev = supply;
 					}
 					done();

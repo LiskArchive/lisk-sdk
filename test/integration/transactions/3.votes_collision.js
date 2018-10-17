@@ -21,7 +21,7 @@ const accountFixtures = require('../../fixtures/accounts');
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 0) - votes collision', () => {
-	var library;
+	let library;
 	localCommon.beforeBlock('system_3_votes_collision', lib => {
 		library = lib;
 	});
