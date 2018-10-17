@@ -26,7 +26,6 @@ var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 var Delegate = rewire('../../../logic/delegate.js');
 
 const { FEES } = global.constants;
-const exceptions = global.exceptions;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
@@ -625,21 +624,15 @@ describe('delegate', () => {
 
 	describe('checkConfirmed', () => {
 		var checkDuplicatesStub;
-		var transactionsExceptionsIndexOfStub;
 
 		beforeEach(done => {
 			checkDuplicatesStub = sinonSandbox
 				.stub(delegate, 'checkDuplicates')
 				.callsArg(3);
-			transactionsExceptionsIndexOfStub = sinonSandbox.spy(
-				exceptions.delegates,
-				'indexOf'
-			);
 			done();
 		});
 
 		afterEach(() => {
-			transactionsExceptionsIndexOfStub.restore();
 			return checkDuplicatesStub.restore();
 		});
 
@@ -693,52 +686,6 @@ describe('delegate', () => {
 				delegate.checkConfirmed(validTransaction, err => {
 					expect(err).equal(validDelegateRegistrationError);
 					done();
-				});
-			});
-
-			it('should check if transaction exception occurred', done => {
-				delegate.checkConfirmed(validTransaction, () => {
-					expect(transactionsExceptionsIndexOfStub.called).to.be.true;
-					done();
-				});
-			});
-
-			describe('when transaction is on exceptions list', () => {
-				var originalDelegatesExceptions;
-
-				beforeEach(done => {
-					originalDelegatesExceptions = exceptions.delegates.slice(0); // copy
-					exceptions.delegates = [validTransaction.id];
-					done();
-				});
-
-				afterEach(done => {
-					exceptions.delegates = originalDelegatesExceptions;
-					done();
-				});
-
-				it('should call callback with an error = null', done => {
-					delegate.checkConfirmed(validTransaction, err => {
-						expect(err).to.be.null;
-						done();
-					});
-				});
-
-				it('should call library.logger.debug with an error message', done => {
-					delegate.checkConfirmed(validTransaction, () => {
-						expect(loggerMock.debug.calledWith(validDelegateRegistrationError))
-							.to.be.true;
-						done();
-					});
-				});
-
-				it('should call library.logger.debug with stringified transaction', done => {
-					delegate.checkConfirmed(validTransaction, () => {
-						expect(
-							loggerMock.debug.calledWith(JSON.stringify(validTransaction))
-						).to.be.true;
-						done();
-					});
 				});
 			});
 		});

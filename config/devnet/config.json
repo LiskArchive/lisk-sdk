@@ -2,10 +2,12 @@
 	"fileLogLevel": "debug",
 	"cacheEnabled": true,
 	"consoleLogLevel": "info",
+	"logFileName": "logs/devnet/lisk.log",
 	"db": {
 		"database": "lisk_dev",
 		"min": 1,
-		"max": 10
+		"max": 10,
+		"logFileName": "logs/devnet/lisk_db.log"
 	},
 	"api": {
 		"access": {
