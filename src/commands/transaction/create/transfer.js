@@ -43,17 +43,6 @@ export default class TransferCommand extends BaseCommand {
 			},
 		} = this.parse(TransferCommand);
 
-		if (dataString && dataString.length > 0) {
-			if (dataString.length > elements.transaction.constants.BYTESIZES.DATA) {
-				throw new Error('Transaction data field cannot exceed 64 bytes.');
-			}
-			if (dataString !== dataString.toString('utf8')) {
-				throw new Error(
-					'Invalid encoding in transaction data. Data must be utf-8 encoded.',
-				);
-			}
-		}
-
 		elements.transaction.utils.validateAddress(address);
 		const normalizedAmount = elements.transaction.utils.convertLSKToBeddows(
 			amount,
