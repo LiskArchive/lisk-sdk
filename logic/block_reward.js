@@ -16,13 +16,12 @@
 
 const Bignum = require('../helpers/bignum.js');
 
-const constants = global.constants;
+const { REWARDS, TOTAL_AMOUNT } = global.constants;
 
 const __private = {};
 /**
  * Main BlockReward logic.
  * Initializes variables:
- * - milestones
  * - distance
  * - rewardOffset
  *
@@ -32,14 +31,11 @@ const __private = {};
  */
 class BlockReward {
 	constructor() {
-		// Array of milestones
-		this.milestones = constants.rewards.milestones;
-
 		// Distance between each milestone
-		this.distance = Math.floor(constants.rewards.distance);
+		this.distance = Math.floor(REWARDS.DISTANCE);
 
 		// Start rewards at block (n)
-		this.rewardOffset = Math.floor(constants.rewards.offset);
+		this.rewardOffset = Math.floor(REWARDS.OFFSET);
 	}
 
 	/**
@@ -53,10 +49,10 @@ class BlockReward {
 		height = __private.parseHeight(height);
 
 		const location = Math.trunc((height - this.rewardOffset) / this.distance);
-		const lastMile = this.milestones[this.milestones.length - 1];
+		const lastMile = REWARDS.MILESTONES[REWARDS.MILESTONES.length - 1];
 
-		if (location > this.milestones.length - 1) {
-			return this.milestones.lastIndexOf(lastMile);
+		if (location > REWARDS.MILESTONES.length - 1) {
+			return REWARDS.MILESTONES.lastIndexOf(lastMile);
 		}
 		return location;
 	}
@@ -74,7 +70,7 @@ class BlockReward {
 		if (height < this.rewardOffset) {
 			return new Bignum(0);
 		}
-		return new Bignum(this.milestones[this.calcMilestone(height)]);
+		return new Bignum(REWARDS.MILESTONES[this.calcMilestone(height)]);
 	}
 
 	/**
@@ -86,7 +82,7 @@ class BlockReward {
 	 */
 	calcSupply(height) {
 		height = __private.parseHeight(height);
-		let supply = new Bignum(constants.totalAmount);
+		let supply = new Bignum(TOTAL_AMOUNT);
 
 		if (height < this.rewardOffset) {
 			// Rewards not started yet
@@ -102,9 +98,9 @@ class BlockReward {
 		// Remove offset from height
 		height -= this.rewardOffset - 1;
 
-		for (let i = 0; i < this.milestones.length; i++) {
+		for (let i = 0; i < REWARDS.MILESTONES.length; i++) {
 			if (milestone >= i) {
-				multiplier = this.milestones[i];
+				multiplier = REWARDS.MILESTONES[i];
 
 				if (height < this.distance) {
 					// Measure this.distance thus far
@@ -114,7 +110,7 @@ class BlockReward {
 					height -= this.distance; // Deduct from total height
 
 					// After last milestone
-					if (height > 0 && i === this.milestones.length - 1) {
+					if (height > 0 && i === REWARDS.MILESTONES.length - 1) {
 						amount += height;
 					}
 				}
