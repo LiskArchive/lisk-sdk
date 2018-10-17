@@ -43,6 +43,22 @@ module.exports = {
 		'16394286522174687330', // 1318685 - Vote transaction
 		'12298100805070303137', // 3057955 - Delegate transaction
 	],
+	recipientLeadingZero: {
+		// transaction ID to address map
+		// select id, "recipientId" from trs where left("recipientId", 1) = '0' and "recipientId" != '0L' ORDER BY "rowId"
+		'12710869213547423905': '000123L',
+		'4595252596856199985': '000123L',
+		'4962453608347426857': '06076671634347365051L',
+		'14029161570134180080': '03333333333333333333L',
+		'11850546615651855419': '0123L',
+	},
+	recipientExceedingUint64: {
+		// transaction ID to address map
+		// select id, "recipientId" from (select id, "recipientId", CAST(left("recipientId", -1) AS numeric) AS address_number FROM trs ORDER BY "rowId") as converted_table WHERE address_number > 18446744073709551615
+		'393955899193580559': '19961131544040416558L',
+		'2595217996098726177': '20906309950204158498L',
+		'2851909953078287800': '221360928884514619392L',
+	},
 	precedent: {
 		disableDappTransfer: 5594491, // Disable Dapp Transfer at this block height
 	},

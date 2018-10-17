@@ -147,20 +147,22 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {boolean} skipSignature
 	 * @param {boolean} skipSecondSignature
-	 * @param {object} exceptions
+	 * @param {object} customExceptions Exceptions object overriding config
 	 * @throws {Error}
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
 	 */
-	getBytes(transaction, skipSignature, skipSecondSignature, exceptions) {
+	getBytes(transaction, skipSignature, skipSecondSignature, customExceptions) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		const recipientLeadingZeroExceptions = exceptions && exceptions.recipientLeadingZero
-			? exceptions.recipientLeadingZero : {};
-		const recipientExceedingUint64Exceptions = exceptions && exceptions.recipientExceedingUint64
-			? exceptions.recipientExceedingUint64 : {};
+		const localExceptions = customExceptions || exceptions;
+
+		const recipientLeadingZeroExceptions = localExceptions.recipientLeadingZero
+			? localExceptions.recipientLeadingZero : {};
+		const recipientExceedingUint64Exceptions = localExceptions.recipientExceedingUint64
+			? localExceptions.recipientExceedingUint64 : {};
 
 		let byteBuffer;
 
