@@ -14,7 +14,6 @@
  */
 import Mnemonic from 'bip39';
 import { expect } from 'chai';
-import { describe } from 'mocha';
 import {
 	countPassphraseWhitespaces,
 	countPassphraseWords,
