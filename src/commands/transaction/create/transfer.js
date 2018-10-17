@@ -19,10 +19,14 @@ import BaseCommand from '../../../base';
 import commonFlags from '../../../utils/flags';
 import getInputsFromSources from '../../../utils/input';
 
-const processInputs = (amount, address) => ({ passphrase, secondPassphrase }) =>
+const processInputs = (amount, address, data) => ({
+	passphrase,
+	secondPassphrase,
+}) =>
 	elements.transaction.transfer({
 		recipientId: address,
 		amount,
+		data,
 		passphrase,
 		secondPassphrase,
 	});
@@ -35,14 +39,31 @@ export default class TransferCommand extends BaseCommand {
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
+				data: dataString,
 			},
 		} = this.parse(TransferCommand);
+
+		if (dataString && dataString.length > 0) {
+			if (dataString.length > elements.transaction.constants.BYTESIZES.DATA) {
+				throw new Error('Transaction data field cannot exceed 64 bytes.');
+			}
+			if (dataString !== dataString.toString('utf8')) {
+				throw new Error(
+					'Invalid encoding in transaction data. Data must be utf-8 encoded.',
+				);
+			}
+		}
 
 		elements.transaction.utils.validateAddress(address);
 		const normalizedAmount = elements.transaction.utils.convertLSKToBeddows(
 			amount,
 		);
-		const processFunction = processInputs(normalizedAmount, address);
+
+		const processFunction = processInputs(
+			normalizedAmount,
+			address,
+			dataString,
+		);
 
 		if (noSignature) {
 			const result = processFunction({
@@ -87,6 +108,7 @@ TransferCommand.flags = {
 	passphrase: flagParser.string(commonFlags.passphrase),
 	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	'no-signature': flagParser.boolean(commonFlags.noSignature),
+	data: flagParser.string(commonFlags.data),
 };
 
 TransferCommand.description = `
