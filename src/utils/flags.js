@@ -13,12 +13,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-const dataDescription = `Specifies a source for providing a transaction data to the command. If a string is provided directly as an argument, this option will be ignored. The data must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
-	Examples:
-	- --data=file:/path/to/my/data.txt
-	- --data=stdin
-`;
-
 const messageDescription = `Specifies a source for providing a message to the command. If a string is provided directly as an argument, this option will be ignored. The message must be provided via an argument or via this option. Sources must be one of \`file\` or \`stdin\`. In the case of \`file\`, a corresponding identifier must also be provided.
 	Note: if both secret passphrase and message are passed via stdin, the passphrase must be the first line.
 	Examples:
@@ -72,10 +66,6 @@ const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
 const flags = {
-	data: {
-		char: 'd',
-		description: dataDescription,
-	},
 	message: {
 		char: 'm',
 		description: messageDescription,

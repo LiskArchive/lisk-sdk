@@ -19,6 +19,14 @@ import BaseCommand from '../../../base';
 import commonFlags from '../../../utils/flags';
 import getInputsFromSources from '../../../utils/input';
 
+const dataFlag = {
+	char: 'd',
+	description: `Specifies the data for the transaction type 0. Takes a string.
+	Examples:
+	- --data=customInformation
+`,
+};
+
 const processInputs = (amount, address, data) => ({
 	passphrase,
 	secondPassphrase,
@@ -97,7 +105,7 @@ TransferCommand.flags = {
 	passphrase: flagParser.string(commonFlags.passphrase),
 	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	'no-signature': flagParser.boolean(commonFlags.noSignature),
-	data: flagParser.string(commonFlags.data),
+	data: flagParser.string(dataFlag),
 };
 
 TransferCommand.description = `
