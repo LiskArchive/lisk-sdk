@@ -13,9 +13,8 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import { PartialTransaction } from './transaction_types';
+import { PartialTransaction } from './types/transactions';
 import { isValidInteger, prepareTransaction } from './utils';
-
 
 export interface DappOptions {
 	readonly category: number;
@@ -86,5 +85,10 @@ export const createDapp = (inputs: DappInputs) => {
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+	return prepareTransaction(
+		transaction,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	);
 };

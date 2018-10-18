@@ -41,4 +41,3 @@ export {
 	isValidInteger,
 	validateTransaction,
 } from './validation';
-export { wrapTransactionCreator } from './wrap_transaction_creator';

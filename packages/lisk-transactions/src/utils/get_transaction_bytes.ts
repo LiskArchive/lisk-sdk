@@ -29,7 +29,7 @@ import {
 	TransferAsset,
 	TransferTransaction,
 	VoteAsset,
-} from '../transaction_types';
+} from '../types/transactions';
 
 // tslint:disable-next-line no-any
 export const isValidValue = (value: any) =>

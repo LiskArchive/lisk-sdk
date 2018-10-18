@@ -14,7 +14,7 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from './constants';
-import { PartialTransaction } from './transaction_types';
+import { PartialTransaction } from './types/transactions';
 import {
 	prepareTransaction,
 	prependMinusToPublicKeys,
@@ -47,7 +47,13 @@ const validateInputs = ({ votes = [], unvotes = [] }: CastVoteInputs) => {
 
 export const castVotes = (inputs: CastVoteInputs) => {
 	validateInputs(inputs);
-	const { passphrase, secondPassphrase, timeOffset, votes = [], unvotes = [] } = inputs;
+	const {
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+		votes = [],
+		unvotes = [],
+	} = inputs;
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
 		: undefined;
@@ -68,6 +74,10 @@ export const castVotes = (inputs: CastVoteInputs) => {
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
-	
+	return prepareTransaction(
+		transaction,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	);
 };

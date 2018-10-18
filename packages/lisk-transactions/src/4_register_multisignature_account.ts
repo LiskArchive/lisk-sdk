@@ -19,7 +19,7 @@ import {
 	MULTISIGNATURE_MIN_KEYSGROUP,
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
-import { PartialTransaction } from './transaction_types';
+import { PartialTransaction } from './types/transactions';
 import {
 	isValidInteger,
 	prepareTransaction,
@@ -73,7 +73,14 @@ export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
 ) => {
 	validateInputs(inputs);
-	const { keysgroup, lifetime, minimum, passphrase, secondPassphrase, timeOffset } = inputs;
+	const {
+		keysgroup,
+		lifetime,
+		minimum,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	} = inputs;
 	const plusPrependedKeysgroup = prependPlusToPublicKeys(keysgroup);
 	const keygroupFees = plusPrependedKeysgroup.length + 1;
 
@@ -89,5 +96,10 @@ export const registerMultisignature = (
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+	return prepareTransaction(
+		transaction,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	);
 };

@@ -30,9 +30,7 @@ export interface BaseTransaction {
 	readonly type: number;
 }
 
-type Partial<T> = {
-	[P in keyof T]?: T[P];
-}
+type Partial<T> = { [P in keyof T]?: T[P] };
 
 export type PartialTransaction = Partial<BaseTransaction>;
 

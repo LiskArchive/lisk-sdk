@@ -13,7 +13,7 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '../transaction_types';
+import { BaseTransaction } from '../types/transactions';
 import { getTransactionBytes } from './get_transaction_bytes';
 
 export const getTransactionId = (transaction: BaseTransaction) => {

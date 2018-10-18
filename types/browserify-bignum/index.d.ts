@@ -1,75 +1,57 @@
+/* tslint:disable:only-arrow-functions member-access readonly-keyword no-any */
 /// <reference types="node" />
 
 declare module 'browserify-bignum' {
 	export = BigNum;
 	class BigNum {
+		/**
+		 * Create a new BigNum from a Buffer.
+		 *
+		 * The default options are: {endian: 'big', size: 1}.
+		 */
+		static fromBuffer(buffer: Buffer, options?: BigNum.BufferOptions): BigNum;
+
+		/** Return true if num is identified as a BigNum instance. Otherwise, return false. */
+		static isBigNum(num: any): boolean;
+
+		/**
+		 * Generate a probable prime of length bits.
+		 *
+		 * If safe is true, it will be a "safe" prime of the form p=2p'+1 where p' is also prime.
+		 */
+		static prime(bits: number, safe?: boolean): BigNum;
+
+
 		/** Create a new BigNum from n. */
 		constructor(n: number | BigNum);
 
 		/** Create a new BigNum from n and a base. */
 		constructor(n: string, base?: number);
 
-		/**
-		 * Create a new BigNum from a Buffer.
-		 * 
-		 * The default options are: {endian: 'big', size: 1}.
-		 */
-		static fromBuffer(buffer: Buffer, options?: BigNum.BufferOptions): BigNum;
-
-		/**
-		 * Generate a probable prime of length bits.
-		 * 
-		 * If safe is true, it will be a "safe" prime of the form p=2p'+1 where p' is also prime.
-		 */
-		static prime(bits: number, safe?: boolean): BigNum;
-
-		/** Return true if num is identified as a BigNum instance. Otherwise, return false. */
-		static isBigNum(num: any): boolean;
-
-		/** Print out the BigNum instance in the requested base as a string. Default: base 10 */
-		toString(base?: number): string;
-
-		/**
-		 * Turn a BigNum into a Number.
-		 * 
-		 * If the BigNum is too big you'll lose precision or you'll get ±Infinity.
-		 */
-		toNumber(): number;
-
-		/**
-		* Return a new Buffer with the data from the BigNum.
-		* 
-		* The default options are: {endian: 'big', size: 1}.
-		*/
-		toBuffer(options?: BigNum.BufferOptions): Buffer;
+		/** Return a new BigNum with the absolute value of the instance. */
+		abs(): BigNum;
 
 		/** Return a new BigNum containing the instance value plus n. */
 		add(n: BigNum.BigNumCompatible): BigNum;
 
-		/** Return a new BigNum containing the instance value plus n. */
-		plus(n: BigNum.BigNumCompatible): BigNum;
+		/** Return the number of bits used to represent the current BigNum. */
+		bitLength(): number;
 
-		/** Return a new BigNum containing the instance value minus n. */
-		sub(n: BigNum.BigNumCompatible): BigNum;
-
-		/** Return a new BigNum containing the instance value multiplied by n. */
-		mul(n: BigNum.BigNumCompatible): BigNum;
+		/**
+		 * Compare the instance value to n.
+		 *
+		 * Return a positive integer if > n, a negative integer if < n, and 0 if == n.
+		 */
+		cmp(n: BigNum.BigNumCompatible): number;
 
 		/** Return a new BigNum containing the instance value integrally divided by n. */
 		div(n: BigNum.BigNumCompatible): BigNum;
 
-		/** Return a new BigNum with the absolute value of the instance. */
-		abs(): BigNum;
+		/** Return a boolean: whether the instance value is equal to n (== n). */
+		eq(n: BigNum.BigNumCompatible): boolean;
 
-		/** Return a new BigNum with the negative of the instance value. */
-		neg(): BigNum;
-
-		/**
-		 * Compare the instance value to n.
-		 * 
-		 * Return a positive integer if > n, a negative integer if < n, and 0 if == n.
-		 */
-		cmp(n: BigNum.BigNumCompatible): number;
+		/** Return a boolean: whether the instance value is greater than or equal to n (>= n). */
+		ge(n: BigNum.BigNumCompatible): boolean;
 
 		/** Return a boolean: whether the instance value is greater than n (> n). */
 		gt(n: BigNum.BigNumCompatible): boolean;
@@ -77,11 +59,8 @@ declare module 'browserify-bignum' {
 		/** Return a boolean: whether the instance value is greater than n (>= n). */
 		gte(n: BigNum.BigNumCompatible): boolean;
 
-		/** Return a boolean: whether the instance value is greater than or equal to n (>= n). */
-		ge(n: BigNum.BigNumCompatible): boolean;
-
-		/** Return a boolean: whether the instance value is equal to n (== n). */
-		eq(n: BigNum.BigNumCompatible): boolean;
+		/** Return a boolean: whether the instance value is less than or equal to n (<= n). */
+		le(n: BigNum.BigNumCompatible): boolean;
 
 		/** Return a boolean: whether the instance value is less than n (< n). */
 		lt(n: BigNum.BigNumCompatible): boolean;
@@ -89,11 +68,17 @@ declare module 'browserify-bignum' {
 		/** Return a boolean: whether the instance value is less than or equal to n (<= n). */
 		lte(n: BigNum.BigNumCompatible): boolean;
 
-		/** Return a boolean: whether the instance value is less than or equal to n (<= n). */
-		le(n: BigNum.BigNumCompatible): boolean;
-
 		/** Return a new BigNum with the instance value modulo n. */
 		mod(n: BigNum.BigNumCompatible): BigNum;
+
+		/** Return a new BigNum containing the instance value multiplied by n. */
+		mul(n: BigNum.BigNumCompatible): BigNum;
+
+		/** Return a new BigNum with the negative of the instance value. */
+		neg(): BigNum;
+
+		/** Return a new BigNum containing the instance value plus n. */
+		plus(n: BigNum.BigNumCompatible): BigNum;
 
 		/** Return a new BigNum with the instance value raised to the nth power. */
 		pow(n: BigNum.BigNumCompatible): BigNum;
@@ -101,8 +86,28 @@ declare module 'browserify-bignum' {
 		/** Return a new BigNum with the instance value raised to the nth power modulo m. */
 		powm(n: BigNum.BigNumCompatible, m: BigNum.BigNumCompatible): BigNum;
 
-		/** Return the number of bits used to represent the current BigNum. */
-		bitLength(): number;
+		/** Return a new BigNum containing the instance value minus n. */
+		sub(n: BigNum.BigNumCompatible): BigNum;
+
+		/**
+		 * Return a new Buffer with the data from the BigNum.
+		 *
+		 * The default options are: {endian: 'big', size: 1}.
+		 */
+		toBuffer(options?: BigNum.BufferOptions): Buffer;
+
+		/**
+		 * Turn a BigNum into a Number.
+		 *
+		 * If the BigNum is too big you'll lose precision or you'll get ±Infinity.
+		 */
+		toNumber(): number;
+
+		/** Print out the BigNum instance in the requested base as a string. Default: base 10 */
+		toString(base?: number): string;
+
+		/** Print out the BigNum instance in the requested base as a string. Default: base 10 */
+		toString(base?: number): string;
 	}
 
 	namespace BigNum {
@@ -119,14 +124,14 @@ declare module 'browserify-bignum' {
 
 		/**
 		 * Turn a BigNum into a Number.
-		 * 
+		 *
 		 * If the BigNum is too big you'll lose precision or you'll get ±Infinity.
 		 */
 		export function toNumber(n: BigNumCompatible): number;
 
 		/**
 		 * Return a new Buffer with the data from the BigNum.
-		 * 
+		 *
 		 * The default options are: {endian: 'big', size: 1}.
 		 */
 		export function toBuffer(n: BigNumCompatible, options?: BufferOptions): Buffer;
@@ -154,7 +159,7 @@ declare module 'browserify-bignum' {
 
 		/**
 		 * Compare the instance value to n.
-		 * 
+		 *
 		 * Return a positive integer if > n, a negative integer if < n, and 0 if == n.
 		 */
 		export function cmp(left: BigNumCompatible, right: BigNumCompatible): number;

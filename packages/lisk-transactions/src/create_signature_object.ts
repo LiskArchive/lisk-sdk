@@ -13,7 +13,7 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from './transaction_types';
+import { BaseTransaction } from './types/transactions';
 import { multiSignTransaction, verifyTransaction } from './utils';
 
 export interface SignatureObject {
@@ -25,13 +25,13 @@ export interface SignatureObject {
 export const createSignatureObject = (
 	transaction: BaseTransaction,
 	passphrase: string,
-): SignatureObject  => {
+): SignatureObject => {
 	if (!verifyTransaction(transaction)) {
 		throw new Error('Invalid transaction.');
 	}
 
 	if (!transaction.id) {
-		throw new Error('Transaction ID is required to create a signature object.')
+		throw new Error('Transaction ID is required to create a signature object.');
 	}
 
 	const { publicKey } = cryptography.getPrivateAndPublicKeyFromPassphrase(

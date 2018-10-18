@@ -14,7 +14,7 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
-import { PartialTransaction } from './transaction_types';
+import { PartialTransaction } from './types/transactions';
 import { prepareTransaction } from './utils';
 
 export interface SecondPassphraseInputs {
@@ -44,5 +44,10 @@ export const registerSecondPassphrase = (inputs: SecondPassphraseInputs) => {
 		},
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+	return prepareTransaction(
+		transaction,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	);
 };

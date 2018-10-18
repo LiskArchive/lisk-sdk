@@ -14,7 +14,11 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, TRANSFER_FEE } from './constants';
-import { BaseTransaction, PartialTransaction, TransferAsset } from './transaction_types';
+import {
+	BaseTransaction,
+	PartialTransaction,
+	TransferAsset,
+} from './types/transactions';
 import {
 	prepareTransaction,
 	validateAddress,
@@ -81,13 +85,19 @@ const validateInputs = ({
 		if (data.length > BYTESIZES.DATA) {
 			throw new Error('Transaction data field cannot exceed 64 bytes.');
 		}
-		
 	}
 };
 
 export const transfer = (inputs: TransferInputs): BaseTransaction => {
 	validateInputs(inputs);
-	const { data, amount, recipientPublicKey, passphrase, secondPassphrase, timeOffset } = inputs;
+	const {
+		data,
+		amount,
+		recipientPublicKey,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	} = inputs;
 	const recipientId = recipientPublicKey
 		? inputs.recipientId
 		: cryptography.getAddressFromPublicKey(recipientPublicKey);
@@ -101,5 +111,10 @@ export const transfer = (inputs: TransferInputs): BaseTransaction => {
 		asset: createAsset(data),
 	};
 
-	return prepareTransaction(transaction, passphrase, secondPassphrase, timeOffset);
+	return prepareTransaction(
+		transaction,
+		passphrase,
+		secondPassphrase,
+		timeOffset,
+	);
 };

@@ -13,7 +13,7 @@
  *
  */
 import { ValidateFunction } from 'ajv';
-import { PartialTransaction } from '../../transaction_types';
+import { PartialTransaction } from '../../types/transactions';
 import * as schemas from './schema';
 import { validator } from './validator';
 
