@@ -129,7 +129,7 @@ __private.list = function(filter, cb) {
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
 		data:
-			'(SELECT data FROM transfer WHERE transfer."transactionId" = trs_list."t_id") = DECODE(${additionalData},\'hex\')',
+			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data = DECODE(${additionalData},\'hex\'))',
 		limit: null,
 		offset: null,
 		sort: null,
