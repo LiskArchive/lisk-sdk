@@ -25,7 +25,7 @@ const randomUtil = require('../common/utils/random');
 const queriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
-const { REWARDS } = global.constants;
+const { REWARDS, ACTIVE_DELEGATES } = global.constants;
 
 describe('rounds', () => {
 	let library;
@@ -297,10 +297,10 @@ describe('rounds', () => {
 		);
 
 		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
-			.dividedBy(slots.delegates)
+			.dividedBy(ACTIVE_DELEGATES)
 			.integerValue(Bignum.ROUND_FLOOR);
 		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.multipliedBy(slots.delegates)
+			feesPerDelegate.multipliedBy(ACTIVE_DELEGATES)
 		);
 
 		__testContext.debug(
@@ -366,7 +366,7 @@ describe('rounds', () => {
 							tick.isRoundChanged = tick.before.round !== tick.after.round;
 							// Detect last block of round
 							tick.isLastBlockOfRound =
-								tick.after.block.height % slots.delegates === 0;
+								tick.after.block.height % ACTIVE_DELEGATES === 0;
 
 							return Promise.join(
 								getMemAccounts(),
@@ -669,7 +669,7 @@ describe('rounds', () => {
 		describe('after round 1 is finished', () => {
 			it('last block height should equal active delegates count', () => {
 				const lastBlock = library.modules.blocks.lastBlock.get();
-				return expect(lastBlock.height).to.be.equal(slots.delegates);
+				return expect(lastBlock.height).to.be.equal(ACTIVE_DELEGATES);
 			});
 
 			it('should calculate rewards for round 1 correctly - all should be the same (calculated, rounds_rewards, mem_accounts)', () => {

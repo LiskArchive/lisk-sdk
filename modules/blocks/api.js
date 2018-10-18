@@ -106,6 +106,16 @@ __private.list = function(filter, cb) {
 		params.height = filter.height;
 	}
 
+	if (filter.fromTimestamp >= 0) {
+		where.push('"b_timestamp" >= ${fromTimestamp}');
+		params.fromTimestamp = filter.fromTimestamp;
+	}
+
+	if (filter.toTimestamp >= 1) {
+		where.push('"b_timestamp" <= ${toTimestamp}');
+		params.toTimestamp = filter.toTimestamp;
+	}
+
 	// FIXME: Useless condition
 	if (filter.totalAmount >= 0) {
 		where.push('"b_totalAmount" = ${totalAmount}');

@@ -17,7 +17,8 @@
 
 const path = require('path');
 const QueryFile = require('pg-promise').QueryFile;
-const slots = require('../../../../helpers/slots');
+
+const { ACTIVE_DELEGATES } = global.constants;
 
 let self;
 
@@ -61,9 +62,7 @@ class Queries {
 
 	getDelegatesOrderedByVote() {
 		return self.db.query(
-			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${
-				slots.delegates
-			}`
+			`SELECT "publicKey", vote FROM mem_accounts ORDER BY vote DESC, "publicKey" ASC LIMIT ${ACTIVE_DELEGATES}`
 		);
 	}
 

@@ -33,7 +33,7 @@ var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const blockVersion = require('../../../../logic/block_version.js');
 
-const { BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
+const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
 
 var previousBlock = {
@@ -165,7 +165,7 @@ function getValidKeypairForSlot(library, slot) {
 
 	return generateDelegateListPromisified(round, null)
 		.then(list => {
-			var delegatePublicKey = list[slot % slots.delegates];
+			var delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 			var passphrase = _.find(genesisDelegates, delegate => {
 				return delegate.publicKey === delegatePublicKey;
 			}).passphrase;

@@ -15,10 +15,9 @@
 'use strict';
 
 var Bignum = require('./bignum');
-var slots = require('./slots');
 
 var exceptions = global.exceptions;
-
+const { ACTIVE_DELEGATES } = global.constants;
 /**
  * Sets round fees and rewards.
  *
@@ -63,10 +62,10 @@ function RoundChanges(scope) {
  */
 RoundChanges.prototype.at = function(index) {
 	var fees = new Bignum(this.roundFees.toPrecision(15))
-		.dividedBy(slots.delegates)
+		.dividedBy(ACTIVE_DELEGATES)
 		.integerValue(Bignum.ROUND_FLOOR);
 	var feesRemaining = new Bignum(this.roundFees.toPrecision(15)).minus(
-		fees.multipliedBy(slots.delegates)
+		fees.multipliedBy(ACTIVE_DELEGATES)
 	);
 	var rewards =
 		new Bignum(this.roundRewards[index].toPrecision(15)).integerValue(

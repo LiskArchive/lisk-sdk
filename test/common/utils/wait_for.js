@@ -20,6 +20,8 @@ var Promise = require('bluebird');
 var slots = require('../../../helpers/slots');
 var apiHelpers = require('../helpers/api');
 
+const { ACTIVE_DELEGATES } = global.constants;
+
 /**
  * @param {function} cb
  * @param {number} [retries=10] retries
@@ -50,8 +52,8 @@ function blockchainReady(cb, retries, timeout, baseUrl, doNotLogRetries) {
 						__testContext.debug(
 							`Retrying ${totalRetries -
 								retries} time loading blockchain in next ${timeout /
-									1000.0} seconds...`
-								);
+								1000.0} seconds...`
+						);
 					}
 					return setTimeout(() => {
 						fetchBlockchainStatus();
@@ -81,7 +83,9 @@ function blockchainReady(cb, retries, timeout, baseUrl, doNotLogRetries) {
 }
 
 function nodeStatus(cb, baseUrl) {
-	var request = popsicle.get(`${baseUrl || __testContext.baseUrl}/api/node/status`);
+	var request = popsicle.get(
+		`${baseUrl || __testContext.baseUrl}/api/node/status`
+	);
 
 	request.use(popsicle.plugins.parse(['json']));
 
@@ -116,7 +120,7 @@ function newRound(cb, baseUrl) {
 			return cb(err);
 		}
 		var nextRound = slots.calcRound(height);
-		var blocksToWait = nextRound * slots.delegates - height;
+		var blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
 		newBlock(height, blocksToWait, cb);
 	}, baseUrl);
@@ -142,7 +146,9 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 
 	async.doWhilst(
 		cb => {
-			var request = popsicle.get(`${baseUrl || __testContext.baseUrl}/api/node/status`);
+			var request = popsicle.get(
+				`${baseUrl || __testContext.baseUrl}/api/node/status`
+			);
 
 			request.use(popsicle.plugins.parse(['json']));
 
