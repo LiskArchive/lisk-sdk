@@ -656,7 +656,7 @@ describe('rounds', () => {
 				performVotesSnapshot_stub.restore();
 			}
 
-			describe('when (block.height+1) % slots.delegates === 0', () => {
+			describe('when (block.height+1) % ACTIVE_DELEGATES === 0', () => {
 				describe('when queries are successful', () => {
 					var res;
 
@@ -947,7 +947,7 @@ describe('rounds', () => {
 				});
 			});
 
-			describe('when (block.height+1) % slots.delegates !== 0', () => {
+			describe('when (block.height+1) % ACTIVE_DELEGATES !== 0', () => {
 				before(done => {
 					block = { height: 101 };
 					rounds.tick(block, err => {

@@ -2568,7 +2568,7 @@ definitions:
         description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
-        example: 0
+        example: 1081560729258
         description: |
           The current unconfirmed balance of the account in Beddows.
           Includes unconfirmed transactions.
@@ -2611,7 +2611,7 @@ definitions:
         description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
-        example: 0
+        example: 1081560729258
         description: |
           The current unconfirmed balance of the account in Beddows.
           Includes unconfirmed transactions.

@@ -43,7 +43,6 @@ function getEpochTime(time) {
 
 module.exports = {
 	interval: 10,
-	delegates: ACTIVE_DELEGATES,
 
 	/**
 	 * Description of the function.
@@ -117,7 +116,7 @@ module.exports = {
 	 * @todo Add description for the function and the params
 	 */
 	getLastSlot(nextSlot) {
-		return nextSlot + this.delegates;
+		return nextSlot + ACTIVE_DELEGATES;
 	},
 
 	/**
@@ -140,7 +139,7 @@ module.exports = {
 	 *
 	 */
 	calcRound(height) {
-		return Math.ceil(height / this.delegates);
+		return Math.ceil(height / ACTIVE_DELEGATES);
 	},
 
 	/**
@@ -150,7 +149,7 @@ module.exports = {
 	 * @return {number}
 	 */
 	calcRoundStartHeight(round) {
-		return (round < 1 ? 0 : round - 1) * this.delegates + 1;
+		return (round < 1 ? 0 : round - 1) * ACTIVE_DELEGATES + 1;
 	},
 
 	/**
@@ -160,6 +159,6 @@ module.exports = {
 	 * @return {number}
 	 */
 	calcRoundEndHeight(round) {
-		return (round < 1 ? 1 : round) * this.delegates;
+		return (round < 1 ? 1 : round) * ACTIVE_DELEGATES;
 	},
 };
