@@ -123,7 +123,7 @@ class BlockReward {
 
 		for (let i = 0; i < rewards.length; i++) {
 			const reward = rewards[i];
-			supply = supply.plus(new Bignum(reward[0]).mul(reward[1]));
+			supply = supply.plus(new Bignum(reward[0]).multipliedBy(reward[1]));
 		}
 
 		return supply;

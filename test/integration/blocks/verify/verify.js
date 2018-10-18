@@ -918,9 +918,9 @@ describe('blocks/verify', () => {
 					expect(block1.version).to.equal(0);
 					expect(block1.timestamp).to.equal(time);
 					expect(block1.numberOfTransactions).to.equal(0);
-					expect(block1.reward.equals('0')).to.be.true;
-					expect(block1.totalFee.equals('0')).to.be.true;
-					expect(block1.totalAmount.equals('0')).to.be.true;
+					expect(block1.reward.isEqualTo('0')).to.be.true;
+					expect(block1.totalFee.isEqualTo('0')).to.be.true;
+					expect(block1.totalAmount.isEqualTo('0')).to.be.true;
 					expect(block1.payloadLength).to.equal(0);
 					expect(block1.transactions).to.deep.eql([]);
 					expect(block1.previousBlock).to.equal(genesisBlock.id);
@@ -974,9 +974,9 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.version).to.equal(0);
 			expect(invalidBlock2.timestamp).to.equal(33772882);
 			expect(invalidBlock2.numberOfTransactions).to.equal(0);
-			expect(invalidBlock2.reward.equals('0')).to.be.true;
-			expect(invalidBlock2.totalFee.equals('0')).to.be.true;
-			expect(invalidBlock2.totalAmount.equals('0')).to.be.true;
+			expect(invalidBlock2.reward.isEqualTo('0')).to.be.true;
+			expect(invalidBlock2.totalFee.isEqualTo('0')).to.be.true;
+			expect(invalidBlock2.totalAmount.isEqualTo('0')).to.be.true;
 			expect(invalidBlock2.payloadLength).to.equal(0);
 			expect(invalidBlock2.transactions).to.deep.eql([]);
 			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
@@ -1077,9 +1077,10 @@ describe('blocks/verify', () => {
 							expect(block2.version).to.equal(0);
 							expect(block2.timestamp).to.equal(time);
 							expect(block2.numberOfTransactions).to.equal(1);
-							expect(block2.reward.equals('0')).to.be.true;
-							expect(block2.totalFee.equals('0')).to.be.true;
-							expect(block2.totalAmount.equals('10000000000000000')).to.be.true;
+							expect(block2.reward.isEqualTo('0')).to.be.true;
+							expect(block2.totalFee.isEqualTo('0')).to.be.true;
+							expect(block2.totalAmount.isEqualTo('10000000000000000')).to.be
+								.true;
 							expect(block2.payloadLength).to.equal(117);
 							expect(block2.transactions).to.deep.eql([
 								genesisBlock.transactions[0],
@@ -1095,7 +1096,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
 					const transaction = lisk.transaction.transfer({
-						amount: new Bignum(NORMALIZER).mul(1000),
+						amount: new Bignum(NORMALIZER).multipliedBy(1000),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});
@@ -1185,9 +1186,9 @@ describe('blocks/verify', () => {
 					expect(block2.version).to.equal(0);
 					expect(block2.timestamp).to.equal(time);
 					expect(block2.numberOfTransactions).to.equal(0);
-					expect(block2.reward.equals('0')).to.be.true;
-					expect(block2.totalFee.equals('0')).to.be.true;
-					expect(block2.totalAmount.equals('0')).to.be.true;
+					expect(block2.reward.isEqualTo('0')).to.be.true;
+					expect(block2.totalFee.isEqualTo('0')).to.be.true;
+					expect(block2.totalAmount.isEqualTo('0')).to.be.true;
 					expect(block2.payloadLength).to.equal(0);
 					expect(block2.transactions).to.deep.equal([]);
 					expect(block2.previousBlock).to.equal(genesisBlock.id);

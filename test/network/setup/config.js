@@ -97,9 +97,11 @@ const config = {
 					JSON.stringify(configuration, null, 4)
 				);
 			} catch (ex) {
-				throw new Error(`Failed to write PM2 config for node ${
-					index
-				} to file system because of exception: ${ex.message}`);
+				throw new Error(
+					`Failed to write PM2 config for node ${index} to file system because of exception: ${
+						ex.message
+					}`
+				);
 			}
 			pm2Config.apps.push({
 				exec_mode: 'fork',
@@ -118,10 +120,7 @@ const config = {
 
 		let combinedPM2Config = null;
 		try {
-			combinedPM2Config = configurations.reduce(
-				configReducer,
-				{ apps: [] }
-			);
+			combinedPM2Config = configurations.reduce(configReducer, { apps: [] });
 		} catch (ex) {
 			return callback(ex);
 		}

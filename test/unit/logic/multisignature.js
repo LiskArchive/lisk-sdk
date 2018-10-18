@@ -136,7 +136,7 @@ describe('multisignature', () => {
 				`${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`,
 			];
 			return expect(
-				multisignature.calculateFee(transaction).equals('1000000000')
+				multisignature.calculateFee(transaction).isEqualTo('1000000000')
 			).to.be.true;
 		});
 
@@ -146,7 +146,7 @@ describe('multisignature', () => {
 			);
 
 			return expect(
-				multisignature.calculateFee(transaction).equals('2500000000')
+				multisignature.calculateFee(transaction).isEqualTo('2500000000')
 			).to.be.true;
 		});
 
@@ -156,7 +156,7 @@ describe('multisignature', () => {
 			);
 
 			return expect(
-				multisignature.calculateFee(transaction).equals('4500000000')
+				multisignature.calculateFee(transaction).isEqualTo('4500000000')
 			).to.be.true;
 		});
 
@@ -166,7 +166,7 @@ describe('multisignature', () => {
 			);
 
 			return expect(
-				multisignature.calculateFee(transaction).equals('8500000000')
+				multisignature.calculateFee(transaction).isEqualTo('8500000000')
 			).to.be.true;
 		});
 	});

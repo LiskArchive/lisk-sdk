@@ -298,9 +298,9 @@ describe('rounds', () => {
 
 		const feesPerDelegate = new Bignum(feesTotal.toPrecision(15))
 			.dividedBy(ACTIVE_DELEGATES)
-			.floor();
+			.integerValue(Bignum.ROUND_FLOOR);
 		const feesRemaining = new Bignum(feesTotal.toPrecision(15)).minus(
-			feesPerDelegate.times(ACTIVE_DELEGATES)
+			feesPerDelegate.multipliedBy(ACTIVE_DELEGATES)
 		);
 
 		__testContext.debug(
@@ -1166,8 +1166,8 @@ describe('rounds', () => {
 
 				it('block just before rewards start should have reward = 0', () => {
 					const lastBlock = library.modules.blocks.lastBlock.get();
-					return expect(lastBlock.reward.equals(expectedRewardsPerBlock)).to.be
-						.true;
+					return expect(lastBlock.reward.isEqualTo(expectedRewardsPerBlock)).to
+						.be.true;
 				});
 			});
 
@@ -1210,8 +1210,9 @@ describe('rounds', () => {
 						describe('rewards check', () => {
 							it('all blocks from now until round end should have proper rewards (5 LSK)', () => {
 								const lastBlock = library.modules.blocks.lastBlock.get();
-								return expect(lastBlock.reward.equals(expectedRewardsPerBlock))
-									.to.be.true;
+								return expect(
+									lastBlock.reward.isEqualTo(expectedRewardsPerBlock)
+								).to.be.true;
 							});
 						});
 

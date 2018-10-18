@@ -147,7 +147,7 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 		[
 			waterCb => {
 				const amount = new Bignum(transaction.amount);
-				if (amount.greaterThan(0)) {
+				if (amount.isGreaterThan(0)) {
 					return setImmediate(waterCb, 'Invalid transaction amount');
 				}
 

@@ -144,7 +144,7 @@ describe('transfer', () => {
 	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', () => {
 			return expect(
-				transfer.calculateFee(validTransaction).equals(new Bignum(FEES.SEND))
+				transfer.calculateFee(validTransaction).isEqualTo(new Bignum(FEES.SEND))
 			).to.be.true;
 		});
 
@@ -156,7 +156,7 @@ describe('transfer', () => {
 			return expect(
 				transfer.calculateFee
 					.call(transactionLogic, transaction)
-					.equals(FEES.SEND)
+					.isEqualTo(FEES.SEND)
 			).to.be.true;
 		});
 	});
@@ -269,7 +269,9 @@ describe('transfer', () => {
 										accountAfter.balance.toString()
 									);
 									expect(
-										balanceBefore.plus(amount).equals(balanceAfter.toString())
+										balanceBefore
+											.plus(amount)
+											.isEqualTo(balanceAfter.toString())
 									).to.be.true;
 									undoConfirmedTransaction(validTransaction, validSender, done);
 								}
@@ -326,7 +328,9 @@ describe('transfer', () => {
 
 									expect(err).to.not.exist;
 									expect(
-										balanceAfter.plus(amount).equals(balanceBefore.toString())
+										balanceAfter
+											.plus(amount)
+											.isEqualTo(balanceBefore.toString())
 									).to.be.true;
 									applyConfirmedTransaction(
 										validTransaction,

@@ -295,7 +295,8 @@ var liskFormats = {
 		const { TOTAL_AMOUNT } = global.constants;
 		if (value instanceof Bignum) {
 			return (
-				value.greaterThanOrEqualTo(0) && value.lessThanOrEqualTo(TOTAL_AMOUNT)
+				value.isGreaterThanOrEqualTo(0) &&
+				value.isLessThanOrEqualTo(TOTAL_AMOUNT)
 			);
 		}
 		return false;

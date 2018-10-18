@@ -404,8 +404,9 @@ class Account {
 		const totalSupplyBignum = new Bignum(totalSupply);
 		const approvalBignum = votersBalanceBignum
 			.dividedBy(totalSupplyBignum)
-			.times(100)
-			.round(2);
+			.multipliedBy(100)
+			.decimalPlaces(2);
+
 		return !approvalBignum.isNaN() ? approvalBignum.toNumber() : 0;
 	}
 
@@ -422,8 +423,9 @@ class Account {
 		const missedBlocksBignum = new Bignum(missedBlocks || 0);
 		const percent = producedBlocksBignum
 			.dividedBy(producedBlocksBignum.plus(missedBlocksBignum))
-			.times(100)
-			.round(2);
+			.multipliedBy(100)
+			.decimalPlaces(2);
+
 		return !percent.isNaN() ? percent.toNumber() : 0;
 	}
 
@@ -508,25 +510,18 @@ class Account {
 						}
 
 						// If updated value is positive number
-						if (value.greaterThan(0)) {
+						if (value.isGreaterThan(0)) {
 							promises.push(
-								dbTx.accounts.increment(
-									address,
-									updatedField,
-									value.floor().toString()
-								)
+								dbTx.accounts.increment(address, updatedField, value.toString())
 							);
 
 							// If updated value is negative number
-						} else if (value.lessThan(0)) {
+						} else if (value.isLessThan(0)) {
 							promises.push(
 								dbTx.accounts.decrement(
 									address,
 									updatedField,
-									value
-										.abs()
-										.floor()
-										.toString()
+									value.abs().toString()
 								)
 							);
 						}

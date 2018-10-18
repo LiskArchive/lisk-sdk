@@ -1076,7 +1076,7 @@ describe('transaction', () => {
 									);
 
 									expect(
-										balanceBefore.plus(amount.mul(2)).toString()
+										balanceBefore.plus(amount.multipliedBy(2)).toString()
 									).to.not.equal(balanceAfter.toString());
 									expect(balanceBefore.toString()).to.equal(
 										balanceAfter.toString()
@@ -1091,26 +1091,33 @@ describe('transaction', () => {
 		});
 
 		it('should be okay with valid params', done => {
+			var transaction = validTransaction;
+			var amount = new Bignum(transaction.amount.toString()).plus(
+				transaction.fee.toString()
+			);
+
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
 				(err, accountBefore) => {
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undoConfirmed(
-						validTransaction,
+						transaction,
 						dummyBlock,
 						sender,
 						() => {
 							accountModule.getAccount(
-								{ publicKey: validTransaction.senderPublicKey },
+								{ publicKey: transaction.senderPublicKey },
 								(err, accountAfter) => {
 									expect(err).to.not.exist;
 									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
 
-									expect(balanceAfter.equals(balanceBefore));
-									applyConfirmedTransaction(validTransaction, sender, done);
+									expect(balanceBefore.plus(amount).toString()).to.equal(
+										balanceAfter.toString()
+									);
+									applyConfirmedTransaction(transaction, sender, done);
 								}
 							);
 						}
