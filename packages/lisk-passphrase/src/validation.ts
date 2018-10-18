@@ -61,17 +61,17 @@ export const locateUppercaseCharacters = (
 		.split('')
 		.reduce(
 			(
-				passphraseArray: ReadonlyArray<number>,
-				element: string,
+				upperCaseIndexes: ReadonlyArray<number>,
+				character: string,
 				index: number,
 			) => {
 				if (
-					element.match(passphraseRegularExpression.uppercaseRegExp) !== null
+					character.match(passphraseRegularExpression.uppercaseRegExp) !== null
 				) {
-					return [...passphraseArray, index];
+					return [...upperCaseIndexes, index];
 				}
 
-				return passphraseArray;
+				return upperCaseIndexes;
 			},
 			[],
 		);
@@ -172,25 +172,25 @@ export const getPassphraseValidationErrors = (
 	return errors.reduce(
 		(errorArray: ReadonlyArray<PassphraseError>, error: PassphraseError) => {
 			if (
-				error.code === 'INVALID_AMOUNT_OF_WORDS' &&
+				error.code === passphraseWordError.code &&
 				wordsInPassphrase !== expectedWords
 			) {
 				return [...errorArray, error];
 			}
 			if (
-				error.code === 'INVALID_AMOUNT_OF_WHITESPACES' &&
+				error.code === whiteSpaceError.code &&
 				whiteSpacesInPassphrase > expectedWhitespaces
 			) {
 				return [...errorArray, error];
 			}
 			if (
-				error.code === 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER' &&
+				error.code === uppercaseCharacterError.code &&
 				uppercaseCharacterInPassphrase !== expectedUppercaseCharacterCount
 			) {
 				return [...errorArray, error];
 			}
 			if (
-				error.code === 'INVALID_MNEMONIC' &&
+				error.code === validationError.code &&
 				!Mnemonic.validateMnemonic(passphrase, finalWordList)
 			) {
 				return [...errorArray, error];
