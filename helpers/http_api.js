@@ -164,6 +164,7 @@ var middleware = {
 			'recipientId',
 			'senderId',
 			'search',
+			'data',
 		];
 
 		return queryParser({
