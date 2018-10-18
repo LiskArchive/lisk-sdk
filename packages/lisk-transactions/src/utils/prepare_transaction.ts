@@ -13,7 +13,7 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction, PartialTransaction } from '../transaction_types';
+import { BaseTransaction, PartialTransaction } from '../types/transactions';
 import { getTransactionId } from './get_transaction_id';
 import { signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';
@@ -22,12 +22,14 @@ import { validateTransaction } from './validation/validate_transaction';
 const secondSignTransaction = (
 	transactionObject: BaseTransaction,
 	secondPassphrase?: string,
-) => ({
+): BaseTransaction => ({
 	...transactionObject,
 	signSignature: signTransaction(transactionObject, secondPassphrase),
 });
 
-const validTransaction = (partial: PartialTransaction): partial is BaseTransaction => {
+const validTransaction = (
+	partial: PartialTransaction,
+): partial is BaseTransaction => {
 	const { valid } = validateTransaction(partial);
 
 	return !!valid;

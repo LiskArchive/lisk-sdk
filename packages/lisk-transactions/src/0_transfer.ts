@@ -49,7 +49,7 @@ const validateInputs = ({
 	recipientId,
 	recipientPublicKey,
 	data,
-}: TransferInputs) => {
+}: TransferInputs): void => {
 	if (!validateTransferAmount(amount)) {
 		throw new Error('Amount must be a valid number in string format.');
 	}

@@ -13,7 +13,7 @@
  *
  */
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
-import { PartialTransaction } from './types/transactions';
+import { BaseTransaction, PartialTransaction } from './types/transactions';
 import { prepareTransaction } from './utils';
 
 export interface RegisterDelegateInputs {
@@ -23,7 +23,7 @@ export interface RegisterDelegateInputs {
 	readonly username: string;
 }
 
-const validateInputs = ({ username }: RegisterDelegateInputs) => {
+const validateInputs = ({ username }: { readonly username: string }): void => {
 	if (!username || typeof username !== 'string') {
 		throw new Error('Please provide a username. Expected string.');
 	}
@@ -35,7 +35,9 @@ const validateInputs = ({ username }: RegisterDelegateInputs) => {
 	}
 };
 
-export const registerDelegate = (inputs: RegisterDelegateInputs) => {
+export const registerDelegate = (
+	inputs: RegisterDelegateInputs,
+): BaseTransaction => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, timeOffset, username } = inputs;
 

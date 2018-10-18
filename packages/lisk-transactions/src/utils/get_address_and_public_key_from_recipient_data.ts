@@ -14,20 +14,13 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 
-interface RecipientDataInputs {
-	readonly recipientId: string;
-	readonly recipientPublicKey?: string;
-}
-
-interface AddressAndPublicKeyResult {
-	readonly address: string;
-	readonly publicKey?: string;
-}
-
 export const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,
-}: RecipientDataInputs): AddressAndPublicKeyResult => {
+}: {
+	readonly recipientId: string;
+	readonly recipientPublicKey?: string;
+}): { readonly address: string; readonly publicKey?: string } => {
 	if (recipientId && recipientPublicKey) {
 		const addressFromPublicKey = cryptography.getAddressFromPublicKey(
 			recipientPublicKey,

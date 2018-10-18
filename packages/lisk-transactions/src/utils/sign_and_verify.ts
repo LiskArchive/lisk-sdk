@@ -19,7 +19,7 @@ import { getTransactionHash } from './get_transaction_hash';
 export const signTransaction = (
 	transaction: BaseTransaction,
 	passphrase?: string,
-) => {
+): string => {
 	const transactionHash = getTransactionHash(transaction);
 
 	return cryptography.signData(transactionHash, passphrase);
@@ -28,7 +28,7 @@ export const signTransaction = (
 export const multiSignTransaction = (
 	transaction: BaseTransaction,
 	passphrase: string,
-) => {
+): string => {
 	const { signature, signSignature, ...transactionToSign } = transaction;
 
 	const transactionHash = getTransactionHash(transactionToSign);

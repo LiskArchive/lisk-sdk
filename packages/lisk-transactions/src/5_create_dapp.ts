@@ -13,7 +13,7 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import { PartialTransaction } from './types/transactions';
+import { BaseTransaction, PartialTransaction } from './types/transactions';
 import { isValidInteger, prepareTransaction } from './utils';
 
 export interface DappOptions {
@@ -33,7 +33,7 @@ export interface DappInputs {
 	readonly timeOffset?: number;
 }
 
-const validateInputs = ({ options }: DappInputs) => {
+const validateInputs = ({ options }: DappInputs): void => {
 	if (typeof options !== 'object') {
 		throw new Error('Options must be an object.');
 	}
@@ -65,7 +65,7 @@ const validateInputs = ({ options }: DappInputs) => {
 	}
 };
 
-export const createDapp = (inputs: DappInputs) => {
+export const createDapp = (inputs: DappInputs): BaseTransaction => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, timeOffset, options } = inputs;
 

@@ -32,14 +32,14 @@ import {
 } from '../types/transactions';
 
 // tslint:disable-next-line no-any
-export const isValidValue = (value: any) =>
+export const isValidValue = (value: any): boolean =>
 	![undefined, false, NaN].includes(value);
 
 export const checkRequiredFields = (
 	requiredFields: ReadonlyArray<string>,
 	// tslint:disable-next-line no-any
 	data: { readonly [key: string]: any },
-) => {
+): boolean => {
 	const dataFields = Object.keys(data);
 	requiredFields.forEach(parameter => {
 		if (!dataFields.includes(parameter) || !isValidValue(data[parameter])) {
@@ -50,7 +50,9 @@ export const checkRequiredFields = (
 	return true;
 };
 
-export const getAssetDataForTransferTransaction = (asset: TransactionAsset) => {
+export const getAssetDataForTransferTransaction = (
+	asset: TransactionAsset,
+): Buffer => {
 	const { data } = asset as TransferAsset;
 
 	return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
@@ -68,7 +70,7 @@ export const getAssetDataForRegisterSecondSignatureTransaction = (
 
 export const getAssetDataForRegisterDelegateTransaction = (
 	asset: TransactionAsset,
-) => {
+): Buffer => {
 	const { delegate } = asset as DelegateAsset;
 	checkRequiredFields(['username'], delegate);
 	const { username } = delegate;
@@ -78,7 +80,7 @@ export const getAssetDataForRegisterDelegateTransaction = (
 
 export const getAssetDataForCastVotesTransaction = (
 	asset: TransactionAsset,
-) => {
+): Buffer => {
 	const { votes } = asset as VoteAsset;
 	if (!Array.isArray(votes)) {
 		throw new Error('votes parameter must be an Array.');
@@ -89,7 +91,7 @@ export const getAssetDataForCastVotesTransaction = (
 
 export const getAssetDataForRegisterMultisignatureAccountTransaction = (
 	asset: TransactionAsset,
-) => {
+): Buffer => {
 	const { multisignature } = asset as MultiSignatureAsset;
 	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
 	const { min, lifetime, keysgroup } = multisignature;
@@ -105,7 +107,7 @@ const DAPP_CATEGORY_LENGTH = 4;
 
 export const getAssetDataForCreateDappTransaction = (
 	asset: TransactionAsset,
-) => {
+): Buffer => {
 	const { dapp } = asset as DappAsset;
 	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
 	const { name, description, tags, link, icon, type, category } = dapp;
@@ -135,7 +137,7 @@ export const getAssetDataForCreateDappTransaction = (
 
 export const getAssetDataForTransferIntoDappTransaction = (
 	asset: TransactionAsset,
-) => {
+): Buffer => {
 	const { inTransfer } = asset as InTransferAsset;
 	checkRequiredFields(['dappId'], inTransfer);
 	const { dappId } = inTransfer;
@@ -145,7 +147,7 @@ export const getAssetDataForTransferIntoDappTransaction = (
 
 export const getAssetDataForTransferOutOfDappTransaction = (
 	asset: TransactionAsset,
-) => {
+): Buffer => {
 	const { outTransfer } = asset as OutTransferAsset;
 	checkRequiredFields(['dappId', 'transactionId'], outTransfer);
 	const { dappId, transactionId } = outTransfer;
@@ -168,7 +170,7 @@ const transactionTypeAssetGetBytesMap: {
 	7: getAssetDataForTransferOutOfDappTransaction,
 };
 
-export const getAssetBytes = (transaction: BaseTransaction) =>
+export const getAssetBytes = (transaction: BaseTransaction): Buffer =>
 	transactionTypeAssetGetBytesMap[transaction.type](transaction.asset);
 
 const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
@@ -178,7 +180,7 @@ const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'amount',
 ];
 
-export const checkTransaction = (transaction: PartialTransaction) => {
+export const checkTransaction = (transaction: PartialTransaction): boolean => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
 	const {
 		asset: { data },
@@ -192,7 +194,7 @@ export const checkTransaction = (transaction: PartialTransaction) => {
 	return true;
 };
 
-export const getTransactionBytes = (transaction: BaseTransaction) => {
+export const getTransactionBytes = (transaction: BaseTransaction): Buffer => {
 	checkTransaction(transaction);
 
 	const {

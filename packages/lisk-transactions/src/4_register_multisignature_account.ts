@@ -19,7 +19,7 @@ import {
 	MULTISIGNATURE_MIN_KEYSGROUP,
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
-import { PartialTransaction } from './types/transactions';
+import { BaseTransaction, PartialTransaction } from './types/transactions';
 import {
 	isValidInteger,
 	prepareTransaction,
@@ -40,7 +40,11 @@ const validateInputs = ({
 	keysgroup,
 	lifetime,
 	minimum,
-}: RegisterMultisignatureInputs) => {
+}: {
+	readonly keysgroup: ReadonlyArray<string>;
+	readonly lifetime: number;
+	readonly minimum: number;
+}): void => {
 	if (
 		!isValidInteger(lifetime) ||
 		lifetime < MULTISIGNATURE_MIN_LIFETIME ||
@@ -71,7 +75,7 @@ const validateInputs = ({
 
 export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
-) => {
+): BaseTransaction => {
 	validateInputs(inputs);
 	const {
 		keysgroup,

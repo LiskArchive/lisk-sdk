@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { ValidateFunction } from 'ajv';
+import { ErrorObject, ValidateFunction } from 'ajv';
 import { PartialTransaction } from '../../types/transactions';
 import * as schemas from './schema';
 import { validator } from './validator';
@@ -53,7 +53,19 @@ const getTransactionSchemaValidator = (type: number): ValidateFunction => {
 	return schema;
 };
 
-const validateMultiTransaction = (tx: MultiSignatureTransaction) => {
+interface ValidationResult {
+	readonly errors?: ReadonlyArray<CustomErrorObject>;
+	readonly valid: boolean;
+}
+
+interface CustomErrorObject {
+	readonly dataPath: string;
+	readonly message: string;
+}
+
+const validateMultiTransaction = (
+	tx: MultiSignatureTransaction,
+): ValidationResult => {
 	if (tx.asset.multisignature.min > tx.asset.multisignature.keysgroup.length) {
 		return {
 			valid: false,
@@ -77,7 +89,9 @@ const isMultiSignatureTransaction = (
 ): tx is MultiSignatureTransaction =>
 	tx.type === TRANSACTION_TYPE_MULTI_SIGNATURE;
 
-export const validateTransaction = (tx: PartialTransaction) => {
+export const validateTransaction = (
+	tx: PartialTransaction,
+): ValidationResult => {
 	if (!tx.type) {
 		throw new Error('Transaction type is required.');
 	}

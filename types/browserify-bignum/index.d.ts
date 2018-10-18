@@ -2,7 +2,6 @@
 /// <reference types="node" />
 
 declare module 'browserify-bignum' {
-	export = BigNum;
 	class BigNum {
 		/**
 		 * Create a new BigNum from a Buffer.
@@ -109,6 +108,8 @@ declare module 'browserify-bignum' {
 		/** Print out the BigNum instance in the requested base as a string. Default: base 10 */
 		toString(base?: number): string;
 	}
+
+	export = BigNum;
 
 	namespace BigNum {
 		/** Anything that can be converted to BigNum. */

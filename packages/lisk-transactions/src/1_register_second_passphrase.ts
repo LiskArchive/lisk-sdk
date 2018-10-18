@@ -14,7 +14,7 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
-import { PartialTransaction } from './types/transactions';
+import { BaseTransaction, PartialTransaction } from './types/transactions';
 import { prepareTransaction } from './utils';
 
 export interface SecondPassphraseInputs {
@@ -23,13 +23,19 @@ export interface SecondPassphraseInputs {
 	readonly timeOffset?: number;
 }
 
-const validateInputs = ({ secondPassphrase }: SecondPassphraseInputs) => {
+const validateInputs = ({
+	secondPassphrase,
+}: {
+	readonly secondPassphrase: string;
+}): void => {
 	if (typeof secondPassphrase !== 'string') {
 		throw new Error('Please provide a secondPassphrase. Expected string.');
 	}
 };
 
-export const registerSecondPassphrase = (inputs: SecondPassphraseInputs) => {
+export const registerSecondPassphrase = (
+	inputs: SecondPassphraseInputs,
+): BaseTransaction => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, timeOffset } = inputs;
 	const { publicKey } = cryptography.getKeys(secondPassphrase);
