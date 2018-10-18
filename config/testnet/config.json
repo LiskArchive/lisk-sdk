@@ -1,8 +1,10 @@
 {
 	"wsPort": 7001,
 	"httpPort": 7000,
+	"logFileName": "logs/testnet/lisk.log",
 	"db": {
-		"database": "lisk_test"
+		"database": "lisk_test",
+		"logFileName": "logs/testnet/lisk_db.log"
 	},
 	"peers": {
 		"list": [

@@ -3,8 +3,10 @@
 	"httpPort": 5000,
 	"fileLogLevel": "debug",
 	"consoleLogLevel": "error",
+	"logFileName": "logs/betanet/lisk.log",
 	"db": {
-		"database": "lisk_beta"
+		"database": "lisk_beta",
+		"logFileName": "logs/betanet/lisk_db.log"
 	},
 	"peers": {
 		"list": [

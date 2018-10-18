@@ -1,8 +1,10 @@
 {
 	"wsPort": 8001,
 	"httpPort": 8000,
+	"logFileName": "logs/mainnet/lisk.log",
 	"db": {
-		"database": "lisk_main"
+		"database": "lisk_main",
+		"logFileName": "logs/mainnet/lisk_db.log"
 	},
 	"peers": {
 		"list": [

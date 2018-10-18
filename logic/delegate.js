@@ -17,7 +17,6 @@
 const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 
-const exceptions = global.exceptions;
 const { FEES } = global.constants;
 let modules;
 let library;
@@ -233,14 +232,7 @@ Delegate.prototype.checkConfirmed = function(transaction, cb, tx) {
 		transaction,
 		'username',
 		'isDelegate',
-		err => {
-			if (err && exceptions.delegates.indexOf(transaction.id) > -1) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(transaction));
-				err = null;
-			}
-			return setImmediate(cb, err, transaction);
-		},
+		err => setImmediate(cb, err, transaction),
 		tx
 	);
 };
@@ -257,14 +249,7 @@ Delegate.prototype.checkUnconfirmed = function(transaction, cb, tx) {
 		transaction,
 		'u_username',
 		'u_isDelegate',
-		err => {
-			if (err && exceptions.delegates.indexOf(transaction.id) > -1) {
-				library.logger.debug(err);
-				library.logger.debug(JSON.stringify(transaction));
-				err = null;
-			}
-			return setImmediate(cb, err, transaction);
-		},
+		err => setImmediate(cb, err, transaction),
 		tx
 	);
 };
