@@ -25,6 +25,10 @@ CREATE TABLE mem_accounts2u_delegates AS TABLE mem_accounts2delegates;
 ALTER TABLE mem_accounts2u_delegates ADD CONSTRAINT "mem_accounts2u_delegates_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES mem_accounts(address) ON DELETE CASCADE;
 CREATE INDEX "mem_accounts2u_delegates_accountId" ON mem_accounts2u_delegates("accountId");
 
-DELETE FROM mem_accounts2u_multisignatures;
-INSERT INTO mem_accounts2u_multisignatures ("accountId", "dependentId") SELECT "accountId", "dependentId" FROM mem_accounts2multisignatures;
+DROP TABLE mem_accounts2u_multisignatures;
+CREATE TABLE mem_accounts2u_multisignatures AS TABLE mem_accounts2multisignatures;
+ALTER TABLE mem_accounts2u_multisignatures ADD CONSTRAINT "mem_accounts2u_delegates_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES mem_accounts (address) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS "mem_accounts2u_multisignatures_accountId" ON "mem_accounts2u_multisignatures"("accountId");
+
+
 

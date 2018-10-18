@@ -146,30 +146,6 @@ describe('db', () => {
 				return expect(db.tx.firstCall.args[1]).to.be.a('function');
 			});
 
-			it('should set peers to disconnected mode and clock to NULL for non-banned peers', function*() {
-				const peer = fixtures.peers.Peer();
-				peer.clock = +new Date();
-				delete peer.dappid;
-				delete peer.httpPort;
-				delete peer.nonce;
-				yield db.query(
-					db.$config.pgp.helpers.insert(peer, null, { table: 'peers' })
-				);
-
-				const total = yield db.one('SELECT count(*)::int FROM peers');
-				const before = yield db.one(
-					'SELECT count(*)::int FROM peers WHERE state = 1 AND clock IS NULL'
-				);
-				yield db.migrations.applyRuntime();
-				const after = yield db.one(
-					'SELECT count(*)::int FROM peers WHERE state = 1 AND CLOCK IS NULL'
-				);
-
-				expect(total.count).to.be.above(0);
-				expect(before.count).to.be.eql(0);
-				return expect(after.count).to.be.eql(1);
-			});
-
 			it('should copy mem_accounts2delegates to mem_accounts2u_delegates', function*() {
 				const account = fixtures.accounts.Account();
 				yield db.accounts.insert(account);
