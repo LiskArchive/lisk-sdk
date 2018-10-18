@@ -15,7 +15,7 @@
 'use strict';
 
 module.exports = {
-	rewards: {
-		offset: 1451520,
+	REWARDS: {
+		OFFSET: 1451520,
 	},
 };

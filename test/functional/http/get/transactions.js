@@ -606,7 +606,7 @@ describe('GET /api/transactions', () => {
 		});
 
 		describe('fromTimestamp', () => {
-			it('using too small fromTimestamp should fail', () => {
+			it('using invalid fromTimestamp should fail', () => {
 				return transactionsEndpoint
 					.makeRequest({ fromTimestamp: -1 }, 400)
 					.then(res => {
@@ -629,7 +629,7 @@ describe('GET /api/transactions', () => {
 		});
 
 		describe('toTimestamp', () => {
-			it('using too small toTimestamp should fail', () => {
+			it('using invalid toTimestamp should fail', () => {
 				return transactionsEndpoint
 					.makeRequest({ toTimestamp: 0 }, 400)
 					.then(res => {
