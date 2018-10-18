@@ -107,7 +107,7 @@ describe('transaction:create:transfer', () => {
 				'transaction:create:transfer',
 				defaultAmount,
 				defaultAddress,
-				'--data=XXXXXX',
+				'--data=Testing lisk transaction data.',
 			])
 			.it('should create an tranfer transaction', () => {
 				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
