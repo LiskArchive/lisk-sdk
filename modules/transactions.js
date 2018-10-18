@@ -104,8 +104,6 @@ __private.list = function(filter, cb) {
 	const where = [];
 
 	if (filter.data) {
-		// PostgreSQL does not support zero byte character in utf8 strings
-		// so we have to specify text in hex representation
 		params.additionalData = Buffer.from(filter.data, 'utf8');
 	}
 
