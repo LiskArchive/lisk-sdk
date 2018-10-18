@@ -17,12 +17,13 @@
 
 var rewire = require('rewire');
 var Promise = require('bluebird');
-var slots = require('../../../helpers/slots.js');
 var Bignum = require('../../../helpers/bignum.js');
 var DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
 var Round = rewire('../../../logic/round.js');
 var genesisBlock = __testContext.config.genesisBlock;
+
+const { ACTIVE_DELEGATES } = global.constants;
 
 describe('rounds', () => {
 	var db;
@@ -40,7 +41,7 @@ describe('rounds', () => {
 				round: 1,
 				roundOutsiders: [],
 				roundDelegates: [genesisBlock.generatorPublicKey],
-				roundFees: slots.delegates,
+				roundFees: ACTIVE_DELEGATES,
 				roundRewards: [10],
 				library: {
 					db: undefined,
@@ -759,7 +760,7 @@ describe('rounds', () => {
 
 				before(done => {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
-					validScope.roundFees = slots.delegates; // 1 LSK fee per delegate, no remaining fees
+					validScope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
 					done();
 				});
 
@@ -793,15 +794,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -866,15 +867,15 @@ describe('rounds', () => {
 							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(validScope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -977,15 +978,15 @@ describe('rounds', () => {
 							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(validScope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1008,11 +1009,11 @@ describe('rounds', () => {
 						var feesPerDelegate = new Bignum(
 							validScope.roundFees.toPrecision(15)
 						)
-							.dividedBy(slots.delegates)
-							.floor();
+							.dividedBy(ACTIVE_DELEGATES)
+							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
@@ -1077,15 +1078,15 @@ describe('rounds', () => {
 							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(validScope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1108,11 +1109,11 @@ describe('rounds', () => {
 						var feesPerDelegate = new Bignum(
 							validScope.roundFees.toPrecision(15)
 						)
-							.dividedBy(slots.delegates)
-							.floor();
+							.dividedBy(ACTIVE_DELEGATES)
+							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
@@ -1188,7 +1189,7 @@ describe('rounds', () => {
 						'380b952cd92f11257b71cce73f51df5e0a258e54f60bb82bccd2ba8b4dff2ec9',
 					];
 					validScope.roundRewards = [1, 2, 3];
-					validScope.roundFees = slots.delegates; // 1 LSK fee per delegate, no remaining fees
+					validScope.roundFees = ACTIVE_DELEGATES; // 1 LSK fee per delegate, no remaining fees
 					done();
 				});
 
@@ -1222,15 +1223,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1254,15 +1255,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1286,15 +1287,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1373,15 +1374,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1405,15 +1406,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1437,15 +1438,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1553,15 +1554,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1585,15 +1586,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1617,15 +1618,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1646,11 +1647,11 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						var index = 2; // Delegate index on list
 						var feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
-							.dividedBy(slots.delegates)
-							.floor();
+							.dividedBy(ACTIVE_DELEGATES)
+							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
@@ -1729,15 +1730,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1761,15 +1762,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1793,15 +1794,15 @@ describe('rounds', () => {
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
-										.dividedBy(slots.delegates)
-										.floor()
+										.dividedBy(ACTIVE_DELEGATES)
+										.integerValue(Bignum.ROUND_FLOOR)
 								)
 								.toFixed()
 						);
 						var feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.dividedBy(slots.delegates)
-								.floor()
+								.dividedBy(ACTIVE_DELEGATES)
+								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
 						var args = {
@@ -1822,11 +1823,11 @@ describe('rounds', () => {
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
 						var index = 2; // Delegate index on list
 						var feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
-							.dividedBy(slots.delegates)
-							.floor();
+							.dividedBy(ACTIVE_DELEGATES)
+							.integerValue(Bignum.ROUND_FLOOR);
 						var remainingFees = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
-								.minus(feesPerDelegate.times(slots.delegates))
+								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 

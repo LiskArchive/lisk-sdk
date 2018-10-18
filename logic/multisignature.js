@@ -83,7 +83,7 @@ Multisignature.prototype.bind = function(accounts) {
 Multisignature.prototype.calculateFee = function(transaction) {
 	const keys = transaction.asset.multisignature.keysgroup.length + 1;
 	const amount = new Bignum(FEES.MULTISIGNATURE);
-	return amount.mul(keys);
+	return amount.multipliedBy(keys);
 };
 
 /**

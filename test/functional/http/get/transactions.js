@@ -42,21 +42,25 @@ describe('GET /api/transactions', () => {
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
+		data: 'transaction1',
 	});
 	var transaction2 = lisk.transaction.transfer({
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
+		data: 'transaction2',
 	});
 	var transaction3 = lisk.transaction.transfer({
 		amount: 20 * NORMALIZER, // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
+		data: '\u0000 hey :)',
 	});
 	var transaction4 = lisk.transaction.transfer({
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
+		data: 'Tx4',
 	});
 	var transactionType5 = {
 		amount: '0',
@@ -602,7 +606,7 @@ describe('GET /api/transactions', () => {
 		});
 
 		describe('fromTimestamp', () => {
-			it('using too small fromTimestamp should fail', () => {
+			it('using invalid fromTimestamp should fail', () => {
 				return transactionsEndpoint
 					.makeRequest({ fromTimestamp: -1 }, 400)
 					.then(res => {
@@ -625,7 +629,7 @@ describe('GET /api/transactions', () => {
 		});
 
 		describe('toTimestamp', () => {
-			it('using too small toTimestamp should fail', () => {
+			it('using invalid toTimestamp should fail', () => {
 				return transactionsEndpoint
 					.makeRequest({ toTimestamp: 0 }, 400)
 					.then(res => {
@@ -643,6 +647,58 @@ describe('GET /api/transactions', () => {
 						res.body.data.forEach(transaction => {
 							expect(transaction.timestamp).to.be.at.most(queryTime);
 						});
+					});
+			});
+		});
+
+		describe('data', () => {
+			it('using specific string should return transactions', () => {
+				var dataFilter = 'transaction1';
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: dataFilter,
+						},
+						200
+					)
+					.then(res => {
+						res.body.data.forEach(transaction => {
+							expect(transaction.asset)
+								.to.have.property('data')
+								.to.equal(dataFilter);
+						});
+					});
+			});
+
+			it('using unicode sequence string should return transactions', () => {
+				var dataFilter = '\u0000 hey :)';
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: dataFilter,
+						},
+						200
+					)
+					.then(res => {
+						res.body.data.forEach(transaction => {
+							expect(transaction.asset)
+								.to.have.property('data')
+								.to.equal(dataFilter);
+						});
+					});
+			});
+
+			it('using regex string should not return several transactions', () => {
+				var dataFilter = 'transaction%';
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: dataFilter,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data.length).to.equal(0);
 					});
 			});
 		});

@@ -118,7 +118,7 @@ describe('vote', () => {
 				var groupedVotes = _.groupBy(votes, v => {
 					return v[0];
 				});
-				// added one because expect doesn't have greaterThanEqualTo condition
+				// added one because expect doesn't have isGreaterThanOrEqualTo condition
 				expect(
 					delegates.filter(v => {
 						return (
@@ -232,7 +232,7 @@ describe('vote', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee', () => {
-			return expect(vote.calculateFee().equals(FEES.VOTE.toString())).to.be
+			return expect(vote.calculateFee().isEqualTo(FEES.VOTE.toString())).to.be
 				.true;
 		});
 	});

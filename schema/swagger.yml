@@ -696,6 +696,8 @@ paths:
       parameters:
         - $ref: '#/parameters/blockId'
         - $ref: '#/parameters/height'
+        - $ref: '#/parameters/fromTimestamp'
+        - $ref: '#/parameters/toTimestamp'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
         - in: query
@@ -917,6 +919,7 @@ paths:
         - $ref: '#/parameters/maxAmount'
         - $ref: '#/parameters/fromTimestamp'
         - $ref: '#/parameters/toTimestamp'
+        - $ref: '#/parameters/data'
         - $ref: '#/parameters/blockId'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
@@ -1178,6 +1181,14 @@ parameters:
     description: Ending unix timestamp
     type: integer
     minimum: 1
+  data:
+    name: data
+    in: query
+    description: Additional data field to query
+    type: string
+    format: additionalData
+    minLength: 1
+    maxLength: 64
 
 definitions:
   Meta:
@@ -2566,7 +2577,7 @@ definitions:
         description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
-        example: 0
+        example: 1081560729258
         description: |
           The current unconfirmed balance of the account in Beddows.
           Includes unconfirmed transactions.
@@ -2609,7 +2620,7 @@ definitions:
         description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
-        example: 0
+        example: 1081560729258
         description: |
           The current unconfirmed balance of the account in Beddows.
           Includes unconfirmed transactions.

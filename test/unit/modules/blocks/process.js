@@ -1944,7 +1944,7 @@ describe('blocks/process', () => {
 	});
 
 	describe('__private.validateBlockSlot', () => {
-		describe('lastBlock.height % slots.delegates === 0', () => {
+		describe('lastBlock.height % ACTIVE_DELEGATES === 0', () => {
 			describe('validateBlockSlotAgainstPreviousRound', () => {
 				describe('when fails', () => {
 					beforeEach(() => {
@@ -1998,7 +1998,7 @@ describe('blocks/process', () => {
 			});
 		});
 
-		describe('lastBlock.height % slots.delegates !== 0', () => {
+		describe('lastBlock.height % ACTIVE_DELEGATES !== 0', () => {
 			describe('roundLastBlock < roundNextBlock', () => {
 				describe('validateBlockSlotAgainstPreviousRound', () => {
 					describe('when fails', () => {

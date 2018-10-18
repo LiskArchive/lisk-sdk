@@ -667,7 +667,8 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', () => {
-			return expect(block.calculateFee(blockData).equals(FEES.SEND));
+			return expect(block.calculateFee(blockData).isEqualTo(FEES.SEND)).to.be
+				.true;
 		});
 	});
 
