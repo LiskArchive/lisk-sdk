@@ -106,7 +106,7 @@ __private.list = function(filter, cb) {
 	if (filter.data) {
 		// PostgreSQL does not support zero byte character in utf8 strings
 		// so we have to specify text in hex representation
-		params.additionalData = Buffer.from(filter.data, 'utf8').toString('hex');
+		params.additionalData = Buffer.from(filter.data, 'utf8');
 	}
 
 	const allowedFieldsMap = {
@@ -129,7 +129,7 @@ __private.list = function(filter, cb) {
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
 		data:
-			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data = DECODE(${additionalData},\'hex\'))',
+			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data = ${additionalData})',
 		limit: null,
 		offset: null,
 		sort: null,
