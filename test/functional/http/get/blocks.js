@@ -19,6 +19,7 @@ require('../../functional.js');
 var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
+var slots = require('../../../../helpers/slots');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
@@ -109,6 +110,72 @@ describe('GET /blocks', () => {
 					expect(res.body.data[0].height).to.equal(10);
 					expectHeightCheck(res);
 				});
+			});
+		});
+
+		describe('fromTimestamp', () => {
+			it('using invalid fromTimestamp should fail', () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							fromTimestamp: -1,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'fromTimestamp');
+					});
+			});
+
+			it('using valid fromTimestamp should return transactions', () => {
+				// Last hour lisk time
+				var queryTime = slots.getTime() - 60 * 60;
+
+				return blocksEndpoint
+					.makeRequest(
+						{
+							fromTimestamp: queryTime,
+						},
+						200
+					)
+					.then(res => {
+						res.body.data.forEach(transaction => {
+							expect(transaction.timestamp).to.be.at.least(queryTime);
+						});
+					});
+			});
+		});
+
+		describe('toTimestamp', () => {
+			it('using invalid toTimestamp should fail', () => {
+				return blocksEndpoint
+					.makeRequest(
+						{
+							toTimestamp: 0,
+						},
+						400
+					)
+					.then(res => {
+						expectSwaggerParamError(res, 'toTimestamp');
+					});
+			});
+
+			it('using valid toTimestamp should return transactions', () => {
+				// Current lisk time
+				var queryTime = slots.getTime();
+
+				return blocksEndpoint
+					.makeRequest(
+						{
+							toTimestamp: queryTime,
+						},
+						200
+					)
+					.then(res => {
+						res.body.data.forEach(transaction => {
+							expect(transaction.timestamp).to.be.at.most(queryTime);
+						});
+					});
 			});
 		});
 
