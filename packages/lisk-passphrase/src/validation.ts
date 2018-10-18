@@ -33,7 +33,7 @@ const passphraseRegularExpression: PassphraseRegularExpression = {
 	whitespaceRegExp: /\s/g,
 };
 
-export const countPassphraseWhitespaces = (passphrase: string) => {
+export const countPassphraseWhitespaces = (passphrase: string): number => {
 	const whitespaceMatches: RegExpReturn = passphrase.match(
 		passphraseRegularExpression.whitespaceRegExp,
 	);
@@ -41,10 +41,10 @@ export const countPassphraseWhitespaces = (passphrase: string) => {
 	return whitespaceMatches !== null ? whitespaceMatches.length : 0;
 };
 
-export const countPassphraseWords = (passphrase: string) =>
+export const countPassphraseWords = (passphrase: string): number =>
 	passphrase.split(' ').filter(Boolean).length;
 
-export const countUppercaseCharacters = (passphrase: string) => {
+export const countUppercaseCharacters = (passphrase: string): number => {
 	const uppercaseCharacterMatches: RegExpReturn = passphrase.match(
 		passphraseRegularExpression.uppercaseRegExp,
 	);
@@ -54,7 +54,9 @@ export const countUppercaseCharacters = (passphrase: string) => {
 		: 0;
 };
 
-export const locateUppercaseCharacters = (passphrase: string) =>
+export const locateUppercaseCharacters = (
+	passphrase: string,
+): ReadonlyArray<number> =>
 	passphrase
 		.split('')
 		.reduce(
@@ -74,7 +76,9 @@ export const locateUppercaseCharacters = (passphrase: string) =>
 			[],
 		);
 
-export const locateConsecutiveWhitespaces = (passphrase: string) =>
+export const locateConsecutiveWhitespaces = (
+	passphrase: string,
+): ReadonlyArray<number> =>
 	passphrase
 		.split('')
 		.reduce(
@@ -115,7 +119,7 @@ export const locateConsecutiveWhitespaces = (passphrase: string) =>
 export const getPassphraseValidationErrors = (
 	passphrase: string,
 	wordlists?: ReadonlyArray<string>,
-) => {
+): ReadonlyArray<PassphraseError> => {
 	const expectedWords = 12;
 	const expectedWhitespaces = 11;
 	const expectedUppercaseCharacterCount = 0;
