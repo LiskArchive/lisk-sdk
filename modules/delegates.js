@@ -181,7 +181,7 @@ __private.validateBlockSlot = function(block, source, cb) {
 };
 
 /**
- * Gets slot time and keypair.
+ * Gets the assigned delegate to current slot and returns its keypair if present.
  *
  * @private
  * @param {number} slot
@@ -190,7 +190,7 @@ __private.validateBlockSlot = function(block, source, cb) {
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getBlockSlotData = function(slot, height, cb) {
+__private.getDelegateKeypairForCurrentSlot = function(slot, height, cb) {
 	const round = slots.calcRound(height);
 	self.generateDelegateList(round, null, (err, activeDelegates) => {
 		if (err) {
@@ -201,10 +201,7 @@ __private.getBlockSlotData = function(slot, height, cb) {
 		const delegate_id = activeDelegates[delegate_pos];
 
 		if (delegate_id && __private.keypairs[delegate_id]) {
-			return setImmediate(cb, null, {
-				time: slots.getSlotTime(slot),
-				keypair: __private.keypairs[delegate_id],
-			});
+			return setImmediate(cb, null, __private.keypairs[delegate_id]);
 		}
 
 		return setImmediate(cb, null, null);
@@ -246,11 +243,11 @@ __private.forge = function(cb) {
 		return setImmediate(cb);
 	}
 
-	__private.getBlockSlotData(
+	__private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		lastBlock.height + 1,
-		(err, currentBlockData) => {
-			if (err || currentBlockData === null) {
+		(err, delegateKeypair) => {
+			if (err || delegateKeypair === null) {
 				library.logger.warn('Waiting for delegate slot', err);
 				return setImmediate(cb);
 			}
@@ -278,8 +275,8 @@ __private.forge = function(cb) {
 			);
 
 			modules.blocks.process.generateBlock(
-				currentBlockData.keypair,
-				currentBlockData.time,
+				delegateKeypair,
+				slots.getSlotTime(currentSlot),
 				blockGenerationErr => {
 					if (blockGenerationErr) {
 						library.logger.error(
@@ -302,7 +299,7 @@ __private.forge = function(cb) {
 							'round:',
 							slots.calcRound(forgedBlock.height),
 							'slot:',
-							slots.getSlotNumber(currentBlockData.time),
+							slots.getSlotNumber(forgedBlock.timestamp),
 							`reward: ${forgedBlock.reward}`,
 						].join(' ')
 					);
