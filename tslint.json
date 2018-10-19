@@ -20,6 +20,8 @@
 		"no-object-mutation": false,
 		"no-parameter-reassignment": true,
 		"no-this": false,
+		"no-unsafe-any": false,
+		"no-unused-variable": false,
 		"no-var-keyword": true,
 		"object-literal-sort-keys": [true, "match-declaration-order"],
 		"prefer-method-signature": false,
