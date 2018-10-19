@@ -255,13 +255,6 @@ __private.forge = function(cb) {
 				return setImmediate(cb);
 			}
 
-			if (
-				slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()
-			) {
-				library.logger.debug('Delegate slot', slots.getSlotNumber());
-				return setImmediate(cb);
-			}
-
 			if (modules.transport.poorConsensus()) {
 				const consensusErr = [
 					'Inadequate broadhash consensus before forging a block:',
