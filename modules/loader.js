@@ -516,7 +516,11 @@ __private.loadBlockChain = function() {
 				);
 
 				if (unapplied.length > 0) {
-					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
+					return reload(blocksCount, 'Detected unapplied rounds in mem_round', {
+						currentHeight: blocksCount,
+						currentRound: round,
+						unappliedRounds: unapplied,
+					});
 				}
 
 				if (duplicatedDelegatesCount > 0) {
