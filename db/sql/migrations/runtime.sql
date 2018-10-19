@@ -28,7 +28,7 @@ CREATE INDEX "mem_accounts2u_delegates_accountId" ON mem_accounts2u_delegates("a
 DROP TABLE mem_accounts2u_multisignatures;
 CREATE TABLE mem_accounts2u_multisignatures AS TABLE mem_accounts2multisignatures;
 ALTER TABLE mem_accounts2u_multisignatures ADD CONSTRAINT "mem_accounts2u_multisignatures_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES mem_accounts(address) ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS "mem_accounts2u_multisignatures_accountId" ON "mem_accounts2u_multisignatures"("accountId");
+CREATE INDEX IF NOT EXISTS "mem_accounts2u_multisignatures_accountId" ON mem_accounts2u_multisignatures("accountId");
 
 
 
