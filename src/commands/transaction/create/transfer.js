@@ -21,7 +21,7 @@ import getInputsFromSources from '../../../utils/input';
 
 const dataFlag = {
 	char: 'd',
-	description: `Message of UTF-8 string to attach, which has a maximum length of 64 bytes.
+	description: `Optional UTF8 encoded data (maximum of 64 bytes) to include in the transaction asset.
 	Examples:
 	- --data=customInformation
 `,
