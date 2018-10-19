@@ -26,15 +26,13 @@ interface PassphraseError {
 	readonly message: string;
 }
 
-type RegExpReturn = RegExpMatchArray | null;
-
 const passphraseRegularExpression: PassphraseRegularExpression = {
 	uppercaseRegExp: /[A-Z]/g,
 	whitespaceRegExp: /\s/g,
 };
 
 export const countPassphraseWhitespaces = (passphrase: string): number => {
-	const whitespaceMatches: RegExpReturn = passphrase.match(
+	const whitespaceMatches = passphrase.match(
 		passphraseRegularExpression.whitespaceRegExp,
 	);
 
@@ -45,7 +43,7 @@ export const countPassphraseWords = (passphrase: string): number =>
 	passphrase.split(' ').filter(Boolean).length;
 
 export const countUppercaseCharacters = (passphrase: string): number => {
-	const uppercaseCharacterMatches: RegExpReturn = passphrase.match(
+	const uppercaseCharacterMatches = passphrase.match(
 		passphraseRegularExpression.uppercaseRegExp,
 	);
 
@@ -123,13 +121,9 @@ export const getPassphraseValidationErrors = (
 	const expectedWords = 12;
 	const expectedWhitespaces = 11;
 	const expectedUppercaseCharacterCount = 0;
-	const wordsInPassphrase: number = countPassphraseWords(passphrase);
-	const whiteSpacesInPassphrase: number = countPassphraseWhitespaces(
-		passphrase,
-	);
-	const uppercaseCharacterInPassphrase: number = countUppercaseCharacters(
-		passphrase,
-	);
+	const wordsInPassphrase = countPassphraseWords(passphrase);
+	const whiteSpacesInPassphrase = countPassphraseWhitespaces(passphrase);
+	const uppercaseCharacterInPassphrase = countUppercaseCharacters(passphrase);
 	const passphraseWordError: PassphraseError = {
 		actual: wordsInPassphrase,
 		code: 'INVALID_AMOUNT_OF_WORDS',
@@ -157,19 +151,16 @@ export const getPassphraseValidationErrors = (
 		message:
 			'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
 	};
-	const errors: ReadonlyArray<PassphraseError> = [
+
+	const finalWordList =
+		wordlists !== undefined ? [...wordlists] : Mnemonic.wordlists.english;
+
+	return [
 		passphraseWordError,
 		whiteSpaceError,
 		uppercaseCharacterError,
 		validationError,
-	];
-	const wordlistArgument: ReadonlyArray<string> = [];
-	const finalWordList =
-		wordlists !== undefined
-			? wordlistArgument.concat(wordlists)
-			: Mnemonic.wordlists.english;
-
-	return errors.reduce(
+	].reduce(
 		(errorArray: ReadonlyArray<PassphraseError>, error: PassphraseError) => {
 			if (
 				error.code === passphraseWordError.code &&
