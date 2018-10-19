@@ -242,7 +242,7 @@ __private.forge = function(cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Waiting for next delegate slot');
+		library.logger.debug('Block already forged for the current slot');
 		return setImmediate(cb);
 	}
 
@@ -251,7 +251,7 @@ __private.forge = function(cb) {
 		lastBlock.height + 1,
 		(err, currentBlockData) => {
 			if (err || currentBlockData === null) {
-				library.logger.warn('Skipping delegate slot', err);
+				library.logger.warn('Waiting for delegate slot', err);
 				return setImmediate(cb);
 			}
 
