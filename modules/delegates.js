@@ -190,18 +190,18 @@ __private.validateBlockSlot = function(block, source, cb) {
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getDelegateKeypairForCurrentSlot = function(slot, height, cb) {
+__private.getDelegateKeypairForCurrentSlot = function(currentSlot, height, cb) {
 	const round = slots.calcRound(height);
 	self.generateDelegateList(round, null, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 
-		const delegate_pos = slot % ACTIVE_DELEGATES;
-		const delegate_id = activeDelegates[delegate_pos];
+		const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+		const currentSlotDelegate = activeDelegates[currentSlotIndex];
 
-		if (delegate_id && __private.keypairs[delegate_id]) {
-			return setImmediate(cb, null, __private.keypairs[delegate_id]);
+		if (currentSlotDelegate && __private.keypairs[currentSlotDelegate]) {
+			return setImmediate(cb, null, __private.keypairs[currentSlotDelegate]);
 		}
 
 		return setImmediate(cb, null, null);
