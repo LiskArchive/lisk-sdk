@@ -197,19 +197,14 @@ __private.getBlockSlotData = function(slot, height, cb) {
 			return setImmediate(cb, err);
 		}
 
-		let currentSlot = slot;
-		const lastSlot = slots.getLastSlot(currentSlot);
+		const delegate_pos = slot % ACTIVE_DELEGATES;
+		const delegate_id = activeDelegates[delegate_pos];
 
-		for (; currentSlot < lastSlot; currentSlot += 1) {
-			const delegate_pos = currentSlot % ACTIVE_DELEGATES;
-			const delegate_id = activeDelegates[delegate_pos];
-
-			if (delegate_id && __private.keypairs[delegate_id]) {
-				return setImmediate(cb, null, {
-					time: slots.getSlotTime(currentSlot),
-					keypair: __private.keypairs[delegate_id],
-				});
-			}
+		if (delegate_id && __private.keypairs[delegate_id]) {
+			return setImmediate(cb, null, {
+				time: slots.getSlotTime(slot),
+				keypair: __private.keypairs[delegate_id],
+			});
 		}
 
 		return setImmediate(cb, null, null);
