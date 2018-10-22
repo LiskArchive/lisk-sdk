@@ -1139,16 +1139,18 @@ class Transaction {
 			Transaction.prototype.schema
 		);
 
-		let formatErrors = this.scope.schema.getLastErrors();
+		let formatErrors = this.scope.schema.getLastErrors() || [];
 
 		formatErrors = formatErrors.filter(error => {
-			if (error.code === 'INVALID_FORMAT' && error[0] === 'address') {
+			if (error.code === 'INVALID_FORMAT' && error.params[0] === 'address') {
 				// Remove the errors if transaction is in exception
 				if (
 					(exceptions.recipientLeadingZero[transaction.id] &&
-						exceptions.recipientLeadingZero[transaction.id] === error[1]) ||
+						exceptions.recipientLeadingZero[transaction.id] ===
+							error.params[1]) ||
 					(exceptions.recipientExceedingUint64[transaction.id] &&
-						exceptions.recipientExceedingUint64[transaction.id] === error[1])
+						exceptions.recipientExceedingUint64[transaction.id] ===
+							error.params[1])
 				) {
 					return false;
 				}
@@ -1156,7 +1158,7 @@ class Transaction {
 			}
 		});
 
-		if (report && formatErrors.length) {
+		if (!report && formatErrors.length) {
 			throw `Failed to validate transaction schema: ${formatErrors
 				.map(err => err.message)
 				.join(', ')}`;
