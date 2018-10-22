@@ -489,6 +489,111 @@ describe('delegates', () => {
 				});
 			});
 		});
+
+		describe('getDelegateKeypairForCurrentSlot', () => {
+			var loadDelegates;
+			var getDelegateKeypairForCurrentSlot;
+			var config;
+			var __private;
+
+			var delegates = [
+				{
+					publicKey:
+						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+					encryptedPassphrase:
+						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
+				},
+				{
+					publicKey:
+						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+					encryptedPassphrase:
+						'iterations=1&salt=5c709afdae35d43d4090e9ef31d14d85&cipherText=c205189b91f797c3914f5d82ccc7cccfb3c620cef512c3bf8f50cd280bd5ff1450e8b9be997179582e62bec0cb655ca2eb8ff6833892f9e350dc5182b61bd648cd02f7f95468c7ec51aa3b43&iv=bfae7a255077c6de61a1ec59&tag=59cfd0a55d39a765a84725f4be464179&version=1',
+				},
+				{
+					publicKey:
+						'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+					encryptedPassphrase:
+						'iterations=1&salt=588600600cd7660cf2346cd390093900&cipherText=6469aca1fe386e709c89c9a1d644abd969e64326f0f27f7be25248727892ec860e1e2dae54d283e65b1d21657a74047fb46ba732d1c83b93c8e2c0c96e98c2a9c4d87d0ac23db6dec9e3728426e3&iv=357d723a607f5baaf1fb218a&tag=f42bc3722b2964806d83a8ca3da2f94d&version=1',
+				},
+			];
+
+			before(done => {
+				loadDelegates = library.rewiredModules.delegates.__get__(
+					'__private.loadDelegates'
+				);
+				getDelegateKeypairForCurrentSlot = library.rewiredModules.delegates.__get__(
+					'__private.getDelegateKeypairForCurrentSlot'
+				);
+				config = library.rewiredModules.delegates.__get__('library.config');
+				__private = library.rewiredModules.delegates.__get__('__private');
+
+				__private.keypairs = {};
+				config.forging.force = true;
+				config.forging.delegates = delegates;
+				loadDelegates();
+				done();
+			});
+
+			it('should be ok for slot 35 of first round', done => {
+				const currentSlot = 35;
+				const height = 1;
+
+				getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					height,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.have.keys('publicKey', 'privateKey');
+						done();
+					}
+				);
+			});
+
+			it('should be ok for slot 73 of second round', done => {
+				const currentSlot = 73;
+				const height = 102;
+
+				getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					height,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.have.keys('publicKey', 'privateKey');
+						done();
+					}
+				);
+			});
+
+			it('should be ok for slot 41 of third round', done => {
+				const currentSlot = 41;
+				const height = 203;
+
+				getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					height,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.have.keys('publicKey', 'privateKey');
+						done();
+					}
+				);
+			});
+
+			it('should return null for slot 1 of fourth round', done => {
+				const currentSlot = 1;
+				const height = 304;
+
+				getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					height,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.be.null;
+						done();
+					}
+				);
+			});
+		});
 	});
 
 	describe('shared', () => {
