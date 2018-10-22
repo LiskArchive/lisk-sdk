@@ -13,7 +13,7 @@
  *
  */
 import Ajv from 'ajv';
-import addMergePatchKeywords from 'ajv-merge-patch';
+import addKeywords from 'ajv-merge-patch';
 import BigNum from 'browserify-bignum';
 import * as schemas from './schema';
 import {
@@ -27,7 +27,7 @@ import {
 } from './validation';
 
 export const validator = new Ajv({ allErrors: true });
-addMergePatchKeywords(validator);
+addKeywords(validator);
 
 validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
 
