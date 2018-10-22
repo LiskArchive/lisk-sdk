@@ -19,7 +19,7 @@ export type ApiHandler = (
 ) => Promise<ApiResponse | Error>;
 
 export interface ApiResponse {
-	readonly data: object;
+	readonly data: unknown;
 	readonly links: object;
 	readonly meta: object;
 }
@@ -34,14 +34,15 @@ export interface RequestConfig {
 	readonly path?: string;
 	readonly retry?: boolean;
 	readonly urlParams?: ReadonlyArray<string>;
-	readonly validator?: (data: object) => void;
+	readonly validator?: (data: { readonly needed?: string }) => void;
 }
 
 export interface Resource {
-	readonly headers?: HashMap;
+	readonly headers: HashMap;
+	readonly path: string;
 	readonly request: (
 		data: object,
 		retry: boolean,
 	) => Promise<ApiResponse | Error>;
-	readonly resourcePath?: string;
+	readonly resourcePath: string;
 }

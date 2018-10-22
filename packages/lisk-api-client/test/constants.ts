@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import { GET, POST, PUT, TESTNET_NODES, MAINNET_NODES } from '../src/constants';
 
 describe('api constants module', () => {

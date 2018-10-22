@@ -13,6 +13,7 @@
  *
  */
 import APIClient from '../src';
+import { expect } from 'chai';
 
 describe('api client', () => {
 	describe('exports', () => {

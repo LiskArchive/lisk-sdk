@@ -12,22 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { APIClient } from '../api_client';
-import { apiMethod } from '../api_method';
-import { APIResource } from '../api_resource';
-import { GET } from '../constants';
-import { ApiHandler } from '../types/types';
-
-export class PeersResource extends APIResource {
-	public get: ApiHandler;
-	public path: string;
-
-	public constructor(apiClient: APIClient) {
-		super(apiClient);
-		this.path = '/peers';
-
-		this.get = apiMethod({
-			method: GET,
-		}).bind(this);
-	}
+export interface FakeApiClient {
+	readonly headers: object;
+	readonly currentNode: string;
+	readonly hasAvailableNodes: () => boolean | void;
+	readonly randomizeNodes: boolean;
+	readonly banActiveNodeAndSelect: () => void;
 }

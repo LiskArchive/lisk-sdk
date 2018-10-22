@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { NodeResource } from '../../src/resources/node';
+import { FakeApiClient } from 'types/types';
 
-import APIResource from '../../src/api_resource';
-import VotesResource from '../../src/resources/votes';
-
-describe('VotesResource', () => {
+describe('NodeResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/votes';
+	const path = '/node';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new VotesResource(apiClient);
+		resource = new NodeResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new VotesResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});
@@ -56,9 +52,33 @@ describe('VotesResource', () => {
 			return expect(resource.path).to.equal(path);
 		});
 
-		it('should have a "get" function', () => {
+		it('should have a "getConstants" function', () => {
 			return expect(resource)
-				.to.have.property('get')
+				.to.have.property('getConstants')
+				.which.is.a('function');
+		});
+
+		it('should have a "getStatus" function', () => {
+			return expect(resource)
+				.to.have.property('getStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "getForgingStatus" function', () => {
+			return expect(resource)
+				.to.have.property('getForgingStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "updateForgingStatus" function', () => {
+			return expect(resource)
+				.to.have.property('updateForgingStatus')
+				.which.is.a('function');
+		});
+
+		it('should have a "getTransactions" function', () => {
+			return expect(resource)
+				.to.have.property('getTransactions')
 				.which.is.a('function');
 		});
 	});

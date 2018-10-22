@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { AccountsResource } from '../../src/resources/accounts';
+import { FakeApiClient } from 'types/types';
 
-import APIResource from '../../src/api_resource';
-import NodeResource from '../../src/resources/node';
-
-describe('NodeResource', () => {
+describe('AccountsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/node';
+	const path = '/accounts';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new NodeResource(apiClient);
+		resource = new AccountsResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new NodeResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});
@@ -56,33 +52,21 @@ describe('NodeResource', () => {
 			return expect(resource.path).to.equal(path);
 		});
 
-		it('should have a "getConstants" function', () => {
+		it('should have a "get" function', () => {
 			return expect(resource)
-				.to.have.property('getConstants')
+				.to.have.property('get')
 				.which.is.a('function');
 		});
 
-		it('should have a "getStatus" function', () => {
+		it('should have a "getMultisignatureGroups" function', () => {
 			return expect(resource)
-				.to.have.property('getStatus')
+				.to.have.property('getMultisignatureGroups')
 				.which.is.a('function');
 		});
 
-		it('should have a "getForgingStatus" function', () => {
+		it('should have a "getMultisignatureMemberships" function', () => {
 			return expect(resource)
-				.to.have.property('getForgingStatus')
-				.which.is.a('function');
-		});
-
-		it('should have a "updateForgingStatus" function', () => {
-			return expect(resource)
-				.to.have.property('updateForgingStatus')
-				.which.is.a('function');
-		});
-
-		it('should have a "getTransactions" function', () => {
-			return expect(resource)
-				.to.have.property('getTransactions')
+				.to.have.property('getMultisignatureMemberships')
 				.which.is.a('function');
 		});
 	});

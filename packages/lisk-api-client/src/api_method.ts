@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { AxiosRequestConfig } from 'axios';
 import { GET } from './constants';
 import {
 	ApiHandler,
 	ApiResponse,
 	RequestConfig,
 	Resource,
-} from './types/api_client_types';
+} from './types/types';
 import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class
@@ -69,8 +70,7 @@ export const apiMethod = (
 			{},
 		);
 
-		const requestData = {
-			data: {},
+		const requestData: AxiosRequestConfig = {
 			headers: this.headers,
 			method,
 			url: solveURLParams(`${this.resourcePath}${path}`, resolvedURLObject),

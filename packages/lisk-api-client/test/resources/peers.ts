@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { PeersResource } from '../../src/resources/peers';
+import { FakeApiClient } from 'types/types';
 
-import APIResource from '../../src/api_resource';
-import TransactionsResource from '../../src/resources/transactions';
-
-describe('TransactionsResource', () => {
+describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/transactions';
+	const path = '/peers';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new TransactionsResource(apiClient);
+		resource = new PeersResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new TransactionsResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});
@@ -59,12 +55,6 @@ describe('TransactionsResource', () => {
 		it('should have a "get" function', () => {
 			return expect(resource)
 				.to.have.property('get')
-				.which.is.a('function');
-		});
-
-		it('should have a "broadcast" function', () => {
-			return expect(resource)
-				.to.have.property('broadcast')
 				.which.is.a('function');
 		});
 	});

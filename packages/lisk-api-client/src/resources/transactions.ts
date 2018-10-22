@@ -16,13 +16,13 @@ import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
 import { GET, POST } from '../constants';
-import { ApiHandler } from '../types/api_client_types';
+import { ApiHandler } from '../types/types';
 
 export class TransactionsResource extends APIResource {
-  public broadcast: ApiHandler;
-  public get: ApiHandler;
-  public path: string;
-  public constructor(apiClient: APIClient) {
+	public broadcast: ApiHandler;
+	public get: ApiHandler;
+	public path: string;
+	public constructor(apiClient: APIClient) {
 		super(apiClient);
 		this.path = '/transactions';
 

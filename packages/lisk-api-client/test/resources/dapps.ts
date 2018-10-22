@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import APIResource from '../../src/api_resource';
-import DappsResource from '../../src/resources/dapps';
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { DappsResource } from '../../src/resources/dapps';
+import { FakeApiClient } from 'types/types';
 
 describe('DappsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/dapps';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new DappsResource(apiClient);
+		resource = new DappsResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new DappsResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});

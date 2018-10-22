@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { SignaturesResource } from '../../src/resources/signatures';
+import { FakeApiClient } from 'types/types';
 
-import APIResource from '../../src/api_resource';
-import AccountsResource from '../../src/resources/accounts';
-
-describe('AccountsResource', () => {
+describe('SignaturesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/accounts';
+	const path = '/signatures';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new AccountsResource(apiClient);
+		resource = new SignaturesResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new AccountsResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});
@@ -56,21 +52,9 @@ describe('AccountsResource', () => {
 			return expect(resource.path).to.equal(path);
 		});
 
-		it('should have a "get" function', () => {
+		it('should have a "broadcast" function', () => {
 			return expect(resource)
-				.to.have.property('get')
-				.which.is.a('function');
-		});
-
-		it('should have a "getMultisignatureGroups" function', () => {
-			return expect(resource)
-				.to.have.property('getMultisignatureGroups')
-				.which.is.a('function');
-		});
-
-		it('should have a "getMultisignatureMemberships" function', () => {
-			return expect(resource)
-				.to.have.property('getMultisignatureMemberships')
+				.to.have.property('broadcast')
 				.which.is.a('function');
 		});
 	});

@@ -16,16 +16,16 @@ import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
 import { GET } from '../constants';
-import { ApiHandler } from '../types/api_client_types';
+import { ApiHandler } from '../types/types';
 
 export class DelegatesResource extends APIResource {
-  public get:ApiHandler;
-  public getForgers: ApiHandler;
-  public getForgingStatistics:ApiHandler;
-  public getStandby: ApiHandler;
-  public path: string;
+	public get: ApiHandler;
+	public getForgers: ApiHandler;
+	public getForgingStatistics: ApiHandler;
+	public getStandby: ApiHandler;
+	public path: string;
 
-  public constructor(apiClient: APIClient) {
+	public constructor(apiClient: APIClient) {
 		super(apiClient);
 		this.path = '/delegates';
 

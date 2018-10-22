@@ -14,23 +14,17 @@
  */
 import Axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { APIClient } from './api_client';
-import { ApiResponse, HashMap } from './types/api_client_types';
+import { ApiResponse, HashMap } from './types/types';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
 const REQUEST_RETRY_TIMEOUT = 1000;
 
 export interface AxiosCustomError {
-	readonly response?: AxiosErrorData;
-}
-
-export interface AxiosErrorData {
-	readonly data?: AxiosErrorMessage;
-	readonly status?: string;
-}
-
-export interface AxiosErrorMessage {
-	readonly message?: string;
+	readonly response?: {
+		readonly data?: { readonly message?: string };
+		readonly status?: string;
+	};
 }
 
 export class APIResource {
@@ -38,11 +32,6 @@ export class APIResource {
 	public path: string;
 
 	public constructor(apiClient: APIClient) {
-		if (!apiClient) {
-			throw new Error(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		}
 		this.apiClient = apiClient;
 		this.path = '';
 	}

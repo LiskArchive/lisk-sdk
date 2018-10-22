@@ -12,7 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIResource from '../src/api_resource';
+import { expect } from 'chai';
+import { APIClient } from '../src/api_client';
+import { APIResource } from '../src/api_resource';
+import sinon from 'sinon';
+import { FakeApiClient } from 'types/types';
+
 // Required for stub
 const axios = require('axios');
 
@@ -37,32 +42,27 @@ describe('API resource module', () => {
 
 	const sendRequestResult = {
 		data: [],
+		body: {},
 		limit: 0,
 	};
-	let resource;
-	let apiClient;
+	let resource: APIResource;
+	let apiClient: FakeApiClient;
 
 	beforeEach(() => {
 		apiClient = {
-			headers: Object.assign({}, defaultHeaders),
+			headers: { ...defaultHeaders },
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: sandbox.stub(),
 		};
-		resource = new APIResource(apiClient);
+		resource = new APIResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
 		it('should create an API resource instance', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
-		});
-
-		it('should throw an error without an input', () => {
-			return expect(() => new APIResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
 		});
 	});
 
@@ -86,8 +86,8 @@ describe('API resource module', () => {
 	});
 
 	describe('#request', () => {
-		let requestStub;
-		let handleRetryStub;
+		let requestStub: sinon.SinonStub;
+		let handleRetryStub: () => Promise<void>;
 
 		beforeEach(() => {
 			requestStub = sandbox.stub(axios, 'request').resolves({
@@ -173,8 +173,8 @@ describe('API resource module', () => {
 	});
 
 	describe('#handleRetry', () => {
-		let requestStub;
-		let defaultError;
+		let requestStub: sinon.SinonStub;
+		let defaultError: Error;
 		beforeEach(() => {
 			defaultError = new Error('could not connect to a node');
 			requestStub = sandbox
@@ -184,7 +184,7 @@ describe('API resource module', () => {
 		});
 
 		describe('when there is available node', () => {
-			let clock;
+			let clock: sinon.SinonFakeTimers;
 
 			beforeEach(() => {
 				clock = sinon.useFakeTimers();

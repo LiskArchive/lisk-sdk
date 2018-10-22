@@ -25,7 +25,7 @@ import { SignaturesResource } from './resources/signatures';
 import { TransactionsResource } from './resources/transactions';
 import { VotersResource } from './resources/voters';
 import { VotesResource } from './resources/votes';
-import { HashMap } from './types/api_client_types';
+import { HashMap } from './types/types';
 
 const defaultOptions = {
 	bannedNodes: [],
@@ -77,14 +77,14 @@ export class APIClient {
 		return constants;
 	}
 
-	public static createMainnetAPIClient(options: CreateConfig): APIClient {
+	public static createMainnetAPIClient(options?: CreateConfig): APIClient {
 		return new APIClient(constants.MAINNET_NODES, {
 			nethash: MAINNET_NETHASH,
 			...options,
 		});
 	}
 
-	public static createTestnetAPIClient(options: CreateConfig): APIClient {
+	public static createTestnetAPIClient(options?: CreateConfig): APIClient {
 		return new APIClient(constants.TESTNET_NODES, {
 			nethash: TESTNET_NETHASH,
 			...options,
@@ -139,7 +139,7 @@ export class APIClient {
 
 	public banNode(node: string): boolean {
 		if (!this.isBanned(node)) {
-			this.bannedNodes.concat(node);
+			this.bannedNodes = [...this.bannedNodes, node];
 
 			return true;
 		}

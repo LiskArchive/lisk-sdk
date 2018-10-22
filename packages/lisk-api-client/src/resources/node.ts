@@ -16,25 +16,19 @@ import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
 import { GET, PUT } from '../constants';
-import { ApiHandler } from '../types/api_client_types';
+import { ApiHandler } from '../types/types';
 
 export class NodeResource extends APIResource {
-
-  public getConstants: ApiHandler;
-  public getForgingStatus: ApiHandler;
-  public getStatus: ApiHandler;
-  public getTransactions: ApiHandler;
-  public path: string;
-  public updateForgingStatus: ApiHandler;
+	public getConstants: ApiHandler;
+	public getForgingStatus: ApiHandler;
+	public getStatus: ApiHandler;
+	public getTransactions: ApiHandler;
+	public path: string;
+	public updateForgingStatus: ApiHandler;
 
 	public constructor(apiClient: APIClient) {
 		super(apiClient);
 		this.path = '/node';
-
-		this.getConstants = apiMethod({
-			method: GET,
-			path: '/constants'
-		}).bind(this);
 
 		this.getConstants = apiMethod({
 			method: GET,

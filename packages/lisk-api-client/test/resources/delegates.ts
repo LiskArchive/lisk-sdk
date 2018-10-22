@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { DelegatesResource } from '../../src/resources/delegates';
+import { FakeApiClient } from 'types/types';
 
-import APIResource from '../../src/api_resource';
-import PeersResource from '../../src/resources/peers';
-
-describe('PeersResource', () => {
+describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/peers';
+	const path = '/delegates';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
 			hasAvailableNodes: () => {},
-			randomizeNodes: () => {},
+			randomizeNodes: false,
 			banActiveNodeAndSelect: () => {},
 		};
-		resource = new PeersResource(apiClient);
+		resource = new DelegatesResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new PeersResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});
@@ -59,6 +55,24 @@ describe('PeersResource', () => {
 		it('should have a "get" function', () => {
 			return expect(resource)
 				.to.have.property('get')
+				.which.is.a('function');
+		});
+
+		it('should have a "getStandby" function', () => {
+			return expect(resource)
+				.to.have.property('getStandby')
+				.which.is.a('function');
+		});
+
+		it('should have a "getForgers" function', () => {
+			return expect(resource)
+				.to.have.property('getForgers')
+				.which.is.a('function');
+		});
+
+		it('should have a "getForgingStatistics" function', () => {
+			return expect(resource)
+				.to.have.property('getForgingStatistics')
 				.which.is.a('function');
 		});
 	});

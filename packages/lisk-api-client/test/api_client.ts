@@ -12,13 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import os from 'os';
-import APIClient from '../src/api_client';
+import { APIClient } from '../src/api_client';
 
 describe('APIClient module', () => {
 	const mainnetHash =
 		'ed14889723f24ecc54871d058d98ce91ff2f973192075c0155ba2b7b70ad2511';
-	const mainnetNodes = [
+	const mainnetNodes: ReadonlyArray<string> = [
 		'https://node01.lisk.io:443',
 		'https://node02.lisk.io:443',
 		'https://node03.lisk.io:443',
@@ -30,7 +31,7 @@ describe('APIClient module', () => {
 	];
 	const testnetHash =
 		'da3ed6a45429278bac2666961289ca17ad86595d33b31037615d4b8e8f158bba';
-	const testnetNodes = ['https://testnet.lisk.io:443'];
+	const testnetNodes: ReadonlyArray<string> = ['https://testnet.lisk.io:443'];
 	const locale =
 		process.env.LC_ALL ||
 		process.env.LC_MESSAGES ||
@@ -57,10 +58,14 @@ describe('APIClient module', () => {
 	const externalNode = 'https://googIe.com:8080';
 	const sslNode = 'https://external.lisk.io:443';
 	const externalTestnetNode = 'http://testnet.lisk.io';
-	const defaultNodes = [localNode, externalNode, sslNode];
+	const defaultNodes: ReadonlyArray<string> = [
+		localNode,
+		externalNode,
+		sslNode,
+	];
 	const defaultSelectedNode = 'selected_node';
 
-	let apiClient;
+	let apiClient: APIClient;
 
 	beforeEach(() => {
 		apiClient = new APIClient(defaultNodes);
@@ -68,7 +73,7 @@ describe('APIClient module', () => {
 	});
 
 	describe('#constructor', () => {
-		let initializeStub;
+		let initializeStub: () => void;
 
 		beforeEach(() => {
 			initializeStub = sandbox.stub(APIClient.prototype, 'initialize');
@@ -88,10 +93,8 @@ describe('APIClient module', () => {
 
 		it('should call initialize with the nodes and provided options', () => {
 			const providedOptions = {
-				headers: {
-					nethash:
-						'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-				},
+				nethash:
+					'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 			};
 			apiClient = new APIClient(defaultNodes, providedOptions);
 			return expect(initializeStub).to.be.calledWithExactly(
@@ -102,7 +105,7 @@ describe('APIClient module', () => {
 	});
 
 	describe('#createMainnetAPIClient', () => {
-		let client;
+		let client: APIClient;
 		beforeEach(() => {
 			client = APIClient.createMainnetAPIClient();
 			return Promise.resolve();
@@ -122,7 +125,7 @@ describe('APIClient module', () => {
 	});
 
 	describe('#createTestnetAPIClient', () => {
-		let client;
+		let client: APIClient;
 		beforeEach(() => {
 			client = APIClient.createTestnetAPIClient();
 			return Promise.resolve();
@@ -322,7 +325,7 @@ describe('APIClient module', () => {
 	});
 
 	describe('#banActiveNode', () => {
-		let currentNode;
+		let currentNode: string;
 
 		beforeEach(() => {
 			({ currentNode } = apiClient);
@@ -346,8 +349,8 @@ describe('APIClient module', () => {
 	});
 
 	describe('#banActiveNodeAndSelect', () => {
-		let currentNode;
-		let getNewNodeStub;
+		let currentNode: string;
+		let getNewNodeStub: () => string;
 
 		beforeEach(() => {
 			({ currentNode } = apiClient);
@@ -377,7 +380,7 @@ describe('APIClient module', () => {
 
 	describe('#isBanned', () => {
 		it('should return true when provided node is banned', () => {
-			apiClient.bannedNodes.push(localNode);
+			apiClient.bannedNodes = [...apiClient.bannedNodes, localNode];
 			return expect(apiClient.isBanned(localNode)).to.be.true;
 		});
 

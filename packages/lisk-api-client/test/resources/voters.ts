@@ -12,36 +12,32 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { APIClient } from '../../src/api_client';
+import { APIResource } from '../../src/api_resource';
+import { VotersResource } from '../../src/resources/voters';
+import { FakeApiClient } from 'types/types';
 
-import APIResource from '../../src/api_resource';
-import SignaturesResource from '../../src/resources/signatures';
-
-describe('SignaturesResource', () => {
+describe('VotersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
-	const path = '/signatures';
+	const path = '/voters';
 
-	let apiClient;
-	let resource;
+	let apiClient: FakeApiClient;
+	let resource: APIResource;
 
 	beforeEach(() => {
 		apiClient = {
 			headers: {},
 			currentNode: defaultBasePath,
-			hasAvailableSignatures: () => {},
-			randomizeSignatures: () => {},
-			banActiveSignatureAndSelect: () => {},
+			hasAvailableNodes: () => {},
+			randomizeNodes: false,
+			banActiveNodeAndSelect: () => {},
 		};
-		resource = new SignaturesResource(apiClient);
+		resource = new VotersResource(apiClient as APIClient);
 		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
-		it('should throw error without apiClient input', () => {
-			return expect(() => new SignaturesResource()).to.throw(
-				'APIResource requires APIClient instance for initialization.',
-			);
-		});
-
 		it('should be instance of APIResource', () => {
 			return expect(resource).to.be.instanceOf(APIResource);
 		});
@@ -56,9 +52,9 @@ describe('SignaturesResource', () => {
 			return expect(resource.path).to.equal(path);
 		});
 
-		it('should have a "broadcast" function', () => {
+		it('should have a "get" function', () => {
 			return expect(resource)
-				.to.have.property('broadcast')
+				.to.have.property('get')
 				.which.is.a('function');
 		});
 	});

@@ -12,15 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
-import apiMethod from '../src/api_method';
+import { expect } from 'chai';
+import { apiMethod } from '../src/api_method';
+import { ApiResponse, Resource } from '../src/types/types';
 
 describe('API method module', () => {
 	const GET = 'GET';
 	const POST = 'POST';
 	const defaultBasePath = 'http://localhost:1234/api';
-	const defaultresourcePath = '/resources';
-	const defaultFullPath = `${defaultBasePath}${defaultresourcePath}`;
+	const defaultResourcePath = '/resources';
+	const defaultFullPath = `${defaultBasePath}${defaultResourcePath}`;
 	const defaultHeaders = {
 		'Content-Type': 'application/json',
 		nethash: 'mainnetHash',
@@ -33,19 +34,22 @@ describe('API method module', () => {
 		'This endpoint must be supplied with the following parameters: related,id';
 	const firstURLParam = 'r-123';
 	const secondURLParam = 'id-123';
-	let resource;
-	let requestResult;
-	let handler;
-	let validationError;
+	let resource: Resource;
+	let requestResult: object;
+	let handler: (
+		firstURLParam?: string,
+		secondURLParam?: string,
+		options?: object,
+	) => Promise<ApiResponse | Error>;
+	let validationError: Error;
 
 	beforeEach(() => {
 		requestResult = { success: true, sendRequest: true };
 		resource = {
-			path: defaultresourcePath,
+			path: defaultResourcePath,
 			resourcePath: defaultFullPath,
 			headers: defaultHeaders,
 			request: sandbox.stub().resolves(requestResult),
-			handleRetry: () => {},
 		};
 		validationError = new Error('No data');
 		return Promise.resolve();
@@ -55,6 +59,7 @@ describe('API method module', () => {
 		describe('when no parameters are passed', () => {
 			beforeEach(() => {
 				handler = apiMethod().bind(resource);
+
 				return Promise.resolve();
 			});
 
