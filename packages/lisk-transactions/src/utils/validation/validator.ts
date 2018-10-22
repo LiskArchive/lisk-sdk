@@ -95,7 +95,7 @@ validator.addFormat('additionPublicKey', data => {
 
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
-	compile: () => data =>
+	compile: () => (data: ReadonlyArray<string>) =>
 		new Set(data.map((key: string) => key.slice(1))).size === data.length,
 });
 
