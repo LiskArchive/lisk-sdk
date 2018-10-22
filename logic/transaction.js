@@ -146,7 +146,6 @@ class Transaction {
 	 * @param {transaction} transaction
 	 * @param {boolean} skipSignature
 	 * @param {boolean} skipSecondSignature
-	 * @param {object} customExceptions Exceptions object overriding config
 	 * @throws {Error}
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
@@ -1144,6 +1143,7 @@ class Transaction {
 		formatErrors = formatErrors.filter(error => {
 			if (error.code === 'INVALID_FORMAT' && error.params[0] === 'address') {
 				// Remove the errors if transaction is in exception
+				// and recipient equals the recipient fixed in the exception
 				if (
 					(exceptions.recipientLeadingZero[transaction.id] &&
 						exceptions.recipientLeadingZero[transaction.id] ===
