@@ -54,13 +54,8 @@ const getTransactionSchemaValidator = (type: number): ValidateFunction => {
 };
 
 interface ValidationResult {
-	readonly errors?: ReadonlyArray<CustomErrorObject>;
+	readonly errors?: ReadonlyArray<ErrorObject>;
 	readonly valid: boolean;
-}
-
-interface CustomErrorObject {
-	readonly dataPath: string;
-	readonly message: string;
 }
 
 const validateMultiTransaction = (
@@ -72,10 +67,13 @@ const validateMultiTransaction = (
 			errors: [
 				{
 					dataPath: '.asset.multisignature.min',
+					keyword: 'multisignatures.keysgroup.min',
 					message:
 						'.asset.multisignature.min cannot be greater than .asset.multisignature.keysgroup.length',
+					params: {},
+					schemaPath: 'lisk/base-transaction',
 				},
-			],
+			] as ReadonlyArray<ErrorObject>,
 		};
 	}
 
@@ -97,7 +95,7 @@ export const validateTransaction = (
 	}
 
 	const validateSchema = getTransactionSchemaValidator(tx.type);
-	const valid = validateSchema(tx);
+	const valid = validateSchema(tx) as boolean;
 	// Ajv produces merge error when error happens within $merge
 	const errors = validateSchema.errors
 		? validateSchema.errors.filter(

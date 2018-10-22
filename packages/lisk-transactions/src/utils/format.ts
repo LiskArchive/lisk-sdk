@@ -18,10 +18,10 @@ import { isGreaterThanMaxTransactionAmount } from './validation';
 
 const BASE_10 = 10;
 const LISK_MAX_DECIMAL_POINTS = 8;
-const getDecimalPlaces = (amount: string) =>
+const getDecimalPlaces = (amount: string): number =>
 	(amount.split('.')[1] || '').length;
 
-export const convertBeddowsToLSK = (beddowsAmount?: string) => {
+export const convertBeddowsToLSK = (beddowsAmount?: string): string => {
 	if (typeof beddowsAmount !== 'string') {
 		throw new Error('Cannot convert non-string amount');
 	}
@@ -37,7 +37,7 @@ export const convertBeddowsToLSK = (beddowsAmount?: string) => {
 	return lskAmountBigNum.toString(BASE_10);
 };
 
-export const convertLSKToBeddows = (lskAmount?: string) => {
+export const convertLSKToBeddows = (lskAmount?: string): string => {
 	if (typeof lskAmount !== 'string') {
 		throw new Error('Cannot convert non-string amount');
 	}
@@ -53,8 +53,8 @@ export const convertLSKToBeddows = (lskAmount?: string) => {
 	return beddowsAmountBigNum.toString();
 };
 
-export const prependPlusToPublicKeys = (publicKeys: ReadonlyArray<string>) =>
+export const prependPlusToPublicKeys = (publicKeys: ReadonlyArray<string>): ReadonlyArray<string> =>
 	publicKeys.map(publicKey => `+${publicKey}`);
 
-export const prependMinusToPublicKeys = (publicKeys: ReadonlyArray<string>) =>
+export const prependMinusToPublicKeys = (publicKeys: ReadonlyArray<string>): ReadonlyArray<string> =>
 	publicKeys.map(publicKey => `-${publicKey}`);
