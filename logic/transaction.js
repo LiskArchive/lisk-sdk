@@ -23,7 +23,6 @@ const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
 const constants = global.constants;
-const UINT64_MAX = new Bignum('18446744073709551615');
 const __private = {};
 
 /**
@@ -152,17 +151,10 @@ class Transaction {
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
 	 */
-	getBytes(transaction, skipSignature, skipSecondSignature, customExceptions) {
+	getBytes(transaction, skipSignature, skipSecondSignature) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
-
-		const localExceptions = customExceptions || exceptions;
-
-		const recipientLeadingZeroExceptions = localExceptions.recipientLeadingZero
-			? localExceptions.recipientLeadingZero : {};
-		const recipientExceedingUint64Exceptions = localExceptions.recipientExceedingUint64
-			? localExceptions.recipientExceedingUint64 : {};
 
 		let byteBuffer;
 
@@ -201,35 +193,11 @@ class Transaction {
 			}
 
 			if (transaction.recipientId) {
-				const recipientString = transaction.recipientId.slice(0, -1);
-				const recipientNumber = new Bignum(recipientString);
-
-				if (recipientLeadingZeroExceptions[transaction.id]) {
-					if (transaction.recipientId !== recipientLeadingZeroExceptions[transaction.id]) {
-						throw `Recipient address ${transaction.recipientId} does not match the one fixed in exception: ${
-							recipientLeadingZeroExceptions[transaction.id]
-						}`;
-					}
-				} else if (recipientString !== recipientNumber.toString(10)) {
-					throw 'Recipient address number does not have natural represenation'; // e.g. leading 0s
-				}
-
-				if (recipientExceedingUint64Exceptions[transaction.id]) {
-					if (transaction.recipientId !== recipientExceedingUint64Exceptions[transaction.id]) {
-						throw `Recipient address ${transaction.recipientId} does not match the one fixed in exception: ${
-							recipientExceedingUint64Exceptions[transaction.id]
-						}`;
-					}
-				} else if (recipientNumber.greaterThan(UINT64_MAX)) {
-					throw 'Recipient address number exceeds uint64 range';
-				}
-
-				// For numbers exceeding the uint64 range, this produces 16 bytes.
-				// This behaviour must be preserved to verify legacy data
-				const recipientSerialized = recipientNumber.toBuffer({ size: 8 });
+				let recipient = transaction.recipientId.slice(0, -1);
+				recipient = new Bignum(recipient).toBuffer({ size: 8 });
 
 				for (let i = 0; i < 8; i++) {
-					byteBuffer.writeByte(recipientSerialized[i] || 0);
+					byteBuffer.writeByte(recipient[i] || 0);
 				}
 			} else {
 				for (let i = 0; i < 8; i++) {
@@ -1171,9 +1139,25 @@ class Transaction {
 			Transaction.prototype.schema
 		);
 
-		if (!report) {
-			throw `Failed to validate transaction schema: ${this.scope.schema
-				.getLastErrors()
+		let formatErrors = this.scope.schema.getLastErrors();
+
+		formatErrors = formatErrors.filter(error => {
+			if (error.code === 'INVALID_FORMAT' && error[0] === 'address') {
+				// Remove the errors if transaction is in exception
+				if (
+					(exceptions.recipientLeadingZero[transaction.id] &&
+						exceptions.recipientLeadingZero[transaction.id] === error[1]) ||
+					(exceptions.recipientExceedingUint64[transaction.id] &&
+						exceptions.recipientExceedingUint64[transaction.id] === error[1])
+				) {
+					return false;
+				}
+				return true;
+			}
+		});
+
+		if (report && formatErrors.length) {
+			throw `Failed to validate transaction schema: ${formatErrors
 				.map(err => err.message)
 				.join(', ')}`;
 		}
