@@ -18,7 +18,7 @@ import {
 	MAX_TRANSACTION_ID,
 } from '@liskhq/lisk-constants';
 import cryptography from '@liskhq/lisk-cryptography';
-import bignum from 'browserify-bignum';
+import BigNum from 'browserify-bignum';
 import {
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
@@ -83,9 +83,9 @@ export const validateAddress = (address: string) => {
 		);
 	}
 
-	const addressAsBignum = new bignum(address.slice(0, -1));
+	const addressAsBignum = new BigNum(address.slice(0, -1));
 
-	if (addressAsBignum.cmp(new bignum(MAX_ADDRESS_NUMBER)) > 0) {
+	if (addressAsBignum.cmp(new BigNum(MAX_ADDRESS_NUMBER)) > 0) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
 		);
@@ -94,12 +94,12 @@ export const validateAddress = (address: string) => {
 	return true;
 };
 
-export const isGreaterThanZero = (amount: bignum) => amount.cmp(0) > 0;
+export const isGreaterThanZero = (amount: BigNum) => amount.cmp(0) > 0;
 
-export const isGreaterThanMaxTransactionAmount = (amount: bignum) =>
+export const isGreaterThanMaxTransactionAmount = (amount: BigNum) =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
-export const isGreaterThanMaxTransactionId = (id: bignum) =>
+export const isGreaterThanMaxTransactionId = (id: BigNum) =>
 	id.cmp(MAX_TRANSACTION_ID) > 0;
 
 export const isNumberString = (str: string) => {
@@ -111,17 +111,19 @@ export const isNumberString = (str: string) => {
 };
 
 export const validateAmount = (data: string) =>
-	isNumberString(data) && !isGreaterThanZero(new bignum(data));
+	isNumberString(data) && !isGreaterThanZero(new BigNum(data));
 
 export const validateTransferAmount = (data: string) =>
 	isNumberString(data) &&
-	isGreaterThanZero(new bignum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new bignum(data));
+	isGreaterThanZero(new BigNum(data)) &&
+	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
 export const validateFee = (data: string) =>
 	isNumberString(data) &&
-	isGreaterThanZero(new bignum(data)) &&
-	!isGreaterThanMaxTransactionAmount(new bignum(data));
+	isGreaterThanZero(new BigNum(data)) &&
+	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
 export const isValidInteger = (num: string | number) =>
-	(typeof num === 'string') ? parseInt(num, 10).toString() === num : Math.floor(num) === num;
+	typeof num === 'string'
+		? parseInt(num, 10).toString() === num
+		: Math.floor(num) === num;

@@ -14,7 +14,10 @@
  */
 import { expect } from 'chai';
 import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
-import { BaseTransaction, SecondSignatureAsset } from '../src/transaction_types';
+import {
+	BaseTransaction,
+	SecondSignatureAsset,
+} from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -147,13 +150,12 @@ describe('#registerSecondPassphrase transaction', () => {
 				expect(registerSecondPassphraseTransaction.asset)
 					.to.have.property('signature')
 					.with.property('publicKey').and.be.hexString;
-				const { signature } = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(
-					Buffer.from(
-						signature.publicKey,
-						'hex',
-					),
-				).to.have.length(32);
+				const {
+					signature,
+				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
+				return expect(Buffer.from(signature.publicKey, 'hex')).to.have.length(
+					32,
+				);
 			});
 
 			it('should have a publicKey equal to the public key for the provided second passphrase', () => {
@@ -168,10 +170,10 @@ describe('#registerSecondPassphrase transaction', () => {
 					passphrase,
 					secondPassphrase: '',
 				});
-				const { signature } = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
-				return expect(
-					signature.publicKey,
-				).to.be.equal(emptyStringPublicKey);
+				const {
+					signature,
+				} = registerSecondPassphraseTransaction.asset as SecondSignatureAsset;
+				return expect(signature.publicKey).to.be.equal(emptyStringPublicKey);
 			});
 		});
 	});

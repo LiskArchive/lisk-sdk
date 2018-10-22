@@ -14,7 +14,10 @@
  */
 import { expect } from 'chai';
 import { prepareTransaction } from '../../src/utils/prepare_transaction';
-import { BaseTransaction, PartialTransaction } from '../../src/transaction_types';
+import {
+	BaseTransaction,
+	PartialTransaction,
+} from '../../src/transaction_types';
 
 describe('#prepareTransaction', () => {
 	const passphrase = 'secret';
@@ -32,7 +35,7 @@ describe('#prepareTransaction', () => {
 	const id = '8330167589806376997';
 	const defaultTransaction = {
 		type: 0,
-		amount: 10e8.toString(),
+		amount: (10e8).toString(),
 		timestamp: 10,
 		senderPublicKey: keys.publicKey,
 		asset: {},

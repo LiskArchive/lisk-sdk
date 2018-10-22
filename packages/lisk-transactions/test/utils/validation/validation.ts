@@ -147,7 +147,8 @@ describe('validation', () => {
 
 		describe('Given a keysgroup with 17 public keys', () => {
 			beforeEach(() => {
-				keysgroup = new Array(17).fill(0)
+				keysgroup = new Array(17)
+					.fill(0)
 					.map(
 						(_: number, index: number) =>
 							cryptography.getPrivateAndPublicKeyFromPassphrase(

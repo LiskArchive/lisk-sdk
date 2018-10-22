@@ -28,7 +28,12 @@ import {
 	checkRequiredFields,
 	isValidValue,
 } from '../../src/utils/get_transaction_bytes';
-import { TransferTransaction, PartialTransaction, BaseTransaction, MultiSignatureAsset } from '../../src/transaction_types';
+import {
+	TransferTransaction,
+	PartialTransaction,
+	BaseTransaction,
+	MultiSignatureAsset,
+} from '../../src/transaction_types';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -86,7 +91,7 @@ describe('getTransactionBytes module', () => {
 					...defaultTransaction,
 					asset: {
 						data: 'Hello Lisk! Some data in here!...',
-					}
+					},
 				};
 				const expectedBuffer = Buffer.from(
 					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff286230048656c6c6f204c69736b2120536f6d65206461746120696e2068657265212e2e2e618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
@@ -102,9 +107,7 @@ describe('getTransactionBytes module', () => {
 				const transferTransaction: TransferTransaction = {
 					...defaultTransaction,
 					asset: {
-						data: new Array(maxDataLength + 1)
-							.fill('1')
-							.join(''),
+						data: new Array(maxDataLength + 1).fill('1').join(''),
 					},
 				};
 				return expect(
@@ -118,9 +121,9 @@ describe('getTransactionBytes module', () => {
 					...defaultTransaction,
 					amount,
 				};
-				return expect(
-					getTransactionBytes.bind(null, transaction),
-				).to.throw('Transaction amount must not be negative.');
+				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
+					'Transaction amount must not be negative.',
+				);
 			});
 
 			it('should not throw on type 0 with an amount that is 0', () => {
@@ -135,16 +138,16 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should throw on type 0 with an amount that is too large', () => {
-				const amount = BigNum
-					.fromBuffer(Buffer.from(new Array(8).fill(255)))
-					.plus(1);
+				const amount = BigNum.fromBuffer(
+					Buffer.from(new Array(8).fill(255)),
+				).plus(1);
 				const transaction = {
 					...defaultTransaction,
 					amount,
 				};
-				return expect(
-					getTransactionBytes.bind(null, transaction),
-				).to.throw('Transaction amount is too large.');
+				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
+					'Transaction amount is too large.',
+				);
 			});
 
 			it('should return Buffer of transaction with second signature', () => {
@@ -207,7 +210,13 @@ describe('getTransactionBytes module', () => {
 				];
 
 				return requiredProperties.forEach(parameter => {
-					const { type, timestamp, senderPublicKey, amount, ...defaultTransactionClone } = defaultTransaction;
+					const {
+						type,
+						timestamp,
+						senderPublicKey,
+						amount,
+						...defaultTransactionClone
+					} = defaultTransaction;
 					expect(
 						getTransactionBytes.bind(null, defaultTransactionClone),
 					).to.throw(`${parameter} is a required parameter.`);
@@ -223,7 +232,13 @@ describe('getTransactionBytes module', () => {
 				];
 
 				return requiredProperties.forEach(parameter => {
-					const { type, timestamp, senderPublicKey, amount, ...defaultTransactionClone } = defaultTransaction;
+					const {
+						type,
+						timestamp,
+						senderPublicKey,
+						amount,
+						...defaultTransactionClone
+					} = defaultTransaction;
 					expect(
 						getTransactionBytes.bind(null, defaultTransactionClone),
 					).to.throw(`${parameter} is a required parameter.`);
@@ -587,7 +602,10 @@ describe('getTransactionBytes module', () => {
 				const requiredProperties = ['min', 'lifetime', 'keysgroup'];
 
 				return requiredProperties.forEach(parameter => {
-					const { [parameter]: deletedValue, ...multisigAsset } = multisignatureAsset.multisignature;
+					const {
+						[parameter]: deletedValue,
+						...multisigAsset
+					} = multisignatureAsset.multisignature;
 					expect(
 						getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
 							multisignature: multisigAsset,
@@ -754,9 +772,7 @@ describe('getTransactionBytes module', () => {
 				const transaction = {
 					...defaultTransaction,
 					asset: {
-						data: new Array(maxDataLength + 1)
-							.fill('1')
-							.join(''),
+						data: new Array(maxDataLength + 1).fill('1').join(''),
 					},
 				};
 				return expect(checkTransaction.bind(null, transaction)).to.throw(
@@ -768,9 +784,7 @@ describe('getTransactionBytes module', () => {
 				const transaction = {
 					...defaultTransaction,
 					asset: {
-						data: new Array(maxDataLength)
-							.fill('1')
-							.join(''),
+						data: new Array(maxDataLength).fill('1').join(''),
 					},
 				};
 				return expect(checkTransaction(transaction)).to.be.true;

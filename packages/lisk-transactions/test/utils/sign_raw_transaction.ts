@@ -14,7 +14,10 @@
  */
 import { expect } from 'chai';
 import { signRawTransaction } from '../../src/utils/sign_raw_transaction';
-import { BaseTransaction, PartialTransaction } from '../../src/transaction_types';
+import {
+	BaseTransaction,
+	PartialTransaction,
+} from '../../src/transaction_types';
 // Require is used for stubbing
 const time = require('../../src/utils/time');
 

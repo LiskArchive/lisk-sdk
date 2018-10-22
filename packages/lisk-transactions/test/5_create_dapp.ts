@@ -78,9 +78,9 @@ describe('#createDapp transaction', () => {
 
 		it('should throw an error if no category is provided', () => {
 			const { category, ...invalidOptions } = options;
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				categoryIntegerError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if provided category is not an integer', () => {
@@ -88,16 +88,16 @@ describe('#createDapp transaction', () => {
 				...options,
 				category: 'not an integer',
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				categoryIntegerError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(categoryIntegerError);
 		});
 
 		it('should throw an error if no name is provided', () => {
 			const { name, ...invalidOptions } = options;
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				nameStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(nameStringError);
 		});
 
 		it('should throw an error if provided name is not a string', () => {
@@ -105,16 +105,16 @@ describe('#createDapp transaction', () => {
 				...options,
 				name: 123,
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				nameStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(nameStringError);
 		});
 
 		it('should throw an error if no type is provided', () => {
 			const { type, ...invalidOptions } = options;
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				typeIntegerError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(typeIntegerError);
 		});
 
 		it('should throw an error if provided type is not an integer', () => {
@@ -122,16 +122,16 @@ describe('#createDapp transaction', () => {
 				...options,
 				type: 'not an integer',
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				typeIntegerError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(typeIntegerError);
 		});
 
 		it('should throw an error if no link is provided', () => {
 			const { link, ...invalidOptions } = options;
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				linkStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(linkStringError);
 		});
 
 		it('should throw an error if provided link is not a string', () => {
@@ -139,9 +139,9 @@ describe('#createDapp transaction', () => {
 				...options,
 				link: 123,
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				linkStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(linkStringError);
 		});
 
 		it('should throw an error if provided description is not a string', () => {
@@ -149,9 +149,9 @@ describe('#createDapp transaction', () => {
 				...options,
 				description: 123,
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				descriptionStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(descriptionStringError);
 		});
 
 		it('should throw an error if provided tags is not a string', () => {
@@ -159,9 +159,9 @@ describe('#createDapp transaction', () => {
 				...options,
 				tags: 123,
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				tagsStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(tagsStringError);
 		});
 
 		it('should throw an error if provided icon is not a string', () => {
@@ -169,9 +169,9 @@ describe('#createDapp transaction', () => {
 				...options,
 				icon: 123,
 			};
-			return expect(createDapp.bind(null, { passphrase, options: invalidOptions })).to.throw(
-				iconStringError,
-			);
+			return expect(
+				createDapp.bind(null, { passphrase, options: invalidOptions }),
+			).to.throw(iconStringError);
 		});
 
 		it('should not require description, tags, or icon', () => {
@@ -260,9 +260,7 @@ describe('#createDapp transaction', () => {
 			});
 
 			describe('dapps asset', () => {
-				const {
-					asset,
-				} = createDappTransaction;
+				const { asset } = createDappTransaction;
 				const { dapp } = asset as DappAsset;
 
 				it('should be object', () => {
@@ -279,7 +277,6 @@ describe('#createDapp transaction', () => {
 				});
 
 				it('should have a name string equal to provided name', () => {
-
 					return expect(dapp)
 						.to.have.property('name')
 						.and.be.a('string')

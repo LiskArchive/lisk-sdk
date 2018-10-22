@@ -53,8 +53,10 @@ export const convertLSKToBeddows = (lskAmount?: string): string => {
 	return beddowsAmountBigNum.toString();
 };
 
-export const prependPlusToPublicKeys = (publicKeys: ReadonlyArray<string>): ReadonlyArray<string> =>
-	publicKeys.map(publicKey => `+${publicKey}`);
+export const prependPlusToPublicKeys = (
+	publicKeys: ReadonlyArray<string>,
+): ReadonlyArray<string> => publicKeys.map(publicKey => `+${publicKey}`);
 
-export const prependMinusToPublicKeys = (publicKeys: ReadonlyArray<string>): ReadonlyArray<string> =>
-	publicKeys.map(publicKey => `-${publicKey}`);
+export const prependMinusToPublicKeys = (
+	publicKeys: ReadonlyArray<string>,
+): ReadonlyArray<string> => publicKeys.map(publicKey => `-${publicKey}`);

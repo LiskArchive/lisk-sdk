@@ -20,7 +20,9 @@ import sinonChai from 'sinon-chai';
 process.env.NODE_ENV = 'test';
 
 /* eslint-disable no-underscore-dangle */
-Assertion.addProperty('hexString', function handleAssert(this: Chai.ChaiStatic) {
+Assertion.addProperty('hexString', function handleAssert(
+	this: Chai.ChaiStatic,
+) {
 	const actual = this._obj;
 
 	new Assertion(actual).to.be.a('string');
@@ -51,13 +53,13 @@ Assertion.addProperty('integer', function handleAssert(this: Chai.ChaiStatic) {
 
 // Type declaration for sandbox
 declare global {
-	module NodeJS {
+	namespace NodeJS {
 		interface Global {
 			sandbox: sinon.SinonSandbox;
 		}
 	}
 	const sandbox: sinon.SinonSandbox;
-};
+}
 
 global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,

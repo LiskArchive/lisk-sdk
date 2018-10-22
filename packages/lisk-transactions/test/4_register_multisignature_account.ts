@@ -168,7 +168,9 @@ describe('#registerMultisignature transaction', () => {
 				});
 
 				it('should have a min number equal to provided minimum', () => {
-					const { multisignature } = registerMultisignatureTransaction.asset as MultiSignatureAsset;
+					const {
+						multisignature,
+					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
 					return expect(multisignature)
 						.to.have.property('min')
 						.and.be.a('number')
@@ -176,7 +178,9 @@ describe('#registerMultisignature transaction', () => {
 				});
 
 				it('should have a lifetime number equal to provided lifetime', () => {
-					const { multisignature } = registerMultisignatureTransaction.asset as MultiSignatureAsset;
+					const {
+						multisignature,
+					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
 					return expect(multisignature)
 						.to.have.property('lifetime')
 						.and.be.a('number')
@@ -188,7 +192,9 @@ describe('#registerMultisignature transaction', () => {
 						'+5d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae09',
 						'+922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
 					];
-					const { multisignature } = registerMultisignatureTransaction.asset as MultiSignatureAsset;
+					const {
+						multisignature,
+					} = registerMultisignatureTransaction.asset as MultiSignatureAsset;
 					return expect(multisignature)
 						.to.have.property('keysgroup')
 						.and.be.eql(expectedArray);

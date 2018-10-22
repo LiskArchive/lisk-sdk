@@ -14,7 +14,7 @@
  */
 import Ajv from 'ajv';
 import addMergePatchKeywords from 'ajv-merge-patch';
-import bignum from 'browserify-bignum';
+import BigNum from 'browserify-bignum';
 import * as schemas from './schema';
 import {
 	isGreaterThanMaxTransactionId,
@@ -34,7 +34,7 @@ validator.addFormat('signature', data => /^[a-f0-9]{128}$/i.test(data));
 validator.addFormat(
 	'id',
 	data =>
-		isNumberString(data) && !isGreaterThanMaxTransactionId(new bignum(data)),
+		isNumberString(data) && !isGreaterThanMaxTransactionId(new BigNum(data)),
 );
 
 validator.addFormat('address', data => {

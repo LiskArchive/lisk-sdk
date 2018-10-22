@@ -13,7 +13,10 @@
  *
  */
 import { expect } from 'chai';
-import { createSignatureObject, SignatureObject } from '../src/create_signature_object';
+import {
+	createSignatureObject,
+	SignatureObject,
+} from '../src/create_signature_object';
 
 describe('#createSignatureObject', () => {
 	const transaction = {

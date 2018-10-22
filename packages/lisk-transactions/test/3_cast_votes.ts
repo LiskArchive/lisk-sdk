@@ -159,9 +159,7 @@ describe('#castVotes transaction', () => {
 				it('should have a vote for the delegate public key', () => {
 					const { votes } = castVotesTransaction.asset as VoteAsset;
 					const expectedArray = [`+${firstPublicKey}`, `+${secondPublicKey}`];
-					return expect(votes).to.be.eql(
-						expectedArray,
-					);
+					return expect(votes).to.be.eql(expectedArray);
 				});
 			});
 		});
@@ -206,7 +204,7 @@ describe('#castVotes transaction', () => {
 				`-${thirdPublicKey}`,
 				`-${fourthPublicKey}`,
 			];
-					const { votes } = castVotesTransaction.asset as VoteAsset;
+			const { votes } = castVotesTransaction.asset as VoteAsset;
 			return expect(votes).to.be.eql(expectedArray);
 		});
 	});
