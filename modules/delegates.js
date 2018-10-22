@@ -247,8 +247,13 @@ __private.forge = function(cb) {
 		currentSlot,
 		lastBlock.height + 1,
 		(err, delegateKeypair) => {
-			if (err || delegateKeypair === null) {
-				library.logger.warn('Waiting for delegate slot', err);
+			if (err) {
+				library.logger.error('Failed to get delegate keypair', err);
+				return setImmediate(cb);
+			}
+
+			if (delegateKeypair === null) {
+				library.logger.debug('Waiting for delegate slot');
 				return setImmediate(cb);
 			}
 
