@@ -1154,8 +1154,8 @@ class Transaction {
 				) {
 					return false;
 				}
-				return true;
 			}
+			return true;
 		});
 
 		if (!report && formatErrors.length) {
