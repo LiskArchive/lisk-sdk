@@ -1158,6 +1158,16 @@ describe('transaction', () => {
 				transactionLogic.objectNormalize(transaction);
 			}).to.throw();
 		});
+
+		it('should not throw error when transaction amount and fee is zero(integer)', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.amount = 0;
+			transaction.fee = 0;
+
+			return expect(() => {
+				transactionLogic.objectNormalize(transaction);
+			}).to.not.throw();
+		});
 	});
 
 	describe('dbRead', () => {
