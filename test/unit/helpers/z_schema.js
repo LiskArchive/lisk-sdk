@@ -166,6 +166,38 @@ describe('schema - custom formats', () => {
 			}, this);
 		});
 
+		it('should return false if string contains leading zeros', function() {
+			var validData = ['0123L'];
+
+			return validData.forEach(function(item) {
+				expect(validator.validate(item, this.schema)).to.equal(false);
+			}, this);
+		});
+
+		it('should return true if string contains contains number less than UINT64_MAX', function() {
+			var validData = ['18446744073709551614L'];
+
+			return validData.forEach(function(item) {
+				expect(validator.validate(item, this.schema)).to.equal(true);
+			}, this);
+		});
+
+		it('should return true if string contains contains number equal to UINT64_MAX', function() {
+			var validData = ['18446744073709551615L'];
+
+			return validData.forEach(function(item) {
+				expect(validator.validate(item, this.schema)).to.equal(true);
+			}, this);
+		});
+
+		it('should return false if string contains contains number greater than UINT64_MAX', function() {
+			var validData = ['18446744073709551616L'];
+
+			return validData.forEach(function(item) {
+				expect(validator.validate(item, this.schema)).to.equal(false);
+			}, this);
+		});
+
 		shouldReturnFalseForEmptyNonStringValues();
 		shouldReturnTrueForEmptyStringValues();
 	});
