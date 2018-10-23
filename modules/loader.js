@@ -514,11 +514,13 @@ __private.loadBlockChain = function() {
 				const unapplied = getMemRounds.filter(row => row.round !== round);
 
 				if (unapplied.length > 0) {
-					return reload(blocksCount, 'Detected unapplied rounds in mem_round', {
+					library.logger.error('Detected unapplied rounds in mem_round', {
 						currentHeight: blocksCount,
 						currentRound: round,
 						unappliedRounds: unapplied,
 					});
+
+					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
 				}
 
 				if (duplicatedDelegatesCount > 0) {
