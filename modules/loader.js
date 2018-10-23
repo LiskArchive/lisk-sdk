@@ -511,12 +511,14 @@ __private.loadBlockChain = function() {
 					return __private.createSnapshot(blocksCount);
 				}
 
-				const unapplied = getMemRounds.filter(
-					row => row.round !== String(round)
-				);
+				const unapplied = getMemRounds.filter(row => row.round !== round);
 
 				if (unapplied.length > 0) {
-					return reload(blocksCount, 'Detected unapplied rounds in mem_round');
+					return reload(blocksCount, 'Detected unapplied rounds in mem_round', {
+						currentHeight: blocksCount,
+						currentRound: round,
+						unappliedRounds: unapplied,
+					});
 				}
 
 				if (duplicatedDelegatesCount > 0) {
