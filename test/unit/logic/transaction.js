@@ -1126,11 +1126,31 @@ describe('transaction', () => {
 
 		it('should remove keys with null or undefined attribute', () => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = null;
+			transaction.recipientId = null;
 
 			return expect(
 				_.keys(transactionLogic.objectNormalize(transaction))
-			).to.not.include('amount');
+			).to.not.include('recipientId');
+		});
+
+		it('should convert amount and fee to bignumber when values are null', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.amount = null;
+			transaction.fee = null;
+
+			const { amount, fee } = transactionLogic.objectNormalize(transaction);
+			expect(amount).to.be.an.instanceOf(Bignum);
+			return expect(fee).to.be.an.instanceOf(Bignum);
+		});
+
+		it('should convert amount and fee to bignumber when values are undefined', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.amount = undefined;
+			transaction.fee = undefined;
+
+			const { amount, fee } = transactionLogic.objectNormalize(transaction);
+			expect(amount).to.be.an.instanceOf(Bignum);
+			return expect(fee).to.be.an.instanceOf(Bignum);
 		});
 
 		it('should not remove any keys with valid entries', () => {
