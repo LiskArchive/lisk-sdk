@@ -250,12 +250,14 @@ __private.forge = function(cb) {
 		round,
 		(err, delegateKeypair) => {
 			if (err) {
-				library.logger.error('Failed to get delegate keypair', err);
+				library.logger.error('Skipping delegate slot', err);
 				return setImmediate(cb);
 			}
 
 			if (delegateKeypair === null) {
-				library.logger.debug('Waiting for delegate slot');
+				library.logger.debug('Waiting for delegate slot', {
+					currentSlot: slots.getSlotNumber(),
+				});
 				return setImmediate(cb);
 			}
 
