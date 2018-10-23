@@ -185,13 +185,12 @@ __private.validateBlockSlot = function(block, source, cb) {
  *
  * @private
  * @param {number} slot
- * @param {number} height
+ * @param {number} round
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getDelegateKeypairForCurrentSlot = function(currentSlot, height, cb) {
-	const round = slots.calcRound(height);
+__private.getDelegateKeypairForCurrentSlot = function(currentSlot, round, cb) {
 	self.generateDelegateList(round, null, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
@@ -243,9 +242,12 @@ __private.forge = function(cb) {
 		return setImmediate(cb);
 	}
 
+	// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
+	const round = slots.calcRound(lastBlock.height + 1);
+
 	__private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
-		lastBlock.height + 1,
+		round,
 		(err, delegateKeypair) => {
 			if (err) {
 				library.logger.error('Failed to get delegate keypair', err);

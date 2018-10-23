@@ -536,62 +536,46 @@ describe('delegates', () => {
 
 			it('should be ok for slot 35 of first round', done => {
 				const currentSlot = 35;
-				const height = 1;
+				const round = 1;
 
-				getDelegateKeypairForCurrentSlot(
-					currentSlot,
-					height,
-					(err, keyPair) => {
-						expect(err).to.be.null;
-						expect(keyPair).to.have.keys('publicKey', 'privateKey');
-						done();
-					}
-				);
+				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
+					expect(err).to.be.null;
+					expect(keyPair).to.have.keys('publicKey', 'privateKey');
+					done();
+				});
 			});
 
 			it('should be ok for slot 73 of second round', done => {
 				const currentSlot = 73;
-				const height = 102;
+				const round = 2;
 
-				getDelegateKeypairForCurrentSlot(
-					currentSlot,
-					height,
-					(err, keyPair) => {
-						expect(err).to.be.null;
-						expect(keyPair).to.have.keys('publicKey', 'privateKey');
-						done();
-					}
-				);
+				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
+					expect(err).to.be.null;
+					expect(keyPair).to.have.keys('publicKey', 'privateKey');
+					done();
+				});
 			});
 
 			it('should be ok for slot 41 of third round', done => {
 				const currentSlot = 41;
-				const height = 203;
+				const round = 3;
 
-				getDelegateKeypairForCurrentSlot(
-					currentSlot,
-					height,
-					(err, keyPair) => {
-						expect(err).to.be.null;
-						expect(keyPair).to.have.keys('publicKey', 'privateKey');
-						done();
-					}
-				);
+				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
+					expect(err).to.be.null;
+					expect(keyPair).to.have.keys('publicKey', 'privateKey');
+					done();
+				});
 			});
 
 			it('should return null for slot 1 of fourth round', done => {
 				const currentSlot = 1;
-				const height = 304;
+				const round = 4;
 
-				getDelegateKeypairForCurrentSlot(
-					currentSlot,
-					height,
-					(err, keyPair) => {
-						expect(err).to.be.null;
-						expect(keyPair).to.be.null;
-						done();
-					}
-				);
+				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
+					expect(err).to.be.null;
+					expect(keyPair).to.be.null;
+					done();
+				});
 			});
 		});
 	});
