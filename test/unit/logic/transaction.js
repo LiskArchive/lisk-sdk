@@ -33,6 +33,8 @@ var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
 
 const { TOTAL_AMOUNT } = __testContext.config.constants;
+const exceptions = global.exceptions;
+
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
@@ -1195,11 +1197,31 @@ describe('transaction', () => {
 
 		it('should remove keys with null or undefined attribute', () => {
 			var transaction = _.cloneDeep(validTransaction);
-			transaction.amount = null;
+			transaction.recipientId = null;
 
 			return expect(
 				_.keys(transactionLogic.objectNormalize(transaction))
-			).to.not.include('amount');
+			).to.not.include('recipientId');
+		});
+
+		it('should convert amount and fee to bignumber when values are null', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.amount = null;
+			transaction.fee = null;
+
+			const { amount, fee } = transactionLogic.objectNormalize(transaction);
+			expect(amount).to.be.an.instanceOf(Bignum);
+			return expect(fee).to.be.an.instanceOf(Bignum);
+		});
+
+		it('should convert amount and fee to bignumber when values are undefined', () => {
+			var transaction = _.cloneDeep(validTransaction);
+			transaction.amount = undefined;
+			transaction.fee = undefined;
+
+			const { amount, fee } = transactionLogic.objectNormalize(transaction);
+			expect(amount).to.be.an.instanceOf(Bignum);
+			return expect(fee).to.be.an.instanceOf(Bignum);
 		});
 
 		it('should not remove any keys with valid entries', () => {
@@ -1228,6 +1250,88 @@ describe('transaction', () => {
 			return expect(() => {
 				transactionLogic.objectNormalize(transaction);
 			}).to.throw();
+		});
+
+		it('should not throw for recipient address 0L', () => {
+			const transaction = _.cloneDeep(validTransaction);
+			transaction.recipientId = '0L';
+			return expect(() => {
+				transactionLogic.objectNormalize(transaction);
+			}).not.to.throw();
+		});
+
+		it('should throw for recipient address with leading 0s', () => {
+			const transaction = _.cloneDeep(validTransaction);
+			transaction.recipientId = '0123L';
+			return expect(() => {
+				transactionLogic.objectNormalize(transaction);
+			}).to.throw(
+				"Failed to validate transaction schema: Object didn't pass validation for format address: 0123L"
+			);
+		});
+
+		describe('recipientId with leading zeros', () => {
+			afterEach(done => {
+				exceptions.recipientLeadingZero = {};
+				done();
+			});
+
+			it('should handle legacy transactions', () => {
+				const transactionWithLeadingZero = _.cloneDeep(validTransaction);
+				transactionWithLeadingZero.recipientId = `0${
+					validTransaction.recipientId
+				}`;
+				exceptions.recipientLeadingZero[transactionWithLeadingZero.id] = `0${
+					validTransaction.recipientId
+				}`;
+
+				return expect(() => {
+					transactionLogic.objectNormalize(transactionWithLeadingZero);
+				}).to.not.throw('');
+			});
+
+			it('should throw error', () => {
+				const transactionWithLeadingZero = _.cloneDeep(validTransaction);
+				transactionWithLeadingZero.recipientId = `0${
+					validTransaction.recipientId
+				}`;
+
+				return expect(() => {
+					transactionLogic.objectNormalize(transactionWithLeadingZero);
+				}).to.not.throw(
+					`Failed to validate transaction schema: Object didn't pass validation for format address: ${
+						validTransaction.recipientId
+					}`
+				);
+			});
+		});
+
+		describe('recipientId exceeding uint64 range', () => {
+			afterEach(done => {
+				exceptions.recipientExceedingUint64 = {};
+				done();
+			});
+
+			it('should throw for recipient address exceeding uint64 range', () => {
+				const transaction = _.cloneDeep(validTransaction);
+				transaction.recipientId = '18446744073709551616L';
+				return expect(() => {
+					transactionLogic.objectNormalize(transaction);
+				}).to.throw(
+					"Failed to validate transaction schema: Object didn't pass validation for format address: 18446744073709551616L"
+				);
+			});
+
+			it('should handle legacy transactions with recipient exceeding uint64 property', () => {
+				const withRecipientExceedingUint64 = _.cloneDeep(validTransaction);
+				withRecipientExceedingUint64.recipientId = '44444444444444444444L';
+				exceptions.recipientExceedingUint64[withRecipientExceedingUint64.id] =
+					'44444444444444444444L';
+
+				return expect(() => {
+					transactionLogic.objectNormalize(withRecipientExceedingUint64);
+				}).to.not.throw('');
+			});
 		});
 	});
 
