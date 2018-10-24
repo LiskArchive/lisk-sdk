@@ -137,9 +137,9 @@ function JSONHistory(title, logger) {
 
 		// Get the version from which to start the migration
 		// Skip the matched version, as json is already in that particular version
-		let startFromVersion = versions.findIndex(version =>
-			semver.satisfies(fromVersion, version)
-		);
+		// Used ltr to to match the range versions e.g. 1.1.x
+		let startFromVersion =
+			versions.findIndex(version => semver.ltr(fromVersion, version)) - 1;
 
 		if (startFromVersion === -1) {
 			throw new Error(
@@ -150,9 +150,14 @@ function JSONHistory(title, logger) {
 		startFromVersion += includeStart ? 0 : 1;
 
 		// Apply changes till that version
-		const tillVersion =
-			versions.findIndex(version => semver.satisfies(toVersion, version)) ||
-			versions.length - 1;
+		// Used ltr to to match the range versions e.g. 1.1.x
+		let tillVersion =
+			versions.findIndex(version => semver.ltr(toVersion, version)) - 1;
+
+		// If no matching version found then migrate till last version in the list
+		if (tillVersion < 0) {
+			tillVersion = versions.length - 1;
+		}
 
 		// Clone the provided json to avoid changes into source
 		let compiledJson = Object.assign({}, json);
