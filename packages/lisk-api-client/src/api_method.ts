@@ -17,6 +17,7 @@ import { GET } from './constants';
 import {
 	ApiHandler,
 	ApiResponse,
+	HashMap,
 	RequestConfig,
 	Resource,
 } from './types/types';
@@ -73,7 +74,10 @@ export const apiMethod = (
 		const requestData: AxiosRequestConfig = {
 			headers: this.headers,
 			method,
-			url: solveURLParams(`${this.resourcePath}${path}`, resolvedURLObject),
+			url: solveURLParams(
+				`${this.resourcePath}${path}`,
+				resolvedURLObject as HashMap,
+			),
 		};
 
 		if (Object.keys(data).length > 0) {

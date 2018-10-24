@@ -12,21 +12,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { HashMap } from './types/types';
 
-export const toQueryString = (obj: object): string => {
-	const parts = Object.entries(obj).reduce(
-		(accumulator: ReadonlyArray<string>, [key, value]: [string, string]): ReadonlyArray<string> => [
+export const toQueryString = (obj: HashMap): string => {
+	const parts = Object.keys(obj).reduce(
+		(
+			accumulator: ReadonlyArray<string>,
+			key: string,
+		): ReadonlyArray<string> => [
 			...accumulator,
-			`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+			`${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`,
 		],
 		[],
 	);
-	
+
 	return parts.join('&');
 };
 
 const urlParamRegex = /{[^}]+}/;
-export const solveURLParams = (url: string, params: object = {}): string => {
+export const solveURLParams = (url: string, params: HashMap = {}): string => {
 	if (Object.keys(params).length === 0) {
 		if (url.match(urlParamRegex) !== null) {
 			throw new Error('URL is not completely solved');
@@ -34,8 +38,9 @@ export const solveURLParams = (url: string, params: object = {}): string => {
 
 		return url;
 	}
-	const solvedURL = Object.entries(params).reduce(
-		(accumulator: string, [key, value]: [string, string]): string => accumulator.replace(`{${key}}`, value),
+	const solvedURL = Object.keys(params).reduce(
+		(accumulator: string, key: string): string =>
+			accumulator.replace(`{${key}}`, params[key]),
 		url,
 	);
 
