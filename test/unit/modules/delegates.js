@@ -537,7 +537,8 @@ describe('delegates', () => {
 				done();
 			});
 
-			it('should return genesis_1 keypair for slot 35 of first round', done => {
+			it('should return genesis_1 keypair for slot N where (N % 101 === 35) in the first round', done => {
+				// For round 1, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 35, 53 and 16 respectively.
 				const currentSlot = 35;
 				const round = 1;
 
@@ -554,8 +555,9 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return genesis_2 keypair for slot 73 of second round', done => {
-				const currentSlot = 73;
+			it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', done => {
+				// For round 2, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 50, 73 and 100 respectively.
+				const currentSlot = 578;
 				const round = 2;
 
 				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
@@ -571,8 +573,9 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return genesis_3 keypair for slot 41 of third round', done => {
-				const currentSlot = 41;
+			it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', done => {
+				// For round 3, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 12, 16 and 41 respectively.
+				const currentSlot = 1051;
 				const round = 3;
 
 				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
@@ -588,7 +591,9 @@ describe('delegates', () => {
 				});
 			});
 
-			it('should return null for slot 1 of fourth round', done => {
+			it('should return null when the slot does not belong to a delegate set in config.forging.delegates', done => {
+				// For round 4, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 93, 68 and 87 respectively.
+				// Any other slot should return null as genesis_1, genesis_2 and genesis_3 are the only one forging delegates set for this test
 				const currentSlot = 1;
 				const round = 4;
 
