@@ -54,6 +54,16 @@ program
 	})
 	.parse(process.argv);
 
+if (typeof configFilePath === 'undefined') {
+	console.error('No input file is provided.');
+	process.exit(1);
+}
+
+if (typeof fromVersion === 'undefined') {
+	console.error('No start version is provided');
+	process.exit(1);
+}
+
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
