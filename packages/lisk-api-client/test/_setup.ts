@@ -15,8 +15,8 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import 'chai/register-expect';
-import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
+import sinon from 'sinon';
 
 process.env.NODE_ENV = 'test';
 

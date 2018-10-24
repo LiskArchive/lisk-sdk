@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { PeersResource } from '../../src/resources/peers';
-import { FakeApiClient } from 'types/types';
+import { FakeApiClient } from '../types/types';
 
 describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

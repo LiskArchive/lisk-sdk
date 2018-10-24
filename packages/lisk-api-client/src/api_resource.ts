@@ -12,20 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { APIClient } from './api_client';
 import { ApiResponse, HashMap } from './types/types';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
 const REQUEST_RETRY_TIMEOUT = 1000;
-
-export interface AxiosCustomError {
-	readonly response?: {
-		readonly data?: { readonly message?: string };
-		readonly status?: string;
-	};
-}
 
 export class APIResource {
 	public apiClient: APIClient;
@@ -76,7 +69,7 @@ export class APIResource {
 		const request = Axios.request(req)
 			.then((res: AxiosResponse) => res.data)
 			.catch(
-				(error: AxiosCustomError): Error => {
+				(error: AxiosError): Error => {
 					if (error.response) {
 						if (error.response.data && error.response.data.message) {
 							throw new Error(

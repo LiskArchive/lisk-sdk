@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { DappsResource } from '../../src/resources/dapps';
-import { FakeApiClient } from 'types/types';
+import { FakeApiClient } from '../types/types';
 
 describe('DappsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';

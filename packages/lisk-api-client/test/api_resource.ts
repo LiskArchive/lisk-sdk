@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
 import sinon from 'sinon';
-import { FakeApiClient } from 'types/types';
+import { FakeApiClient } from './types/types';
 
 // Required for stub
 const axios = require('axios');

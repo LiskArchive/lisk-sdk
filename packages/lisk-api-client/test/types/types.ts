@@ -13,9 +13,11 @@
  *
  */
 export interface FakeApiClient {
-	readonly headers: object;
-	readonly currentNode: string;
-	readonly hasAvailableNodes: () => boolean | void;
-	readonly randomizeNodes: boolean;
-	readonly banActiveNodeAndSelect: () => void;
+	headers: object;
+	currentNode: string;
+	hasAvailableNodes: () => boolean | void;
+	randomizeNodes: boolean;
+	banActiveNodeAndSelect: () => void;
 }
+
+// Type declaration for sandbox
