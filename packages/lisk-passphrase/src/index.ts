@@ -15,6 +15,7 @@
 import Mnemonic from 'bip39';
 import * as validation from './validation';
 
+/* tslint:disable: no-default-export */
 export default {
 	Mnemonic,
 	validation,
