@@ -183,8 +183,16 @@ history.version('1.0.0-rc.2', version => {
 		}
 	);
 });
-history.version('1.1.0-alpha.0');
-history.version('1.2.0-alpha.0');
+history.version('1.0.0-rc.3');
+history.version('1.0.0-rc.4');
+history.version('1.0.0-rc.5');
+history.version('1.0.0');
+history.version('1.1.0-rc.x');
+history.version('1.1.0');
+history.version('1.1.1-rc.x');
+history.version('1.1.1');
+history.version('1.2.0-rc.x');
+history.version('1.2.0');
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
