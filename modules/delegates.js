@@ -191,20 +191,24 @@ __private.validateBlockSlot = function(block, source, cb) {
  * @todo Add description for the params
  */
 __private.getDelegateKeypairForCurrentSlot = function(currentSlot, round, cb) {
-	self.generateDelegateList(round, null, (err, activeDelegates) => {
-		if (err) {
-			return setImmediate(cb, err);
+	self.generateDelegateList(
+		round,
+		null,
+		(generateDelegateListErr, activeDelegates) => {
+			if (generateDelegateListErr) {
+				return setImmediate(cb, generateDelegateListErr);
+			}
+
+			const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+			const currentSlotDelegate = activeDelegates[currentSlotIndex];
+
+			if (currentSlotDelegate && __private.keypairs[currentSlotDelegate]) {
+				return setImmediate(cb, null, __private.keypairs[currentSlotDelegate]);
+			}
+
+			return setImmediate(cb, null, null);
 		}
-
-		const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
-		const currentSlotDelegate = activeDelegates[currentSlotIndex];
-
-		if (currentSlotDelegate && __private.keypairs[currentSlotDelegate]) {
-			return setImmediate(cb, null, __private.keypairs[currentSlotDelegate]);
-		}
-
-		return setImmediate(cb, null, null);
-	});
+	);
 };
 
 /**
@@ -248,9 +252,12 @@ __private.forge = function(cb) {
 	__private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		round,
-		(err, delegateKeypair) => {
-			if (err) {
-				library.logger.error('Skipping delegate slot', err);
+		(getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
+			if (getDelegateKeypairForCurrentSlotError) {
+				library.logger.error(
+					'Skipping delegate slot',
+					getDelegateKeypairForCurrentSlotError
+				);
 				return setImmediate(cb);
 			}
 
