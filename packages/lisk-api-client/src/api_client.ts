@@ -25,7 +25,7 @@ import { SignaturesResource } from './resources/signatures';
 import { TransactionsResource } from './resources/transactions';
 import { VotersResource } from './resources/voters';
 import { VotesResource } from './resources/votes';
-import { HashMap } from './types/types';
+import { HashMap, InitOptions } from './types/types';
 
 const defaultOptions = {
 	bannedNodes: [],
@@ -47,9 +47,7 @@ const getClientHeaders = (clientOptions: ClientOptions): HashMap => {
 		process.env.LC_MESSAGES ||
 		process.env.LANG ||
 		process.env.LANGUAGE;
-	const systemInformation:
-		| string
-		| undefined = `${os.platform()} ${os.release()}; ${os.arch()}${
+	const systemInformation = `${os.platform()} ${os.release()}; ${os.arch()}${
 		locale ? `; ${locale}` : ''
 	}`;
 
@@ -64,28 +62,20 @@ export interface ClientOptions {
 	readonly version?: string;
 }
 
-export interface CreateConfig {
-	readonly bannedNodes?: ReadonlyArray<string>;
-	readonly client?: object;
-	readonly nethash?: string;
-	readonly node?: string;
-	readonly randomizeNodes?: boolean;
-}
-
 export class APIClient {
 	public static get constants(): object {
 		return constants;
 	}
 
-	public static createMainnetAPIClient(options?: CreateConfig): APIClient {
-		return new APIClient(constants.MAINNET_NODES, {
+	public static createMainnetAPIClient(options?: InitOptions): APIClient {
+		return new this(constants.MAINNET_NODES, {
 			nethash: MAINNET_NETHASH,
 			...options,
 		});
 	}
 
-	public static createTestnetAPIClient(options?: CreateConfig): APIClient {
-		return new APIClient(constants.TESTNET_NODES, {
+	public static createTestnetAPIClient(options?: InitOptions): APIClient {
+		return new this(constants.TESTNET_NODES, {
 			nethash: TESTNET_NETHASH,
 			...options,
 		});
@@ -109,7 +99,7 @@ export class APIClient {
 
 	public constructor(
 		nodes: ReadonlyArray<string>,
-		providedOptions: CreateConfig = {},
+		providedOptions: InitOptions = {},
 	) {
 		this.initialize(nodes, providedOptions);
 		this.accounts = new AccountsResource(this);
@@ -167,7 +157,7 @@ export class APIClient {
 
 	public initialize(
 		nodes: ReadonlyArray<string>,
-		providedOptions: CreateConfig = {},
+		providedOptions: InitOptions = {},
 	): void {
 		if (!Array.isArray(nodes) || nodes.length <= 0) {
 			throw new Error('APIClient requires nodes for initialization.');
@@ -179,7 +169,7 @@ export class APIClient {
 			);
 		}
 
-		const options: CreateConfig = { ...defaultOptions, ...providedOptions };
+		const options: InitOptions = { ...defaultOptions, ...providedOptions };
 
 		this.headers = {
 			...commonHeaders,

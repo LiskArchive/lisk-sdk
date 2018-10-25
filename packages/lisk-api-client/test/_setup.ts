@@ -24,12 +24,12 @@ process.env.NODE_ENV = 'test';
 
 // Type declaration for sandbox
 declare global {
-	export namespace NodeJS {
-		export interface Global {
+	namespace NodeJS {
+		interface Global {
 			sandbox: sinon.SinonSandbox;
 		}
 	}
-	export const sandbox: sinon.SinonSandbox;
+	const sandbox: sinon.SinonSandbox;
 }
 
 global.sandbox = sinon.createSandbox({

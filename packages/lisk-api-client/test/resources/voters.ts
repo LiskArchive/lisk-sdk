@@ -16,24 +16,17 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { VotersResource } from '../../src/resources/voters';
-import { FakeApiClient } from '../types/types';
 
 describe('VotersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/voters';
 
-	let apiClient: FakeApiClient;
+	let apiClient: APIClient;
 	let resource: APIResource;
 
 	beforeEach(() => {
-		apiClient = {
-			headers: {},
-			currentNode: defaultBasePath,
-			hasAvailableNodes: () => {},
-			randomizeNodes: false,
-			banActiveNodeAndSelect: () => {},
-		};
-		resource = new VotersResource(apiClient as APIClient);
+		apiClient = new APIClient([defaultBasePath]);
+		resource = new VotersResource(apiClient);
 		return Promise.resolve();
 	});
 

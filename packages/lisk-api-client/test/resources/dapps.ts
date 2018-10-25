@@ -16,24 +16,17 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { DappsResource } from '../../src/resources/dapps';
-import { FakeApiClient } from '../types/types';
 
 describe('DappsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/dapps';
 
-	let apiClient: FakeApiClient;
+	let apiClient: APIClient;
 	let resource: APIResource;
 
 	beforeEach(() => {
-		apiClient = {
-			headers: {},
-			currentNode: defaultBasePath,
-			hasAvailableNodes: () => {},
-			randomizeNodes: false,
-			banActiveNodeAndSelect: () => {},
-		};
-		resource = new DappsResource(apiClient as APIClient);
+		apiClient = new APIClient([defaultBasePath]);
+		resource = new DappsResource(apiClient);
 		return Promise.resolve();
 	});
 

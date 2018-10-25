@@ -49,7 +49,8 @@ export class APIResource {
 				async (): Promise<ApiResponse | Error> => {
 					if (this.apiClient.randomizeNodes) {
 						this.apiClient.banActiveNodeAndSelect();
-					} else if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
+					}
+					if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
 						throw error;
 					}
 

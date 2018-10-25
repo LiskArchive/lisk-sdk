@@ -16,24 +16,17 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { TransactionsResource } from '../../src/resources/transactions';
-import { FakeApiClient } from '../types/types';
 
 describe('TransactionsResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/transactions';
 
-	let apiClient: FakeApiClient;
+	let apiClient: APIClient;
 	let resource: APIResource;
 
 	beforeEach(() => {
-		apiClient = {
-			headers: {},
-			currentNode: defaultBasePath,
-			hasAvailableNodes: () => {},
-			randomizeNodes: false,
-			banActiveNodeAndSelect: () => {},
-		};
-		resource = new TransactionsResource(apiClient as APIClient);
+		apiClient = new APIClient([defaultBasePath]);
+		resource = new TransactionsResource(apiClient);
 		return Promise.resolve();
 	});
 

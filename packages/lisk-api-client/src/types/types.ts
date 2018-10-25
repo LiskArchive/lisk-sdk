@@ -14,7 +14,7 @@
  */
 /* tslint:disable no-mixed-interface */
 export type ApiHandler = (
-	this: Resource,
+	resource: Resource,
 	args: ReadonlyArray<number | string | object>,
 ) => Promise<ApiResponse | Error>;
 
@@ -28,9 +28,17 @@ export interface HashMap {
 	readonly [key: string]: string;
 }
 
+export interface InitOptions {
+	readonly bannedNodes?: ReadonlyArray<string>;
+	readonly client?: object;
+	readonly nethash?: string;
+	readonly node?: string;
+	readonly randomizeNodes?: boolean;
+}
+
 export interface RequestConfig {
 	readonly defaultData?: object;
-	readonly method: string;
+	readonly method?: string;
 	readonly path?: string;
 	readonly retry?: boolean;
 	readonly urlParams?: ReadonlyArray<string>;

@@ -16,24 +16,17 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { PeersResource } from '../../src/resources/peers';
-import { FakeApiClient } from '../types/types';
 
 describe('PeersResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/peers';
 
-	let apiClient: FakeApiClient;
+	let apiClient: APIClient;
 	let resource: APIResource;
 
 	beforeEach(() => {
-		apiClient = {
-			headers: {},
-			currentNode: defaultBasePath,
-			hasAvailableNodes: () => {},
-			randomizeNodes: false,
-			banActiveNodeAndSelect: () => {},
-		};
-		resource = new PeersResource(apiClient as APIClient);
+		apiClient = new APIClient([defaultBasePath]);
+		resource = new PeersResource(apiClient);
 		return Promise.resolve();
 	});
 

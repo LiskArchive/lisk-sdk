@@ -16,24 +16,17 @@ import { expect } from 'chai';
 import { APIClient } from '../../src/api_client';
 import { APIResource } from '../../src/api_resource';
 import { DelegatesResource } from '../../src/resources/delegates';
-import { FakeApiClient } from '../types/types';
 
 describe('DelegatesResource', () => {
 	const defaultBasePath = 'http://localhost:1234';
 	const path = '/delegates';
 
-	let apiClient: FakeApiClient;
+	let apiClient: APIClient;
 	let resource: APIResource;
 
 	beforeEach(() => {
-		apiClient = {
-			headers: {},
-			currentNode: defaultBasePath,
-			hasAvailableNodes: () => {},
-			randomizeNodes: false,
-			banActiveNodeAndSelect: () => {},
-		};
-		resource = new DelegatesResource(apiClient as APIClient);
+		apiClient = new APIClient([defaultBasePath]);
+		resource = new DelegatesResource(apiClient);
 		return Promise.resolve();
 	});
 

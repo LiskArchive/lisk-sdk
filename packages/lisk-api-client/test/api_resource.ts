@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
 import sinon from 'sinon';
-import { FakeApiClient } from './types/types';
 
 // Required for stub
 const axios = require('axios');
@@ -27,6 +26,7 @@ describe('API resource module', () => {
 	const defaultResourcePath = '/resources';
 	const defaultFullPath = `${defaultBasePath}/api${defaultResourcePath}`;
 	const defaultHeaders = {
+		Accept: 'application/json',
 		'Content-Type': 'application/json',
 		nethash: 'mainnetHash',
 		os: 'lisk-elements-api',
@@ -45,6 +45,15 @@ describe('API resource module', () => {
 		body: {},
 		limit: 0,
 	};
+
+	interface FakeApiClient {
+		headers: object;
+		currentNode: string;
+		hasAvailableNodes: () => boolean | void;
+		randomizeNodes: boolean;
+		banActiveNodeAndSelect: () => void;
+	}
+
 	let resource: APIResource;
 	let apiClient: FakeApiClient;
 
@@ -52,7 +61,7 @@ describe('API resource module', () => {
 		apiClient = {
 			headers: { ...defaultHeaders },
 			currentNode: defaultBasePath,
-			hasAvailableNodes: () => {},
+			hasAvailableNodes: () => true,
 			randomizeNodes: false,
 			banActiveNodeAndSelect: sandbox.stub(),
 		};
