@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import { makeInvalid } from './helpers';
 import {
+	SignedMessageWithOnePassphrase,
+	SignedMessageWithTwoPassphrases,
 	signMessageWithPassphrase,
 	signMessageWithTwoPassphrases,
 	verifyMessageWithPublicKey,
@@ -29,7 +32,7 @@ import {
 // Require is used for stubbing
 const keys = require('../src/keys');
 
-const changeLength = str => `00${str}`;
+const changeLength = (str: string) => `00${str}`;
 
 describe('sign', () => {
 	const defaultPassphrase =
@@ -76,8 +79,8 @@ ${defaultSecondSignature}
 	const defaultDataSignature =
 		'b8704e11c4d9fad9960c7b6a69dcf48c1bede5b74ed8974cd005d9a407deef618dd800fe69ceed1fd52bb1e0881e71aec137c35b90eda9afe93716a5652ee009';
 
-	let defaultSignedMessage;
-	let defaultDoubleSignedMessage;
+	let defaultSignedMessage: SignedMessageWithOnePassphrase;
+	let defaultDoubleSignedMessage: SignedMessageWithTwoPassphrases;
 
 	let getPrivateAndPublicKeyBytesFromPassphraseStub;
 
@@ -114,7 +117,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#digestMessage', () => {
-		const strGenerator = (len, chr) => chr.repeat(len);
+		const strGenerator = (len: number, chr: string) => chr.repeat(len);
 
 		it('should create message digest for message with length = 0', () => {
 			const msgBytes = digestMessage('');
@@ -327,7 +330,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signData', () => {
-		let signature;
+		let signature: string;
 
 		beforeEach(() => {
 			signature = signData(defaultData, defaultPassphrase);
@@ -340,7 +343,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signDataWithPassphrase', () => {
-		let signature;
+		let signature: string;
 
 		beforeEach(() => {
 			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
@@ -353,7 +356,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signDataWithPrivateKey', () => {
-		let signature;
+		let signature: string;
 
 		beforeEach(() => {
 			signature = signDataWithPrivateKey(

@@ -13,11 +13,12 @@
  *
  */
 import hashFunction from '../src/hash';
+import { expect } from 'chai';
 
 describe('hash', () => {
 	const defaultText = 'text123*';
-	let arrayToHash;
-	let defaultHash;
+	let arrayToHash: ReadonlyArray<number>;
+	let defaultHash: Buffer;
 
 	beforeEach(() => {
 		defaultHash = Buffer.from(

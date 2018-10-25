@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import {
 	getFirstEightBytesReversed,
 	toAddress,
@@ -97,9 +98,11 @@ describe('convert', () => {
 
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
-			const curveRepresentation = convertPublicKeyEd2Curve(
+			const result = convertPublicKeyEd2Curve(
 				Buffer.from(defaultPublicKey, 'hex'),
 			);
+			expect(result).to.not.be.null;
+			const curveRepresentation = result as Buffer;
 			return expect(
 				defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation)),
 			).to.be.true;

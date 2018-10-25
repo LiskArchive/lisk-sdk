@@ -13,6 +13,7 @@
  *
  */
 import cryptography from '../src';
+import { expect } from 'chai';
 
 describe('cryptography index.js', () => {
 	it('should export an object', () => {

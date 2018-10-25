@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import {
+	Keypair,
+	KeypairBytes,
 	getPrivateAndPublicKeyFromPassphrase,
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	getKeys,
@@ -53,7 +56,7 @@ describe('keys', () => {
 	});
 
 	describe('#getPrivateAndPublicKeyBytesFromPassphrase', () => {
-		let keyPair;
+		let keyPair: KeypairBytes;
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyBytesFromPassphrase(defaultPassphrase);
@@ -74,7 +77,7 @@ describe('keys', () => {
 	});
 
 	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
-		let keyPair;
+		let keyPair: Keypair;
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
@@ -95,7 +98,7 @@ describe('keys', () => {
 	});
 
 	describe('#getKeys', () => {
-		let keyPair;
+		let keyPair: Keypair;
 
 		beforeEach(() => {
 			keyPair = getKeys(defaultPassphrase);

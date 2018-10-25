@@ -19,7 +19,9 @@ import sinon from 'sinon';
 process.env.NODE_ENV = 'test';
 
 /* eslint-disable no-underscore-dangle */
-Assertion.addProperty('hexString', function handleAssert() {
+Assertion.addProperty('hexString', function handleAssert(
+	this: Chai.ChaiStatic,
+) {
 	const actual = this._obj;
 
 	new Assertion(actual).to.be.a('string');
@@ -32,7 +34,7 @@ Assertion.addProperty('hexString', function handleAssert() {
 	);
 });
 
-Assertion.addProperty('integer', function handleAssert() {
+Assertion.addProperty('integer', function handleAssert(this: Chai.ChaiStatic) {
 	const actual = this._obj;
 
 	new Assertion(actual).to.be.a('number');
@@ -44,7 +46,16 @@ Assertion.addProperty('integer', function handleAssert() {
 		'expected #{this} not to be an integer',
 	);
 });
-/* eslint-enable no-underscore-dangle */
+
+// Type declaration for sandbox
+declare global {
+	export namespace NodeJS {
+		export interface Global {
+			sandbox: sinon.SinonSandbox;
+		}
+	}
+	export const sandbox: sinon.SinonSandbox;
+}
 
 global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,

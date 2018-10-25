@@ -13,7 +13,7 @@
  *
  */
 // eslint-disable-next-line import/prefer-default-export
-export const makeInvalid = str => {
+export const makeInvalid = (str: string): string => {
 	const char = str[0] === '0' ? '1' : '0';
 	return `${char}${str.slice(1)}`;
 };
