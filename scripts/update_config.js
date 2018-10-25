@@ -25,8 +25,7 @@ const readline = require('readline');
 const _ = require('lodash');
 const program = require('commander');
 const lisk = require('lisk-elements').default;
-const observableDiff = require('deep-diff').observableDiff;
-const applyChange = require('deep-diff').applyChange;
+const { observableDiff, applyChange } = require('deep-diff');
 const JSONHistory = require('../helpers/json_history');
 
 const rootPath = path.resolve(path.dirname(__filename), '../');
@@ -225,7 +224,14 @@ history.version('1.1.0-rc.0', version => {
 history.version('1.1.0');
 history.version('1.1.1-rc.x');
 history.version('1.1.1');
-history.version('1.2.0-rc.x');
+history.version('1.2.0-rc.x', version => {
+	version.change('remove malformed peer list items', config => {
+		config.peers.list = config.peers.list.filter(
+			peer => peer.ip && peer.wsPort
+		);
+		return config;
+	});
+});
 history.version('1.2.0');
 
 const askPassword = (message, cb) => {
@@ -265,6 +271,25 @@ history.migrate(
 		const customConfig = {};
 
 		observableDiff(unifiedNewConfig, json, d => {
+			// if there is any change on one attribute of object in array
+			// we want to preserve the full object not just that single attribute
+			// it is required due to nature of configuration merging in helpers/config.js
+			// e.g. If someone changed ip of a peer we want to keep full peer object in array
+
+			// if change is type of edit value
+			// and change path is pointing to a deep object
+			// and path second last index is an integer (means its an array element)
+			if (
+				d.kind === 'E' &&
+				d.path.length > 2 &&
+				Number.isInteger(d.path[d.path.length - 2])
+			) {
+				const path = _.clone(d.path);
+
+				// Remove last item in path to get index of object in array
+				path.splice(-1, 1);
+				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+			}
 			applyChange(customConfig, json, d);
 		});
 
