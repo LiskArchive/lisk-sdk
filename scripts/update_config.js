@@ -45,8 +45,8 @@ let toVersion;
 program
 	.version('0.1.1')
 	.arguments('<input_file> <from_version> [to_version]')
-	.option('--network', 'Specify the network or use LISK_NETWORK')
-	.option('--output', 'Output file path')
+	.option('-n, --network [network]', 'Specify the network or use LISK_NETWORK')
+	.option('-o, --output [output]', 'Output file path')
 	.action((inputFile, version1, version2) => {
 		fromVersion = version1;
 		toVersion = version2;

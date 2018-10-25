@@ -454,10 +454,10 @@ Usage: update_config [options] <input_file> <from_version> [to_version]
 
 Options:
 
--h, --help     output usage information
--V, --version  output the version number
---network      Specify the network or use LISK_NETWORK
---output       Output file path
+-h, --help               output usage information
+-V, --version            output the version number
+-n, --network [network]  Specify the network or use LISK_NETWORK
+-o, --output [output]    Output file path
 ```
 
 As you can see from the usage guide, `input_file` and `from_version` are required. So if you have a config file, you must be aware to which version of Lisk this belongs. You can skip the `to_version` argument and it will apply changes up-to latest version of Lisk. If you don't specify `--output` path the final config json will be printed to stdout. If you don't specify specify `--network` script will look to load it from `LISK_NETWORK` env variable.
