@@ -873,10 +873,7 @@ Transactions.prototype.shared = {
 						},
 						err => {
 							if (err) {
-								library.logger.warn(
-									'Unable to write cache count for transactions',
-									err
-								);
+								library.logger.warn("Transaction count wasn't cached", err);
 							}
 
 							return setImmediate(waterCb, null, dbCount);
