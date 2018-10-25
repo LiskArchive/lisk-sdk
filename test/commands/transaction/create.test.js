@@ -18,8 +18,8 @@ import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
 import SecondPassphraseCommand from '../../../src/commands/transaction/create/second-passphrase';
-import VoteCommand from '../../../src/commands/transaction/create/vote';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
+import VoteCommand from '../../../src/commands/transaction/create/vote';
 import MultisignatureCommand from '../../../src/commands/transaction/create/multisignature';
 
 describe('transaction:create', () => {
@@ -30,8 +30,8 @@ describe('transaction:create', () => {
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(SecondPassphraseCommand, 'run', sandbox.stub())
-			.stub(VoteCommand, 'run', sandbox.stub())
 			.stub(DelegateCommand, 'run', sandbox.stub())
+			.stub(VoteCommand, 'run', sandbox.stub())
 			.stub(MultisignatureCommand, 'run', sandbox.stub());
 
 	describe('transaction:create', () => {
