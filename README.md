@@ -435,12 +435,14 @@ There are couple of command line scripts that facilitate users of lisk to perfor
 This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
 
 ```
-Usage: generate_config [options] <network>
+Usage: generate_config [options]
 
 Options:
 
-  -h, --help     output usage information
-  -V, --version  output the version number
+-h, --help               output usage information
+-V, --version            output the version number
+-c, --config [config]    Custom config file
+-n, --network [network]  Specify the network or use LISK_NETWORK
 ```
 
 Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any other network folder available under `./config` directory.
