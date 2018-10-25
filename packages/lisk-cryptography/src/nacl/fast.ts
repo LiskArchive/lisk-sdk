@@ -12,10 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// eslint-disable-next-line import/no-extraneous-dependencies
+// tslint:disable-next-line no-implicit-dependencies
 import sodium from 'sodium-native';
+import { NaclInterface } from './index';
 
-export const box = (
+export const box: NaclInterface['box'] = (
 	messageInBytes,
 	nonceInBytes,
 	convertedPublicKey,
@@ -31,10 +32,11 @@ export const box = (
 		convertedPublicKey,
 		convertedPrivateKey,
 	);
-	return Uint8Array.from(cipherBytes);
+
+	return cipherBytes;
 };
 
-export const openBox = (
+export const openBox: NaclInterface['openBox'] = (
 	cipherBytes,
 	nonceBytes,
 	convertedPublicKey,
@@ -43,42 +45,58 @@ export const openBox = (
 	const plainText = Buffer.alloc(
 		cipherBytes.length - sodium.crypto_box_MACBYTES,
 	);
-	sodium.crypto_box_open_easy(
-		plainText,
-		cipherBytes,
-		nonceBytes,
-		convertedPublicKey,
-		convertedPrivateKey,
-	);
-	return Uint8Array.from(plainText);
+	// Returns false if decryption fails
+	if (
+		!sodium.crypto_box_open_easy(
+			plainText,
+			cipherBytes,
+			nonceBytes,
+			convertedPublicKey,
+			convertedPrivateKey,
+		)
+	) {
+		throw new Error('Failed to decrypt message');
+	}
+
+	return plainText;
 };
 
-export const signDetached = (messageBytes, privateKeyBytes) => {
+export const signDetached: NaclInterface['signDetached'] = (
+	messageBytes,
+	privateKeyBytes,
+) => {
 	const signatureBytes = Buffer.alloc(sodium.crypto_sign_BYTES);
 	sodium.crypto_sign_detached(signatureBytes, messageBytes, privateKeyBytes);
+
 	return signatureBytes;
 };
 
-export const verifyDetached = (messageBytes, signatureBytes, publicKeyBytes) =>
+export const verifyDetached: NaclInterface['verifyDetached'] = (
+	messageBytes: Buffer,
+	signatureBytes: Buffer,
+	publicKeyBytes: Buffer,
+): boolean =>
 	sodium.crypto_sign_verify_detached(
 		signatureBytes,
 		messageBytes,
 		publicKeyBytes,
 	);
 
-export const getRandomBytes = length => {
+export const getRandomBytes: NaclInterface['getRandomBytes'] = length => {
 	const nonce = Buffer.alloc(length);
 	sodium.randombytes_buf(nonce);
-	return Uint8Array.from(nonce);
+
+	return nonce;
 };
 
-export const getKeyPair = hashedSeed => {
+export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
 	const publicKeyBytes = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
 	const privateKeyBytes = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
 
 	sodium.crypto_sign_seed_keypair(publicKeyBytes, privateKeyBytes, hashedSeed);
+
 	return {
-		publicKeyBytes: Uint8Array.from(publicKeyBytes),
-		privateKeyBytes: Uint8Array.from(privateKeyBytes),
+		publicKeyBytes,
+		privateKeyBytes,
 	};
 };

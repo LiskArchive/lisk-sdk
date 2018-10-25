@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { SIGNED_MESSAGE_PREFIX } from '@liskhq/lisk-constants';
+import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { bufferToHex, hexToBuffer } from './buffer';
 import hash from './hash';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
@@ -22,9 +22,9 @@ import {
 	NACL_SIGN_SIGNATURE_LENGTH,
 	signDetached,
 	verifyDetached,
-} from './nacl';
+} from './nacl/index';
 
-const createHeader = text => `-----${text}-----`;
+const createHeader = (text: string) => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
 const messageHeader = createHeader('MESSAGE');
 const publicKeyHeader = createHeader('PUBLIC KEY');
@@ -36,7 +36,12 @@ const signatureFooter = createHeader('END LISK SIGNED MESSAGE');
 const SIGNED_MESSAGE_PREFIX_BYTES = Buffer.from(SIGNED_MESSAGE_PREFIX, 'utf8');
 const SIGNED_MESSAGE_PREFIX_LENGTH = encodeVarInt(SIGNED_MESSAGE_PREFIX.length);
 
-export const digestMessage = message => {
+export interface SignedMessageWithOnePassphrase {
+	readonly message: string;
+	readonly publicKey: string;
+	readonly signature: string;
+}
+export const digestMessage = (message: string): Buffer => {
 	const msgBytes = Buffer.from(message, 'utf8');
 	const msgLenBytes = encodeVarInt(message.length);
 	const dataBytes = Buffer.concat([
@@ -45,16 +50,21 @@ export const digestMessage = message => {
 		msgLenBytes,
 		msgBytes,
 	]);
+
 	return hash(hash(dataBytes));
 };
 
-export const signMessageWithPassphrase = (message, passphrase) => {
+export const signMessageWithPassphrase = (
+	message: string,
+	passphrase: string,
+): SignedMessageWithOnePassphrase => {
 	const msgBytes = digestMessage(message);
 	const {
 		privateKeyBytes,
 		publicKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const signature = signDetached(msgBytes, privateKeyBytes);
+
 	return {
 		message,
 		publicKey: bufferToHex(publicKeyBytes),
@@ -64,9 +74,9 @@ export const signMessageWithPassphrase = (message, passphrase) => {
 
 export const verifyMessageWithPublicKey = ({
 	message,
-	signature,
 	publicKey,
-}) => {
+	signature,
+}: SignedMessageWithOnePassphrase): boolean => {
 	const msgBytes = digestMessage(message);
 	const signatureBytes = hexToBuffer(signature);
 	const publicKeyBytes = hexToBuffer(publicKey);
@@ -86,11 +96,19 @@ export const verifyMessageWithPublicKey = ({
 	return verifyDetached(msgBytes, signatureBytes, publicKeyBytes);
 };
 
+export interface SignedMessageWithTwoPassphrases {
+	readonly message: string;
+	readonly publicKey: string;
+	readonly secondPublicKey: string;
+	readonly secondSignature: string;
+	readonly signature: string;
+}
+
 export const signMessageWithTwoPassphrases = (
-	message,
-	passphrase,
-	secondPassphrase,
-) => {
+	message: string,
+	passphrase: string,
+	secondPassphrase: string,
+): SignedMessageWithTwoPassphrases => {
 	const msgBytes = digestMessage(message);
 	const keypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
 	const secondKeypairBytes = getPrivateAndPublicKeyBytesFromPassphrase(
@@ -118,7 +136,7 @@ export const verifyMessageWithTwoPublicKeys = ({
 	secondSignature,
 	publicKey,
 	secondPublicKey,
-}) => {
+}: SignedMessageWithTwoPassphrases) => {
 	const messageBytes = digestMessage(message);
 	const signatureBytes = hexToBuffer(signature);
 	const secondSignatureBytes = hexToBuffer(secondSignature);
@@ -157,51 +175,76 @@ export const verifyMessageWithTwoPublicKeys = ({
 	return verifyFirstSignature() && verifySecondSignature();
 };
 
+export interface SingleOrDoubleSignedMessage {
+	readonly message: string;
+	readonly publicKey: string;
+	readonly secondPublicKey?: string;
+	readonly secondSignature?: string;
+	readonly signature: string;
+}
+
 export const printSignedMessage = ({
 	message,
 	signature,
 	publicKey,
 	secondSignature,
 	secondPublicKey,
-}) =>
+}: SingleOrDoubleSignedMessage): string =>
 	[
 		signedMessageHeader,
 		messageHeader,
 		message,
 		publicKeyHeader,
 		publicKey,
-		secondPublicKey ? secondPublicKeyHeader : null,
+		secondPublicKey ? secondPublicKeyHeader : undefined,
 		secondPublicKey,
 		signatureHeader,
 		signature,
-		secondSignature ? secondSignatureHeader : null,
+		secondSignature ? secondSignatureHeader : undefined,
 		secondSignature,
 		signatureFooter,
 	]
 		.filter(Boolean)
 		.join('\n');
 
-export const signAndPrintMessage = (message, passphrase, secondPassphrase) => {
-	const signedMessage = secondPassphrase
+export const signAndPrintMessage = (
+	message: string,
+	passphrase: string,
+	secondPassphrase?: string,
+): string => {
+	const signedMessage:
+		| SignedMessageWithOnePassphrase
+		| SignedMessageWithTwoPassphrases = secondPassphrase
 		? signMessageWithTwoPassphrases(message, passphrase, secondPassphrase)
 		: signMessageWithPassphrase(message, passphrase);
 
 	return printSignedMessage(signedMessage);
 };
 
-export const signDataWithPrivateKey = (data, privateKey) => {
+export const signDataWithPrivateKey = (
+	data: Buffer,
+	privateKey: Buffer,
+): string => {
 	const signature = signDetached(data, privateKey);
+
 	return bufferToHex(signature);
 };
 
-export const signDataWithPassphrase = (data, passphrase) => {
+export const signDataWithPassphrase = (
+	data: Buffer,
+	passphrase: string,
+): string => {
 	const { privateKeyBytes } = getPrivateAndPublicKeyBytesFromPassphrase(
 		passphrase,
 	);
+
 	return signDataWithPrivateKey(data, privateKeyBytes);
 };
 
 export const signData = signDataWithPassphrase;
 
-export const verifyData = (data, signature, publicKey) =>
-	verifyDetached(data, hexToBuffer(signature), hexToBuffer(publicKey));
+export const verifyData = (
+	data: Buffer,
+	signature: string,
+	publicKey: string,
+) => verifyDetached(data, hexToBuffer(signature), hexToBuffer(publicKey));

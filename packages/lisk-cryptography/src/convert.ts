@@ -12,33 +12,43 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import querystring from 'querystring';
 import reverseBuffer from 'buffer-reverse';
 import ed2curve from 'ed2curve';
-import hash from './hash';
+import querystring from 'querystring';
 import { bufferToBigNumberString } from './buffer';
+import { EncryptedPassphraseObject } from './encrypt';
+import hash from './hash';
 
-export const getFirstEightBytesReversed = publicKeyBytes =>
-	reverseBuffer(Buffer.from(publicKeyBytes).slice(0, 8));
+export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
+	const BUFFER_SIZE = 8;
+	// Review why we can't pass string or buffer in the same ling
+	if (typeof input === 'string') {
+		return reverseBuffer(Buffer.from(input).slice(0, BUFFER_SIZE));
+	}
 
-export const toAddress = buffer => {
+	return reverseBuffer(Buffer.from(input).slice(0, BUFFER_SIZE));
+};
+
+export const toAddress = (buffer: Buffer): string => {
+	const BUFFER_SIZE = 8;
 	if (
 		!Buffer.from(buffer)
-			.slice(0, 8)
+			.slice(0, BUFFER_SIZE)
 			.equals(buffer)
 	) {
 		throw new Error(
 			'The buffer for Lisk addresses must not have more than 8 bytes',
 		);
 	}
+
 	return `${bufferToBigNumberString(buffer)}L`;
 };
 
-export const getAddressFromPublicKey = publicKey => {
-	const publicKeyHash = hash(publicKey, 'hex');
+export const getAddressFromPublicKey = (publicKey: string): string => {
+	const publicKeyHash: Buffer = hash(publicKey, 'hex');
 
-	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
-	const address = toAddress(publicKeyTransform);
+	const publicKeyTransform: Buffer = getFirstEightBytesReversed(publicKeyHash);
+	const address: string = toAddress(publicKeyTransform);
 
 	return address;
 };
@@ -47,7 +57,9 @@ export const convertPublicKeyEd2Curve = ed2curve.convertPublicKey;
 
 export const convertPrivateKeyEd2Curve = ed2curve.convertSecretKey;
 
-export const stringifyEncryptedPassphrase = encryptedPassphrase => {
+export const stringifyEncryptedPassphrase = (
+	encryptedPassphrase: EncryptedPassphraseObject,
+): string => {
 	if (typeof encryptedPassphrase !== 'object' || encryptedPassphrase === null) {
 		throw new Error('Encrypted passphrase to stringify must be an object.');
 	}
@@ -60,26 +72,42 @@ export const stringifyEncryptedPassphrase = encryptedPassphrase => {
 				tag: encryptedPassphrase.tag,
 				version: encryptedPassphrase.version,
 		  };
+
 	return querystring.stringify(objectToStringify);
 };
 
-const parseIterations = iterationsString => {
+const parseIterations = (iterationsString?: string): number => {
 	const iterations =
 		iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
 
-	if (Number.isNaN(iterations)) {
+	if (typeof iterations !== 'undefined' && Number.isNaN(iterations)) {
 		throw new Error('Could not parse iterations.');
 	}
 
-	return iterations;
+	return iterations as number;
 };
 
-export const parseEncryptedPassphrase = encryptedPassphrase => {
+export const parseEncryptedPassphrase = (
+	encryptedPassphrase: string,
+): EncryptedPassphraseObject => {
 	if (typeof encryptedPassphrase !== 'string') {
 		throw new Error('Encrypted passphrase to parse must be a string.');
 	}
 	const keyValuePairs = querystring.parse(encryptedPassphrase);
+
 	const { iterations, salt, cipherText, iv, tag, version } = keyValuePairs;
+
+	// Review, and find a better solution
+	if (
+		(typeof iterations !== 'string' && typeof iterations !== 'undefined') ||
+		typeof salt !== 'string' ||
+		typeof cipherText !== 'string' ||
+		typeof iv !== 'string' ||
+		typeof tag !== 'string' ||
+		typeof version !== 'string'
+	) {
+		throw new Error('Unable to parse encrypted passphrase');
+	}
 
 	return {
 		iterations: parseIterations(iterations),

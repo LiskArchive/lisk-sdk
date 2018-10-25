@@ -19,12 +19,12 @@ import hash from './hash';
 import * as keys from './keys';
 import * as sign from './sign';
 
-export default Object.assign(
-	{},
-	buffer,
-	convert,
-	encrypt,
-	{ hash },
-	keys,
-	sign,
-);
+// tslint:disable-next-line no-default-export
+export default {
+	...buffer,
+	...convert,
+	...encrypt,
+	hash,
+	...keys,
+	...sign,
+};

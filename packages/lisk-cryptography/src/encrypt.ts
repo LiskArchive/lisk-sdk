@@ -23,20 +23,33 @@ const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 const ENCRYPTION_VERSION = '1';
 
+export interface EncryptedMessageWithNounce {
+	readonly encryptedMessage: string;
+	readonly nonce: string;
+}
+
 export const encryptMessageWithPassphrase = (
-	message,
-	passphrase,
-	recipientPublicKey,
-) => {
+	message: string,
+	passphrase: string,
+	recipientPublicKey: string,
+): EncryptedMessageWithNounce => {
 	const {
 		privateKeyBytes: senderPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const convertedPrivateKey = convertPrivateKeyEd2Curve(senderPrivateKeyBytes);
+	const convertedPrivateKey = Buffer.from(
+		convertPrivateKeyEd2Curve(senderPrivateKeyBytes),
+	);
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
-	const convertedPublicKey = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 	const messageInBytes = Buffer.from(message, 'utf8');
+	const nonceSize = 24;
+	const nonce: Buffer = getRandomBytes(nonceSize);
+	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 
-	const nonce = getRandomBytes(24);
+	if (publicKeyUint8Array === null) {
+		throw new Error('given public key in not a valid Ed25519 public key');
+	}
+
+	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
 
 	const cipherBytes = box(
 		messageInBytes,
@@ -55,21 +68,28 @@ export const encryptMessageWithPassphrase = (
 };
 
 export const decryptMessageWithPassphrase = (
-	cipherHex,
-	nonce,
-	passphrase,
-	senderPublicKey,
-) => {
+	cipherHex: string,
+	nonce: string,
+	passphrase: string,
+	senderPublicKey: string,
+): string => {
 	const {
 		privateKeyBytes: recipientPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
-	const convertedPrivateKey = convertPrivateKeyEd2Curve(
-		recipientPrivateKeyBytes,
+	const convertedPrivateKey = Buffer.from(
+		convertPrivateKeyEd2Curve(recipientPrivateKeyBytes),
 	);
 	const senderPublicKeyBytes = hexToBuffer(senderPublicKey);
-	const convertedPublicKey = convertPublicKeyEd2Curve(senderPublicKeyBytes);
 	const cipherBytes = hexToBuffer(cipherHex);
 	const nonceBytes = hexToBuffer(nonce);
+
+	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKeyBytes);
+
+	if (publicKeyUint8Array === null) {
+		throw new Error('given public key in not a valid Ed25519 public key');
+	}
+
+	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
 
 	try {
 		const decoded = openBox(
@@ -78,6 +98,7 @@ export const decryptMessageWithPassphrase = (
 			convertedPublicKey,
 			convertedPrivateKey,
 		);
+
 		return Buffer.from(decoded).toString();
 	} catch (error) {
 		if (
@@ -93,7 +114,11 @@ export const decryptMessageWithPassphrase = (
 	}
 };
 
-const getKeyFromPassword = (password, salt, iterations) =>
+const getKeyFromPassword = (
+	password: string,
+	salt: Buffer,
+	iterations: number,
+): Buffer =>
 	crypto.pbkdf2Sync(
 		password,
 		salt,
@@ -102,13 +127,24 @@ const getKeyFromPassword = (password, salt, iterations) =>
 		PBKDF2_HASH_FUNCTION,
 	);
 
+export interface EncryptedPassphraseObject {
+	readonly cipherText: string;
+	readonly iterations?: number;
+	readonly iv: string;
+	readonly salt: string;
+	readonly tag: string;
+	readonly version: string;
+}
+
 const encryptAES256GCMWithPassword = (
-	plainText,
-	password,
-	iterations = PBKDF2_ITERATIONS,
-) => {
-	const iv = crypto.randomBytes(12);
-	const salt = crypto.randomBytes(16);
+	plainText: string,
+	password: string,
+	iterations: number = PBKDF2_ITERATIONS,
+): EncryptedPassphraseObject => {
+	const IV_BUFFER_SIZE = 12;
+	const SALT_BUFFER_SIZE = 16;
+	const iv = crypto.randomBytes(IV_BUFFER_SIZE);
+	const salt = crypto.randomBytes(SALT_BUFFER_SIZE);
 	const key = getKeyFromPassword(password, salt, iterations);
 
 	const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
@@ -126,15 +162,20 @@ const encryptAES256GCMWithPassword = (
 	};
 };
 
-const getTagBuffer = tag => {
+const getTagBuffer = (tag: string): Buffer => {
+	const TAG_BUFFER_SIZE = 16;
 	const tagBuffer = hexToBuffer(tag, 'Tag');
-	if (tagBuffer.length !== 16) {
+	if (tagBuffer.length !== TAG_BUFFER_SIZE) {
 		throw new Error('Tag must be 16 bytes.');
 	}
+
 	return tagBuffer;
 };
 
-const decryptAES256GCMWithPassword = (encryptedPassphrase, password) => {
+const decryptAES256GCMWithPassword = (
+	encryptedPassphrase: EncryptedPassphraseObject,
+	password: string,
+): string => {
 	const {
 		iterations = PBKDF2_ITERATIONS,
 		cipherText,
