@@ -14,7 +14,7 @@
 
 
 /*
-  DESCRIPTION: Alter 'mem_round' table - change data type of 'round' from BIGINT to INT.
+  DESCRIPTION: ALTER TABLE peers ALTER COLUMN "wsPort" TYPE INT;
 
   PARAMETERS: None
 */
