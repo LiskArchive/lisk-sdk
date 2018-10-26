@@ -14,7 +14,7 @@
 
 
 /*
-  DESCRIPTION: ALTER TABLE peers ALTER COLUMN "wsPort" TYPE INT;
+  DESCRIPTION: A port number is a 16-bit unsigned integer, thus ranging from 0 to 65535. We need peers.wsPort to be of a data type that accepts this range
 
   PARAMETERS: None
 */
