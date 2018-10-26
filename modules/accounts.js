@@ -182,12 +182,16 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 				},
 				t
 			);
-		})
-			.then(data => setImmediate(cb, null, data))
-			.catch(err => setImmediate(cb, err));
+		});
 
 	// Force task to run in a db tx to make sure it always return the inserted account
-	tx ? task(tx) : library.db.tx('Accounts:setAccountAndGet', task);
+	const taskPromise = tx
+		? task(tx)
+		: library.db.tx('Accounts:setAccountAndGet', task);
+
+	return taskPromise
+		.then(data => setImmediate(cb, null, data))
+		.catch(err => setImmediate(cb, err));
 };
 
 /**
