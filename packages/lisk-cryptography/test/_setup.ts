@@ -18,7 +18,6 @@ import sinon from 'sinon';
 
 process.env.NODE_ENV = 'test';
 
-/* eslint-disable no-underscore-dangle */
 Assertion.addProperty('hexString', function handleAssert(
 	this: Chai.ChaiStatic,
 ) {

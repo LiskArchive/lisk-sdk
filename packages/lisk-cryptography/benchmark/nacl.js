@@ -12,7 +12,6 @@
 * Removal or modification of this copyright notice is prohibited.
 *
 */
-// eslint-disable-next-line import/no-extraneous-dependencies
 import Benchmark from 'benchmark';
 import * as fast from '../src/nacl/fast';
 import * as slow from '../src/nacl/slow';

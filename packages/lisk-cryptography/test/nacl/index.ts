@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable global-require */
 import { expect } from 'chai';
 import { NaclInterface } from '../../src/nacl';
 import * as fast from '../../src/nacl/fast';
@@ -34,9 +33,11 @@ interface naclLibrary extends NaclInterface {
 
 const stripConstants = (library: naclLibrary) => {
 	// Constants are added in ../../src/nacl/index.js
-	const strippedLib = Object.assign({}, library);
-	delete strippedLib.NACL_SIGN_PUBLICKEY_LENGTH;
-	delete strippedLib.NACL_SIGN_SIGNATURE_LENGTH;
+	const {
+		NACL_SIGN_PUBLICKEY_LENGTH,
+		NACL_SIGN_SIGNATURE_LENGTH,
+		...strippedLib
+	} = library;
 	return strippedLib;
 };
 
