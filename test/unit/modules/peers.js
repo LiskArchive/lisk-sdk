@@ -382,7 +382,6 @@ describe('peers', () => {
 				peersLogicMock.list = sinonSandbox.stub().returns([]);
 				peers.networkHeight(validOptions, (err, networkHeight) => {
 					expect(err).to.be.null;
-					expect(networkHeight);
 					expect(networkHeight)
 						.to.be.an('number')
 						.and.to.deep.eql(0);
@@ -409,7 +408,6 @@ describe('peers', () => {
 				peersLogicMock.list = sinonSandbox.stub().returns(peerList);
 				peers.networkHeight(validOptions, (err, networkHeight) => {
 					expect(err).to.be.null;
-					expect(networkHeight);
 					expect(networkHeight)
 						.to.be.an('number')
 						.and.to.deep.eql(5);
