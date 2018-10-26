@@ -163,17 +163,17 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 			library.logic.account.set(
 				address,
 				data,
-				err => {
-					if (err) {
-						library.logger.error('Set account failed', err);
-						return reject(err);
+				setAccountErr => {
+					if (setAccountErr) {
+						library.logger.error('Set account failed', setAccountErr);
+						return reject(setAccountErr);
 					}
 					return library.logic.account.get(
 						{ address },
-						(err, user) => {
-							if (err) {
-								library.logger.error('Get account failed', err);
-								return reject(err);
+						(getAccountErr, user) => {
+							if (getAccountErr) {
+								library.logger.error('Get account failed', getAccountErr);
+								return reject(getAccountErr);
 							}
 							return resolve(user);
 						},
