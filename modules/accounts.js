@@ -170,12 +170,12 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 					}
 					return library.logic.account.get(
 						{ address },
-						(getAccountErr, user) => {
+						(getAccountErr, account) => {
 							if (getAccountErr) {
 								library.logger.error('Get account failed', getAccountErr);
 								return reject(getAccountErr);
 							}
-							return resolve(user);
+							return resolve(account);
 						},
 						t
 					);
