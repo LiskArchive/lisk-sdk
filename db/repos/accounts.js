@@ -220,6 +220,7 @@ class AccountsRepository {
 				return t.accounts.insert(data);
 			});
 
+		// To avoid nested transactions a.k.a. save points
 		return this.inTransaction
 			? task(this.db)
 			: this.db.tx('db:accounts:upsert', task);
