@@ -76,7 +76,7 @@ export const stringifyEncryptedPassphrase = (
 	return querystring.stringify(objectToStringify);
 };
 
-const parseIterations = (iterationsString?: string): number => {
+const parseIterations = (iterationsString?: string): number | undefined => {
 	const iterations =
 		iterationsString === undefined ? undefined : parseInt(iterationsString, 10);
 
@@ -84,7 +84,7 @@ const parseIterations = (iterationsString?: string): number => {
 		throw new Error('Could not parse iterations.');
 	}
 
-	return iterations as number;
+	return iterations;
 };
 
 export const parseEncryptedPassphrase = (
