@@ -105,7 +105,7 @@ var liskFormats = {
 		}
 
 		// Address can not exceed the max limit
-		if (new Bignum(str.slice(0, -1)).greaterThan(UINT64_MAX)) {
+		if (new Bignum(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
 			return false;
 		}
 
