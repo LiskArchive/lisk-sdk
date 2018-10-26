@@ -49,6 +49,8 @@ class Accounts {
 	constructor(cb, scope) {
 		library = {
 			ed: scope.ed,
+			db: scope.db,
+			logger: scope.logger,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
 			logic: {
@@ -156,17 +158,36 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 		throw err;
 	}
 
-	library.logic.account.set(
-		address,
-		data,
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return library.logic.account.get({ address }, cb, tx);
-		},
-		tx
-	);
+	const task = t =>
+		new Promise((resolve, reject) => {
+			library.logic.account.set(
+				address,
+				data,
+				err => {
+					if (err) {
+						library.logger.error('Set account failed', err);
+						return reject(err);
+					}
+					return library.logic.account.get(
+						{ address },
+						(err, user) => {
+							if (err) {
+								library.logger.error('Get account failed', err);
+								return reject(err);
+							}
+							return resolve(user);
+						},
+						t
+					);
+				},
+				t
+			);
+		})
+			.then(data => setImmediate(cb, null, data))
+			.catch(err => setImmediate(cb, err));
+
+	// Force task to run in a db tx to make sure it always return the inserted account
+	tx ? task(tx) : library.db.tx('Accounts:setAccountAndGet', task);
 };
 
 /**
