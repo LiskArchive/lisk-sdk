@@ -215,64 +215,78 @@ ${defaultSecondSignature}
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
 		it('should throw on invalid first publicKey length', () => {
+			const {
+				publicKey,
+				...messageWithoutPublicKey
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						publicKey: changeLength(defaultPublicKey),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					publicKey: changeLength(defaultPublicKey),
+					...messageWithoutPublicKey,
+				}),
 			).to.throw('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey length', () => {
+			const {
+				secondPublicKey,
+				...messageWithoutSecondPublicKey
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						secondPublicKey: changeLength(defaultSecondPublicKey),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					secondPublicKey: changeLength(defaultSecondPublicKey),
+					...messageWithoutSecondPublicKey,
+				}),
 			).to.throw('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature length', () => {
+			const {
+				signature,
+				...messageWithoutSignature
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						signature: changeLength(defaultSignature),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					signature: changeLength(defaultSignature),
+					...messageWithoutSignature,
+				}),
 			).to.throw('Invalid first signature length, expected 64-byte signature');
 		});
 
 		it('should throw on invalid secondary signature length', () => {
+			const {
+				secondSignature,
+				...messageWithoutSecondSignature
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						secondSignature: changeLength(defaultSecondSignature),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					secondSignature: changeLength(defaultSecondSignature),
+					...messageWithoutSecondSignature,
+				}),
 			).to.throw('Invalid second signature length, expected 64-byte signature');
 		});
 
 		it('should return false for incorrect first signature', () => {
-			const verified = verifyMessageWithTwoPublicKeys(
-				Object.assign({}, defaultDoubleSignedMessage, {
-					signature: makeInvalid(defaultSignature),
-				}),
-			);
+			const {
+				signature,
+				...messageWithoutSignature
+			} = defaultDoubleSignedMessage;
+			const verified = verifyMessageWithTwoPublicKeys({
+				signature: makeInvalid(defaultSignature),
+				...messageWithoutSignature,
+			});
 			return expect(verified).to.be.false;
 		});
 
 		it('should return false for incorrect second signature', () => {
-			const verified = verifyMessageWithTwoPublicKeys(
-				Object.assign({}, defaultDoubleSignedMessage, {
-					secondSignature: makeInvalid(defaultSecondSignature),
-				}),
-			);
+			const {
+				secondSignature,
+				...messageWithoutSecondSignature
+			} = defaultDoubleSignedMessage;
+			const verified = verifyMessageWithTwoPublicKeys({
+				secondSignature: makeInvalid(defaultSecondSignature),
+				...messageWithoutSecondSignature,
+			});
 			return expect(verified).to.be.false;
 		});
 

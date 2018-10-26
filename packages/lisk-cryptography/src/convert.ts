@@ -45,10 +45,10 @@ export const toAddress = (buffer: Buffer): string => {
 };
 
 export const getAddressFromPublicKey = (publicKey: string): string => {
-	const publicKeyHash: Buffer = hash(publicKey, 'hex');
+	const publicKeyHash = hash(publicKey, 'hex');
 
-	const publicKeyTransform: Buffer = getFirstEightBytesReversed(publicKeyHash);
-	const address: string = toAddress(publicKeyTransform);
+	const publicKeyTransform = getFirstEightBytesReversed(publicKeyHash);
+	const address = toAddress(publicKeyTransform);
 
 	return address;
 };

@@ -311,13 +311,11 @@ describe('encrypt', () => {
 			});
 
 			it('should inform the user if the salt has been altered', () => {
-				const encryptedPassphraseWithAlteredSalt = Object.assign(
-					{},
-					encryptedPassphrase,
-					{
-						salt: `00${encryptedPassphrase.salt.slice(2)}`,
-					},
-				);
+				const { salt, ...encryptedPassphraseWithoutSalt } = encryptedPassphrase;
+				const encryptedPassphraseWithAlteredSalt = {
+					salt: `00${encryptedPassphrase.salt.slice(2)}`,
+					...encryptedPassphraseWithoutSalt,
+				};
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
@@ -328,13 +326,11 @@ describe('encrypt', () => {
 			});
 
 			it('should inform the user if the tag has been shortened', () => {
-				const encryptedPassphraseWithAlteredTag = Object.assign(
-					{},
-					encryptedPassphrase,
-					{
-						tag: encryptedPassphrase.tag.slice(0, 30),
-					},
-				);
+				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
+				const encryptedPassphraseWithAlteredTag = {
+					tag: encryptedPassphrase.tag.slice(0, 30),
+					...encryptedPassphraseWithoutTag,
+				};
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
@@ -345,13 +341,11 @@ describe('encrypt', () => {
 			});
 
 			it('should inform the user if the tag is not a hex string', () => {
-				const encryptedPassphraseWithAlteredTag = Object.assign(
-					{},
-					encryptedPassphrase,
-					{
-						tag: `${encryptedPassphrase.tag.slice(0, 30)}gg`,
-					},
-				);
+				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
+				const encryptedPassphraseWithAlteredTag = {
+					tag: `${encryptedPassphrase.tag.slice(0, 30)}gg`,
+					...encryptedPassphraseWithoutTag,
+				};
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
@@ -362,13 +356,11 @@ describe('encrypt', () => {
 			});
 
 			it('should inform the user if the tag has been altered', () => {
-				const encryptedPassphraseWithAlteredTag = Object.assign(
-					{},
-					encryptedPassphrase,
-					{
-						tag: `00${encryptedPassphrase.tag.slice(2)}`,
-					},
-				);
+				const { tag, ...encryptedPassphraseWithoutTag } = encryptedPassphrase;
+				const encryptedPassphraseWithAlteredTag = {
+					tag: `00${encryptedPassphrase.tag.slice(2)}`,
+					...encryptedPassphraseWithoutTag,
+				};
 				return expect(
 					decryptPassphraseWithPassword.bind(
 						null,
@@ -407,7 +399,7 @@ describe('encrypt', () => {
 					defaultPassword,
 				);
 				return expect(decryptedString).to.be.equal(defaultPassphrase);
-			});
+			}).timeout(5000);
 
 			it('should encrypt a given passphrase with a password and custom number of iterations and decrypt it back to the original passphrase @node-only', () => {
 				const encryptedPassphrase = encryptPassphraseWithPassword(
