@@ -25,7 +25,7 @@ import { SignaturesResource } from './resources/signatures';
 import { TransactionsResource } from './resources/transactions';
 import { VotersResource } from './resources/voters';
 import { VotesResource } from './resources/votes';
-import { HashMap, InitOptions } from './types/types';
+import { HashMap, InitOptions } from './types/lisk-api-client';
 
 const defaultOptions = {
 	bannedNodes: [],
@@ -184,6 +184,6 @@ export class APIClient {
 	}
 
 	public isBanned(node: string): boolean {
-		return this.bannedNodes.includes(node);
+		return this.bannedNodes.indexOf(node) > -1;
 	}
 }

@@ -20,25 +20,25 @@ import {
 	HashMap,
 	RequestConfig,
 	Resource,
-} from './types/types';
+} from './types/lisk-api-client';
 import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class
-export const apiMethod = (
-	{
-		method = GET,
-		path = '',
-		urlParams = [],
-		validator,
-		defaultData = {},
-		retry = false,
-	}: RequestConfig = { method: GET },
-): ApiHandler =>
+export const apiMethod = (options: RequestConfig = {}): ApiHandler =>
 	async function apiHandler(
 		this: Resource,
 		// tslint:disable-next-line readonly-array
 		...args: Array<number | string | object>
 	): Promise<ApiResponse | Error> {
+		const {
+			method = GET,
+			path = '',
+			urlParams = [],
+			validator,
+			defaultData = {},
+			retry = false,
+		} = options;
+
 		if (urlParams.length > 0 && args.length < urlParams.length) {
 			return Promise.reject(
 				new Error(
@@ -64,9 +64,9 @@ export const apiMethod = (
 		}
 
 		const resolvedURLObject = urlParams.reduce(
-			(accumulator: object = {}, param: string, i: number): object => ({
+			(accumulator: HashMap = {}, param: string, i: number): HashMap => ({
 				...accumulator,
-				[param]: args[i],
+				[param]: args[i] as string,
 			}),
 			{},
 		);

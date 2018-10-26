@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { HashMap } from './types/types';
+import { HashMap } from './types/lisk-api-client';
 
 export const toQueryString = (obj: HashMap): string => {
 	const parts = Object.keys(obj).reduce(

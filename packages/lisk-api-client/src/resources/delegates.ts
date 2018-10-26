@@ -16,7 +16,7 @@ import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
 import { GET } from '../constants';
-import { ApiHandler } from '../types/types';
+import { ApiHandler } from '../types/lisk-api-client';
 
 export class DelegatesResource extends APIResource {
 	public get: ApiHandler;

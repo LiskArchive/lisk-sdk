@@ -16,7 +16,7 @@ import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
 import { GET, PUT } from '../constants';
-import { ApiHandler } from '../types/types';
+import { ApiHandler } from '../types/lisk-api-client';
 
 export class NodeResource extends APIResource {
 	public getConstants: ApiHandler;
