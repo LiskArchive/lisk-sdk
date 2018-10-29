@@ -442,7 +442,7 @@ Options:
 -h, --help               output usage information
 -V, --version            output the version number
 -c, --config [config]    custom config file
--n, --network [network]  Specify the network or use LISK_NETWORK
+-n, --network [network]  specify the network or use LISK_NETWORK
 ```
 
 Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any other network folder available under `./config` directory.
