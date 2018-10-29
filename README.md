@@ -462,7 +462,7 @@ Options:
 -o, --output [output]    Output file path
 ```
 
-As you can see from the usage guide, `input_file` and `from_version` are required. So if you have a config file, you must be aware to which version of Lisk this belongs. You can skip the `to_version` argument and it will apply changes up-to latest version of Lisk. If you don't specify `--output` path the final config json will be printed to stdout. If you don't specify specify `--network` script will look to load it from `LISK_NETWORK` env variable.
+As you can see from the usage guide, `input_file` and` from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from` LISK_NETWORK` env variable.
 
 #### Console
 
