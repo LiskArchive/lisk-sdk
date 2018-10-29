@@ -98,9 +98,13 @@ export const transfer = (inputs: TransferInputs): BaseTransaction => {
 		secondPassphrase,
 		timeOffset,
 	} = inputs;
-	const recipientId = recipientPublicKey
+
+	const recipientIdFromPublicKey = recipientPublicKey
+		? cryptography.getAddressFromPublicKey(recipientPublicKey)
+		: undefined;
+	const recipientId = inputs.recipientId
 		? inputs.recipientId
-		: cryptography.getAddressFromPublicKey(recipientPublicKey);
+		: recipientIdFromPublicKey;
 
 	const transaction: PartialTransaction = {
 		type: 0,

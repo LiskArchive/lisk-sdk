@@ -18,7 +18,7 @@ import { getTransactionHash } from './get_transaction_hash';
 
 export const signTransaction = (
 	transaction: BaseTransaction,
-	passphrase?: string,
+	passphrase: string,
 ): string => {
 	const transactionHash = getTransactionHash(transaction);
 
@@ -40,9 +40,11 @@ export const verifyTransaction = (
 	transaction: BaseTransaction,
 	secondPublicKey?: string,
 ): boolean => {
-	const secondSignaturePresent = !!transaction.signSignature;
-	if (secondSignaturePresent && !secondPublicKey) {
+	if (!!transaction.signSignature && !secondPublicKey) {
 		throw new Error('Cannot verify signSignature without secondPublicKey.');
+	}
+	if (!transaction.signature) {
+		throw new Error('Cannot verify transaction without signature.');
 	}
 
 	const {
@@ -50,7 +52,7 @@ export const verifyTransaction = (
 		signSignature,
 		...transactionWithoutSignatures
 	} = transaction;
-	const transactionWithoutSignature = secondSignaturePresent
+	const transactionWithoutSignature = !!transaction.signSignature
 		? {
 				...transactionWithoutSignatures,
 				signature,
@@ -59,10 +61,11 @@ export const verifyTransaction = (
 
 	const transactionHash = getTransactionHash(transactionWithoutSignature);
 
-	const publicKey = secondSignaturePresent
-		? secondPublicKey
-		: transaction.senderPublicKey;
-	const lastSignature = secondSignaturePresent
+	const publicKey =
+		!!transaction.signSignature && secondPublicKey
+			? secondPublicKey
+			: transaction.senderPublicKey;
+	const lastSignature = transaction.signSignature
 		? transaction.signSignature
 		: transaction.signature;
 
@@ -72,7 +75,7 @@ export const verifyTransaction = (
 		publicKey,
 	);
 
-	return secondSignaturePresent
+	return !!transaction.signSignature
 		? verified && verifyTransaction(transactionWithoutSignature)
 		: verified;
 };

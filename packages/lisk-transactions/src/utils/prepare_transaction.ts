@@ -24,7 +24,9 @@ const secondSignTransaction = (
 	secondPassphrase?: string,
 ): BaseTransaction => ({
 	...transactionObject,
-	signSignature: signTransaction(transactionObject, secondPassphrase),
+	signSignature: secondPassphrase
+		? signTransaction(transactionObject, secondPassphrase)
+		: undefined,
 });
 
 const validTransaction = (
@@ -60,7 +62,9 @@ export const prepareTransaction = (
 
 	const singleSignedTransaction = {
 		...transaction,
-		signature: signTransaction(transaction, passphrase),
+		signature: passphrase
+			? signTransaction(transaction, passphrase)
+			: undefined,
 	};
 
 	const signedTransaction =
