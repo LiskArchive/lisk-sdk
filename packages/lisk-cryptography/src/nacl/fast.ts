@@ -14,7 +14,7 @@
  */
 // tslint:disable-next-line no-implicit-dependencies
 import sodium from 'sodium-native';
-import { NaclInterface } from './index';
+import { NaclInterface } from '../types/nacl';
 
 export const box: NaclInterface['box'] = (
 	messageInBytes,
@@ -72,10 +72,10 @@ export const signDetached: NaclInterface['signDetached'] = (
 };
 
 export const verifyDetached: NaclInterface['verifyDetached'] = (
-	messageBytes: Buffer,
-	signatureBytes: Buffer,
-	publicKeyBytes: Buffer,
-): boolean =>
+	messageBytes,
+	signatureBytes,
+	publicKeyBytes,
+) =>
 	sodium.crypto_sign_verify_detached(
 		signatureBytes,
 		messageBytes,

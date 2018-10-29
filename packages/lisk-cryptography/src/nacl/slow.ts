@@ -13,7 +13,7 @@
  *
  */
 import tweetnacl from 'tweetnacl';
-import { NaclInterface } from './index';
+import { NaclInterface } from '../types/nacl';
 
 export const box: NaclInterface['box'] = (
 	messageInBytes,
@@ -51,17 +51,15 @@ export const openBox: NaclInterface['openBox'] = (
 };
 
 export const signDetached: NaclInterface['signDetached'] = (
-	messageBytes: Buffer,
-	privateKeyBytes: Buffer,
-): Buffer =>
-	Buffer.from(tweetnacl.sign.detached(messageBytes, privateKeyBytes));
+	messageBytes,
+	privateKeyBytes,
+) => Buffer.from(tweetnacl.sign.detached(messageBytes, privateKeyBytes));
 
 export const verifyDetached: NaclInterface['verifyDetached'] =
 	tweetnacl.sign.detached.verify;
 
-export const getRandomBytes: NaclInterface['getRandomBytes'] = (
-	length: number,
-): Buffer => Buffer.from(tweetnacl.randomBytes(length));
+export const getRandomBytes: NaclInterface['getRandomBytes'] = length =>
+	Buffer.from(tweetnacl.randomBytes(length));
 
 export const getKeyPair: NaclInterface['getKeyPair'] = hashedSeed => {
 	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(hashedSeed);

@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { NaclInterface } from '../../src/nacl';
+import { NaclInterface } from '../../src/types/nacl';
 import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 // Require is used for stubbing
@@ -96,7 +96,7 @@ describe('nacl index.js', () => {
 			resetTest();
 
 			// "require" is a wrapper around Module._load which handles the actual loading
-			global.sandbox
+			sandbox
 				.stub(moduleLibrary, '_load')
 				.callThrough()
 				.withArgs('./fast')
