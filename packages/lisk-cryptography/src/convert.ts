@@ -17,7 +17,7 @@ import ed2curve from 'ed2curve';
 import querystring from 'querystring';
 import { bufferToBigNumberString } from './buffer';
 import { EncryptedPassphraseObject } from './encrypt';
-import hash from './hash';
+import { hash } from './hash';
 
 export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	const BUFFER_SIZE = 8;

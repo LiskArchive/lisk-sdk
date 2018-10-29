@@ -15,7 +15,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {
 	EncryptedPassphraseObject,
-	EncryptedMessageWithNounce,
+	EncryptedMessageWithNonce,
 	encryptMessageWithPassphrase,
 	decryptMessageWithPassphrase,
 	encryptPassphraseWithPassword,
@@ -24,7 +24,7 @@ import {
 // Require is used for stubbing
 const convert = require('../src/convert');
 const keys = require('../src/keys');
-const hash = require('../src/hash');
+const hashModule = require('../src/hash');
 
 describe('encrypt', () => {
 	const PBKDF2_ITERATIONS = 1e6;
@@ -44,7 +44,7 @@ describe('encrypt', () => {
 	const defaultPassword = 'myTotal53cr3t%&';
 	const customIterations = 12;
 
-	let defaultEncryptedMessageWithNonce: EncryptedMessageWithNounce;
+	let defaultEncryptedMessageWithNonce: EncryptedMessageWithNonce;
 
 	let getPrivateAndPublicKeyBytesFromPassphraseStub;
 	let hashStub: sinon.SinonStub;
@@ -90,7 +90,7 @@ describe('encrypt', () => {
 			});
 
 		hashStub = sandbox
-			.stub(hash, 'default')
+			.stub(hashModule, 'hash')
 			.returns(
 				Buffer.from(
 					'd43eed9049dd8f35106c720669a1148b2c6288d9ea517b936c33a1d84117a760',
@@ -101,7 +101,7 @@ describe('encrypt', () => {
 	});
 
 	describe('#encryptMessageWithPassphrase', () => {
-		let encryptedMessage: EncryptedMessageWithNounce;
+		let encryptedMessage: EncryptedMessageWithNonce;
 
 		beforeEach(() => {
 			encryptedMessage = encryptMessageWithPassphrase(

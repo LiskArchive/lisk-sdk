@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import hashFunction from '../src/hash';
+import { hash as hashFunction } from '../src/hash';
 import { expect } from 'chai';
 
 describe('hash', () => {

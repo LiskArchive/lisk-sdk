@@ -32,7 +32,7 @@ import {
 // Require is used for stubbing
 const keys = require('../src/keys');
 
-const changeLength = (str: string) => `00${str}`;
+const changeLength = (str: string): string => `00${str}`;
 
 describe('sign', () => {
 	const defaultPassphrase =
@@ -117,7 +117,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#digestMessage', () => {
-		const strGenerator = (len: number, chr: string) => chr.repeat(len);
+		const strGenerator = (len: number, chr: string): string => chr.repeat(len);
 
 		it('should create message digest for message with length = 0', () => {
 			const msgBytes = digestMessage('');

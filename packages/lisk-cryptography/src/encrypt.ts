@@ -23,7 +23,7 @@ const PBKDF2_KEYLEN = 32;
 const PBKDF2_HASH_FUNCTION = 'sha256';
 const ENCRYPTION_VERSION = '1';
 
-export interface EncryptedMessageWithNounce {
+export interface EncryptedMessageWithNonce {
 	readonly encryptedMessage: string;
 	readonly nonce: string;
 }
@@ -32,7 +32,7 @@ export const encryptMessageWithPassphrase = (
 	message: string,
 	passphrase: string,
 	recipientPublicKey: string,
-): EncryptedMessageWithNounce => {
+): EncryptedMessageWithNonce => {
 	const {
 		privateKeyBytes: senderPrivateKeyBytes,
 	} = getPrivateAndPublicKeyBytesFromPassphrase(passphrase);
@@ -42,7 +42,7 @@ export const encryptMessageWithPassphrase = (
 	const recipientPublicKeyBytes = hexToBuffer(recipientPublicKey);
 	const messageInBytes = Buffer.from(message, 'utf8');
 	const nonceSize = 24;
-	const nonce: Buffer = getRandomBytes(nonceSize);
+	const nonce = getRandomBytes(nonceSize);
 	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 
 	if (publicKeyUint8Array === null) {

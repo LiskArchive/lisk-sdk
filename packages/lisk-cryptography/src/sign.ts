@@ -15,16 +15,16 @@
 import { SIGNED_MESSAGE_PREFIX } from '@liskhq/lisk-constants';
 import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { bufferToHex, hexToBuffer } from './buffer';
-import hash from './hash';
+import { hash } from './hash';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 import {
 	NACL_SIGN_PUBLICKEY_LENGTH,
 	NACL_SIGN_SIGNATURE_LENGTH,
 	signDetached,
 	verifyDetached,
-} from './nacl/index';
+} from './nacl';
 
-const createHeader = (text: string) => `-----${text}-----`;
+const createHeader = (text: string): string => `-----${text}-----`;
 const signedMessageHeader = createHeader('BEGIN LISK SIGNED MESSAGE');
 const messageHeader = createHeader('MESSAGE');
 const publicKeyHeader = createHeader('PUBLIC KEY');
@@ -247,4 +247,5 @@ export const verifyData = (
 	data: Buffer,
 	signature: string,
 	publicKey: string,
-) => verifyDetached(data, hexToBuffer(signature), hexToBuffer(publicKey));
+): boolean =>
+	verifyDetached(data, hexToBuffer(signature), hexToBuffer(publicKey));

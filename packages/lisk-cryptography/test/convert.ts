@@ -23,7 +23,7 @@ import {
 	parseEncryptedPassphrase,
 } from '../src/convert';
 // Require is used for stubbing
-const hash = require('../src/hash');
+const hashModule = require('../src/hash');
 
 describe('convert', () => {
 	// keys for passphrase 'secret';
@@ -87,7 +87,7 @@ describe('convert', () => {
 
 	describe('#getAddressFromPublicKey', () => {
 		beforeEach(() => {
-			return sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
+			return sandbox.stub(hashModule, 'hash').returns(defaultPublicKeyHash);
 		});
 
 		it('should generate address from publicKey', () => {

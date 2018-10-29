@@ -22,7 +22,7 @@ const cryptoHashSha256 = (data: Buffer): Buffer => {
 	return dataHash.digest();
 };
 
-const hash = (data: Buffer | string, format?: string): Buffer => {
+export const hash = (data: Buffer | string, format?: string): Buffer => {
 	if (Buffer.isBuffer(data)) {
 		return cryptoHashSha256(data);
 	}
@@ -33,7 +33,7 @@ const hash = (data: Buffer | string, format?: string): Buffer => {
 				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);
 		}
-		const encoded: Buffer =
+		const encoded =
 			format === 'utf8' ? Buffer.from(data, 'utf8') : hexToBuffer(data);
 
 		return cryptoHashSha256(encoded);
@@ -43,6 +43,3 @@ const hash = (data: Buffer | string, format?: string): Buffer => {
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
 };
-
-// tslint:disable-next-line no-default-export
-export default hash;

@@ -15,7 +15,7 @@
 import * as buffer from './buffer';
 import * as convert from './convert';
 import * as encrypt from './encrypt';
-import hash from './hash';
+import * as hash from './hash';
 import * as keys from './keys';
 import * as sign from './sign';
 
@@ -24,7 +24,7 @@ export default {
 	...buffer,
 	...convert,
 	...encrypt,
-	hash,
+	...hash,
 	...keys,
 	...sign,
 };

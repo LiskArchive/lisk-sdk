@@ -24,7 +24,7 @@ import {
 } from '../src/keys';
 // Require is used for stubbing
 const buffer = require('../src/buffer');
-const hash = require('../src/hash');
+const hashModule = require('../src/hash');
 
 describe('keys', () => {
 	const defaultPassphrase = 'secret';
@@ -51,7 +51,7 @@ describe('keys', () => {
 			.withArgs(Buffer.from(defaultPublicKey, 'hex'))
 			.returns(defaultPublicKey);
 		return sandbox
-			.stub(hash, 'default')
+			.stub(hashModule, 'hash')
 			.returns(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 

@@ -14,8 +14,8 @@
  */
 import { bufferToHex } from './buffer';
 import { getAddressFromPublicKey } from './convert';
-import hash from './hash';
-import { getKeyPair } from './nacl/index';
+import { hash } from './hash';
+import { getKeyPair } from './nacl';
 
 export interface KeypairBytes {
 	readonly privateKeyBytes: Buffer;
@@ -55,7 +55,9 @@ export const getPrivateAndPublicKeyFromPassphrase = (
 
 export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
-export const getAddressAndPublicKeyFromPassphrase = (passphrase: string) => {
+export const getAddressAndPublicKeyFromPassphrase = (
+	passphrase: string,
+): { readonly address: string; readonly publicKey: string } => {
 	const { publicKey } = getKeys(passphrase);
 	const address = getAddressFromPublicKey(publicKey);
 
@@ -65,7 +67,7 @@ export const getAddressAndPublicKeyFromPassphrase = (passphrase: string) => {
 	};
 };
 
-export const getAddressFromPassphrase = (passphrase: string) => {
+export const getAddressFromPassphrase = (passphrase: string): string => {
 	const { publicKey } = getKeys(passphrase);
 
 	return getAddressFromPublicKey(publicKey);
