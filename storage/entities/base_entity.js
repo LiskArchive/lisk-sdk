@@ -103,13 +103,13 @@ class BaseEntity {
 				this.filters[`${fieldName}_in`] = ' IN (${fieldName:csv})';
 				break;
 
-			case filterType.BINARY:
+			case filterTypes.BINARY:
 				this.filters[`${fieldName}_like`] =
 					" = DECODE(${fieldName}:val, 'hex')";
 				break;
 
 			default:
-				throw new NonSupportedFilterTypeError();
+				throw new NonSupportedFilterTypeError(filterType);
 		}
 	}
 
