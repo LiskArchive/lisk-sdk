@@ -441,7 +441,7 @@ Options:
 
 -h, --help               output usage information
 -V, --version            output the version number
--c, --config [config]    Custom config file
+-c, --config [config]    custom config file
 -n, --network [network]  Specify the network or use LISK_NETWORK
 ```
 
