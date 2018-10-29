@@ -372,7 +372,7 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 
 				return db.accounts.upsert(account, 'address').then(result => {
-					expect(result).to.be.undefined;
+					expect(result).to.be.null;
 				});
 			});
 
