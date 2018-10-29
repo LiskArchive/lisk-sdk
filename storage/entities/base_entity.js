@@ -93,33 +93,54 @@ class BaseEntity {
 		// eslint-disable-next-line no-return-assign
 		fieldSets.forEach(fs => this.fields[fs].push(fieldName));
 
+		/* eslint-disable no-useless-escape */
 		switch (filterType) {
 			case filterTypes.BOOLEAN:
-				// eslint-disable-next-line no-useless-escape
-				this.filters[fieldName] = `${fieldName} = $\{${fieldName}\}`;
-				this.filters[`${fieldName}_ne`] = ' <> ${fieldName}';
+				this.filters[fieldName] = `"${fieldName}" = $\{${fieldName}\}`;
+				this.filters[
+					`${fieldName}_ne`
+				] = `"${fieldName}" <> $\{${fieldName}_ne\}`;
 				break;
 
 			case filterTypes.TEXT:
-				this.filters[fieldName] = ' = ${fieldName}';
-				this.filters[`${fieldName}_ne`] = ' <> ${fieldName}';
-				this.filters[`${fieldName}_in`] = ' IN (${fieldName:csv})';
-				this.filters[`${fieldName}_like`] = ' LIKE ${fieldName}';
+				this.filters[fieldName] = `"${fieldName}" = $\{${fieldName}\}`;
+				this.filters[
+					`${fieldName}_ne`
+				] = `"${fieldName}" <> $\{${fieldName}_ne\}`;
+				this.filters[
+					`${fieldName}_in`
+				] = `"${fieldName}" IN ($\{${fieldName}_in:csv\})`;
+				this.filters[
+					`${fieldName}_like`
+				] = `"${fieldName}" LIKE $\{${fieldName}_like\}`;
 				break;
 
 			case filterTypes.NUMBER:
-				this.filters[fieldName] = ' = ${fieldName}';
-				this.filters[`${fieldName}_gt`] = ' > ${fieldName}';
-				this.filters[`${fieldName}_gte`] = ' >= ${fieldName}';
-				this.filters[`${fieldName}_lt`] = ' < ${fieldName}';
-				this.filters[`${fieldName}_lte`] = ' <= ${fieldName}';
-				this.filters[`${fieldName}_ne`] = ' <> ${fieldName}';
-				this.filters[`${fieldName}_in`] = ' IN (${fieldName:csv})';
+				this.filters[fieldName] = `"${fieldName}" = $\{${fieldName}\}`;
+				this.filters[
+					`${fieldName}_gt`
+				] = `"${fieldName}" > $\{${fieldName}_gt\}`;
+				this.filters[
+					`${fieldName}_gte`
+				] = `"${fieldName}" >= $\{${fieldName}_gte\}`;
+				this.filters[
+					`${fieldName}_lt`
+				] = `"${fieldName}" < $\{${fieldName}_lt\}`;
+				this.filters[
+					`${fieldName}_lte`
+				] = `"${fieldName}" <= $\{${fieldName}_lte\}`;
+				this.filters[
+					`${fieldName}_ne`
+				] = `"${fieldName}" <> $\{${fieldName}_ne\}`;
+				this.filters[
+					`${fieldName}_in`
+				] = `"${fieldName}" IN ($\{${fieldName}_in:csv)\}`;
 				break;
 
 			case filterTypes.BINARY:
-				this.filters[`${fieldName}_like`] =
-					" = DECODE(${fieldName}:val, 'hex')";
+				this.filters[
+					`${fieldName}_like`
+				] = `"${fieldName}" = DECODE($\{${fieldName}_like:val\}, 'hex')"`;
 				break;
 
 			default:
@@ -128,19 +149,26 @@ class BaseEntity {
 	}
 
 	parseFilters(filters) {
+		let filterString = null;
+
 		const parseFilterObject = object =>
 			Object.keys(object)
 				.map(key => this.filters[key])
 				.join(' AND ');
 
 		if (Array.isArray(filters)) {
-			return filters
+			filterString = filters
 				.map(filterObject => parseFilterObject(filterObject))
 				.join(' OR ');
 		} else if (typeof filters === 'object') {
-			return parseFilterObject(filters);
+			filterString = parseFilterObject(filters);
 		}
-		throw new NonSupportedFilterTypeError();
+
+		if (filterString) {
+			return `WHERE ${this.adapter.parseQueryComponent(filterString, filters)}`;
+		}
+
+		return '';
 	}
 }
 

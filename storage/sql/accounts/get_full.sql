@@ -54,6 +54,7 @@ SELECT
 	) as "u_multisignatures"
 FROM
 	mem_accounts
-WHERE
-	${parsedFilters:raw}
+
+${parsedFilters:raw}
+
 LIMIT ${limit} OFFSET ${offset}

@@ -54,6 +54,11 @@ class BaseAdapter extends EventEmitter {
 	loadSQLFile() {
 		throw new ImplementationPendingError();
 	}
+
+	// eslint-disable-next-line class-methods-use-this
+	parseQueryComponent() {
+		throw new ImplementationPendingError();
+	}
 }
 
 module.exports = BaseAdapter;

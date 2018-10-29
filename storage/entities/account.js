@@ -27,8 +27,8 @@ class Account extends BaseEntity {
 		this.addField('publicKey', ft.BINARY, both);
 		this.addField('secondPublicKey', ft.BINARY, both);
 		this.addField('username', ft.TEXT, both);
-		this.addField('isDelegate', ft.BOOLEAN, both);
-		this.addField('secondSignature', ft.BOOLEAN, both);
+		this.addField('isDelegate', ft.NUMBER, both);
+		this.addField('secondSignature', ft.NUMBER, both);
 		this.addField('balance', ft.NUMBER, both);
 		this.addField('multimin', ft.NUMBER, both);
 		this.addField('multilifetime', ft.NUMBER, both);
@@ -58,15 +58,19 @@ class Account extends BaseEntity {
 	}
 
 	get(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
-		options = Object.assign({ limit: 10, offset: 0 }, options);
+		const queryOptions = Object.assign({}, options, { expectedResult: 1 });
+		const parsedFilters = this.parseFilters(filters);
+		const params = Object.assign({}, { limit: 10, offset: 0 }, filters, {
+			parsedFilters,
+		});
 
 		return this.adapter.executeFile(
 			{
 				[Account.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
 				[Account.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[fieldSet],
-			options,
-			{ expectedResult: 1 }
+			params,
+			queryOptions
 		);
 	}
 

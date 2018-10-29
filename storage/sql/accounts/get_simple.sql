@@ -30,4 +30,7 @@ SELECT
 	rank
 FROM
 	mem_accounts
+
+${parsedFilters:raw}
+
 LIMIT ${limit} OFFSET ${offset}

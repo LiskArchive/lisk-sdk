@@ -86,6 +86,7 @@ class PgpAdapter extends BaseAdapter {
 
 		const options = {
 			error: (error, e) => {
+				console.error(error);
 				self.logger.error(error);
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
@@ -96,6 +97,7 @@ class PgpAdapter extends BaseAdapter {
 			},
 			log: (msg, info) => {
 				self.logger.log(info.event, info.text);
+				console.info(info.event, info.text);
 				info.display = false;
 			},
 		};
@@ -161,6 +163,10 @@ class PgpAdapter extends BaseAdapter {
 		}
 
 		return qf;
+	}
+
+	parseQueryComponent(query, params) {
+		return this.pgp.as.format(query, params);
 	}
 }
 
