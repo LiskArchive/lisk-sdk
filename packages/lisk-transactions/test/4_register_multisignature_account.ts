@@ -15,7 +15,10 @@
 import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
-import { BaseTransaction, MultiSignatureAsset } from '../src/transaction_types';
+import {
+	BaseTransaction,
+	MultiSignatureAsset,
+} from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 

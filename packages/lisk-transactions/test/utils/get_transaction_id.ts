@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import { getTransactionId } from '../../src/utils';
-import { BaseTransaction } from '../../src/transaction_types';
+import { BaseTransaction } from '../../src/types/transactions';
 // Require is used for stubbing
 const utils = require('../../src/utils');
 

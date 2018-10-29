@@ -17,7 +17,7 @@ import { signRawTransaction } from '../../src/utils/sign_raw_transaction';
 import {
 	BaseTransaction,
 	PartialTransaction,
-} from '../../src/transaction_types';
+} from '../../src/types/transactions';
 // Require is used for stubbing
 const time = require('../../src/utils/time');
 

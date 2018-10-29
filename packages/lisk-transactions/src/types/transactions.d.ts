@@ -87,6 +87,7 @@ export interface MultiSignatureTransaction extends BaseTransaction {
 
 export interface MultiSignatureAsset {
 	readonly multisignature: {
+		readonly [key: string]: number | ReadonlyArray<string>;
 		readonly keysgroup: ReadonlyArray<string>;
 		readonly lifetime: number;
 		readonly min: number;

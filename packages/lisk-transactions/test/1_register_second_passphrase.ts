@@ -17,7 +17,7 @@ import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
 import {
 	BaseTransaction,
 	SecondSignatureAsset,
-} from '../src/transaction_types';
+} from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 

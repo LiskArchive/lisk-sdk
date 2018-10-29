@@ -30,10 +30,9 @@ import {
 } from '../../src/utils/get_transaction_bytes';
 import {
 	TransferTransaction,
-	PartialTransaction,
 	BaseTransaction,
 	MultiSignatureAsset,
-} from '../../src/transaction_types';
+} from '../../src/types/transactions';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -451,13 +450,12 @@ describe('getTransactionBytes module', () => {
 
 	describe('getTransactionBytes functions', () => {
 		describe('#checkRequiredFields', () => {
-			const arrayToCheck = ['OneValue', 'SecondValue', 'ThirdValue', 1];
+			const arrayToCheck = ['OneValue', 'SecondValue', 'ThirdValue'];
 			it('should accept array and object to check for required fields', () => {
 				const objectParameter = {
 					OneValue: '1',
 					SecondValue: '2',
 					ThirdValue: '3',
-					1: 10,
 				};
 
 				return expect(checkRequiredFields(arrayToCheck, objectParameter)).to.be
@@ -468,7 +466,6 @@ describe('getTransactionBytes module', () => {
 				const objectParameter = {
 					OneValue: '1',
 					SecondValue: '2',
-					1: 10,
 				};
 
 				return expect(
@@ -673,7 +670,7 @@ describe('getTransactionBytes module', () => {
 			});
 
 			it('should throw for create dapp asset without required fields', () => {
-				const dapp = {
+				const dapp: { readonly [key: string]: string | number } = {
 					category: defaultCategory,
 					name: defaultDappName,
 					description: defaultDescription,

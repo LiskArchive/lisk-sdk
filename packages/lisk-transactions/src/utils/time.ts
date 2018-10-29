@@ -17,7 +17,7 @@ import { EPOCH_TIME_MILLISECONDS } from '@liskhq/lisk-constants';
 
 const MS_TIME = 1000;
 
-export const getTimeFromBlockchainEpoch = (givenTimestamp: number): number => {
+export const getTimeFromBlockchainEpoch = (givenTimestamp?: number): number => {
 	const startingPoint = givenTimestamp || new Date().getTime();
 	const blockchainInitialTime = EPOCH_TIME_MILLISECONDS;
 

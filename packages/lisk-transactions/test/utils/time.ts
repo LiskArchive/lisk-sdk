@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import {
 	getTimeFromBlockchainEpoch,
 	getTimeWithOffset,
@@ -22,7 +23,7 @@ describe('time module', () => {
 	const nowEpochTime = 20;
 
 	beforeEach(() => {
-		return sandbox.useFakeTimers(nowRealTime);
+		return sandbox.useFakeTimers(nowRealTime.getTime());
 	});
 
 	afterEach(() => {

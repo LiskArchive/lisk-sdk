@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import {
 	signTransaction,
@@ -20,9 +21,14 @@ import {
 } from '../../src/utils';
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
-import validTransactions from '../../fixtures/transactions.json';
+import fixtureTransactions from '../../fixtures/transactions.json';
+import {
+	PartialTransaction,
+	BaseTransaction,
+} from '../../src/types/transactions';
 // Require is used for stubbing
 const getTransactionHash = require('../../src/utils/get_transaction_hash');
+const validTransactions = fixtureTransactions as ReadonlyArray<BaseTransaction>;
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {
@@ -41,15 +47,15 @@ describe('signAndVerify module', () => {
 			'hex',
 		);
 
-		let defaultTransaction;
-		let cryptoSignDataStub;
-		let cryptoVerifyDataStub;
-		let getTransactionHashStub;
+		let defaultTransaction: PartialTransaction;
+		let cryptoSignDataStub: sinon.SinonStub;
+		let cryptoVerifyDataStub: sinon.SinonStub;
+		let getTransactionHashStub: sinon.SinonStub;
 
 		beforeEach(() => {
 			defaultTransaction = {
 				type: 0,
-				amount: 1000,
+				amount: '1000',
 				recipientId: '58191285901858109L',
 				timestamp: 141738,
 				asset: {},
@@ -70,11 +76,11 @@ describe('signAndVerify module', () => {
 		});
 
 		describe('#signTransaction', () => {
-			let transaction;
-			let signature;
+			let transaction: BaseTransaction;
+			let signature: string;
 
 			beforeEach(() => {
-				transaction = Object.assign({}, defaultTransaction);
+				transaction = { ...defaultTransaction } as BaseTransaction;
 				signature = signTransaction(transaction, defaultPassphrase);
 				return Promise.resolve();
 			});
@@ -103,13 +109,13 @@ describe('signAndVerify module', () => {
 				'hex',
 			);
 
-			let multiSignatureTransaction;
-			let signature;
+			let multiSignatureTransaction: BaseTransaction;
+			let signature: string;
 
 			beforeEach(() => {
 				multiSignatureTransaction = {
 					type: 0,
-					amount: 1000,
+					amount: '1000',
 					recipientId: '58191285901858109L',
 					timestamp: 141738,
 					asset: {},
@@ -120,7 +126,7 @@ describe('signAndVerify module', () => {
 					signSignature:
 						'508a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					id: '13987348420913138422',
-				};
+				} as BaseTransaction;
 				getTransactionHashStub.returns(defaultMultisignatureHash);
 				signature = multiSignTransaction(
 					multiSignatureTransaction,
@@ -151,13 +157,14 @@ describe('signAndVerify module', () => {
 		});
 
 		describe('#verifyTransaction', () => {
-			let transaction;
+			let transaction: BaseTransaction;
 
 			describe('with a single signed transaction', () => {
 				beforeEach(() => {
-					transaction = Object.assign({}, defaultTransaction, {
+					transaction = {
+						...defaultTransaction,
 						signature: defaultSignature,
-					});
+					} as BaseTransaction;
 					return Promise.resolve();
 				});
 
@@ -191,10 +198,11 @@ describe('signAndVerify module', () => {
 
 			describe('with a second signed transaction', () => {
 				beforeEach(() => {
-					transaction = Object.assign({}, defaultTransaction, {
+					transaction = {
+						...defaultTransaction,
 						signature: defaultSignature,
 						signSignature: defaultSecondSignature,
-					});
+					} as BaseTransaction;
 					return getTransactionHashStub
 						.onFirstCall()
 						.returns(
@@ -274,10 +282,7 @@ describe('signAndVerify module', () => {
 					describe('when tested on the first signature', () => {
 						it('should create the correct signature', () => {
 							return validTransactions.forEach(transaction => {
-								const { signature } = transaction;
-								const rawTx = Object.assign({}, transaction);
-								delete rawTx.signature;
-								delete rawTx.signSignature;
+								const { signature, signSignature, ...rawTx } = transaction;
 								return expect(signTransaction(rawTx, passphrase)).to.be.equal(
 									signature,
 								);
@@ -290,8 +295,7 @@ describe('signAndVerify module', () => {
 							return validTransactions.forEach(transaction => {
 								const { signSignature } = transaction;
 								if (signSignature) {
-									const rawTx = Object.assign({}, transaction);
-									delete rawTx.signSignature;
+									const { signSignature, ...rawTx } = transaction;
 									return expect(
 										signTransaction(rawTx, secondPassphrase),
 									).to.be.equal(signSignature);

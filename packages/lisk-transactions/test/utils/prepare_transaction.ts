@@ -17,7 +17,7 @@ import { prepareTransaction } from '../../src/utils/prepare_transaction';
 import {
 	BaseTransaction,
 	PartialTransaction,
-} from '../../src/transaction_types';
+} from '../../src/types/transactions';
 
 describe('#prepareTransaction', () => {
 	const passphrase = 'secret';

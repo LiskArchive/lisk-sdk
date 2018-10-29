@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { getTransactionHash } from '../../src/utils';
-import { BaseTransaction } from '../../src/transaction_types';
+import { BaseTransaction } from '../../src/types/transactions';
 // Require is used for stubbing
 const getTransactionBytes = require('../../src/utils/get_transaction_bytes');
 
@@ -22,7 +22,7 @@ describe('#getTransactionHash', () => {
 	let defaultTransactionBytes;
 	let transactionBytesStub: sinon.SinonStub;
 	let transaction: BaseTransaction;
-	let result: string;
+	let result: Buffer;
 
 	beforeEach(() => {
 		defaultTransactionBytes = Buffer.from(

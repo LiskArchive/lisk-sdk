@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { castVotes } from '../src/3_cast_votes';
-import { BaseTransaction, VoteAsset } from '../src/transaction_types';
+import { BaseTransaction, VoteAsset } from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 

@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { createDapp, DappOptions } from '../src/5_create_dapp';
-import { BaseTransaction, DappAsset } from '../src/transaction_types';
+import { BaseTransaction, DappAsset } from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
