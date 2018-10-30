@@ -233,7 +233,24 @@ __private.filterQueue = function(cb) {
 					// Look for a corresponding "transactionId" of a given signature when broadcasting signatures
 					transactionId = broadcast.options.data.signature.transactionId;
 				}
-				return __private.filterTransaction(transactionId, filterCb);
+				if (!transactionId) {
+					return setImmediate(filterCb, null, false);
+				}
+				// Broadcast if transaction is in transaction pool
+				if (modules.transactions.transactionInPool(transactionId)) {
+					return setImmediate(filterCb, null, true);
+				}
+				// Don't broadcast if transaction is already confirmed
+				return library.logic.transaction.checkConfirmed(
+					{ id: transactionId },
+					// In case of SQL error:
+					// err = true, isConfirmed = false => return false
+					// In case transaction exists in "trs" table:
+					// err = null, isConfirmed = true => return false
+					// In case transaction doesn't exists in "trs" table:
+					// err = null, isConfirmed = false => return true
+					(err, isConfirmed) => !err && !isConfirmed
+				);
 			}
 			return setImmediate(filterCb, null, true);
 		},
@@ -244,28 +261,6 @@ __private.filterQueue = function(cb) {
 			return setImmediate(cb);
 		}
 	);
-};
-
-/**
- * Checks if transaction of a given id is in pool or confirmed in database "trs" table.
- *
- * @private
- * @param {string} transactionId
- * @param {function} cb
- * @returns {SetImmediate} null, boolean
- * @todo Add description for the params
- */
-__private.filterTransaction = function(transactionId, cb) {
-	if (transactionId !== undefined) {
-		if (modules.transactions.transactionInPool(transactionId)) {
-			return setImmediate(cb, null, true);
-		}
-		return library.logic.transaction.checkConfirmed(
-			{ id: transactionId },
-			(err, isConfirmed) => setImmediate(cb, null, !err && !isConfirmed)
-		);
-	}
-	return setImmediate(cb, null, false);
 };
 
 /**
