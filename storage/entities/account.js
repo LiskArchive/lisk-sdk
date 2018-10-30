@@ -20,36 +20,30 @@ const BaseEntity = require('./base_entity');
 class Account extends BaseEntity {
 	constructor() {
 		super();
-		const full = [this.FIELD_SET_FULL];
-		const both = [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
 
-		this.addField('address', ft.TEXT, both);
-		this.addField('publicKey', ft.BINARY, both);
-		this.addField('secondPublicKey', ft.BINARY, both);
-		this.addField('username', ft.TEXT, both);
-		this.addField('isDelegate', ft.NUMBER, both);
-		this.addField('secondSignature', ft.NUMBER, both);
-		this.addField('balance', ft.NUMBER, both);
-		this.addField('multimin', ft.NUMBER, both);
-		this.addField('multilifetime', ft.NUMBER, both);
-		this.addField('nameexist', ft.BOOLEAN, both);
-		this.addField('fees', ft.NUMBER, both);
-		this.addField('rewards', ft.NUMBER, both);
-		this.addField('producedBlocks', ft.NUMBER, both);
-		this.addField('missedBlocks', ft.NUMBER, both);
-		this.addField('rank', ft.NUMBER, both);
+		this.addFilter('address', ft.TEXT);
+		this.addFilter('publicKey', ft.BINARY);
+		this.addFilter('secondPublicKey', ft.BINARY);
+		this.addFilter('username', ft.TEXT);
+		this.addFilter('isDelegate', ft.NUMBER);
+		this.addFilter('secondSignature', ft.NUMBER);
+		this.addFilter('balance', ft.NUMBER);
+		this.addFilter('multiMin', ft.NUMBER, { realName: 'multimin' });
+		this.addFilter('multiLifetime', ft.NUMBER, { realName: 'multilifetime' });
+		this.addFilter('nameExist', ft.BOOLEAN, { realName: 'nameexist' });
+		this.addFilter('fees', ft.NUMBER);
+		this.addFilter('rewards', ft.NUMBER);
+		this.addFilter('producedBlocks', ft.NUMBER);
+		this.addFilter('missedBlocks', ft.NUMBER);
+		this.addFilter('rank', ft.NUMBER);
 
-		this.addField('u_isDelegate', ft.BOOLEAN, full);
-		this.addField('u_secondSignature', ft.BOOLEAN, full);
-		this.addField('u_balance', ft.NUMBER, full);
-		this.addField('u_multimin', ft.NUMBER, full);
-		this.addField('u_multilifetime', ft.NUMBER, full);
-		this.addField('u_nameexist', ft.NUMBER, full);
-		this.addField('u_username', ft.NUMBER, full);
-		this.addField('delegates', ft.TEXT, full);
-		this.addField('u_delegates', ft.TEXT, full);
-		this.addField('multisignatures', ft.TEXT, full);
-		this.addField('u_multisignatures', ft.TEXT, full);
+		this.addFilter('u_isDelegate', ft.BOOLEAN);
+		this.addFilter('u_secondSignature', ft.BOOLEAN);
+		this.addFilter('u_balance', ft.NUMBER);
+		this.addFilter('u_multimin', ft.NUMBER);
+		this.addFilter('u_multilifetime', ft.NUMBER);
+		this.addFilter('u_nameexist', ft.NUMBER);
+		this.addFilter('u_username', ft.NUMBER);
 
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('accounts/get_simple.sql'),

@@ -15,12 +15,12 @@ To look for sample check the [Account](./entities/account.js)
 
 Following utility methods are available to your class when you extend from `BaseEntity`.
 
-### addField
+### addFilter
 
 It provides a basic structure to register fields with for the entity
 
 ```
-addField(fieldName, filterType = filterTypes.NUMBER, fieldSets=[])
+addFilter(fieldName, filterType = filterTypes.NUMBER, fieldSets=[])
 ```
 
 You can find more details at its [implementation](./entities/base_entity.js#L63)

@@ -14,7 +14,6 @@
 
 'use strict';
 
-const assert = require('assert');
 const {
 	ImplementationPendingError,
 	NonSupportedFilterTypeError,
@@ -85,62 +84,70 @@ class BaseEntity {
 		return Object.keys(this.filters);
 	}
 
-	addField(fieldName, filterType = filterTypes.NUMBER, fieldSets = []) {
-		assert(fieldSets, 'Must provide array of field sets');
+	/**
+	 * Setup the filters for getters
+	 *
+	 * @param {String} filterName
+	 * @param {String} filterType
+	 * @param {Object} options
+	 * @param {Object} options.realName - Actual name of the field
+	 */
+	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
+		const fieldName = options.realName || filterName;
 
-		// eslint-disable-next-line no-return-assign
-		fieldSets.forEach(fs => (this.fields[fs] = this.fields[fs] || []));
-		// eslint-disable-next-line no-return-assign
-		fieldSets.forEach(fs => this.fields[fs].push(fieldName));
+		const setFilter = (filterAlias, condition) => {
+			this.filters[filterAlias] = condition;
+		};
 
 		/* eslint-disable no-useless-escape */
 		switch (filterType) {
 			case filterTypes.BOOLEAN:
-				this.filters[fieldName] = `"${fieldName}" = $\{${fieldName}\}`;
-				this.filters[
-					`${fieldName}_ne`
-				] = `"${fieldName}" <> $\{${fieldName}_ne\}`;
+				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
+				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
+				setFilter(`${filterName}_neql`, `"${fieldName}" <> $\{${filterName}\}`);
 				break;
 
 			case filterTypes.TEXT:
-				this.filters[fieldName] = `"${fieldName}" = $\{${fieldName}\}`;
-				this.filters[
-					`${fieldName}_ne`
-				] = `"${fieldName}" <> $\{${fieldName}_ne\}`;
-				this.filters[
-					`${fieldName}_in`
-				] = `"${fieldName}" IN ($\{${fieldName}_in:csv\})`;
-				this.filters[
-					`${fieldName}_like`
-				] = `"${fieldName}" LIKE $\{${fieldName}_like\}`;
+				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
+				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
+				setFilter(`${filterName}_neql`, `"${fieldName}" <> $\{${filterName}\}`);
+				setFilter(
+					`${filterName}_in`,
+					`"${filterName}" IN ($\{${filterName}_in:csv\})`
+				);
+				setFilter(
+					`${filterName}_like`,
+					`"${filterName}" LIKE $\{${filterName}_like\}`
+				);
 				break;
 
 			case filterTypes.NUMBER:
-				this.filters[fieldName] = `"${fieldName}" = $\{${fieldName}\}`;
-				this.filters[
-					`${fieldName}_gt`
-				] = `"${fieldName}" > $\{${fieldName}_gt\}`;
-				this.filters[
-					`${fieldName}_gte`
-				] = `"${fieldName}" >= $\{${fieldName}_gte\}`;
-				this.filters[
-					`${fieldName}_lt`
-				] = `"${fieldName}" < $\{${fieldName}_lt\}`;
-				this.filters[
-					`${fieldName}_lte`
-				] = `"${fieldName}" <= $\{${fieldName}_lte\}`;
-				this.filters[
-					`${fieldName}_ne`
-				] = `"${fieldName}" <> $\{${fieldName}_ne\}`;
-				this.filters[
-					`${fieldName}_in`
-				] = `"${fieldName}" IN ($\{${fieldName}_in:csv)\}`;
+				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
+				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
+				setFilter(`${filterName}_neql`, `"${fieldName}" <> $\{${filterName}\}`);
+				setFilter(`${filterName}_gt`, `"${fieldName}" > $\{${filterName}\}`);
+				setFilter(`${filterName}_gte`, `"${fieldName}" >= $\{${filterName}\}`);
+				setFilter(`${filterName}_lt`, `"${fieldName}" < $\{${filterName}\}`);
+				setFilter(`${filterName}_lte`, `"${fieldName}" <= $\{${filterName}\}`);
+				setFilter(
+					`${filterName}_in`,
+					`"${filterName}" IN ($\{${filterName}_in:csv\})`
+				);
 				break;
 
 			case filterTypes.BINARY:
-				this.filters[
-					`${fieldName}_like`
-				] = `"${fieldName}" = DECODE($\{${fieldName}_like:val\}, 'hex')"`;
+				setFilter(
+					filterName,
+					`"${fieldName}" = DECODE($\{${filterName}\}, 'hex')`
+				);
+				setFilter(
+					`${filterName}_eql`,
+					`"${fieldName}" = DECODE($\{${filterName}\}, 'hex')`
+				);
+				setFilter(
+					`${filterName}_neql`,
+					`"${fieldName}" <> DECODE($\{${filterName}\}, 'hex')`
+				);
 				break;
 
 			default:
