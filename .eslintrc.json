@@ -5,6 +5,7 @@
 		"array-callback-return": "off",
 		"camelcase": "off",
 		"chai-expect/missing-assertion": 2,
+		"chai-expect/no-inner-compare": 2,
 		"comma-dangle": [
 			"error",
 			{

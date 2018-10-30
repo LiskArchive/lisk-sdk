@@ -646,14 +646,14 @@ describe('delegate', () => {
 
 		it('should call checkDuplicates with "username"', done => {
 			delegate.checkConfirmed(validTransaction, () => {
-				expect(checkDuplicatesStub.args[0][1] === 'username').to.be.true;
+				expect(checkDuplicatesStub.args[0][1]).to.equal('username');
 				done();
 			});
 		});
 
 		it('should call checkDuplicates with "isDelegate"', done => {
 			delegate.checkConfirmed(validTransaction, () => {
-				expect(checkDuplicatesStub.args[0][2] === 'isDelegate').to.be.true;
+				expect(checkDuplicatesStub.args[0][2]).to.equal('isDelegate');
 				done();
 			});
 		});
@@ -715,14 +715,14 @@ describe('delegate', () => {
 
 		it('should call checkDuplicates with "u_username"', done => {
 			delegate.checkUnconfirmed(validTransaction, () => {
-				expect(checkDuplicatesStub.args[0][1] === 'u_username').to.be.true;
+				expect(checkDuplicatesStub.args[0][1]).to.equal('u_username');
 				done();
 			});
 		});
 
 		it('should call checkDuplicates with "u_isDelegate"', done => {
 			delegate.checkUnconfirmed(validTransaction, () => {
-				expect(checkDuplicatesStub.args[0][2] === 'u_isDelegate').to.be.true;
+				expect(checkDuplicatesStub.args[0][2]).to.equal('u_isDelegate');
 				done();
 			});
 		});
