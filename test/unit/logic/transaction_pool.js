@@ -911,15 +911,13 @@ describe('transactionPool', () => {
 					null
 				);
 
-			expect(
-				transactionPool.receiveTransactions(transaction, {}, (err, res) => {
-					expect(err).to.eql(
-						'Transaction is already processed: 10431411423423423L'
-					);
-					expect(res).to.deep.eql(transaction);
-					done();
-				})
-			);
+			transactionPool.receiveTransactions(transaction, {}, (err, res) => {
+				expect(err).to.eql(
+					'Transaction is already processed: 10431411423423423L'
+				);
+				expect(res).to.deep.eql(transaction);
+				done();
+			});
 		});
 
 		it('should add transaction to queue when bundle is enabled', done => {
@@ -929,13 +927,11 @@ describe('transactionPool', () => {
 			transactionPool.processUnconfirmedTransaction = sinonSandbox
 				.stub()
 				.callsArgWith(2, null, transaction);
-			expect(
-				transactionPool.receiveTransactions(transaction, {}, (err, res) => {
-					expect(err).to.be.null;
-					expect(res).to.deep.eql(transaction);
-					done();
-				})
-			);
+			transactionPool.receiveTransactions(transaction, {}, (err, res) => {
+				expect(err).to.be.null;
+				expect(res).to.deep.eql(transaction);
+				done();
+			});
 		});
 	});
 

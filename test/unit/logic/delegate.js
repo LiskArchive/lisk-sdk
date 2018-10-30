@@ -907,13 +907,11 @@ describe('delegate', () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,
-						u_isDelegate: 1,
 						isDelegate: 0,
 						vote: 0,
 						username: null,
-						u_username: transaction.asset.delegate.username,
 					})
-				);
+				).to.be.true;
 				done();
 			});
 		});
@@ -926,13 +924,11 @@ describe('delegate', () => {
 				expect(
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,
-						u_isDelegate: 1,
 						isDelegate: 0,
 						vote: 0,
 						username: null,
-						u_username: transaction.asset.delegate.username,
 					})
-				);
+				).to.be.true;
 				done();
 			});
 		});
@@ -945,11 +941,9 @@ describe('delegate', () => {
 					accountsMock.setAccountAndGet.calledWith({
 						address: sender.address,
 						u_isDelegate: 0,
-						isDelegate: 0,
-						username: null,
 						u_username: null,
 					})
-				);
+				).to.be.true;
 				done();
 			});
 		});
