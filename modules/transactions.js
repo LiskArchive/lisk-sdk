@@ -127,7 +127,7 @@ __private.list = function(filter, cb) {
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
 		data:
-			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data = ${additionalData})',
+			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data ILIKE ${additionalData})',
 		limit: null,
 		offset: null,
 		sort: null,
