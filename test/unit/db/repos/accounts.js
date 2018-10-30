@@ -549,6 +549,41 @@ describe('db', () => {
 						});
 				});
 			});
+
+			it('should execute all queries in one database transaction', done => {
+				const account = accountFixtures.Account();
+
+				db.$config.options.query = function(event) {
+					if (!(event.ctx && event.ctx.isTX && event.ctx.txLevel === 0)) {
+						return done(
+							`Some query executed outside transaction context: ${event.query}`,
+							event
+						);
+					}
+				};
+
+				var connect = sinonSandbox.stub();
+				var disconnect = sinonSandbox.stub();
+
+				db.$config.options.connect = connect;
+				db.$config.options.disconnect = disconnect;
+
+				db.accounts
+					.upsert(account, 'address')
+					.then(() => {
+						expect(connect.calledOnce).to.be.true;
+						expect(disconnect.calledOnce).to.be.true;
+
+						delete db.$config.options.connect;
+						delete db.$config.options.disconnect;
+						delete db.$config.options.query;
+
+						done();
+					})
+					.catch(err => {
+						done(err);
+					});
+			});
 		});
 
 		describe('insert()', () => {

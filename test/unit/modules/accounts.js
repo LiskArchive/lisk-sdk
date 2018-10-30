@@ -17,6 +17,7 @@
 
 var Bignum = require('../../../helpers/bignum.js');
 var AccountModule = require('../../../modules/accounts.js');
+var accountFixtures = require('../../fixtures').accounts;
 var randomUtil = require('../../common/utils/random');
 var application = require('../../common/application');
 
@@ -52,6 +53,7 @@ var validAccount = {
 describe('accounts', () => {
 	var accounts;
 	var accountLogic;
+	var db;
 
 	before(done => {
 		application.init(
@@ -61,6 +63,7 @@ describe('accounts', () => {
 				scope.modules.blocks.lastBlock.set({ height: 10 });
 				accounts = scope.modules.accounts;
 				accountLogic = scope.logic.account;
+				db = scope.db;
 				done(err);
 			}
 		);
@@ -144,6 +147,64 @@ describe('accounts', () => {
 				getAllSpy.restore();
 				done();
 			});
+		});
+	});
+
+	describe('setAccountAndGet', () => {
+		it('should fail if address and publicKey is missing', done => {
+			const account = accountFixtures.Account();
+
+			delete account.address;
+			delete account.publicKey;
+
+			accounts.setAccountAndGet(account, (error, data) => {
+				expect(error).to.be.eql('Invalid public key');
+				expect(data).to.be.undefined;
+				done();
+			});
+		});
+
+		it('should be ok with address but no publicKey', done => {
+			const account = accountFixtures.Account();
+
+			delete account.publicKey;
+
+			accounts.setAccountAndGet(account, (error, data) => {
+				expect(error).to.be.null;
+				expect(data.address).to.be.eql(account.address);
+				expect(data.publicKey).to.not.exist;
+				done();
+			});
+		});
+
+		it('should set address if it is not provided', done => {
+			const account = accountFixtures.Account();
+
+			delete account.address;
+
+			accounts.setAccountAndGet(account, (error, data) => {
+				expect(error).to.be.null;
+				expect(data.publicKey).to.be.eql(account.publicKey);
+				expect(data.address).to.exist;
+				done();
+			});
+		});
+
+		it('should be ok with pre existing database transaction', done => {
+			const account = accountFixtures.Account();
+
+			const task = t =>
+				accounts.setAccountAndGet(
+					account,
+					(error, data) => {
+						expect(error).to.be.null;
+						expect(data.address).to.be.eql(account.address);
+						done();
+					},
+					t
+				);
+
+			db.tx('Tests:setAccountAndGet', task);
 		});
 	});
 
