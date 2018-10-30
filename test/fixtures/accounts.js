@@ -119,7 +119,7 @@ const Account = stampit({
 		this.publicKey =
 			publicKey ||
 			randomstring
-				.generate({ charset: '0123456789ABCDE', length: 64 })
+				.generate({ charset: '0123456789ABCDEF', length: 64 })
 				.toLowerCase();
 
 		this.vote = randomstring.generate({ charset: '123456789', length: 5 });
