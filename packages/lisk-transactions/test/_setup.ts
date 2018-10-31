@@ -19,7 +19,6 @@ import sinonChai from 'sinon-chai';
 
 process.env.NODE_ENV = 'test';
 
-/* eslint-disable no-underscore-dangle */
 Assertion.addProperty('hexString', function handleAssert(
 	this: Chai.ChaiStatic,
 ) {
@@ -47,18 +46,17 @@ Assertion.addProperty('integer', function handleAssert(this: Chai.ChaiStatic) {
 		'expected #{this} not to be an integer',
 	);
 });
-/* eslint-enable no-underscore-dangle */
 
 [sinonChai].forEach(plugin => chai.use(plugin));
 
 // Type declaration for sandbox
 declare global {
-	namespace NodeJS {
-		interface Global {
+	export namespace NodeJS {
+		export interface Global {
 			sandbox: sinon.SinonSandbox;
 		}
 	}
-	const sandbox: sinon.SinonSandbox;
+	var sandbox: sinon.SinonSandbox;
 }
 
 global.sandbox = sinon.createSandbox({

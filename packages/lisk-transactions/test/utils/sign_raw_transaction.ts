@@ -18,8 +18,7 @@ import {
 	BaseTransaction,
 	PartialTransaction,
 } from '../../src/types/transactions';
-// Require is used for stubbing
-const time = require('../../src/utils/time');
+import * as time from '../../src/utils/time';
 
 describe('#signRawTransaction', () => {
 	const timeWithOffset = 38350076;
@@ -127,7 +126,7 @@ describe('#signRawTransaction', () => {
 				it('should have the senderSecondPublicKey', () => {
 					return expect(signedTransaction)
 						.to.have.property('senderSecondPublicKey')
-						.equal(null);
+						.equal(undefined);
 				});
 
 				it('should have the signature', () => {

@@ -210,10 +210,7 @@ describe('getTransactionBytes module', () => {
 
 				return requiredProperties.forEach(parameter => {
 					const {
-						type,
-						timestamp,
-						senderPublicKey,
-						amount,
+						[parameter]: deletedValue,
 						...defaultTransactionClone
 					} = defaultTransaction;
 					expect(
@@ -232,10 +229,7 @@ describe('getTransactionBytes module', () => {
 
 				return requiredProperties.forEach(parameter => {
 					const {
-						type,
-						timestamp,
-						senderPublicKey,
-						amount,
+						[parameter]: deletedValue,
 						...defaultTransactionClone
 					} = defaultTransaction;
 					expect(

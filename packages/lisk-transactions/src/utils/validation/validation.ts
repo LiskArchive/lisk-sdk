@@ -123,7 +123,4 @@ export const validateFee = (data: string) =>
 	isGreaterThanZero(new BigNum(data)) &&
 	!isGreaterThanMaxTransactionAmount(new BigNum(data));
 
-export const isValidInteger = (num: string | number) =>
-	typeof num === 'string'
-		? parseInt(num, 10).toString() === num
-		: Math.floor(num) === num;
+export const isValidInteger = (num: number) => Math.floor(num) === num;

@@ -16,7 +16,8 @@ import { expect } from 'chai';
 import fixtures from '../../../fixtures/transactions.json';
 import invalidFixtures from '../../../fixtures/invalid_transactions.json';
 import { validateTransaction } from '../../../src/utils/validation/validate_transaction';
-import { PartialTransaction } from '../../../src/transaction_types';
+import { PartialTransaction } from '../../../src/types/transactions';
+import { ErrorObject } from 'ajv';
 
 describe('validateTransaction', () => {
 	describe('#validateTransaction', () => {
@@ -25,8 +26,28 @@ describe('validateTransaction', () => {
 				return fixtures.forEach((tx: PartialTransaction) => {
 					const { valid, errors } = validateTransaction(tx);
 					expect(valid).to.be.true;
-					expect(errors).to.be.null;
+					expect(errors).to.be.undefined;
 				});
+			});
+		});
+
+		describe('when transaction does not contain type', () => {
+			const invalidTransaction = {
+				amount: '0',
+				fee: '10000000',
+				recipientId: 'recipientID',
+				senderPublicKey:
+					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
+				timestamp: 54196078,
+				asset: {},
+				signature:
+					'4c8a3bfaacfab18a7ef34ce8d7176ea2701dfd7221a1c95ecbc1cce778bbccdb7cbbe1a87b3e9e47330f1cae6665c4a44666e132aa324de9a5ab9b6a1e2b1d0c',
+				id: '18066659039293493823',
+			};
+			it('should throw an error', () => {
+				return expect(
+					validateTransaction.bind(null, invalidTransaction),
+				).to.throw(Error, 'Transaction type is required.');
 			});
 		});
 
@@ -37,7 +58,7 @@ describe('validateTransaction', () => {
 					.forEach((tx: PartialTransaction) => {
 						const { valid, errors } = validateTransaction(tx);
 						expect(valid).to.be.false;
-						expect(errors).not.to.be.null;
+						expect(errors).not.to.be.undefined;
 					});
 			});
 
@@ -71,8 +92,10 @@ describe('validateTransaction', () => {
 			it('should not include $merge error when the merged schema has error', () => {
 				const { valid, errors } = validateTransaction(invalidTransaction);
 				expect(valid).to.be.false;
-				expect(errors[0].dataPath).to.equal('.amount');
-				expect(errors[1].dataPath).to.equal('.recipientId');
+				expect(errors).not.to.be.undefined;
+				const errorsArray = errors as ReadonlyArray<ErrorObject>;
+				expect(errorsArray[0].dataPath).to.equal('.amount');
+				expect(errorsArray[1].dataPath).to.equal('.recipientId');
 				return expect(errors).to.have.length(2);
 			});
 		});
@@ -153,8 +176,10 @@ describe('validateTransaction', () => {
 		it('should be invalid when min is greater than the keysgroup', () => {
 			const { valid, errors } = validateTransaction(invalidMultiTransaction);
 			expect(valid).to.be.false;
-			expect(errors[0].dataPath).to.equal('.asset.multisignature.min');
-			return expect(errors[0].message).to.equal(
+			expect(errors).not.to.be.undefined;
+			const errorsArray = errors as ReadonlyArray<ErrorObject>;
+			expect(errorsArray[0].dataPath).to.equal('.asset.multisignature.min');
+			return expect(errorsArray[0].message).to.equal(
 				'.asset.multisignature.min cannot be greater than .asset.multisignature.keysgroup.length',
 			);
 		});

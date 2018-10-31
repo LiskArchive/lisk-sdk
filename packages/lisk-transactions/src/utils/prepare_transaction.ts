@@ -17,25 +17,18 @@ import { BaseTransaction, PartialTransaction } from '../types/transactions';
 import { getTransactionId } from './get_transaction_id';
 import { signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';
-import { validateTransaction } from './validation/validate_transaction';
 
 const secondSignTransaction = (
 	transactionObject: BaseTransaction,
-	secondPassphrase?: string,
+	secondPassphrase: string,
 ): BaseTransaction => ({
 	...transactionObject,
-	signSignature: secondPassphrase
-		? signTransaction(transactionObject, secondPassphrase)
-		: undefined,
+	signSignature: signTransaction(transactionObject, secondPassphrase),
 });
 
 const validTransaction = (
 	partial: PartialTransaction,
-): partial is BaseTransaction => {
-	const { valid } = validateTransaction(partial);
-
-	return !!valid;
-};
+): partial is BaseTransaction => partial.type !== undefined;
 
 export const prepareTransaction = (
 	partialTransaction: PartialTransaction,
@@ -57,14 +50,16 @@ export const prepareTransaction = (
 	};
 
 	if (!validTransaction(transaction)) {
-		throw new Error('invalid transaction to process');
+		throw new Error('Invalid transaction to process');
+	}
+
+	if (!passphrase) {
+		return transaction;
 	}
 
 	const singleSignedTransaction = {
 		...transaction,
-		signature: passphrase
-			? signTransaction(transaction, passphrase)
-			: undefined,
+		signature: signTransaction(transaction, passphrase),
 	};
 
 	const signedTransaction =

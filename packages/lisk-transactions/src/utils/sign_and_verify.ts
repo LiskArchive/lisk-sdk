@@ -40,11 +40,11 @@ export const verifyTransaction = (
 	transaction: BaseTransaction,
 	secondPublicKey?: string,
 ): boolean => {
-	if (!!transaction.signSignature && !secondPublicKey) {
-		throw new Error('Cannot verify signSignature without secondPublicKey.');
-	}
 	if (!transaction.signature) {
 		throw new Error('Cannot verify transaction without signature.');
+	}
+	if (!!transaction.signSignature && !secondPublicKey) {
+		throw new Error('Cannot verify signSignature without secondPublicKey.');
 	}
 
 	const {

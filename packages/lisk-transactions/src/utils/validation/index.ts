@@ -27,4 +27,4 @@ export {
 	isGreaterThanZero,
 } from './validation';
 
-export { default as validateTransaction } from './validate_transaction';
+export { validateTransaction } from './validate_transaction';

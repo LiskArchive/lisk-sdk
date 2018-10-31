@@ -26,8 +26,8 @@ import {
 	PartialTransaction,
 	BaseTransaction,
 } from '../../src/types/transactions';
+import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 // Require is used for stubbing
-const getTransactionHash = require('../../src/utils/get_transaction_hash');
 const validTransactions = fixtureTransactions as ReadonlyArray<BaseTransaction>;
 
 describe('signAndVerify module', () => {
@@ -70,7 +70,7 @@ describe('signAndVerify module', () => {
 				.stub(cryptography, 'verifyData')
 				.returns(true);
 			getTransactionHashStub = sandbox
-				.stub(getTransactionHash, 'default')
+				.stub(getTransactionHashModule, 'getTransactionHash')
 				.returns(defaultHash);
 			return Promise.resolve();
 		});
@@ -168,6 +168,13 @@ describe('signAndVerify module', () => {
 					return Promise.resolve();
 				});
 
+				it('should throw if attempting to verify without a secondPublicKey', () => {
+					const { signature, ...invalidTransaction } = transaction;
+					return expect(
+						verifyTransaction.bind(null, invalidTransaction),
+					).to.throw('Cannot verify transaction without signature.');
+				});
+
 				it('should remove the signature before getting transaction hash', () => {
 					verifyTransaction(transaction);
 					return expect(getTransactionHashStub.args[0]).not.to.have.property(
@@ -211,6 +218,13 @@ describe('signAndVerify module', () => {
 								'hex',
 							),
 						);
+				});
+
+				it('should throw if attempting to verify without a secondPublicKey', () => {
+					const { signature, ...invalidTransaction } = transaction;
+					return expect(
+						verifyTransaction.bind(null, invalidTransaction),
+					).to.throw('Cannot verify transaction without signature.');
 				});
 
 				it('should throw if attempting to verify without a secondPublicKey', () => {

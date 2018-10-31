@@ -90,7 +90,7 @@ const isMultiSignatureTransaction = (
 export const validateTransaction = (
 	tx: PartialTransaction,
 ): ValidationResult => {
-	if (!tx.type) {
+	if (tx.type === undefined || tx.type === null) {
 		throw new Error('Transaction type is required.');
 	}
 

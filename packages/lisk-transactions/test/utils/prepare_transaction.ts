@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import { prepareTransaction } from '../../src/utils/prepare_transaction';
+import { getTimeWithOffset } from '../../src/utils/time';
 import {
 	BaseTransaction,
 	PartialTransaction,
@@ -46,6 +47,46 @@ describe('#prepareTransaction', () => {
 	beforeEach(() => {
 		inputTransaction = { ...defaultTransaction };
 		return Promise.resolve();
+	});
+
+	describe('without type', () => {
+		it('should throw an error when it is not transaction', () => {
+			const { type, ...invalidTransaction } = inputTransaction;
+			return expect(
+				prepareTransaction.bind(null, invalidTransaction, passphrase),
+			).to.throw('Invalid transaction to process');
+		});
+	});
+
+	describe('without signature', () => {
+		beforeEach(() => {
+			preparedTransaction = prepareTransaction(inputTransaction);
+			return Promise.resolve();
+		});
+
+		it('should not mutate the original transaction', () => {
+			return expect(inputTransaction).to.eql(defaultTransaction);
+		});
+
+		it('should not add a signature to a transaction', () => {
+			return expect(preparedTransaction.signature).to.be.undefined;
+		});
+
+		it('should not add an id to a transaction', () => {
+			return expect(preparedTransaction.id).to.be.undefined;
+		});
+
+		it('should add timestamp with the offset', () => {
+			const { timestamp, ...transactionWithoutTimestamp } = inputTransaction;
+			const currentTimestamp = getTimeWithOffset();
+			preparedTransaction = prepareTransaction(
+				transactionWithoutTimestamp,
+				undefined,
+				undefined,
+				50,
+			);
+			return expect(preparedTransaction.timestamp).to.be.gt(currentTimestamp);
+		});
 	});
 
 	describe('without second signature', () => {
