@@ -919,7 +919,6 @@ paths:
         - $ref: '#/parameters/maxAmount'
         - $ref: '#/parameters/fromTimestamp'
         - $ref: '#/parameters/toTimestamp'
-        - $ref: '#/parameters/data'
         - $ref: '#/parameters/blockId'
         - $ref: '#/parameters/limit'
         - $ref: '#/parameters/offset'
@@ -938,6 +937,13 @@ paths:
             - timestamp:asc
             - timestamp:desc
           default: amount:asc
+        - name: data
+          in: query
+          description: Fuzzy additional data field to query
+          type: string
+          format: additionalData
+          minLength: 1
+          maxLength: 64
       responses:
         200:
           description: Transactions list
