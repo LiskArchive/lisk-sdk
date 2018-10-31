@@ -15,6 +15,7 @@
 'use strict';
 
 var genesisDelegates = require('../../data/genesis_delegates.json');
+var delegatesRoundsList = require('../../data/delegates_rounds_list.json');
 var accountFixtures = require('../../fixtures/accounts');
 var application = require('../../common/application');
 const seeder = require('../../common/db_seed');
@@ -491,49 +492,49 @@ describe('delegates', () => {
 		});
 
 		describe('getDelegateKeypairForCurrentSlot', () => {
-			var loadDelegates;
-			var getDelegateKeypairForCurrentSlot;
-			var config;
-			var __private;
-
-			var delegates = [
-				{
-					username: 'genesis_1',
-					publicKey:
-						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-					encryptedPassphrase:
-						'iterations=1&salt=8c79d754416acccb567a42cf62b2e3bb&cipherText=73f5827fcd8eeab475abff71476cbce3b1ecacdeac55a738bb2f0a676d8e543bb92c91e1c1e3ddb6cef07a503f034dc7718e39657218d5a955859c5524be06de5954a5875b4c7b1cd11835e3477f1d04&iv=aac6a3b77c0594552bd9c932&tag=86231fb20e7b263264ca68b3585967ca&version=1',
-				},
-				{
-					username: 'genesis_2',
-					publicKey:
-						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-					encryptedPassphrase:
-						'iterations=1&salt=5c709afdae35d43d4090e9ef31d14d85&cipherText=c205189b91f797c3914f5d82ccc7cccfb3c620cef512c3bf8f50cd280bd5ff1450e8b9be997179582e62bec0cb655ca2eb8ff6833892f9e350dc5182b61bd648cd02f7f95468c7ec51aa3b43&iv=bfae7a255077c6de61a1ec59&tag=59cfd0a55d39a765a84725f4be464179&version=1',
-				},
-				{
-					username: 'genesis_3',
-					publicKey:
-						'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-					encryptedPassphrase:
-						'iterations=1&salt=588600600cd7660cf2346cd390093900&cipherText=6469aca1fe386e709c89c9a1d644abd969e64326f0f27f7be25248727892ec860e1e2dae54d283e65b1d21657a74047fb46ba732d1c83b93c8e2c0c96e98c2a9c4d87d0ac23db6dec9e3728426e3&iv=357d723a607f5baaf1fb218a&tag=f42bc3722b2964806d83a8ca3da2f94d&version=1',
-				},
-			];
+			let delegates;
+			let __private;
 
 			before(done => {
-				loadDelegates = library.rewiredModules.delegates.__get__(
-					'__private.loadDelegates'
-				);
-				getDelegateKeypairForCurrentSlot = library.rewiredModules.delegates.__get__(
-					'__private.getDelegateKeypairForCurrentSlot'
-				);
-				config = library.rewiredModules.delegates.__get__('library.config');
+				delegates = library.rewiredModules.delegates.__get__('self');
 				__private = library.rewiredModules.delegates.__get__('__private');
 
-				__private.keypairs = {};
-				config.forging.force = true;
-				config.forging.delegates = delegates;
-				loadDelegates();
+				__private.keypairs = {
+					// genesis_1 delegate keypairs
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f': {
+						publicKey: new Buffer.from(
+							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+							'hex'
+						),
+						privateKey: new Buffer.from(
+							'b092a6664e9eed658ff50fe796ee695b9fe5617e311e9e8a34eb340eb5b831549d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+							'hex'
+						),
+					},
+					// genesis_2 delegate keypairs
+					'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a': {
+						publicKey: new Buffer.from(
+							'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+							'hex'
+						),
+						privateKey: new Buffer.from(
+							'e896941f49df461e34d87cbe66c9cf35abcc58a25e4494c97a3f781b9e77e83c141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+							'hex'
+						),
+					},
+					// genesis_3 delegate keypairs
+					'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135': {
+						publicKey: new Buffer.from(
+							'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+							'hex'
+						),
+						privateKey: new Buffer.from(
+							'd4b9f54978f789c1a291f948d32f19039d54962b5b4c14d314c1521f2975b9be3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+							'hex'
+						),
+					},
+				};
+
 				done();
 			});
 
@@ -542,17 +543,25 @@ describe('delegates', () => {
 				const currentSlot = 35;
 				const round = 1;
 
-				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
-					expect(err).to.be.null;
-					expect(keyPair).to.have.keys('publicKey', 'privateKey');
-					expect(keyPair.publicKey.toString('hex')).to.equal(
-						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
-					);
-					expect(keyPair.privateKey.toString('hex')).to.equal(
-						'b092a6664e9eed658ff50fe796ee695b9fe5617e311e9e8a34eb340eb5b831549d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
-					);
-					done();
-				});
+				delegates.generateDelegateList = (round, source, cb) => {
+					cb(null, delegatesRoundsList[round]);
+				};
+
+				__private.getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					round,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.have.keys('publicKey', 'privateKey');
+						expect(keyPair.publicKey.toString('hex')).to.equal(
+							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
+						);
+						expect(keyPair.privateKey.toString('hex')).to.equal(
+							'b092a6664e9eed658ff50fe796ee695b9fe5617e311e9e8a34eb340eb5b831549d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
+						);
+						done();
+					}
+				);
 			});
 
 			it('should return genesis_2 keypair for slot N where (N % 101 === 73) in the second round', done => {
@@ -560,17 +569,25 @@ describe('delegates', () => {
 				const currentSlot = 578;
 				const round = 2;
 
-				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
-					expect(err).to.be.null;
-					expect(keyPair).to.have.keys('publicKey', 'privateKey');
-					expect(keyPair.publicKey.toString('hex')).to.equal(
-						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
-					);
-					expect(keyPair.privateKey.toString('hex')).to.equal(
-						'e896941f49df461e34d87cbe66c9cf35abcc58a25e4494c97a3f781b9e77e83c141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
-					);
-					done();
-				});
+				delegates.generateDelegateList = (round, source, cb) => {
+					cb(null, delegatesRoundsList[round]);
+				};
+
+				__private.getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					round,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.have.keys('publicKey', 'privateKey');
+						expect(keyPair.publicKey.toString('hex')).to.equal(
+							'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
+						);
+						expect(keyPair.privateKey.toString('hex')).to.equal(
+							'e896941f49df461e34d87cbe66c9cf35abcc58a25e4494c97a3f781b9e77e83c141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
+						);
+						done();
+					}
+				);
 			});
 
 			it('should return genesis_3 keypair for slot N where (N % 101 === 41) in the third round', done => {
@@ -578,30 +595,46 @@ describe('delegates', () => {
 				const currentSlot = 1051;
 				const round = 3;
 
-				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
-					expect(err).to.be.null;
-					expect(keyPair).to.have.keys('publicKey', 'privateKey');
-					expect(keyPair.publicKey.toString('hex')).to.equal(
-						'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135'
-					);
-					expect(keyPair.privateKey.toString('hex')).to.equal(
-						'd4b9f54978f789c1a291f948d32f19039d54962b5b4c14d314c1521f2975b9be3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135'
-					);
-					done();
-				});
+				delegates.generateDelegateList = (round, source, cb) => {
+					cb(null, delegatesRoundsList[round]);
+				};
+
+				__private.getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					round,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.have.keys('publicKey', 'privateKey');
+						expect(keyPair.publicKey.toString('hex')).to.equal(
+							'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135'
+						);
+						expect(keyPair.privateKey.toString('hex')).to.equal(
+							'd4b9f54978f789c1a291f948d32f19039d54962b5b4c14d314c1521f2975b9be3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135'
+						);
+						done();
+					}
+				);
 			});
 
-			it('should return null when the slot does not belong to a delegate set in config.forging.delegates', done => {
+			it('should return null when the slot does not belong to a public key set in __private.keypairs', done => {
 				// For round 4, delegates genesis_1, genesis_2 and genesis_3 should forge for slots 93, 68 and 87 respectively.
 				// Any other slot should return null as genesis_1, genesis_2 and genesis_3 are the only one forging delegates set for this test
 				const currentSlot = 1;
 				const round = 4;
 
-				getDelegateKeypairForCurrentSlot(currentSlot, round, (err, keyPair) => {
-					expect(err).to.be.null;
-					expect(keyPair).to.be.null;
-					done();
-				});
+				delegates.generateDelegateList = (round, source, cb) => {
+					cb(null, delegatesRoundsList[round]);
+				};
+
+				__private.getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					round,
+					(err, keyPair) => {
+						expect(err).to.be.null;
+						expect(keyPair).to.be.null;
+						done();
+					}
+				);
 			});
 		});
 	});
