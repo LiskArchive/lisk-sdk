@@ -17,11 +17,5 @@ declare module 'chai' {
 				integer: Assertion;
 			}
 		}
-
-		export namespace NodeJS {
-			interface Global {
-				sandbox: object;
-			}
-		}
 	}
 }
