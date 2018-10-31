@@ -435,12 +435,14 @@ There are couple of command line scripts that facilitate users of lisk to perfor
 This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
 
 ```
-Usage: generate_config [options] <network>
+Usage: generate_config [options]
 
 Options:
 
-  -h, --help     output usage information
-  -V, --version  output the version number
+-h, --help               output usage information
+-V, --version            output the version number
+-c, --config [config]    custom config file
+-n, --network [network]  specify the network or use LISK_NETWORK
 ```
 
 Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any other network folder available under `./config` directory.
@@ -454,13 +456,13 @@ Usage: update_config [options] <input_file> <from_version> [to_version]
 
 Options:
 
--h, --help     output usage information
--V, --version  output the version number
---output       Output file path
---diff         Show only difference from default config file.
+-h, --help               output usage information
+-V, --version            output the version number
+-n, --network [network]  specify the network or use LISK_NETWORK
+-o, --output [output]    output file path
 ```
 
-As you can see from the usage guide, `input_file` and `from_version` are required. So if you have a config file, you must be aware to which version of Lisk this belongs. You can skip the `to_version` argument and it will apply changes up-to latest version of Lisk. If you don't specify `--output` path the final config json will be printed to console. Option `--diff` is useful if you just want to know what are the changes in your version compared to default config located in `./config/default/config.json`.
+As you can see from the usage guide, `input_file` and` from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from` LISK_NETWORK` env variable.
 
 #### Console
 
