@@ -214,6 +214,12 @@ d.run(() => {
 					throw Error('Failed to assign nethash from genesis block');
 				}
 
+				// If peers layer is not enabled there is no need to create the peer's list
+				if (!appConfig.peers.enabled) {
+					appConfig.peers.list = [];
+					return cb(null, appConfig);
+				}
+
 				// In case domain names are used, resolve those to IP addresses.
 				var peerDomainLookupTasks = appConfig.peers.list.map(
 					peer => callback => {
