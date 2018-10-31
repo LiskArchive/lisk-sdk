@@ -670,8 +670,8 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using unicode sequence string should return transactions', () => {
-				var dataFilter = '\u0000 hey :)';
+			it('using several unicode null characters should return transactions', () => {
+				var dataFilter = '\u0000 hey :)\u0000';
 				return transactionsEndpoint
 					.makeRequest(
 						{
