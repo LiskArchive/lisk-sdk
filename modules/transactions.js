@@ -103,8 +103,9 @@ __private.list = function(filter, cb) {
 	const params = {};
 	const where = [];
 
+	// Removing null characters from data filter to avoid errors in pg-promise library
 	if (filter.data) {
-		params.additionalData = Buffer.from(filter.data, 'utf8');
+		filter.data = filter.data.replace('\0', '');
 	}
 
 	const allowedFieldsMap = {
@@ -127,7 +128,7 @@ __private.list = function(filter, cb) {
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
 		data:
-			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data ILIKE ${additionalData})',
+			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE ENCODE(transfer.data, \'escape\') ILIKE ${data})',
 		limit: null,
 		offset: null,
 		sort: null,

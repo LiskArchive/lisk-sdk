@@ -688,17 +688,21 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using regex string should not return several transactions', () => {
-				var dataFilter = 'transaction%';
+			it('using regex string should return several transactions', () => {
+				var dataFilter = 'transaction';
+				var fuzzyCommand = '%';
 				return transactionsEndpoint
 					.makeRequest(
 						{
-							data: dataFilter,
+							data: dataFilter + fuzzyCommand,
 						},
 						200
 					)
 					.then(res => {
-						expect(res.body.data.length).to.equal(0);
+						expect(res.body.data.length).to.greaterThan(1);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(dataFilter);
+						});
 					});
 			});
 		});
