@@ -512,6 +512,12 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
+					if (parseInt(appConfig.wsWorkers) < 1) {
+						scope.logger.info(
+							'Socket Cluster was NOT intiatied due to lack of wsWorkers'
+						);
+						return cb();
+					}
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
@@ -751,6 +757,9 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
+					if (parseInt(appConfig.wsWorkers) < 1) {
+						return cb();
+					}
 					new wsTransport(scope.modules.transport);
 					cb();
 				},
