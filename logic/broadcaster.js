@@ -249,7 +249,7 @@ __private.filterQueue = function(cb) {
 					// err = null, isConfirmed = true => return false
 					// In case transaction doesn't exists in "trs" table:
 					// err = null, isConfirmed = false => return true
-					(err, isConfirmed) => !err && !isConfirmed
+					(err, isConfirmed) => filterCb(null, !err && !isConfirmed)
 				);
 			}
 			return setImmediate(filterCb, null, true);
