@@ -1,5 +1,4 @@
 /* tslint:disable:callable-types no-any no-method-signature readonly-keyword */
-
 declare module 'chai' {
 	global {
 		export namespace Chai {
@@ -16,6 +15,12 @@ declare module 'chai' {
 			export interface TypeComparison {
 				hexString: Assertion;
 				integer: Assertion;
+			}
+		}
+
+		export namespace NodeJS {
+			interface Global {
+				sandbox: object;
 			}
 		}
 	}
