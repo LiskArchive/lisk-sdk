@@ -33,7 +33,7 @@
 		"format": "prettier --write \"*.{ts,js,json}\" \"{src,test}/**/*.{ts,js,json}\"",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
-		"test": "TS_NODE_FILES=true TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/**/*.ts",
+		"test": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/**/*.ts",
 		"test:watch": "npm test -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
 		"test:node": "npm run build:check",
