@@ -1,5 +1,4 @@
 /* tslint:disable:callable-types no-any no-method-signature readonly-keyword */
-
 declare module 'chai' {
 	global {
 		export namespace Chai {

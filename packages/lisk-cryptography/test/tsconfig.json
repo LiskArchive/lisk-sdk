@@ -1,18 +1,10 @@
 {
-	"extends": "../../../tsconfig",
+	"extends": "../tsconfig",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"declaration": false,
 		"target": "es6",
-		"typeRoots": ["../node_modules/@types", "../src/types", "../../../types"],
-		"paths": {
-			"chai": ["../../../types/chai"],
-			"varuint-bitcoin": ["../src/types/varuint-bitcoin"],
-			"buffer-reverse": ["../src/types/buffer-reverse"],
-			"sodium-native": ["../src/types/sodium-native"],
-			"browserify-bignum": ["../../../types/browserify-bignum"]
-		}
+		"typeRoots": ["../src/types", "../../../types", "../node_modules/@types"]
 	},
-	"include": ["../../../types/*", "../**/*"]
+	"include": ["../../../types/**/*", "./**/*"]
 }
-
