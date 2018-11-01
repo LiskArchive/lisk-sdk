@@ -776,6 +776,10 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
+					if (!appConfig.api.enabled) {
+						return cb();
+					}
+
 					scope.network.server.listen(
 						scope.config.httpPort,
 						scope.config.address,
