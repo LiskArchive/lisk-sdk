@@ -2032,9 +2032,6 @@ describe('blocks/verify', () => {
 				.stub()
 				.callsArgWith(1, null, true);
 			__private.verifyBlock = sinonSandbox.stub().callsArgWith(1, null, true);
-			__private.broadcastBlock = sinonSandbox
-				.stub()
-				.callsArgWith(2, null, true);
 			__private.checkExists = sinonSandbox.stub().callsArgWith(1, null, true);
 			__private.validateBlockSlot = sinonSandbox
 				.stub()
@@ -2043,6 +2040,9 @@ describe('blocks/verify', () => {
 				.stub()
 				.callsArgWith(2, null, true);
 			modules.blocks.chain.applyBlock.callsArgWith(2, null, true);
+			__private.broadcastBlock = sinonSandbox
+				.stub()
+				.callsArgWith(2, null, true);
 			modules.system.update.callsArgWith(0, null, true);
 			modules.transport.broadcastHeaders.callsArgWith(0, null, true);
 			done();
@@ -2177,6 +2177,36 @@ describe('blocks/verify', () => {
 							expect(err).to.be.null;
 							expect(modules.transport.broadcastHeaders.calledOnce).to.be.false;
 							expect(__private.checkExists).to.not.called;
+							done();
+						}
+					);
+				});
+			});
+
+			describe('when broadcast = true and saveBlock = true', () => {
+				it('should call all functions in the correct order', done => {
+					broadcast = true;
+					saveBlock = true;
+					blocksVerifyModule.processBlock(
+						dummyBlock,
+						broadcast,
+						saveBlock,
+						err => {
+							expect(err).to.be.null;
+
+							sinonSandbox.assert.callOrder(
+								__private.addBlockProperties,
+								__private.normalizeBlock,
+								__private.verifyBlock,
+								__private.checkExists,
+								__private.validateBlockSlot,
+								__private.checkTransactions,
+								modules.blocks.chain.applyBlock,
+								__private.broadcastBlock,
+								modules.system.update,
+								modules.transport.broadcastHeaders
+							);
+
 							done();
 						}
 					);
