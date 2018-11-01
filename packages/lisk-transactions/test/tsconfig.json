@@ -1,14 +1,1 @@
-{
-	"extends": "../tsconfig",
-	"compilerOptions": {
-		"baseUrl": ".",
-		"declaration": false,
-		"target": "es6",
-		"paths": {
-			"chai": ["../../../types/chai"],
-			"browserify-bignum": ["../../../types/browserify-bignum"],
-			"ajv-merge-patch": ["../../../types/ajv-merge-patch"]
-		}
-	},
-	"include": ["../../../types/**/*", "./**/*"]
-}
+../../../templates/tsconfig-test.json.tmpl

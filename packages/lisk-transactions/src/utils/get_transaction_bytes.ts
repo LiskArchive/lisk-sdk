@@ -31,18 +31,30 @@ import {
 	VoteAsset,
 } from '../types/transactions';
 
-// tslint:disable-next-line no-any
-export const isValidValue = (value: any): boolean =>
-	![undefined, false, NaN].includes(value);
+export const isValidValue = (value: unknown): boolean => {
+	if (value === undefined) {
+		return false;
+	}
+	if (typeof value === 'number' && Number.isNaN(value)) {
+		return false;
+	}
+	if (value === false) {
+		return false;
+	}
+
+	return true;
+};
 
 export const checkRequiredFields = (
 	requiredFields: ReadonlyArray<string>,
-	// tslint:disable-next-line no-any
-	data: { readonly [key: string]: any },
+	data: { readonly [key: string]: unknown },
 ): boolean => {
 	const dataFields = Object.keys(data);
 	requiredFields.forEach(parameter => {
-		if (!dataFields.includes(parameter) || !isValidValue(data[parameter])) {
+		if (
+			dataFields.indexOf(parameter) === -1 ||
+			!isValidValue(data[parameter])
+		) {
 			throw new Error(`${parameter} is a required parameter.`);
 		}
 	});
