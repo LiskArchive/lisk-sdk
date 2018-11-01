@@ -81,7 +81,35 @@ describe('transaction:create:transfer', () => {
 	describe('transaction:create:transfer amount address', () => {
 		setupTest()
 			.command(['transaction:create:transfer', defaultAmount, defaultAddress])
-			.it('should create an tranfer transaction', () => {
+			.it('should create a transfer transaction', () => {
+				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
+					defaultAddress,
+				);
+				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
+					defaultAmount,
+				);
+				expect(getInputsFromSources.default).to.be.calledWithExactly({
+					passphrase: {
+						source: undefined,
+						repeatPrompt: true,
+					},
+					secondPassphrase: null,
+				});
+				return expect(printMethodStub).to.be.calledWithExactly(
+					defaultTransaction,
+				);
+			});
+	});
+
+	describe('transaction:create:transfer amount address --data=xxx', () => {
+		setupTest()
+			.command([
+				'transaction:create:transfer',
+				defaultAmount,
+				defaultAddress,
+				'--data=Testing lisk transaction data.',
+			])
+			.it('should create a transfer transaction', () => {
 				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
@@ -109,7 +137,7 @@ describe('transaction:create:transfer', () => {
 				defaultAddress,
 				'--no-signature',
 			])
-			.it('should create an tranfer transaction without signature', () => {
+			.it('should create a transfer transaction without signature', () => {
 				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
@@ -131,7 +159,7 @@ describe('transaction:create:transfer', () => {
 				defaultAddress,
 				'--passphrase=pass:123',
 			])
-			.it('should create an tranfer transaction', () => {
+			.it('should create a transfer transaction', () => {
 				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);
@@ -160,7 +188,7 @@ describe('transaction:create:transfer', () => {
 				'--passphrase=pass:123',
 				'--second-passphrase=pass:456',
 			])
-			.it('should create an tranfer transaction', () => {
+			.it('should create a transfer transaction', () => {
 				expect(transactionUtilStub.validateAddress).to.be.calledWithExactly(
 					defaultAddress,
 				);

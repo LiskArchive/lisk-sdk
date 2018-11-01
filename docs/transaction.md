@@ -121,6 +121,11 @@ ARGUMENTS
   ADDRESS  Address of the recipient.
 
 OPTIONS
+  -d, --data=data
+      Optional UTF8 encoded data (maximum of 64 bytes) to include in the transaction asset.
+      	Examples:
+      	- --data=customInformation
+
   -j, --[no-]json
       Prints output in JSON format. You can change the default behaviour in your config.json file.
 

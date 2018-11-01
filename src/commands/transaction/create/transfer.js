@@ -19,10 +19,22 @@ import BaseCommand from '../../../base';
 import commonFlags from '../../../utils/flags';
 import getInputsFromSources from '../../../utils/input';
 
-const processInputs = (amount, address) => ({ passphrase, secondPassphrase }) =>
+const dataFlag = {
+	char: 'd',
+	description: `Optional UTF8 encoded data (maximum of 64 bytes) to include in the transaction asset.
+	Examples:
+	- --data=customInformation
+`,
+};
+
+const processInputs = (amount, address, data) => ({
+	passphrase,
+	secondPassphrase,
+}) =>
 	elements.transaction.transfer({
 		recipientId: address,
 		amount,
+		data,
 		passphrase,
 		secondPassphrase,
 	});
@@ -35,6 +47,7 @@ export default class TransferCommand extends BaseCommand {
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 				'no-signature': noSignature,
+				data: dataString,
 			},
 		} = this.parse(TransferCommand);
 
@@ -42,7 +55,12 @@ export default class TransferCommand extends BaseCommand {
 		const normalizedAmount = elements.transaction.utils.convertLSKToBeddows(
 			amount,
 		);
-		const processFunction = processInputs(normalizedAmount, address);
+
+		const processFunction = processInputs(
+			normalizedAmount,
+			address,
+			dataString,
+		);
 
 		if (noSignature) {
 			const result = processFunction({
@@ -87,6 +105,7 @@ TransferCommand.flags = {
 	passphrase: flagParser.string(commonFlags.passphrase),
 	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
 	'no-signature': flagParser.boolean(commonFlags.noSignature),
+	data: flagParser.string(dataFlag),
 };
 
 TransferCommand.description = `
