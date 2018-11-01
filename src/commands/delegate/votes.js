@@ -19,6 +19,8 @@ import getAPIClient from '../../utils/api';
 import query from '../../utils/query';
 import { SORT_FIELDS } from '../../utils/constants';
 
+const MAXIMUM_LIMIT = 100;
+
 const VOTES_SORT_FIELDS = SORT_FIELDS.filter(
 	field => !field.includes('publicKey'),
 );
@@ -29,6 +31,9 @@ const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 	const sort = sortStr ? sortStr.trim() : undefined;
 	if (limitStr !== limit.toString() || !Number.isInteger(limit) || limit <= 0) {
 		throw new Error('Limit must be an integer and greater than 0');
+	}
+	if (limit && limit > MAXIMUM_LIMIT) {
+		throw new Error(`Maximum limit amount is ${MAXIMUM_LIMIT}`);
 	}
 	if (
 		offsetStr !== offset.toString() ||

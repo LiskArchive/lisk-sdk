@@ -181,6 +181,15 @@ describe('delegate:voters', () => {
 				.it('should throw an error when limit is 0');
 
 			setupTest()
+				.command(['delegate:voters', usernames[0], '--limit=101'])
+				.catch(error => {
+					return expect(error.message).to.contain(
+						'Maximum limit amount is 100',
+					);
+				})
+				.it('should throw an error when limit is greater than 100');
+
+			setupTest()
 				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--limit=3'])
