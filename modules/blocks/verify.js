@@ -814,9 +814,6 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			verifyBlock(seriesCb) {
 				__private.verifyBlock(block, seriesCb);
 			},
-			broadcastBlock(seriesCb) {
-				__private.broadcastBlock(block, broadcast, seriesCb);
-			},
 			checkExists(seriesCb) {
 				// Skip checking for existing block id if we don't need to save that block
 				if (!saveBlock) {
@@ -839,6 +836,9 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				// We thus update the database with the transactions values, save the block and tick it.
 				// Also that function set new block as our last block
 				modules.blocks.chain.applyBlock(block, saveBlock, seriesCb);
+			},
+			broadcastBlock(seriesCb) {
+				__private.broadcastBlock(block, broadcast, seriesCb);
 			},
 			// Perform next two steps only when 'broadcast' flag is set, it can be:
 			// 'true' if block comes from generation or receiving process
