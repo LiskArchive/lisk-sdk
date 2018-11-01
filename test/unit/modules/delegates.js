@@ -636,6 +636,25 @@ describe('delegates', () => {
 					}
 				);
 			});
+
+			it('should return error when `generateDelegateList` fails', done => {
+				const currentSlot = 1;
+				const round = 4;
+
+				delegates.generateDelegateList = (round, source, cb) => {
+					cb('generateDelegateList error');
+				};
+
+				__private.getDelegateKeypairForCurrentSlot(
+					currentSlot,
+					round,
+					(err, keyPair) => {
+						expect(err).to.be.eql('generateDelegateList error');
+						expect(keyPair).to.be.undefined;
+						done();
+					}
+				);
+			});
 		});
 	});
 
