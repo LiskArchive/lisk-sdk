@@ -21,7 +21,8 @@ import { hash } from './hash';
 
 export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	const BUFFER_SIZE = 8;
-	// Review why we can't pass string or buffer in the same ling
+	// Union type arguments on overloaded functions do not work in typescript.
+	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
 	if (typeof input === 'string') {
 		return reverseBuffer(Buffer.from(input).slice(0, BUFFER_SIZE));
 	}
