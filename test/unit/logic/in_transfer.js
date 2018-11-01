@@ -31,7 +31,7 @@ var validKeypair = ed.makeKeypair(
 		.digest()
 );
 
-const constants = __testContext.config.constants;
+const { FEES } = __testContext.config.constants;
 const exceptions = __testContext.config.exceptions;
 
 var validSender = {
@@ -204,8 +204,8 @@ describe('inTransfer', () => {
 	});
 
 	describe('calculateFee', () => {
-		it('should return constants.fees.send', () => {
-			return expect(inTransfer.calculateFee(trs).equals(constants.fees.send));
+		it('should return FEES.SEND', () => {
+			return expect(inTransfer.calculateFee(trs).equals(FEES.SEND));
 		});
 	});
 

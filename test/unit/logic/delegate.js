@@ -25,7 +25,7 @@ var SchemaDynamicTest = require('../common/schema_dynamic_test.js');
 
 var Delegate = rewire('../../../logic/delegate.js');
 
-const constants = global.constants;
+const { FEES } = global.constants;
 const exceptions = global.exceptions;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
@@ -159,9 +159,7 @@ describe('delegate', () => {
 
 	describe('calculateFee', () => {
 		it('should return the correct fee for delegate transaction', () => {
-			return expect(
-				delegate.calculateFee(transaction).equals(constants.fees.delegate)
-			);
+			return expect(delegate.calculateFee(transaction).equals(FEES.DELEGATE));
 		});
 	});
 

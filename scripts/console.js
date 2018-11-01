@@ -14,11 +14,12 @@
 
 'use strict';
 
-var path = require('path');
-var repl = require('repl');
-var fs = require('fs');
+const path = require('path');
+const repl = require('repl');
+const fs = require('fs');
+const Promise = require('bluebird');
 require('../test/setup');
-var application = require('../test/common/application.js');
+const application = require('../test/common/application.js');
 
 // Created this before in global scope as its dependency of test/node.js
 if (typeof before !== 'function') {
@@ -31,18 +32,27 @@ if (typeof before !== 'function') {
 application.init(
 	{},
 	(err, scope) => {
-		var replServer = repl.start({
+		let originalEval;
+		let replServer;
+
+		function replEvalPromise(cmd, ctx, filename, cb) {
+			originalEval.call(replServer, cmd, ctx, filename, (err, res) => {
+				Promise.resolve(res).then(response => cb(null, response));
+			});
+		}
+
+		replServer = repl.start({
 			prompt: `lisk-core [${scope.config.db.database}] > `,
 		});
-
+		originalEval = replServer.eval;
+		replServer.eval = replEvalPromise;
 		replServer.context.config = scope.config;
 		replServer.context.modules = scope.modules;
 		replServer.context.logic = scope.logic;
 		replServer.context.db = scope.db;
+		const helpers = {};
 
-		var helpers = {};
-
-		var helpersFolder = './helpers/';
+		const helpersFolder = './helpers/';
 		fs.readdirSync(helpersFolder).forEach(file => {
 			var filePath = path.resolve(helpersFolder, file);
 			var fileName = path.basename(filePath, '.js');

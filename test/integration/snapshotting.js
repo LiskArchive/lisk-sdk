@@ -21,7 +21,7 @@ const accountsFixtures = require('../fixtures/accounts');
 const queriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
-const constants = global.constants;
+const { REWARDS } = global.constants;
 
 describe('snapshotting', () => {
 	let library;
@@ -29,7 +29,7 @@ describe('snapshotting', () => {
 	let addTransactionsAndForgePromise;
 
 	// Set rewards start at 150-th block
-	constants.rewards.offset = 150;
+	REWARDS.OFFSET = 150;
 
 	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
 		library = lib;

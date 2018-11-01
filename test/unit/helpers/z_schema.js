@@ -17,7 +17,7 @@
 var randomstring = require('randomstring');
 var Z_schema = require('../../../helpers/z_schema.js');
 
-const constants = __testContext.config.constants;
+const { ADDITIONAL_DATA } = __testContext.config.constants;
 
 var validator = new Z_schema();
 
@@ -109,11 +109,9 @@ describe('schema - custom formats', () => {
 		it('should return false if string is longer than maxLength (either chars or bytes)', function() {
 			var invalidData = [];
 			invalidData.push(
-				`${randomstring.generate(constants.additionalData.maxLength - 1)}现`
+				`${randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH - 1)}现`
 			);
-			invalidData.push(
-				randomstring.generate(constants.additionalData.maxLength + 1)
-			);
+			invalidData.push(randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH + 1));
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -122,8 +120,8 @@ describe('schema - custom formats', () => {
 
 		it('should return true if string is between minLength and maxLength', function() {
 			var validData = [];
-			validData.push(randomstring.generate(constants.additionalData.minLength));
-			validData.push(randomstring.generate(constants.additionalData.maxLength));
+			validData.push(randomstring.generate(ADDITIONAL_DATA.MIN_LENGTH));
+			validData.push(randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH));
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);

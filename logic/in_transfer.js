@@ -17,7 +17,7 @@
 const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 
-const constants = global.constants;
+const { FEES } = global.constants;
 const exceptions = global.exceptions;
 let modules;
 let library;
@@ -68,7 +68,7 @@ InTransfer.prototype.bind = function(accounts, blocks, sharedApi) {
  * @todo Add description for the params
  */
 InTransfer.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(FEES.SEND);
 };
 
 /**

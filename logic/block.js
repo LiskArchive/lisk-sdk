@@ -21,7 +21,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const blockVersion = require('./block_version.js');
 const BlockReward = require('./block_reward.js');
 
-const constants = global.constants;
+const { MAX_PAYLOAD_LENGTH, FEES } = global.constants;
 const __private = {};
 
 /**
@@ -111,7 +111,7 @@ class Block {
 			const transaction = transactions[i];
 			const bytes = this.scope.transaction.getBytes(transaction);
 
-			if (size + bytes.length > constants.maxPayloadLength) {
+			if (size + bytes.length > MAX_PAYLOAD_LENGTH) {
 				break;
 			}
 
@@ -480,7 +480,7 @@ Block.prototype.getId = function(block) {
  * @todo Delete unused param
  */
 Block.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(FEES.SEND);
 };
 
 /**

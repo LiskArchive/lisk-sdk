@@ -21,7 +21,7 @@ const localCommon = require('../../common.js');
 const randomUtil = require('../../../common/utils/random');
 const Bignum = require('../../../../helpers/bignum.js');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('delegate', () => {
 	let library;
@@ -52,7 +52,7 @@ describe('delegate', () => {
 		beforeEach('send funds to delegate account', done => {
 			delegateAccount = randomUtil.account();
 			const sendTransaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: delegateAccount.address,
 			});

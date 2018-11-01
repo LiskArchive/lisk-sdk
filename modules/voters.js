@@ -20,7 +20,7 @@ const apiCodes = require('../helpers/api_codes');
 const ApiError = require('../helpers/api_error');
 const sortBy = require('../helpers/sort_by.js');
 
-const constants = global.constants;
+const { MAX_VOTES_PER_ACCOUNT } = global.constants;
 
 // Private fields
 let modules;
@@ -287,7 +287,7 @@ Voters.prototype.shared = {
 				results.delegate.votes = results.populatedVotes;
 				results.delegate.votesUsed = results.votesCount;
 				results.delegate.votesAvailable =
-					constants.maxVotesPerAccount - results.votesCount;
+					MAX_VOTES_PER_ACCOUNT - results.votesCount;
 
 				return setImmediate(cb, null, results.delegate);
 			}

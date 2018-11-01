@@ -16,7 +16,6 @@
 
 const Promise = require('bluebird');
 const lisk = require('lisk-elements').default;
-const waitFor = require('../../../../../common/utils/wait_for');
 const accountFixtures = require('../../../../../fixtures/accounts');
 const randomUtil = require('../../../../../common/utils/random');
 const {
@@ -26,15 +25,11 @@ const {
 } = require('../../../../../common/helpers/api');
 const confirmTransactionsOnAllNodes = require('../../../../utils/transactions')
 	.confirmTransactionsOnAllNodes;
-const common = require('../../../common');
 
-const constants = __testContext.config.constants;
+const { MAX_TRANSACTIONS_PER_BLOCK } = __testContext.config.constants;
 
-module.exports = function(configurations) {
+module.exports = function(configurations, network) {
 	describe('@propagation : multisig transactions', () => {
-		const params = {};
-		common.setMonitoringSocketsConnections(params, configurations);
-
 		let transactions = [];
 		const accounts = [];
 		const numberOfTransactions = 3;
@@ -44,11 +39,15 @@ module.exports = function(configurations) {
 				signatures: [signature],
 			};
 			return Promise.all(
-				params.sockets.map(socket => {
+				network.sockets.map(socket => {
 					return socket.emit('postSignatures', postSignatures);
 				})
 			);
 		};
+
+		before(() => {
+			return network.waitForAllNodesToBeReady();
+		});
 
 		describe('prepare accounts', () => {
 			before(() => {
@@ -72,15 +71,13 @@ module.exports = function(configurations) {
 			it('should confirm all transactions on all nodes', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
-					2;
-				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, configurations)
-						.then(done)
-						.catch(err => {
-							done(err);
-						});
-				});
+					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
+				network.waitForBlocksOnAllNodes(blocksToWait)
+				.then(() => {
+					return confirmTransactionsOnAllNodes(transactions, configurations);
+				})
+				.then(done)
+				.catch(done);
 			});
 		});
 
@@ -138,15 +135,13 @@ module.exports = function(configurations) {
 			it('check all the nodes received the transactions', done => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
-					Math.ceil(numberOfTransactions / constants.maxTransactionsPerBlock) +
-					2;
-				waitFor.blocks(blocksToWait, () => {
-					confirmTransactionsOnAllNodes(transactions, configurations)
-						.then(done)
-						.catch(err => {
-							done(err);
-						});
-				});
+					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
+				network.waitForBlocksOnAllNodes(blocksToWait)
+					.then(() => {
+						return confirmTransactionsOnAllNodes(transactions, configurations);
+					})
+					.then(done)
+					.catch(done);
 			});
 		});
 	});

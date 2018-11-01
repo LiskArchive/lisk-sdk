@@ -26,7 +26,7 @@ var apiHelpers = require('../helpers/api');
  * @param {number} [timeout=200] timeout
  * @param {string} [baseUrl='http://localhost:5000'] timeout
  */
-function blockchainReady(cb, retries, timeout, baseUrl) {
+function blockchainReady(cb, retries, timeout, baseUrl, doNotLogRetries) {
 	if (!retries) {
 		retries = 10;
 	}
@@ -46,11 +46,13 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 				retries -= 1;
 				res = JSON.parse(res.body);
 				if (!res.data.loaded && retries >= 0) {
-					__testContext.debug(
-						`Retrying ${totalRetries -
-							retries} time loading blockchain in next ${timeout /
-							1000.0} seconds...`
-					);
+					if (!doNotLogRetries) {
+						__testContext.debug(
+							`Retrying ${totalRetries -
+								retries} time loading blockchain in next ${timeout /
+									1000.0} seconds...`
+								);
+					}
 					return setTimeout(() => {
 						fetchBlockchainStatus();
 					}, timeout);
@@ -62,11 +64,13 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 			.catch(() => {
 				retries -= 1;
 				if (retries >= 0) {
-					__testContext.debug(
-						`Retrying ${totalRetries -
-							retries} time loading blockchain in next ${timeout /
-							1000.0} seconds...`
-					);
+					if (!doNotLogRetries) {
+						__testContext.debug(
+							`Retrying ${totalRetries -
+								retries} time loading blockchain in next ${timeout /
+								1000.0} seconds...`
+						);
+					}
 					return setTimeout(() => {
 						fetchBlockchainStatus();
 					}, timeout);
@@ -76,8 +80,8 @@ function blockchainReady(cb, retries, timeout, baseUrl) {
 	})();
 }
 
-function nodeStatus(cb) {
-	var request = popsicle.get(`${__testContext.baseUrl}/api/node/status`);
+function nodeStatus(cb, baseUrl) {
+	var request = popsicle.get(`${baseUrl || __testContext.baseUrl}/api/node/status`);
 
 	request.use(popsicle.plugins.parse(['json']));
 
@@ -96,17 +100,17 @@ function nodeStatus(cb) {
 	});
 }
 // Returns current block height
-function getHeight(cb) {
+function getHeight(cb, baseUrl) {
 	nodeStatus((err, res) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 		return setImmediate(cb, null, res.height);
-	});
+	}, baseUrl);
 }
 
 // Run callback on new round
-function newRound(cb) {
+function newRound(cb, baseUrl) {
 	getHeight((err, height) => {
 		if (err) {
 			return cb(err);
@@ -115,20 +119,20 @@ function newRound(cb) {
 		var blocksToWait = nextRound * slots.delegates - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
 		newBlock(height, blocksToWait, cb);
-	});
+	}, baseUrl);
 }
 
 // Waits for (n) blocks to be created
-function blocks(blocksToWait, cb) {
+function blocks(blocksToWait, cb, baseUrl) {
 	getHeight((err, height) => {
 		if (err) {
 			return cb(err);
 		}
-		newBlock(height, blocksToWait, cb);
-	});
+		newBlock(height, blocksToWait, cb, baseUrl);
+	}, baseUrl);
 }
 
-function newBlock(height, blocksToWait, cb) {
+function newBlock(height, blocksToWait, cb, baseUrl) {
 	if (blocksToWait === 0) {
 		return setImmediate(cb, null, height);
 	}
@@ -138,7 +142,7 @@ function newBlock(height, blocksToWait, cb) {
 
 	async.doWhilst(
 		cb => {
-			var request = popsicle.get(`${__testContext.baseUrl}/api/node/status`);
+			var request = popsicle.get(`${baseUrl || __testContext.baseUrl}/api/node/status`);
 
 			request.use(popsicle.plugins.parse(['json']));
 
@@ -149,7 +153,7 @@ function newBlock(height, blocksToWait, cb) {
 					);
 				}
 				__testContext.debug(
-					'	Waiting for block:'.grey,
+					'Waiting for block:'.grey,
 					'Height:'.grey,
 					res.body.data.height,
 					'Target:'.grey,

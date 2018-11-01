@@ -19,7 +19,7 @@ const extend = require('extend');
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue.js');
 
-const constants = global.constants;
+const { MAX_PEERS } = global.constants;
 
 let modules;
 let library;
@@ -64,7 +64,7 @@ class Broadcaster {
 
 		self.queue = [];
 		self.config = library.config.broadcasts;
-		self.config.peerLimit = constants.maxPeers;
+		self.config.peerLimit = MAX_PEERS;
 
 		// Broadcast routes
 		self.routes = [
@@ -225,10 +225,32 @@ __private.filterQueue = function(cb) {
 			if (broadcast.options.immediate) {
 				return setImmediate(filterCb, null, false);
 			} else if (broadcast.options.data) {
-				const transaction =
-					broadcast.options.data.transaction ||
-					broadcast.options.data.signature;
-				return __private.filterTransaction(transaction, filterCb);
+				let transactionId;
+				if (broadcast.options.data.transaction) {
+					// Look for a transaction of a given "id" when broadcasting transactions
+					transactionId = broadcast.options.data.transaction.id;
+				} else if (broadcast.options.data.signature) {
+					// Look for a corresponding "transactionId" of a given signature when broadcasting signatures
+					transactionId = broadcast.options.data.signature.transactionId;
+				}
+				if (!transactionId) {
+					return setImmediate(filterCb, null, false);
+				}
+				// Broadcast if transaction is in transaction pool
+				if (modules.transactions.transactionInPool(transactionId)) {
+					return setImmediate(filterCb, null, true);
+				}
+				// Don't broadcast if transaction is already confirmed
+				return library.logic.transaction.checkConfirmed(
+					{ id: transactionId },
+					// In case of SQL error:
+					// err = true, isConfirmed = false => return false
+					// In case transaction exists in "trs" table:
+					// err = null, isConfirmed = true => return false
+					// In case transaction doesn't exists in "trs" table:
+					// err = null, isConfirmed = false => return true
+					(err, isConfirmed) => filterCb(null, !err && !isConfirmed)
+				);
 			}
 			return setImmediate(filterCb, null, true);
 		},
@@ -239,28 +261,6 @@ __private.filterQueue = function(cb) {
 			return setImmediate(cb);
 		}
 	);
-};
-
-/**
- * Checks if transaction is in pool or confirm it.
- *
- * @private
- * @param {transaction} transaction
- * @param {function} cb
- * @returns {SetImmediate} null, boolean
- * @todo Add description for the params
- */
-__private.filterTransaction = function(transaction, cb) {
-	if (transaction !== undefined) {
-		if (modules.transactions.transactionInPool(transaction.id)) {
-			return setImmediate(cb, null, true);
-		}
-		return library.logic.transaction.checkConfirmed(
-			transaction,
-			(err, isConfirmed) => setImmediate(cb, null, !err && !isConfirmed)
-		);
-	}
-	return setImmediate(cb, null, false);
 };
 
 /**

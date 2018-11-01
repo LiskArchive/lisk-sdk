@@ -20,14 +20,14 @@ var randomUtil = require('../../../common/utils/random');
 var transactionTypes = require('../../../../helpers/transaction_types.js');
 var localCommon = require('../../common');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
 	var library;
 
 	var account = randomUtil.account();
 	var creditTransaction = lisk.transaction.transfer({
-		amount: 1000 * constants.normalizer,
+		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});

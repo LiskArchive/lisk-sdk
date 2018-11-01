@@ -20,7 +20,7 @@ var randomUtil = require('../../../common/utils/random');
 var localCommon = require('../../common');
 const Bignum = require('../../../../helpers/bignum.js');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
 	var library;
@@ -29,7 +29,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 	var multisigAccount = randomUtil.account();
 	var multisigTransaction;
 	var creditTransaction = lisk.transaction.transfer({
-		amount: 1000 * constants.normalizer,
+		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
 	});

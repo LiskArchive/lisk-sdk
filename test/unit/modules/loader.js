@@ -18,7 +18,7 @@ var rewire = require('rewire');
 var modulesLoader = require('../../common/modules_loader');
 var swaggerHelper = require('../../../helpers/swagger');
 
-const constants = __testContext.config.constants;
+const { ACTIVE_DELEGATES } = __testContext.config.constants;
 
 describe('loader', () => {
 	var loaderModule;
@@ -220,7 +220,7 @@ describe('loader', () => {
 
 		it('should throw an error when called with height below active delegates count', done => {
 			try {
-				__private.createSnapshot(constants.activeDelegates - 1);
+				__private.createSnapshot(ACTIVE_DELEGATES - 1);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
@@ -237,7 +237,7 @@ describe('loader', () => {
 				done();
 			};
 
-			__private.createSnapshot(constants.activeDelegates);
+			__private.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when loadBlocksOffset fails', done => {
@@ -247,7 +247,7 @@ describe('loader', () => {
 				done();
 			};
 
-			__private.createSnapshot(constants.activeDelegates);
+			__private.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when deleteBlocksAfterHeight fails', done => {
@@ -257,7 +257,7 @@ describe('loader', () => {
 				done();
 			};
 
-			__private.createSnapshot(constants.activeDelegates);
+			__private.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		describe('should emit an event with no error', () => {
@@ -267,17 +267,14 @@ describe('loader', () => {
 
 			it('and snapshot to end of round 1 when snapshotRound = 1 and 101 blocks available', done => {
 				snapshotRound = 1;
-				blocksAvailable = constants.activeDelegates;
-				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+				blocksAvailable = ACTIVE_DELEGATES;
+				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
 				library.config.loading.snapshotRound = 1;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
-					expect(loadBlocksOffsetStub).to.be.calledWith(
-						constants.activeDelegates,
-						1
-					);
+					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
 					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
 						deleteBlocksAfterHeight
 					);
@@ -289,18 +286,15 @@ describe('loader', () => {
 
 			it('and snapshot to end of round 1 when snapshotRound = 1 and 202 blocks available', done => {
 				snapshotRound = 1;
-				blocksAvailable = constants.activeDelegates * 2;
-				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+				blocksAvailable = ACTIVE_DELEGATES * 2;
+				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
-					expect(loadBlocksOffsetStub).to.be.calledWith(
-						constants.activeDelegates,
-						1
-					);
+					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
 					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
 						deleteBlocksAfterHeight
 					);
@@ -312,8 +306,8 @@ describe('loader', () => {
 
 			it('and snapshot to end of round 2 when snapshotRound = 2 and 202 blocks available', done => {
 				snapshotRound = 2;
-				blocksAvailable = constants.activeDelegates * 2;
-				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+				blocksAvailable = ACTIVE_DELEGATES * 2;
+				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
@@ -321,12 +315,12 @@ describe('loader', () => {
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
 					expect(loadBlocksOffsetStub.firstCall).to.be.calledWith(
-						constants.activeDelegates,
+						ACTIVE_DELEGATES,
 						1
 					);
 					expect(loadBlocksOffsetStub.secondCall).to.be.calledWith(
-						constants.activeDelegates,
-						1 + constants.activeDelegates
+						ACTIVE_DELEGATES,
+						1 + ACTIVE_DELEGATES
 					);
 					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
 						deleteBlocksAfterHeight
@@ -339,8 +333,8 @@ describe('loader', () => {
 
 			it('and snapshot to end of round 2 when snapshotRound = 2 and 303 blocks available', done => {
 				snapshotRound = 2;
-				blocksAvailable = constants.activeDelegates * 3;
-				deleteBlocksAfterHeight = constants.activeDelegates * snapshotRound;
+				blocksAvailable = ACTIVE_DELEGATES * 3;
+				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
@@ -348,12 +342,12 @@ describe('loader', () => {
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
 					expect(loadBlocksOffsetStub.firstCall).to.be.calledWith(
-						constants.activeDelegates,
+						ACTIVE_DELEGATES,
 						1
 					);
 					expect(loadBlocksOffsetStub.secondCall).to.be.calledWith(
-						constants.activeDelegates,
-						1 + constants.activeDelegates
+						ACTIVE_DELEGATES,
+						1 + ACTIVE_DELEGATES
 					);
 					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
 						deleteBlocksAfterHeight
@@ -366,18 +360,15 @@ describe('loader', () => {
 
 			it('and snapshot to end of round 1 when snapshotRound = 2 and 101 blocks available', done => {
 				snapshotRound = 2;
-				blocksAvailable = constants.activeDelegates;
-				deleteBlocksAfterHeight = constants.activeDelegates;
+				blocksAvailable = ACTIVE_DELEGATES;
+				deleteBlocksAfterHeight = ACTIVE_DELEGATES;
 
 				library.config.loading.snapshotRound = snapshotRound;
 				__private.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
-					expect(loadBlocksOffsetStub).to.be.calledWith(
-						constants.activeDelegates,
-						1
-					);
+					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
 					expect(deleteBlocksAfterHeightStub).to.be.calledWith(
 						deleteBlocksAfterHeight
 					);

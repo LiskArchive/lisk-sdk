@@ -19,7 +19,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var localCommon = require('../../common');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 2) - double delegate registrations', () => {
 	var library;
@@ -38,7 +38,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			var transaction1;
 			var transaction2;
 			transaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -53,7 +53,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 			describe('with two different accounts using same username', () => {
 				before(done => {
 					transaction = lisk.transaction.transfer({
-						amount: 1000 * constants.normalizer,
+						amount: 1000 * NORMALIZER,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account2.address,
 					});

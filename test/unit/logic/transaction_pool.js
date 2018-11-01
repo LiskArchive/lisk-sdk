@@ -26,7 +26,7 @@ const TransactionPool = rewire('../../../logic/transaction_pool.js');
 
 // Create fresh instance of jobsQueue
 const jobsQueue = rewire('../../../helpers/jobs_queue.js');
-const constants = global.constants;
+const { UNCONFIRMED_TRANSACTION_TIMEOUT } = global.constants;
 const config = __testContext.config;
 
 describe('transactionPool', () => {
@@ -1633,7 +1633,7 @@ describe('transactionPool', () => {
 					signatures: [],
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
-					constants.unconfirmedTransactionTimeOut * 8
+					UNCONFIRMED_TRANSACTION_TIMEOUT * 8
 				);
 			});
 
@@ -1642,7 +1642,7 @@ describe('transactionPool', () => {
 					id: '103111423423423',
 				};
 				return expect(transactionTimeOut(transaction)).to.deep.eql(
-					constants.unconfirmedTransactionTimeOut
+					UNCONFIRMED_TRANSACTION_TIMEOUT
 				);
 			});
 		});

@@ -14,6 +14,27 @@
 
 'use strict';
 
+// eslint-disable-next-line import/order
+const AppConfig = require('./helpers/config.js');
+
+/**
+ * Default list of configuration options. Can be overridden by CLI.
+ *
+ * @memberof! app
+ * @default 'config.json'
+ */
+// As newrelic is using `LISK_NETWORK` to initialize app name
+// so we have to initialize configuration before requiring the newrelic
+// eslint-disable-next-line import/order
+const appConfig = AppConfig(require('./package.json'));
+
+// eslint-disable-next-line import/order
+const NewRelicConfig = require('./newrelic.js').config;
+
+if (NewRelicConfig.license_key || process.env.NEW_RELIC_LICENSE_KEY) {
+	require('./helpers/newrelic_lisk');
+}
+
 var path = require('path');
 var fs = require('fs');
 var d = require('domain').create();
@@ -24,7 +45,6 @@ var async = require('async');
 var Logger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
 var wsTransport = require('./api/ws/transport');
-var AppConfig = require('./helpers/config.js');
 var git = require('./helpers/git.js');
 var Sequence = require('./helpers/sequence.js');
 var httpApi = require('./helpers/http_api.js');
@@ -97,14 +117,6 @@ if (typeof gc !== 'undefined') {
 		gc(); // eslint-disable-line no-undef
 	}, 60000);
 }
-
-/**
- * Default list of configuration options. Can be overridden by CLI.
- *
- * @memberof! app
- * @default 'config.json'
- */
-var appConfig = AppConfig(require('./package.json'));
 
 // Global objects to be utilized under modules/helpers where scope is not accessible
 global.constants = appConfig.constants;

@@ -22,7 +22,7 @@ const localCommon = require('../../common.js');
 const randomUtil = require('../../../common/utils/random');
 const Bignum = require('../../../../helpers/bignum.js');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - second signature transactions from pool and peer', () => {
 	let library;
@@ -53,7 +53,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 		beforeEach('send funds to signature account', done => {
 			signatureAccount = randomUtil.account();
 			const sendTransaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: signatureAccount.address,
 			});

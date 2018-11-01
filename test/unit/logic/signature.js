@@ -20,7 +20,7 @@ var modulesLoader = require('../../common/modules_loader');
 var typesRepresentatives = require('../../fixtures/types_representatives');
 var ed = require('../../../helpers/ed');
 
-const constants = __testContext.config.constants;
+const { FEES } = __testContext.config.constants;
 var Signature = rewire('../../../logic/signature');
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
@@ -165,8 +165,8 @@ describe('signature', () => {
 				done();
 			});
 
-			it('should return constants.fees.secondSignature', () => {
-				return expect(fee.equals(constants.fees.secondSignature)).to.be.true;
+			it('should return FEES.SECOND_SIGNATURE', () => {
+				return expect(fee.equals(FEES.SECOND_SIGNATURE)).to.be.true;
 			});
 		});
 

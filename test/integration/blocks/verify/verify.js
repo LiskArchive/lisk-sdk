@@ -33,7 +33,7 @@ var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const blockVersion = require('../../../../logic/block_version.js');
 
-const constants = global.constants;
+const { BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
 
 var previousBlock = {
@@ -207,12 +207,11 @@ describe('blocks/verify', () => {
 				delegates = scope.modules.delegates;
 				db = scope.db;
 
-				library = scope;
-				library.modules.blocks.lastBlock.set(genesisBlock);
-
 				// Set current block version to 0
 				blockVersion.currentBlockVersion = 0;
 
+				library = scope;
+				library.modules.blocks.lastBlock.set(genesisBlock);
 				// Bus gets overwritten - waiting for mem_accounts has to be done manually
 				setTimeout(done, 5000);
 			}
@@ -419,7 +418,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyPayload', () => {
-			it('should fail when payload length greater than maxPayloadLength constant value', done => {
+			it('should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value', done => {
 				var payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
@@ -637,15 +636,13 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe(`for slot number ${
-				constants.blockSlotWindow
-			} slots in the past`, () => {
+			describe(`for slot number ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
 				var dummyBlock;
 
 				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - constants.blockSlotWindow
+							slots.getSlotNumber() - BLOCK_SLOT_WINDOW
 						),
 					};
 					done();
@@ -675,14 +672,14 @@ describe('blocks/verify', () => {
 				});
 			});
 
-			describe(`for slot number ${constants.blockSlotWindow +
+			describe(`for slot number ${BLOCK_SLOT_WINDOW +
 				1} slots in the past`, () => {
 				var dummyBlock;
 
 				before(done => {
 					dummyBlock = {
 						timestamp: slots.getSlotTime(
-							slots.getSlotNumber() - (constants.blockSlotWindow + 1)
+							slots.getSlotNumber() - (BLOCK_SLOT_WINDOW + 1)
 						),
 					};
 					done();
@@ -713,7 +710,7 @@ describe('blocks/verify', () => {
 					var lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
 					expect(lastNBlockIds)
 						.to.be.an('array')
-						.and.to.have.length.below(constants.blockSlotWindow + 1);
+						.and.to.have.length.below(BLOCK_SLOT_WINDOW + 1);
 					_.each(lastNBlockIds, value => {
 						expect(value).to.be.a('string');
 					});
@@ -746,13 +743,11 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				describe(`when onNewBlock function is called ${
-					constants.blockSlotWindow
-				}times`, () => {
+				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW}times`, () => {
 					var blockIds = [];
 
 					before(() => {
-						return _.map(_.range(0, constants.blockSlotWindow), () => {
+						return _.map(_.range(0, BLOCK_SLOT_WINDOW), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -770,14 +765,14 @@ describe('blocks/verify', () => {
 					});
 				});
 
-				describe(`when onNewBlock function is called ${constants.blockSlotWindow *
+				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
 					2} times`, () => {
 					var recentNBlockIds;
 					var olderThanNBlockIds;
 
 					before(done => {
 						var blockIds = [];
-						_.map(_.range(0, constants.blockSlotWindow * 2), () => {
+						_.map(_.range(0, BLOCK_SLOT_WINDOW * 2), () => {
 							var randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
@@ -790,18 +785,16 @@ describe('blocks/verify', () => {
 						});
 
 						recentNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index < constants.blockSlotWindow;
+							return blockIds.length - 1 - index < BLOCK_SLOT_WINDOW;
 						});
 
 						olderThanNBlockIds = blockIds.filter((value, index) => {
-							return blockIds.length - 1 - index >= constants.blockSlotWindow;
+							return blockIds.length - 1 - index >= BLOCK_SLOT_WINDOW;
 						});
 						done();
 					});
 
-					it(`should maintain last ${
-						constants.blockSlotWindow
-					} blockIds in lastNBlockIds queue`, () => {
+					it(`should maintain last ${BLOCK_SLOT_WINDOW} blockIds in lastNBlockIds queue`, () => {
 						expect(lastNBlockIds).to.include.members(recentNBlockIds);
 						return expect(lastNBlockIds).to.not.include.members(
 							olderThanNBlockIds
@@ -866,7 +859,7 @@ describe('blocks/verify', () => {
 		});
 	});
 
-	// TODO: Refactor this test, dataset being used is no longer valid because of blockSlotWindow check
+	// TODO: Refactor this test, dataset being used is no longer valid because of BLOCK_SLOT_WINDOW check
 	describe('verifyReceipt', () => {});
 
 	describe('verifyBlock', () => {});
@@ -1102,7 +1095,7 @@ describe('blocks/verify', () => {
 				it('should fail when transaction is already confirmed (fork:2)', done => {
 					const account = random.account();
 					const transaction = lisk.transaction.transfer({
-						amount: new Bignum(constants.normalizer).mul(1000),
+						amount: new Bignum(NORMALIZER).mul(1000),
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: account.address,
 					});

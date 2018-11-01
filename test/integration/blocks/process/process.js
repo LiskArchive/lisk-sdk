@@ -23,7 +23,7 @@ var clearDatabaseTable = require('../../../common/db_sandbox')
 	.clearDatabaseTable;
 var loadTables = require('./process_tables_data.json');
 
-const constants = global.constants;
+const { REWARDS } = global.constants;
 
 describe('system test (blocks) - process', () => {
 	var blocksProcess;
@@ -34,8 +34,8 @@ describe('system test (blocks) - process', () => {
 
 	before(done => {
 		// Force rewards start at 150-th block
-		originalBlockRewardsOffset = constants.rewards.offset;
-		constants.rewards.offset = 150;
+		originalBlockRewardsOffset = REWARDS.OFFSET;
+		REWARDS.OFFSET = 150;
 
 		// Set current block version to 0
 		blockVersion.currentBlockVersion = 0;
@@ -53,7 +53,7 @@ describe('system test (blocks) - process', () => {
 	});
 
 	after(done => {
-		constants.rewards.offset = originalBlockRewardsOffset;
+		REWARDS.OFFSET = originalBlockRewardsOffset;
 		application.cleanup(done);
 	});
 

@@ -24,7 +24,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var Bignum = require('../../../../helpers/bignum.js');
 
-const constants = global.constants;
+const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {
@@ -35,7 +35,7 @@ describe('GET /api/votes', () => {
 
 	function expectValidVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.least(res.body.data.votes.length);
-		expect(constants.maxVotesPerAccount).to.be.equal(
+		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable
 		);
 	}
@@ -43,7 +43,7 @@ describe('GET /api/votes', () => {
 	function expectValidNonVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.equal(0);
 		expect(res.body.data.votes).to.be.empty;
-		expect(constants.maxVotesPerAccount).to.be.equal(
+		expect(MAX_VOTES_PER_ACCOUNT).to.be.equal(
 			res.body.data.votesUsed + res.body.data.votesAvailable
 		);
 	}
@@ -374,7 +374,7 @@ describe('GET /api/votes', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
 				var account = randomUtil.account();
 				var creditTransaction = lisk.transaction.transfer({
-					amount: new Bignum(constants.fees.delegate).plus(constants.fees.vote),
+					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});
@@ -410,7 +410,7 @@ describe('GET /api/votes', () => {
 						expect(res.body.data.address).to.be.equal(account.address);
 						expect(res.body.data.votesUsed).to.be.equal(0);
 						expect(res.body.data.votesAvailable).to.be.equal(
-							constants.maxVotesPerAccount
+							MAX_VOTES_PER_ACCOUNT
 						);
 					})
 					.then(() => {

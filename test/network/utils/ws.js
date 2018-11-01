@@ -28,17 +28,23 @@ module.exports = {
 			hostname: '127.0.0.1',
 			port: null,
 			autoReconnect: true,
+			// Since we are running a multiple nodes on a single machine, we
+			// need to give nodes a lot of time to respond.
+			ackTimeout: 15000,
 			query: WSServerMaster.generatePeerHeaders({
 				wsPort: firstConfiguration.wsPort,
 				httpPort: firstConfiguration.httpPort,
 			}),
 		};
+
 		let connectedTo = 0;
+
 		configurations.forEach(configuration => {
 			monitorWSClient.port = configuration.wsPort;
 			const socket = scClient.connect(monitorWSClient);
 			wampClient.upgradeToWAMP(socket);
 			sockets.push(socket);
+
 			socket.once('connect', () => {
 				connectedTo += 1;
 				if (connectedTo === configurations.length) {

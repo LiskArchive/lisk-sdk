@@ -428,7 +428,7 @@ npm run mocha -- path/to/test.js
 
 ## Utility scripts
 
-There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
+There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
 
 #### Generate Config
 
@@ -462,11 +462,11 @@ Options:
 -o, --output [output]    output file path
 ```
 
-As you can see from the usage guide, `input_file` and` from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from` LISK_NETWORK` env variable.
+As you can see from the usage guide, `input_file` and`from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from`LISK_NETWORK` env variable.
 
 #### Console
 
-This script is really useful in development. It will initialize the components of Lisk and load these into ndoejs REPL.
+This script is really useful in development. It will initialize the components of Lisk and load these into Node.js REPL.
 
 ```
 node scripts/console.js
@@ -482,6 +482,15 @@ lisk-core [lisk_dev] >
 ```
 
 Once you get the prompt, you can use `modules`, `helpers`, `logic`, `db` and `config` objects and play with these in REPL.
+
+## Performance Monitoring
+
+We used [newrelic](http://newrelic.com/) to monitor the activities inside application. It enables to have detail insight
+of the system and keep track of performance of each activity. e.g. An HTTP API call or a background job from queue.
+
+To enable the performance monitoring on your node make sure you have an environment variable `NEW_RELIC_LICENSE_KEY`
+available and set and then start the node normally. The monitoring data will be visible to your newrelic account with the
+name of the network you started. e.g. `lisk-mainnet`, `lisk-testnet`.
 
 ## Contributors
 

@@ -11,7 +11,7 @@
 				"wsPort": 7001
 			},
 			{
-				"ip": "testnet-seed-02.lisk.io",
+				"ip": "testnet-seed-02.lisk-nodes.net",
 				"wsPort": 7001
 			},
 			{
@@ -19,7 +19,7 @@
 				"wsPort": 7001
 			},
 			{
-				"ip": "testnet-seed-04.lisk.io",
+				"ip": "testnet-seed-04.lisk-nodes.net",
 				"wsPort": 7001
 			},
 			{

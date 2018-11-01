@@ -26,7 +26,11 @@ let modules;
 let library;
 let self;
 const exceptions = global.exceptions;
-const constants = global.constants;
+const {
+	BLOCK_SLOT_WINDOW,
+	MAX_PAYLOAD_LENGTH,
+	MAX_TRANSACTIONS_PER_BLOCK,
+} = global.constants;
 const __private = {};
 
 __private.lastNBlockIds = [];
@@ -196,7 +200,7 @@ __private.verifyPreviousBlock = function(block, result) {
 };
 
 /**
- * Verify block is not one of the last {constants.blockSlotWindow} saved blocks.
+ * Verify block is not one of the last {BLOCK_SLOT_WINDOW} saved blocks.
  *
  * @private
  * @func verifyAgainstLastNBlockIds
@@ -296,7 +300,7 @@ __private.verifyId = function(block, result) {
  * @returns {Array} result.errors - Array of validation errors
  */
 __private.verifyPayload = function(block, result) {
-	if (block.payloadLength > constants.maxPayloadLength) {
+	if (block.payloadLength > MAX_PAYLOAD_LENGTH) {
 		result.errors.push('Payload length is too long');
 	}
 
@@ -306,7 +310,7 @@ __private.verifyPayload = function(block, result) {
 		);
 	}
 
-	if (block.transactions.length > constants.maxTransactionsPerBlock) {
+	if (block.transactions.length > MAX_TRANSACTIONS_PER_BLOCK) {
 		result.errors.push('Number of transactions exceeds maximum per block');
 	}
 
@@ -422,8 +426,8 @@ __private.verifyBlockSlotWindow = function(block, result) {
 	const currentApplicationSlot = slots.getSlotNumber();
 	const blockSlot = slots.getSlotNumber(block.timestamp);
 
-	// Reject block if it's slot is older than constants.blockSlotWindow
-	if (currentApplicationSlot - blockSlot > constants.blockSlotWindow) {
+	// Reject block if it's slot is older than BLOCK_SLOT_WINDOW
+	if (currentApplicationSlot - blockSlot > BLOCK_SLOT_WINDOW) {
 		result.errors.push('Block slot is too old');
 	}
 
@@ -466,24 +470,24 @@ Verify.prototype.verifyReceipt = function(block) {
 };
 
 /**
- * Loads last {constants.blockSlotWindow} blocks from the database into memory. Called when application triggeres blockchainReady event.
+ * Loads last {BLOCK_SLOT_WINDOW} blocks from the database into memory. Called when application triggeres blockchainReady event.
  */
 Verify.prototype.onBlockchainReady = function() {
 	return library.db.blocks
-		.loadLastNBlockIds(constants.blockSlotWindow)
+		.loadLastNBlockIds(BLOCK_SLOT_WINDOW)
 		.then(blockIds => {
 			__private.lastNBlockIds = _.map(blockIds, 'id');
 		})
 		.catch(err => {
 			library.logger.error(
-				`Unable to load last ${constants.blockSlotWindow} block ids`
+				`Unable to load last ${BLOCK_SLOT_WINDOW} block ids`
 			);
 			library.logger.error(err);
 		});
 };
 
 /**
- * Maintains __private.lastNBlock constiable - a queue of fixed length (constants.blockSlotWindow). Called when application triggers newBlock event.
+ * Maintains __private.lastNBlock constiable - a queue of fixed length (BLOCK_SLOT_WINDOW). Called when application triggers newBlock event.
  *
  * @func onNewBlock
  * @param {block} block
@@ -491,7 +495,7 @@ Verify.prototype.onBlockchainReady = function() {
  */
 Verify.prototype.onNewBlock = function(block) {
 	__private.lastNBlockIds.push(block.id);
-	if (__private.lastNBlockIds.length > constants.blockSlotWindow) {
+	if (__private.lastNBlockIds.length > BLOCK_SLOT_WINDOW) {
 		__private.lastNBlockIds.shift();
 	}
 };

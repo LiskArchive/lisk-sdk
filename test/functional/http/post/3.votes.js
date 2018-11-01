@@ -26,7 +26,12 @@ var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
-const constants = global.constants;
+const {
+	FEES,
+	NORMALIZER,
+	ACTIVE_DELEGATES,
+	MAX_VOTES_PER_TRANSACTION,
+} = global.constants;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 3) votes', () => {
@@ -64,27 +69,27 @@ describe('POST /api/transactions (type 3) votes', () => {
 	before(() => {
 		var transactions = [];
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: delegateAccount.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.vote,
+			amount: FEES.VOTE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFixtures.existingDelegate.address,
 		});
 		var transaction4 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerTransaction.address,
 		});
 		var transaction5 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMaxVotesPerAccount.address,
 		});
@@ -112,11 +117,11 @@ describe('POST /api/transactions (type 3) votes', () => {
 
 				var transactionsCreditMaxVotesPerTransaction = [];
 				var promisesCreditsMaxVotesPerTransaction = [];
-				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
+				for (var i = 0; i < MAX_VOTES_PER_TRANSACTION; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
-						amount: constants.fees.delegate,
+						amount: FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -142,11 +147,11 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				var transactionsCreditMaxVotesPerAccount = [];
 				var promisesCreditsMaxVotesPerAccount = [];
-				for (var i = 0; i < constants.activeDelegates; i++) {
+				for (var i = 0; i < ACTIVE_DELEGATES; i++) {
 					var tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
 					var transaction = lisk.transaction.transfer({
-						amount: constants.fees.delegate,
+						amount: FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
@@ -184,7 +189,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				var promisesDelegatesMaxVotesPerTransaction = [];
 				var transactionsDelegateMaxForPerTransaction = [];
-				for (var i = 0; i < constants.maxVotesPerTransaction; i++) {
+				for (var i = 0; i < MAX_VOTES_PER_TRANSACTION; i++) {
 					var transaction = lisk.transaction.registerDelegate({
 						passphrase: delegatesMaxVotesPerTransaction[i].passphrase,
 						username: delegatesMaxVotesPerTransaction[i].username,
@@ -211,7 +216,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			.then(() => {
 				var transactionsDelegateMaxVotesPerAccount = [];
 				var promisesDelegatesMaxVotesPerAccount = [];
-				for (var i = 0; i < constants.activeDelegates; i++) {
+				for (var i = 0; i < ACTIVE_DELEGATES; i++) {
 					var transaction = lisk.transaction.registerDelegate({
 						passphrase: delegatesMaxVotesPerAccount[i].passphrase,
 						username: delegatesMaxVotesPerAccount[i].username,
@@ -289,7 +294,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					'Invalid vote at index 0 - Invalid vote length'
+					'Invalid vote at index 0 - Invalid vote format'
 				);
 				badTransactions.push(transaction);
 			});
@@ -451,9 +456,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`upvoting ${
-			constants.maxVotesPerTransaction
-		} delegates (maximum votes per transaction) at once should be ok`, () => {
+		it(`upvoting ${MAX_VOTES_PER_TRANSACTION} delegates (maximum votes per transaction) at once should be ok`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerTransaction.passphrase,
 				votes: delegatesMaxVotesPerTransaction.map(delegate => {
@@ -467,12 +470,12 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`upvoting ${constants.maxVotesPerTransaction +
+		it(`upvoting ${MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount
-					.slice(0, constants.maxVotesPerTransaction + 1)
+					.slice(0, MAX_VOTES_PER_TRANSACTION + 1)
 					.map(delegate => {
 						return `${delegate.publicKey}`;
 					}),
@@ -489,9 +492,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`upvoting ${
-			constants.activeDelegates
-		} delegates (number of actived delegates) separately should be ok`, () => {
+		it(`upvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, () => {
 			var transaction1 = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: delegatesMaxVotesPerAccount.slice(0, 33).map(delegate => {
@@ -585,9 +586,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`exceeding maximum of ${
-			constants.activeDelegates
-		} votes (number of actived delegates + 1) should fail`, () => {
+		it(`exceeding maximum of ${ACTIVE_DELEGATES} votes (number of actived delegates + 1) should fail`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				votes: [`${accountFixtures.existingDelegate.publicKey}`],
@@ -598,17 +597,13 @@ describe('POST /api/transactions (type 3) votes', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Maximum number of ${
-						constants.activeDelegates
-					} votes exceeded (1 too many)`
+					`Maximum number of ${ACTIVE_DELEGATES} votes exceeded (1 too many)`
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
 
-		it(`downvoting ${
-			constants.maxVotesPerTransaction
-		} delegates (maximum votes per transaction) at once should be ok`, () => {
+		it(`downvoting ${MAX_VOTES_PER_TRANSACTION} delegates (maximum votes per transaction) at once should be ok`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerTransaction.passphrase,
 				unvotes: delegatesMaxVotesPerTransaction.map(delegate => {
@@ -622,7 +617,7 @@ describe('POST /api/transactions (type 3) votes', () => {
 			});
 		});
 
-		it(`downvoting ${constants.maxVotesPerTransaction +
+		it(`downvoting ${MAX_VOTES_PER_TRANSACTION +
 			1} delegates (maximum votes per transaction + 1) at once should fail`, () => {
 			transaction = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
@@ -636,16 +631,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 				errorCodes.PROCESSING_ERROR
 			).then(res => {
 				expect(res.body.message).to.be.equal(
-					`Invalid transaction body - Failed to validate vote schema: Array is too long (${constants.maxVotesPerTransaction +
-						1}), maximum ${constants.maxVotesPerTransaction}`
+					`Invalid transaction body - Failed to validate vote schema: Array is too long (${MAX_VOTES_PER_TRANSACTION +
+						1}), maximum ${MAX_VOTES_PER_TRANSACTION}`
 				);
 				badTransactionsEnforcement.push(transaction);
 			});
 		});
 
-		it(`downvoting ${
-			constants.activeDelegates
-		} delegates (number of actived delegates) separately should be ok`, () => {
+		it(`downvoting ${ACTIVE_DELEGATES} delegates (number of actived delegates) separately should be ok`, () => {
 			var transaction1 = lisk.transaction.castVotes({
 				passphrase: accountMaxVotesPerAccount.passphrase,
 				unvotes: delegatesMaxVotesPerAccount.slice(0, 33).map(delegate => {

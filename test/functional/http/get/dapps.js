@@ -23,7 +23,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', () => {
@@ -40,7 +40,7 @@ describe('GET /dapps', () => {
 
 	before(() => {
 		var transaction = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});

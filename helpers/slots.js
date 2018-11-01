@@ -14,7 +14,7 @@
 
 'use strict';
 
-const constants = global.constants;
+const { EPOCH_TIME, ACTIVE_DELEGATES } = global.constants;
 
 /**
  * Description of the module.
@@ -25,18 +25,6 @@ const constants = global.constants;
  * @see Parent: {@link helpers}
  * @todo Add description for the module
  */
-
-/**
- * Gets constant time from Lisk epoch.
- *
- * @private
- * @returns {number} Lisk epoch time
- */
-function beginEpochTime() {
-	var d = constants.epochTime;
-
-	return d;
-}
 
 /**
  * Calculates time since Lisk epoch.
@@ -50,15 +38,12 @@ function getEpochTime(time) {
 		time = Date.now();
 	}
 
-	var d = beginEpochTime();
-	var t = d.getTime();
-
-	return Math.floor((time - t) / 1000);
+	return Math.floor((time - EPOCH_TIME.getTime()) / 1000);
 }
 
 module.exports = {
 	interval: 10,
-	delegates: constants.activeDelegates,
+	delegates: ACTIVE_DELEGATES,
 
 	/**
 	 * Description of the function.
@@ -83,10 +68,7 @@ module.exports = {
 			epochTime = this.getTime();
 		}
 
-		var d = beginEpochTime();
-		var t = Math.floor(d.getTime() / 1000) * 1000;
-
-		return t + epochTime * 1000;
+		return Math.floor(EPOCH_TIME.getTime() / 1000) * 1000 + epochTime * 1000;
 	},
 
 	/**

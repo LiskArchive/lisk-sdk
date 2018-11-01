@@ -21,7 +21,7 @@ var typesRepresentatives = require('../../fixtures/types_representatives'); // e
 var slots = require('../../../helpers/slots');
 var testData = require('./test_data/out_transfer');
 
-const constants = __testContext.config.constants;
+const { FEES } = __testContext.config.constants;
 const exceptions = __testContext.config.exceptions;
 var OutTransfer = rewire('../../../logic/out_transfer');
 var validKeypair = testData.validKeypair;
@@ -140,9 +140,8 @@ describe('outTransfer', () => {
 
 	describe('calculateFee', () => {
 		it('should return constants.fees.send', () => {
-			return expect(
-				outTransfer.calculateFee(transaction).equals(constants.fees.send)
-			).to.be.true;
+			return expect(outTransfer.calculateFee(transaction).equals(FEES.SEND)).to
+				.be.true;
 		});
 	});
 
