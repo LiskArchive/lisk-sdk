@@ -13,15 +13,17 @@
  *
  */
 import Mnemonic from 'bip39';
+import { expect } from 'chai';
 import {
-	countUppercaseCharacters,
 	countPassphraseWhitespaces,
 	countPassphraseWords,
+	countUppercaseCharacters,
 	getPassphraseValidationErrors,
 	locateUppercaseCharacters,
 	locateConsecutiveWhitespaces,
 } from '../src/validation';
 
+/* tslint:disable: no-magic-numbers */
 describe('passphrase validation', () => {
 	describe('countPassphraseWhitespaces', () => {
 		describe('given a valid passphrase', () => {
@@ -237,6 +239,7 @@ describe('passphrase validation', () => {
 
 			it('should return the number of uppercase characters', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
+
 				return expect(uppercased).to.be.equal(expectedAmountUppercaseCharacter);
 			});
 		});
@@ -248,6 +251,7 @@ describe('passphrase validation', () => {
 
 			it('should return the amount of uppercase character', () => {
 				const uppercased = countUppercaseCharacters(passphrase);
+
 				return expect(uppercased).to.be.equal(
 					expectedAmountOfCapitalCharacters,
 				);
@@ -268,19 +272,18 @@ describe('passphrase validation', () => {
 	});
 
 	describe('locateUppercaseCharacters', () => {
-		const emptyArray = [];
 		describe('given a string without uppercase character', () => {
-			const string = 'a string without uppercase character';
+			const testString = 'a string without uppercase character';
 			it('should return an empty array', () => {
-				return expect(locateUppercaseCharacters(string)).to.be.eql(emptyArray);
+				return expect(locateUppercaseCharacters(testString)).to.be.eql([]);
 			});
 		});
 
 		describe('given a string with uppercase character', () => {
-			const string = 'a String with SOME uppercase characteR';
+			const testString = 'a String with SOME uppercase characteR';
 			const uppercaseCharacters = [2, 14, 15, 16, 17, 37];
 			it('should return the array with the location of the uppercase character', () => {
-				return expect(locateUppercaseCharacters(string)).to.be.eql(
+				return expect(locateUppercaseCharacters(testString)).to.be.eql(
 					uppercaseCharacters,
 				);
 			});
@@ -288,60 +291,55 @@ describe('passphrase validation', () => {
 	});
 
 	describe('locateConsecutiveWhitespaces', () => {
-		const emptyArray = [];
 		describe('given a string without whitespaces', () => {
-			const string = 'abcdefghijklkmnop';
+			const testString = 'abcdefghijklkmnop';
 			it('should return an empty array', () => {
-				return expect(locateConsecutiveWhitespaces(string)).to.be.eql(
-					emptyArray,
-				);
+				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql([]);
 			});
 		});
 
 		describe('given a string with whitespaces', () => {
-			const string = 'abc defghijk lkmnop';
+			const testString = 'abc defghijk lkmnop';
 			it('should return an empty array', () => {
-				return expect(locateConsecutiveWhitespaces(string)).to.be.eql(
-					emptyArray,
-				);
+				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql([]);
 			});
 		});
 
 		describe('given a string with a whitespace in the beginning', () => {
-			const string = ' abc defghijk lkmnop';
+			const testString = ' abc defghijk lkmnop';
 			const expectedWhitespaceLocation = [0];
 			it('should return the array with the location of the whitespace', () => {
-				return expect(locateConsecutiveWhitespaces(string)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				);
 			});
 		});
 
 		describe('given a string with a whitespace in the end', () => {
-			const string = 'abc defghijk lkmnop ';
+			const testString = 'abc defghijk lkmnop ';
 			const expectedWhitespaceLocation = [19];
 			it('should return the array with the location of the whitespace', () => {
-				return expect(locateConsecutiveWhitespaces(string)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				);
 			});
 		});
 
 		describe('given a string with extra whitespaces', () => {
-			const string = 'abc  defghijk  lkmnop ';
+			const testString = 'abc  defghijk  lkmnop ';
 			const expectedWhitespaceLocation = [4, 14, 21];
 			it('should return the array with the location of the whitespaces', () => {
-				return expect(locateConsecutiveWhitespaces(string)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				);
 			});
 		});
 
 		describe('given a string with extra whitespaces with special characters', () => {
-			const string = 'abc  defghijk\t \nlkmnop \u00A0';
+			const testString = 'abc  defghijk\t \nlkmnop \u00A0';
 			const expectedWhitespaceLocation = [4, 14, 15, 23];
 			it('should return the array with the location of the whitespaces', () => {
-				return expect(locateConsecutiveWhitespaces(string)).to.be.eql(
+				return expect(locateConsecutiveWhitespaces(testString)).to.be.eql(
 					expectedWhitespaceLocation,
 				);
 			});
@@ -349,16 +347,12 @@ describe('passphrase validation', () => {
 	});
 
 	describe('getPassphraseValidationErrors', () => {
-		const emptyErrorArray = [];
-
 		describe('given a valid passphrase', () => {
 			const passphrase =
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 
 			it('should return an empty array', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
-					emptyErrorArray,
-				);
+				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql([]);
 			});
 		});
 
@@ -368,26 +362,26 @@ describe('passphrase validation', () => {
 
 			const passphraseTooManyWordsErrors = [
 				{
+					actual: 13,
 					code: 'INVALID_AMOUNT_OF_WORDS',
+					expected: 12,
 					message:
 						'Passphrase contains 13 words instead of expected 12. Please check the passphrase.',
-					expected: 12,
-					actual: 13,
 				},
 				{
+					actual: 12,
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					expected: 11,
+					location: [],
 					message:
 						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
-					expected: 11,
-					actual: 12,
-					location: [],
 				},
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -403,18 +397,18 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist';
 			const passphraseTooFewWordsErrors = [
 				{
+					actual: 11,
 					code: 'INVALID_AMOUNT_OF_WORDS',
+					expected: 12,
 					message:
 						'Passphrase contains 11 words instead of expected 12. Please check the passphrase.',
-					expected: 12,
-					actual: 11,
 				},
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -430,19 +424,19 @@ describe('passphrase validation', () => {
 				' model actor shallow eight glue upper seat lobster reason label enlist bridge';
 			const passphraseInvalidMnemonicErrors = [
 				{
+					actual: 12,
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					expected: 11,
+					location: [0],
 					message:
 						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
-					expected: 11,
-					actual: 12,
-					location: [0],
 				},
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -458,19 +452,19 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge ';
 			const passphraseInvalidMnemonicErrors = [
 				{
+					actual: 12,
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					expected: 11,
+					location: [76],
 					message:
 						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
-					expected: 11,
-					actual: 12,
-					location: [76],
 				},
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -486,19 +480,19 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue  upper seat  lobster reason label enlist bridge';
 			const passphraseInvalidMnemonicErrors = [
 				{
+					actual: 13,
 					code: 'INVALID_AMOUNT_OF_WHITESPACES',
+					expected: 11,
+					location: [31, 43],
 					message:
 						'Passphrase contains 13 whitespaces instead of expected 11. Please check the passphrase.',
-					expected: 11,
-					actual: 13,
-					location: [31, 43],
 				},
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -514,19 +508,19 @@ describe('passphrase validation', () => {
 				'modEl actor shallow eight glue upper sEat lobster reaSon label enlist bridge';
 			const passphraseWithUppercaseCharacterErrors = [
 				{
+					actual: 3,
 					code: 'INVALID_AMOUNT_OF_UPPERCASE_CHARACTER',
+					expected: 0,
+					location: [3, 38, 53],
 					message:
 						'Passphrase contains 3 uppercase character instead of expected 0. Please check the passphrase.',
-					expected: 0,
-					actual: 3,
-					location: [3, 38, 53],
 				},
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -542,11 +536,11 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label engage bridge';
 			const passphraseInvalidMnemonicError = [
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
@@ -565,7 +559,7 @@ describe('passphrase validation', () => {
 			it('should return an empty array', () => {
 				return expect(
 					getPassphraseValidationErrors(passphrase, wordlist),
-				).to.be.eql(emptyErrorArray);
+				).to.be.eql([]);
 			});
 		});
 
@@ -575,11 +569,11 @@ describe('passphrase validation', () => {
 				'model actor shallow eight glue upper seat lobster reason label enlist bridge';
 			const passphraseInvalidMnemonicError = [
 				{
+					actual: false,
 					code: 'INVALID_MNEMONIC',
+					expected: true,
 					message:
 						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-					expected: true,
-					actual: false,
 				},
 			];
 
