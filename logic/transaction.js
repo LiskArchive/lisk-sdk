@@ -1115,22 +1115,37 @@ class Transaction {
 			}
 		}
 
-		if (transaction.amount) {
-			transaction.amount = new Bignum(transaction.amount);
-		}
+		transaction.amount = new Bignum(transaction.amount || 0);
 
-		if (transaction.fee) {
-			transaction.fee = new Bignum(transaction.fee);
-		}
+		transaction.fee = new Bignum(transaction.fee || 0);
 
 		const report = this.scope.schema.validate(
 			transaction,
 			Transaction.prototype.schema
 		);
 
-		if (!report) {
-			throw `Failed to validate transaction schema: ${this.scope.schema
-				.getLastErrors()
+		let formatErrors = this.scope.schema.getLastErrors() || [];
+
+		formatErrors = formatErrors.filter(error => {
+			if (error.code === 'INVALID_FORMAT' && error.params[0] === 'address') {
+				// Remove the errors if transaction is in exception
+				// and recipient equals the recipient fixed in the exception
+				if (
+					(exceptions.recipientLeadingZero[transaction.id] &&
+						exceptions.recipientLeadingZero[transaction.id] ===
+							error.params[1]) ||
+					(exceptions.recipientExceedingUint64[transaction.id] &&
+						exceptions.recipientExceedingUint64[transaction.id] ===
+							error.params[1])
+				) {
+					return false;
+				}
+			}
+			return true;
+		});
+
+		if (!report && formatErrors.length) {
+			throw `Failed to validate transaction schema: ${formatErrors
 				.map(err => err.message)
 				.join(', ')}`;
 		}

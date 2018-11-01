@@ -51,4 +51,6 @@ module.exports = {
 	},
 	// <version>: { start: <start_height>, end: <end_height> }
 	blockVersions: {},
+	recipientLeadingZero: {},
+	recipientExceedingUint64: {},
 };

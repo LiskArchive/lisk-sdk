@@ -176,6 +176,13 @@ describe('db', () => {
 				return expect(result[0]).to.be.eql(peer);
 			});
 
+			it('should insert single peer with port number bigger than smallint', function*() {
+				const peer = peersFixtures.DBPeer();
+				peer.wsPort = 65535;
+				const res = yield db.peers.insert(peer);
+				return expect(res).not.to.be.an.instanceof(Error);
+			});
+
 			it('should insert multiple peers to database', function*() {
 				const peer1 = peersFixtures.DBPeer();
 				const peer2 = peersFixtures.DBPeer();

@@ -19,6 +19,8 @@ var _ = require('lodash');
 var z_schema = require('z-schema');
 var FormatValidators = require('z-schema/src/FormatValidators');
 var Bignum = require('./bignum.js');
+// new BigNumber(2).pow(64).minus(1)
+const UINT64_MAX = new Bignum('18446744073709551615');
 
 /**
  * Uses JSON Schema validator z_schema to register custom formats.
@@ -88,7 +90,26 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	address(str) {
-		return str === '' || /^[0-9]+L$/g.test(str);
+		if (str === '') {
+			return true;
+		}
+
+		// Address can not have leading zeros
+		if (/^0[0-9]+L$/g.test(str)) {
+			return false;
+		}
+
+		// Address can not have non decimal numbers
+		if (!/^[0-9]+L$/g.test(str)) {
+			return false;
+		}
+
+		// Address can not exceed the max limit
+		if (new Bignum(str.slice(0, -1)).isGreaterThan(UINT64_MAX)) {
+			return false;
+		}
+
+		return true;
 	},
 	/**
 	 * Description of the function.
