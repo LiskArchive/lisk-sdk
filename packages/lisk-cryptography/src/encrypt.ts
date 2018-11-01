@@ -46,7 +46,7 @@ export const encryptMessageWithPassphrase = (
 	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 
 	if (publicKeyUint8Array === null) {
-		throw new Error('given public key in not a valid Ed25519 public key');
+		throw new Error('given public key is not a valid Ed25519 public key');
 	}
 
 	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
@@ -86,7 +86,7 @@ export const decryptMessageWithPassphrase = (
 	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKeyBytes);
 
 	if (publicKeyUint8Array === null) {
-		throw new Error('given public key in not a valid Ed25519 public key');
+		throw new Error('given public key is not a valid Ed25519 public key');
 	}
 
 	const convertedPublicKey = Buffer.from(publicKeyUint8Array);
