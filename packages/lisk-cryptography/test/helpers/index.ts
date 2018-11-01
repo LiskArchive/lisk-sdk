@@ -12,22 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import tweetnacl from 'tweetnacl';
-
-export const { box } = tweetnacl;
-
-export const openBox = tweetnacl.box.open;
-
-export const signDetached = tweetnacl.sign.detached;
-
-export const verifyDetached = tweetnacl.sign.detached.verify;
-
-export const getRandomBytes = tweetnacl.randomBytes;
-
-export const getKeyPair = hashedSeed => {
-	const { publicKey, secretKey } = tweetnacl.sign.keyPair.fromSeed(hashedSeed);
-	return {
-		privateKeyBytes: secretKey,
-		publicKeyBytes: publicKey,
-	};
+export const makeInvalid = (str: string): string => {
+	const char = str[0] === '0' ? '1' : '0';
+	return `${char}${str.slice(1)}`;
 };

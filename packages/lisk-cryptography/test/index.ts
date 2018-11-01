@@ -12,19 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as buffer from './buffer';
-import * as convert from './convert';
-import * as encrypt from './encrypt';
-import hash from './hash';
-import * as keys from './keys';
-import * as sign from './sign';
+import cryptography from '../src';
+import { expect } from 'chai';
 
-export default Object.assign(
-	{},
-	buffer,
-	convert,
-	encrypt,
-	{ hash },
-	keys,
-	sign,
-);
+describe('cryptography index.js', () => {
+	it('should export an object', () => {
+		return expect(cryptography).to.be.an('object');
+	});
+});

@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
+import { KeypairBytes } from '../../src/keys';
 import { makeInvalid } from '../helpers';
+import { NaclInterface } from '../../src/types/nacl';
 import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 
@@ -36,16 +39,23 @@ describe('nacl', () => {
 	const defaultConvertedPrivateKeyEd2Curve =
 		'b0e3276b64b086b381e11928e56f966d062dc677b7801cc594aeb2d4193e8d57';
 
-	[
+	const libraries = [
 		{
 			name: 'fast',
-			fast,
+			library: fast,
 		},
 		{
 			name: 'slow',
-			slow,
+			library: slow,
 		},
-	].forEach(nacl => {
+	];
+
+	interface library {
+		name: string;
+		library: NaclInterface;
+	}
+
+	libraries.forEach((nacl: library) => {
 		describe(`${nacl.name}`, () => {
 			const {
 				box,
@@ -54,11 +64,11 @@ describe('nacl', () => {
 				openBox,
 				signDetached,
 				verifyDetached,
-			} = nacl[nacl.name];
+			}: NaclInterface = nacl.library;
 
 			describe('#getRandomBytes', () => {
 				const size = 24;
-				let randomBuffer;
+				let randomBuffer: Buffer;
 
 				beforeEach(() => {
 					randomBuffer = getRandomBytes(size);
@@ -75,7 +85,7 @@ describe('nacl', () => {
 			});
 
 			describe('#getKeyPair', () => {
-				let signedKeys;
+				let signedKeys: KeypairBytes;
 
 				beforeEach(() => {
 					signedKeys = getKeyPair(Buffer.from(defaultHash, 'hex'));
@@ -106,7 +116,7 @@ describe('nacl', () => {
 			});
 
 			describe('#signDetached', () => {
-				let signatureBytes;
+				let signatureBytes: Buffer;
 
 				beforeEach(() => {
 					signatureBytes = signDetached(
@@ -148,7 +158,7 @@ describe('nacl', () => {
 			});
 
 			describe('#box', () => {
-				let encryptedMessageBytes;
+				let encryptedMessageBytes: Buffer;
 
 				beforeEach(() => {
 					encryptedMessageBytes = box(
@@ -168,7 +178,7 @@ describe('nacl', () => {
 			});
 
 			describe('#openBox', () => {
-				let decryptedMessageBytes;
+				let decryptedMessageBytes: Buffer;
 
 				beforeEach(() => {
 					decryptedMessageBytes = openBox(

@@ -12,18 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import bignum from 'browserify-bignum';
+import BigNum from 'browserify-bignum';
 
-export const bigNumberToBuffer = (bignumber, size) =>
-	bignum(bignumber).toBuffer({ size });
+export const bigNumberToBuffer = (bignumber: string, size: number) =>
+	new BigNum(bignumber).toBuffer({ size, endian: 'big' });
 
-export const bufferToBigNumberString = bigNumberBuffer =>
-	bignum.fromBuffer(bigNumberBuffer).toString();
+export const bufferToBigNumberString = (bigNumberBuffer: Buffer): string =>
+	BigNum.fromBuffer(bigNumberBuffer).toString();
 
-export const bufferToHex = buffer => Buffer.from(buffer).toString('hex');
+export const bufferToHex = (buffer: Buffer): string =>
+	Buffer.from(buffer).toString('hex');
 
 const hexRegex = /^[0-9a-f]+/i;
-export const hexToBuffer = (hex, argumentName = 'Argument') => {
+export const hexToBuffer = (hex: string, argumentName = 'Argument'): Buffer => {
 	if (typeof hex !== 'string') {
 		throw new TypeError(`${argumentName} must be a string.`);
 	}
@@ -31,10 +32,12 @@ export const hexToBuffer = (hex, argumentName = 'Argument') => {
 	if (!matchedHex || matchedHex.length !== hex.length) {
 		throw new TypeError(`${argumentName} must be a valid hex string.`);
 	}
+	// tslint:disable-next-line no-magic-numbers
 	if (matchedHex.length % 2 !== 0) {
 		throw new TypeError(
 			`${argumentName} must have a valid length of hex string.`,
 		);
 	}
+
 	return Buffer.from(matchedHex, 'hex');
 };

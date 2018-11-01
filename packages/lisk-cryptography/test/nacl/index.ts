@@ -12,7 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable global-require */
+import { expect } from 'chai';
+import { NaclInterface } from '../../src/types/nacl';
 import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 // Require is used for stubbing
@@ -25,16 +26,23 @@ const resetTest = () => {
 	delete require.cache[require.resolve('../../src/nacl')];
 };
 
-const stripConstants = library => {
+interface naclLibrary extends NaclInterface {
+	NACL_SIGN_PUBLICKEY_LENGTH: number;
+	NACL_SIGN_SIGNATURE_LENGTH: number;
+}
+
+const stripConstants = (library: naclLibrary) => {
 	// Constants are added in ../../src/nacl/index.js
-	const strippedLib = Object.assign({}, library);
-	delete strippedLib.NACL_SIGN_PUBLICKEY_LENGTH;
-	delete strippedLib.NACL_SIGN_SIGNATURE_LENGTH;
+	const {
+		NACL_SIGN_PUBLICKEY_LENGTH,
+		NACL_SIGN_SIGNATURE_LENGTH,
+		...strippedLib
+	} = library;
 	return strippedLib;
 };
 
 describe('nacl index.js', () => {
-	let initialEnvVar;
+	let initialEnvVar: string | undefined;
 	before(() => {
 		initialEnvVar = process.env.NACL_FAST;
 		return Promise.resolve();
@@ -86,6 +94,7 @@ describe('nacl index.js', () => {
 		const moduleNotFoundError = new Error('MODULE_NOT_FOUND');
 		beforeEach(() => {
 			resetTest();
+
 			// "require" is a wrapper around Module._load which handles the actual loading
 			sandbox
 				.stub(moduleLibrary, '_load')
