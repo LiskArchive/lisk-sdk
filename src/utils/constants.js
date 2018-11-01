@@ -49,3 +49,12 @@ export const NETHASHES = {
 	test: constants.TESTNET_NETHASH,
 	beta: constants.BETANET_NETHASH,
 };
+
+export const SORT_FIELDS = [
+	'publicKey:asc',
+	'publicKey:desc',
+	'balance:asc',
+	'balance:desc',
+	'username:asc',
+	'username:desc',
+];
