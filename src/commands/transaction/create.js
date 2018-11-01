@@ -27,8 +27,8 @@ const MAX_ARG_NUM = 3;
 const typeNumberMap = {
 	0: 'transfer',
 	1: 'second-passphrase',
-	2: 'vote',
-	3: 'delegate',
+	2: 'delegate',
+	3: 'vote',
 	4: 'multisignature',
 };
 

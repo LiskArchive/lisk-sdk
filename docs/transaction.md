@@ -76,7 +76,7 @@ OPTIONS
       	- --second-passphrase=file:/path/to/my/secondPassphrase.txt (takes the first line only)
       	- --second-passphrase=stdin (takes one line only)
 
-  -t, --type=0|transfer|1|second-passphrase|2|vote|3|delegate|4|multisignature
+  -t, --type=0|transfer|1|second-passphrase|2|delegate|3|vote|4|multisignature
       (required) type of transaction to create
 
   --no-signature

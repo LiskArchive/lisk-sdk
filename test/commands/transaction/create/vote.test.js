@@ -20,7 +20,7 @@ import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
 import * as inputUtils from '../../../../src/utils/input/utils';
 
-describe('transaction:create:transfer', () => {
+describe('transaction:create:vote', () => {
 	const defaultVote = [
 		'215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca',
 		'922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa',
