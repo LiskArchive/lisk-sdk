@@ -22,18 +22,21 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const _ = require('lodash');
 const program = require('commander');
 const lisk = require('lisk-elements').default;
-const observableDiff = require('deep-diff').observableDiff;
-const applyChange = require('deep-diff').applyChange;
+const { observableDiff, applyChange } = require('deep-diff');
 const JSONHistory = require('../helpers/json_history');
 
 const rootPath = path.resolve(path.dirname(__filename), '../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
-// Now get a unified config.json for 1.1.x version
-const defaultConfig = loadJSONFile(
-	path.resolve(rootPath, 'config/default/config.json')
-);
+const loadJSONFileIfExists = filePath => {
+	if (fs.existsSync(filePath)) {
+		return JSON.parse(fs.readFileSync(filePath), 'utf8');
+	}
+	return {};
+};
+
 let configFilePath;
 let fromVersion;
 let toVersion;
@@ -41,8 +44,8 @@ let toVersion;
 program
 	.version('0.1.1')
 	.arguments('<input_file> <from_version> [to_version]')
-	.option('--output', 'Output file path')
-	.option('--diff', 'Show only difference from default config file.')
+	.option('-n, --network [network]', 'Specify the network or use LISK_NETWORK')
+	.option('-o, --output [output]', 'Output file path')
 	.action((inputFile, version1, version2) => {
 		fromVersion = version1;
 		toVersion = version2;
@@ -50,15 +53,35 @@ program
 	})
 	.parse(process.argv);
 
+if (typeof configFilePath === 'undefined') {
+	console.error('No input file is provided.');
+	process.exit(1);
+}
+
+if (typeof fromVersion === 'undefined') {
+	console.error('No start version is provided');
+	process.exit(1);
+}
+
+const defaultConfig = loadJSONFile(
+	path.resolve(rootPath, 'config/default/config.json')
+);
+
+const networkConfig = loadJSONFileIfExists(
+	path.resolve(
+		rootPath,
+		`config/${program.network || process.env.LISK_NETWORK}/config.json`
+	)
+);
+
+const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig);
+
+const userConfig = loadJSONFileIfExists(configFilePath);
+
 const history = new JSONHistory('lisk config file', console);
 
 history.version('0.9.x');
 history.version('1.0.0-rc.1', version => {
-	version.change('removed version and minVersion', config => {
-		delete config.version;
-		delete config.minVersion;
-		return config;
-	});
 	version.change('renamed port to httpPort', config => {
 		config.httpPort = config.port;
 		delete config.port;
@@ -183,8 +206,33 @@ history.version('1.0.0-rc.2', version => {
 		}
 	);
 });
-history.version('1.1.0-alpha.0');
-history.version('1.2.0-alpha.0');
+history.version('1.0.0-rc.3');
+history.version('1.0.0-rc.4');
+history.version('1.0.0-rc.5');
+history.version('1.0.0');
+history.version('1.1.0-rc.0', version => {
+	version.change('removed version and minVersion', config => {
+		delete config.version;
+		delete config.minVersion;
+		return config;
+	});
+	version.change('removed nethash', config => {
+		delete config.nethash;
+		return config;
+	});
+});
+history.version('1.1.0');
+history.version('1.1.1-rc.x');
+history.version('1.1.1');
+history.version('1.2.0-rc.x', version => {
+	version.change('remove malformed peer list items', config => {
+		config.peers.list = config.peers.list.filter(
+			peer => peer.ip && peer.wsPort
+		);
+		return config;
+	});
+});
+history.version('1.2.0');
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
@@ -212,28 +260,48 @@ if (!toVersion) {
 	toVersion = require('../package.json').version;
 }
 
-// Old config in 1.0.x will be single unified config file.
-const configFile = loadJSONFile(configFilePath);
+history.migrate(
+	_.merge({}, unifiedNewConfig, userConfig),
+	fromVersion,
+	toVersion,
+	(err, json) => {
+		if (err) {
+			throw err;
+		}
+		const customConfig = {};
 
-history.migrate(configFile, fromVersion, toVersion, (err, json) => {
-	if (err) {
-		throw err;
-	}
-	let customConfig = {};
+		observableDiff(unifiedNewConfig, json, d => {
+			// if there is any change on one attribute of object in array
+			// we want to preserve the full object not just that single attribute
+			// it is required due to nature of configuration merging in helpers/config.js
+			// e.g. If someone changed ip of a peer we want to keep full peer object in array
 
-	if (program.diff) {
-		observableDiff(defaultConfig, json, d => {
+			// if change is type of edit value
+			// and change path is pointing to a deep object
+			// and path second last index is an integer (means its an array element)
+			if (
+				d.kind === 'E' &&
+				d.path.length > 2 &&
+				Number.isInteger(d.path[d.path.length - 2])
+			) {
+				const path = _.clone(d.path);
+
+				// Remove last item in path to get index of object in array
+				path.splice(-1, 1);
+				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+			}
 			applyChange(customConfig, json, d);
 		});
-	} else {
-		customConfig = json;
-	}
 
-	if (program.output) {
-		console.info(`\nWriting updated configuration to ${program.output}`);
-		fs.writeFileSync(program.output, JSON.stringify(customConfig, null, '\t'));
-	} else {
-		console.info('\n\n------------ OUTPUT -------------');
-		console.info(JSON.stringify(customConfig, null, '\t'));
+		if (program.output) {
+			console.info(`\nWriting updated configuration to ${program.output}`);
+			fs.writeFileSync(
+				program.output,
+				JSON.stringify(customConfig, null, '\t')
+			);
+		} else {
+			console.info('\n\n------------ OUTPUT -------------');
+			console.info(JSON.stringify(customConfig, null, '\t'));
+		}
 	}
-});
+);
