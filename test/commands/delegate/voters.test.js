@@ -60,7 +60,6 @@ describe('delegate:voters', () => {
 
 	describe('delegate:voters', () => {
 		setupTest()
-			.stdout()
 			.command(['delegate:voters'])
 			.catch(error => {
 				return expect(error.message).to.contain('Missing 1 required arg');
@@ -69,7 +68,6 @@ describe('delegate:voters', () => {
 
 		describe('delegate:voters delegate', () => {
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0]])
 				.it('should get delegate voters and display as an array', () => {
@@ -98,7 +96,6 @@ describe('delegate:voters', () => {
 			const usernamesWithEmpty = ['genesis_4', ''];
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames.join(',')])
 				.it('should get delegates voters and display as an array', () => {
@@ -133,7 +130,6 @@ describe('delegate:voters', () => {
 				});
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernamesWithEmpty.join(',')])
 				.it(
@@ -190,7 +186,6 @@ describe('delegate:voters', () => {
 				.it('should throw an error when limit is greater than 100');
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--limit=3'])
 				.it('should get voters for delegate with limit', () => {
@@ -238,7 +233,6 @@ describe('delegate:voters', () => {
 				.it('should throw an error when offset is an integer less than 0');
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--offset=1'])
 				.it('should get voters for delegate with offset', () => {
@@ -277,7 +271,6 @@ describe('delegate:voters', () => {
 				.it('should throw an error when given incorrect sort input');
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--sort=publicKey:asc'])
 				.it('should get sorted voters for delegate', () => {

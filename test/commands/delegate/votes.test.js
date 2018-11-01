@@ -62,7 +62,6 @@ describe('delegate:votes', () => {
 
 	describe('delegate:votes', () => {
 		setupTest()
-			.stdout()
 			.command(['delegate:votes'])
 			.catch(error => {
 				return expect(error.message).to.contain('Missing 1 required arg');
@@ -71,7 +70,6 @@ describe('delegate:votes', () => {
 
 		describe('delegate:votes delegate', () => {
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', usernames[0]])
 				.it('should get delegate votes and display as an array', () => {
@@ -100,7 +98,6 @@ describe('delegate:votes', () => {
 			const usernamesWithEmpty = ['genesis_4', ''];
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', usernames.join(',')])
 				.it('should get delegates votes and display as an array', () => {
@@ -135,7 +132,6 @@ describe('delegate:votes', () => {
 				});
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', usernamesWithEmpty.join(',')])
 				.it(
@@ -192,7 +188,6 @@ describe('delegate:votes', () => {
 				.it('should throw an error when limit is greater than 100');
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', usernames[0], '--limit=3'])
 				.it('should get votes for delegate with limit', () => {
@@ -240,7 +235,6 @@ describe('delegate:votes', () => {
 				.it('should throw an error when offset is an integer less than 0');
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', usernames[0], '--offset=1'])
 				.it('should get votes for delegate with offset', () => {
@@ -279,7 +273,6 @@ describe('delegate:votes', () => {
 				.it('should throw an error when given incorrect sort input');
 
 			setupTest()
-				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', usernames[0], '--sort=balance:asc'])
 				.it('should get sorted votes for delegate', () => {
