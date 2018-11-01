@@ -68,14 +68,14 @@ export class APIClient {
 	}
 
 	public static createMainnetAPIClient(options?: InitOptions): APIClient {
-		return new this(constants.MAINNET_NODES, {
+		return new APIClient(constants.MAINNET_NODES, {
 			nethash: MAINNET_NETHASH,
 			...options,
 		});
 	}
 
 	public static createTestnetAPIClient(options?: InitOptions): APIClient {
-		return new this(constants.TESTNET_NODES, {
+		return new APIClient(constants.TESTNET_NODES, {
 			nethash: TESTNET_NETHASH,
 			...options,
 		});

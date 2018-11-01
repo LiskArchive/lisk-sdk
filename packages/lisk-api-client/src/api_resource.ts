@@ -47,11 +47,11 @@ export class APIResource {
 				setTimeout(resolve, REQUEST_RETRY_TIMEOUT),
 			).then(
 				async (): Promise<ApiResponse | Error> => {
-					if (this.apiClient.randomizeNodes) {
-						this.apiClient.banActiveNodeAndSelect();
-					}
 					if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
 						throw error;
+					}
+					if (this.apiClient.randomizeNodes) {
+						this.apiClient.banActiveNodeAndSelect();
 					}
 
 					return this.request(req, true, retryCount + 1);
