@@ -54,6 +54,7 @@ jspm_packages
 # IDE directories
 .idea
 tmp
+.vscode
 
 # Distribution folders
 dist-node/
