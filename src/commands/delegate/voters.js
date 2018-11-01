@@ -33,7 +33,7 @@ const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 	) {
 		throw new Error('Offset must be an integer and greater than or equal to 0');
 	}
-	if (SORT_FIELDS.indexOf(sort) === -1) {
+	if (!SORT_FIELDS.includes(sort)) {
 		throw new Error(`Sort must be one of: ${SORT_FIELDS.join(', ')}`);
 	}
 

@@ -19,6 +19,10 @@ import getAPIClient from '../../utils/api';
 import query from '../../utils/query';
 import { SORT_FIELDS } from '../../utils/constants';
 
+const VOTES_SORT_FIELDS = SORT_FIELDS.filter(
+	field => !field.includes('publicKey'),
+);
+
 const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 	const limit = parseInt(limitStr, 10);
 	const offset = parseInt(offsetStr, 10);
@@ -33,8 +37,8 @@ const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 	) {
 		throw new Error('Offset must be an integer and greater than or equal to 0');
 	}
-	if (SORT_FIELDS.indexOf(sort) === -1) {
-		throw new Error(`Sort must be one of: ${SORT_FIELDS.join(', ')}`);
+	if (!VOTES_SORT_FIELDS.includes(sort)) {
+		throw new Error(`Sort must be one of: ${VOTES_SORT_FIELDS.join(', ')}`);
 	}
 
 	return {

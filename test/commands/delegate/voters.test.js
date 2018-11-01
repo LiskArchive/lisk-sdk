@@ -55,15 +55,16 @@ describe('delegate:voters', () => {
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stdout();
 
 	describe('delegate:voters', () => {
 		setupTest()
 			.stdout()
 			.command(['delegate:voters'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error when arg is not provided');
 
 		describe('delegate:voters delegate', () => {

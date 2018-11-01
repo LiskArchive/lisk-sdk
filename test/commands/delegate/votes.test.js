@@ -57,15 +57,16 @@ describe('delegate:votes', () => {
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stdout();
 
 	describe('delegate:votes', () => {
 		setupTest()
 			.stdout()
 			.command(['delegate:votes'])
-			.catch(error =>
-				expect(error.message).to.contain('Missing 1 required arg'),
-			)
+			.catch(error => {
+				return expect(error.message).to.contain('Missing 1 required arg');
+			})
 			.it('should throw an error when arg is not provided');
 
 		describe('delegate:votes delegate', () => {
@@ -263,7 +264,7 @@ describe('delegate:votes', () => {
 				.command(['delegate:votes', usernames[0], '--sort=wrongsort'])
 				.catch(error => {
 					return expect(error.message).to.contain(
-						'Sort must be one of: publicKey:asc, publicKey:desc, balance:asc, balance:desc, username:asc, username:desc',
+						'Sort must be one of: balance:asc, balance:desc, username:asc, username:desc',
 					);
 				})
 				.it('should throw an error when given incorrect sort input');
@@ -271,7 +272,7 @@ describe('delegate:votes', () => {
 			setupTest()
 				.stdout()
 				.stub(query, 'default', sandbox.stub().resolves(queryResult))
-				.command(['delegate:votes', usernames[0], '--sort=publicKey:asc'])
+				.command(['delegate:votes', usernames[0], '--sort=balance:asc'])
 				.it('should get sorted votes for delegate', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
 					expect(query.default).to.be.calledWithExactly(
@@ -283,7 +284,7 @@ describe('delegate:votes', () => {
 									username: usernames[0],
 									limit: 10,
 									offset: 0,
-									sort: 'publicKey:asc',
+									sort: 'balance:asc',
 								},
 								placeholder: {
 									username: usernames[0],
