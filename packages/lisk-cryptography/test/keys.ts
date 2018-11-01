@@ -12,7 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import {
+	Keypair,
+	KeypairBytes,
 	getPrivateAndPublicKeyFromPassphrase,
 	getPrivateAndPublicKeyBytesFromPassphrase,
 	getKeys,
@@ -21,7 +24,7 @@ import {
 } from '../src/keys';
 // Require is used for stubbing
 const buffer = require('../src/buffer');
-const hash = require('../src/hash');
+const hashModule = require('../src/hash');
 
 describe('keys', () => {
 	const defaultPassphrase = 'secret';
@@ -48,12 +51,12 @@ describe('keys', () => {
 			.withArgs(Buffer.from(defaultPublicKey, 'hex'))
 			.returns(defaultPublicKey);
 		return sandbox
-			.stub(hash, 'default')
+			.stub(hashModule, 'hash')
 			.returns(Buffer.from(defaultPassphraseHash, 'hex'));
 	});
 
 	describe('#getPrivateAndPublicKeyBytesFromPassphrase', () => {
-		let keyPair;
+		let keyPair: KeypairBytes;
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyBytesFromPassphrase(defaultPassphrase);
@@ -74,7 +77,7 @@ describe('keys', () => {
 	});
 
 	describe('#getPrivateAndPublicKeyFromPassphrase', () => {
-		let keyPair;
+		let keyPair: Keypair;
 
 		beforeEach(() => {
 			keyPair = getPrivateAndPublicKeyFromPassphrase(defaultPassphrase);
@@ -95,7 +98,7 @@ describe('keys', () => {
 	});
 
 	describe('#getKeys', () => {
-		let keyPair;
+		let keyPair: Keypair;
 
 		beforeEach(() => {
 			keyPair = getKeys(defaultPassphrase);

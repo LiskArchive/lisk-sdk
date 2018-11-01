@@ -14,10 +14,22 @@
  */
 import { bufferToHex } from './buffer';
 import { getAddressFromPublicKey } from './convert';
-import hash from './hash';
+import { hash } from './hash';
 import { getKeyPair } from './nacl';
 
-export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
+export interface KeypairBytes {
+	readonly privateKeyBytes: Buffer;
+	readonly publicKeyBytes: Buffer;
+}
+
+export interface Keypair {
+	readonly privateKey: string;
+	readonly publicKey: string;
+}
+
+export const getPrivateAndPublicKeyBytesFromPassphrase = (
+	passphrase: string,
+): KeypairBytes => {
 	const hashed = hash(passphrase, 'utf8');
 	const { publicKeyBytes, privateKeyBytes } = getKeyPair(hashed);
 
@@ -27,7 +39,9 @@ export const getPrivateAndPublicKeyBytesFromPassphrase = passphrase => {
 	};
 };
 
-export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
+export const getPrivateAndPublicKeyFromPassphrase = (
+	passphrase: string,
+): Keypair => {
 	const {
 		privateKeyBytes,
 		publicKeyBytes,
@@ -41,7 +55,9 @@ export const getPrivateAndPublicKeyFromPassphrase = passphrase => {
 
 export const getKeys = getPrivateAndPublicKeyFromPassphrase;
 
-export const getAddressAndPublicKeyFromPassphrase = passphrase => {
+export const getAddressAndPublicKeyFromPassphrase = (
+	passphrase: string,
+): { readonly address: string; readonly publicKey: string } => {
 	const { publicKey } = getKeys(passphrase);
 	const address = getAddressFromPublicKey(publicKey);
 
@@ -51,7 +67,8 @@ export const getAddressAndPublicKeyFromPassphrase = passphrase => {
 	};
 };
 
-export const getAddressFromPassphrase = passphrase => {
+export const getAddressFromPassphrase = (passphrase: string): string => {
 	const { publicKey } = getKeys(passphrase);
+
 	return getAddressFromPublicKey(publicKey);
 };

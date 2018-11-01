@@ -12,18 +12,21 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* eslint-disable global-require */
-// eslint-disable-next-line prefer-const
-let lib;
+import { NaclInterface } from '../types/nacl';
+
+// tslint:disable-next-line no-let
+let lib: NaclInterface;
 
 try {
 	if (process.env.NACL_FAST === 'disable') {
 		throw new Error('Use tweetnacl');
 	}
 	// Require used for conditional importing
+	// tslint:disable-next-line no-var-requires no-require-imports
 	lib = require('./fast');
 } catch (err) {
 	process.env.NACL_FAST = 'disable';
+	// tslint:disable-next-line no-var-requires no-require-imports
 	lib = require('./slow');
 }
 
