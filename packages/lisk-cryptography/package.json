@@ -87,6 +87,7 @@
 		"ts-node": "7.0.1",
 		"tsconfig-paths": "3.6.0",
 		"tslint": "5.11.0",
+		"tslint-immutable": "4.8.0",
 		"typescript": "3.0.3",
 		"uglify-es": "3.3.9",
 		"wait-on": "3.0.1"
