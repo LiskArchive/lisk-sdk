@@ -12,8 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import { makeInvalid } from './helpers';
 import {
+	SignedMessageWithOnePassphrase,
+	SignedMessageWithTwoPassphrases,
 	signMessageWithPassphrase,
 	signMessageWithTwoPassphrases,
 	verifyMessageWithPublicKey,
@@ -29,7 +32,7 @@ import {
 // Require is used for stubbing
 const keys = require('../src/keys');
 
-const changeLength = str => `00${str}`;
+const changeLength = (str: string): string => `00${str}`;
 
 describe('sign', () => {
 	const defaultPassphrase =
@@ -76,8 +79,8 @@ ${defaultSecondSignature}
 	const defaultDataSignature =
 		'b8704e11c4d9fad9960c7b6a69dcf48c1bede5b74ed8974cd005d9a407deef618dd800fe69ceed1fd52bb1e0881e71aec137c35b90eda9afe93716a5652ee009';
 
-	let defaultSignedMessage;
-	let defaultDoubleSignedMessage;
+	let defaultSignedMessage: SignedMessageWithOnePassphrase;
+	let defaultDoubleSignedMessage: SignedMessageWithTwoPassphrases;
 
 	let getPrivateAndPublicKeyBytesFromPassphraseStub;
 
@@ -114,7 +117,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#digestMessage', () => {
-		const strGenerator = (len, chr) => chr.repeat(len);
+		const strGenerator = (len: number, chr: string): string => chr.repeat(len);
 
 		it('should create message digest for message with length = 0', () => {
 			const msgBytes = digestMessage('');
@@ -212,64 +215,78 @@ ${defaultSecondSignature}
 
 	describe('#verifyMessageWithTwoPublicKeys', () => {
 		it('should throw on invalid first publicKey length', () => {
+			const {
+				publicKey,
+				...messageWithoutPublicKey
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						publicKey: changeLength(defaultPublicKey),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					publicKey: changeLength(defaultPublicKey),
+					...messageWithoutPublicKey,
+				}),
 			).to.throw('Invalid first publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid second publicKey length', () => {
+			const {
+				secondPublicKey,
+				...messageWithoutSecondPublicKey
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						secondPublicKey: changeLength(defaultSecondPublicKey),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					secondPublicKey: changeLength(defaultSecondPublicKey),
+					...messageWithoutSecondPublicKey,
+				}),
 			).to.throw('Invalid second publicKey, expected 32-byte publicKey');
 		});
 
 		it('should throw on invalid primary signature length', () => {
+			const {
+				signature,
+				...messageWithoutSignature
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						signature: changeLength(defaultSignature),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					signature: changeLength(defaultSignature),
+					...messageWithoutSignature,
+				}),
 			).to.throw('Invalid first signature length, expected 64-byte signature');
 		});
 
 		it('should throw on invalid secondary signature length', () => {
+			const {
+				secondSignature,
+				...messageWithoutSecondSignature
+			} = defaultDoubleSignedMessage;
 			return expect(
-				verifyMessageWithTwoPublicKeys.bind(
-					null,
-					Object.assign({}, defaultDoubleSignedMessage, {
-						secondSignature: changeLength(defaultSecondSignature),
-					}),
-				),
+				verifyMessageWithTwoPublicKeys.bind(null, {
+					secondSignature: changeLength(defaultSecondSignature),
+					...messageWithoutSecondSignature,
+				}),
 			).to.throw('Invalid second signature length, expected 64-byte signature');
 		});
 
 		it('should return false for incorrect first signature', () => {
-			const verified = verifyMessageWithTwoPublicKeys(
-				Object.assign({}, defaultDoubleSignedMessage, {
-					signature: makeInvalid(defaultSignature),
-				}),
-			);
+			const {
+				signature,
+				...messageWithoutSignature
+			} = defaultDoubleSignedMessage;
+			const verified = verifyMessageWithTwoPublicKeys({
+				signature: makeInvalid(defaultSignature),
+				...messageWithoutSignature,
+			});
 			return expect(verified).to.be.false;
 		});
 
 		it('should return false for incorrect second signature', () => {
-			const verified = verifyMessageWithTwoPublicKeys(
-				Object.assign({}, defaultDoubleSignedMessage, {
-					secondSignature: makeInvalid(defaultSecondSignature),
-				}),
-			);
+			const {
+				secondSignature,
+				...messageWithoutSecondSignature
+			} = defaultDoubleSignedMessage;
+			const verified = verifyMessageWithTwoPublicKeys({
+				secondSignature: makeInvalid(defaultSecondSignature),
+				...messageWithoutSecondSignature,
+			});
 			return expect(verified).to.be.false;
 		});
 
@@ -327,7 +344,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signData', () => {
-		let signature;
+		let signature: string;
 
 		beforeEach(() => {
 			signature = signData(defaultData, defaultPassphrase);
@@ -340,7 +357,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signDataWithPassphrase', () => {
-		let signature;
+		let signature: string;
 
 		beforeEach(() => {
 			signature = signDataWithPassphrase(defaultData, defaultPassphrase);
@@ -353,7 +370,7 @@ ${defaultSecondSignature}
 	});
 
 	describe('#signDataWithPrivateKey', () => {
-		let signature;
+		let signature: string;
 
 		beforeEach(() => {
 			signature = signDataWithPrivateKey(

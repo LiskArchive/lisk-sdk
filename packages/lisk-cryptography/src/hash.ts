@@ -15,25 +15,27 @@
 import crypto from 'crypto';
 import { hexToBuffer } from './buffer';
 
-const cryptoHashSha256 = data => {
-	const hash = crypto.createHash('sha256');
-	hash.update(data);
-	return hash.digest();
+const cryptoHashSha256 = (data: Buffer): Buffer => {
+	const dataHash = crypto.createHash('sha256');
+	dataHash.update(data);
+
+	return dataHash.digest();
 };
 
-const hash = (data, format) => {
+export const hash = (data: Buffer | string, format?: string): Buffer => {
 	if (Buffer.isBuffer(data)) {
 		return cryptoHashSha256(data);
 	}
 
-	if (typeof data === 'string') {
-		if (!['utf8', 'hex'].includes(format)) {
+	if (typeof data === 'string' && typeof format === 'string') {
+		if (['utf8', 'hex'].indexOf(format) === -1) {
 			throw new Error(
 				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);
 		}
 		const encoded =
 			format === 'utf8' ? Buffer.from(data, 'utf8') : hexToBuffer(data);
+
 		return cryptoHashSha256(encoded);
 	}
 
@@ -41,5 +43,3 @@ const hash = (data, format) => {
 		'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 	);
 };
-
-export default hash;

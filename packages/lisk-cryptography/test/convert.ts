@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import {
 	getFirstEightBytesReversed,
 	toAddress,
@@ -22,7 +23,7 @@ import {
 	parseEncryptedPassphrase,
 } from '../src/convert';
 // Require is used for stubbing
-const hash = require('../src/hash');
+const hashModule = require('../src/hash');
 
 describe('convert', () => {
 	// keys for passphrase 'secret';
@@ -86,7 +87,7 @@ describe('convert', () => {
 
 	describe('#getAddressFromPublicKey', () => {
 		beforeEach(() => {
-			return sandbox.stub(hash, 'default').returns(defaultPublicKeyHash);
+			return sandbox.stub(hashModule, 'hash').returns(defaultPublicKeyHash);
 		});
 
 		it('should generate address from publicKey', () => {
@@ -97,9 +98,11 @@ describe('convert', () => {
 
 	describe('#convertPublicKeyEd2Curve', () => {
 		it('should convert publicKey ED25519 to Curve25519 key', () => {
-			const curveRepresentation = convertPublicKeyEd2Curve(
+			const result = convertPublicKeyEd2Curve(
 				Buffer.from(defaultPublicKey, 'hex'),
 			);
+			expect(result).to.not.be.null;
+			const curveRepresentation = result as Buffer;
 			return expect(
 				defaultPublicKeyCurve.equals(Buffer.from(curveRepresentation)),
 			).to.be.true;

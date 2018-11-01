@@ -12,10 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '../src';
+import * as buffer from './buffer';
+import * as convert from './convert';
+import * as encrypt from './encrypt';
+import * as hash from './hash';
+import * as keys from './keys';
+import * as sign from './sign';
 
-describe('cryptography index.js', () => {
-	it('should export an object', () => {
-		return expect(cryptography).to.be.an('object');
-	});
-});
+// tslint:disable-next-line no-default-export
+export default {
+	...buffer,
+	...convert,
+	...encrypt,
+	...hash,
+	...keys,
+	...sign,
+};
