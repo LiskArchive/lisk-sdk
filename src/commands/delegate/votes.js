@@ -116,5 +116,5 @@ Gets votes information for given delegate(s) from the blockchain.
 VotesCommand.examples = [
 	'delegate:votes lightcurve',
 	'delegate:votes lightcurve,4miners.net',
-	'delegate:votes lightcurve,4miners.net --limit 20 --offset 5 --sort publicKey:asc --pretty',
+	'delegate:votes lightcurve,4miners.net --limit 20 --offset 5 --sort balance:asc --pretty',
 ];
