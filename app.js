@@ -512,9 +512,9 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					if (parseInt(appConfig.wsWorkers) < 1) {
+					if (!appConfig.peers.enabled) {
 						scope.logger.info(
-							'Socket Cluster was NOT intiatied due to lack of wsWorkers'
+							'Socket Cluster was NOT intiatied due to peers layer is disabled.'
 						);
 						return cb();
 					}
@@ -757,7 +757,7 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
-					if (parseInt(appConfig.wsWorkers) < 1) {
+					if (!appConfig.peers.enabled) {
 						return cb();
 					}
 					new wsTransport(scope.modules.transport);

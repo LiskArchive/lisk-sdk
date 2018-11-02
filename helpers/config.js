@@ -171,7 +171,6 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			appConfig.peers.list = [];
 			appConfig.broadcasts.active = false;
 			appConfig.syncing.active = false;
-			appConfig.wsWorkers = 0;
 		}
 		return appConfig;
 	}
