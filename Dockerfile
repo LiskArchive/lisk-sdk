@@ -30,7 +30,7 @@ RUN groupadd --gid 1100 lisk && \
 COPY --from=builder --chown=lisk:lisk /home/lisk/lisk/ /home/lisk/lisk/
 # git repository needed for build; cannot be added to .dockerignore
 RUN rm -rf /home/lisk/lisk/.git && \
-    mkdir /home/lisk/lisk/logs && \
+    mkdir -p /home/lisk/lisk/logs && \
     chown lisk:lisk /home/lisk/lisk/logs
 
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /home/lisk/wait-for-it.sh
