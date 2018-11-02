@@ -360,6 +360,10 @@ Each of that option can be appended on command line. There are also few `ENV` va
 |                                      | LISK_DB_PORT           | db.port                  | PostgreSQL database port                                                                                                                                                          |
 |                                      | LISK_DB_USER           | db.user                  | PostgreSQL database username to connect                                                                                                                                           |
 |                                      | LISK_DB_PASSWORD       | db.password              | PostgreSQL database password to connect                                                                                                                                           |
+| <pre nowrap>--redis<br> -r</pre>     | LISK_REDIS_HOST        | redis.host               | Redis host name                                                                                                                                                                   |
+|                                      | LISK_REDIS_PORT        | redis.port               | Redis port                                                                                                                                                                        |
+|                                      | LISK_REDIS_DB_NAME     | redis.db                 | Redis database name to connect                                                                                                                                                    |
+|                                      | LISK_REDIS_DB_PASSWORD | redis.password           | Redis database password to connect                                                                                                                                                |
 | <pre nowrap>--peers<br> -p</pre>     | LISK_PEERS             | peers.list               | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                   |
 |                                      | LISK_API_PUBLIC        | api.access.public        | Enable or disable public access of http API. Must be set to true/false                                                                                                            |
 |                                      | LISK_API_WHITELIST     | api.access.whiteList     | Comma separated list of IPs to enable API access. Format `192.168.99.100,172.169.99.77`                                                                                           |
@@ -462,7 +466,7 @@ Options:
 -o, --output [output]    output file path
 ```
 
-As you can see from the usage guide, `input_file` and` from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from` LISK_NETWORK` env variable.
+As you can see from the usage guide, `input_file` and`from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from`LISK_NETWORK` env variable.
 
 #### Console
 
