@@ -37,24 +37,24 @@ const { APIClient, transactions } = require('@liskhq/lisk-client');
 Include the following script using the following HTML. The `lisk` variable will be exposed.
 
 ```html
-<script src="https://js.lisk.io/lisk-client-1.0.0.js"></script>
+<script src="https://js.lisk.io/lisk-client-1.1.0.js"></script>
 ```
 
 Or minified:
 
 ```html
-<script src="https://js.lisk.io/lisk-client-1.0.0.min.js"></script>
+<script src="https://js.lisk.io/lisk-client-1.1.0.min.js"></script>
 ```
 
 ## Packages
 
 | Package                                                 |                                                      Version                                                      | Description                                                        |
 | ------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------ |
-| [@liskhq/lisk-api-client](../lisk-api-client)     |  [![](https://img.shields.io/badge/npm-v1.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
-| [@liskhq/lisk-constants](../lisk-constants)       |  [![](https://img.shields.io/badge/npm-v1.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
-| [@liskhq/lisk-cryptography](../lisk-cryptography) | [![](https://img.shields.io/badge/npm-v1.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
-| [@liskhq/lisk-passphrase](../lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v1.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
-| [@liskhq/lisk-transactions](../lisk-transactions) | [![](https://img.shields.io/badge/npm-v1.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
+| [@liskhq/lisk-api-client](../lisk-api-client)     |  [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
+| [@liskhq/lisk-constants](../lisk-constants)       |  [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
+| [@liskhq/lisk-cryptography](../lisk-cryptography) | [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
+| [@liskhq/lisk-passphrase](../lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
+| [@liskhq/lisk-transactions](../lisk-transactions) | [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
 
 ## License
 
