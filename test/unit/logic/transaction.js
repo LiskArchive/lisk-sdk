@@ -194,15 +194,12 @@ describe('transaction', () => {
 
 		it('should throw an error Argument must be a valid hex string.', done => {
 			const inValidTransaction = Object.assign({}, validTransaction);
-			let err = null;
 			inValidTransaction.senderPublicKey =
 				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6fx';
 			try {
-				expect(transactionLogic.sign(keyPair, inValidTransaction)).to.be.error;
+				transactionLogic.sign(keyPair, inValidTransaction);
 			} catch (e) {
-				err = e.message;
-			} finally {
-				expect(err).to.equal('Argument must be a valid hex string.');
+				expect(e.message).to.equal('Argument must be a valid hex string.');
 			}
 			done();
 		});
