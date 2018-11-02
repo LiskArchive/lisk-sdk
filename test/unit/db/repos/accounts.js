@@ -550,16 +550,12 @@ describe('db', () => {
 				});
 			});
 
-			it('should execute all queries in one database transaction', done => {
+			it('should execute all queries in one database transaction (txLevel = 0) tagged as `db:accounts:upsert`', done => {
 				const account = accountFixtures.Account();
+				let eventCtx;
 
 				db.$config.options.query = function(event) {
-					if (!(event.ctx && event.ctx.isTX && event.ctx.txLevel === 0)) {
-						return done(
-							`Some query executed outside transaction context: ${event.query}`,
-							event
-						);
-					}
+					eventCtx = event.ctx;
 				};
 
 				var connect = sinonSandbox.stub();
@@ -571,6 +567,10 @@ describe('db', () => {
 				db.accounts
 					.upsert(account, 'address')
 					.then(() => {
+						expect(eventCtx).to.not.null;
+						expect(eventCtx.isTX).to.be.true;
+						expect(eventCtx.txLevel).to.be.eql(0);
+						expect(eventCtx.tag).to.be.eql('db:accounts:upsert');
 						expect(connect.calledOnce).to.be.true;
 						expect(disconnect.calledOnce).to.be.true;
 
