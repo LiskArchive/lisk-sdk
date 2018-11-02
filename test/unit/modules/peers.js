@@ -384,7 +384,7 @@ describe('peers', () => {
 					expect(err).to.be.null;
 					expect(networkHeight)
 						.to.be.an('number')
-						.and.to.deep.eql(0);
+						.and.to.deep.equal(0);
 					done();
 				});
 			});
@@ -410,7 +410,7 @@ describe('peers', () => {
 					expect(err).to.be.null;
 					expect(networkHeight)
 						.to.be.an('number')
-						.and.to.deep.eql(5);
+						.and.to.deep.equal(5);
 					done();
 				});
 			});
