@@ -20,7 +20,13 @@ services:
       - LISK_DB_USER=${ENV_LISK_DB_USER}
       - LISK_DB_PASSWORD=${ENV_LISK_DB_PASSWORD}
       - LISK_DB_NAME=${ENV_LISK_DB_DATABASE}
+# To enable caching:
+#  - set LISK_CACHEENABLED to true,
+#  - uncomment the next two lines and
+#  - uncomment the "redis" block below
       - LISK_CACHE_ENABLED=false
+      #- LISK_REDIS_HOST=redis
+      #- LISK_REDIS_PORT=6379
 # uncomment the following line if you want to see debug messages in the docker logs
       #- LISK_CONSOLE_LOG_LEVEL=debug
 # uncomment the following line if you want the API to be public
@@ -57,6 +63,14 @@ services:
       - PGDATABASE=${ENV_LISK_DB_DATABASE}
       - PGHOST=db
     command: /bin/true
+
+# Uncomment if you enabled caching above
+#  redis:
+#    image: redis:alpine
+#    networks:
+#      - lisk
+#    restart: on-failure
+#    command: --maxclients 500 --tcp-backlog 128 --maxmemory-policy allkeys-lru --save ""
 
 networks:
   lisk:
