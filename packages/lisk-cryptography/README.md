@@ -2,6 +2,7 @@
 
 @liskhq/lisk-cryptography is containing general cryptographic functions for use with Lisk-related software
 
+
 ## Installation
 
 ```sh
@@ -24,8 +25,8 @@ $ npx babel-node ./benchmark/nacl
 
 Benchmark results for nacl functions:
 
-| Function            | Fast                     | Slow                     | Winner |      
-| :-----------------: | :-----------------------:|:-----------------------: | :----: |       
+| Function            | Fast                     | Slow                     | Winner |
+| :-----------------: | :-----------------------:|:-----------------------: | :----: |
 | box                 | x 23,982 ops/sec ±0.59%  | x 771 ops/sec ±0.44%     |  Fast  |
 | openBox             | x 24,247 ops/sec ±0.42%  | x 770 ops/sec ±0.69%     |  Fast  |
 | signDetached        | x 46,402 ops/sec ±0.32%  | x 236 ops/sec ±1.63%     |  Fast  |
