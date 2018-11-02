@@ -275,17 +275,23 @@ history.migrate(
 			// we want to preserve the full object not just that single attribute
 			// it is required due to nature of configuration merging in helpers/config.js
 			// e.g. If someone changed ip of a peer we want to keep full peer object in array
-
+			//
 			// if change is type of edit value
 			// and change path is pointing to a deep object
 			// and path second last index is an integer (means its an array element)
-			if (
+			const changeInDeepObject =
 				d.kind === 'E' &&
 				d.path.length > 2 &&
-				Number.isInteger(d.path[d.path.length - 2])
-			) {
-				const path = _.clone(d.path);
+				Number.isInteger(d.path[d.path.length - 2]);
 
+			// if there is a change in array element we want to preserve it as well to original value
+			const changeInArrayElement = d.kind === 'A';
+
+			const path = _.clone(d.path);
+
+			if (changeInArrayElement) {
+				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+			} else if (changeInDeepObject) {
 				// Remove last item in path to get index of object in array
 				path.splice(-1, 1);
 				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
