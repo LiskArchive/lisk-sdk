@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { castVotes } from '../src/3_cast_votes';
-import { BaseTransaction, VoteAsset } from '../src/types/transactions';
+import { VoteAsset, VoteTransaction } from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -43,7 +43,7 @@ describe('#castVotes transaction', () => {
 	const fee = (1 * fixedPoint).toString();
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let castVotesTransaction: BaseTransaction;
+	let castVotesTransaction: VoteTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

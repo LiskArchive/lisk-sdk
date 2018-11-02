@@ -13,7 +13,7 @@
  *
  */
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
-import { BaseTransaction, PartialTransaction } from './types/transactions';
+import { DelegateTransaction, PartialTransaction } from './types/transactions';
 import { prepareTransaction } from './utils';
 
 export interface RegisterDelegateInputs {
@@ -37,7 +37,7 @@ const validateInputs = ({ username }: { readonly username: string }): void => {
 
 export const registerDelegate = (
 	inputs: RegisterDelegateInputs,
-): BaseTransaction => {
+): DelegateTransaction => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, timeOffset, username } = inputs;
 
@@ -56,5 +56,5 @@ export const registerDelegate = (
 		passphrase,
 		secondPassphrase,
 		timeOffset,
-	);
+	) as DelegateTransaction;
 };

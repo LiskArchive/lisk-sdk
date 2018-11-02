@@ -14,7 +14,7 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from './constants';
-import { BaseTransaction, PartialTransaction } from './types/transactions';
+import { PartialTransaction, VoteTransaction } from './types/transactions';
 import {
 	prepareTransaction,
 	prependMinusToPublicKeys,
@@ -30,13 +30,12 @@ export interface CastVoteInputs {
 	readonly votes?: ReadonlyArray<string>;
 }
 
-const validateInputs = ({
-	votes = [],
-	unvotes = [],
-}: {
+interface VotesObject {
 	readonly unvotes?: ReadonlyArray<string>;
 	readonly votes?: ReadonlyArray<string>;
-}): void => {
+}
+
+const validateInputs = ({ votes = [], unvotes = [] }: VotesObject): void => {
 	if (!Array.isArray(votes)) {
 		throw new Error(
 			'Please provide a valid votes value. Expected an array if present.',
@@ -51,7 +50,7 @@ const validateInputs = ({
 	validatePublicKeys([...votes, ...unvotes]);
 };
 
-export const castVotes = (inputs: CastVoteInputs): BaseTransaction => {
+export const castVotes = (inputs: CastVoteInputs): VoteTransaction => {
 	validateInputs(inputs);
 	const {
 		passphrase,
@@ -85,5 +84,5 @@ export const castVotes = (inputs: CastVoteInputs): BaseTransaction => {
 		passphrase,
 		secondPassphrase,
 		timeOffset,
-	);
+	) as VoteTransaction;
 };

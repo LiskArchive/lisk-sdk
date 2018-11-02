@@ -19,7 +19,10 @@ import {
 	MULTISIGNATURE_MIN_KEYSGROUP,
 	MULTISIGNATURE_MIN_LIFETIME,
 } from './constants';
-import { BaseTransaction, PartialTransaction } from './types/transactions';
+import {
+	MultiSignatureTransaction,
+	PartialTransaction,
+} from './types/transactions';
 import {
 	isValidInteger,
 	prepareTransaction,
@@ -75,7 +78,7 @@ const validateInputs = ({
 
 export const registerMultisignature = (
 	inputs: RegisterMultisignatureInputs,
-): BaseTransaction => {
+): MultiSignatureTransaction => {
 	validateInputs(inputs);
 	const {
 		keysgroup,
@@ -105,5 +108,5 @@ export const registerMultisignature = (
 		passphrase,
 		secondPassphrase,
 		timeOffset,
-	);
+	) as MultiSignatureTransaction;
 };

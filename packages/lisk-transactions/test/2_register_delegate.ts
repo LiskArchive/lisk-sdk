@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
-import { BaseTransaction, DelegateAsset } from '../src/types/transactions';
+import { DelegateAsset, DelegateTransaction } from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -31,7 +31,7 @@ describe('#registerDelegate transaction', () => {
 	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerDelegateTransaction: BaseTransaction;
+	let registerDelegateTransaction: DelegateTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

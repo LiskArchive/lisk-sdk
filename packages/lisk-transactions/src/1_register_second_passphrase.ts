@@ -14,7 +14,10 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
-import { BaseTransaction, PartialTransaction } from './types/transactions';
+import {
+	PartialTransaction,
+	SecondSignatureTransaction,
+} from './types/transactions';
 import { prepareTransaction } from './utils';
 
 export interface SecondPassphraseInputs {
@@ -35,7 +38,7 @@ const validateInputs = ({
 
 export const registerSecondPassphrase = (
 	inputs: SecondPassphraseInputs,
-): BaseTransaction => {
+): SecondSignatureTransaction => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, timeOffset } = inputs;
 	const { publicKey } = cryptography.getKeys(secondPassphrase);
@@ -55,5 +58,5 @@ export const registerSecondPassphrase = (
 		passphrase,
 		secondPassphrase,
 		timeOffset,
-	);
+	) as SecondSignatureTransaction;
 };

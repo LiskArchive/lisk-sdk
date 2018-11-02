@@ -16,8 +16,8 @@ import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
 import {
-	BaseTransaction,
 	MultiSignatureAsset,
+	MultiSignatureTransaction,
 } from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
@@ -43,7 +43,7 @@ describe('#registerMultisignature transaction', () => {
 	let plusPrependedPublicKeyKeysgroup: Array<string>;
 	let keysgroup: Array<string>;
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerMultisignatureTransaction: BaseTransaction;
+	let registerMultisignatureTransaction: MultiSignatureTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

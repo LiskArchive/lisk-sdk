@@ -13,25 +13,12 @@
  *
  */
 import { ErrorObject, ValidateFunction } from 'ajv';
-import { PartialTransaction } from '../../types/transactions';
+import {
+	MultiSignatureTransaction,
+	PartialTransaction,
+} from '../../types/transactions';
 import * as schemas from './schema';
 import { validator } from './validator';
-
-interface BaseTransaction {
-	readonly type: number;
-}
-
-interface MultiSignatureTransaction extends BaseTransaction {
-	readonly asset: MultiSignatureAsset;
-}
-
-interface MultiSignatureAsset {
-	readonly multisignature: {
-		readonly keysgroup: ReadonlyArray<string>;
-		readonly lifetime: number;
-		readonly min: number;
-	};
-}
 
 const TRANSACTION_TYPE_MULTI_SIGNATURE = 4;
 

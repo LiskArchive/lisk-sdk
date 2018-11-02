@@ -218,25 +218,6 @@ describe('getTransactionBytes module', () => {
 					).to.throw(`${parameter} is a required parameter.`);
 				});
 			});
-
-			it('should throw on required parameters as undefined', () => {
-				const requiredProperties = [
-					'type',
-					'timestamp',
-					'senderPublicKey',
-					'amount',
-				];
-
-				return requiredProperties.forEach(parameter => {
-					const {
-						[parameter]: deletedValue,
-						...defaultTransactionClone
-					} = defaultTransaction;
-					expect(
-						getTransactionBytes.bind(null, defaultTransactionClone),
-					).to.throw(`${parameter} is a required parameter.`);
-				});
-			});
 		});
 
 		describe('signature transaction, type 1', () => {

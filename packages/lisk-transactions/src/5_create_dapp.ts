@@ -13,7 +13,7 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import { BaseTransaction, PartialTransaction } from './types/transactions';
+import { DappTransaction, PartialTransaction } from './types/transactions';
 import { isValidInteger, prepareTransaction } from './utils';
 
 export interface DappOptions {
@@ -65,7 +65,7 @@ const validateInputs = ({ options }: DappInputs): void => {
 	}
 };
 
-export const createDapp = (inputs: DappInputs): BaseTransaction => {
+export const createDapp = (inputs: DappInputs): DappTransaction => {
 	validateInputs(inputs);
 	const { passphrase, secondPassphrase, timeOffset, options } = inputs;
 
@@ -90,5 +90,5 @@ export const createDapp = (inputs: DappInputs): BaseTransaction => {
 		passphrase,
 		secondPassphrase,
 		timeOffset,
-	);
+	) as DappTransaction;
 };

@@ -15,9 +15,8 @@
 import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/0_transfer';
-import { BaseTransaction } from '../src/types/transactions';
-// Require is used for stubbing
-const time = require('../src/utils/time');
+import { TransferTransaction } from '../src/types/transactions';
+import * as time from '../src/utils/time';
 
 describe('#transfer transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -37,7 +36,7 @@ describe('#transfer transaction', () => {
 	const timeWithOffset = 38350076;
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let transferTransaction: BaseTransaction;
+	let transferTransaction: TransferTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

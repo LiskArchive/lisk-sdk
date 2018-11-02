@@ -15,11 +15,10 @@
 import { expect } from 'chai';
 import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
 import {
-	BaseTransaction,
 	SecondSignatureAsset,
+	SecondSignatureTransaction,
 } from '../src/types/transactions';
-// Require is used for stubbing
-const time = require('../src/utils/time');
+import * as time from '../src/utils/time';
 
 describe('#registerSecondPassphrase transaction', () => {
 	const fixedPoint = 10 ** 8;
@@ -38,7 +37,7 @@ describe('#registerSecondPassphrase transaction', () => {
 	const amount = '0';
 
 	let getTimeWithOffsetStub: sinon.SinonStub;
-	let registerSecondPassphraseTransaction: BaseTransaction;
+	let registerSecondPassphraseTransaction: SecondSignatureTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox

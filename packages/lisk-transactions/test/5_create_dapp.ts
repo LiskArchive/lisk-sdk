@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { createDapp, DappOptions } from '../src/5_create_dapp';
-import { BaseTransaction, DappAsset } from '../src/types/transactions';
+import { DappAsset, DappTransaction } from '../src/types/transactions';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -48,15 +48,17 @@ describe('#createDapp transaction', () => {
 	const tagsStringError = 'Dapp tags must be a string if provided.';
 	const iconStringError = 'Dapp icon must be a string if provided.';
 
-	let getTimeWithOffsetStub: object;
+	let getTimeWithOffsetStub: sinon.SinonStub;
 	let options: DappOptions;
-	let createDappTransaction: BaseTransaction;
+	let createDappTransaction: DappTransaction;
 
 	beforeEach(() => {
 		getTimeWithOffsetStub = sandbox
 			.stub(time, 'getTimeWithOffset')
 			.returns(timeWithOffset);
-		options = Object.assign({}, defaultOptions);
+		options = {
+			...defaultOptions,
+		};
 		return Promise.resolve();
 	});
 
