@@ -190,8 +190,35 @@ describe('accounts', () => {
 			});
 		});
 
-		it('should be ok with pre existing database transaction', done => {
+		it('should set and get account using `Accounts:setAccountAndGet` database transaction with txLevel = 0', done => {
 			const account = accountFixtures.Account();
+			let eventCtx;
+
+			db.$config.options.query = function(event) {
+				eventCtx = event.ctx;
+			};
+
+			accounts.setAccountAndGet(account, (error, data) => {
+				expect(error).to.be.null;
+				expect(data.address).to.be.eql(account.address);
+
+				expect(eventCtx).to.not.null;
+				expect(eventCtx.isTX).to.be.true;
+				expect(eventCtx.txLevel).to.be.eql(0);
+				expect(eventCtx.tag).to.be.eql('Accounts:setAccountAndGet');
+				delete db.$config.options.query;
+
+				done();
+			});
+		});
+
+		it('should set and get account using `Tests:setAccountAndGet` database transaction with txLevel = 0', done => {
+			const account = accountFixtures.Account();
+			let eventCtx;
+
+			db.$config.options.query = function(event) {
+				eventCtx = event.ctx;
+			};
 
 			const task = t =>
 				accounts.setAccountAndGet(
@@ -199,6 +226,13 @@ describe('accounts', () => {
 					(error, data) => {
 						expect(error).to.be.null;
 						expect(data.address).to.be.eql(account.address);
+
+						expect(eventCtx).to.not.null;
+						expect(eventCtx.isTX).to.be.true;
+						expect(eventCtx.txLevel).to.be.eql(0);
+						expect(eventCtx.tag).to.be.eql('Tests:setAccountAndGet');
+						delete db.$config.options.query;
+
 						done();
 					},
 					t
