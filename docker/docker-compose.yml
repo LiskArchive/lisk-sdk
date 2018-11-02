@@ -21,7 +21,7 @@ services:
       - LISK_DB_PASSWORD=${ENV_LISK_DB_PASSWORD}
       - LISK_DB_NAME=${ENV_LISK_DB_DATABASE}
 # To enable caching:
-#  - set LISK_CACHEENABLED to true,
+#  - set LISK_CACHE_ENABLED to true,
 #  - uncomment the next two lines and
 #  - uncomment the "redis" block below
       - LISK_CACHE_ENABLED=false
