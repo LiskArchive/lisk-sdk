@@ -14,6 +14,7 @@
 
 'use strict';
 
+var lisk = require('lisk-elements').cryptography;
 var genesisDelegates = require('../../data/genesis_delegates.json');
 var delegatesRoundsList = require('../../data/delegates_rounds_list.json');
 var accountFixtures = require('../../fixtures/accounts');
@@ -495,45 +496,49 @@ describe('delegates', () => {
 			let delegates;
 			let __private;
 
+			const genesis1 = {
+				passphrase:
+					'robust swift grocery peasant forget share enable convince deputy road keep cheap',
+				publicKey:
+					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
+			};
+
+			const genesis2 = {
+				passphrase:
+					'weapon van trap again sustain write useless great pottery urge month nominee',
+				publicKey:
+					'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
+			};
+
+			const genesis3 = {
+				passphrase:
+					'course genuine appear elite library fabric armed chat pipe scissors mask novel',
+				publicKey:
+					'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
+			};
+
+			let genesis1Keypair;
+			let genesis2Keypair;
+			let genesis3Keypair;
+
 			before(done => {
 				delegates = library.rewiredModules.delegates.__get__('self');
 				__private = library.rewiredModules.delegates.__get__('__private');
 
-				__private.keypairs = {
-					// genesis_1 delegate keypairs
-					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f': {
-						publicKey: new Buffer.from(
-							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-							'hex'
-						),
-						privateKey: new Buffer.from(
-							'b092a6664e9eed658ff50fe796ee695b9fe5617e311e9e8a34eb340eb5b831549d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
-							'hex'
-						),
-					},
-					// genesis_2 delegate keypairs
-					'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a': {
-						publicKey: new Buffer.from(
-							'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-							'hex'
-						),
-						privateKey: new Buffer.from(
-							'e896941f49df461e34d87cbe66c9cf35abcc58a25e4494c97a3f781b9e77e83c141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
-							'hex'
-						),
-					},
-					// genesis_3 delegate keypairs
-					'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135': {
-						publicKey: new Buffer.from(
-							'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-							'hex'
-						),
-						privateKey: new Buffer.from(
-							'd4b9f54978f789c1a291f948d32f19039d54962b5b4c14d314c1521f2975b9be3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135',
-							'hex'
-						),
-					},
-				};
+				genesis1Keypair = lisk.getPrivateAndPublicKeyBytesFromPassphrase(
+					genesis1.passphrase
+				);
+				genesis2Keypair = lisk.getPrivateAndPublicKeyBytesFromPassphrase(
+					genesis2.passphrase
+				);
+				genesis3Keypair = lisk.getPrivateAndPublicKeyBytesFromPassphrase(
+					genesis3.passphrase
+				);
+
+				__private.keypairs = {};
+				__private.keypairs[genesis1.publicKey] = genesis1Keypair;
+				__private.keypairs[genesis2.publicKey] = genesis2Keypair;
+				__private.keypairs[genesis3.publicKey] = genesis3Keypair;
 
 				done();
 			});
@@ -553,12 +558,11 @@ describe('delegates', () => {
 					(err, keyPair) => {
 						expect(err).to.be.null;
 						expect(keyPair).to.have.keys('publicKey', 'privateKey');
-						expect(keyPair.publicKey.toString('hex')).to.equal(
-							'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
+						expect(keyPair.publicKey).to.deep.equal(genesis1Keypair.publicKey);
+						expect(keyPair.privateKey).to.deep.equal(
+							genesis1Keypair.privateKey
 						);
-						expect(keyPair.privateKey.toString('hex')).to.equal(
-							'b092a6664e9eed658ff50fe796ee695b9fe5617e311e9e8a34eb340eb5b831549d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f'
-						);
+
 						done();
 					}
 				);
@@ -579,12 +583,11 @@ describe('delegates', () => {
 					(err, keyPair) => {
 						expect(err).to.be.null;
 						expect(keyPair).to.have.keys('publicKey', 'privateKey');
-						expect(keyPair.publicKey.toString('hex')).to.equal(
-							'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
+						expect(keyPair.publicKey).to.deep.equal(genesis2Keypair.publicKey);
+						expect(keyPair.privateKey).to.deep.equal(
+							genesis2Keypair.privateKey
 						);
-						expect(keyPair.privateKey.toString('hex')).to.equal(
-							'e896941f49df461e34d87cbe66c9cf35abcc58a25e4494c97a3f781b9e77e83c141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a'
-						);
+
 						done();
 					}
 				);
@@ -605,12 +608,11 @@ describe('delegates', () => {
 					(err, keyPair) => {
 						expect(err).to.be.null;
 						expect(keyPair).to.have.keys('publicKey', 'privateKey');
-						expect(keyPair.publicKey.toString('hex')).to.equal(
-							'3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135'
+						expect(keyPair.publicKey).to.deep.equal(genesis3Keypair.publicKey);
+						expect(keyPair.privateKey).to.deep.equal(
+							genesis3Keypair.privateKey
 						);
-						expect(keyPair.privateKey.toString('hex')).to.equal(
-							'd4b9f54978f789c1a291f948d32f19039d54962b5b4c14d314c1521f2975b9be3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135'
-						);
+
 						done();
 					}
 				);
