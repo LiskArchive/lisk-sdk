@@ -164,7 +164,7 @@ describe('accounts', () => {
 			});
 		});
 
-		it('should be ok with address but no publicKey', done => {
+		it('should set and get account when sending address but no publicKey', done => {
 			const account = accountFixtures.Account();
 
 			delete account.publicKey;
@@ -177,7 +177,7 @@ describe('accounts', () => {
 			});
 		});
 
-		it('should set address if it is not provided', done => {
+		it('should set and get account with address when publicKey is provided but address is not provided', done => {
 			const account = accountFixtures.Account();
 
 			delete account.address;
