@@ -15,6 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
 const transactionTypes = require('../helpers/transaction_types.js');
@@ -160,33 +161,48 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 
 	const task = t =>
 		new Promise((resolve, reject) => {
-			library.logic.account.set(
-				address,
-				data,
-				setAccountErr => {
-					if (setAccountErr) {
-						library.logger.error(
-							`Set account ${address} failed`,
-							setAccountErr
+			async.waterfall(
+				[
+					waterfallCb => {
+						library.logic.account.set(
+							address,
+							data,
+							setAccountErr => {
+								if (setAccountErr) {
+									library.logger.error(
+										`Set account ${address} failed`,
+										setAccountErr
+									);
+									return setImmediate(waterfallCb, setAccountErr);
+								}
+								return setImmediate(waterfallCb);
+							},
+							t
 						);
-						return reject(setAccountErr);
+					},
+					waterfallCb => {
+						library.logic.account.get(
+							{ address },
+							(getAccountErr, account) => {
+								if (getAccountErr) {
+									library.logger.error(
+										`Get account ${address} failed`,
+										getAccountErr
+									);
+									return setImmediate(waterfallCb, getAccountErr);
+								}
+								return setImmediate(waterfallCb, null, account);
+							},
+							t
+						);
+					},
+				],
+				(waterfallErr, account) => {
+					if (waterfallErr) {
+						return reject(waterfallErr);
 					}
-					return library.logic.account.get(
-						{ address },
-						(getAccountErr, account) => {
-							if (getAccountErr) {
-								library.logger.error(
-									`Get account ${address} failed`,
-									getAccountErr
-								);
-								return reject(getAccountErr);
-							}
-							return resolve(account);
-						},
-						t
-					);
-				},
-				t
+					return resolve(account);
+				}
 			);
 		});
 
