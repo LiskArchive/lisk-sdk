@@ -42,8 +42,7 @@ export type TransactionAsset =
 	| MultiSignatureAsset
 	| DappAsset
 	| InTransferAsset
-	| OutTransferAsset
-	| object;
+	| OutTransferAsset;
 
 export interface TransferTransaction extends BaseTransaction {
 	readonly asset: TransferAsset;
