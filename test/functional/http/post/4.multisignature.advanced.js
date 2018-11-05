@@ -94,33 +94,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('using ready false should be ok but never confirmed', () => {
-					var scenario = scenarios.offline_signed_with_ready_false;
-
-					scenario.multiSigTransaction.signatures = _.map(
-						scenario.members,
-						member => {
-							var signatureObject = apiHelpers.createSignatureObject(
-								scenario.multiSigTransaction,
-								member
-							);
-							return signatureObject.signature;
-						}
-					);
-
-					scenario.multiSigTransaction.ready = false;
-
-					return sendTransactionPromise(scenario.multiSigTransaction).then(
-						res => {
-							expect(res.body.data.message).to.be.equal(
-								'Transaction(s) accepted'
-							);
-							badTransactions.push(scenario.multiSigTransaction);
-							pendingMultisignatures.push(scenario.multiSigTransaction);
-						}
-					);
-				});
-
 				it('using ready true should be ok', () => {
 					var scenario = scenarios.offline_signed_with_ready_true;
 
@@ -340,6 +313,47 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
+				});
+
+				it('using ready false should be ok and be corrected and processed', () => {
+					var scenario = scenarios.offline_signed_with_ready_false;
+
+					scenario.multiSigTransaction.signatures = _.map(
+						scenario.members,
+						member => {
+							var signatureObject = apiHelpers.createSignatureObject(
+								scenario.multiSigTransaction,
+								member
+							);
+							return signatureObject.signature;
+						}
+					);
+
+					scenario.multiSigTransaction.ready = false;
+
+					return sendTransactionPromise(scenario.multiSigTransaction).then(
+						res => {
+							expect(res.body.data.message).to.be.equal(
+								'Transaction(s) accepted'
+							);
+							goodTransactions.push(scenario.multiSigTransaction);
+						}
+					);
+				});
+
+				it('using ready true with no signatures should be corrected and unconfirmed', () => {
+					var scenario = scenarios.offline_signed_with_ready_false;
+
+					scenario.multiSigTransaction.ready = true;
+
+					return sendTransactionPromise(scenario.multiSigTransaction).then(
+						res => {
+							expect(res.body.data.message).to.be.equal(
+								'Transaction(s) accepted'
+							);
+							pendingMultisignatures.push(scenario.multiSigTransaction);
+						}
+					);
 				});
 			});
 		});

@@ -520,6 +520,18 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
+	if (
+		transaction.signatures &&
+		transaction.signatures.length >= transaction.asset.multisignature.min &&
+		transaction.ready === false
+	) {
+		transaction.ready = true;
+	}
+
+	if (!transaction.signatures && transaction.ready === true) {
+		transaction.ready = false;
+	}
+
 	const report = library.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema

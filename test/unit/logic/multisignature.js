@@ -32,6 +32,10 @@ var validTransaction = testData.validTransaction;
 var rawValidTransaction = testData.rawValidTransaction;
 var multiSigAccount1 = testData.multiSigAccount1;
 var multiSigAccount2 = testData.multiSigAccount2;
+var invalidAllSignaturesReadyFalse = testData.invalidAllSignaturesReadyFalse;
+var validAllSignaturesReadyTrue = testData.validAllSignaturesReadyTrue;
+var invalidNoSignaturesReadyTrue = testData.invalidNoSignaturesReadyTrue;
+var validNoSignaturesReadyFalse = testData.validNoSignaturesReadyFalse;
 
 describe('multisignature', () => {
 	var transactionMock;
@@ -44,6 +48,10 @@ describe('multisignature', () => {
 	var transaction;
 	var rawTransaction;
 	var sender;
+	var invalidReadyTransactionAllSignatures;
+	var validReadyTransactionAllSignatures;
+	var invalidNoSignaturesReadyTrueTran;
+	var validNoSignaturesReadyFalseTran;
 
 	beforeEach(() => {
 		transactionMock = {
@@ -59,6 +67,16 @@ describe('multisignature', () => {
 			setAccountAndGet: sinonSandbox.stub().callsArg(1),
 		};
 		transaction = _.cloneDeep(validTransaction);
+		invalidReadyTransactionAllSignatures = _.cloneDeep(
+			invalidAllSignaturesReadyFalse
+		);
+		validReadyTransactionAllSignatures = _.cloneDeep(
+			validAllSignaturesReadyTrue
+		);
+		invalidNoSignaturesReadyTrueTran = _.cloneDeep(
+			invalidNoSignaturesReadyTrue
+		);
+		validNoSignaturesReadyFalseTran = _.cloneDeep(validNoSignaturesReadyFalse);
 		rawTransaction = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
 		dummyBlock = {
@@ -1197,6 +1215,18 @@ describe('multisignature', () => {
 			return expect(multisignature.objectNormalize(transaction)).to.eql(
 				transaction
 			);
+		});
+
+		it('should correct invalid ready property when signatures present', () => {
+			return expect(
+				multisignature.objectNormalize(invalidReadyTransactionAllSignatures)
+			).to.eql(validReadyTransactionAllSignatures);
+		});
+
+		it('should correct invalid ready property when signatures not present', () => {
+			return expect(
+				multisignature.objectNormalize(invalidNoSignaturesReadyTrueTran)
+			).to.eql(validNoSignaturesReadyFalseTran);
 		});
 	});
 
