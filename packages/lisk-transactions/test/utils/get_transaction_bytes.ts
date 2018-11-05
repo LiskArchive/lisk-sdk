@@ -200,23 +200,35 @@ describe('getTransactionBytes module', () => {
 				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
 
-			it('should throw on missing required parameters', () => {
-				const requiredProperties = [
-					'type',
-					'timestamp',
-					'senderPublicKey',
-					'amount',
-				];
+			it('should throw on missing required parameter type', () => {
+				const { type, ...defaultTransactionClone } = defaultTransaction;
+				expect(
+					getTransactionBytes.bind(null, defaultTransactionClone),
+				).to.throw(`type is a required parameter.`);
+			});
 
-				return requiredProperties.forEach(parameter => {
-					const {
-						[parameter]: deletedValue,
-						...defaultTransactionClone
-					} = defaultTransaction;
-					expect(
-						getTransactionBytes.bind(null, defaultTransactionClone),
-					).to.throw(`${parameter} is a required parameter.`);
-				});
+			it('should throw on missing required parameter timestamp', () => {
+				const { timestamp, ...defaultTransactionClone } = defaultTransaction;
+				expect(
+					getTransactionBytes.bind(null, defaultTransactionClone),
+				).to.throw(`timestamp is a required parameter.`);
+			});
+
+			it('should throw on missing required parameter senderPublicKey', () => {
+				const {
+					senderPublicKey,
+					...defaultTransactionClone
+				} = defaultTransaction;
+				expect(
+					getTransactionBytes.bind(null, defaultTransactionClone),
+				).to.throw(`senderPublicKey is a required parameter.`);
+			});
+
+			it('should throw on missing required parameter amount', () => {
+				const { amount, ...defaultTransactionClone } = defaultTransaction;
+				expect(
+					getTransactionBytes.bind(null, defaultTransactionClone),
+				).to.throw(`amount is a required parameter.`);
 			});
 		});
 
@@ -570,20 +582,37 @@ describe('getTransactionBytes module', () => {
 				return expect(multisignatureBuffer).to.be.eql(expectedBuffer);
 			});
 
-			it('should throw on missing required parameters', () => {
-				const requiredProperties = ['min', 'lifetime', 'keysgroup'];
+			it('should throw on missing required parameter min', () => {
+				const { min, ...multisigAsset } = multisignatureAsset.multisignature;
+				expect(
+					getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
+						multisignature: multisigAsset,
+					}),
+				).to.throw(`min is a required parameter.`);
+			});
 
-				return requiredProperties.forEach(parameter => {
-					const {
-						[parameter]: deletedValue,
-						...multisigAsset
-					} = multisignatureAsset.multisignature;
-					expect(
-						getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
-							multisignature: multisigAsset,
-						}),
-					).to.throw(`${parameter} is a required parameter.`);
-				});
+			it('should throw on missing required parameter lifetime', () => {
+				const {
+					lifetime,
+					...multisigAsset
+				} = multisignatureAsset.multisignature;
+				expect(
+					getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
+						multisignature: multisigAsset,
+					}),
+				).to.throw(`lifetime is a required parameter.`);
+			});
+
+			it('should throw on missing required parameter keysgroup', () => {
+				const {
+					keysgroup,
+					...multisigAsset
+				} = multisignatureAsset.multisignature;
+				expect(
+					getAssetDataForRegisterMultisignatureAccountTransaction.bind(null, {
+						multisignature: multisigAsset,
+					}),
+				).to.throw(`keysgroup is a required parameter.`);
 			});
 		});
 
