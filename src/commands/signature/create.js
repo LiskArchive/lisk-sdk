@@ -45,6 +45,11 @@ export default class CreateCommand extends BaseCommand {
 
 		const transactionObject = parseTransactionString(transactionInput);
 
+		const { valid } = transactions.utils.validateTransaction(transactionObject);
+		if (!valid) {
+			throw new Error('Provided transaction is invalid.');
+		}
+
 		const { passphrase } = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,

@@ -58,6 +58,9 @@ describe('signature:create', () => {
 				'createSignatureObject',
 				sandbox.stub().returns(defaultSignatureObject),
 			)
+			.stub(transactions, 'utils', {
+				validateTransaction: sandbox.stub().returns({ valid: true }),
+			})
 			.stub(
 				getInputsFromSources,
 				'default',
@@ -88,6 +91,18 @@ describe('signature:create', () => {
 				);
 			})
 			.it('should throw an error');
+
+		setupTest()
+			.stub(transactions, 'utils', {
+				validateTransaction: sandbox.stub().returns({ valid: false }),
+			})
+			.command(['signature:create', JSON.stringify(defaultTransaction)])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Provided transaction is invalid.',
+				);
+			})
+			.it('should throw an error when transaction is invalid');
 
 		setupTest()
 			.command(['signature:create', JSON.stringify(defaultTransaction)])
