@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { cryptography } from 'lisk-elements';
+import cryptography from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getInputsFromSources from '../../utils/input';

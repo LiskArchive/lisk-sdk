@@ -14,7 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
 import commonFlags from '../../../utils/flags';
 import getInputsFromSources from '../../../utils/input';
@@ -24,7 +24,7 @@ const processInputs = (lifetime, minimum, keysgroup) => ({
 	passphrase,
 	secondPassphrase,
 }) =>
-	elements.transaction.registerMultisignature({
+	transactions.registerMultisignature({
 		passphrase,
 		secondPassphrase,
 		keysgroup,
@@ -43,7 +43,7 @@ export default class MultisignatureCommand extends BaseCommand {
 			},
 		} = this.parse(MultisignatureCommand);
 
-		elements.transaction.utils.validatePublicKeys(keysgroup);
+		transactions.utils.validatePublicKeys(keysgroup);
 
 		validateLifetime(lifetime);
 		validateMinimum(minimum);

@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import parseTransactionString from '../../utils/transactions';
@@ -58,7 +58,7 @@ export default class VerifyCommand extends BaseCommand {
 			? await processSecondPublicKey(secondPublicKeySource)
 			: null;
 
-		const verified = elements.transaction.utils.verifyTransaction(
+		const verified = transactions.utils.verifyTransaction(
 			transactionObject,
 			secondPublicKey,
 		);

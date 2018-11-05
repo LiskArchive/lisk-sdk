@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
 import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
@@ -43,7 +43,7 @@ describe('transaction:create:delegate', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'registerDelegate',
 				sandbox.stub().returns(defaultTransaction),
 			)
@@ -74,9 +74,7 @@ describe('transaction:create:delegate', () => {
 					},
 					secondPassphrase: null,
 				});
-				expect(
-					elements.default.transaction.registerDelegate,
-				).to.be.calledWithExactly({
+				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					username: defaultUsername,
@@ -104,9 +102,7 @@ describe('transaction:create:delegate', () => {
 						},
 						secondPassphrase: null,
 					});
-					expect(
-						elements.default.transaction.registerDelegate,
-					).to.be.calledWithExactly({
+					expect(transactions.registerDelegate).to.be.calledWithExactly({
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
@@ -139,9 +135,7 @@ describe('transaction:create:delegate', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.registerDelegate,
-					).to.be.calledWithExactly({
+					expect(transactions.registerDelegate).to.be.calledWithExactly({
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						username: defaultUsername,
@@ -161,9 +155,7 @@ describe('transaction:create:delegate', () => {
 				'--no-signature',
 			])
 			.it('create a transaction with the username without signature', () => {
-				expect(
-					elements.default.transaction.registerDelegate,
-				).to.be.calledWithExactly({
+				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					passphrase: null,
 					secondPassphrase: null,
 					username: defaultUsername,

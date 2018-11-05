@@ -104,6 +104,11 @@
 		"/default_config.json"
 	],
 	"dependencies": {
+		"@liskhq/lisk-api-client": "1.1.0",
+		"@liskhq/lisk-constants": "1.1.0",
+		"@liskhq/lisk-cryptography": "1.1.0",
+		"@liskhq/lisk-passphrase": "1.1.0",
+		"@liskhq/lisk-transactions": "1.1.0",
 		"@oclif/command": "1.5.0",
 		"@oclif/config": "1.7.4",
 		"@oclif/errors": "1.2.0",
@@ -113,7 +118,6 @@
 		"chalk": "2.4.1",
 		"cli-table3": "0.5.0",
 		"inquirer": "6.2.0",
-		"lisk-elements": "1.0.0",
 		"lockfile": "1.0.4",
 		"semver": "5.5.1",
 		"strip-ansi": "4.0.0"
