@@ -20,37 +20,35 @@
  */
 
 const fs = require('fs');
-const path = require('path');
 const program = require('commander');
 const merge = require('lodash/merge');
 
-const rootPath = path.resolve(path.dirname(__filename), '../');
-let networkName;
+const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
+const loadJSONFileIfExists = filePath => {
+	if (fs.existsSync(filePath)) {
+		return JSON.parse(fs.readFileSync(filePath), 'utf8');
+	}
+	return {};
+};
 
 program
 	.version('0.1.1')
-	.arguments(
-		'<network>',
-		'Network name for which to generate the configuration'
-	)
-	.action(network => {
-		networkName = network;
-	})
+	.option('-c, --config [config]', 'Custom config file')
+	.option('-n, --network [network]', 'Specify the network or use LISK_NETWORK')
 	.parse(process.argv);
 
-if (!networkName) {
-	console.error('error: no network name is provided.');
-	process.exit(1);
-}
+const networkName = program.network || process.env.LISK_NETWORK;
 
-function loadFile(fileName) {
-	return JSON.parse(fs.readFileSync(path.resolve(rootPath, fileName)));
+if (!networkName) {
+	console.error('error: no network name is provided');
+	process.exit(1);
 }
 
 const config = merge(
 	{},
-	loadFile('config/default/config.json'),
-	loadFile(`./config/${networkName}/config.json`)
+	loadJSONFile('config/default/config.json'),
+	loadJSONFile(`./config/${networkName}/config.json`),
+	loadJSONFileIfExists(program.config)
 );
 
 console.info(JSON.stringify(config, null, '\t'));

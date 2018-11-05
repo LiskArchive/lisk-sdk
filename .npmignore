@@ -6,6 +6,7 @@ pids/*
 release/
 scripts/**/*
 !scripts/update_config.js
+!scripts/generate_config.js
 tasks/
 test/
 Grunt*

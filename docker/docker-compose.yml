@@ -20,18 +20,26 @@ services:
       - LISK_DB_USER=${ENV_LISK_DB_USER}
       - LISK_DB_PASSWORD=${ENV_LISK_DB_PASSWORD}
       - LISK_DB_NAME=${ENV_LISK_DB_DATABASE}
+# To enable caching:
+#  - set LISK_CACHE_ENABLED to true,
+#  - uncomment the next two lines and
+#  - uncomment the "redis" block below
       - LISK_CACHE_ENABLED=false
-# uncomment the following line if you want to see debug messages in the docker logs
+      #- LISK_REDIS_HOST=redis
+      #- LISK_REDIS_PORT=6379
+# Uncomment the following line if you want to see debug messages in the docker logs
       #- LISK_CONSOLE_LOG_LEVEL=debug
-# uncomment the following line if you want the API to be public
+# Uncomment the following line if you want the API to be public
       #- LISK_API_PUBLIC=true
-# uncomment and change the following line if you want to forge:
-# you will need to use your own encrypted key (use lisk-commander to encrypt it)
-      #- LISK_FORGING_DELEGATES=salt=d25cb9fd7c0b9935f4abc59388aceb74&cipherText=122096545efdd048eda72552883db00ff62ca3925a8d870a5c6380a043b45372adea1698755b73b7ef8c2f2269907b04c77aac38f7094f08c147eccbc6a3bb62c374252e39acf4519b8d&iv=03781f7ba5ba16ffd8d93edb&tag=55e7d26c9dbd35d011938d38fea13602&version=1:eadd8a8bb1a7283147aa7006c8b5f9f2b871d789f36207dfd44039ed44c1d572
-# uncomment the following lines to allow access to the API
-# change 'YOUR_IP' to you actual IP address
-      #- LISK_API_WHITELIST=YOUR_IP
-      #- LISK_FORGING_WHITELIST=YOUR_IP
+# Uncomment and change the following line if you want to forge.
+# You will need to use your own encrypted key (use lisk-commander to encrypt it)
+      #- LISK_FORGING_DELEGATES=publicKey1|encryptedPassphrase1,publicKey2|encryptedPassphrase2
+# Uncomment the following lines to allow access to the API
+# Change 'YOUR_IP' to you actual IP address
+      #- LISK_API_WHITELIST=IP1,IP2
+      #- LISK_FORGING_WHITELIST=IP1,IP2
+# Uncomment the following to set your own peer:
+      #- LISK_PEERS=PEER_IP_1:PORT_1,PEER_IP_2:PORT_2
 
   db:
     image: postgres:10-alpine
@@ -55,6 +63,14 @@ services:
       - PGDATABASE=${ENV_LISK_DB_DATABASE}
       - PGHOST=db
     command: /bin/true
+
+# Uncomment if you enabled caching above
+#  redis:
+#    image: redis:alpine
+#    networks:
+#      - lisk
+#    restart: on-failure
+#    command: --maxclients 500 --tcp-backlog 128 --maxmemory-policy allkeys-lru --save ""
 
 networks:
   lisk:
