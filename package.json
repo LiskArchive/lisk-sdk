@@ -125,6 +125,6 @@
 	},
 	"snyk": true,
 	"lisk": {
-		"minVersion": "1.0.0"
+		"minVersion": "1.1.0-rc.0"
 	}
 }

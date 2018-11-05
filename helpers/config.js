@@ -51,6 +51,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		.option('-p, --port <port>', 'listening port number')
 		.option('-h, --http-port <httpPort>', 'listening HTTP port number')
 		.option('-d, --database <database>', 'database name')
+		.option('-r, --redis <redis host>', 'Redis host name')
 		.option('-a, --address <ip>', 'listening host name or ip')
 		.option('-x, --peers [peers...]', 'peers list')
 		.option('-l, --log <level>', 'log level')
@@ -105,6 +106,12 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			port: parseInt(getenv(process.env.LISK_DB_PORT)) || null,
 			user: getenv(process.env.LISK_DB_USER),
 			password: getenv(process.env.LISK_DB_PASSWORD),
+		},
+		redis: {
+			host: program.redis || getenv(process.env.LISK_REDIS_HOST),
+			port: parseInt(getenv(process.env.LISK_REDIS_PORT)) || null,
+			database: getenv(process.env.LISK_REDIS_DB_NAME),
+			password: getenv(process.env.LISK_REDIS_DB_PASSWORD),
 		},
 		api: {
 			access: {
