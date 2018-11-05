@@ -44,6 +44,7 @@ describe('transaction:sign', () => {
 
 	const transactionUtilStub = {
 		prepareTransaction: sandbox.stub().returns(defaultSignedTransaction),
+		validateTransaction: sandbox.stub().returns({ valid: true }),
 	};
 
 	const printMethodStub = sandbox.stub();
@@ -82,6 +83,18 @@ describe('transaction:sign', () => {
 				);
 			})
 			.it('should throw an error');
+
+		setupTest()
+			.stub(transactions, 'utils', {
+				validateTransaction: sandbox.stub().returns({ valid: false }),
+			})
+			.command(['transaction:sign', JSON.stringify(defaultTransaction)])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Provided transaction is invalid.',
+				);
+			})
+			.it('should throw an error when transaction is invalid');
 
 		setupTest()
 			.command(['transaction:sign', JSON.stringify(defaultTransaction)])

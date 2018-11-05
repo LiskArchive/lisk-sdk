@@ -47,6 +47,11 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
+		const { valid } = transactions.utils.validateTransaction(transactionObject);
+		if (!valid) {
+			throw new Error('Provided transaction is invalid.');
+		}
+
 		const { passphrase, secondPassphrase } = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,
