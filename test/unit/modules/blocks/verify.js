@@ -2198,11 +2198,11 @@ describe('blocks/verify', () => {
 								__private.addBlockProperties,
 								__private.normalizeBlock,
 								__private.verifyBlock,
+								__private.broadcastBlock,
 								__private.checkExists,
 								__private.validateBlockSlot,
 								__private.checkTransactions,
 								modules.blocks.chain.applyBlock,
-								__private.broadcastBlock,
 								modules.system.update,
 								modules.transport.broadcastHeaders
 							);
