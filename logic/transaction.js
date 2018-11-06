@@ -279,7 +279,8 @@ class Transaction {
 	/**
 	 * Returns true if a transaction was confirmed.
 	 *
-	 * @param {transaction} transaction
+	 * @param {Object} transaction
+	 * @param {string} transaction.id - only transaction id is necessary here
 	 * @param {function} cb
 	 * @returns {SetImmediate} error, isConfirmed
 	 * @todo Add description for the params
