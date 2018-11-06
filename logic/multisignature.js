@@ -16,6 +16,7 @@
 
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
+const has = require('lodash').has;
 const ed = require('../helpers/ed.js');
 const Diff = require('../helpers/diff.js');
 const slots = require('../helpers/slots.js');
@@ -87,6 +88,37 @@ Multisignature.prototype.calculateFee = function(transaction) {
 };
 
 /**
+ * Corrects ready property when invalid for signatures property.
+ *
+ * @param {transaction} transaction
+ * @returns {transaction} Corrected transaction
+ */
+Multisignature.prototype.correctInvalidReadyProperty = function(transaction) {
+	if (
+		transaction.signatures &&
+		has(transaction, 'asset.multisignature.min') &&
+		transaction.signatures.length >= transaction.asset.multisignature.min &&
+		transaction.ready === false
+	) {
+		transaction.ready = true;
+	}
+
+	if (!transaction.signatures && transaction.ready === true) {
+		transaction.ready = false;
+	}
+
+	if (
+		transaction.signatures &&
+		has(transaction, 'asset.multisignature.min') &&
+		transaction.signatures.length < transaction.asset.multisignature.min &&
+		transaction.ready === true
+	) {
+		transaction.ready = false;
+	}
+	return transaction;
+};
+
+/**
  * Verifies multisignature fields from transaction asset and sender.
  *
  * @param {transaction} transaction
@@ -96,6 +128,8 @@ Multisignature.prototype.calculateFee = function(transaction) {
  * @todo Add description for the params
  */
 Multisignature.prototype.verify = function(transaction, sender, cb) {
+	transaction = this.correctInvalidReadyProperty(transaction);
+
 	if (!transaction.asset || !transaction.asset.multisignature) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
@@ -520,18 +554,6 @@ Multisignature.prototype.schema = {
  * @returns {transaction} Validated transaction
  */
 Multisignature.prototype.objectNormalize = function(transaction) {
-	if (
-		transaction.signatures &&
-		transaction.signatures.length >= transaction.asset.multisignature.min &&
-		transaction.ready === false
-	) {
-		transaction.ready = true;
-	}
-
-	if (!transaction.signatures && transaction.ready === true) {
-		transaction.ready = false;
-	}
-
 	const report = library.schema.validate(
 		transaction.asset.multisignature,
 		Multisignature.prototype.schema

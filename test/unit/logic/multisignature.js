@@ -33,9 +33,9 @@ var rawValidTransaction = testData.rawValidTransaction;
 var multiSigAccount1 = testData.multiSigAccount1;
 var multiSigAccount2 = testData.multiSigAccount2;
 var invalidAllSignaturesReadyFalse = testData.invalidAllSignaturesReadyFalse;
-var validAllSignaturesReadyTrue = testData.validAllSignaturesReadyTrue;
 var invalidNoSignaturesReadyTrue = testData.invalidNoSignaturesReadyTrue;
-var validNoSignaturesReadyFalse = testData.validNoSignaturesReadyFalse;
+var invalidSomeSignaturesReadyTrue = testData.invalidSomeSignaturesReadyTrue;
+let multisignatureSpy;
 
 describe('multisignature', () => {
 	var transactionMock;
@@ -49,9 +49,8 @@ describe('multisignature', () => {
 	var rawTransaction;
 	var sender;
 	var invalidReadyTransactionAllSignatures;
-	var validReadyTransactionAllSignatures;
 	var invalidNoSignaturesReadyTrueTran;
-	var validNoSignaturesReadyFalseTran;
+	var invalidSomeSignaturesReadyTrueTran;
 
 	beforeEach(() => {
 		transactionMock = {
@@ -70,13 +69,12 @@ describe('multisignature', () => {
 		invalidReadyTransactionAllSignatures = _.cloneDeep(
 			invalidAllSignaturesReadyFalse
 		);
-		validReadyTransactionAllSignatures = _.cloneDeep(
-			validAllSignaturesReadyTrue
-		);
 		invalidNoSignaturesReadyTrueTran = _.cloneDeep(
 			invalidNoSignaturesReadyTrue
 		);
-		validNoSignaturesReadyFalseTran = _.cloneDeep(validNoSignaturesReadyFalse);
+		invalidSomeSignaturesReadyTrueTran = _.cloneDeep(
+			invalidSomeSignaturesReadyTrue
+		);
 		rawTransaction = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
 		dummyBlock = {
@@ -90,6 +88,7 @@ describe('multisignature', () => {
 			accountMock,
 			modulesLoader.logger
 		);
+		multisignatureSpy = sinonSandbox.spy(multisignature, 'verify');
 		return multisignature.bind(accountsMock);
 	});
 
@@ -191,6 +190,16 @@ describe('multisignature', () => {
 
 	describe('verify', () => {
 		describe('from multisignature.verify tests', () => {
+			it('Should call correctInvalidReadyProperty only once', () => {
+				return multisignature.verify(
+					transaction,
+					accountFixtures.genesis,
+					() => {
+						return expect(multisignatureSpy.called).to.be.true;
+					}
+				);
+			});
+
 			it('should return error when min value is smaller than minimum acceptable value', done => {
 				var minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				var keysgroup = [
@@ -1216,18 +1225,6 @@ describe('multisignature', () => {
 				transaction
 			);
 		});
-
-		it('should correct invalid ready property when signatures present', () => {
-			return expect(
-				multisignature.objectNormalize(invalidReadyTransactionAllSignatures)
-			).to.eql(validReadyTransactionAllSignatures);
-		});
-
-		it('should correct invalid ready property when signatures not present', () => {
-			return expect(
-				multisignature.objectNormalize(invalidNoSignaturesReadyTrueTran)
-			).to.eql(validNoSignaturesReadyFalseTran);
-		});
 	});
 
 	describe('dbRead', () => {
@@ -1309,6 +1306,43 @@ describe('multisignature', () => {
 			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			return expect(multisignature.ready(transaction, sender)).to.equal(true);
+		});
+	});
+
+	describe('correctInvalidReadyProperty', () => {
+		it('should correct true property when signatures present and ready set to false', () => {
+			const correctedTransaction = multisignature.correctInvalidReadyProperty(
+				invalidReadyTransactionAllSignatures
+			);
+			return expect(correctedTransaction.ready).to.equal(true);
+		});
+
+		it('should correct true property when signatures not present and ready set to true', () => {
+			const correctedTransaction = multisignature.correctInvalidReadyProperty(
+				invalidNoSignaturesReadyTrueTran
+			);
+			return expect(correctedTransaction.ready).to.equal(false);
+		});
+
+		it('should correct true property when signatures present but less than min, ready set to true', () => {
+			const correctedTransaction = multisignature.correctInvalidReadyProperty(
+				invalidSomeSignaturesReadyTrueTran
+			);
+			return expect(correctedTransaction.ready).to.equal(false);
+		});
+
+		it('should only modify the ready property', () => {
+			const tranBeforeCallingMethod = _.cloneDeep(
+				invalidReadyTransactionAllSignatures
+			);
+			const correctedTransaction = multisignature.correctInvalidReadyProperty(
+				invalidReadyTransactionAllSignatures
+			);
+			delete correctedTransaction.ready;
+			delete tranBeforeCallingMethod.ready;
+			return expect(correctedTransaction).to.deep.equal(
+				tranBeforeCallingMethod
+			);
 		});
 	});
 });
