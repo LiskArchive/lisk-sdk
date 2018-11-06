@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
 import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
@@ -58,11 +58,11 @@ describe('transaction:create:vote', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'castVotes',
 				sandbox.stub().returns(defaultTransaction),
 			)
-			.stub(elements.default.transaction, 'utils', transactionUtilStub)
+			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(inputUtils, 'getData', sandbox.stub().resolves(fileVotes.join(',')))
 			.stub(
 				getInputsFromSources,
@@ -96,7 +96,7 @@ describe('transaction:create:vote', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
 				);
-				expect(elements.default.transaction.castVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: defaultVote,
@@ -121,7 +121,7 @@ describe('transaction:create:vote', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					fileVotes,
 				);
-				expect(elements.default.transaction.castVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: fileVotes,
@@ -150,7 +150,7 @@ describe('transaction:create:vote', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
 				);
-				expect(elements.default.transaction.castVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: [],
@@ -175,7 +175,7 @@ describe('transaction:create:vote', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					fileVotes,
 				);
-				expect(elements.default.transaction.castVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: [],
@@ -221,7 +221,7 @@ describe('transaction:create:vote', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
 				);
-				expect(elements.default.transaction.castVotes).to.be.calledWithExactly({
+				expect(transactions.castVotes).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					votes: defaultVote,
@@ -251,9 +251,7 @@ describe('transaction:create:vote', () => {
 					expect(
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
-					expect(
-						elements.default.transaction.castVotes,
-					).to.be.calledWithExactly({
+					expect(transactions.castVotes).to.be.calledWithExactly({
 						passphrase: null,
 						secondPassphrase: null,
 						votes: defaultVote,
@@ -290,9 +288,7 @@ describe('transaction:create:vote', () => {
 					expect(
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
-					expect(
-						elements.default.transaction.castVotes,
-					).to.be.calledWithExactly({
+					expect(transactions.castVotes).to.be.calledWithExactly({
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						votes: defaultVote,
@@ -333,9 +329,7 @@ describe('transaction:create:vote', () => {
 					expect(
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
-					expect(
-						elements.default.transaction.castVotes,
-					).to.be.calledWithExactly({
+					expect(transactions.castVotes).to.be.calledWithExactly({
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						votes: defaultVote,

@@ -14,7 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
 import commonFlags from '../../../utils/flags';
 import getInputsFromSources from '../../../utils/input';
@@ -22,7 +22,7 @@ import { getData } from '../../../utils/input/utils';
 import { ValidationError } from '../../../utils/error';
 
 const processInputs = (votes, unvotes) => ({ passphrase, secondPassphrase }) =>
-	elements.transaction.castVotes({
+	transactions.castVotes({
 		passphrase,
 		votes,
 		unvotes,
@@ -40,7 +40,7 @@ const processVotes = votes =>
 		.map(vote => vote.trim());
 
 const validatePublicKeys = inputs => {
-	elements.transaction.utils.validatePublicKeys(inputs);
+	transactions.utils.validatePublicKeys(inputs);
 	return inputs;
 };
 

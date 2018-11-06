@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
 import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
@@ -42,7 +42,7 @@ describe('transaction:create:second-passphrase', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'registerSecondPassphrase',
 				sandbox.stub().returns(defaultTransaction),
 			)
@@ -67,9 +67,9 @@ describe('transaction:create:second-passphrase', () => {
 						repeatPrompt: true,
 					},
 				});
-				expect(
-					elements.default.transaction.registerSecondPassphrase,
-				).to.be.calledWithExactly(defaultInputs);
+				expect(transactions.registerSecondPassphrase).to.be.calledWithExactly(
+					defaultInputs,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
 				);
@@ -95,9 +95,9 @@ describe('transaction:create:second-passphrase', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.registerSecondPassphrase,
-					).to.be.calledWithExactly(defaultInputs);
+					expect(transactions.registerSecondPassphrase).to.be.calledWithExactly(
+						defaultInputs,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultTransaction,
 					);
@@ -125,9 +125,9 @@ describe('transaction:create:second-passphrase', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.registerSecondPassphrase,
-					).to.be.calledWithExactly(defaultInputs);
+					expect(transactions.registerSecondPassphrase).to.be.calledWithExactly(
+						defaultInputs,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultTransaction,
 					);
@@ -148,9 +148,9 @@ describe('transaction:create:second-passphrase', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.registerSecondPassphrase,
-					).to.be.calledWithExactly(defaultInputs);
+					expect(transactions.registerSecondPassphrase).to.be.calledWithExactly(
+						defaultInputs,
+					);
 					return expect(printMethodStub).to.be.calledWithExactly(
 						defaultTransaction,
 					);

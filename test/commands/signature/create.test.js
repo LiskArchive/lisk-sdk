@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
@@ -54,7 +54,7 @@ describe('signature:create', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'createSignatureObject',
 				sandbox.stub().returns(defaultSignatureObject),
 			)
@@ -98,9 +98,10 @@ describe('signature:create', () => {
 						repeatPrompt: true,
 					},
 				});
-				expect(
-					elements.default.transaction.createSignatureObject,
-				).to.be.calledWithExactly(defaultTransaction, defaultInputs.passphrase);
+				expect(transactions.createSignatureObject).to.be.calledWithExactly(
+					defaultTransaction,
+					defaultInputs.passphrase,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignatureObject,
 				);
@@ -123,9 +124,7 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.createSignatureObject,
-					).to.be.calledWithExactly(
+					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
@@ -175,9 +174,7 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.createSignatureObject,
-					).to.be.calledWithExactly(
+					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
@@ -205,9 +202,7 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.createSignatureObject,
-					).to.be.calledWithExactly(
+					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);

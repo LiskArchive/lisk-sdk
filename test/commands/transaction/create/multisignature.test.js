@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
 import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
@@ -51,11 +51,11 @@ describe('transaction:create:multisignature', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'registerMultisignature',
 				sandbox.stub().returns(defaultTransaction),
 			)
-			.stub(elements.default.transaction, 'utils', transactionUtilStub)
+			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(
 				getInputsFromSources,
 				'default',
@@ -139,9 +139,7 @@ describe('transaction:create:multisignature', () => {
 					},
 					secondPassphrase: null,
 				});
-				expect(
-					elements.default.transaction.registerMultisignature,
-				).to.be.calledWithExactly({
+				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
@@ -174,9 +172,7 @@ describe('transaction:create:multisignature', () => {
 					},
 					secondPassphrase: null,
 				});
-				expect(
-					elements.default.transaction.registerMultisignature,
-				).to.be.calledWithExactly({
+				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
 					secondPassphrase: defaultInputs.secondPassphrase,
 					keysgroup: defaultKeysgroup,
@@ -215,9 +211,7 @@ describe('transaction:create:multisignature', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.registerMultisignature,
-					).to.be.calledWithExactly({
+					expect(transactions.registerMultisignature).to.be.calledWithExactly({
 						passphrase: defaultInputs.passphrase,
 						secondPassphrase: defaultInputs.secondPassphrase,
 						keysgroup: defaultKeysgroup,
@@ -247,9 +241,7 @@ describe('transaction:create:multisignature', () => {
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultKeysgroup);
 					expect(getInputsFromSources.default).not.to.be.called;
-					expect(
-						elements.default.transaction.registerMultisignature,
-					).to.be.calledWithExactly({
+					expect(transactions.registerMultisignature).to.be.calledWithExactly({
 						passphrase: null,
 						secondPassphrase: null,
 						keysgroup: defaultKeysgroup,

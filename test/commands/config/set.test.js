@@ -211,12 +211,12 @@ describe('config:set', () => {
 
 			setupTest()
 				.stdout()
-				.command(['config:set', 'api.network', 'beta'])
+				.command(['config:set', 'api.network', 'test'])
 				.it('should set api.network to a known network', () => {
 					const newConfig = {
 						...defaultConfig,
 						api: {
-							network: 'beta',
+							network: 'test',
 							nodes: defaultConfig.api.nodes,
 						},
 					};
@@ -235,7 +235,7 @@ describe('config:set', () => {
 				])
 				.catch(error =>
 					expect(error.message).to.contain(
-						'Value must be a hex string with 64 characters, or one of main, test or beta.',
+						'Value must be a hex string with 64 characters, or one of main or test.',
 					),
 				)
 				.it(
@@ -251,7 +251,7 @@ describe('config:set', () => {
 				])
 				.catch(error =>
 					expect(error.message).to.contain(
-						'Value must be a hex string with 64 characters, or one of main, test or beta.',
+						'Value must be a hex string with 64 characters, or one of main or test.',
 					),
 				)
 				.it(
