@@ -57,10 +57,7 @@
 		"prebuild": "npm run prebuild:browser",
 		"build": "npm run build:browser",
 		"build:check": "node -e \"require('./dist-node')\"",
-		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check",
-		"prepublish:browser": "npm run prepublishOnly",
-		"publish:browser": "./scripts/publish_browser.sh",
-		"postpublish": "npm run publish:browser"
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
 		"@liskhq/lisk-api-client": "1.1.0",
