@@ -18,6 +18,7 @@ RUN npm install
 FROM node:8
 
 ENV NODE_ENV=production
+ENV WFI_COMMIT=e34c502a3efe0e8b8166ea6148d55b73da5c8401
 ENV WFI_SHA=0f75de5c9d9c37a933bb9744ffd710750d5773892930cfe40509fa505788835c
 
 RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >/etc/apt/sources.list.d/backports.list && \
@@ -30,10 +31,10 @@ RUN groupadd --gid 1100 lisk && \
 COPY --from=builder --chown=lisk:lisk /home/lisk/lisk/ /home/lisk/lisk/
 # git repository needed for build; cannot be added to .dockerignore
 RUN rm -rf /home/lisk/lisk/.git && \
-    mkdir /home/lisk/lisk/logs && \
+    mkdir -p /home/lisk/lisk/logs && \
     chown lisk:lisk /home/lisk/lisk/logs
 
-ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /home/lisk/wait-for-it.sh
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/${WFI_COMMIT}/wait-for-it.sh /home/lisk/wait-for-it.sh
 RUN if [ x"$( sha256sum /home/lisk/wait-for-it.sh |awk '{print $1}' )" = x"${WFI_SHA}" ]; then \
       chmod 0755 /home/lisk/wait-for-it.sh; \
     else \

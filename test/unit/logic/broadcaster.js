@@ -5,7 +5,11 @@ const Broadcaster = rewire('../../../logic/broadcaster');
 describe('Broadcaster', () => {
 	const force = true;
 	const params = { limit: 10, broadhash: '123' };
-	const options = { data: { peer: {}, block: {} }, api: 'blocks' };
+	const options = {
+		data: { peer: {}, block: {} },
+		api: 'blocks',
+		immediate: false,
+	};
 	let broadcaster;
 	let broadcasts;
 	let transactionStub;
@@ -20,25 +24,6 @@ describe('Broadcaster', () => {
 	let filterQueue;
 	let filterTransaction;
 	let squashQueue;
-	const transactionData = {
-		id: '16140284222734558289',
-		rowId: 133,
-		blockId: '1462190441827192029',
-		type: 0,
-		timestamp: 33363661,
-		senderPublicKey:
-			'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
-		senderId: '16313739661670634666L',
-		recipientId: '5649948960790668770L',
-		amount: 8067474861277,
-		fee: 10000000,
-		signature:
-			'7ff5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008',
-		signSignature: null,
-		requesterPublicKey: null,
-		signatures: null,
-		asset: {},
-	};
 
 	beforeEach(done => {
 		broadcasts = {
@@ -331,78 +316,284 @@ describe('Broadcaster', () => {
 	});
 
 	describe('filterQueue', () => {
-		beforeEach(done => {
-			options.data.transaction = [transactionData];
-			broadcaster.enqueue(params, options);
+		const validTransaction = { id: '321' };
+		const validSignature = { transactionId: '123' };
+		beforeEach('having empty broadcasts queue', done => {
+			broadcaster.queue = [];
 			done();
 		});
 
-		it('should return empty queue when option immediate is set to true', done => {
-			options.immediate = true;
-			filterQueue(() => {
-				expect(broadcaster.queue)
-					.to.be.an('Array')
-					.to.eql([]);
+		describe('having one transaction broadcast in queue with immediate = true', () => {
+			beforeEach(done => {
+				broadcaster.enqueue(params, {
+					api: 'postTransactions',
+					data: { transaction: validTransaction },
+					immediate: true,
+				});
+				// ToDo: Why is enqueue overwriting immediate parameter with false?
+				broadcaster.queue[0].options.immediate = true;
 				done();
+			});
+
+			it('should set an empty broadcaster.queue and skip the broadcast', done => {
+				filterQueue(() => {
+					expect(broadcaster.queue)
+						.to.be.an('Array')
+						.to.eql([]);
+					done();
+				});
 			});
 		});
 
-		it('should be able to filter the transactions in pool', done => {
-			modulesStub.transactions.transactionInPool.returns(true);
-			const filterTransactionStub = sinonSandbox
-				.stub()
-				.callsArgWith(1, null, broadcasts);
-			Broadcaster.__set__('__private.filterTransaction', filterTransactionStub);
-			filterQueue(() => {
-				expect(broadcaster.queue[0].options.data.transaction)
-					.to.be.an('Array')
-					.to.eql([transactionData]);
-				expect(loggerStub.debug.args[0][0]).to.be.eql(
-					`Broadcasts before filtering: ${broadcaster.queue.length}`
+		describe('having one transaction broadcast in queue of transaction = undefined', () => {
+			beforeEach(done => {
+				broadcaster.enqueue(params, {
+					api: 'postTransactions',
+					data: { transaction: undefined },
+					immediate: true,
+				});
+				done();
+			});
+
+			it('should set an empty broadcaster.queue and skip the broadcast', done => {
+				filterQueue(() => {
+					expect(broadcaster.queue)
+						.to.be.an('Array')
+						.to.eql([]);
+					done();
+				});
+			});
+		});
+
+		describe('having one signature broadcast in queue', () => {
+			beforeEach(done => {
+				broadcaster.enqueue(params, {
+					api: 'postSignatures',
+					data: { signature: validSignature },
+					immediate: false,
+				});
+				done();
+			});
+
+			it('should call transaction pool with [signature.transactionId]', done => {
+				filterQueue(() => {
+					expect(modulesStub.transactions.transactionInPool).calledWithExactly(
+						validSignature.transactionId
+					);
+					done();
+				});
+			});
+		});
+
+		describe('having one transaction broadcast in queue', () => {
+			let broadcast;
+			beforeEach(done => {
+				broadcaster.enqueue(params, {
+					api: 'postTransactions',
+					data: { transaction: validTransaction },
+					immediate: false,
+				});
+				broadcast = Object.assign(
+					{},
+					{ params },
+					{
+						options: {
+							api: 'postTransactions',
+							data: { transaction: validTransaction },
+							immediate: false,
+						},
+					}
 				);
 				done();
 			});
-		});
-	});
 
-	describe('filterTransaction', () => {
-		beforeEach(done => {
-			modulesStub.transactions.transactionInPool.returns(true);
-			done();
-		});
+			it('should call transaction pool with [transaction.id]', done => {
+				filterQueue(() => {
+					expect(modulesStub.transactions.transactionInPool).calledWithExactly(
+						validTransaction.id
+					);
+					done();
+				});
+			});
 
-		it('should return false if transaction is undefined', done => {
-			filterTransaction(undefined, (err, status) => {
-				expect(err).to.be.null;
-				expect(status).to.be.false;
-				done();
+			describe('when [validTransaction] exists in transaction pool', () => {
+				beforeEach(done => {
+					modulesStub.transactions.transactionInPool.returns(true);
+					done();
+				});
+				it('should leave [broadcast] in broadcaster.queue', done => {
+					filterQueue(() => {
+						expect(broadcaster.queue)
+							.to.be.an('Array')
+							.to.eql([broadcast]);
+						done();
+					});
+				});
+			});
+
+			describe('when [validTransaction] does not exist in transaction pool', () => {
+				beforeEach(done => {
+					modulesStub.transactions.transactionInPool.returns(false);
+					done();
+				});
+				describe('when [validTransaction] is confirmed', () => {
+					beforeEach(done => {
+						transactionStub.checkConfirmed.callsArgWith(1, null, true);
+						done();
+					});
+					it('should set an empty broadcaster.queue and skip the broadcast', done => {
+						filterQueue(() => {
+							expect(broadcaster.queue)
+								.to.be.an('Array')
+								.to.eql([]);
+							done();
+						});
+					});
+				});
+				describe('when [validTransaction] is not confirmed', () => {
+					beforeEach(done => {
+						transactionStub.checkConfirmed.callsArgWith(1, null, false);
+						done();
+					});
+					it('should leave [broadcast] in broadcaster.queue', done => {
+						filterQueue(() => {
+							expect(broadcaster.queue)
+								.to.be.an('Array')
+								.to.eql([broadcast]);
+							done();
+						});
+					});
+				});
+				describe('when error occurs while checking if [validTransaction] is confirmed', () => {
+					beforeEach(done => {
+						transactionStub.checkConfirmed.callsArgWith(
+							1,
+							'Checking if transction is confirmed error',
+							false
+						);
+						done();
+					});
+					it('should set an empty broadcaster.queue and skip the broadcast', done => {
+						filterQueue(() => {
+							expect(broadcaster.queue)
+								.to.be.an('Array')
+								.to.eql([]);
+							done();
+						});
+					});
+				});
 			});
 		});
 
-		it('should return false if transaction is not in pool', done => {
-			modulesStub.transactions.transactionInPool.returns(false);
-			filterTransaction({ id: '123' }, (err, status) => {
-				expect(err).to.be.null;
-				expect(status).to.be.true;
+		describe('having many transaction and signatures broadcasts in queue', () => {
+			const broadcasts = [];
+			beforeEach(done => {
+				broadcaster.enqueue(params, {
+					api: 'postTransactions',
+					data: { transaction: { id: 1 } },
+					immediate: false,
+				});
+				broadcaster.enqueue(params, {
+					api: 'postTransactions',
+					data: { transaction: { id: 2 } },
+					immediate: false,
+				});
+				broadcaster.enqueue(params, {
+					api: 'postTransactions',
+					data: { transaction: { id: 3 } },
+					immediate: false,
+				});
+				broadcasts.push(
+					Object.assign(
+						{},
+						{ params },
+						{
+							options: {
+								api: 'postTransactions',
+								data: { transaction: { id: 1 } },
+								immediate: false,
+							},
+						}
+					)
+				);
+				broadcasts.push(
+					Object.assign(
+						{},
+						{ params },
+						{
+							options: {
+								api: 'postTransactions',
+								data: { transaction: { id: 2 } },
+								immediate: false,
+							},
+						}
+					)
+				);
+				broadcasts.push(
+					Object.assign(
+						{},
+						{ params },
+						{
+							options: {
+								api: 'postTransactions',
+								data: { transaction: { id: 3 } },
+								immediate: false,
+							},
+						}
+					)
+				);
+				broadcaster.enqueue(params, {
+					api: 'postSignatures',
+					data: { signature: { transactionId: 1 } },
+					immediate: false,
+				});
+				broadcaster.enqueue(params, {
+					api: 'postSignatures',
+					data: { signature: { transactionId: 2 } },
+					immediate: false,
+				});
+				broadcasts.push(
+					Object.assign(
+						{},
+						{ params },
+						{
+							options: {
+								api: 'postSignatures',
+								data: { signature: { transactionId: 1 } },
+								immediate: false,
+							},
+						}
+					)
+				);
+				broadcasts.push(
+					Object.assign(
+						{},
+						{ params },
+						{
+							options: {
+								api: 'postSignatures',
+								data: { signature: { transactionId: 2 } },
+								immediate: false,
+							},
+						}
+					)
+				);
 				done();
 			});
-		});
 
-		it('should return true if transaction is in pool', done => {
-			filterTransaction({ id: '123' }, (err, status) => {
-				expect(err).to.be.null;
-				expect(status).to.be.true;
-				done();
-			});
-		});
-
-		it('should return false if transaction is not confirmed', done => {
-			modulesStub.transactions.transactionInPool.returns(false);
-			transactionStub.checkConfirmed.callsArgWith(1, true);
-			filterTransaction({ id: '123' }, (err, status) => {
-				expect(err).to.be.null;
-				expect(status).to.be.false;
-				done();
+			describe('when all of them exist in transaction pool', () => {
+				beforeEach(done => {
+					modulesStub.transactions.transactionInPool.returns(true);
+					done();
+				});
+				it('should leave all of them in broadcaster.queue', done => {
+					filterQueue(() => {
+						expect(broadcaster.queue)
+							.to.be.an('Array')
+							.to.eql(broadcasts);
+						done();
+					});
+				});
 			});
 		});
 	});
