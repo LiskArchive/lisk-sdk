@@ -74,7 +74,10 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				return done(err);
 			}
 			// It should be less than EXPECTED_TOTAL_CONNECTIONS, as nodes are just started and establishing the connections
-			if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS) {
+			if (
+				numOfConnections <=
+				EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS
+			) {
 				done();
 			} else {
 				done(
