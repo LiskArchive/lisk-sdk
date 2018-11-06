@@ -15,6 +15,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('../logic/block_reward.js');
 const transactionTypes = require('../helpers/transaction_types.js');
@@ -49,6 +50,8 @@ class Accounts {
 	constructor(cb, scope) {
 		library = {
 			ed: scope.ed,
+			db: scope.db,
+			logger: scope.logger,
 			schema: scope.schema,
 			balancesSequence: scope.balancesSequence,
 			logic: {
@@ -156,17 +159,61 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 		throw err;
 	}
 
-	library.logic.account.set(
-		address,
-		data,
-		err => {
-			if (err) {
-				return setImmediate(cb, err);
-			}
-			return library.logic.account.get({ address }, cb, tx);
-		},
-		tx
-	);
+	const task = t =>
+		new Promise((resolve, reject) => {
+			async.waterfall(
+				[
+					waterfallCb => {
+						library.logic.account.set(
+							address,
+							data,
+							setAccountErr => {
+								if (setAccountErr) {
+									library.logger.error(
+										`Set account ${address} failed`,
+										setAccountErr
+									);
+									return setImmediate(waterfallCb, setAccountErr);
+								}
+								return setImmediate(waterfallCb);
+							},
+							t
+						);
+					},
+					waterfallCb => {
+						library.logic.account.get(
+							{ address },
+							(getAccountErr, account) => {
+								if (getAccountErr) {
+									library.logger.error(
+										`Get account ${address} failed`,
+										getAccountErr
+									);
+									return setImmediate(waterfallCb, getAccountErr);
+								}
+								return setImmediate(waterfallCb, null, account);
+							},
+							t
+						);
+					},
+				],
+				(waterfallErr, account) => {
+					if (waterfallErr) {
+						return reject(waterfallErr);
+					}
+					return resolve(account);
+				}
+			);
+		});
+
+	// Force task to run in a db tx to make sure it always return the inserted account
+	const taskPromise = tx
+		? task(tx)
+		: library.db.tx('Accounts:setAccountAndGet', task);
+
+	return taskPromise
+		.then(data => setImmediate(cb, null, data))
+		.catch(err => setImmediate(cb, err));
 };
 
 /**

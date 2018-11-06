@@ -372,7 +372,7 @@ describe('db', () => {
 				const account = accountFixtures.Account();
 
 				return db.accounts.upsert(account, 'address').then(result => {
-					expect(result).to.be.undefined;
+					expect(result).to.be.null;
 				});
 			});
 
@@ -548,6 +548,41 @@ describe('db', () => {
 								});
 						});
 				});
+			});
+
+			it('should execute all queries in one database transaction (txLevel = 0) tagged as `db:accounts:upsert`', done => {
+				const account = accountFixtures.Account();
+				let eventCtx;
+
+				db.$config.options.query = function(event) {
+					eventCtx = event.ctx;
+				};
+
+				var connect = sinonSandbox.stub();
+				var disconnect = sinonSandbox.stub();
+
+				db.$config.options.connect = connect;
+				db.$config.options.disconnect = disconnect;
+
+				db.accounts
+					.upsert(account, 'address')
+					.then(() => {
+						expect(eventCtx).to.not.null;
+						expect(eventCtx.isTX).to.be.true;
+						expect(eventCtx.txLevel).to.be.eql(0);
+						expect(eventCtx.tag).to.be.eql('db:accounts:upsert');
+						expect(connect.calledOnce).to.be.true;
+						expect(disconnect.calledOnce).to.be.true;
+
+						delete db.$config.options.connect;
+						delete db.$config.options.disconnect;
+						delete db.$config.options.query;
+
+						done();
+					})
+					.catch(err => {
+						done(err);
+					});
 			});
 		});
 
