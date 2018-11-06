@@ -25,6 +25,7 @@ const blocksChain = require('./blocks/chain');
 // Private fields
 let library;
 let self;
+let modules = {};
 const __private = {};
 
 __private.lastBlock = {};
@@ -55,6 +56,7 @@ class Blocks {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
+			network: scope.network,
 		};
 
 		// Initialize submodules with library content
@@ -228,10 +230,30 @@ Blocks.prototype.isCleaning = {
  * Handle modules initialization.
  * Modules are not required in this file.
  */
-Blocks.prototype.onBind = function() {
+Blocks.prototype.onBind = function(scope) {
 	// TODO: move here blocks submodules modules load from app.js.
+	modules = {
+		cache: scope.cache,
+	};
+
 	// Set module as loaded
 	__private.loaded = true;
+};
+
+/**
+ * Emit socket notification `blocks/change`.
+ *
+ * @param {Block} block
+ * @todo Add description for the params
+ * @todo Add @returns tag
+ */
+Blocks.prototype.onNewBlock = function(block) {
+	modules.cache.clearBlockRelatedCache(err => {
+		if (err) {
+			library.logger.info('clearBlockRelatedCache error');
+		}
+		library.network.io.sockets.emit('blocks/change', block);
+	});
 };
 
 /**

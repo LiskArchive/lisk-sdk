@@ -225,13 +225,11 @@ Cache.prototype.quit = function(cb) {
 /**
  * Clears all cache entries upon new block.
  *
- * @param {Block} block
- * @param {Broadcast} broadcast
  * @param {function} cb
  * @todo Add description for the params
  * @todo Add @returns tag
  */
-Cache.prototype.onNewBlock = function(block, cb) {
+Cache.prototype.clearBlockRelatedCache = function(cb) {
 	cb = cb || function() {};
 
 	logger.debug(
