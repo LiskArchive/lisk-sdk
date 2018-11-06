@@ -105,7 +105,7 @@ __private.list = function(filter, cb) {
 
 	// Removing null characters from data filter to avoid errors in pg-promise library
 	if (filter.data) {
-		filter.data = Buffer.from(filter.data);
+		filter.data = Buffer.from(filter.data, 'utf8');
 	}
 
 	const allowedFieldsMap = {
