@@ -23,8 +23,10 @@ describe('validateTransaction', () => {
 	describe('#validateTransaction', () => {
 		describe('when fixtures provided', () => {
 			it('should be all valid for the fixtures', () => {
-				return fixtures.forEach((tx: PartialTransaction) => {
-					const { valid, errors } = validateTransaction(tx);
+				return fixtures.forEach((tx: unknown) => {
+					const { valid, errors } = validateTransaction(
+						tx as PartialTransaction,
+					);
 					expect(valid).to.be.true;
 					expect(errors).to.be.undefined;
 				});
