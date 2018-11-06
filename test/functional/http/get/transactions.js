@@ -48,7 +48,7 @@ describe('GET /api/transactions', () => {
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
-		data: 'transaction2',
+		data: 'transaction2 ฿',
 	});
 	var transaction3 = lisk.transaction.transfer({
 		amount: 20 * NORMALIZER, // 20 LSK
@@ -702,6 +702,52 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data.length).to.greaterThan(1);
 						_.map(res.body.data, transaction => {
 							return expect(transaction.asset.data).to.include(dataFilter);
+						});
+					});
+			});
+
+			it('using unicode null character with regex should return all the transactions', () => {
+				var dataFilter = '%\u0000%';
+				var count;
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: '%',
+						},
+						200
+					)
+					.then(res => {
+						count = res.body.meta.count;
+					})
+					.then(() => {
+						return transactionsEndpoint.makeRequest(
+							{
+								data: dataFilter,
+							},
+							200
+						);
+					})
+					.then(res => {
+						expect(res.body.meta.count).to.equal(count);
+					});
+			});
+
+			it('using unicode character should return transactions', () => {
+				var unicodeCharacter = '฿';
+				var fuzzyCommand = '%';
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: fuzzyCommand + unicodeCharacter + fuzzyCommand,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data.length).to.greaterThan(1);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(
+								unicodeCharacter
+							);
 						});
 					});
 			});

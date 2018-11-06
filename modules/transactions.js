@@ -128,7 +128,7 @@ __private.list = function(filter, cb) {
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
 		data:
-			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE ENCODE(transfer.data, \'escape\') ILIKE ${data})',
+			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data LIKE ${data}::bytea)',
 		limit: null,
 		offset: null,
 		sort: null,
