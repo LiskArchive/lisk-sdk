@@ -33,6 +33,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		offline_signed_empty_signatures: new Scenarios.Multisig(),
 		offline_signed_without_ready: new Scenarios.Multisig(),
 		offline_signed_with_ready_false: new Scenarios.Multisig(),
+		unsigned_with_ready_true: new Scenarios.Multisig(),
 		offline_signed_with_ready_true: new Scenarios.Multisig(),
 		duplicated_signature: new Scenarios.Multisig(),
 		extra_signature: new Scenarios.Multisig(),
@@ -342,7 +343,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				});
 
 				it('using ready true with no signatures should be corrected and unconfirmed', () => {
-					var scenario = scenarios.offline_signed_with_ready_false;
+					var scenario = scenarios.unsigned_with_ready_true;
 
 					scenario.multiSigTransaction.ready = true;
 
