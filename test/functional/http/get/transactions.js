@@ -706,32 +706,6 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using unicode null character with regex should return all the transactions', () => {
-				var dataFilter = '%\u0000%';
-				var count;
-				return transactionsEndpoint
-					.makeRequest(
-						{
-							data: '%',
-						},
-						200
-					)
-					.then(res => {
-						count = res.body.meta.count;
-					})
-					.then(() => {
-						return transactionsEndpoint.makeRequest(
-							{
-								data: dataFilter,
-							},
-							200
-						);
-					})
-					.then(res => {
-						expect(res.body.meta.count).to.equal(count);
-					});
-			});
-
 			it('using unicode character should return transactions', () => {
 				var unicodeCharacter = '฿';
 				var fuzzyCommand = '%';
@@ -743,7 +717,7 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						expect(res.body.data.length).to.greaterThan(1);
+						expect(res.body.data.length).to.greaterThan(0);
 						_.map(res.body.data, transaction => {
 							return expect(transaction.asset.data).to.include(
 								unicodeCharacter
