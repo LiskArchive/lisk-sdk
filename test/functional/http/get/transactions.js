@@ -662,16 +662,16 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.asset)
-								.to.have.property('data')
-								.to.equal(dataFilter);
+						expect(res.body.data.length).to.greaterThan(0);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(dataFilter);
 						});
 					});
 			});
 
-			it('using several unicode null characters should return transactions', () => {
-				var dataFilter = '\u0000 hey :)\u0000';
+			it('using unicode null characters should return transactions', () => {
+				// This case works in Javascripts but not in CURL or POSTMAN
+				var dataFilter = '\u0000 hey :)';
 				return transactionsEndpoint
 					.makeRequest(
 						{
@@ -680,10 +680,9 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.asset)
-								.to.have.property('data')
-								.to.equal(dataFilter);
+						expect(res.body.data.length).to.greaterThan(0);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(dataFilter);
 						});
 					});
 			});
@@ -706,7 +705,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 
-			it('using unicode character should return transactions', () => {
+			it('using unicode character combine with regEx should return transactions', () => {
 				var unicodeCharacter = '฿';
 				var fuzzyCommand = '%';
 				return transactionsEndpoint
