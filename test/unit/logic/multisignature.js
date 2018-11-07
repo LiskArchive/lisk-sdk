@@ -32,9 +32,6 @@ var validTransaction = testData.validTransaction;
 var rawValidTransaction = testData.rawValidTransaction;
 var multiSigAccount1 = testData.multiSigAccount1;
 var multiSigAccount2 = testData.multiSigAccount2;
-var invalidAllSignaturesReadyFalse = testData.invalidAllSignaturesReadyFalse;
-var invalidNoSignaturesReadyTrue = testData.invalidNoSignaturesReadyTrue;
-var invalidSomeSignaturesReadyTrue = testData.invalidSomeSignaturesReadyTrue;
 
 describe('multisignature', () => {
 	var transactionMock;
@@ -47,9 +44,6 @@ describe('multisignature', () => {
 	var transaction;
 	var rawTransaction;
 	var sender;
-	var invalidReadyTransactionAllSignatures;
-	var invalidNoSignaturesReadyTrueTran;
-	var invalidSomeSignaturesReadyTrueTran;
 
 	beforeEach(() => {
 		transactionMock = {
@@ -65,15 +59,6 @@ describe('multisignature', () => {
 			setAccountAndGet: sinonSandbox.stub().callsArg(1),
 		};
 		transaction = _.cloneDeep(validTransaction);
-		invalidReadyTransactionAllSignatures = _.cloneDeep(
-			invalidAllSignaturesReadyFalse
-		);
-		invalidNoSignaturesReadyTrueTran = _.cloneDeep(
-			invalidNoSignaturesReadyTrue
-		);
-		invalidSomeSignaturesReadyTrueTran = _.cloneDeep(
-			invalidSomeSignaturesReadyTrue
-		);
 		rawTransaction = _.cloneDeep(rawValidTransaction);
 		sender = _.cloneDeep(validSender);
 		dummyBlock = {
@@ -1294,43 +1279,6 @@ describe('multisignature', () => {
 			transaction.signatures = [crypto.randomBytes(64).toString('hex')];
 
 			return expect(multisignature.ready(transaction, sender)).to.equal(true);
-		});
-	});
-
-	describe('correctInvalidReadyProperty', () => {
-		it('should correct true property when signatures present and ready set to false', () => {
-			const correctedTransaction = multisignature.correctInvalidReadyProperty(
-				invalidReadyTransactionAllSignatures
-			);
-			return expect(correctedTransaction.ready).to.equal(true);
-		});
-
-		it('should correct true property when signatures not present and ready set to true', () => {
-			const correctedTransaction = multisignature.correctInvalidReadyProperty(
-				invalidNoSignaturesReadyTrueTran
-			);
-			return expect(correctedTransaction.ready).to.equal(false);
-		});
-
-		it('should correct true property when signatures present but less than min, ready set to true', () => {
-			const correctedTransaction = multisignature.correctInvalidReadyProperty(
-				invalidSomeSignaturesReadyTrueTran
-			);
-			return expect(correctedTransaction.ready).to.equal(false);
-		});
-
-		it('should only modify the ready property', () => {
-			const tranBeforeCallingMethod = _.cloneDeep(
-				invalidReadyTransactionAllSignatures
-			);
-			const correctedTransaction = multisignature.correctInvalidReadyProperty(
-				invalidReadyTransactionAllSignatures
-			);
-			delete correctedTransaction.ready;
-			delete tranBeforeCallingMethod.ready;
-			return expect(correctedTransaction).to.deep.equal(
-				tranBeforeCallingMethod
-			);
 		});
 	});
 });
