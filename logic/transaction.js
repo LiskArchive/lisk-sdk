@@ -426,6 +426,9 @@ class Transaction {
 			return setImmediate(cb, 'Multisig request is not allowed');
 		}
 
+		// Sanitize ready property
+		transaction = this.setReadyProperty(transaction, sender);
+
 		// Check for missing sender second signature
 		if (
 			!transaction.requesterPublicKey &&
@@ -1207,6 +1210,18 @@ class Transaction {
 			transaction.asset = extend(transaction.asset, asset);
 		}
 
+		return transaction;
+	}
+
+	/**
+	 * Calls `ready` based on transaction type and updates the transaction with the correct value
+	 *
+	 * @param {transaction} transaction The transaction being processed
+	 * @param {account} sender The transaction's sender
+	 * @returns {transaction} The transaction with the correct ready value
+	 */
+	setReadyProperty(transaction, sender) {
+		transaction.ready = this.ready(transaction, sender);
 		return transaction;
 	}
 }

@@ -31,6 +31,7 @@ var Multisignature = require('../../../logic/multisignature');
 var Dapp = require('../../../logic/dapp');
 var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
+var MultisignatureMocks = require('./test_data/multisignature.js');
 
 const { TOTAL_AMOUNT } = __testContext.config.constants;
 const exceptions = global.exceptions;
@@ -1227,7 +1228,7 @@ describe('transaction', () => {
 		it('should not remove any keys with valid entries', () => {
 			return expect(
 				_.keys(transactionLogic.objectNormalize(validTransaction))
-			).to.have.length(11);
+			).to.have.length(12);
 		});
 
 		it('should not remove data field after normalization', () => {
@@ -1462,6 +1463,65 @@ describe('transaction', () => {
 
 		it('should throw an error with no param', () => {
 			return expect(transactionLogic.attachAssetType).to.throw();
+		});
+	});
+
+	describe('setReadyProperty', () => {
+		it('should correct true property when signatures present and ready set to false', () => {
+			const transactionAllSignaturesReadyFalse = _.cloneDeep(
+				MultisignatureMocks.invalidAllSignaturesReadyFalse
+			);
+			const correctedTransaction = transactionLogic.setReadyProperty(
+				transactionAllSignaturesReadyFalse,
+				sender
+			);
+			return expect(correctedTransaction.ready).to.equal(true);
+		});
+
+		it('should correct true property when signatures not present and ready set to true', () => {
+			const transactionNoSignaturesReadyTrue = _.cloneDeep(
+				MultisignatureMocks.invalidNoSignaturesReadyTrue
+			);
+			const correctedTransaction = transactionLogic.setReadyProperty(
+				transactionNoSignaturesReadyTrue,
+				sender
+			);
+			return expect(correctedTransaction.ready).to.equal(false);
+		});
+
+		it('should correct true property when signatures present but less than min, ready set to true', () => {
+			const transactionNoSignaturesReadyTrue = _.cloneDeep(
+				MultisignatureMocks.invalidSomeSignaturesReadyTrue
+			);
+			const correctedTransaction = transactionLogic.setReadyProperty(
+				transactionNoSignaturesReadyTrue,
+				sender
+			);
+			return expect(correctedTransaction.ready).to.equal(false);
+		});
+
+		it('should set ready for type 0 if not present', () => {
+			const typeZero = _.cloneDeep(validTransaction);
+			const correctedTransaction = transactionLogic.setReadyProperty(
+				typeZero,
+				sender
+			);
+			return expect(correctedTransaction.ready).to.equal(true);
+		});
+
+		it('should only modify the ready property', () => {
+			const tranBeforeCallingMethod = _.cloneDeep(
+				MultisignatureMocks.invalidAllSignaturesReadyFalse
+			);
+			const correctedTransaction = transactionLogic.setReadyProperty(
+				_.cloneDeep(MultisignatureMocks.invalidAllSignaturesReadyFalse),
+				sender
+			);
+			delete tranBeforeCallingMethod.ready;
+			delete correctedTransaction.ready;
+			return expect(correctedTransaction).to.deep.equal(
+				tranBeforeCallingMethod
+			);
 		});
 	});
 });

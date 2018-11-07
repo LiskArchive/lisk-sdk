@@ -70,7 +70,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 	describe('transactions processing', () => {
 		describe('signatures property', () => {
 			describe('correctly offline signed transaction', () => {
-				it('using ready should be ok but never confirmed', () => {
+				it('using ready false should be corrected and confirmed', () => {
 					var scenario = scenarios.offline_signed_without_ready;
 
 					scenario.multiSigTransaction.signatures = _.map(
@@ -84,13 +84,14 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						}
 					);
 
+					scenario.multiSigTransaction.ready = false;
+
 					return sendTransactionPromise(scenario.multiSigTransaction).then(
 						res => {
 							expect(res.body.data.message).to.be.equal(
 								'Transaction(s) accepted'
 							);
-							badTransactions.push(scenario.multiSigTransaction);
-							pendingMultisignatures.push(scenario.multiSigTransaction);
+							goodTransactions.push(scenario.multiSigTransaction);
 						}
 					);
 				});

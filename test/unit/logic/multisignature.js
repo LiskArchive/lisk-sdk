@@ -35,7 +35,6 @@ var multiSigAccount2 = testData.multiSigAccount2;
 var invalidAllSignaturesReadyFalse = testData.invalidAllSignaturesReadyFalse;
 var invalidNoSignaturesReadyTrue = testData.invalidNoSignaturesReadyTrue;
 var invalidSomeSignaturesReadyTrue = testData.invalidSomeSignaturesReadyTrue;
-let multisignatureSpy;
 
 describe('multisignature', () => {
 	var transactionMock;
@@ -88,7 +87,6 @@ describe('multisignature', () => {
 			accountMock,
 			modulesLoader.logger
 		);
-		multisignatureSpy = sinonSandbox.spy(multisignature, 'verify');
 		return multisignature.bind(accountsMock);
 	});
 
@@ -190,16 +188,6 @@ describe('multisignature', () => {
 
 	describe('verify', () => {
 		describe('from multisignature.verify tests', () => {
-			it('Should call correctInvalidReadyProperty only once', () => {
-				return multisignature.verify(
-					transaction,
-					accountFixtures.genesis,
-					() => {
-						return expect(multisignatureSpy.called).to.be.true;
-					}
-				);
-			});
-
 			it('should return error when min value is smaller than minimum acceptable value', done => {
 				var minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
 				var keysgroup = [
