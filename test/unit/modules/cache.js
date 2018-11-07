@@ -185,16 +185,14 @@ describe('cache', () => {
 		});
 	});
 
-	describe('onNewBlock', () => {
-		var dummyBlock = {};
-
+	describe('clearBlockRelatedCache', () => {
 		it('should remove all keys matching pattern /api/transactions', done => {
 			var key = '/api/transactions?123';
 			var value = { testObject: 'testValue' };
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearBlockRelatedCache(err => {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -213,7 +211,7 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearBlockRelatedCache(err => {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -232,7 +230,7 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearBlockRelatedCache(err => {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -252,7 +250,7 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearBlockRelatedCache(err => {
 					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {

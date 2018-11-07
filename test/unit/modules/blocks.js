@@ -25,6 +25,7 @@ describe('blocks', () => {
 	let blocksInstance;
 	let self;
 	let library;
+	let modules;
 	let __private;
 	let dbStub;
 	let loggerStub;
@@ -80,6 +81,13 @@ describe('blocks', () => {
 				transaction: logicTransactionStub,
 				peers: peersStub,
 			},
+			network: {
+				io: {
+					sockets: {
+						emit: sinonSandbox.stub(),
+					},
+				},
+			},
 			schema: schemaStub,
 			dbSequence: dbSequenceStub,
 			sequence: sequenceStub,
@@ -92,6 +100,7 @@ describe('blocks', () => {
 		blocksInstance = new Blocks((err, cbSelf) => {
 			self = cbSelf;
 			library = Blocks.__get__('library');
+			modules = Blocks.__get__('modules');
 			__private = Blocks.__get__('__private');
 			expect(err).to.be.undefined;
 			done();
@@ -288,8 +297,35 @@ describe('blocks', () => {
 
 	describe('onBind', () => {
 		it('should set __private.loaded = true', () => {
-			blocksInstance.onBind();
+			const scope = {};
+			blocksInstance.onBind(scope);
 			return expect(__private.loaded).to.be.true;
+		});
+	});
+
+	describe('onNewBlock', () => {
+		const block = { id: 123 };
+
+		beforeEach(done => {
+			modules.cache = {
+				clearBlockRelatedCache: sinonSandbox.stub().callsArg(0),
+			};
+
+			blocksInstance.onNewBlock(block);
+			done();
+		});
+
+		it('should call clearBlockRelatedCache', done => {
+			expect(modules.cache.clearBlockRelatedCache.calledOnce).to.be.true;
+
+			done();
+		});
+
+		it('should call library.network.io.sockets.emit with "blocks/change" and block', done => {
+			expect(library.network.io.sockets.emit.calledWith('blocks/change', block))
+				.to.be.true;
+
+			done();
 		});
 	});
 
@@ -363,7 +399,8 @@ describe('blocks', () => {
 			done();
 		});
 		it('should return __private.loaded', () => {
-			blocksInstance.onBind();
+			const scope = {};
+			blocksInstance.onBind(scope);
 			return expect(__private.loaded).to.be.true;
 		});
 	});
