@@ -514,7 +514,7 @@ d.run(() => {
 				function(scope, cb) {
 					if (!appConfig.peers.enabled) {
 						scope.logger.info(
-							'Socket Cluster was NOT intiatied due to peers layer is disabled.'
+							'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
 						);
 						return cb();
 					}
