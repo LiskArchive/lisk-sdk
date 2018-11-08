@@ -49,16 +49,6 @@ Assertion.addProperty('integer', function handleAssert(this: Chai.ChaiStatic) {
 
 [sinonChai].forEach(plugin => chai.use(plugin));
 
-// Type declaration for sandbox
-declare global {
-	export namespace NodeJS {
-		export interface Global {
-			sandbox: sinon.SinonSandbox;
-		}
-	}
-	var sandbox: sinon.SinonSandbox;
-}
-
 global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,
 });

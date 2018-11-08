@@ -27,7 +27,7 @@ describe('#getTransactionHash', () => {
 			'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153de803000000000000618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 			'hex',
 		);
-		global.sandbox
+		sandbox
 			.stub(getTransactionBytesModule, 'getTransactionBytes')
 			.returns(defaultTransactionBytes);
 		transaction = {
