@@ -350,7 +350,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('Some signatures present, ready set to true, should be corrected and be pending', () => {
+				it('Some signatures present, ready set to true, should be corrected and remain pending', () => {
 					var scenario = scenarios.some_signatures_ready_true;
 
 					const signatureObj = apiHelpers.createSignatureObject(
