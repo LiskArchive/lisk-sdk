@@ -943,7 +943,7 @@ paths:
           type: string
           format: additionalData
           minLength: 1
-          maxLength: 64
+          maxLength: 64  # Its an additional check, actual check is 64 bytes
       responses:
         200:
           description: Transactions list
