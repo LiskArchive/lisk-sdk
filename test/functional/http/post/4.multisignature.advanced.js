@@ -70,7 +70,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 	describe('transactions processing', () => {
 		describe('signatures property', () => {
 			describe('correctly offline signed transaction', () => {
-				it('using ready false should be corrected and confirmed', () => {
+				it('Parameter ready set to false should be corrected and confirmed', () => {
 					var scenario = scenarios.offline_signed_without_ready;
 
 					scenario.multiSigTransaction.signatures = _.map(
@@ -96,7 +96,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('using ready true should be ok', () => {
+				it('Parameter ready set to ready true should be ok', () => {
 					var scenario = scenarios.offline_signed_with_ready_true;
 
 					scenario.multiSigTransaction.signatures = _.map(
@@ -317,7 +317,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					});
 				});
 
-				it('using ready false should be ok and be corrected and processed', () => {
+				it('Parameter ready set to false should be ok and be corrected and processed', () => {
 					var scenario = scenarios.offline_signed_with_ready_false;
 
 					scenario.multiSigTransaction.signatures = _.map(
@@ -343,7 +343,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('using ready true with no signatures should be corrected and unconfirmed', () => {
+				it('Parameter ready set to true with no signatures should be corrected and unconfirmed', () => {
 					var scenario = scenarios.unsigned_with_ready_true;
 
 					scenario.multiSigTransaction.ready = true;
