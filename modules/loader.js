@@ -850,7 +850,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 	let loaded = false;
 
 	async.whilst(
-		() => !loaded && errorCount < 5,
+		() => !loaded && errorCount < 10,
 		next => {
 			self.getNetwork((err, network) => {
 				if (err) {
@@ -873,6 +873,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 									`Failed to load blocks from: ${peer.string}`
 								);
 								errorCount += 1;
+								next();
 							}
 							loaded = lastValidBlock.id === lastBlock.id;
 							lastBlock = null;
