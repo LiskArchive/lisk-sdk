@@ -311,7 +311,7 @@ describe('httpApi', () => {
 				expect(resMock.status).to.be.calledWith(apiCodes.FORBIDDEN);
 				expect(resMock.send).to.be.calledWith({
 					message: 'API access denied',
-					errors: ['API is not public in this node'],
+					errors: ['API access blocked.'],
 				});
 				done();
 			});
