@@ -355,12 +355,16 @@ Each of that option can be appended on command line. There are also few `ENV` va
 | <pre nowrap>--log<br> -l</pre>       | LISK_FILE_LOG_LEVEL    | fileLogLevel             | Log level for file output                                                                                                                                                         |
 |                                      | LISK_CONSOLE_LOG_LEVEL | consoleLogLevel          | Log level for console output                                                                                                                                                      |
 |                                      | LISK_CACHE_ENABLED     | cacheEnabled             | Enable or disable cache. Must be set to true/false                                                                                                                                |
-| <pre nowrap>--database<br> -d</pre>  | LISK_DB_NAME           | db.database              | PostgreSQL database name to connect                                                                                                                                               |
+| <pre nowrap>--database<br> -d</pre>  | LISK_DB_NAME           | db.database              | PostgreSQL database name to connect to                                                                                                                                            |
 |                                      | LISK_DB_HOST           | db.host                  | PostgreSQL database host name                                                                                                                                                     |
 |                                      | LISK_DB_PORT           | db.port                  | PostgreSQL database port                                                                                                                                                          |
-|                                      | LISK_DB_USER           | db.user                  | PostgreSQL database username to connect                                                                                                                                           |
-|                                      | LISK_DB_PASSWORD       | db.password              | PostgreSQL database password to connect                                                                                                                                           |
-| <pre nowrap>--peers<br> -p</pre>     | LISK_PEERS             | peers.list               | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                   |
+|                                      | LISK_DB_USER           | db.user                  | PostgreSQL database username to connect to                                                                                                                                        |
+|                                      | LISK_DB_PASSWORD       | db.password              | PostgreSQL database password to connect to                                                                                                                                        |
+| <pre nowrap>--redis<br> -r</pre>     | LISK_REDIS_HOST        | redis.host               | Redis host name                                                                                                                                                                   |
+|                                      | LISK_REDIS_PORT        | redis.port               | Redis port                                                                                                                                                                        |
+|                                      | LISK_REDIS_DB_NAME     | redis.db                 | Redis database name to connect to                                                                                                                                                 |
+|                                      | LISK_REDIS_DB_PASSWORD | redis.password           | Redis database password to connect to                                                                                                                                             |
+| <pre nowrap>--peers<br> -p</pre>     | LISK_PEERS             | peers.list               | Comma separated list of peers to connect to in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                |
 |                                      | LISK_API_PUBLIC        | api.access.public        | Enable or disable public access of http API. Must be set to true/false                                                                                                            |
 |                                      | LISK_API_WHITELIST     | api.access.whiteList     | Comma separated list of IPs to enable API access. Format `192.168.99.100,172.169.99.77`                                                                                           |
 |                                      | LISK_FORGING_DELEGATES | forging.delegates        | Comma separated list of delegates to load in the format _publicKey&#x7c;encryptedPassphrase,publicKey2&#x7c;encryptedPassphrase2_                                                 |
@@ -435,12 +439,14 @@ There are couple of command line scripts that facilitate users of lisk to perfor
 This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
 
 ```
-Usage: generate_config [options] <network>
+Usage: generate_config [options]
 
 Options:
 
-  -h, --help     output usage information
-  -V, --version  output the version number
+-h, --help               output usage information
+-V, --version            output the version number
+-c, --config [config]    custom config file
+-n, --network [network]  specify the network or use LISK_NETWORK
 ```
 
 Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any other network folder available under `./config` directory.
@@ -454,13 +460,13 @@ Usage: update_config [options] <input_file> <from_version> [to_version]
 
 Options:
 
--h, --help     output usage information
--V, --version  output the version number
---output       Output file path
---diff         Show only difference from default config file.
+-h, --help               output usage information
+-V, --version            output the version number
+-n, --network [network]  specify the network or use LISK_NETWORK
+-o, --output [output]    output file path
 ```
 
-As you can see from the usage guide, `input_file` and `from_version` are required. So if you have a config file, you must be aware to which version of Lisk this belongs. You can skip the `to_version` argument and it will apply changes up-to latest version of Lisk. If you don't specify `--output` path the final config json will be printed to console. Option `--diff` is useful if you just want to know what are the changes in your version compared to default config located in `./config/default/config.json`.
+As you can see from the usage guide, `input_file` and `from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from `LISK_NETWORK` env variable.
 
 #### Console
 

@@ -17,7 +17,7 @@
 	},
 	"engines": {
 		"node": "8.12.0",
-		"npm": "5.6.0"
+		"npm": "6.4.1"
 	},
 	"main": "app.js",
 	"scripts": {
@@ -66,7 +66,7 @@
 		"json-refs": "=3.0.12",
 		"lisk-elements": "=1.0.0",
 		"lodash": "=4.17.11",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#5e1f4bb",
+		"lisk-newrelic": "LiskHQ/lisk-newrelic#1ea09b4",
 		"method-override": "=2.3.10",
 		"newrelic": "=4.8.1",
 		"pg-monitor": "=0.9.0",
@@ -125,6 +125,6 @@
 	},
 	"snyk": true,
 	"lisk": {
-		"minVersion": "1.0.0"
+		"minVersion": "1.1.0-rc.0"
 	}
 }
