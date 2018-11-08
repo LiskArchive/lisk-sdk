@@ -15,6 +15,7 @@
 'use strict';
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
+const async = require('async');
 // Submodules
 const blocksAPI = require('./blocks/api');
 const blocksVerify = require('./blocks/verify');
@@ -241,19 +242,21 @@ Blocks.prototype.onBind = function(scope) {
 };
 
 /**
- * Emit socket notification `blocks/change`.
+ * Clear blocks and transactions API cache and emit socket notification `blocks/change`.
  *
  * @param {Block} block
  * @todo Add description for the params
  * @todo Add @returns tag
  */
 Blocks.prototype.onNewBlock = function(block) {
-	modules.cache.clearBlockRelatedCache(err => {
-		if (err) {
-			library.logger.info('clearBlockRelatedCache error');
-		}
-		library.network.io.sockets.emit('blocks/change', block);
-	});
+	const tasks = [
+		modules.cache.KEYS.blocksApi,
+		modules.cache.KEYS.transactionsApi,
+	].map(pattern => callback => modules.cache.clearCacheFor(pattern, callback));
+
+	async.parallel(async.reflectAll(tasks), () =>
+		library.network.io.sockets.emit('blocks/change', block)
+	);
 };
 
 /**

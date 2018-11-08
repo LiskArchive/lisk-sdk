@@ -308,15 +308,19 @@ describe('blocks', () => {
 
 		beforeEach(done => {
 			modules.cache = {
-				clearBlockRelatedCache: sinonSandbox.stub().callsArg(0),
+				clearCacheFor: sinonSandbox.stub().callsArg(1),
+				KEYS: {
+					blocksApi: '/api/blocks*',
+					transactionsApi: '/api/transactions*',
+				},
 			};
 
 			blocksInstance.onNewBlock(block);
 			done();
 		});
 
-		it('should call clearBlockRelatedCache', done => {
-			expect(modules.cache.clearBlockRelatedCache.calledOnce).to.be.true;
+		it('should call clearCacheFor', done => {
+			expect(modules.cache.clearCacheFor.calledTwice).to.be.true;
 
 			done();
 		});
