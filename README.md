@@ -87,6 +87,45 @@ Full documentation can be found on the [Lisk documentation site][].
 | [@liskhq/lisk-passphrase](packages/lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
 | [@liskhq/lisk-transactions](packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v1.1.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
 
+## Tests
+
+To run tests for all packages in lisk-elements, run the following command in the root folder:
+
+```
+npm test
+```
+
+To run tests for a specific package, run the same command in the relevant package directory.
+
+```
+cd packages/lisk-cryptography
+npm test
+```
+
+## FAQ
+
+Installation is failing, what should I do?
+
+```
+Make sure you are installing in the root folder, not on the package level.
+Run `npm run clean` and `npm run clean:node_modules`, then install again. 
+```
+
+I can't build the package, what should I do?
+
+```
+Make sure you are using npm run build in the root folder, not on the package level.
+```
+
+Tests are failing!
+
+```
+Make sure you are using the correct version of node and npm. 
+In our current build we recommend node v8.12.0 and npm v6.4.1.
+```
+
+
+
 ## Contributors
 
 https://github.com/LiskHQ/lisk-elements/graphs/contributors
