@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as elements from 'lisk-elements';
+import { passphrase as passphraseModule } from 'lisk-elements';
 import { getStdIn, getPassphrase, getData } from './utils';
 
 export const getFirstLineFromString = multilineString =>
@@ -61,7 +61,7 @@ const getInputsFromSources = async ({
 	const passphraseErrors = [passphrase, secondPassphrase].reduce(
 		(accumulator, input) => {
 			if (input) {
-				const errors = elements.passphrase.validation
+				const errors = passphraseModule.validation
 					.getPassphraseValidationErrors(input)
 					.filter(error => error.message);
 				if (accumulator.length === 0) {
@@ -78,9 +78,15 @@ const getInputsFromSources = async ({
 		const uniquePassphraseErrors = [...new Set(passphraseErrors)].filter(
 			error => error.code !== 'INVALID_MNEMONIC',
 		);
-		uniquePassphraseErrors.forEach(error =>
-			console.info(`Warning: ${error.message}`),
+
+		const passphraseWarning = uniquePassphraseErrors.reduce(
+			(accumulator, error) =>
+				accumulator.concat(
+					`${error.message.replace(' Please check the passphrase.', '')} `,
+				),
+			'Warning: ',
 		);
+		console.warn(passphraseWarning);
 	}
 
 	const password =
