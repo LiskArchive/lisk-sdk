@@ -39,6 +39,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		extra_signature: new Scenarios.Multisig(),
 		unknown_signature: new Scenarios.Multisig(),
 		requesterPublicKey: new Scenarios.Multisig(),
+		all_signatures_ready_false: new Scenarios.Multisig(),
+		no_signatures_ready_true: new Scenarios.Multisig(),
+		some_signatures_ready_true: new Scenarios.Multisig(),
 	};
 
 	var transactionsToWaitFor = [];
@@ -70,19 +73,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 	describe('transactions processing', () => {
 		describe('signatures property', () => {
 			describe('correctly offline signed transaction', () => {
-				it('Parameter ready set to false should be corrected and confirmed', () => {
-					var scenario = scenarios.offline_signed_without_ready;
-
-					scenario.multiSigTransaction.signatures = _.map(
-						scenario.members,
-						member => {
-							var signatureObject = apiHelpers.createSignatureObject(
-								scenario.multiSigTransaction,
-								member
-							);
-							return signatureObject.signature;
-						}
-					);
+				it('Parameter ready set to false, no signatures present, should be ok', () => {
+					var scenario = scenarios.offline_signed_with_ready_false;
 
 					scenario.multiSigTransaction.ready = false;
 
@@ -91,12 +83,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 							expect(res.body.data.message).to.be.equal(
 								'Transaction(s) accepted'
 							);
-							goodTransactions.push(scenario.multiSigTransaction);
+							pendingMultisignatures.push(scenario.multiSigTransaction);
 						}
 					);
 				});
 
-				it('Parameter ready set to ready true should be ok', () => {
+				it('Parameter ready set to true, all signatures present, should be ok', () => {
 					var scenario = scenarios.offline_signed_with_ready_true;
 
 					scenario.multiSigTransaction.signatures = _.map(
@@ -317,8 +309,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					});
 				});
 
-				it('Parameter ready set to false should be ok and be corrected and processed', () => {
-					var scenario = scenarios.offline_signed_with_ready_false;
+				it('All signatures present, ready set to false, should be corrected and processed', () => {
+					var scenario = scenarios.all_signatures_ready_false;
 
 					scenario.multiSigTransaction.signatures = _.map(
 						scenario.members,
@@ -343,8 +335,30 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('Parameter ready set to true with no signatures should be corrected and unconfirmed', () => {
-					var scenario = scenarios.unsigned_with_ready_true;
+				it('No signatures present, ready set to true, should be corrected and be be pending', () => {
+					var scenario = scenarios.no_signatures_ready_true;
+
+					scenario.multiSigTransaction.ready = true;
+
+					return sendTransactionPromise(scenario.multiSigTransaction).then(
+						res => {
+							expect(res.body.data.message).to.be.equal(
+								'Transaction(s) accepted'
+							);
+							pendingMultisignatures.push(scenario.multiSigTransaction);
+						}
+					);
+				});
+
+				it('Some signatures present, ready set to true, should be corrected and be pending', () => {
+					var scenario = scenarios.some_signatures_ready_true;
+
+					const signatureObj = apiHelpers.createSignatureObject(
+						scenario.multiSigTransaction,
+						scenario.members[0]
+					);
+
+					scenario.multiSigTransaction.signatures = [signatureObj.signature];
 
 					scenario.multiSigTransaction.ready = true;
 
