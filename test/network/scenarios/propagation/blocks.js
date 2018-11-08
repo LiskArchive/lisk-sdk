@@ -22,17 +22,18 @@ module.exports = function(configurations, network) {
 		let nodesBlocks;
 
 		before(() => {
-			return network.waitForBlocksOnAllNodes(1)
-			.then(() => {
-				return Promise.all(
-					configurations.map(configuration => {
-						return utils.http.getBlocks(configuration.httpPort);
-					})
-				);
-			})
-			.then(blocksResults => {
-				nodesBlocks = blocksResults;
-			});
+			return network
+				.waitForBlocksOnAllNodes(1)
+				.then(() => {
+					return Promise.all(
+						configurations.map(configuration => {
+							return utils.http.getBlocks(configuration.httpPort);
+						})
+					);
+				})
+				.then(blocksResults => {
+					nodesBlocks = blocksResults;
+				});
 		});
 
 		it('should be able to get blocks list from every peer', () => {
