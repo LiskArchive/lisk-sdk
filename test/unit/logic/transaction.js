@@ -1466,12 +1466,12 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('setReadyProperty', () => {
+	describe('sanitize', () => {
 		it('should correct true property when signatures present and ready set to false', () => {
 			const transactionAllSignaturesReadyFalse = _.cloneDeep(
 				MultisignatureMocks.invalidAllSignaturesReadyFalse
 			);
-			const correctedTransaction = transactionLogic.setReadyProperty(
+			const correctedTransaction = transactionLogic.sanitize(
 				transactionAllSignaturesReadyFalse,
 				sender
 			);
@@ -1482,7 +1482,7 @@ describe('transaction', () => {
 			const transactionNoSignaturesReadyTrue = _.cloneDeep(
 				MultisignatureMocks.invalidNoSignaturesReadyTrue
 			);
-			const correctedTransaction = transactionLogic.setReadyProperty(
+			const correctedTransaction = transactionLogic.sanitize(
 				transactionNoSignaturesReadyTrue,
 				sender
 			);
@@ -1493,7 +1493,7 @@ describe('transaction', () => {
 			const transactionNoSignaturesReadyTrue = _.cloneDeep(
 				MultisignatureMocks.invalidSomeSignaturesReadyTrue
 			);
-			const correctedTransaction = transactionLogic.setReadyProperty(
+			const correctedTransaction = transactionLogic.sanitize(
 				transactionNoSignaturesReadyTrue,
 				sender
 			);
@@ -1502,10 +1502,7 @@ describe('transaction', () => {
 
 		it('should set ready for type 0 if not present', () => {
 			const typeZero = _.cloneDeep(validTransaction);
-			const correctedTransaction = transactionLogic.setReadyProperty(
-				typeZero,
-				sender
-			);
+			const correctedTransaction = transactionLogic.sanitize(typeZero, sender);
 			return expect(correctedTransaction.ready).to.equal(true);
 		});
 
@@ -1513,7 +1510,7 @@ describe('transaction', () => {
 			const tranBeforeCallingMethod = _.cloneDeep(
 				MultisignatureMocks.invalidAllSignaturesReadyFalse
 			);
-			const correctedTransaction = transactionLogic.setReadyProperty(
+			const correctedTransaction = transactionLogic.sanitize(
 				_.cloneDeep(MultisignatureMocks.invalidAllSignaturesReadyFalse),
 				sender
 			);

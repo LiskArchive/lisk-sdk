@@ -427,7 +427,7 @@ class Transaction {
 		}
 
 		// Sanitize ready property
-		transaction = this.setReadyProperty(transaction, sender);
+		transaction = this.sanitize(transaction, sender);
 
 		// Check for missing sender second signature
 		if (
@@ -1220,7 +1220,7 @@ class Transaction {
 	 * @param {account} sender The transaction's sender
 	 * @returns {transaction} The transaction with the correct ready value
 	 */
-	setReadyProperty(transaction, sender) {
+	sanitize(transaction, sender) {
 		transaction.ready = this.ready(transaction, sender);
 		return transaction;
 	}
