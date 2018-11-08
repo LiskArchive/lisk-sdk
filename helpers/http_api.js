@@ -360,6 +360,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 				});
 			})
 			.catch(reason => {
+				logger.error(reason.toString());
 				cb(reason);
 			});
 	});

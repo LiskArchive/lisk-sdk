@@ -63,9 +63,8 @@ class Network {
 					if (err) {
 						return reject(
 							new Error(
-								`Failed to establish monitoring connections due to error: ${
-									err.message || err
-								}`
+								`Failed to establish monitoring connections due to error: ${err.message ||
+									err}`
 							)
 						);
 					}
@@ -99,8 +98,7 @@ class Network {
 		options = options || {};
 		return Promise.resolve()
 			.then(() => {
-				return this.generatePM2Configs()
-				.then(pm2Configs => {
+				return this.generatePM2Configs().then(pm2Configs => {
 					this.pm2ConfigMap = {};
 					pm2Configs.apps.forEach(pm2Config => {
 						this.pm2ConfigMap[pm2Config.name] = pm2Config;
@@ -121,10 +119,9 @@ class Network {
 			})
 			.then(() => {
 				if (options.enableForging) {
-					return this.enableForgingForDelegates()
-						.then(() => {
-							return this.waitForBlocksOnAllNodes(1);
-						});
+					return this.enableForgingForDelegates().then(() => {
+						return this.waitForBlocksOnAllNodes(1);
+					});
 				}
 			})
 			.then(() => {
@@ -153,9 +150,10 @@ class Network {
 			config.generatePM2Configs(this.configurations, (err, pm2Configs) => {
 				if (err) {
 					return reject(
-						new Error(`Failed to generate PM2 configs due to error: ${
-							err.message || err
-						}`)
+						new Error(
+							`Failed to generate PM2 configs due to error: ${err.message ||
+								err}`
+						)
 					);
 				}
 				resolve(pm2Configs);
@@ -169,9 +167,9 @@ class Network {
 			shell.recreateDatabases(this.configurations, err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to recreate databases due to error: ${
-							err.message || err
-						}`)
+						new Error(
+							`Failed to recreate databases due to error: ${err.message || err}`
+						)
 					);
 				}
 				resolve();
@@ -185,9 +183,9 @@ class Network {
 			shell.clearLogs(err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to clear all logs due to error: ${
-							err.message || err
-						}`)
+						new Error(
+							`Failed to clear all logs due to error: ${err.message || err}`
+						)
 					);
 				}
 				resolve();
@@ -201,9 +199,9 @@ class Network {
 			shell.launchTestNodes(err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to launch nest nodes due to error: ${
-							err.message || err
-						}`)
+						new Error(
+							`Failed to launch nest nodes due to error: ${err.message || err}`
+						)
 					);
 				}
 				resolve();
@@ -245,11 +243,10 @@ class Network {
 				err => {
 					if (err) {
 						return reject(
-							new Error(`Failed to wait for node ${
-								nodeName
-							} to be ready due to error: ${
-								err.message || err
-							}`)
+							new Error(
+								`Failed to wait for node ${nodeName} to be ready due to error: ${err.message ||
+									err}`
+							)
 						);
 					}
 					resolve();
@@ -263,9 +260,9 @@ class Network {
 	}
 
 	waitForNodesToBeReady(nodeNames, logRetries) {
-		this.logger.log(`Waiting for nodes ${
-			nodeNames.join(', ')
-		} to load the blockchain`);
+		this.logger.log(
+			`Waiting for nodes ${nodeNames.join(', ')} to load the blockchain`
+		);
 
 		const nodeReadyPromises = nodeNames.map(nodeName => {
 			return this.waitForNodeToBeReady(nodeName, logRetries);
@@ -297,11 +294,10 @@ class Network {
 				err => {
 					if (err) {
 						return reject(
-							new Error(`Failed to wait for blocks on node ${
-								nodeName
-							} due to error: ${
-								err.message || err
-							}`)
+							new Error(
+								`Failed to wait for blocks on node ${nodeName} due to error: ${err.message ||
+									err}`
+							)
 						);
 					}
 					resolve();
@@ -312,9 +308,7 @@ class Network {
 	}
 
 	waitForBlocksOnNodes(nodeNames, blocksToWait) {
-		this.logger.log(`Waiting for blocks on nodes ${
-			nodeNames.join(', ')
-		}`);
+		this.logger.log(`Waiting for blocks on nodes ${nodeNames.join(', ')}`);
 
 		const nodeBlocksPromises = nodeNames.map(nodeName => {
 			return this.waitForBlocksOnNode(nodeName, blocksToWait);
@@ -356,31 +350,32 @@ class Network {
 			})
 			.catch(err => {
 				// Catch and rethrow promise error as higher level error.
-				throw new Error(`Failed to enable forging for delegates due to error: ${
-					err.message || err
-				}`);
+				throw new Error(
+					`Failed to enable forging for delegates due to error: ${err.message ||
+						err}`
+				);
 			});
 	}
 
-  getAllPeersLists() {
-    return Promise.all(
-      this.sockets.map(socket => {
-        if (socket.state === 'open') {
-          return socket.call('list', {});
-        }
-        return null;
-      })
-      .filter(result => {
-        return result !== null;
-      })
-    ).then(result => {
+	getAllPeersLists() {
+		return Promise.all(
+			this.sockets
+				.map(socket => {
+					if (socket.state === 'open') {
+						return socket.call('list', {});
+					}
+					return null;
+				})
+				.filter(result => {
+					return result !== null;
+				})
+		).then(result => {
 			return result;
 		});
 	}
 
 	getAllPeers() {
-		return this.getAllPeersLists()
-		.then(peerListResults => {
+		return this.getAllPeersLists().then(peerListResults => {
 			const peersMap = {};
 			peerListResults.forEach(result => {
 				if (result.peers) {
@@ -402,16 +397,20 @@ class Network {
 			// to the pm2 flush command, we should use that instead of removing the
 			// log files manually. Currently pm2 flush clears the logs for all nodes.
 			const sanitizedNodeName = nodeName.replace(/_/g, '-');
-			childProcess.exec(`rm -rf test/network/logs/lisk-test-${sanitizedNodeName}.*`, err => {
-				if (err) {
-					return reject(
-						new Error(`Failed to clear logs for node ${nodeName}: ${
-							err.message || err
-						}`)
-					);
+			childProcess.exec(
+				`rm -rf test/network/logs/lisk-test-${sanitizedNodeName}.*`,
+				err => {
+					if (err) {
+						return reject(
+							new Error(
+								`Failed to clear logs for node ${nodeName}: ${err.message ||
+									err}`
+							)
+						);
+					}
+					resolve();
 				}
-				resolve();
-			});
+			);
 		});
 	}
 
@@ -421,9 +420,7 @@ class Network {
 			childProcess.exec(`node_modules/.bin/pm2 stop ${nodeName}`, err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to stop node ${nodeName}: ${
-							err.message || err
-						}`)
+						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
 					);
 				}
 				resolve();
@@ -436,9 +433,7 @@ class Network {
 			childProcess.exec(`node_modules/.bin/pm2 start ${nodeName}`, err => {
 				if (err) {
 					return reject(
-						new Error(`Failed to start node ${nodeName}: ${
-							err.message || err
-						}`)
+						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
 					);
 				}
 				resolve();
@@ -447,7 +442,9 @@ class Network {
 		if (waitForSync) {
 			startPromise = startPromise.then(() => {
 				return this.waitForNodeToBeReady(nodeName).catch(() => {
-					throw new Error(`Failed to start node ${nodeName} because it did not sync before timeout`);
+					throw new Error(
+						`Failed to start node ${nodeName} because it did not sync before timeout`
+					);
 				});
 			});
 		}
@@ -455,10 +452,9 @@ class Network {
 	}
 
 	restartNode(nodeName, waitForSync) {
-		return this.stopNode(nodeName)
-			.then(() => {
-				return this.startNode(nodeName, waitForSync);
-			});
+		return this.stopNode(nodeName).then(() => {
+			return this.startNode(nodeName, waitForSync);
+		});
 	}
 
 	restartAllNodes(nodeNamesList, waitForSync) {

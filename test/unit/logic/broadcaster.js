@@ -116,13 +116,13 @@ describe('Broadcaster', () => {
 		});
 
 		it('should load libraries', () => {
-			expect(library.logger).to.deep.eql(loggerStub);
-			expect(library.logic.peers).to.deep.eql(peersStub);
-			expect(library.config).to.deep.eql({
+			expect(library.logger).to.deep.equal(loggerStub);
+			expect(library.logic.peers).to.deep.equal(peersStub);
+			expect(library.config).to.deep.equal({
 				broadcasts,
 				forging: { force: true },
 			});
-			return expect(library.logic.transaction).to.deep.eql(transactionStub);
+			return expect(library.logic.transaction).to.deep.equal(transactionStub);
 		});
 
 		it('should return Broadcaster instance', () => {
@@ -160,9 +160,9 @@ describe('Broadcaster', () => {
 			broadcaster.getPeers({}, (err, peers) => {
 				expect(err).to.be.null;
 				expect(peers).to.be.an('Array').that.is.not.empty;
-				expect(peers).to.deep.eql(peerList);
+				expect(peers).to.deep.equal(peerList);
 				expect(peersStub.listRandomConnected.called).to.be.true;
-				expect(peersStub.listRandomConnected.args[0][0]).to.not.eql(params);
+				expect(peersStub.listRandomConnected.args[0][0]).to.not.equal(params);
 				done();
 			});
 		});
@@ -171,7 +171,7 @@ describe('Broadcaster', () => {
 			broadcaster.getPeers(params, (err, peers) => {
 				expect(err).to.be.null;
 				expect(peers).to.be.an('Array').that.is.not.empty;
-				expect(peers).to.deep.eql(peerList);
+				expect(peers).to.deep.equal(peerList);
 				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
 				done();
 			});
@@ -182,7 +182,7 @@ describe('Broadcaster', () => {
 			peerParams.limit = 100;
 			broadcaster.getPeers(peerParams, () => {
 				expect(peersStub.listRandomConnected.calledOnce).to.be.true;
-				expect(peersStub.listRandomConnected.args[0][0]).to.deep.eql(
+				expect(peersStub.listRandomConnected.args[0][0]).to.deep.equal(
 					peerParams
 				);
 				expect(peersStub.listRandomConnected.args[0][1]).to.not.be.a(

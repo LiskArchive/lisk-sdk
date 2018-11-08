@@ -17,7 +17,8 @@
 var crypto = require('crypto');
 var ed = require('../../../../helpers/ed');
 
-var validPassphrase = 'robust weapon course unknown head trial pencil latin acid';
+var validPassphrase =
+	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')

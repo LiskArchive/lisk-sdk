@@ -1229,8 +1229,14 @@ describe('blocks/verify', () => {
 			});
 
 			afterEach(() => {
-				expect(__private.lastNBlockIds).to.deep.equal([2, 3, 4, 5, 6, 7]);
-				return expect();
+				return expect(__private.lastNBlockIds).to.deep.equal([
+					2,
+					3,
+					4,
+					5,
+					6,
+					7,
+				]);
 			});
 
 			it('should add new id to the end of lastNBlockIds array and delete first one', () => {
@@ -1245,8 +1251,7 @@ describe('blocks/verify', () => {
 			});
 
 			afterEach(() => {
-				expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5]);
-				return expect();
+				return expect(__private.lastNBlockIds).to.deep.equal([1, 2, 3, 4, 5]);
 			});
 
 			it('should add new id to the end of lastNBlockIds array', () => {

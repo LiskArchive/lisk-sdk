@@ -169,8 +169,9 @@ describe('httpApi', () => {
 				done();
 			});
 
-			it('should call logger.log with string "GET req/url from 127.0.0.1"', done => {
-				expect(loggerMock.log.calledWith('GET req/url from 127.0.0.1'));
+			it('should call logger.log with string "GET api/url from 127.0.0.1"', done => {
+				expect(loggerMock.log.calledWith('GET api/url from 127.0.0.1')).to.be
+					.true;
 				done();
 			});
 
