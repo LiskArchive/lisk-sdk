@@ -140,14 +140,20 @@ var middleware = {
 		if (!config.api.enabled) {
 			res
 				.status(apiCodes.INTERNAL_SERVER_ERROR)
-				.send({ success: false, error: 'API access disabled' });
+				.send({
+					message: 'API access disabled',
+					errors: ['API is not enabled in this node.'],
+				});
 		} else if (
 			!config.api.access.public &&
 			!checkIpInList(config.api.access.whiteList, req.ip)
 		) {
 			res
 				.status(apiCodes.FORBIDDEN)
-				.send({ success: false, error: 'API access denied' });
+				.send({
+					message: 'API access denied',
+					errors: ['API is not public in this node'],
+				});
 		} else {
 			next();
 		}

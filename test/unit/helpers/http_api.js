@@ -245,8 +245,8 @@ describe('httpApi', () => {
 				expect(validNextSpy).to.be.not.called;
 				expect(resMock.status).to.be.calledWith(apiCodes.INTERNAL_SERVER_ERROR);
 				expect(resMock.send).to.be.calledWith({
-					success: false,
-					error: 'API access disabled',
+					message: 'API access disabled',
+					errors: ['API is not enabled in this node.'],
 				});
 				done();
 			});
@@ -310,8 +310,8 @@ describe('httpApi', () => {
 				expect(validNextSpy).to.be.not.called;
 				expect(resMock.status).to.be.calledWith(apiCodes.FORBIDDEN);
 				expect(resMock.send).to.be.calledWith({
-					success: false,
-					error: 'API access denied',
+					message: 'API access denied',
+					errors: ['API is not public in this node'],
 				});
 				done();
 			});
