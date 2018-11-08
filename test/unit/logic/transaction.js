@@ -342,6 +342,45 @@ describe('transaction', () => {
 				true
 			);
 		});
+
+		it('should correct true property when signatures present and ready set to false', () => {
+			const transactionAllSignaturesReadyFalse = _.cloneDeep(
+				MultisignatureMocks.invalidAllSignaturesReadyFalse
+			);
+			const correctedTransaction = transactionLogic.ready(
+				transactionAllSignaturesReadyFalse,
+				sender
+			);
+			return expect(correctedTransaction).to.equal(true);
+		});
+
+		it('should correct true property when signatures not present and ready set to true', () => {
+			const transactionNoSignaturesReadyTrue = _.cloneDeep(
+				MultisignatureMocks.invalidNoSignaturesReadyTrue
+			);
+			const correctedTransaction = transactionLogic.ready(
+				transactionNoSignaturesReadyTrue,
+				sender
+			);
+			return expect(correctedTransaction).to.equal(false);
+		});
+
+		it('should correct true property when signatures present but less than min, ready set to true', () => {
+			const transactionNoSignaturesReadyTrue = _.cloneDeep(
+				MultisignatureMocks.invalidSomeSignaturesReadyTrue
+			);
+			const correctedTransaction = transactionLogic.ready(
+				transactionNoSignaturesReadyTrue,
+				sender
+			);
+			return expect(correctedTransaction).to.equal(false);
+		});
+
+		it('should set ready for type 0 if not present', () => {
+			const typeZero = _.cloneDeep(validTransaction);
+			const correctedTransaction = transactionLogic.ready(typeZero, sender);
+			return expect(correctedTransaction).to.equal(true);
+		});
 	});
 
 	describe('countById', () => {
@@ -1463,62 +1502,6 @@ describe('transaction', () => {
 
 		it('should throw an error with no param', () => {
 			return expect(transactionLogic.attachAssetType).to.throw();
-		});
-	});
-
-	describe('sanitize', () => {
-		it('should correct true property when signatures present and ready set to false', () => {
-			const transactionAllSignaturesReadyFalse = _.cloneDeep(
-				MultisignatureMocks.invalidAllSignaturesReadyFalse
-			);
-			const correctedTransaction = transactionLogic.sanitize(
-				transactionAllSignaturesReadyFalse,
-				sender
-			);
-			return expect(correctedTransaction.ready).to.equal(true);
-		});
-
-		it('should correct true property when signatures not present and ready set to true', () => {
-			const transactionNoSignaturesReadyTrue = _.cloneDeep(
-				MultisignatureMocks.invalidNoSignaturesReadyTrue
-			);
-			const correctedTransaction = transactionLogic.sanitize(
-				transactionNoSignaturesReadyTrue,
-				sender
-			);
-			return expect(correctedTransaction.ready).to.equal(false);
-		});
-
-		it('should correct true property when signatures present but less than min, ready set to true', () => {
-			const transactionNoSignaturesReadyTrue = _.cloneDeep(
-				MultisignatureMocks.invalidSomeSignaturesReadyTrue
-			);
-			const correctedTransaction = transactionLogic.sanitize(
-				transactionNoSignaturesReadyTrue,
-				sender
-			);
-			return expect(correctedTransaction.ready).to.equal(false);
-		});
-
-		it('should set ready for type 0 if not present', () => {
-			const typeZero = _.cloneDeep(validTransaction);
-			const correctedTransaction = transactionLogic.sanitize(typeZero, sender);
-			return expect(correctedTransaction.ready).to.equal(true);
-		});
-
-		it('should only modify the ready property', () => {
-			const tranBeforeCallingMethod = _.cloneDeep(
-				MultisignatureMocks.invalidAllSignaturesReadyFalse
-			);
-			const correctedTransaction = transactionLogic.sanitize(
-				_.cloneDeep(MultisignatureMocks.invalidAllSignaturesReadyFalse),
-				sender
-			);
-			delete tranBeforeCallingMethod.ready;
-			delete correctedTransaction.ready;
-			return expect(correctedTransaction).to.deep.equal(
-				tranBeforeCallingMethod
-			);
 		});
 	});
 });
