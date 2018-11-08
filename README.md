@@ -97,6 +97,7 @@ npm test
 
 To run tests for a specific package, run the same command in the relevant package directory.
 
+Example:
 ```
 cd packages/lisk-cryptography
 npm test
@@ -114,7 +115,7 @@ Run `npm run clean` and `npm run clean:node_modules`, then install again.
 I can't build the package, what should I do?
 
 ```
-Make sure you are using npm run build in the root folder, not on the package level.
+Make sure you first run `npm i`, and then `npm run build` in the root directory.
 ```
 
 Tests are failing!
