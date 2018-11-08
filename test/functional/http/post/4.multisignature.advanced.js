@@ -335,7 +335,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('No signatures present, ready set to true, should be corrected and be be pending', () => {
+				it('No signatures present, ready set to true, should be corrected and remain pending', () => {
 					var scenario = scenarios.no_signatures_ready_true;
 
 					scenario.multiSigTransaction.ready = true;
