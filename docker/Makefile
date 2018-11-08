@@ -34,4 +34,4 @@ clean:
 	rm -f *blockchain.db.gz
 
 mrproper: clean
-	docker-compose down --volumes
+	docker-compose down --volumes --remove-orphans
