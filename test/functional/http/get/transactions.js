@@ -48,7 +48,7 @@ describe('GET /api/transactions', () => {
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
-		data: 'transaction2',
+		data: 'transaction2 ฿',
 	});
 	var transaction3 = lisk.transaction.transfer({
 		amount: 20 * NORMALIZER, // 20 LSK
@@ -662,15 +662,15 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.asset)
-								.to.have.property('data')
-								.to.equal(dataFilter);
+						expect(res.body.data.length).to.greaterThan(0);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(dataFilter);
 						});
 					});
 			});
 
-			it('using unicode sequence string should return transactions', () => {
+			it('using unicode null characters should return transactions', () => {
+				// This case works in Javascripts but not in CURL or POSTMAN
 				var dataFilter = '\u0000 hey :)';
 				return transactionsEndpoint
 					.makeRequest(
@@ -680,25 +680,48 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						res.body.data.forEach(transaction => {
-							expect(transaction.asset)
-								.to.have.property('data')
-								.to.equal(dataFilter);
+						expect(res.body.data.length).to.greaterThan(0);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(dataFilter);
 						});
 					});
 			});
 
-			it('using regex string should not return several transactions', () => {
-				var dataFilter = 'transaction%';
+			it('using regex string should return several transactions', () => {
+				var dataFilter = 'transaction';
+				var fuzzyCommand = '%';
 				return transactionsEndpoint
 					.makeRequest(
 						{
-							data: dataFilter,
+							data: dataFilter + fuzzyCommand,
 						},
 						200
 					)
 					.then(res => {
-						expect(res.body.data.length).to.equal(0);
+						expect(res.body.data.length).to.greaterThan(1);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(dataFilter);
+						});
+					});
+			});
+
+			it('using unicode character combine with regEx should return transactions', () => {
+				var unicodeCharacter = '฿';
+				var fuzzyCommand = '%';
+				return transactionsEndpoint
+					.makeRequest(
+						{
+							data: fuzzyCommand + unicodeCharacter + fuzzyCommand,
+						},
+						200
+					)
+					.then(res => {
+						expect(res.body.data.length).to.greaterThan(0);
+						_.map(res.body.data, transaction => {
+							return expect(transaction.asset.data).to.include(
+								unicodeCharacter
+							);
+						});
 					});
 			});
 		});
