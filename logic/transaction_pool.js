@@ -889,11 +889,6 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 			function normalizeTransaction(sender, waterCb) {
 				try {
 					transaction = library.logic.transaction.objectNormalize(transaction);
-					// Sanitize ready property
-					transaction.ready = library.logic.transaction.ready(
-						transaction,
-						sender
-					);
 					return setImmediate(waterCb, null, sender);
 				} catch (err) {
 					return setImmediate(waterCb, err);

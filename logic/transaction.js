@@ -687,6 +687,9 @@ class Transaction {
 			);
 		};
 
+		// Sanitize ready property
+		transaction.ready = this.ready(transaction, sender);
+
 		if (checkExists) {
 			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
 				if (checkConfirmedErr) {
