@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { passphrase as passphraseModule } from 'lisk-elements';
 import { getStdIn, getPassphrase, getData } from './utils';
 
 export const getFirstLineFromString = multilineString =>
@@ -56,6 +57,29 @@ const getInputsFromSources = async ({
 					shouldRepeat: secondPassphraseInput.repeatPrompt,
 				})
 			: stdIn.secondPassphrase || null;
+
+	const passphraseErrors = [passphrase, secondPassphrase]
+		.filter(Boolean)
+		.map(pass =>
+			passphraseModule.validation
+				.getPassphraseValidationErrors(pass)
+				.filter(error => error.message),
+		);
+
+	passphraseErrors.forEach(errors => {
+		if (errors.length > 0) {
+			const passphraseWarning = errors
+				.filter(error => error.code !== 'INVALID_MNEMONIC')
+				.reduce(
+					(accumulator, error) =>
+						accumulator.concat(
+							`${error.message.replace(' Please check the passphrase.', '')} `,
+						),
+					'Warning: ',
+				);
+			console.warn(passphraseWarning);
+		}
+	});
 
 	const password =
 		typeof stdIn.password !== 'string' && passwordInput
