@@ -98,6 +98,7 @@ npm test
 To run tests for a specific package, run the same command in the relevant package directory.
 
 Example:
+
 ```
 cd packages/lisk-cryptography
 npm test
