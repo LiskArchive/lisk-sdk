@@ -168,7 +168,7 @@ describe('duplicate_signatures', () => {
 			const lib = library.rewiredModules.transactions.__get__(
 				'library'
 			);
-			lib.logic.transaction.verify(transaction, sender, requester, false, (err) => {
+			lib.logic.transaction.verify(transaction, sender, requester, false, err => {
 				expect(err).to.equal(`Failed to verify multisignature: ${transaction.signatures[1]}`);
 				done();
 			}, null);
@@ -185,7 +185,7 @@ describe('duplicate_signatures', () => {
 					'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
 				],
 			};
-			lib.logic.transaction.verify(transaction, sender, requester, false, (err) => {
+			lib.logic.transaction.verify(transaction, sender, requester, false, err => {
 				expect(err).not.exist;
 				done();
 			}, null);
