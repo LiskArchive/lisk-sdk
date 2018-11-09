@@ -146,6 +146,7 @@ var invalidSomeSignaturesReadyTrue = {
 			lifetime: 2,
 			keysgroup: [
 				'+bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2',
+				'+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 			],
 		},
 	},

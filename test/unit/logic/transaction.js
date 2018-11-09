@@ -366,11 +366,12 @@ describe('transaction', () => {
 		});
 
 		it('should correct true property when signatures present but less than min, ready set to true', () => {
-			const transactionNoSignaturesReadyTrue = _.cloneDeep(
+			const transactionSomeSignaturesReadyTrue = _.cloneDeep(
 				MultisignatureMocks.invalidSomeSignaturesReadyTrue
 			);
+
 			const correctedTransaction = transactionLogic.ready(
-				transactionNoSignaturesReadyTrue,
+				transactionSomeSignaturesReadyTrue,
 				sender
 			);
 			return expect(correctedTransaction).to.equal(false);
