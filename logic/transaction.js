@@ -426,9 +426,6 @@ class Transaction {
 			return setImmediate(cb, 'Multisig request is not allowed');
 		}
 
-		// Sanitize ready property
-		transaction.ready = this.ready(transaction, sender);
-
 		// Check for missing sender second signature
 		if (
 			!transaction.requesterPublicKey &&
@@ -528,12 +525,6 @@ class Transaction {
 				}
 			}
 		}
-
-		// Sanitize signatures property if none were found at this point
-		transaction.signatures =
-			transaction.signatures && transaction.signatures.length
-				? transaction.signatures
-				: [];
 
 		// Verify signature
 		try {
@@ -1160,6 +1151,12 @@ class Transaction {
 				.map(err => err.message)
 				.join(', ')}`;
 		}
+
+		// Sanitize signatures property
+		transaction.signatures =
+			transaction.signatures && transaction.signatures.length
+				? transaction.signatures
+				: [];
 
 		try {
 			transaction = __private.types[transaction.type].objectNormalize(
