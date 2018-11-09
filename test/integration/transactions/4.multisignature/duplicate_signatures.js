@@ -21,6 +21,7 @@ const accountsFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
 const Bignum = require('../../../../helpers/bignum.js');
+
 const exceptions = global.exceptions;
 
 describe('duplicate_signatures', () => {
