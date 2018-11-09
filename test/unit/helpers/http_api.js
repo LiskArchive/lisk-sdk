@@ -243,7 +243,7 @@ describe('httpApi', () => {
 				);
 
 				expect(validNextSpy).to.be.not.called;
-				expect(resMock.status).to.be.calledWith(apiCodes.INTERNAL_SERVER_ERROR);
+				expect(resMock.status.calledWith(apiCodes.FORBIDDEN)).to.be.true;
 				expect(resMock.send).to.be.calledWith({
 					message: 'API access disabled',
 					errors: ['API is not enabled in this node.'],
@@ -308,7 +308,7 @@ describe('httpApi', () => {
 					'192.168.99.101'
 				);
 				expect(validNextSpy).to.be.not.called;
-				expect(resMock.status).to.be.calledWith(apiCodes.FORBIDDEN);
+				expect(resMock.status.calledWith(apiCodes.FORBIDDEN)).to.be.true;
 				expect(resMock.send).to.be.calledWith({
 					message: 'API access denied',
 					errors: ['API access blocked.'],
