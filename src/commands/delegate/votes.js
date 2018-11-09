@@ -56,7 +56,7 @@ const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 export default class VotesCommand extends BaseCommand {
 	async run() {
 		const {
-			args: { usernames },
+			args: { addresses },
 			flags: { limit: limitStr, offset: offsetStr, sort: sortStr },
 		} = this.parse(VotesCommand);
 
@@ -66,16 +66,16 @@ export default class VotesCommand extends BaseCommand {
 			sortStr,
 		);
 
-		const req = usernames.map(username => ({
+		const req = addresses.map(address => ({
 			query: {
-				username,
+				address,
 				limit: limit || 10,
 				offset: offset || 0,
 				sort: sort || 'balance:desc',
 			},
 			placeholder: {
-				username,
-				message: 'Delegate not found.',
+				address,
+				message: 'Account not found.',
 			},
 		}));
 		const client = getAPIClient(this.userConfig.api);
@@ -86,9 +86,9 @@ export default class VotesCommand extends BaseCommand {
 
 VotesCommand.args = [
 	{
-		name: 'usernames',
+		name: 'addresses',
 		required: true,
-		description: 'Comma-separated username(s) to get information about.',
+		description: 'Comma-separated address(es) to get information about.',
 		parse: input => input.split(',').filter(Boolean),
 	},
 ];
@@ -110,11 +110,11 @@ VotesCommand.flags = {
 };
 
 VotesCommand.description = `
-Gets votes information for given delegate(s) from the blockchain.
+Gets votes information for given account(s) from the blockchain.
 `;
 
 VotesCommand.examples = [
-	'delegate:votes lightcurve',
-	'delegate:votes lightcurve,4miners.net',
-	'delegate:votes lightcurve,4miners.net --limit 20 --offset 5 --sort balance:asc --pretty',
+	'delegate:votes 13133549779353512613L',
+	'delegate:votes 13133549779353512613L,16010222169256538112L',
+	'delegate:votes 13133549779353512613L,16010222169256538112L --limit 20 --offset 5 --sort balance:asc --pretty',
 ];
