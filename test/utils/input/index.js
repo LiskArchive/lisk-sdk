@@ -88,9 +88,11 @@ describe('input utils', () => {
 					passphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
-				expect(console.warn.getCall(0).args[0].trim()).to.equal(
-					'Warning: Passphrase contains 2 words instead of expected 12.',
-				);
+				expect(
+					console.warn.calledWith(
+						'Warning: Passphrase contains 2 words instead of expected 12. ',
+					),
+				).to.be.true;
 			});
 		});
 
@@ -129,15 +131,17 @@ describe('input utils', () => {
 				return expect(result.secondPassphrase).to.be.null;
 			});
 
-			it('should print a warning if passphase not in mnemonic format', async () => {
+			it('should print a warning if secondPassphase not in mnemonic format', async () => {
 				const stdin = 'some passphrase';
 				inputUtils.getStdIn.resolves({
 					secondPassphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
-				expect(console.warn.getCall(0).args[0].trim()).to.equal(
-					'Warning: Passphrase contains 2 words instead of expected 12.',
-				);
+				expect(
+					console.warn.calledWith(
+						'Warning: Passphrase contains 2 words instead of expected 12. ',
+					),
+				).to.be.true;
 			});
 		});
 

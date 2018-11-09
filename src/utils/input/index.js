@@ -58,36 +58,28 @@ const getInputsFromSources = async ({
 				})
 			: stdIn.secondPassphrase || null;
 
-	const passphraseErrors = [passphrase, secondPassphrase].reduce(
-		(accumulator, input) => {
-			if (input) {
-				const errors = passphraseModule.validation
-					.getPassphraseValidationErrors(input)
-					.filter(error => error.message);
-				if (accumulator.length === 0) {
-					return errors;
-				}
-				return [...accumulator, ...errors];
-			}
-			return accumulator;
-		},
-		[],
-	);
-
-	if (passphraseErrors.length > 0) {
-		const uniquePassphraseErrors = [...new Set(passphraseErrors)].filter(
-			error => error.code !== 'INVALID_MNEMONIC',
+	const passphraseErrors = [passphrase, secondPassphrase]
+		.filter(Boolean)
+		.map(pass =>
+			passphraseModule.validation
+				.getPassphraseValidationErrors(pass)
+				.filter(error => error.message),
 		);
 
-		const passphraseWarning = uniquePassphraseErrors.reduce(
-			(accumulator, error) =>
-				accumulator.concat(
-					`${error.message.replace(' Please check the passphrase.', '')} `,
-				),
-			'Warning: ',
-		);
-		console.warn(passphraseWarning);
-	}
+	passphraseErrors.forEach(errors => {
+		if (errors.length > 0) {
+			const passphraseWarning = errors
+				.filter(error => error.code !== 'INVALID_MNEMONIC')
+				.reduce(
+					(accumulator, error) =>
+						accumulator.concat(
+							`${error.message.replace(' Please check the passphrase.', '')} `,
+						),
+					'Warning: ',
+				);
+			console.warn(passphraseWarning);
+		}
+	});
 
 	const password =
 		typeof stdIn.password !== 'string' && passwordInput
