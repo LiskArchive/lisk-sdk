@@ -31,7 +31,6 @@ describe('transaction:get', () => {
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
 	setupTest()
@@ -49,6 +48,7 @@ describe('transaction:get', () => {
 		};
 
 		setupTest()
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionId])
 			.it('should get a transaction’s info and display as an array', () => {
@@ -88,6 +88,7 @@ describe('transaction:get', () => {
 		];
 
 		setupTest()
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIds.join(',')])
 			.it('should get two transactions’ info and display as an array', () => {
@@ -118,6 +119,7 @@ describe('transaction:get', () => {
 			});
 
 		setupTest()
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stub(query, 'default', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIdsWithEmpty.join(',')])
 			.it(
@@ -153,5 +155,93 @@ describe('transaction:get', () => {
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				},
 			);
+	});
+
+	describe('transaction:get transactions by state', () => {
+		const transactionId = '3520445367460290306';
+		const transactionIds = ['3520445367460290306', '2802325248134221536'];
+		const transactionIdsWithEmpty = [
+			'3520445367460290306',
+			'',
+			'2802325248134221536',
+		];
+
+		const defaultGetTransactionsResponse = {
+			data: [
+				{
+					id: transactionIds[0],
+					type: 0,
+				},
+				{
+					id: transactionIds[1],
+					type: 3,
+				},
+			],
+		};
+		const apiClientStubNode = {
+			node: {
+				getTransactions: sandbox
+					.stub()
+					.resolves(defaultGetTransactionsResponse),
+			},
+		};
+
+		describe('transaction: get transactions --state-unprocessed', () => {
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command(['transaction:get', transactionId, '--state=unprocessed'])
+				.it('should get a transaction’s info and display as an array', () => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					return expect(printMethodStub).to.be.calledWithExactly([
+						defaultGetTransactionsResponse.data[0],
+					]);
+				});
+
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command([
+					'transaction:get',
+					transactionIdsWithEmpty.join(','),
+					'--state=unprocessed',
+				])
+				.it(
+					'should get transactions info only using non-empty args and display as an array',
+					() => {
+						expect(api.default).to.be.calledWithExactly(apiConfig);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							defaultGetTransactionsResponse.data,
+						);
+					},
+				);
+		});
+
+		describe('transaction: get transactions --state-unsigned', () => {
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command(['transaction:get', transactionId, '--state=unsigned'])
+				.it('should get a transaction’s info and display as an array', () => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					return expect(printMethodStub).to.be.calledWithExactly([
+						defaultGetTransactionsResponse.data[0],
+					]);
+				});
+
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command([
+					'transaction:get',
+					transactionIdsWithEmpty.join(','),
+					'--state=unsigned',
+				])
+				.it(
+					'should get transactions info only using non-empty args and display as an array',
+					() => {
+						expect(api.default).to.be.calledWithExactly(apiConfig);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							defaultGetTransactionsResponse.data,
+						);
+					},
+				);
+		});
 	});
 });
