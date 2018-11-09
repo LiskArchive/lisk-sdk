@@ -47,25 +47,33 @@ module.exports = function(grunt) {
 			},
 
 			mocha: {
-				cmd(tag, suite, section) {
-					if (suite === 'integration') {
-						var slowTag = '';
-						if (tag === 'untagged') {
-							slowTag = "--grep '@slow|@unstable' --invert";
-						} else if (tag === 'extensive') {
-							slowTag = '--grep @unstable --invert';
-						} else if (tag === 'slow') {
-							slowTag = '--grep @slow';
-						} else if (tag === 'unstable') {
-							slowTag = '--grep @unstable';
+				cmd(tagFilter, suite, section) {
+					if (suite === 'network') {
+						var filter = '';
+						if (tagFilter === 'default') {
+							filter = "--grep '@slow|@unstable' --invert";
+						} else if (tagFilter === 'extensive') {
+							filter = '--grep @unstable --invert';
+						} else if (tagFilter === 'slow') {
+							filter = '--grep @slow';
+						} else if (tagFilter === 'unstable') {
+							filter = '--grep @unstable';
+						} else if (tagFilter === 'network') {
+							filter = '--grep @network';
+						} else if (tagFilter === 'propagation') {
+							filter = '--grep @propagation';
+						} else if (tagFilter === 'stress') {
+							filter = '--grep @stress';
 						} else {
 							grunt.fail.fatal(
-								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of slow | unstable | untagged | extensive (required)\n- Where suite can be one of unit | functional | integration (required)\n- Where section can be one of get | post | ws | system (optional)'
+								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | integration | functional | network (required)\n- Where section can be one of get | post | ws (optional)'
 							);
 						}
-						return `./node_modules/.bin/_mocha --bail test/integration/index.js ${slowTag}`;
+						return `./node_modules/.bin/_mocha --bail test/network/index.js ${filter}`;
 					}
-					var toExecute = [tag, suite, section].filter(val => val).join(' ');
+					var toExecute = [tagFilter, suite, section]
+						.filter(val => val)
+						.join(' ');
 					return `node test/common/parallel_tests.js ${toExecute}`;
 				},
 				maxBuffer: maxBufferSize,

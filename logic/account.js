@@ -15,6 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
+const ed = require('../helpers/ed.js');
 const sortBy = require('../helpers/sort_by.js');
 const Bignum = require('../helpers/bignum.js');
 const BlockReward = require('./block_reward.js');
@@ -202,7 +203,7 @@ class Account {
 	toDB(raw) {
 		this.binary.forEach(field => {
 			if (raw[field]) {
-				raw[field] = Buffer.from(raw[field], 'hex');
+				raw[field] = ed.hexToBuffer(raw[field]);
 			}
 		});
 

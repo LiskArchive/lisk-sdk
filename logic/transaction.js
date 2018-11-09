@@ -150,6 +150,7 @@ class Transaction {
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	getBytes(transaction, skipSignature, skipSecondSignature) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
@@ -158,8 +159,7 @@ class Transaction {
 		let byteBuffer;
 
 		try {
-			const assetBytes = __private.types[transaction.type].getBytes.call(
-				this,
+			const assetBytes = __private.types[transaction.type].getBytes(
 				transaction,
 				skipSignature,
 				skipSecondSignature
@@ -173,18 +173,16 @@ class Transaction {
 			byteBuffer.writeByte(transaction.type);
 			byteBuffer.writeInt(transaction.timestamp);
 
-			const senderPublicKeyBuffer = Buffer.from(
-				transaction.senderPublicKey,
-				'hex'
+			const senderPublicKeyBuffer = this.scope.ed.hexToBuffer(
+				transaction.senderPublicKey
 			);
 			for (let i = 0; i < senderPublicKeyBuffer.length; i++) {
 				byteBuffer.writeByte(senderPublicKeyBuffer[i]);
 			}
 
 			if (transaction.requesterPublicKey) {
-				const requesterPublicKey = Buffer.from(
-					transaction.requesterPublicKey,
-					'hex'
+				const requesterPublicKey = this.scope.ed.hexToBuffer(
+					transaction.requesterPublicKey
 				);
 				for (let i = 0; i < requesterPublicKey.length; i++) {
 					byteBuffer.writeByte(requesterPublicKey[i]);
@@ -213,16 +211,17 @@ class Transaction {
 			}
 
 			if (!skipSignature && transaction.signature) {
-				const signatureBuffer = Buffer.from(transaction.signature, 'hex');
+				const signatureBuffer = this.scope.ed.hexToBuffer(
+					transaction.signature
+				);
 				for (let i = 0; i < signatureBuffer.length; i++) {
 					byteBuffer.writeByte(signatureBuffer[i]);
 				}
 			}
 
 			if (!skipSecondSignature && transaction.signSignature) {
-				const signSignatureBuffer = Buffer.from(
-					transaction.signSignature,
-					'hex'
+				const signSignatureBuffer = this.scope.ed.hexToBuffer(
+					transaction.signSignature
 				);
 				for (let i = 0; i < signSignatureBuffer.length; i++) {
 					byteBuffer.writeByte(signSignatureBuffer[i]);
@@ -246,6 +245,7 @@ class Transaction {
 	 * @returns {function|boolean} Calls `ready()` on sub class | false
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	ready(transaction, sender) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
@@ -255,11 +255,7 @@ class Transaction {
 			return false;
 		}
 
-		return __private.types[transaction.type].ready.call(
-			this,
-			transaction,
-			sender
-		);
+		return __private.types[transaction.type].ready(transaction, sender);
 	}
 
 	/**
@@ -281,24 +277,25 @@ class Transaction {
 	}
 
 	/**
-	 * Description of the function.
+	 * Returns true if a transaction was confirmed.
 	 *
-	 * @param {transaction} transaction
+	 * @param {Object} transaction
+	 * @param {string} transaction.id - only transaction id is necessary here
 	 * @param {function} cb
-	 * @returns {SetImmediate} error
+	 * @returns {SetImmediate} error, isConfirmed
 	 * @todo Add description for the params
 	 */
 	checkConfirmed(transaction, cb) {
+		if (!transaction || !transaction.id) {
+			return setImmediate(cb, 'Invalid transaction id', false);
+		}
 		this.countById(transaction, (err, count) => {
 			if (err) {
-				return setImmediate(cb, err);
+				return setImmediate(cb, err, false);
 			} else if (count > 0) {
-				return setImmediate(
-					cb,
-					`Transaction is already confirmed: ${transaction.id}`
-				);
+				return setImmediate(cb, null, true);
 			}
-			return setImmediate(cb);
+			return setImmediate(cb, null, false);
 		});
 	}
 
@@ -378,8 +375,7 @@ class Transaction {
 		transaction.senderId = sender.address;
 
 		// Call process on transaction type
-		__private.types[transaction.type].process.call(
-			this,
+		__private.types[transaction.type].process(
 			transaction,
 			sender,
 			(err, transaction) => {
@@ -621,8 +617,7 @@ class Transaction {
 		}
 
 		// Calculate fee
-		const fee = __private.types[transaction.type].calculateFee.call(
-			this,
+		const fee = __private.types[transaction.type].calculateFee(
 			transaction,
 			sender
 		);
@@ -685,8 +680,7 @@ class Transaction {
 			tx,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transaction.type].verify.call(
-				this,
+			__private.types[transaction.type].verify(
 				transaction,
 				sender,
 				err => {
@@ -700,9 +694,16 @@ class Transaction {
 		};
 
 		if (checkExists) {
-			this.checkConfirmed(transaction, checkConfirmedErr => {
+			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
 				if (checkConfirmedErr) {
 					return setImmediate(cb, checkConfirmedErr);
+				}
+
+				if (isConfirmed) {
+					return setImmediate(
+						cb,
+						`Transaction is already confirmed: ${transaction.id}`
+					);
 				}
 
 				verifyTransactionTypes(transaction, sender, tx, cb);
@@ -788,8 +789,8 @@ class Transaction {
 				.createHash('sha256')
 				.update(data2)
 				.digest();
-			const signatureBuffer = Buffer.from(signature, 'hex');
-			const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+			const signatureBuffer = this.scope.ed.hexToBuffer(signature);
+			const publicKeyBuffer = this.scope.ed.hexToBuffer(publicKey);
 
 			return this.scope.ed.verify(
 				hash,
@@ -802,7 +803,7 @@ class Transaction {
 	}
 
 	/**
-	 * Merges account into sender address, Calls `apply` based on transaction type (privateTypes).
+	 * Merges account into sender address, Calls `applyConfirmed` based on transaction type (privateTypes).
 	 *
 	 * @see {@link privateTypes}
 	 * @param {transaction} transaction
@@ -812,7 +813,7 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	apply(transaction, block, sender, cb, tx) {
+	applyConfirmed(transaction, block, sender, cb, tx) {
 		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
@@ -837,7 +838,7 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		this.scope.logger.trace('Logic/Transaction->apply', {
+		this.scope.logger.trace('Logic/Transaction->applyConfirmed', {
 			sender: sender.address,
 			balance: `-${amount}`,
 			blockId: block.id,
@@ -855,16 +856,15 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 				/**
-				 * Calls apply for Transfer, Signature, Delegate, Vote, Multisignature,
+				 * Calls applyConfirmed for Transfer, Signature, Delegate, Vote, Multisignature,
 				 * DApp, InTransfer or OutTransfer.
 				 */
-				__private.types[transaction.type].apply.call(
-					this,
+				__private.types[transaction.type].applyConfirmed(
 					transaction,
 					block,
 					sender,
-					applyErr => {
-						if (applyErr) {
+					applyConfirmedErr => {
+						if (applyConfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
@@ -872,7 +872,7 @@ class Transaction {
 									round: slots.calcRound(block.height),
 								},
 								reverseMergeErr =>
-									setImmediate(cb, reverseMergeErr || applyErr),
+									setImmediate(cb, reverseMergeErr || applyConfirmedErr),
 								tx
 							);
 						} else {
@@ -897,7 +897,7 @@ class Transaction {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
-	undo(transaction, block, sender, cb, tx) {
+	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (exceptions.inertTransactions.includes(transaction.id)) {
 			this.scope.logger.debug('Inert transaction encountered');
 			this.scope.logger.debug(JSON.stringify(transaction));
@@ -906,7 +906,7 @@ class Transaction {
 
 		const amount = transaction.amount.plus(transaction.fee);
 
-		this.scope.logger.trace('Logic/Transaction->undo', {
+		this.scope.logger.trace('Logic/Transaction->undoConfirmed', {
 			sender: sender.address,
 			balance: amount,
 			blockId: block.id,
@@ -924,20 +924,20 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undo.call(
-					this,
+				__private.types[transaction.type].undoConfirmed(
 					transaction,
 					block,
 					sender,
-					undoErr => {
-						if (undoErr) {
+					undoConfirmedErr => {
+						if (undoConfirmedErr) {
 							this.scope.account.merge(
 								sender.address,
 								{
 									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
 								},
-								reverseMergeErr => setImmediate(cb, reverseMergeErr || undoErr),
+								reverseMergeErr =>
+									setImmediate(cb, reverseMergeErr || undoConfirmedErr),
 								tx
 							);
 						} else {
@@ -1001,8 +1001,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].applyUnconfirmed.call(
-					this,
+				__private.types[transaction.type].applyUnconfirmed(
 					transaction,
 					sender,
 					applyUnconfirmedErr => {
@@ -1054,8 +1053,7 @@ class Transaction {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undoUnconfirmed.call(
-					this,
+				__private.types[transaction.type].undoUnconfirmed(
 					transaction,
 					sender,
 					undoUnconfirmedErr => {
@@ -1161,8 +1159,7 @@ class Transaction {
 		}
 
 		try {
-			transaction = __private.types[transaction.type].objectNormalize.call(
-				this,
+			transaction = __private.types[transaction.type].objectNormalize(
 				transaction
 			);
 		} catch (e) {
@@ -1181,6 +1178,7 @@ class Transaction {
 	 * @returns {null|transaction}
 	 * @todo Add description for the params
 	 */
+	/* eslint-disable class-methods-use-this */
 	dbRead(raw) {
 		if (!raw.t_id) {
 			return null;
@@ -1210,7 +1208,7 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		const asset = __private.types[transaction.type].dbRead.call(this, raw);
+		const asset = __private.types[transaction.type].dbRead(raw);
 
 		if (asset) {
 			transaction.asset = extend(transaction.asset, asset);
@@ -1239,8 +1237,8 @@ Transaction.prototype.attachAssetType = function(typeId, instance) {
 		typeof instance.verify === 'function' &&
 		typeof instance.objectNormalize === 'function' &&
 		typeof instance.dbRead === 'function' &&
-		typeof instance.apply === 'function' &&
-		typeof instance.undo === 'function' &&
+		typeof instance.applyConfirmed === 'function' &&
+		typeof instance.undoConfirmed === 'function' &&
 		typeof instance.applyUnconfirmed === 'function' &&
 		typeof instance.undoUnconfirmed === 'function' &&
 		typeof instance.ready === 'function' &&

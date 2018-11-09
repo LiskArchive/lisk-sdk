@@ -22,7 +22,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
 var errorCodes = require('../../../../helpers/api_codes');
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 
 describe('POST /api/transactions (general)', () => {
 	var transactionsEndpoint = new swaggerSpec('POST /transactions');

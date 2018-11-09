@@ -289,18 +289,6 @@ Transport.prototype.poorConsensus = function() {
 	return modules.peers.calculateConsensus() < constants.minBroadhashConsensus;
 };
 
-/**
- * Calls getPeers method from Broadcaster class.
- *
- * @param {Object} params
- * @param {function} cb - Callback function
- * @returns {Broadcaster.getPeers} Calls getPeers
- * @todo Add description for the params
- */
-Transport.prototype.getPeers = function(params, cb) {
-	return __private.broadcaster.getPeers(params, cb);
-};
-
 // Events
 /**
  * Bounds scope to private broadcaster amd initialize headers.

@@ -17,7 +17,7 @@
 require('../../functional.js');
 const lisk = require('lisk-elements').default;
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');
-const phases = require('../../common/phases');
+const phases = require('../../../common/phases');
 const randomUtil = require('../../../common/utils/random');
 const wsRPC = require('../../../../api/ws/rpc/ws_rpc').wsRPC;
 const WsTestClient = require('../../../common/ws/client');

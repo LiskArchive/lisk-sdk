@@ -27,6 +27,7 @@ var slots = require('../../../../helpers/slots');
 
 const constants = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
 	var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
@@ -34,6 +35,7 @@ describe('GET /api/transactions', () => {
 
 	var account = randomUtil.account();
 	var account2 = randomUtil.account();
+	var account3 = accountFixtures.existingDelegate;
 	var minAmount = 20 * constants.normalizer; // 20 LSK
 	var maxAmount = 100 * constants.normalizer; // 100 LSK
 	var transaction1 = lisk.transaction.transfer({
@@ -51,7 +53,71 @@ describe('GET /api/transactions', () => {
 		passphrase: account.passphrase,
 		recipientId: account2.address,
 	});
-	// Crediting accounts
+	var transaction4 = lisk.transaction.transfer({
+		amount: maxAmount,
+		passphrase: accountFixtures.genesis.passphrase,
+		recipientId: account3.address,
+	});
+	var transactionType5 = {
+		amount: '0',
+		recipientId: '',
+		senderPublicKey:
+			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		timestamp: 68943236,
+		type: 5,
+		fee: '2500000000',
+		asset: {
+			dapp: {
+				category: 4,
+				name: 'Placeholder-App',
+				description: 'Placeholder-App description',
+				tags: 'app placeholder dummy',
+				type: 0,
+				link: 'https://dummy.zip',
+				icon:
+					'https://raw.githubusercontent.com/DummyUser/blockDataDapp/master/icon.png',
+			},
+		},
+		signature:
+			'074ad8f2fc4146c1122913a147e71b67ceccbd9a45d769b4bc9ed1cdbdf4404eaa4475f30e9ea5d33d715e3208506aee18425cf03f971d85f027e5dbc0530a02',
+		id: '3173899516019557774',
+	};
+	var transactionType6 = {
+		type: 6,
+		amount: '0',
+		fee: '10000000',
+		recipientId: '',
+		senderPublicKey:
+			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		timestamp: 69004227,
+		asset: {
+			inTransfer: {
+				dappId: '3173899516019557774',
+			},
+		},
+		signature:
+			'89a5d3abe53815d2cc36aaf04d242735bb8eaa767c8e8d9a31c049968189b500e87b61188a5ec80a1c191aa1bcf6bb7980f726c837fa3d3d753673ce7ab3060e',
+		id: '9616264103046411489',
+	};
+	var transactionType7 = {
+		type: 7,
+		amount: '0',
+		fee: '10000000',
+		recipientId: '10881167371402274308L',
+		senderPublicKey:
+			'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
+		timestamp: 69520900,
+		asset: {
+			outTransfer: {
+				dappId: '3173899516019557774',
+				transactionId: '3173899516019557774',
+			},
+		},
+		signature:
+			'8249786301f5cc7184b0681563dc5c5856568ff967bec22b778f773b0a86532b13d1ede9234f581e62388ada2d1e1366adaa03151a9e6508fb7c3a3e59425109',
+		id: '18307756018345914129',
+	};
+	// Crediting accounts'
 	before(() => {
 		var promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
@@ -863,6 +929,75 @@ describe('GET /api/transactions', () => {
 						expect(res.body.meta.count).to.be.a('number');
 					});
 				});
+			});
+		});
+		/* eslint-disable mocha/no-skipped-tests */
+		/**
+		 * This tests will fail because type 6 and type 7 transactions got disabled in Lisk Core v1.0
+		 * You can make it pass locally, by changing the value for disableDappTransfer
+		 * in config/default/exceptions to a value bigger than 0
+		 * */
+		describe.skip('assets', () => {
+			before(() => {
+				return sendTransactionPromise(transaction4) // send type 0 transaction
+					.then(result => {
+						expect(result.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						return waitFor.confirmations([transaction4.id]); // wait for confirmation
+					})
+					.then(() => {
+						return sendTransactionPromise(transactionType5); // send type 5 transaction
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						return waitFor.confirmations([transactionType5.id]); // wait for confirmation
+					})
+					.then(() => {
+						return sendTransactionPromise(transactionType6); // send type 6 transaction
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						return waitFor.confirmations([transactionType6.id]); // wait for confirmation
+					})
+					.then(() => {
+						return sendTransactionPromise(transactionType7); // send type 7 transaction
+					})
+					.then(res => {
+						expect(res.body.data.message).to.be.equal(
+							'Transaction(s) accepted'
+						);
+						return waitFor.confirmations([transactionType7.id]); // wait for confirmation
+					});
+			});
+			it('assets for type 6 transactions should contain key dappId', () => {
+				return transactionsEndpoint
+					.makeRequest({ type: transactionTypes.IN_TRANSFER }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							expect(transaction.asset).to.have.key('inTransfer');
+							expect(transaction.asset.inTransfer).to.have.key('dappId');
+						});
+					});
+			});
+			it('assets for type 7 transactions should contain key dappId and transactionId', () => {
+				return transactionsEndpoint
+					.makeRequest({ type: transactionTypes.OUT_TRANSFER }, 200)
+					.then(res => {
+						expect(res.body.data).to.not.empty;
+						res.body.data.map(transaction => {
+							expect(transaction.asset).to.have.key('outTransfer');
+							expect(transaction.asset.outTransfer).to.have.all.keys(
+								'dappId',
+								'transactionId'
+							);
+						});
+					});
 			});
 		});
 	});

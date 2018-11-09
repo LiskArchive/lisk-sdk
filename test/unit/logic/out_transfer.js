@@ -528,9 +528,9 @@ describe('outTransfer', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		beforeEach(done => {
-			outTransfer.apply(transaction, dummyBlock, sender, done);
+			outTransfer.applyConfirmed(transaction, dummyBlock, sender, done);
 		});
 
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', () => {
@@ -563,9 +563,14 @@ describe('outTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return outTransfer.apply(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return outTransfer.applyConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
@@ -620,21 +625,31 @@ describe('outTransfer', () => {
 				});
 
 				it('should call callback with error', () => {
-					return outTransfer.apply(transaction, dummyBlock, sender, err => {
-						expect(err).not.to.be.empty;
-					});
+					return outTransfer.applyConfirmed(
+						transaction,
+						dummyBlock,
+						sender,
+						err => {
+							expect(err).not.to.be.empty;
+						}
+					);
 				});
 			});
 
 			describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 				it('should call callback with error = undefined', () => {
-					return outTransfer.apply(transaction, dummyBlock, sender, err => {
-						expect(err).to.be.undefined;
-					});
+					return outTransfer.applyConfirmed(
+						transaction,
+						dummyBlock,
+						sender,
+						err => {
+							expect(err).to.be.undefined;
+						}
+					);
 				});
 
 				it('should call callback with result = undefined', () => {
-					return outTransfer.apply(
+					return outTransfer.applyConfirmed(
 						transaction,
 						dummyBlock,
 						sender,
@@ -647,9 +662,9 @@ describe('outTransfer', () => {
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		beforeEach(done => {
-			outTransfer.undo(transaction, dummyBlock, sender, done);
+			outTransfer.undoConfirmed(transaction, dummyBlock, sender, done);
 		});
 
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', () => {
@@ -682,9 +697,14 @@ describe('outTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return outTransfer.undo(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return outTransfer.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
@@ -740,23 +760,38 @@ describe('outTransfer', () => {
 			});
 
 			it('should call callback with error', () => {
-				return outTransfer.undo(transaction, dummyBlock, sender, err => {
-					expect(err).not.to.be.empty;
-				});
+				return outTransfer.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).not.to.be.empty;
+					}
+				);
 			});
 		});
 
 		describe('when modules.accounts.mergeAccountAndGet succeeds', () => {
 			it('should call callback with error = undefined', () => {
-				return outTransfer.undo(transaction, dummyBlock, sender, err => {
-					expect(err).to.be.undefined;
-				});
+				return outTransfer.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					err => {
+						expect(err).to.be.undefined;
+					}
+				);
 			});
 
 			it('should call callback with result = undefined', () => {
-				return outTransfer.undo(transaction, dummyBlock, sender, (err, res) => {
-					expect(res).to.be.undefined;
-				});
+				return outTransfer.undoConfirmed(
+					transaction,
+					dummyBlock,
+					sender,
+					(err, res) => {
+						expect(res).to.be.undefined;
+					}
+				);
 			});
 		});
 	});

@@ -86,6 +86,7 @@ describe('blocks', () => {
 			genesisBlock: dummyGenesisblock,
 			bus: busStub,
 			balancesSequence: balancesSequenceStub,
+			config: { loading: {} },
 		};
 
 		blocksInstance = new Blocks((err, cbSelf) => {

@@ -45,11 +45,19 @@ var validKeypair = ed.makeKeypair(
 );
 
 var senderPassphrase = accountFixtures.genesis.passphrase;
-var senderHash = crypto
-	.createHash('sha256')
-	.update(senderPassphrase, 'utf8')
-	.digest();
-var senderKeypair = ed.makeKeypair(senderHash);
+
+const generateHash = passPhrase =>
+	crypto
+		.createHash('sha256')
+		.update(passPhrase || senderPassphrase, 'utf8')
+		.digest();
+
+const senderKeyPair = passPhrase => {
+	const userHash = generateHash(passPhrase);
+	return ed.makeKeypair(userHash);
+};
+
+const keyPair = senderKeyPair();
 
 var sender = {
 	username: null,
@@ -184,8 +192,23 @@ describe('transaction', () => {
 			return expect(transactionLogic.sign).to.throw();
 		});
 
+		it('should throw an error Argument must be a valid hex string.', done => {
+			const inValidTransaction = Object.assign({}, validTransaction);
+			let err = null;
+			inValidTransaction.senderPublicKey =
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6fx';
+			try {
+				expect(transactionLogic.sign(keyPair, inValidTransaction));
+			} catch (e) {
+				err = e.message;
+			} finally {
+				expect(err).to.equal('Argument must be a valid hex string.');
+			}
+			done();
+		});
+
 		it('should sign transaction', () => {
-			return expect(transactionLogic.sign(senderKeypair, validTransaction))
+			return expect(transactionLogic.sign(keyPair, validTransaction))
 				.to.be.a('string')
 				.which.is.equal(
 					'8f9c4242dc562599f95f5481469d22567987536112663156761e4b2b3f1142c4f5355a2a7c7b254f40d370bef7e76b4a11c8a1836e0c9b0bcab3e834ca1e7502'
@@ -197,7 +220,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.data = '123';
 
-			return expect(transactionLogic.sign(senderKeypair, transaction))
+			return expect(transactionLogic.sign(keyPair, transaction))
 				.to.be.a('string')
 				.which.is.not.equal(originalSignature);
 		});
@@ -210,7 +233,7 @@ describe('transaction', () => {
 
 		it('should multisign the transaction', () => {
 			return expect(
-				transactionLogic.multisign(senderKeypair, validTransaction)
+				transactionLogic.multisign(keyPair, validTransaction)
 			).to.equal(validTransaction.signature);
 		});
 	});
@@ -322,7 +345,9 @@ describe('transaction', () => {
 
 	describe('countById', () => {
 		it('should throw an error with no param', () => {
-			return expect(transactionLogic.countById).to.throw();
+			return expect(transactionLogic.countById.bind(transactionLogic)).to.throw(
+				"Cannot read property 'id' of undefined"
+			);
 		});
 
 		it('should return count of transaction in db with transaction id', done => {
@@ -344,7 +369,16 @@ describe('transaction', () => {
 
 	describe('checkConfirmed', () => {
 		it('should throw an error with no param', () => {
-			return expect(transactionLogic.checkConfirmed).to.throw();
+			return expect(
+				transactionLogic.checkConfirmed.bind(transactionLogic)
+			).to.throw('"callback" argument must be a function');
+		});
+
+		it('should return an error with no transaction', done => {
+			transactionLogic.checkConfirmed(null, err => {
+				expect(err).to.equal('Invalid transaction id');
+				done();
+			});
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
@@ -355,20 +389,24 @@ describe('transaction', () => {
 			});
 
 			transactionLogic.checkConfirmed(transaction, err => {
-				expect(err).to.not.exist;
+				expect(err).to.be.a('null');
 				done();
 			});
 		});
 
-		it('should return error for transaction which is already confirmed', done => {
+		it('should return true for transaction which is already confirmed', done => {
 			var dummyConfirmedTransaction = {
 				id: '1465651642158264047',
 			};
 
-			transactionLogic.checkConfirmed(dummyConfirmedTransaction, err => {
-				expect(err).to.include('Transaction is already confirmed');
-				done();
-			});
+			transactionLogic.checkConfirmed(
+				dummyConfirmedTransaction,
+				(err, isConfirmed) => {
+					expect(err).to.be.a('null');
+					expect(isConfirmed).to.be.true;
+					done();
+				}
+			);
 		});
 	});
 
@@ -622,7 +660,7 @@ describe('transaction', () => {
 			transaction.signatures = Array(...Array(2)).map(() => {
 				return transactionLogic.sign(validKeypair, transaction);
 			});
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transactionLogic.verify(transaction, vs, null, null, err => {
 				expect(err).to.equal('Encountered duplicate signature in transaction');
 				done();
@@ -634,7 +672,7 @@ describe('transaction', () => {
 			var vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.signatures = [
 				transactionLogic.multisign(validKeypair, transaction),
 			];
@@ -698,7 +736,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = { data: '123' };
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 
@@ -754,7 +792,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = -2147483648 - 1;
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
@@ -769,7 +807,7 @@ describe('transaction', () => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = 2147483647 + 1;
 			delete transaction.signature;
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.verify(transaction, sender, null, null, err => {
@@ -785,7 +823,7 @@ describe('transaction', () => {
 			transaction.timestamp = slots.getTime() + 100;
 			delete transaction.signature;
 
-			transaction.signature = transactionLogic.sign(senderKeypair, transaction);
+			transaction.signature = transactionLogic.sign(keyPair, transaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 
@@ -929,31 +967,36 @@ describe('transaction', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
 
-		function undoTransaction(transaction, sender, done) {
-			transactionLogic.undo(transaction, dummyBlock, sender, done);
+		function undoConfirmedTransaction(transaction, sender, done) {
+			transactionLogic.undoConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should throw an error with no param', () => {
 			return expect(() => {
-				transactionLogic.apply();
+				transactionLogic.applyConfirmed();
 			}).to.throw();
 		});
 
 		it('should be okay with valid params', done => {
-			transactionLogic.apply(unconfirmedTransaction, dummyBlock, sender, done);
+			transactionLogic.applyConfirmed(
+				unconfirmedTransaction,
+				dummyBlock,
+				sender,
+				done
+			);
 		});
 
 		it('should return error on if balance is low', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.amount = new Bignum('9850458911801908');
 
-			transactionLogic.apply(transaction, dummyBlock, sender, err => {
+			transactionLogic.applyConfirmed(transaction, dummyBlock, sender, err => {
 				expect(err).to.include('Account does not have enough ');
 				done();
 			});
@@ -968,38 +1011,45 @@ describe('transaction', () => {
 					);
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transactionLogic.apply(validTransaction, dummyBlock, sender, () => {
-						accountModule.getAccount(
-							{ publicKey: validTransaction.senderPublicKey },
-							(err, accountAfter) => {
-								expect(err).to.not.exist;
-								var balanceAfter = new Bignum(accountAfter.balance.toString());
+					transactionLogic.applyConfirmed(
+						validTransaction,
+						dummyBlock,
+						sender,
+						() => {
+							accountModule.getAccount(
+								{ publicKey: validTransaction.senderPublicKey },
+								(err, accountAfter) => {
+									expect(err).to.not.exist;
+									var balanceAfter = new Bignum(
+										accountAfter.balance.toString()
+									);
 
-								expect(err).to.not.exist;
-								expect(balanceAfter.plus(amount).toString()).to.equal(
-									balanceBefore.toString()
-								);
-								undoTransaction(validTransaction, sender, done);
-							}
-						);
-					});
+									expect(err).to.not.exist;
+									expect(balanceAfter.plus(amount).toString()).to.equal(
+										balanceBefore.toString()
+									);
+									undoConfirmedTransaction(validTransaction, sender, done);
+								}
+							);
+						}
+					);
 				}
 			);
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
 
-		function applyTransaction(transaction, sender, done) {
-			transactionLogic.apply(transaction, dummyBlock, sender, done);
+		function applyConfirmedTransaction(transaction, sender, done) {
+			transactionLogic.applyConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should throw an error with no param', () => {
-			return expect(transactionLogic.undo).to.throw();
+			return expect(transactionLogic.undoConfirmed).to.throw();
 		});
 
 		it('should not update sender balance when transaction is invalid', done => {
@@ -1014,23 +1064,30 @@ describe('transaction', () => {
 				(err, accountBefore) => {
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transactionLogic.undo(transaction, dummyBlock, sender, () => {
-						accountModule.getAccount(
-							{ publicKey: transaction.senderPublicKey },
-							(err, accountAfter) => {
-								expect(err).to.not.exist;
-								var balanceAfter = new Bignum(accountAfter.balance.toString());
+					transactionLogic.undoConfirmed(
+						transaction,
+						dummyBlock,
+						sender,
+						() => {
+							accountModule.getAccount(
+								{ publicKey: transaction.senderPublicKey },
+								(err, accountAfter) => {
+									expect(err).to.not.exist;
+									var balanceAfter = new Bignum(
+										accountAfter.balance.toString()
+									);
 
-								expect(
-									balanceBefore.plus(amount.mul(2)).toString()
-								).to.not.equal(balanceAfter.toString());
-								expect(balanceBefore.toString()).to.equal(
-									balanceAfter.toString()
-								);
-								done();
-							}
-						);
-					});
+									expect(
+										balanceBefore.plus(amount.mul(2)).toString()
+									).to.not.equal(balanceAfter.toString());
+									expect(balanceBefore.toString()).to.equal(
+										balanceAfter.toString()
+									);
+									done();
+								}
+							);
+						}
+					);
 				}
 			);
 		});
@@ -1041,18 +1098,25 @@ describe('transaction', () => {
 				(err, accountBefore) => {
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transactionLogic.undo(validTransaction, dummyBlock, sender, () => {
-						accountModule.getAccount(
-							{ publicKey: validTransaction.senderPublicKey },
-							(err, accountAfter) => {
-								expect(err).to.not.exist;
-								var balanceAfter = new Bignum(accountAfter.balance.toString());
+					transactionLogic.undoConfirmed(
+						validTransaction,
+						dummyBlock,
+						sender,
+						() => {
+							accountModule.getAccount(
+								{ publicKey: validTransaction.senderPublicKey },
+								(err, accountAfter) => {
+									expect(err).to.not.exist;
+									var balanceAfter = new Bignum(
+										accountAfter.balance.toString()
+									);
 
-								expect(balanceAfter.equals(balanceBefore));
-								applyTransaction(validTransaction, sender, done);
-							}
-						);
-					});
+									expect(balanceAfter.equals(balanceBefore));
+									applyConfirmedTransaction(validTransaction, sender, done);
+								}
+							);
+						}
+					);
 				}
 			);
 		});

@@ -1,4 +1,4 @@
-FROM node:6 AS builder
+FROM node:8 AS builder
 
 ENV NODE_ENV=production
 
@@ -15,11 +15,11 @@ WORKDIR /home/lisk/lisk
 RUN npm install
 
 
-FROM node:6
+FROM node:8
 
-ENV CONFD_VERSION 0.16.0
-ENV CONFD_SHA256 255d2559f3824dd64df059bdc533fd6b697c070db603c76aaf8d1d5e6b0cc334
 ENV NODE_ENV=production
+ENV WFI_COMMIT=e34c502a3efe0e8b8166ea6148d55b73da5c8401
+ENV WFI_SHA=0f75de5c9d9c37a933bb9744ffd710750d5773892930cfe40509fa505788835c
 
 RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >/etc/apt/sources.list.d/backports.list && \
     apt-get update && \
@@ -29,26 +29,25 @@ RUN echo "deb http://ftp.debian.org/debian jessie-backports main" >/etc/apt/sour
 RUN groupadd --gid 1100 lisk && \
     useradd --create-home --home-dir /home/lisk --shell /bin/bash --uid 1100 --gid 1100 lisk
 COPY --from=builder --chown=lisk:lisk /home/lisk/lisk/ /home/lisk/lisk/
-COPY docker_files/ /
 # git repository needed for build; cannot be added to .dockerignore
 RUN rm -rf /home/lisk/lisk/.git && \
-    mkdir /home/lisk/lisk/logs && \
+    mkdir -p /home/lisk/lisk/logs && \
     chown lisk:lisk /home/lisk/lisk/logs
 
-RUN curl --silent --show-error --location --output /tmp/confd \
-         https://github.com/kelseyhightower/confd/releases/download/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 && \
-    if [ x"$( sha256sum /tmp/confd |awk '{ print $1 }' )" = x"${CONFD_SHA256}" ]; then \
-        mv /tmp/confd /usr/local/bin/; \
-	chmod +x /usr/local/bin/confd; \
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/${WFI_COMMIT}/wait-for-it.sh /home/lisk/wait-for-it.sh
+RUN if [ x"$( sha256sum /home/lisk/wait-for-it.sh |awk '{print $1}' )" = x"${WFI_SHA}" ]; then \
+      chmod 0755 /home/lisk/wait-for-it.sh; \
     else \
-        rm -f /tmp/confd; \
-	exit 1; \
+      rm -f /home/lisk/wait-for-it.sh; \
+      echo "Checksum verification failed."; \
+      exit 1; \
     fi
 
-ENV LISK_API_ACCESS_WHITELIST_1=127.0.0.1
-ENV LISK_FORGING_ACCESS_WHITELIST_1=${LISK_API_ACCESS_WHITELIST_1}
+ENV LISK_API_WHITELIST=127.0.0.1
+ENV LISK_FORGING_WHITELIST=${LISK_API_WHITELIST}
 
 USER lisk
 WORKDIR /home/lisk/lisk
-ENTRYPOINT ["/home/lisk/run.sh"]
+
+ENTRYPOINT ["node", "/home/lisk/lisk/app.js"]
 CMD ["-n", "mainnet"]

@@ -2311,9 +2311,11 @@ definitions:
     required:
       - broadhash
       - consensus
+      - currentTime
       - height
       - loaded
       - networkHeight
+      - secondsSinceEpoch
       - syncing
       - transactions
     properties:
@@ -2332,6 +2334,10 @@ definitions:
         minimum: 0
         maximum: 100
         description: Percentage of the connected peers, that have the same broadhash as the querying node.
+      currentTime:
+        type: integer
+        example: 1533558858128
+        description: Current time of the node in miliseconds (Unix Timestamp).
       height:
         type: integer
         example: 123
@@ -2349,6 +2355,10 @@ definitions:
         description: |
           Current block height of the network.
           Represents the current number of blocks in the chain on the network.
+      secondsSinceEpoch:
+        type: integer
+        example: 1533558858
+        description: Number of seconds that have elapsed since the Lisk epoch time (Lisk Timestamp).
       syncing:
         type: boolean
         example: false
@@ -2556,7 +2566,7 @@ definitions:
         description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
-        example: 0
+        example: 1081560729258
         description: |
           The current unconfirmed balance of the account in Beddows.
           Includes unconfirmed transactions.
@@ -2599,7 +2609,7 @@ definitions:
         description: The current balance of the account in Beddows.
       unconfirmedBalance:
         type: string
-        example: 0
+        example: 1081560729258
         description: |
           The current unconfirmed balance of the account in Beddows.
           Includes unconfirmed transactions.

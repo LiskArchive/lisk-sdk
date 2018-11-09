@@ -16,8 +16,8 @@
 
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
-var phases = require('../../common/phases');
-var Scenarios = require('../../common/scenarios');
+var phases = require('../../../common/phases');
+var Scenarios = require('../../../common/scenarios');
 var accountFixtures = require('../../../fixtures/accounts');
 var apiCodes = require('../../../../helpers/api_codes');
 var randomUtil = require('../../../common/utils/random');

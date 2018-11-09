@@ -7,43 +7,43 @@
 	"peers": {
 		"list": [
 			{
-				"ip": "83.136.254.92",
+				"ip": "mainnet-seed-01.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "83.136.249.76",
+				"ip": "mainnet-seed-02.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "94.237.28.66",
+				"ip": "mainnet-seed-03.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "94.237.24.199",
+				"ip": "mainnet-seed-04.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "209.50.49.23",
+				"ip": "mainnet-seed-05.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "209.50.49.40",
+				"ip": "mainnet-seed-06.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "94.237.64.70",
+				"ip": "mainnet-seed-07.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "94.237.64.73",
+				"ip": "mainnet-seed-08.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "94.237.40.140",
+				"ip": "mainnet-seed-09.lisk.io",
 				"wsPort": 8001
 			},
 			{
-				"ip": "94.237.40.141",
+				"ip": "mainnet-seed-10.lisk.io",
 				"wsPort": 8001
 			}
 		]

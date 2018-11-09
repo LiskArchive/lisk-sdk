@@ -834,7 +834,7 @@ __private.snapshotFinished = err => {
 	} else {
 		library.logger.info('Snapshot creation finished');
 	}
-	process.emit('cleanup');
+	process.emit('cleanup', err);
 };
 
 /**
@@ -957,12 +957,11 @@ __private.sync = function(cb) {
 
 	async.series(
 		{
-			getPeersBefore(seriesCb) {
-				library.logger.debug('Establishing broadhash consensus before sync');
-				return modules.transport.getPeers(
-					{ limit: constants.maxPeers },
-					seriesCb
+			calculateConsensusBefore(seriesCb) {
+				library.logger.debug(
+					`Establishing broadhash consensus before sync: ${modules.peers.calculateConsensus()} %`
 				);
+				return seriesCb();
 			},
 			loadBlocksFromNetwork(seriesCb) {
 				return __private.loadBlocksFromNetwork(seriesCb);
@@ -975,12 +974,11 @@ __private.sync = function(cb) {
 				// Notify all remote peers about our new headers
 				modules.transport.broadcastHeaders(seriesCb);
 			},
-			getPeersAfter(seriesCb) {
-				library.logger.debug('Establishing broadhash consensus after sync');
-				return modules.transport.getPeers(
-					{ limit: constants.maxPeers },
-					seriesCb
+			calculateConsensusAfter(seriesCb) {
+				library.logger.debug(
+					`Establishing broadhash consensus after sync: ${modules.peers.calculateConsensus()} %`
 				);
+				return seriesCb();
 			},
 		},
 		err => {

@@ -14,6 +14,7 @@
 
 'use strict';
 
+const ed = require('../../../../helpers/ed.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const blocksFixtures = require('../../../fixtures').blocks;
 const accountsFixtures = require('../../../fixtures').accounts;
@@ -933,9 +934,9 @@ describe('db', () => {
 				const block = blocksFixtures.Block();
 				yield db.blocks.save(block);
 
-				block.payloadHash = Buffer.from(block.payloadHash, 'hex');
-				block.generatorPublicKey = Buffer.from(block.generatorPublicKey, 'hex');
-				block.blockSignature = Buffer.from(block.blockSignature, 'hex');
+				block.payloadHash = ed.hexToBuffer(block.payloadHash);
+				block.generatorPublicKey = ed.hexToBuffer(block.generatorPublicKey);
+				block.blockSignature = ed.hexToBuffer(block.blockSignature);
 				block.reward = block.reward;
 
 				return expect(db.$config.pgp.helpers.insert).to.be.calledWithExactly(
@@ -973,7 +974,7 @@ describe('db', () => {
 				delete block.payloadHash;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
-					'First argument must be a string, Buffer'
+					'Argument must be a string'
 				);
 			});
 
@@ -982,7 +983,7 @@ describe('db', () => {
 				delete block.generatorPublicKey;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
-					'First argument must be a string, Buffer'
+					'Argument must be a string'
 				);
 			});
 
@@ -991,7 +992,7 @@ describe('db', () => {
 				delete block.blockSignature;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
-					'First argument must be a string, Buffer'
+					'Argument must be a string'
 				);
 			});
 

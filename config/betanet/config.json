@@ -9,23 +9,23 @@
 	"peers": {
 		"list": [
 			{
-				"ip": "94.237.41.99",
+				"ip": "betanet-seed-01.lisk.io",
 				"wsPort": 5001
 			},
 			{
-				"ip": "209.50.52.217",
+				"ip": "betanet-seed-02.lisk.io",
 				"wsPort": 5001
 			},
 			{
-				"ip": "94.237.26.150",
+				"ip": "betanet-seed-03.lisk.io",
 				"wsPort": 5001
 			},
 			{
-				"ip": "83.136.249.102",
+				"ip": "betanet-seed-04.lisk.io",
 				"wsPort": 5001
 			},
 			{
-				"ip": "94.237.65.179",
+				"ip": "betanet-seed-05.lisk.io",
 				"wsPort": 5001
 			}
 		]

@@ -48,6 +48,7 @@
  * @property {number} rewards.distance - Distance between each milestone.
  * @property {number} totalAmount - Total amount of LSK available in network before rewards milestone started.
  * @property {number} unconfirmedTransactionTimeOut - Expiration time for unconfirmed transaction/signatures in transaction pool.
+ * @property {number} expiryInterval - Transaction pool expiry timer in milliseconds
  * @todo Add description for the namespace and the properties.
  */
 module.exports = {
@@ -111,4 +112,5 @@ module.exports = {
 	// WARNING: When changing totalAmount you also need to change getBlockRewards(int) SQL function!
 	totalAmount: '10000000000000000',
 	unconfirmedTransactionTimeOut: 10800, // 1080 blocks
+	expiryInterval: 30000,
 };

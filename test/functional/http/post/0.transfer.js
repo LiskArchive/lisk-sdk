@@ -19,7 +19,7 @@ var crypto = require('crypto');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var typesRepresentatives = require('../../../fixtures/types_representatives');
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 var sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
 var randomUtil = require('../../../common/utils/random');

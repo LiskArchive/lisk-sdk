@@ -551,7 +551,8 @@ describe('block', () => {
 			const bytes1 = block.getBytes(blockData);
 			const blockDataCopy = Object.assign({}, blockData);
 			blockDataCopy.height = 100;
-			blockDataCopy.generatorPublicKey = 'this is some key';
+			blockDataCopy.generatorPublicKey =
+				'7e632b62d6230bfc15763f06bf82f7e20cf06a2d8a356850e0bdab30db3506cc';
 			const bytes2 = block.getBytes(blockDataCopy);
 			return expect(bytes1).to.not.deep.equal(bytes2);
 		});

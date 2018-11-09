@@ -97,14 +97,14 @@ Install System wide via package manager:
 * Ubuntu:
 
 ```
-curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 * MacOS 10.12-10.13 (Sierra/High Sierra):
 
 ```
-brew install node@6.14.1
+brew install node@8.12.0
 ```
 
 #### Check correct version
@@ -131,7 +131,7 @@ su - lisk
 3. Install the correct version of Node.js using nvm:
 
 ```
-nvm install 6.14.1
+nvm install 8.12.0
 ```
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
@@ -244,7 +244,7 @@ Stop redis:
 brew services stop redis
 ```
 
-**NOTE:** Lisk does not run on the redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
+**NOTE:** Lisk does not run on the Redis default port of 6379. Instead it is configured to run on port: 6380. Because of this, in order for Lisk to run, you have one of two options:
 
 1. **Change the Redis launch configuration**
 
@@ -309,6 +309,14 @@ To stop Lisk after it has been started with `pm2`, issue the following command:
 pm2 stop lisk
 ```
 
+**NOTE:** The **port**, **address** and **config-path** can be overridden by providing the relevant command switch:
+
+```
+pm2 start --name lisk app.js -- -p [port] -a [address] -c [config-path] -n [network]
+```
+
+You can pass any of `devnet`, `alphanet`, `betanet`, `testnet` or `mainnet` for the network option.
+
 ## Configuring Lisk
 
 ### Structure
@@ -337,17 +345,36 @@ node app.js [options]
 
 Each of that option can be appended on command line. There are also few `ENV` variables that can be utilized for this purpose.
 
-| Option             | ENV Variable           | Config Option   | Description                                                                                                                                                                       |
-| ------------------ | ---------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| --network<br> -n   | LISK_NETWORK           |                 | Which configurations set to use, associated to lisk networks. Any of this option can be used `devnet`, `alphanet`, `betanet`, `testnet` and `mainnet`. Default value is `devnet`. |
-| --config<br> -c    | LISK_CONFIG_FILE       |                 | Path the custom configuration file, which will override values of `config/default/config.json`                                                                                    |
-| --port<br> -p      | LISK_WS_PORT           | wsPort          | TCP port for P2P layer                                                                                                                                                            |
-| --http-port<br> -h | LISK_HTTP_PORT         | httpPort        | TCP port for HTTP API                                                                                                                                                             |
-| --address<br> -a   |                        | address         | Listening host name or ip                                                                                                                                                         |
-| --database<br> -d  |                        | db.database     | PostgreSQL database name to connect                                                                                                                                               |
-| --peers<br> -p     | LISK_PEERS             | peers.list      | Comma separated list of peers to connect in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                   |
-| --log<br> -l       | LISK_CONSOLE_LOG_LEVEL | consoleLogLevel | Log level for lisk for console output                                                                                                                                             |
-| --snapshot<br> -s  |                        |                 | Number of round for which take the snapshot. If none specified it will use the highest round available.                                                                           |
+| Option                               | ENV Variable           | Config Option            | Description                                                                                                                                                                       |
+| ------------------------------------ | ---------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <pre nowrap>--network<br>-n</pre>    | LISK_NETWORK           |                          | Which configurations set to use, associated to lisk networks. Any of this option can be used `devnet`, `alphanet`, `betanet`, `testnet` and `mainnet`. Default value is `devnet`. |
+| <pre nowrap>--config<br> -c</pre>    | LISK_CONFIG_FILE       |                          | Path the custom configuration file, which will override values of `config/default/config.json`                                                                                    |
+| <pre nowrap>--port<br> -p</pre>      | LISK_WS_PORT           | wsPort                   | TCP port for P2P layer                                                                                                                                                            |
+| <pre nowrap>--http-port<br> -h</pre> | LISK_HTTP_PORT         | httpPort                 | TCP port for HTTP API                                                                                                                                                             |
+| <pre nowrap>--address<br> -a</pre>   | LISK_ADDRESS           | address                  | Listening host name or ip                                                                                                                                                         |
+| <pre nowrap>--log<br> -l</pre>       | LISK_FILE_LOG_LEVEL    | fileLogLevel             | Log level for file output                                                                                                                                                         |
+|                                      | LISK_CONSOLE_LOG_LEVEL | consoleLogLevel          | Log level for console output                                                                                                                                                      |
+|                                      | LISK_CACHE_ENABLED     | cacheEnabled             | Enable or disable cache. Must be set to true/false                                                                                                                                |
+| <pre nowrap>--database<br> -d</pre>  | LISK_DB_NAME           | db.database              | PostgreSQL database name to connect to                                                                                                                                            |
+|                                      | LISK_DB_HOST           | db.host                  | PostgreSQL database host name                                                                                                                                                     |
+|                                      | LISK_DB_PORT           | db.port                  | PostgreSQL database port                                                                                                                                                          |
+|                                      | LISK_DB_USER           | db.user                  | PostgreSQL database username to connect to                                                                                                                                        |
+|                                      | LISK_DB_PASSWORD       | db.password              | PostgreSQL database password to connect to                                                                                                                                        |
+| <pre nowrap>--redis<br> -r</pre>     | LISK_REDIS_HOST        | redis.host               | Redis host name                                                                                                                                                                   |
+|                                      | LISK_REDIS_PORT        | redis.port               | Redis port                                                                                                                                                                        |
+|                                      | LISK_REDIS_DB_NAME     | redis.db                 | Redis database name to connect to                                                                                                                                                 |
+|                                      | LISK_REDIS_DB_PASSWORD | redis.password           | Redis database password to connect to                                                                                                                                             |
+| <pre nowrap>--peers<br> -p</pre>     | LISK_PEERS             | peers.list               | Comma separated list of peers to connect to in the format `192.168.99.100:5000,172.169.99.77:5000`                                                                                |
+|                                      | LISK_API_PUBLIC        | api.access.public        | Enable or disable public access of http API. Must be set to true/false                                                                                                            |
+|                                      | LISK_API_WHITELIST     | api.access.whiteList     | Comma separated list of IPs to enable API access. Format `192.168.99.100,172.169.99.77`                                                                                           |
+|                                      | LISK_FORGING_DELEGATES | forging.delegates        | Comma separated list of delegates to load in the format _publicKey&#x7c;encryptedPassphrase,publicKey2&#x7c;encryptedPassphrase2_                                                 |
+|                                      | LISK_FORGING_WHITELIST | forging.access.whiteList | Comma separated list of IPs to enable access to forging endpoints. Format `192.168.99.100,172.169.99.77`                                                                          |
+| <pre nowrap>--snapshot<br> -s</pre>  |                        |                          | Number of round for which take the snapshot. If none specified it will use the highest round available.                                                                           |
+
+#### Note
+
+* All `ENV` variables restricted with operating system constraint of `ENV` variable maximum length.
+* Comma separated lists will replace the original config values. e.g. If you specify `LISK_PEERS`, original `peers.list` specific to network will be replaced completely.
 
 For more detail understanding of configuration read this [online documentation](https://lisk.io/documentation/lisk-core/user-guide/configuration)
 
@@ -382,18 +409,19 @@ Tests are run using the following command:
 npm test -- mocha:<tag>:<suite>:[section]
 ```
 
-* Where **tag** can be one of `slow | unstable | untagged | extensive` (required)
-* Where **suite** can be one of `unit | functional | integration` (required)
+* Where **tag** can be one of `default | unstable | slow | extensive` (required)
+* Where **suite** can be one of `unit | integration | functional | network` (required)
 * Where **section** depending of the chosen suite can be:
-  * when `functional` --> `get | post | ws | system` (optional)
+  * when `functional` --> `get | post | ws` (optional)
 
 Examples:
 
 ```
 npm test -- mocha:slow:unit
-npm test -- mocha:untagged:functional:get
-npm test -- mocha:unstable:functional:ws
 npm test -- mocha:extensive:integration
+npm test -- mocha:default:functional
+npm test -- mocha:unstable:functional:get
+npm test -- mocha:untagged:network
 ```
 
 Individual test files can be run using the following command:
@@ -401,6 +429,63 @@ Individual test files can be run using the following command:
 ```
 npm run mocha -- path/to/test.js
 ```
+
+## Utility scripts
+
+There are couple of command line scripts that facilitate users of lisk to perform handy operations. All scripts are are located under `./scripts/` directory and can be executed directly by `node scripts/<file_name>`.
+
+#### Generate Config
+
+This script will help you to generate unified version of configuration file for any network. Here is the usage of the script:
+
+```
+Usage: generate_config [options]
+
+Options:
+
+-h, --help               output usage information
+-V, --version            output the version number
+-c, --config [config]    custom config file
+-n, --network [network]  specify the network or use LISK_NETWORK
+```
+
+Argument `network` is required and can by `devnet`, `testnet`, `mainnet` or any other network folder available under `./config` directory.
+
+#### Update Config
+
+This script keep track of all changes introduced in Lisk over time in different versions. If you have one config file in any of specific version and you want to make it compatible with other version of the Lisk, this scripts will do it for you.
+
+```
+Usage: update_config [options] <input_file> <from_version> [to_version]
+
+Options:
+
+-h, --help               output usage information
+-V, --version            output the version number
+-n, --network [network]  specify the network or use LISK_NETWORK
+-o, --output [output]    output file path
+```
+
+As you can see from the usage guide, `input_file` and `from_version` are required. If you skip `to_version` argument changes in config.json will be applied up to the latest version of Lisk Core. If you do not specify `--output` path the final config.json will be printed to stdout. If you do not specify `--network` argument you will have to load it from `LISK_NETWORK` env variable.
+
+#### Console
+
+This script is really useful in development. It will initialize the components of Lisk and load these into ndoejs REPL.
+
+```
+node scripts/console.js
+
+initApplication: Application initialization inside test environment started...
+initApplication: Target database - lisk_dev
+initApplication: Rewired modules available
+initApplication: Fake onBlockchainReady event called
+initApplication: Loading delegates...
+initApplication: Delegates loaded from config file - 101
+initApplication: Done
+lisk-core [lisk_dev] >
+```
+
+Once you get the prompt, you can use `modules`, `helpers`, `logic`, `db` and `config` objects and play with these in REPL.
 
 ## Contributors
 

@@ -1159,29 +1159,6 @@ describe('transport', () => {
 			});
 		});
 
-		describe('getPeers', () => {
-			var paramsArg = {};
-			var callbackArg = {};
-
-			beforeEach(done => {
-				__private.broadcaster = {
-					getPeers: sinonSandbox.stub().callsArgWith(1, null, []),
-				};
-
-				paramsArg = {};
-				callbackArg = () => {};
-
-				transportInstance.getPeers(paramsArg, callbackArg);
-				done();
-			});
-
-			it('should call __private.broadcaster.getPeers with paramsArg and callbackArg as arguments', () => {
-				return expect(
-					__private.broadcaster.getPeers.calledWith(paramsArg, callbackArg)
-				).to.be.true;
-			});
-		});
-
 		describe('onBind', () => {
 			beforeEach(done => {
 				// Create a new TransportModule instance.

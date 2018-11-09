@@ -23,6 +23,7 @@ describe('node', () => {
 	var testDelegate = genesisDelegates.delegates[0];
 	var defaultPassword;
 	var library;
+	const stubs = {};
 
 	before(done => {
 		application.init(
@@ -263,6 +264,13 @@ describe('node', () => {
 	});
 
 	describe('shared', () => {
+		let node_module;
+
+		beforeEach(done => {
+			node_module = library.modules.node;
+			done();
+		});
+
 		describe('getConstants', () => {
 			describe('when loaded = false', () => {
 				it('should call callback with error = "Blockchain is loading"');
@@ -313,40 +321,133 @@ describe('node', () => {
 
 		describe('getStatus', () => {
 			describe('when loaded = false', () => {
-				it('should call callback with error = "Blockchain is loading"');
+				before(done => {
+					library.rewiredModules.node.__set__('loaded', false);
+					done();
+				});
+
+				it('should call callback with error = "Blockchain is loading"', done => {
+					node_module.shared.getStatus(null, err => {
+						expect(err).to.equal('Blockchain is loading');
+						done();
+					});
+				});
+
+				after(done => {
+					library.rewiredModules.node.__set__('loaded', true);
+					done();
+				});
 			});
 
 			describe('when loaded = true', () => {
-				it('should call callback with error = null');
-
-				it(
-					'should call callback with result containing broadhash = modules.system.getBroadhash result'
-				);
-
-				it(
-					'should call callback with result containing consensus = modules.peers.calculateConsensus result'
-				);
-
-				it(
-					'should call callback with result containing height = modules.blocks.lastBlock.get result'
-				);
-
-				it(
-					'should call callback with result containing syncing = modules.loader.syncing result'
-				);
-
-				it('should call modules.loader.getNetwork');
-
-				describe('when modules.loader.getNetwork fails', () => {
-					it(
-						'should call callback with result containing networkHeight = null'
-					);
+				it('should call callback with error = null', done => {
+					node_module.shared.getStatus(null, err => {
+						expect(err).to.not.exist;
+						done();
+					});
 				});
 
-				describe('when modules.loader.getNetwork succeeds and returns network', () => {
-					it(
-						'should call callback with result containing networkHeight = network.height'
-					);
+				it('should return status object with properties', done => {
+					node_module.shared.getStatus(null, (err, status) => {
+						const properties = [
+							'broadhash',
+							'consensus',
+							'currentTime',
+							'secondsSinceEpoch',
+							'height',
+							'loaded',
+							'networkHeight',
+							'syncing',
+						];
+						properties.forEach(property => {
+							expect(status).to.have.property(property);
+						});
+						expect(Object.keys(status).length).to.equal(properties.length);
+						done();
+					});
+				});
+
+				it('should call callback with result containing broadhash = modules.system.getBroadhash() result', done => {
+					node_module.shared.getStatus(null, (err, status) => {
+						expect(status.broadhash).to.equal(
+							library.modules.system.getBroadhash()
+						);
+						done();
+					});
+				});
+
+				it('should call callback with result containing consensus = modules.peers.getLastConsensus() result', done => {
+					node_module.shared.getStatus(null, (err, status) => {
+						expect(status.consensus).to.equal(
+							library.modules.peers.getLastConsensus()
+						);
+						done();
+					});
+				});
+
+				it('should call callback with result containing height = modules.blocks.lastBlock.get().height result', done => {
+					node_module.shared.getStatus(null, (err, status) => {
+						expect(status.height).to.equal(
+							library.modules.blocks.lastBlock.get().height
+						);
+						done();
+					});
+				});
+
+				it('should call callback with result containing syncing = modules.loader.syncing() result', done => {
+					node_module.shared.getStatus(null, (err, status) => {
+						expect(status.syncing).to.equal(library.modules.loader.syncing());
+						done();
+					});
+				});
+
+				it('should call callback with result containing loaded = modules.loader.loaded() result', done => {
+					node_module.shared.getStatus(null, (err, status) => {
+						expect(status.loaded).to.equal(library.modules.loader.loaded());
+						done();
+					});
+				});
+
+				describe('modules.loader.getNetwork', () => {
+					beforeEach(done => {
+						stubs.networkHeight = sinonSandbox
+							.stub()
+							.callsFake((filters, cb) => cb(null, 123));
+						const modules = library.rewiredModules.node.__get__('modules');
+						modules.peers.networkHeight = stubs.networkHeight;
+						done();
+					});
+
+					it('should call modules.peers.networkHeight', done => {
+						node_module.shared.getStatus(null, () => {
+							expect(library.modules.peers.networkHeight).to.have.been.called;
+							done();
+						});
+					});
+
+					it('should call callback with result containing networkHeight = network.height', done => {
+						node_module.shared.getStatus(null, (err, status) => {
+							expect(status.networkHeight).to.equal(123);
+							done();
+						});
+					});
+
+					describe('if modules.peers.networkHeight returns networkHeight as null', () => {
+						it('should call callback with result containing networkHeight = null', done => {
+							library.modules.peers.networkHeight = sinonSandbox
+								.stub()
+								.callsFake((filters, cb) => cb(null, null));
+							node_module.shared.getStatus(null, (err, status) => {
+								expect(status.networkHeight).to.equal(null);
+								done();
+							});
+						});
+					});
+
+					afterEach(done => {
+						sinonSandbox.restore();
+						done();
+					});
 				});
 			});
 		});

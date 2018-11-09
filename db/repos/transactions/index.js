@@ -18,6 +18,7 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const transactionTypes = require('../../../helpers/transaction_types');
 const sql = require('../../sql').transactions;
+const ed = require('../../../helpers/ed.js');
 
 const cs = {}; // Static namespace for reusable ColumnSet objects
 
@@ -285,13 +286,13 @@ class TransactionsRepository {
 			}
 
 			saveTransactions.forEach(t => {
-				t.senderPublicKey = Buffer.from(t.senderPublicKey, 'hex');
-				t.signature = Buffer.from(t.signature, 'hex');
+				t.senderPublicKey = ed.hexToBuffer(t.senderPublicKey);
+				t.signature = ed.hexToBuffer(t.signature);
 				t.signSignature = t.signSignature
-					? Buffer.from(t.signSignature, 'hex')
+					? ed.hexToBuffer(t.signSignature)
 					: null;
 				t.requesterPublicKey = t.requesterPublicKey
-					? Buffer.from(t.requesterPublicKey, 'hex')
+					? ed.hexToBuffer(t.requesterPublicKey)
 					: null;
 				t.signatures = t.signatures ? t.signatures.join() : null;
 				t.amount = t.amount.toString();

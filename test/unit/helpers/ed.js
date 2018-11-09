@@ -176,4 +176,41 @@ describe('ed', () => {
 			done();
 		});
 	});
+
+	describe('hexToString', () => {
+		it('should throw error if the hex is not a string', () => {
+			const buff = new Buffer.from('ABC', 'utf8');
+			return expect(() => ed.hexToBuffer(buff)).to.throw(
+				'Argument must be a string.'
+			);
+		});
+
+		it('should throw error if the hex string has invalid characters', () => {
+			const hex =
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6z';
+			return expect(() => ed.hexToBuffer(hex)).to.throw(
+				'Argument must be a valid hex string.'
+			);
+		});
+
+		it('should throw error if the hex string has invalid number of characters', () => {
+			const hex =
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f0';
+			return expect(() => ed.hexToBuffer(hex)).to.throw(
+				'Argument must be a valid hex string.'
+			);
+		});
+
+		it('should return buffer for a valid hex string', () => {
+			const hex =
+				'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f';
+			return expect(ed.hexToBuffer(hex)).to.be.an.instanceof(Buffer);
+		});
+
+		it('should return buffer for a valid hex string with capital letters', () => {
+			const hex =
+				'C094EBEE7EC0C50EBEE32918655E089F6E1A604B83BCAA760293C61E0F18AB6F';
+			return expect(ed.hexToBuffer(hex)).to.be.an.instanceof(Buffer);
+		});
+	});
 });

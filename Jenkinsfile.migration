@@ -22,7 +22,7 @@ properties([
 ])
 
 pipeline {
-	agent { node { label "core-migration" } }
+	agent { node { label "core-migration-v8" } }
 	stages {
 		stage("Prepare workspace") {
 			steps {

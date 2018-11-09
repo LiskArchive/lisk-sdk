@@ -46,13 +46,18 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, db) {
+	constructor(logger, block, transaction, db, config) {
 		library = {
 			logger,
 			db,
 			logic: {
 				block,
 				transaction,
+			},
+			config: {
+				loading: {
+					snapshotRound: config.loading.snapshotRound,
+				},
 			},
 		};
 		self = this;
@@ -836,7 +841,9 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 			// 'false' if block comes from chain synchronisation process
 			updateSystemHeaders(seriesCb) {
 				// Update our own headers: broadhash and height
-				broadcast ? modules.system.update(seriesCb) : seriesCb();
+				!library.config.loading.snapshotRound
+					? modules.system.update(seriesCb)
+					: seriesCb();
 			},
 			broadcastHeaders(seriesCb) {
 				// Notify all remote peers about our new headers

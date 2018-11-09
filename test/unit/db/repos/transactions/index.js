@@ -15,6 +15,7 @@
 'use strict';
 
 const randomstring = require('randomstring');
+const ed = require('../../../../../helpers/ed.js');
 const DBSandbox = require('../../../../common/db_sandbox').DBSandbox;
 const transactionsFixtures = require('../../../../fixtures/index').transactions;
 const transactionsSQL = require('../../../../../db/sql/index').transactions;
@@ -646,7 +647,7 @@ describe('db', () => {
 				);
 				return expect(result[0]).to.have.all.keys(
 					'transaction_id',
-					'in_dappid'
+					'in_dappId'
 				);
 			});
 		});
@@ -708,11 +709,8 @@ describe('db', () => {
 					transaction.senderPublicKey,
 					'hex'
 				);
-				transaction.signature = Buffer.from(transaction.signature, 'hex');
-				transaction.signSignature = Buffer.from(
-					transaction.signSignature,
-					'hex'
-				);
+				transaction.signature = ed.hexToBuffer(transaction.signature);
+				transaction.signSignature = ed.hexToBuffer(transaction.signSignature);
 				transaction.requesterPublicKey = Buffer.from(
 					transaction.requesterPublicKey,
 					'hex'
@@ -797,7 +795,7 @@ describe('db', () => {
 				transaction.senderPublicKey = 'ABFGH';
 
 				return expect(db.transactions.save(transaction)).to.be.rejectedWith(
-					'Invalid hex string'
+					'Argument must be a valid hex string'
 				);
 			});
 

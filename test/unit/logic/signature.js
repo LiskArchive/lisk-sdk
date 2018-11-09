@@ -90,7 +90,6 @@ var rawValidTransaction = {
 };
 
 describe('signature', () => {
-	var transactionMock;
 	var accountsMock;
 	var signature;
 	var dummyBlock;
@@ -100,7 +99,6 @@ describe('signature', () => {
 			id: '9314232245035524467',
 			height: 1,
 		};
-		transactionMock = sinonSandbox.mock({});
 		accountsMock = {
 			setAccountAndGet: sinonSandbox.mock().callsArg(1),
 		};
@@ -114,7 +112,6 @@ describe('signature', () => {
 	});
 
 	afterEach(() => {
-		transactionMock.restore();
 		return accountsMock.setAccountAndGet.reset();
 	});
 
@@ -164,7 +161,7 @@ describe('signature', () => {
 			var fee;
 
 			beforeEach(done => {
-				fee = signature.calculateFee.call(transactionMock, transaction);
+				fee = signature.calculateFee(transaction);
 				done();
 			});
 
@@ -288,7 +285,7 @@ describe('signature', () => {
 
 					it('should return bytes in hex format', () => {
 						return expect(signatureBytes).to.eql(
-							Buffer.from(transaction.asset.signature.publicKey, 'hex')
+							ed.hexToBuffer(transaction.asset.signature.publicKey)
 						);
 					});
 
@@ -299,9 +296,9 @@ describe('signature', () => {
 			});
 		});
 
-		describe('apply', () => {
+		describe('applyConfirmed', () => {
 			beforeEach(done => {
-				signature.apply(validTransaction, dummyBlock, sender, done);
+				signature.applyConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
@@ -335,9 +332,9 @@ describe('signature', () => {
 			});
 		});
 
-		describe('undo', () => {
+		describe('undoConfirmed', () => {
 			beforeEach(done => {
-				signature.undo(validTransaction, dummyBlock, sender, done);
+				signature.undoConfirmed(validTransaction, dummyBlock, sender, done);
 			});
 
 			it('should call modules.accounts.setAccountAndGet', () => {
@@ -377,15 +374,10 @@ describe('signature', () => {
 				});
 
 				it('should call callback with error', done => {
-					signature.applyUnconfirmed.call(
-						transactionMock,
-						transaction,
-						sender,
-						err => {
-							expect(err).to.equal('Second signature already enabled');
-							done();
-						}
-					);
+					signature.applyUnconfirmed(transaction, sender, err => {
+						expect(err).to.equal('Second signature already enabled');
+						done();
+					});
 				});
 			});
 
@@ -396,15 +388,10 @@ describe('signature', () => {
 				});
 
 				it('should call callback with error', done => {
-					signature.applyUnconfirmed.call(
-						transactionMock,
-						transaction,
-						sender,
-						err => {
-							expect(err).to.equal('Second signature already enabled');
-							done();
-						}
-					);
+					signature.applyUnconfirmed(transaction, sender, err => {
+						expect(err).to.equal('Second signature already enabled');
+						done();
+					});
 				});
 			});
 

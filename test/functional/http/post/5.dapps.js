@@ -18,7 +18,7 @@ require('../../functional.js');
 var Promise = require('bluebird');
 var randomstring = require('randomstring');
 var lisk = require('lisk-elements').default;
-var phases = require('../../common/phases');
+var phases = require('../../../common/phases');
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');

@@ -23,7 +23,7 @@ def timestamp = dateFormat.format(date)
 pipeline {
     agent {
         node {
-            label 'nightly-build'
+            label 'nightly-build-v8'
             // Forcing a short path workspace to prevent issues with arguments lentgh
             customWorkspace "workspace/${URLDecoder.decode(JOB_NAME)}/${BUILD_NUMBER}"
         }

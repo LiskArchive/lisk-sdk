@@ -1,6 +1,0 @@
-[template]
-src = "config.json.tmpl"
-dest = "config.json"
-keys = [
-    "/lisk",
-]

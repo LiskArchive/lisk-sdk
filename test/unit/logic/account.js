@@ -15,6 +15,7 @@
 'use strict';
 
 const rewire = require('rewire');
+const ed = require('../../../helpers/ed.js');
 const application = require('../../common/application.js');
 const modulesLoader = require('../../common/modules_loader');
 const Bignum = require('../../../helpers/bignum.js');
@@ -162,11 +163,9 @@ describe('account', () => {
 
 			account.toDB(toDBRes);
 			expect(toDBRes.address).to.equal(raw.address.toUpperCase());
-			expect(toDBRes.publicKey).to.deep.equal(
-				Buffer.from(raw.publicKey, 'hex')
-			);
+			expect(toDBRes.publicKey).to.deep.equal(ed.hexToBuffer(raw.publicKey));
 			expect(toDBRes.secondPublicKey).to.deep.equal(
-				Buffer.from(raw.secondPublicKey, 'hex')
+				ed.hexToBuffer(raw.secondPublicKey)
 			);
 			done();
 		});

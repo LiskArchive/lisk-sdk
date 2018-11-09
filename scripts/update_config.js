@@ -21,10 +21,12 @@
 
 const fs = require('fs');
 const path = require('path');
-const program = require('commander');
+const readline = require('readline');
 const _ = require('lodash');
-const observableDiff = require('deep-diff').observableDiff;
-const applyChange = require('deep-diff').applyChange;
+const program = require('commander');
+const lisk = require('lisk-elements').default;
+const { observableDiff, applyChange } = require('deep-diff');
+const JSONHistory = require('../helpers/json_history');
 
 const rootPath = path.resolve(path.dirname(__filename), '../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
@@ -34,123 +36,278 @@ const loadJSONFileIfExists = filePath => {
 	}
 	return {};
 };
-let oldConfigPath;
-let newConfigPath;
+
+let configFilePath;
+let fromVersion;
+let toVersion;
 
 program
 	.version('0.1.1')
-	.arguments('<old_config_file> <new_config_file>')
-	.action((oldConfig, newConfig) => {
-		oldConfigPath = oldConfig;
-		newConfigPath = newConfig;
+	.arguments('<input_file> <from_version> [to_version]')
+	.option('-n, --network [network]', 'Specify the network or use LISK_NETWORK')
+	.option('-o, --output [output]', 'Output file path')
+	.action((inputFile, version1, version2) => {
+		fromVersion = version1;
+		toVersion = version2;
+		configFilePath = inputFile;
 	})
 	.parse(process.argv);
 
-if (!oldConfigPath || !newConfigPath) {
-	console.error('error: no config file provided.');
+if (typeof configFilePath === 'undefined') {
+	console.error('No input file is provided.');
 	process.exit(1);
 }
 
-console.info('Running config migration from 1.0.x to 1.1.x');
-console.info('Starting configuration migration...');
-
-// Old config in 1.0.x will be single unified config file.
-const oldConfig = loadJSONFile(oldConfigPath);
-
-// Had dedicated ssl config only for API
-// https://github.com/LiskHQ/lisk/issues/2154
-if (oldConfig.ssl) {
-	oldConfig.api.ssl = _.merge({}, oldConfig.ssl);
-	delete oldConfig.ssl;
+if (typeof fromVersion === 'undefined') {
+	console.error('No start version is provided');
+	process.exit(1);
 }
 
-// New config in 1.1.x will be partial config other than default/config.json
-const newConfig = loadJSONFileIfExists(newConfigPath);
-
-// Now get a unified config.json for 1.1.x version
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
 
 const networkConfig = loadJSONFileIfExists(
-	path.resolve(rootPath, `config/${process.env.LISK_NETWORK}/config.json`)
+	path.resolve(
+		rootPath,
+		`config/${program.network || process.env.LISK_NETWORK}/config.json`
+	)
 );
 
-const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig, newConfig);
+const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig);
 
-const changesMap = {
-	N: '  Added',
-	E: 'Skipped', // Don't apply changes, preserve user configured value
-	D: 'Deleted',
-	A: 'Skipped', // Updated element of array
+const userConfig = loadJSONFileIfExists(configFilePath);
+
+const history = new JSONHistory('lisk config file', console);
+
+history.version('0.9.x');
+history.version('1.0.0-rc.1', version => {
+	version.change('renamed port to httpPort', config => {
+		config.httpPort = config.port;
+		delete config.port;
+		return config;
+	});
+	version.change('added new config wsPort', config => {
+		config.wsPort = config.httpPort + 1;
+		return config;
+	});
+	version.change('updated db.poolSize to min and max', config => {
+		config.db.max = config.db.poolSize;
+		config.db.min = 10;
+		return config;
+	});
+	version.change('removed peers.options.limits', config => {
+		delete config.peers.options.limits;
+		return config;
+	});
+	version.change(
+		'renamed transactions.maxTxsPerQueue to transactions.maxTransactionsPerQueue',
+		config => {
+			config.transactions.maxTransactionsPerQueue =
+				config.transactions.maxTxsPerQueue;
+			delete config.transactions.maxTxsPerQueue;
+			return config;
+		}
+	);
+	version.change('removed loading.verifyOnLoading', config => {
+		delete config.loading.verifyOnLoading;
+		return config;
+	});
+	version.change('removed dapp', config => {
+		delete config.dapp;
+		return config;
+	});
+	version.change('updated port to wsPort for peers.list', config => {
+		config.peers.list = config.peers.list.map(p => {
+			p.wsPort = p.port + 1;
+			delete p.port;
+			return p;
+		});
+		return config;
+	});
+	version.change('added db.logFileName for db related logs', config => {
+		config.db.logFileName = config.logFileName;
+		return config;
+	});
+	version.change(
+		'added api.options.cors to manage CORS settings for http API',
+		config => {
+			config.api.options.cors = {
+				origin: '*',
+				methods: ['GET', 'POST', 'PUT'],
+			};
+			return config;
+		}
+	);
+	version.change(
+		'added broadcasts.active=true as boolean value to enable/disable the broadcasting behavior',
+		config => {
+			config.broadcasts.active = true;
+			return config;
+		}
+	);
+	version.change(
+		'convert forging.secret to forging.delegates',
+		(config, cb) => {
+			if (!config.forging.secret || config.forging.secret.length === 0) {
+				console.info('No forging secret. So skipping conversion.');
+				return setImmediate(cb, null, config);
+			}
+
+			askPassword(
+				'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
+				(err, password) => {
+					config.forging.delegates = [];
+
+					if (password.trim().length === 0) {
+						delete config.forging.secret;
+
+						return setImmediate(cb, null, config);
+					}
+					if (password.length < 5) {
+						console.error(
+							`error: Password is too short (${
+								password.length
+							} characters), minimum 5 characters.`
+						);
+						process.exit(1);
+					}
+
+					console.info('\nMigrating your secrets...');
+					config.forging.secret.forEach(secret => {
+						console.info('.......');
+						config.forging.delegates.push({
+							encryptedPassphrase: lisk.cryptography.stringifyEncryptedPassphrase(
+								lisk.cryptography.encryptPassphraseWithPassword(
+									secret,
+									password
+								)
+							),
+							publicKey: lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
+								secret
+							).publicKey,
+						});
+					});
+
+					delete config.forging.secret;
+					return setImmediate(cb, null, config);
+				}
+			);
+		}
+	);
+});
+history.version('1.0.0-rc.2', version => {
+	version.change(
+		'moved ssl to api.ssl to make SSL as API only config',
+		config => {
+			config.api.ssl = config.ssl;
+			delete config.ssl;
+			return config;
+		}
+	);
+});
+history.version('1.0.0-rc.3');
+history.version('1.0.0-rc.4');
+history.version('1.0.0-rc.5');
+history.version('1.0.0');
+history.version('1.1.0-rc.0', version => {
+	version.change('removed version and minVersion', config => {
+		delete config.version;
+		delete config.minVersion;
+		return config;
+	});
+	version.change('removed nethash', config => {
+		delete config.nethash;
+		return config;
+	});
+});
+history.version('1.1.0');
+history.version('1.1.1-rc.x');
+history.version('1.1.1');
+history.version('1.2.0-rc.x', version => {
+	version.change('remove malformed peer list items', config => {
+		config.peers.list = config.peers.list.filter(
+			peer => peer.ip && peer.wsPort
+		);
+		return config;
+	});
+});
+history.version('1.2.0');
+
+const askPassword = (message, cb) => {
+	if (program.password && program.password.trim().length !== 0) {
+		return setImmediate(cb, null, program.password);
+	}
+
+	const rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout,
+	});
+
+	rl.question(message, password => {
+		rl.close();
+		return setImmediate(cb, null, password);
+	});
+	// To Patch the password support
+	rl.stdoutMuted = true;
+	rl._writeToOutput = function _writeToOutput(stringToWrite) {
+		if (rl.stdoutMuted) rl.output.write('*');
+		else rl.output.write(stringToWrite);
+	};
 };
 
-const arrayItemChangesMap = {
-	D: 'Addition', // It was added in new config and deleted from old
-};
+if (!toVersion) {
+	toVersion = require('../package.json').version;
+}
 
-console.info('\nChanges summary: ');
+history.migrate(
+	_.merge({}, unifiedNewConfig, userConfig),
+	fromVersion,
+	toVersion,
+	(err, json) => {
+		if (err) {
+			throw err;
+		}
+		const customConfig = {};
 
-// Since the structure of both files should be same now
-// We just need to extract the value custom values user had modified
-observableDiff(oldConfig, unifiedNewConfig, d => {
-	switch (d.kind) {
-		case 'N':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${JSON.stringify(d.rhs)}`
+		observableDiff(unifiedNewConfig, json, d => {
+			// if there is any change on one attribute of object in array
+			// we want to preserve the full object not just that single attribute
+			// it is required due to nature of configuration merging in helpers/config.js
+			// e.g. If someone changed ip of a peer we want to keep full peer object in array
+			//
+			// if change is type of edit value
+			// and change path is pointing to a deep object
+			// and path second last index is an integer (means its an array element)
+			const changeInDeepObject =
+				d.kind === 'E' &&
+				d.path.length > 2 &&
+				Number.isInteger(d.path[d.path.length - 2]);
+
+			// if there is a change in array element we want to preserve it as well to original value
+			const changeInArrayElement = d.kind === 'A';
+
+			const path = _.clone(d.path);
+
+			if (changeInArrayElement) {
+				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+			} else if (changeInDeepObject) {
+				// Remove last item in path to get index of object in array
+				path.splice(-1, 1);
+				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+			}
+			applyChange(customConfig, json, d);
+		});
+
+		if (program.output) {
+			console.info(`\nWriting updated configuration to ${program.output}`);
+			fs.writeFileSync(
+				program.output,
+				JSON.stringify(customConfig, null, '\t')
 			);
-			applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		case 'E':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${d.lhs} -> ${d.rhs}`
-			);
-			// Don't apply changes, preserve user configured value
-			// applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		case 'D':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${JSON.stringify(d.lhs)}`
-			);
-			applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		case 'A':
-			console.info(
-				`${changesMap[d.kind]}: ${d.path.join('.')} = ${
-					arrayItemChangesMap[d.item.kind]
-				} -> ${d.item.lhs}`
-			);
-			// Preserve user configured value
-			// applyChange(oldConfig, unifiedNewConfig, d);
-			break;
-
-		default:
-			console.warn(`Unknown change type detected '${d.kind}'`);
+		} else {
+			console.info('\n\n------------ OUTPUT -------------');
+			console.info(JSON.stringify(customConfig, null, '\t'));
+		}
 	}
-});
-
-// Old configuration is up-to-date with new configuration.
-// now we need to extract differences from default config file
-// to write those in network specific directory
-const customConfig = {};
-observableDiff(unifiedNewConfig, oldConfig, d => {
-	// If there was a change in Array type attributes
-	// copy the original attributes to avoid null values
-	// https://github.com/LiskHQ/lisk/issues/2459
-	if (d.kind === 'A') {
-		_.set(customConfig, d.path, _.get(unifiedNewConfig, d.path, []));
-	}
-	applyChange(customConfig, oldConfig, d);
-});
-
-console.info(`\nWriting updated configuration to ${newConfigPath}`);
-fs.writeFile(newConfigPath, JSON.stringify(customConfig, null, '\t'), err => {
-	if (err) {
-		throw err;
-	} else {
-		console.info('\nConfiguration migration completed.');
-	}
-});
+);

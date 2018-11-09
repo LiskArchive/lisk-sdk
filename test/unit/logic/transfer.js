@@ -144,10 +144,10 @@ describe('transfer', () => {
 	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', () => {
 			return expect(
-				transfer.calculateFee
-					.call(transactionLogic, validTransaction)
-					.equals(constants.fees.send)
-			);
+				transfer
+					.calculateFee(validTransaction)
+					.equals(new Bignum(constants.fees.send))
+			).to.be.true;
 		});
 
 		it('should return the same fee for a transfer with additional data', () => {
@@ -155,7 +155,6 @@ describe('transfer', () => {
 			transaction.asset = {
 				data: '0',
 			};
-
 			return expect(
 				transfer.calculateFee
 					.call(transactionLogic, transaction)
@@ -226,35 +225,23 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('apply', () => {
+	describe('applyConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
 
-		function undoTransaction(transaction, sender, done) {
-			transfer.undo.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				sender,
-				done
-			);
+		function undoConfirmedTransaction(transaction, sender, done) {
+			transfer.undoConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
-			transfer.apply.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				err => {
-					expect(err).to.equal('Invalid public key');
-					done();
-				}
-			);
+			transfer.applyConfirmed(transaction, dummyBlock, validSender, err => {
+				expect(err).to.equal('Invalid public key');
+				done();
+			});
 		});
 
 		it('should be okay for a valid transaction', done => {
@@ -267,8 +254,7 @@ describe('transfer', () => {
 					var amount = new Bignum(validTransaction.amount.toString());
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transfer.apply.call(
-						transactionLogic,
+					transfer.applyConfirmed(
 						validTransaction,
 						dummyBlock,
 						validSender,
@@ -284,10 +270,10 @@ describe('transfer', () => {
 									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
-									expect(balanceBefore.plus(amount).toString()).to.equal(
-										balanceAfter.toString()
-									);
-									undoTransaction(validTransaction, validSender, done);
+									expect(
+										balanceBefore.plus(amount).equals(balanceAfter.toString())
+									).to.be.true;
+									undoConfirmedTransaction(validTransaction, validSender, done);
 								}
 							);
 						}
@@ -297,36 +283,24 @@ describe('transfer', () => {
 		});
 	});
 
-	describe('undo', () => {
+	describe('undoConfirmed', () => {
 		var dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
 
-		function applyTransaction(transaction, sender, done) {
-			transfer.apply.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				sender,
-				done
-			);
+		function applyConfirmedTransaction(transaction, sender, done) {
+			transfer.applyConfirmed(transaction, dummyBlock, sender, done);
 		}
 
 		it('should return error if recipientid is not set', done => {
 			var transaction = _.cloneDeep(validTransaction);
 			delete transaction.recipientId;
 
-			transfer.undo.call(
-				transactionLogic,
-				transaction,
-				dummyBlock,
-				validSender,
-				err => {
-					expect(err).to.equal('Invalid public key');
-					done();
-				}
-			);
+			transfer.undoConfirmed(transaction, dummyBlock, validSender, err => {
+				expect(err).to.equal('Invalid public key');
+				done();
+			});
 		});
 
 		it('should be okay for a valid transaction', done => {
@@ -338,8 +312,7 @@ describe('transfer', () => {
 					var amount = new Bignum(validTransaction.amount.toString());
 					var balanceBefore = new Bignum(accountBefore.balance.toString());
 
-					transfer.undo.call(
-						transactionLogic,
+					transfer.undoConfirmed(
 						validTransaction,
 						dummyBlock,
 						validSender,
@@ -354,10 +327,14 @@ describe('transfer', () => {
 									);
 
 									expect(err).to.not.exist;
-									expect(balanceAfter.plus(amount).toString()).to.equal(
-										balanceBefore.toString()
+									expect(
+										balanceAfter.plus(amount).equals(balanceBefore.toString())
+									).to.be.true;
+									applyConfirmedTransaction(
+										validTransaction,
+										validSender,
+										done
 									);
-									applyTransaction(validTransaction, validSender, done);
 								}
 							);
 						}
@@ -369,23 +346,13 @@ describe('transfer', () => {
 
 	describe('applyUnconfirmed', () => {
 		it('should be okay with valid params', done => {
-			transfer.applyUnconfirmed.call(
-				transactionLogic,
-				validTransaction,
-				validSender,
-				done
-			);
+			transfer.applyUnconfirmed(validTransaction, validSender, done);
 		});
 	});
 
 	describe('undoUnconfirmed', () => {
 		it('should be okay with valid params', done => {
-			transfer.undoUnconfirmed.call(
-				transactionLogic,
-				validTransaction,
-				validSender,
-				done
-			);
+			transfer.undoUnconfirmed(validTransaction, validSender, done);
 		});
 	});
 

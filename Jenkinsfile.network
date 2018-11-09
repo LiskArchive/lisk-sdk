@@ -1,0 +1,74 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ */
+
+@Library('lisk-jenkins') _
+
+def cleanUp() {
+	sh '''
+		node_modules/.bin/pm2 kill
+	'''
+}
+
+node('lisk-network-v8') {
+	properties([
+		parameters([
+			string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
+			string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
+			string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
+			string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
+		 ])
+	])
+
+	stage('Prepare workspace') {
+		try {
+			deleteDir()
+			checkout scm
+			// Cycle postgres, restore chache install deps and prepare config
+			sh 'sudo service postgresql restart'
+			cache_file = restoreCache("package.json")
+			sh 'npm install'
+			saveCache(cache_file, './node_modules', 7)
+		} catch (err) {
+			build_info = getBuildInfo()
+			liskSlackSend('danger', "Job ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)\n",'lisk-ci-core')
+			cleanUp()
+		}
+	}
+
+	stage('Run network tests') {
+		try {
+			sh '''#!/bin/bash -xe
+				set -o pipefail
+				cd "$(echo $WORKSPACE | cut -f 1 -d '@')"
+				if [ params.JENKINS_PROFILE == 'jenkins-extensive' ]; then
+					npm test -- mocha:extensive:network |& tee networkTests.logs
+				else
+					npm test -- mocha:default:network |& tee networkTests.logs
+				fi
+			'''
+		} catch (err) {
+			build_info = getBuildInfo()
+			liskSlackSend('danger', "Job ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)\n",'lisk-ci-core')
+			cleanUp()
+		}
+	}
+
+	stage('Set milestone') {
+		milestone 1
+		currentBuild.result = 'SUCCESS'
+		build_info = getBuildInfo()
+		liskSlackSend('good', "Job ${build_info} was successful.",'lisk-ci-core')
+		cleanUp()
+	}
+}

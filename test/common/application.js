@@ -15,6 +15,8 @@
 'use strict';
 
 // Global imports
+var dns = require('dns');
+var net = require('net');
 var Promise = require('bluebird');
 var rewire = require('rewire');
 var async = require('async');
@@ -123,7 +125,36 @@ function __init(initScope, done) {
 			async.auto(
 				{
 					config(cb) {
-						cb(null, __testContext.config);
+						// In case domain names are used, resolve those to IP addresses.
+						var peerDomainLookupTasks = __testContext.config.peers.list.map(
+							peer => callback => {
+								if (net.isIPv4(peer.ip)) {
+									return setImmediate(() => {
+										callback(null, peer);
+									});
+								}
+								dns.lookup(peer.ip, { family: 4 }, (err, address) => {
+									if (err) {
+										console.error(
+											`Failed to resolve peer domain name ${
+												peer.ip
+											} to an IP address`
+										);
+										return callback(err, peer);
+									}
+									callback(null, Object.assign({}, peer, { ip: address }));
+								});
+							}
+						);
+
+						async.parallel(peerDomainLookupTasks, (err, results) => {
+							if (err) {
+								cb(err, __testContext.config);
+								return;
+							}
+							__testContext.config.peers.list = results;
+							cb(null, __testContext.config);
+						});
 					},
 					genesisBlock(cb) {
 						cb(null, { block: __testContext.config.genesisBlock });
@@ -245,9 +276,12 @@ function __init(initScope, done) {
 							cb(null, bus);
 						},
 					],
-					db(cb) {
-						cb(null, db);
-					},
+					db: [
+						'config',
+						function(scope, cb) {
+							cb(null, db);
+						},
+					],
 					rpc: [
 						'db',
 						'bus',
