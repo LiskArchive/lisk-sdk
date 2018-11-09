@@ -261,6 +261,11 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 Process.prototype.getCommonBlock = function(peer, height, cb) {
 	let comparisonFailed = false;
 
+	// Allowing blocks to be loaded from genesis
+	if (height === 1) {
+		return setImmediate(cb);
+	}
+
 	async.waterfall(
 		[
 			function(waterCb) {

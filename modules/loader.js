@@ -861,7 +861,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 					peer,
 					lastBlock.height,
 					(err, commonBlock) => {
-						if (!commonBlock) {
+						if (!commonBlock && lastBlock.height != 1) {
 							if (err) {
 								library.logger.error(err.toString());
 							}
@@ -871,9 +871,11 @@ __private.loadBlocksFromNetwork = function(cb) {
 							errorCount += 1;
 							return next();
 						}
-						library.logger.info(
-							`Found common block: ${commonBlock.id} with: ${peer.string}`
-						);
+						if (commonBlock) {
+							library.logger.info(
+								`Found common block: ${commonBlock.id} with: ${peer.string}`
+							);
+						}
 						modules.blocks.process.loadBlocksFromPeer(
 							peer,
 							(err, lastValidBlock) => {
