@@ -615,7 +615,7 @@ class Transaction {
 						if (exceptions.duplicatedSignatures[transaction.id] && exceptions.duplicatedSignatures[transaction.id].includes(transaction.signatures[s])) {
 							this.scope.logger.warn('Transaction accepted due to exceptions', {
 								err,
-								transaction: JSON.stringify(transaction)
+								transaction: JSON.stringify(transaction),
 							});
 						} else {
 							return setImmediate(cb, err);
