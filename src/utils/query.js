@@ -14,7 +14,7 @@
  *
  */
 
-const handleResponse = (endpoint, res, placeholder) => {
+export const handleResponse = (endpoint, res, placeholder) => {
 	// Get endpoints with 2xx status code should always return with data key.
 	if (!res.data) {
 		throw new Error('No data was returned.');
@@ -31,7 +31,7 @@ const handleResponse = (endpoint, res, placeholder) => {
 	return res.data;
 };
 
-export default async (client, endpoint, parameters) =>
+const query = async (client, endpoint, parameters) =>
 	Array.isArray(parameters)
 		? Promise.all(
 				parameters.map(param =>
@@ -43,3 +43,5 @@ export default async (client, endpoint, parameters) =>
 		: client[endpoint]
 				.get(parameters.query)
 				.then(res => handleResponse(endpoint, res, parameters.placeholder));
+
+export default query;

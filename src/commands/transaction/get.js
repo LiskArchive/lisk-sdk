@@ -16,7 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
-import query from '../../utils/query';
+import query, { handleResponse } from '../../utils/query';
 
 const stateFlag = {
 	char: 's',
@@ -27,35 +27,22 @@ const stateFlag = {
 `,
 };
 
-const handleResponse = (res, placeholder) => {
-	// Get endpoints with 2xx status code should always return with data key.
-	if (!res.data) {
-		throw new Error('No data was returned.');
-	}
-	if (Array.isArray(res.data)) {
-		if (res.data.length === 0) {
-			if (placeholder) {
-				return placeholder;
-			}
-			throw new Error('No transaction found with specified parameters.');
-		}
-		return res.data[0];
-	}
-	return res.data;
-};
-
 const queryNode = async (client, txnState, parameters) =>
 	Array.isArray(parameters)
 		? Promise.all(
 				parameters.map(param =>
 					client
 						.getTransactions(txnState, param.query)
-						.then(res => handleResponse(res, param.placeholder)),
+						.then(res =>
+							handleResponse('node/transactions', res, param.placeholder),
+						),
 				),
 			)
 		: client
 				.getTransactions(txnState, parameters.query)
-				.then(res => handleResponse(res, parameters.placeholder));
+				.then(res =>
+					handleResponse('node/transactions', res, parameters.placeholder),
+				);
 
 export default class GetCommand extends BaseCommand {
 	async run() {
