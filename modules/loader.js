@@ -191,12 +191,10 @@ __private.loadSignatures = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getNetwork((err, network) => {
+				self.getRandomPeerFromNetwork((err, peer) => {
 					if (err) {
 						return setImmediate(waterCb, err);
 					}
-					const peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
 			},
@@ -255,12 +253,10 @@ __private.loadTransactions = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getNetwork((err, network) => {
+				self.getRandomPeerFromNetwork((err, peer) => {
 					if (err) {
 						return setImmediate(waterCb, err);
 					}
-					const peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
 			},
@@ -852,13 +848,11 @@ __private.loadBlocksFromNetwork = function(cb) {
 	async.whilst(
 		() => !loaded && errorCount < 10,
 		next => {
-			self.getNetwork((err, network) => {
+			self.getRandomPeerFromNetwork((err, peer) => {
 				if (err) {
 					errorCount += 1;
 					return next();
 				}
-				const peer =
-					network.peers[Math.floor(Math.random() * network.peers.length)];
 				let lastBlock = modules.blocks.lastBlock.get();
 
 				function loadBlocks() {
@@ -1055,13 +1049,13 @@ Loader.prototype.findGoodPeers = function(peers) {
 
 // Public methods
 /**
- * Gets a list of "good" peers from network.
+ * Gets a "good" peer from network.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb, err, good peers
+ * @returns {setImmediateCallback} cb, err, good peer
  * @todo Add description for the params
  */
-Loader.prototype.getNetwork = function(cb) {
+Loader.prototype.getRandomPeerFromNetwork = function(cb) {
 	const peers = library.logic.peers.listRandomConnected({
 		limit: MAX_PEERS,
 	});
@@ -1070,7 +1064,13 @@ Loader.prototype.getNetwork = function(cb) {
 	if (!__private.network.peers.length) {
 		return setImmediate(cb, 'Failed to find enough good peers');
 	}
-	return setImmediate(cb, null, __private.network);
+
+	const peer =
+		__private.network.peers[
+			Math.floor(Math.random() * __private.network.peers.length)
+		];
+
+	return setImmediate(cb, null, peer);
 };
 
 /**
