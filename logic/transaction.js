@@ -604,6 +604,7 @@ class Transaction {
 							// If signature is valid for particular public key - add it to checked array
 							checked.push(keygroup[k]);
 							isValidSignature = true;
+							break;
 						}
 					} catch (e) {
 						return setImmediate(cb, `Failed to verify multisignature: ${e.toString()}`);
