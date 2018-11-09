@@ -22,16 +22,6 @@ process.env.NODE_ENV = 'test';
 
 [sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
 
-// Type declaration for sandbox
-declare global {
-	namespace NodeJS {
-		interface Global {
-			sandbox: sinon.SinonSandbox;
-		}
-	}
-	const sandbox: sinon.SinonSandbox;
-}
-
 global.sandbox = sinon.createSandbox({
 	useFakeTimers: true,
 });
