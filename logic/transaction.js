@@ -590,6 +590,7 @@ class Transaction {
 		if (transaction.signatures) {
 			let isValidSignature;
 			const keygroup = multisignatures;
+			const checked = [];
 
 			// Iterate over signatures
 			for (let s = 0; s < transaction.signatures.length; s++) {
@@ -599,9 +600,9 @@ class Transaction {
 				// Iterate over public keys in keygroup, check if signature is valid for
 				for (let k = 0; k < keygroup.length; k++) {
 					try {
-						if (this.verifySignature(transaction, keygroup[k], transaction.signatures[s])) {
-							// If signature is valid for particular public key - remove this public key from the array
-							keygroup.splice(k, 1);
+						if (!checked.includes(keygroup[k]) && this.verifySignature(transaction, keygroup[k], transaction.signatures[s])) {
+							// If signature is valid for particular public key - add it to checked array
+							checked.push(keygroup[k]);
 							isValidSignature = true;
 						}
 					} catch (e) {
