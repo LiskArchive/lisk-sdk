@@ -853,69 +853,45 @@ __private.loadBlocksFromNetwork = function(cb) {
 					errorCount += 1;
 					return next();
 				}
+				__private.blocksToSync = peer.height;
 				let lastBlock = modules.blocks.lastBlock.get();
 
-				function loadBlocks() {
-					__private.blocksToSync = peer.height;
-
-					modules.blocks.process.loadBlocksFromPeer(
-						peer,
-						(err, lastValidBlock) => {
+				library.logger.info(`Looking for common block with: ${peer.string}`);
+				modules.blocks.process.getCommonBlock(
+					peer,
+					lastBlock.height,
+					(err, commonBlock) => {
+						if (!commonBlock) {
 							if (err) {
 								library.logger.error(err.toString());
-								library.logger.error(
-									`Failed to load blocks from: ${peer.string}`
-								);
-								errorCount += 1;
-								next();
 							}
-							loaded = lastValidBlock.id === lastBlock.id;
-							lastBlock = null;
-							lastValidBlock = null;
-							next();
+							library.logger.error(
+								`Failed to find common block with: ${peer.string}`
+							);
+							errorCount += 1;
+							return next();
 						}
-					);
-				}
-
-				/**
-				 * Description of getCommonBlock.
-				 *
-				 * @todo Add @returns and @param tags
-				 * @todo Add description for the function
-				 */
-				function getCommonBlock(cb) {
-					library.logger.info(`Looking for common block with: ${peer.string}`);
-					modules.blocks.process.getCommonBlock(
-						peer,
-						lastBlock.height,
-						(err, commonBlock) => {
-							if (!commonBlock) {
+						library.logger.info(
+							`Found common block: ${commonBlock.id} with: ${peer.string}`
+						);
+						modules.blocks.process.loadBlocksFromPeer(
+							peer,
+							(err, lastValidBlock) => {
 								if (err) {
 									library.logger.error(err.toString());
+									library.logger.error(
+										`Failed to load blocks from: ${peer.string}`
+									);
+									errorCount += 1;
+									return next();
 								}
-								library.logger.error(
-									`Failed to find common block with: ${peer.string}`
-								);
-								errorCount += 1;
+								loaded = lastValidBlock.id === lastBlock.id;
+								lastBlock = null;
 								return next();
 							}
-							library.logger.info(
-								[
-									'Found common block:',
-									commonBlock.id,
-									'with:',
-									peer.string,
-								].join(' ')
-							);
-							return setImmediate(cb);
-						}
-					);
-				}
-				if (lastBlock.height === 1) {
-					loadBlocks();
-				} else {
-					getCommonBlock(loadBlocks);
-				}
+						);
+					}
+				);
 			});
 		},
 		err => {
