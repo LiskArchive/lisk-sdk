@@ -223,7 +223,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						errorCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.be.equal(
-							'Failed to verify multisignature'
+							'Failed to verify multisignature: '
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -281,7 +281,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						errorCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.equal(
-							'Failed to verify multisignature'
+							`Failed to verify multisignature: ${signatureFromunknown.signature}`
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
