@@ -309,7 +309,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					});
 				});
 
-				it('All signatures present, ready set to false, should be corrected and processed', () => {
+				it('using all signatures, setting ready to false, should be corrected and processed', () => {
 					var scenario = scenarios.all_signatures_ready_false;
 
 					scenario.multiSigTransaction.signatures = _.map(
@@ -335,7 +335,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('No signatures present, ready set to true, should be corrected and remain pending', () => {
+				it('using no signatures, setting ready to true, should be corrected and remain pending', () => {
 					var scenario = scenarios.no_signatures_ready_true;
 
 					scenario.multiSigTransaction.ready = true;
@@ -350,7 +350,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					);
 				});
 
-				it('Some signatures present, ready set to true, should be corrected and remain pending', () => {
+				it('using some signatures, setting ready to true, should be corrected and remain pending', () => {
 					var scenario = scenarios.some_signatures_ready_true;
 
 					const signatureObj = apiHelpers.createSignatureObject(
