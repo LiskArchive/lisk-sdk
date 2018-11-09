@@ -88,11 +88,9 @@ describe('input utils', () => {
 					passphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
-				expect(
-					console.warn.calledWith(
-						'Warning: Passphrase contains 2 words instead of expected 12. ',
-					),
-				).to.be.true;
+				return expect(console.warn).to.be.calledWithExactly(
+					'Warning: Passphrase contains 2 words instead of expected 12. ',
+				);
 			});
 		});
 
@@ -137,11 +135,9 @@ describe('input utils', () => {
 					secondPassphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
-				expect(
-					console.warn.calledWith(
-						'Warning: Passphrase contains 2 words instead of expected 12. ',
-					),
-				).to.be.true;
+				return expect(console.warn).to.be.calledWithExactly(
+					'Warning: Passphrase contains 2 words instead of expected 12. ',
+				);
 			});
 		});
 
