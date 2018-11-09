@@ -46,6 +46,7 @@ describe('input utils', () => {
 				data: null,
 			});
 			sandbox.stub(inputUtils, 'getPassphrase');
+			sandbox.stub(console, 'warn').returns('');
 			return sandbox.stub(inputUtils, 'getData');
 		});
 
@@ -79,6 +80,17 @@ describe('input utils', () => {
 				const result = await getInputsFromSources({});
 				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.passphrase).to.be.null;
+			});
+
+			it('should print a warning if passphase not in mnemonic format', async () => {
+				const stdin = 'some passphrase';
+				inputUtils.getStdIn.resolves({
+					passphrase: stdin,
+				});
+				await getInputsFromSources(inputs);
+				return expect(console.warn).to.be.calledWithExactly(
+					'Warning: Passphrase contains 2 words instead of expected 12. ',
+				);
 			});
 		});
 
@@ -115,6 +127,17 @@ describe('input utils', () => {
 				const result = await getInputsFromSources({});
 				expect(inputUtils.getPassphrase).not.to.be.called;
 				return expect(result.secondPassphrase).to.be.null;
+			});
+
+			it('should print a warning if secondPassphase not in mnemonic format', async () => {
+				const stdin = 'some passphrase';
+				inputUtils.getStdIn.resolves({
+					secondPassphrase: stdin,
+				});
+				await getInputsFromSources(inputs);
+				return expect(console.warn).to.be.calledWithExactly(
+					'Warning: Passphrase contains 2 words instead of expected 12. ',
+				);
 			});
 		});
 
