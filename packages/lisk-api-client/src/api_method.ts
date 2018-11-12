@@ -13,14 +13,14 @@
  *
  */
 import { AxiosRequestConfig } from 'axios';
-import { GET } from './constants';
 import {
 	ApiHandler,
 	ApiResponse,
 	HashMap,
 	RequestConfig,
 	Resource,
-} from './types/lisk-api-client';
+} from './api_types';
+import { GET } from './constants';
 import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class

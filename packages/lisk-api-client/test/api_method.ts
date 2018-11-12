@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { apiMethod } from '../src/api_method';
-import { ApiResponse, Resource } from '../src/types/lisk-api-client';
+import { ApiResponse, Resource } from '../src/api_types';
 
 describe('API method module', () => {
 	const GET = 'GET';

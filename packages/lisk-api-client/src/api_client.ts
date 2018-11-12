@@ -14,6 +14,7 @@
  */
 import { MAINNET_NETHASH, TESTNET_NETHASH } from '@liskhq/lisk-constants';
 import * as os from 'os';
+import { HashMap, InitOptions } from './api_types';
 import * as constants from './constants';
 import { AccountsResource } from './resources/accounts';
 import { BlocksResource } from './resources/blocks';
@@ -25,7 +26,6 @@ import { SignaturesResource } from './resources/signatures';
 import { TransactionsResource } from './resources/transactions';
 import { VotersResource } from './resources/voters';
 import { VotesResource } from './resources/votes';
-import { HashMap, InitOptions } from './types/lisk-api-client';
 
 const defaultOptions = {
 	bannedNodes: [],
