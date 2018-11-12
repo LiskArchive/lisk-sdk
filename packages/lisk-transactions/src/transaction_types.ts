@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 export interface BaseTransaction {
 	readonly amount: string;
 	readonly asset: TransactionAsset;

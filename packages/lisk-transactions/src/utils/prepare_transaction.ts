@@ -13,7 +13,7 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction, PartialTransaction } from '../types/transactions';
+import { BaseTransaction, PartialTransaction } from '../transaction_types';
 import { getTransactionId } from './get_transaction_id';
 import { signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';

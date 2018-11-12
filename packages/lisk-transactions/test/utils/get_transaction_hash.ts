@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { getTransactionHash } from '../../src/utils';
-import { BaseTransaction } from '../../src/types/transactions';
+import { BaseTransaction } from '../../src/transaction_types';
 import * as getTransactionBytesModule from '../../src/utils/get_transaction_bytes';
 
 describe('#getTransactionHash', () => {

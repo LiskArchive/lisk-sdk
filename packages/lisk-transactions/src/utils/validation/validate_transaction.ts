@@ -16,7 +16,7 @@ import { ErrorObject, ValidateFunction } from 'ajv';
 import {
 	MultiSignatureTransaction,
 	PartialTransaction,
-} from '../../types/transactions';
+} from '../../transaction_types';
 import * as schemas from './schema';
 import { validator } from './validator';
 

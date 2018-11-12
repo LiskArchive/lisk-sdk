@@ -18,7 +18,7 @@ import {
 	PartialTransaction,
 	TransferAsset,
 	TransferTransaction,
-} from './types/transactions';
+} from './transaction_types';
 import {
 	prepareTransaction,
 	validateAddress,

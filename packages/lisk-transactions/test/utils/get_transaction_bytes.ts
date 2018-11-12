@@ -32,7 +32,7 @@ import {
 	TransferTransaction,
 	BaseTransaction,
 	MultiSignatureAsset,
-} from '../../src/types/transactions';
+} from '../../src/transaction_types';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';

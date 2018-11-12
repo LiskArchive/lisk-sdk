@@ -29,7 +29,7 @@ import {
 	TransferAsset,
 	TransferTransaction,
 	VoteAsset,
-} from '../types/transactions';
+} from '../transaction_types';
 
 export const isValidValue = (value: unknown): boolean => {
 	if (value === undefined) {

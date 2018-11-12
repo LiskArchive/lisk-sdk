@@ -13,7 +13,7 @@
  *
  */
 import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from './types/transactions';
+import { BaseTransaction } from './transaction_types';
 import { multiSignTransaction, verifyTransaction } from './utils';
 
 export interface SignatureObject {

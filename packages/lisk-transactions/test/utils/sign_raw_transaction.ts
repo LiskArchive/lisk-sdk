@@ -17,7 +17,7 @@ import { signRawTransaction } from '../../src/utils/sign_raw_transaction';
 import {
 	BaseTransaction,
 	PartialTransaction,
-} from '../../src/types/transactions';
+} from '../../src/transaction_types';
 import * as time from '../../src/utils/time';
 
 describe('#signRawTransaction', () => {

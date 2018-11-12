@@ -22,6 +22,18 @@ import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
 import * as utils from './utils';
 
+export {
+	BaseTransaction,
+	TransferTransaction,
+	SecondSignatureTransaction,
+	DelegateTransaction,
+	VoteTransaction,
+	MultiSignatureTransaction,
+	DappTransaction,
+	InTransferTransaction,
+	OutTransferTransaction,
+} from './transaction_types';
+
 // tslint:disable-next-line no-default-export
 export default {
 	transfer,

@@ -14,7 +14,7 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from './constants';
-import { PartialTransaction, VoteTransaction } from './types/transactions';
+import { PartialTransaction, VoteTransaction } from './transaction_types';
 import {
 	prepareTransaction,
 	prependMinusToPublicKeys,
