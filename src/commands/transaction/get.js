@@ -20,7 +20,7 @@ import query, { handleResponse } from '../../utils/query';
 
 const stateFlag = {
 	char: 's',
-	description: `Get transactions based on given transaction ids and state. Possible values for the state are "unsigned" and "unprocessed".
+	description: `Get transactions based on given transaction ids and state. Possible values for the state are 'unsigned' and 'unprocessed'.
 	Examples:
 	- --state=unsigned
 	- --state=unprocessed
@@ -28,21 +28,15 @@ const stateFlag = {
 };
 
 const queryNode = async (client, txnState, parameters) =>
-	Array.isArray(parameters)
-		? Promise.all(
-				parameters.map(param =>
-					client
-						.getTransactions(txnState, param.query)
-						.then(res =>
-							handleResponse('node/transactions', res, param.placeholder),
-						),
-				),
-			)
-		: client
-				.getTransactions(txnState, parameters.query)
+	Promise.all(
+		parameters.map(param =>
+			client
+				.getTransactions(txnState, param.query)
 				.then(res =>
-					handleResponse('node/transactions', res, parameters.placeholder),
-				);
+					handleResponse('node/transactions', res, param.placeholder),
+				),
+		),
+	);
 
 export default class GetCommand extends BaseCommand {
 	async run() {
