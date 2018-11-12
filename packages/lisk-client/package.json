@@ -79,6 +79,7 @@
 		"mocha": "5.2.0",
 		"nyc": "13.0.1",
 		"prettier": "1.14.2",
+		"source-map-support": "0.5.9",
 		"ts-node": "7.0.1",
 		"tsconfig-paths": "3.6.0",
 		"tslint": "5.11.0",
