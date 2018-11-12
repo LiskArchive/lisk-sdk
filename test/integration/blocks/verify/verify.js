@@ -922,7 +922,7 @@ describe('blocks/verify', () => {
 					expect(block1.totalFee.isEqualTo('0')).to.be.true;
 					expect(block1.totalAmount.isEqualTo('0')).to.be.true;
 					expect(block1.payloadLength).to.equal(0);
-					expect(block1.transactions).to.deep.eql([]);
+					expect(block1.transactions).to.deep.equal([]);
 					expect(block1.previousBlock).to.equal(genesisBlock.id);
 					done();
 				})
@@ -978,7 +978,7 @@ describe('blocks/verify', () => {
 			expect(invalidBlock2.totalFee.isEqualTo('0')).to.be.true;
 			expect(invalidBlock2.totalAmount.isEqualTo('0')).to.be.true;
 			expect(invalidBlock2.payloadLength).to.equal(0);
-			expect(invalidBlock2.transactions).to.deep.eql([]);
+			expect(invalidBlock2.transactions).to.deep.equal([]);
 			expect(invalidBlock2.previousBlock).to.equal(genesisBlock.id);
 			done();
 		});
@@ -1082,7 +1082,7 @@ describe('blocks/verify', () => {
 							expect(block2.totalAmount.isEqualTo('10000000000000000')).to.be
 								.true;
 							expect(block2.payloadLength).to.equal(117);
-							expect(block2.transactions).to.deep.eql([
+							expect(block2.transactions).to.deep.equal([
 								genesisBlock.transactions[0],
 							]);
 							expect(block2.previousBlock).to.equal(genesisBlock.id);

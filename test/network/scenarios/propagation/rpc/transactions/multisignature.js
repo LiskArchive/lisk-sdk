@@ -72,12 +72,13 @@ module.exports = function(configurations, network) {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
 					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
-				network.waitForBlocksOnAllNodes(blocksToWait)
-				.then(() => {
-					return confirmTransactionsOnAllNodes(transactions, configurations);
-				})
-				.then(done)
-				.catch(done);
+				network
+					.waitForBlocksOnAllNodes(blocksToWait)
+					.then(() => {
+						return confirmTransactionsOnAllNodes(transactions, configurations);
+					})
+					.then(done)
+					.catch(done);
 			});
 		});
 
@@ -136,7 +137,8 @@ module.exports = function(configurations, network) {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
 					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
-				network.waitForBlocksOnAllNodes(blocksToWait)
+				network
+					.waitForBlocksOnAllNodes(blocksToWait)
 					.then(() => {
 						return confirmTransactionsOnAllNodes(transactions, configurations);
 					})

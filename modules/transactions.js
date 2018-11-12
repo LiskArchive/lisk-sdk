@@ -104,7 +104,7 @@ __private.list = function(filter, cb) {
 	const where = [];
 
 	if (filter.data) {
-		params.additionalData = Buffer.from(filter.data, 'utf8');
+		filter.data = Buffer.from(filter.data, 'utf8');
 	}
 
 	const allowedFieldsMap = {
@@ -127,7 +127,7 @@ __private.list = function(filter, cb) {
 		type: '"t_type" = ${type}',
 		minConfirmations: 'confirmations >= ${minConfirmations}',
 		data:
-			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data = ${additionalData})',
+			't_id IN (SELECT transfer."transactionId" FROM transfer WHERE transfer.data LIKE ${data})',
 		limit: null,
 		offset: null,
 		sort: null,

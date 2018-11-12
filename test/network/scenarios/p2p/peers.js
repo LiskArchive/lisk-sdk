@@ -148,7 +148,7 @@ module.exports = function(configurations, network) {
 									return peer.height > 1;
 								});
 							})
-						);
+						).to.be.true;
 					});
 				});
 
