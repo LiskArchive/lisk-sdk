@@ -20,6 +20,8 @@ services:
       - LISK_DB_USER=${ENV_LISK_DB_USER}
       - LISK_DB_PASSWORD=${ENV_LISK_DB_PASSWORD}
       - LISK_DB_NAME=${ENV_LISK_DB_DATABASE}
+      - LISK_FILE_LOG_LEVEL=none
+      - LISK_CONSOLE_LOG_LEVEL=info
 # To enable caching:
 #  - set LISK_CACHE_ENABLED to true,
 #  - uncomment the next two lines and
@@ -27,8 +29,6 @@ services:
       - LISK_CACHE_ENABLED=false
       #- LISK_REDIS_HOST=redis
       #- LISK_REDIS_PORT=6379
-# Uncomment the following line if you want to see debug messages in the docker logs
-      #- LISK_CONSOLE_LOG_LEVEL=debug
 # Uncomment the following line if you want the API to be public
       #- LISK_API_PUBLIC=true
 # Uncomment and change the following line if you want to forge.

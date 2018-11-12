@@ -53,4 +53,5 @@ module.exports = {
 	blockVersions: {},
 	recipientLeadingZero: {},
 	recipientExceedingUint64: {},
+	duplicatedSignatures: {},
 };

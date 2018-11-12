@@ -586,33 +586,61 @@ class Transaction {
 			}
 		}
 
-		// Verify multisignatures
+		// Verify signatures of multisignatures transactions
 		if (transaction.signatures) {
-			for (let d = 0; d < transaction.signatures.length; d++) {
-				valid = false;
+			let isValidSignature;
+			const keygroup = multisignatures;
+			const checked = [];
 
-				for (let s = 0; s < multisignatures.length; s++) {
-					if (
-						transaction.requesterPublicKey &&
-						multisignatures[s] === transaction.requesterPublicKey
-					) {
-						continue; // eslint-disable-line no-continue
+			try {
+				// Iterate over signatures
+				for (let s = 0; s < transaction.signatures.length; s++) {
+					// Mark currently checked signature as invalid
+					isValidSignature = false;
+
+					// Iterate over public keys in keygroup, check if signature is valid for
+					for (let k = 0; k < keygroup.length; k++) {
+						if (
+							!checked.includes(keygroup[k]) &&
+							this.verifySignature(
+								transaction,
+								keygroup[k],
+								transaction.signatures[s]
+							)
+						) {
+							// If signature is valid for particular public key - add it to checked array
+							checked.push(keygroup[k]);
+							isValidSignature = true;
+							break;
+						}
 					}
 
-					if (
-						this.verifySignature(
-							transaction,
-							multisignatures[s],
-							transaction.signatures[d]
-						)
-					) {
-						valid = true;
+					if (!isValidSignature) {
+						const err = `Failed to verify multisignature: ${
+							transaction.signatures[s]
+						}`;
+
+						// Check against exceptions
+						if (
+							exceptions.duplicatedSignatures[transaction.id] &&
+							exceptions.duplicatedSignatures[transaction.id].includes(
+								transaction.signatures[s]
+							)
+						) {
+							this.scope.logger.warn('Transaction accepted due to exceptions', {
+								err,
+								transaction: JSON.stringify(transaction),
+							});
+						} else {
+							return setImmediate(cb, err);
+						}
 					}
 				}
-
-				if (!valid) {
-					return setImmediate(cb, 'Failed to verify multisignature');
-				}
+			} catch (e) {
+				return setImmediate(
+					cb,
+					`Failed to verify multisignature: ${e.toString()}`
+				);
 			}
 		}
 
