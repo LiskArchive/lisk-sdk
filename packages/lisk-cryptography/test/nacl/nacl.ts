@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { KeypairBytes } from '../../src/keys';
 import { makeInvalid } from '../helpers';
-import { NaclInterface } from '../../src/types/nacl';
+import { NaclInterface } from '../../src/nacl/nacl_types';
 import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 

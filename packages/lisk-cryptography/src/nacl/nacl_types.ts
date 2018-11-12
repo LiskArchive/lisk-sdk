@@ -1,4 +1,4 @@
-import { KeypairBytes } from '../../keys';
+import { KeypairBytes } from '../keys';
 
 export interface NaclInterface {
 	box(
