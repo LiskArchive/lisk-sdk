@@ -107,6 +107,7 @@ function __init(initScope, done) {
 			var modulesInit = {
 				accounts: '../../modules/accounts.js',
 				blocks: '../../modules/blocks.js',
+				cache: '../../modules/cache.js',
 				dapps: '../../modules/dapps.js',
 				delegates: '../../modules/delegates.js',
 				loader: '../../modules/loader.js',
@@ -170,6 +171,15 @@ function __init(initScope, done) {
 							io: { sockets: { emit() {} } },
 							app: require('express')(),
 						});
+					},
+					cache(cb) {
+						var cache = require('../../helpers/cache.js');
+						cache.connect(
+							__testContext.config.cacheEnabled,
+							__testContext.config.redis,
+							logger,
+							cb
+						);
 					},
 					webSocket: [
 						'config',
@@ -419,6 +429,7 @@ function __init(initScope, done) {
 						'db',
 						'logic',
 						'rpc',
+						'cache',
 						function(scope, cb) {
 							var tasks = {};
 							scope.rewiredModules = {};

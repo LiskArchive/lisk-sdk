@@ -15,6 +15,7 @@
 'use strict';
 
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
+const async = require('async');
 // Submodules
 const blocksAPI = require('./blocks/api');
 const blocksVerify = require('./blocks/verify');
@@ -25,6 +26,7 @@ const blocksChain = require('./blocks/chain');
 // Private fields
 let library;
 let self;
+let modules = {};
 const __private = {};
 
 __private.lastBlock = {};
@@ -55,6 +57,7 @@ class Blocks {
 	constructor(cb, scope) {
 		library = {
 			logger: scope.logger,
+			network: scope.network,
 		};
 
 		// Initialize submodules with library content
@@ -228,10 +231,32 @@ Blocks.prototype.isCleaning = {
  * Handle modules initialization.
  * Modules are not required in this file.
  */
-Blocks.prototype.onBind = function() {
+Blocks.prototype.onBind = function(scope) {
 	// TODO: move here blocks submodules modules load from app.js.
+	modules = {
+		cache: scope.cache,
+	};
+
 	// Set module as loaded
 	__private.loaded = true;
+};
+
+/**
+ * Clear blocks and transactions API cache and emit socket notification `blocks/change`.
+ *
+ * @param {Block} block
+ * @todo Add description for the params
+ * @todo Add @returns tag
+ */
+Blocks.prototype.onNewBlock = function(block) {
+	const tasks = [
+		modules.cache.KEYS.blocksApi,
+		modules.cache.KEYS.transactionsApi,
+	].map(pattern => callback => modules.cache.clearCacheFor(pattern, callback));
+
+	async.parallel(async.reflectAll(tasks), () =>
+		library.network.io.sockets.emit('blocks/change', block)
+	);
 };
 
 /**
