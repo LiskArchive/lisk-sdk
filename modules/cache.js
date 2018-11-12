@@ -283,7 +283,7 @@ Cache.prototype.onFinishRound = function(round, cb) {
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
 	}
-	const pattern = '/api/delegates*';
+	const pattern = self.KEYS.delegatesApi;
 	self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
@@ -327,7 +327,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 	async.parallel(
 		[
 			async.reflect(reflectCb => {
-				const pattern = '/api/delegates*';
+				const pattern = self.KEYS.delegatesApi;
 
 				const delegateTransaction = transactions.find(
 					transaction =>
