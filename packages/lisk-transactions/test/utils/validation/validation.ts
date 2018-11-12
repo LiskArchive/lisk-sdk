@@ -238,10 +238,29 @@ describe('validation', () => {
 			});
 		});
 
+		describe('Given an address that includes `.`', () => {
+			const address = '14.15133512790761431L';
+			const error =
+				'Address format does not match requirements. Address includes invalid character: `.`.';
+
+			it('should throw', () => {
+				return expect(validateAddress.bind(null, address)).to.throw(error);
+			});
+		});
+
 		describe('Given an address that is out of range', () => {
 			const address = '18446744073709551616L';
 			const error =
 				'Address format does not match requirements. Address out of maximum range.';
+
+			it('should throw', () => {
+				return expect(validateAddress.bind(null, address)).to.throw(error);
+			});
+		});
+
+		describe('Given an address that has leading zeros', () => {
+			const address = '00015133512790761431L';
+			const error = 'Address number does not have natural representation.';
 
 			it('should throw', () => {
 				return expect(validateAddress.bind(null, address)).to.throw(error);

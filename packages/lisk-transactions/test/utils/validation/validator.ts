@@ -146,8 +146,12 @@ describe('validator', () => {
 			return expect(validate({ target: '14815133512790761431L' })).to.be.true;
 		});
 
-		it('should validate to true when valid address with leading zeros is provided', () => {
-			return expect(validate({ target: '00015133512790761431L' })).to.be.true;
+		it('should validate to false when address with leading zeros is provided', () => {
+			return expect(validate({ target: '00015133512790761431L' })).to.be.false;
+		});
+
+		it('should validate to false when address including `.` is provided', () => {
+			return expect(validate({ target: '14.15133512790761431L' })).to.be.false;
 		});
 
 		it('should validate to false when number greater than maximum is provided', () => {
