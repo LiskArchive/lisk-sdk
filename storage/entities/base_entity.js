@@ -31,7 +31,7 @@ class BaseEntity {
 	 * Get one object from persistence layer
 	 *
 	 * @param {String | Object} filters - Multiple filters or just primary key
-	 * @param {String} fieldSet - Field sets defining collection of fields to get
+	 * @param {string} fieldSet - Field sets defining collection of fields to get
 	 * @param {Object} options - Extended options
 	 *
 	 * @return {Promise}
@@ -87,10 +87,11 @@ class BaseEntity {
 	/**
 	 * Setup the filters for getters
 	 *
-	 * @param {String} filterName
-	 * @param {String} filterType
+	 * @param {string} filterName
+	 * @param {string} filterType
 	 * @param {Object} options
-	 * @param {Object} options.realName - Actual name of the field
+	 * @param {string} [options.realName] - Actual name of the field
+	 * @param {string} [options.condition] - custom condition in case of CUSTOM filter type
 	 */
 	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
 		const fieldName = options.realName || filterName;
@@ -148,6 +149,10 @@ class BaseEntity {
 					`${filterName}_neql`,
 					`"${fieldName}" <> DECODE($\{${filterName}\}, 'hex')`
 				);
+				break;
+
+			case filterTypes.CUSTOM:
+				setFilter(filterName, options.condition);
 				break;
 
 			default:

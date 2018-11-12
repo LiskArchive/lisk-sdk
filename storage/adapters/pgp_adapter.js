@@ -51,8 +51,8 @@ class PgpAdapter extends BaseAdapter {
 	 *
 	 * @param {Object} options
 	 * @param {Boolean} options.inTest
-	 * @param {String} options.logger
-	 * @param {String} options.sqlDirectory
+	 * @param {string} options.logger
+	 * @param {string} options.sqlDirectory
 	 */
 	constructor(options) {
 		super({
@@ -65,12 +65,12 @@ class PgpAdapter extends BaseAdapter {
 
 		this.sqlDirectory = options.sqlDirectory;
 
-		const pgpOptions = Object.assign({}, initOptions, {
+		this.pgpOptions = Object.assign({}, initOptions, {
 			// Prevent protocol locking, so we can redefine database properties in test environment
 			noLocking: options.inTest,
 		});
 
-		this.pgp = pgpLib(pgpOptions);
+		this.pgp = pgpLib(this.pgpOptions);
 		this.db = null;
 	}
 
@@ -84,9 +84,8 @@ class PgpAdapter extends BaseAdapter {
 			monitor.detach();
 		}
 
-		const options = {
+		const monitorOptions = {
 			error: (error, e) => {
-				console.error(error);
 				self.logger.error(error);
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
@@ -95,20 +94,23 @@ class PgpAdapter extends BaseAdapter {
 					process.emit('cleanup', new Error('DB Connection Error'));
 				}
 			},
-			log: (msg, info) => {
-				self.logger.log(info.event, info.text);
-				console.info(info.event, info.text);
-				info.display = false;
-			},
 		};
-
-		monitor.attach(Object.assign(initOptions, options), self.options.logEvents);
+		monitor.attach(
+			Object.assign(this.pgpOptions, monitorOptions),
+			self.options.logEvents
+		);
+		monitor.setLog((msg, info) => {
+			self.logger.log(info.event, info.text);
+			info.display = false;
+		});
 		monitor.setTheme('matrix');
 
 		self.options.user = self.options.user || process.env.USER;
 
-		// Hack for now to mimic the connect event
+		self.pgp.end();
 		self.db = self.pgp(self.options);
+
+		// Hack for now to mimic the connect event
 		return Promise.delay(3000, true);
 	}
 
@@ -122,7 +124,7 @@ class PgpAdapter extends BaseAdapter {
 	/**
 	 * Execute an SQL file
 	 *
-	 * @param {String} file
+	 * @param {string} file
 	 * @param {Object} params
 	 * @param {Object} options
 	 * @param {Number} options.expectedResult
@@ -138,7 +140,7 @@ class PgpAdapter extends BaseAdapter {
 	/**
 	 * Execute an SQL file
 	 *
-	 * @param {String} file
+	 * @param {string} file
 	 * @param {Object} params
 	 * @param {Object} options
 	 * @param {Number} options.expectedResult

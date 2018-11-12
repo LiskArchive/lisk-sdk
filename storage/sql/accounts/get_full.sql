@@ -39,11 +39,11 @@ SELECT
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "delegates",
+	) as "votedFor",
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2u_delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "u_delegates",
+	) as "u_votedFor",
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2multisignatures
   		WHERE "accountId" = mem_accounts.address

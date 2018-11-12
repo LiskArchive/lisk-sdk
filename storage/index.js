@@ -19,8 +19,9 @@ const { BaseEntity, Account, Block, Transaction } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
 
 class Storage {
-	constructor(options) {
+	constructor(options, logger) {
 		this.options = options;
+		this.logger = logger;
 
 		if (typeof Storage.instance === 'object') {
 			return Storage.instance;
@@ -42,6 +43,7 @@ class Storage {
 			Object.assign({}, this.options, {
 				inTest: process.env.NODE_ENV === 'test',
 				sqlDirectory: path.join(path.dirname(__filename), './sql'),
+				logger: this.logger,
 			})
 		);
 
@@ -69,6 +71,6 @@ class Storage {
 	}
 }
 
-module.exports = function createStorage(options) {
-	return new Storage(options);
+module.exports = function createStorage(options, logger) {
+	return new Storage(options, logger);
 };

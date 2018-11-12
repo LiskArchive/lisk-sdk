@@ -45,6 +45,15 @@ class Account extends BaseEntity {
 		this.addFilter('u_nameexist', ft.NUMBER);
 		this.addFilter('u_username', ft.NUMBER);
 
+		this.addFilter('votedFor', ft.CUSTOM, {
+			condition:
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
+		});
+		this.addFilter('votedFor_in', ft.CUSTOM, {
+			condition:
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedFor:csv}))',
+		});
+
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('accounts/get_simple.sql'),
 			selectFull: this.adapter.loadSQLFile('accounts/get_full.sql'),
@@ -54,7 +63,8 @@ class Account extends BaseEntity {
 	get(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
 		const queryOptions = Object.assign({}, options, { expectedResult: 1 });
 		const parsedFilters = this.parseFilters(filters);
-		const params = Object.assign({}, { limit: 10, offset: 0 }, filters, {
+
+		const params = Object.assign({}, this.defaultOptions, filters, {
 			parsedFilters,
 		});
 
@@ -71,10 +81,7 @@ class Account extends BaseEntity {
 	getAll(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
 		const parsedFilters = this.parseFilters(filters);
 		const params = Object.assign(
-			{
-				limit: 10,
-				offset: 0,
-			},
+			this.defaultOptions,
 			{ limit: options.limit, offset: options.offset },
 			filters,
 			{ parsedFilters }
@@ -96,5 +103,9 @@ class Account extends BaseEntity {
 
 Account.prototype.FIELD_SET_SIMPLE = 'FIELD_SET_SIMPLE';
 Account.prototype.FIELD_SET_FULL = 'FIELD_SET_FULL';
+Account.prototype.defaultOptions = {
+	limit: 10,
+	offset: 0,
+};
 
 module.exports = Account;

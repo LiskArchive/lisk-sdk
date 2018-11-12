@@ -21,12 +21,12 @@ class BaseAdapter extends EventEmitter {
 	/**
 	 * Constructor for the adapter
 	 * @param {Object} options
-	 * @param {String} options.name
+	 * @param {String} options.engineName
 	 * @param {Boolean} options.inTest
 	 */
 	constructor(options) {
 		super();
-		this.engineName = options.name;
+		this.engineName = options.engineName;
 		this.inTest = options.inTest;
 	}
 
