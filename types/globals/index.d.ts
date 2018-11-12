@@ -7,8 +7,7 @@ declare global {
 			sandbox: sinon.SinonSandbox;
 		}
 	}
+	var sandbox: sinon.SinonSandbox;
 }
-
-declare var sandbox: sinon.SinonSandbox;
 
 export {};

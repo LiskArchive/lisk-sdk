@@ -5,9 +5,10 @@
 		"outDir": "browsertest.build",
 		"baseUrl": ".",
 		"rootDir": ".",
-		"paths": {
-			"chai": ["../../types/chai"]
-		}
+		"typeRoots": [
+			"../../types",
+			"./node_modules/@types"
+		]
 	},
 	"include": ["../../types/**/*", "src/**/*", "test/**/*"]
 }

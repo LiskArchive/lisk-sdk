@@ -12,16 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import 'chai/register-expect';
-import sinonChai from 'sinon-chai';
-import sinon from 'sinon';
+import cryptography from '@liskhq/lisk-cryptography';
+import { BaseTransaction } from '../types/transactions';
+import { getTransactionBytes } from './get_transaction_bytes';
 
-process.env.NODE_ENV = 'test';
+export const getTransactionHash = (transaction: BaseTransaction): Buffer => {
+	const bytes = getTransactionBytes(transaction);
 
-[sinonChai, chaiAsPromised].forEach(plugin => chai.use(plugin));
-
-global.sandbox = sinon.createSandbox({
-	useFakeTimers: true,
-});
+	return cryptography.hash(bytes);
+};
