@@ -157,7 +157,7 @@ describe('transaction:get', () => {
 			);
 	});
 
-	describe('transaction:get transactions by state', () => {
+	describe('transaction:get transactions --state', () => {
 		const transactionId = '3520445367460290306';
 		const transactionIds = ['3520445367460290306', '2802325248134221536'];
 		const transactionIdsWithEmpty = [
