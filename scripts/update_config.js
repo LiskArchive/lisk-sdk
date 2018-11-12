@@ -233,6 +233,8 @@ history.version('1.2.0-rc.x', version => {
 	});
 });
 history.version('1.2.0');
+history.version('1.2.1');
+history.version('1.2.1-rc.x');
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
