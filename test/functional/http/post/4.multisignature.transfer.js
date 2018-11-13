@@ -44,48 +44,49 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 			}
 		});
 
-		return apiHelpers.sendTransactionsPromise(transactions).then(responses => {
-			responses.map(res => {
-				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
-			});
-			transactionsToWaitFor = transactionsToWaitFor.concat(
-				_.map(transactions, 'id')
-			);
+		return apiHelpers
+			.sendTransactionsPromise(transactions)
+			.then(responses => {
+				responses.map(res => {
+					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+				});
+				transactionsToWaitFor = transactionsToWaitFor.concat(
+					_.map(transactions, 'id')
+				);
+			})
+			.then(() => waitFor.confirmations(transactionsToWaitFor))
+			.then(() => {
+				transactionsToWaitFor = [];
+				multiSigAccount = scenarios.register_multisignature;
 
-			return waitFor.confirmations(transactionsToWaitFor);
-		});
+				multiSigAccount.multiSigTransaction.signatures = _.map(
+					multiSigAccount.members,
+					member => {
+						var signatureObject = apiHelpers.createSignatureObject(
+							multiSigAccount.multiSigTransaction,
+							member
+						);
+						return signatureObject.signature;
+					}
+				);
+
+				return apiHelpers
+					.sendTransactionsPromise([multiSigAccount.multiSigTransaction])
+					.then(responses => {
+						responses.map(res => {
+							expect(res.body.data.message).to.be.equal(
+								'Transaction(s) accepted'
+							);
+						});
+						registerMultisignature = transactionsToWaitFor.concat(
+							_.map([multiSigAccount.multiSigTransaction], 'id')
+						);
+					});
+			})
+			.then(() => waitFor.confirmations(registerMultisignature));
 	});
 
 	describe('Transfers processing', () => {
-		before(() => {
-			multiSigAccount = scenarios.register_multisignature;
-
-			multiSigAccount.multiSigTransaction.signatures = _.map(
-				multiSigAccount.members,
-				member => {
-					var signatureObject = apiHelpers.createSignatureObject(
-						multiSigAccount.multiSigTransaction,
-						member
-					);
-					return signatureObject.signature;
-				}
-			);
-
-			return apiHelpers
-				.sendTransactionsPromise([multiSigAccount.multiSigTransaction])
-				.then(responses => {
-					responses.map(res => {
-						expect(res.body.data.message).to.be.equal(
-							'Transaction(s) accepted'
-						);
-					});
-					registerMultisignature = transactionsToWaitFor.concat(
-						_.map([multiSigAccount.multiSigTransaction], 'id')
-					);
-					return waitFor.confirmations(registerMultisignature);
-				});
-		});
-
 		it('with no signatures present it should remain pending', () => {
 			const targetAccount = randomUtil.account();
 			const trs = multiSigAccount.transfer(
