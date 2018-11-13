@@ -382,42 +382,89 @@ describe('loader', () => {
 	});
 
 	describe('__private.loadBlocksFromNetwork', () => {
-		it(
-			'should call getRandomPeerFromNetwork "Looking for common block with PEER"'
-		);
-		it(
-			'should throw error from getRandomPeerFromNetwork "Failed to get random peer from network"'
-		);
-		it('should throw error "Failed to load blocks from network"');
-		it('should keep restart sync process if loaded remain false');
-		it('should stop sync process if loaded is true');
-		it('should stop sync process if failed attempts are equal to 5');
-		it('should stop sync process if failed attemps are more than 5');
+		describe('when tries are < than 5', () => {
+			describe('when loaded is false', () => {
+				it('should call self.getRandomPeerFromNetwork');
+				describe('when self.getRandomPeerFromNetwork fails', () => {
+					it('should sum + 1 to tries');
+					it('should log error "Failed to get random peer from network"');
+					it('should call next');
+				});
 
-		describe('call getRandomPeerFromNetwork', () => {
-			it('should call getCommonBlock');
-			it(
-				'should throw error from getCommonBlock "Failed to find common block with PEER"'
-			);
-
-			describe('call getCommonBlock', () => {
-				it('should call loadBlocksFromPeer if genesis');
-				it(
-					'should call loadBlocksFromPeer if no genesis and commonBlock "Found common block: ID with PEER"'
-				);
-				it(
-					'should throw error from loadBlocksFromPeer "Failed to load blocks from PEER"'
-				);
-
-				describe('call loadBlocksFromPeer', () => {
+				describe('when self.getRandomPeerFromNetwork succeds', () => {
+					it('should assign lastBlock');
+					it('should result peer');
 					it(
-						'should change loaded to true if Blockchain has been entirely synched'
+						'should log info trace containing "Looking for common block with:"'
 					);
 					it(
-						'should remain loaded to false if Blockchain has NOT been entirely synched'
+						'should call modules.blocks.process.getCommonBlock with peer and lastBlock.height'
 					);
+
+					describe('when modules.blocks.process.getCommonBlock fails', () => {
+						it('should sum + 1 to tries');
+						it('should log error');
+						it('should call next');
+					});
+
+					describe('when modules.blocks.process.getCommonBlock succeds', () => {
+						describe('when commonBlock not found', () => {
+							describe('when lastBlock.height higher than genesis (1)', () => {
+								it('should sum + 1 to tries');
+								it(
+									'should log error containning "Failed to find common block with"'
+								);
+								it('should call next');
+							});
+
+							describe('when lastBlock.height is genesis (1)', () => {
+								it(
+									'should call modules.blocks.process.loadBlocksFromPeer with peer'
+								);
+							});
+						});
+
+						describe('when commonBlock found', () => {
+							it('should log info trace starting by "Found common block:"');
+							it(
+								'should call modules.blocks.process.loadBlocksFromPeer with peer'
+							);
+
+							describe('when modules.blocks.process.loadBlocksFromPeer fails', () => {
+								it('should sum + 1 to tries');
+								it(
+									'should log error containning "Failed to load blocks from:"'
+								);
+								it('should call next');
+							});
+
+							describe('when modules.blocks.process.loadBlocksFromPeer succeds', () => {
+								it('should result lastValidBlock');
+								it(
+									'should modify loaded to true if lastValidBlock and lastBlock are equal'
+								);
+								it(
+									'should modify loaded to false if lastValidBlock and lastBlock are not equal'
+								);
+								it('should call next');
+							});
+						});
+					});
 				});
 			});
+			describe('when loaded is true', () => {
+				it('should call callback with error = null');
+			});
+		});
+
+		describe('when tries are >= than 5', () => {
+			it('should call callback with error = null');
+		});
+
+		describe('when unexpected error happens', () => {
+			it(
+				'should call callback with error = "Failed to load blocks from network"'
+			);
 		});
 	});
 
