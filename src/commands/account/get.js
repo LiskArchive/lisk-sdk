@@ -15,7 +15,7 @@
  */
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
-import query from '../../utils/query';
+import { query } from '../../utils/query';
 
 export default class GetCommand extends BaseCommand {
 	async run() {

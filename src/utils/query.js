@@ -31,7 +31,7 @@ export const handleResponse = (endpoint, res, placeholder) => {
 	return res.data;
 };
 
-const query = async (client, endpoint, parameters) =>
+export const query = async (client, endpoint, parameters) =>
 	Array.isArray(parameters)
 		? Promise.all(
 				parameters.map(param =>
@@ -43,5 +43,3 @@ const query = async (client, endpoint, parameters) =>
 		: client[endpoint]
 				.get(parameters.query)
 				.then(res => handleResponse(endpoint, res, parameters.placeholder));
-
-export default query;

@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
-import * as query from '../../../src/utils/query';
+import * as queryHandler from '../../../src/utils/query';
 
 describe('account:get command', () => {
 	const endpoint = 'accounts';
@@ -53,23 +53,27 @@ describe('account:get command', () => {
 		];
 
 		setupTest()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.stdout()
 			.command(['account:get', address])
 			.it('should get an account info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							address,
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								address,
+							},
+							placeholder: {
+								address,
+								message: 'Address not found.',
+							},
 						},
-						placeholder: {
-							address,
-							message: 'Address not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -89,45 +93,49 @@ describe('account:get command', () => {
 		];
 
 		setupTest()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.stdout()
 			.command(['account:get', addresses.join(',')])
 			.it('should get accounts info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							address: addresses[0],
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								address: addresses[0],
+							},
+							placeholder: {
+								address: addresses[0],
+								message: 'Address not found.',
+							},
 						},
-						placeholder: {
-							address: addresses[0],
-							message: 'Address not found.',
+						{
+							query: {
+								limit: 1,
+								address: addresses[1],
+							},
+							placeholder: {
+								address: addresses[1],
+								message: 'Address not found.',
+							},
 						},
-					},
-					{
-						query: {
-							limit: 1,
-							address: addresses[1],
-						},
-						placeholder: {
-							address: addresses[1],
-							message: 'Address not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
 		setupTest()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.stdout()
 			.command(['account:get', addressesWithEmpty.join(',')])
 			.it(
 				'should get accounts info only using non-empty args and display as an array',
 				() => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[

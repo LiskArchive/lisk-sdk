@@ -16,7 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
-import query from '../../utils/query';
+import { query } from '../../utils/query';
 import { SORT_FIELDS } from '../../utils/constants';
 
 const MAXIMUM_LIMIT = 100;

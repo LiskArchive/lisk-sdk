@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
-import * as query from '../../../src/utils/query';
+import * as queryHandler from '../../../src/utils/query';
 
 describe('delegate:voters', () => {
 	const endpoint = 'voters';
@@ -68,11 +68,11 @@ describe('delegate:voters', () => {
 
 		describe('delegate:voters delegate', () => {
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0]])
 				.it('should get delegate voters and display as an array', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -96,11 +96,11 @@ describe('delegate:voters', () => {
 			const usernamesWithEmpty = ['genesis_4', ''];
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames.join(',')])
 				.it('should get delegates voters and display as an array', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -130,13 +130,13 @@ describe('delegate:voters', () => {
 				});
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernamesWithEmpty.join(',')])
 				.it(
 					'should get delegates voters only using non-empty args and display as an array',
 					() => {
 						expect(api.default).to.be.calledWithExactly(apiConfig);
-						expect(query.default).to.be.calledWithExactly(
+						expect(queryHandler.query).to.be.calledWithExactly(
 							apiClientStub,
 							endpoint,
 							[
@@ -186,11 +186,11 @@ describe('delegate:voters', () => {
 				.it('should throw an error when limit is greater than 100');
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--limit=3'])
 				.it('should get voters for delegate with limit', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -233,11 +233,11 @@ describe('delegate:voters', () => {
 				.it('should throw an error when offset is an integer less than 0');
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--offset=1'])
 				.it('should get voters for delegate with offset', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -271,11 +271,11 @@ describe('delegate:voters', () => {
 				.it('should throw an error when given incorrect sort input');
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--sort=publicKey:asc'])
 				.it('should get sorted voters for delegate', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[

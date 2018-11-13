@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
-import * as query from '../../../src/utils/query';
+import * as queryHandler from '../../../src/utils/query';
 
 describe('delegate:get', () => {
 	const endpoint = 'delegates';
@@ -54,22 +54,26 @@ describe('delegate:get', () => {
 
 		setupTest()
 			.stdout()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['delegate:get', username])
 			.it('should get an delegate info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							username,
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								username,
+							},
+							placeholder: {
+								username,
+								message: 'Delegate not found.',
+							},
 						},
-						placeholder: {
-							username,
-							message: 'Delegate not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -90,44 +94,48 @@ describe('delegate:get', () => {
 
 		setupTest()
 			.stdout()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['delegate:get', usernames.join(',')])
 			.it('should get delegates info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							username: usernames[0],
-							limit: 1,
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								username: usernames[0],
+								limit: 1,
+							},
+							placeholder: {
+								username: usernames[0],
+								message: 'Delegate not found.',
+							},
 						},
-						placeholder: {
-							username: usernames[0],
-							message: 'Delegate not found.',
+						{
+							query: {
+								username: usernames[1],
+								limit: 1,
+							},
+							placeholder: {
+								username: usernames[1],
+								message: 'Delegate not found.',
+							},
 						},
-					},
-					{
-						query: {
-							username: usernames[1],
-							limit: 1,
-						},
-						placeholder: {
-							username: usernames[1],
-							message: 'Delegate not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
 		setupTest()
 			.stdout()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['delegate:get', usernamesWithEmpty.join(',')])
 			.it(
 				'should get delegates info only using non-empty args and display as an array',
 				() => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
