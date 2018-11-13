@@ -292,7 +292,7 @@ history.migrate(
 		});
 
 		if (program.output) {
-			console.info(`\nWriting updated configuration to ${program.output}`);
+			console.info(`\nWriting configuration to ${program.output}`);
 			fs.writeFileSync(
 				program.output,
 				JSON.stringify(customConfig, null, '\t')
