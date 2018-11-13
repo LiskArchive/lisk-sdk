@@ -380,13 +380,13 @@ describe('#castVotes transaction', () => {
 			it('should have the recipient id', () => {
 				return expect(castVotesTransaction)
 					.to.have.property('recipientId')
-					.equal(null);
+					.equal('');
 			});
 
 			it('should have the sender public key', () => {
 				return expect(castVotesTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {

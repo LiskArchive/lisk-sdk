@@ -165,7 +165,7 @@ describe('#transfer transaction', () => {
 						data: Buffer.from('hello'),
 					}),
 				).to.throw(
-					'Invalid encoding in transaction data. Data must be utf-8 encoded.',
+					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
 				);
 			});
 
@@ -323,7 +323,7 @@ describe('#transfer transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(transferTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {
