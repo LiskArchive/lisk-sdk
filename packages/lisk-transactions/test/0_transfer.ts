@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/0_transfer';
-import { TransferTransaction } from '../src/types/transactions';
+import { TransferTransaction } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#transfer transaction', () => {
