@@ -1,4 +1,7 @@
-version: "2"
+# Base file, do not modifiy.
+# Make changes in docker-compose.override.yml instead.
+# See https://docs.docker.com/compose/extends/#example-use-case
+version: "3"
 services:
 
   lisk:
@@ -22,24 +25,7 @@ services:
       - LISK_DB_NAME=${ENV_LISK_DB_DATABASE}
       - LISK_FILE_LOG_LEVEL=none
       - LISK_CONSOLE_LOG_LEVEL=info
-# To enable caching:
-#  - set LISK_CACHE_ENABLED to true,
-#  - uncomment the next two lines and
-#  - uncomment the "redis" block below
       - LISK_CACHE_ENABLED=false
-      #- LISK_REDIS_HOST=redis
-      #- LISK_REDIS_PORT=6379
-# Uncomment the following line if you want the API to be public
-      #- LISK_API_PUBLIC=true
-# Uncomment and change the following line if you want to forge.
-# You will need to use your own encrypted key (use lisk-commander to encrypt it)
-      #- LISK_FORGING_DELEGATES=publicKey1|encryptedPassphrase1,publicKey2|encryptedPassphrase2
-# Uncomment the following lines to allow access to the API
-# Change 'YOUR_IP' to you actual IP address
-      #- LISK_API_WHITELIST=IP1,IP2
-      #- LISK_FORGING_WHITELIST=IP1,IP2
-# Uncomment the following to set your own peer:
-      #- LISK_PEERS=PEER_IP_1:PORT_1,PEER_IP_2:PORT_2
 
   db:
     image: postgres:10-alpine
@@ -52,25 +38,6 @@ services:
       - POSTGRES_DB=${ENV_LISK_DB_DATABASE}
       - POSTGRES_PASSWORD=${ENV_LISK_DB_PASSWORD}
       - POSTGRES_USER=${ENV_LISK_DB_USER}
-
-  task:
-    image: postgres:10-alpine
-    networks:
-      - lisk
-    environment:
-      - PGUSER=${ENV_LISK_DB_USER}
-      - PGPASSWORD=${ENV_LISK_DB_PASSWORD}
-      - PGDATABASE=${ENV_LISK_DB_DATABASE}
-      - PGHOST=db
-    command: /bin/true
-
-# Uncomment if you enabled caching above
-#  redis:
-#    image: redis:alpine
-#    networks:
-#      - lisk
-#    restart: on-failure
-#    command: --maxclients 500 --tcp-backlog 128 --maxmemory-policy allkeys-lru --save ""
 
 networks:
   lisk:
