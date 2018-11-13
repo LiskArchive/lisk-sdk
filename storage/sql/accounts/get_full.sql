@@ -47,11 +47,11 @@ SELECT
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2multisignatures
   		WHERE "accountId" = mem_accounts.address
-	) as "multisignatures",
+	) as "members",
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2u_multisignatures
   		WHERE "accountId" = mem_accounts.address
-	) as "u_multisignatures"
+	) as "u_members"
 FROM
 	mem_accounts
 
