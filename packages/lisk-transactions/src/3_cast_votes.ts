@@ -61,7 +61,7 @@ export const castVotes = (inputs: CastVoteInputs): VoteTransaction => {
 	} = inputs;
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
-		: undefined;
+		: '';
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);

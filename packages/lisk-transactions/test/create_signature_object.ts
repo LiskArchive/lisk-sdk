@@ -44,11 +44,22 @@ describe('#createSignatureObject', () => {
 		'8222dc7c26cc0ed649af71ebef5d292deb6ad029dadec0cf061b40e2ea9572d1b691e92302ac8cb64e5ea5f8fd846410c8fa033236c8930203ae3b7f3c6bd30c';
 
 	describe('when invalid transaction is used', () => {
+		it("should throw an Error when id doesn't exist", () => {
+			const { id, ...mutatedTransaction } = transaction;
+			return expect(
+				createSignatureObject.bind(
+					null,
+					mutatedTransaction,
+					account.passphrase,
+				),
+			).to.throw('Transaction ID is required to create a signature object.');
+		});
 		it('should throw an Error when sender public key is mutated', () => {
-			const mutatedTransaction = Object.assign({}, transaction, {
+			const mutatedTransaction = {
+				...transaction,
 				senderPublicKey:
 					'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1000',
-			});
+			};
 			return expect(
 				createSignatureObject.bind(
 					null,
@@ -59,10 +70,11 @@ describe('#createSignatureObject', () => {
 		});
 
 		it('should throw an Error when signature is mutated', () => {
-			const mutatedTransaction = Object.assign({}, transaction, {
+			const mutatedTransaction = {
+				...transaction,
 				signature:
 					'b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e600',
-			});
+			};
 			return expect(
 				createSignatureObject.bind(
 					null,

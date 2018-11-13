@@ -262,8 +262,11 @@ describe('#createDapp transaction', () => {
 			});
 
 			describe('dapps asset', () => {
-				const { asset } = createDappTransaction;
-				const { dapp } = asset as DappAsset;
+				let asset: DappAsset;
+
+				beforeEach(() => {
+					asset = createDappTransaction.asset;
+				});
 
 				it('should be object', () => {
 					return expect(createDappTransaction.asset)
@@ -272,49 +275,49 @@ describe('#createDapp transaction', () => {
 				});
 
 				it('should have a category number equal to provided category', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('category')
 						.and.be.a('number')
 						.and.equal(options.category);
 				});
 
 				it('should have a name string equal to provided name', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('name')
 						.and.be.a('string')
 						.and.equal(options.name);
 				});
 
 				it('should have a description string equal to provided description', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('description')
 						.and.be.a('string')
 						.and.equal(options.description);
 				});
 
 				it('should have a tags string equal to provided tags', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('tags')
 						.and.be.a('string')
 						.and.equal(options.tags);
 				});
 
 				it('should have a type number equal to provided type', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('type')
 						.and.be.a('number')
 						.and.equal(options.type);
 				});
 
 				it('should have a link string equal to provided link', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('link')
 						.and.be.a('string')
 						.and.equal(options.link);
 				});
 
 				it('should have an icon string equal to provided icon', () => {
-					return expect(dapp)
+					return expect(asset.dapp)
 						.to.have.property('icon')
 						.and.be.a('string')
 						.and.equal(options.icon);
@@ -375,7 +378,7 @@ describe('#createDapp transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(createDappTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {

@@ -460,7 +460,7 @@ describe('#registerMultisignature transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {
