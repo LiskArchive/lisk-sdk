@@ -24,7 +24,6 @@ function Multisig(options) {
 	}
 
 	this.account = randomUtil.account();
-	this.regularAccount = randomUtil.account();
 	this.members = [];
 	this.keysgroup = [];
 
