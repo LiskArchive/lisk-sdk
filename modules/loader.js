@@ -850,42 +850,55 @@ __private.loadBlocksFromNetwork = function(cb) {
 	async.whilst(
 		() => !loaded && tries < 5,
 		next => {
-			self.getRandomPeerFromNetwork((err, peer) => {
-				if (err) {
-					tries += 1;
-					library.logger.error(
-						`Try(${tries}) Failed to get random peer from network`,
-						err
-					);
-					return next();
-				}
-				__private.blocksToSync = peer.height;
-				const lastBlock = modules.blocks.lastBlock.get();
-				library.logger.info(
-					`Try(${tries}) Looking for common block with: ${peer.string}`
-				);
-
-				modules.blocks.process.getCommonBlock(
-					peer,
-					lastBlock.height,
-					(err, commonBlock) => {
-						if (err) {
-							library.logger.error(err.toString());
-							tries += 1;
-							return next();
-						}
-						if (!commonBlock && lastBlock.height != 1) {
-							tries += 1;
-							library.logger.error(
-								`Try(${tries}) Failed to find common block with: ${peer.string}`
-							);
-							return next();
-						}
-						if (commonBlock) {
+			async.waterfall(
+				[
+					function(cbWaterfall) {
+						self.getRandomPeerFromNetwork((err, peer) => {
+							if (err) {
+								tries += 1;
+								library.logger.error(
+									`Try(${tries}) Failed to get random peer from network`,
+									err
+								);
+								return next();
+							}
+							__private.blocksToSync = peer.height;
+							const lastBlock = modules.blocks.lastBlock.get();
 							library.logger.info(
-								`Found common block: ${commonBlock.id} with: ${peer.string}`
+								`Try(${tries}) Looking for common block with: ${peer.string}`
 							);
-						}
+							cbWaterfall(null, peer, lastBlock);
+						});
+					},
+					function(peer, lastBlock, cbWaterfall) {
+						modules.blocks.process.getCommonBlock(
+							peer,
+							lastBlock.height,
+							(err, commonBlock) => {
+								if (err) {
+									library.logger.error(err.toString());
+									tries += 1;
+									return next();
+								}
+								if (!commonBlock && lastBlock.height != 1) {
+									tries += 1;
+									library.logger.error(
+										`Try(${tries}) Failed to find common block with: ${
+											peer.string
+										}`
+									);
+									return next();
+								}
+								if (commonBlock) {
+									library.logger.info(
+										`Found common block: ${commonBlock.id} with: ${peer.string}`
+									);
+								}
+								cbWaterfall(null, peer, lastBlock);
+							}
+						);
+					},
+					function(peer, lastBlock, cbWaterfall) {
 						modules.blocks.process.loadBlocksFromPeer(
 							peer,
 							(err, lastValidBlock) => {
@@ -898,12 +911,18 @@ __private.loadBlocksFromNetwork = function(cb) {
 									return next();
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
-								return next();
+								cbWaterfall();
 							}
 						);
+					},
+				],
+				err => {
+					if (err) {
+						return setImmediate(cb, err);
 					}
-				);
-			});
+					return next();
+				}
+			);
 		},
 		err => {
 			if (err) {
