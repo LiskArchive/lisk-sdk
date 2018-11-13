@@ -67,7 +67,8 @@ export const validateKeysgroup = (keysgroup: ReadonlyArray<string>) => {
 
 const MIN_ADDRESS_LENGTH = 2;
 const MAX_ADDRESS_LENGTH = 22;
-export const validateAddress = (address: string) => {
+const BASE_TEN = 10;
+export const validateAddress = (address: string): boolean => {
 	if (
 		address.length < MIN_ADDRESS_LENGTH ||
 		address.length > MAX_ADDRESS_LENGTH
@@ -83,11 +84,24 @@ export const validateAddress = (address: string) => {
 		);
 	}
 
-	const addressAsBignum = new BigNum(address.slice(0, -1));
+	if (address.indexOf('.') > -1) {
+		throw new Error(
+			'Address format does not match requirements. Address includes invalid character: `.`.',
+		);
+	}
 
-	if (addressAsBignum.cmp(new BigNum(MAX_ADDRESS_NUMBER)) > 0) {
+	const addressString = address.slice(0, -1);
+	const addressNumber = new BigNum(addressString);
+
+	if (addressNumber.cmp(new BigNum(MAX_ADDRESS_NUMBER)) > 0) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
+		);
+	}
+
+	if (addressString !== addressNumber.toString(BASE_TEN)) {
+		throw new Error(
+			"Address string format does not match it's number representation.",
 		);
 	}
 
