@@ -103,69 +103,93 @@ function JSONHistory(title, logger) {
 		);
 	};
 
-	this.migrate = (json, fromVersion, toVersion, cb) => {
-		let includeStart = false;
+	/**
+	 * Migrate the json object provided
+	 *
+	 * @param {Object} json - JSON object to apply migrations
+	 * @param {string} [jsonVersion] - Start version
+	 * @param {string} [migrateToVersion] - End version
+	 * @param {Function} cb
+	 * @returns {setImmediateCallback} cb, null, self
+	 */
+	this.migrate = (json, jsonVersion, migrateToVersion, cb) => {
+		let startIndex;
+		let tillIndex;
 
-		if (toVersion === undefined && cb === undefined) {
-			cb = fromVersion;
-			includeStart = true;
-			fromVersion = versions[0];
-			toVersion = versions[versions.length - 1];
+		if (migrateToVersion === undefined && cb === undefined) {
+			cb = jsonVersion;
+
+			// As start version not specified so start from 0
+			startIndex = 0;
+			tillIndex = versions.length - 1;
+
+			jsonVersion = versions[startIndex];
+			migrateToVersion = versions[tillIndex];
 		}
 
 		if (cb === undefined) {
-			cb = toVersion;
-			toVersion = versions[versions.length - 1];
+			cb = migrateToVersion;
+
+			// As end not provided so migrate till last version
+			tillIndex = versions.length - 1;
+			migrateToVersion = versions[tillIndex];
 		}
 
 		assert(typeof json === 'object', 'Invalid json object to migrate.');
-		if (fromVersion)
+		if (jsonVersion)
 			assert(
-				semver.valid(fromVersion),
+				semver.valid(jsonVersion),
 				'Invalid start version specified to migrate.'
 			);
-		if (toVersion)
+		if (migrateToVersion)
 			assert(
-				semver.valid(toVersion),
+				semver.valid(migrateToVersion),
 				'Invalid end version specified to migrate.'
 			);
 		assert(typeof cb === 'function', 'Invalid callback specified to migrate.');
 
 		self.logger.info(
-			`Applying migration of ${self.title} from ${fromVersion} to ${toVersion}`
+			`Applying migration of ${
+				self.title
+			} from ${jsonVersion} to ${migrateToVersion}`
 		);
 
 		// Get the version from which to start the migration
 		// Skip the matched version, as json is already in that particular version
 		// Used ltr to to match the range versions e.g. 1.1.x
-		let startFromVersion =
-			versions.findIndex(version => semver.ltr(fromVersion, version)) - 1;
-
-		if (startFromVersion === -1) {
-			throw new Error(
-				`Can't find supported version to start migration from  version "${fromVersion}"`
+		if (startIndex === undefined) {
+			startIndex = versions.findIndex(version =>
+				semver.ltr(jsonVersion, version)
 			);
 		}
 
-		startFromVersion += includeStart ? 0 : 1;
+		if (startIndex < 0) {
+			self.logger.info(
+				`No migration found applicable from version "${jsonVersion}"`
+			);
+			return setImmediate(cb, null, json);
+		}
 
 		// Apply changes till that version
 		// Used ltr to to match the range versions e.g. 1.1.x
-		let tillVersion =
-			versions.findIndex(version => semver.ltr(toVersion, version)) - 1;
+		if (tillIndex === undefined) {
+			tillIndex =
+				versions.findIndex(version => semver.ltr(migrateToVersion, version)) -
+				1;
+		}
 
 		// If no matching version found then migrate till last version in the list
-		if (tillVersion < 0) {
-			tillVersion = versions.length - 1;
+		if (tillIndex < -1) {
+			tillIndex = versions.length - 1;
 		}
 
 		// Clone the provided json to avoid changes into source
 		let compiledJson = Object.assign({}, json);
 
-		let currentVersionIndex = startFromVersion;
+		let currentVersionIndex = startIndex;
 
 		async.whilst(
-			() => currentVersionIndex <= tillVersion,
+			() => currentVersionIndex <= tillIndex,
 			whileCb => {
 				applyChangesOfVersion(
 					currentVersionIndex,
