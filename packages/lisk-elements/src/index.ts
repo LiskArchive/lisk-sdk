@@ -18,12 +18,14 @@ import cryptographyModule from '@liskhq/lisk-cryptography';
 import passphraseModule from '@liskhq/lisk-passphrase';
 import transactionModule from '@liskhq/lisk-transactions';
 
+// tslint:disable-next-line variable-name
 export const APIClient = APIClientModule;
 export const constants = constantsModule;
 export const cryptography = cryptographyModule;
 export const passphrase = passphraseModule;
 export const transaction = transactionModule;
 
+// tslint:disable-next-line no-default-export
 export default {
 	APIClient,
 	constants,
