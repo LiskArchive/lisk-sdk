@@ -1,3 +1,4 @@
+/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -376,6 +377,86 @@ describe('loader', () => {
 				};
 
 				__private.createSnapshot(blocksAvailable);
+			});
+		});
+	});
+
+	describe('__private.loadBlocksFromNetwork', () => {
+		it(
+			'should call getRandomPeerFromNetwork "Looking for common block with PEER"'
+		);
+		it(
+			'should throw error from getRandomPeerFromNetwork "Failed to get random peer from network"'
+		);
+		it('should throw error "Failed to load blocks from network"');
+		it('should keep restart sync process if loaded remain false');
+		it('should stop sync process if loaded is true');
+		it('should stop sync process if failed attempts are equal to 5');
+		it('should stop sync process if failed attemps are more than 5');
+
+		describe('call getRandomPeerFromNetwork', () => {
+			it('should call getCommonBlock');
+			it(
+				'should throw error from getCommonBlock "Failed to find common block with PEER"'
+			);
+
+			describe('call getCommonBlock', () => {
+				it('should call loadBlocksFromPeer if genesis');
+				it(
+					'should call loadBlocksFromPeer if no genesis and commonBlock "Found common block: ID with PEER"'
+				);
+				it(
+					'should throw error from loadBlocksFromPeer "Failed to load blocks from PEER"'
+				);
+
+				describe('call loadBlocksFromPeer', () => {
+					it(
+						'should change loaded to true if Blockchain has been entirely synched'
+					);
+					it(
+						'should remain loaded to false if Blockchain has NOT been entirely synched'
+					);
+				});
+			});
+		});
+	});
+
+	describe('__private.getRandomPeerFromNetwork', () => {
+		describe('when __private.network.height > 0 and differs from last block height with 1', () => {
+			it('should call callback with error = null');
+
+			it('should call callback with result = random peer');
+
+			it('should not call logic.peers.listRandomConnected');
+		});
+
+		describe('when __private.network.height = 0 or differs from last block height with more than 1', () => {
+			it('should call logic.peers.listRandomConnected');
+
+			it(
+				'should call logic.peers.listRandomConnected with {normalized: false}'
+			);
+
+			describe('when logic.peers.listRandomConnected fails', () => {
+				it('should call callback with error');
+			});
+
+			describe('when logic.peers.listRandomConnected succeeds', () => {
+				it('should call self.findGoodPeers');
+
+				it('should assign __private.network');
+
+				describe('when __private.network.peers.length = 0', () => {
+					it(
+						'should call callback with error = "Failed to find enough good peers"'
+					);
+				});
+
+				describe('when __private.network.peers.length > 0', () => {
+					it('should call callback with error = null');
+
+					it('should call callback with result = randomPeer');
+				});
 			});
 		});
 	});

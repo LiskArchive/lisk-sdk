@@ -1034,10 +1034,10 @@ Loader.prototype.findGoodPeers = function(peers) {
 
 // Public methods
 /**
- * Gets a "good" peer from network.
+ * Gets a "good" randomPeer from network.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb, err, good peer
+ * @returns {setImmediateCallback} cb, err, good randomPeer
  * @todo Add description for the params
  */
 Loader.prototype.getRandomPeerFromNetwork = function(cb) {
@@ -1050,12 +1050,12 @@ Loader.prototype.getRandomPeerFromNetwork = function(cb) {
 		return setImmediate(cb, 'Failed to find enough good peers');
 	}
 
-	const peer =
+	const randomPeer =
 		__private.network.peers[
 			Math.floor(Math.random() * __private.network.peers.length)
 		];
 
-	return setImmediate(cb, null, peer);
+	return setImmediate(cb, null, randomPeer);
 };
 
 /**
