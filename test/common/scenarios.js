@@ -24,6 +24,7 @@ function Multisig(options) {
 	}
 
 	this.account = randomUtil.account();
+	this.regularAccount = randomUtil.account();
 	this.members = [];
 	this.keysgroup = [];
 
@@ -57,6 +58,25 @@ function Multisig(options) {
 		passphrase: this.account.passphrase,
 		secondPassphrase: this.account.secondPassphrase,
 	});
+
+	this.transfer = (
+		recipientId,
+		passphrase = accountFixtures.genesis.passphrase,
+		amount = 100000000000
+	) => {
+		return lisk.transaction.transfer({
+			amount,
+			passphrase,
+			recipientId,
+		});
+	};
+
+	this.signTransaction = (signers, transaction) => {
+		return signers.map(
+			aSigner =>
+				lisk.transaction.createSignatureObject(transaction, aSigner).signature
+		);
+	};
 }
 
 module.exports = {
