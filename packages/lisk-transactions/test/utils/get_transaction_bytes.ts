@@ -125,17 +125,6 @@ describe('getTransactionBytes module', () => {
 				);
 			});
 
-			it('should not throw on type 0 with an amount that is 0', () => {
-				const amount = 0;
-				const transaction = {
-					...defaultTransaction,
-					amount,
-				};
-				return expect(
-					getTransactionBytes.bind(null, transaction),
-				).not.to.throw();
-			});
-
 			it('should throw on type 0 with an amount that is too large', () => {
 				const amount = BigNum.fromBuffer(
 					Buffer.from(new Array(8).fill(255)),
