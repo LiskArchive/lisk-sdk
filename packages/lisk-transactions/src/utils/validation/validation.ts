@@ -68,7 +68,7 @@ export const validateKeysgroup = (keysgroup: ReadonlyArray<string>) => {
 const MIN_ADDRESS_LENGTH = 2;
 const MAX_ADDRESS_LENGTH = 22;
 const BASE_TEN = 10;
-export const validateAddress = (address: string) => {
+export const validateAddress = (address: string): boolean => {
 	if (
 		address.length < MIN_ADDRESS_LENGTH ||
 		address.length > MAX_ADDRESS_LENGTH
@@ -100,7 +100,9 @@ export const validateAddress = (address: string) => {
 	}
 
 	if (addressString !== addressNumber.toString(BASE_TEN)) {
-		throw new Error('Address number does not have natural representation.');
+		throw new Error(
+			"Address string format does not match it's number representation.",
+		);
 	}
 
 	return true;
