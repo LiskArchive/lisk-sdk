@@ -849,7 +849,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 
 	async.whilst(
 		() => !loaded && tries < 5,
-		next => {
+		whilstCb => {
 			async.waterfall(
 				[
 					function(cbWaterfall) {
@@ -860,7 +860,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 									`Try(${tries}) Failed to get random peer from network`,
 									err
 								);
-								return next();
+								return whilstCb();
 							}
 							__private.blocksToSync = peer.height;
 							const lastBlock = modules.blocks.lastBlock.get();
@@ -878,7 +878,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 								if (err) {
 									library.logger.error(err.toString());
 									tries += 1;
-									return next();
+									return whilstCb();
 								}
 								if (!commonBlock && lastBlock.height != 1) {
 									tries += 1;
@@ -887,7 +887,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 											peer.string
 										}`
 									);
-									return next();
+									return whilstCb();
 								}
 								if (commonBlock) {
 									library.logger.info(
@@ -908,7 +908,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 									library.logger.error(
 										`Try(${tries}) Failed to load blocks from: ${peer.string}`
 									);
-									return next();
+									return whilstCb();
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
 								cbWaterfall();
@@ -920,7 +920,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 					if (err) {
 						return setImmediate(cb, err);
 					}
-					return next();
+					return whilstCb();
 				}
 			);
 		},
