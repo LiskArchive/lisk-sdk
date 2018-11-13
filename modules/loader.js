@@ -842,21 +842,29 @@ __private.snapshotFinished = err => {
  * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
-	let errorCount = 0;
+	// Number of failed attempts to load from peers.
+	let tries = 0;
+	// If True, own node's db contains same number of blocks than the asked peer.
 	let loaded = false;
 
 	async.whilst(
-		() => !loaded && errorCount < 10,
+		() => !loaded && tries < 5,
 		next => {
 			self.getRandomPeerFromNetwork((err, peer) => {
 				if (err) {
-					errorCount += 1;
+					tries += 1;
+					library.logger.error(
+						`Try(${tries}) Failed to get random peer from network`,
+						err
+					);
 					return next();
 				}
 				__private.blocksToSync = peer.height;
-				let lastBlock = modules.blocks.lastBlock.get();
+				const lastBlock = modules.blocks.lastBlock.get();
+				library.logger.info(
+					`Try(${tries}) Looking for common block with: ${peer.string}`
+				);
 
-				library.logger.info(`Looking for common block with: ${peer.string}`);
 				modules.blocks.process.getCommonBlock(
 					peer,
 					lastBlock.height,
@@ -865,10 +873,10 @@ __private.loadBlocksFromNetwork = function(cb) {
 							if (err) {
 								library.logger.error(err.toString());
 							}
+							tries += 1;
 							library.logger.error(
-								`Failed to find common block with: ${peer.string}`
+								`Try(${tries}) Failed to find common block with: ${peer.string}`
 							);
-							errorCount += 1;
 							return next();
 						}
 						if (commonBlock) {
@@ -881,14 +889,13 @@ __private.loadBlocksFromNetwork = function(cb) {
 							(err, lastValidBlock) => {
 								if (err) {
 									library.logger.error(err.toString());
+									tries += 1;
 									library.logger.error(
-										`Failed to load blocks from: ${peer.string}`
+										`Try(${tries}) Failed to load blocks from: ${peer.string}`
 									);
-									errorCount += 1;
 									return next();
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
-								lastBlock = null;
 								return next();
 							}
 						);
