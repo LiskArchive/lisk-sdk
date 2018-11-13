@@ -412,15 +412,17 @@ ARGUMENTS
   IDS  Comma-separated transaction ID(s) to get information about.
 
 OPTIONS
-  -j, --[no-]json  Prints output in JSON format. You can change the default behaviour in your config.json file.
-  -s, --state=state
-      Get transactions based on given transaction ids and state. Possible values for the state are
-        `unsigned` and `unprocessed`.
-        Examples:
-        - --state=unsigned
-        - --state=unprocessed
-  --[no-]pretty    Prints JSON in pretty format rather than condensed. Has no effect if the output is set to table. You
-                  can change the default behaviour in your config.json file.
+  -j, --[no-]json                   Prints output in JSON format. You can change the default behaviour in your
+                                    config.json file.
+
+  -s, --state=unsigned|unprocessed  Get transactions based on a given state. Possible values for the state are
+                                    'unsigned' and 'unprocessed'.
+                                    Examples:
+                                    - --state=unsigned
+                                    - --state=unprocessed
+
+  --[no-]pretty                     Prints JSON in pretty format rather than condensed. Has no effect if the output is
+                                    set to table. You can change the default behaviour in your config.json file.
 
 DESCRIPTION
   Gets transaction information from the blockchain.
