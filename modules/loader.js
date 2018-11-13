@@ -869,10 +869,12 @@ __private.loadBlocksFromNetwork = function(cb) {
 					peer,
 					lastBlock.height,
 					(err, commonBlock) => {
+						if (err) {
+							library.logger.error(err.toString());
+							tries += 1;
+							return next();
+						}
 						if (!commonBlock && lastBlock.height != 1) {
-							if (err) {
-								library.logger.error(err.toString());
-							}
 							tries += 1;
 							library.logger.error(
 								`Try(${tries}) Failed to find common block with: ${peer.string}`
