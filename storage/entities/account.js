@@ -60,7 +60,7 @@ class Account extends BaseEntity {
 		};
 	}
 
-	get(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
+	getOne(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
 		const queryOptions = Object.assign({}, options, { expectedResult: 1 });
 		const parsedFilters = this.parseFilters(filters);
 
@@ -78,7 +78,7 @@ class Account extends BaseEntity {
 		);
 	}
 
-	getAll(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
+	get(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
 		const parsedFilters = this.parseFilters(filters);
 		const params = Object.assign(
 			this.defaultOptions,
