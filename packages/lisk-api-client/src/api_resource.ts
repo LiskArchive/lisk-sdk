@@ -14,7 +14,7 @@
  */
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { APIClient } from './api_client';
-import { ApiResponse, HashMap } from './types/lisk-api-client';
+import { ApiResponse, HashMap } from './api_types';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
 

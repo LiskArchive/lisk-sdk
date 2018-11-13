@@ -17,7 +17,7 @@ import { SIGNATURE_FEE } from './constants';
 import {
 	PartialTransaction,
 	SecondSignatureTransaction,
-} from './types/transactions';
+} from './transaction_types';
 import { prepareTransaction } from './utils';
 
 export interface SecondPassphraseInputs {

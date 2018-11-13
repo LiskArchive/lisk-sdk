@@ -15,8 +15,8 @@
 import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
+import { ApiHandler } from '../api_types';
 import { GET } from '../constants';
-import { ApiHandler } from '../types/lisk-api-client';
 
 export class BlocksResource extends APIResource {
 	public get: ApiHandler;

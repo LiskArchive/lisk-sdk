@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { NaclInterface } from '../types/nacl';
+import { NaclInterface } from './nacl_types';
 
 // tslint:disable-next-line no-let
 let lib: NaclInterface;

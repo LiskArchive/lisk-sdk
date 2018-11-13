@@ -13,7 +13,7 @@
  *
  */
 import { DELEGATE_FEE, USERNAME_MAX_LENGTH } from './constants';
-import { DelegateTransaction, PartialTransaction } from './types/transactions';
+import { DelegateTransaction, PartialTransaction } from './transaction_types';
 import { prepareTransaction } from './utils';
 
 export interface RegisterDelegateInputs {

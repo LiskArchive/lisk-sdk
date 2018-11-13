@@ -18,7 +18,7 @@ import { registerMultisignature } from '../src/4_register_multisignature_account
 import {
 	MultiSignatureAsset,
 	MultiSignatureTransaction,
-} from '../src/types/transactions';
+} from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 

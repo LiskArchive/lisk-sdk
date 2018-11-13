@@ -13,7 +13,7 @@
  *
  */
 import tweetnacl from 'tweetnacl';
-import { NaclInterface } from '../types/nacl';
+import { NaclInterface } from './nacl_types';
 
 export const box: NaclInterface['box'] = (
 	messageInBytes,

@@ -18,7 +18,7 @@ import { getTimeWithOffset } from '../../src/utils/time';
 import {
 	BaseTransaction,
 	PartialTransaction,
-} from '../../src/types/transactions';
+} from '../../src/transaction_types';
 
 describe('#prepareTransaction', () => {
 	const passphrase = 'secret';

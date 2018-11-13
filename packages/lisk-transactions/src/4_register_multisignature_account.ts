@@ -22,7 +22,7 @@ import {
 import {
 	MultiSignatureTransaction,
 	PartialTransaction,
-} from './types/transactions';
+} from './transaction_types';
 import {
 	isValidInteger,
 	prepareTransaction,

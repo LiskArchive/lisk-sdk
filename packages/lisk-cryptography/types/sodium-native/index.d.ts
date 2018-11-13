@@ -1,3 +1,4 @@
+// tslint:disable only-arrow-functions variable-name
 declare module 'sodium-native' {
 	export const crypto_box_MACBYTES: number;
 	export const crypto_sign_BYTES: number;

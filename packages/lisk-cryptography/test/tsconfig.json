@@ -4,7 +4,7 @@
 		"baseUrl": ".",
 		"declaration": false,
 		"target": "es6",
-		"typeRoots": ["../src/types", "../../../types", "../node_modules/@types"]
+		"typeRoots": ["../types", "../../../types", "../node_modules/@types"]
 	},
 	"include": ["../../../types/**/*", "./**/*"]
 }
