@@ -14,38 +14,11 @@
 
 'use strict';
 
-const path = require('path');
-const moment = require('moment');
-
 module.exports = function(grunt) {
-	const today = moment().format('HH:mm:ss DD/MM/YYYY');
-	const release_dir = path.join(__dirname, '/release/');
-	const config = require('./package.json');
-
 	const maxBufferSize = require('buffer').kMaxLength - 1;
 
 	grunt.initConfig({
 		exec: {
-			build: {
-				command: `cd ${__dirname}/ && echo "v${today}" > build`,
-			},
-
-			revision: {
-				command: `cd ${__dirname}/ && git rev-parse HEAD > REVISION`,
-			},
-
-			pack: {
-				command: 'npm pack',
-			},
-
-			folder: {
-				command: `mkdir -p ${release_dir}`,
-			},
-
-			copy: {
-				command: `cp lisk-${config.version}.tgz ${release_dir}`,
-			},
-
 			mocha: {
 				cmd(tagFilter, suite, section) {
 					if (suite === 'network') {
@@ -101,13 +74,6 @@ module.exports = function(grunt) {
 
 	grunt.loadTasks('tasks');
 	grunt.loadNpmTasks('grunt-exec');
-	grunt.registerTask('release', [
-		'exec:build',
-		'exec:revision',
-		'exec:pack',
-		'exec:folder',
-		'exec:copy',
-	]);
 	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('default', 'mocha');
 };
