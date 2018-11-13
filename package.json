@@ -83,6 +83,7 @@
 		"strftime": "=0.10.0",
 		"swagger-node-runner": "=0.7.3",
 		"sway": "=2.0.5",
+		"tempy": "=0.2.1",
 		"valid-url": "=1.0.9",
 		"wamp-socket-cluster": "=2.0.0-beta.4",
 		"z-schema": "=3.18.2"
