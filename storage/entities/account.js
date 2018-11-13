@@ -17,6 +17,35 @@
 const ft = require('./filter_types');
 const BaseEntity = require('./base_entity');
 
+const defaultCreateValues = {
+	publicKey: '',
+	secondPublicKey: '',
+	secondSignature: 0,
+	u_secondSignature: 0,
+	username: null,
+	u_username: null,
+	isDelegate: 0,
+	u_isDelegate: 0,
+	balance: '0',
+	u_balance: '0',
+	delegates: null,
+	u_delegates: null,
+	missedBlocks: 0,
+	producedBlocks: 0,
+	rank: null,
+	fees: '0',
+	rewards: '0',
+	vote: '0',
+	nameExist: 0,
+	u_nameExist: 0,
+	multiMin: 0,
+	u_multiMin: 0,
+	multiLifetime: 0,
+	u_multiLifetime: 0,
+	multiSignatures: null,
+	u_multiSignatures: null,
+};
+
 class Account extends BaseEntity {
 	constructor() {
 		super();
@@ -37,14 +66,6 @@ class Account extends BaseEntity {
 		this.addFilter('missedBlocks', ft.NUMBER);
 		this.addFilter('rank', ft.NUMBER);
 
-		this.addFilter('u_isDelegate', ft.BOOLEAN);
-		this.addFilter('u_secondSignature', ft.BOOLEAN);
-		this.addFilter('u_balance', ft.NUMBER);
-		this.addFilter('u_multimin', ft.NUMBER);
-		this.addFilter('u_multilifetime', ft.NUMBER);
-		this.addFilter('u_nameexist', ft.NUMBER);
-		this.addFilter('u_username', ft.NUMBER);
-
 		this.addFilter('votedFor', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
@@ -57,6 +78,7 @@ class Account extends BaseEntity {
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('accounts/get_simple.sql'),
 			selectFull: this.adapter.loadSQLFile('accounts/get_full.sql'),
+			create: this.adapter.loadSQLFile('accounts/create.sql'),
 		};
 	}
 
@@ -94,6 +116,12 @@ class Account extends BaseEntity {
 			}[fieldSet],
 			params
 		);
+	}
+
+	create(data) {
+		const objectData = Object.assign({}, defaultCreateValues, data);
+
+		return this.adapter.executeFile(this.SQLs.create, objectData);
 	}
 
 	getFieldSets() {
