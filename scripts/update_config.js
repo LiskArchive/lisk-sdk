@@ -206,10 +206,6 @@ history.version('1.0.0-rc.2', version => {
 		}
 	);
 });
-history.version('1.0.0-rc.3');
-history.version('1.0.0-rc.4');
-history.version('1.0.0-rc.5');
-history.version('1.0.0');
 history.version('1.1.0-rc.0', version => {
 	version.change('removed version and minVersion', config => {
 		delete config.version;
@@ -221,9 +217,6 @@ history.version('1.1.0-rc.0', version => {
 		return config;
 	});
 });
-history.version('1.1.0');
-history.version('1.1.1-rc.x');
-history.version('1.1.1');
 history.version('1.2.0-rc.x', version => {
 	version.change('remove malformed peer list items', config => {
 		config.peers.list = config.peers.list.filter(
@@ -232,9 +225,6 @@ history.version('1.2.0-rc.x', version => {
 		return config;
 	});
 });
-history.version('1.2.0');
-history.version('1.2.1');
-history.version('1.2.1-rc.x');
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
