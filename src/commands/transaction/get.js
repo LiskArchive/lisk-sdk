@@ -18,9 +18,12 @@ import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
 import query, { handleResponse } from '../../utils/query';
 
+const TRANSACTION_STATES = ['unsigned', 'unprocessed'];
+
 const stateFlag = {
 	char: 's',
-	description: `Get transactions based on given transaction ids and state. Possible values for the state are 'unsigned' and 'unprocessed'.
+	options: TRANSACTION_STATES,
+	description: `Get transactions based on a given state. Possible values for the state are 'unsigned' and 'unprocessed'.
 	Examples:
 	- --state=unsigned
 	- --state=unprocessed
