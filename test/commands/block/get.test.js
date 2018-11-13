@@ -17,7 +17,7 @@ import { test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
-import * as query from '../../../src/utils/query';
+import * as queryHandler from '../../../src/utils/query';
 
 describe('block:get', () => {
 	const endpoint = 'blocks';
@@ -52,22 +52,26 @@ describe('block:get', () => {
 
 		setupTest()
 			.stdout()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['block:get', blockId])
 			.it('should get block info and display as an object', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							blockId,
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								blockId,
+							},
+							placeholder: {
+								id: blockId,
+								message: 'Block not found.',
+							},
 						},
-						placeholder: {
-							id: blockId,
-							message: 'Block not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -88,44 +92,48 @@ describe('block:get', () => {
 
 		setupTest()
 			.stdout()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['block:get', blockIds.join(',')])
 			.it('should get blocks info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							blockId: blockIds[0],
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								blockId: blockIds[0],
+							},
+							placeholder: {
+								id: blockIds[0],
+								message: 'Block not found.',
+							},
 						},
-						placeholder: {
-							id: blockIds[0],
-							message: 'Block not found.',
+						{
+							query: {
+								limit: 1,
+								blockId: blockIds[1],
+							},
+							placeholder: {
+								id: blockIds[1],
+								message: 'Block not found.',
+							},
 						},
-					},
-					{
-						query: {
-							limit: 1,
-							blockId: blockIds[1],
-						},
-						placeholder: {
-							id: blockIds[1],
-							message: 'Block not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
 		setupTest()
 			.stdout()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['block:get', blockIdsWithEmpty.join(',')])
 			.it(
 				'should get blocks info only using non-empty args and display as an array',
 				() => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
