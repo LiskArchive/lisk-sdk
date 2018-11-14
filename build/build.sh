@@ -159,7 +159,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	npm install --production --global "pm2@$PM2_VERSION"
 	npm install --production --global "lisk-commander@$LISK_COMMANDER_VERSION"
 
-	date "+%H:%M:%S %d/%m/%Y" >build
+	date "+%H:%M:%S %d/%m/%Y" >.build
 	date >finished
 	popd
 fi
