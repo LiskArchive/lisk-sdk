@@ -15,11 +15,11 @@
 import { expect } from 'chai';
 import { APIError } from '../src/errors';
 
-let apiError: APIError;
-const defaultMessage = 'this is an error';
-const defaultErrno = 401;
-
 describe('api errors module', () => {
+	let apiError: APIError;
+	const defaultMessage = 'this is an error';
+	const defaultErrno = 401;
+
 	beforeEach(() => {
 		apiError = new APIError();
 		return Promise.resolve();
