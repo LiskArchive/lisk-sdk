@@ -33,7 +33,6 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		offline_signed_empty_signatures: new Scenarios.Multisig(),
 		offline_signed_without_ready: new Scenarios.Multisig(),
 		offline_signed_with_ready_false: new Scenarios.Multisig(),
-		unsigned_with_ready_true: new Scenarios.Multisig(),
 		offline_signed_with_ready_true: new Scenarios.Multisig(),
 		duplicated_signature: new Scenarios.Multisig(),
 		extra_signature: new Scenarios.Multisig(),
@@ -41,7 +40,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		requesterPublicKey: new Scenarios.Multisig(),
 		all_signatures_ready_false: new Scenarios.Multisig(),
 		no_signatures_ready_true: new Scenarios.Multisig(),
-		some_signatures_ready_true: new Scenarios.Multisig(),
+		offline_partly_signed_with_ready_true: new Scenarios.Multisig(),
 	};
 
 	var transactionsToWaitFor = [];
@@ -353,7 +352,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				});
 
 				it('using some signatures, setting ready to true, should be corrected and remain pending', () => {
-					var scenario = scenarios.some_signatures_ready_true;
+					var scenario = scenarios.offline_partly_signed_with_ready_true;
 
 					const signatureObj = apiHelpers.createSignatureObject(
 						scenario.multiSigTransaction,
