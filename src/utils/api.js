@@ -13,11 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
-import { getConfig } from './config';
+import APIClient from '@liskhq/lisk-api-client';
 import { NETHASHES } from './constants';
-
-const { APIClient } = elements;
 
 const seedNodes = {
 	main: APIClient.constants.MAINNET_NODES,
@@ -25,8 +22,7 @@ const seedNodes = {
 	beta: APIClient.constants.BETANET_NODES,
 };
 
-const getAPIClient = () => {
-	const { api: { nodes, network } } = getConfig();
+const getAPIClient = ({ nodes, network }) => {
 	const nethash = NETHASHES[network] || network;
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
 	return new APIClient(clientNodes, { nethash });

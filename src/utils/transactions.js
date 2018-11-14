@@ -13,6 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import { ValidationError } from './error';
 
-export default elements.transaction;
+const parseTransactionString = transactionStr => {
+	try {
+		return JSON.parse(transactionStr);
+	} catch (error) {
+		throw new ValidationError('Could not parse transaction JSON.');
+	}
+};
+
+export default parseTransactionString;

@@ -42,10 +42,15 @@ const getKeyValueObject = object => {
 		.join('\n');
 };
 
+const getKeyValueArray = array =>
+	array.some(item => typeof item === 'object')
+		? array.map(getKeyValueObject).join('\n\n')
+		: array.join('\n');
+
 const addValuesToTable = (table, data) => {
 	Object.entries(data).forEach(([key, values]) => {
 		const strValue = Array.isArray(values)
-			? values.join('\n')
+			? getKeyValueArray(values)
 			: getKeyValueObject(values);
 		table.push({ [key]: strValue });
 	});

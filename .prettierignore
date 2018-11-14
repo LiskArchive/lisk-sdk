@@ -1,1 +1,10 @@
-docs/*.md
+package.json
+package-lock.json
+
+.nyc_output/
+coverage/
+dist/
+node_modules/
+
+# BUG: See https://github.com/prettier/prettier/issues/3223
+docs/CONTRIBUTING.md

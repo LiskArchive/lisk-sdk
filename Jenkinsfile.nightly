@@ -1,3 +1,5 @@
+@Library('lisk-jenkins') _
+
 pipeline {
 	agent { node { label 'lisk-commander' } }
 	stages {
@@ -8,13 +10,17 @@ pipeline {
 		}
 		stage('Install dependencies') {
 			steps {
-				sh 'npm install --verbose'
+				nvm(getNodejsVersion()) {
+					sh 'npm install --verbose'
+				}
 			}
 		}
 		stage('Run vulnerabilities check') {
 			steps {
-				withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
-					sh 'snyk test'
+				nvm(getNodejsVersion()) {
+					withCredentials([string(credentialsId: 'liskhq-snyk-token', variable: 'SNYK_TOKEN')]) {
+						sh 'snyk test'
+					}
 				}
 				sh 'sha1sum package.json >~/.lisk-commander.package.json.sha1sum'
 			}

@@ -1,6 +1,6 @@
 # Lisk Commander
 
-Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality using an interactive or non-interactive command line tool.
+Lisk Commander allows you to communicate with a remote or local node and carry out Lisk-related functionality.
 
 [![Build Status](https://jenkins.lisk.io/buildStatus/icon?job=lisk-commander/development)](https://jenkins.lisk.io/job/lisk-commander/job/development/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
@@ -9,7 +9,7 @@ Lisk Commander allows you to communicate with a remote or local node and carry o
 
 ## Prerequisites
 
-Lisk Commander requires [Node.js](https://nodejs.org/) as the underlying engine for code execution. Node.js is supported on most operating systems. Follow the instructions for your operating system on the [Node.js downloads page](https://nodejs.org/en/download/). You will need version 6.11.x or higher. NPM is automatically installed along with Node.js.
+Lisk Commander requires [Node.js](https://nodejs.org/) as the underlying engine for code execution. Node.js is supported on most operating systems. Follow the instructions for your operating system on the [Node.js downloads page](https://nodejs.org/en/download/). We currently require Node.js versions 8.3 and above. NPM is automatically installed along with Node.js.
 
 ## Installation
 
@@ -19,7 +19,7 @@ Lisk Commander requires [Node.js](https://nodejs.org/) as the underlying engine 
 $ npm install --global --production lisk-commander
 ```
 
-Upon successful completion, NPM will add the `lisk-commander` executable to your PATH.
+Upon successful completion, NPM will add the `lisk-commander` executable `lisk` to your PATH.
 
 ### From Source
 
@@ -39,7 +39,7 @@ npm run build
 
 #### Adding the Lisk Commander executable to your PATH
 
-WARNING: If you have installed Lisk Commander globally via NPM (see [Install Lisk Commander via NPM](docs:lisk-commander-installation-npm)), following the instructions in this section is not recommended as they will introduce conflicts.
+WARNING: If you have installed Lisk Commander globally via NPM (see [Install Lisk Commander via NPM](https://lisk.io/documentation/lisk-commander/setup)), following the instructions in this section is not recommended as they will introduce conflicts.
 
 If you would like to add the `lisk` executable to your PATH you have two options: option 1 will install the current state of the code you are installing globally, while option 2 will only link to the code and therefore automatically reflect changes you make going forward.
 
@@ -65,79 +65,68 @@ This will also add `lisk` to your PATH, but you won't have to repeat the process
 
 ## Usage
 
-### Interactive use
+<!-- usage -->
 
-To run commands interactively:
+```sh-session
+$ lisk COMMAND
+running command...
+$ lisk (-v|--version|version)
+lisk-commander/2.0.0 darwin-x64 node-v8.12.0
+$ lisk --help [COMMAND]
+A command line interface for Lisk
 
-```sh
-$ lisk
- _      _     _       _____                                          _
-| |    (_)   | |     / ____|                                        | |
-| |     _ ___| | __ | |     ___  _ __ ___  _ __ ___   __ _ _ __   __| | ___ _ __
-| |    | / __| |/ / | |    / _ \| '_ ` _ \| '_ ` _ \ / _` | '_ \ / _` |/ _ \ '__|
-| |____| \__ \   <  | |___| (_) | | | | | | | | | | | (_| | | | | (_| |  __/ |
-|______|_|___/_|\_\  \_____\___/|_| |_| |_|_| |_| |_|\__,_|_| |_|\__,_|\___|_|
+VERSION
+  lisk-commander/2.0.0 darwin-x64 node-v8.12.0
 
-Running v1.0.0.
-Type `help` to get started.
+USAGE
+  $ lisk [COMMAND]
 
-lisk> help
-
-  Commands:
-
-    help [command...]                    Provides help for a given command.
-    exit                                 Exits Lisk Commander.
-    env                                  Print environmental configuration.
-    get [options] <type> <input>         Get information from <type> with parameter <input>.
-                                         Types available: account, address, block, delegate, transaction
-                                         E.g. get delegate lightcurve
-                                         e.g. get block 5510510593472232540
-    list [options] <type> <variadic...>  Get information from <type> with parameters <input, input, ...>.
-                                         Types available: accounts, addresses, blocks, delegates, transactions
-                                         E.g. list delegates lightcurve tosch
-                                         E.g. list blocks 5510510593472232540 16450842638530591789
-    set <variable> <value>               Set configuration <variable> to <value>. Configuration is
-                                         persisted in `~/.lisk-commander/config.json`.
-lisk>
+COMMANDS
+  account      Commands relating to Lisk accounts.
+  block        Commands relating to Lisk blocks.
+  config       Manages Lisk Commander configuration.
+  copyright    Displays copyright notice.
+  delegate     Commands relating to Lisk delegates.
+  help         Displays help.
+  message      Commands relating to user messages.
+  node         Commands relating to Lisk node.
+  passphrase   Commands relating to Lisk passphrases.
+  signature    Commands relating to signatures for Lisk transactions from multisignature accounts.
+  transaction  Commands relating to Lisk transactions.
+  warranty     Displays warranty notice.
 ```
 
-### Non-interactive use
+<!-- usagestop -->
 
-To run commands and options directly from the command line:
+## Commands
 
-```sh
-$ lisk get delegate lightcurve --json
-```
+<!-- commands -->
 
-## Settings
+* [`lisk account`](docs/account.md) - Commands relating to Lisk accounts.
+* [`lisk block`](docs/block.md) - Commands relating to Lisk blocks.
+* [`lisk config`](docs/config.md) - Manages Lisk Commander configuration.
+* [`lisk copyright`](docs/copyright.md) - Displays copyright notice.
+* [`lisk delegate`](docs/delegate.md) - Commands relating to Lisk delegates.
+* [`lisk help`](docs/help.md) - Displays help.
+* [`lisk message`](docs/message.md) - Commands relating to user messages.
+* [`lisk node`](docs/node.md) - Commands relating to Lisk node.
+* [`lisk passphrase`](docs/passphrase.md) - Commands relating to Lisk passphrases.
+* [`lisk signature`](docs/signature.md) - Commands relating to signatures for Lisk transactions from multisignature accounts.
+* [`lisk transaction`](docs/transaction.md) - Commands relating to Lisk transactions.
+* [`lisk warranty`](docs/warranty.md) - Displays warranty notice.
 
-Configuration is stored in a config file placed in the user's home directory (run `help set` to see the exact location). If this is unavailable a default configuration is used. The following settings can be updated (and will be persisted if possible):
-
-| Command                                                                    | Description                                                 |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| <code>set name lisk</code>                                                 | Sets name to be displayed.                                  |
-| <code>set delimiter lisk</code>                                            | Sets delimiter in interactive mode.                         |
-| <code>set json true&#124;false</code>                                      | Sets default to JSON output (true) or text output (false).  |
-| <code>set pretty true&#124;false</code>                                    | Sets default to formatted output when JSON output is used.  |
-| <code>set api.network main&#124;test&#124;beta</code>                      | Sets API target to the specified network.                   |
-| <code>set api.nodes http://localhost:4000 http://192.168.178.1:4001</code> | Override api.network and set specific nodes communicate to. |
+<!-- commandsstop -->
 
 ## Documentation
 
 Further information can be found on our documentation site:
 
-* [Introduction](https://docs.lisk.io/v1.3/docs/lisk-commander-introduction)
-* [Pre-Installation](https://docs.lisk.io/v1.3/docs/lisk-commander-pre-installation)
-* [Installation](https://docs.lisk.io/v1.3/docs/lisk-commander-installation)
-  * [Install-from-NPM](https://docs.lisk.io/v1.3/docs/lisk-commander-installation-npm)
-  * [Install-from-Source](https://docs.lisk.io/v1.3/docs/lisk-commander-installation-source)
-* [Upgrading](https://docs.lisk.io/v1.3/docs/lisk-commander-upgrading)
-  * [Upgrading-from-NPM](https://docs.lisk.io/v1.3/docs/lisk-commander-upgrading-npm)
-  * [Upgrading-from-Source](https://docs.lisk.io/v1.3/docs/lisk-commander-upgrading-source)
-* [Usage](https://docs.lisk.io/v1.3/docs/lisk-commander-usage)
-  * [Configuration](https://docs.lisk.io/v1.3/docs/lisk-commander-usage-configuration)
-  * [Usage](https://docs.lisk.io/v1.3/docs/lisk-commander-usage-interactive-and-noninteractive)
-  * [Commands](https://docs.lisk.io/v1.3/docs/lisk-commander-usage-commands)
+* [Introduction](https://lisk.io/documentation/lisk-commander)
+* [Setup](https://lisk.io/documentation/lisk-commander/setup)
+* [Upgrade](https://lisk.io/documentation/lisk-commander/upgrade)
+* [User Guide](https://lisk.io/documentation/lisk-commander/user-guide)
+  * [Sensitive Inputs](https://lisk.io/documentation/lisk-commander/user-guide/sensitive-inputs)
+  * [Commands](https://lisk.io/documentation/lisk-commander/user-guide/commands)
 
 ## Get Involved
 
@@ -155,27 +144,10 @@ $ npm test
 
 ## FAQ
 
-### Why won’t Lisk Commander start with my version of Node.js?
-
-> You try to run Lisk Commander and it tells you `ERROR: Requires Node.js version 6.14.1, but was started with version 8.11.1.`
-
-Because of the sensitive nature of Lisk Commander’s functionality, we want to make absolutely sure that when our users are using Lisk Commander it behaves as expected. Currently we only perform substantial tests with a single version of Node.js, so we require our users to use that specific version to avoid unforeseen behavior discrepancies.
-
-In the future we would like to support a wider range of Node.js versions, but until then we recommend using a Node.js version manager, such as [nvm][], to make it easy to switch between different Node.js versions.
-
-### Why do I get an error regarding a config lockfile?
-
-> You try to run Lisk Commander and it tells you `Config lockfile at ~/.lisk-commander/config.lock found. Are you running Lisk Commander in another process?`
-
-When you start Lisk Commander, either in interactive or non-interactive-mode, we create a lockfile to prevent you from making changes to your configuration file. If for some reason either Lisk Commander or your computer crashes, this lockfile might not be removed, and Lisk Commander will prevent you from starting a new instance even though no Lisk Commander instance is currently running. In this case it’s safe to remove the lockfile.
-
-The lockfile is located in your Lisk Commander configuration directory. The error message above will give you the location of the file if you want to remove if manually, or you can run `lisk clean` and Lisk Commander will remove it for you.
-
 ### Something else went wrong. What should I do?
 
 1. Make sure you’re on the network you intend to be on.
-1. Exit Lisk Commander (if in interactive mode) and restart.
-1. Remove the configuration file (`config.json`) located in your Lisk Commander configuration directory (`~/.lisk-commander` by default). When you restart Lisk Commander the default configuration will be recreated.
+1. Remove the configuration file (`config.json`) located in your Lisk Commander configuration directory (`~/.lisk` by default). When you restart Lisk Commander the default configuration will be recreated.
 1. Get in contact on [Lisk Chat][] or [Gitter][].
 1. If it seems like a bug, open an issue on [GitHub][bugs]. See the [Contribution Guidelines].
 

@@ -1,32 +1,46 @@
 @Library('lisk-jenkins') _
+
 pipeline {
 	agent { node { label 'lisk-commander' } }
 	stages {
 		stage('Install dependencies') {
 			steps {
-				sh 'npm install --verbose'
+				script {
+					cache_file = restoreCache("package.json")
+				}
+				nvm(getNodejsVersion()) {
+					sh 'npm install --verbose'
+				}
+				script {
+					saveCache(cache_file, './node_modules', 10)
+				}
 			}
 		}
 		stage('Run lint') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run lint'
+					nvm(getNodejsVersion()) {
+						sh 'npm run lint'
+					}
 				}
 			}
 		}
 		stage('Build') {
 			steps {
-				sh 'npm run build'
+				nvm(getNodejsVersion()) {
+					sh 'npm run build'
+				}
 			}
 		}
 		stage('Run tests') {
 			steps {
 				ansiColor('xterm') {
-					sh 'LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test'
-					sh '''
-					cp ~/.coveralls.yml-lisk-commander .coveralls.yml
-					npm run cover
-					'''
+					nvm(getNodejsVersion()) {
+						sh 'LISK_COMMANDER_CONFIG_DIR=$WORKSPACE/.lisk-commander npm run test'
+						withCredentials([string(credentialsId: 'lisk-commander-coveralls-token', variable: 'COVERALLS_REPO_TOKEN')]) {
+							sh 'npm run cover'
+						}
+					}
 				}
 			}
 		}

@@ -15,7 +15,9 @@
  */
 import fs from 'fs';
 import readline from 'readline';
+import inquirer from 'inquirer';
 import { FileSystemError, ValidationError } from '../error';
+import { stdinIsTTY, stdoutIsTTY } from '../helpers';
 
 const capitalise = text => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
@@ -42,21 +44,13 @@ export const splitSource = source => {
 	};
 };
 
-const timeoutPromise = ms =>
-	new Promise((resolve, reject) => {
-		const id = setTimeout(() => {
-			clearTimeout(id);
-			reject(new Error(`Timed out after ${ms} ms`));
-		}, ms);
-	});
-
 export const getStdIn = ({
 	passphraseIsRequired,
 	secondPassphraseIsRequired,
 	passwordIsRequired,
 	dataIsRequired,
 } = {}) => {
-	const readFromStd = new Promise(resolve => {
+	const readFromStd = new Promise((resolve, reject) => {
 		if (
 			!(
 				passphraseIsRequired ||
@@ -67,9 +61,14 @@ export const getStdIn = ({
 		) {
 			return resolve({});
 		}
-
 		const lines = [];
 		const rl = readline.createInterface({ input: process.stdin });
+
+		// Prevent readline hanging when command called with no input or piped
+		const id = setTimeout(() => {
+			clearTimeout(id);
+			reject(new Error(`Timed out after ${DEFAULT_TIMEOUT} ms`));
+		}, DEFAULT_TIMEOUT);
 
 		const handleClose = () => {
 			const passphraseIndex = 0;
@@ -96,45 +95,41 @@ export const getStdIn = ({
 
 		return rl.on('line', line => lines.push(line)).on('close', handleClose);
 	});
-	return Promise.race([readFromStd, timeoutPromise(DEFAULT_TIMEOUT)]);
+	return readFromStd;
 };
 
-export const createPromptOptions = message => ({
-	type: 'password',
-	name: 'passphrase',
-	message,
-});
-
-export const getPassphraseFromPrompt = (
-	vorpal,
-	{ displayName, shouldRepeat },
-) => {
-	// IMPORTANT: prompt will exit if UI has no parent, but calling
-	// ui.attach(vorpal) will start a prompt, which will complain when we call
-	// vorpal.activeCommand.prompt(). Therefore set the parent directly.
-	if (!vorpal.ui.parent) {
-		// eslint-disable-next-line no-param-reassign
-		vorpal.ui.parent = vorpal;
+export const getPassphraseFromPrompt = async ({
+	displayName,
+	shouldRepeat,
+}) => {
+	const questions = [
+		{
+			type: 'password',
+			name: 'passphrase',
+			message: `Please enter ${displayName}: `,
+		},
+	];
+	if (shouldRepeat) {
+		questions.push({
+			type: 'password',
+			name: 'passphraseRepeat',
+			message: `Please re-enter ${displayName}: `,
+		});
 	}
 
-	const handlePassphraseRepeat = passphrase =>
-		vorpal.activeCommand
-			.prompt(createPromptOptions(`Please re-enter ${displayName}: `))
-			.then(({ passphrase: passphraseRepeat }) => {
-				if (passphrase !== passphraseRepeat) {
-					throw new ValidationError(
-						getPassphraseVerificationFailError(displayName),
-					);
-				}
-				return passphrase;
-			});
+	// Prompting user for additional input when piping commands causes error with stdin
+	if (!stdoutIsTTY() || !stdinIsTTY()) {
+		throw new Error(
+			`Please enter ${displayName} using a flag when piping data.`,
+		);
+	}
 
-	const handlePassphrase = ({ passphrase }) =>
-		shouldRepeat ? handlePassphraseRepeat(passphrase) : passphrase;
+	const { passphrase, passphraseRepeat } = await inquirer.prompt(questions);
+	if (shouldRepeat && passphrase !== passphraseRepeat) {
+		throw new ValidationError(getPassphraseVerificationFailError(displayName));
+	}
 
-	return vorpal.activeCommand
-		.prompt(createPromptOptions(`Please enter ${displayName}: `))
-		.then(handlePassphrase);
+	return passphrase;
 };
 
 export const getPassphraseFromEnvVariable = async (key, displayName) => {
@@ -191,14 +186,14 @@ export const getPassphraseFromSource = async (source, { displayName }) => {
 	}
 };
 
-export const getPassphrase = async (vorpal, passphraseSource, options) => {
+export const getPassphrase = async (passphraseSource, options) => {
 	const optionsWithDefaults = Object.assign(
 		{ displayName: 'your secret passphrase' },
 		options,
 	);
 	return passphraseSource && passphraseSource !== 'prompt'
 		? getPassphraseFromSource(passphraseSource, optionsWithDefaults)
-		: getPassphraseFromPrompt(vorpal, optionsWithDefaults);
+		: getPassphraseFromPrompt(optionsWithDefaults);
 };
 
 export const handleReadFileErrors = path => error => {

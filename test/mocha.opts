@@ -1,4 +1,4 @@
+--require babel-register
 --require ./test/setup.js
 --reporter spec
---recursive test/**/*.js
---ui bdd
+--recursive

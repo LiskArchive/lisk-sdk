@@ -20,15 +20,12 @@ export const getFirstLineFromString = multilineString =>
 		? multilineString.split(/[\r\n]+/)[0]
 		: null;
 
-const getInputsFromSources = async (
-	vorpal,
-	{
-		passphrase: passphraseInput,
-		secondPassphrase: secondPassphraseInput,
-		password: passwordInput,
-		data: dataInput,
-	},
-) => {
+const getInputsFromSources = async ({
+	passphrase: passphraseInput,
+	secondPassphrase: secondPassphraseInput,
+	password: passwordInput,
+	data: dataInput,
+}) => {
 	const [
 		passphraseIsRequired,
 		secondPassphraseIsRequired,
@@ -47,14 +44,14 @@ const getInputsFromSources = async (
 
 	const passphrase =
 		typeof stdIn.passphrase !== 'string' && passphraseInput
-			? await getPassphrase(vorpal, passphraseInput.source, {
+			? await getPassphrase(passphraseInput.source, {
 					shouldRepeat: passphraseInput.repeatPrompt,
 				})
 			: stdIn.passphrase || null;
 
 	const secondPassphrase =
 		typeof stdIn.secondPassphrase !== 'string' && secondPassphraseInput
-			? await getPassphrase(vorpal, secondPassphraseInput.source, {
+			? await getPassphrase(secondPassphraseInput.source, {
 					displayName: 'your second secret passphrase',
 					shouldRepeat: secondPassphraseInput.repeatPrompt,
 				})
@@ -62,7 +59,7 @@ const getInputsFromSources = async (
 
 	const password =
 		typeof stdIn.password !== 'string' && passwordInput
-			? await getPassphrase(vorpal, passwordInput.source, {
+			? await getPassphrase(passwordInput.source, {
 					displayName: 'your password',
 					shouldRepeat: passwordInput.repeatPrompt,
 				})

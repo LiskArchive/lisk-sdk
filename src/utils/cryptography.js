@@ -13,99 +13,60 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import cryptography from '@liskhq/lisk-cryptography';
 
-const wrapFunction = fn =>
-	function wrappedFunction(...args) {
-		try {
-			return fn(...args);
-		} catch ({ message: error }) {
-			return { error };
-		}
-	};
+export const encryptMessage = ({ message, passphrase, recipient }) =>
+	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);
 
-class Crypto {
-	constructor() {
-		this.liskCrypto = elements.cryptography;
+export const decryptMessage = ({
+	cipher,
+	nonce,
+	passphrase,
+	senderPublicKey,
+}) => ({
+	message: cryptography.decryptMessageWithPassphrase(
+		cipher,
+		nonce,
+		passphrase,
+		senderPublicKey,
+	),
+});
 
-		[
-			'encryptMessage',
-			'decryptMessage',
-			'encryptPassphrase',
-			'decryptPassphrase',
-			'getKeys',
-			'getAddressFromPublicKey',
-			'signMessage',
-			'verifyMessage',
-		].forEach(methodName => {
-			this[methodName] = wrapFunction(this[methodName].bind(this));
-		});
-	}
+export const encryptPassphrase = ({ passphrase, password }) => {
+	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
+		passphrase,
+		password,
+	);
+	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
+		encryptedPassphraseObject,
+	);
+	return { encryptedPassphrase };
+};
 
-	encryptMessage({ message, passphrase, recipient }) {
-		return this.liskCrypto.encryptMessageWithPassphrase(
-			message,
-			passphrase,
-			recipient,
-		);
-	}
+export const decryptPassphrase = ({ encryptedPassphrase, password }) => {
+	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
+		encryptedPassphrase,
+	);
+	const passphrase = cryptography.decryptPassphraseWithPassword(
+		encryptedPassphraseObject,
+		password,
+	);
+	return { passphrase };
+};
 
-	decryptMessage({ cipher, nonce, passphrase, senderPublicKey }) {
-		return {
-			message: this.liskCrypto.decryptMessageWithPassphrase(
-				cipher,
-				nonce,
-				passphrase,
-				senderPublicKey,
-			),
-		};
-	}
+export const { getKeys } = cryptography;
 
-	encryptPassphrase({ passphrase, password }) {
-		const encryptedPassphraseObject = this.liskCrypto.encryptPassphraseWithPassword(
-			passphrase,
-			password,
-		);
-		const encryptedPassphrase = this.liskCrypto.stringifyEncryptedPassphrase(
-			encryptedPassphraseObject,
-		);
-		return { encryptedPassphrase };
-	}
+export const getAddressFromPublicKey = publicKey => ({
+	address: cryptography.getAddressFromPublicKey(publicKey),
+});
 
-	decryptPassphrase({ encryptedPassphrase, password }) {
-		const encryptedPassphraseObject = this.liskCrypto.parseEncryptedPassphrase(
-			encryptedPassphrase,
-		);
-		const passphrase = this.liskCrypto.decryptPassphraseWithPassword(
-			encryptedPassphraseObject,
-			password,
-		);
-		return { passphrase };
-	}
+export const signMessage = ({ message, passphrase }) =>
+	cryptography.signMessageWithPassphrase(message, passphrase);
 
-	getKeys(passphrase) {
-		return this.liskCrypto.getKeys(passphrase);
-	}
-
-	getAddressFromPublicKey(publicKey) {
-		return {
-			address: this.liskCrypto.getAddressFromPublicKey(publicKey),
-		};
-	}
-
-	signMessage({ message, passphrase }) {
-		return this.liskCrypto.signMessageWithPassphrase(message, passphrase);
-	}
-
-	verifyMessage({ publicKey, signature, message }) {
-		return {
-			verified: this.liskCrypto.verifyMessageWithPublicKey({
-				publicKey,
-				signature,
-				message,
-			}),
-		};
-	}
-}
-
-export default new Crypto();
+export const verifyMessage = ({ publicKey, signature, message }) => ({
+	verified: cryptography.verifyMessageWithPublicKey({
+		publicKey,
+		signature,
+		message,
+	}),
+});

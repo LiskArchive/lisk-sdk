@@ -1,11 +1,16 @@
 {
 	"name": "lisk-commander",
-	"version": "1.0.0",
+	"version": "2.0.0-rc.0",
 	"description": "A command line interface for Lisk",
-	"author":
-		"Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
-	"keywords": ["lisk", "blockchain", "command-line", "nodejs", "javascript"],
+	"keywords": [
+		"lisk",
+		"blockchain",
+		"command-line",
+		"nodejs",
+		"javascript"
+	],
 	"homepage": "https://github.com/LiskHQ/lisk-commander#readme",
 	"repository": {
 		"type": "git",
@@ -15,72 +20,131 @@
 		"url": "https://github.com/LiskHQ/lisk-commander/issues"
 	},
 	"engines": {
-		"node": ">=6.12 <=6.14",
-		"npm": "=3.10.10"
+		"node": ">=8.3.0",
+		"npm": ">=5.3.0"
 	},
-	"directories": {
-		"bin": "./bin"
+	"main": "dist/index.js",
+	"bin": {
+		"lisk": "./bin/run"
 	},
 	"scripts": {
 		"start": "babel-node src/index.js",
-		"format":
-			"prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
+		"format": "prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
 		"lint": "eslint .",
 		"lint:fix": "npm run lint -- --fix",
-		"test":
-			"if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
-		"test:local": "NODE_ENV=test nyc mocha test/specs",
-		"test:ci":
-			"NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
+		"test": "if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
+		"test:local": "NODE_ENV=test nyc mocha test",
+		"test:ci": "NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",
-		"cover":
-			"if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
 		"cover:base": "NODE_ENV=test nyc report",
-		"cover:local":
-			"npm run cover:base -- --reporter=html --reporter=text mocha",
-		"cover:ci":
-			"npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
-		"cover:test":
-			"NODE_ENV=test nyc  --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test/specs",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text mocha",
+		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
+		"cover:test": "NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
 		"build": "babel src -d dist",
+		"postpack": "rm -f oclif.manifest.json",
+		"prepack": "oclif-dev manifest && npm shrinkwrap",
 		"precommit": "lint-staged && npm run lint",
 		"prepush": "npm run lint && npm test",
-		"prepublishOnly":
-			"rm -r ./node_modules && npm install && npm run prepush && npm run build"
+		"prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build"
 	},
+	"oclif": {
+		"commands": "./dist/commands",
+		"bin": "lisk",
+		"plugins": [
+			"@oclif/plugin-help"
+		],
+		"topics": {
+			"account": {
+				"description": "Commands relating to Lisk accounts."
+			},
+			"block": {
+				"description": "Commands relating to Lisk blocks."
+			},
+			"config": {
+				"description": "Manages Lisk Commander configuration."
+			},
+			"copyright": {
+				"description": "Displays copyright notice."
+			},
+			"delegate": {
+				"description": "Commands relating to Lisk delegates."
+			},
+			"node": {
+				"description": "Commands relating to Lisk node."
+			},
+			"help": {
+				"description": "Displays help."
+			},
+			"message": {
+				"description": "Commands relating to user messages."
+			},
+			"passphrase": {
+				"description": "Commands relating to Lisk passphrases."
+			},
+			"signature": {
+				"description": "Commands relating to signatures for Lisk transactions from multisignature accounts."
+			},
+			"transaction": {
+				"description": "Commands relating to Lisk transactions."
+			},
+			"warranty": {
+				"description": "Displays warranty notice."
+			}
+		}
+	},
+	"files": [
+		"/bin",
+		"/npm-shrinkwrap.json",
+		"/oclif.manifest.json",
+		"/dist",
+		"/docs",
+		"/default_config.json"
+	],
 	"dependencies": {
-		"babel-polyfill": "=6.26.0",
-		"bip39": "=2.4.0",
-		"chalk": "=2.3.0",
-		"cli-table3": "=0.5.0",
-		"lisk-elements": "=1.0.0",
-		"lockfile": "=1.0.3",
-		"semver": "=5.5.0",
-		"strip-ansi": "=4.0.0",
-		"vorpal": "LiskHQ/vorpal#v1.0.1-lisk"
+		"@liskhq/lisk-api-client": "1.1.0",
+		"@liskhq/lisk-constants": "1.1.0",
+		"@liskhq/lisk-cryptography": "1.1.0",
+		"@liskhq/lisk-passphrase": "1.1.0",
+		"@liskhq/lisk-transactions": "1.1.0",
+		"@oclif/command": "1.5.0",
+		"@oclif/config": "1.7.4",
+		"@oclif/errors": "1.2.0",
+		"@oclif/plugin-help": "2.1.1",
+		"babel-polyfill": "6.26.0",
+		"bip39": "2.5.0",
+		"chalk": "2.4.1",
+		"cli-table3": "0.5.0",
+		"inquirer": "6.2.0",
+		"lockfile": "1.0.4",
+		"semver": "5.5.1",
+		"strip-ansi": "4.0.0"
 	},
 	"devDependencies": {
-		"babel-cli": "=6.26.0",
-		"babel-plugin-istanbul": "=4.1.5",
-		"babel-preset-env": "=1.6.1",
-		"babel-register": "=6.26.0",
-		"chai": "=4.1.2",
-		"chai-as-promised": "=7.1.1",
-		"coveralls": "=3.0.0",
-		"eslint": "=4.16.0",
-		"eslint-config-airbnb-base": "=12.1.0",
-		"eslint-config-lisk-base": "=1.0.0",
-		"eslint-plugin-import": "=2.8.0",
-		"eslint-plugin-mocha": "=4.11.0",
-		"husky": "=0.14.3",
-		"lint-staged": "=5.0.0",
-		"mocha": "=4.0.1",
-		"mocha-bdd": "=0.1.2",
-		"nyc": "=11.3.0",
-		"prettier": "=1.9.2",
-		"sinon": "=4.1.2",
-		"sinon-chai": "=2.14.0"
+		"@oclif/dev-cli": "1.18.0",
+		"@oclif/test": "1.2.0",
+		"babel-cli": "6.26.0",
+		"babel-plugin-istanbul": "4.1.5",
+		"babel-plugin-transform-object-rest-spread": "6.26.0",
+		"babel-preset-env": "1.6.1",
+		"babel-register": "6.26.0",
+		"chai": "4.1.2",
+		"chai-as-promised": "7.1.1",
+		"coveralls": "3.0.0",
+		"eslint": "4.16.0",
+		"eslint-config-airbnb-base": "12.1.0",
+		"eslint-config-lisk-base": "1.0.0",
+		"eslint-config-oclif": "1.5.1",
+		"eslint-plugin-import": "2.8.0",
+		"eslint-plugin-mocha": "4.11.0",
+		"husky": "0.14.3",
+		"lint-staged": "5.0.0",
+		"mocha": "4.0.1",
+		"nyc": "11.3.0",
+		"prettier": "1.9.2",
+		"sinon": "4.1.2",
+		"sinon-chai": "2.14.0"
 	}
 }

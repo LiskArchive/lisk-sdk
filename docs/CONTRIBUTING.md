@@ -8,7 +8,7 @@ The following is a set of guidelines for contributing to Lisk Commander, which a
 
 1. [Code of Conduct](#code-of-conduct)
 
-1. [Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help!-i-dont-want-to-read-this-whole-thing-i-just-have-a-question)
+1. [Help! I don't want to read this whole thing, I just have one question. :mag_right:](#help-i-dont-want-to-read-this-whole-thing-i-just-have-a-question-mag_right)
 
 1. [How Can I Contribute?](#how-can-i-contribute)
 	1. [Reporting Bugs](#reporting-bugs)
@@ -49,6 +49,8 @@ LiskHQ uses GitHub as its sole source of truth. Everything happens here. Lightcu
 We will do our best to keep `master` in good shape, with tests passing at all times. But in order to move fast, we will make API changes that your application might not be compatible with. We will do our best to communicate these changes and always version appropriately so you can lock into a specific, stable version.
 
 ### Pull Requests
+
+Broadly speaking, we conform to the git flow branching model. For a description of this model, see [this introduction](https://datasift.github.io/gitflow/IntroducingGitFlow.html).
 
 In case you've never submitted a pull request (PR) via GitHub before, please read [this short tutorial](https://help.github.com/articles/creating-a-pull-request). If you've submitted a PR before, there should be nothing surprising about our procedures for Lisk.
 
