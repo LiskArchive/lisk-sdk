@@ -1,103 +1,48 @@
 {
-  "name": "lisk-elements",
-  "version": "1.0.0",
-  "description": "JavaScript library for sending Lisk transactions from the client or server",
-  "author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
-  "license": "GPL-3.0",
-  "keywords": [
-    "lisk",
-    "blockchain",
-    "nodejs",
-    "javascript",
-    "library"
-  ],
-  "homepage": "https://github.com/LiskHQ/lisk-elements#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LiskHQ/lisk-elements.git"
-  },
-  "bugs": {
-    "url": "https://github.com/LiskHQ/lisk-elements/issues"
-  },
-  "engines": {
-    "node": ">=6.3 <=10.6",
-    "npm": ">=3 <=6"
-  },
-  "main": "dist-node/index.js",
-  "scripts": {
-    "prestart": "./bin/prestart.sh",
-    "start": "./bin/start.sh",
-    "format": "prettier --write \"browsertest/{setup,run_tests}.js\" \"{cypress/integration,src,test}/**/*.js\"",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "babel": "babel src -d dist-node",
-    "babel:browsertest": "babel src -d ./browsertest/src && BABEL_ENV=browsertest babel test --ignore test/transactions/dapp.js -d ./browsertest/test",
-    "browserify": "browserify ./dist-node/index.js -o ./dist-browser/lisk-elements.js -s lisk -t rewireify",
-    "browserify:browsertest": "browserify ./browsertest/test/*.js ./browsertest/test/**/*.js -o ./browsertest/browsertest.js -s lisk -t rewireify",
-    "uglify": "uglifyjs -nm -o ./dist-browser/lisk-elements.min.js ./dist-browser/lisk-elements.js",
-    "uglify:browsertest": "uglifyjs -o ./browsertest/browsertest.min.js ./browsertest/browsertest.js",
-    "serve:browsertest": "http-server browsertest",
-    "test": "NODE_ENV=test nyc mocha test",
-    "test:watch": "npm test -- --watch",
-    "test:watch:min": "npm run test:watch -- --reporter=min",
-    "test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --recursive",
-    "test:browser": "cypress run --env ROOT_DIR=\"${PWD##*/}\"",
-    "test:browser:headed": "npm run test:browser -- --headed",
-    "cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
-    "cover:base": "NODE_ENV=test nyc report",
-    "cover:local": "npm run cover:base -- --reporter=html --reporter=text",
-    "cover:ci": "npm run cover:base -- --reporter=text-lcov | coveralls -v",
-    "prebuild:browsertest": "cp package.json browsertest/",
-    "build:browsertest": "npm run babel:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
-    "postbuild:browsertest": "rm -r browsertest/src browsertest/test",
-    "prebuild:node": "rm -r dist-node/* || mkdir dist-node | echo",
-    "build:node": "npm run babel",
-    "prebuild:browser": "rm ./dist-browser/lisk-elements.js ./dist-browser/lisk-elements.min.js | echo",
-    "build:browser": "npm run babel && npm run browserify && npm run uglify",
-    "prebuild": "npm run prebuild:node && npm run prebuild:browser",
-    "build": "npm run babel && npm run browserify && npm run uglify",
-    "build:check": "node -e \"require('./dist-node')\"",
-    "precommit": "lint-staged && npm run lint",
-    "prepush": "npm run lint && npm test",
-    "prepublishOnly": "rm -r ./node_modules && npm install && npm run prepush && npm run build"
-  },
-  "dependencies": {
-    "axios": "=0.18.0",
-    "babel-runtime": "=6.26.0",
-    "bip39": "=2.4.0",
-    "browserify-bignum": "=1.3.0-2",
-    "buffer-reverse": "=1.0.1",
-    "ed2curve": "=0.2.1",
-    "tweetnacl": "=1.0.0",
-    "varuint-bitcoin": "=1.1.0"
-  },
-  "devDependencies": {
-    "babel-cli": "=6.24.1",
-    "babel-plugin-istanbul": "=4.1.4",
-    "babel-plugin-module-resolver": "=3.0.0",
-    "babel-plugin-rewire": "=1.1.0",
-    "babel-plugin-transform-runtime": "=6.23.0",
-    "babel-preset-env": "=1.6.0",
-    "babel-register": "=6.26.0",
-    "browserify": "=16.0.0",
-    "chai": "=4.1.2",
-    "chai-as-promised": "=7.1.1",
-    "coveralls": "=3.0.0",
-    "cypress": "=2.0.2",
-    "eslint": "=4.16.0",
-    "eslint-config-airbnb-base": "=12.1.0",
-    "eslint-config-lisk-base": "=1.0.0",
-    "eslint-plugin-import": "=2.8.0",
-    "eslint-plugin-mocha": "=4.11.0",
-    "http-server": "=0.10.0",
-    "husky": "=0.14.3",
-    "lint-staged": "=4.2.3",
-    "mocha": "=4.0.1",
-    "nyc": "=11.3.0",
-    "prettier": "=1.8.2",
-    "rewireify": "=0.2.5",
-    "sinon": "=4.1.2",
-    "sinon-chai": "=2.14.0",
-    "uglify-es": "=3.3.9"
-  }
+	"name": "lisk-elements-monorepo",
+	"private": true,
+	"version": "1.0.0",
+	"description": "Reusable packages for use with the Lisk ecosystem",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "GPL-3.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-elements#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-elements/issues"
+	},
+	"engines": {
+		"node": ">=6.3 <=10",
+		"npm": ">=3 <=6"
+	},
+	"scripts": {
+		"bootstrap": "lerna bootstrap",
+		"clean": "lerna run clean",
+		"clean:node_modules": "lerna clean",
+		"format": "lerna run format",
+		"lint": "lerna run lint",
+		"lint:fix": "lerna run lint:fix",
+		"test": "lerna run test",
+		"test:node": "lerna run test:node",
+		"test:browser": "lerna run test:browser",
+		"build": "lerna run build",
+		"build:browsertest": "lerna run build:browsertest",
+		"cover": "lerna run cover",
+		"init": "./scripts/init.sh",
+		"postinstall": "npm run bootstrap",
+		"precommit": "lint-staged && npm run lint",
+		"prepush": "npm run lint && npm test"
+	},
+	"devDependencies": {
+		"husky": "0.14.3",
+		"lerna": "3.4.1",
+		"lint-staged": "7.3.0",
+		"prettier": "1.14.2"
+	}
 }

@@ -1,0 +1,91 @@
+{
+	"name": "@liskhq/lisk-transactions",
+	"version": "1.1.0",
+	"description": "Everything related to transactions according to the Lisk protocol",
+	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
+	"license": "GPL-3.0",
+	"keywords": [
+		"lisk",
+		"blockchain"
+	],
+	"homepage": "https://github.com/LiskHQ/lisk-elements/tree/master/packages/lisk-transactions#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/LiskHQ/lisk-elements.git"
+	},
+	"bugs": {
+		"url": "https://github.com/LiskHQ/lisk-elements/issues"
+	},
+	"engines": {
+		"node": ">=6.3 <=10",
+		"npm": ">=3 <=6"
+	},
+	"browser": "dist-browser/index.min.js",
+	"main": "dist-node/index.js",
+	"scripts": {
+		"transpile": "babel src -d dist-node",
+		"transpile:browsertest": "babel src -d ./browsertest.build/src && BABEL_ENV=browsertest babel test -d ./browsertest.build/test",
+		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
+		"browserify:browsertest": "browserify ./browsertest.build/test/*.js -o ./browsertest.build/browsertest.js -s lisk",
+		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
+		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
+		"clean": "./scripts/clean.sh",
+		"format": "prettier --write \"*.{js,json}\" \"{src,test}/**/*.{js,json}\"",
+		"lint": "eslint .",
+		"lint:fix": "npm run lint -- --fix",
+		"test": "NODE_ENV=test nyc mocha test",
+		"test:watch": "npm test -- --watch",
+		"test:watch:min": "npm run test:watch -- --reporter=min",
+		"test:node": "npm run build:check && BABEL_ENV=buildcheck mocha test --compilers js:babel-register --recursive",
+		"serve:start": "http-server -p 11545 ./browsertest &",
+		"serve:stop": "kill $(lsof -t -i:11545) || true",
+		"pretest:browser": "npm run serve:stop && npm run build:browsertest && npm run serve:start",
+		"test:browser": "wait-on http://localhost:11545 && cypress run --config baseUrl=http://localhost:11545 --env ROOT_DIR=\"${PWD##*/}\"",
+		"posttest:browser": "npm run serve:stop",
+		"cover": "if [ -z $JENKINS_HOME ]; then npm run cover:local; else npm run cover:ci; fi",
+		"cover:base": "NODE_ENV=test nyc report",
+		"cover:local": "npm run cover:base -- --reporter=html --reporter=text",
+		"cover:ci": "npm run cover:base -- --reporter=text",
+		"build:browsertest": "npm run transpile:browsertest && npm run browserify:browsertest && npm run uglify:browsertest",
+		"postbuild:browsertest": "rm -r browsertest.build/src browsertest.build/test",
+		"prebuild:node": "rm -r dist-node/* || mkdir dist-node || true",
+		"build:node": "npm run transpile",
+		"prebuild:browser": "rm ./dist-browser/index.js ./dist-browser/index.min.js || true",
+		"build:browser": "npm run build:node && npm run browserify && npm run uglify",
+		"prebuild": "npm run prebuild:browser",
+		"build": "npm run build:browser",
+		"build:check": "node -e \"require('./dist-node')\"",
+		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
+	},
+	"dependencies": {
+		"@liskhq/lisk-constants": "1.1.0",
+		"@liskhq/lisk-cryptography": "1.1.0",
+		"ajv": "6.5.3",
+		"ajv-merge-patch": "4.1.0",
+		"browserify-bignum": "1.3.0-2"
+	},
+	"devDependencies": {
+		"babel-cli": "6.26.0",
+		"babel-plugin-istanbul": "5.0.1",
+		"babel-plugin-module-resolver": "3.1.1",
+		"babel-plugin-transform-runtime": "6.23.0",
+		"babel-preset-env": "1.7.0",
+		"babel-register": "6.26.0",
+		"browserify": "16.2.2",
+		"chai": "4.1.2",
+		"cypress": "3.1.0",
+		"eslint": "5.5.0",
+		"eslint-config-airbnb-base": "13.1.0",
+		"eslint-config-lisk-base": "1.0.0",
+		"eslint-plugin-import": "2.14.0",
+		"eslint-plugin-mocha": "5.2.0",
+		"http-server": "0.11.1",
+		"mocha": "5.2.0",
+		"nyc": "13.0.1",
+		"prettier": "1.14.2",
+		"sinon": "6.2.0",
+		"sinon-chai": "3.2.0",
+		"uglify-es": "3.3.9",
+		"wait-on": "3.0.1"
+	}
+}

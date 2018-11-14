@@ -24,6 +24,10 @@ test/.coverage-unit
 .nyc_output
 
 # cypress media
+templates/cypress.tmpl/screenshots/
+templates/cypress.tmpl/videos/
+templates/cypress.tmpl/plugins/
+templates/cypress.tmpl/support/
 cypress/screenshots
 cypress/videos
 cypress/plugins
@@ -52,15 +56,14 @@ jspm_packages
 tmp
 
 # Distribution folders
-dist-browser/
 dist-node/
-
-# Built test files
+dist-browser/
+browsertest.build/
 browsertest/package.json
 browsertest/browsertest.js
 browsertest/browsertest.min.js
 browsertest/src
 browsertest/test
 
-# Lock files
+# Unsupported lock files
 yarn.lock

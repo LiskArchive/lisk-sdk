@@ -1,6 +1,0 @@
-coverage/
-dist-*/
-docs/
-browsertest/browsertest.js
-browsertest/browsertest.min.js
-cypress/plugins/

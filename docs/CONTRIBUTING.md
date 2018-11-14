@@ -50,6 +50,8 @@ We will do our best to keep `master` in good shape, with tests passing at all ti
 
 ### Pull Requests
 
+Broadly speaking, we conform to the git flow branching model. For a description of this model, see [this introduction](https://datasift.github.io/gitflow/IntroducingGitFlow.html).
+
 In case you've never submitted a pull request (PR) via GitHub before, please read [this short tutorial](https://help.github.com/articles/creating-a-pull-request). If you've submitted a PR before, there should be nothing surprising about our procedures for Lisk.
 
 *Before* submitting a pull request, please make sure the following is done:
