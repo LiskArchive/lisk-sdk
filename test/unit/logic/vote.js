@@ -216,7 +216,7 @@ describe('vote', () => {
 			}
 		);
 	});
-	/* eslint-enable */
+	/* eslint-enable mocha/no-sibling-hooks */
 
 	describe('bind', () => {
 		it('should be okay with correct params', () => {

@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,6 +14,8 @@
 
 'use strict';
 
+/* eslint-disable mocha/no-pending-tests */
+
 describe('lisk_compression', () => {
 	it('should be a factory function that names 2 arguments');
 
@@ -24,3 +25,5 @@ describe('lisk_compression', () => {
 
 	it('should compress the response as per specified level');
 });
+
+/* eslint-enable mocha/no-pending-tests */

@@ -29,6 +29,7 @@ describe('system test (type 0) - double transfers', () => {
 
 	var i = 0;
 	var t = 0;
+
 	/* eslint-disable no-loop-func */
 	while (i < 1) {
 		describe('executing 30 times', () => {
@@ -119,4 +120,5 @@ describe('system test (type 0) - double transfers', () => {
 		});
 		i++;
 	}
+	/* eslint-enable no-loop-func */
 });

@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -14,6 +13,8 @@
  */
 
 'use strict';
+
+/* eslint-disable mocha/no-pending-tests */
 
 describe('dapps', () => {
 	describe('__private', () => {
@@ -197,3 +198,5 @@ describe('dapps', () => {
 		});
 	});
 });
+
+/* eslint-enable mocha/no-pending-tests */

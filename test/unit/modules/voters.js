@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,6 +14,7 @@
 
 'use strict';
 
+/* eslint-disable mocha/no-pending-tests */
 describe('voters', () => {
 	describe('constructor', () => {
 		describe('library', () => {
@@ -222,3 +222,5 @@ describe('voters', () => {
 		it('should assign loaded = true');
 	});
 });
+
+/* eslint-enable mocha/no-pending-tests */

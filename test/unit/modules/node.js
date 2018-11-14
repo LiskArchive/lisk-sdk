@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -44,6 +43,7 @@ describe('node', () => {
 	});
 
 	describe('constructor', () => {
+		/* eslint-disable mocha/no-pending-tests */
 		describe('library', () => {
 			it('should assign build');
 
@@ -63,6 +63,7 @@ describe('node', () => {
 		it('should call callback with error = null');
 
 		it('should call callback with result as a Node instance');
+		/* eslint-enable mocha/no-pending-tests */
 	});
 
 	describe('internal', () => {
@@ -272,6 +273,7 @@ describe('node', () => {
 		});
 
 		describe('getConstants', () => {
+			/* eslint-disable mocha/no-pending-tests */
 			describe('when loaded = false', () => {
 				it('should call callback with error = "Blockchain is loading"');
 			});
@@ -315,6 +317,7 @@ describe('node', () => {
 					'should call callback with result containing version = library.config.version'
 				);
 			});
+			/* eslint-enable mocha/no-pending-tests */
 		});
 
 		describe('getStatus', () => {
@@ -452,6 +455,7 @@ describe('node', () => {
 	});
 
 	describe('onBind', () => {
+		/* eslint-disable mocha/no-pending-tests */
 		describe('modules', () => {
 			it('should assign blocks');
 
@@ -463,5 +467,6 @@ describe('node', () => {
 		});
 
 		it('should assign loaded = true');
+		/* eslint-enable mocha/no-pending-tests */
 	});
 });

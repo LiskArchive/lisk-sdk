@@ -642,7 +642,6 @@ describe('multisignature', () => {
 	});
 
 	describe('undoConfirmed', () => {
-		/* eslint-disable mocha/no-sibling-hooks */
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
 			accountMock.merge = sinonSandbox.stub().callsArg(2);
@@ -650,7 +649,6 @@ describe('multisignature', () => {
 		});
 		/* eslint-enable */
 
-		/* eslint-disable mocha/no-nested-tests */
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
 			var unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'

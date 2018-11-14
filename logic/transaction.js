@@ -150,7 +150,7 @@ class Transaction {
 	 * @returns {!Array} Contents as an ArrayBuffer
 	 * @todo Add description for the params
 	 */
-	/* eslint-disable class-methods-use-this */
+
 	getBytes(transaction, skipSignature, skipSecondSignature) {
 		if (!__private.types[transaction.type]) {
 			throw `Unknown transaction type ${transaction.type}`;
@@ -257,6 +257,7 @@ class Transaction {
 
 		return __private.types[transaction.type].ready(transaction, sender);
 	}
+	/* eslint-enable class-methods-use-this */
 
 	/**
 	 * Counts transactions from `trs` table by id.
@@ -1199,6 +1200,7 @@ class Transaction {
 	 * @returns {null|transaction}
 	 * @todo Add description for the params
 	 */
+
 	/* eslint-disable class-methods-use-this */
 	dbRead(raw) {
 		if (!raw.t_id) {
@@ -1237,6 +1239,7 @@ class Transaction {
 
 		return transaction;
 	}
+	/* eslint-enable class-methods-use-this */
 }
 
 // TODO: The below functions should be converted into static functions,

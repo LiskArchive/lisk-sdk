@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -384,6 +383,7 @@ describe('blocks/verify', () => {
 			});
 		});
 
+		/* eslint-disable mocha/no-skipped-tests */
 		describe.skip('verifyId', () => {
 			it('should reset block id when block id is an invalid alpha-numeric string value', () => {
 				var blockId = '884740302254229983';
@@ -416,6 +416,7 @@ describe('blocks/verify', () => {
 				return expect(validBlock.id).to.not.equal(11850828211026019525);
 			});
 		});
+		/* eslint-enable mocha/no-skipped-tests */
 
 		describe('verifyPayload', () => {
 			it('should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value', done => {

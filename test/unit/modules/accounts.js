@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -88,6 +87,7 @@ describe('accounts', () => {
 			).to.equal(validAccount.address);
 		});
 
+		/* eslint-disable mocha/no-skipped-tests */
 		// TODO: Design a throwable test
 		it.skip('should throw error for invalid publicKey', () => {
 			var invalidPublicKey = 'invalidPublicKey';
@@ -96,6 +96,7 @@ describe('accounts', () => {
 				accounts.generateAddressByPublicKey(invalidPublicKey);
 			}).to.throw('Invalid public key: ', invalidPublicKey);
 		});
+		/* eslint-enable mocha/no-skipped-tests */
 	});
 
 	describe('getAccount', () => {

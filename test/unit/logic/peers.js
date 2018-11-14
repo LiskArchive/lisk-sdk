@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -322,6 +321,7 @@ describe('peers', () => {
 			return expect(peers.exists(validPeer)).to.be.ok;
 		});
 
+		/* eslint-disable mocha/no-skipped-tests */
 		it.skip('should return true if peer with same nonce is on the list', () => {
 			var list = peers.list(true);
 			expect(list.length).equal(1);
@@ -333,6 +333,7 @@ describe('peers', () => {
 				})
 			).to.be.ok;
 		});
+		/* eslint-enable mocha/no-skipped-tests */
 
 		it('should return true if peer with same address is on the list', () => {
 			peers.upsert(validPeer);

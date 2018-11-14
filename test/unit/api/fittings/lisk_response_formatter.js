@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,6 +14,8 @@
 
 'use strict';
 
+/* eslint-disable mocha/no-pending-tests */
+
 describe('lisk_response_formatter', () => {
 	it('should be a factory function that names 2 argument');
 
@@ -30,3 +31,5 @@ describe('lisk_response_formatter', () => {
 		'should check for "data", "meta" and "links" attributes if input provided is an object'
 	);
 });
+
+/* eslint-enable mocha/no-pending-tests */

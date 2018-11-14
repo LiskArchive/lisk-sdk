@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -96,6 +95,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 	});
 
+	/* eslint-disable mocha/no-skipped-tests */
 	describe.skip('schema validations', () => {
 		common.invalidAssets('outTransfer', badTransactions);
 
@@ -674,6 +674,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 	describe.skip('confirmation', () => {
 		phases.confirmation(goodTransactions, badTransactions);
 	});
+	/* eslint-enable mocha/no-skipped-tests */
 
 	describe('check frozen type', () => {
 		it('transaction should be rejected', () => {

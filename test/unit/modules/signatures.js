@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,6 +14,7 @@
 
 'use strict';
 
+/* eslint-disable mocha/no-pending-tests */
 describe('signatures', () => {
 	describe('isLoaded', () => {
 		it('should return true if modules exists');
@@ -78,3 +78,5 @@ describe('signatures', () => {
 		});
 	});
 });
+
+/* eslint-enable mocha/no-pending-tests */

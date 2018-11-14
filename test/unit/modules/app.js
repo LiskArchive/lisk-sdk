@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -31,5 +30,7 @@ describe('app', () => {
 		setTimeout(done, 5000);
 	});
 
+	/* eslint-disable mocha/no-pending-tests */
 	it('should be ok');
+	/* eslint-enable mocha/no-pending-tests */
 });

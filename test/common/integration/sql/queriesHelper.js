@@ -11,7 +11,6 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-/* eslint-disable class-methods-use-this */
 
 'use strict';
 
@@ -35,6 +34,7 @@ class Queries {
 		self = this;
 	}
 
+	/* eslint-disable class-methods-use-this */
 	validateAccountsBalances() {
 		return self.db.query(self.validateAccountsBalancesQuery);
 	}
@@ -117,6 +117,7 @@ class Queries {
 			'SELECT "dependentId", ARRAY_AGG("accountId") FROM mem_accounts2delegates GROUP BY "dependentId"'
 		);
 	}
+	/* eslint-enable class-methods-use-this */
 }
 
 module.exports = Queries;
