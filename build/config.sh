@@ -1,21 +1,16 @@
 #!/bin/bash
-# 
-# LiskHQ/lisk-build
-# Copyright (C) 2017 Lisk Foundation
+
+# Copyright © 2018 Lisk Foundation
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# See the LICENSE file at the top-level directory of this distribution
+# for licensing information.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+# no part of this software, including this file, may be copied, modified,
+# propagated, or distributed except according to the terms contained in the
+# LICENSE file.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-######################################################################
+# Removal or modification of this copyright notice is prohibited.
 
 # shellcheck disable=SC2034
 
