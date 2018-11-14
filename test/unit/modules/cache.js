@@ -185,16 +185,14 @@ describe('cache', () => {
 		});
 	});
 
-	describe('onNewBlock', () => {
-		var dummyBlock = {};
-
+	describe('clearCacheFor', () => {
 		it('should remove all keys matching pattern /api/transactions', done => {
 			var key = '/api/transactions?123';
 			var value = { testObject: 'testValue' };
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearCacheFor('/api/transactions*', err => {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -213,7 +211,7 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearCacheFor('/api/blocks*', err => {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -224,7 +222,7 @@ describe('cache', () => {
 			});
 		});
 
-		it('should not remove keys that dont match pattern /api/blocks or /api/transactions', done => {
+		it('should not remove keys that dont match pattern /api/blocks', done => {
 			var key = '/api/delegates';
 			var value = { testObject: 'testValue' };
 
@@ -232,7 +230,7 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearCacheFor('/api/blocks*', err => {
 					expect(err).to.not.exist;
 					cache.getJsonForKey(key, (err, res) => {
 						expect(err).to.not.exist;
@@ -252,7 +250,7 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onNewBlock(dummyBlock, err => {
+				cache.clearCacheFor('/api/transactions*', err => {
 					expect(err).to.equal('Cache Disabled');
 					cache.onSyncFinished();
 					cache.getJsonForKey(key, (err, res) => {

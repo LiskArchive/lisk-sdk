@@ -21,22 +21,21 @@ module.exports = function(configurations, network) {
 		let nodesTransactions = [];
 
 		before(() => {
-			return network.waitForAllNodesToBeReady()
-			.then(() => {
-				return Promise.all(
-					network.sockets.map(socket => {
-						return socket.call('blocks');
-					})
-				);
-			})
-			.then(results => {
-				nodesTransactions = results.map(res => {
-					return res.blocks;
+			return network
+				.waitForAllNodesToBeReady()
+				.then(() => {
+					return Promise.all(
+						network.sockets.map(socket => {
+							return socket.call('blocks');
+						})
+					);
+				})
+				.then(results => {
+					nodesTransactions = results.map(res => {
+						return res.blocks;
+					});
+					expect(nodesTransactions).to.have.lengthOf(configurations.length);
 				});
-				expect(nodesTransactions).to.have.lengthOf(
-					configurations.length
-				);
-			});
 		});
 
 		it('should contain non empty transactions', () => {

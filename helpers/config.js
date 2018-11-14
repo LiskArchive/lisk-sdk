@@ -171,6 +171,14 @@ function Config(packageJson, parseCommandLineOptions = true) {
 
 		validateForce(appConfig);
 
+		// Disable api, peers, broadcasts, syncing and ws workers when snapshotting mode required
+		if (program.snapshot) {
+			appConfig.api.enabled = false;
+			appConfig.peers.enabled = false;
+			appConfig.peers.list = [];
+			appConfig.broadcasts.active = false;
+			appConfig.syncing.active = false;
+		}
 		return appConfig;
 	}
 }

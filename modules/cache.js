@@ -223,49 +223,47 @@ Cache.prototype.quit = function(cb) {
 };
 
 /**
- * Clears all cache entries upon new block.
+ * Clears cache entries for given pattern.
  *
- * @param {Block} block
- * @param {Broadcast} broadcast
+ * @param {string} pattern
  * @param {function} cb
  * @todo Add description for the params
  * @todo Add @returns tag
  */
-Cache.prototype.onNewBlock = function(block, cb) {
+Cache.prototype.clearCacheFor = function(pattern, cb) {
 	cb = cb || function() {};
 
 	logger.debug(
-		['Cache - onNewBlock', '| Status:', self.isConnected()].join(' ')
+		['Cache - clearCacheFor', pattern, '| Status:', self.isConnected()].join(
+			' '
+		)
 	);
+
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
 	}
-	async.map(
-		['/api/blocks*', '/api/transactions*'],
-		(pattern, mapCb) => {
-			self.removeByPattern(pattern, err => {
-				if (err) {
-					logger.error(
-						[
-							'Cache - Error clearing keys with pattern:',
-							pattern,
-							'on new block',
-						].join(' ')
-					);
-				} else {
-					logger.debug(
-						[
-							'Cache - Keys with pattern:',
-							pattern,
-							'cleared from cache on new block',
-						].join(' ')
-					);
-				}
-				mapCb(err);
-			});
-		},
-		cb
-	);
+
+	self.removeByPattern(pattern, err => {
+		if (err) {
+			logger.error(
+				[
+					'Cache - Error clearing keys with pattern:',
+					pattern,
+					'on new block',
+				].join(' ')
+			);
+		} else {
+			logger.debug(
+				[
+					'Cache - Keys with pattern:',
+					pattern,
+					'cleared from cache on new block',
+				].join(' ')
+			);
+		}
+
+		cb(err);
+	});
 };
 
 /**
@@ -285,7 +283,7 @@ Cache.prototype.onFinishRound = function(round, cb) {
 	if (!self.isReady()) {
 		return cb(errorCacheDisabled);
 	}
-	const pattern = '/api/delegates*';
+	const pattern = self.KEYS.delegatesApi;
 	self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
@@ -329,7 +327,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 	async.parallel(
 		[
 			async.reflect(reflectCb => {
-				const pattern = '/api/delegates*';
+				const pattern = self.KEYS.delegatesApi;
 
 				const delegateTransaction = transactions.find(
 					transaction =>
@@ -404,6 +402,9 @@ Cache.prototype.onSyncFinished = function() {
 
 Cache.prototype.KEYS = {
 	transactionCount: 'transactionCount',
+	blocksApi: '/api/blocks*',
+	transactionsApi: '/api/transactions*',
+	delegatesApi: '/api/delegates*',
 };
 
 module.exports = Cache;
