@@ -32,6 +32,10 @@ describe('api errors module', () => {
 				.and.be.instanceof(APIError);
 		});
 
+		it('should set error name to `API Error`', () => {
+			return expect(apiError.name).to.eql('API Error');
+		});
+
 		it('should set error message to empty string by default', () => {
 			return expect(apiError.message).to.eql('');
 		});
