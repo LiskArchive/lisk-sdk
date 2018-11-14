@@ -16,6 +16,7 @@
 
 require('../../functional.js');
 
+var lisk = require('lisk-elements').default;
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
@@ -89,11 +90,11 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 	describe('Transfers processing', () => {
 		it('with no signatures present it should remain pending', () => {
 			const targetAccount = randomUtil.account();
-			const trs = multiSigAccount.transfer(
-				targetAccount.address,
-				multiSigAccount.account.passphrase,
-				1
-			);
+			const trs = lisk.transaction.transfer({
+				recipientId: targetAccount.address,
+				passphrase: multiSigAccount.account.passphrase,
+				amount: 1,
+			});
 
 			return sendTransactionPromise(trs).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -103,17 +104,17 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with some signatures present it should remain pending', () => {
 			const targetAccount = randomUtil.account();
-			const trs = multiSigAccount.transfer(
-				targetAccount.address,
-				multiSigAccount.account.passphrase,
-				1
-			);
-
-			const signature = multiSigAccount.signTransaction(
-				[multiSigAccount.members[0].passphrase],
-				trs
-			);
-			trs.signatures = signature;
+			const trs = lisk.transaction.transfer({
+				recipientId: targetAccount.address,
+				passphrase: multiSigAccount.account.passphrase,
+				amount: 1,
+			});
+			trs.signatures = [
+				lisk.transaction.createSignatureObject(
+					trs,
+					multiSigAccount.members[0].passphrase
+				).signature,
+			];
 
 			return sendTransactionPromise(trs).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -123,16 +124,20 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with all signatures present it should be confirmed', () => {
 			const targetAccount = randomUtil.account();
-			const trs = multiSigAccount.transfer(
-				targetAccount.address,
-				multiSigAccount.account.passphrase,
-				1
+			const trs = lisk.transaction.transfer({
+				recipientId: targetAccount.address,
+				passphrase: multiSigAccount.account.passphrase,
+				amount: 1,
+			});
+
+			const membersPassphrases = [
+				...multiSigAccount.members.map(anAccount => anAccount.passphrase),
+			];
+
+			trs.signatures = membersPassphrases.map(
+				aSigner =>
+					lisk.transaction.createSignatureObject(trs, aSigner).signature
 			);
-			const signatures = multiSigAccount.signTransaction(
-				[...multiSigAccount.members.map(anAccount => anAccount.passphrase)],
-				trs
-			);
-			trs.signatures = signatures;
 
 			return sendTransactionPromise(trs).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -142,11 +147,11 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with no signatures present, ready set to true, it should remain pending', () => {
 			const targetAccount = randomUtil.account();
-			const trs = multiSigAccount.transfer(
-				targetAccount.address,
-				multiSigAccount.account.passphrase,
-				1
-			);
+			const trs = lisk.transaction.transfer({
+				recipientId: targetAccount.address,
+				passphrase: multiSigAccount.account.passphrase,
+				amount: 1,
+			});
 			trs.ready = true;
 
 			return sendTransactionPromise(trs).then(res => {
@@ -157,17 +162,18 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with some signatures present, ready set to true, it should remain pending', () => {
 			const targetAccount = randomUtil.account();
-			const trs = multiSigAccount.transfer(
-				targetAccount.address,
-				multiSigAccount.account.passphrase,
-				1
-			);
+			const trs = lisk.transaction.transfer({
+				recipientId: targetAccount.address,
+				passphrase: multiSigAccount.account.passphrase,
+				amount: 1,
+			});
 
-			const signature = multiSigAccount.signTransaction(
-				[multiSigAccount.members[0].passphrase],
-				trs
-			);
-			trs.signatures = signature;
+			trs.signatures = [
+				lisk.transaction.createSignatureObject(
+					trs,
+					multiSigAccount.members[0].passphrase
+				).signature,
+			];
 			trs.ready = true;
 
 			return sendTransactionPromise(trs).then(res => {
@@ -178,16 +184,19 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 
 		it('with all signatures present, ready set to false, it should be confirmed', () => {
 			const targetAccount = randomUtil.account();
-			const trs = multiSigAccount.transfer(
-				targetAccount.address,
-				multiSigAccount.account.passphrase,
-				1
+			const trs = lisk.transaction.transfer({
+				recipientId: targetAccount.address,
+				passphrase: multiSigAccount.account.passphrase,
+				amount: 1,
+			});
+			const membersPassphrases = [
+				...multiSigAccount.members.map(anAccount => anAccount.passphrase),
+			];
+
+			trs.signatures = membersPassphrases.map(
+				aSigner =>
+					lisk.transaction.createSignatureObject(trs, aSigner).signature
 			);
-			const signatures = multiSigAccount.signTransaction(
-				[...multiSigAccount.members.map(anAccount => anAccount.passphrase)],
-				trs
-			);
-			trs.signatures = signatures;
 			trs.ready = false;
 
 			return sendTransactionPromise(trs).then(res => {
