@@ -128,10 +128,11 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {Object} params
 	 * @param {Object} options
 	 * @param {Number} options.expectedResult
+	 * @param {Object} tx
 	 * @return {*}
 	 */
-	executeFile(file, params = {}, options = {}) {
-		return this.db[resultCountToMethodMap[options.expectedResult]](
+	executeFile(file, params = {}, options = {}, tx) {
+		return (tx || this.db)[resultCountToMethodMap[options.expectedResult]](
 			file,
 			params
 		);
@@ -140,14 +141,26 @@ class PgpAdapter extends BaseAdapter {
 	/**
 	 * Execute an SQL file
 	 *
-	 * @param {string} file
+	 * @param {string} sql
 	 * @param {Object} params
 	 * @param {Object} options
 	 * @param {Number} options.expectedResult
+	 * @param {Object} tx
 	 * @return {*}
 	 */
-	execute(sql, params = {}, options = {}) {
-		return this.db[resultCountToMethodMap[options.expectedResult]](sql, params);
+	execute(sql, params = {}, options = {}, tx) {
+		return (tx || this.db)[resultCountToMethodMap[options.expectedResult]](
+			sql,
+			params
+		);
+	}
+
+	transaction(name, cb, tx) {
+		return (tx || this.db).tx(name, cb);
+	}
+
+	task(name, cb, tx) {
+		return (tx || this.db).task(name, cb);
 	}
 
 	loadSQLFile(filePath) {

@@ -118,7 +118,12 @@ class Account extends BaseEntity {
 		};
 	}
 
-	getOne(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
+	getOne(
+		filters,
+		fieldSet = Account.prototype.FIELD_SET_SIMPLE,
+		options = {},
+		tx
+	) {
 		const queryOptions = Object.assign({}, options, { expectedResult: 1 });
 		const parsedFilters = this.parseFilters(filters);
 
@@ -132,11 +137,17 @@ class Account extends BaseEntity {
 				[Account.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[fieldSet],
 			params,
-			queryOptions
+			queryOptions,
+			tx
 		);
 	}
 
-	get(filters, fieldSet = Account.prototype.FIELD_SET_SIMPLE, options = {}) {
+	get(
+		filters,
+		fieldSet = Account.prototype.FIELD_SET_SIMPLE,
+		options = {},
+		tx
+	) {
 		const parsedFilters = this.parseFilters(filters);
 		const params = Object.assign(
 			this.defaultOptions,
@@ -150,7 +161,9 @@ class Account extends BaseEntity {
 				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
 				[this.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[fieldSet],
-			params
+			params,
+			{},
+			tx
 		);
 	}
 

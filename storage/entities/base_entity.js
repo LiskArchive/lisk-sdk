@@ -34,16 +34,17 @@ class BaseEntity {
 	 * @param {String | Object} filters - Multiple filters or just primary key
 	 * @param {string} fieldSet - Field sets defining collection of fields to get
 	 * @param {Object} options - Extended options
+	 * @param {Object} tx - transaction object
 	 *
 	 * @return {Promise}
 	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
-	get(filters, fieldSet, options) {
+	getOne(filters, fieldSet, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
 	// eslint-disable-next-line class-methods-use-this
-	getAll() {
+	get() {
 		throw new ImplementationPendingError();
 	}
 
@@ -156,6 +157,22 @@ class BaseEntity {
 				.join(','),
 			data
 		);
+	}
+
+	/**
+	 * Begin a database transaction
+	 *
+	 * @param {string} transactionName - Name of the transaction
+	 * @param {function} cb - Callback function transaction
+	 * @param {Object} options
+	 * @param {Boolean} options.noTransaction - Don't use begin/commit block
+	 * @param {Object} tx - A parent transaction object
+	 * @return {*}
+	 */
+	begin(transactionName, cb, options = {}, tx) {
+		return options.noTransaction
+			? this.adapter.task(transactionName, cb, tx)
+			: this.adapter.transaction(transactionName, cb, tx);
 	}
 
 	/**
