@@ -17,7 +17,7 @@ import { test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
-import * as query from '../../../src/utils/query';
+import * as queryHandler from '../../../src/utils/query';
 
 describe('transaction:get', () => {
 	const endpoint = 'transactions';
@@ -31,7 +31,6 @@ describe('transaction:get', () => {
 		test
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
 	setupTest()
@@ -49,22 +48,27 @@ describe('transaction:get', () => {
 		};
 
 		setupTest()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionId])
 			.it('should get a transaction’s info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							id: transactionId,
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								id: transactionId,
+							},
+							placeholder: {
+								id: transactionId,
+								message: 'Transaction not found.',
+							},
 						},
-						placeholder: {
-							id: transactionId,
-							message: 'Transaction not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 	});
@@ -88,43 +92,49 @@ describe('transaction:get', () => {
 		];
 
 		setupTest()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIds.join(',')])
 			.it('should get two transactions’ info and display as an array', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(query.default).to.be.calledWithExactly(apiClientStub, endpoint, [
-					{
-						query: {
-							limit: 1,
-							id: transactionIds[0],
+				expect(queryHandler.query).to.be.calledWithExactly(
+					apiClientStub,
+					endpoint,
+					[
+						{
+							query: {
+								limit: 1,
+								id: transactionIds[0],
+							},
+							placeholder: {
+								id: transactionIds[0],
+								message: 'Transaction not found.',
+							},
 						},
-						placeholder: {
-							id: transactionIds[0],
-							message: 'Transaction not found.',
+						{
+							query: {
+								limit: 1,
+								id: transactionIds[1],
+							},
+							placeholder: {
+								id: transactionIds[1],
+								message: 'Transaction not found.',
+							},
 						},
-					},
-					{
-						query: {
-							limit: 1,
-							id: transactionIds[1],
-						},
-						placeholder: {
-							id: transactionIds[1],
-							message: 'Transaction not found.',
-						},
-					},
-				]);
+					],
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 			});
 
 		setupTest()
-			.stub(query, 'default', sandbox.stub().resolves(queryResult))
+			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIdsWithEmpty.join(',')])
 			.it(
 				'should get transactions info only using non-empty args and display as an array',
 				() => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -153,5 +163,93 @@ describe('transaction:get', () => {
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				},
 			);
+	});
+
+	describe('transaction:get transactions --state', () => {
+		const transactionId = '3520445367460290306';
+		const transactionIds = ['3520445367460290306', '2802325248134221536'];
+		const transactionIdsWithEmpty = [
+			'3520445367460290306',
+			'',
+			'2802325248134221536',
+		];
+
+		const defaultGetTransactionsResponse = {
+			data: [
+				{
+					id: transactionIds[0],
+					type: 0,
+				},
+				{
+					id: transactionIds[1],
+					type: 3,
+				},
+			],
+		};
+		const apiClientStubNode = {
+			node: {
+				getTransactions: sandbox
+					.stub()
+					.resolves(defaultGetTransactionsResponse),
+			},
+		};
+
+		describe('transaction: get transactions --state-unprocessed', () => {
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command(['transaction:get', transactionId, '--state=unprocessed'])
+				.it('should get a transaction’s info and display as an array', () => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					return expect(printMethodStub).to.be.calledWithExactly([
+						defaultGetTransactionsResponse.data[0],
+					]);
+				});
+
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command([
+					'transaction:get',
+					transactionIdsWithEmpty.join(','),
+					'--state=unprocessed',
+				])
+				.it(
+					'should get transactions info only using non-empty args and display as an array',
+					() => {
+						expect(api.default).to.be.calledWithExactly(apiConfig);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							defaultGetTransactionsResponse.data,
+						);
+					},
+				);
+		});
+
+		describe('transaction: get transactions --state-unsigned', () => {
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command(['transaction:get', transactionId, '--state=unsigned'])
+				.it('should get a transaction’s info and display as an array', () => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					return expect(printMethodStub).to.be.calledWithExactly([
+						defaultGetTransactionsResponse.data[0],
+					]);
+				});
+
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command([
+					'transaction:get',
+					transactionIdsWithEmpty.join(','),
+					'--state=unsigned',
+				])
+				.it(
+					'should get transactions info only using non-empty args and display as an array',
+					() => {
+						expect(api.default).to.be.calledWithExactly(apiConfig);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							defaultGetTransactionsResponse.data,
+						);
+					},
+				);
+		});
 	});
 });

@@ -17,7 +17,7 @@ import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as api from '../../../src/utils/api';
-import * as query from '../../../src/utils/query';
+import * as queryHandler from '../../../src/utils/query';
 
 describe('delegate:votes', () => {
 	const endpoint = 'votes';
@@ -69,11 +69,11 @@ describe('delegate:votes', () => {
 
 		describe('delegate:votes account', () => {
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addresses[0]])
 				.it('should get account votes and display as an array', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -97,11 +97,11 @@ describe('delegate:votes', () => {
 			const addressesWithEmpty = ['13133549779353512613L', ''];
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addresses.join(',')])
 				.it('should get account votes and display as an array', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -131,13 +131,13 @@ describe('delegate:votes', () => {
 				});
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addressesWithEmpty.join(',')])
 				.it(
 					'should get account votes only using non-empty args and display as an array',
 					() => {
 						expect(api.default).to.be.calledWithExactly(apiConfig);
-						expect(query.default).to.be.calledWithExactly(
+						expect(queryHandler.query).to.be.calledWithExactly(
 							apiClientStub,
 							endpoint,
 							[
@@ -187,11 +187,11 @@ describe('delegate:votes', () => {
 				.it('should throw an error when limit is greater than 100');
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addresses[0], '--limit=3'])
 				.it('should get votes for account with limit', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -234,11 +234,11 @@ describe('delegate:votes', () => {
 				.it('should throw an error when offset is an integer less than 0');
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addresses[0], '--offset=1'])
 				.it('should get votes for account with offset', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
@@ -272,11 +272,11 @@ describe('delegate:votes', () => {
 				.it('should throw an error when given incorrect sort input');
 
 			setupTest()
-				.stub(query, 'default', sandbox.stub().resolves(queryResult))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:votes', addresses[0], '--sort=balance:asc'])
 				.it('should get sorted votes for account', () => {
 					expect(api.default).to.be.calledWithExactly(apiConfig);
-					expect(query.default).to.be.calledWithExactly(
+					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[

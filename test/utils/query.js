@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import query from '../../src/utils/query';
+import { query } from '../../src/utils/query';
 
 describe('query utils', () => {
 	const defaultEndpoint = 'accounts';

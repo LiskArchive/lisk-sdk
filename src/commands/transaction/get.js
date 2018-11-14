@@ -13,13 +13,39 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
-import query from '../../utils/query';
+import { query, handleResponse } from '../../utils/query';
+
+const TRANSACTION_STATES = ['unsigned', 'unprocessed'];
+
+const stateFlag = {
+	char: 's',
+	options: TRANSACTION_STATES,
+	description: `Get transactions based on a given state. Possible values for the state are 'unsigned' and 'unprocessed'.
+	Examples:
+	- --state=unsigned
+	- --state=unprocessed
+`,
+};
+
+const queryNode = async (client, txnState, parameters) =>
+	Promise.all(
+		parameters.map(param =>
+			client
+				.getTransactions(txnState, param.query)
+				.then(res =>
+					handleResponse('node/transactions', res, param.placeholder),
+				),
+		),
+	);
 
 export default class GetCommand extends BaseCommand {
 	async run() {
-		const { args: { ids } } = this.parse(GetCommand);
+		const { args: { ids }, flags: { state: txnState } } = this.parse(
+			GetCommand,
+		);
 		const req = ids.map(id => ({
 			query: {
 				limit: 1,
@@ -30,9 +56,20 @@ export default class GetCommand extends BaseCommand {
 				message: 'Transaction not found.',
 			},
 		}));
+
 		const client = getAPIClient(this.userConfig.api);
+
+		if (txnState === 'unsigned') {
+			const results = await queryNode(client.node, txnState, req);
+			return this.print(results);
+		}
+		if (txnState === 'unprocessed') {
+			const results = await queryNode(client.node, txnState, req);
+			return this.print(results);
+		}
 		const results = await query(client, 'transactions', req);
-		this.print(results);
+
+		return this.print(results);
 	}
 }
 
@@ -47,6 +84,7 @@ GetCommand.args = [
 
 GetCommand.flags = {
 	...BaseCommand.flags,
+	state: flagParser.string(stateFlag),
 };
 
 GetCommand.description = `
@@ -56,4 +94,5 @@ Gets transaction information from the blockchain.
 GetCommand.examples = [
 	'transaction:get 10041151099734832021',
 	'transaction:get 10041151099734832021,1260076503909567890',
+	'transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed',
 ];
