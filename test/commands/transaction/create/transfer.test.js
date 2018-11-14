@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
 import * as print from '../../../../src/utils/print';
 import * as getInputsFromSources from '../../../../src/utils/input';
@@ -48,11 +48,11 @@ describe('transaction:create:transfer', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'transfer',
 				sandbox.stub().returns(defaultTransaction),
 			)
-			.stub(elements.default.transaction, 'utils', transactionUtilStub)
+			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(
 				getInputsFromSources,
 				'default',

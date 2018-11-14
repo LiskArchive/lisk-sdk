@@ -14,7 +14,7 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import { cryptography } from 'lisk-elements';
+import cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as getInputsFromSources from '../../../src/utils/input';

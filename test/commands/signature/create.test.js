@@ -14,7 +14,7 @@
  *
  */
 import { test } from '@oclif/test';
-import * as elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../src/utils/config';
 import * as print from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
@@ -54,10 +54,13 @@ describe('signature:create', () => {
 			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
-				elements.default.transaction,
+				transactions,
 				'createSignatureObject',
 				sandbox.stub().returns(defaultSignatureObject),
 			)
+			.stub(transactions, 'utils', {
+				validateTransaction: sandbox.stub().returns({ valid: true }),
+			})
 			.stub(
 				getInputsFromSources,
 				'default',
@@ -90,6 +93,18 @@ describe('signature:create', () => {
 			.it('should throw an error');
 
 		setupTest()
+			.stub(transactions, 'utils', {
+				validateTransaction: sandbox.stub().returns({ valid: false }),
+			})
+			.command(['signature:create', JSON.stringify(defaultTransaction)])
+			.catch(error => {
+				return expect(error.message).to.contain(
+					'Provided transaction is invalid.',
+				);
+			})
+			.it('should throw an error when transaction is invalid');
+
+		setupTest()
 			.command(['signature:create', JSON.stringify(defaultTransaction)])
 			.it('should take transaction from arg to create', () => {
 				expect(getInputsFromSources.default).to.be.calledWithExactly({
@@ -98,9 +113,10 @@ describe('signature:create', () => {
 						repeatPrompt: true,
 					},
 				});
-				expect(
-					elements.default.transaction.createSignatureObject,
-				).to.be.calledWithExactly(defaultTransaction, defaultInputs.passphrase);
+				expect(transactions.createSignatureObject).to.be.calledWithExactly(
+					defaultTransaction,
+					defaultInputs.passphrase,
+				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultSignatureObject,
 				);
@@ -123,9 +139,7 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.createSignatureObject,
-					).to.be.calledWithExactly(
+					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
@@ -175,9 +189,7 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.createSignatureObject,
-					).to.be.calledWithExactly(
+					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);
@@ -205,9 +217,7 @@ describe('signature:create', () => {
 							repeatPrompt: true,
 						},
 					});
-					expect(
-						elements.default.transaction.createSignatureObject,
-					).to.be.calledWithExactly(
+					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
 					);

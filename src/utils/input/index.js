@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { passphrase as passphraseModule } from 'lisk-elements';
+import passphraseModule from '@liskhq/lisk-passphrase';
 import { getStdIn, getPassphrase, getData } from './utils';
 
 export const getFirstLineFromString = multilineString =>

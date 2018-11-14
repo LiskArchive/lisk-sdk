@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import cryptographyModule from '@liskhq/lisk-cryptography';
 import * as cryptography from '../../src/utils/cryptography';
 
 describe('crypto utils', () => {
@@ -29,7 +29,7 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			sandbox
-				.stub(elements.cryptography, 'encryptMessageWithPassphrase')
+				.stub(cryptographyModule, 'encryptMessageWithPassphrase')
 				.returns(result);
 			return Promise.resolve();
 		});
@@ -37,7 +37,7 @@ describe('crypto utils', () => {
 		it('should call encryptMessageWithPassphrase', () => {
 			cryptography.encryptMessage(input);
 			return expect(
-				elements.cryptography.encryptMessageWithPassphrase,
+				cryptographyModule.encryptMessageWithPassphrase,
 			).to.be.calledWithExactly(
 				input.message,
 				input.passphrase,
@@ -62,7 +62,7 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			sandbox
-				.stub(elements.cryptography, 'decryptMessageWithPassphrase')
+				.stub(cryptographyModule, 'decryptMessageWithPassphrase')
 				.returns(result);
 			return Promise.resolve();
 		});
@@ -70,7 +70,7 @@ describe('crypto utils', () => {
 		it('should call decryptMessageWithPassphrase', () => {
 			cryptography.decryptMessage(input);
 			return expect(
-				elements.cryptography.decryptMessageWithPassphrase,
+				cryptographyModule.decryptMessageWithPassphrase,
 			).to.be.calledWithExactly(
 				input.cipher,
 				input.nonce,
@@ -98,10 +98,10 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			sandbox
-				.stub(elements.cryptography, 'encryptPassphraseWithPassword')
+				.stub(cryptographyModule, 'encryptPassphraseWithPassword')
 				.returns(passphraseObject);
 			return sandbox
-				.stub(elements.cryptography, 'stringifyEncryptedPassphrase')
+				.stub(cryptographyModule, 'stringifyEncryptedPassphrase')
 				.returns(result);
 		});
 
@@ -122,7 +122,7 @@ describe('crypto utils', () => {
 			cryptography.encryptPassphrase(input);
 
 			return expect(
-				elements.cryptography.encryptPassphraseWithPassword,
+				cryptographyModule.encryptPassphraseWithPassword,
 			).to.be.calledWithExactly(input.passphrase, input.password);
 		});
 
@@ -134,7 +134,7 @@ describe('crypto utils', () => {
 			cryptography.encryptPassphrase(input);
 
 			return expect(
-				elements.cryptography.stringifyEncryptedPassphrase,
+				cryptographyModule.stringifyEncryptedPassphrase,
 			).to.be.calledWithExactly(passphraseObject);
 		});
 	});
@@ -156,10 +156,10 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			sandbox
-				.stub(elements.cryptography, 'parseEncryptedPassphrase')
+				.stub(cryptographyModule, 'parseEncryptedPassphrase')
 				.returns(passphraseObject);
 			return sandbox
-				.stub(elements.cryptography, 'decryptPassphraseWithPassword')
+				.stub(cryptographyModule, 'decryptPassphraseWithPassword')
 				.returns(result);
 		});
 
@@ -171,14 +171,14 @@ describe('crypto utils', () => {
 		it('should call parseEncryptedPassphrase', () => {
 			cryptography.decryptPassphrase(input);
 			return expect(
-				elements.cryptography.parseEncryptedPassphrase,
+				cryptographyModule.parseEncryptedPassphrase,
 			).to.be.calledWithExactly(input.encryptedPassphrase);
 		});
 
 		it('should call decryptPassphraseWithPassword', () => {
 			cryptography.decryptPassphrase(input);
 			return expect(
-				elements.cryptography.decryptPassphraseWithPassword,
+				cryptographyModule.decryptPassphraseWithPassword,
 			).to.be.calledWithExactly(passphraseObject, input.password);
 		});
 	});
@@ -195,7 +195,7 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			return sandbox
-				.stub(elements.cryptography, 'getAddressFromPublicKey')
+				.stub(cryptographyModule, 'getAddressFromPublicKey')
 				.returns(result);
 		});
 
@@ -207,7 +207,7 @@ describe('crypto utils', () => {
 		it('should call getAddressFromPublicKey', () => {
 			cryptography.getAddressFromPublicKey(input);
 			return expect(
-				elements.cryptography.getAddressFromPublicKey,
+				cryptographyModule.getAddressFromPublicKey,
 			).to.be.calledWithExactly(input);
 		});
 	});
@@ -221,7 +221,7 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			return sandbox
-				.stub(elements.cryptography, 'signMessageWithPassphrase')
+				.stub(cryptographyModule, 'signMessageWithPassphrase')
 				.returns(result);
 		});
 
@@ -233,7 +233,7 @@ describe('crypto utils', () => {
 		it('should call signMessageWithPassphrase', () => {
 			cryptography.signMessage(input);
 			return expect(
-				elements.cryptography.signMessageWithPassphrase,
+				cryptographyModule.signMessageWithPassphrase,
 			).to.be.calledWithExactly(input.message, input.passphrase);
 		});
 	});
@@ -248,7 +248,7 @@ describe('crypto utils', () => {
 
 		beforeEach(() => {
 			return sandbox
-				.stub(elements.cryptography, 'verifyMessageWithPublicKey')
+				.stub(cryptographyModule, 'verifyMessageWithPublicKey')
 				.returns(result);
 		});
 
@@ -260,7 +260,7 @@ describe('crypto utils', () => {
 		it('should call verifyMessageWithPublicKey', () => {
 			cryptography.verifyMessage(input);
 			return expect(
-				elements.cryptography.verifyMessageWithPublicKey,
+				cryptographyModule.verifyMessageWithPublicKey,
 			).to.be.calledWithExactly(input);
 		});
 	});
