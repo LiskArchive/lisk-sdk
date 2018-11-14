@@ -48,14 +48,6 @@ if [[ "$CLEAN" == true ]]; then
 	rm -rf "src/$BUILD_NAME"
 fi
 
-################################################################################
-
-# Requirements for Ubuntu 14.04.5 LTS base install:
-# apt-get install build-essential autoconf libtool zlib1g-dev \
-#     valgrind \  # jq tests
-#     tcl8.5 \    # redis tests
-#     moreutils   # used below
-
 pushd src
 
 if [ ! -f "$LISK_FILE" ]; then
