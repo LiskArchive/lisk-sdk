@@ -67,7 +67,6 @@ PeersUpdateRules.prototype.insert = function(peer, connectionId, cb) {
 			peer,
 			err => {
 				if (err) {
-					connectionsTable.remove(peer.nonce);
 					if (!err.code) {
 						err = new PeerUpdateError(
 							failureCodes.ON_MASTER.UPDATE.TRANSPORT,
@@ -104,7 +103,6 @@ PeersUpdateRules.prototype.remove = function(peer, connectionId, cb) {
 			peer,
 			err => {
 				if (err && !err.code) {
-					connectionsTable.add(peer.nonce, connectionId);
 					err = new PeerUpdateError(
 						failureCodes.ON_MASTER.UPDATE.TRANSPORT,
 						failureCodes.errorMessages[failureCodes.ON_MASTER.UPDATE.TRANSPORT],
