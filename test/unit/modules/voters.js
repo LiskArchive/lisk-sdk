@@ -222,5 +222,4 @@ describe('voters', () => {
 		it('should assign loaded = true');
 	});
 });
-
 /* eslint-enable mocha/no-pending-tests */

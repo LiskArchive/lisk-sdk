@@ -754,7 +754,7 @@ describe('rounds', () => {
 				});
 			});
 		});
-		/* eslint-disable mocha/no-skipped-tests */
+		/* eslint-enable mocha/no-skipped-tests */
 
 		describe('with only one delegate', () => {
 			describe('when there are no remaining fees', () => {
