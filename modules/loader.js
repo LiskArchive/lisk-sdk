@@ -852,7 +852,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 		whilstCb => {
 			async.waterfall(
 				[
-					function(cbWaterfall) {
+					waterfallCb => {
 						self.getRandomPeerFromNetwork((err, peer) => {
 							if (err) {
 								tries += 1;
@@ -867,10 +867,10 @@ __private.loadBlocksFromNetwork = function(cb) {
 							library.logger.info(
 								`Try(${tries}) Looking for common block with: ${peer.string}`
 							);
-							cbWaterfall(null, peer, lastBlock);
+							waterfallCb(null, peer, lastBlock);
 						});
 					},
-					function(peer, lastBlock, cbWaterfall) {
+					(peer, lastBlock, waterfallCb) => {
 						modules.blocks.process.getCommonBlock(
 							peer,
 							lastBlock.height,
@@ -894,11 +894,11 @@ __private.loadBlocksFromNetwork = function(cb) {
 										`Found common block: ${commonBlock.id} with: ${peer.string}`
 									);
 								}
-								cbWaterfall(null, peer, lastBlock);
+								waterfallCb(null, peer, lastBlock);
 							}
 						);
 					},
-					function(peer, lastBlock, cbWaterfall) {
+					(peer, lastBlock, waterfallCb) => {
 						modules.blocks.process.loadBlocksFromPeer(
 							peer,
 							(err, lastValidBlock) => {
@@ -911,7 +911,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 									return whilstCb();
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
-								cbWaterfall();
+								waterfallCb();
 							}
 						);
 					},
