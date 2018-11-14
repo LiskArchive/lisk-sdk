@@ -31,20 +31,30 @@ class BaseEntity {
 	/**
 	 * Get one object from persistence layer
 	 *
-	 * @param {String | Object} filters - Multiple filters or just primary key
-	 * @param {string} fieldSet - Field sets defining collection of fields to get
+	 * @param {string | Object} filters - Multiple filters or just primary key
 	 * @param {Object} options - Extended options
+	 * @param {string} options.fieldSet - Fieldset to get
 	 * @param {Object} tx - transaction object
 	 *
 	 * @return {Promise}
 	 */
 	// eslint-disable-next-line class-methods-use-this,no-unused-vars
-	getOne(filters, fieldSet, options, tx) {
+	getOne(filters, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	get() {
+	/**
+	 * Get multiple objects from persistence layer
+	 *
+	 * @param {string | Object} filters - Multiple filters or just primary key
+	 * @param {Object} options - Extended options
+	 * @param {string} options.fieldSet - Field set to get for object
+	 * @param {Object} tx - transaction object
+	 *
+	 * @return {Promise}
+	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	get(filters, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
@@ -53,18 +63,47 @@ class BaseEntity {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	create() {
+	/**
+	 * Create an object and store it
+	 *
+	 * @param {Object} data - Data for the object
+	 * @param {Object} options - Extended options
+	 * @param {Object} tx - transaction object
+	 *
+	 * @return {Promise}
+	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	create(data, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	update() {
+	/**
+	 * Update already persisted object
+	 *
+	 * @param {string | Object} filters - Multiple filters or just primary key
+	 * @param {Object} data - Data for the object
+	 * @param {Object} options - Extended options
+	 * @param {Object} tx - transaction object
+	 *
+	 * @return {Promise}
+	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	update(filters, data, options, tx) {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	save() {
+	/**
+	 * Update already persisted object
+	 *
+	 * @param {string | Object} filters - Multiple filters or just primary key
+	 * @param {Object} data - Data for the object
+	 * @param {Object} options - Extended options
+	 * @param {Object} tx - transaction object
+	 *
+	 * @return {Promise}
+	 */
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	updateOne(filters, data, options, tx) {
 		throw new ImplementationPendingError();
 	}
 

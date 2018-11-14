@@ -127,7 +127,7 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {string} file
 	 * @param {Object} params
 	 * @param {Object} options
-	 * @param {Number} options.expectedResult
+	 * @param {Number} [options.expectedResult]
 	 * @param {Object} tx
 	 * @return {*}
 	 */
@@ -144,7 +144,7 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {string} sql
 	 * @param {Object} params
 	 * @param {Object} options
-	 * @param {Number} options.expectedResult
+	 * @param {Number} [options.expectedResult]
 	 * @param {Object} tx
 	 * @return {*}
 	 */

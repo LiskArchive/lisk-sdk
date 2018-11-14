@@ -120,8 +120,9 @@ class Account extends BaseEntity {
 
 	getOne(
 		filters,
-		fieldSet = Account.prototype.FIELD_SET_SIMPLE,
-		options = {},
+		options = {
+			fieldSet: Account.prototype.FIELD_SET_SIMPLE,
+		},
 		tx
 	) {
 		const queryOptions = Object.assign({}, options, { expectedResult: 1 });
@@ -135,7 +136,7 @@ class Account extends BaseEntity {
 			{
 				[Account.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
 				[Account.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
-			}[fieldSet],
+			}[options.fieldSet],
 			params,
 			queryOptions,
 			tx
@@ -144,8 +145,9 @@ class Account extends BaseEntity {
 
 	get(
 		filters,
-		fieldSet = Account.prototype.FIELD_SET_SIMPLE,
-		options = {},
+		options = {
+			fieldSet: Account.prototype.FIELD_SET_SIMPLE,
+		},
 		tx
 	) {
 		const parsedFilters = this.parseFilters(filters);
@@ -160,20 +162,22 @@ class Account extends BaseEntity {
 			{
 				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
 				[this.FIELD_SET_FULL]: this.SQLs.selectFull,
-			}[fieldSet],
+			}[options.fieldSet],
 			params,
 			{},
 			tx
 		);
 	}
 
-	create(data) {
+	// eslint-disable-next-line no-unused-vars
+	create(data, options = {}, tx) {
 		const objectData = _.defaults(data, defaultCreateValues);
 
-		return this.adapter.executeFile(this.SQLs.create, objectData);
+		return this.adapter.executeFile(this.SQLs.create, objectData, {}, tx);
 	}
 
-	update(filters, data) {
+	// eslint-disable-next-line no-unused-vars
+	update(filters, data, options = {}, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const parsedFilters = this.parseFilters(filters);
 		const updateSet = this.getUpdateSet(objectData);
@@ -183,10 +187,11 @@ class Account extends BaseEntity {
 			updateSet,
 		});
 
-		return this.adapter.executeFile(this.SQLs.update, params);
+		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
 
-	updateOne(filters, data) {
+	// eslint-disable-next-line no-unused-vars
+	updateOne(filters, data, options = {}, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const parsedFilters = this.parseFilters(filters);
 		const updateSet = this.getUpdateSet(objectData);
@@ -196,7 +201,7 @@ class Account extends BaseEntity {
 			updateSet,
 		});
 
-		return this.adapter.executeFile(this.SQLs.updateOne, params);
+		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
 	}
 
 	getFieldSets() {
