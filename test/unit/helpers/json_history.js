@@ -167,6 +167,21 @@ describe('helpers/JSONHistory', () => {
 					'Invalid start version specified to migrate.'
 				);
 			});
+			it('should return same config if called with valid non-existing start version', done => {
+				history.migrate({ config: 1 }, '5.0.0', (error, data) => {
+					expect(error).to.be.null;
+					expect(data).to.be.eql({ config: 1 });
+					done();
+				});
+			});
+			it('should print the message if called with valid non-existing start version', done => {
+				history.migrate({ config: 1 }, '5.0.0', () => {
+					expect(loggerStub.info).to.be.calledWithExactly(
+						'No migration found applicable from version "5.0.0"'
+					);
+					done();
+				});
+			});
 			it('should throw error if called without invalid end version', () => {
 				return expect(() =>
 					history.migrate({}, '1.0.0', 'nazar', () => {})
@@ -219,6 +234,18 @@ describe('helpers/JSONHistory', () => {
 					done();
 				});
 			});
+			it('should migrate through excluding start if only start version specified', done => {
+				history.migrate({}, '1.0.0', (error, data) => {
+					expect(error).to.be.null;
+					expect(data).to.be.eql({ v3: '3', v4: '4' });
+					validMigrationExpectations(
+						history,
+						['1.0.0', '3.0.0', '4.0.0'],
+						['2.0.0']
+					);
+					done();
+				});
+			});
 			it('should migrate till end of versions if not specified end version', done => {
 				history.migrate({}, '1.0.0', (error, data) => {
 					expect(error).to.be.null;
@@ -238,11 +265,6 @@ describe('helpers/JSONHistory', () => {
 					validMigrationExpectations(history, ['2.0.0', '3.0.0', '4.0.0'], []);
 					done();
 				});
-			});
-			it('should throw error if start version is registered in history', () => {
-				return expect(() => history.migrate({}, '0.0.0', () => {})).to.throw(
-					'Can\'t find supported version to start migration from  version "0.0.0"'
-				);
 			});
 			it('should migrate changes till end version if provided', done => {
 				history.migrate({}, '1.0.0', '3.0.0', (error, data) => {
