@@ -14,7 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
 import commonFlags from '../../../utils/flags';
 import getInputsFromSources from '../../../utils/input';
@@ -31,7 +31,7 @@ const processInputs = (amount, address, data) => ({
 	passphrase,
 	secondPassphrase,
 }) =>
-	elements.transaction.transfer({
+	transactions.transfer({
 		recipientId: address,
 		amount,
 		data,
@@ -51,10 +51,8 @@ export default class TransferCommand extends BaseCommand {
 			},
 		} = this.parse(TransferCommand);
 
-		elements.transaction.utils.validateAddress(address);
-		const normalizedAmount = elements.transaction.utils.convertLSKToBeddows(
-			amount,
-		);
+		transactions.utils.validateAddress(address);
+		const normalizedAmount = transactions.utils.convertLSKToBeddows(amount);
 
 		const processFunction = processInputs(
 			normalizedAmount,

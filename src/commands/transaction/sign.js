@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { getStdIn } from '../../utils/input/utils';
@@ -47,6 +47,11 @@ export default class SignCommand extends BaseCommand {
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
+		const { valid } = transactions.utils.validateTransaction(transactionObject);
+		if (!valid) {
+			throw new Error('Provided transaction is invalid.');
+		}
+
 		const { passphrase, secondPassphrase } = await getInputsFromSources({
 			passphrase: {
 				source: passphraseSource,
@@ -60,7 +65,7 @@ export default class SignCommand extends BaseCommand {
 					},
 		});
 
-		const result = elements.transaction.utils.prepareTransaction(
+		const result = transactions.utils.prepareTransaction(
 			transactionObject,
 			passphrase,
 			secondPassphrase,

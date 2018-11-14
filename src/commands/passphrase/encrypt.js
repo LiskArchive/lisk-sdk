@@ -14,7 +14,7 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import { cryptography } from 'lisk-elements';
+import cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
 import commonFlags from '../../utils/flags';
 import getInputsFromSources from '../../utils/input';

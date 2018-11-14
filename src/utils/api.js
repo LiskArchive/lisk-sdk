@@ -13,10 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
+import APIClient from '@liskhq/lisk-api-client';
 import { NETHASHES } from './constants';
-
-const { APIClient } = elements;
 
 const seedNodes = {
 	main: APIClient.constants.MAINNET_NODES,

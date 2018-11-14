@@ -14,7 +14,7 @@
  *
  */
 import url from 'url';
-import { cryptography } from 'lisk-elements';
+import cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
 import {
 	CONFIG_VARIABLES,
@@ -30,7 +30,7 @@ const WRITE_FAIL_WARNING =
 	'Config file could not be written: your changes will not be persisted.';
 
 const NETHASH_ERROR_MESSAGE =
-	'Value must be a hex string with 64 characters, or one of main, test or beta.';
+	'Value must be a hex string with 64 characters, or one of main or test.';
 
 const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PROTOCOLS.map(
 	protocol => protocol.replace(':', ''),

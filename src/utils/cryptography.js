@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { cryptography } from 'lisk-elements';
+import cryptography from '@liskhq/lisk-cryptography';
 
 export const encryptMessage = ({ message, passphrase, recipient }) =>
 	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);

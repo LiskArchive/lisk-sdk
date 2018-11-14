@@ -13,9 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import elements from 'lisk-elements';
-
-const { constants } = elements;
+import { MAINNET_NETHASH, TESTNET_NETHASH } from '@liskhq/lisk-constants';
 
 export const COMMAND_TYPES = [
 	'accounts',
@@ -45,9 +43,8 @@ export const CONFIG_VARIABLES = ['api.nodes', 'api.network', 'json', 'pretty'];
 export const API_PROTOCOLS = ['http:', 'https:'];
 
 export const NETHASHES = {
-	main: constants.MAINNET_NETHASH,
-	test: constants.TESTNET_NETHASH,
-	beta: constants.BETANET_NETHASH,
+	main: MAINNET_NETHASH,
+	test: TESTNET_NETHASH,
 };
 
 export const SORT_FIELDS = [
