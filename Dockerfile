@@ -22,7 +22,7 @@ ENV WFI_COMMIT=e34c502a3efe0e8b8166ea6148d55b73da5c8401
 ENV WFI_SHA=0f75de5c9d9c37a933bb9744ffd710750d5773892930cfe40509fa505788835c
 
 RUN apk --no-cache upgrade && \
-    apk --no-cache add bash jq
+    apk --no-cache add bash curl jq
 
 RUN addgroup -g 1100 lisk && \
     adduser -h /home/lisk -s /bin/bash -u 1100 -G lisk -D lisk
