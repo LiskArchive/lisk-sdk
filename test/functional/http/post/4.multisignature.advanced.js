@@ -32,7 +32,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		incorrectly_offline_signed: new Scenarios.Multisig(),
 		offline_signed_empty_signatures: new Scenarios.Multisig(),
 		offline_signed_without_ready: new Scenarios.Multisig(),
-		offline_signed_with_ready_false: new Scenarios.Multisig(),
+		offline_not_signed_with_ready_false: new Scenarios.Multisig(),
 		offline_signed_with_ready_true: new Scenarios.Multisig(),
 		duplicated_signature: new Scenarios.Multisig(),
 		extra_signature: new Scenarios.Multisig(),
@@ -73,7 +73,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		describe('signatures property', () => {
 			describe('correctly offline signed transaction', () => {
 				it('Parameter ready set to false, no signatures present, should be ok', () => {
-					var scenario = scenarios.offline_signed_with_ready_false;
+					var scenario = scenarios.offline_not_signed_with_ready_false;
 
 					scenario.multiSigTransaction.ready = false;
 
