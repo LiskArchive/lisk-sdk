@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-top-level-hooks */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,6 +14,7 @@
 
 'use strict';
 
+// eslint-disable-next-line mocha/no-top-level-hooks
 before(done => {
 	// Retry 20 times with 3 second gap
 	require('../common/utils/wait_for').blockchainReady(

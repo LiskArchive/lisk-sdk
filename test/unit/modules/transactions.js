@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -860,6 +859,7 @@ describe('transactions', () => {
 				});
 			});
 
+			/* eslint-disable mocha/no-skipped-tests */
 			it.skip('should get transaction with intransfer asset for transaction id', done => {
 				var transactionId =
 					transactionsByType[transactionTypes.IN_TRANSFER].transactionId;
@@ -885,8 +885,11 @@ describe('transactions', () => {
 					done();
 				});
 			});
+			/* eslint-enable mocha/no-skipped-tests */
 
+			/* eslint-disable mocha/no-pending-tests */
 			it('should get transaction with outtransfer asset for transaction id');
+			/* eslint-enable mocha/no-pending-tests */
 		});
 
 		describe('getTransactionsCount', () => {

@@ -14,7 +14,6 @@
 
 'use strict';
 
-/* eslint-disable mocha/no-skipped-tests */
 const lisk = require('lisk-elements').default;
 const expect = require('chai').expect;
 const accountFixtures = require('../../../fixtures/accounts');
@@ -184,6 +183,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 					});
 				});
 
+				/* eslint-disable mocha/no-skipped-tests */
 				// TODO: This tests will be unskipped as part of #1652
 				describe.skip('when receiving block with multiple signature transaction with different id for same account', () => {
 					let signatureTransaction2;
@@ -255,6 +255,7 @@ describe('system test (type 1) - second signature transactions from pool and pee
 						});
 					});
 				});
+				/* eslint-enable mocha/no-skipped-tests */
 			});
 		});
 	});

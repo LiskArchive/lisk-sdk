@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -104,6 +103,7 @@ describe('system', () => {
 		});
 	});
 
+	/* eslint-disable mocha/no-pending-tests */
 	describe('static', () => {
 		describe('setHeaders', () => {
 			it('should assign the argument to __private');
@@ -187,6 +187,7 @@ describe('system', () => {
 
 		it('should return false if argument is not equal to __private.nethash');
 	});
+	/* eslint-enable mocha/no-pending-tests */
 
 	describe('versionCompatible', () => {
 		describe('when version is equal to system version', () => {
@@ -208,6 +209,7 @@ describe('system', () => {
 		});
 	});
 
+	/* eslint-disable mocha/no-pending-tests */
 	describe('nonceCompatible', () => {
 		it('should return if nonce exists and is different than the system nonce');
 
@@ -247,4 +249,5 @@ describe('system', () => {
 			it('should assign transport');
 		});
 	});
+	/* eslint-enable mocha/no-pending-tests */
 });

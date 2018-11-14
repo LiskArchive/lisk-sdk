@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -14,6 +13,8 @@
  */
 
 'use strict';
+
+/* eslint-disable mocha/no-pending-tests */
 
 describe('lisk_params_validator', () => {
 	it('should be a factory function that names 2 arguments');
@@ -32,3 +33,5 @@ describe('lisk_params_validator', () => {
 		'should response for each param error with "code", "message", "in", "name", "errors"'
 	);
 });
+
+/* eslint-enable mocha/no-pending-tests */

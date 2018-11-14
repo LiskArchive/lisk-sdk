@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -15,6 +14,8 @@
 
 'use strict';
 
+/* eslint-disable mocha/no-pending-tests */
+
 describe('lisk_error_handler', () => {
 	it('should be a factory function that names 2 arguments');
 
@@ -28,3 +29,5 @@ describe('lisk_error_handler', () => {
 
 	it('should handle 500 errors and override response');
 });
+
+/* eslint-enable mocha/no-pending-tests */

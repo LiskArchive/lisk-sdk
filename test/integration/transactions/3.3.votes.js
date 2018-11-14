@@ -29,6 +29,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 	var i = 0;
 	var t = 0;
+
 	/* eslint-disable no-loop-func */
 	while (i < 30) {
 		describe('executing 30 times', () => {
@@ -210,4 +211,5 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 		});
 		i++;
 	}
+	/* eslint-enable no-loop-func */
 });

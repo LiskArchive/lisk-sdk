@@ -184,6 +184,7 @@ describe('RPC', () => {
 
 		it('asking for a list multiple times should be ok', done => {
 			var successfulAsks = 0;
+
 			/* eslint-disable no-loop-func */
 			for (var i = 0; i < 100; i += 1) {
 				connectedPeer.rpc.list((err, result) => {
@@ -197,6 +198,7 @@ describe('RPC', () => {
 					}
 				});
 			}
+			/* eslint-enable no-loop-func */
 		});
 	});
 

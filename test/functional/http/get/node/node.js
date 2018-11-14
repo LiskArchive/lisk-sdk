@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -112,8 +111,10 @@ describe('GET /node', () => {
 		describe('GET /forging', () => {
 			var forgingEndpoint = new swaggerEndpoint('GET /node/status/forging');
 
+			/* eslint-disable mocha/no-pending-tests */
 			// TODO: Find a library for supertest to make request from a proxy server
 			it('called from unauthorized IP should fail');
+			/* eslint-enable mocha/no-pending-tests */
 
 			it('using no params should return full list of internal forgers', () => {
 				return forgingEndpoint.makeRequest({}, 200).then(res => {

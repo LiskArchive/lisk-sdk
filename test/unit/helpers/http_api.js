@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests, mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *

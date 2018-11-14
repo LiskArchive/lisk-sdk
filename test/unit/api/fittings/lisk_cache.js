@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -14,6 +13,8 @@
  */
 
 'use strict';
+
+/* eslint-disable mocha/no-pending-tests */
 
 describe('lisk_compression', () => {
 	it('should be a factory function that names 2 arguments');
@@ -32,3 +33,5 @@ describe('lisk_compression', () => {
 		'should not cache responses for endpoints for which "swagger_cache_key" is set false or not provided'
 	);
 });
+
+/* eslint-enable mocha/no-pending-tests */

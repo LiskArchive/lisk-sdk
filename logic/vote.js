@@ -64,6 +64,7 @@ class Vote {
 	 * @returns {SetImmediate} error
 	 * @todo Add description for the params
 	 */
+
 	/* eslint-disable class-methods-use-this */
 	undoConfirmed(transaction, block, sender, cb, tx) {
 		if (transaction.asset.votes === null) {
@@ -82,6 +83,7 @@ class Vote {
 			tx
 		);
 	}
+	/* eslint-enable class-methods-use-this */
 
 	/**
 	 * Calls Diff.reverse to change asset.votes signs and merges account to
@@ -108,6 +110,7 @@ class Vote {
 			tx
 		);
 	}
+	/* eslint-enable class-methods-use-this */
 }
 
 // TODO: The below functions should be converted into static functions,

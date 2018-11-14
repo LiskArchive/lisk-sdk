@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-pending-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -53,8 +52,10 @@ describe('PUT /node/status/forging', () => {
 			});
 	});
 
+	/* eslint-disable mocha/no-pending-tests */
 	// TODO: Find a library for supertest to make request from a proxy server
 	it('called from unauthorized IP should fail');
+	/* eslint-enable mocha/no-pending-tests */
 
 	it('using no params should fail', () => {
 		return updateForgingEndpoint.makeRequest({ data: {} }, 400).then(res => {

@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -750,6 +749,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 					});
 				});
 
+				/* eslint-disable mocha/no-skipped-tests */
 				describe.skip('(type 6) inTransfer dapp', () => {
 					it('should validate account data from sender after account creation', done => {
 						library.logic.account.get(
@@ -916,6 +916,7 @@ describe('system test (blocks) - chain/deleteLastBlock', () => {
 						);
 					});
 				});
+				/* eslint-enable mocha/no-skipped-tests */
 			});
 		});
 

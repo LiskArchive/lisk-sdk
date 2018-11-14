@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-skipped-tests */
 /*
  * Copyright © 2018 Lisk Foundation
  *
@@ -103,6 +102,7 @@ describe('rounds', () => {
 				done();
 			});
 
+			/* eslint-disable mocha/no-skipped-tests */
 			describe.skip('library', () => {
 				it('should throw', done => {
 					var property = 'library';
@@ -147,6 +147,7 @@ describe('rounds', () => {
 					done();
 				});
 			});
+			/* eslint-enable mocha/no-skipped-tests */
 
 			describe('round', () => {
 				it('should throw', done => {
@@ -711,6 +712,7 @@ describe('rounds', () => {
 			return results;
 		}
 
+		/* eslint-disable mocha/no-skipped-tests */
 		describe.skip('with no delegates', () => {
 			describe('forward', () => {
 				before(done => {
@@ -752,6 +754,7 @@ describe('rounds', () => {
 				});
 			});
 		});
+		/* eslint-enable mocha/no-skipped-tests */
 
 		describe('with only one delegate', () => {
 			describe('when there are no remaining fees', () => {
