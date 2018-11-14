@@ -1,9 +1,0 @@
-{
-	"env": {
-		"mocha": true
-	},
-	"globals": {
-		"Cypress": true,
-		"cy": true
-	}
-}
