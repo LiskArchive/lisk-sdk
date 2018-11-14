@@ -14,6 +14,7 @@
 
 'use strict';
 
+const _ = require('lodash');
 const {
 	ImplementationPendingError,
 	NonSupportedFilterTypeError,
@@ -85,6 +86,79 @@ class BaseEntity {
 	}
 
 	/**
+	 * Add a field for manipulation
+	 *
+	 * @param {string} name - Name of the field
+	 * @param {string} type - JSON-Schema type
+	 * @param {Object} [options={}]
+	 * @param {string} [options.realName] - Real name of the field
+	 * @param {string} [options.filter] - Filter type
+	 * @param {string} [options.filterCondition] - Filter condition
+	 * @param {string} [options.format] - JSON-Schema format for provided type
+	 * @param {*} [options.default] - Default value for insertion
+	 * @param {function} [writer] - Writer encode writing logic
+	 */
+	addField(name, type, options, writer) {
+		// TODO: The dynamic generated json-schema should be implemented for validation
+
+		this.fields[name] = {
+			type,
+			realName: options.realName || name,
+			writer:
+				writer ||
+				((value, mode, name, realName) => `"${realName}" = $\{${name}}`),
+		};
+
+		if (options.filter) {
+			this.addFilter(
+				name,
+				options.filter,
+				_.pick(
+					{
+						realName: options.realName,
+						condition: options.filterCondition,
+					},
+					_.identity
+				)
+			);
+		}
+	}
+
+	getUpdateSet(data) {
+		return this.adapter.parseQueryComponent(
+			Object.keys(data)
+				.map(key =>
+					this.fields[key].writer.call(
+						null,
+						data[key],
+						'update',
+						key,
+						this.fields[key].realName
+					)
+				)
+				.join(','),
+			data
+		);
+	}
+
+	getValuesSet(data) {
+		return this.adapter.parseQueryComponent(
+			Object.keys(data)
+				.map(key => {
+					this.fields[key].writer.call(
+						null,
+						data[key],
+						'insert',
+						key,
+						this.fields[key].realName
+					);
+				})
+				.join(','),
+			data
+		);
+	}
+
+	/**
 	 * Setup the filters for getters
 	 *
 	 * @param {string} filterName
@@ -94,6 +168,8 @@ class BaseEntity {
 	 * @param {string} [options.condition] - custom condition in case of CUSTOM filter type
 	 */
 	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
+		// TODO: The dynamic generated json-schema for filters should be implemented for validation
+
 		const fieldName = options.realName || filterName;
 
 		const setFilter = (filterAlias, condition) => {

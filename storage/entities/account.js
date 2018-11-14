@@ -14,11 +14,13 @@
 
 'use strict';
 
+const _ = require('lodash');
+const { stringToByte, booleanToInt } = require('../utils/writers');
 const ft = require('./filter_types');
 const BaseEntity = require('./base_entity');
 
 const defaultCreateValues = {
-	publicKey: '',
+	publicKey: null,
 	secondPublicKey: '',
 	secondSignature: 0,
 	u_secondSignature: 0,
@@ -46,25 +48,57 @@ const defaultCreateValues = {
 	u_multiSignatures: null,
 };
 
+const readOnlyFields = ['address'];
+
 class Account extends BaseEntity {
 	constructor() {
 		super();
 
-		this.addFilter('address', ft.TEXT);
-		this.addFilter('publicKey', ft.BINARY);
-		this.addFilter('secondPublicKey', ft.BINARY);
-		this.addFilter('username', ft.TEXT);
-		this.addFilter('isDelegate', ft.NUMBER);
-		this.addFilter('secondSignature', ft.NUMBER);
-		this.addFilter('balance', ft.NUMBER);
-		this.addFilter('multiMin', ft.NUMBER, { realName: 'multimin' });
-		this.addFilter('multiLifetime', ft.NUMBER, { realName: 'multilifetime' });
-		this.addFilter('nameExist', ft.BOOLEAN, { realName: 'nameexist' });
-		this.addFilter('fees', ft.NUMBER);
-		this.addFilter('rewards', ft.NUMBER);
-		this.addFilter('producedBlocks', ft.NUMBER);
-		this.addFilter('missedBlocks', ft.NUMBER);
-		this.addFilter('rank', ft.NUMBER);
+		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });
+		this.addField(
+			'publicKey',
+			'string',
+			{
+				format: 'address',
+				filter: ft.BINARY,
+			},
+			stringToByte
+		);
+		this.addField(
+			'secondPublicKey',
+			'string',
+			{
+				format: 'address',
+				filter: ft.BINARY,
+			},
+			stringToByte
+		);
+		this.addField('username', 'string', { filter: ft.TEXT });
+		this.addField(
+			'isDelegate',
+			'boolean',
+			{ filter: ft.BOOLEAN },
+			booleanToInt
+		);
+		this.addField('secondSignature', 'boolean', { filter: ft.BOOLEAN });
+		this.addField('balance', 'string', { filter: ft.NUMBER });
+		this.addField('multiMin', 'number', {
+			filter: ft.NUMBER,
+			realName: 'multimin',
+		});
+		this.addField('multiLifetime', 'number', {
+			filter: ft.NUMBER,
+			realName: 'multilifetime',
+		});
+		this.addField('nameExist', 'boolean', {
+			filter: ft.BOOLEAN,
+			realName: 'nameexist',
+		});
+		this.addField('fees', 'string', { filter: ft.NUMBER });
+		this.addField('rewards', 'string', { filter: ft.NUMBER });
+		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
+		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
+		this.addField('rank', 'string', { filter: ft.NUMBER });
 
 		this.addFilter('votedFor', ft.CUSTOM, {
 			condition:
@@ -79,6 +113,8 @@ class Account extends BaseEntity {
 			selectSimple: this.adapter.loadSQLFile('accounts/get_simple.sql'),
 			selectFull: this.adapter.loadSQLFile('accounts/get_full.sql'),
 			create: this.adapter.loadSQLFile('accounts/create.sql'),
+			update: this.adapter.loadSQLFile('accounts/update.sql'),
+			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
 		};
 	}
 
@@ -119,9 +155,35 @@ class Account extends BaseEntity {
 	}
 
 	create(data) {
-		const objectData = Object.assign({}, defaultCreateValues, data);
+		const objectData = _.defaults(data, defaultCreateValues);
 
 		return this.adapter.executeFile(this.SQLs.create, objectData);
+	}
+
+	update(filters, data) {
+		const objectData = _.omit(data, readOnlyFields);
+		const parsedFilters = this.parseFilters(filters);
+		const updateSet = this.getUpdateSet(objectData);
+
+		const params = Object.assign(objectData, {
+			parsedFilters,
+			updateSet,
+		});
+
+		return this.adapter.executeFile(this.SQLs.update, params);
+	}
+
+	updateOne(filters, data) {
+		const objectData = _.omit(data, readOnlyFields);
+		const parsedFilters = this.parseFilters(filters);
+		const updateSet = this.getUpdateSet(objectData);
+
+		const params = Object.assign(objectData, {
+			parsedFilters,
+			updateSet,
+		});
+
+		return this.adapter.executeFile(this.SQLs.updateOne, params);
 	}
 
 	getFieldSets() {

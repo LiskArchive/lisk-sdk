@@ -26,7 +26,7 @@ INSERT INTO mem_accounts (
 	"multilifetime", "u_multilifetime",
 	"multisignatures", "u_multisignatures"
 ) VALUES (
-	${address}, ${publicKey}, ${publicKey}
+	${address}, ${publicKey}, ${publicKey},
 	${secondSignature}, ${u_secondSignature},
 	${username}, ${u_username},
 	${isDelegate}, ${u_isDelegate},
