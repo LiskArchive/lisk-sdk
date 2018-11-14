@@ -59,11 +59,11 @@ export default class GetCommand extends BaseCommand {
 
 		const client = getAPIClient(this.userConfig.api);
 
-		if (txnState && txnState === 'unsigned') {
+		if (txnState === 'unsigned') {
 			const results = await queryNode(client.node, txnState, req);
 			return this.print(results);
 		}
-		if (txnState && txnState === 'unprocessed') {
+		if (txnState === 'unprocessed') {
 			const results = await queryNode(client.node, txnState, req);
 			return this.print(results);
 		}
