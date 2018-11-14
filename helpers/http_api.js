@@ -138,16 +138,18 @@ var middleware = {
 	 */
 	applyAPIAccessRules(config, req, res, next) {
 		if (!config.api.enabled) {
-			res
-				.status(apiCodes.INTERNAL_SERVER_ERROR)
-				.send({ success: false, error: 'API access disabled' });
+			res.status(apiCodes.FORBIDDEN).send({
+				message: 'API access disabled',
+				errors: ['API is not enabled in this node.'],
+			});
 		} else if (
 			!config.api.access.public &&
 			!checkIpInList(config.api.access.whiteList, req.ip)
 		) {
-			res
-				.status(apiCodes.FORBIDDEN)
-				.send({ success: false, error: 'API access denied' });
+			res.status(apiCodes.FORBIDDEN).send({
+				message: 'API access denied',
+				errors: ['API access blocked.'],
+			});
 		} else {
 			next();
 		}
@@ -360,6 +362,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 				});
 			})
 			.catch(reason => {
+				logger.error(reason.toString());
 				cb(reason);
 			});
 	});

@@ -169,8 +169,9 @@ describe('httpApi', () => {
 				done();
 			});
 
-			it('should call logger.log with string "GET req/url from 127.0.0.1"', done => {
-				expect(loggerMock.log.calledWith('GET req/url from 127.0.0.1'));
+			it('should call logger.log with string "GET api/url from 127.0.0.1"', done => {
+				expect(loggerMock.log.calledWith('GET api/url from 127.0.0.1')).to.be
+					.true;
 				done();
 			});
 
@@ -243,10 +244,10 @@ describe('httpApi', () => {
 				);
 
 				expect(validNextSpy).to.be.not.called;
-				expect(resMock.status).to.be.calledWith(apiCodes.INTERNAL_SERVER_ERROR);
+				expect(resMock.status.calledWith(apiCodes.FORBIDDEN)).to.be.true;
 				expect(resMock.send).to.be.calledWith({
-					success: false,
-					error: 'API access disabled',
+					message: 'API access disabled',
+					errors: ['API is not enabled in this node.'],
 				});
 				done();
 			});
@@ -308,10 +309,10 @@ describe('httpApi', () => {
 					'192.168.99.101'
 				);
 				expect(validNextSpy).to.be.not.called;
-				expect(resMock.status).to.be.calledWith(apiCodes.FORBIDDEN);
+				expect(resMock.status.calledWith(apiCodes.FORBIDDEN)).to.be.true;
 				expect(resMock.send).to.be.calledWith({
-					success: false,
-					error: 'API access denied',
+					message: 'API access denied',
+					errors: ['API access blocked.'],
 				});
 				done();
 			});

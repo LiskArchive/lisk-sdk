@@ -1490,12 +1490,6 @@ describe('transport', () => {
 						)
 					).to.be.true;
 				});
-
-				it('should call library.network.io.sockets.emit with "blocks/change" and block', () => {
-					return expect(
-						library.network.io.sockets.emit.calledWith('blocks/change', block)
-					).to.be.true;
-				});
 			});
 		});
 

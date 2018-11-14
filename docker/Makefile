@@ -19,19 +19,19 @@ else
 endif
 
 up:
-	docker-compose up -d
+	docker-compose up --detach
 
+compose := docker-compose -f docker-compose.yml -f docker-compose.make.yml
 coldstart: $(lisk_net)_blockchain.db.gz up
 	docker-compose stop lisk
 	docker-compose start db
-	docker-compose run --rm task dropdb --if-exists $(lisk_db)
-	docker-compose run --rm task createdb $(lisk_db)
-	@echo Restoring database snapshot. This can take a few minutes.
-	gzip --decompress --to-stdout $(lisk_net)_blockchain.db.gz |docker-compose run --rm task psql >/dev/null
+	$(compose) run --rm db-task dropdb --if-exists $(lisk_db)
+	$(compose) run --rm db-task createdb $(lisk_db)
+	gzip --decompress --to-stdout $(lisk_net)_blockchain.db.gz |$(compose) run --rm db-task psql >/dev/null
 	docker-compose start lisk
 
 clean:
 	rm -f *blockchain.db.gz
 
 mrproper: clean
-	docker-compose down --volumes
+	docker-compose down --volumes --remove-orphans

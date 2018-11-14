@@ -446,9 +446,6 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 		},
 		{ api: 'postBlock', data: { block }, immediate: true }
 	);
-
-	// Emit notification
-	library.network.io.sockets.emit('blocks/change', block);
 };
 
 /**

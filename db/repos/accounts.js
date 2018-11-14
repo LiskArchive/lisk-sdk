@@ -94,6 +94,7 @@ class AccountsRepository {
 		this.dbTable = 'mem_accounts';
 		this.dbFields = allFields;
 		this.cs = cs;
+		this.inTransaction = !!(db.ctx && db.ctx.inTransaction);
 
 		if (!cs.select) {
 			cs.select = new pgp.helpers.ColumnSet(allFields, { table: this.dbTable });
@@ -211,14 +212,18 @@ class AccountsRepository {
 			conditionObject[field] = data[field];
 		});
 
-		return this.db.tx('db:accounts:upsert', function*(t) {
-			const result = yield t.accounts.list(conditionObject, ['address']);
-			if (result.length) {
-				yield t.accounts.update(result[0].address, updateData);
-			} else {
-				yield t.accounts.insert(data);
-			}
-		});
+		const task = t =>
+			t.accounts.list(conditionObject, ['address']).then(result => {
+				if (result.length) {
+					return t.accounts.update(result[0].address, updateData);
+				}
+				return t.accounts.insert(data);
+			});
+
+		// To avoid nested transactions a.k.a. save points
+		return this.inTransaction
+			? task(this.db)
+			: this.db.tx('db:accounts:upsert', task);
 	}
 
 	/**

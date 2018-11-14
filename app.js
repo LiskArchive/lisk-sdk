@@ -214,6 +214,12 @@ d.run(() => {
 					throw Error('Failed to assign nethash from genesis block');
 				}
 
+				// If peers layer is not enabled there is no need to create the peer's list
+				if (!appConfig.peers.enabled) {
+					appConfig.peers.list = [];
+					return cb(null, appConfig);
+				}
+
 				// In case domain names are used, resolve those to IP addresses.
 				var peerDomainLookupTasks = appConfig.peers.list.map(
 					peer => callback => {
@@ -506,6 +512,12 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
+					if (!appConfig.peers.enabled) {
+						scope.logger.info(
+							'Skipping P2P server initialization due to the config settings - "peers.enabled" is set to false.'
+						);
+						return cb();
+					}
 					var webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
@@ -745,6 +757,9 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
+					if (!appConfig.peers.enabled) {
+						return cb();
+					}
 					new wsTransport(scope.modules.transport);
 					cb();
 				},
@@ -761,6 +776,10 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
+					if (!appConfig.api.enabled) {
+						return cb();
+					}
+
 					scope.network.server.listen(
 						scope.config.httpPort,
 						scope.config.address,

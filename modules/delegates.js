@@ -181,39 +181,34 @@ __private.validateBlockSlot = function(block, source, cb) {
 };
 
 /**
- * Gets slot time and keypair.
+ * Gets the assigned delegate to current slot and returns its keypair if present.
  *
  * @private
  * @param {number} slot
- * @param {number} height
+ * @param {number} round
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getBlockSlotData = function(slot, height, cb) {
-	const round = slots.calcRound(height);
-	self.generateDelegateList(round, null, (err, activeDelegates) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		let currentSlot = slot;
-		const lastSlot = slots.getLastSlot(currentSlot);
-
-		for (; currentSlot < lastSlot; currentSlot += 1) {
-			const delegate_pos = currentSlot % ACTIVE_DELEGATES;
-			const delegate_id = activeDelegates[delegate_pos];
-
-			if (delegate_id && __private.keypairs[delegate_id]) {
-				return setImmediate(cb, null, {
-					time: slots.getSlotTime(currentSlot),
-					keypair: __private.keypairs[delegate_id],
-				});
+__private.getDelegateKeypairForCurrentSlot = function(currentSlot, round, cb) {
+	self.generateDelegateList(
+		round,
+		null,
+		(generateDelegateListErr, activeDelegates) => {
+			if (generateDelegateListErr) {
+				return setImmediate(cb, generateDelegateListErr);
 			}
-		}
 
-		return setImmediate(cb, null, null);
-	});
+			const currentSlotIndex = currentSlot % ACTIVE_DELEGATES;
+			const currentSlotDelegate = activeDelegates[currentSlotIndex];
+
+			if (currentSlotDelegate && __private.keypairs[currentSlotDelegate]) {
+				return setImmediate(cb, null, __private.keypairs[currentSlotDelegate]);
+			}
+
+			return setImmediate(cb, null, null);
+		}
+	);
 };
 
 /**
@@ -247,23 +242,29 @@ __private.forge = function(cb) {
 	const lastBlock = modules.blocks.lastBlock.get();
 
 	if (currentSlot === slots.getSlotNumber(lastBlock.timestamp)) {
-		library.logger.debug('Waiting for next delegate slot');
+		library.logger.debug('Block already forged for the current slot');
 		return setImmediate(cb);
 	}
 
-	__private.getBlockSlotData(
+	// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
+	const round = slots.calcRound(lastBlock.height + 1);
+
+	__private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
-		lastBlock.height + 1,
-		(err, currentBlockData) => {
-			if (err || currentBlockData === null) {
-				library.logger.warn('Skipping delegate slot', err);
+		round,
+		(getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
+			if (getDelegateKeypairForCurrentSlotError) {
+				library.logger.error(
+					'Skipping delegate slot',
+					getDelegateKeypairForCurrentSlotError
+				);
 				return setImmediate(cb);
 			}
 
-			if (
-				slots.getSlotNumber(currentBlockData.time) !== slots.getSlotNumber()
-			) {
-				library.logger.debug('Delegate slot', slots.getSlotNumber());
+			if (delegateKeypair === null) {
+				library.logger.debug('Waiting for delegate slot', {
+					currentSlot: slots.getSlotNumber(),
+				});
 				return setImmediate(cb);
 			}
 
@@ -290,8 +291,8 @@ __private.forge = function(cb) {
 			);
 
 			modules.blocks.process.generateBlock(
-				currentBlockData.keypair,
-				currentBlockData.time,
+				delegateKeypair,
+				slots.getSlotTime(currentSlot),
 				blockGenerationErr => {
 					if (blockGenerationErr) {
 						library.logger.error(
@@ -314,7 +315,7 @@ __private.forge = function(cb) {
 							'round:',
 							slots.calcRound(forgedBlock.height),
 							'slot:',
-							slots.getSlotNumber(currentBlockData.time),
+							slots.getSlotNumber(forgedBlock.timestamp),
 							`reward: ${forgedBlock.reward}`,
 						].join(' ')
 					);
