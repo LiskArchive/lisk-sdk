@@ -1,6 +1,6 @@
 {
 	"name": "lisk-elements",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"description": "Elements for building blockchain applications in the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
