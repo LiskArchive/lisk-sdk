@@ -66,4 +66,4 @@ JQ_FILE="jq"
 NPM_CLI="$BUILD_NAME/lib/node_modules/npm/bin/npm-cli.js"
 
 PM2_VERSION=3.1.3
-LISK_COMMANDER_VERSION="2.0.0-beta.2"
+LISK_COMMANDER_VERSION="2.0.0"
