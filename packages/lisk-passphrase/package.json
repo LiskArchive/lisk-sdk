@@ -25,7 +25,7 @@
 	"scripts": {
 		"transpile": "babel src -d dist-node",
 		"transpile:browsertest": "babel src -d ./browsertest.build/src && BABEL_ENV=browsertest babel test -d ./browsertest.build/test",
-		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
+		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk-passphrase --no-bf --no-builtins",
 		"browserify:browsertest": "browserify ./browsertest.build/test/*.js -o ./browsertest.build/browsertest.js -s lisk",
 		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
