@@ -15,6 +15,7 @@
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { APIClient } from './api_client';
 import { ApiResponse, HashMap } from './api_types';
+import { APIError } from './errors';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
@@ -73,16 +74,18 @@ export class APIResource {
 				(error: AxiosError): Error => {
 					if (error.response) {
 						if (error.response.data && error.response.data.message) {
-							throw new Error(
+							throw new APIError(
 								`Status ${error.response.status} : ${
 									error.response.data.message
 								}`,
+								error.response.status,
 							);
 						}
-						throw new Error(
+						throw new APIError(
 							`Status ${
 								error.response.status
 							} : An unknown error has occurred.`,
+							error.response.status,
 						);
 					}
 					throw error;
