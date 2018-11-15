@@ -15,69 +15,34 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var modulesLoader = require('../../common/modules_loader');
-var swaggerHelper = require('../../../helpers/swagger');
+const rewire = require('rewire');
+const application = require('../../common/application');
 
 const { ACTIVE_DELEGATES } = __testContext.config.constants;
 
 describe('loader', () => {
-	var loaderModule;
-	var blocksModuleMock;
-	var loadBlockChainStub;
+	let library;
+	let loader_module;
 
 	before(done => {
-		var loaderModuleRewired = rewire('../../../modules/loader');
-		blocksModuleMock = {
-			lastBlock: {
-				get() {},
-			},
-		};
-
-		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSwaggerSpec => {
-			modulesLoader.initModule(
-				loaderModuleRewired,
-				_.assign({}, modulesLoader.scope, {
-					logic: {
-						transaction: sinonSandbox.mock(),
-						account: sinonSandbox.mock(),
-						peers: {
-							create: sinonSandbox.stub().returnsArg(0),
-						},
-					},
-				}),
-				(err, __loaderModule) => {
-					if (err) {
-						return done(err);
-					}
-					loaderModule = __loaderModule;
-					loadBlockChainStub = sinonSandbox.stub(
-						loaderModuleRewired.__get__('__private'),
-						'loadBlockChain'
-					);
-					loaderModule.onBind({
-						blocks: blocksModuleMock,
-						swagger: {
-							definitions: resolvedSwaggerSpec.definitions,
-						},
-					});
-					done();
-				}
-			);
+		application.init(null, (err, scope) => {
+			library = scope;
+			loader_module = library.modules.loader;
+			done(err);
 		});
 	});
 
-	after(() => {
-		return loadBlockChainStub.restore();
+	after(done => {
+		application.cleanup(done);
 	});
 
 	describe('findGoodPeers', () => {
-		var HEIGHT_TWO = 2;
-		var getLastBlockStub;
+		const HEIGHT_TWO = 2;
+		let getLastBlockStub;
 
 		beforeEach(done => {
 			getLastBlockStub = sinonSandbox
-				.stub(blocksModuleMock.lastBlock, 'get')
+				.stub(library.modules.blocks.lastBlock, 'get')
 				.returns({ height: HEIGHT_TWO });
 			done();
 		});
@@ -87,7 +52,7 @@ describe('loader', () => {
 		});
 
 		it('should return peers list sorted by height', () => {
-			var peers = [
+			const peers = [
 				{
 					ip: '1.1.1.1',
 					wsPort: '4000',
@@ -110,7 +75,7 @@ describe('loader', () => {
 				},
 			];
 
-			var goodPeers = loaderModule.findGoodPeers(peers);
+			const goodPeers = loader_module.findGoodPeers(peers);
 			expect(goodPeers)
 				.to.have.property('height')
 				.equal(HEIGHT_TWO); // Good peers - above my height (above and equal 2)
@@ -385,10 +350,11 @@ describe('loader', () => {
 		describe('when tries are < than 5', () => {
 			describe('when loaded is false', () => {
 				it('should call self.getRandomPeerFromNetwork');
+
 				describe('when self.getRandomPeerFromNetwork fails', () => {
 					it('should sum + 1 to tries');
 					it('should log error "Failed to get random peer from network"');
-					it('should call next');
+					it('should call whilst callback');
 				});
 
 				describe('when self.getRandomPeerFromNetwork succeds', () => {
@@ -404,7 +370,7 @@ describe('loader', () => {
 					describe('when modules.blocks.process.getCommonBlock fails', () => {
 						it('should sum + 1 to tries');
 						it('should log error');
-						it('should call next');
+						it('should call whilst callback');
 					});
 
 					describe('when modules.blocks.process.getCommonBlock succeds', () => {
@@ -414,7 +380,7 @@ describe('loader', () => {
 								it(
 									'should log error containning "Failed to find common block with"'
 								);
-								it('should call next');
+								it('should call whilst callback');
 							});
 
 							describe('when lastBlock.height is genesis (1)', () => {
@@ -446,7 +412,7 @@ describe('loader', () => {
 								it(
 									'should modify loaded to false if lastValidBlock and lastBlock are not equal'
 								);
-								it('should call next');
+								it('should call whilst callback');
 							});
 						});
 					});
@@ -469,40 +435,63 @@ describe('loader', () => {
 	});
 
 	describe('__private.getRandomPeerFromNetwork', () => {
-		describe('when __private.network.height > 0 and differs from last block height with 1', () => {
-			it('should call callback with error = null');
+		let listRandomConnectedStub;
+		let findGoodPeersSpy;
 
-			it('should call callback with result = random peer');
-
-			it('should not call logic.peers.listRandomConnected');
+		afterEach(() => {
+			findGoodPeersSpy.restore();
+			return listRandomConnectedStub.restore();
 		});
 
-		describe('when __private.network.height = 0 or differs from last block height with more than 1', () => {
-			it('should call logic.peers.listRandomConnected');
+		describe('when there are good peers', () => {
+			const peers = [
+				{
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+				},
+			];
 
-			it(
-				'should call logic.peers.listRandomConnected with {normalized: false}'
-			);
-
-			describe('when logic.peers.listRandomConnected fails', () => {
-				it('should call callback with error');
+			beforeEach(done => {
+				listRandomConnectedStub = sinonSandbox
+					.stub(library.logic.peers, 'listRandomConnected')
+					.returns(peers);
+				findGoodPeersSpy = sinonSandbox.spy(loader_module, 'findGoodPeers');
+				done();
 			});
 
-			describe('when logic.peers.listRandomConnected succeeds', () => {
-				it('should call self.findGoodPeers');
-
-				it('should assign __private.network');
-
-				describe('when __private.network.peers.length = 0', () => {
-					it(
-						'should call callback with error = "Failed to find enough good peers"'
-					);
+			it('should call callback with error = null and result = random peer', () => {
+				return loader_module.getRandomPeerFromNetwork((err, peer) => {
+					expect(listRandomConnectedStub).to.be.calledOnce;
+					expect(loader_module.findGoodPeers).to.be.calledOnce;
+					expect(err).to.be.null;
+					expect(peer).to.nested.include(peers[0]);
 				});
+			});
+		});
 
-				describe('when __private.network.peers.length > 0', () => {
-					it('should call callback with error = null');
+		describe('when there are no good peers', () => {
+			const peers = [
+				{
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 0,
+				},
+			];
 
-					it('should call callback with result = randomPeer');
+			beforeEach(done => {
+				listRandomConnectedStub = sinonSandbox
+					.stub(library.logic.peers, 'listRandomConnected')
+					.returns(peers);
+				findGoodPeersSpy = sinonSandbox.spy(loader_module, 'findGoodPeers');
+				done();
+			});
+
+			it('should call callback with error = "Failed to find enough good peers"', () => {
+				return loader_module.getRandomPeerFromNetwork(err => {
+					expect(listRandomConnectedStub).to.be.calledOnce;
+					expect(loader_module.findGoodPeers).to.be.calledOnce;
+					expect(err).to.equal('Failed to find enough good peers');
 				});
 			});
 		});
