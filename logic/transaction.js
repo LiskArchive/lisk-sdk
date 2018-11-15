@@ -1183,10 +1183,6 @@ class Transaction {
 				.join(', ')}`;
 		}
 
-		// Sanitize signatures property
-		transaction.signatures = Array.isArray(transaction.signatures)
-			? transaction.signatures
-			: null;
 		try {
 			transaction = __private.types[transaction.type].objectNormalize(
 				transaction
