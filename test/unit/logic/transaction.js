@@ -1268,7 +1268,7 @@ describe('transaction', () => {
 		it('should not remove any keys with valid entries', () => {
 			return expect(
 				_.keys(transactionLogic.objectNormalize(validTransaction))
-			).to.have.length(13);
+			).to.have.length(12);
 		});
 
 		it('should not remove data field after normalization', () => {
