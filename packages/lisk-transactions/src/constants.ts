@@ -39,3 +39,18 @@ export const BYTESIZES = {
 	SECOND_SIGNATURE_TRANSACTION: 64,
 	DATA: 64,
 };
+
+// tslint:disable-next-line:no-magic-numbers
+export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
+export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
+const MS_FACTOR = 1000;
+export const EPOCH_TIME_SECONDS = Math.floor(EPOCH_TIME.getTime() / MS_FACTOR);
+
+// Largest possible number which can be stored in eight bytes.
+// Derived from bignum.fromBuffer(Buffer.from(new Array(8).fill(255))).
+const MAX_EIGHT_BYTE_NUMBER = '18446744073709551615';
+
+export const MAX_ADDRESS_NUMBER = MAX_EIGHT_BYTE_NUMBER;
+export const MAX_TRANSACTION_ID = MAX_EIGHT_BYTE_NUMBER;
+// Largest possible amount. Maximum value for PostgreSQL bigint.
+export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
