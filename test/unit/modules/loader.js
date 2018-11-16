@@ -448,8 +448,8 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when loadBlocksFromPeerStub fails', () => {
-			it('should call callback with error = null after 5 tries', () => {
+		describe('when height is 0 (Genesis block)', () => {
+			it('should not call getCommonBlock', () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
@@ -457,9 +457,41 @@ describe('loader', () => {
 					string: '2.2.2.2:4000',
 				};
 
-				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub
+					.onFirstCall()
+					.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Error after first called'
+				);
 				getLastBlockStub.returns({
 					height: 1,
+				});
+				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 6);
+					expect(getLastBlockStub).to.be.calledOnce;
+					expect(__private.blocksToSync).to.equal(peer.height);
+					expect(getCommonBlockStub).to.be.not.called;
+					expect(loadBlocksFromPeerStub).to.be.calledOnce;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when loadBlocksFromPeerStub fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 3,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({
+					height: 2,
 				});
 				getCommonBlockStub.callsArgWith(2, undefined, 1);
 				loadBlocksFromPeerStub.callsArgWith(
@@ -483,7 +515,7 @@ describe('loader', () => {
 				const peer = {
 					ip: '2.2.2.2',
 					wsPort: '4000',
-					height: 2,
+					height: 3,
 					string: '2.2.2.2:4000',
 				};
 
@@ -495,7 +527,7 @@ describe('loader', () => {
 					'Error after first called'
 				);
 				getLastBlockStub.returns({
-					height: 1,
+					height: 2,
 				});
 				getCommonBlockStub.callsArgWith(2, undefined, 1);
 				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });

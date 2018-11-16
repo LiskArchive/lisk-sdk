@@ -1017,27 +1017,6 @@ describe('blocks/process', () => {
 						});
 					});
 
-					describe('when height is block 0 (genesis)', () => {
-						it('should call a callback without error and undefined block', done => {
-							blocksProcessModule.getCommonBlock(
-								{
-									ip: 1,
-									wsPort: 2,
-								},
-								1,
-								(err, block) => {
-									expect(library.logic.peers.applyHeaders.calledOnce).to.be
-										.false;
-									expect(err).to.be.undefined;
-									expect(block).to.be.undefined;
-									expect(modules.blocks.chain.recoverChain.calledOnce).to.be
-										.false;
-									done();
-								}
-							);
-						});
-					});
-
 					describe('when succeeds', () => {
 						beforeEach(() => {
 							return modules.blocks.utils.getIdSequence.callsArgWith(1, null, {

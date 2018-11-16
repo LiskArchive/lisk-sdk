@@ -867,10 +867,15 @@ __private.loadBlocksFromNetwork = function(cb) {
 							library.logger.info(
 								`Looking for common block with: ${peer.string}`
 							);
-							waterfallCb(null, peer, lastBlock);
+							return waterfallCb(null, peer, lastBlock);
 						});
 					},
 					(peer, lastBlock, waterfallCb) => {
+						// No need to call getCommonBlock if height is Genesis block
+						if (lastBlock.height === 1) {
+							return waterfallCb(null, peer, lastBlock);
+						}
+
 						modules.blocks.process.getCommonBlock(
 							peer,
 							lastBlock.height,
@@ -892,7 +897,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 										`Found common block: ${commonBlock.id} with: ${peer.string}`
 									);
 								}
-								waterfallCb(null, peer, lastBlock);
+								return waterfallCb(null, peer, lastBlock);
 							}
 						);
 					},
@@ -909,7 +914,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 									return whilstCb();
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
-								waterfallCb();
+								return waterfallCb();
 							}
 						);
 					},
