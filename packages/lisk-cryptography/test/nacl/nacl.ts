@@ -195,6 +195,21 @@ describe('nacl', () => {
 						Buffer.from(decryptedMessageBytes).toString('utf8'),
 					).to.be.eql(defaultMessage);
 				});
+
+				it('should throw an error with invalid message', () => {
+					return expect(
+						openBox.bind(
+							null,
+							Buffer.from(
+								'abcdef1234567890abcdef1234567890abcdef1234567890',
+								'hex',
+							),
+							Buffer.from(defaultNonce, 'hex'),
+							Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
+							Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
+						),
+					).to.throw(Error, 'Failed to decrypt message');
+				});
 			});
 
 			describe('integration tests', () => {
