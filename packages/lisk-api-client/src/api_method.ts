@@ -64,20 +64,25 @@ export const apiMethod = (options: RequestConfig = {}): ApiHandler =>
 		}
 
 		const resolvedURLObject = urlParams.reduce(
-			(accumulator: HashMap = {}, param: string, i: number): HashMap => ({
-				...accumulator,
-				[param]: args[i] as string,
-			}),
+			// tslint:disable-next-line no-inferred-empty-object-type
+			(accumulator: HashMap, param: string, i: number): HashMap => {
+				const value = args[i];
+				if (typeof value !== 'string' && typeof value !== 'number') {
+					throw new Error('Parameter must be a string or a number');
+				}
+
+				return {
+					...accumulator,
+					[param]: typeof value === 'number' ? value.toString() : value,
+				};
+			},
 			{},
 		);
 
 		const requestData: AxiosRequestConfig = {
 			headers: this.headers,
 			method,
-			url: solveURLParams(
-				`${this.resourcePath}${path}`,
-				resolvedURLObject as HashMap,
-			),
+			url: solveURLParams(`${this.resourcePath}${path}`, resolvedURLObject),
 		};
 
 		if (Object.keys(data).length > 0) {
