@@ -919,24 +919,10 @@ __private.loadBlocksFromNetwork = function(cb) {
 						);
 					},
 				],
-				err => {
-					if (err) {
-						return setImmediate(cb, err);
-					}
-					return whilstCb();
-				}
+				() => whilstCb()
 			);
 		},
-		err => {
-			if (err) {
-				library.logger.error(
-					'Failed to load blocks from network',
-					err.toString()
-				);
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb);
-		}
+		() => setImmediate(cb)
 	);
 };
 
