@@ -422,7 +422,7 @@ describe('loader', () => {
 			});
 		});
 
-		describe('when no common block and last block height different than 1', () => {
+		describe('when no common block found', () => {
 			it('should call callback with error = null after 5 tries', () => {
 				const peer = {
 					ip: '2.2.2.2',

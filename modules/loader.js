@@ -885,18 +885,16 @@ __private.loadBlocksFromNetwork = function(cb) {
 									failedAttemptsToLoad += 1;
 									return whilstCb();
 								}
-								if (!commonBlock && lastBlock.height != 1) {
+								if (!commonBlock) {
 									failedAttemptsToLoad += 1;
 									library.logger.error(
 										`Failed to find common block with: ${peer.string}`
 									);
 									return whilstCb();
 								}
-								if (commonBlock) {
-									library.logger.info(
-										`Found common block: ${commonBlock.id} with: ${peer.string}`
-									);
-								}
+								library.logger.info(
+									`Found common block: ${commonBlock.id} with: ${peer.string}`
+								);
 								return waterfallCb(null, peer, lastBlock);
 							}
 						);
