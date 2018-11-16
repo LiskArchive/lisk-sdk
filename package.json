@@ -67,7 +67,7 @@
 		"lodash": "=4.17.11",
 		"lisk-newrelic": "LiskHQ/lisk-newrelic#1ea09b4",
 		"method-override": "=2.3.10",
-		"newrelic": "=4.10.0",
+		"newrelic": "=4.11.0",
 		"pg-monitor": "=1.1.0",
 		"pg-promise": "=8.2.1",
 		"popsicle": "=9.1.0",
