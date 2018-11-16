@@ -843,19 +843,19 @@ __private.snapshotFinished = err => {
  */
 __private.loadBlocksFromNetwork = function(cb) {
 	// Number of failed attempts to load from peers.
-	let tries = 0;
+	let failedAttemptsToLoad = 0;
 	// If True, own node's db contains same number of blocks than the asked peer.
 	let loaded = false;
 
 	async.whilst(
-		() => !loaded && tries < 5,
+		() => !loaded && failedAttemptsToLoad < 5,
 		whilstCb => {
 			async.waterfall(
 				[
 					waterfallCb => {
 						self.getRandomPeerFromNetwork((err, peer) => {
 							if (err) {
-								tries += 1;
+								failedAttemptsToLoad += 1;
 								library.logger.error(
 									'Failed to get random peer from network',
 									err.toString()
@@ -882,11 +882,11 @@ __private.loadBlocksFromNetwork = function(cb) {
 							(err, commonBlock) => {
 								if (err) {
 									library.logger.error(err.toString());
-									tries += 1;
+									failedAttemptsToLoad += 1;
 									return whilstCb();
 								}
 								if (!commonBlock && lastBlock.height != 1) {
-									tries += 1;
+									failedAttemptsToLoad += 1;
 									library.logger.error(
 										`Failed to find common block with: ${peer.string}`
 									);
@@ -906,7 +906,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 							peer,
 							(err, lastValidBlock) => {
 								if (err) {
-									tries += 1;
+									failedAttemptsToLoad += 1;
 									library.logger.error(
 										`Failed to load blocks from: ${peer.string}`,
 										err.toString()
@@ -914,6 +914,8 @@ __private.loadBlocksFromNetwork = function(cb) {
 									return whilstCb();
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
+								// Reset counter after a batch of blocks was successfully loaded from a peer
+								failedAttemptsToLoad = 0;
 								return waterfallCb();
 							}
 						);

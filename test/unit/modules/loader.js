@@ -542,6 +542,42 @@ describe('loader', () => {
 				});
 			});
 		});
+
+		describe('when a batch of blocks is sucessfully loaded', () => {
+			it('should reset counter of failed attemps to load', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 3,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub
+					.onFirstCall()
+					.callsArgWith(0, 'Error after first called');
+				getRandomPeerFromNetworkStub
+					.onSecondCall()
+					.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Error after first called'
+				);
+				getLastBlockStub.returns({
+					height: 2,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, 1);
+				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 7);
+					expect(getLastBlockStub).to.be.calledOnce;
+					expect(__private.blocksToSync).to.equal(peer.height);
+					expect(getCommonBlockStub).to.be.calledOnce;
+					expect(loadBlocksFromPeerStub).to.be.calledOnce;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
 	});
 
 	describe('__private.getRandomPeerFromNetwork', () => {
