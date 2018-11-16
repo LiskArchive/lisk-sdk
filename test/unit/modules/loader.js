@@ -380,10 +380,7 @@ describe('loader', () => {
 		});
 
 		afterEach(() => {
-			getRandomPeerFromNetworkStub.restore();
-			getCommonBlockStub.restore();
-			getLastBlockStub.restore();
-			return loadBlocksFromPeerStub.restore();
+			return sinonSandbox.restore();
 		});
 
 		describe('when getRandomPeerFromNetwork fails', () => {
@@ -397,7 +394,7 @@ describe('loader', () => {
 					expect(getLastBlockStub).to.not.be.called;
 					expect(getCommonBlockStub).to.not.be.called;
 					expect(loadBlocksFromPeerStub).to.not.be.called;
-					return expect(err).to.be.undefined;
+					expect(err).to.be.undefined;
 				});
 			});
 		});
@@ -421,7 +418,7 @@ describe('loader', () => {
 					expect(__private.blocksToSync).to.equal(peer.height);
 					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
 					expect(loadBlocksFromPeerStub).to.not.be.called;
-					return expect(err).to.be.undefined;
+					expect(err).to.be.undefined;
 				});
 			});
 		});
@@ -447,7 +444,7 @@ describe('loader', () => {
 					expect(__private.blocksToSync).to.equal(peer.height);
 					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
 					expect(loadBlocksFromPeerStub).to.not.be.called;
-					return expect(err).to.be.undefined;
+					expect(err).to.be.undefined;
 				});
 			});
 		});
@@ -477,7 +474,7 @@ describe('loader', () => {
 					expect(__private.blocksToSync).to.equal(peer.height);
 					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
 					sinonSandbox.assert.callCount(loadBlocksFromPeerStub, 5);
-					return expect(err).to.be.undefined;
+					expect(err).to.be.undefined;
 				});
 			});
 		});
@@ -510,7 +507,7 @@ describe('loader', () => {
 					expect(__private.blocksToSync).to.equal(peer.height);
 					expect(getCommonBlockStub).to.be.calledOnce;
 					expect(loadBlocksFromPeerStub).to.be.calledOnce;
-					return expect(err).to.be.undefined;
+					expect(err).to.be.undefined;
 				});
 			});
 		});
@@ -530,8 +527,7 @@ describe('loader', () => {
 		});
 
 		afterEach(() => {
-			findGoodPeersSpy.restore();
-			return listRandomConnectedStub.restore();
+			return sinonSandbox.restore();
 		});
 
 		describe('when there are good peers', () => {
