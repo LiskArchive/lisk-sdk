@@ -357,120 +357,162 @@ describe('loader', () => {
 		let getRandomPeerFromNetworkStub;
 		let getCommonBlockStub;
 		let loadBlocksFromPeerStub;
+		let getLastBlockStub;
 
-		describe('when tries are < than 5', () => {
-			describe('when loaded is false', () => {
-				it('should call self.getRandomPeerFromNetwork');
-
-				describe('when self.getRandomPeerFromNetwork fails', () => {
-					it('should sum + 1 to tries');
-					it('should log error "Failed to get random peer from network"');
-					it('should call whilst callback');
-				});
-
-				describe('when self.getRandomPeerFromNetwork succeds', () => {
-					it('should assign lastBlock');
-					it('should result peer');
-					it('should assign __private.blocksToSync to peer.height');
-					it(
-						'should log info trace containing "Looking for common block with:"'
-					);
-					it(
-						'should call modules.blocks.process.getCommonBlock with peer and lastBlock.height'
-					);
-
-					describe('when modules.blocks.process.getCommonBlock fails', () => {
-						it('should sum + 1 to tries');
-						it('should log error');
-						it('should call whilst callback');
-					});
-
-					describe('when modules.blocks.process.getCommonBlock succeds', () => {
-						describe('when commonBlock not found', () => {
-							describe('when lastBlock.height higher than genesis (1)', () => {
-								it('should sum + 1 to tries');
-								it(
-									'should log error containning "Failed to find common block with"'
-								);
-								it('should call whilst callback');
-							});
-
-							describe('when lastBlock.height is genesis (1)', () => {
-								it(
-									'should call modules.blocks.process.loadBlocksFromPeer with peer'
-								);
-							});
-						});
-
-						describe('when commonBlock found', () => {
-							it('should log info trace starting by "Found common block:"');
-							it(
-								'should call modules.blocks.process.loadBlocksFromPeer with peer'
-							);
-
-							describe('when modules.blocks.process.loadBlocksFromPeer fails', () => {
-								it('should sum + 1 to tries');
-								it(
-									'should log error containning "Failed to load blocks from:"'
-								);
-								it('should call next');
-							});
-
-							describe('when modules.blocks.process.loadBlocksFromPeer succeds', () => {
-								it('should result lastValidBlock');
-								it(
-									'should modify loaded to true if lastValidBlock and lastBlock are equal'
-								);
-								it(
-									'should modify loaded to false if lastValidBlock and lastBlock are not equal'
-								);
-								it('should call whilst callback');
-							});
-						});
-					});
-				});
-			});
-			describe('when loaded is true', () => {
-				it('should call callback with error = null');
-			});
+		beforeEach(done => {
+			getRandomPeerFromNetworkStub = sinonSandbox.stub(
+				loader_module,
+				'getRandomPeerFromNetwork'
+			);
+			getLastBlockStub = sinonSandbox.stub(
+				library.modules.blocks.lastBlock,
+				'get'
+			);
+			getCommonBlockStub = sinonSandbox.stub(
+				blocks_module.process,
+				'getCommonBlock'
+			);
+			loadBlocksFromPeerStub = sinonSandbox.stub(
+				blocks_module.process,
+				'loadBlocksFromPeer'
+			);
+			done();
 		});
 
-		describe('when tries are >= than 5', () => {
-			beforeEach(done => {
-				getRandomPeerFromNetworkStub = sinonSandbox
-					.stub(loader_module, 'getRandomPeerFromNetwork')
-					.callsArgWith(0, 'Failed to get random peer from network');
-				getCommonBlockStub = sinonSandbox.spy(
-					blocks_module.process,
-					'getCommonBlock'
-				);
-				loadBlocksFromPeerStub = sinonSandbox.spy(
-					blocks_module.process,
-					'loadBlocksFromPeer'
-				);
-				done();
-			});
+		afterEach(() => {
+			getRandomPeerFromNetworkStub.restore();
+			getCommonBlockStub.restore();
+			getLastBlockStub.restore();
+			return loadBlocksFromPeerStub.restore();
+		});
 
-			afterEach(() => {
-				getRandomPeerFromNetworkStub.restore();
-				getCommonBlockStub.restore();
-				return loadBlocksFromPeerStub.restore();
-			});
-
-			it('should call callback with error = null', () => {
+		describe('when getRandomPeerFromNetwork fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Failed to get random peer from network'
+				);
 				return __private.loadBlocksFromNetwork(err => {
 					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					expect(getLastBlockStub).to.not.be.called;
 					expect(getCommonBlockStub).to.not.be.called;
 					expect(loadBlocksFromPeerStub).to.not.be.called;
-					expect(err).to.be.undefined;
+					return expect(err).to.be.undefined;
 				});
 			});
 		});
 
-		describe('when unexpected error happens', () => {
-			it(
-				'should call callback with error = "Failed to load blocks from network"'
-			);
+		describe('when getCommonBlock fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({ height: 1 });
+				getCommonBlockStub.callsArgWith(2, 'Error in getCommonBlock');
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					sinonSandbox.assert.callCount(getLastBlockStub, 5);
+					expect(__private.blocksToSync).to.equal(peer.height);
+					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
+					expect(loadBlocksFromPeerStub).to.not.be.called;
+					return expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when no common block and last block height different than 1', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({
+					height: 4,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, undefined);
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					sinonSandbox.assert.callCount(getLastBlockStub, 5);
+					expect(__private.blocksToSync).to.equal(peer.height);
+					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
+					expect(loadBlocksFromPeerStub).to.not.be.called;
+					return expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when loadBlocksFromPeerStub fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({
+					height: 1,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, 1);
+				loadBlocksFromPeerStub.callsArgWith(
+					1,
+					'Failed to load blocks with peer'
+				);
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					sinonSandbox.assert.callCount(getLastBlockStub, 5);
+					expect(__private.blocksToSync).to.equal(peer.height);
+					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
+					sinonSandbox.assert.callCount(loadBlocksFromPeerStub, 5);
+					return expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when getCommonBlock starts failing after the first call', () => {
+			it('should call callback with error = null after 6 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub
+					.onFirstCall()
+					.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Error after first called'
+				);
+				getLastBlockStub.returns({
+					height: 1,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, 1);
+				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 6);
+					expect(getLastBlockStub).to.be.calledOnce;
+					expect(__private.blocksToSync).to.equal(peer.height);
+					expect(getCommonBlockStub).to.be.calledOnce;
+					expect(loadBlocksFromPeerStub).to.be.calledOnce;
+					return expect(err).to.be.undefined;
+				});
+			});
 		});
 	});
 
@@ -478,32 +520,34 @@ describe('loader', () => {
 		let listRandomConnectedStub;
 		let findGoodPeersSpy;
 
+		beforeEach(done => {
+			listRandomConnectedStub = sinonSandbox.stub(
+				library.logic.peers,
+				'listRandomConnected'
+			);
+			findGoodPeersSpy = sinonSandbox.spy(loader_module, 'findGoodPeers');
+			done();
+		});
+
 		afterEach(() => {
 			findGoodPeersSpy.restore();
 			return listRandomConnectedStub.restore();
 		});
 
 		describe('when there are good peers', () => {
-			const peers = [
-				{
-					ip: '2.2.2.2',
-					wsPort: '4000',
-					height: 2,
-				},
-			];
-
-			beforeEach(done => {
-				listRandomConnectedStub = sinonSandbox
-					.stub(library.logic.peers, 'listRandomConnected')
-					.returns(peers);
-				findGoodPeersSpy = sinonSandbox.spy(loader_module, 'findGoodPeers');
-				done();
-			});
-
 			it('should call callback with error = null and result = random peer', () => {
+				const peers = [
+					{
+						ip: '2.2.2.2',
+						wsPort: '4000',
+						height: 2,
+					},
+				];
+				listRandomConnectedStub.returns(peers);
+
 				return loader_module.getRandomPeerFromNetwork((err, peer) => {
 					expect(listRandomConnectedStub).to.be.calledOnce;
-					expect(loader_module.findGoodPeers).to.be.calledOnce;
+					expect(findGoodPeersSpy).to.be.calledOnce;
 					expect(err).to.be.null;
 					expect(peer).to.nested.include(peers[0]);
 				});
@@ -511,26 +555,20 @@ describe('loader', () => {
 		});
 
 		describe('when there are no good peers', () => {
-			const peers = [
-				{
-					ip: '2.2.2.2',
-					wsPort: '4000',
-					height: 0,
-				},
-			];
-
-			beforeEach(done => {
-				listRandomConnectedStub = sinonSandbox
-					.stub(library.logic.peers, 'listRandomConnected')
-					.returns(peers);
-				findGoodPeersSpy = sinonSandbox.spy(loader_module, 'findGoodPeers');
-				done();
-			});
-
 			it('should call callback with error = "Failed to find enough good peers"', () => {
+				const peers = [
+					{
+						ip: '2.2.2.2',
+						wsPort: '4000',
+						height: 0,
+					},
+				];
+
+				listRandomConnectedStub.returns(peers);
+
 				return loader_module.getRandomPeerFromNetwork(err => {
 					expect(listRandomConnectedStub).to.be.calledOnce;
-					expect(loader_module.findGoodPeers).to.be.calledOnce;
+					expect(findGoodPeersSpy).to.be.calledOnce;
 					expect(err).to.equal('Failed to find enough good peers');
 				});
 			});
