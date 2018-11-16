@@ -717,6 +717,12 @@ class Transaction {
 
 		// Sanitize ready property
 		transaction.ready = this.ready(transaction, sender);
+		// Sanitize signatures property
+		if (sender.multisignatures) {
+			transaction.signatures = Array.isArray(transaction.signatures)
+				? transaction.signatures
+				: [];
+		}
 
 		if (checkExists) {
 			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
