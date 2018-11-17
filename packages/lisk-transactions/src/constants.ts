@@ -40,7 +40,6 @@ export const BYTESIZES = {
 	DATA: 64,
 };
 
-// tslint:disable-next-line:no-magic-numbers
 export const EPOCH_TIME = new Date(Date.UTC(2016, 4, 24, 17, 0, 0, 0));
 export const EPOCH_TIME_MILLISECONDS = EPOCH_TIME.getTime();
 const MS_FACTOR = 1000;
