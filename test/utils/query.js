@@ -132,7 +132,7 @@ describe('query utils', () => {
 			expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters.query,
 			);
-			return expect(queryResult).to.eventually.eql(response.data[0]);
+			return expect(queryResult).to.eventually.eql(response.data);
 		});
 	});
 
