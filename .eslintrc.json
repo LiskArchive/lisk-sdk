@@ -3,6 +3,7 @@
 	"plugins": ["mocha", "chai-expect"],
 	"rules": {
 		"array-callback-return": "error",
+		"callback-return": 1,
 		"camelcase": "off",
 		"chai-expect/missing-assertion": 2,
 		"chai-expect/no-inner-compare": 2,

@@ -183,7 +183,7 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 			i < limit;
 			i += 1
 		) {
-			next();
+			return next();
 		}
 	});
 };
