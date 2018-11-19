@@ -1,0 +1,32 @@
+{
+	"defaultSeverity": "error",
+	"extends": [
+		"tslint:all",
+		"tslint-immutable/all",
+		"tslint-config-prettier"
+	],
+	"rules": {
+		"completed-docs": false,
+		"file-name-casing": false,
+		"interface-name": [true, "never-prefix"],
+		"no-class": false,
+		"no-delete": true,
+		"no-expression-statement": false,
+		"no-if-statement": false,
+		"no-let": true,
+		"no-loop-statement": true,
+		"no-method-signature": false,
+		"no-mixed-interface": true,
+		"no-object-mutation": false,
+		"no-parameter-reassignment": true,
+		"no-this": false,
+		"no-unsafe-any": false,
+		"no-var-keyword": true,
+		"object-literal-sort-keys": false,
+		"prefer-method-signature": false,
+		"readonly-array": true,
+		"readonly-keyword": [true, "ignore-class"],
+		"strict-boolean-expressions": false,
+		"strict-type-predicates": false
+	}
+}

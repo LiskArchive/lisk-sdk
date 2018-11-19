@@ -1,4 +1,6 @@
---require babel-register
+--require ts-node/register
 --require ./test/setup.js
---reporter spec
+--watch-extensions ts
 --recursive
+--reporter spec
+--timeout 5000
