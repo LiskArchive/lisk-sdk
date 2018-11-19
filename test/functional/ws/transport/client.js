@@ -46,7 +46,7 @@ describe('RPC Client', () => {
 		if (
 			validPeerStub &&
 			validPeerStub.socket &&
-			validPeerStub.socket.state == validPeerStub.socket.OPEN
+			validPeerStub.socket.state === validPeerStub.socket.OPEN
 		) {
 			validPeerStub.socket.disconnect();
 		}
