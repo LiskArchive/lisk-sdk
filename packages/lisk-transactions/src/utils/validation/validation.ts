@@ -38,8 +38,7 @@ export const checkPublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
 ) =>
 	publicKeys.every((element, index) => {
-		const elementFound = publicKeys.slice(index + 1).indexOf(element);
-		if (elementFound > -1) {
+		if (publicKeys.slice(index + 1).includes(element)) {
 			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
 		}
 
@@ -82,7 +81,7 @@ export const validateAddress = (address: string): boolean => {
 		);
 	}
 
-	if (address.indexOf('.') > -1) {
+	if (address.includes('.')) {
 		throw new Error(
 			'Address format does not match requirements. Address includes invalid character: `.`.',
 		);
