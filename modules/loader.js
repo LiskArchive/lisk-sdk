@@ -856,12 +856,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 						self.getRandomPeerFromNetwork(
 							(getRandomPeerFromNetworkErr, peer) => {
 								if (getRandomPeerFromNetworkErr) {
-									failedAttemptsToLoad += 1;
-									library.logger.error(
-										'Failed to get random peer from network',
-										getRandomPeerFromNetworkErr.toString()
-									);
-									return waterfallCb(true);
+									return waterfallCb('Failed to get random peer from network');
 								}
 								__private.blocksToSync = peer.height;
 								const lastBlock = modules.blocks.lastBlock.get();
@@ -883,16 +878,12 @@ __private.loadBlocksFromNetwork = function(cb) {
 							lastBlock.height,
 							(getCommonBlockErr, commonBlock) => {
 								if (getCommonBlockErr) {
-									library.logger.error(getCommonBlockErr.toString());
-									failedAttemptsToLoad += 1;
-									return waterfallCb(true);
+									return waterfallCb(getCommonBlockErr.toString());
 								}
 								if (!commonBlock) {
-									failedAttemptsToLoad += 1;
-									library.logger.error(
+									return waterfallCb(
 										`Failed to find common block with: ${peer.string}`
 									);
-									return waterfallCb(true);
 								}
 								library.logger.info(
 									`Found common block: ${commonBlock.id} with: ${peer.string}`
@@ -906,12 +897,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 							peer,
 							(loadBlocksFromPeerErr, lastValidBlock) => {
 								if (loadBlocksFromPeerErr) {
-									failedAttemptsToLoad += 1;
-									library.logger.error(
-										`Failed to load blocks from: ${peer.string}`,
-										loadBlocksFromPeerErr.toString()
+									return waterfallCb(
+										`Failed to load blocks from: ${peer.string}`
 									);
-									return waterfallCb(true);
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
 								// Reset counter after a batch of blocks was successfully loaded from a peer
@@ -921,7 +909,13 @@ __private.loadBlocksFromNetwork = function(cb) {
 						);
 					},
 				],
-				() => whilstCb()
+				waterErr => {
+					if (waterErr) {
+						failedAttemptsToLoad += 1;
+						library.logger.error(waterErr);
+					}
+					whilstCb();
+				}
 			);
 		},
 		() => setImmediate(cb)
