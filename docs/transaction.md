@@ -421,8 +421,17 @@ OPTIONS
                                     - --state=unsigned
                                     - --state=unprocessed
 
+  --limit=limit                     [default: 20] Limits the returned transactions array by specified integer amount.
+                                    Maximum is 100.
+
+  --offset=offset                   [default: 0] Offsets the returned transactions array by specified integer amount.
+
   --[no-]pretty                     Prints JSON in pretty format rather than condensed. Has no effect if the output is
                                     set to table. You can change the default behaviour in your config.json file.
+
+  --senderId=senderId               Get transactions based by senderId which is sender's lisk address'.
+                                    Examples:
+                                    - --senderId=12668885769632475474L
 
 DESCRIPTION
   Gets transaction information from the blockchain.
@@ -431,6 +440,8 @@ EXAMPLES
   transaction:get 10041151099734832021
   transaction:get 10041151099734832021,1260076503909567890
   transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed
+  transaction:get --state=unsigned --senderId=1813095620424213569L
+  transaction:get --limit=10 --offset=5
 ```
 
 ## `lisk transaction:sign [TRANSACTION]`
