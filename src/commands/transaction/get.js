@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { isArray } from 'util';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
@@ -20,6 +21,12 @@ import { query, handleResponse } from '../../utils/query';
 
 const TRANSACTION_STATES = ['unsigned', 'unprocessed'];
 
+const senderIdFlag = {
+	description: `Get transactions based by senderId which is sender's lisk address'.
+	Examples:
+	- --senderId=12668885769632475474L
+`,
+};
 const stateFlag = {
 	char: 's',
 	options: TRANSACTION_STATES,
@@ -43,40 +50,110 @@ const queryNode = async (client, txnState, parameters) =>
 
 export default class GetCommand extends BaseCommand {
 	async run() {
-		const { args: { ids }, flags: { state: txnState } } = this.parse(
-			GetCommand,
-		);
-		const req = ids.map(id => ({
-			query: {
-				limit: 1,
-				id,
-			},
-			placeholder: {
-				id,
-				message: 'Transaction not found.',
-			},
-		}));
+		const {
+			args: { ids },
+			flags: { state: txnState, limit, offset, senderId: senderAddress },
+		} = this.parse(GetCommand);
 
 		const client = getAPIClient(this.userConfig.api);
 
-		if (txnState === 'unsigned') {
-			const results = await queryNode(client.node, txnState, req);
+		if (txnState) {
+			if (ids) {
+				const reqTransactionIDs = ids.map(id => ({
+					query: {
+						limit: 1,
+						id,
+					},
+					placeholder: {
+						id,
+						message: 'Transaction not found.',
+					},
+				}));
+
+				const results = await queryNode(
+					client.node,
+					txnState,
+					reqTransactionIDs,
+				);
+				return this.print(results);
+			}
+
+			if (senderAddress) {
+				const reqWithSenderId = [
+					{
+						query: {
+							limit,
+							offset,
+							senderId: senderAddress,
+						},
+						placeholder: {
+							senderId: senderAddress,
+							message: 'Transaction not found.',
+						},
+					},
+				];
+
+				const results = await queryNode(client.node, txnState, reqWithSenderId);
+				return this.print(results);
+			}
+
+			const reqByLimitOffset = [
+				{
+					query: {
+						limit,
+						offset,
+					},
+					placeholder: {
+						message: 'No transactions found.',
+					},
+				},
+			];
+
+			const results = await queryNode(client.node, txnState, reqByLimitOffset);
+
 			return this.print(results);
 		}
-		if (txnState === 'unprocessed') {
-			const results = await queryNode(client.node, txnState, req);
+
+		if (ids) {
+			const reqTransactionIDs = ids.map(id => ({
+				query: {
+					limit: 1,
+					id,
+				},
+				placeholder: {
+					id,
+					message: 'Transaction not found.',
+				},
+			}));
+			const results = await query(client, 'transactions', reqTransactionIDs);
+
 			return this.print(results);
 		}
+
+		const req = {
+			query: {
+				limit,
+				offset,
+			},
+			placeholder: {
+				message: 'No transactions found.',
+			},
+		};
 		const results = await query(client, 'transactions', req);
 
-		return this.print(results);
+		if (!isArray(results)) {
+			return this.print(results);
+		}
+		const sortedResults = results.sort((a, b) => b.height - a.height);
+
+		return this.print(sortedResults);
 	}
 }
 
 GetCommand.args = [
 	{
 		name: 'ids',
-		required: true,
+		required: false,
 		description: 'Comma-separated transaction ID(s) to get information about.',
 		parse: input => input.split(',').filter(Boolean),
 	},
@@ -85,6 +162,17 @@ GetCommand.args = [
 GetCommand.flags = {
 	...BaseCommand.flags,
 	state: flagParser.string(stateFlag),
+	senderId: flagParser.string(senderIdFlag),
+	limit: flagParser.string({
+		description:
+			'Limits the returned transactions array by specified integer amount. Maximum is 100.',
+		default: '20',
+	}),
+	offset: flagParser.string({
+		description:
+			'Offsets the returned transactions array by specified integer amount.',
+		default: '0',
+	}),
 };
 
 GetCommand.description = `
@@ -95,4 +183,6 @@ GetCommand.examples = [
 	'transaction:get 10041151099734832021',
 	'transaction:get 10041151099734832021,1260076503909567890',
 	'transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed',
+	'transaction:get --state=unsigned --senderId=1813095620424213569L',
+	'transaction:get --limit=10 --offset=5',
 ];
