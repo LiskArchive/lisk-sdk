@@ -29,7 +29,7 @@ while getopts "cn:v:" OPT; do
 done
 
 if [[ ${VERSION:-} && ${LISK_NETWORK:-} ]]; then
-	echo "Building version $VERSION for ${LISK_NETWORK}net."
+	echo "Building version $VERSION for ${LISK_NETWORK}."
 else
 	echo "Both -n and -v are required. Exiting."
 	exit 1
@@ -129,7 +129,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 
 	echo "Setting LISK_NETWORK in env.sh..."
 	echo "--------------------------------------------------------------------------"
-	echo "export LISK_NETWORK=${LISK_NETWORK}net" >>env.sh
+	echo "export LISK_NETWORK=${LISK_NETWORK}" >>env.sh
 
 	echo "Create default custom config.json..."
 	echo "--------------------------------------------------------------------------"

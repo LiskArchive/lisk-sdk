@@ -1,12 +1,12 @@
 lisk_version := $(shell jq --raw-output .version ../package.json)
 
 release/lisk-$(lisk_version)-Linux-x86_64.tar.gz: check src/lisk-$(lisk_version).tgz
-	bash ./build.sh -n $(LISK_NET) -v $(lisk_version) -c
+	bash ./build.sh -n $(LISK_NETWORK) -v $(lisk_version) -c
 
 .PHONY: check
 check:
-ifndef LISK_NET
-	$(error The LISK_NET environment variable must be set.)
+ifndef LISK_NETWORK
+	$(error The LISK_NETWORK environment variable must be set.)
 endif
 
 src/lisk-$(lisk_version).tgz: ../REVISION

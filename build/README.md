@@ -15,5 +15,5 @@ sudo apt-get install autoconf build-essential git jq libtool moreutils python2.7
 ### How-To
 
 ```
-make LISK_NET=main
+make LISK_NETWORK=mainnet
 ```
