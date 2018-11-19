@@ -191,9 +191,9 @@ __private.loadSignatures = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getRandomPeerFromNetwork((err, peer) => {
-					if (err) {
-						return setImmediate(waterCb, err);
+				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
+					if (getRandomPeerFromNetworkErr) {
+						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
 					}
 					return setImmediate(waterCb, null, peer);
 				});
@@ -253,9 +253,9 @@ __private.loadTransactions = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getRandomPeerFromNetwork((err, peer) => {
-					if (err) {
-						return setImmediate(waterCb, err);
+				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
+					if (getRandomPeerFromNetworkErr) {
+						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
 					}
 					return setImmediate(waterCb, null, peer);
 				});
@@ -853,22 +853,24 @@ __private.loadBlocksFromNetwork = function(cb) {
 			async.waterfall(
 				[
 					waterfallCb => {
-						self.getRandomPeerFromNetwork((err, peer) => {
-							if (err) {
-								failedAttemptsToLoad += 1;
-								library.logger.error(
-									'Failed to get random peer from network',
-									err.toString()
+						self.getRandomPeerFromNetwork(
+							(getRandomPeerFromNetworkErr, peer) => {
+								if (getRandomPeerFromNetworkErr) {
+									failedAttemptsToLoad += 1;
+									library.logger.error(
+										'Failed to get random peer from network',
+										getRandomPeerFromNetworkErr.toString()
+									);
+									return whilstCb();
+								}
+								__private.blocksToSync = peer.height;
+								const lastBlock = modules.blocks.lastBlock.get();
+								library.logger.info(
+									`Looking for common block with: ${peer.string}`
 								);
-								return whilstCb();
+								return waterfallCb(null, peer, lastBlock);
 							}
-							__private.blocksToSync = peer.height;
-							const lastBlock = modules.blocks.lastBlock.get();
-							library.logger.info(
-								`Looking for common block with: ${peer.string}`
-							);
-							return waterfallCb(null, peer, lastBlock);
-						});
+						);
 					},
 					(peer, lastBlock, waterfallCb) => {
 						// No need to call getCommonBlock if height is Genesis block
@@ -879,9 +881,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 						modules.blocks.process.getCommonBlock(
 							peer,
 							lastBlock.height,
-							(err, commonBlock) => {
-								if (err) {
-									library.logger.error(err.toString());
+							(getCommonBlockErr, commonBlock) => {
+								if (getCommonBlockErr) {
+									library.logger.error(getCommonBlockErr.toString());
 									failedAttemptsToLoad += 1;
 									return whilstCb();
 								}
@@ -902,12 +904,12 @@ __private.loadBlocksFromNetwork = function(cb) {
 					(peer, lastBlock, waterfallCb) => {
 						modules.blocks.process.loadBlocksFromPeer(
 							peer,
-							(err, lastValidBlock) => {
-								if (err) {
+							(loadBlocksFromPeerErr, lastValidBlock) => {
+								if (loadBlocksFromPeerErr) {
 									failedAttemptsToLoad += 1;
 									library.logger.error(
 										`Failed to load blocks from: ${peer.string}`,
-										err.toString()
+										loadBlocksFromPeerErr.toString()
 									);
 									return whilstCb();
 								}
