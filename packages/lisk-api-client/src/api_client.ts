@@ -184,6 +184,6 @@ export class APIClient {
 	}
 
 	public isBanned(node: string): boolean {
-		return this.bannedNodes.indexOf(node) > -1;
+		return this.bannedNodes.includes(node);
 	}
 }
