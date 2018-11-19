@@ -852,22 +852,22 @@ __private.loadBlocksFromNetwork = function(cb) {
 		whilstCb => {
 			async.waterfall(
 				[
-					waterfallCb => {
+					function getRandomPeerFromNetwork(waterCb) {
 						self.getRandomPeerFromNetwork(
 							(getRandomPeerFromNetworkErr, peer) => {
 								if (getRandomPeerFromNetworkErr) {
-									return waterfallCb('Failed to get random peer from network');
+									return waterCb('Failed to get random peer from network');
 								}
 								__private.blocksToSync = peer.height;
 								const lastBlock = modules.blocks.lastBlock.get();
-								return waterfallCb(null, peer, lastBlock);
+								return waterCb(null, peer, lastBlock);
 							}
 						);
 					},
-					(peer, lastBlock, waterfallCb) => {
+					function getCommonBlock(peer, lastBlock, waterCb) {
 						// No need to call getCommonBlock if height is Genesis block
 						if (lastBlock.height === 1) {
-							return waterfallCb(null, peer, lastBlock);
+							return waterCb(null, peer, lastBlock);
 						}
 
 						library.logger.info(
@@ -878,33 +878,31 @@ __private.loadBlocksFromNetwork = function(cb) {
 							lastBlock.height,
 							(getCommonBlockErr, commonBlock) => {
 								if (getCommonBlockErr) {
-									return waterfallCb(getCommonBlockErr.toString());
+									return waterCb(getCommonBlockErr.toString());
 								}
 								if (!commonBlock) {
-									return waterfallCb(
+									return waterCb(
 										`Failed to find common block with: ${peer.string}`
 									);
 								}
 								library.logger.info(
 									`Found common block: ${commonBlock.id} with: ${peer.string}`
 								);
-								return waterfallCb(null, peer, lastBlock);
+								return waterCb(null, peer, lastBlock);
 							}
 						);
 					},
-					(peer, lastBlock, waterfallCb) => {
+					function loadBlocksFromPeer(peer, lastBlock, waterCb) {
 						modules.blocks.process.loadBlocksFromPeer(
 							peer,
 							(loadBlocksFromPeerErr, lastValidBlock) => {
 								if (loadBlocksFromPeerErr) {
-									return waterfallCb(
-										`Failed to load blocks from: ${peer.string}`
-									);
+									return waterCb(`Failed to load blocks from: ${peer.string}`);
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
 								// Reset counter after a batch of blocks was successfully loaded from a peer
 								failedAttemptsToLoad = 0;
-								return waterfallCb();
+								return waterCb();
 							}
 						);
 					},
