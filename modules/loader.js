@@ -861,7 +861,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 										'Failed to get random peer from network',
 										getRandomPeerFromNetworkErr.toString()
 									);
-									return whilstCb();
+									return waterfallCb(true);
 								}
 								__private.blocksToSync = peer.height;
 								const lastBlock = modules.blocks.lastBlock.get();
@@ -885,14 +885,14 @@ __private.loadBlocksFromNetwork = function(cb) {
 								if (getCommonBlockErr) {
 									library.logger.error(getCommonBlockErr.toString());
 									failedAttemptsToLoad += 1;
-									return whilstCb();
+									return waterfallCb(true);
 								}
 								if (!commonBlock) {
 									failedAttemptsToLoad += 1;
 									library.logger.error(
 										`Failed to find common block with: ${peer.string}`
 									);
-									return whilstCb();
+									return waterfallCb(true);
 								}
 								library.logger.info(
 									`Found common block: ${commonBlock.id} with: ${peer.string}`
@@ -911,7 +911,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 										`Failed to load blocks from: ${peer.string}`,
 										loadBlocksFromPeerErr.toString()
 									);
-									return whilstCb();
+									return waterfallCb(true);
 								}
 								loaded = lastValidBlock.id === lastBlock.id;
 								// Reset counter after a batch of blocks was successfully loaded from a peer
