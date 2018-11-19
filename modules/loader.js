@@ -865,9 +865,6 @@ __private.loadBlocksFromNetwork = function(cb) {
 								}
 								__private.blocksToSync = peer.height;
 								const lastBlock = modules.blocks.lastBlock.get();
-								library.logger.info(
-									`Looking for common block with: ${peer.string}`
-								);
 								return waterfallCb(null, peer, lastBlock);
 							}
 						);
@@ -878,6 +875,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 							return waterfallCb(null, peer, lastBlock);
 						}
 
+						library.logger.info(
+							`Looking for common block with: ${peer.string}`
+						);
 						modules.blocks.process.getCommonBlock(
 							peer,
 							lastBlock.height,
