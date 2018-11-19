@@ -28,9 +28,9 @@
 		"lisk": "./bin/run"
 	},
 	"scripts": {
-		"start": "tsnode src/index.js",
+		"start": "ts-node src/index.js",
 		"format": "prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
-		"lint": "eslint .",
+		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
 		"test:local": "NODE_ENV=test nyc mocha test",
@@ -43,7 +43,7 @@
 		"cover:ci": "npm run cover:base -- --reporter=text-lcov mocha | coveralls -v",
 		"cover:test": "NODE_ENV=test nyc --include \"test/**\" --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"prebuild": "if test -d dist; then rm -r dist; fi",
-		"build": "babel src -d dist",
+		"build": "tsc",
 		"postpack": "rm -f oclif.manifest.json",
 		"prepack": "oclif-dev manifest && npm shrinkwrap",
 		"precommit": "lint-staged && npm run lint",
@@ -113,7 +113,6 @@
 		"@oclif/config": "1.7.4",
 		"@oclif/errors": "1.2.0",
 		"@oclif/plugin-help": "2.1.1",
-		"babel-polyfill": "6.26.0",
 		"bip39": "2.5.0",
 		"chalk": "2.4.1",
 		"cli-table3": "0.5.0",
