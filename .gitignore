@@ -19,6 +19,7 @@ docs/jsdoc/
 
 # Logs
 logs/*.log
+logs/**/*.log
 npm-debug.log
 tmux-client-*.log
 test/network/logs/
@@ -40,3 +41,4 @@ test/.coverage-unit/
 
 # Local config file useful for development
 config.local.json
+lisk.json
