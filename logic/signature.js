@@ -210,7 +210,7 @@ Signature.prototype.applyUnconfirmed = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Second signature already enabled');
 	}
 
-	modules.accounts.setAccountAndGet(
+	return modules.accounts.setAccountAndGet(
 		{ address: sender.address, u_secondSignature: 1 },
 		cb,
 		tx

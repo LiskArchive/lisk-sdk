@@ -131,7 +131,9 @@ Peers.prototype.ban = function(peer) {
 	}
 	self.banManager.banTemporarily(peer, self.unban);
 	library.logger.info('Banned peer', peer.string);
-	library.logger.debug('Banned peer', { peer: peer.object() });
+	return library.logger.debug('Banned peer', {
+		peer: peer.object(),
+	});
 };
 
 /**
@@ -153,7 +155,9 @@ Peers.prototype.unban = function(peer) {
 		return self.remove(peer);
 	}
 	library.logger.info('Unbanned peer', peer.string);
-	library.logger.debug('Unbanned peer', { peer: peer.object() });
+	return library.logger.debug('Unbanned peer', {
+		peer: peer.object(),
+	});
 };
 
 /**

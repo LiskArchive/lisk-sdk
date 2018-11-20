@@ -312,7 +312,7 @@ __private.releaseQueue = function(cb) {
 		return setImmediate(cb);
 	}
 
-	async.waterfall(
+	return async.waterfall(
 		[
 			function filterQueue(waterCb) {
 				return __private.filterQueue(waterCb);

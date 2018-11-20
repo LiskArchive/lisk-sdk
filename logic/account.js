@@ -595,7 +595,7 @@ class Account {
 			return dbTx.batch(promises);
 		};
 
-		(tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
+		return (tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
 			.then(() => self.get({ address }, cb, tx))
 			.catch(err => {
 				library.logger.error(err.stack);

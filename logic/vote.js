@@ -73,7 +73,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		library.account.merge(
+		return library.account.merge(
 			sender.address,
 			{
 				delegates: votesInvert,
@@ -103,7 +103,7 @@ class Vote {
 
 		const votesInvert = Diff.reverse(transaction.asset.votes);
 
-		library.account.merge(
+		return library.account.merge(
 			sender.address,
 			{ u_delegates: votesInvert },
 			mergeErr => setImmediate(cb, mergeErr),
