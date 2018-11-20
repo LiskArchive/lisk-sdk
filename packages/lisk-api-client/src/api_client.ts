@@ -62,7 +62,7 @@ export interface ClientOptions {
 }
 
 export class APIClient {
-	public static get constants(): object {
+	public static get constants(): typeof constants {
 		return constants;
 	}
 
