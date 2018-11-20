@@ -15,13 +15,14 @@
  */
 import { readFileSync, writeFileSync } from 'fs';
 
-export const readJSONSync = path => {
+export const readJSONSync = <T>(path: string): T => {
 	const contents = readFileSync(path, 'utf8');
 	const stripped = contents.replace(/^\uFEFF/, '');
-	return JSON.parse(stripped);
+
+	return JSON.parse(stripped) as T;
 };
 
-export const writeJSONSync = (path, contents) => {
-	const json = JSON.stringify(contents, null, '\t');
-	return writeFileSync(path, json);
+export const writeJSONSync = (path: string, contents: unknown): void => {
+	const json = JSON.stringify(contents, undefined, '\t');
+	writeFileSync(path, json);
 };

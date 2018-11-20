@@ -13,10 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable max-classes-per-file
 import chalk from 'chalk';
 
 export class FileSystemError extends Error {
-	constructor(message) {
+	public constructor(message: string) {
 		super(message);
 		this.message = chalk.red(message);
 		this.name = 'FileSystemError';
@@ -24,7 +25,7 @@ export class FileSystemError extends Error {
 }
 
 export class ValidationError extends Error {
-	constructor(message) {
+	public constructor(message: string) {
 		super(message);
 		this.message = chalk.red(message);
 		this.name = 'ValidationError';

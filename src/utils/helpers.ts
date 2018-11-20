@@ -17,46 +17,58 @@ import { ValidationError } from '../utils/error';
 
 const regExpAmount = /^\d+(\.\d{1,8})?$/;
 
-const isStringInteger = n => {
+const isStringInteger = (n: string): boolean => {
 	const parsed = parseInt(n, 10);
+
 	return !Number.isNaN(parsed) && parsed.toString() === n;
 };
 
-export const validateLifetime = lifetime => {
+export const validateLifetime = (lifetime: string): boolean => {
 	if (!isStringInteger(lifetime)) {
 		throw new ValidationError('Lifetime must be an integer.');
 	}
+
 	return true;
 };
 
-export const validateMinimum = minimum => {
+export const validateMinimum = (minimum: string): boolean => {
 	if (!isStringInteger(minimum)) {
 		throw new ValidationError(
 			'Minimum number of signatures must be an integer.',
 		);
 	}
+
 	return true;
 };
 
-export const validateAmount = amount => {
+export const validateAmount = (amount: string): boolean => {
 	if (!amount.match(regExpAmount)) {
 		throw new ValidationError(
 			'Amount must be a number with no more than 8 decimal places.',
 		);
 	}
+
 	return true;
 };
 
-export const createErrorHandler = prefix => ({ message }) => ({
+interface ErrorMessageObject {
+	readonly error: string;
+}
+
+export const createErrorHandler = (prefix: string) => ({ message }: { readonly message: string }): ErrorMessageObject => ({
 	error: `${prefix}: ${message}`,
 });
 
-export const handleEPIPE = err => {
+interface ErrorObject {
+	readonly errno: string | number;
+}
+
+export const handleEPIPE = (err: ErrorObject) => {
 	if (err.errno !== 'EPIPE') {
 		throw err;
 	}
 };
 
-export const stdoutIsTTY = () => process.stdout.isTTY;
+export const stdoutIsTTY = (): true | undefined => process.stdout.isTTY;
 
-export const stdinIsTTY = () => process.stdin.isTTY;
+export const stdinIsTTY = (): true | undefined => process.stdin.isTTY;

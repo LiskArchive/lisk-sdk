@@ -13,19 +13,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClient from '@liskhq/lisk-api-client';
+import { APIClient } from '@liskhq/lisk-api-client';
 import { NETHASHES } from './constants';
 
-const seedNodes = {
+const seedNodes: { readonly [key: string]: ReadonlyArray<string> } = {
 	main: APIClient.constants.MAINNET_NODES,
 	test: APIClient.constants.TESTNET_NODES,
-	beta: APIClient.constants.BETANET_NODES,
 };
 
-const getAPIClient = ({ nodes, network }) => {
+interface APIClientOptions {
+	readonly network: string;
+	readonly nodes: ReadonlyArray<string>;
+}
+
+export const getAPIClient = ({ nodes, network }: APIClientOptions): APIClient => {
 	const nethash = NETHASHES[network] || network;
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
+
 	return new APIClient(clientNodes, { nethash });
 };
-
-export default getAPIClient;

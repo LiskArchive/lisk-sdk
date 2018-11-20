@@ -14,20 +14,29 @@
  *
  */
 import fs from 'fs';
-import path from 'path';
 import lockfile from 'lockfile';
+import path from 'path';
 import defaultConfig from '../../default_config.json';
 import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
 
+interface ConfigOptions {
+	readonly api : {
+		readonly network: string;
+		readonly nodes: ReadonlyArray<string>;
+	}
+	readonly json: boolean;
+	readonly pretty: boolean;
+}
+
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';
 
-const fileWriteErrorMessage = filePath =>
+const fileWriteErrorMessage = (filePath: string): string =>
 	`Could not write to \`${filePath}\`. Your configuration will not be persisted.`;
 
-const attemptCallWithError = (fn, errorMessage) => {
+const attemptCallWithError = <T>(fn: () => T, errorMessage: string): T => {
 	try {
 		return fn();
 	} catch (_) {
@@ -35,17 +44,19 @@ const attemptCallWithError = (fn, errorMessage) => {
 	}
 };
 
-const attemptToCreateDir = dirPath => {
-	const fn = fs.mkdirSync.bind(null, dirPath);
+const attemptToCreateDir = (dirPath: string) => {
+	const fn = fs.mkdirSync.bind(undefined, dirPath);
+
 	return attemptCallWithError(fn, fileWriteErrorMessage(dirPath));
 };
 
-const attemptToCreateFile = filePath => {
-	const fn = writeJSONSync.bind(null, filePath, defaultConfig);
+const attemptToCreateFile = (filePath: string) => {
+	const fn = writeJSONSync.bind(undefined, filePath, defaultConfig);
+
 	return attemptCallWithError(fn, fileWriteErrorMessage(filePath));
 };
 
-const checkLockfile = filePath => {
+const checkLockfile = (filePath: string) => {
 	const locked = lockfile.checkSync(filePath);
 	const errorMessage = `Config lockfile at ${filePath} found. Are you running Lisk Commander in another process?`;
 	if (locked) {
@@ -53,13 +64,14 @@ const checkLockfile = filePath => {
 	}
 };
 
-const attemptToReadJSONFile = filePath => {
-	const fn = readJSONSync.bind(null, filePath);
+const attemptToReadJSONFile = <T>(filePath: string) => {
+	const fn = readJSONSync.bind(undefined, filePath);
 	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`;
-	return attemptCallWithError(fn, errorMessage);
+
+	return attemptCallWithError<T>(fn, errorMessage);
 };
 
-const attemptToValidateConfig = (config, filePath) => {
+const attemptToValidateConfig = (config: object, filePath: string) => {
 	const rootKeys = CONFIG_VARIABLES.map(key => key.split('.')[0]);
 	const fn = () =>
 		rootKeys.forEach(key => {
@@ -68,10 +80,11 @@ const attemptToValidateConfig = (config, filePath) => {
 			}
 		});
 	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${filePath} or delete the file so we can create a new one from defaults.`;
+
 	return attemptCallWithError(fn, errorMessage);
 };
 
-export const setConfig = (configDirPath, newConfig) => {
+export const setConfig = (configDirPath: string, newConfig: object): boolean => {
 	const lockFilePath = path.join(configDirPath, lockfileName);
 	const configFilePath = path.join(configDirPath, configFileName);
 
@@ -79,6 +92,7 @@ export const setConfig = (configDirPath, newConfig) => {
 	lockfile.lockSync(lockFilePath);
 	try {
 		writeJSONSync(configFilePath, newConfig);
+
 		return true;
 	} catch (e) {
 		return false;
@@ -87,7 +101,7 @@ export const setConfig = (configDirPath, newConfig) => {
 	}
 };
 
-export const getConfig = configDirPath => {
+export const getConfig = (configDirPath: string): ConfigOptions => {
 	if (!fs.existsSync(configDirPath)) {
 		attemptToCreateDir(configDirPath);
 	}
@@ -96,10 +110,11 @@ export const getConfig = configDirPath => {
 
 	if (!fs.existsSync(configFilePath)) {
 		attemptToCreateFile(configFilePath);
+
 		return defaultConfig;
 	}
 
-	const config = attemptToReadJSONFile(configFilePath);
+	const config = attemptToReadJSONFile<ConfigOptions>(configFilePath);
 	attemptToValidateConfig(config, configFilePath);
 
 	return config;

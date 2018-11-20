@@ -15,12 +15,10 @@
  */
 import { ValidationError } from './error';
 
-const parseTransactionString = transactionStr => {
+export const parseTransactionString = (transactionStr: string) => {
 	try {
 		return JSON.parse(transactionStr);
 	} catch (error) {
 		throw new ValidationError('Could not parse transaction JSON.');
 	}
 };
-
-export default parseTransactionString;

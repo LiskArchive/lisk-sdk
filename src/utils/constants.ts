@@ -15,7 +15,7 @@
  */
 import { MAINNET_NETHASH, TESTNET_NETHASH } from '@liskhq/lisk-constants';
 
-export const COMMAND_TYPES = [
+export const COMMAND_TYPES: ReadonlyArray<string> = [
 	'accounts',
 	'addresses',
 	'blocks',
@@ -38,16 +38,16 @@ export const QUERY_INPUT_MAP = {
 	transactions: 'id',
 };
 
-export const CONFIG_VARIABLES = ['api.nodes', 'api.network', 'json', 'pretty'];
+export const CONFIG_VARIABLES: ReadonlyArray<string> = ['api.nodes', 'api.network', 'json', 'pretty'];
 
-export const API_PROTOCOLS = ['http:', 'https:'];
+export const API_PROTOCOLS: ReadonlyArray<string> = ['http:', 'https:'];
 
-export const NETHASHES = {
+export const NETHASHES: { readonly [key: string]: string } = {
 	main: MAINNET_NETHASH,
 	test: TESTNET_NETHASH,
 };
 
-export const SORT_FIELDS = [
+export const SORT_FIELDS: ReadonlyArray<string> = [
 	'publicKey:asc',
 	'publicKey:desc',
 	'balance:asc',

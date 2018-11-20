@@ -1,3 +1,5 @@
+import { APIClient } from "@liskhq/lisk-api-client";
+
 /*
  * LiskHQ/lisk-commander
  * Copyright © 2017–2018 Lisk Foundation
@@ -14,7 +16,11 @@
  *
  */
 
-export const handleResponse = (endpoint, res, placeholder) => {
+ interface APIResponse {
+	 readonly data?: ReadonlyArray<unknown> | unknown;
+ }
+
+export const handleResponse = (endpoint: string, res: APIResponse, placeholder: string): unknown => {
 	// Get endpoints with 2xx status code should always return with data key.
 	if (!res.data) {
 		throw new Error('No data was returned.');
@@ -26,20 +32,29 @@ export const handleResponse = (endpoint, res, placeholder) => {
 			}
 			throw new Error(`No ${endpoint} found using specified parameters.`);
 		}
+
 		return res.data[0];
 	}
+
 	return res.data;
 };
 
-export const query = async (client, endpoint, parameters) =>
+interface QueryParamter {
+	readonly placeholder: string;
+	readonly query: object;
+}
+
+type EndpointTypes = 'accounts' | 'blocks' | 'dapps' | 'delegates' | 'peers' | 'transactions' | 'voters' | 'votes';
+
+export const query = async (client: APIClient, endpoint: EndpointTypes, parameters: QueryParamter) =>
 	Array.isArray(parameters)
 		? Promise.all(
 				parameters.map(param =>
 					client[endpoint]
 						.get(param.query)
-						.then(res => handleResponse(endpoint, res, param.placeholder)),
+						.then((res: APIResponse) => handleResponse(endpoint, res, param.placeholder)),
 				),
 			)
 		: client[endpoint]
 				.get(parameters.query)
-				.then(res => handleResponse(endpoint, res, parameters.placeholder));
+				.then((res: APIResponse) => handleResponse(endpoint, res, parameters.placeholder));

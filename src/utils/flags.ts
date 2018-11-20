@@ -65,7 +65,7 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
-const flags = {
+export const flags = {
 	message: {
 		char: 'm',
 		description: messageDescription,
@@ -92,5 +92,3 @@ const flags = {
 		description: votesDescription,
 	},
 };
-
-export default flags;

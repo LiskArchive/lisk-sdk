@@ -13,17 +13,30 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 
-export const encryptMessage = ({ message, passphrase, recipient }) =>
+interface EncryptMessageInputs {
+	readonly message: string;
+	readonly passphrase: string;
+	readonly recipient: string;
+}
+
+export const encryptMessage = ({ message, passphrase, recipient }: EncryptMessageInputs) =>
 	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);
+
+interface DecryptMessageInputs {
+	readonly cipher: string;
+	readonly nonce: string;
+	readonly passphrase: string;
+	readonly senderPublicKey: string;
+}
 
 export const decryptMessage = ({
 	cipher,
 	nonce,
 	passphrase,
 	senderPublicKey,
-}) => ({
+}: DecryptMessageInputs) => ({
 	message: cryptography.decryptMessageWithPassphrase(
 		cipher,
 		nonce,
@@ -32,7 +45,12 @@ export const decryptMessage = ({
 	),
 });
 
-export const encryptPassphrase = ({ passphrase, password }) => {
+interface EncryptPassphraseInputs {
+	readonly passphrase: string;
+	readonly password: string;
+}
+
+export const encryptPassphrase = ({ passphrase, password }: EncryptPassphraseInputs) => {
 	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
 		passphrase,
 		password,
@@ -40,10 +58,16 @@ export const encryptPassphrase = ({ passphrase, password }) => {
 	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
 		encryptedPassphraseObject,
 	);
+
 	return { encryptedPassphrase };
 };
 
-export const decryptPassphrase = ({ encryptedPassphrase, password }) => {
+interface DecryptPassphraseInput {
+	readonly encryptedPassphrase: string;
+	readonly password: string;
+}
+
+export const decryptPassphrase = ({ encryptedPassphrase, password }: DecryptPassphraseInput) => {
 	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
 		encryptedPassphrase,
 	);
@@ -51,19 +75,31 @@ export const decryptPassphrase = ({ encryptedPassphrase, password }) => {
 		encryptedPassphraseObject,
 		password,
 	);
+
 	return { passphrase };
 };
 
 export const { getKeys } = cryptography;
 
-export const getAddressFromPublicKey = publicKey => ({
+export const getAddressFromPublicKey = (publicKey: string): { readonly address: string } => ({
 	address: cryptography.getAddressFromPublicKey(publicKey),
 });
 
-export const signMessage = ({ message, passphrase }) =>
+interface SignMessageInputs {
+	readonly message: string;
+	readonly passphrase: string;
+}
+
+export const signMessage = ({ message, passphrase }: SignMessageInputs) =>
 	cryptography.signMessageWithPassphrase(message, passphrase);
 
-export const verifyMessage = ({ publicKey, signature, message }) => ({
+interface VerifyMessageInputs {
+	readonly message: string;
+	readonly publicKey: string;
+	readonly signature: string;
+}
+
+export const verifyMessage = ({ publicKey, signature, message }: VerifyMessageInputs) => ({
 	verified: cryptography.verifyMessageWithPublicKey({
 		publicKey,
 		signature,

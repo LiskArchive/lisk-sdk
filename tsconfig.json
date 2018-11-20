@@ -1,5 +1,6 @@
 {
 		"compilerOptions": {
+			"allowJs": true,
 			"esModuleInterop": true,
 			"forceConsistentCasingInFileNames": true,
 			"target": "es2017",
@@ -17,6 +18,7 @@
 			"strict": true
 		},
 		"include": [
-			"src/**/*"
+			"src/**/*",
+			"types/**/*"
 		]
 }

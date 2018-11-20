@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Table from 'cli-table3';
+import Table, { Cell, HorizontalTable } from 'cli-table3';
 
 const chars = {
 	top: '═',
@@ -33,21 +33,23 @@ const chars = {
 	middle: '│',
 };
 
-const getKeyValueObject = object => {
+const getKeyValueObject = (object: object) => {
 	if (!object || typeof object !== 'object') {
 		return object;
 	}
+
 	return Object.entries(object)
-		.map(([key, value]) => `${key}: ${JSON.stringify(value, null, ' ')}`)
+		.map(([key, value]) => `${key}: ${JSON.stringify(value, undefined, ' ')}`)
 		.join('\n');
 };
 
-const getKeyValueArray = array =>
+const getKeyValueArray = (array: ReadonlyArray<object>) =>
 	array.some(item => typeof item === 'object')
 		? array.map(getKeyValueObject).join('\n\n')
 		: array.join('\n');
 
-const addValuesToTable = (table, data) => {
+// tslint:disable-next-line readonly-array
+const addValuesToTable = (table: object[] , data: object) => {
 	Object.entries(data).forEach(([key, values]) => {
 		const strValue = Array.isArray(values)
 			? getKeyValueArray(values)
@@ -56,20 +58,23 @@ const addValuesToTable = (table, data) => {
 	});
 };
 
-const tablify = data => {
-	const dataIsArray = Array.isArray(data);
-
+export const tablify = (data: ReadonlyArray<object> | object) => {
 	const table = new Table({
 		chars,
 		style: {
 			head: [],
 			border: [],
 		},
-	});
+	}) as HorizontalTable;
 
-	if (dataIsArray) {
+	if (Array.isArray(data)) {
 		data.forEach((value, key) => {
-			table.push([{ colSpan: 2, content: `data ${key + 1}` }]);
+			// tslint:disable-next-line readonly-array
+			const cell: Cell[] = [{
+				colSpan: 2,
+				content: `data ${key + 1}`,
+			}];
+			table.push(cell);
 			addValuesToTable(table, value);
 		});
 	} else {
@@ -78,5 +83,3 @@ const tablify = data => {
 
 	return table;
 };
-
-export default tablify;

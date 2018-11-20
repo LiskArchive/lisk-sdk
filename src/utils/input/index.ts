@@ -14,19 +14,36 @@
  *
  */
 import passphraseModule from '@liskhq/lisk-passphrase';
-import { getStdIn, getPassphrase, getData } from './utils';
+import { getData, getPassphrase, getStdIn } from './utils';
 
-export const getFirstLineFromString = multilineString =>
+export const getFirstLineFromString = (multilineString: string) =>
 	typeof multilineString === 'string'
 		? multilineString.split(/[\r\n]+/)[0]
-		: null;
+		: undefined;
 
-const getInputsFromSources = async ({
+interface InputSource {
+	readonly repeatPrompt: boolean;
+	readonly source: string;
+}
+
+interface InputFromSourceInputs {
+	readonly data?: InputSource;
+	readonly passphrase?: InputSource;
+	readonly password?: InputSource;
+	readonly secondPassphrase?: InputSource;
+}
+
+interface MnemonicError {
+	readonly code: string;
+	readonly message: string;
+}
+
+export const getInputsFromSources = async ({
 	passphrase: passphraseInput,
 	secondPassphrase: secondPassphraseInput,
 	password: passwordInput,
 	data: dataInput,
-}) => {
+}: InputFromSourceInputs ) => {
 	const [
 		passphraseIsRequired,
 		secondPassphraseIsRequired,
@@ -48,7 +65,7 @@ const getInputsFromSources = async ({
 			? await getPassphrase(passphraseInput.source, {
 					shouldRepeat: passphraseInput.repeatPrompt,
 				})
-			: stdIn.passphrase || null;
+			: stdIn.passphrase || undefined;
 
 	const secondPassphrase =
 		typeof stdIn.secondPassphrase !== 'string' && secondPassphraseInput
@@ -56,27 +73,28 @@ const getInputsFromSources = async ({
 					displayName: 'your second secret passphrase',
 					shouldRepeat: secondPassphraseInput.repeatPrompt,
 				})
-			: stdIn.secondPassphrase || null;
+			: stdIn.secondPassphrase || undefined;
 
 	const passphraseErrors = [passphrase, secondPassphrase]
 		.filter(Boolean)
 		.map(pass =>
 			passphraseModule.validation
-				.getPassphraseValidationErrors(pass)
-				.filter(error => error.message),
+				.getPassphraseValidationErrors(pass as string)
+				.filter((error: MnemonicError) => error.message),
 		);
 
 	passphraseErrors.forEach(errors => {
 		if (errors.length > 0) {
 			const passphraseWarning = errors
-				.filter(error => error.code !== 'INVALID_MNEMONIC')
+				.filter((error: MnemonicError) => error.code !== 'INVALID_MNEMONIC')
 				.reduce(
-					(accumulator, error) =>
+					(accumulator: string, error: MnemonicError) =>
 						accumulator.concat(
 							`${error.message.replace(' Please check the passphrase.', '')} `,
 						),
 					'Warning: ',
 				);
+			// tslint:disable-next-line no-console
 			console.warn(passphraseWarning);
 		}
 	});
@@ -87,12 +105,12 @@ const getInputsFromSources = async ({
 					displayName: 'your password',
 					shouldRepeat: passwordInput.repeatPrompt,
 				})
-			: stdIn.password || null;
+			: stdIn.password || undefined;
 
 	const data =
 		typeof stdIn.data !== 'string' && dataInput
 			? await getData(dataInput.source)
-			: stdIn.data || null;
+			: stdIn.data || undefined;
 
 	return {
 		passphrase,
@@ -101,5 +119,3 @@ const getInputsFromSources = async ({
 		data,
 	};
 };
-
-export default getInputsFromSources;
