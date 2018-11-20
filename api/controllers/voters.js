@@ -89,7 +89,7 @@ VotersController.getVoters = function(context, next) {
 		return next(error);
 	}
 
-	modules.voters.shared.getVoters(_.clone(filters), (err, data) => {
+	return modules.voters.shared.getVoters(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
@@ -104,7 +104,7 @@ VotersController.getVoters = function(context, next) {
 			data.username = '';
 		}
 
-		next(null, {
+		return next(null, {
 			data,
 			meta: {
 				offset: filters.offset,
@@ -163,7 +163,7 @@ VotersController.getVotes = function(context, next) {
 		return next(error);
 	}
 
-	modules.voters.shared.getVotes(_.clone(filters), (err, data) => {
+	return modules.voters.shared.getVotes(_.clone(filters), (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = apiCodes.NOT_FOUND;
@@ -180,7 +180,7 @@ VotersController.getVotes = function(context, next) {
 			}
 		});
 
-		next(null, {
+		return next(null, {
 			data,
 			meta: {
 				offset: filters.offset,

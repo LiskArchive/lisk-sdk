@@ -198,7 +198,7 @@ function loadJSONFile(filePath) {
 	} catch (err) {
 		console.error(`Failed to load file: ${filePath}`);
 		console.error(err.message);
-		process.exit(1);
+		return process.exit(1);
 	}
 }
 

@@ -53,7 +53,7 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 		}
 	});
 
-	client.on('error', err => {
+	return client.on('error', err => {
 		logger.error('Redis:', err);
 		// Returns redis client so application can continue to try to connect with the redis server,
 		// and modules/cache can have client reference once it's connected

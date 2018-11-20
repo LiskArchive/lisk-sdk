@@ -71,7 +71,7 @@ Sequence.prototype.__tick = function(cb) {
 	if (task.args) {
 		args = args.concat(task.args);
 	}
-	task.worker.apply(task.worker, args);
+	return task.worker.apply(task.worker, args);
 };
 
 /**

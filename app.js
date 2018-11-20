@@ -224,11 +224,9 @@ d.run(() => {
 				var peerDomainLookupTasks = appConfig.peers.list.map(
 					peer => callback => {
 						if (net.isIPv4(peer.ip)) {
-							return setImmediate(() => {
-								callback(null, peer);
-							});
+							return setImmediate(() => callback(null, peer));
 						}
-						dns.lookup(peer.ip, { family: 4 }, (err, address) => {
+						return dns.lookup(peer.ip, { family: 4 }, (err, address) => {
 							if (err) {
 								console.error(
 									`Failed to resolve peer domain name ${
@@ -237,18 +235,17 @@ d.run(() => {
 								);
 								return callback(err, peer);
 							}
-							callback(null, Object.assign({}, peer, { ip: address }));
+							return callback(null, Object.assign({}, peer, { ip: address }));
 						});
 					}
 				);
 
-				async.parallel(peerDomainLookupTasks, (err, results) => {
+				return async.parallel(peerDomainLookupTasks, (err, results) => {
 					if (err) {
-						cb(err, appConfig);
-						return;
+						return cb(err, appConfig);
 					}
 					appConfig.peers.list = results;
-					cb(null, appConfig);
+					return cb(null, appConfig);
 				});
 			},
 
@@ -553,7 +550,7 @@ d.run(() => {
 
 					scope.socketCluster.on('ready', () => {
 						scope.logger.info('Socket Cluster ready for incoming connections');
-						cb();
+						return cb();
 					});
 
 					// The 'fail' event aggregates errors from all SocketCluster processes.
@@ -566,7 +563,7 @@ d.run(() => {
 						}
 					});
 
-					scope.socketCluster.on('workerExit', workerInfo => {
+					return scope.socketCluster.on('workerExit', workerInfo => {
 						var exitMessage = `Worker with pid ${workerInfo.pid} exited`;
 						if (workerInfo.signal) {
 							exitMessage += ` due to signal: '${workerInfo.signal}'`;
@@ -761,7 +758,7 @@ d.run(() => {
 						return cb();
 					}
 					new wsTransport(scope.modules.transport);
-					cb();
+					return cb();
 				},
 			],
 
@@ -780,7 +777,7 @@ d.run(() => {
 						return cb();
 					}
 
-					scope.network.server.listen(
+					return scope.network.server.listen(
 						scope.config.httpPort,
 						scope.config.address,
 						err => {
@@ -790,7 +787,7 @@ d.run(() => {
 
 							if (!err) {
 								if (scope.config.api.ssl.enabled) {
-									scope.network.https.listen(
+									return scope.network.https.listen(
 										scope.config.api.ssl.options.port,
 										scope.config.api.ssl.options.address,
 										err => {
@@ -800,15 +797,13 @@ d.run(() => {
 												}:${scope.config.api.ssl.options.port}`
 											);
 
-											cb(err, scope.network);
+											return cb(err, scope.network);
 										}
 									);
-								} else {
-									cb(null, scope.network);
 								}
-							} else {
-								cb(err, scope.network);
+								return cb(null, scope.network);
 							}
+							return cb(err, scope.network);
 						}
 					);
 				},

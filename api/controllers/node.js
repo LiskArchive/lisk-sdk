@@ -50,7 +50,7 @@ function NodeController(scope) {
  * @todo Add description for the function and the params
  */
 NodeController.getConstants = function(context, next) {
-	modules.node.shared.getConstants(null, (err, data) => {
+	return modules.node.shared.getConstants(null, (err, data) => {
 		try {
 			if (err) {
 				return next(err);
@@ -87,7 +87,7 @@ NodeController.getConstants = function(context, next) {
  * @todo Add description for the function and the params
  */
 NodeController.getStatus = function(context, next) {
-	modules.node.shared.getStatus(null, (err, data) => {
+	return modules.node.shared.getStatus(null, (err, data) => {
 		try {
 			if (err) {
 				return next(err);
@@ -100,14 +100,14 @@ NodeController.getStatus = function(context, next) {
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 
-			modules.transactions.shared.getTransactionsCount((err, count) => {
+			return modules.transactions.shared.getTransactionsCount((err, count) => {
 				if (err) {
 					return next(err);
 				}
 
 				data.transactions = count;
 
-				next(null, data);
+				return next(null, data);
 			});
 		} catch (error) {
 			next(error);
@@ -130,12 +130,12 @@ NodeController.getForgingStatus = function(context, next) {
 
 	var publicKey = context.request.swagger.params.publicKey.value;
 
-	modules.node.internal.getForgingStatus(publicKey, (err, data) => {
+	return modules.node.internal.getForgingStatus(publicKey, (err, data) => {
 		if (err) {
 			return next(err);
 		}
 
-		next(null, data);
+		return next(null, data);
 	});
 };
 
@@ -156,7 +156,7 @@ NodeController.updateForgingStatus = function(context, next) {
 	var password = context.request.swagger.params.data.value.password;
 	var forging = context.request.swagger.params.data.value.forging;
 
-	modules.node.internal.updateForgingStatus(
+	return modules.node.internal.updateForgingStatus(
 		publicKey,
 		password,
 		forging,
@@ -166,7 +166,7 @@ NodeController.updateForgingStatus = function(context, next) {
 				return next(err);
 			}
 
-			next(null, [data]);
+			return next(null, [data]);
 		}
 	);
 };
@@ -210,7 +210,7 @@ NodeController.getPooledTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.transactions.shared[stateMap[state]].call(
+	return modules.transactions.shared[stateMap[state]].call(
 		this,
 		_.clone(filters),
 		(err, data) => {
@@ -229,7 +229,7 @@ NodeController.getPooledTransactions = function(context, next) {
 				return transaction;
 			});
 
-			next(null, {
+			return next(null, {
 				data: transactions,
 				meta: {
 					offset: filters.offset,

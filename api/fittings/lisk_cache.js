@@ -84,10 +84,9 @@ module.exports = function create(fittingDef) {
 						'Cache - Sending cached response for url:',
 						context.request.url
 					);
-					context.response.json(cachedValue);
-				} else {
-					return next(null, context.input);
+					return context.response.json(cachedValue);
 				}
+				return next(null, context.input);
 			});
 		}
 
@@ -98,12 +97,11 @@ module.exports = function create(fittingDef) {
 					'Cache - Setting response cache for url:',
 					context.request.url
 				);
-				cache.setJsonForKey(cacheKey, context.input, () =>
+				return cache.setJsonForKey(cacheKey, context.input, () =>
 					next(null, context.input)
 				);
-			} else {
-				return next(null, context.input);
 			}
+			return next(null, context.input);
 		}
 	};
 };
