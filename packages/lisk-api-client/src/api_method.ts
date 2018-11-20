@@ -29,7 +29,7 @@ export const apiMethod = (options: RequestConfig = {}): ApiHandler =>
 		this: Resource,
 		// tslint:disable-next-line readonly-array
 		...args: Array<number | string | object>
-	): Promise<ApiResponse | Error> {
+	): Promise<ApiResponse> {
 		const {
 			method = GET,
 			path = '',

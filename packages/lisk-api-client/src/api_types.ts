@@ -16,7 +16,7 @@
 export type ApiHandler = (
 	// tslint:disable-next-line readonly-array
 	...args: Array<number | string | object>
-) => Promise<ApiResponse | Error>;
+) => Promise<ApiResponse>;
 
 export interface ApiResponse {
 	readonly data: unknown;
@@ -48,9 +48,6 @@ export interface RequestConfig {
 export interface Resource {
 	readonly headers: HashMap;
 	readonly path: string;
-	readonly request: (
-		data: object,
-		retry: boolean,
-	) => Promise<ApiResponse | Error>;
+	readonly request: (data: object, retry: boolean) => Promise<ApiResponse>;
 	readonly resourcePath: string;
 }
