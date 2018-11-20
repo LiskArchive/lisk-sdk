@@ -45,6 +45,7 @@ export const encryptMessageWithPassphrase = (
 	const nonce = getRandomBytes(nonceSize);
 	const publicKeyUint8Array = convertPublicKeyEd2Curve(recipientPublicKeyBytes);
 
+	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
 		throw new Error('given public key is not a valid Ed25519 public key');
 	}
@@ -85,6 +86,7 @@ export const decryptMessageWithPassphrase = (
 
 	const publicKeyUint8Array = convertPublicKeyEd2Curve(senderPublicKeyBytes);
 
+	// This cannot be reproduced, but external library have type union with null
 	if (publicKeyUint8Array === null) {
 		throw new Error('given public key is not a valid Ed25519 public key');
 	}

@@ -14,8 +14,8 @@
  */
 /* tslint:disable no-mixed-interface */
 export type ApiHandler = (
-	resource: Resource,
-	args: ReadonlyArray<number | string | object>,
+	// tslint:disable-next-line readonly-array
+	...args: Array<number | string | object>
 ) => Promise<ApiResponse | Error>;
 
 export interface ApiResponse {

@@ -107,7 +107,9 @@ export const parseEncryptedPassphrase = (
 		typeof tag !== 'string' ||
 		typeof version !== 'string'
 	) {
-		throw new Error('Unable to parse encrypted passphrase');
+		throw new Error(
+			'Encrypted passphrase to parse must have only one value per key.',
+		);
 	}
 
 	return {
