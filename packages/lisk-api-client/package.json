@@ -57,7 +57,6 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-constants": "1.1.1",
 		"axios": "0.18.0",
 		"verror": "1.10.0"
 	},

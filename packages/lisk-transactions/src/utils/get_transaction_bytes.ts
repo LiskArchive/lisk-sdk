@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MAX_TRANSACTION_AMOUNT } from '@liskhq/lisk-constants';
 import cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES } from '../constants';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import {
 	BaseTransaction,
 	DappAsset,

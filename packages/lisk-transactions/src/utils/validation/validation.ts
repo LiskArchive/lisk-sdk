@@ -12,14 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import cryptography from '@liskhq/lisk-cryptography';
+import BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
-} from '@liskhq/lisk-constants';
-import cryptography from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
-import {
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
