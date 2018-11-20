@@ -12,3 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/* tslint:disable:no-default-export */
+import { P2P } from './p2p';
+import { Peer } from './peer';
+export default {
+	P2P,
+	Peer,
+};
