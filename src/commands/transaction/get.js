@@ -13,18 +13,27 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { isArray } from 'util';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
 import { query, handleResponse } from '../../utils/query';
 
 const TRANSACTION_STATES = ['unsigned', 'unprocessed'];
+const SORT_OPTIONS = [
+	'amount:asc',
+	'amount:desc',
+	'fee:asc',
+	'fee:desc',
+	'type:asc',
+	'type:desc',
+	'timestamp:asc',
+	'timestamp:desc',
+];
 
 const senderIdFlag = {
-	description: `Get transactions based by senderId which is sender's lisk address'.
+	description: `Get transactions based by sender-id which is sender's lisk address'.
 	Examples:
-	- --senderId=12668885769632475474L
+	- --sender-id=12668885769632475474L
 `,
 };
 const stateFlag = {
@@ -52,56 +61,80 @@ export default class GetCommand extends BaseCommand {
 	async run() {
 		const {
 			args: { ids },
-			flags: { state: txnState, limit, offset, senderId: senderAddress },
+			flags: {
+				limit,
+				offset,
+				sort,
+				'sender-id': senderAddress,
+				state: txnState,
+			},
 		} = this.parse(GetCommand);
 
 		const client = getAPIClient(this.userConfig.api);
 
-		if (txnState) {
-			if (ids) {
-				const reqTransactionIDs = ids.map(id => ({
+		if (txnState && senderAddress && ids) {
+			const reqTxnSenderId = ids.map(id => ({
+				query: {
+					limit: 1,
+					id,
+					senderId: senderAddress,
+				},
+				placeholder: {
+					id,
+					senderId: senderAddress,
+					message: 'Transaction not found.',
+				},
+			}));
+
+			const results = await queryNode(client.node, txnState, reqTxnSenderId);
+
+			return this.print(results);
+		}
+
+		if (txnState && ids) {
+			const reqTransactionIDs = ids.map(id => ({
+				query: {
+					limit: 1,
+					id,
+				},
+				placeholder: {
+					id,
+					message: 'Transaction not found.',
+				},
+			}));
+
+			const results = await queryNode(client.node, txnState, reqTransactionIDs);
+
+			return this.print(results);
+		}
+		if (txnState && senderAddress) {
+			const reqWithSenderId = [
+				{
 					query: {
-						limit: 1,
-						id,
+						limit,
+						offset,
+						sort,
+						senderId: senderAddress,
 					},
 					placeholder: {
-						id,
+						senderId: senderAddress,
 						message: 'Transaction not found.',
 					},
-				}));
+				},
+			];
 
-				const results = await queryNode(
-					client.node,
-					txnState,
-					reqTransactionIDs,
-				);
-				return this.print(results);
-			}
+			const results = await queryNode(client.node, txnState, reqWithSenderId);
 
-			if (senderAddress) {
-				const reqWithSenderId = [
-					{
-						query: {
-							limit,
-							offset,
-							senderId: senderAddress,
-						},
-						placeholder: {
-							senderId: senderAddress,
-							message: 'Transaction not found.',
-						},
-					},
-				];
+			return this.print(results);
+		}
 
-				const results = await queryNode(client.node, txnState, reqWithSenderId);
-				return this.print(results);
-			}
-
+		if (txnState) {
 			const reqByLimitOffset = [
 				{
 					query: {
 						limit,
 						offset,
+						sort,
 					},
 					placeholder: {
 						message: 'No transactions found.',
@@ -130,10 +163,28 @@ export default class GetCommand extends BaseCommand {
 			return this.print(results);
 		}
 
+		if (senderAddress) {
+			const reqSenderId = {
+				query: {
+					limit,
+					offset,
+					sort,
+					senderId: senderAddress,
+				},
+				placeholder: {
+					message: 'No transactions found.',
+				},
+			};
+			const results = await query(client, 'transactions', reqSenderId);
+
+			return this.print(results);
+		}
+
 		const req = {
 			query: {
 				limit,
 				offset,
+				sort,
 			},
 			placeholder: {
 				message: 'No transactions found.',
@@ -141,12 +192,11 @@ export default class GetCommand extends BaseCommand {
 		};
 		const results = await query(client, 'transactions', req);
 
-		if (!isArray(results)) {
+		if (!Array.isArray(results)) {
 			return this.print(results);
 		}
-		const sortedResults = results.sort((a, b) => b.height - a.height);
 
-		return this.print(sortedResults);
+		return this.print(results);
 	}
 }
 
@@ -162,16 +212,21 @@ GetCommand.args = [
 GetCommand.flags = {
 	...BaseCommand.flags,
 	state: flagParser.string(stateFlag),
-	senderId: flagParser.string(senderIdFlag),
+	'sender-id': flagParser.string(senderIdFlag),
 	limit: flagParser.string({
 		description:
 			'Limits the returned transactions array by specified integer amount. Maximum is 100.',
-		default: '20',
+		default: '10',
 	}),
 	offset: flagParser.string({
 		description:
 			'Offsets the returned transactions array by specified integer amount.',
 		default: '0',
+	}),
+	sort: flagParser.string({
+		description: 'Fields to sort results by.',
+		default: 'timestamp:desc',
+		options: SORT_OPTIONS,
 	}),
 };
 
@@ -183,6 +238,8 @@ GetCommand.examples = [
 	'transaction:get 10041151099734832021',
 	'transaction:get 10041151099734832021,1260076503909567890',
 	'transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed',
-	'transaction:get --state=unsigned --senderId=1813095620424213569L',
+	'transaction:get --state=unsigned --sender-id=1813095620424213569L',
+	'transaction:get --sender-id=1813095620424213569L',
+	'transaction:get --limit=10 --sort=amount:desc',
 	'transaction:get --limit=10 --offset=5',
 ];

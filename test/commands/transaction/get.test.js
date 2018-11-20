@@ -85,18 +85,6 @@ describe('transaction:get', () => {
 				height: 1010,
 			},
 		];
-		const querySortResult = [
-			{
-				id: transactionIds[1],
-				type: 3,
-				height: 1010,
-			},
-			{
-				id: transactionIds[0],
-				type: 0,
-				height: 105,
-			},
-		];
 
 		setupTest()
 			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
@@ -170,6 +158,31 @@ describe('transaction:get', () => {
 					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				},
 			);
+		describe('transaction: get --sender-id', () => {
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
+				.command(['transaction:get', '--sender-id=12668885769632475474L'])
+				.it('should get all transactions info limited by limit value', () => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(queryHandler.query).to.be.calledWithExactly(
+						apiClientStub,
+						endpoint,
+						{
+							query: {
+								limit: '10',
+								offset: '0',
+								senderId: '12668885769632475474L',
+								sort: 'timestamp:desc',
+							},
+							placeholder: {
+								message: 'No transactions found.',
+							},
+						},
+					);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
+				});
+		});
 		describe('transaction: get --limit --offset', () => {
 			setupTest()
 				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
@@ -184,15 +197,14 @@ describe('transaction:get', () => {
 							query: {
 								limit: '10',
 								offset: '0',
+								sort: 'timestamp:desc',
 							},
 							placeholder: {
 								message: 'No transactions found.',
 							},
 						},
 					);
-					return expect(printMethodStub).to.be.calledWithExactly(
-						querySortResult,
-					);
+					return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 				});
 
 			setupTest()
@@ -208,55 +220,47 @@ describe('transaction:get', () => {
 							endpoint,
 							{
 								query: {
-									limit: '20',
+									limit: '10',
 									offset: '0',
+									sort: 'timestamp:desc',
 								},
 								placeholder: {
 									message: 'No transactions found.',
 								},
 							},
 						);
-						return expect(printMethodStub).to.be.calledWithExactly(
-							querySortResult,
-						);
+						return expect(printMethodStub).to.be.calledWithExactly(queryResult);
 					},
 				);
-		});
-		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
-			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-			.command(['transaction:get', '--offset=10'])
-			.it('should get all transaction’s info and display.', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
-				return expect(printMethodStub).to.be.calledWithExactly(queryResult);
-			});
-		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
-			.stub(
-				queryHandler,
-				'query',
-				sandbox.stub().resolves({ message: 'No transactions found.' }),
-			)
-			.command(['transaction:get', '--offset=10'])
-			.it('should return a message with no transactions found.', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
-				expect(queryHandler.query).to.be.calledWithExactly(
-					apiClientStub,
-					endpoint,
-					{
-						query: {
-							limit: '20',
-							offset: '10',
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+				.stub(
+					queryHandler,
+					'query',
+					sandbox.stub().resolves({ message: 'No transactions found.' }),
+				)
+				.command(['transaction:get', '--offset=10'])
+				.it('should return a message with no transactions found.', () => {
+					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(queryHandler.query).to.be.calledWithExactly(
+						apiClientStub,
+						endpoint,
+						{
+							query: {
+								limit: '10',
+								offset: '10',
+								sort: 'timestamp:desc',
+							},
+							placeholder: {
+								message: 'No transactions found.',
+							},
 						},
-						placeholder: {
-							message: 'No transactions found.',
-						},
-					},
-				);
-				return expect(printMethodStub).to.be.calledWithExactly({
-					message: 'No transactions found.',
+					);
+					return expect(printMethodStub).to.be.calledWithExactly({
+						message: 'No transactions found.',
+					});
 				});
-			});
+		});
 	});
 
 	describe('transaction:get transactions --state', () => {
@@ -289,6 +293,7 @@ describe('transaction:get', () => {
 		};
 
 		setupTest()
+			.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
 			.command(['transaction:get', '--state=unsign', '--offset=1'])
 			.catch(error => {
 				return expect(error.message).to.contain(
@@ -329,16 +334,34 @@ describe('transaction:get', () => {
 				);
 		});
 
-		describe('transaction: get --state-unsigned --senderID', () => {
+		describe('transaction: get --state-unsigned --sender-id', () => {
 			setupTest()
 				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
 				.command([
 					'transaction:get',
-					'--senderId=12668885769632475474L',
+					'--sender-id=12668885769632475474L',
 					'--state=unprocessed',
 				])
 				.it(
 					'should get a transaction’s info for a given senders address and state and display as an array.',
+					() => {
+						expect(api.default).to.be.calledWithExactly(apiConfig);
+						return expect(printMethodStub).to.be.calledWithExactly([
+							defaultGetTransactionsResponse.data,
+						]);
+					},
+				);
+
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.command([
+					'transaction:get',
+					'3520445367460290306',
+					'--sender-id=12668885769632475474L',
+					'--state=unprocessed',
+				])
+				.it(
+					'should get a transaction’s info for a given txn Id, senders address and state and display as an array.',
 					() => {
 						expect(api.default).to.be.calledWithExactly(apiConfig);
 						return expect(printMethodStub).to.be.calledWithExactly([
