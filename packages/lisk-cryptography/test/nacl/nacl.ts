@@ -196,7 +196,7 @@ describe('nacl', () => {
 					).to.be.eql(defaultMessage);
 				});
 
-				it('should throw an error with invalid message', () => {
+				it('should throw an error for an invalid message', () => {
 					return expect(
 						openBox.bind(
 							null,
