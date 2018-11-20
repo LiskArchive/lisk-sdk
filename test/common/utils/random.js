@@ -136,7 +136,7 @@ random.password = function() {
 };
 
 const convertToBignum = transactions => {
-	return transactions.map(transaction => {
+	return transactions.forEach(transaction => {
 		transaction.amount = new Bignum(transaction.amount);
 		transaction.fee = new Bignum(transaction.fee);
 	});
