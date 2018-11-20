@@ -239,6 +239,7 @@ GetCommand.examples = [
 	'transaction:get 10041151099734832021,1260076503909567890',
 	'transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed',
 	'transaction:get --state=unsigned --sender-id=1813095620424213569L',
+	'transaction:get 10041151099734832021 --state=unsigned --sender-id=1813095620424213569L',
 	'transaction:get --sender-id=1813095620424213569L',
 	'transaction:get --limit=10 --sort=amount:desc',
 	'transaction:get --limit=10 --offset=5',
