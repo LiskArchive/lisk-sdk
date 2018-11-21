@@ -25,6 +25,7 @@ export {
 	isValidInteger,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
+	isNumberString,
 } from './validation';
 
 export { validateTransaction } from './validate_transaction';

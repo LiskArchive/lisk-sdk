@@ -1,45 +1,91 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+// tslint:disable member-ordering
 import cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { TransactionError } from './errors';
 import {
 	IAccount,
-	IBaseTransaction,
-	IKeyPair,
+	IRequiredState,
 	ITransactionJSON,
 } from './transaction_types';
-import { getTransactionBytes } from './utils/get_transaction_bytes';
-import { getTransactionHash } from './utils/get_transaction_hash';
-import { getTransactionId } from './utils/get_transaction_id';
-import { verifyTransaction } from './utils/sign_and_verify';
-import { validateTransaction } from './utils/validation/validate_transaction';
+import {
+	checkBalance,
+	getTransactionBytes,
+	getTransactionId,
+	isNumberString,
+	secondSignTransaction,
+	signTransaction,
+	validateTransaction,
+	verifyTransaction,
+} from './utils';
 
-export class BaseTransaction implements IBaseTransaction {
-	public amount: BigNum;
-	public blockId: string;
-	public confirmations: BigNum;
-	public fee: BigNum;
-	public height: string;
-	public id: string;
-	public rawTransaction: object;
-	public recipientId: string;
-	public recipientPublicKey: string;
-	public senderId: string;
-	public senderPublicKey: string;
-	public signature: string;
-	public signatures?: ReadonlyArray<string>;
-	public signSignature?: string;
-	public timestamp: number;
-	public transactionJSON: ITransactionJSON;
-	public type: number;
+const processInput = (rawTransaction: ITransactionJSON): void => {
+	const {
+		amount,
+		fee,
+		signSignature,
+		signatures,
+		...strippedTransaction
+	} = rawTransaction;
+
+	Object.entries({ amount, fee }).forEach(field => {
+		const [key, value] = field;
+
+		if (
+			!value as unknown instanceof BigNum &&
+			(!isNumberString(value) || !Number.isSafeInteger(parseInt(value, 10)))
+		) {
+			throw new TransactionError(
+				`\`${key}\` must be a valid string or BigNum.`,
+			);
+		}
+	});
+
+	Object.entries(strippedTransaction).forEach(field => {
+		const [key, value] = field;
+		if (['timestamp', 'type'].includes(key)) {
+			if (typeof value !== 'number') {
+				throw new TransactionError(`\`${key}\` must be a number.`);
+			}
+		}
+		if (typeof value !== 'string') {
+			throw new TransactionError(`\`${key}\` must be a string.`);
+		}
+	});
+};
+
+export class BaseTransaction {
+	public readonly amount: BigNum;
+	public readonly fee: BigNum;
+	public readonly id: string;
+	public readonly recipientId: string;
+	public readonly recipientPublicKey: string;
+	public readonly senderId: string;
+	public readonly senderPublicKey: string;
+	public readonly signature: string;
+	public readonly signatures?: ReadonlyArray<string>;
+	public readonly signSignature?: string;
+	public readonly timestamp: number;
+	public readonly type: number;
 
 	public constructor(rawTransaction: ITransactionJSON) {
+		processInput(rawTransaction);
 		this.amount = new BigNum(rawTransaction.amount);
-		this.blockId = rawTransaction.blockId;
-		this.confirmations = new BigNum(rawTransaction.confirmations);
-		this.fee = new BigNum(0);
-		this.height = rawTransaction.height;
+		this.fee = new BigNum(rawTransaction.fee);
 		this.id = rawTransaction.id;
-		this.rawTransaction = rawTransaction;
 		this.recipientId = rawTransaction.recipientId;
 		this.recipientPublicKey = rawTransaction.recipientPublicKey;
 		this.senderId = rawTransaction.senderId;
@@ -48,49 +94,43 @@ export class BaseTransaction implements IBaseTransaction {
 		this.signatures = rawTransaction.signatures;
 		this.signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
-		this.transactionJSON = this.createJSON();
 		this.type = rawTransaction.type;
 	}
 
-	public checkBalance(
-		sender: IAccount,
-	): {
-		readonly exceeded: boolean;
-		readonly errors: ReadonlyArray<TransactionError> | undefined;
-	} {
-		const exceeded = new BigNum(sender.balance).lt(this.amount);
-
-		return {
-			exceeded,
-			errors: exceeded
-				? [
-						new TransactionError(
-							`Account does not have enough LSK: ${
-								sender.address
-							} balance: ${new BigNum(sender.balance.toString() || '0').div(
-								// tslint:disable-next-line:no-magic-numbers
-								Math.pow(10, 8),
-							)}`,
-						),
-				  ]
-				: undefined,
+	public prepareTransaction(
+		passphrase: string,
+		secondPassphrase?: string,
+	): ITransactionJSON {
+		const transaction = this.toJSON();
+		const singleSignedTransaction = {
+			...transaction,
+			signature: signTransaction(transaction, passphrase),
 		};
+
+		const signedTransaction =
+			typeof secondPassphrase === 'string' && transaction.type !== 1
+				? secondSignTransaction(singleSignedTransaction, secondPassphrase)
+				: singleSignedTransaction;
+
+		const transactionWithId = {
+			...signedTransaction,
+			id: getTransactionId(signedTransaction),
+		};
+
+		return transactionWithId;
 	}
 
-	public createJSON(): ITransactionJSON {
+	public toJSON(): ITransactionJSON {
 		const transaction = {
 			id: this.id,
-			amount: this.amount.toNumber(),
-			height: this.height,
-			blockId: this.blockId,
-			confirmations: this.confirmations.toNumber(),
+			amount: this.amount.toString(),
 			type: this.type,
 			timestamp: this.timestamp,
 			senderPublicKey: this.senderPublicKey,
 			senderId: this.senderId,
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
-			fee: this.fee.toNumber(),
+			fee: this.fee.toString(),
 			signature: this.signature,
 			signSignature: this.signSignature,
 		};
@@ -99,38 +139,72 @@ export class BaseTransaction implements IBaseTransaction {
 	}
 
 	public getBytes(): Buffer {
-		return getTransactionBytes(this.transactionJSON);
+		const {  signature, signatures, signSignature, ...transaction} = this.toJSON();
+
+		return getTransactionBytes(transaction);
 	}
 
-	public getId(): string {
-		return getTransactionId(this.transactionJSON);
-	}
+	public containsUniqueData(): boolean {
+		// tslint:disable-next-line no-magic-numbers
+		if ([1, 2, 3, 4, 5].includes(this.type)) {
+			return true;
+		}
 
-	public sign(keyPair: IKeyPair): string {
-		const transactionHash = getTransactionHash(this.transactionJSON);
-
-		return cryptography.signDataWithPrivateKey(
-			transactionHash,
-			cryptography.hexToBuffer(keyPair.privateKey),
-		);
+		return false;
 	}
 
 	public validate(): {
 		readonly validated: boolean;
-		readonly errors: ReadonlyArray<TransactionError> | undefined;
+		readonly errors?: ReadonlyArray<TransactionError>;
 	} {
 		// Schema check
-		const { valid, errors } = validateTransaction(this.transactionJSON);
+		const { valid, errors } = validateTransaction(this.toJSON());
 		const transactionErrors = errors
 			? errors.map(error => new TransactionError(error.message, error.dataPath))
 			: undefined;
 
 		// Signatures check
-		const verified = verifyTransaction(this.transactionJSON);
+		const verified = verifyTransaction(this.toJSON());
 
 		return {
 			validated: valid && verified,
 			errors: transactionErrors,
 		};
+	}
+
+	public getRequiredAttributes(): object {
+		return {
+			ACCOUNTS: [cryptography.getAddressFromPublicKey(this.senderPublicKey)],
+		};
+	}
+
+	public verifyAgainstState(
+		sender: IAccount,
+		recipient?: IAccount,
+		requiredState?: IRequiredState,
+	): { readonly verified: boolean, readonly errors?: ReadonlyArray<TransactionError> } {
+
+		// Note: To be implemented
+
+	}
+
+	public apply(sender: IAccount) {
+		
+		// Note: To be implemented
+
+	}
+
+	public undo(sender: IAccount) {
+		
+		// Note: To be implemented
+
+	}
+
+	public verifyAgainstTransactions(
+		transactions: ReadonlyArray<ITransactionJSON>,
+	) {
+		
+		// Note: To be implemented
+
 	}
 }

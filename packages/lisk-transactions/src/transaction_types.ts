@@ -12,34 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import BigNum from 'browserify-bignum';
+import { BaseTransaction } from './base_transaction';
 
 export interface IAccount {
 	readonly address: string;
 	readonly balance: string;
-	readonly delegate: ReadonlyArray<IDelegate>;
+	readonly delegate: IDelegate;
 	readonly publicKey: string;
 	readonly secondPublicKey?: string;
 	readonly unconfirmedBalance: string;
-}
-export interface IBaseTransaction {
-	readonly amount: BigNum;
-	readonly blockId: string;
-	readonly confirmations: BigNum;
-	readonly fee: BigNum;
-	readonly height: string;
-	readonly id: string;
-	readonly rawTransaction: object;
-	readonly recipientId: string;
-	readonly recipientPublicKey: string;
-	readonly senderId: string;
-	readonly senderPublicKey: string;
-	readonly signature: string;
-	readonly signatures?: ReadonlyArray<string>;
-	readonly signSignature?: string;
-	readonly timestamp: number;
-	readonly transactionJSON: ITransactionJSON;
-	readonly type: number;
 }
 
 export interface IDelegate {
@@ -53,18 +34,15 @@ export interface IDelegate {
 	readonly vote: string;
 }
 
-export interface IKeyPair {
-	readonly privateKey: string;
-	readonly publicKey: string;
+export interface IRequiredState {
+	readonly accounts: ReadonlyArray<IAccount>;
+	readonly transactions: ReadonlyArray<ITransactionJSON>;
 }
 
 export interface ITransactionJSON {
-	readonly amount: number;
+	readonly amount: string;
 	readonly asset?: TransactionAsset;
-	readonly blockId: string;
-	readonly confirmations: number;
-	readonly fee: number;
-	readonly height: string;
+	readonly fee: string;
 	readonly id: string;
 	readonly recipientId: string;
 	readonly recipientPublicKey: string;
@@ -77,10 +55,6 @@ export interface ITransactionJSON {
 	readonly type: number;
 }
 
-type Partial<T> = { [P in keyof T]?: T[P] };
-
-export type PartialTransaction = Partial<IBaseTransaction>;
-
 export type TransactionAsset =
 	| TransferAsset
 	| SecondSignatureAsset
@@ -91,7 +65,7 @@ export type TransactionAsset =
 	| InTransferAsset
 	| OutTransferAsset;
 
-export interface TransferTransaction extends IBaseTransaction {
+export interface TransferTransaction extends BaseTransaction {
 	readonly asset: TransferAsset;
 }
 
@@ -99,7 +73,7 @@ export interface TransferAsset {
 	readonly data?: string;
 }
 
-export interface SecondSignatureTransaction extends IBaseTransaction {
+export interface SecondSignatureTransaction extends BaseTransaction {
 	readonly asset: SecondSignatureAsset;
 }
 
@@ -109,7 +83,7 @@ export interface SecondSignatureAsset {
 	};
 }
 
-export interface DelegateTransaction extends IBaseTransaction {
+export interface DelegateTransaction extends BaseTransaction {
 	readonly asset: DelegateAsset;
 }
 
@@ -119,7 +93,7 @@ export interface DelegateAsset {
 	};
 }
 
-export interface VoteTransaction extends IBaseTransaction {
+export interface VoteTransaction extends BaseTransaction {
 	readonly asset: VoteAsset;
 }
 
@@ -127,7 +101,7 @@ export interface VoteAsset {
 	readonly votes: ReadonlyArray<string>;
 }
 
-export interface MultiSignatureTransaction extends IBaseTransaction {
+export interface MultiSignatureTransaction extends BaseTransaction {
 	readonly asset: MultiSignatureAsset;
 }
 
@@ -139,7 +113,7 @@ export interface MultiSignatureAsset {
 	};
 }
 
-export interface DappTransaction extends IBaseTransaction {
+export interface DappTransaction extends BaseTransaction {
 	readonly asset: DappAsset;
 }
 
@@ -155,7 +129,7 @@ export interface DappAsset {
 	};
 }
 
-export interface InTransferTransaction extends IBaseTransaction {
+export interface InTransferTransaction extends BaseTransaction {
 	readonly asset: InTransferAsset;
 }
 
@@ -165,7 +139,7 @@ export interface InTransferAsset {
 	};
 }
 
-export interface OutTransferTransaction extends IBaseTransaction {
+export interface OutTransferTransaction extends BaseTransaction {
 	readonly asset: OutTransferAsset;
 }
 

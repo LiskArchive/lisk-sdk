@@ -13,15 +13,15 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction, PartialTransaction } from '../transaction_types';
+import { ITransactionJSON } from '../transaction_types';
 import { getTransactionId } from './get_transaction_id';
 import { signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';
 
-const secondSignTransaction = (
-	transactionObject: BaseTransaction,
+export const secondSignTransaction = (
+	transactionObject: ITransactionJSON,
 	secondPassphrase: string,
-): BaseTransaction => ({
+): ITransactionJSON => ({
 	...transactionObject,
 	signSignature: signTransaction(transactionObject, secondPassphrase),
 });
