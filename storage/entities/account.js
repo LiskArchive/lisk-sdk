@@ -206,7 +206,7 @@ class Account extends BaseEntity {
 
 		this.addFilter('votedFor', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
 		});
 		this.addFilter('votedFor_in', ft.CUSTOM, {
 			condition:
