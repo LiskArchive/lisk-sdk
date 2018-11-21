@@ -3,10 +3,10 @@
 	"plugins": ["mocha", "chai-expect"],
 	"rules": {
 		"array-callback-return": "error",
-		"callback-return": 1,
+		"callback-return": "error",
 		"camelcase": "off",
-		"chai-expect/missing-assertion": 2,
-		"chai-expect/no-inner-compare": 2,
+		"chai-expect/missing-assertion": "error",
+		"chai-expect/no-inner-compare": "error",
 		"comma-dangle": [
 			"error",
 			{
