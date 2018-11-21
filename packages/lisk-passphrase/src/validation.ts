@@ -117,9 +117,9 @@ export const locateConsecutiveWhitespaces = (
 export const getPassphraseValidationErrors = (
 	passphrase: string,
 	wordlists?: ReadonlyArray<string>,
+	expectedWords: number = 12,
 ): ReadonlyArray<PassphraseError> => {
-	const expectedWords = 12;
-	const expectedWhitespaces = 11;
+	const expectedWhitespaces = expectedWords - 1;
 	const expectedUppercaseCharacterCount = 0;
 	const wordsInPassphrase = countPassphraseWords(passphrase);
 	const whiteSpacesInPassphrase = countPassphraseWhitespaces(passphrase);
@@ -170,7 +170,7 @@ export const getPassphraseValidationErrors = (
 			}
 			if (
 				error.code === whiteSpaceError.code &&
-				whiteSpacesInPassphrase > expectedWhitespaces
+				whiteSpacesInPassphrase !== expectedWhitespaces
 			) {
 				return [...errorArray, error];
 			}
