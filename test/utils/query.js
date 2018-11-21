@@ -136,6 +136,37 @@ describe('query utils', () => {
 		});
 	});
 
+	describe('when the response is an array with more than 1 records', () => {
+		beforeEach(() => {
+			response = {
+				data: [
+					{
+						id: 'someid',
+						address: 'address',
+					},
+					{
+						id: 'someid',
+						address: 'address',
+					},
+				],
+			};
+			apiClient = {
+				accounts: {
+					get: sandbox.stub().resolves(response),
+				},
+			};
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			return Promise.resolve();
+		});
+
+		it('should call API client and resolve to an array', () => {
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
+			);
+			return expect(queryResult).to.eventually.eql(response.data);
+		});
+	});
+
 	describe('when the response is an object', () => {
 		beforeEach(() => {
 			response = {
