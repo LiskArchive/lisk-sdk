@@ -26,7 +26,10 @@ export const handleResponse = (endpoint, res, placeholder) => {
 			}
 			throw new Error(`No ${endpoint} found using specified parameters.`);
 		}
-		return res.data;
+		if (res.data.length > 1) {
+			return res.data;
+		}
+		return res.data[0];
 	}
 	return res.data;
 };
