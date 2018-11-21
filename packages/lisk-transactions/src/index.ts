@@ -22,8 +22,7 @@ import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
 import * as utils from './utils';
 
-// tslint:disable-next-line no-default-export
-export default {
+export {
 	transfer,
 	registerSecondPassphrase,
 	registerDelegate,
