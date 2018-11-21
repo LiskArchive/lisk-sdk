@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { IPeerOptions, IPeerReturnType, P2P } from '../generic-p2p/p2p';
+import { IPeerOptions, IPeerReturnType, P2P } from '../generic-p2p';
 import { BlockchainPeer } from './blockchain_peer';
 /* tslint:disable:interface-name readonly-keyword no-empty-interface no-let*/
 

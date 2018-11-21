@@ -13,9 +13,15 @@
  *
  */
 /* tslint:disable:no-default-export */
-import { P2P } from './p2p';
-import { Peer } from './peer';
-export default {
-	P2P,
-	Peer,
-};
+export { P2P, IPeerOptions, IPeerReturnType } from './p2p';
+export { Peer, IPeerConfig } from './peer';
+export {
+	INetworkStatus,
+	IP2P,
+	IP2PMessagePacket,
+	IP2PNodeStatus,
+	IP2PPenalty,
+	IP2PRequestPacket,
+	IP2PResponsePacket,
+	IPeer,
+} from './p2p_types';

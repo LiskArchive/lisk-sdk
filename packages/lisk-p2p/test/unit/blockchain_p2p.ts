@@ -1,10 +1,8 @@
 /* tslint:disable:no-console */
 import { expect } from 'chai';
 
-import {
-	IOptionsLiskPeer,
-	BlockchainP2P,
-} from '../../src/blockchain-p2p/blockchain_p2p';
+import { IOptionsLiskPeer, BlockchainP2P } from '../../src';
+
 import {
 	IBlockchainPeerConfig,
 	BlockchainPeer,
