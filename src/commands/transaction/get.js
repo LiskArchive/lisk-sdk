@@ -16,7 +16,7 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import getAPIClient from '../../utils/api';
-import { query, handleResponse } from '../../utils/query';
+import { query, queryNodeTransaction } from '../../utils/query';
 
 const TRANSACTION_STATES = ['unsigned', 'unprocessed'];
 const SORT_OPTIONS = [
@@ -45,17 +45,6 @@ const stateFlag = {
 	- --state=unprocessed
 `,
 };
-
-const queryNode = async (client, txnState, parameters) =>
-	Promise.all(
-		parameters.map(param =>
-			client
-				.getTransactions(txnState, param.query)
-				.then(res =>
-					handleResponse('node/transactions', res, param.placeholder),
-				),
-		),
-	);
 
 export default class GetCommand extends BaseCommand {
 	async run() {
@@ -86,7 +75,11 @@ export default class GetCommand extends BaseCommand {
 				},
 			}));
 
-			const results = await queryNode(client.node, txnState, reqTxnSenderId);
+			const results = await queryNodeTransaction(
+				client.node,
+				txnState,
+				reqTxnSenderId,
+			);
 
 			return this.print(results);
 		}
@@ -103,7 +96,11 @@ export default class GetCommand extends BaseCommand {
 				},
 			}));
 
-			const results = await queryNode(client.node, txnState, reqTransactionIds);
+			const results = await queryNodeTransaction(
+				client.node,
+				txnState,
+				reqTransactionIds,
+			);
 
 			return this.print(results);
 		}
@@ -123,7 +120,11 @@ export default class GetCommand extends BaseCommand {
 				},
 			];
 
-			const results = await queryNode(client.node, txnState, reqWithSenderId);
+			const results = await queryNodeTransaction(
+				client.node,
+				txnState,
+				reqWithSenderId,
+			);
 
 			return this.print(results);
 		}
@@ -142,7 +143,11 @@ export default class GetCommand extends BaseCommand {
 				},
 			];
 
-			const results = await queryNode(client.node, txnState, reqByLimitOffset);
+			const results = await queryNodeTransaction(
+				client.node,
+				txnState,
+				reqByLimitOffset,
+			);
 
 			return this.print(results);
 		}

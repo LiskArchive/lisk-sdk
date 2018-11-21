@@ -46,3 +46,14 @@ export const query = async (client, endpoint, parameters) =>
 		: client[endpoint]
 				.get(parameters.query)
 				.then(res => handleResponse(endpoint, res, parameters.placeholder));
+
+export const queryNodeTransaction = async (client, txnState, parameters) =>
+	Promise.all(
+		parameters.map(param =>
+			client
+				.getTransactions(txnState, param.query)
+				.then(res =>
+					handleResponse('node/transactions', res, param.placeholder),
+				),
+		),
+	);
