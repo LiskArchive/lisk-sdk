@@ -297,6 +297,14 @@ class Account extends BaseEntity {
 		);
 	}
 
+	/**
+	 * Create account object
+	 *
+	 * @param {Object} data
+	 * @param {Object} [options]
+	 * @param {Object} tx - Transaction object
+	 * @return {*}
+	 */
 	// eslint-disable-next-line no-unused-vars
 	create(data, options = {}, tx) {
 		const objectData = _.defaults(data, defaultCreateValues);
@@ -304,6 +312,15 @@ class Account extends BaseEntity {
 		return this.adapter.executeFile(this.SQLs.create, objectData, {}, tx);
 	}
 
+	/**
+	 * Update the records based on given condition
+	 *
+	 * @param {filters.Account} [filters]
+	 * @param {Object} data
+	 * @param {Object} [options]
+	 * @param {Object} tx - Transaction object
+	 * @return {*}
+	 */
 	// eslint-disable-next-line no-unused-vars
 	update(filters, data, options = {}, tx) {
 		const objectData = _.omit(data, readOnlyFields);
@@ -318,6 +335,15 @@ class Account extends BaseEntity {
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
 
+	/**
+	 * Update one record based on the condition given
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} data
+	 * @param {Object} [options]
+	 * @param {Object} tx - Transaction object
+	 * @return {*}
+	 */
 	// eslint-disable-next-line no-unused-vars
 	updateOne(filters, data, options = {}, tx) {
 		const objectData = _.omit(data, readOnlyFields);
