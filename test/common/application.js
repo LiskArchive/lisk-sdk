@@ -134,7 +134,7 @@ function __init(initScope, done) {
 										callback(null, peer);
 									});
 								}
-								dns.lookup(peer.ip, { family: 4 }, (err, address) => {
+								return dns.lookup(peer.ip, { family: 4 }, (err, address) => {
 									if (err) {
 										console.error(
 											`Failed to resolve peer domain name ${
@@ -143,7 +143,10 @@ function __init(initScope, done) {
 										);
 										return callback(err, peer);
 									}
-									callback(null, Object.assign({}, peer, { ip: address }));
+									return callback(
+										null,
+										Object.assign({}, peer, { ip: address })
+									);
 								});
 							}
 						);

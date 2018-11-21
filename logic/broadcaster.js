@@ -142,6 +142,7 @@ class Broadcaster {
 				if (cb) {
 					return setImmediate(cb, err, { peers });
 				}
+				return true;
 			}
 		);
 	}

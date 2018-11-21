@@ -814,7 +814,7 @@ describe('db', () => {
 							event.ctx.tag === 'transactions:save'
 						)
 					) {
-						return done(
+						done(
 							`Some query executed outside transaction context: ${event.query}`,
 							event
 						);

@@ -221,6 +221,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 						library.bus.message('finishRound', round);
 					});
 				}
+				return true;
 			})
 			.then(() => {
 				// Check if we are one block before last block of round, if yes - perform round snapshot
@@ -242,6 +243,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 							throw err;
 						});
 				}
+				return true;
 			});
 	}
 

@@ -419,13 +419,15 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 
 	// Check if we are free to broadcast
 	if (__private.broadcaster.maxRelays(block)) {
-		return library.logger.debug(
+		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 		);
+		return;
 	} else if (modules.loader.syncing()) {
-		return library.logger.debug(
+		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);
+		return;
 	}
 
 	if (block.totalAmount) {

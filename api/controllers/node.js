@@ -72,9 +72,9 @@ NodeController.getConstants = function(context, next) {
 			data.fees.vote = data.fees.vote.toString();
 			data.fees.send = data.fees.send.toString();
 
-			next(null, data);
+			return next(null, data);
 		} catch (error) {
-			next(error);
+			return next(error);
 		}
 	});
 };
@@ -110,7 +110,7 @@ NodeController.getStatus = function(context, next) {
 				return next(null, data);
 			});
 		} catch (error) {
-			next(error);
+			return next(error);
 		}
 	});
 };

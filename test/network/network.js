@@ -123,6 +123,8 @@ class Network {
 						return this.waitForBlocksOnAllNodes(1);
 					});
 				}
+
+				return true;
 			})
 			.then(() => {
 				return this.establishMonitoringSocketsConnections();

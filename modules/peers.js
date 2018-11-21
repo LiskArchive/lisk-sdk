@@ -178,7 +178,6 @@ __private.getByFilter = function(filter, cb) {
 	let peers = library.logic.peers.list(normalized);
 
 	peers = peers.filter(peer => {
-		// const peer = __private.peers[index];
 		let passed = true;
 		_.each(filter, (value, key) => {
 			// Every filter field need to be in allowed fields, exists and match value
@@ -189,6 +188,7 @@ __private.getByFilter = function(filter, cb) {
 				passed = false;
 				return false;
 			}
+			return true;
 		});
 		return passed;
 	});
