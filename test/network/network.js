@@ -69,7 +69,7 @@ class Network {
 						);
 					}
 					this.sockets = socketsResult;
-					resolve(socketsResult);
+					return resolve(socketsResult);
 				}
 			);
 		});
@@ -82,7 +82,7 @@ class Network {
 					return reject(err);
 				}
 				this.sockets = [];
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -138,7 +138,7 @@ class Network {
 						if (err) {
 							return reject(err);
 						}
-						resolve();
+						return resolve();
 					}, WAIT_BEFORE_CONNECT_MS);
 				});
 			});
@@ -156,7 +156,7 @@ class Network {
 						)
 					);
 				}
-				resolve(pm2Configs);
+				return resolve(pm2Configs);
 			});
 		});
 	}
@@ -172,7 +172,7 @@ class Network {
 						)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -188,7 +188,7 @@ class Network {
 						)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -204,7 +204,7 @@ class Network {
 						)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -218,7 +218,7 @@ class Network {
 						if (err) {
 							return reject(err);
 						}
-						resolve();
+						return resolve();
 					});
 				});
 			})
@@ -249,7 +249,7 @@ class Network {
 							)
 						);
 					}
-					resolve();
+					return resolve();
 				},
 				retries,
 				timeout,
@@ -300,7 +300,7 @@ class Network {
 							)
 						);
 					}
-					resolve();
+					return resolve();
 				},
 				`http://${configuration.ip}:${configuration.httpPort}`
 			);
@@ -408,7 +408,7 @@ class Network {
 							)
 						);
 					}
-					resolve();
+					return resolve();
 				}
 			);
 		});
@@ -423,7 +423,7 @@ class Network {
 						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -436,7 +436,7 @@ class Network {
 						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 		if (waitForSync) {

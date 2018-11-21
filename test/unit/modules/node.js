@@ -79,18 +79,17 @@ describe('node', () => {
 				testDelegate.publicKey,
 				(err, res) => {
 					if (res.length) {
-						node_module.internal.updateForgingStatus(
+						return node_module.internal.updateForgingStatus(
 							testDelegate.publicKey,
 							testDelegate.password,
 							forging,
 							cb
 						);
-					} else {
-						cb(err, {
-							publicKey: testDelegate.publicKey,
-							password: testDelegate.password,
-						});
 					}
+					return cb(err, {
+						publicKey: testDelegate.publicKey,
+						password: testDelegate.password,
+					});
 				}
 			);
 		}

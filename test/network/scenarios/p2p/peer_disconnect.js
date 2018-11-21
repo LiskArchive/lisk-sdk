@@ -72,12 +72,11 @@ module.exports = function(
 								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
 								EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER
 							) {
-								done();
-							} else {
-								done(
-									`There are ${numOfConnections} established connections on web socket ports.`
-								);
+								return done();
 							}
+							return done(
+								`There are ${numOfConnections} established connections on web socket ports.`
+							);
 						}
 					);
 				});
@@ -100,12 +99,11 @@ module.exports = function(
 							}
 
 							if (numOfConnections <= EXPECTED_TOTAL_CONNECTIONS) {
-								done();
-							} else {
-								done(
-									`There are ${numOfConnections} established connections on web socket ports.`
-								);
+								return done();
 							}
+							return done(
+								`There are ${numOfConnections} established connections on web socket ports.`
+							);
 						}
 					);
 				});
@@ -146,12 +144,11 @@ module.exports = function(
 									numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
 									EXPECTED_TOTAL_CONNECTIONS
 								) {
-									done();
-								} else {
-									done(
-										`There are ${numOfConnections} established connections on web socket ports.`
-									);
+									return done();
 								}
+								return done(
+									`There are ${numOfConnections} established connections on web socket ports.`
+								);
 							}
 						);
 					});

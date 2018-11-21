@@ -60,7 +60,7 @@ describe('loader', () => {
 							definitions: resolvedSwaggerSpec.definitions,
 						},
 					});
-					done();
+					return done();
 				}
 			);
 		});
