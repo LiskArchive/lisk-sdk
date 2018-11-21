@@ -92,7 +92,7 @@ export default class GetCommand extends BaseCommand {
 		}
 
 		if (txnState && ids) {
-			const reqTransactionIDs = ids.map(id => ({
+			const reqTransactionIds = ids.map(id => ({
 				query: {
 					limit: 1,
 					id,
@@ -103,7 +103,7 @@ export default class GetCommand extends BaseCommand {
 				},
 			}));
 
-			const results = await queryNode(client.node, txnState, reqTransactionIDs);
+			const results = await queryNode(client.node, txnState, reqTransactionIds);
 
 			return this.print(results);
 		}
@@ -191,10 +191,6 @@ export default class GetCommand extends BaseCommand {
 			},
 		};
 		const results = await query(client, 'transactions', req);
-
-		if (!Array.isArray(results)) {
-			return this.print(results);
-		}
 
 		return this.print(results);
 	}
