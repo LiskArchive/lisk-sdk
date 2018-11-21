@@ -50,6 +50,109 @@ const defaultCreateValues = {
 
 const readOnlyFields = ['address'];
 
+/**
+ * Account Filters
+ * @typedef {Object} filters.Account
+ * @property {string} [address]
+ * @property {string} [address_eql]
+ * @property {string} [address_ne]
+ * @property {string} [address_in]
+ * @property {string} [address_like]
+ * @property {string} [publicKey]
+ * @property {string} [publicKey_eql]
+ * @property {string} [publicKey_ne]
+ * @property {string} [secondPublicKey]
+ * @property {string} [secondPublicKey_eql]
+ * @property {string} [secondPublicKey_ne]
+ * @property {string} [username]
+ * @property {string} [username_eql]
+ * @property {string} [username_ne]
+ * @property {string} [username_in]
+ * @property {string} [username_like]
+ * @property {string} [isDelegate]
+ * @property {string} [isDelegate_eql]
+ * @property {string} [isDelegate_ne]
+ * @property {string} [secondSignature]
+ * @property {string} [secondSignature_eql]
+ * @property {string} [secondSignature_ne]
+ * @property {string} [balance]
+ * @property {string} [balance_eql]
+ * @property {string} [balance_ne]
+ * @property {string} [balance_gt]
+ * @property {string} [balance_gte]
+ * @property {string} [balance_lt]
+ * @property {string} [balance_lte]
+ * @property {string} [balance_in]
+ * @property {string} [multiMin]
+ * @property {string} [multiMin_eql]
+ * @property {string} [multiMin_ne]
+ * @property {string} [multiMin_gt]
+ * @property {string} [multiMin_gte]
+ * @property {string} [multiMin_lt]
+ * @property {string} [multiMin_lte]
+ * @property {string} [multiMin_in]
+ * @property {string} [multiLifetime]
+ * @property {string} [multiLifetime_eql]
+ * @property {string} [multiLifetime_ne]
+ * @property {string} [multiLifetime_gt]
+ * @property {string} [multiLifetime_gte]
+ * @property {string} [multiLifetime_lt]
+ * @property {string} [multiLifetime_lte]
+ * @property {string} [multiLifetime_in]
+ * @property {string} [nameExist]
+ * @property {string} [nameExist_eql]
+ * @property {string} [nameExist_ne]
+ * @property {string} [fees]
+ * @property {string} [fees_eql]
+ * @property {string} [fees_ne]
+ * @property {string} [fees_gt]
+ * @property {string} [fees_gte]
+ * @property {string} [fees_lt]
+ * @property {string} [fees_lte]
+ * @property {string} [fees_in]
+ * @property {string} [rewards]
+ * @property {string} [rewards_eql]
+ * @property {string} [rewards_ne]
+ * @property {string} [rewards_gt]
+ * @property {string} [rewards_gte]
+ * @property {string} [rewards_lt]
+ * @property {string} [rewards_lte]
+ * @property {string} [rewards_in]
+ * @property {string} [producedBlocks]
+ * @property {string} [producedBlocks_eql]
+ * @property {string} [producedBlocks_ne]
+ * @property {string} [producedBlocks_gt]
+ * @property {string} [producedBlocks_gte]
+ * @property {string} [producedBlocks_lt]
+ * @property {string} [producedBlocks_lte]
+ * @property {string} [producedBlocks_in]
+ * @property {string} [missedBlocks]
+ * @property {string} [missedBlocks_eql]
+ * @property {string} [missedBlocks_ne]
+ * @property {string} [missedBlocks_gt]
+ * @property {string} [missedBlocks_gte]
+ * @property {string} [missedBlocks_lt]
+ * @property {string} [missedBlocks_lte]
+ * @property {string} [missedBlocks_in]
+ * @property {string} [rank]
+ * @property {string} [rank_eql]
+ * @property {string} [rank_ne]
+ * @property {string} [rank_gt]
+ * @property {string} [rank_gte]
+ * @property {string} [rank_lt]
+ * @property {string} [rank_lte]
+ * @property {string} [rank_in]
+ * @property {string} [votedFor]
+ * @property {string} [votedFor_in]'
+ */
+
+/**
+ * @typedef {string} fieldSets.Account
+ * @enum
+ * @value 'FIELD_SET_SIMPLE'
+ * @value 'FIELD_SET_FULL'
+ */
+
 class Account extends BaseEntity {
 	constructor() {
 		super();
@@ -102,11 +205,11 @@ class Account extends BaseEntity {
 
 		this.addFilter('votedFor', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor}))',
 		});
 		this.addFilter('votedFor_in', ft.CUSTOM, {
 			condition:
-				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedFor:csv}))',
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedFor_in:csv}))',
 		});
 
 		this.SQLs = {
@@ -118,43 +221,66 @@ class Account extends BaseEntity {
 		};
 	}
 
-	getOne(
-		filters,
-		options = {
-			fieldSet: Account.prototype.FIELD_SET_SIMPLE,
-		},
-		tx
-	) {
-		const queryOptions = Object.assign({}, options, { expectedResult: 1 });
+	/**
+	 * Get one account
+	 *
+	 * @param {filters.Account|filters.Account[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
+	 * @param {Object} tx - Database transaction object
+	 * @return {*}
+	 */
+	getOne(filters, options = {}, tx) {
+		const parsedOptions = _.defaults(
+			{},
+			_.pick(options, ['limit', 'offset', 'fieldSet']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
+		);
 		const parsedFilters = this.parseFilters(filters);
 
-		const params = Object.assign({}, this.defaultOptions, filters, {
-			parsedFilters,
-		});
+		const params = Object.assign(
+			{},
+			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			{
+				parsedFilters,
+			}
+		);
 
 		return this.adapter.executeFile(
 			{
 				[Account.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
 				[Account.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
-			}[options.fieldSet],
+			}[parsedOptions.fieldSet],
 			params,
-			queryOptions,
+			{ expectedResult: 1 },
 			tx
 		);
 	}
 
-	get(
-		filters,
-		options = {
-			fieldSet: Account.prototype.FIELD_SET_SIMPLE,
-		},
-		tx
-	) {
+	/**
+	 * Get list of accounts
+	 *
+	 * @param {filters.Account|filters.Account[]} [filters = {}]
+	 * @param {Object} [options = {}] - Options to filter data
+	 * @param {Number} [options.limit=10] - Number of records to fetch
+	 * @param {Number} [options.offset=0] - Offset to start the records
+	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
+	 * @param {Object} tx - Database transaction object
+	 * @return {*}
+	 */
+	get(filters = {}, options = {}, tx) {
 		const parsedFilters = this.parseFilters(filters);
+		const parsedOptions = _.defaults(
+			{},
+			_.pick(options, ['limit', 'offset', 'fieldSet']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
+		);
+
 		const params = Object.assign(
-			this.defaultOptions,
-			{ limit: options.limit, offset: options.offset },
-			filters,
+			{},
+			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
 			{ parsedFilters }
 		);
 
@@ -162,7 +288,7 @@ class Account extends BaseEntity {
 			{
 				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
 				[this.FIELD_SET_FULL]: this.SQLs.selectFull,
-			}[options.fieldSet],
+			}[parsedOptions.fieldSet],
 			params,
 			{},
 			tx
@@ -214,6 +340,7 @@ Account.prototype.FIELD_SET_FULL = 'FIELD_SET_FULL';
 Account.prototype.defaultOptions = {
 	limit: 10,
 	offset: 0,
+	fieldSet: Account.prototype.FIELD_SET_SIMPLE,
 };
 
 module.exports = Account;

@@ -237,13 +237,13 @@ class BaseEntity {
 			case filterTypes.BOOLEAN:
 				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
 				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_neql`, `"${fieldName}" <> $\{${filterName}\}`);
+				setFilter(`${filterName}_ne`, `"${fieldName}" <> $\{${filterName}\}`);
 				break;
 
 			case filterTypes.TEXT:
 				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
 				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_neql`, `"${fieldName}" <> $\{${filterName}\}`);
+				setFilter(`${filterName}_ne`, `"${fieldName}" <> $\{${filterName}\}`);
 				setFilter(
 					`${filterName}_in`,
 					`"${filterName}" IN ($\{${filterName}_in:csv\})`
@@ -257,7 +257,7 @@ class BaseEntity {
 			case filterTypes.NUMBER:
 				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
 				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_neql`, `"${fieldName}" <> $\{${filterName}\}`);
+				setFilter(`${filterName}_ne`, `"${fieldName}" <> $\{${filterName}\}`);
 				setFilter(`${filterName}_gt`, `"${fieldName}" > $\{${filterName}\}`);
 				setFilter(`${filterName}_gte`, `"${fieldName}" >= $\{${filterName}\}`);
 				setFilter(`${filterName}_lt`, `"${fieldName}" < $\{${filterName}\}`);
@@ -278,7 +278,7 @@ class BaseEntity {
 					`"${fieldName}" = DECODE($\{${filterName}\}, 'hex')`
 				);
 				setFilter(
-					`${filterName}_neql`,
+					`${filterName}_ne`,
 					`"${fieldName}" <> DECODE($\{${filterName}\}, 'hex')`
 				);
 				break;
@@ -308,8 +308,17 @@ class BaseEntity {
 			filterString = parseFilterObject(filters);
 		}
 
+		let filtersObject = filters;
+
+		if (Array.isArray(filters)) {
+			filtersObject = Object.assign({}, ...filters);
+		}
+
 		if (filterString) {
-			return `WHERE ${this.adapter.parseQueryComponent(filterString, filters)}`;
+			return `WHERE ${this.adapter.parseQueryComponent(
+				filterString,
+				filtersObject
+			)}`;
 		}
 
 		return '';
