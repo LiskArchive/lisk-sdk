@@ -183,7 +183,8 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 			i < limit;
 			i += 1
 		) {
-			return next();
+			// eslint-disable-next-line callback-return
+			next();
 		}
 	});
 };
