@@ -347,14 +347,14 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	modules.delegates.generateDelegateList(
+	return modules.delegates.generateDelegateList(
 		scope.round,
 		null,
 		(err, roundDelegates) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			async.eachSeries(
+			return async.eachSeries(
 				roundDelegates,
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
@@ -398,7 +398,7 @@ __private.sumRound = function(scope, cb, tx) {
 
 	library.logger.debug('Summing round', scope.round);
 
-	(tx || library.db).rounds
+	return (tx || library.db).rounds
 		.summedRound(scope.round, ACTIVE_DELEGATES)
 		.then(rows => {
 			const rewards = [];

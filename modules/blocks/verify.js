@@ -126,16 +126,15 @@ __private.checkTransaction = function(block, transaction, checkExists, cb) {
 				modules.delegates.fork(block, 2);
 				// Undo the offending transaction.
 				// DATABASE: write
-				modules.transactions.undoUnconfirmed(
+				return modules.transactions.undoUnconfirmed(
 					transaction,
 					undoUnconfirmedErr => {
 						modules.transactions.removeUnconfirmedTransaction(transaction.id);
 						return setImmediate(cb, undoUnconfirmedErr || waterCbErr);
 					}
 				);
-			} else {
-				return setImmediate(cb, waterCbErr);
 			}
+			return setImmediate(cb, waterCbErr);
 		}
 	);
 };
@@ -803,7 +802,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	async.series(
+	return async.series(
 		{
 			addBlockProperties(seriesCb) {
 				__private.addBlockProperties(block, broadcast, seriesCb);
@@ -822,7 +821,7 @@ Verify.prototype.processBlock = function(block, broadcast, saveBlock, cb) {
 				if (!saveBlock) {
 					return setImmediate(seriesCb);
 				}
-				__private.checkExists(block, seriesCb);
+				return __private.checkExists(block, seriesCb);
 			},
 			validateBlockSlot(seriesCb) {
 				__private.validateBlockSlot(block, seriesCb);

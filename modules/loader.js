@@ -159,7 +159,7 @@ __private.syncTimer = function() {
 			!self.syncing() &&
 			modules.blocks.lastReceipt.isStale()
 		) {
-			library.sequence.add(
+			return library.sequence.add(
 				sequenceCb => {
 					__private.sync(sequenceCb);
 				},
@@ -170,12 +170,15 @@ __private.syncTimer = function() {
 					return setImmediate(cb);
 				}
 			);
-		} else {
-			return setImmediate(cb);
 		}
+		return setImmediate(cb);
 	}
 
-	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
+	return jobsQueue.register(
+		'loaderSyncTimer',
+		nextSync,
+		__private.syncInterval
+	);
 };
 
 /**
@@ -207,8 +210,10 @@ __private.loadSignatures = function(cb) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
-					library.schema.validate(res, definitions.WSSignaturesResponse, err =>
-						setImmediate(waterCb, err, res.signatures)
+					return library.schema.validate(
+						res,
+						definitions.WSSignaturesResponse,
+						err => setImmediate(waterCb, err, res.signatures)
 					);
 				});
 			},
@@ -271,7 +276,7 @@ __private.loadTransactions = function(cb) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
-					library.schema.validate(
+					return library.schema.validate(
 						res,
 						definitions.WSTransactionsResponse,
 						err => {
@@ -545,14 +550,14 @@ __private.loadBlockChain = function() {
 							return reload(blocksCount, 'No delegates found');
 						}
 
-						modules.blocks.utils.loadLastBlock((err, block) => {
+						return modules.blocks.utils.loadLastBlock((err, block) => {
 							if (err) {
 								return reload(blocksCount, err || 'Failed to load last block');
 							}
 
 							__private.lastBlock = block;
 
-							__private.validateOwnChain(validateOwnChainError => {
+							return __private.validateOwnChain(validateOwnChainError => {
 								if (validateOwnChainError) {
 									throw validateOwnChainError;
 								}
@@ -744,13 +749,13 @@ __private.validateOwnChain = cb => {
 			return setImmediate(cb, null);
 		}
 
-		validateStartBlock(startBlockError => {
+		return validateStartBlock(startBlockError => {
 			// If start block is invalid can't proceed further
 			if (startBlockError) {
 				return setImmediate(cb, startBlockError);
 			}
 
-			deleteInvalidBlocks(cb);
+			return deleteInvalidBlocks(cb);
 		});
 	});
 };
@@ -917,10 +922,9 @@ __private.loadBlocksFromNetwork = function(cb) {
 					);
 				}
 				if (lastBlock.height === 1) {
-					loadBlocks();
-				} else {
-					getCommonBlock(loadBlocks);
+					return loadBlocks();
 				}
+				return getCommonBlock(loadBlocks);
 			});
 		},
 		err => {
@@ -1117,29 +1121,35 @@ Loader.prototype.onPeersReady = function() {
 			{
 				loadTransactions(seriesCb) {
 					if (__private.loaded) {
-						async.retry(__private.retries, __private.loadTransactions, err => {
-							if (err) {
-								library.logger.log('Unconfirmed transactions loader', err);
-							}
+						return async.retry(
+							__private.retries,
+							__private.loadTransactions,
+							err => {
+								if (err) {
+									library.logger.log('Unconfirmed transactions loader', err);
+								}
 
-							return setImmediate(seriesCb);
-						});
-					} else {
-						return setImmediate(seriesCb);
+								return setImmediate(seriesCb);
+							}
+						);
 					}
+					return setImmediate(seriesCb);
 				},
 				loadSignatures(seriesCb) {
 					if (__private.loaded) {
-						async.retry(__private.retries, __private.loadSignatures, err => {
-							if (err) {
-								library.logger.log('Signatures loader', err);
-							}
+						return async.retry(
+							__private.retries,
+							__private.loadSignatures,
+							err => {
+								if (err) {
+									library.logger.log('Signatures loader', err);
+								}
 
-							return setImmediate(seriesCb);
-						});
-					} else {
-						return setImmediate(seriesCb);
+								return setImmediate(seriesCb);
+							}
+						);
 					}
+					return setImmediate(seriesCb);
 				},
 			},
 			err => {

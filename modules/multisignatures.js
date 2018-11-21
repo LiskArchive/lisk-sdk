@@ -279,7 +279,7 @@ Multisignatures.prototype.processSignature = function(signature, cb) {
 	}
 
 	// From now perform all the operations via balanceSequence
-	library.balancesSequence.add(balanceSequenceCb => {
+	return library.balancesSequence.add(balanceSequenceCb => {
 		// Grab transaction with corresponding ID from transaction pool
 		const transaction = modules.transactions.getMultisignatureTransaction(
 			signature.transactionId

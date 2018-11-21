@@ -178,7 +178,7 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.dapps
+	return library.db.dapps
 		.list(
 			Object.assign(
 				{},
