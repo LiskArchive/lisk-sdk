@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/writers');
+const { NonSupportedFilterTypeError } = require('../errors');
 const ft = require('./filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -218,6 +219,7 @@ class Account extends BaseEntity {
 			create: this.adapter.loadSQLFile('accounts/create.sql'),
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
+			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
 		};
 	}
 
@@ -328,6 +330,30 @@ class Account extends BaseEntity {
 		});
 
 		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
+	}
+
+	/**
+	 * Check if the record exists with following conditions
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	// eslint-disable-next-line no-unused-vars
+	isPersisted(filters, options = {}, tx) {
+		const parsedFilters = this.parseFilters(filters);
+
+		if (parsedFilters === '') {
+			throw new NonSupportedFilterTypeError(
+				'Please provide some filters to check.',
+				filters
+			);
+		}
+
+		return this.adapter
+			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
+			.then(result => result[0].exists);
 	}
 
 	getFieldSets() {
