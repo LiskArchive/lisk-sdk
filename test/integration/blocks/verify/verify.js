@@ -887,7 +887,7 @@ describe('blocks/verify', () => {
 					if (err) {
 						return done(err);
 					}
-					delegates.generateDelegateList(1, null, done);
+					return delegates.generateDelegateList(1, null, done);
 				}
 			);
 		});
@@ -898,7 +898,7 @@ describe('blocks/verify', () => {
 					return done(err);
 				}
 				expect(newaccount.address).to.equal(testAccount.account.address);
-				done();
+				return done();
 			});
 		});
 
@@ -938,7 +938,7 @@ describe('blocks/verify', () => {
 					return done(err);
 				}
 				expect(result).to.be.undefined;
-				done();
+				return done();
 			});
 		});
 	});
@@ -1206,7 +1206,7 @@ describe('blocks/verify', () => {
 					return done(err);
 				}
 				expect(result).to.be.undefined;
-				done();
+				return done();
 			});
 		});
 	});
