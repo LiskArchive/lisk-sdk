@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-passphrase",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Mnemonic passphrase helpers for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -57,8 +57,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"bip39": "2.5.0",
-		"babel-runtime": "6.26.0"
+		"babel-runtime": "6.26.0",
+		"bip39": "2.5.0"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",

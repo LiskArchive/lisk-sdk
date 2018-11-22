@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-transactions",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "Everything related to transactions according to the Lisk protocol",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -57,8 +57,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-constants": "1.1.1",
-		"@liskhq/lisk-cryptography": "1.1.1",
+		"@liskhq/lisk-constants": "1.1.2",
+		"@liskhq/lisk-cryptography": "1.1.2",
 		"ajv": "6.5.3",
 		"ajv-merge-patch": "4.1.0",
 		"babel-runtime": "6.26.0",

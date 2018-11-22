@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -57,7 +57,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"@liskhq/lisk-constants": "1.1.1",
+		"@liskhq/lisk-constants": "1.1.2",
 		"axios": "0.18.0",
 		"babel-runtime": "6.26.0"
 	},
