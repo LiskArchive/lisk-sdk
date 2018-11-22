@@ -56,6 +56,9 @@
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
+	"dependencies": {
+		"babel-runtime": "6.26.0"
+	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
 		"babel-plugin-istanbul": "5.0.1",

@@ -58,6 +58,7 @@
 	},
 	"dependencies": {
 		"@liskhq/lisk-constants": "1.1.1",
+		"babel-runtime": "6.26.0",
 		"browserify-bignum": "1.3.0-2",
 		"buffer-reverse": "1.0.1",
 		"ed2curve": "0.2.1",
