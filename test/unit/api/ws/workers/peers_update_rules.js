@@ -165,26 +165,34 @@ describe('PeersUpdateRules', () => {
 			});
 		});
 
-		it('should remove added entries from connectionsTable after receiving an error without code from server', done => {
+		it('should NOT remove added entries from connectionsTable after receiving an error without code from server', done => {
 			peersUpdateRules.slaveToMasterSender.send.restore();
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 				.stub(peersUpdateRules.slaveToMasterSender, 'send')
 				.callsArgWith(3, 'On insert error');
 			peersUpdateRules.insert(validPeer, validConnectionId, () => {
-				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
-				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
+				expect(connectionsTable.nonceToConnectionIdMap)
+					.to.have.property(validPeer.nonce)
+					.equal(validConnectionId);
+				expect(connectionsTable.connectionIdToNonceMap)
+					.to.have.property(validConnectionId)
+					.equal(validPeer.nonce);
 				done();
 			});
 		});
 
-		it('should remove added entries from connectionsTable after receiving an error with code from server', done => {
+		it('should NOT remove added entries from connectionsTable after receiving an error with code from server', done => {
 			peersUpdateRules.slaveToMasterSender.send.restore();
 			peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 				.stub(peersUpdateRules.slaveToMasterSender, 'send')
 				.callsArgWith(3, { code: validErrorCode });
 			peersUpdateRules.insert(validPeer, validConnectionId, () => {
-				expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
-				expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
+				expect(connectionsTable.nonceToConnectionIdMap)
+					.to.have.property(validPeer.nonce)
+					.equal(validConnectionId);
+				expect(connectionsTable.connectionIdToNonceMap)
+					.to.have.property(validConnectionId)
+					.equal(validPeer.nonce);
 				done();
 			});
 		});
@@ -351,7 +359,7 @@ describe('PeersUpdateRules', () => {
 				});
 			});
 
-			it('should revert removed connections tables entries when invoked with valid arguments but received error without code from server', done => {
+			it('should NOT revert removed connections tables entries when invoked with valid arguments but received error without code from server', done => {
 				peersUpdateRules.slaveToMasterSender.send.restore();
 				peersUpdateRules.slaveToMasterSender.send = sinonSandbox
 					.stub(peersUpdateRules.slaveToMasterSender, 'send')
@@ -360,12 +368,8 @@ describe('PeersUpdateRules', () => {
 					expect(err)
 						.to.have.property('code')
 						.equal(failureCodes.ON_MASTER.UPDATE.TRANSPORT);
-					expect(connectionsTable.nonceToConnectionIdMap)
-						.to.have.property(validPeer.nonce)
-						.equal(validConnectionId);
-					expect(connectionsTable.connectionIdToNonceMap)
-						.to.have.property(validConnectionId)
-						.equal(validPeer.nonce);
+					expect(connectionsTable.nonceToConnectionIdMap).to.be.empty;
+					expect(connectionsTable.connectionIdToNonceMap).to.be.empty;
 					done();
 				});
 			});
