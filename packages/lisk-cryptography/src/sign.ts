@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { SIGNED_MESSAGE_PREFIX } from '@liskhq/lisk-constants';
 import { encode as encodeVarInt } from 'varuint-bitcoin';
 import { bufferToHex, hexToBuffer } from './buffer';
+import { SIGNED_MESSAGE_PREFIX } from './constants';
 import { hash } from './hash';
 import { getPrivateAndPublicKeyBytesFromPassphrase } from './keys';
 import {

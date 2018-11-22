@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MAINNET_NETHASH, TESTNET_NETHASH } from '@liskhq/lisk-constants';
 import * as os from 'os';
 import { HashMap, InitOptions } from './api_types';
 import * as constants from './constants';
@@ -63,20 +62,20 @@ export interface ClientOptions {
 }
 
 export class APIClient {
-	public static get constants(): object {
+	public static get constants(): typeof constants {
 		return constants;
 	}
 
 	public static createMainnetAPIClient(options?: InitOptions): APIClient {
 		return new APIClient(constants.MAINNET_NODES, {
-			nethash: MAINNET_NETHASH,
+			nethash: constants.MAINNET_NETHASH,
 			...options,
 		});
 	}
 
 	public static createTestnetAPIClient(options?: InitOptions): APIClient {
 		return new APIClient(constants.TESTNET_NODES, {
-			nethash: TESTNET_NETHASH,
+			nethash: constants.TESTNET_NETHASH,
 			...options,
 		});
 	}
@@ -184,6 +183,6 @@ export class APIClient {
 	}
 
 	public isBanned(node: string): boolean {
-		return this.bannedNodes.indexOf(node) > -1;
+		return this.bannedNodes.includes(node);
 	}
 }

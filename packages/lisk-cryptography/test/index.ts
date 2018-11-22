@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '../src';
+import * as cryptography from '../src';
 import { expect } from 'chai';
 
 describe('cryptography index.js', () => {

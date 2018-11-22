@@ -12,7 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { APIClient } from './api_client';
-
-// tslint:disable-next-line no-default-export
-export default APIClient;
+export * from './api_client';

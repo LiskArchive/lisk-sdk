@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	signTransaction,
 	multiSignTransaction,

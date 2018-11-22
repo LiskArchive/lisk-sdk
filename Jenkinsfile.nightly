@@ -3,14 +3,18 @@ pipeline {
 	stages {
 		stage('Cache dependencies') {
 			steps {
-				sh '''
-				npm install --verbose
-				BRANCH=${CHANGE_TARGET:-${BRANCH_NAME:-development}}
-				if [ ! -d ~/cache/$BRANCH ]; then
-					mkdir ~/cache/$BRANCH
-				fi
-				rsync -axl --delete ./node_modules ~/cache/$BRANCH/
-				'''
+				nvm(getNodejsVersion()) {
+					sh 'npm install --verbose'
+				}
+				script {
+					sh '''
+					BRANCH=${CHANGE_TARGET:-${BRANCH_NAME:-development}}
+					if [ ! -d ~/cache/$BRANCH ]; then
+						mkdir ~/cache/$BRANCH
+					fi
+					rsync -axl --delete ./node_modules ~/cache/$BRANCH/
+					'''
+				}
 			}
 		}
 	}
