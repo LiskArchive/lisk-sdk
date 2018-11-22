@@ -509,8 +509,12 @@ function __init(initScope, done) {
 							if (initScope.waitForGenesisBlock) {
 								return done(err, scope);
 							}
+
+							return Promise.resolve();
 						});
 					};
+
+					return Promise.resolve();
 				}
 			);
 		});

@@ -151,6 +151,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 			if (_.isArray(objValue)) {
 				return srcValue;
 			}
+			return undefined;
 		}
 	);
 
@@ -284,7 +285,7 @@ function cleanDeep(
 
 		// Append when recursing arrays.
 		if (Array.isArray(result)) {
-			return result.push(value);
+			result.push(value);
 		}
 
 		result[key] = value;

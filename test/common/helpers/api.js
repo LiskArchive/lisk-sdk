@@ -32,6 +32,8 @@ var http = {
 			) {
 				return new Error('Unexpected content-type!');
 			}
+
+			return Promise.resolve();
 		});
 
 		if (options.params) {
