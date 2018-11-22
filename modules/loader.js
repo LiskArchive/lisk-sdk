@@ -194,12 +194,10 @@ __private.loadSignatures = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getNetwork((err, network) => {
-					if (err) {
-						return setImmediate(waterCb, err);
+				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
+					if (getRandomPeerFromNetworkErr) {
+						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
 					}
-					const peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
 			},
@@ -260,12 +258,10 @@ __private.loadTransactions = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getNetwork((err, network) => {
-					if (err) {
-						return setImmediate(waterCb, err);
+				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
+					if (getRandomPeerFromNetworkErr) {
+						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
 					}
-					const peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
 			},
@@ -851,89 +847,81 @@ __private.snapshotFinished = err => {
  * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
-	let errorCount = 0;
+	// Number of failed attempts to load from peers.
+	let failedAttemptsToLoad = 0;
+	// If True, own node's db contains same number of blocks than the asked peer.
 	let loaded = false;
 
 	async.whilst(
-		() => !loaded && errorCount < 5,
-		next => {
-			self.getNetwork((err, network) => {
-				if (err) {
-					errorCount += 1;
-					return next();
-				}
-				const peer =
-					network.peers[Math.floor(Math.random() * network.peers.length)];
-				let lastBlock = modules.blocks.lastBlock.get();
-
-				function loadBlocks() {
-					__private.blocksToSync = peer.height;
-
-					modules.blocks.process.loadBlocksFromPeer(
-						peer,
-						(err, lastValidBlock) => {
-							if (err) {
-								library.logger.error(err.toString());
-								library.logger.error(
-									`Failed to load blocks from: ${peer.string}`
-								);
-								errorCount += 1;
-							}
-							loaded = lastValidBlock.id === lastBlock.id;
-							lastBlock = null;
-							lastValidBlock = null;
-							next();
-						}
-					);
-				}
-
-				/**
-				 * Description of getCommonBlock.
-				 *
-				 * @todo Add @returns and @param tags
-				 * @todo Add description for the function
-				 */
-				function getCommonBlock(cb) {
-					library.logger.info(`Looking for common block with: ${peer.string}`);
-					modules.blocks.process.getCommonBlock(
-						peer,
-						lastBlock.height,
-						(err, commonBlock) => {
-							if (!commonBlock) {
-								if (err) {
-									library.logger.error(err.toString());
+		() => !loaded && failedAttemptsToLoad < 5,
+		whilstCb => {
+			async.waterfall(
+				[
+					function getRandomPeerFromNetwork(waterCb) {
+						self.getRandomPeerFromNetwork(
+							(getRandomPeerFromNetworkErr, peer) => {
+								if (getRandomPeerFromNetworkErr) {
+									return waterCb('Failed to get random peer from network');
 								}
-								library.logger.error(
-									`Failed to find common block with: ${peer.string}`
-								);
-								errorCount += 1;
-								return next();
+								__private.blocksToSync = peer.height;
+								const lastBlock = modules.blocks.lastBlock.get();
+								return waterCb(null, peer, lastBlock);
 							}
-							library.logger.info(
-								[
-									'Found common block:',
-									commonBlock.id,
-									'with:',
-									peer.string,
-								].join(' ')
-							);
-							return setImmediate(cb);
+						);
+					},
+					function getCommonBlock(peer, lastBlock, waterCb) {
+						// No need to call getCommonBlock if height is Genesis block
+						if (lastBlock.height === 1) {
+							return waterCb(null, peer, lastBlock);
 						}
-					);
+
+						library.logger.info(
+							`Looking for common block with: ${peer.string}`
+						);
+						return modules.blocks.process.getCommonBlock(
+							peer,
+							lastBlock.height,
+							(getCommonBlockErr, commonBlock) => {
+								if (getCommonBlockErr) {
+									return waterCb(getCommonBlockErr.toString());
+								}
+								if (!commonBlock) {
+									return waterCb(
+										`Failed to find common block with: ${peer.string}`
+									);
+								}
+								library.logger.info(
+									`Found common block: ${commonBlock.id} with: ${peer.string}`
+								);
+								return waterCb(null, peer, lastBlock);
+							}
+						);
+					},
+					function loadBlocksFromPeer(peer, lastBlock, waterCb) {
+						modules.blocks.process.loadBlocksFromPeer(
+							peer,
+							(loadBlocksFromPeerErr, lastValidBlock) => {
+								if (loadBlocksFromPeerErr) {
+									return waterCb(`Failed to load blocks from: ${peer.string}`);
+								}
+								loaded = lastValidBlock.id === lastBlock.id;
+								// Reset counter after a batch of blocks was successfully loaded from a peer
+								failedAttemptsToLoad = 0;
+								return waterCb();
+							}
+						);
+					},
+				],
+				waterErr => {
+					if (waterErr) {
+						failedAttemptsToLoad += 1;
+						library.logger.error(waterErr);
+					}
+					whilstCb();
 				}
-				if (lastBlock.height === 1) {
-					return loadBlocks();
-				}
-				return getCommonBlock(loadBlocks);
-			});
+			);
 		},
-		err => {
-			if (err) {
-				library.logger.error('Failed to load blocks from network', err);
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb);
-		}
+		() => setImmediate(cb)
 	);
 };
 
@@ -1058,13 +1046,13 @@ Loader.prototype.findGoodPeers = function(peers) {
 
 // Public methods
 /**
- * Gets a list of "good" peers from network.
+ * Gets a "good" randomPeer from network.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb, err, good peers
+ * @returns {setImmediateCallback} cb, err, good randomPeer
  * @todo Add description for the params
  */
-Loader.prototype.getNetwork = function(cb) {
+Loader.prototype.getRandomPeerFromNetwork = function(cb) {
 	const peers = library.logic.peers.listRandomConnected({
 		limit: MAX_PEERS,
 	});
@@ -1073,7 +1061,13 @@ Loader.prototype.getNetwork = function(cb) {
 	if (!__private.network.peers.length) {
 		return setImmediate(cb, 'Failed to find enough good peers');
 	}
-	return setImmediate(cb, null, __private.network);
+
+	const randomPeer =
+		__private.network.peers[
+			Math.floor(Math.random() * __private.network.peers.length)
+		];
+
+	return setImmediate(cb, null, randomPeer);
 };
 
 /**
