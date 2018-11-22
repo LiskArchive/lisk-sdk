@@ -12,26 +12,46 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name no-empty-interface */
+/* tslint:disable:interface-name */
 
-import { IPeerConfig, Peer } from './peer';
-
-export interface IBlockchainPeerConfig extends IPeerConfig {
+export interface IPeerConfig {
+	readonly clock?: Date;
 	readonly height: number;
+	readonly httpPort?: number;
+	readonly ip: string;
+	readonly os?: string;
+	readonly state?: number;
+	readonly version?: string;
+	readonly wsPort: number;
 }
 
-export class BlockchainPeer extends Peer {
+export class Peer {
 	private height: number;
+	private ip: string;
+	private wsPort: number;
 
-	public constructor(peerConfig: IBlockchainPeerConfig) {
-		super(peerConfig);
+	public constructor(peerConfig: IPeerConfig) {
 		this.height = peerConfig.height;
+		this.ip = peerConfig.ip;
+		this.wsPort = peerConfig.wsPort;
 	}
 
 	public getHeight(): number {
 		return this.height;
 	}
+	public getIp(): string {
+		return this.ip;
+	}
+	public getWsPort(): number {
+		return this.wsPort;
+	}
 	public setHeight(height: number): void {
 		this.height = height;
+	}
+	public setIp(ip: string): void {
+		this.ip = ip;
+	}
+	public setWsPort(wsPort: number): void {
+		this.wsPort = wsPort;
 	}
 }

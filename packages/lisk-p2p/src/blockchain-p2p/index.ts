@@ -12,5 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { BlockchainP2P, IPeerReturnType, IPeerOptions } from './blockchain_p2p';
-export { BlockchainPeer, IBlockchainPeerConfig } from './blockchain_peer';
+export { BlockchainP2P, IPeerReturnType, IPeerOptions } from './p2p';
+export { IPeerConfig, Peer } from './peer';
