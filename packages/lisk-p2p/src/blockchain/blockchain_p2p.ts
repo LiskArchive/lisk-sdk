@@ -12,11 +12,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { IPeerOptions, IPeerReturnType, P2P } from '../generic-p2p';
 import { BlockchainPeer } from './blockchain_peer';
-/* tslint:disable:interface-name readonly-keyword no-empty-interface no-let*/
+import {
+	INetworkStatus,
+	IP2PMessagePacket,
+	IP2PNodeStatus,
+	IP2PPenalty,
+	IP2PRequestPacket,
+	IP2PResponsePacket,
+} from './p2p_types';
+/* tslint:disable:interface-name readonly-keyword no-empty-interface no-let no-unused-expression */
 
-export interface IOptionsLiskPeer extends IPeerOptions {}
+export interface IPeerReturnType {
+	readonly options: IPeerOptions;
+	readonly peers: ReadonlyArray<BlockchainPeer>;
+}
+export interface IPeerOptions {
+	readonly [key: string]: string | number;
+}
 
 interface IHistogram {
 	[key: number]: number;
@@ -26,14 +39,27 @@ interface IHistogramValues {
 	histogram: IHistogram;
 	max: number;
 }
-export class BlockchainP2P extends P2P {
-	public constructor() {
-		super();
-	}
+export class BlockchainP2P {
+	public applyPenalty = (penalty: IP2PPenalty): void => {
+		// TODO
+		penalty;
+	};
+	// TODO
+	public getNetworkStatus = (): INetworkStatus => true;
+	// TODO
+	public getNodeStatus = (): IP2PNodeStatus => true;
+	// TODO
+	public request = async (
+		packet: IP2PRequestPacket,
+	): Promise<IP2PResponsePacket> => {
+		const response = packet;
+
+		return Promise.resolve(response);
+	};
 
 	public selectPeers = (
 		peers: ReadonlyArray<BlockchainPeer>,
-		options: IOptionsLiskPeer,
+		options: IPeerOptions,
 	): IPeerReturnType => {
 		const filteredPeers = peers.filter(
 			// Remove unreachable peers or heights below last block height
@@ -91,4 +117,17 @@ export class BlockchainP2P extends P2P {
 
 		return { options, peers: processedPeers };
 	};
+
+	public send = (message: IP2PMessagePacket): void => {
+		message;
+		// TODO
+	};
+	public setNodeStatus = (nodeStatus: IP2PNodeStatus): void => {
+		nodeStatus;
+		// TODO
+	};
+	// TODO
+	public start = (): PromiseConstructorLike => Promise;
+	// TODO
+	public stop = (): PromiseConstructorLike => Promise;
 }

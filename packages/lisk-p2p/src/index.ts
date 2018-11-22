@@ -12,5 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './blockchain-p2p';
-export * from './generic-p2p';
+export * from './blockchain';

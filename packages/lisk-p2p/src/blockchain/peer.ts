@@ -13,7 +13,6 @@
  *
  */
 /* tslint:disable:interface-name */
-import { IPeer } from './p2p_types';
 
 export interface IPeerConfig {
 	readonly clock?: Date;
@@ -25,7 +24,7 @@ export interface IPeerConfig {
 	readonly wsPort: number;
 }
 
-export class Peer implements IPeer {
+export class Peer {
 	private ip: string;
 	private wsPort: number;
 

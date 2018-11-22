@@ -12,16 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:no-default-export */
-export { P2P, IPeerOptions, IPeerReturnType } from './p2p';
-export { Peer, IPeerConfig } from './peer';
-export {
-	INetworkStatus,
-	IP2P,
-	IP2PMessagePacket,
-	IP2PNodeStatus,
-	IP2PPenalty,
-	IP2PRequestPacket,
-	IP2PResponsePacket,
-	IPeer,
-} from './p2p_types';
+export { BlockchainP2P, IPeerReturnType, IPeerOptions } from './blockchain_p2p';
+export { BlockchainPeer, IBlockchainPeerConfig } from './blockchain_peer';

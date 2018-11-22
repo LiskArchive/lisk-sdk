@@ -14,7 +14,7 @@
  */
 /* tslint:disable:interface-name no-empty-interface */
 
-import { IPeerConfig, Peer } from '../generic-p2p';
+import { IPeerConfig, Peer } from './peer';
 
 export interface IBlockchainPeerConfig extends IPeerConfig {
 	readonly height: number;

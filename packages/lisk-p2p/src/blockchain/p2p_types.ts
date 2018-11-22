@@ -12,5 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { BlockchainP2P, IOptionsLiskPeer } from './blockchain_p2p';
-export { BlockchainPeer, IBlockchainPeerConfig } from './blockchain_peer';
+/* tslint:disable:interface-name no-empty-interface */
+export interface IP2PMessagePacket {}
+
+export interface IP2PRequestPacket {}
+
+export interface IP2PResponsePacket {}
+
+export interface IP2PNodeStatus {}
+
+export interface IP2PPenalty {}
+
+export interface INetworkStatus {}

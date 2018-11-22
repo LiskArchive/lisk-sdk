@@ -1,12 +1,9 @@
 /* tslint:disable:no-console */
 import { expect } from 'chai';
 
-import { IOptionsLiskPeer, BlockchainP2P } from '../../src';
+import { BlockchainP2P, IPeerOptions } from '../../src';
 
-import {
-	IBlockchainPeerConfig,
-	BlockchainPeer,
-} from '../../src/blockchain-p2p/blockchain_peer';
+import { IBlockchainPeerConfig, BlockchainPeer } from '../../src/blockchain';
 const initializePeerList = (): ReadonlyArray<BlockchainPeer> => {
 	const peerOption1: IBlockchainPeerConfig = {
 		ip: '12.12.12.12',
@@ -39,7 +36,7 @@ const initializePeerList = (): ReadonlyArray<BlockchainPeer> => {
 
 describe('#Good peers test', () => {
 	const peerList = initializePeerList();
-	const option: IOptionsLiskPeer = {
+	const option: IPeerOptions = {
 		blockHeight: 545777,
 		netHash: '73458irc3yb7rg37r7326dbt7236',
 	};
