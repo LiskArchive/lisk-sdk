@@ -67,7 +67,7 @@
 		"method-override": "=2.3.10",
 		"newrelic": "=4.11.0",
 		"pg-monitor": "=1.1.0",
-		"pg-promise": "=8.2.1",
+		"pg-promise": "=8.5.2",
 		"popsicle": "=9.1.0",
 		"randomstring": "=1.1.5",
 		"redis": "=2.8.0",
