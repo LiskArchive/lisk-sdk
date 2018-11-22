@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import print from '../../src/utils/print';
 // Required for stubbing
 const tablify = require('../../src/utils/tablify');

@@ -1,11 +1,9 @@
 {
 	"extends": "../tsconfig",
 	"compilerOptions": {
-		"noEmit": true
-	},
-	"references": [
-		{
-			"path": ".."
-		}
-	]
+		"declaration": false,
+		"baseUrl": ".",
+		"noEmit": true,
+		"typeRoots": ["../types", "../node_modules/@types"]
+	}
 }

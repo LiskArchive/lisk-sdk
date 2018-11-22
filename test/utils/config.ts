@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import fs from 'fs';
 import os from 'os';
 import lockfile from 'lockfile';

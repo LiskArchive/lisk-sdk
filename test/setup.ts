@@ -14,23 +14,21 @@
  *
  */
 import os from 'os';
-import 'babel-polyfill';
 import chai, { Assertion } from 'chai';
-import 'chai/register-expect';
 import chaiAsPromised from 'chai-as-promised';
-import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
 process.env.NODE_ENV = 'test';
 process.env.LISK_COMMANDER_CONFIG_DIR =
 	process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
 
 /* eslint-disable no-underscore-dangle */
-Assertion.addMethod('matchAny', function handleAssert(matcher) {
+Assertion.addMethod('matchAny', function handleAssert(this: Chai.ChaiStatic, matcher: (val: unknown) => boolean) {
 	const obj = this._obj;
 
 	new Assertion(obj).to.be.an('array');
-	const result = obj.some(val => matcher(val));
+	const result = obj.some((val: unknown) => matcher(val));
 	this.assert(
 		result,
 		'expected #{this} to match at least once',
@@ -38,7 +36,7 @@ Assertion.addMethod('matchAny', function handleAssert(matcher) {
 	);
 });
 
-Assertion.addMethod('customError', function handleAssert(error) {
+Assertion.addMethod('customError', function handleAssert(this: Chai.ChaiStatic, error: Error) {
 	const obj = this._obj;
 	new Assertion(obj).to.be.instanceOf(Error);
 	new Assertion(obj.name).to.equal(error.name);
@@ -48,7 +46,6 @@ Assertion.addMethod('customError', function handleAssert(error) {
 
 [sinonChai, chaiAsPromised].forEach(chai.use);
 
-global.sinon = sinon;
 global.sandbox = sinon.sandbox.create({
 	useFakeTimers: true,
 });

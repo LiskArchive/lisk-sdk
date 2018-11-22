@@ -5,7 +5,6 @@
 			"forceConsistentCasingInFileNames": true,
 			"target": "es2017",
 			"module": "commonjs",
-			"moduleResolution": "node",
 			"newLine": "lf",
 			"noFallthroughCasesInSwitch": true,
 			"noImplicitReturns": true,
@@ -15,7 +14,9 @@
 			"removeComments": true,
 			"resolveJsonModule": true,
 			"sourceMap": true,
-			"strict": true
+			"strict": true,
+			"rootDir": "src",
+			"outDir": "dist"
 		},
 		"include": [
 			"src/**/*",

@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import parseTransactionString from '../../src/utils/transactions';
 import { ValidationError } from '../../src/utils/error';
 

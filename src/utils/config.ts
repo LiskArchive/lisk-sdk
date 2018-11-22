@@ -16,7 +16,7 @@
 import fs from 'fs';
 import lockfile from 'lockfile';
 import path from 'path';
-import defaultConfig from '../../default_config.json';
+import * as defaultConfig from '../default_config.json';
 import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';

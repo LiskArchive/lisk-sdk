@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import getInputsFromSources, {
 	getFirstLineFromString,
 } from '../../../src/utils/input/index';

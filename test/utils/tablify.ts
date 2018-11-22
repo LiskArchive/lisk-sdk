@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import tablify from '../../src/utils/tablify';
 import { objectToKeyValueString } from '../helpers/utils';
 

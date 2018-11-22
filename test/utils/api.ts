@@ -13,7 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import getAPIClient from '../../src/utils/api';
+import { expect } from 'chai';
+import { getAPIClient } from '../../src/utils/api';
 
 describe('api utils', () => {
 	const mainnetNethash =

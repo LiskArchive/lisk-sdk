@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import { query } from '../../src/utils/query';
 
 describe('query utils', () => {

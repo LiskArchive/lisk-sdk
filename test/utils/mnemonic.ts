@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import * as mnemonic from '../../src/utils/mnemonic';
 
 describe('mnemonic utils', () => {

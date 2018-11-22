@@ -13,6 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { expect } from 'chai';
 import cryptographyModule from '@liskhq/lisk-cryptography';
 import * as cryptography from '../../src/utils/cryptography';
 
