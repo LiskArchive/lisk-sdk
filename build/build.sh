@@ -45,10 +45,25 @@ fi
 
 pushd src
 
-if [ ! -f "$LISK_FILE" ]; then
-	echo "$LISK_FILE needs to be copied to src/"
-	exit 2
-fi
+echo
+echo "Downloading Node.JS..."
+echo "--------------------------------------------------------------------------"
+[[ -f "$NODE_FILE" ]] || wget -nv "$NODE_BIN_URL" --output-document="$NODE_FILE"
+echo "$NODE_SHA256SUM  $NODE_FILE" |sha256sum -c
+
+echo "Extracting Node.JS for our own use"
+echo "--------------------------------------------------------------------------"
+rm -rf "$NODE_DIR"
+tar xf "$NODE_FILE"
+
+echo "Running 'npm pack'"
+echo "--------------------------------------------------------------------------"
+(
+	PATH="$PWD/$NODE_DIR/bin:$PATH"
+	cd ../..
+	npm pack
+	mv "$LISK_FILE" build/src/
+)
 
 echo
 echo "Downloading jq..."
@@ -78,12 +93,6 @@ echo "--------------------------------------------------------------------------
 echo "$POSTGRESQL_SHA256SUM  $POSTGRESQL_FILE" |sha256sum -c
 
 echo
-echo "Downloading node..."
-echo "--------------------------------------------------------------------------"
-[[ -f "$NODE_FILE" ]] || wget -nv "$NODE_BIN_URL" --output-document="$NODE_FILE"
-echo "$NODE_SHA256SUM  $NODE_FILE" |sha256sum -c
-
-echo
 echo "Installing lisk-scripts..."
 echo "--------------------------------------------------------------------------"
 [[ -f "$LISK_SCRIPTS_FILE" ]] || wget -nv "$LISK_SCRIPTS_URL" --output-document="$LISK_SCRIPTS_FILE"
@@ -99,7 +108,7 @@ echo "Building lisk..."
 echo "--------------------------------------------------------------------------"
 if [ ! -f "$BUILD_NAME/finished" ]; then
 	rm -rf "$BUILD_NAME"
-	tar xf "lisk-$VERSION.tgz"
+	tar xf "$LISK_FILE"
 	mv package "$BUILD_NAME"
 	mkdir -p "$BUILD_NAME"/{bin,lib,logs}
 

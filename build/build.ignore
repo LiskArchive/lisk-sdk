@@ -1,8 +1,0 @@
-.[a-z]*
-docker
-Dockerfile
-docs
-Gruntfile.js
-Jenkinsfile*
-tasks
-test
