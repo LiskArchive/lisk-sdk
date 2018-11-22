@@ -502,6 +502,7 @@ class Transaction {
 
 		// Determine multisignatures from sender or transaction asset
 		const multisignatures = sender.multisignatures || [];
+
 		if (multisignatures.length === 0) {
 			if (
 				transaction.asset &&
@@ -712,6 +713,15 @@ class Transaction {
 				tx
 			);
 		};
+
+		// Sanitize ready property
+		transaction.ready = this.ready(transaction, sender);
+		// Sanitize signatures property
+		if (sender.multisignatures) {
+			transaction.signatures = Array.isArray(transaction.signatures)
+				? transaction.signatures
+				: [];
+		}
 
 		if (checkExists) {
 			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
