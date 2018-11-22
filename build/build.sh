@@ -101,7 +101,7 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	rm -rf "$BUILD_NAME"
 	tar xf "lisk-$VERSION.tgz"
 	mv package "$BUILD_NAME"
-	mkdir -p "$BUILD_NAME"/{bin,lib}
+	mkdir -p "$BUILD_NAME"/{bin,lib,logs}
 
 	# extract postgresql
 	tar xf "$POSTGRESQL_FILE" --directory="$BUILD_NAME" \
