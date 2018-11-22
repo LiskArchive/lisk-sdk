@@ -66,7 +66,8 @@
 		"@liskhq/lisk-constants": "1.1.1",
 		"@liskhq/lisk-cryptography": "1.1.1",
 		"@liskhq/lisk-passphrase": "1.1.1",
-		"@liskhq/lisk-transactions": "1.1.1"
+		"@liskhq/lisk-transactions": "1.1.1",
+		"babel-runtime": "6.26.0"
 	},
 	"devDependencies": {
 		"babel-cli": "6.26.0",
