@@ -360,7 +360,7 @@ describe('passphrase validation', () => {
 			const passphrase =
 				'post dumb recycle buddy round normal scrap better people corn crystal again never shrimp kidney';
 
-			it('should return the array with the errors when validating with default expectedWords', () => {
+			it('should return an array with the errors when validating with default expectedWords', () => {
 				const errors = [
 					{
 						actual: 15,
@@ -383,7 +383,7 @@ describe('passphrase validation', () => {
 				);
 			});
 
-			it('should return the array with the errors when validating with lower expectedWords', () => {
+			it('should return an array with the errors when validating with lower expectedWords', () => {
 				const errors = [
 					{
 						actual: 15,
@@ -406,7 +406,7 @@ describe('passphrase validation', () => {
 				).to.be.eql(errors);
 			});
 
-			it('should return the array with the errors when validating with higher expectedWords', () => {
+			it('should return an array with the errors when validating with higher expectedWords', () => {
 				const errors = [
 					{
 						actual: 15,
@@ -425,7 +425,11 @@ describe('passphrase validation', () => {
 					},
 				];
 				return expect(
-					getPassphraseValidationErrors(passphrase, undefined, 18),
+					getPassphraseValidationErrors(
+						passphrase,
+						Mnemonic.wordlists.english,
+						18,
+					),
 				).to.be.eql(errors);
 			});
 
