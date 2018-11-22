@@ -18,10 +18,14 @@ import { BlockchainPeer } from './blockchain_peer';
 
 export interface IOptionsLiskPeer extends IPeerOptions {}
 
-interface IHistogramType {
+interface IHistogram {
 	[key: number]: number;
 }
-
+interface IHistogramValues {
+	height: number;
+	histogram: IHistogram;
+	max: number;
+}
 export class BlockchainP2P extends P2P {
 	public constructor() {
 		super();
@@ -32,7 +36,9 @@ export class BlockchainP2P extends P2P {
 		options: IOptionsLiskPeer,
 	): IPeerReturnType => {
 		const filteredPeers = peers.filter(
-			(peer: BlockchainPeer) => peer.getHeight() >= options.blockHeight,
+			// Remove unreachable peers or heights below last block height
+			(peer: BlockchainPeer) =>
+				peer !== null && peer.getHeight() >= options.blockHeight,
 		);
 
 		if (filteredPeers.length === 0) {
@@ -41,26 +47,46 @@ export class BlockchainP2P extends P2P {
 			return { options: optionsTemp, peers: [] };
 		}
 
+		// Order peers by descending height
 		const sortedPeers = filteredPeers.sort(
 			(a, b) => b.getHeight() - a.getHeight(),
 		);
-		const histogram: IHistogramType = {};
-		let max = 0;
-		let height: number;
-		// Aggregate height by 2. TODO: To be changed if node latency increases?
-		const aggregation = 2;
 
-		sortedPeers.map((peer: BlockchainPeer) => {
-			const val = (peer.getHeight() / aggregation) * aggregation;
-			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
-			if (histogram[val] > max) {
-				max = histogram[val];
-				height = val;
-			}
-		});
+		const aggregation = 2;
+		const returnType: IHistogramValues = { height: 0, histogram: {}, max: -1 };
+		const calculatedHistogramValues = sortedPeers.reduce(
+			(
+				histogramValues: IHistogramValues = {
+					height: 0,
+					histogram: { 0: 0 },
+					max: -1,
+				},
+				peer: BlockchainPeer,
+			) => {
+				const val = (peer.getHeight() / aggregation) * aggregation;
+				histogramValues.histogram[val] =
+					(histogramValues.histogram[val]
+						? histogramValues.histogram[val]
+						: 0) + 1;
+				if (histogramValues.histogram[val] > histogramValues.max) {
+					histogramValues.max = histogramValues.histogram[val];
+					histogramValues.height = val;
+				}
+
+				return histogramValues;
+			},
+			returnType,
+		);
+
 		// Perform histogram cut of peers too far from histogram maximum
 		const processedPeers = sortedPeers.filter(
-			peer => peer && Math.abs(height - peer.getHeight()) < aggregation + 1,
+			peer =>
+				peer &&
+				Math.abs(
+					(calculatedHistogramValues ? calculatedHistogramValues.height : 0) -
+						peer.getHeight(),
+				) <
+					aggregation + 1,
 		);
 
 		return { options, peers: processedPeers };
