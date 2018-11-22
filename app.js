@@ -26,7 +26,7 @@ const AppConfig = require('./helpers/config.js');
 // As newrelic is using `LISK_NETWORK` to initialize app name
 // so we have to initialize configuration before requiring the newrelic
 // eslint-disable-next-line import/order
-const appConfig = AppConfig(require('./package.json'));
+const appConfig = new AppConfig(require('./package.json'));
 
 // eslint-disable-next-line import/order
 const NewRelicConfig = require('./newrelic.js').config;
@@ -44,7 +44,7 @@ var SocketCluster = require('socketcluster');
 var async = require('async');
 var Logger = require('./logger.js');
 var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
-var wsTransport = require('./api/ws/transport');
+var WsTransport = require('./api/ws/transport');
 var git = require('./helpers/git.js');
 var Sequence = require('./helpers/sequence.js');
 var httpApi = require('./helpers/http_api.js');
@@ -436,7 +436,7 @@ d.run(() => {
 				 */
 				function(scope, cb) {
 					var changeCase = require('change-case');
-					var bus = function() {
+					var Bus = function() {
 						this.message = function() {
 							var args = [];
 							Array.prototype.push.apply(args, arguments);
@@ -461,7 +461,7 @@ d.run(() => {
 							});
 						};
 					};
-					cb(null, new bus());
+					cb(null, new Bus());
 				},
 			],
 
@@ -760,7 +760,7 @@ d.run(() => {
 					if (!appConfig.peers.enabled) {
 						return cb();
 					}
-					new wsTransport(scope.modules.transport);
+					new WsTransport(scope.modules.transport);
 					cb();
 				},
 			],

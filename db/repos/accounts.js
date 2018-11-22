@@ -445,7 +445,7 @@ class AccountsRepository {
 				sql += ' LIMIT ${limit} OFFSET ${offset}';
 			}
 
-			const selectClause = Selects(this.cs.select, fields, pgp);
+			const selectClause = new Selects(this.cs.select, fields, pgp);
 
 			if (filters) {
 				const filterKeys = Object.keys(filters);

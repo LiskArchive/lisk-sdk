@@ -17,11 +17,11 @@
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const async = require('async');
 // Submodules
-const blocksAPI = require('./blocks/api');
-const blocksVerify = require('./blocks/verify');
-const blocksProcess = require('./blocks/process');
-const blocksUtils = require('./blocks/utils');
-const blocksChain = require('./blocks/chain');
+const BlocksAPI = require('./blocks/api');
+const BlocksVerify = require('./blocks/verify');
+const BlocksProcess = require('./blocks/process');
+const BlocksUtils = require('./blocks/utils');
+const BlocksChain = require('./blocks/chain');
 
 // Private fields
 let library;
@@ -62,20 +62,20 @@ class Blocks {
 
 		// Initialize submodules with library content
 		this.submodules = {
-			api: new blocksAPI(
+			api: new BlocksAPI(
 				scope.logger,
 				scope.db,
 				scope.logic.block,
 				scope.schema
 			),
-			verify: new blocksVerify(
+			verify: new BlocksVerify(
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
 				scope.db,
 				scope.config
 			),
-			process: new blocksProcess(
+			process: new BlocksProcess(
 				scope.logger,
 				scope.logic.block,
 				scope.logic.peers,
@@ -85,7 +85,7 @@ class Blocks {
 				scope.sequence,
 				scope.genesisBlock
 			),
-			utils: new blocksUtils(
+			utils: new BlocksUtils(
 				scope.logger,
 				scope.logic.account,
 				scope.logic.block,
@@ -93,7 +93,7 @@ class Blocks {
 				scope.db,
 				scope.genesisBlock
 			),
-			chain: new blocksChain(
+			chain: new BlocksChain(
 				scope.logger,
 				scope.logic.block,
 				scope.logic.transaction,
