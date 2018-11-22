@@ -90,7 +90,7 @@ describe('transaction:get', () => {
 			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIds.join(',')])
-			.it('should get two transactions’ info and display as an array.', () => {
+			.it('should get two transaction’s info and display as an array.', () => {
 				expect(api.default).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
@@ -308,18 +308,55 @@ describe('transaction:get', () => {
 			})
 			.it('should throw an error when incorrect value of state is provided');
 
-		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
-			.command(['transaction:get', transactionId, '--state=unprocessed'])
-			.it(
-				'should get an unprocessed transaction’s info and display as an array.',
-				() => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
-					return expect(printMethodStub).to.be.calledWithExactly([
-						defaultGetTransactionsResponse.data,
-					]);
+		describe('transaction:get transaction --state=unprocessed', () => {
+			const singleTransactionsResponse = {
+				data: [
+					{
+						id: transactionIds[0],
+						type: 0,
+					},
+				],
+			};
+			const localClientStub = {
+				node: {
+					getTransactions: sandbox.stub().resolves(singleTransactionsResponse),
 				},
-			);
+			};
+
+			setupTest()
+				.stub(api, 'default', sandbox.stub().returns(localClientStub))
+				.stub(
+					queryHandler,
+					'queryNodeTransaction',
+					sandbox.stub().resolves(singleTransactionsResponse.data),
+				)
+				.command(['transaction:get', transactionId, '--state=unprocessed'])
+				.it(
+					'should get an unprocessed transaction’s info by Id and display as an array.',
+					() => {
+						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
+							localClientStub.node,
+							'unprocessed',
+							[
+								{
+									query: {
+										id: '3520445367460290306',
+										limit: 1,
+									},
+									placeholder: {
+										id: '3520445367460290306',
+										message: 'Transaction not found.',
+									},
+								},
+							],
+						);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							singleTransactionsResponse.data,
+						);
+					},
+				);
+		});
 
 		describe('transaction:get transactions --state=unprocessed', () => {
 			setupTest()
@@ -327,7 +364,7 @@ describe('transaction:get', () => {
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
-					sandbox.stub().resolves(defaultGetTransactionsResponse),
+					sandbox.stub().resolves(defaultGetTransactionsResponse.data),
 				)
 				.command([
 					'transaction:get',
@@ -364,20 +401,36 @@ describe('transaction:get', () => {
 								},
 							],
 						);
-						return expect(printMethodStub).to.be.calledWithExactly([
+						return expect(printMethodStub).to.be.calledWithExactly(
 							defaultGetTransactionsResponse.data,
-						]);
+						);
 					},
 				);
 		});
 
 		describe('transaction:get --state-unsigned --sender-id', () => {
+			const senderTransactionsResponse = {
+				data: [
+					{
+						id: transactionIds[0],
+						senderId: '12668885769632475474L',
+						type: 0,
+					},
+				],
+			};
+
+			const clientStubNode = {
+				node: {
+					getTransactions: sandbox.stub().resolves(senderTransactionsResponse),
+				},
+			};
+
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.stub(api, 'default', sandbox.stub().returns(clientStubNode))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
-					sandbox.stub().resolves(defaultGetTransactionsResponse),
+					sandbox.stub().resolves(senderTransactionsResponse.data),
 				)
 				.command([
 					'transaction:get',
@@ -389,7 +442,7 @@ describe('transaction:get', () => {
 					() => {
 						expect(api.default).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
-							apiClientStubNode.node,
+							clientStubNode.node,
 							'unprocessed',
 							[
 								{
@@ -406,18 +459,18 @@ describe('transaction:get', () => {
 								},
 							],
 						);
-						return expect(printMethodStub).to.be.calledWithExactly([
-							defaultGetTransactionsResponse.data,
-						]);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							senderTransactionsResponse.data,
+						);
 					},
 				);
 
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.stub(api, 'default', sandbox.stub().returns(clientStubNode))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
-					sandbox.stub().resolves(defaultGetTransactionsResponse),
+					sandbox.stub().resolves(senderTransactionsResponse),
 				)
 				.command([
 					'transaction:get',
@@ -430,7 +483,7 @@ describe('transaction:get', () => {
 					() => {
 						expect(api.default).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
-							apiClientStubNode.node,
+							clientStubNode.node,
 							'unprocessed',
 							[
 								{
@@ -447,45 +500,62 @@ describe('transaction:get', () => {
 								},
 							],
 						);
-						return expect(printMethodStub).to.be.calledWithExactly([
-							defaultGetTransactionsResponse.data,
-						]);
+						return expect(printMethodStub).to.be.calledWithExactly(
+							senderTransactionsResponse.data,
+						);
 					},
 				);
 
-			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
-				.stub(
-					queryHandler,
-					'queryNodeTransaction',
-					sandbox.stub().resolves(defaultGetTransactionsResponse),
-				)
-				.command(['transaction:get', '--state=unprocessed', '--limit=50'])
-				.it(
-					'should get transactions for a given state without specified txn id and limited by limit flag.',
-					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
-						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
-							apiClientStubNode.node,
-							'unprocessed',
-							[
-								{
-									query: {
-										limit: '50',
-										offset: '0',
-										sort: 'timestamp:desc',
-									},
-									placeholder: {
-										message: 'No transactions found.',
-									},
-								},
-							],
-						);
-						return expect(printMethodStub).to.be.calledWithExactly([
-							defaultGetTransactionsResponse.data,
-						]);
+			describe('transaction:get --state-unprocessed', () => {
+				const stateTransactionsResponse = {
+					data: [
+						{
+							id: transactionIds[0],
+							type: 0,
+						},
+					],
+				};
+
+				const localClientStub = {
+					node: {
+						getTransactions: sandbox.stub().resolves(stateTransactionsResponse),
 					},
-				);
+				};
+
+				setupTest()
+					.stub(api, 'default', sandbox.stub().returns(localClientStub))
+					.stub(
+						queryHandler,
+						'queryNodeTransaction',
+						sandbox.stub().resolves(stateTransactionsResponse.data),
+					)
+					.command(['transaction:get', '--state=unprocessed', '--limit=50'])
+					.it(
+						'should get transactions for a given state without specified txn id and limited by limit flag.',
+						() => {
+							expect(api.default).to.be.calledWithExactly(apiConfig);
+							expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
+								localClientStub.node,
+								'unprocessed',
+								[
+									{
+										query: {
+											limit: '50',
+											offset: '0',
+											sort: 'timestamp:desc',
+										},
+										placeholder: {
+											message: 'No transactions found.',
+										},
+									},
+								],
+							);
+							return expect(printMethodStub).to.be.calledWithExactly(
+								defaultGetTransactionsResponse.data,
+							);
+						},
+					);
+			});
 		});
 	});
 });
