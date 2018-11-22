@@ -104,12 +104,12 @@ describe('db', () => {
 			});
 
 			it('should paginate the result properly', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				yield db.accounts.insert(account);
 				const votes = [];
 
 				for (let i = 0; i < rowCount; i++) {
-					const vote = accountsFixtures.Dependent({
+					const vote = new accountsFixtures.Dependent({
 						accountId: account.address,
 					});
 					yield db.query(
@@ -134,12 +134,12 @@ describe('db', () => {
 			});
 
 			it('should return the all vote objects for a specific address', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				yield db.accounts.insert(account);
 				const votes = [];
 
 				for (let i = 0; i < rowCount; i++) {
-					const vote = accountsFixtures.Dependent({
+					const vote = new accountsFixtures.Dependent({
 						accountId: account.address,
 					});
 					yield db.query(
@@ -180,12 +180,12 @@ describe('db', () => {
 			});
 
 			it('should return integer type count of total votes of a specific lisk id', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				yield db.accounts.insert(account);
 				const votes = [];
 
 				for (let i = 0; i < rowCount; i++) {
-					const vote = accountsFixtures.Dependent({
+					const vote = new accountsFixtures.Dependent({
 						accountId: account.address,
 					});
 					yield db.query(

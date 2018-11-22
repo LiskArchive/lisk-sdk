@@ -22,7 +22,7 @@ describe('PromiseDefer', () => {
 	var REJECTED = 'rejected';
 
 	beforeEach(done => {
-		promiseDefer = PromiseDefer();
+		promiseDefer = new PromiseDefer();
 		promiseDefer.promise
 			.then(input => {
 				expect(input.message).to.equal(RESOLVED);
