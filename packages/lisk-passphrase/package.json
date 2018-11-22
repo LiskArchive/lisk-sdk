@@ -57,7 +57,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"bip39": "2.5.0"
+		"bip39": "2.5.0",
+		"babel-runtime": "6.26.0"
 	},
 	"devDependencies": {
 		"@types/bip39": "2.4.0",
