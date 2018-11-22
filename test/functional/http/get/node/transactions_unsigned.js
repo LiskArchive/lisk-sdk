@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
 var waitFor = require('../../../../common/utils/wait_for');
 
@@ -30,10 +30,10 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
 		describe('/unsigned', () => {
-			var UnsignedEndpoint = new swaggerEndpoint(
+			var UnsignedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unsigned' });
-			var signatureEndpoint = new swaggerEndpoint('POST /signatures');
+			var signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
 			var senderAccount = randomUtil.account();
 			var recipientAccount = randomUtil.account();

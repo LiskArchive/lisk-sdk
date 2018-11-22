@@ -20,12 +20,12 @@ var Scenarios = require('../../../../common/scenarios');
 var accountFixtures = require('../../../../fixtures/accounts');
 var apiHelpers = require('../../../../common/helpers/api');
 var waitFor = require('../../../../common/utils/wait_for');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../../common/swagger_spec');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/accounts', () => {
-	var signatureEndpoint = new swaggerEndpoint('POST /signatures');
+	var signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
 	var scenario = new Scenarios.Multisig();
 	var account = scenario.account;
@@ -67,7 +67,7 @@ describe('GET /api/accounts', () => {
 	});
 
 	describe('/{address}/multisignature_groups', () => {
-		var multisigGroupsEndpoint = new swaggerEndpoint(
+		var multisigGroupsEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_groups'
 		);
 
@@ -127,7 +127,7 @@ describe('GET /api/accounts', () => {
 	});
 
 	describe('/{address}/multisignature_memberships', () => {
-		var multisigMembersEndpoint = new swaggerEndpoint(
+		var multisigMembersEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_memberships'
 		);
 

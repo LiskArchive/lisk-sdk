@@ -22,7 +22,7 @@ var transactionTypes = require('../../../../helpers/transaction_types');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var slots = require('../../../../helpers/slots');
 
 const { NORMALIZER } = global.constants;
@@ -30,7 +30,7 @@ var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
-	var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
+	var transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 	var transactionList = [];
 
 	var account = randomUtil.account();

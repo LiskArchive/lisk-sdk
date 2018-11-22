@@ -17,7 +17,7 @@
 var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
 var accountFixtures = require('../../fixtures/accounts');
-var swaggerSpec = require('../swagger_spec');
+var SwaggerSpec = require('../swagger_spec');
 
 var http = {
 	abstractRequest(options, done) {
@@ -188,7 +188,7 @@ function getPendingMultisignatures(params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-var postTransactionsEndpoint = new swaggerSpec('POST /transactions');
+var postTransactionsEndpoint = new SwaggerSpec('POST /transactions');
 
 function sendTransactionPromise(transaction, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;

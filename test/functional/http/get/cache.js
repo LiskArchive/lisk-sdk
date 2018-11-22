@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var Promise = require('bluebird');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var accountFixtures = require('../../../fixtures/accounts');
 var modulesLoader = require('../../../common/modules_loader');
 var apiHelpers = require('../../../common/helpers/api');
@@ -55,7 +55,7 @@ describe('cached endpoints', () => {
 
 	describe('@sequential tests', () => {
 		describe('GET /transactions', () => {
-			var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
+			var transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 
 			it('cache transactions by the url and parameters when response is a success', () => {
 				var params = {
@@ -94,7 +94,7 @@ describe('cached endpoints', () => {
 		});
 
 		describe('GET /blocks', () => {
-			var blocksEndpoint = new swaggerEndpoint('GET /blocks');
+			var blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 			it('cache blocks by the url and parameters when response is a success', () => {
 				var params = {
@@ -166,7 +166,7 @@ describe('cached endpoints', () => {
 		});
 
 		describe('GET /delegates', () => {
-			var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
+			var delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 
 			it('should cache delegates when response is successful', () => {
 				return delegatesEndpoint.makeRequest({}, 200).then(res => {
@@ -198,7 +198,7 @@ describe('cached endpoints', () => {
 
 	describe('@slow tests', () => {
 		describe('GET /delegates', () => {
-			var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
+			var delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 
 			it('should flush cache on the next round @slow', () => {
 				var params = {

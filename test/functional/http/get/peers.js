@@ -16,11 +16,11 @@
 
 require('../../functional.js');
 var WSServer = require('../../../common/ws/server_master');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 
 describe('GET /peers', () => {
-	var peersEndpoint = new swaggerEndpoint('GET /peers');
+	var peersEndpoint = new SwaggerEndpoint('GET /peers');
 	var wsServer1 = new WSServer();
 	var wsServer2 = new WSServer();
 	var validHeaders = wsServer1.headers;

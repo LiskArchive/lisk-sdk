@@ -23,7 +23,7 @@ var apiCodes = require('../../../../helpers/api_codes');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
 var elements = require('../../../common/utils/elements');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
@@ -60,7 +60,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 	var badTransactions = [];
 	var goodTransactions = [];
 	var pendingMultisignatures = [];
-	var signatureEndpoint = new swaggerEndpoint('POST /signatures');
+	var signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
 	before(() => {
 		var transactions = [];

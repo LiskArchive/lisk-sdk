@@ -36,7 +36,7 @@ chai.use(chaiAsPromised);
 
 var testContext = {};
 
-testContext.config = AppConfig(packageJson, false);
+testContext.config = new AppConfig(packageJson, false);
 
 const genesisBlock = testContext.config.genesisBlock;
 
