@@ -400,9 +400,9 @@ describe('peers', () => {
 				// in that specific height, so the majority is 5
 				let count = 0;
 				[5, 3, 2].map(height => {
-					_.range(height).map(() => {
+					return _.range(height).map(() => {
 						peerList[count].height = height;
-						count++;
+						return count++;
 					});
 				});
 				peersLogicMock.list = sinonSandbox.stub().returns(peerList);

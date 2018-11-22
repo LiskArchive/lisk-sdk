@@ -60,14 +60,12 @@ class TransferTransactionsRepository {
 				transactions = [transactions];
 			}
 
-			transactions = transactions.map(transaction => {
-				if (transaction.asset && transaction.asset.data) {
-					return {
-						transactionId: transaction.id,
-						data: Buffer.from(transaction.asset.data, 'utf8'),
-					};
-				}
-			});
+			transactions = transactions
+				.filter(transaction => transaction.asset && transaction.asset.data)
+				.map(transaction => ({
+					transactionId: transaction.id,
+					data: Buffer.from(transaction.asset.data, 'utf8'),
+				}));
 
 			transactions = _.compact(transactions);
 		} catch (e) {

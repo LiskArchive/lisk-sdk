@@ -329,16 +329,17 @@ class Network {
 
 		const enableForgingPromises = [];
 		this.configurations.forEach(configuration => {
-			configuration.forging.delegates.map(keys => {
-				if (!configuration.forging.force) {
+			configuration.forging.delegates
+				.filter(() => !configuration.forging.force)
+				.map(keys => {
 					const enableForgingPromise = utils.http.enableForging(
 						keys,
 						configuration.httpPort
 					);
-					enableForgingPromises.push(enableForgingPromise);
-				}
-			});
+					return enableForgingPromises.push(enableForgingPromise);
+				});
 		});
+
 		return Promise.all(enableForgingPromises)
 			.then(forgingResults => {
 				const someFailures = forgingResults.some(forgingResult => {
