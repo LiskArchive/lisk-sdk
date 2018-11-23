@@ -22,8 +22,8 @@ export const checkBalance = (
     account: IAccount,
     amount: BigNum
 ): {
-	readonly exceeded: boolean;
 	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly exceeded: boolean;
 } => {
 	const exceeded = new BigNum(account.balance).lt(amount);
 

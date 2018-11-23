@@ -22,14 +22,12 @@ export {
 	prependPlusToPublicKeys,
 	prependMinusToPublicKeys,
 } from './format';
-export { prepareTransaction } from './prepare_transaction';
 export {
 	signTransaction,
 	secondSignTransaction,
 	multiSignTransaction,
 	verifyTransaction,
 } from './sign_and_verify';
-export { signRawTransaction } from './sign_raw_transaction';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
 export {
 	checkPublicKeysForDuplicates,

@@ -13,10 +13,10 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '../transaction_types';
+import { ITransactionJSON } from '../transaction_types';
 import { getTransactionBytes } from './get_transaction_bytes';
 
-export const getTransactionId = (transaction: BaseTransaction): string => {
+export const getTransactionId = (transaction: ITransactionJSON): string => {
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionHash = cryptography.hash(transactionBytes);
 	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(

@@ -14,7 +14,7 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 
-interface RecipientIdAndPublicKey {
+interface IRecipientIdAndPublicKey {
 	readonly recipientId: string;
 	readonly recipientPublicKey?: string;
 }
@@ -22,7 +22,7 @@ interface RecipientIdAndPublicKey {
 export const getAddressAndPublicKeyFromRecipientData = ({
 	recipientId,
 	recipientPublicKey,
-}: RecipientIdAndPublicKey): {
+}: IRecipientIdAndPublicKey): {
 	readonly address: string;
 	readonly publicKey?: string;
 } => {

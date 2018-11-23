@@ -22,10 +22,8 @@ import {
 	getTransactionBytes,
 	getTransactionHash,
 	getTransactionId,
-	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
-	signRawTransaction,
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
@@ -82,10 +80,6 @@ describe('transaction utils', () => {
 
 		it('should have prependPlusToPublicKeys', () => {
 			return expect(prependPlusToPublicKeys).to.be.a('function');
-		});
-
-		it('should have signRawTransaction', () => {
-			return expect(signRawTransaction).to.be.a('function');
 		});
 
 		it('should have signTransaction', () => {

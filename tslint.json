@@ -8,7 +8,7 @@
 	"rules": {
 		"completed-docs": false,
 		"file-name-casing": false,
-		"interface-name": [true, "never-prefix"],
+		"interface-name": [true, "always-prefix"],
 		"no-class": false,
 		"no-delete": true,
 		"no-expression-statement": false,
