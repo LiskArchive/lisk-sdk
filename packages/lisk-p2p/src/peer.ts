@@ -27,7 +27,7 @@ export interface IPeerConfig {
 
 export class Peer {
 	private height: number;
-	private ip: string;
+	private readonly ip: string;
 	private wsPort: number;
 
 	public constructor(peerConfig: IPeerConfig) {
@@ -36,22 +36,19 @@ export class Peer {
 		this.wsPort = peerConfig.wsPort;
 	}
 
-	public getHeight(): number {
+	public get Height(): number {
 		return this.height;
 	}
-	public getIp(): string {
-		return this.ip;
-	}
-	public getWsPort(): number {
-		return this.wsPort;
-	}
-	public setHeight(height: number): void {
+	public set Height(height: number) {
 		this.height = height;
 	}
-	public setIp(ip: string): void {
-		this.ip = ip;
+	public get Ip(): string {
+		return this.ip;
 	}
-	public setWsPort(wsPort: number): void {
+	public get WsPort(): number {
+		return this.wsPort;
+	}
+	public set WsPort(wsPort: number) {
 		this.wsPort = wsPort;
 	}
 }
