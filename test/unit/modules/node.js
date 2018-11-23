@@ -86,7 +86,7 @@ describe('node', () => {
 							cb
 						);
 					} else {
-						cb(err, {
+						return cb(err, {
 							publicKey: testDelegate.publicKey,
 							password: testDelegate.password,
 						});
