@@ -48,7 +48,6 @@ POSTGRESQL_SHA256SUM="95b7573acc6c5554ab06dbf224c1315bd1d008f5d1a12bcb6c9c5edee0
 POSTGRESQL_DIR="postgresql-$POSTGRESQL_VERSION-1-linux-x64-binaries"
 POSTGRESQL_FILE="$POSTGRESQL_DIR.tar.gz"
 POSTGRESQL_BIN_URL="https://get.enterprisedb.com/postgresql/postgresql-${POSTGRESQL_VERSION}-1-linux-x64-binaries.tar.gz"
-POSTGRESQL_OUT="pgsql"
 
 REDIS_VERSION="4.0.11"
 REDIS_SHA256SUM="fc53e73ae7586bcdacb4b63875d1ff04f68c5474c1ddeda78f00e5ae2eed1bbb"
