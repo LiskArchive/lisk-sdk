@@ -1,21 +1,8 @@
-import { generateMnemonic } from 'bip39';
 import { Queue } from '../src/queue';
-import transaction from '@liskhq/lisk-transactions'
-import cryptography from '@liskhq/lisk-cryptography';
 import { Transaction } from '../src/transaction_pool';
 import { expect } from 'chai';
+import {transferTransactionInstances } from 'test_data';
 
-function createRandomTransaction (): Transaction {
-    const senderPassphrase = generateMnemonic();
-    const receipientAccount = cryptography.getAddressAndPublicKeyFromPassphrase(generateMnemonic())
-
-	// tslint:disable-next-line
-    return transaction.transfer({
-        amount: (Math.floor(Math.random() * 100000)).toString(),
-        passphrase: senderPassphrase,
-        recipientId: receipientAccount.address
-    }) as Transaction;
-}
 
 describe('Queue', () => {
     let queue: Queue;
@@ -26,13 +13,13 @@ describe('Queue', () => {
 
     describe('enqueueOne', () => {
         it('should add transaction to the queue', () => {
-            const transaction = createRandomTransaction();
+            const transaction = transferTransactionInstances[0];
             queue.enqueueOne(transaction);
             expect(queue.transactions).to.include(transaction);
         });
 
         it('should add transaction to the queue index', () => {
-            const transaction = createRandomTransaction();
+            const transaction = transferTransactionInstances[0];
             queue.enqueueOne(transaction);
             expect(queue.index[transaction.id]).to.deep.eq(transaction);
         });
@@ -40,13 +27,13 @@ describe('Queue', () => {
 
     describe('enqueueMany', () => {
         it('should add transactions to the queue', () => {
-            const transactions = new Array(5).fill(0).map(createRandomTransaction);
+            const transactions = transferTransactionInstances;
             queue.enqueueMany(transactions);
             transactions.forEach((transaction: Transaction) => expect(queue.transactions).to.include(transaction));
         });
 
         it('should add transactions to the queue index', () => {
-            const transactions = new Array(5).fill(0).map(createRandomTransaction);
+            const transactions = transferTransactionInstances;
             queue.enqueueMany(transactions);
             transactions.forEach((transaction: Transaction) => expect(queue.index[transaction.id]).to.eq(transaction));
         });
@@ -54,13 +41,13 @@ describe('Queue', () => {
 
     describe('exists', () => {
         it('should return true if transaction exists in queue', () => {
-            const transaction = createRandomTransaction();
+            const transaction = transferTransactionInstances[0];
             queue.enqueueOne(transaction);
             expect(queue.exists(transaction)).to.equal(true);
         });
 
         it('should return false if transaction does not exist in queue', () => {
-            const transaction = createRandomTransaction();
+            const transaction = transferTransactionInstances[0];
             expect(queue.exists(transaction)).to.equal(false);
         });
     });
@@ -73,7 +60,7 @@ describe('Queue', () => {
         };
 
         beforeEach(() => {
-            transactions = new Array(5).fill(0).map(createRandomTransaction);
+            transactions = transferTransactionInstances;
             queue.enqueueMany(transactions);
         });
 
@@ -122,7 +109,7 @@ describe('Queue', () => {
         }
 
         beforeEach(() => {
-            transactions = new Array(5).fill(0).map(createRandomTransaction);
+            transactions = transferTransactionInstances;
             queue.enqueueMany(transactions);
         });
 
