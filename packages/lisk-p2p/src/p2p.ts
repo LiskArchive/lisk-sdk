@@ -17,12 +17,11 @@ import {
 	INetworkStatus,
 	IP2PMessagePacket,
 	IP2PNodeStatus,
-	IP2PPenalty,
 	IP2PRequestPacket,
 	IP2PResponsePacket,
 } from './p2p_types';
 import { Peer } from './peer';
-/* tslint:disable:interface-name readonly-keyword no-empty-interface no-let no-unused-expression */
+/* tslint:disable: interface-name no-unused-expression */
 
 export interface IPeerReturnType {
 	readonly options: IPeerOptions;
@@ -31,7 +30,7 @@ export interface IPeerReturnType {
 export interface IPeerOptions {
 	readonly [key: string]: string | number;
 }
-
+/* tslint:disable: readonly-keyword*/
 interface IHistogram {
 	[key: number]: number;
 }
@@ -40,7 +39,7 @@ interface IHistogramValues {
 	histogram: IHistogram;
 	max: number;
 }
-
+/* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
 	options: IPeerOptions,
@@ -48,7 +47,7 @@ export const selectPeers = (
 ): IPeerReturnType => {
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
-		(peer: Peer) => peer !== null && peer.Height >= options.blockHeight,
+		(peer: Peer) => peer.Height >= options.blockHeight,
 	);
 
 	if (filteredPeers.length === 0) {
@@ -96,6 +95,7 @@ export const selectPeers = (
 				aggregation + 1,
 	);
 
+	// Select n number of peers
 	if (numOfPeers) {
 		if (numOfPeers > processedPeers.length) {
 			throw new NotEnoughPeersError(
@@ -103,6 +103,16 @@ export const selectPeers = (
 					processedPeers.length
 				}'`,
 			);
+		}
+		if (numOfPeers === processedPeers.length) {
+			return { options, peers: processedPeers };
+		}
+		if (numOfPeers === 1) {
+			const goodPeer: ReadonlyArray<Peer> = [
+				processedPeers[Math.floor(Math.random() * processedPeers.length)],
+			];
+
+			return { options, peers: goodPeer };
 		}
 		const randomPeersArray = Array(numOfPeers).fill({});
 
@@ -127,10 +137,6 @@ export const selectPeers = (
 };
 
 export class P2P {
-	public applyPenalty = (penalty: IP2PPenalty): void => {
-		// TODO
-		penalty;
-	};
 	// TODO
 	public getNetworkStatus = (): INetworkStatus => true;
 	// TODO

@@ -14,3 +14,4 @@
  */
 export { P2P, IPeerReturnType, IPeerOptions, selectPeers } from './p2p';
 export { IPeerConfig, Peer } from './peer';
+export { NotEnoughPeersError } from './errors';

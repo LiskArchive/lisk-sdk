@@ -21,6 +21,4 @@ export interface IP2PResponsePacket {}
 
 export interface IP2PNodeStatus {}
 
-export interface IP2PPenalty {}
-
 export interface INetworkStatus {}
