@@ -117,9 +117,7 @@ _.mixin(
 		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
 			var indices = _.compact(
-				arr.filter(data => data === valueCheck).map((_data, index) => {
-					return index;
-				})
+				arr.filter(data => data === valueCheck).map((_data, index) => index)
 			);
 
 			// If last occurrence appears at the end of array

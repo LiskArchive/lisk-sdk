@@ -29,7 +29,7 @@ const NUMBER_OF_MONITORING_CONNECTIONS = TOTAL_PEERS * 2;
 
 const wsPorts = [];
 _.range(TOTAL_PEERS).map(index => {
-	wsPorts.push(5000 + index);
+	return wsPorts.push(5000 + index);
 });
 const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 

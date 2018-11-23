@@ -124,7 +124,7 @@ describe('GET /api/node', () => {
 					})
 					.then(responses => {
 						responses.map(res => {
-							expect(res.body.data.message).to.be.equal(
+							return expect(res.body.data.message).to.be.equal(
 								'Transaction(s) accepted'
 							);
 						});
@@ -247,7 +247,9 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(transaction => {
-							expect(transaction.type).to.be.equal(transactionInCheck.type);
+							return expect(transaction.type).to.be.equal(
+								transactionInCheck.type
+							);
 						});
 					});
 				});
@@ -271,7 +273,9 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(transaction => {
-							expect(transaction.senderId).to.be.equal(senderAccount.address);
+							return expect(transaction.senderId).to.be.equal(
+								senderAccount.address
+							);
 						});
 					});
 				});
@@ -304,7 +308,7 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(transaction => {
-							expect(transaction.senderPublicKey).to.be.equal(
+							return expect(transaction.senderPublicKey).to.be.equal(
 								senderAccount.publicKey
 							);
 						});
@@ -342,7 +346,7 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(transaction => {
-							expect(transaction.recipientId).to.be.equal(
+							return expect(transaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);
 						});
@@ -377,7 +381,7 @@ describe('GET /api/node', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
 						res.body.data.map(transaction => {
-							expect(transaction.recipientId).to.be.equal(
+							return expect(transaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);
 						});

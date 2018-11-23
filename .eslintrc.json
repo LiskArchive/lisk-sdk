@@ -2,7 +2,7 @@
 	"extends": ["lisk-base"],
 	"plugins": ["mocha", "chai-expect"],
 	"rules": {
-		"array-callback-return": "off",
+		"array-callback-return": "error",
 		"camelcase": "off",
 		"chai-expect/missing-assertion": 2,
 		"chai-expect/no-inner-compare": 2,

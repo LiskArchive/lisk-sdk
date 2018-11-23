@@ -45,7 +45,7 @@ module.exports = function(
 								if (peer.wsPort > 5000 && peer.wsPort <= 5009) {
 									wsPorts.add(peer.wsPort);
 								}
-								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+								return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 							});
 						}
 					});
