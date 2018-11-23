@@ -18,7 +18,7 @@ import { PeerState } from './p2p_types';
 // TODO: Use to create outbound socket connection inside peer object.
 // TODO: const socketClusterClient = require('socketcluster-client');
 
-export interface IPeerConfig {
+export interface PeerConfig {
 	readonly clock?: Date;
 	readonly height: number;
 	readonly id: string;

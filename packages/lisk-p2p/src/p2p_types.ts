@@ -12,15 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name no-empty-interface */
+/* tslint:disable: no-empty-interface */
+export interface P2PMessagePacket {}
 
-export interface IP2PMessagePacket {}
+export interface P2PRequestPacket {}
 
-export interface IP2PRequestPacket {}
+export interface P2PResponsePacket {}
 
-export interface IP2PResponsePacket {}
-
-export interface IP2PNodeStatus {}
+export interface P2PNodeStatus {}
 
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<string>;
@@ -31,12 +30,9 @@ export interface P2PConfig {
 	readonly wsPort: number;
 }
 
-export interface IP2PPenalty {}
-
-export interface INetworkStatus {}
-
 export enum PeerState {
 	BANNED = 0,
 	DISCONNECTED = 1,
 	CONNECTED = 2,
 }
+export interface NetworkStatus {}
