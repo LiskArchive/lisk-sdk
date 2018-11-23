@@ -283,7 +283,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length.at.least(1);
 						res.body.data.map(d => {
-							expect(/99/.test(d.username)).to.be.true;
+							return expect(/99/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -313,7 +313,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(13);
 						res.body.data.map(d => {
-							expect(/^genesis_1.*/.test(d.username)).to.be.true;
+							return expect(/^genesis_1.*/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -324,7 +324,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(3);
 						res.body.data.map(d => {
-							expect(/^genesis_10.*/.test(d.username)).to.be.true;
+							return expect(/^genesis_10.*/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -344,7 +344,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(101);
 						res.body.data.map(d => {
-							expect(/^genesis_.*/.test(d.username)).to.be.true;
+							return expect(/^genesis_.*/.test(d.username)).to.be.true;
 						});
 					});
 			});

@@ -48,7 +48,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 			scenarios.regular.multiSigTransaction,
 			member.passphrase
 		);
-		scenarios.regular.multiSigTransaction.signatures.push(signature);
+		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
 	localCommon.beforeBlock('system_4_4_multisig', lib => {
