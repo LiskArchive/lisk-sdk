@@ -297,10 +297,9 @@ var modulesLoader = new function() {
 			this.logger,
 			(err, __cache) => {
 				if (err) {
-					cb(err, __cache);
-				} else {
-					this.initModule(Cache, _.merge(this.scope, { cache: __cache }), cb);
+					return cb(err, __cache);
 				}
+				this.initModule(Cache, _.merge(this.scope, { cache: __cache }), cb);
 			}
 		);
 	};
