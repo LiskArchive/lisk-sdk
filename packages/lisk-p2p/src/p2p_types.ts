@@ -12,5 +12,15 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { P2P, IPeerReturnType, IPeerOptions } from './p2p';
-export { IPeerConfig, Peer } from './peer';
+/* tslint:disable:interface-name no-empty-interface */
+export interface IP2PMessagePacket {}
+
+export interface IP2PRequestPacket {}
+
+export interface IP2PResponsePacket {}
+
+export interface IP2PNodeStatus {}
+
+export interface IP2PPenalty {}
+
+export interface INetworkStatus {}
