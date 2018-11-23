@@ -12,16 +12,16 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export interface IAccount {
+export interface Account {
 	readonly address: string;
 	readonly balance: string;
-	readonly delegate: IDelegate;
+	readonly delegate: Delegate;
 	readonly publicKey: string;
 	readonly secondPublicKey?: string;
 	readonly unconfirmedBalance: string;
 }
 
-export interface IDelegate {
+export interface Delegate {
 	readonly approval: number;
 	readonly missedBlocks: number;
 	readonly producedBlocks: number;
@@ -32,12 +32,12 @@ export interface IDelegate {
 	readonly vote: string;
 }
 
-export interface IRequiredState {
-	readonly accounts: ReadonlyArray<IAccount>;
-	readonly transactions: ReadonlyArray<ITransactionJSON>;
+export interface RequiredState {
+	readonly accounts: ReadonlyArray<Account>;
+	readonly transactions: ReadonlyArray<TransactionJSON>;
 }
 
-export interface ITransactionJSON {
+export interface TransactionJSON {
 	readonly amount: string;
 	readonly asset?: TransactionAsset;
 	readonly fee: string;
@@ -54,56 +54,56 @@ export interface ITransactionJSON {
 }
 
 export type TransactionAsset =
-	| ITransferAsset
-	| ISecondSignatureAsset
-	| IDelegateAsset
-	| IVoteAsset
-	| IMultiSignatureAsset
-	| IDappAsset
-	| IInTransferAsset
-	| IOutTransferAsset;
+	| TransferAsset
+	| SecondSignatureAsset
+	| DelegateAsset
+	| VoteAsset
+	| MultiSignatureAsset
+	| DappAsset
+	| InTransferAsset
+	| OutTransferAsset;
 
-export interface ITransferTransaction extends ITransactionJSON {
-	readonly asset: ITransferAsset;
+export interface TransferTransaction extends TransactionJSON {
+	readonly asset: TransferAsset;
 }
 
-export interface ITransferAsset {
+export interface TransferAsset {
 	readonly data?: string;
 }
 
-export interface ISecondSignatureTransaction extends ITransactionJSON {
-	readonly asset: ISecondSignatureAsset;
+export interface SecondSignatureTransaction extends TransactionJSON {
+	readonly asset: SecondSignatureAsset;
 }
 
-export interface ISecondSignatureAsset {
+export interface SecondSignatureAsset {
 	readonly signature: {
 		readonly publicKey: string;
 	};
 }
 
-export interface IDelegateTransaction extends ITransactionJSON {
-	readonly asset: IDelegateAsset;
+export interface DelegateTransaction extends TransactionJSON {
+	readonly asset: DelegateAsset;
 }
 
-export interface IDelegateAsset {
+export interface DelegateAsset {
 	readonly delegate: {
 		readonly username: string;
 	};
 }
 
-export interface IVoteTransaction extends ITransactionJSON {
-	readonly asset: IVoteAsset;
+export interface VoteTransaction extends TransactionJSON {
+	readonly asset: VoteAsset;
 }
 
-export interface IVoteAsset {
+export interface VoteAsset {
 	readonly votes: ReadonlyArray<string>;
 }
 
-export interface IMultiSignatureTransaction extends ITransactionJSON {
-	readonly asset: IMultiSignatureAsset;
+export interface MultiSignatureTransaction extends TransactionJSON {
+	readonly asset: MultiSignatureAsset;
 }
 
-export interface IMultiSignatureAsset {
+export interface MultiSignatureAsset {
 	readonly multisignature: {
 		readonly keysgroup: ReadonlyArray<string>;
 		readonly lifetime: number;
@@ -111,11 +111,11 @@ export interface IMultiSignatureAsset {
 	};
 }
 
-export interface IDappTransaction extends ITransactionJSON {
-	readonly asset: IDappAsset;
+export interface DappTransaction extends TransactionJSON {
+	readonly asset: DappAsset;
 }
 
-export interface IDappAsset {
+export interface DappAsset {
 	readonly dapp: {
 		readonly category: number;
 		readonly description?: string;
@@ -127,21 +127,21 @@ export interface IDappAsset {
 	};
 }
 
-export interface IInTransferTransaction extends ITransactionJSON {
-	readonly asset: IInTransferAsset;
+export interface InTransferTransaction extends TransactionJSON {
+	readonly asset: InTransferAsset;
 }
 
-export interface IInTransferAsset {
+export interface InTransferAsset {
 	readonly inTransfer: {
 		readonly dappId: string;
 	};
 }
 
-export interface IOutTransferTransaction extends ITransactionJSON {
-	readonly asset: IOutTransferAsset;
+export interface OutTransferTransaction extends TransactionJSON {
+	readonly asset: OutTransferAsset;
 }
 
-export interface IOutTransferAsset {
+export interface OutTransferAsset {
 	readonly outTransfer: {
 		readonly dappId: string;
 		readonly transactionId: string;

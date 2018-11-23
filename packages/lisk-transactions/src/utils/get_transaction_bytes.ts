@@ -16,19 +16,19 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import {
-	IDappAsset,
-	IDelegateAsset,
-	IInTransferAsset,
-	IMultiSignatureAsset,
-	IOutTransferAsset,
-	ISecondSignatureAsset,
-	ITransactionJSON,
-	ITransferAsset,
-	ITransferTransaction,
-	IVoteAsset,
+	DappAsset,
+	DelegateAsset,
+	InTransferAsset,
+	MultiSignatureAsset,
+	OutTransferAsset,
+	SecondSignatureAsset,
 	TransactionAsset,
+	TransactionJSON,
+	TransferAsset,
+	TransferTransaction,
+	VoteAsset,
 } from '../transaction_types';
- 
+
 export const isValidValue = (value: unknown): boolean => {
 	if (value === undefined) {
 		return false;
@@ -60,7 +60,7 @@ export const checkRequiredFields = (
 export const getAssetDataForTransferTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { data } = asset as ITransferAsset;
+	const { data } = asset as TransferAsset;
 
 	return data ? Buffer.from(data, 'utf8') : Buffer.alloc(0);
 };
@@ -68,7 +68,7 @@ export const getAssetDataForTransferTransaction = (
 export const getAssetDataForRegisterSecondSignatureTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { signature } = asset as ISecondSignatureAsset;
+	const { signature } = asset as SecondSignatureAsset;
 	checkRequiredFields(['publicKey'], signature);
 	const { publicKey } = signature;
 
@@ -78,7 +78,7 @@ export const getAssetDataForRegisterSecondSignatureTransaction = (
 export const getAssetDataForRegisterDelegateTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { delegate } = asset as IDelegateAsset;
+	const { delegate } = asset as DelegateAsset;
 	checkRequiredFields(['username'], delegate);
 	const { username } = delegate;
 
@@ -88,7 +88,7 @@ export const getAssetDataForRegisterDelegateTransaction = (
 export const getAssetDataForCastVotesTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { votes } = asset as IVoteAsset;
+	const { votes } = asset as VoteAsset;
 	if (!Array.isArray(votes)) {
 		throw new Error('votes parameter must be an Array.');
 	}
@@ -99,7 +99,7 @@ export const getAssetDataForCastVotesTransaction = (
 export const getAssetDataForRegisterMultisignatureAccountTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { multisignature } = asset as IMultiSignatureAsset;
+	const { multisignature } = asset as MultiSignatureAsset;
 	checkRequiredFields(['min', 'lifetime', 'keysgroup'], multisignature);
 	const { min, lifetime, keysgroup } = multisignature;
 	const minBuffer = Buffer.alloc(1, min);
@@ -115,7 +115,7 @@ const DAPP_CATEGORY_LENGTH = 4;
 export const getAssetDataForCreateDappTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { dapp } = asset as IDappAsset;
+	const { dapp } = asset as DappAsset;
 	checkRequiredFields(['name', 'link', 'type', 'category'], dapp);
 	const { name, description, tags, link, icon, type, category } = dapp;
 	const nameBuffer = Buffer.from(name, 'utf8');
@@ -145,7 +145,7 @@ export const getAssetDataForCreateDappTransaction = (
 export const getAssetDataForTransferIntoDappTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { inTransfer } = asset as IInTransferAsset;
+	const { inTransfer } = asset as InTransferAsset;
 	checkRequiredFields(['dappId'], inTransfer);
 	const { dappId } = inTransfer;
 
@@ -155,7 +155,7 @@ export const getAssetDataForTransferIntoDappTransaction = (
 export const getAssetDataForTransferOutOfDappTransaction = (
 	asset: TransactionAsset,
 ): Buffer => {
-	const { outTransfer } = asset as IOutTransferAsset;
+	const { outTransfer } = asset as OutTransferAsset;
 	checkRequiredFields(['dappId', 'transactionId'], outTransfer);
 	const { dappId, transactionId } = outTransfer;
 	const outAppIdBuffer = Buffer.from(dappId, 'utf8');
@@ -177,8 +177,10 @@ const transactionTypeAssetGetBytesMap: {
 	7: getAssetDataForTransferOutOfDappTransaction,
 };
 
-export const getAssetBytes = (transaction: ITransactionJSON): Buffer =>
-	transactionTypeAssetGetBytesMap[transaction.type](transaction.asset as TransactionAsset);
+export const getAssetBytes = (transaction: TransactionJSON): Buffer =>
+	transactionTypeAssetGetBytesMap[transaction.type](
+		transaction.asset as TransactionAsset,
+	);
 
 const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'type',
@@ -187,11 +189,11 @@ const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'amount',
 ];
 
-export const checkTransaction = (transaction: ITransactionJSON): boolean => {
+export const checkTransaction = (transaction: TransactionJSON): boolean => {
 	checkRequiredFields(REQUIRED_TRANSACTION_PARAMETERS, transaction);
 	const {
 		asset: { data },
-	} = transaction as ITransferTransaction;
+	} = transaction as TransferTransaction;
 	if (data && data.length > BYTESIZES.DATA) {
 		throw new Error(
 			`Transaction asset data exceeds size of ${BYTESIZES.DATA}.`,
@@ -201,7 +203,7 @@ export const checkTransaction = (transaction: ITransactionJSON): boolean => {
 	return true;
 };
 
-export const getTransactionBytes = (transaction: ITransactionJSON): Buffer => {
+export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	checkTransaction(transaction);
 
 	const {

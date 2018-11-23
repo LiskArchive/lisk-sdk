@@ -13,19 +13,19 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { ITransactionJSON } from './transaction_types';
+import { TransactionJSON } from './transaction_types';
 import { multiSignTransaction, verifyTransaction } from './utils';
 
-export interface ISignatureObject {
+export interface SignatureObject {
 	readonly publicKey: string;
 	readonly signature: string;
 	readonly transactionId: string;
 }
 
 export const createSignatureObject = (
-	transaction: ITransactionJSON,
+	transaction: TransactionJSON,
 	passphrase: string,
-): ISignatureObject => {
+): SignatureObject => {
 	if (!verifyTransaction(transaction)) {
 		throw new Error('Invalid transaction.');
 	}

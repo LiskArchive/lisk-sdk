@@ -16,7 +16,7 @@
 import cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { TransactionError } from './errors';
-import { IAccount, ITransactionJSON } from './transaction_types';
+import { Account, TransactionJSON } from './transaction_types';
 import {
 	checkBalance,
 	getTransactionBytes,
@@ -28,7 +28,7 @@ import {
 	verifyTransaction,
 } from './utils';
 
-const normalizeInput = (rawTransaction: ITransactionJSON): void => {
+const normalizeInput = (rawTransaction: TransactionJSON): void => {
 	const {
 		amount,
 		fee,
@@ -77,7 +77,7 @@ export class BaseTransaction {
 	public readonly timestamp: number;
 	public readonly type: number;
 
-	public constructor(rawTransaction: ITransactionJSON) {
+	public constructor(rawTransaction: TransactionJSON) {
 		normalizeInput(rawTransaction);
 		this.amount = new BigNum(rawTransaction.amount);
 		this.fee = new BigNum(rawTransaction.fee);
@@ -96,7 +96,7 @@ export class BaseTransaction {
 	public prepareTransaction(
 		passphrase: string,
 		secondPassphrase?: string,
-	): ITransactionJSON {
+	): TransactionJSON {
 		const transaction = this.toJSON();
 		const singleSignedTransaction = {
 			...transaction,
@@ -116,7 +116,7 @@ export class BaseTransaction {
 		return transactionWithId;
 	}
 
-	public toJSON(): ITransactionJSON {
+	public toJSON(): TransactionJSON {
 		const transaction = {
 			id: this.id,
 			amount: this.amount.toString(),
@@ -177,7 +177,7 @@ export class BaseTransaction {
 	}
 
 	public verifyAgainstState(
-		sender: IAccount,
+		sender: Account,
 	): {
 		readonly verified: boolean;
 		readonly errors?: ReadonlyArray<TransactionError>;
@@ -198,7 +198,7 @@ export class BaseTransaction {
 
 	// tslint:disable-next-line prefer-function-over-method
 	public verifyAgainstTransactions(
-		transactions: ReadonlyArray<ITransactionJSON>,
+		transactions: ReadonlyArray<TransactionJSON>,
 	): {
 		readonly verified: boolean;
 		readonly errors?: ReadonlyArray<TransactionError>;
@@ -210,8 +210,8 @@ export class BaseTransaction {
 	}
 
 	public apply(
-		sender: IAccount,
-	): { readonly sender: IAccount; readonly recipient?: IAccount } {
+		sender: Account,
+	): { readonly sender: Account; readonly recipient?: Account } {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 
@@ -221,8 +221,8 @@ export class BaseTransaction {
 	}
 
 	public undo(
-		sender: IAccount,
-	): { readonly sender: IAccount; readonly recipient?: IAccount } {
+		sender: Account,
+	): { readonly sender: Account; readonly recipient?: Account } {
 		const updatedBalance = new BigNum(sender.balance).plus(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 

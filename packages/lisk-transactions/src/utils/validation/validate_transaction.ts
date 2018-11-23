@@ -14,8 +14,8 @@
  */
 import { ErrorObject, ValidateFunction } from 'ajv';
 import {
-	IMultiSignatureTransaction,
-	ITransactionJSON,
+	MultiSignatureTransaction,
+	TransactionJSON,
 } from '../../transaction_types';
 import * as schemas from './schema';
 import { validator } from './validator';
@@ -40,14 +40,14 @@ const getTransactionSchemaValidator = (type: number): ValidateFunction => {
 	return schema;
 };
 
-interface IValidationResult {
+interface ValidationResult {
 	readonly errors?: ReadonlyArray<ErrorObject>;
 	readonly valid: boolean;
 }
 
 const validateMultiTransaction = (
-	tx: IMultiSignatureTransaction,
-): IValidationResult => {
+	tx: MultiSignatureTransaction,
+): ValidationResult => {
 	if (tx.asset.multisignature.min > tx.asset.multisignature.keysgroup.length) {
 		return {
 			valid: false,
@@ -69,12 +69,10 @@ const validateMultiTransaction = (
 	};
 };
 
-const isMultiSignatureTransaction = (
-	tx: ITransactionJSON,
-): boolean =>
+const isMultiSignatureTransaction = (tx: TransactionJSON): boolean =>
 	tx.type === TRANSACTION_TYPE_MULTI_SIGNATURE;
 
-export const validateTransaction = (tx: ITransactionJSON): IValidationResult => {
+export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 	if (tx.type === undefined || tx.type === null) {
 		throw new Error('Transaction type is required.');
 	}
@@ -88,7 +86,7 @@ export const validateTransaction = (tx: ITransactionJSON): IValidationResult => 
 		  )
 		: undefined;
 	if (valid && isMultiSignatureTransaction(tx)) {
-		return validateMultiTransaction(tx as IMultiSignatureTransaction);
+		return validateMultiTransaction(tx as MultiSignatureTransaction);
 	}
 
 	return {

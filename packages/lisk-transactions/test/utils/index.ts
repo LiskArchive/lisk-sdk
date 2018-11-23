@@ -70,10 +70,6 @@ describe('transaction utils', () => {
 			return expect(getTransactionId).to.be.a('function');
 		});
 
-		it('should have prepareTransaction', () => {
-			return expect(prepareTransaction).to.be.a('function');
-		});
-
 		it('should have prependMinusToPublicKeys', () => {
 			return expect(prependMinusToPublicKeys).to.be.a('function');
 		});

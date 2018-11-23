@@ -13,11 +13,11 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { ITransactionJSON } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
 export const signTransaction = (
-	transaction: ITransactionJSON,
+	transaction: TransactionJSON,
 	passphrase: string,
 ): string => {
 	const transactionHash = getTransactionHash(transaction);
@@ -26,15 +26,15 @@ export const signTransaction = (
 };
 
 export const secondSignTransaction = (
-	transaction: ITransactionJSON,
+	transaction: TransactionJSON,
 	secondPassphrase: string,
-): ITransactionJSON => ({
+): TransactionJSON => ({
 	...transaction,
 	signSignature: signTransaction(transaction, secondPassphrase),
 });
 
 export const multiSignTransaction = (
-	transaction: ITransactionJSON,
+	transaction: TransactionJSON,
 	passphrase: string,
 ): string => {
 	const { signature, signSignature, ...transactionToSign } = transaction;
@@ -45,7 +45,7 @@ export const multiSignTransaction = (
 };
 
 export const verifyTransaction = (
-	transaction: ITransactionJSON,
+	transaction: TransactionJSON,
 	secondPublicKey?: string,
 ): boolean => {
 	if (!transaction.signature) {

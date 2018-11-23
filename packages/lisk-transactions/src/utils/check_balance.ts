@@ -14,13 +14,11 @@
  */
 import BigNum from 'browserify-bignum';
 import { TransactionError } from '../errors';
-import {
-	IAccount,
-} from '../transaction_types';
+import { Account } from '../transaction_types';
 
 export const checkBalance = (
-    account: IAccount,
-    amount: BigNum
+	account: Account,
+	amount: BigNum,
 ): {
 	readonly errors?: ReadonlyArray<TransactionError>;
 	readonly exceeded: boolean;

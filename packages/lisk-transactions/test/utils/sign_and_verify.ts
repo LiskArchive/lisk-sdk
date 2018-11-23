@@ -22,13 +22,10 @@ import {
 // The list of valid transactions was created with lisk-js v0.5.1
 // using the below mentioned passphrases.
 import fixtureTransactions from '../../fixtures/transactions.json';
-import {
-	PartialTransaction,
-	BaseTransaction,
-} from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 // Require is used for stubbing
-const validTransactions = fixtureTransactions as ReadonlyArray<BaseTransaction>;
+const validTransactions = fixtureTransactions as ReadonlyArray<TransactionJSON>;
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {
