@@ -41,7 +41,7 @@ interface APIConfig {
 
 type UserConfig = PrintFlags & APIConfig;
 
-export default abstract class BaseCommand extends Command {
+export default class BaseCommand extends Command {
 	static flags = {
 		json: flagParser.boolean({
 			char: 'j',
@@ -62,9 +62,11 @@ export default abstract class BaseCommand extends Command {
 		},
 	};
 
-	async finally(error?: Error): Promise<void> {
+	private readonly name: string = 'BaseCommand';
+
+	async finally(error?: Error | string): Promise<void> {
 		if (error) {
-			this.error(error.message ? error.message : error);
+			this.error(error instanceof Error ? error.message : error);
 		}
 	}
 
@@ -72,7 +74,7 @@ export default abstract class BaseCommand extends Command {
 		const { flags } = this.parse(BaseCommand);
 		this.printFlags = flags;
 
-		process.on('error', handleEPIPE);
+		process.stdout.on('error', handleEPIPE);
 
 		process.env.XDG_CONFIG_HOME =
 			process.env.LISK_COMMANDER_CONFIG_DIR ||
@@ -82,12 +84,16 @@ export default abstract class BaseCommand extends Command {
 
 	print(result: unknown, readAgain = false): void {
 		if (readAgain) {
-			this.userConfig = getConfig(process.env.XDG_CONFIG_HOME || '');
+			this.userConfig = getConfig(process.env.XDG_CONFIG_HOME as string);
 		}
 		print({
 			json: this.userConfig.json,
 			pretty: this.userConfig.pretty,
 			...this.printFlags,
 		}).call(this, result);
+	}
+
+	async run(): Promise<void> {
+		throw new Error(`${this.name} cannot be run directly.`);
 	}
 }
