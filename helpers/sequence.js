@@ -15,7 +15,6 @@
 'use strict';
 
 var util = require('util');
-var extend = require('extend');
 
 /**
  * Creates a FIFO sequence array and default settings with config values.
@@ -23,7 +22,6 @@ var extend = require('extend');
  *
  * @class
  * @memberof helpers
- * @requires extend
  * @requires util
  * @param {string} config
  * @see Parent: {@link helpers}
@@ -34,7 +32,7 @@ function Sequence(config) {
 		onWarning: null,
 		warningLimit: 50,
 	};
-	_default = extend(_default, config);
+	_default = Object.assign(_default, config);
 	var self = this;
 	this.sequence = [];
 

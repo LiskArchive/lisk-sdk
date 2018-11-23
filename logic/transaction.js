@@ -15,7 +15,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
@@ -33,7 +32,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires crypto
- * @requires extend
  * @requires lodash
  * @requires helpers/bignum
  * @requires helpers/slots
@@ -1242,7 +1240,7 @@ class Transaction {
 		const asset = __private.types[transaction.type].dbRead(raw);
 
 		if (asset) {
-			transaction.asset = extend(transaction.asset, asset);
+			transaction.asset = Object.assign(transaction.asset, asset);
 		}
 
 		return transaction;

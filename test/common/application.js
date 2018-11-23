@@ -525,10 +525,9 @@ function cleanup(done) {
 		currentAppScope.modules,
 		(module, cb) => {
 			if (typeof module.cleanup === 'function') {
-				module.cleanup(cb);
-			} else {
-				cb();
+				return module.cleanup(cb);
 			}
+			return cb();
 		},
 		err => {
 			if (err) {
