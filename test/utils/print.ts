@@ -16,8 +16,7 @@
 import { expect } from 'chai';
 import { print, StringMap } from '../../src/utils/print';
 import { SinonStub } from 'sinon';
-// Required for stubbing
-const tablify = require('../../src/utils/tablify');
+import * as tablifyUtil from '../../src/utils/tablify';
 
 describe('print utils', () => {
 	const objectToPrint = {
@@ -42,7 +41,7 @@ describe('print utils', () => {
 	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
 
 	beforeEach(() => {
-		sandbox.stub(tablify, 'default').returns(tablifyResult);
+		sandbox.stub(tablifyUtil, 'tablify').returns(tablifyResult);
 		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
 		return Promise.resolve();
 	});
@@ -57,7 +56,7 @@ describe('print utils', () => {
 		describe('when result is array', () => {
 			it('should call tablify with the ANSI', () => {
 				printer(arrayToPrint);
-				return expect(tablify.default).to.be.calledWithExactly(arrayToPrint);
+				return expect(tablifyUtil.tablify).to.be.calledWithExactly(arrayToPrint);
 			});
 		});
 
@@ -65,7 +64,7 @@ describe('print utils', () => {
 			it('should call tablify with the result and call the log of the context', () => {
 				const log = sandbox.stub();
 				printer.call({ log }, arrayToPrint);
-				expect(tablify.default).to.be.calledWithExactly(arrayToPrint);
+				expect(tablifyUtil.tablify).to.be.calledWithExactly(arrayToPrint);
 				return expect(log).to.be.calledWithExactly(tablifyResult);
 			});
 		});
@@ -83,8 +82,8 @@ describe('print utils', () => {
 			it('should call JSON.stringify without the ANSI', () => {
 				return expect(JSON.stringify).to.be.calledWithExactly(
 					arrayToPrintWithoutANSI,
-					null,
-					null,
+					undefined,
+					undefined,
 				);
 			});
 
@@ -104,8 +103,8 @@ describe('print utils', () => {
 			it('should call JSON.stringify without the ANSI', () => {
 				return expect(JSON.stringify).to.be.calledWithExactly(
 					objectToPrintWithoutANSI,
-					null,
-					null,
+					undefined,
+					undefined,
 				);
 			});
 
@@ -130,7 +129,7 @@ describe('print utils', () => {
 			it('should call JSON.stringify without the ANSI', () => {
 				return expect(JSON.stringify).to.be.calledWithExactly(
 					arrayToPrintWithoutANSI,
-					null,
+					undefined,
 					'\t',
 				);
 			});
@@ -149,7 +148,7 @@ describe('print utils', () => {
 			it('should call JSON.stringify without the ANSI', () => {
 				return expect(JSON.stringify).to.be.calledWithExactly(
 					objectToPrintWithoutANSI,
-					null,
+					undefined,
 					'\t',
 				);
 			});

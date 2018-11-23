@@ -110,7 +110,7 @@ export const getStdIn = ({
 				secondPassphraseIndex + (secondPassphrase !== undefined ? 1 : 0);
 			const password = passwordIsRequired ? lines[passwordIndex] : undefined;
 
-			const dataStartIndex = passwordIndex + (password !== null ? 1 : 0);
+			const dataStartIndex = passwordIndex + (password !== undefined ? 1 : 0);
 			const dataLines = lines.slice(dataStartIndex);
 
 			return resolve({

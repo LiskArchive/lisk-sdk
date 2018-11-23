@@ -18,8 +18,8 @@ import {
 	getInputsFromSources,
 	getFirstLineFromString,
 } from '../../../src/utils/input/index';
-// Required for stubbing
-const inputUtils = require('../../../src/utils/input/utils');
+import * as inputUtils from '../../../src/utils/input/utils';
+import { SinonStub } from 'sinon';
 
 describe('input utils', () => {
 	describe('#getFirstLineFromString', () => {
@@ -40,12 +40,14 @@ describe('input utils', () => {
 	});
 
 	describe('#getInputsFromSources', () => {
+		let getStdInStub: SinonStub;
+
 		beforeEach(() => {
-			sandbox.stub(inputUtils, 'getStdIn').resolves({
-				passphrase: null,
-				password: null,
-				secondPassphrase: null,
-				data: null,
+			getStdInStub = sandbox.stub(inputUtils, 'getStdIn').resolves({
+				passphrase: undefined,
+				password: undefined,
+				secondPassphrase: undefined,
+				data: undefined,
 			});
 			sandbox.stub(inputUtils, 'getPassphrase');
 			sandbox.stub(console, 'warn').returns('');
@@ -70,7 +72,7 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'some passphrase';
-				inputUtils.getStdIn.resolves({
+				getStdInStub.resolves({
 					passphrase: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
@@ -78,20 +80,20 @@ describe('input utils', () => {
 				return expect(result.passphrase).to.equal(stdin);
 			});
 
-			it('should resolve to null when input is not supplied', async () => {
+			it('should resolve to undefined when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
 				expect(inputUtils.getPassphrase).not.to.be.called;
-				return expect(result.passphrase).to.be.null;
+				return expect(result.passphrase).to.be.undefined;
 			});
 
 			it('should print a warning if passphase not in mnemonic format', async () => {
 				const stdin = 'some passphrase';
-				inputUtils.getStdIn.resolves({
+				getStdInStub.resolves({
 					passphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
 				return expect(console.warn).to.be.calledWithExactly(
-					'Warning: Passphrase contains 2 words instead of expected 12. ',
+					'Warning: Passphrase contains 2 words instead of expected 12. Passphrase contains 1 whitespaces instead of expected 11. ',
 				);
 			});
 		});
@@ -117,7 +119,7 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'some passphrase';
-				inputUtils.getStdIn.resolves({
+				getStdInStub.resolves({
 					secondPassphrase: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
@@ -125,20 +127,20 @@ describe('input utils', () => {
 				return expect(result.secondPassphrase).to.equal(stdin);
 			});
 
-			it('should resolve to null when input is not supplied', async () => {
+			it('should resolve to undefined when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
 				expect(inputUtils.getPassphrase).not.to.be.called;
-				return expect(result.secondPassphrase).to.be.null;
+				return expect(result.secondPassphrase).to.be.undefined;
 			});
 
 			it('should print a warning if secondPassphase not in mnemonic format', async () => {
 				const stdin = 'some passphrase';
-				inputUtils.getStdIn.resolves({
+				getStdInStub.resolves({
 					secondPassphrase: stdin,
 				});
 				await getInputsFromSources(inputs);
 				return expect(console.warn).to.be.calledWithExactly(
-					'Warning: Passphrase contains 2 words instead of expected 12. ',
+					'Warning: Passphrase contains 2 words instead of expected 12. Passphrase contains 1 whitespaces instead of expected 11. ',
 				);
 			});
 		});
@@ -164,7 +166,7 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'some password';
-				inputUtils.getStdIn.resolves({
+				getStdInStub.resolves({
 					password: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
@@ -172,10 +174,10 @@ describe('input utils', () => {
 				return expect(result.password).to.equal(stdin);
 			});
 
-			it('should resolve to null when input is not supplied', async () => {
+			it('should resolve to undefined when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
 				expect(inputUtils.getPassphrase).not.to.be.called;
-				return expect(result.password).to.be.null;
+				return expect(result.password).to.be.undefined;
 			});
 		});
 
@@ -196,7 +198,7 @@ describe('input utils', () => {
 
 			it('should resolve to stdin', async () => {
 				const stdin = 'random data';
-				inputUtils.getStdIn.resolves({
+				getStdInStub.resolves({
 					data: stdin,
 				});
 				const result = await getInputsFromSources(inputs);
@@ -205,10 +207,10 @@ describe('input utils', () => {
 				return expect(result.data).to.equal(stdin);
 			});
 
-			it('should resolve to null when input is not supplied', async () => {
+			it('should resolve to undefined when input is not supplied', async () => {
 				const result = await getInputsFromSources({});
 				expect(inputUtils.getPassphrase).not.to.be.called;
-				return expect(result.password).to.be.null;
+				return expect(result.password).to.be.undefined;
 			});
 		});
 	});

@@ -30,8 +30,8 @@ describe('fs utils', () => {
 
 		describe('when file does not include BOM', () => {
 			beforeEach(() => {
-				sandbox.stub(JSON, 'parse').returns(fileObject);
 				sandbox.stub(fs, 'readFileSync').returns(fileContents);
+				sandbox.stub(JSON, 'parse').returns(fileObject);
 				result = readJSONSync(path);
 				return Promise.resolve();
 			});
@@ -52,8 +52,8 @@ describe('fs utils', () => {
 			const BOM = '\uFEFF';
 			const bomFileContents = `${BOM}${fileContents}`;
 			beforeEach(() => {
-				sandbox.stub(JSON, 'parse').returns(fileObject);
 				sandbox.stub(fs, 'readFileSync').returns(bomFileContents);
+				sandbox.stub(JSON, 'parse').returns(fileObject);
 				result = readJSONSync(path);
 				return Promise.resolve();
 			});
@@ -90,7 +90,7 @@ describe('fs utils', () => {
 		it('JSON.stringify should be called with the object using tab indentation', () => {
 			return expect(JSON.stringify).to.be.calledWithExactly(
 				writingObject,
-				null,
+				undefined,
 				'\t',
 			);
 		});

@@ -64,10 +64,10 @@ describe('input/utils utils', () => {
 			};
 			const result = inputUtils.getStdIn(options);
 			return expect(result).to.eventually.eql({
-				data: null,
+				data: undefined,
 				passphrase: stdInContents,
-				password: null,
-				secondPassphrase: null,
+				password: undefined,
+				secondPassphrase: undefined,
 			});
 		});
 
@@ -77,10 +77,10 @@ describe('input/utils utils', () => {
 			};
 			const result = inputUtils.getStdIn(options);
 			return expect(result).to.eventually.eql({
-				data: null,
-				passphrase: null,
+				data: undefined,
+				passphrase: undefined,
 				password: stdInContents,
-				secondPassphrase: null,
+				secondPassphrase: undefined,
 			});
 		});
 
@@ -90,9 +90,9 @@ describe('input/utils utils', () => {
 			};
 			const result = inputUtils.getStdIn(options);
 			return expect(result).to.eventually.eql({
-				data: null,
-				passphrase: null,
-				password: null,
+				data: undefined,
+				passphrase: undefined,
+				password: undefined,
 				secondPassphrase: stdInContents,
 			});
 		});
@@ -104,9 +104,9 @@ describe('input/utils utils', () => {
 			const result = inputUtils.getStdIn(options);
 			return expect(result).to.eventually.eql({
 				data: stdInContents,
-				passphrase: null,
-				password: null,
-				secondPassphrase: null,
+				passphrase: undefined,
+				password: undefined,
+				secondPassphrase: undefined,
 			});
 		});
 
@@ -127,7 +127,7 @@ describe('input/utils utils', () => {
 				const expectedResults = multilineStdContents.split('\n');
 				const result = inputUtils.getStdIn(options);
 				return expect(result).to.eventually.eql({
-					passphrase: null,
+					passphrase: undefined,
 					secondPassphrase: expectedResults[0],
 					password: expectedResults[1],
 					data: `${expectedResults[2]}\n${expectedResults[3]}`,
@@ -143,7 +143,7 @@ describe('input/utils utils', () => {
 				const result = inputUtils.getStdIn(options);
 				return expect(result).to.eventually.eql({
 					passphrase: expectedResults[0],
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 					password: expectedResults[1],
 					data: `${expectedResults[2]}\n${expectedResults[3]}`,
 				});
