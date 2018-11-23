@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+import { NotEnoughPeersError } from './errors';
 import {
 	INetworkStatus,
 	IP2PMessagePacket,
@@ -33,6 +33,100 @@ export interface IPeerReturnType {
 export interface IPeerOptions {
 	readonly [key: string]: string | number;
 }
+
+interface IHistogram {
+	[key: number]: number;
+}
+interface IHistogramValues {
+	height: number;
+	histogram: IHistogram;
+	max: number;
+}
+
+export const selectPeers = (
+	peers: ReadonlyArray<Peer>,
+	options: IPeerOptions,
+	numOfPeers?: number,
+): IPeerReturnType => {
+	const filteredPeers = peers.filter(
+		// Remove unreachable peers or heights below last block height
+		(peer: Peer) => peer !== null && peer.Height >= options.blockHeight,
+	);
+
+	if (filteredPeers.length === 0) {
+		const optionsTemp = { ...options, blockHeight: 0 };
+
+		return { options: optionsTemp, peers: [] };
+	}
+
+	// Order peers by descending height
+	const sortedPeers = filteredPeers.sort((a, b) => b.Height - a.Height);
+
+	const aggregation = 2;
+	const returnType: IHistogramValues = { height: 0, histogram: {}, max: -1 };
+	const calculatedHistogramValues = sortedPeers.reduce(
+		(
+			histogramValues: IHistogramValues = {
+				height: 0,
+				histogram: {},
+				max: -1,
+			},
+			peer: Peer,
+		) => {
+			const val = (peer.Height / aggregation) * aggregation;
+			histogramValues.histogram[val] =
+				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
+				1;
+			if (histogramValues.histogram[val] > histogramValues.max) {
+				histogramValues.max = histogramValues.histogram[val];
+				histogramValues.height = val;
+			}
+
+			return histogramValues;
+		},
+		returnType,
+	);
+
+	// Perform histogram cut of peers too far from histogram maximum
+	const processedPeers = sortedPeers.filter(
+		peer =>
+			peer &&
+			Math.abs(
+				(calculatedHistogramValues ? calculatedHistogramValues.height : 0) -
+					peer.Height,
+			) <
+				aggregation + 1,
+	);
+
+	if (numOfPeers) {
+		if (numOfPeers > processedPeers.length) {
+			throw new NotEnoughPeersError(
+				`Requested no. of peers: '${numOfPeers}' is more than the available no. of good peers: '${
+					processedPeers.length
+				}'`,
+			);
+		}
+		const randomPeersArray = Array(numOfPeers).fill({});
+
+		const selectedPeersList = randomPeersArray.reduce(
+			(peerList: ReadonlyArray<Peer>) => {
+				const peer =
+					processedPeers[Math.floor(Math.random() * processedPeers.length)];
+
+				if (peerList.indexOf(peer) > -1) {
+					return peerList;
+				}
+
+				return [...peerList, peer];
+			},
+			[],
+		);
+
+		return { options, peers: selectedPeersList };
+	}
+
+	return { options, peers: processedPeers };
+};
 
 export class P2P {
 	private readonly peerPool: PeerPool;
