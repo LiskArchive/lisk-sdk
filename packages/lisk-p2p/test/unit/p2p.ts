@@ -1,4 +1,17 @@
-/* tslint:disable:no-console */
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import { expect } from 'chai';
 
 import { P2P, IPeerOptions, IPeerConfig, Peer, selectPeers } from '../../src';
@@ -51,7 +64,7 @@ describe('#Good peers test', () => {
 			height: 645980,
 		},
 	];
-	describe('get a good peer list with options', () => {
+	describe('return a p2p instance', () => {
 		const lisk = new P2P();
 		it('should be an object', () => {
 			return expect(lisk).to.be.an('object');
@@ -61,51 +74,86 @@ describe('#Good peers test', () => {
 				.to.be.an('object')
 				.and.be.instanceof(P2P);
 		});
-		it('should return an object', () => {
-			return expect(selectPeers(peerList, option)).to.be.an('object');
+	});
+
+	describe('creates a p2p instance', () => {
+		const lisk = new P2P();
+		it('should be an object', () => {
+			return expect(lisk).to.be.an('object');
 		});
-		it('should return an object with option property', () => {
-			return expect(selectPeers(peerList, option)).to.have.property('options');
-		});
-		it('should return an object with peers property', () => {
-			return expect(selectPeers(peerList, option)).to.have.property('peers');
-		});
-		it('peers property should contain an array of peers', () => {
-			return expect(selectPeers(peerList, option))
-				.to.have.property('peers')
-				.and.be.an('array');
-		});
-		it('peers property should contain good peers', () => {
-			return expect(selectPeers(peerList, option))
-				.to.have.property('peers')
-				.and.be.an('array')
-				.and.to.be.eql(goodPeers);
-		});
-		it('return empty peer list for no peers', () => {
-			return expect(selectPeers([], option))
-				.to.have.property('peers')
-				.and.be.an('array')
-				.and.to.be.eql([]);
+		it('should be an instance of P2P', () => {
+			return expect(lisk)
+				.to.be.an('object')
+				.and.be.instanceof(P2P);
 		});
 	});
 
-	describe('Get list of n number of good peers', () => {
-		beforeEach(() => {
-			peerList = initializePeerList();
+	describe('#select peer algorithm', () => {
+		describe('get list of n number of good peers', () => {
+			beforeEach(() => {
+				peerList = initializePeerList();
+			});
+			it('should return an object', () => {
+				return expect(selectPeers(peerList, option)).to.be.an('object');
+			});
+			it('should return an object with option property', () => {
+				return expect(selectPeers(peerList, option)).to.have.property(
+					'options',
+				);
+			});
+			it('should return an object with peers property', () => {
+				return expect(selectPeers(peerList, option)).to.have.property('peers');
+			});
+			it('peers property should contain an array of peers', () => {
+				return expect(selectPeers(peerList, option))
+					.to.have.property('peers')
+					.and.be.an('array');
+			});
+			it('peers property should contain good peers', () => {
+				return expect(selectPeers(peerList, option))
+					.to.have.property('peers')
+					.and.be.an('array')
+					.and.to.be.eql(goodPeers);
+			});
+			it('return empty peer list for no peers', () => {
+				return expect(selectPeers([], option))
+					.to.have.property('peers')
+					.and.be.an('array')
+					.and.to.be.eql([]);
+			});
+			it('should return an object with peers property', () => {
+				return expect(selectPeers(peerList, option, 1))
+					.to.have.property('peers')
+					.and.be.an('array')
+					.and.of.length(1);
+			});
+			it('should return an object with peers property', () => {
+				return expect(selectPeers(peerList, option, 2))
+					.to.have.property('peers')
+					.and.be.an('array')
+					.and.of.length(2);
+			});
+			it('should return an object with peers property', () => {
+				return expect(
+					selectPeers.bind(selectPeers, peerList, option, 3),
+				).to.throw(
+					`Requested no. of peers: '3' is more than the available no. of good peers: '2'`,
+				);
+			});
 		});
-
-		it('should return an object with peers property', () => {
-			return expect(selectPeers(peerList, option, 1))
-				.to.have.property('peers')
-				.and.be.an('array')
-				.and.of.length(1);
-		});
-
-		it('should return an object with peers property', () => {
-			return expect(selectPeers(peerList, option, 2))
-				.to.have.property('peers')
-				.and.be.an('array')
-				.and.of.length(2);
+		describe('peers with lower blockheight', () => {
+			beforeEach(() => {
+				peerList = initializePeerList();
+			});
+			const lowHeightPeers = peerList.filter(
+				peer => peer.Height < option.blockHeight,
+			);
+			it('should return an object with peers property', () => {
+				return expect(selectPeers(lowHeightPeers, option, 2))
+					.to.have.property('peers')
+					.and.be.an('array')
+					.and.of.length(0);
+			});
 		});
 	});
 });
