@@ -281,7 +281,7 @@ function beforeBlock(type, cb) {
 				{ sandbox: { name: `lisk_test_${type}` } },
 				(err, library) => {
 					cb(library);
-					done();
+					return done();
 				}
 			);
 		}

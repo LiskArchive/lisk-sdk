@@ -74,7 +74,7 @@ DappsController.getDapps = function(context, next) {
 				return dapp;
 			});
 
-			next(null, {
+			return next(null, {
 				data,
 				meta: {
 					offset: filters.offset,
@@ -82,7 +82,7 @@ DappsController.getDapps = function(context, next) {
 				},
 			});
 		} catch (error) {
-			next(error);
+			return next(error);
 		}
 	});
 };

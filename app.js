@@ -804,10 +804,10 @@ d.run(() => {
 										}
 									);
 								} else {
-									cb(null, scope.network);
+									return cb(null, scope.network);
 								}
 							} else {
-								cb(err, scope.network);
+								return cb(err, scope.network);
 							}
 						}
 					);
