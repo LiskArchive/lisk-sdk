@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name no-empty-interface */
-export interface IP2PMessagePacket {}
+/* tslint:disable: no-empty-interface */
+export interface P2PMessagePacket {}
 
-export interface IP2PRequestPacket {}
+export interface P2PRequestPacket {}
 
-export interface IP2PResponsePacket {}
+export interface P2PResponsePacket {}
 
-export interface IP2PNodeStatus {}
+export interface P2PNodeStatus {}
 
-export interface INetworkStatus {}
+export interface NetworkStatus {}

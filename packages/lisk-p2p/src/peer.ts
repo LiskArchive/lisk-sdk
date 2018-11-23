@@ -12,9 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name */
 
-export interface IPeerConfig {
+export interface PeerConfig {
 	readonly clock?: Date;
 	readonly height: number;
 	readonly httpPort?: number;
@@ -30,7 +29,7 @@ export class Peer {
 	private readonly ip: string;
 	private wsPort: number;
 
-	public constructor(peerConfig: IPeerConfig) {
+	public constructor(peerConfig: PeerConfig) {
 		this.height = peerConfig.height;
 		this.ip = peerConfig.ip;
 		this.wsPort = peerConfig.wsPort;

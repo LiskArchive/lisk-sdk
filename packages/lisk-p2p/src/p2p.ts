@@ -14,37 +14,37 @@
  */
 import { NotEnoughPeersError } from './errors';
 import {
-	INetworkStatus,
-	IP2PMessagePacket,
-	IP2PNodeStatus,
-	IP2PRequestPacket,
-	IP2PResponsePacket,
+	NetworkStatus,
+	P2PMessagePacket,
+	P2PNodeStatus,
+	P2PRequestPacket,
+	P2PResponsePacket,
 } from './p2p_types';
 import { Peer } from './peer';
-/* tslint:disable: interface-name no-unused-expression */
+/* tslint:disable: no-unused-expression */
 
-export interface IPeerReturnType {
-	readonly options: IPeerOptions;
+export interface PeerReturnType {
+	readonly options: PeerOptions;
 	readonly peers: ReadonlyArray<Peer>;
 }
-export interface IPeerOptions {
+export interface PeerOptions {
 	readonly [key: string]: string | number;
 }
 /* tslint:disable: readonly-keyword*/
-interface IHistogram {
+interface Histogram {
 	[key: number]: number;
 }
-interface IHistogramValues {
+interface HistogramValues {
 	height: number;
-	histogram: IHistogram;
+	histogram: Histogram;
 	max: number;
 }
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
-	options: IPeerOptions,
+	options: PeerOptions,
 	numOfPeers?: number,
-): IPeerReturnType => {
+): PeerReturnType => {
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
 		(peer: Peer) => peer.Height >= options.blockHeight,
@@ -60,10 +60,10 @@ export const selectPeers = (
 	const sortedPeers = filteredPeers.sort((a, b) => b.Height - a.Height);
 
 	const aggregation = 2;
-	const returnType: IHistogramValues = { height: 0, histogram: {}, max: -1 };
+	const returnType: HistogramValues = { height: 0, histogram: {}, max: -1 };
 	const calculatedHistogramValues = sortedPeers.reduce(
 		(
-			histogramValues: IHistogramValues = {
+			histogramValues: HistogramValues = {
 				height: 0,
 				histogram: {},
 				max: -1,
@@ -138,23 +138,23 @@ export const selectPeers = (
 
 export class P2P {
 	// TODO
-	public getNetworkStatus = (): INetworkStatus => true;
+	public getNetworkStatus = (): NetworkStatus => true;
 	// TODO
-	public getNodeStatus = (): IP2PNodeStatus => true;
+	public getNodeStatus = (): P2PNodeStatus => true;
 	// TODO
 	public request = async (
-		packet: IP2PRequestPacket,
-	): Promise<IP2PResponsePacket> => {
+		packet: P2PRequestPacket,
+	): Promise<P2PResponsePacket> => {
 		const response = packet;
 
 		return Promise.resolve(response);
 	};
 
-	public send = (message: IP2PMessagePacket): void => {
+	public send = (message: P2PMessagePacket): void => {
 		message;
 		// TODO
 	};
-	public setNodeStatus = (nodeStatus: IP2PNodeStatus): void => {
+	public setNodeStatus = (nodeStatus: P2PNodeStatus): void => {
 		nodeStatus;
 		// TODO
 	};

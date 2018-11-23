@@ -14,26 +14,26 @@
  */
 import { expect } from 'chai';
 
-import { P2P, IPeerOptions, IPeerConfig, Peer, selectPeers } from '../../src';
+import { P2P, PeerOptions, PeerConfig, Peer, selectPeers } from '../../src';
 
 const initializePeerList = (): ReadonlyArray<Peer> => {
-	const peerOption1: IPeerConfig = {
+	const peerOption1: PeerConfig = {
 		ip: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
 	};
 
-	const peerOption2: IPeerConfig = {
+	const peerOption2: PeerConfig = {
 		ip: '127.0.0.1',
 		wsPort: 5002,
 		height: 545981,
 	};
-	const peerOption3: IPeerConfig = {
+	const peerOption3: PeerConfig = {
 		ip: '18.28.48.1',
 		wsPort: 5008,
 		height: 645980,
 	};
-	const peerOption4: IPeerConfig = {
+	const peerOption4: PeerConfig = {
 		ip: '192.28.138.1',
 		wsPort: 5006,
 		height: 645982,
@@ -48,7 +48,7 @@ const initializePeerList = (): ReadonlyArray<Peer> => {
 
 describe('#Good peers test', () => {
 	let peerList = initializePeerList();
-	const option: IPeerOptions = {
+	const option: PeerOptions = {
 		blockHeight: 545777,
 		netHash: '73458irc3yb7rg37r7326dbt7236',
 	};

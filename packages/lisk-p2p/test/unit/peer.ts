@@ -15,10 +15,10 @@
 /* tslint:disable:no-console */
 import { expect } from 'chai';
 
-import { IPeerConfig, Peer } from '../../src';
+import { PeerConfig, Peer } from '../../src';
 
 describe('#Peer test', () => {
-	const defaultPeerConfig: IPeerConfig = {
+	const defaultPeerConfig: PeerConfig = {
 		ip: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
