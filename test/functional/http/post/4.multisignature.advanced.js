@@ -51,15 +51,15 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 	before(() => {
 		var transactions = [];
 
-		Object.keys(scenarios).map(type => {
-			if (type !== 'no_funds') {
-				transactions.push(scenarios[type].creditTransaction);
-			}
-		});
+		Object.keys(scenarios)
+			.filter(type => type !== 'no_funds')
+			.map(type => transactions.push(scenarios[type].creditTransaction));
 
 		return apiHelpers.sendTransactionsPromise(transactions).then(responses => {
 			responses.map(res => {
-				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
+				return expect(res.body.data.message).to.be.equal(
+					'Transaction(s) accepted'
+				);
 			});
 			transactionsToWaitFor = transactionsToWaitFor.concat(
 				_.map(transactions, 'id')

@@ -56,7 +56,7 @@ describe('GET /api/node', () => {
 					return sendTransactionPromise(transaction);
 				}).then(responses => {
 					responses.map(res => {
-						expect(res.body.data.message).to.be.equal(
+						return expect(res.body.data.message).to.be.equal(
 							'Transaction(s) accepted'
 						);
 					});

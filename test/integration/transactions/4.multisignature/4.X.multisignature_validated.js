@@ -42,7 +42,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 			scenarios.regular.multiSigTransaction,
 			member.passphrase
 		);
-		scenarios.regular.multiSigTransaction.signatures.push(signature);
+		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
 	localCommon.beforeBlock('system_4_X_multisig_validated', lib => {
