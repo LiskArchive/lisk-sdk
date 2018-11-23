@@ -22,7 +22,7 @@ export interface IP2PResponsePacket {}
 
 export interface IP2PNodeStatus {}
 
-export interface ILogger {
+export interface Logger {
 	readonly error: (message: string) => void;
 	readonly info: (message: string) => void;
 	readonly log: (message: string) => void;
@@ -32,26 +32,26 @@ export interface ILogger {
 
 // ---- Start IP2PConfig interfaces ----
 
-export interface IP2PConfigPeersAccess {
+export interface P2PConfigPeersAccess {
 	readonly blacklist: ReadonlyArray<string>;
 }
 
-export interface IP2PConfigPeersOptions {
+export interface P2PConfigPeersOptions {
 	readonly broadhashConsensusCalculationInterval: number;
 	readonly timeout: number;
 	readonly wsEngine: string;
 }
 
-export interface IP2PConfigPeers {
-	readonly access: IP2PConfigPeersAccess;
+export interface P2PConfigPeers {
+	readonly access: P2PConfigPeersAccess;
 	readonly enabled: boolean;
 	readonly list: ReadonlyArray<string>;
-	readonly options: IP2PConfigPeersOptions;
+	readonly options: P2PConfigPeersOptions;
 }
 
-export interface IP2PConfig {
-	readonly logger?: ILogger;
-	readonly peers: IP2PConfigPeers;
+export interface P2PConfig {
+	readonly logger?: Logger;
+	readonly peers: P2PConfigPeers;
 }
 
 // ---- End IP2PConfig interfaces ----

@@ -20,20 +20,20 @@
 import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import querystring from 'querystring';
-import { ILogger } from './p2p_types';
+import { Logger } from './p2p_types';
 import { Peer } from './peer';
 
 import socketClusterServer from 'socketcluster-server';
 
 export interface IPeerPoolConfig {
 	readonly blacklistedPeers?: ReadonlyArray<string>;
-	readonly logger: ILogger;
+	readonly logger: Logger;
 	readonly seedPeers: ReadonlyArray<string>;
 }
 
 export class PeerPool extends EventEmitter {
 	public httpServer: Server;
-	public logger: ILogger;
+	public logger: Logger;
 	public newPeers: Map<string, Peer>;
 	public scServer: any;
 	public triedPeers: Map<string, Peer>;

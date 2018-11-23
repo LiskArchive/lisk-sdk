@@ -15,12 +15,12 @@
 
 import {
 	INetworkStatus,
-	IP2PConfig,
 	IP2PMessagePacket,
 	IP2PNodeStatus,
 	IP2PPenalty,
 	IP2PRequestPacket,
 	IP2PResponsePacket,
+	P2PConfig,
 } from './p2p_types';
 
 import { Peer } from './peer';
@@ -37,7 +37,7 @@ export interface IPeerOptions {
 export class P2P {
 	private readonly peerPool: PeerPool;
 
-	public constructor(config: IP2PConfig) {
+	public constructor(config: P2PConfig) {
 		this.peerPool = new PeerPool({
 			logger: config.logger ? config.logger : console,
 			seedPeers: config.peers.list,
