@@ -14,10 +14,10 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('account:show', () => {
 	const defaultKeys = {
@@ -33,7 +33,7 @@ describe('account:show', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(cryptography, 'getKeys', sandbox.stub().returns(defaultKeys))
 			.stub(
@@ -42,8 +42,8 @@ describe('account:show', () => {
 				sandbox.stub().returns(defaultAddress),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(passphraseInput),
 			);
 
@@ -52,8 +52,8 @@ describe('account:show', () => {
 			.stdout()
 			.command(['account:show'])
 			.it('should show account with prompt', () => {
-				expect(print.default).to.be.called;
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(printUtils.print).to.be.called;
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -69,8 +69,8 @@ describe('account:show', () => {
 			.stdout()
 			.command(['account:show', '--passphrase=pass:123'])
 			.it('should show account with pass', () => {
-				expect(print.default).to.be.called;
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(printUtils.print).to.be.called;
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: 'pass:123',
 						repeatPrompt: true,
