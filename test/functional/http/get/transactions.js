@@ -339,7 +339,9 @@ describe('GET /api/transactions', () => {
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
-							expect(transaction.type).to.be.equal(transactionTypes.SEND);
+							return expect(transaction.type).to.be.equal(
+								transactionTypes.SEND
+							);
 						});
 					});
 			});
@@ -361,7 +363,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.senderId).to.be.equal(
+							return expect(transaction.senderId).to.be.equal(
 								accountFixtures.genesis.address
 							);
 						});
@@ -404,7 +406,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.senderPublicKey).to.be.equal(
+							return expect(transaction.senderPublicKey).to.be.equal(
 								accountFixtures.genesis.publicKey
 							);
 						});
@@ -444,7 +446,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.recipientId).to.be.equal(
+							return expect(transaction.recipientId).to.be.equal(
 								accountFixtures.genesis.address
 							);
 						});
@@ -517,7 +519,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.recipientPublicKey).to.be.equal(
+							return expect(transaction.recipientPublicKey).to.be.equal(
 								accountFixtures.genesis.publicKey
 							);
 						});
@@ -555,7 +557,7 @@ describe('GET /api/transactions', () => {
 
 				return transactionsEndpoint.makeRequest({ blockId }, 200).then(res => {
 					res.body.data.map(transaction => {
-						expect(transaction.blockId).to.be.equal(blockId);
+						return expect(transaction.blockId).to.be.equal(blockId);
 					});
 				});
 			});
@@ -575,7 +577,7 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ height: 1 }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							expect(transaction.height).to.be.equal(1);
+							return expect(transaction.height).to.be.equal(1);
 						});
 					});
 			});
@@ -587,7 +589,9 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							expect(parseInt(transaction.amount)).to.be.at.least(minAmount);
+							return expect(parseInt(transaction.amount)).to.be.at.least(
+								minAmount
+							);
 						});
 					});
 			});
@@ -599,7 +603,9 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							expect(parseInt(transaction.amount)).to.be.at.most(maxAmount);
+							return expect(parseInt(transaction.amount)).to.be.at.most(
+								maxAmount
+							);
 						});
 					});
 			});
@@ -1061,7 +1067,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
 							expect(transaction.asset).to.have.key('inTransfer');
-							expect(transaction.asset.inTransfer).to.have.key('dappId');
+							return expect(transaction.asset.inTransfer).to.have.key('dappId');
 						});
 					});
 			});
@@ -1072,7 +1078,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
 							expect(transaction.asset).to.have.key('outTransfer');
-							expect(transaction.asset.outTransfer).to.have.all.keys(
+							return expect(transaction.asset.outTransfer).to.have.all.keys(
 								'dappId',
 								'transactionId'
 							);

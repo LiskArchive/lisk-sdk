@@ -31,6 +31,7 @@ var Multisignature = require('../../../logic/multisignature');
 var Dapp = require('../../../logic/dapp');
 var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
+var MultisignatureMocks = require('./test_data/multisignature.js');
 
 const { TOTAL_AMOUNT } = __testContext.config.constants;
 const exceptions = global.exceptions;
@@ -340,6 +341,46 @@ describe('transaction', () => {
 			return expect(transactionLogic.ready(validTransaction, sender)).to.equal(
 				true
 			);
+		});
+
+		it('should correct true property when signatures present and ready set to false', () => {
+			const transactionAllSignaturesReadyFalse = _.cloneDeep(
+				MultisignatureMocks.invalidAllSignaturesReadyFalse
+			);
+			const correctedTransaction = transactionLogic.ready(
+				transactionAllSignaturesReadyFalse,
+				sender
+			);
+			return expect(correctedTransaction).to.equal(true);
+		});
+
+		it('should correct true property when signatures not present and ready set to true', () => {
+			const transactionNoSignaturesReadyTrue = _.cloneDeep(
+				MultisignatureMocks.invalidNoSignaturesReadyTrue
+			);
+			const correctedTransaction = transactionLogic.ready(
+				transactionNoSignaturesReadyTrue,
+				sender
+			);
+			return expect(correctedTransaction).to.equal(false);
+		});
+
+		it('should correct true property when signatures present but less than min, ready set to true', () => {
+			const transactionSomeSignaturesReadyTrue = _.cloneDeep(
+				MultisignatureMocks.invalidSomeSignaturesReadyTrue
+			);
+
+			const correctedTransaction = transactionLogic.ready(
+				transactionSomeSignaturesReadyTrue,
+				sender
+			);
+			return expect(correctedTransaction).to.equal(false);
+		});
+
+		it('should set ready for type 0 if not present', () => {
+			const typeZero = _.cloneDeep(validTransaction);
+			const correctedTransaction = transactionLogic.ready(typeZero, sender);
+			return expect(correctedTransaction).to.equal(true);
 		});
 	});
 
@@ -1227,7 +1268,7 @@ describe('transaction', () => {
 		it('should not remove any keys with valid entries', () => {
 			return expect(
 				_.keys(transactionLogic.objectNormalize(validTransaction))
-			).to.have.length(11);
+			).to.have.length(12);
 		});
 
 		it('should not remove data field after normalization', () => {

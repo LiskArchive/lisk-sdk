@@ -15,7 +15,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
@@ -33,7 +32,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires crypto
- * @requires extend
  * @requires lodash
  * @requires helpers/bignum
  * @requires helpers/slots
@@ -504,6 +502,7 @@ class Transaction {
 
 		// Determine multisignatures from sender or transaction asset
 		const multisignatures = sender.multisignatures || [];
+
 		if (multisignatures.length === 0) {
 			if (
 				transaction.asset &&
@@ -714,6 +713,15 @@ class Transaction {
 				tx
 			);
 		};
+
+		// Sanitize ready property
+		transaction.ready = this.ready(transaction, sender);
+		// Sanitize signatures property
+		if (sender.multisignatures) {
+			transaction.signatures = Array.isArray(transaction.signatures)
+				? transaction.signatures
+				: [];
+		}
 
 		if (checkExists) {
 			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
@@ -1234,7 +1242,7 @@ class Transaction {
 		const asset = __private.types[transaction.type].dbRead(raw);
 
 		if (asset) {
-			transaction.asset = extend(transaction.asset, asset);
+			transaction.asset = Object.assign(transaction.asset, asset);
 		}
 
 		return transaction;
