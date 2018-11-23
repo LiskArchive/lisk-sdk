@@ -18,7 +18,7 @@ import { Queue } from './queue';
 export interface TransactionObject {
 	readonly id: string;
 	readonly recipientId: string;
-	readonly senderId: string;
+	readonly senderPublicKey: string;
 	receivedAt?: Date;
 }
 
