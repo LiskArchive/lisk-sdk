@@ -206,7 +206,7 @@ export class BaseTransaction {
 		// Only check argument type for base transaction
 		const verified = Array.isArray(transactions);
 
-		return { verified, errors: undefined };
+		return { verified };
 	}
 
 	public apply(
