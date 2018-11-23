@@ -31,7 +31,7 @@ export interface IPeerOptions {
 	readonly [key: string]: string | number;
 }
 
-export class BlockchainP2P {
+export class P2P {
 	public applyPenalty = (penalty: IP2PPenalty): void => {
 		// TODO
 		penalty;

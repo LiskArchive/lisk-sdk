@@ -12,4 +12,5 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './blockchain-p2p';
+export { P2P, IPeerReturnType, IPeerOptions } from './p2p';
+export { IPeerConfig, Peer } from './peer';
