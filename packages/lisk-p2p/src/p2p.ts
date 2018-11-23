@@ -12,16 +12,19 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+
 import {
 	INetworkStatus,
+	IP2PConfig,
 	IP2PMessagePacket,
 	IP2PNodeStatus,
 	IP2PPenalty,
 	IP2PRequestPacket,
 	IP2PResponsePacket,
 } from './p2p_types';
+
 import { Peer } from './peer';
-/* tslint:disable:interface-name readonly-keyword no-empty-interface no-let no-unused-expression */
+import { PeerPool } from './peer_pool';
 
 export interface IPeerReturnType {
 	readonly options: IPeerOptions;
@@ -32,8 +35,17 @@ export interface IPeerOptions {
 }
 
 export class P2P {
+	private readonly peerPool: PeerPool;
+
+	public constructor(config: IP2PConfig) {
+		this.peerPool = new PeerPool({
+			logger: config.logger ? config.logger : console,
+			seedPeers: config.peers.list,
+			blacklistedPeers: config.peers.access.blacklist,
+		});
+	}
+
 	public applyPenalty = (penalty: IP2PPenalty): void => {
-		// TODO
 		penalty;
 	};
 	// TODO
@@ -58,7 +70,11 @@ export class P2P {
 		// TODO
 	};
 	// TODO
-	public start = (): PromiseConstructorLike => Promise;
+	public start = async (): Promise<void> => {
+		return this.peerPool.start();
+	};
 	// TODO
-	public stop = (): PromiseConstructorLike => Promise;
+	public stop = async (): Promise<void> => {
+		return this.peerPool.stop();
+	};
 }
