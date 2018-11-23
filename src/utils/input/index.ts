@@ -16,13 +16,13 @@
 import passphraseModule from '@liskhq/lisk-passphrase';
 import { getData, getPassphrase, getStdIn } from './utils';
 
-export const getFirstLineFromString = (multilineString: string) =>
+export const getFirstLineFromString = (multilineString: unknown) =>
 	typeof multilineString === 'string'
 		? multilineString.split(/[\r\n]+/)[0]
 		: undefined;
 
 interface InputSource {
-	readonly repeatPrompt: boolean;
+	readonly repeatPrompt?: boolean;
 	readonly source: string;
 }
 
@@ -43,7 +43,7 @@ export const getInputsFromSources = async ({
 	secondPassphrase: secondPassphraseInput,
 	password: passwordInput,
 	data: dataInput,
-}: InputFromSourceInputs ) => {
+}: InputFromSourceInputs) => {
 	const [
 		passphraseIsRequired,
 		secondPassphraseIsRequired,

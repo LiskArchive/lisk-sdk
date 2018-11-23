@@ -14,10 +14,18 @@
  *
  */
 import { expect } from 'chai';
-import tablify from '../../src/utils/tablify';
+import { tablify } from '../../src/utils/tablify';
 import { objectToKeyValueString } from '../helpers/utils';
 
 describe('tablify utils', () => {
+	interface TestPrintValue {
+		readonly [key: string]:
+			| string
+			| number
+			| boolean
+			| object
+			| ReadonlyArray<string>;
+	}
 	describe('when an empty object is used', () => {
 		it('should have 0 length', () => {
 			const printValue = {};
@@ -98,7 +106,8 @@ describe('tablify utils', () => {
 
 	describe('a cyclic object', () => {
 		it('should throw an error', () => {
-			const printValue = {
+			// tslint:disable-next-line no-any
+			const printValue: any = {
 				root: 'value',
 				nested: {
 					object: 'values',
@@ -116,7 +125,7 @@ describe('tablify utils', () => {
 
 	describe('an array of objects with the same keys', () => {
 		it('should have the corresponding rows', () => {
-			const printValue = [
+			const printValue: ReadonlyArray<TestPrintValue> = [
 				{
 					lisk: 'js',
 					version: 1,
@@ -143,7 +152,7 @@ describe('tablify utils', () => {
 
 	describe('an array of objects with divergent keys', () => {
 		it('should have the corresponding rows', () => {
-			const printValue = [
+			const printValue: ReadonlyArray<TestPrintValue> = [
 				{
 					lisk: 'js',
 					version: 1,
@@ -176,11 +185,9 @@ describe('tablify utils', () => {
 			};
 			const returnValue = tablify(printValue);
 			return Object.entries(printValue).forEach(([key, value], arrayKey) => {
-				const parseValue = val => {
+				const parseValue = (val: string | { sample: number }[]) => {
 					if (Array.isArray(val)) {
 						return val.map(objectToKeyValueString).join('\n\n');
-					} else if (typeof value === 'object' && value !== null) {
-						return objectToKeyValueString(val);
 					}
 					return val;
 				};
@@ -192,7 +199,7 @@ describe('tablify utils', () => {
 
 	describe('an array of objects with nested keys', () => {
 		it('should have the corresponding rows', () => {
-			const printValue = [
+			const printValue: ReadonlyArray<TestPrintValue> = [
 				{
 					lisk: 'js',
 					version: 1,
@@ -226,7 +233,7 @@ describe('tablify utils', () => {
 				innerObjectKeys.forEach((key, keyIndex) => {
 					let strValue = values[key];
 					if (Array.isArray(values[key])) {
-						strValue = values[key].join('\n');
+						strValue = (values[key] as ReadonlyArray<string>).join('\n');
 					} else if (typeof values[key] === 'object') {
 						strValue = Object.entries(values[key])
 							.map(

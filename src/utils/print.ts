@@ -16,7 +16,7 @@
 import stripANSI from 'strip-ansi';
 import { tablify } from './tablify';
 
-interface StringMap {
+export interface StringMap {
 	readonly [key: string]: string;
 }
 
@@ -39,8 +39,9 @@ const removeANSIFromObject = (object: StringMap): StringMap =>
 		{},
 	);
 
-const isStringMapArray = (result: ReadonlyArray<StringMap> | StringMap): result is ReadonlyArray<StringMap> =>
-		Array.isArray(result)
+const isStringMapArray = (
+	result: ReadonlyArray<StringMap> | StringMap,
+): result is ReadonlyArray<StringMap> => Array.isArray(result);
 
 const removeANSI = (result: ReadonlyArray<StringMap> | StringMap) =>
 	isStringMapArray(result)
@@ -48,7 +49,10 @@ const removeANSI = (result: ReadonlyArray<StringMap> | StringMap) =>
 		: removeANSIFromObject(result);
 
 export const print = ({ json, pretty }: PrintInput = {}) =>
-	function printResult(this: Printer, result: ReadonlyArray<StringMap> | StringMap): void {
+	function printResult(
+		this: Printer,
+		result: ReadonlyArray<StringMap> | StringMap,
+	): void {
 		const resultToPrint = json ? removeANSI(result) : result;
 
 		const output = json

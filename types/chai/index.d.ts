@@ -14,8 +14,8 @@ declare module 'chai' {
 				(expression: any, message?: string, messageNegative?: string): void;
 			}
 			export interface TypeComparison {
-				hexString: Assertion;
-				integer: Assertion;
+				customError: (obj?: Error | typeof Error | string) => Assertion;
+				matchAny: Assertion;
 			}
 		}
 	}

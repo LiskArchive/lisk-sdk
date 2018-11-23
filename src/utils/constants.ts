@@ -38,7 +38,12 @@ export const QUERY_INPUT_MAP = {
 	transactions: 'id',
 };
 
-export const CONFIG_VARIABLES: ReadonlyArray<string> = ['api.nodes', 'api.network', 'json', 'pretty'];
+export const CONFIG_VARIABLES: ReadonlyArray<string> = [
+	'api.nodes',
+	'api.network',
+	'json',
+	'pretty',
+];
 
 export const API_PROTOCOLS: ReadonlyArray<string> = ['http:', 'https:'];
 

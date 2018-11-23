@@ -19,7 +19,8 @@ import readline from 'readline';
 import { FileSystemError, ValidationError } from '../error';
 import { stdinIsTTY, stdoutIsTTY } from '../helpers';
 
-const capitalise = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+const capitalise = (text: string): string =>
+	`${text.charAt(0).toUpperCase()}${text.slice(1)}`;
 
 const getPassphraseVerificationFailError = (displayName: string): string =>
 	`${capitalise(displayName)} was not successfully repeated.`;
@@ -29,8 +30,10 @@ const getPassphraseSourceTypeUnknownError = (displayName: string): string =>
 	)} was provided with an unknown source type. Must be one of \`env\`, \`file\`, or \`stdin\`. Leave blank for prompt.`;
 const getPassphraseEnvVariableNotSetError = (displayName: string): string =>
 	`Environmental variable for ${displayName} not set.`;
-const getFileDoesNotExistError = (path: string): string => `File at ${path} does not exist.`;
-const getFileUnreadableError = (path: string): string => `File at ${path} could not be read.`;
+const getFileDoesNotExistError = (path: string): string =>
+	`File at ${path} does not exist.`;
+const getFileUnreadableError = (path: string): string =>
+	`File at ${path} could not be read.`;
 const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
 const DEFAULT_TIMEOUT = 100;
@@ -93,17 +96,21 @@ export const getStdIn = ({
 
 		const handleClose = () => {
 			const passphraseIndex = 0;
-			const passphrase = passphraseIsRequired ? lines[passphraseIndex] : undefined;
+			const passphrase = passphraseIsRequired
+				? lines[passphraseIndex]
+				: undefined;
 
-			const secondPassphraseIndex = passphraseIndex + ((passphrase !== undefined) ? 1 : 0);
+			const secondPassphraseIndex =
+				passphraseIndex + (passphrase !== undefined ? 1 : 0);
 			const secondPassphrase = secondPassphraseIsRequired
 				? lines[secondPassphraseIndex]
 				: undefined;
 
-			const passwordIndex = secondPassphraseIndex + ((secondPassphrase !== undefined) ? 1 : 0);
+			const passwordIndex =
+				secondPassphraseIndex + (secondPassphrase !== undefined ? 1 : 0);
 			const password = passwordIsRequired ? lines[passwordIndex] : undefined;
 
-			const dataStartIndex = passwordIndex + ((password !== null) ? 1 : 0);
+			const dataStartIndex = passwordIndex + (password !== null ? 1 : 0);
 			const dataLines = lines.slice(dataStartIndex);
 
 			return resolve({
@@ -151,15 +158,20 @@ export const getPassphraseFromPrompt = async ({
 		);
 	}
 
-	const { passphrase, passphraseRepeat } = await inquirer.prompt(questions) as { readonly passphrase?: string; readonly passphraseRepeat?: string };
-	if (!passphrase || shouldRepeat && passphrase !== passphraseRepeat) {
+	const { passphrase, passphraseRepeat } = (await inquirer.prompt(
+		questions,
+	)) as { readonly passphrase?: string; readonly passphraseRepeat?: string };
+	if (!passphrase || (shouldRepeat && passphrase !== passphraseRepeat)) {
 		throw new ValidationError(getPassphraseVerificationFailError(displayName));
 	}
 
 	return passphrase;
 };
 
-export const getPassphraseFromEnvVariable = async (key: string, displayName: string) => {
+export const getPassphraseFromEnvVariable = async (
+	key: string,
+	displayName: string,
+) => {
 	const passphrase = process.env[key];
 	if (!passphrase) {
 		throw new ValidationError(getPassphraseEnvVariableNotSetError(displayName));
@@ -168,7 +180,9 @@ export const getPassphraseFromEnvVariable = async (key: string, displayName: str
 	return passphrase;
 };
 
-export const getPassphraseFromFile = (path: string): Promise<ReadonlyArray<string>> =>
+export const getPassphraseFromFile = (
+	path: string,
+): Promise<ReadonlyArray<string>> =>
 	new Promise((resolve, reject) => {
 		const stream = fs.createReadStream(path);
 		const handleReadError = (error: Error) => {
@@ -197,7 +211,10 @@ export const getPassphraseFromFile = (path: string): Promise<ReadonlyArray<strin
 			.on('line', handleLine);
 	});
 
-export const getPassphraseFromSource = async (source: string, { displayName }: { readonly displayName: string }): Promise<string | ReadonlyArray<string>> => {
+export const getPassphraseFromSource = async (
+	source: string,
+	{ displayName }: { readonly displayName: string },
+): Promise<string | ReadonlyArray<string>> => {
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
@@ -214,7 +231,10 @@ export const getPassphraseFromSource = async (source: string, { displayName }: {
 	}
 };
 
-export const getPassphrase = async (passphraseSource: string, options: object): Promise<string | ReadonlyArray<string>> => {
+export const getPassphrase = async (
+	passphraseSource: string,
+	options: object,
+): Promise<string | ReadonlyArray<string>> => {
 	const optionsWithDefaults = {
 		displayName: 'your secret passphrase',
 		...options,
@@ -236,9 +256,10 @@ export const handleReadFileErrors = (path: string) => (error: Error) => {
 	throw error;
 };
 
-export const getDataFromFile = async (path: string) => fs.readFileSync(path, 'utf8');
+export const getDataFromFile = async (path: string) =>
+	fs.readFileSync(path, 'utf8');
 
-export const getData = async (source: string) => {
+export const getData = async (source?: string) => {
 	if (!source) {
 		throw new ValidationError(ERROR_DATA_MISSING);
 	}

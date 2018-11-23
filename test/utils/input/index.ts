@@ -14,7 +14,8 @@
  *
  */
 import { expect } from 'chai';
-import getInputsFromSources, {
+import {
+	getInputsFromSources,
 	getFirstLineFromString,
 } from '../../../src/utils/input/index';
 // Required for stubbing
@@ -23,7 +24,7 @@ const inputUtils = require('../../../src/utils/input/utils');
 describe('input utils', () => {
 	describe('#getFirstLineFromString', () => {
 		it('should return null when input is not a string', () => {
-			return expect(getFirstLineFromString({})).to.be.null;
+			return expect(getFirstLineFromString({})).to.be.undefined;
 		});
 
 		it('should return first line of string', () => {

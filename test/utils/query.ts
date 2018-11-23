@@ -15,6 +15,8 @@
  */
 import { expect } from 'chai';
 import { query } from '../../src/utils/query';
+import { APIClient } from '@liskhq/lisk-api-client';
+import { ApiResponse } from '@liskhq/lisk-api-client/dist-node/api_types';
 
 describe('query utils', () => {
 	const defaultEndpoint = 'accounts';
@@ -39,9 +41,19 @@ describe('query utils', () => {
 		},
 	];
 
-	let apiClient;
-	let response;
-	let queryResult;
+	interface MockAPIClient {
+		readonly accounts: {
+			get: () => ApiResponse;
+		};
+	}
+
+	let apiClient: MockAPIClient;
+	let response: {
+		readonly data?: unknown;
+		readonly no?: string;
+	};
+	let queryResult: Promise<unknown>;
+
 	describe('when the response does not have data', () => {
 		beforeEach(() => {
 			response = {
@@ -52,7 +64,11 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
-			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			queryResult = query(
+				(apiClient as unknown) as APIClient,
+				defaultEndpoint,
+				defaultParameters,
+			);
 			return Promise.resolve();
 		});
 
@@ -82,7 +98,11 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and should reject with an error', () => {
-			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			queryResult = query(
+				(apiClient as unknown) as APIClient,
+				defaultEndpoint,
+				defaultParameters,
+			);
 			expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters.query,
 			);
@@ -101,7 +121,11 @@ describe('query utils', () => {
 				...defaultParameters,
 				placeholder,
 			};
-			queryResult = query(apiClient, defaultEndpoint, paramWithPlaceholder);
+			queryResult = query(
+				(apiClient as unknown) as APIClient,
+				defaultEndpoint,
+				paramWithPlaceholder,
+			);
 			expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters.query,
 			);
@@ -125,7 +149,11 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
-			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			queryResult = query(
+				(apiClient as unknown) as APIClient,
+				defaultEndpoint,
+				defaultParameters,
+			);
 			return Promise.resolve();
 		});
 
@@ -133,7 +161,8 @@ describe('query utils', () => {
 			expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters.query,
 			);
-			return expect(queryResult).to.eventually.eql(response.data[0]);
+			const resData = response.data as Array<object>;
+			return expect(queryResult).to.eventually.eql(resData[0]);
 		});
 	});
 
@@ -150,7 +179,11 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
-			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			queryResult = query(
+				(apiClient as unknown) as APIClient,
+				defaultEndpoint,
+				defaultParameters,
+			);
 			return Promise.resolve();
 		});
 
@@ -176,7 +209,11 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			};
-			query(apiClient, defaultEndpoint, defaultArrayParameters);
+			query(
+				(apiClient as unknown) as APIClient,
+				defaultEndpoint,
+				defaultArrayParameters,
+			);
 			return Promise.resolve();
 		});
 

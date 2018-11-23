@@ -55,7 +55,11 @@ interface ErrorMessageObject {
 	readonly error: string;
 }
 
-export const createErrorHandler = (prefix: string) => ({ message }: { readonly message: string }): ErrorMessageObject => ({
+export const createErrorHandler = (prefix: string) => ({
+	message,
+}: {
+	readonly message: string;
+}): ErrorMessageObject => ({
 	error: `${prefix}: ${message}`,
 });
 

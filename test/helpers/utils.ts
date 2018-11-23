@@ -13,8 +13,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export const createFakeInterface = value => ({
-	on: (type, callback) => {
+export const createFakeInterface = (value: any) => ({
+	on: (type: string, callback: Function) => {
 		if (type === 'line') {
 			value.split('\n').forEach(callback);
 		}
@@ -25,13 +25,13 @@ export const createFakeInterface = value => ({
 	},
 });
 
-export const createStreamStub = on => ({
+export const createStreamStub = (on: Function) => ({
 	resume: () => {},
 	close: () => {},
 	on,
 });
 
-export const objectToKeyValueString = value =>
+export const objectToKeyValueString = (value: object) =>
 	Object.entries(value)
 		.map(([vKey, vValue]) => `${vKey}: ${JSON.stringify(vValue, null, ' ')}`)
 		.join('\n');

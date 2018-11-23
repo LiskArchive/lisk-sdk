@@ -111,8 +111,12 @@ describe('helpers utils', () => {
 	});
 
 	describe('#handleEPIPE', () => {
+		interface CustomError extends Error {
+			errno: string | number;
+		}
+
 		it('should handle EPIPE error', () => {
-			const err = new Error();
+			const err = new Error() as CustomError;
 			err.errno = 'EPIPE';
 			return expect(handleEPIPE.bind(null, err)).to.not.throw();
 		});

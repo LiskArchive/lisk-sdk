@@ -21,7 +21,7 @@ describe('error utils', () => {
 	const errorMessage = 'error message';
 
 	describe('#FileSystemError', () => {
-		let error;
+		let error: Error;
 		beforeEach(() => {
 			error = new FileSystemError(errorMessage);
 			return Promise.resolve();
@@ -41,7 +41,7 @@ describe('error utils', () => {
 	});
 
 	describe('#ValidationError', () => {
-		let error;
+		let error: Error;
 		beforeEach(() => {
 			error = new ValidationError(errorMessage);
 			return Promise.resolve();

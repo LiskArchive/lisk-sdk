@@ -23,13 +23,13 @@
 		"node": ">=8.3.0",
 		"npm": ">=5.3.0"
 	},
-	"main": "src/index.ts",
+	"main": "dist/index.js",
 	"bin": {
 		"lisk": "./bin/run"
 	},
 	"scripts": {
 		"start": "ts-node src/index.js",
-		"format": "prettier --write \"./*.{js,json,md}\" \"{docs,src,test}{,/**}/*.{js,json,md}\"",
+		"format": "prettier --write \"*.{ts,js,json,md}\" \"{docs,src,test}/**/*.{ts,js,json,md}\"",
 		"lint": "tslint --format verbose --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",

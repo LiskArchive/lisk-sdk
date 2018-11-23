@@ -1,4 +1,4 @@
-import { APIClient } from "@liskhq/lisk-api-client";
+import { APIClient } from '@liskhq/lisk-api-client';
 
 /*
  * LiskHQ/lisk-commander
@@ -16,16 +16,23 @@ import { APIClient } from "@liskhq/lisk-api-client";
  *
  */
 
- interface APIResponse {
-	 readonly data?: ReadonlyArray<unknown> | unknown;
- }
+interface APIResponse {
+	readonly data?: unknown;
+}
 
-export const handleResponse = (endpoint: string, res: APIResponse, placeholder: string): unknown => {
+const isArray = <T>(val: T | ReadonlyArray<T>): val is ReadonlyArray<T> =>
+	Array.isArray(val);
+
+export const handleResponse = (
+	endpoint: string,
+	res: APIResponse,
+	placeholder?: object,
+): unknown => {
 	// Get endpoints with 2xx status code should always return with data key.
 	if (!res.data) {
 		throw new Error('No data was returned.');
 	}
-	if (Array.isArray(res.data)) {
+	if (isArray(res.data)) {
 		if (res.data.length === 0) {
 			if (placeholder) {
 				return placeholder;
@@ -40,21 +47,37 @@ export const handleResponse = (endpoint: string, res: APIResponse, placeholder: 
 };
 
 interface QueryParamter {
-	readonly placeholder: string;
+	readonly placeholder?: object;
 	readonly query: object;
 }
 
-type EndpointTypes = 'accounts' | 'blocks' | 'dapps' | 'delegates' | 'peers' | 'transactions' | 'voters' | 'votes';
+type EndpointTypes =
+	| 'accounts'
+	| 'blocks'
+	| 'dapps'
+	| 'delegates'
+	| 'peers'
+	| 'transactions'
+	| 'voters'
+	| 'votes';
 
-export const query = async (client: APIClient, endpoint: EndpointTypes, parameters: QueryParamter) =>
-	Array.isArray(parameters)
+export const query = async (
+	client: APIClient,
+	endpoint: EndpointTypes,
+	parameters: QueryParamter | ReadonlyArray<QueryParamter>,
+): Promise<unknown> =>
+	isArray(parameters)
 		? Promise.all(
-				parameters.map(param =>
+				parameters.map((param: QueryParamter) =>
 					client[endpoint]
 						.get(param.query)
-						.then((res: APIResponse) => handleResponse(endpoint, res, param.placeholder)),
+						.then((res: APIResponse) =>
+							handleResponse(endpoint, res, param.placeholder),
+						),
 				),
 			)
 		: client[endpoint]
 				.get(parameters.query)
-				.then((res: APIResponse) => handleResponse(endpoint, res, parameters.placeholder));
+				.then((res: APIResponse) =>
+					handleResponse(endpoint, res, parameters.placeholder),
+				);

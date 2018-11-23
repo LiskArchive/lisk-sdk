@@ -22,10 +22,10 @@ import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
 
 interface ConfigOptions {
-	readonly api : {
+	readonly api: {
 		readonly network: string;
 		readonly nodes: ReadonlyArray<string>;
-	}
+	};
 	readonly json: boolean;
 	readonly pretty: boolean;
 }
@@ -84,7 +84,10 @@ const attemptToValidateConfig = (config: object, filePath: string) => {
 	return attemptCallWithError(fn, errorMessage);
 };
 
-export const setConfig = (configDirPath: string, newConfig: object): boolean => {
+export const setConfig = (
+	configDirPath: string,
+	newConfig: object,
+): boolean => {
 	const lockFilePath = path.join(configDirPath, lockfileName);
 	const configFilePath = path.join(configDirPath, configFileName);
 

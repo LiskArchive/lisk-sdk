@@ -1,4 +1,3 @@
-/* eslint-disable mocha/no-top-level-hooks */
 import lockfile from 'lockfile';
 
 afterEach(() => sandbox.restore());

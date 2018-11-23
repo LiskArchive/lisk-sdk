@@ -21,7 +21,11 @@ interface EncryptMessageInputs {
 	readonly recipient: string;
 }
 
-export const encryptMessage = ({ message, passphrase, recipient }: EncryptMessageInputs) =>
+export const encryptMessage = ({
+	message,
+	passphrase,
+	recipient,
+}: EncryptMessageInputs) =>
 	cryptography.encryptMessageWithPassphrase(message, passphrase, recipient);
 
 interface DecryptMessageInputs {
@@ -50,7 +54,10 @@ interface EncryptPassphraseInputs {
 	readonly password: string;
 }
 
-export const encryptPassphrase = ({ passphrase, password }: EncryptPassphraseInputs) => {
+export const encryptPassphrase = ({
+	passphrase,
+	password,
+}: EncryptPassphraseInputs) => {
 	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
 		passphrase,
 		password,
@@ -67,7 +74,10 @@ interface DecryptPassphraseInput {
 	readonly password: string;
 }
 
-export const decryptPassphrase = ({ encryptedPassphrase, password }: DecryptPassphraseInput) => {
+export const decryptPassphrase = ({
+	encryptedPassphrase,
+	password,
+}: DecryptPassphraseInput) => {
 	const encryptedPassphraseObject = cryptography.parseEncryptedPassphrase(
 		encryptedPassphrase,
 	);
@@ -81,7 +91,9 @@ export const decryptPassphrase = ({ encryptedPassphrase, password }: DecryptPass
 
 export const { getKeys } = cryptography;
 
-export const getAddressFromPublicKey = (publicKey: string): { readonly address: string } => ({
+export const getAddressFromPublicKey = (
+	publicKey: string,
+): { readonly address: string } => ({
 	address: cryptography.getAddressFromPublicKey(publicKey),
 });
 
@@ -99,7 +111,11 @@ interface VerifyMessageInputs {
 	readonly signature: string;
 }
 
-export const verifyMessage = ({ publicKey, signature, message }: VerifyMessageInputs) => ({
+export const verifyMessage = ({
+	publicKey,
+	signature,
+	message,
+}: VerifyMessageInputs) => ({
 	verified: cryptography.verifyMessageWithPublicKey({
 		publicKey,
 		signature,

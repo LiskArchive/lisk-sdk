@@ -23,8 +23,10 @@ process.env.NODE_ENV = 'test';
 process.env.LISK_COMMANDER_CONFIG_DIR =
 	process.env.LISK_COMMANDER_CONFIG_DIR || `${os.homedir()}/.lisk-commander`;
 
-/* eslint-disable no-underscore-dangle */
-Assertion.addMethod('matchAny', function handleAssert(this: Chai.ChaiStatic, matcher: (val: unknown) => boolean) {
+Assertion.addMethod('matchAny', function handleAssert(
+	this: Chai.ChaiStatic,
+	matcher: (val: unknown) => boolean,
+) {
 	const obj = this._obj;
 
 	new Assertion(obj).to.be.an('array');
@@ -36,13 +38,15 @@ Assertion.addMethod('matchAny', function handleAssert(this: Chai.ChaiStatic, mat
 	);
 });
 
-Assertion.addMethod('customError', function handleAssert(this: Chai.ChaiStatic, error: Error) {
+Assertion.addMethod('customError', function handleAssert(
+	this: Chai.ChaiStatic,
+	error: Error,
+) {
 	const obj = this._obj;
 	new Assertion(obj).to.be.instanceOf(Error);
 	new Assertion(obj.name).to.equal(error.name);
 	new Assertion(obj.message).to.equal(error.message);
 });
-/* eslint-enable no-underscore-dangle */
 
 [sinonChai, chaiAsPromised].forEach(chai.use);
 

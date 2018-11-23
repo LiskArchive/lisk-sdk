@@ -26,7 +26,7 @@ describe('fs utils', () => {
 		};
 		const path = './file/path.json';
 		const encoding = 'utf8';
-		let result;
+		let result: object;
 
 		describe('when file does not include BOM', () => {
 			beforeEach(() => {

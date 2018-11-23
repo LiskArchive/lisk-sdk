@@ -21,6 +21,7 @@ import * as inputUtils from '../../../src/utils/input/utils';
 import { FileSystemError, ValidationError } from '../../../src/utils/error';
 import * as utilHelpers from '../../../src/utils/helpers';
 import { createStreamStub, createFakeInterface } from '../../helpers/utils';
+import { SinonStub } from 'sinon';
 
 describe('input/utils utils', () => {
 	describe('#splitSource', () => {
@@ -43,10 +44,13 @@ describe('input/utils utils', () => {
 
 	describe('#getStdIn', () => {
 		const stdInContents = 'some contents';
+		let createInterfaceStub: SinonStub;
+
 		beforeEach(() => {
-			return sandbox
+			createInterfaceStub = sandbox
 				.stub(readline, 'createInterface')
 				.returns(createFakeInterface(stdInContents));
+			return Promise.resolve();
 		});
 
 		it('should resolve to empty object', () => {
@@ -110,7 +114,7 @@ describe('input/utils utils', () => {
 			const multilineStdContents =
 				'passphrase\nsecondPassphrase\npassword\ndata';
 			beforeEach(() => {
-				return readline.createInterface.returns(
+				return createInterfaceStub.returns(
 					createFakeInterface(multilineStdContents),
 				);
 			});
@@ -167,15 +171,19 @@ describe('input/utils utils', () => {
 	describe('#getPassphraseFromPrompt', () => {
 		const displayName = 'password';
 
+		let promptStub: SinonStub;
+		let stdoutisTTYStub: SinonStub;
+
 		beforeEach(() => {
-			sandbox.stub(utilHelpers, 'stdoutIsTTY').returns(true);
+			stdoutisTTYStub = sandbox.stub(utilHelpers, 'stdoutIsTTY').returns(true);
 			sandbox.stub(utilHelpers, 'stdinIsTTY').returns(true);
-			return sandbox.stub(inquirer, 'prompt');
+			promptStub = sandbox.stub(inquirer, 'prompt');
+			return Promise.resolve();
 		});
 
 		it('passphrase should equal to the result of the prompt', async () => {
 			const promptResult = { passphrase: '123' };
-			inquirer.prompt.resolves(promptResult);
+			promptStub.resolves(promptResult);
 			const passphrase = await inputUtils.getPassphraseFromPrompt({
 				displayName,
 			});
@@ -184,7 +192,7 @@ describe('input/utils utils', () => {
 
 		it('should prompt once with shouldRepeat false', async () => {
 			const promptResult = { passphrase: '123' };
-			inquirer.prompt.resolves(promptResult);
+			promptStub.resolves(promptResult);
 			await inputUtils.getPassphraseFromPrompt({
 				displayName,
 			});
@@ -199,7 +207,7 @@ describe('input/utils utils', () => {
 
 		it('should prompt twice with shouldRepeat true', async () => {
 			const promptResult = { passphrase: '123', passphraseRepeat: '123' };
-			inquirer.prompt.resolves(promptResult);
+			promptStub.resolves(promptResult);
 			await inputUtils.getPassphraseFromPrompt({
 				shouldRepeat: true,
 				displayName,
@@ -220,7 +228,7 @@ describe('input/utils utils', () => {
 
 		it('should reject with error when repeated passphrase does not match', () => {
 			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
-			inquirer.prompt.resolves(promptResult);
+			promptStub.resolves(promptResult);
 			return expect(
 				inputUtils.getPassphraseFromPrompt({ shouldRepeat: true, displayName }),
 			).to.be.rejectedWith(
@@ -230,9 +238,9 @@ describe('input/utils utils', () => {
 		});
 
 		it('should reject with error when in TTY mode', () => {
-			utilHelpers.stdoutIsTTY.returns(false);
+			stdoutisTTYStub.returns(false);
 			const promptResult = { passphrase: '123', passphraseRepeat: '456' };
-			inquirer.prompt.resolves(promptResult);
+			promptStub.resolves(promptResult);
 			return expect(
 				inputUtils.getPassphraseFromPrompt({ displayName }),
 			).to.be.rejectedWith(
@@ -243,7 +251,7 @@ describe('input/utils utils', () => {
 
 	describe('#getPassphraseFromEnvVariable', () => {
 		const displayName = 'passphrase';
-		let envPassphrase;
+		let envPassphrase: string | undefined;
 		before(() => {
 			envPassphrase = process.env.PASSPHRASE;
 			return Promise.resolve();
@@ -288,7 +296,8 @@ describe('input/utils utils', () => {
 			beforeEach(() => {
 				const error = new Error('ENOENT: no such file or directory');
 				const streamStub = createStreamStub(
-					(type, callback) => type === 'error' && callback(error),
+					(type: string, callback: Function) =>
+						type === 'error' && callback(error),
 				);
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
@@ -307,7 +316,8 @@ describe('input/utils utils', () => {
 			beforeEach(() => {
 				const error = new Error('EACCES: permission denied');
 				const streamStub = createStreamStub(
-					(type, callback) => type === 'error' && callback(error),
+					(type: string, callback: Function) =>
+						type === 'error' && callback(error),
 				);
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
@@ -326,7 +336,8 @@ describe('input/utils utils', () => {
 			beforeEach(() => {
 				const error = new Error('random error');
 				const streamStub = createStreamStub(
-					(type, callback) => type === 'error' && callback(error),
+					(type: string, callback: Function) =>
+						type === 'error' && callback(error),
 				);
 				return sandbox.stub(fs, 'createReadStream').returns(streamStub);
 			});
@@ -357,7 +368,7 @@ describe('input/utils utils', () => {
 	describe('#getPassphraseFromSource', () => {
 		const displayName = 'password';
 		const password = 'somepassword';
-		let envPassword;
+		let envPassword: string | undefined;
 		before(() => {
 			envPassword = process.env.PASSWORD;
 			return Promise.resolve();
@@ -488,8 +499,13 @@ describe('input/utils utils', () => {
 		const path = './some/path.txt';
 		const resultFileData = 'file data';
 
+		let readFileSyncStub: SinonStub;
+
 		beforeEach(() => {
-			return sandbox.stub(fs, 'readFileSync').returns(resultFileData);
+			readFileSyncStub = sandbox
+				.stub(fs, 'readFileSync')
+				.returns(resultFileData);
+			return Promise.resolve();
 		});
 
 		it('should throw validation error when source is empty', () => {
@@ -518,7 +534,7 @@ describe('input/utils utils', () => {
 
 		it('should be rejected if an error occurs', () => {
 			const error = new Error('some random error');
-			fs.readFileSync.throws(error);
+			readFileSyncStub.throws(error);
 			return expect(inputUtils.getData(`file:${path}`)).to.be.rejectedWith(
 				Error,
 				error.message,

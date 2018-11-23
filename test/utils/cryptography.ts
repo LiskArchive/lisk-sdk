@@ -14,7 +14,7 @@
  *
  */
 import { expect } from 'chai';
-import cryptographyModule from '@liskhq/lisk-cryptography';
+import * as cryptographyModule from '@liskhq/lisk-cryptography';
 import * as cryptography from '../../src/utils/cryptography';
 
 describe('crypto utils', () => {

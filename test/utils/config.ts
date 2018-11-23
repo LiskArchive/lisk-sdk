@@ -19,7 +19,8 @@ import os from 'os';
 import lockfile from 'lockfile';
 import { getConfig, setConfig } from '../../src/utils/config';
 import * as fsUtils from '../../src/utils/fs';
-import defaultConfig from '../../default_config.json';
+import * as defaultConfig from '../../src/default_config.json';
+import { SinonStub } from 'sinon';
 
 describe('config utils', () => {
 	const configDirName = '.lisk';
@@ -28,22 +29,29 @@ describe('config utils', () => {
 
 	const defaultPath = `${os.homedir()}/${configDirName}`;
 
+	let existsSyncStub: SinonStub;
+	let mkdirSyncStub: SinonStub;
+	let readJSONSyncStub: SinonStub;
+	let writeJSONSyncStub: SinonStub;
+
 	beforeEach(() => {
-		sandbox.stub(fsUtils, 'writeJSONSync');
+		writeJSONSyncStub = sandbox.stub(fsUtils, 'writeJSONSync');
 		return Promise.resolve();
 	});
 
 	describe('#getConfig', () => {
 		beforeEach(() => {
-			sandbox.stub(fs, 'existsSync');
-			sandbox.stub(fs, 'mkdirSync');
-			sandbox.stub(fsUtils, 'readJSONSync').returns(defaultConfig);
+			existsSyncStub = sandbox.stub(fs, 'existsSync');
+			mkdirSyncStub = sandbox.stub(fs, 'mkdirSync');
+			readJSONSyncStub = sandbox
+				.stub(fsUtils, 'readJSONSync')
+				.returns(defaultConfig);
 			return Promise.resolve();
 		});
 
 		describe('when config folder does not exist', () => {
 			beforeEach(() => {
-				return fs.existsSync.returns(false);
+				return existsSyncStub.returns(false);
 			});
 
 			it('should create config folder', () => {
@@ -52,7 +60,7 @@ describe('config utils', () => {
 			});
 
 			it('should log error when it fails to write', () => {
-				fs.mkdirSync.throws(new Error('failed to create folder'));
+				mkdirSyncStub.throws(new Error('failed to create folder'));
 				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Could not write to \`${defaultPath}\`. Your configuration will not be persisted.`,
 				);
@@ -61,7 +69,7 @@ describe('config utils', () => {
 
 		describe('when only the config directory exists', () => {
 			beforeEach(() => {
-				return fs.existsSync.withArgs(defaultPath).returns(true);
+				return existsSyncStub.withArgs(defaultPath).returns(true);
 			});
 
 			it('should create and return the default config', () => {
@@ -70,11 +78,11 @@ describe('config utils', () => {
 					`${defaultPath}/${configFileName}`,
 					defaultConfig,
 				);
-				return expect(result).to.be.equal(defaultConfig);
+				return expect(result).to.be.eql(defaultConfig);
 			});
 
 			it('should log error when it fails to write', () => {
-				fsUtils.writeJSONSync.throws(new Error('failed to write to the file'));
+				writeJSONSyncStub.throws(new Error('failed to write to the file'));
 				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Could not write to \`${defaultPath}/${configFileName}\`. Your configuration will not be persisted.`,
 				);
@@ -83,14 +91,14 @@ describe('config utils', () => {
 
 		describe('when config file exists', () => {
 			beforeEach(() => {
-				return fs.existsSync.returns(true);
+				return existsSyncStub.returns(true);
 			});
 
 			it('should return the custom config when it is valid', () => {
 				const customConfig = Object.assign({}, defaultConfig, {
 					name: 'custom config',
 				});
-				fsUtils.readJSONSync.returns(customConfig);
+				readJSONSyncStub.returns(customConfig);
 				const result = getConfig(defaultPath);
 				expect(fsUtils.readJSONSync).to.be.calledWithExactly(
 					`${defaultPath}/${configFileName}`,
@@ -99,14 +107,14 @@ describe('config utils', () => {
 			});
 
 			it('should log error and exit when it fails to read', () => {
-				fsUtils.readJSONSync.throws(new Error('failed to read to the file'));
+				readJSONSyncStub.throws(new Error('failed to read to the file'));
 				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Config file cannot be read or is not valid JSON. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
 			});
 
 			it('should log error and exit when it has invalid keys', () => {
-				fsUtils.readJSONSync.returns({ random: 'values' });
+				readJSONSyncStub.returns({ random: 'values' });
 				return expect(getConfig.bind(null, defaultPath)).to.throw(
 					`Config file seems to be corrupted: missing required keys. Please check ${defaultPath}/${configFileName} or delete the file so we can create a new one from defaults.`,
 				);
@@ -120,8 +128,10 @@ describe('config utils', () => {
 			some: 'value',
 		};
 
+		let checkSyncStub: SinonStub;
+
 		beforeEach(() => {
-			sandbox.stub(lockfile, 'checkSync');
+			checkSyncStub = sandbox.stub(lockfile, 'checkSync');
 			sandbox.stub(lockfile, 'lockSync');
 			sandbox.stub(lockfile, 'unlockSync');
 			return Promise.resolve();
@@ -129,7 +139,7 @@ describe('config utils', () => {
 
 		describe('when lockfile exists', () => {
 			it('should log error and exit', () => {
-				lockfile.checkSync.returns(true);
+				checkSyncStub.returns(true);
 				return expect(
 					setConfig.bind(null, defaultPath, newConfigValue),
 				).to.throw(
@@ -140,7 +150,7 @@ describe('config utils', () => {
 
 		describe('when lockfile does not exist', () => {
 			beforeEach(() => {
-				return lockfile.checkSync.returns(false);
+				return checkSyncStub.returns(false);
 			});
 
 			it('should write new config to defined file', () => {
@@ -167,7 +177,7 @@ describe('config utils', () => {
 			});
 
 			it('should log error if fail to write', () => {
-				fsUtils.writeJSONSync.throws(new Error('failed to write to the file'));
+				writeJSONSyncStub.throws(new Error('failed to write to the file'));
 				const result = setConfig(defaultPath, newConfigValue);
 				return expect(result).to.be.false;
 			});

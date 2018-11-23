@@ -26,7 +26,10 @@ interface APIClientOptions {
 	readonly nodes: ReadonlyArray<string>;
 }
 
-export const getAPIClient = ({ nodes, network }: APIClientOptions): APIClient => {
+export const getAPIClient = ({
+	nodes,
+	network,
+}: APIClientOptions): APIClient => {
 	const nethash = NETHASHES[network] || network;
 	const clientNodes = nodes && nodes.length > 0 ? nodes : seedNodes[network];
 

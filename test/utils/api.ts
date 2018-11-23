@@ -15,6 +15,7 @@
  */
 import { expect } from 'chai';
 import { getAPIClient } from '../../src/utils/api';
+import { APIClient } from '@liskhq/lisk-api-client';
 
 describe('api utils', () => {
 	const mainnetNethash =
@@ -33,8 +34,13 @@ describe('api utils', () => {
 	];
 	const testnetNode = 'https://testnet.lisk.io:443';
 
-	let apiClient;
-	let apiConfig;
+	interface APIConfig {
+		readonly network: string;
+		readonly nodes: ReadonlyArray<string>;
+	}
+
+	let apiClient: APIClient;
+	let apiConfig: APIConfig;
 
 	describe('when the network is set to main and nodes are provided', () => {
 		beforeEach(() => {

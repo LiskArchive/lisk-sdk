@@ -14,7 +14,8 @@
  *
  */
 import { expect } from 'chai';
-import print from '../../src/utils/print';
+import { print, StringMap } from '../../src/utils/print';
+import { SinonStub } from 'sinon';
 // Required for stubbing
 const tablify = require('../../src/utils/tablify');
 
@@ -38,6 +39,8 @@ describe('print utils', () => {
 	const stringifyResult =
 		'[{"lisk":"Some prefix: JS"},{"lisk":"Some suffix: awsome"}]';
 
+	type Printer = (result: ReadonlyArray<StringMap> | StringMap) => void;
+
 	beforeEach(() => {
 		sandbox.stub(tablify, 'default').returns(tablifyResult);
 		sandbox.stub(JSON, 'stringify').returns(stringifyResult);
@@ -45,7 +48,7 @@ describe('print utils', () => {
 	});
 
 	describe('when json and pretty are false', () => {
-		let printer;
+		let printer: Printer;
 		beforeEach(() => {
 			printer = print();
 			return Promise.resolve();
@@ -70,7 +73,7 @@ describe('print utils', () => {
 
 	describe('when json is true and pretty is false and the context has a log method', () => {
 		describe('when result is array', () => {
-			let log;
+			let log: SinonStub;
 			beforeEach(() => {
 				log = sandbox.stub();
 				print({ json: true }).call({ log }, arrayToPrint);
@@ -91,7 +94,7 @@ describe('print utils', () => {
 		});
 
 		describe('when result is object', () => {
-			let log;
+			let log: SinonStub;
 			beforeEach(() => {
 				log = sandbox.stub();
 				print({ json: true }).call({ log }, objectToPrint);
@@ -113,7 +116,7 @@ describe('print utils', () => {
 	});
 
 	describe('when json and pretty are true and the context has a log method', () => {
-		let log;
+		let log: SinonStub;
 		beforeEach(() => {
 			log = sandbox.stub();
 			return Promise.resolve();
