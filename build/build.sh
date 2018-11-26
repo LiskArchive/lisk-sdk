@@ -16,45 +16,21 @@ IFS=$'\n\t'
 
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit 2
 
-CLEAN=false
-OPTIND=1
-while getopts "cn:v:" OPT; do
-	case "$OPT" in
-		c) CLEAN=true;;
-		n) LISK_NETWORK="$OPTARG";;
-		v) VERSION="$OPTARG";;
-		:) echo 'Missing option argument for -'"$OPTARG" >&2; exit 1;;
-		*) echo 'Unimplemented option: -'"$OPTARG" >&2; exit 1;;
-	esac
-done
-
-if [[ ${VERSION:-} && ${LISK_NETWORK:-} ]]; then
-	echo "Building version $VERSION for ${LISK_NETWORK}."
+if [[ ${LISK_NETWORK:-} && ${LISK_VERSION:-} && ${NODE_VERSION:-} ]]; then
+	echo "Building version ${LISK_VERSION} for ${LISK_NETWORK}."
 else
-	echo "Both -n and -v are required. Exiting."
+	echo "LISK_NETWORK, LISK_VERSION and NODE_VERSION must be set."
 	exit 1
 fi
 
 # shellcheck source=./config.sh
 . "$(pwd)/config.sh"
 
-if [[ "$CLEAN" == true ]]; then
-	echo "Cleaning build."
-	rm -rf "src/$BUILD_NAME"
-fi
 
 pushd src
 
-echo
-echo "Downloading Node.JS..."
-echo "--------------------------------------------------------------------------"
-[[ -f "$NODE_FILE" ]] || wget -nv "$NODE_BIN_URL" --output-document="$NODE_FILE"
-echo "$NODE_SHA256SUM  $NODE_FILE" |sha256sum -c
-
-echo "Extracting Node.JS for our own use"
-echo "--------------------------------------------------------------------------"
-rm -rf "$NODE_DIR"
-tar xf "$NODE_FILE"
+echo "Cleaning build."
+rm -rf "$BUILD_NAME"
 
 echo "Running 'npm pack'"
 echo "--------------------------------------------------------------------------"
@@ -77,8 +53,8 @@ echo "--------------------------------------------------------------------------
 [[ -f "$REDIS_SERVER_FILE" ]] || wget -nv "$REDIS_SERVER_URL" --output-document="$REDIS_SERVER_FILE"
 echo "$REDIS_SHA256SUM  $REDIS_SERVER_FILE" |sha256sum -c
 if [ ! -f "$REDIS_SERVER_DIR/finished" ]; then
-	rm -rf $REDIS_SERVER_DIR
-	tar xf $REDIS_SERVER_FILE
+	rm -rf "$REDIS_SERVER_DIR"
+	tar xf "$REDIS_SERVER_FILE"
 	pushd "$REDIS_SERVER_DIR"
 	make
 	make check
