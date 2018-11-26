@@ -1,7 +1,7 @@
 import { P2P } from '../../src/index';
 
 describe('Integration tests for P2P library', () => {
-	const NETWORK_PEER_COUNT: number = 10;
+	const NETWORK_PEER_COUNT = 10;
 	let blockchainP2PList: Array<P2P> = [];
 
 	describe('Start and stop network', () => {
