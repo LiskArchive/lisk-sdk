@@ -163,12 +163,18 @@ __private.receiveSignature = function(query, cb) {
 			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
 		}
 
-		return modules.multisignatures.processSignature(query, err => {
-			if (err) {
-				return setImmediate(cb, `Error processing signature: ${err.message}`);
+		return modules.multisignatures.processSignature(
+			query,
+			processSignatureErr => {
+				if (processSignatureErr) {
+					return setImmediate(
+						cb,
+						`Error processing signature: ${processSignatureErr.message}`
+					);
+				}
+				return setImmediate(cb);
 			}
-			return setImmediate(cb);
-		});
+		);
 	});
 };
 
@@ -531,8 +537,8 @@ Transport.prototype.shared = {
 				return library.db.blocks
 					.getBlockForTransport(escapedIds[0])
 					.then(row => setImmediate(cb, null, { success: true, common: row }))
-					.catch(err => {
-						library.logger.error(err.stack);
+					.catch(getBlockForTransportErr => {
+						library.logger.error(getBlockForTransportErr.stack);
 						return setImmediate(cb, 'Failed to get common block');
 					});
 			}

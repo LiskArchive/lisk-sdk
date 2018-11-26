@@ -31,12 +31,12 @@ if (typeof before !== 'function') {
 
 application.init(
 	{},
-	(err, scope) => {
+	(_err, scope) => {
 		let originalEval;
 		let replServer;
 
 		function replEvalPromise(cmd, ctx, filename, cb) {
-			originalEval.call(replServer, cmd, ctx, filename, (err, res) => {
+			originalEval.call(replServer, cmd, ctx, filename, (__err, res) => {
 				Promise.resolve(res).then(response => cb(null, response));
 			});
 		}

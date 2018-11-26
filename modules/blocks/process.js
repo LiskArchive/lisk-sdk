@@ -273,11 +273,11 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 				const ids = res.ids;
 				// Perform request to supplied remote peer
 				peer = library.logic.peers.create(peer);
-				peer.rpc.blocksCommon({ ids }, (err, res) => {
+				peer.rpc.blocksCommon({ ids }, (err, blocksCommonRes) => {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
-					} else if (!res.common) {
+					} else if (!blocksCommonRes.common) {
 						// FIXME: Need better checking here, is base on 'common' property enough?
 						comparisonFailed = true;
 						return setImmediate(
@@ -290,7 +290,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 							].join(' ')
 						);
 					}
-					return setImmediate(waterCb, null, res.common);
+					return setImmediate(waterCb, null, blocksCommonRes.common);
 				});
 			},
 			function(common, waterCb) {
@@ -547,12 +547,12 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 
 	async.eachSeries(
 		transactions,
-		(transaction, cb) => {
+		(transaction, eachSeriesCb) => {
 			modules.accounts.getAccount(
 				{ publicKey: transaction.senderPublicKey },
 				(err, sender) => {
 					if (err || !sender) {
-						return setImmediate(cb, 'Sender not found');
+						return setImmediate(eachSeriesCb, 'Sender not found');
 					}
 
 					// Check transaction depends on type
@@ -563,16 +563,16 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 							sender,
 							null,
 							true,
-							err => {
-								if (!err) {
+							verifyErr => {
+								if (!verifyErr) {
 									ready.push(transaction);
 								}
-								return setImmediate(cb);
+								return setImmediate(eachSeriesCb);
 							},
 							null
 						);
 					}
-					return setImmediate(cb);
+					return setImmediate(eachSeriesCb);
 				}
 			);
 		},

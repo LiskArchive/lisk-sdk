@@ -288,14 +288,22 @@ history.migrate(
 			// if there is a change in array element we want to preserve it as well to original value
 			const changeInArrayElement = d.kind === 'A';
 
-			const path = _.clone(d.path);
+			const clonedPath = _.clone(d.path);
 
 			if (changeInArrayElement) {
-				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+				_.set(
+					customConfig,
+					clonedPath,
+					_.get(unifiedNewConfig, clonedPath, {})
+				);
 			} else if (changeInDeepObject) {
 				// Remove last item in path to get index of object in array
-				path.splice(-1, 1);
-				_.set(customConfig, path, _.get(unifiedNewConfig, path, {}));
+				clonedPath.splice(-1, 1);
+				_.set(
+					customConfig,
+					clonedPath,
+					_.get(unifiedNewConfig, clonedPath, {})
+				);
 			}
 			applyChange(customConfig, json, d);
 		});
