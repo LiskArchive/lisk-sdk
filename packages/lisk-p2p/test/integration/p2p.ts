@@ -1,26 +1,17 @@
 import { P2P } from '../../src/index';
 
-const NETWORK_PEER_COUNT: Number = 10;
-
-describe('Integration tests for BlockchainP2P', () => {
+describe('Integration tests for P2P library', () => {
+	const NETWORK_PEER_COUNT: number = 10;
 	let blockchainP2PList: Array<P2P> = [];
 
 	describe('Start and stop network', () => {
 		beforeEach(async () => {
 			blockchainP2PList = [...Array(NETWORK_PEER_COUNT).keys()].map(index => {
 				return new P2P({
-					peers: {
-						enabled: true,
-						list: [],
-						access: {
-							blacklist: [],
-						},
-						options: {
-							broadhashConsensusCalculationInterval: 5000,
-							timeout: 5000,
-							wsEngine: 'sc-uws',
-						},
-					},
+					blacklistedPeers: [],
+					connectTimeout: 5000,
+					seedPeers: [],
+					wsEngine: 'ws',
 				});
 			});
 

@@ -39,9 +39,10 @@ export class P2P {
 
 	public constructor(config: P2PConfig) {
 		this.peerPool = new PeerPool({
-			logger: config.logger ? config.logger : console,
-			seedPeers: config.peers.list,
-			blacklistedPeers: config.peers.access.blacklist,
+			blacklistedPeers: config.blacklistedPeers,
+			connectTimeout: config.connectTimeout,
+			seedPeers: config.seedPeers,
+			wsEngine: config.wsEngine,
 		});
 	}
 
