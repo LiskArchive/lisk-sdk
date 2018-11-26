@@ -47,11 +47,11 @@ class DatabaseSeed {
 			.then(() => accounts);
 	}
 
-	static seedBlocks(db, accounts) {
+	static seedBlocks(db, seedBlocksAccounts) {
 		let block;
 
 		// Seed one block per account
-		accounts.forEach((account, index) => {
+		seedBlocksAccounts.forEach((account, index) => {
 			if (index === 0) {
 				block = new fixtures.blocks.GenesisBlock({
 					generatorPublicKey: account.publicKey,
@@ -70,8 +70,8 @@ class DatabaseSeed {
 
 		return db
 			.task('db:seed:blocks', t => {
-				return Promise.mapSeries(blocks, block => {
-					return t.blocks.save(block);
+				return Promise.mapSeries(blocks, mapSeriesBlock => {
+					return t.blocks.save(mapSeriesBlock);
 				});
 			})
 			.then(() => blocks);
@@ -132,8 +132,8 @@ class DatabaseSeed {
 	}
 
 	static seed(db) {
-		return this.seedAccounts(db).then(accounts =>
-			this.seedBlocks(db, accounts)
+		return this.seedAccounts(db).then(seedAccounts =>
+			this.seedBlocks(db, seedAccounts)
 		);
 	}
 

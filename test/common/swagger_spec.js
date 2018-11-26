@@ -29,8 +29,8 @@ validator.options.assumeAdditional = true;
 // Extend Chai assertion with a new method validResponse
 // to facilitate the validation of swagger response body
 // e.g. expect(res.body).to.be.validResponse
-chai.use((chai, utils) => {
-	chai.Assertion.addMethod('validResponse', function(responsePath) {
+chai.use((chaiArgument, utils) => {
+	chaiArgument.Assertion.addMethod('validResponse', function(responsePath) {
 		var result = validator.validate(utils.flag(this, 'object'), apiSpec, {
 			schemaPath: responsePath,
 		});

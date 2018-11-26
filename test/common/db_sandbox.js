@@ -47,8 +47,8 @@ function DBSandbox(dbConfig, testDatabaseName) {
 	testDatabaseNames.push(this.testDatabaseName);
 
 	var dropCreatedDatabases = function() {
-		testDatabaseNames.forEach(testDatabaseName => {
-			child_process.exec(`dropdb ${testDatabaseName}`);
+		testDatabaseNames.forEach(aTestDatabaseName => {
+			child_process.exec(`dropdb ${aTestDatabaseName}`);
 		});
 	};
 

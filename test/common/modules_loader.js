@@ -89,8 +89,8 @@ var modulesLoader = new function() {
 			case 'Transaction':
 				async.series(
 					{
-						account(cb) {
-							new Account(scope.db, scope.schema, scope.logger, cb);
+						account(accountCb) {
+							new Account(scope.db, scope.schema, scope.logger, accountCb);
 						},
 					},
 					(__err, result) => {
@@ -180,8 +180,10 @@ var modulesLoader = new function() {
 						waterCb
 					);
 				}.bind(this),
-				function(logic, waterCb) {
-					scope = _.merge({}, this.scope, scope, { logic });
+				function(logic1, waterCb) {
+					scope = _.merge({}, this.scope, scope, {
+						logic1,
+					});
 					async.reduce(
 						modules,
 						{},
@@ -196,16 +198,16 @@ var modulesLoader = new function() {
 					);
 				}.bind(this),
 
-				function(modules, waterCb) {
-					_.each(scope.logic, logic => {
+				function(modules1, waterCb) {
+					_.each(scope.logic, logic2 => {
 						if (typeof logic.bind === 'function') {
-							logic.bind({ modules });
+							logic2.bind({ modules });
 						}
-						if (typeof logic.bindModules === 'function') {
-							logic.bindModules(modules);
+						if (typeof logic2.bindModules === 'function') {
+							logic2.bindModules(modules);
 						}
 					});
-					waterCb(null, modules);
+					waterCb(null, modules1);
 				},
 			],
 			cb

@@ -330,26 +330,26 @@ function __init(initScope, done) {
 
 							async.auto(
 								{
-									bus(cb) {
-										cb(null, scope.bus);
+									bus(busCb) {
+										busCb(null, scope.bus);
 									},
-									config(cb) {
-										cb(null, scope.config);
+									config(configCb) {
+										configCb(null, scope.config);
 									},
-									db(cb) {
-										cb(null, scope.db);
+									db(dbCb) {
+										dbCb(null, scope.db);
 									},
-									ed(cb) {
-										cb(null, scope.ed);
+									ed(edCb) {
+										edCb(null, scope.ed);
 									},
-									logger(cb) {
-										cb(null, scope.logger);
+									logger(loggerCb) {
+										loggerCb(null, scope.logger);
 									},
-									schema(cb) {
-										cb(null, scope.schema);
+									schema(schemaCb) {
+										schemaCb(null, scope.schema);
 									},
-									genesisBlock(cb) {
-										cb(null, scope.genesisBlock);
+									genesisBlock(genesisBlockCb) {
+										genesisBlockCb(null, scope.genesisBlock);
 									},
 									account: [
 										'db',
@@ -358,8 +358,13 @@ function __init(initScope, done) {
 										'schema',
 										'genesisBlock',
 										'logger',
-										function(scope, cb) {
-											new Account(scope.db, scope.schema, scope.logger, cb);
+										function(accountScope, accountCb) {
+											new Account(
+												accountScope.db,
+												accountScope.schema,
+												accountScope.logger,
+												accountCb
+											);
 										},
 									],
 									transaction: [
@@ -370,15 +375,15 @@ function __init(initScope, done) {
 										'genesisBlock',
 										'account',
 										'logger',
-										function(scope, cb) {
+										function(transactionScope, transactionCb) {
 											new Transaction(
-												scope.db,
-												scope.ed,
-												scope.schema,
-												scope.genesisBlock,
-												scope.account,
-												scope.logger,
-												cb
+												transactionScope.db,
+												transactionScope.ed,
+												transactionScope.schema,
+												transactionScope.genesisBlock,
+												transactionScope.account,
+												transactionScope.logger,
+												transactionCb
 											);
 										},
 									],
@@ -390,29 +395,34 @@ function __init(initScope, done) {
 										'genesisBlock',
 										'account',
 										'transaction',
-										function(scope, cb) {
-											new Block(scope.ed, scope.schema, scope.transaction, cb);
+										function(blockScope, blockCb) {
+											new Block(
+												blockScope.ed,
+												blockScope.schema,
+												blockScope.transaction,
+												blockCb
+											);
 										},
 									],
 									peers: [
 										'logger',
 										'config',
-										function(scope, cb) {
-											new Peers(scope.logger, scope.config, cb);
+										function(peersScope, peerscb) {
+											new Peers(peersScope.logger, peersScope.config, peerscb);
 										},
 									],
 									multisignature: [
 										'schema',
 										'transaction',
 										'logger',
-										function(scope, cb) {
-											cb(
+										function(multisignatureScope, multisignaturecb) {
+											multisignaturecb(
 												null,
 												new Multisignature(
-													scope.schema,
-													scope.network,
-													scope.transaction,
-													scope.logger
+													multisignatureScope.schema,
+													multisignatureScope.network,
+													multisignatureScope.transaction,
+													multisignatureScope.logger
 												)
 											);
 										},
@@ -438,10 +448,10 @@ function __init(initScope, done) {
 							scope.rewiredModules = {};
 
 							Object.keys(modulesInit).forEach(name => {
-								tasks[name] = function(cb) {
+								tasks[name] = function(tasksCb) {
 									var Instance = rewire(modulesInit[name]);
 									rewiredModules[name] = Instance;
-									var obj = new rewiredModules[name](cb, scope);
+									var obj = new rewiredModules[name](tasksCb, scope);
 									modules.push(obj);
 								};
 							});
@@ -492,7 +502,7 @@ function __init(initScope, done) {
 						var loadDelegates = scope.rewiredModules.delegates.__get__(
 							'__private.loadDelegates'
 						);
-						loadDelegates(err => {
+						loadDelegates(loadDelegatesErr => {
 							var keypairs = scope.rewiredModules.delegates.__get__(
 								'__private.keypairs'
 							);
@@ -507,7 +517,7 @@ function __init(initScope, done) {
 							__testContext.debug('initApplication: Done');
 
 							if (initScope.waitForGenesisBlock) {
-								return done(err, scope);
+								return done(loadDelegatesErr, scope);
 							}
 
 							return Promise.resolve();
