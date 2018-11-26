@@ -3,6 +3,6 @@
 	"rules": {
 		"no-delete": false,
 		"readonly-array": false,
-		"readonly-keyword": false,
+		"readonly-keyword": false
 	}
 }
