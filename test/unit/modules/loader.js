@@ -120,8 +120,8 @@ describe('loader', () => {
 	});
 
 	describe('__private.createSnapshot', () => {
-		let __private;
-		let library;
+		let __privateVar;
+		let libraryVar;
 		let validScope;
 		let loggerStub;
 		let loadBlocksOffsetStub;
@@ -181,10 +181,10 @@ describe('loader', () => {
 			};
 
 			RewiredLoader = rewire('../../../modules/loader.js');
-			__private = RewiredLoader.__get__('__private');
+			__privateVar = RewiredLoader.__get__('__private');
 			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
 			new RewiredLoader((__err, __loader) => {
-				library = RewiredLoader.__get__('library');
+				libraryVar = RewiredLoader.__get__('library');
 				__loader.onBind(modulesStub);
 				done();
 			}, validScope);
@@ -192,7 +192,7 @@ describe('loader', () => {
 
 		it('should throw an error when called with height below active delegates count', done => {
 			try {
-				__private.createSnapshot(ACTIVE_DELEGATES - 1);
+				__privateVar.createSnapshot(ACTIVE_DELEGATES - 1);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
@@ -204,32 +204,32 @@ describe('loader', () => {
 
 		it('should emit an event with proper error when resetMemTables fails', done => {
 			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
-			__private.snapshotFinished = err => {
+			__privateVar.snapshotFinished = err => {
 				expect(err).to.eql('resetMemTables#ERR');
 				done();
 			};
 
-			__private.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when loadBlocksOffset fails', done => {
 			loadBlocksOffsetStub.callsArgWith(2, 'loadBlocksOffsetStub#ERR', true);
-			__private.snapshotFinished = err => {
+			__privateVar.snapshotFinished = err => {
 				expect(err).to.eql('loadBlocksOffsetStub#ERR');
 				done();
 			};
 
-			__private.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when deleteBlocksAfterHeight fails', done => {
 			deleteBlocksAfterHeightStub.rejects('deleteBlocksAfterHeightStub#ERR');
-			__private.snapshotFinished = err => {
+			__privateVar.snapshotFinished = err => {
 				expect(err.name).to.eql('deleteBlocksAfterHeightStub#ERR');
 				done();
 			};
 
-			__private.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		describe('should emit an event with no error', () => {
@@ -242,8 +242,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = 1;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = 1;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
@@ -253,7 +253,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 1 when snapshotRound = 1 and 202 blocks available', done => {
@@ -261,8 +261,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = snapshotRound;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
@@ -273,7 +273,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 2 when snapshotRound = 2 and 202 blocks available', done => {
@@ -281,8 +281,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = snapshotRound;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
@@ -300,7 +300,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 2 when snapshotRound = 2 and 303 blocks available', done => {
@@ -308,8 +308,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES * 3;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = snapshotRound;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
@@ -327,7 +327,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 1 when snapshotRound = 2 and 101 blocks available', done => {
@@ -336,7 +336,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES;
 
 				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
@@ -347,7 +347,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 		});
 	});

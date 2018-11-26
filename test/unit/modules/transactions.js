@@ -235,8 +235,8 @@ describe('transactions', () => {
 				modulesLoader.initModule(
 					TransactionModule,
 					{ db: dbStub, logic: { transaction: result.transactionLogic } },
-					(err, __transactionModule) => {
-						expect(err).to.not.exist;
+					(initModuleErr, __transactionModule) => {
+						expect(initModuleErr).to.not.exist;
 
 						transactionsModule = __transactionModule;
 

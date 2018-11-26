@@ -119,9 +119,9 @@ describe('Handshake', () => {
 		describe('schema tests', () => {
 			var headers;
 
-			beforeEach(done => {
+			beforeEach(beforeDone => {
 				headers = _.cloneDeep(validHeaders);
-				done();
+				beforeDone();
 			});
 
 			describe('handshake', () => {
@@ -133,27 +133,27 @@ describe('Handshake', () => {
 				invalidTypes.forEach(type => {
 					it(`should call callback with error.description when input is: ${
 						type.description
-					}`, done => {
+					}`, eachDone => {
 						handshake(type.input, err => {
 							expect(err.description).to.equal(
 								`Expected type object but found type ${type.expectation}`
 							);
-							done();
+							eachDone();
 						});
 					});
 
 					it(`should call callback with error.code when input is: ${
 						type.description
-					}`, done => {
+					}`, itDone => {
 						handshake(type.input, err => {
 							expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-							done();
+							itDone();
 						});
 					});
 				});
 
 				describe('nonce', () => {
-					var invalidTypes = _.difference(
+					var auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
@@ -162,10 +162,10 @@ describe('Handshake', () => {
 						return randomstring.generate(16);
 					});
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}`, itDone => {
 							headers.nonce = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -173,26 +173,27 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.nonce = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 
 					validValues.forEach(input => {
-						it(`should call callback with error = null when input is:${input}`, done => {
+						it(`should call callback with error = null when input is:${input}`, itDone => {
 							handshake(headers, err => {
 								expect(err).to.not.exist;
-								done();
+								itDone();
 							});
 						});
 					});
@@ -203,7 +204,7 @@ describe('Handshake', () => {
 						return Math.floor(Math.random() * Number.MAX_VALUE);
 					});
 
-					var invalidTypes = _.difference(
+					var auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
@@ -211,10 +212,11 @@ describe('Handshake', () => {
 						typeRepresentatives.negativeNumbers
 					);
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.height = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -222,42 +224,44 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.height = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 
 					validValues.forEach(input => {
-						it(`should call callback with error = null when input is: ${input}`, done => {
+						it(`should call callback with error = null when input is: ${input}`, itDone => {
 							headers.height = input;
 							handshake(headers, err => {
 								expect(err).to.not.exist;
-								done();
+								itDone();
 							});
 						});
 					});
 				});
 
 				describe('nethash', () => {
-					var invalidTypes = _.difference(
+					var auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.nethash = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -265,32 +269,34 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.nethash = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 				});
 
 				describe('version', () => {
-					var invalidTypes = _.difference(
+					var auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.version = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -298,17 +304,18 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.version = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
@@ -316,13 +323,13 @@ describe('Handshake', () => {
 
 				var requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
 				requiredProperties.forEach(property => {
-					it(`should call callback with error for required property: ${property}`, done => {
+					it(`should call callback with error for required property: ${property}`, itDone => {
 						headers[property] = undefined;
 						handshake(headers, err => {
 							expect(err.description).to.equal(
 								`Missing required property: ${property}`
 							);
-							done();
+							itDone();
 						});
 					});
 				});

@@ -46,8 +46,8 @@ describe('peer', () => {
 
 	describe('accept', () => {
 		it('should accept valid peer', () => {
-			var peer = new Peer({});
-			var __peer = peer.accept(prefixedPeer);
+			var auxPeer = new Peer({});
+			var __peer = auxPeer.accept(prefixedPeer);
 			['height', 'ip', 'wsPort', 'state'].forEach(property => {
 				expect(__peer[property]).equals(prefixedPeer[property]);
 			});

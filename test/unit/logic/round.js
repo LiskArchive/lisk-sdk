@@ -335,8 +335,8 @@ describe('rounds', () => {
 			});
 
 			it('query should be called with proper args', () => {
-				return res.then(res => {
-					expect(res).to.equal('success');
+				return res.then(response => {
+					expect(response).to.equal('success');
 					expect(stub.calledWith(scope.backwards, scope.roundOutsiders)).to.be
 						.true;
 				});
@@ -362,8 +362,8 @@ describe('rounds', () => {
 		});
 
 		it('query should be called with proper args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
+			return res.then(response => {
+				expect(response).to.equal('success');
 				expect(stub.calledWith(scope.round)).to.be.true;
 			});
 		});
@@ -425,8 +425,8 @@ describe('rounds', () => {
 			});
 
 			it('getVotes result should contain 2 queries', () => {
-				return res.then(res => {
-					expect(res).to.deep.equal(['QUERY', 'QUERY']);
+				return res.then(response => {
+					expect(response).to.deep.equal(['QUERY', 'QUERY']);
 				});
 			});
 		});
@@ -494,8 +494,8 @@ describe('rounds', () => {
 		});
 
 		it('query should be called with proper args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
+			return res.then(response => {
+				expect(response).to.equal('success');
 				expect(stub.calledWith(validScope.round)).to.be.true;
 			});
 		});
@@ -520,8 +520,8 @@ describe('rounds', () => {
 		});
 
 		it('query should be called with proper args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
+			return res.then(response => {
+				expect(response).to.equal('success');
 				expect(stub.calledOnce).to.be.true;
 			});
 		});
@@ -544,8 +544,8 @@ describe('rounds', () => {
 		});
 
 		it('query should be called with no args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
+			return res.then(response => {
+				expect(response).to.equal('success');
 				expect(db.rounds.restoreRoundSnapshot.calledWith()).to.be.true;
 			});
 		});
@@ -567,8 +567,8 @@ describe('rounds', () => {
 		});
 
 		it('query should be called with no args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
+			return res.then(response => {
+				expect(response).to.equal('success');
 				expect(stub.calledWith()).to.be.true;
 			});
 		});
@@ -664,8 +664,8 @@ describe('rounds', () => {
 		});
 
 		it('query should be called with no args', () => {
-			return res.then(res => {
-				expect(res).to.equal('success');
+			return res.then(response => {
+				expect(response).to.equal('success');
 				expect(stub).to.have.been.calledWith(validScope.round);
 			});
 		});
@@ -679,33 +679,33 @@ describe('rounds', () => {
 
 		function sumChanges(forward, backwards) {
 			var results = {};
-			forward.forEach(res => {
-				if (results[res.publicKey]) {
-					results[res.publicKey].balance += res.balance || 0;
-					results[res.publicKey].u_balance += res.u_balance || 0;
-					results[res.publicKey].rewards += res.rewards || 0;
-					results[res.publicKey].fees += res.fees || 0;
+			forward.forEach(response => {
+				if (results[response.publicKey]) {
+					results[response.publicKey].balance += response.balance || 0;
+					results[response.publicKey].u_balance += response.u_balance || 0;
+					results[response.publicKey].rewards += response.rewards || 0;
+					results[response.publicKey].fees += response.fees || 0;
 				} else {
-					results[res.publicKey] = {
-						balance: res.balance || 0,
-						u_balance: res.u_balance || 0,
-						rewards: res.rewards || 0,
-						fees: res.fees || 0,
+					results[response.publicKey] = {
+						balance: response.balance || 0,
+						u_balance: response.u_balance || 0,
+						rewards: response.rewards || 0,
+						fees: response.fees || 0,
 					};
 				}
 			});
-			backwards.forEach(res => {
-				if (results[res.publicKey]) {
-					results[res.publicKey].balance += res.balance || 0;
-					results[res.publicKey].u_balance += res.u_balance || 0;
-					results[res.publicKey].rewards += res.rewards || 0;
-					results[res.publicKey].fees += res.fees || 0;
+			backwards.forEach(response => {
+				if (results[response.publicKey]) {
+					results[response.publicKey].balance += response.balance || 0;
+					results[response.publicKey].u_balance += response.u_balance || 0;
+					results[response.publicKey].rewards += response.rewards || 0;
+					results[response.publicKey].fees += response.fees || 0;
 				} else {
-					results[res.publicKey] = {
-						balance: res.balance || 0,
-						u_balance: res.u_balance || 0,
-						rewards: res.rewards || 0,
-						fees: res.fees || 0,
+					results[response.publicKey] = {
+						balance: response.balance || 0,
+						u_balance: response.u_balance || 0,
+						rewards: response.rewards || 0,
+						fees: response.fees || 0,
 					};
 				}
 			});
@@ -785,8 +785,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -858,8 +858,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -916,26 +916,26 @@ describe('rounds', () => {
 					});
 
 					it('balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.u_balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.fees).to.equal(0);
+						return _.each(result, response => {
+							expect(response.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.rewards).to.equal(0);
+						return _.each(result, response => {
+							expect(response.rewards).to.equal(0);
 						});
 					});
 				});
@@ -969,8 +969,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -1069,8 +1069,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -1154,26 +1154,26 @@ describe('rounds', () => {
 					});
 
 					it('balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.u_balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.fees).to.equal(0);
+						return _.each(result, response => {
+							expect(response.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.rewards).to.equal(0);
+						return _.each(result, response => {
+							expect(response.rewards).to.equal(0);
 						});
 					});
 				});
@@ -1214,8 +1214,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -1365,8 +1365,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -1487,26 +1487,26 @@ describe('rounds', () => {
 					});
 
 					it('balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.u_balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.fees).to.equal(0);
+						return _.each(result, response => {
+							expect(response.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.rewards).to.equal(0);
+						return _.each(result, response => {
+							expect(response.rewards).to.equal(0);
 						});
 					});
 				});
@@ -1545,8 +1545,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -1721,8 +1721,8 @@ describe('rounds', () => {
 					});
 
 					it('query should be called', () => {
-						return res.then(res => {
-							expect(res).to.equal('success');
+						return res.then(response => {
+							expect(response).to.equal('success');
 							expect(batch_stub.called).to.be.true;
 						});
 					});
@@ -1868,26 +1868,26 @@ describe('rounds', () => {
 					});
 
 					it('balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.balance).to.equal(0);
 						});
 					});
 
 					it('u_balance should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.u_balance).to.equal(0);
+						return _.each(result, response => {
+							expect(response.u_balance).to.equal(0);
 						});
 					});
 
 					it('fees should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.fees).to.equal(0);
+						return _.each(result, response => {
+							expect(response.fees).to.equal(0);
 						});
 					});
 
 					it('rewards should sum to 0', () => {
-						return _.each(result, res => {
-							expect(res.rewards).to.equal(0);
+						return _.each(result, response => {
+							expect(response.rewards).to.equal(0);
 						});
 					});
 				});

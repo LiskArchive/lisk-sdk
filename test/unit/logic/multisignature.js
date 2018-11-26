@@ -179,39 +179,47 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 1,
 				});
-				transaction.asset.multisignature.min = minimum.toString();
+				multisigRegistration.asset.multisignature.min = minimum.toString();
 
-				multisignature.verify(transaction, accountFixtures.genesis, err => {
-					expect(err).to.equal(
-						'Invalid multisignature min. Must be between 1 and 15'
-					);
-					done();
-				});
+				multisignature.verify(
+					multisigRegistration,
+					accountFixtures.genesis,
+					err => {
+						expect(err).to.equal(
+							'Invalid multisignature min. Must be between 1 and 15'
+						);
+						done();
+					}
+				);
 			});
 		});
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
 			var minimum = MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
 			var keysgroup = [multiSigAccount1.publicKey, multiSigAccount2.publicKey];
-			var transaction = lisk.transaction.registerMultisignature({
+			var multisigRegistration2 = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
 				keysgroup,
 				lifetime: 1,
 				minimum,
 			});
 
-			multisignature.verify(transaction, accountFixtures.genesis, err => {
-				expect(err).to.equal(
-					'Invalid multisignature min. Must be between 1 and 15'
-				);
-				done();
-			});
+			multisignature.verify(
+				multisigRegistration2,
+				accountFixtures.genesis,
+				err => {
+					expect(err).to.equal(
+						'Invalid multisignature min. Must be between 1 and 15'
+					);
+					done();
+				}
+			);
 		});
 
 		describe('when asset = undefined', () => {
@@ -910,16 +918,16 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration3 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 1,
 				});
-				transaction.asset.multisignature.min = minimum;
+				multisigRegistration3.asset.multisignature.min = minimum;
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration3);
 				}).to.throw(
 					'Failed to validate multisignature schema: Expected type integer but found type string'
 				);
@@ -931,16 +939,16 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration4 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 1,
 				});
-				transaction.asset.multisignature.min = minimum;
+				multisigRegistration4.asset.multisignature.min = minimum;
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration4);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value -1 is less than minimum 1'
 				);
@@ -952,7 +960,7 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration5 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -960,7 +968,7 @@ describe('multisignature', () => {
 				});
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration5);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 0 is less than minimum 1'
 				);
@@ -972,7 +980,7 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration6 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -980,7 +988,7 @@ describe('multisignature', () => {
 				});
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration6);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 16 is greater than maximum 15'
 				);
@@ -992,16 +1000,16 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration7 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
-				transaction.asset.multisignature.min = minimum;
+				multisigRegistration7.asset.multisignature.min = minimum;
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration7);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 1.7976931348623157e+308 is greater than maximum 15'
 				);
@@ -1015,16 +1023,16 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration8 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
-				transaction.asset.multisignature.lifetime = lifetime;
+				multisigRegistration8.asset.multisignature.lifetime = lifetime;
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration8);
 				}).to.throw(
 					'Failed to validate multisignature schema: Expected type integer but found type string'
 				);
@@ -1036,7 +1044,7 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration9 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime,
@@ -1044,7 +1052,7 @@ describe('multisignature', () => {
 				});
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration9);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 0 is less than minimum 1'
 				);
@@ -1056,7 +1064,7 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration10 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime,
@@ -1064,7 +1072,7 @@ describe('multisignature', () => {
 				});
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration10);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 73 is greater than maximum 72'
 				);
@@ -1076,16 +1084,16 @@ describe('multisignature', () => {
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration11 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
-				transaction.asset.multisignature.lifetime = lifetime;
+				multisigRegistration11.asset.multisignature.lifetime = lifetime;
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration11);
 				}).to.throw(
 					'Failed to validate multisignature schema: Value 1.7976931348623157e+308 is greater than maximum 72'
 				);
@@ -1095,16 +1103,16 @@ describe('multisignature', () => {
 		describe('keysgroup', () => {
 			it('should return error when it is not an array', () => {
 				var keysgroup = [multiSigAccount1.publicKey];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration12 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
-				transaction.asset.multisignature.keysgroup = '';
+				multisigRegistration12.asset.multisignature.keysgroup = '';
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration12);
 				}).to.throw(
 					'Failed to validate multisignature schema: Expected type array but found type string'
 				);
@@ -1112,16 +1120,16 @@ describe('multisignature', () => {
 
 			it('should return error when array length is smaller than minimum acceptable value', () => {
 				var keysgroup = [multiSigAccount1.publicKey];
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration13 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
 					minimum: 2,
 				});
-				transaction.asset.multisignature.keysgroup = [];
+				multisigRegistration13.asset.multisignature.keysgroup = [];
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration13);
 				}).to.throw(
 					'Failed to validate multisignature schema: Array is too short (0), minimum 1'
 				);
@@ -1135,7 +1143,7 @@ describe('multisignature', () => {
 						lisk.cryptography.getKeys(randomUtil.password()).publicKey
 					}`;
 				});
-				var transaction = lisk.transaction.registerMultisignature({
+				var multisigRegistration14 = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1143,7 +1151,7 @@ describe('multisignature', () => {
 				});
 
 				return expect(() => {
-					multisignature.objectNormalize(transaction);
+					multisignature.objectNormalize(multisigRegistration14);
 				}).to.throw(
 					'Failed to validate multisignature schema: Array is too long (16), maximum 15'
 				);
@@ -1155,16 +1163,16 @@ describe('multisignature', () => {
 				return `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});
 
-			var transaction = lisk.transaction.registerMultisignature({
+			var multisigRegistration15 = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
 				keysgroup,
 				lifetime: 1,
 				minimum: 2,
 			});
 
-			return expect(multisignature.objectNormalize(transaction)).to.eql(
-				transaction
-			);
+			return expect(
+				multisignature.objectNormalize(multisigRegistration15)
+			).to.eql(multisigRegistration15);
 		});
 
 		it('should use the correct format to validate against', () => {

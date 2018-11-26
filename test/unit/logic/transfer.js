@@ -108,7 +108,7 @@ describe('transfer', () => {
 	before(done => {
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_transfer' } },
-			(err, scope) => {
+			(_err, scope) => {
 				accountModule = scope.modules.accounts;
 				transfer = new Transfer(
 					modulesLoader.scope.logger,
@@ -256,15 +256,13 @@ describe('transfer', () => {
 						validTransaction,
 						dummyBlock,
 						validSender,
-						err => {
+						() => {
 							expect(err).to.not.exist;
-
 							accountModule.getAccount(
 								{ address: validTransaction.recipientId },
-								(err, accountAfter) => {
+								(_getAccountErr, accountAfter) => {
 									expect(err).to.not.exist;
 									expect(accountAfter).to.exist;
-
 									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
@@ -316,12 +314,12 @@ describe('transfer', () => {
 						validTransaction,
 						dummyBlock,
 						validSender,
-						err => {
-							expect(err).to.not.exist;
+						undoConfirmedErr => {
+							expect(undoConfirmedErr).to.not.exist;
 
 							accountModule.getAccount(
 								{ address: validTransaction.recipientId },
-								(err, accountAfter) => {
+								(getAccountErr, accountAfter) => {
 									var balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);

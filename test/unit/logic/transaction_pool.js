@@ -785,10 +785,10 @@ describe('transactionPool', () => {
 	});
 
 	describe('processUnconfirmedTransaction', () => {
-		let processVerifyTransaction;
+		let auxProcessVerifyTransaction;
 		beforeEach(done => {
 			resetStates();
-			processVerifyTransaction = TransactionPool.__get__(
+			auxProcessVerifyTransaction = TransactionPool.__get__(
 				'__private.processVerifyTransaction'
 			);
 			transactionPool.transactionInPool = sinonSandbox.stub();
@@ -798,7 +798,7 @@ describe('transactionPool', () => {
 		afterEach(done => {
 			TransactionPool.__set__(
 				'__private.processVerifyTransaction',
-				processVerifyTransaction
+				auxProcessVerifyTransaction
 			);
 			transactionPool.transactionInPool.returns(false);
 			done();
@@ -973,11 +973,11 @@ describe('transactionPool', () => {
 	});
 
 	describe('processBundled', () => {
-		let processVerifyTransaction;
+		let auxProcessVerifyTransaction;
 		beforeEach(done => {
 			resetStates();
 			transactionPool.addBundledTransaction({ id: '123', bundled: true });
-			processVerifyTransaction = TransactionPool.__get__(
+			auxProcessVerifyTransaction = TransactionPool.__get__(
 				'__private.processVerifyTransaction'
 			);
 			done();
@@ -986,7 +986,7 @@ describe('transactionPool', () => {
 		afterEach(done => {
 			TransactionPool.__set__(
 				'__private.processVerifyTransaction',
-				processVerifyTransaction
+				auxProcessVerifyTransaction
 			);
 			done();
 		});

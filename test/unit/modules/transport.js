@@ -392,7 +392,7 @@ describe('transport', () => {
 
 			describe('when options.nonce is defined', () => {
 				var removeSpy;
-				var validNonce;
+				var auxValidNonce;
 
 				beforeEach(done => {
 					removeSpy = sinonSandbox.spy();
@@ -409,11 +409,11 @@ describe('transport', () => {
 						},
 					};
 
-					validNonce = randomstring.generate(16);
+					auxValidNonce = randomstring.generate(16);
 
 					__private.removePeer(
 						{
-							nonce: validNonce,
+							nonce: auxValidNonce,
 						},
 						'Custom peer remove message'
 					);
@@ -1007,8 +1007,8 @@ describe('transport', () => {
 
 			blocksList = [];
 			for (var j = 0; j < 10; j++) {
-				var block = new Block();
-				blocksList.push(block);
+				var auxBlock = new Block();
+				blocksList.push(auxBlock);
 			}
 
 			transportInstance = new TransportModule((err, transportSelf) => {
@@ -1367,12 +1367,12 @@ describe('transport', () => {
 				});
 
 				describe('when peer.rpc.updateMyself fails', () => {
-					const error = 'RPC failure';
+					const rpcFailure = 'RPC failure';
 
 					beforeEach(done => {
 						peerMock = generateRandomActivePeer();
 						peerMock.rpc = {
-							updateMyself: sinonSandbox.stub().callsArgWith(1, error),
+							updateMyself: sinonSandbox.stub().callsArgWith(1, rpcFailure),
 						};
 						library.logic.peers.listRandomConnected = sinonSandbox
 							.stub()
@@ -1385,7 +1385,10 @@ describe('transport', () => {
 						return expect(
 							library.logger.debug.calledWith(
 								'Transport->broadcastHeaders: Failed to notify peer about self',
-								{ peer: peerMock.string, err: error }
+								{
+									peer: peerMock.string,
+									err: rpcFailure,
+								}
 							)
 						).to.be.true;
 					});
@@ -1677,10 +1680,10 @@ describe('transport', () => {
 			});
 
 			describe('postBlock', () => {
-				var query;
+				var postBlockQuery;
 
 				beforeEach(done => {
-					query = {
+					postBlockQuery = {
 						block: blockMock,
 						nonce: validNonce,
 					};
@@ -1693,7 +1696,7 @@ describe('transport', () => {
 				describe('when library.config.broadcasts.active option is false', () => {
 					beforeEach(done => {
 						library.config.broadcasts.active = false;
-						transportInstance.shared.postBlock(query);
+						transportInstance.shared.postBlock(postBlockQuery);
 						done();
 					});
 
@@ -1712,7 +1715,7 @@ describe('transport', () => {
 
 				describe('when query is specified', () => {
 					beforeEach(done => {
-						transportInstance.shared.postBlock(query);
+						transportInstance.shared.postBlock(postBlockQuery);
 						done();
 					});
 
@@ -1723,7 +1726,7 @@ describe('transport', () => {
 							library.logic.block.objectNormalize = sinonSandbox
 								.stub()
 								.throws(blockValidationError);
-							transportInstance.shared.postBlock(query);
+							transportInstance.shared.postBlock(postBlockQuery);
 							done();
 						});
 
@@ -1752,7 +1755,7 @@ describe('transport', () => {
 							library.logic.block.objectNormalize = sinonSandbox
 								.stub()
 								.returns(blockMock);
-							transportInstance.shared.postBlock(query);
+							transportInstance.shared.postBlock(postBlockQuery);
 							done();
 						});
 
@@ -1760,7 +1763,7 @@ describe('transport', () => {
 							it('should call modules.blocks.verify.addBlockProperties with query.block', () => {
 								return expect(
 									modules.blocks.verify.addBlockProperties.calledWith(
-										query.block
+										postBlockQuery.block
 									)
 								).to.be.true;
 							});
@@ -2105,18 +2108,21 @@ describe('transport', () => {
 			});
 
 			describe('getSignatures', () => {
-				var req;
+				var getSignaturesReq;
 
 				beforeEach(done => {
-					req = {};
+					getSignaturesReq = {};
 					modules.transactions.getMultisignatureTransactionList = sinonSandbox
 						.stub()
 						.returns(multisignatureTransactionsList);
-					transportInstance.shared.getSignatures(req, (err, res) => {
-						error = err;
-						result = res;
-						done();
-					});
+					transportInstance.shared.getSignatures(
+						getSignaturesReq,
+						(err, res) => {
+							error = err;
+							result = res;
+							done();
+						}
+					);
 				});
 
 				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', () => {
@@ -2147,7 +2153,7 @@ describe('transport', () => {
 
 				describe('when some transactions returned by modules.transactions.getMultisignatureTransactionList are multisignature registration transactions', () => {
 					beforeEach(done => {
-						req = {};
+						getSignaturesReq = {};
 						// Make it so that the first transaction in the list is a multisignature registration transaction.
 						multisignatureTransactionsList[0] = {
 							id: '222675625422353767',
@@ -2166,11 +2172,14 @@ describe('transport', () => {
 						modules.transactions.getMultisignatureTransactionList = sinonSandbox
 							.stub()
 							.returns(multisignatureTransactionsList);
-						transportInstance.shared.getSignatures(req, (err, res) => {
-							error = err;
-							result = res;
-							done();
-						});
+						transportInstance.shared.getSignatures(
+							getSignaturesReq,
+							(err, res) => {
+								error = err;
+								result = res;
+								done();
+							}
+						);
 					});
 
 					it('should call callback with error = null', () => {
