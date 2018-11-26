@@ -20,7 +20,7 @@ const program = require('commander');
 const _ = require('lodash');
 const randomstring = require('randomstring');
 const configSchema = require('../schema/config.js');
-const z_schema = require('./z_schema.js');
+const Z_schema = require('./z_schema.js');
 const deepFreeze = require('./deep_freeze_object.js');
 
 const rootPath = path.dirname(path.resolve(__filename, '..'));
@@ -154,7 +154,7 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		}
 	);
 
-	var validator = new z_schema();
+	var validator = new Z_schema();
 	var valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {

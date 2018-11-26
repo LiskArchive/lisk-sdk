@@ -169,7 +169,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 				it('using non empty object inside array should fail', () => {
 					var scenario = scenarios.incorrectly_offline_signed;
-					scenario.multiSigTransaction.signatures = [new Buffer.from('Duppa')];
+					scenario.multiSigTransaction.signatures = [Buffer.from('Duppa')];
 
 					return sendTransactionPromise(
 						scenario.multiSigTransaction,

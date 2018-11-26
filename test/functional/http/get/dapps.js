@@ -20,14 +20,14 @@ var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 
 const { NORMALIZER } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', () => {
-	var dappsEndpoint = new swaggerEndpoint('GET /dapps');
+	var dappsEndpoint = new SwaggerEndpoint('GET /dapps');
 
 	var transactionsToWaitFor = [];
 

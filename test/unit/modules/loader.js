@@ -127,7 +127,7 @@ describe('loader', () => {
 		let loadBlocksOffsetStub;
 		let resetMemTablesStub;
 		let deleteBlocksAfterHeightStub;
-		let rewiredLoader;
+		let RewiredLoader;
 
 		beforeEach(done => {
 			resetMemTablesStub = sinonSandbox.stub().callsArgWith(0, null, true);
@@ -180,11 +180,11 @@ describe('loader', () => {
 				swagger: { definitions: null },
 			};
 
-			rewiredLoader = rewire('../../../modules/loader.js');
-			__private = rewiredLoader.__get__('__private');
-			rewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
-			new rewiredLoader((err, __loader) => {
-				library = rewiredLoader.__get__('library');
+			RewiredLoader = rewire('../../../modules/loader.js');
+			__private = RewiredLoader.__get__('__private');
+			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
+			new RewiredLoader((__err, __loader) => {
+				library = RewiredLoader.__get__('library');
 				__loader.onBind(modulesStub);
 				done();
 			}, validScope);

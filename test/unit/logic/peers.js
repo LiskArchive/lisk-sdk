@@ -170,7 +170,7 @@ describe('peers', () => {
 
 		it('should return list of peers with maximum lengh determined by limit param', () => {
 			for (let i = 0; i < 100; i++) {
-				peers.upsert(RandomPeer());
+				peers.upsert(new RandomPeer());
 			}
 			return expect(
 				peers.listRandomConnected({ limit: 20 }).length
@@ -179,7 +179,7 @@ describe('peers', () => {
 
 		it('should return list of peers shuffled in random order', () => {
 			for (let i = 0; i < 100; i++) {
-				peers.upsert(RandomPeer());
+				peers.upsert(new RandomPeer());
 			}
 			const firstShuffle = peers.listRandomConnected();
 			const firstShuffleStrings = firstShuffle.map(peer => {

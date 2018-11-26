@@ -19,7 +19,7 @@ var Promise = require('bluebird');
 var lisk = require('lisk-elements').default;
 var apiHelpers = require('../../../../common/helpers/api');
 var randomUtil = require('../../../../common/utils/random');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../../common/swagger_spec');
 var accountFixtures = require('../../../../fixtures/accounts');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
@@ -28,7 +28,7 @@ var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
 		describe('/unprocessed', () => {
-			var UnProcessedEndpoint = new swaggerEndpoint(
+			var UnProcessedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unprocessed' });
 

@@ -74,7 +74,7 @@ describe('db', () => {
 		describe('insertFork()', () => {
 			it('should use the correct SQL with given params', function*() {
 				sinonSandbox.spy(db, 'none');
-				const fork = forksFixtures.Fork();
+				const fork = new forksFixtures.Fork();
 				yield db.delegates.insertFork(fork);
 
 				expect(db.none.firstCall.args[0]).to.eql(delegatesSQL.insertFork);
@@ -82,7 +82,7 @@ describe('db', () => {
 			});
 
 			it('should insert valid fork entry successfully', function*() {
-				const fork = forksFixtures.Fork();
+				const fork = new forksFixtures.Fork();
 				yield db.delegates.insertFork(fork);
 
 				const result = yield db.query('SELECT * from forks_stat');
@@ -107,7 +107,7 @@ describe('db', () => {
 				return expect(result[0].cause).to.be.eql(fork.cause);
 			});
 
-			const fork = forksFixtures.Fork();
+			const fork = new forksFixtures.Fork();
 			Object.keys(fork).forEach(attr => {
 				const params = Object.assign({}, fork);
 				delete params[attr];
@@ -133,9 +133,15 @@ describe('db', () => {
 			});
 
 			it('should return list of delegates for given public keys', function*() {
-				const account1 = accountFixtures.Account({ isDelegate: true });
-				const account2 = accountFixtures.Account({ isDelegate: true });
-				const account3 = accountFixtures.Account({ isDelegate: true });
+				const account1 = new accountFixtures.Account({
+					isDelegate: true,
+				});
+				const account2 = new accountFixtures.Account({
+					isDelegate: true,
+				});
+				const account3 = new accountFixtures.Account({
+					isDelegate: true,
+				});
 
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
@@ -170,7 +176,7 @@ describe('db', () => {
 			it('should return list of duplicate delegates', function*() {
 				const block = seeder.getLastBlock();
 
-				const trs1 = transactionsFixtures.Transaction({
+				const trs1 = new transactionsFixtures.Transaction({
 					blockId: block.id,
 					type: 2,
 				});
@@ -189,7 +195,7 @@ describe('db', () => {
 					)
 				);
 
-				const trs2 = transactionsFixtures.Transaction({
+				const trs2 = new transactionsFixtures.Transaction({
 					blockId: block.id,
 					type: 2,
 				});

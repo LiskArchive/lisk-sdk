@@ -85,7 +85,7 @@ describe('db', () => {
 				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
 
 				const block = seeder.getLastBlock();
-				const transaction = transactionsFixtures.Transaction({
+				const transaction = new transactionsFixtures.Transaction({
 					blockId: block.id,
 					type: transactionTypes.DELEGATE,
 				});
@@ -111,7 +111,7 @@ describe('db', () => {
 				const transactions = [];
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: block.id,
 							type: transactionTypes.DELEGATE,
 						})

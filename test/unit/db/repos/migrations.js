@@ -146,9 +146,9 @@ describe('db', () => {
 			});
 
 			it('should copy mem_accounts2delegates to mem_accounts2u_delegates', function*() {
-				const account = fixtures.accounts.Account();
+				const account = new fixtures.accounts.Account();
 				yield db.accounts.insert(account);
-				const data = fixtures.accounts.Dependent({
+				const data = new fixtures.accounts.Dependent({
 					accountId: account.address,
 				});
 
@@ -166,9 +166,9 @@ describe('db', () => {
 			});
 
 			it('should copy mem_accounts2multisignatures to mem_accounts2u_multisignatures', function*() {
-				const account = fixtures.accounts.Account();
+				const account = new fixtures.accounts.Account();
 				yield db.accounts.insert(account);
-				const data = fixtures.accounts.Dependent({
+				const data = new fixtures.accounts.Dependent({
 					accountId: account.address,
 				});
 

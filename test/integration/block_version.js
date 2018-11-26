@@ -16,7 +16,7 @@
 
 const Promise = require('bluebird');
 const blockVersion = require('../../logic/block_version.js');
-const queriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
 const exceptions = global.exceptions;
@@ -28,7 +28,7 @@ describe('block_version', () => {
 
 	localCommon.beforeBlock('lisk_functional_block_version', lib => {
 		library = lib;
-		Queries = new queriesHelper(lib, lib.db);
+		Queries = new QueriesHelper(lib, lib.db);
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge

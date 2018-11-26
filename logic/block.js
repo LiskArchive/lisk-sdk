@@ -469,6 +469,7 @@ Block.prototype.getId = function(block) {
 		temp[i] = hash[7 - i];
 	}
 
+	// eslint-disable-next-line new-cap
 	const id = new Bignum.fromBuffer(temp).toString();
 	return id;
 };
