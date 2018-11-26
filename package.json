@@ -119,9 +119,12 @@
 		"inquirer": "6.2.0",
 		"lockfile": "1.0.4",
 		"semver": "5.5.1",
-		"strip-ansi": "4.0.0"
+		"strip-ansi": "4.0.0",
+		"tslib": "1.9.3"
 	},
 	"devDependencies": {
+		"@oclif/dev-cli": "1.18.0",
+		"@oclif/test": "1.2.0",
 		"@types/bip39": "2.4.0",
 		"@types/chai": "4.1.5",
 		"@types/chai-as-promised": "7.1.0",
@@ -135,11 +138,10 @@
 		"@types/sinon": "5.0.5",
 		"@types/sinon-chai": "3.2.0",
 		"@types/strip-ansi": "3.0.0",
-		"@oclif/dev-cli": "1.18.0",
-		"@oclif/test": "1.2.0",
 		"chai": "4.1.2",
 		"chai-as-promised": "7.1.1",
 		"coveralls": "3.0.0",
+		"globby": "8.0.1",
 		"husky": "0.14.3",
 		"lint-staged": "5.0.0",
 		"mocha": "4.0.1",

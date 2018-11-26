@@ -30,8 +30,13 @@ describe('base command', () => {
 
 	const printMethodStub = sandbox.stub();
 
+	class BaseExtended extends BaseCommand {
+		async run(): Promise<void> {
+		}
+	}
+
 	const setupTest = () => {
-		const command = new BaseCommand([], {} as any);
+		const command = new BaseExtended([], {} as any);
 		return test
 			.stub(command, 'parse', sandbox.stub().returns({ flags: defaultFlags }))
 			.stub(command, 'error', sandbox.stub())
@@ -78,19 +83,6 @@ describe('base command', () => {
 				'should set the userConfig to the return value of the getConfig',
 				ctx => expect(ctx.command.userConfig).to.equal(defaultConfig),
 			);
-	});
-
-	describe('#run', () => {
-		const errorMsg = 'BaseCommand cannot be run directly.';
-
-		setupTest()
-			.do(async ctx => {
-				return ctx.command.run();
-			})
-			.catch((error: Error) => {
-				return expect(error.message).to.be.equal(errorMsg);
-			})
-			.it('should throw an error if BaseCommand.run is called');
 	});
 
 	describe('#finally', () => {

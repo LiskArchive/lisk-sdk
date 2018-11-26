@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"esModuleInterop": true,
+		"importHelpers": true,
 		"forceConsistentCasingInFileNames": true,
 		"target": "es2017",
 		"module": "commonjs",

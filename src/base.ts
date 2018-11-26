@@ -41,7 +41,7 @@ interface APIConfig {
 
 type UserConfig = PrintFlags & APIConfig;
 
-export default class BaseCommand extends Command {
+export default abstract class BaseCommand extends Command {
 	static flags = {
 		json: flagParser.boolean({
 			char: 'j',
@@ -61,8 +61,6 @@ export default class BaseCommand extends Command {
 			nodes: [],
 		},
 	};
-
-	private readonly name: string = 'BaseCommand';
 
 	async finally(error?: Error | string): Promise<void> {
 		if (error) {
@@ -91,9 +89,5 @@ export default class BaseCommand extends Command {
 			pretty: this.userConfig.pretty,
 			...this.printFlags,
 		}).call(this, result);
-	}
-
-	async run(): Promise<void> {
-		throw new Error(`${this.name} cannot be run directly.`);
 	}
 }
