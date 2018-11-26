@@ -13,7 +13,7 @@
  *
  */
 /* tslint:disable:interface-name */
-import { Logger, PeerState } from './p2p_types';
+import { PeerState } from './p2p_types';
 
 // TODO: Use to create outbound socket connection inside peer object.
 // TODO: const socketClusterClient = require('socketcluster-client');
@@ -21,11 +21,9 @@ import { Logger, PeerState } from './p2p_types';
 export interface IPeerConfig {
 	readonly clock?: Date;
 	readonly height: number;
-	readonly httpPort?: number;
 	readonly id: string;
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
 	readonly ip: string;
-	readonly logger: Logger;
 	readonly os?: string;
 	readonly version?: string;
 	readonly wsPort: number;
