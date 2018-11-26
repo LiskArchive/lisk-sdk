@@ -10,7 +10,7 @@ describe('Queue', () => {
 		queue = new Queue();
 	});
 
-	describe('enqueueOne', () => {
+	describe('#enqueueOne', () => {
 		it('should add transaction to the queue', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
@@ -24,7 +24,7 @@ describe('Queue', () => {
 		});
 	});
 
-	describe('enqueueMany', () => {
+	describe('#enqueueMany', () => {
 		it('should add transactions to the queue', () => {
 			const transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
@@ -42,7 +42,7 @@ describe('Queue', () => {
 		});
 	});
 
-	describe('exists', () => {
+	describe('#exists', () => {
 		it('should return true if transaction exists in queue', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
@@ -55,7 +55,7 @@ describe('Queue', () => {
 		});
 	});
 
-	describe('removeFor', () => {
+	describe('#removeFor', () => {
 		let transactions: ReadonlyArray<Transaction>;
 		const alwaysReturnFalse = () => () => false;
 		const checkIdsExists = (
@@ -131,7 +131,7 @@ describe('Queue', () => {
 		});
 	});
 
-	describe('dequeueUntil', () => {
+	describe('#dequeueUntil', () => {
 		let transactions: ReadonlyArray<Transaction>;
 
 		const returnTrueUntilLimit = (limit: number) => {
