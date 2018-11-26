@@ -16,7 +16,7 @@
 		"url": "https://github.com/LiskHQ/lisk/issues"
 	},
 	"engines": {
-		"node": "8.12.0",
+		"node": "8.13.0",
 		"npm": "6.4.1"
 	},
 	"main": "app.js",
