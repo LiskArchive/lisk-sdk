@@ -39,6 +39,7 @@ __private.loaded = false;
 __private.keypairs = {};
 __private.tmpKeypairs = {};
 __private.forgeInterval = 1000;
+__private.delegatesListCache = {};
 
 /**
  * Main delegates methods. Initializes library with scope content and generates a Delegate instance.
@@ -96,6 +97,47 @@ class Delegates {
 		setImmediate(cb, null, self);
 	}
 }
+
+/**
+ * Caches delegate list for last 2 rounds.
+ *
+ * @private
+ * @param {number} round - Round Number
+ * @param {array} delegatesList - Delegate list
+ * @returns {Void}
+ */
+__private.updateDelegateListCache = function(round, delegatesList) {
+	library.logger.debug('Updating delegate list cache for round', round);
+	__private.delegatesListCache[round] = delegatesList;
+	// We want to cache delegates for only last 2 rounds and get rid of old ones
+	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
+		// sort round numbers in ascending order so we can have most recent 2 rounds at the end of the list.
+		.sort()
+		// delete all round cache except last two rounds.
+		.slice(-2)
+		.reduce((acc, current) => {
+			acc[current] = __private.delegatesListCache[current];
+			return acc;
+		}, {});
+};
+
+/**
+ * Invalidates the cached delegate list.
+ *
+ * @returns {Void}
+ */
+Delegates.prototype.clearDelegateListCache = function() {
+	library.logger.debug('Clearing delegate list cache.');
+	// We want to clear the cache for the latest round but want to keep the cache for previous round.
+	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
+		.sort()
+		// delete all round cache except previous round.
+		.slice(0, 1)
+		.reduce((acc, current) => {
+			acc[current] = __private.delegatesListCache[current];
+			return acc;
+		}, {});
+};
 
 /**
  * Gets delegate public keys sorted by vote descending.
@@ -697,6 +739,11 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 	// Set default function for getting delegates
 	source = source || __private.getKeysSortByVote;
 
+	if (__private.delegatesListCache[round]) {
+		library.logger.debug('Using delegate list from the cache for round', round);
+		return setImmediate(cb, null, __private.delegatesListCache[round]);
+	}
+
 	source((err, truncDelegateList) => {
 		if (err) {
 			return setImmediate(cb, err);
@@ -721,6 +768,7 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 				.digest();
 		}
 
+		__private.updateDelegateListCache(round, truncDelegateList);
 		return setImmediate(cb, null, truncDelegateList);
 	}, tx);
 };
