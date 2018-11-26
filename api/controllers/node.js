@@ -49,7 +49,7 @@ function NodeController(scope) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getConstants = function(context, next) {
+NodeController.getConstants = function(_context, next) {
 	return modules.node.shared.getConstants(null, (err, data) => {
 		try {
 			if (err) {
@@ -86,11 +86,11 @@ NodeController.getConstants = function(context, next) {
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getStatus = function(context, next) {
-	return modules.node.shared.getStatus(null, (err, data) => {
+NodeController.getStatus = function(_context, next) {
+	return modules.node.shared.getStatus(null, (getStatusErr, data) => {
 		try {
-			if (err) {
-				return next(err);
+			if (getStatusErr) {
+				return next(getStatusErr);
 			}
 
 			data = _.cloneDeep(data);
@@ -100,15 +100,17 @@ NodeController.getStatus = function(context, next) {
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 
-			return modules.transactions.shared.getTransactionsCount((err, count) => {
-				if (err) {
-					return next(err);
+			return modules.transactions.shared.getTransactionsCount(
+				(getTransactionsCountErr, count) => {
+					if (getTransactionsCountErr) {
+						return next(getTransactionsCountErr);
+					}
+
+					data.transactions = count;
+
+					return next(null, data);
 				}
-
-				data.transactions = count;
-
-				return next(null, data);
-			});
+			);
 		} catch (error) {
 			return next(error);
 		}

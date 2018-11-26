@@ -53,11 +53,11 @@ function sortBy(sort, options) {
 	var sortMethod;
 
 	if (typeof sort === 'string') {
-		var sortBy = String(sort).split(':');
-		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
+		var varSortBy = String(sort).split(':');
+		sortField = varSortBy[0].replace(/[^\w\s]/gi, '');
 
-		if (sortBy.length === 2) {
-			sortMethod = sortBy[1] === 'desc' ? 'DESC' : 'ASC';
+		if (varSortBy.length === 2) {
+			sortMethod = varSortBy[1] === 'desc' ? 'DESC' : 'ASC';
 		} else {
 			sortMethod = 'ASC';
 		}
@@ -92,15 +92,15 @@ function sortBy(sort, options) {
 	 * @todo Add @returns tag
 	 * @todo Add description for the function
 	 */
-	function prefixField(sortField) {
-		if (!sortField) {
-			return sortField;
+	function prefixField(prefixSortedField) {
+		if (!prefixSortedField) {
+			return prefixSortedField;
 		} else if (typeof options.fieldPrefix === 'string') {
-			return options.fieldPrefix + sortField;
+			return options.fieldPrefix + prefixSortedField;
 		} else if (typeof options.fieldPrefix === 'function') {
-			return options.fieldPrefix(sortField);
+			return options.fieldPrefix(prefixSortedField);
 		}
-		return sortField;
+		return prefixSortedField;
 	}
 
 	/**
@@ -111,11 +111,11 @@ function sortBy(sort, options) {
 	 * @todo Add @returns tag
 	 * @todo Add description for the function
 	 */
-	function quoteField(sortField) {
-		if (sortField && options.quoteField) {
+	function quoteField(quoteSortedField) {
+		if (quoteSortedField && options.quoteField) {
 			return `"${sortField}"`;
 		}
-		return sortField;
+		return quoteSortedField;
 	}
 
 	var emptyWhiteList = options.sortFields.length === 0;

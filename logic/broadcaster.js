@@ -325,7 +325,7 @@ __private.releaseQueue = function(cb) {
 					setImmediate(waterCb, err, broadcasts, peers)
 				);
 			},
-			function broadcast(broadcasts, peers, waterCb) {
+			function broadcasting(broadcasts, peers, waterCb) {
 				async.eachSeries(
 					broadcasts,
 					(broadcast, eachSeriesCb) => {

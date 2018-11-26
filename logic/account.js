@@ -337,7 +337,7 @@ class Account {
 		}
 		delete filter.sort;
 
-		const self = this;
+		const getAllSelf = this;
 
 		(tx || this.scope.db).accounts
 			.list(filter, fields, {
@@ -356,7 +356,7 @@ class Account {
 
 				if (performComputationFor.includes('approval')) {
 					rows.forEach(accountRow => {
-						accountRow.approval = self.calculateApproval(
+						accountRow.approval = getAllSelf.calculateApproval(
 							accountRow.vote,
 							totalSupply
 						);
@@ -365,7 +365,7 @@ class Account {
 
 				if (performComputationFor.includes('productivity')) {
 					rows.forEach(accountRow => {
-						accountRow.productivity = self.calculateProductivity(
+						accountRow.productivity = getAllSelf.calculateProductivity(
 							accountRow.producedBlocks,
 							accountRow.missedBlocks
 						);
@@ -471,11 +471,17 @@ class Account {
 		// Normalize address
 		address = String(address).toUpperCase();
 
-		const self = this;
+		const mergSelf = this;
 
 		// If merge was called without any diff object
 		if (Object.keys(diff).length === 0) {
-			return self.get({ address }, cb, tx);
+			return mergSelf.get(
+				{
+					address,
+				},
+				cb,
+				tx
+			);
 		}
 
 		// Loop through each of updated attribute
@@ -484,12 +490,12 @@ class Account {
 
 			Object.keys(diff).forEach(updatedField => {
 				// Return if updated field is not editable
-				if (!self.editable.includes(updatedField)) {
+				if (!mergSelf.editable.includes(updatedField)) {
 					return;
 				}
 
 				// Get field data type
-				const fieldType = self.conv[updatedField];
+				const fieldType = mergSelf.conv[updatedField];
 				const updatedValue = diff[updatedField];
 
 				// Make execution selection based on field type
@@ -595,8 +601,16 @@ class Account {
 			return dbTx.batch(promises);
 		};
 
-		return (tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
-			.then(() => self.get({ address }, cb, tx))
+		return (tx ? job(tx) : mergSelf.scope.db.tx('logic:account:merge', job))
+			.then(() =>
+				mergSelf.get(
+					{
+						address,
+					},
+					cb,
+					tx
+				)
+			)
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');

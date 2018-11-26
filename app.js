@@ -473,7 +473,7 @@ d.run(() => {
 				var db = require('./db');
 				db
 					.connect(config.db, dbLogger)
-					.then(db => cb(null, db))
+					.then(dbResult => cb(null, dbResult))
 					.catch(err => {
 						console.error(err);
 					});
@@ -594,26 +594,26 @@ d.run(() => {
 
 					async.auto(
 						{
-							bus(cb) {
-								cb(null, scope.bus);
+							bus(busCb) {
+								busCb(null, scope.bus);
 							},
-							config(cb) {
-								cb(null, scope.config);
+							config(configCb) {
+								configCb(null, scope.config);
 							},
-							db(cb) {
-								cb(null, scope.db);
+							db(dbCb) {
+								dbCb(null, scope.db);
 							},
-							ed(cb) {
-								cb(null, scope.ed);
+							ed(edCb) {
+								edCb(null, scope.ed);
 							},
-							logger(cb) {
-								cb(null, logger);
+							logger(loggerCb) {
+								loggerCb(null, logger);
 							},
-							schema(cb) {
-								cb(null, scope.schema);
+							schema(schemaCb) {
+								schemaCb(null, scope.schema);
 							},
-							genesisBlock(cb) {
-								cb(null, scope.genesisBlock);
+							genesisBlock(genesisBlockCb) {
+								genesisBlockCb(null, scope.genesisBlock);
 							},
 							account: [
 								'db',
@@ -622,8 +622,13 @@ d.run(() => {
 								'schema',
 								'genesisBlock',
 								'logger',
-								function(scope, cb) {
-									new Account(scope.db, scope.schema, scope.logger, cb);
+								function(accountScope, accountCb) {
+									new Account(
+										accountScope.db,
+										accountScope.schema,
+										accountScope.logger,
+										accountCb
+									);
 								},
 							],
 							transaction: [
@@ -634,15 +639,15 @@ d.run(() => {
 								'genesisBlock',
 								'account',
 								'logger',
-								function(scope, cb) {
+								function(transactionScope, transactionCb) {
 									new Transaction(
-										scope.db,
-										scope.ed,
-										scope.schema,
-										scope.genesisBlock,
-										scope.account,
-										scope.logger,
-										cb
+										transactionScope.db,
+										transactionScope.ed,
+										transactionScope.schema,
+										transactionScope.genesisBlock,
+										transactionScope.account,
+										transactionScope.logger,
+										transactionCb
 									);
 								},
 							],
@@ -654,15 +659,20 @@ d.run(() => {
 								'genesisBlock',
 								'account',
 								'transaction',
-								function(scope, cb) {
-									new Block(scope.ed, scope.schema, scope.transaction, cb);
+								function(blockScope, blockCb) {
+									new Block(
+										blockScope.ed,
+										blockScope.schema,
+										blockScope.transaction,
+										blockCb
+									);
 								},
 							],
 							peers: [
 								'logger',
 								'config',
-								function(scope, cb) {
-									new Peers(scope.logger, scope.config, cb);
+								function(peersScope, peersCb) {
+									new Peers(peersScope.logger, peersScope.config, peersCb);
 								},
 							],
 						},
@@ -689,32 +699,32 @@ d.run(() => {
 				 * @param {Object} scope
 				 * @param {function} cb - Callback function
 				 */
-				function(scope, cb) {
+				function(modulesScope, modulesCb) {
 					var tasks = {};
 
 					Object.keys(config.modules).forEach(name => {
-						tasks[name] = function(cb) {
-							var d = require('domain').create();
+						tasks[name] = function(configModulescb) {
+							var domain = require('domain').create();
 
-							d.on('error', err => {
-								scope.logger.fatal(`Domain ${name}`, {
+							domain.on('error', err => {
+								modulesScope.logger.fatal(`Domain ${name}`, {
 									message: err.message,
 									stack: err.stack,
 								});
 							});
 
-							d.run(() => {
+							domain.run(() => {
 								logger.debug('Loading module', name);
 								// eslint-disable-next-line import/no-dynamic-require
 								var Klass = require(config.modules[name]);
-								var obj = new Klass(cb, scope);
+								var obj = new Klass(configModulescb, modulesScope);
 								modules.push(obj);
 							});
 						};
 					});
 
 					async.parallel(tasks, (err, results) => {
-						cb(err, results);
+						modulesCb(err, results);
 					});
 				},
 			],
@@ -780,30 +790,30 @@ d.run(() => {
 					return scope.network.server.listen(
 						scope.config.httpPort,
 						scope.config.address,
-						err => {
+						serverListenErr => {
 							scope.logger.info(
 								`Lisk started: ${scope.config.address}:${scope.config.httpPort}`
 							);
 
-							if (!err) {
+							if (!serverListenErr) {
 								if (scope.config.api.ssl.enabled) {
 									return scope.network.https.listen(
 										scope.config.api.ssl.options.port,
 										scope.config.api.ssl.options.address,
-										err => {
+										httpsListenErr => {
 											scope.logger.info(
 												`Lisk https started: ${
 													scope.config.api.ssl.options.address
 												}:${scope.config.api.ssl.options.port}`
 											);
 
-											return cb(err, scope.network);
+											return cb(httpsListenErr, scope.network);
 										}
 									);
 								}
 								return cb(null, scope.network);
 							}
-							return cb(err, scope.network);
+							return cb(serverListenErr, scope.network);
 						}
 					);
 				},
@@ -836,9 +846,9 @@ d.run(() => {
 							setImmediate(cb);
 						}
 					},
-					err => {
-						if (err) {
-							logger.error(err);
+					eachSeriesErr => {
+						if (eachSeriesErr) {
+							logger.error(eachSeriesErr);
 						} else {
 							logger.info('Cleaned up successfully');
 						}

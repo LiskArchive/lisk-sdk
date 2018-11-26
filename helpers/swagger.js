@@ -76,8 +76,8 @@ function getResolvedSwaggerSpec() {
 	var options = {
 		includeInvalid: true,
 		loaderOptions: {
-			processContent(content, callback) {
-				callback(null, YAML.safeLoad(content.text));
+			processContent(processedContent, callback) {
+				callback(null, YAML.safeLoad(processedContent.text));
 			},
 		},
 	};
