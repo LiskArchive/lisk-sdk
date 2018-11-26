@@ -15,9 +15,9 @@
  */
 import os from 'os';
 import { test, expect } from '@oclif/test';
-import BaseCommand, { defaultConfigFolder } from '../src/base';
-import * as configUtils from '../src/utils/config';
-import * as printUtils from '../src/utils/print';
+import BaseCommand, { defaultConfigFolder } from '../../src/base';
+import * as configUtils from '../../src/utils/config';
+import * as printUtils from '../../src/utils/print';
 
 describe('base command', () => {
 	const defaultFlags = {
