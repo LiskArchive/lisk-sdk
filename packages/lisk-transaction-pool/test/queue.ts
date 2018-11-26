@@ -1,26 +1,30 @@
 import { Queue } from '../src/queue';
 import { Transaction } from '../src/transaction_pool';
 import { expect } from 'chai';
-import { transferTransactionInstances } from 'test_data';
+import transactions from '../fixtures/transactions.json';
+import { wrapTransferTransaction } from './utils/add_transaction_functions';
+
+console.log(transactions);
+const transferTransactionInstances = transactions.map(wrapTransferTransaction);
 
 describe('Queue', () => {
 	let queue: Queue;
 
 	beforeEach(() => {
-		queue = new Queue();
+		return (queue = new Queue());
 	});
 
 	describe('#enqueueOne', () => {
 		it('should add transaction to the queue', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
-			expect(queue.transactions).to.include(transaction);
+			return expect(queue.transactions).to.include(transaction);
 		});
 
 		it('should add transaction to the queue index', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
-			expect(queue.index[transaction.id]).to.deep.eq(transaction);
+			return expect(queue.index[transaction.id]).to.deep.equal(transaction);
 		});
 	});
 
@@ -28,7 +32,7 @@ describe('Queue', () => {
 		it('should add transactions to the queue', () => {
 			const transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
-			transactions.forEach((transaction: Transaction) =>
+			return transactions.forEach((transaction: Transaction) =>
 				expect(queue.transactions).to.include(transaction),
 			);
 		});
@@ -36,7 +40,7 @@ describe('Queue', () => {
 		it('should add transactions to the queue index', () => {
 			const transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
-			transactions.forEach((transaction: Transaction) =>
+			return transactions.forEach((transaction: Transaction) =>
 				expect(queue.index[transaction.id]).to.eq(transaction),
 			);
 		});
@@ -46,12 +50,12 @@ describe('Queue', () => {
 		it('should return true if transaction exists in queue', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
-			expect(queue.exists(transaction)).to.equal(true);
+			return expect(queue.exists(transaction)).to.equal(true);
 		});
 
 		it('should return false if transaction does not exist in queue', () => {
 			const transaction = transferTransactionInstances[0];
-			expect(queue.exists(transaction)).to.equal(false);
+			return expect(queue.exists(transaction)).to.equal(false);
 		});
 	});
 
@@ -66,13 +70,13 @@ describe('Queue', () => {
 
 		beforeEach(() => {
 			transactions = transferTransactionInstances;
-			queue.enqueueMany(transactions);
+			return queue.enqueueMany(transactions);
 		});
 
-		it('should not remove any transactions if the condtion fails for all transactions', () => {
+		it('should not remove any transactions if the condition fails for all transactions', () => {
 			const deletedTransactions = queue.removeFor(alwaysReturnFalse());
 			expect(deletedTransactions).to.have.length(0);
-			expect(queue.transactions).to.deep.eq(transactions);
+			return expect(queue.transactions).to.deep.equal(transactions);
 		});
 
 		it('should return removed transactions which pass condition', () => {
@@ -87,11 +91,11 @@ describe('Queue', () => {
 			]);
 
 			const removedTransactions = queue.removeFor(condition);
-			expect(removedTransactions).to.deep.eq([
+			expect(removedTransactions).to.deep.equal([
 				toRemoveTransaction1,
 				toRemoveTransaction2,
 			]);
-			expect(queue.transactions).to.deep.eq(tokeepTransactions);
+			return expect(queue.transactions).to.deep.equal(tokeepTransactions);
 		});
 
 		it('should remove transactions which pass condition', () => {
@@ -106,11 +110,11 @@ describe('Queue', () => {
 			]);
 
 			queue.removeFor(condition);
-			expect(queue.transactions).to.not.contain([
+			expect(queue.transactions).not.to.contain([
 				toRemoveTransaction1,
 				toRemoveTransaction2,
 			]);
-			expect(queue.transactions).to.deep.eq(tokeepTransactions);
+			return expect(queue.transactions).to.deep.equal(tokeepTransactions);
 		});
 
 		it('should remove queue index for transactions which pass condition', () => {
@@ -125,9 +129,9 @@ describe('Queue', () => {
 			]);
 
 			queue.removeFor(condition);
-			expect(queue.index[toRemoveTransaction1.id]).to.not.exist;
-			expect(queue.index[toRemoveTransaction2.id]).to.not.exist;
-			expect(queue.transactions).to.deep.eq(tokeepTransactions);
+			expect(queue.index[toRemoveTransaction1.id]).not.to.exist;
+			expect(queue.index[toRemoveTransaction2.id]).not.to.exist;
+			return expect(queue.transactions).to.deep.equal(tokeepTransactions);
 		});
 	});
 
@@ -142,56 +146,48 @@ describe('Queue', () => {
 
 		beforeEach(() => {
 			transactions = transferTransactionInstances;
-			queue.enqueueMany(transactions);
+			return queue.enqueueMany(transactions);
 		});
 
-		it('should not dequeue any transactions if the condtion fails for first transaction', () => {
+		it('should not dequeue any transactions if the condition fails for first transaction', () => {
 			const dequeuedTransactions = queue.dequeueUntil(returnTrueUntilLimit(0));
 			expect(dequeuedTransactions).to.have.length(0);
-			expect(queue.transactions).to.deep.eq(transactions);
+			return expect(queue.transactions).to.deep.equal(transactions);
 		});
 
 		it('should return dequeued transactions which pass condition', () => {
-			const [secodLastTransaciton, lastTransaction] = transactions.slice(
+			const [secondToLastTransaciton, lastTransaction] = transactions.slice(
 				transactions.length - 2,
 				transactions.length,
 			);
 			const condition = returnTrueUntilLimit(2);
 
 			const dequeuedTransactions = queue.dequeueUntil(condition);
-			expect(dequeuedTransactions).to.deep.eq([
-				secodLastTransaciton,
+			return expect(dequeuedTransactions).to.deep.equal([
+				secondToLastTransaciton,
 				lastTransaction,
 			]);
 		});
 
 		it('should dequeue 2 transactions', () => {
-			const [secodLastTransaciton, lastTransaction] = transactions.slice(
-				transactions.length - 2,
-				transactions.length,
-			);
 			const condition = returnTrueUntilLimit(2);
 
 			queue.dequeueUntil(condition);
-			expect(queue.transactions).to.not.contain([
-				secodLastTransaciton,
-				lastTransaction,
-			]);
-			expect(queue.transactions).to.deep.eq(
+			return expect(queue.transactions).to.deep.equal(
 				transactions.slice(0, transactions.length - 2),
 			);
 		});
 
 		it('should remove queue index for transactions which pass condition', () => {
-			const [secodLastTransaciton, lastTransaction] = transactions.slice(
+			const [secondToLastTransaciton, lastTransaction] = transactions.slice(
 				transactions.length - 2,
 				transactions.length,
 			);
 			const condition = returnTrueUntilLimit(2);
 
 			queue.dequeueUntil(condition);
-			expect(queue.index[lastTransaction.id]).to.not.exist;
-			expect(queue.index[secodLastTransaciton.id]).to.not.exist;
+			expect(queue.index[lastTransaction.id]).not.to.exist;
+			return expect(queue.index[secondToLastTransaciton.id]).not.to.exist;
 		});
 	});
 });
