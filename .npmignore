@@ -1,4 +1,6 @@
 .*
+docker/
+Dockerfile
 docs/
 logs/*
 package/

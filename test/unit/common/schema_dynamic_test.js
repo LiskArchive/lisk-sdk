@@ -43,7 +43,7 @@ SchemaDynamicTest.TEST_STYLE = {
 		try {
 			testFunction(argument);
 		} catch (ex) {
-			cb(ex);
+			return cb(ex);
 		}
 	},
 };

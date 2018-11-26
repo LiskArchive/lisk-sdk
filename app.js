@@ -103,7 +103,7 @@ var workersControllerPath = path.join(__dirname, 'workers_controller');
 process.stdin.resume();
 
 // Read build version from file
-var versionBuild = fs.readFileSync(path.join(__dirname, 'build'), 'utf8');
+var versionBuild = fs.readFileSync(path.join(__dirname, '.build'), 'utf8');
 
 /**
  * Hash of the last git commit.
@@ -804,10 +804,10 @@ d.run(() => {
 										}
 									);
 								} else {
-									cb(null, scope.network);
+									return cb(null, scope.network);
 								}
 							} else {
-								cb(err, scope.network);
+								return cb(err, scope.network);
 							}
 						}
 					);
