@@ -20,46 +20,49 @@
 import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import querystring from 'querystring';
-import { Logger } from './p2p_types';
 import { Peer } from './peer';
+import { PeerTransportError } from './errors';
 
 import socketClusterServer from 'socketcluster-server';
 
 export interface IPeerPoolConfig {
 	readonly blacklistedPeers?: ReadonlyArray<string>;
-	readonly logger: Logger;
+	readonly connectTimeout: number;
 	readonly seedPeers: ReadonlyArray<string>;
+	readonly wsEngine: string;
 }
 
 export class PeerPool extends EventEmitter {
-	public httpServer: Server;
-	public logger: Logger;
-	public newPeers: Map<string, Peer>;
-	public scServer: any;
-	public triedPeers: Map<string, Peer>;
+	private readonly _config: IPeerPoolConfig;
+	private readonly _httpServer: Server;
+	private readonly _newPeers: Map<string, Peer>;
+	private readonly _triedPeers: Map<string, Peer>;
+	private readonly _scServer: any;
 
 	public constructor(config: IPeerPoolConfig) {
 		super();
 
-		this.httpServer = http.createServer();
-		this.scServer = socketClusterServer.attach(this.httpServer);
-		this.newPeers = new Map();
-		this.triedPeers = new Map();
-		this.logger = config.logger;
+		this._config = config;
+		this._httpServer = http.createServer();
+		this._scServer = socketClusterServer.attach(this._httpServer);
+		this._newPeers = new Map();
+		this._triedPeers = new Map();
 
-		this.handleInboundConnections(this.scServer);
+		this._handleInboundConnections(this._scServer);
 	}
 
-	public getNewPeers(): ReadonlyArray<Peer> {
-		return Array.from(this.newPeers.values());
+	public get newPeers(): ReadonlyArray<Peer> {
+		return Array.from(this._newPeers.values());
 	}
 
-	public getTriedPeers(): ReadonlyArray<Peer> {
-		return Array.from(this.triedPeers.values());
+	public get triedPeers(): ReadonlyArray<Peer> {
+		return Array.from(this._triedPeers.values());
 	}
 
 	// TODO: Connect to seed nodes and start discovery process.
 	public async start(): Promise<void> {
+		this._config; // TODO: Connect to seed nodes from this._config
+
 		return Promise.resolve();
 	}
 
@@ -68,41 +71,42 @@ export class PeerPool extends EventEmitter {
 		return Promise.resolve();
 	}
 
-	private addInboundPeerToMaps(peer: Peer): void {
+	private _addInboundPeerToMaps(peer: Peer): void {
 		const peerId: string = peer.getId();
 
-		if (this.triedPeers.has(peerId)) {
-			this.logger.trace(
+		if (this._triedPeers.has(peerId)) {
+			const error: PeerTransportError = new PeerTransportError(
 				`Received inbound connection from peer ${peerId} which is already in our triedPeers map.`,
+				peerId,
 			);
-		} else if (this.newPeers.has(peerId)) {
-			this.logger.trace(
+			this.emit('inboundPeerFail', error);
+		} else if (this._newPeers.has(peerId)) {
+			const error: PeerTransportError = new PeerTransportError(
 				`Received inbound connection from peer ${peerId} which is already in our newPeers map.`,
+				peerId,
 			);
+			this.emit('inboundPeerFail', error);
 		} else {
-			this.logger.trace(`Received inbound connection from new peer ${peerId}`);
-			this.newPeers.set(peerId, peer);
+			this._newPeers.set(peerId, peer);
 			super.emit('newInboundPeer', peer);
 			super.emit('newPeer', peer);
 		}
 	}
 
-	private handleInboundConnections(scServer: any): void {
+	private _handleInboundConnections(scServer: any): void {
 		scServer.on('connection', (socket: any) => {
 			const queryObject: any = querystring.parse(socket.request.url);
 			const peer: Peer = new Peer({
 				clock: new Date(),
 				height: 0,
-				httpPort: queryObject.httpPort,
 				id: `${socket.remoteAddress}:${queryObject.wsPort}`,
 				inboundSocket: socket,
 				ip: socket.remoteAddress,
-				logger: this.logger,
 				os: queryObject.os,
 				version: queryObject.version,
 				wsPort: queryObject.wsPort,
 			});
-			this.addInboundPeerToMaps(peer);
+			this._addInboundPeerToMaps(peer);
 		});
 	}
 }
