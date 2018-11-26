@@ -126,7 +126,7 @@ module.exports = function(configurations, network) {
 			it('sending the required signatures in the keysgroup agreement', () => {
 				return Promise.all(
 					numbers.map(member => {
-						postSignatures(signatures[member][0]).then(() => {
+						return postSignatures(signatures[member][0]).then(() => {
 							return postSignatures(signatures[member][1]);
 						});
 					})

@@ -151,7 +151,7 @@ var middleware = {
 				errors: ['API access blocked.'],
 			});
 		} else {
-			next();
+			return next();
 		}
 	},
 

@@ -275,7 +275,7 @@ class Account {
 		}
 
 		const computedFieldsMap = {};
-		this.computedFields.map(field => {
+		this.computedFields.forEach(field => {
 			computedFieldsMap[field.name] = field.dependentFields;
 		});
 

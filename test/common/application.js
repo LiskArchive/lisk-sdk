@@ -520,7 +520,7 @@ function cleanup(done) {
 			if (typeof module.cleanup === 'function') {
 				module.cleanup(cb);
 			} else {
-				cb();
+				return cb();
 			}
 		},
 		err => {
