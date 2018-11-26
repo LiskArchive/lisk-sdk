@@ -241,7 +241,7 @@ var liskFormats = {
 	parsedInt(value) {
 		if (
 			isNaN(value) ||
-			parseInt(value) !== Number(value) ||
+			parseInt(value).toString() !== String(value) ||
 			isNaN(parseInt(value, 10))
 		) {
 			return false;
