@@ -14,10 +14,11 @@
 
 'use strict';
 
+/* eslint-disable no-unused-vars */
+
 module.exports = {
-	TEXT: 'FILTER_TYPE_TEXT',
-	NUMBER: 'FILTER_TYPE_NUMBER',
-	BOOLEAN: 'FILTER_TYPE_BOOLEAN',
-	BINARY: 'FILTER_TYPE_BINARY',
-	CUSTOM: 'FILTER_TYPE_CUSTOM',
+	default: (value, mode, name, fieldName) => `$\{${name}}`,
+	booleanToInt: (value, mode, name, fieldName) => `$\{${name}}::int`,
+	stringToByte: (value, mode, name, fieldName) =>
+		value ? `DECODE($\{${name}}, 'hex')` : 'NULL',
 };

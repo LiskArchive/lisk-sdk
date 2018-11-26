@@ -15,8 +15,8 @@
 'use strict';
 
 module.exports = {
-	booleanToInt: (value, mode, name, realName) =>
-		`"${realName}" = $\{${name}}::int`,
-	stringToByte: (value, mode, name, realName) =>
-		value ? `"${realName}" = ENCODE(${name}, 'hex')` : null,
+	TEXT: 'FILTER_TYPE_TEXT',
+	NUMBER: 'FILTER_TYPE_NUMBER',
+	BOOLEAN: 'FILTER_TYPE_BOOLEAN',
+	CUSTOM: 'FILTER_TYPE_CUSTOM',
 };
