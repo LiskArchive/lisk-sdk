@@ -196,10 +196,12 @@ describe('rounds', () => {
 			});
 
 			_.each(delegate.array_agg, voter => {
-				const found = _.find(accounts, {
+				const foundAccount = _.find(accounts, {
 					address: voter,
 				});
-				votes = new Bignum(votes).plus(new Bignum(found.balance)).toString();
+				votes = new Bignum(votes)
+					.plus(new Bignum(foundAccount.balance))
+					.toString();
 			});
 			found.vote = votes;
 		});
@@ -780,9 +782,9 @@ describe('rounds', () => {
 			});
 
 			it('delegates list should be equal to one generated at the beginning of round 1', () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
+				const freshLastBlock = library.modules.blocks.lastBlock.get();
 				return generateDelegateListPromise(
-					slots.calcRound(lastBlock.height + 1),
+					slots.calcRound(freshLastBlock.height + 1),
 					null
 				).then(delegatesList => {
 					expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -842,8 +844,8 @@ describe('rounds', () => {
 			});
 
 			it('last block height should be at height 99 after deleting one more block', () => {
-				const lastBlock = library.modules.blocks.lastBlock.get();
-				return expect(lastBlock.height).to.equal(99);
+				const freshLastBlock = library.modules.blocks.lastBlock.get();
+				return expect(freshLastBlock.height).to.equal(99);
 			});
 			// eslint-disable-next-line
 			it('transactions from deleted block should be added back to transaction pool', done => {
@@ -877,8 +879,8 @@ describe('rounds', () => {
 
 			describe('after forging 1 block', () => {
 				it('should unvote expected forger of last block of round (block data)', () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
-					return Queries.getFullBlock(lastBlock.height).then(blocks => {
+					const freshLastBlock = library.modules.blocks.lastBlock.get();
+					return Queries.getFullBlock(freshLastBlock.height).then(blocks => {
 						expect(blocks[0].transactions[0].asset.votes[0]).to.equal(
 							`-${lastBlockForger}`
 						);
@@ -897,9 +899,9 @@ describe('rounds', () => {
 
 			describe('after round finish', () => {
 				it('delegates list should be different than one generated at the beginning of round 1', () => {
-					const lastBlock = library.modules.blocks.lastBlock.get();
+					const freshLastBlock = library.modules.blocks.lastBlock.get();
 					return generateDelegateListPromise(
-						slots.calcRound(lastBlock.height + 1),
+						slots.calcRound(freshLastBlock.height + 1),
 						null
 					).then(delegatesList => {
 						expect(delegatesList).to.not.deep.equal(round.delegatesList);
@@ -919,9 +921,9 @@ describe('rounds', () => {
 			describe('after last block of round is deleted', () => {
 				it('delegates list should be equal to one generated at the beginning of round 1', () => {
 					return deleteLastBlockPromise().then(() => {
-						const lastBlock = library.modules.blocks.lastBlock.get();
+						const freshLastBlock = library.modules.blocks.lastBlock.get();
 						return generateDelegateListPromise(
-							slots.calcRound(lastBlock.height),
+							slots.calcRound(freshLastBlock.height),
 							null
 						).then(delegatesList => {
 							expect(delegatesList).to.deep.equal(round.delegatesList);
@@ -988,27 +990,29 @@ describe('rounds', () => {
 					lastBlock = library.modules.blocks.lastBlock.get();
 					deleteLastBlockPromise()
 						.then(() => {
-							_.each(lastBlock.transactions, transaction => {
+							_.each(lastBlock.transactions, eachTransaction => {
 								// Remove transaction from pool
-								transactionPool.removeUnconfirmedTransaction(transaction.id);
+								transactionPool.removeUnconfirmedTransaction(
+									eachTransaction.id
+								);
 							});
 							lastBlock = library.modules.blocks.lastBlock.get();
 							deleteLastBlockPromise()
 								.then(() => {
-									_.each(lastBlock.transactions, transaction => {
+									_.each(lastBlock.transactions, eachTransaction => {
 										// Remove transaction from pool
 										transactionPool.removeUnconfirmedTransaction(
-											transaction.id
+											eachTransaction.id
 										);
 									});
 									done();
 								})
-								.catch(err => {
-									done(err);
+								.catch(deleteLastBlockPromiseErr => {
+									done(deleteLastBlockPromiseErr);
 								});
 						})
-						.catch(err => {
-							done(err);
+						.catch(unexpectedErr => {
+							done(unexpectedErr);
 						});
 				});
 			});

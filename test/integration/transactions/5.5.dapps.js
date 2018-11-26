@@ -152,9 +152,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 		it('first dapp transactions to arrive should not be included', done => {
 			async.every(
 				badTransactions,
-				(transaction, callback) => {
+				(everyTransaction, callback) => {
 					var filter = {
-						id: transaction.id,
+						id: everyTransaction.id,
 					};
 
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -175,9 +175,9 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 		it('last dapp transactions to arrive should be included', done => {
 			async.every(
 				goodTransactions,
-				(transaction, callback) => {
+				(everyTransaction, callback) => {
 					var filter = {
-						id: transaction.id,
+						id: everyTransaction.id,
 					};
 
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -186,7 +186,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 							.to.have.property('transactions')
 							.which.is.an('Array');
 						expect(res.transactions.length).to.equal(1);
-						expect(res.transactions[0].id).to.equal(transaction.id);
+						expect(res.transactions[0].id).to.equal(everyTransaction.id);
 						callback(null, !err);
 					});
 				},

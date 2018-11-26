@@ -549,9 +549,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return signatureEndpoint
 					.makeRequests(signatureRequests, 200)
 					.then(results => {
-						results.forEach(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						results.forEach(makeRequestsRes => {
+							expect(makeRequestsRes.body.meta.status).to.be.true;
+							expect(makeRequestsRes.body.data.message).to.be.equal(
+								'Signature Accepted'
+							);
 						});
 
 						goodTransactions.push(scenario.multiSigTransaction);
@@ -597,9 +599,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return signatureEndpoint
 						.makeRequests(signatureRequests, 200)
 						.then(results => {
-							results.forEach(res => {
-								expect(res.body.meta.status).to.be.true;
-								expect(res.body.data.message).to.be.equal('Signature Accepted');
+							results.forEach(makeRequestsRes => {
+								expect(makeRequestsRes.body.meta.status).to.be.true;
+								expect(makeRequestsRes.body.data.message).to.be.equal(
+									'Signature Accepted'
+								);
 							});
 
 							goodTransactions.push(multiSigSecondPassphraseTransaction);
@@ -635,9 +639,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return signatureEndpoint
 					.makeRequests(signatureRequests, 200)
 					.then(results => {
-						results.forEach(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						results.forEach(eachRes => {
+							expect(eachRes.body.meta.status).to.be.true;
+							expect(eachRes.body.data.message).to.be.equal(
+								'Signature Accepted'
+							);
 						});
 
 						goodTransactions.push(scenario.multiSigTransaction);
@@ -663,9 +669,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return signatureEndpoint
 					.makeRequests(signatureRequests, 200)
 					.then(results => {
-						results.forEach(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						results.forEach(eachRes => {
+							expect(eachRes.body.meta.status).to.be.true;
+							expect(eachRes.body.data.message).to.be.equal(
+								'Signature Accepted'
+							);
 						});
 
 						goodTransactions.push(scenario.multiSigTransaction);

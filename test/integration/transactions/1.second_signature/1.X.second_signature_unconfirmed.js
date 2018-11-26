@@ -105,8 +105,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							account,
 							dapp,
 							null,
-							transaction => {
-								localCommon.addTransaction(library, transaction, err => {
+							loadedTransaction => {
+								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
 										'Sender does not have a second signature'
 									);
@@ -132,11 +132,15 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							account,
 							dapp,
 							true,
-							transaction => {
-								localCommon.addTransaction(library, transaction, (err, res) => {
-									expect(res).to.equal(transaction.id);
-									done();
-								});
+							loadedTransaction => {
+								localCommon.addTransaction(
+									library,
+									loadedTransaction,
+									(err, res) => {
+										expect(res).to.equal(loadedTransaction.id);
+										done();
+									}
+								);
 							}
 						);
 					});

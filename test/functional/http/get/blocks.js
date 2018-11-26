@@ -39,9 +39,9 @@ describe('GET /blocks', () => {
 	var testBlocksUnder101 = false;
 
 	function expectHeightCheck(res) {
-		res.body.data.forEach(block => {
-			if (block.height === 1) {
-				expect(block.previousBlockId).to.be.empty;
+		res.body.data.forEach(eachBlock => {
+			if (eachBlock.height === 1) {
+				expect(eachBlock.previousBlockId).to.be.empty;
 			}
 		});
 	}
