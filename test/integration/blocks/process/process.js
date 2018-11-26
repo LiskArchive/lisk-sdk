@@ -109,7 +109,7 @@ describe('system test (blocks) - process', () => {
 				if (err) {
 					return done(err);
 				}
-				done();
+				return done();
 			}
 		);
 	});
@@ -213,7 +213,7 @@ describe('system test (blocks) - process', () => {
 
 				blocks.lastBlock.set(loadedBlock);
 				expect(loadedBlock.height).to.equal(2);
-				done();
+				return done();
 			});
 		});
 
@@ -225,7 +225,7 @@ describe('system test (blocks) - process', () => {
 
 				blocks.lastBlock.set(loadedBlock);
 				expect(loadedBlock.height).to.equal(3);
-				done();
+				return done();
 			});
 		});
 	});
@@ -238,7 +238,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 
@@ -251,7 +251,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 
@@ -264,7 +264,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 
@@ -279,7 +279,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 
@@ -292,7 +292,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 
@@ -307,7 +307,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 
@@ -322,7 +322,7 @@ describe('system test (blocks) - process', () => {
 					return done();
 				}
 
-				done(loadedBlock);
+				return done(loadedBlock);
 			});
 		});
 	});

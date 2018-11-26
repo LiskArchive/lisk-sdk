@@ -159,7 +159,7 @@ __private.syncTimer = function() {
 			!self.syncing() &&
 			modules.blocks.lastReceipt.isStale()
 		) {
-			library.sequence.add(
+			return library.sequence.add(
 				sequenceCb => {
 					__private.sync(sequenceCb);
 				},
@@ -170,12 +170,15 @@ __private.syncTimer = function() {
 					return setImmediate(cb);
 				}
 			);
-		} else {
-			return setImmediate(cb);
 		}
+		return setImmediate(cb);
 	}
 
-	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
+	return jobsQueue.register(
+		'loaderSyncTimer',
+		nextSync,
+		__private.syncInterval
+	);
 };
 
 /**
@@ -199,14 +202,16 @@ __private.loadSignatures = function(cb) {
 				});
 			},
 			function(peer, waterCb) {
-				library.logger.log(`Loading signatures from: ${peer.string}`);
+				library.logger.info(`Loading signatures from: ${peer.string}`);
 				peer.rpc.getSignatures((err, res) => {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
-					library.schema.validate(res, definitions.WSSignaturesResponse, err =>
-						setImmediate(waterCb, err, res.signatures)
+					return library.schema.validate(
+						res,
+						definitions.WSSignaturesResponse,
+						err => setImmediate(waterCb, err, res.signatures)
 					);
 				});
 			},
@@ -261,13 +266,13 @@ __private.loadTransactions = function(cb) {
 				});
 			},
 			function(peer, waterCb) {
-				library.logger.log(`Loading transactions from: ${peer.string}`);
+				library.logger.info(`Loading transactions from: ${peer.string}`);
 				peer.rpc.getTransactions((err, res) => {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
-					library.schema.validate(
+					return library.schema.validate(
 						res,
 						definitions.WSTransactionsResponse,
 						err => {
@@ -541,14 +546,14 @@ __private.loadBlockChain = function() {
 							return reload(blocksCount, 'No delegates found');
 						}
 
-						modules.blocks.utils.loadLastBlock((err, block) => {
+						return modules.blocks.utils.loadLastBlock((err, block) => {
 							if (err) {
 								return reload(blocksCount, err || 'Failed to load last block');
 							}
 
 							__private.lastBlock = block;
 
-							__private.validateOwnChain(validateOwnChainError => {
+							return __private.validateOwnChain(validateOwnChainError => {
 								if (validateOwnChainError) {
 									throw validateOwnChainError;
 								}
@@ -740,13 +745,13 @@ __private.validateOwnChain = cb => {
 			return setImmediate(cb, null);
 		}
 
-		validateStartBlock(startBlockError => {
+		return validateStartBlock(startBlockError => {
 			// If start block is invalid can't proceed further
 			if (startBlockError) {
 				return setImmediate(cb, startBlockError);
 			}
 
-			deleteInvalidBlocks(cb);
+			return deleteInvalidBlocks(cb);
 		});
 	});
 };
@@ -873,7 +878,7 @@ __private.loadBlocksFromNetwork = function(cb) {
 						library.logger.info(
 							`Looking for common block with: ${peer.string}`
 						);
-						modules.blocks.process.getCommonBlock(
+						return modules.blocks.process.getCommonBlock(
 							peer,
 							lastBlock.height,
 							(getCommonBlockErr, commonBlock) => {
@@ -1110,29 +1115,35 @@ Loader.prototype.onPeersReady = function() {
 			{
 				loadTransactions(seriesCb) {
 					if (__private.loaded) {
-						async.retry(__private.retries, __private.loadTransactions, err => {
-							if (err) {
-								library.logger.log('Unconfirmed transactions loader', err);
-							}
+						return async.retry(
+							__private.retries,
+							__private.loadTransactions,
+							err => {
+								if (err) {
+									library.logger.error('Unconfirmed transactions loader', err);
+								}
 
-							return setImmediate(seriesCb);
-						});
-					} else {
-						return setImmediate(seriesCb);
+								return setImmediate(seriesCb);
+							}
+						);
 					}
+					return setImmediate(seriesCb);
 				},
 				loadSignatures(seriesCb) {
 					if (__private.loaded) {
-						async.retry(__private.retries, __private.loadSignatures, err => {
-							if (err) {
-								library.logger.log('Signatures loader', err);
-							}
+						return async.retry(
+							__private.retries,
+							__private.loadSignatures,
+							err => {
+								if (err) {
+									library.logger.error('Signatures loader', err);
+								}
 
-							return setImmediate(seriesCb);
-						});
-					} else {
-						return setImmediate(seriesCb);
+								return setImmediate(seriesCb);
+							}
+						);
 					}
+					return setImmediate(seriesCb);
 				},
 			},
 			err => {

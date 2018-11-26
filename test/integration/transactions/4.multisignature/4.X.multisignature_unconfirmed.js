@@ -81,6 +81,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 					);
 				});
 			}
+			return true;
 		});
 	});
 });

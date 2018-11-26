@@ -49,6 +49,8 @@ describe('PUT /node/status/forging', () => {
 							expect(res.body.data[0].forging).to.be.true;
 						});
 				}
+
+				return Promise.resolve();
 			});
 	});
 

@@ -116,6 +116,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 						);
 					});
 				}
+
+				return true;
 			});
 		});
 
@@ -139,6 +141,7 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 						);
 					});
 				}
+				return true;
 			});
 		});
 	});

@@ -109,7 +109,7 @@ describe('mem_accounts protection', () => {
 				return done(err);
 			}
 			db = __db;
-			queries.insertAccount(validAccount, done);
+			return queries.insertAccount(validAccount, done);
 		});
 	});
 

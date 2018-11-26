@@ -190,7 +190,7 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 			var transactionPool = library.rewiredModules.transactions.__get__(
 				'__private.transactionPool'
 			);
-			transactionPool.fillPool(cb);
+			return transactionPool.fillPool(cb);
 		}
 	);
 }

@@ -399,6 +399,8 @@ describe('rounds', () => {
 											}
 										);
 									}
+
+									return true;
 								}
 							);
 						}

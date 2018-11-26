@@ -103,7 +103,7 @@ SCWorker.create({
 					},
 				],
 			},
-			(err, scope) => {
+			(_err, scope) => {
 				scServer.addMiddleware(
 					scServer.MIDDLEWARE_HANDSHAKE_WS,
 					(req, next) => {
@@ -123,7 +123,7 @@ SCWorker.create({
 							}
 							// Pass through the WebSocket MIDDLEWARE_HANDSHAKE_WS successfully, but
 							// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
-							next();
+							return next();
 						});
 					}
 				);
@@ -172,7 +172,7 @@ SCWorker.create({
 						} succeeded`
 					);
 
-					updatePeerConnection(
+					return updatePeerConnection(
 						Rules.UPDATES.INSERT,
 						socket,
 						socket.request.peerObject,

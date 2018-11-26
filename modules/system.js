@@ -180,7 +180,7 @@ System.prototype.getBroadhash = function(cb) {
 		return __private.broadhash;
 	}
 
-	library.db.blocks
+	return library.db.blocks
 		.list({ offset: 0, limit: 5, sortField: 'b_height', sortMethod: 'DESC' })
 		.then(rows => {
 			if (rows.length <= 1) {

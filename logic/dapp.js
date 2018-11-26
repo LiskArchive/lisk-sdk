@@ -190,7 +190,7 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		}
 	}
 
-	(tx || library.db).dapps
+	return (tx || library.db).dapps
 		.getExisting({
 			name: transaction.asset.dapp.name,
 			link: transaction.asset.dapp.link || null,

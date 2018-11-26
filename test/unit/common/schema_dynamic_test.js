@@ -41,7 +41,7 @@ SchemaDynamicTest.TEST_STYLE = {
 	// eslint-disable-next-line object-shorthand
 	THROWABLE: function(testFunction, argument, cb) {
 		try {
-			testFunction(argument);
+			return testFunction(argument);
 		} catch (ex) {
 			return cb(ex);
 		}

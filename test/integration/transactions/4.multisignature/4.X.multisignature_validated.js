@@ -132,6 +132,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 						);
 					});
 				}
+				return true;
 			});
 		});
 	});

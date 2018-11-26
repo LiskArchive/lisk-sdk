@@ -122,7 +122,7 @@ function newRound(cb, baseUrl) {
 		var nextRound = slots.calcRound(height);
 		var blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
-		newBlock(height, blocksToWait, cb);
+		return newBlock(height, blocksToWait, cb);
 	}, baseUrl);
 }
 
@@ -132,7 +132,7 @@ function blocks(blocksToWait, cb, baseUrl) {
 		if (err) {
 			return cb(err);
 		}
-		newBlock(height, blocksToWait, cb, baseUrl);
+		return newBlock(height, blocksToWait, cb, baseUrl);
 	}, baseUrl);
 }
 
@@ -144,7 +144,7 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 	var counter = 1;
 	var target = height + blocksToWait;
 
-	async.doWhilst(
+	return async.doWhilst(
 		cb => {
 			var request = popsicle.get(
 				`${baseUrl || __testContext.baseUrl}/api/node/status`
@@ -168,7 +168,7 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 					counter++
 				);
 				height = res.body.data.height;
-				setTimeout(cb, 1000);
+				return setTimeout(cb, 1000);
 			});
 
 			request.catch(err => {

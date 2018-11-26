@@ -134,7 +134,7 @@ function __init(initScope, done) {
 										callback(null, peer);
 									});
 								}
-								dns.lookup(peer.ip, { family: 4 }, (err, address) => {
+								return dns.lookup(peer.ip, { family: 4 }, (err, address) => {
 									if (err) {
 										console.error(
 											`Failed to resolve peer domain name ${
@@ -143,7 +143,10 @@ function __init(initScope, done) {
 										);
 										return callback(err, peer);
 									}
-									callback(null, Object.assign({}, peer, { ip: address }));
+									return callback(
+										null,
+										Object.assign({}, peer, { ip: address })
+									);
 								});
 							}
 						);
@@ -506,8 +509,12 @@ function __init(initScope, done) {
 							if (initScope.waitForGenesisBlock) {
 								return done(err, scope);
 							}
+
+							return Promise.resolve();
 						});
 					};
+
+					return Promise.resolve();
 				}
 			);
 		});
@@ -518,10 +525,9 @@ function cleanup(done) {
 		currentAppScope.modules,
 		(module, cb) => {
 			if (typeof module.cleanup === 'function') {
-				module.cleanup(cb);
-			} else {
-				return cb();
+				return module.cleanup(cb);
 			}
+			return cb();
 		},
 		err => {
 			if (err) {

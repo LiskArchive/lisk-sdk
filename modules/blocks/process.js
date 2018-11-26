@@ -128,7 +128,7 @@ __private.receiveForkOne = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	async.series(
+	return async.series(
 		[
 			function(seriesCb) {
 				try {
@@ -200,7 +200,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 		library.logger.info('Last block stands');
 		return setImmediate(cb); // Discard received block
 	}
-	async.series(
+	return async.series(
 		[
 			function(seriesCb) {
 				try {
@@ -261,7 +261,7 @@ __private.receiveForkFive = function(block, lastBlock, cb) {
 Process.prototype.getCommonBlock = function(peer, height, cb) {
 	let comparisonFailed = false;
 
-	async.waterfall(
+	return async.waterfall(
 		[
 			function(waterCb) {
 				// Get IDs sequence (comma separated list)
@@ -303,7 +303,7 @@ Process.prototype.getCommonBlock = function(peer, height, cb) {
 					);
 				}
 				// Validate remote peer response via schema
-				library.schema.validate(common, definitions.CommonBlock, err => {
+				return library.schema.validate(common, definitions.CommonBlock, err => {
 					if (err) {
 						return setImmediate(waterCb, err[0].message);
 					}
@@ -393,12 +393,16 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 
 					if (block.id === library.genesisBlock.block.id) {
 						// Apply block - saveBlock: false
-						modules.blocks.chain.applyGenesisBlock(block, err =>
+						return modules.blocks.chain.applyGenesisBlock(block, err =>
 							setImmediate(eachBlockSeriesCb, err)
 						);
-					} else {
-						// Process block - broadcast: false, saveBlock: false
-						modules.blocks.verify.processBlock(block, false, false, err => {
+					}
+					// Process block - broadcast: false, saveBlock: false
+					return modules.blocks.verify.processBlock(
+						block,
+						false,
+						false,
+						err => {
 							if (err) {
 								library.logger.debug('Block processing failed', {
 									id: block.id,
@@ -408,8 +412,8 @@ Process.prototype.loadBlocksOffset = function(limit, offset, cb) {
 								});
 							}
 							return setImmediate(eachBlockSeriesCb, err);
-						});
-					}
+						}
+					);
 				},
 				err => setImmediate(cb, err, modules.blocks.lastBlock.get())
 			);
@@ -467,7 +471,7 @@ Process.prototype.loadBlocksFromPeer = function(peer, cb) {
 			return setImmediate(seriesCb);
 		}
 		// Iterate over received blocks, normalize block first...
-		async.eachSeries(
+		return async.eachSeries(
 			modules.blocks.utils.readDbRows(blocks),
 			(block, eachSeriesCb) => {
 				if (modules.blocks.isCleaning.get()) {
@@ -554,7 +558,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 					// Check transaction depends on type
 					if (library.logic.transaction.ready(transaction, sender)) {
 						// Verify transaction
-						library.logic.transaction.verify(
+						return library.logic.transaction.verify(
 							transaction,
 							sender,
 							null,
@@ -567,9 +571,8 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 							},
 							null
 						);
-					} else {
-						return setImmediate(cb);
 					}
+					return setImmediate(cb);
 				}
 			);
 		},
@@ -593,7 +596,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 			}
 
 			// Start block processing - broadcast: true, saveBlock: true
-			modules.blocks.verify.processBlock(block, true, true, cb);
+			return modules.blocks.verify.processBlock(block, true, true, cb);
 		}
 	);
 };
@@ -652,7 +655,7 @@ Process.prototype.onReceiveBlock = function(block) {
 	}
 
 	// Execute in sequence via sequence
-	library.sequence.add(cb => {
+	return library.sequence.add(cb => {
 		// Get the last block
 		const lastBlock = modules.blocks.lastBlock.get();
 

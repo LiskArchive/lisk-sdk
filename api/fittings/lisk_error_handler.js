@@ -80,6 +80,6 @@ module.exports = function create(fittingDef) {
 		context.headers['Content-Type'] = 'application/json';
 		Object.defineProperty(err, 'message', { enumerable: true }); // Include message property in response
 		delete context.error;
-		next(null, JSON.stringify(err));
+		return next(null, JSON.stringify(err));
 	};
 };

@@ -258,7 +258,7 @@ var modulesLoader = new function() {
 				return cb(err);
 			}
 
-			moduleConstructor(Klass, _.merge(this.scope, { db }, scope), cb);
+			return moduleConstructor(Klass, _.merge(this.scope, { db }, scope), cb);
 		});
 	};
 
@@ -271,7 +271,7 @@ var modulesLoader = new function() {
 		if (this.db) {
 			return cb(null, this.db);
 		}
-		database
+		return database
 			.connect(this.scope.config.db, this.logger)
 			.then(db => {
 				this.db = db;
@@ -299,7 +299,11 @@ var modulesLoader = new function() {
 				if (err) {
 					return cb(err, __cache);
 				}
-				this.initModule(Cache, _.merge(this.scope, { cache: __cache }), cb);
+				return this.initModule(
+					Cache,
+					_.merge(this.scope, { cache: __cache }),
+					cb
+				);
 			}
 		);
 	};
