@@ -1,19 +1,19 @@
-import { Transaction } from  './transaction_pool';
+import { Transaction } from './transaction_pool';
 
 interface QueueIndex {
 	[index: string]: Transaction;
-};
+}
 
 interface RemoveForReduceObject {
-	readonly effected: Transaction[];
-	readonly uneffected: Transaction[];
-};
+	readonly affected: Transaction[];
+	readonly unaffected: Transaction[];
+}
 
 interface dequeueUntilReduceObject {
-	readonly effected: Transaction[];
-	readonly uneffected: Transaction[];
+	readonly affected: Transaction[];
+	readonly unaffected: Transaction[];
 	readonly conditionFailedOnce: boolean;
-};
+}
 
 export class Queue {
 	private _index: QueueIndex;
@@ -24,7 +24,7 @@ export class Queue {
 	}
 
 	public get index(): QueueIndex {
-		return this._index
+		return this._index;
 	}
 
 	public constructor() {
@@ -32,34 +32,42 @@ export class Queue {
 		this._index = {};
 	}
 
-	public dequeueUntil(condition: (transaction: Transaction) => boolean): ReadonlyArray<Transaction> {
-		const { effected, uneffected } = this._transactions.reduceRight(({effected, uneffected, conditionFailedOnce}: dequeueUntilReduceObject, transaction: Transaction) => {
-			// Add transaction to the uneffected list if the condition failed for this transaction or any previous transaction
-			if (conditionFailedOnce || !condition(transaction)) {
+	public dequeueUntil(
+		condition: (transaction: Transaction) => boolean,
+	): ReadonlyArray<Transaction> {
+		const { affected, unaffected } = this._transactions.reduceRight(
+			(
+				{ affected, unaffected, conditionFailedOnce }: dequeueUntilReduceObject,
+				transaction: Transaction,
+			) => {
+				// Add transaction to the unaffected list if the condition failed for this transaction or any previous transaction
+				if (conditionFailedOnce || !condition(transaction)) {
+					return {
+						affected,
+						unaffected: [transaction, ...unaffected],
+						conditionFailedOnce: true,
+					};
+				}
+
+				// delete the index of the transaction which passed the condition
+				delete this._index[transaction.id];
+
 				return {
-					effected,
-					uneffected: [transaction, ...uneffected],
-					conditionFailedOnce: true,
+					affected: [transaction, ...affected],
+					unaffected,
+					conditionFailedOnce: false,
 				};
-			}
-
-			// delete the index of the transaction which passed the condition
-			delete this._index[transaction.id];
-
-			return {
-				effected: [transaction, ...effected],
-				uneffected,
+			},
+			{
+				affected: [],
+				unaffected: [],
 				conditionFailedOnce: false,
-			};
-		}, {
-			effected: [],
-			uneffected: [],
-			conditionFailedOnce: false
-		});
+			},
+		);
 
-		this._transactions = uneffected;
+		this._transactions = unaffected;
 
-		return effected;
+		return affected;
 	}
 
 	public enqueueMany(transactions: ReadonlyArray<Transaction>): void {
@@ -79,20 +87,25 @@ export class Queue {
 		return !!this._index[transaction.id];
 	}
 
-	public removeFor(condition: (transaction: Transaction) => boolean): ReadonlyArray<Transaction> {
-		const { uneffected, effected } = this._transactions.reduce((reduceObject: RemoveForReduceObject, transaction: Transaction) => {
-			if (condition(transaction)) {
-				reduceObject.effected.push(transaction)
-				// tslint:disable-next-line
-				delete this._index[transaction.id];
-			} else {
-				reduceObject.uneffected.push(transaction);
-			}
+	public removeFor(
+		condition: (transaction: Transaction) => boolean,
+	): ReadonlyArray<Transaction> {
+		const { unaffected, affected } = this._transactions.reduce(
+			(reduceObject: RemoveForReduceObject, transaction: Transaction) => {
+				if (condition(transaction)) {
+					reduceObject.affected.push(transaction);
+					// tslint:disable-next-line
+					delete this._index[transaction.id];
+				} else {
+					reduceObject.unaffected.push(transaction);
+				}
 
-			return reduceObject;
-		}, {uneffected: [], effected: []});
-		this._transactions = uneffected;
+				return reduceObject;
+			},
+			{ unaffected: [], affected: [] },
+		);
+		this._transactions = unaffected;
 
-		return effected;
+		return affected;
 	}
 }
