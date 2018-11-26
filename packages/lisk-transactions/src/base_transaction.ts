@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-// tslint:disable member-ordering
 import cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { TransactionError } from './errors';

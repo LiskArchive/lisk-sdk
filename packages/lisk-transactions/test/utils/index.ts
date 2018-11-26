@@ -22,8 +22,10 @@ import {
 	getTransactionBytes,
 	getTransactionHash,
 	getTransactionId,
+	prepareTransaction,
 	prependMinusToPublicKeys,
 	prependPlusToPublicKeys,
+	signRawTransaction,
 	signTransaction,
 	multiSignTransaction,
 	verifyTransaction,
@@ -70,12 +72,20 @@ describe('transaction utils', () => {
 			return expect(getTransactionId).to.be.a('function');
 		});
 
+		it('should have prepareTransaction', () => {
+			return expect(prepareTransaction).to.be.a('function');
+		});
+
 		it('should have prependMinusToPublicKeys', () => {
 			return expect(prependMinusToPublicKeys).to.be.a('function');
 		});
 
 		it('should have prependPlusToPublicKeys', () => {
 			return expect(prependPlusToPublicKeys).to.be.a('function');
+		});
+
+		it('should have signRawTransaction', () => {
+			return expect(signRawTransaction).to.be.a('function');
 		});
 
 		it('should have signTransaction', () => {

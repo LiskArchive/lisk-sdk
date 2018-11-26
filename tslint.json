@@ -9,6 +9,7 @@
 		"completed-docs": false,
 		"file-name-casing": false,
 		"interface-name": [true, "never-prefix"],
+		"member-ordering": false,
 		"no-class": false,
 		"no-delete": true,
 		"no-expression-statement": false,

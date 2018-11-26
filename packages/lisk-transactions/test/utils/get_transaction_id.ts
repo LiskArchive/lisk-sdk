@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { getTransactionId } from '../../src/utils';
-import { BaseTransaction } from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
 // Require is used for stubbing
 const utils = require('../../src/utils');
 
@@ -39,7 +39,7 @@ describe('#getTransactionId', () => {
 	});
 
 	it('should return an id of 13987348420913138422 for a transaction', () => {
-		const transaction: BaseTransaction = {
+		const transaction: unknown = {
 			type: 0,
 			amount: defaultAmount,
 			fee: '0',
@@ -49,7 +49,7 @@ describe('#getTransactionId', () => {
 			senderPublicKey: defaultPublicKey,
 			signature: defaultSignature,
 		};
-		const id = getTransactionId(transaction);
+		const id = getTransactionId(transaction as TransactionJSON);
 
 		return expect(id).to.be.equal(defaultTransactionId);
 	});

@@ -25,7 +25,7 @@ import fixtureTransactions from '../../fixtures/transactions.json';
 import { TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 // Require is used for stubbing
-const validTransactions = fixtureTransactions as ReadonlyArray<TransactionJSON>;
+const validTransactions = fixtureTransactions as unknown as ReadonlyArray<TransactionJSON>;
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {
@@ -44,7 +44,7 @@ describe('signAndVerify module', () => {
 			'hex',
 		);
 
-		let defaultTransaction: PartialTransaction;
+		let defaultTransaction: TransactionJSON;
 		let cryptoSignDataStub: sinon.SinonStub;
 		let cryptoVerifyDataStub: sinon.SinonStub;
 		let getTransactionHashStub: sinon.SinonStub;
@@ -53,7 +53,10 @@ describe('signAndVerify module', () => {
 			defaultTransaction = {
 				type: 0,
 				amount: '1000',
+				fee: '1',
 				recipientId: '58191285901858109L',
+				recipientPublicKey: '',
+				senderId: '',
 				timestamp: 141738,
 				asset: {},
 				id: '13987348420913138422',
@@ -73,11 +76,11 @@ describe('signAndVerify module', () => {
 		});
 
 		describe('#signTransaction', () => {
-			let transaction: BaseTransaction;
+			let transaction: TransactionJSON;
 			let signature: string;
 
 			beforeEach(() => {
-				transaction = { ...defaultTransaction } as BaseTransaction;
+				transaction = { ...defaultTransaction } as TransactionJSON;
 				signature = signTransaction(transaction, defaultPassphrase);
 				return Promise.resolve();
 			});
@@ -106,7 +109,7 @@ describe('signAndVerify module', () => {
 				'hex',
 			);
 
-			let multiSignatureTransaction: BaseTransaction;
+			let multiSignatureTransaction: TransactionJSON;
 			let signature: string;
 
 			beforeEach(() => {
@@ -123,7 +126,7 @@ describe('signAndVerify module', () => {
 					signSignature:
 						'508a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					id: '13987348420913138422',
-				} as BaseTransaction;
+				} as TransactionJSON;
 				getTransactionHashStub.returns(defaultMultisignatureHash);
 				signature = multiSignTransaction(
 					multiSignatureTransaction,
@@ -154,14 +157,14 @@ describe('signAndVerify module', () => {
 		});
 
 		describe('#verifyTransaction', () => {
-			let transaction: BaseTransaction;
+			let transaction: TransactionJSON;
 
 			describe('with a single signed transaction', () => {
 				beforeEach(() => {
 					transaction = {
 						...defaultTransaction,
 						signature: defaultSignature,
-					} as BaseTransaction;
+					} as TransactionJSON;
 					return Promise.resolve();
 				});
 
@@ -206,7 +209,7 @@ describe('signAndVerify module', () => {
 						...defaultTransaction,
 						signature: defaultSignature,
 						signSignature: defaultSecondSignature,
-					} as BaseTransaction;
+					} as TransactionJSON;
 					return getTransactionHashStub
 						.onFirstCall()
 						.returns(

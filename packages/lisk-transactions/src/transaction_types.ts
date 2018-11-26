@@ -53,6 +53,10 @@ export interface TransactionJSON {
 	readonly type: number;
 }
 
+type Partial<T> = { [P in keyof T]?: T[P] };
+
+export type PartialTransaction = Partial<TransactionJSON>;
+
 export type TransactionAsset =
 	| TransferAsset
 	| SecondSignatureAsset
