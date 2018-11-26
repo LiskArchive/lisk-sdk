@@ -202,7 +202,7 @@ __private.loadSignatures = function(cb) {
 				});
 			},
 			function(peer, waterCb) {
-				library.logger.log(`Loading signatures from: ${peer.string}`);
+				library.logger.info(`Loading signatures from: ${peer.string}`);
 				peer.rpc.getSignatures((err, res) => {
 					if (err) {
 						modules.peers.remove(peer);
@@ -266,7 +266,7 @@ __private.loadTransactions = function(cb) {
 				});
 			},
 			function(peer, waterCb) {
-				library.logger.log(`Loading transactions from: ${peer.string}`);
+				library.logger.info(`Loading transactions from: ${peer.string}`);
 				peer.rpc.getTransactions((err, res) => {
 					if (err) {
 						modules.peers.remove(peer);
@@ -1120,7 +1120,7 @@ Loader.prototype.onPeersReady = function() {
 							__private.loadTransactions,
 							err => {
 								if (err) {
-									library.logger.log('Unconfirmed transactions loader', err);
+									library.logger.error('Unconfirmed transactions loader', err);
 								}
 
 								return setImmediate(seriesCb);
@@ -1136,7 +1136,7 @@ Loader.prototype.onPeersReady = function() {
 							__private.loadSignatures,
 							err => {
 								if (err) {
-									library.logger.log('Signatures loader', err);
+									library.logger.error('Signatures loader', err);
 								}
 
 								return setImmediate(seriesCb);
