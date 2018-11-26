@@ -12,12 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:no-console */
 import { expect } from 'chai';
 
 import { PeerConfig, Peer } from '../../src';
 
-describe('#Peer test', () => {
+describe('peer', () => {
 	const defaultPeerConfig: PeerConfig = {
 		ip: '12.12.12.12',
 		wsPort: 5001,
@@ -25,7 +24,7 @@ describe('#Peer test', () => {
 	};
 
 	const defaultPeer = new Peer(defaultPeerConfig);
-	describe('create an Peer instance', () => {
+	describe('#constructor', () => {
 		it('should be an object', () => {
 			return expect(defaultPeer).to.be.an('object');
 		});
@@ -35,7 +34,7 @@ describe('#Peer test', () => {
 				.and.be.instanceof(Peer);
 		});
 	});
-	describe('sets and gets a property of a peer', () => {
+	describe('#instanceProperties', () => {
 		it('should set and gets height property', () => {
 			defaultPeer.Height = 100000;
 			return expect(defaultPeer.Height)

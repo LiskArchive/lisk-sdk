@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+/* tslint:disable: variable-name */
 export interface PeerConfig {
 	readonly clock?: Date;
 	readonly height: number;
@@ -25,29 +25,29 @@ export interface PeerConfig {
 }
 
 export class Peer {
-	private height: number;
-	private readonly ip: string;
-	private wsPort: number;
+	private _height: number;
+	private readonly _ip: string;
+	private _wsPort: number;
 
 	public constructor(peerConfig: PeerConfig) {
-		this.height = peerConfig.height;
-		this.ip = peerConfig.ip;
-		this.wsPort = peerConfig.wsPort;
+		this._height = peerConfig.height;
+		this._ip = peerConfig.ip;
+		this._wsPort = peerConfig.wsPort;
 	}
 
 	public get Height(): number {
-		return this.height;
+		return this._height;
 	}
 	public set Height(height: number) {
-		this.height = height;
+		this._height = height;
 	}
 	public get Ip(): string {
-		return this.ip;
+		return this._ip;
 	}
 	public get WsPort(): number {
-		return this.wsPort;
+		return this._wsPort;
 	}
 	public set WsPort(wsPort: number) {
-		this.wsPort = wsPort;
+		this._wsPort = wsPort;
 	}
 }

@@ -12,6 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { P2P, PeerReturnType, PeerOptions, selectPeers } from './p2p';
-export { PeerConfig, Peer } from './peer';
-export { NotEnoughPeersError } from './errors';
+export * from './helpers';
+export * from './p2p';
+export * from './peer';
