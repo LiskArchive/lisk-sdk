@@ -14,10 +14,13 @@
 
 'use strict';
 
-module.exports = {
-	Block: require('./block'),
-	Account: require('./account'),
-	Delegate: require('./delegate'),
-	Transaction: require('./transaction'),
-	BaseEntity: require('./base_entity'),
-};
+const Account = require('./account');
+
+class Delegate extends Account {
+	constructor() {
+		super({ isDelegate: true });
+		this.defaultOptions.fieldSet = Account.prototype.FIELD_SET_FULL;
+	}
+}
+
+module.exports = Delegate;

@@ -15,7 +15,13 @@
 'use strict';
 
 const path = require('path');
-const { BaseEntity, Account, Block, Transaction } = require('./entities');
+const {
+	BaseEntity,
+	Account,
+	Delegate,
+	Block,
+	Transaction,
+} = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
 
 class Storage {
@@ -57,6 +63,7 @@ class Storage {
 					Transaction: new Transaction(),
 					Block: new Block(),
 					Account: new Account(),
+					Delegate: new Delegate(),
 				};
 			}
 
