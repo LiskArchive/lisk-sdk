@@ -14,16 +14,13 @@
 
 'use strict';
 
-const _ = require('lodash');
-const {
-	ImplementationPendingError,
-	NonSupportedFilterTypeError,
-} = require('../errors');
-const filterTypes = require('./filter_types');
+const { ImplementationPendingError } = require('../errors');
+const filterTypes = require('../utils/filter_types');
+const Field = require('../utils/field');
+const { filterGenerator } = require('../utils/filters');
 
 class BaseEntity {
 	constructor() {
-		this.defaultFieldSet = null;
 		this.fields = {};
 		this.filters = {};
 	}
@@ -131,7 +128,7 @@ class BaseEntity {
 	 * @param {string} name - Name of the field
 	 * @param {string} type - JSON-Schema type
 	 * @param {Object} [options={}]
-	 * @param {string} [options.realName] - Real name of the field
+	 * @param {string} [options.fieldName] - Real name of the field
 	 * @param {string} [options.filter] - Filter type
 	 * @param {string} [options.filterCondition] - Filter condition
 	 * @param {string} [options.format] - JSON-Schema format for provided type
@@ -141,61 +138,37 @@ class BaseEntity {
 	addField(name, type, options, writer) {
 		// TODO: The dynamic generated json-schema should be implemented for validation
 
-		this.fields[name] = {
-			type,
-			realName: options.realName || name,
-			writer:
-				writer ||
-				((value, mode, name, realName) => `"${realName}" = $\{${name}}`),
-		};
+		this.fields[name] = new Field(name, type, options, writer);
 
-		if (options.filter) {
-			this.addFilter(
-				name,
-				options.filter,
-				_.pick(
-					{
-						realName: options.realName,
-						condition: options.filterCondition,
-					},
-					_.identity
-				)
-			);
-		}
+		this.filters = Object.assign(
+			{},
+			this.filters,
+			this.fields[name].getFilters()
+		);
 	}
 
 	getUpdateSet(data) {
 		return this.adapter.parseQueryComponent(
 			Object.keys(data)
-				.map(key =>
-					this.fields[key].writer.call(
-						null,
+				.map(key => {
+					const field = this.fields[key];
+					return `"${field.fieldName}" = ${field.serializeValue(
 						data[key],
-						'update',
-						key,
-						this.fields[key].realName
-					)
-				)
+						'update'
+					)}`;
+				})
 				.join(','),
 			data
 		);
 	}
 
 	getValuesSet(data) {
-		return this.adapter.parseQueryComponent(
+		return `(${this.adapter.parseQueryComponent(
 			Object.keys(data)
-				.map(key => {
-					this.fields[key].writer.call(
-						null,
-						data[key],
-						'insert',
-						key,
-						this.fields[key].realName
-					);
-				})
+				.map(key => this.fields[key].serializeValue(data[key], 'insert'))
 				.join(','),
 			data
-		);
+		)})`;
 	}
 
 	/**
@@ -220,76 +193,23 @@ class BaseEntity {
 	 * @param {string} filterName
 	 * @param {string} filterType
 	 * @param {Object} options
-	 * @param {string} [options.realName] - Actual name of the field
+	 * @param {string} [options.fieldName] - Actual name of the field
 	 * @param {string} [options.condition] - custom condition in case of CUSTOM filter type
+	 * @param {Function} [options.inputSerializer] - Method to serialize the value to SQL
 	 */
 	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
 		// TODO: The dynamic generated json-schema for filters should be implemented for validation
 
-		const fieldName = options.realName || filterName;
-
-		const setFilter = (filterAlias, condition) => {
-			this.filters[filterAlias] = condition;
-		};
-
-		/* eslint-disable no-useless-escape */
-		switch (filterType) {
-			case filterTypes.BOOLEAN:
-				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_ne`, `"${fieldName}" <> $\{${filterName}\}`);
-				break;
-
-			case filterTypes.TEXT:
-				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_ne`, `"${fieldName}" <> $\{${filterName}\}`);
-				setFilter(
-					`${filterName}_in`,
-					`"${filterName}" IN ($\{${filterName}_in:csv\})`
-				);
-				setFilter(
-					`${filterName}_like`,
-					`"${filterName}" LIKE $\{${filterName}_like\}`
-				);
-				break;
-
-			case filterTypes.NUMBER:
-				setFilter(filterName, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_eql`, `"${fieldName}" = $\{${filterName}\}`);
-				setFilter(`${filterName}_ne`, `"${fieldName}" <> $\{${filterName}\}`);
-				setFilter(`${filterName}_gt`, `"${fieldName}" > $\{${filterName}\}`);
-				setFilter(`${filterName}_gte`, `"${fieldName}" >= $\{${filterName}\}`);
-				setFilter(`${filterName}_lt`, `"${fieldName}" < $\{${filterName}\}`);
-				setFilter(`${filterName}_lte`, `"${fieldName}" <= $\{${filterName}\}`);
-				setFilter(
-					`${filterName}_in`,
-					`"${filterName}" IN ($\{${filterName}_in:csv\})`
-				);
-				break;
-
-			case filterTypes.BINARY:
-				setFilter(
-					filterName,
-					`"${fieldName}" = DECODE($\{${filterName}\}, 'hex')`
-				);
-				setFilter(
-					`${filterName}_eql`,
-					`"${fieldName}" = DECODE($\{${filterName}\}, 'hex')`
-				);
-				setFilter(
-					`${filterName}_ne`,
-					`"${fieldName}" <> DECODE($\{${filterName}\}, 'hex')`
-				);
-				break;
-
-			case filterTypes.CUSTOM:
-				setFilter(filterName, options.condition);
-				break;
-
-			default:
-				throw new NonSupportedFilterTypeError(filterType);
-		}
+		this.filters = Object.assign(
+			this.filters,
+			filterGenerator(
+				filterType,
+				filterName,
+				options.fieldName || filterName,
+				options.inputSerializer,
+				options.condition
+			)
+		);
 	}
 
 	parseFilters(filters) {

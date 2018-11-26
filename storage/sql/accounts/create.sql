@@ -13,29 +13,7 @@
  */
 
 INSERT INTO mem_accounts (
-	"address", "publicKey", "secondPublicKey",
-	"secondSignature",  "u_secondSignature",
-	"username", "u_username",
-	"isDelegate", "u_isDelegate",
-	"balance", "u_balance",
-	"delegates", "u_delegates",
-	"missedBlocks", "producedBlocks",
-	"rank", "fees", "rewards", "vote",
-	"nameexist", "u_nameexist",
-	"multimin", "u_multimin",
-	"multilifetime", "u_multilifetime",
-	"multisignatures", "u_multisignatures"
-) VALUES (
-	${address}, ${publicKey}, ${publicKey},
-	${secondSignature}, ${u_secondSignature},
-	${username}, ${u_username},
-	${isDelegate}, ${u_isDelegate},
-	${balance}, ${u_balance},
-	${delegates}, ${u_delegates},
-	${missedBlocks}, ${producedBlocks},
-	${rank}, ${fees}, ${rewards}, ${vote},
-	${nameExist}, ${u_nameExist},
-	${multiMin}, ${u_multiMin},
-	${multiLifetime}, ${u_multiLifetime},
-	${multiSignatures}, ${u_multiSignatures}
-);
+	${attributes:raw}
+) VALUES
+	${createSet:raw}
+;

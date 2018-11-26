@@ -15,20 +15,20 @@
 'use strict';
 
 const _ = require('lodash');
-const { stringToByte, booleanToInt } = require('../utils/writers');
+const { stringToByte, booleanToInt } = require('../utils/inputSerialzers');
 const { NonSupportedFilterTypeError } = require('../errors');
-const ft = require('./filter_types');
+const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 const defaultCreateValues = {
 	publicKey: null,
-	secondPublicKey: '',
+	secondPublicKey: null,
 	secondSignature: 0,
 	u_secondSignature: 0,
 	username: null,
 	u_username: null,
-	isDelegate: 0,
-	u_isDelegate: 0,
+	isDelegate: false,
+	u_isDelegate: false,
 	balance: '0',
 	u_balance: '0',
 	delegates: null,
@@ -70,9 +70,9 @@ const readOnlyFields = ['address'];
  * @property {string} [username_ne]
  * @property {string} [username_in]
  * @property {string} [username_like]
- * @property {string} [isDelegate]
- * @property {string} [isDelegate_eql]
- * @property {string} [isDelegate_ne]
+ * @property {Boolean} [isDelegate]
+ * @property {Boolean} [isDelegate_eql]
+ * @property {Boolean} [isDelegate_ne]
  * @property {string} [secondSignature]
  * @property {string} [secondSignature_eql]
  * @property {string} [secondSignature_ne]
@@ -155,16 +155,22 @@ const readOnlyFields = ['address'];
  */
 
 class Account extends BaseEntity {
-	constructor() {
+	/**
+	 * Constructor
+	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
+	 */
+	constructor(defaultFilters = {}) {
 		super();
+
+		this.defaultFilters = defaultFilters;
 
 		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });
 		this.addField(
 			'publicKey',
 			'string',
 			{
-				format: 'address',
-				filter: ft.BINARY,
+				format: 'publicKey',
+				filter: ft.TEXT,
 			},
 			stringToByte
 		);
@@ -172,37 +178,59 @@ class Account extends BaseEntity {
 			'secondPublicKey',
 			'string',
 			{
-				format: 'address',
-				filter: ft.BINARY,
+				format: 'publicKey',
+				filter: ft.TEXT,
 			},
 			stringToByte
 		);
 		this.addField('username', 'string', { filter: ft.TEXT });
+		this.addField('u_username', 'string');
 		this.addField(
 			'isDelegate',
 			'boolean',
 			{ filter: ft.BOOLEAN },
 			booleanToInt
 		);
+		this.addField('u_isDelegate', 'boolean', {}, booleanToInt);
 		this.addField('secondSignature', 'boolean', { filter: ft.BOOLEAN });
+		this.addField('u_secondSignature', 'boolean');
 		this.addField('balance', 'string', { filter: ft.NUMBER });
+		this.addField('u_balance', 'string');
 		this.addField('multiMin', 'number', {
 			filter: ft.NUMBER,
-			realName: 'multimin',
+			fieldName: 'multimin',
+		});
+		this.addField('u_multiMin', 'number', {
+			fieldName: 'u_multimin',
 		});
 		this.addField('multiLifetime', 'number', {
 			filter: ft.NUMBER,
-			realName: 'multilifetime',
+			fieldName: 'multilifetime',
+		});
+		this.addField('u_multiLifetime', 'number', {
+			fieldName: 'u_multilifetime',
 		});
 		this.addField('nameExist', 'boolean', {
 			filter: ft.BOOLEAN,
-			realName: 'nameexist',
+			fieldName: 'nameexist',
+		});
+		this.addField('u_nameExist', 'boolean', {
+			fieldName: 'u_nameexist',
 		});
 		this.addField('fees', 'string', { filter: ft.NUMBER });
 		this.addField('rewards', 'string', { filter: ft.NUMBER });
 		this.addField('producedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('missedBlocks', 'string', { filter: ft.NUMBER });
 		this.addField('rank', 'string', { filter: ft.NUMBER });
+		this.addField('vote', 'string', { filter: ft.NUMBER });
+		this.addField('delegates', 'string');
+		this.addField('u_delegates', 'string');
+		this.addField('multiSignatures', 'string', {
+			fieldName: 'multisignatures',
+		});
+		this.addField('u_multiSignatures', 'string', {
+			fieldName: 'u_multisignatures',
+		});
 
 		this.addFilter('votedFor', ft.CUSTOM, {
 			condition:
@@ -240,7 +268,8 @@ class Account extends BaseEntity {
 			_.pick(options, ['limit', 'offset', 'fieldSet']),
 			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
 		);
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 
 		const params = Object.assign(
 			{},
@@ -273,7 +302,8 @@ class Account extends BaseEntity {
 	 * @return {*}
 	 */
 	get(filters = {}, options = {}, tx) {
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'fieldSet']),
@@ -308,8 +338,17 @@ class Account extends BaseEntity {
 	// eslint-disable-next-line no-unused-vars
 	create(data, options = {}, tx) {
 		const objectData = _.defaults(data, defaultCreateValues);
+		const createSet = this.getValuesSet(objectData);
+		const attributes = Object.keys(data)
+			.map(k => `"${this.fields[k].fieldName}"`)
+			.join(',');
 
-		return this.adapter.executeFile(this.SQLs.create, objectData, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.create,
+			{ createSet, attributes },
+			{},
+			tx
+		);
 	}
 
 	/**
@@ -324,7 +363,8 @@ class Account extends BaseEntity {
 	// eslint-disable-next-line no-unused-vars
 	update(filters, data, options = {}, tx) {
 		const objectData = _.omit(data, readOnlyFields);
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
 		const params = Object.assign(objectData, {
@@ -347,7 +387,8 @@ class Account extends BaseEntity {
 	// eslint-disable-next-line no-unused-vars
 	updateOne(filters, data, options = {}, tx) {
 		const objectData = _.omit(data, readOnlyFields);
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
 		const params = Object.assign(objectData, {
@@ -368,7 +409,8 @@ class Account extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	isPersisted(filters, options = {}, tx) {
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 
 		if (parsedFilters === '') {
 			throw new NonSupportedFilterTypeError(
@@ -384,6 +426,21 @@ class Account extends BaseEntity {
 
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
+	}
+
+	mergeFilters(filters) {
+		const mergedFilters = filters;
+
+		if (Array.isArray(mergedFilters)) {
+			const lastIndex = mergedFilters.length - 1;
+			mergedFilters[lastIndex] = Object.assign(
+				{},
+				mergedFilters[lastIndex],
+				this.defaultFilters
+			);
+			return mergedFilters;
+		}
+		return Object.assign({}, mergedFilters, this.defaultFilters);
 	}
 }
 
