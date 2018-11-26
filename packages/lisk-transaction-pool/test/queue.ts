@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import transactions from '../fixtures/transactions.json';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 
-console.log(transactions);
 const transferTransactionInstances = transactions.map(wrapTransferTransaction);
 
 describe('Queue', () => {
