@@ -84,7 +84,7 @@ const DBPeer = stampit(Peer, {
 });
 
 module.exports = {
-	randomNormalizedPeer: NormalizedPeer(),
+	randomNormalizedPeer: new NormalizedPeer(),
 	generateRandomActivePeer: Peer, // For backward compatibility
 	Peer,
 	DBPeer,

@@ -16,15 +16,15 @@
 
 require('../../functional.js');
 var genesisDelegates = require('../../../data/genesis_delegates.json');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('PUT /node/status/forging', () => {
 	var validDelegate = genesisDelegates.delegates[0];
-	var updateForgingEndpoint = new swaggerEndpoint('PUT /node/status/forging');
-	var forgingStatusEndpoint = new swaggerEndpoint('GET /node/status/forging');
+	var updateForgingEndpoint = new SwaggerEndpoint('PUT /node/status/forging');
+	var forgingStatusEndpoint = new SwaggerEndpoint('GET /node/status/forging');
 
 	before(() => {
 		return forgingStatusEndpoint

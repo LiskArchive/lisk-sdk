@@ -22,7 +22,7 @@ var accountFixtures = require('../../../fixtures/accounts');
 var slots = require('../../../../helpers/slots');
 var randomUtil = require('../../../common/utils/random');
 var waitFor = require('../../../common/utils/wait_for');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 var Bignum = require('../../../../helpers/bignum.js');
 
@@ -31,7 +31,7 @@ const { FEES } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
-	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
+	var delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 	var validDelegate = genesisDelegates.delegates[0];
 	var validNotExistingPublicKey =
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
@@ -554,7 +554,7 @@ describe('GET /delegates', () => {
 	});
 
 	describe('GET /forgers', () => {
-		var forgersEndpoint = new swaggerEndpoint('GET /delegates/forgers');
+		var forgersEndpoint = new SwaggerEndpoint('GET /delegates/forgers');
 
 		it('using no params should be ok', () => {
 			return forgersEndpoint.makeRequest({}, 200).then(res => {
@@ -606,7 +606,7 @@ describe('GET /delegates', () => {
 	});
 
 	describe('GET /{address}/forging_statistics', () => {
-		var forgedEndpoint = new swaggerEndpoint(
+		var forgedEndpoint = new SwaggerEndpoint(
 			'GET /delegates/{address}/forging_statistics'
 		);
 

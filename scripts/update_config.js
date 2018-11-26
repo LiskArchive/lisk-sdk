@@ -310,7 +310,7 @@ history.migrate(
 		// Set the env variables to validate against correct network and config file
 		process.env.LISK_NETWORK = network;
 		process.env.LISK_CONFIG_FILE = tempFilePath;
-		AppConfig(packageJSON, false);
+		new AppConfig(packageJSON, false);
 		console.info('Validation finished successfully.');
 
 		if (program.output) {

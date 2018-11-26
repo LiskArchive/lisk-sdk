@@ -38,7 +38,7 @@ class DatabaseSeed {
 	static seedAccounts(db) {
 		// Prepare some fixture data to seed the database
 		for (let i = 0; i < numSeedRecords; i++) {
-			accounts.push(fixtures.accounts.Account());
+			accounts.push(new fixtures.accounts.Account());
 		}
 		return db
 			.task('db:seed:accounts', t => {
@@ -53,11 +53,11 @@ class DatabaseSeed {
 		// Seed one block per account
 		accounts.forEach((account, index) => {
 			if (index === 0) {
-				block = fixtures.blocks.GenesisBlock({
+				block = new fixtures.blocks.GenesisBlock({
 					generatorPublicKey: account.publicKey,
 				});
 			} else {
-				block = fixtures.blocks.Block({
+				block = new fixtures.blocks.Block({
 					id: account.blockId,
 					generatorPublicKey: account.publicKey,
 					previousBlock: block ? block.id : null,
@@ -82,7 +82,10 @@ class DatabaseSeed {
 
 		for (let i = 0; i < count; i++) {
 			trs.push(
-				fixtures.transactions.Transaction({ blockId: blocks[0].id, type: 5 })
+				new fixtures.transactions.Transaction({
+					blockId: blocks[0].id,
+					type: 5,
+				})
 			);
 		}
 
@@ -96,7 +99,7 @@ class DatabaseSeed {
 
 		for (let i = 0; i < count; i++) {
 			trs.push(
-				fixtures.transactions.Transaction({
+				new fixtures.transactions.Transaction({
 					blockId: blocks[0].id,
 					type: 7,
 					dapp,
@@ -115,7 +118,7 @@ class DatabaseSeed {
 
 		for (let i = 0; i < count; i++) {
 			trs.push(
-				fixtures.transactions.Transaction({
+				new fixtures.transactions.Transaction({
 					blockId: blocks[0].id,
 					type: 6,
 					dapp,

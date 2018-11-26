@@ -15,14 +15,14 @@
 'use strict';
 
 require('../../../functional.js');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../../common/swagger_spec');
 var apiHelpers = require('../../../../common/helpers/api');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /node', () => {
 	describe('/constants', () => {
-		var endPoint = swaggerEndpoint('GET /node/constants 200');
+		var endPoint = new SwaggerEndpoint('GET /node/constants 200');
 
 		var constantsResponse;
 
@@ -102,14 +102,14 @@ describe('GET /node', () => {
 	});
 
 	describe('/status', () => {
-		var ndoeStatusEndpoint = swaggerEndpoint('GET /node/status 200');
+		var ndoeStatusEndpoint = new SwaggerEndpoint('GET /node/status 200');
 
 		it('should return node status', () => {
 			return ndoeStatusEndpoint.makeRequest();
 		});
 
 		describe('GET /forging', () => {
-			var forgingEndpoint = new swaggerEndpoint('GET /node/status/forging');
+			var forgingEndpoint = new SwaggerEndpoint('GET /node/status/forging');
 
 			/* eslint-disable mocha/no-pending-tests */
 			// TODO: Find a library for supertest to make request from a proxy server

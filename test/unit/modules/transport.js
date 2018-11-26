@@ -99,7 +99,7 @@ describe('transport', () => {
 				'2821d93a742c4edf5fd960efad41a4def7bf0fd0f7c09869aed524f6f52bf9c97a617095e2c712bd28b4279078a29509b339ac55187854006591aa759784c205',
 		};
 
-		blockMock = Block();
+		blockMock = new Block();
 
 		transactionsList = [
 			{
@@ -1007,7 +1007,7 @@ describe('transport', () => {
 
 			blocksList = [];
 			for (var j = 0; j < 10; j++) {
-				var block = Block();
+				var block = new Block();
 				blocksList.push(block);
 			}
 
@@ -1042,7 +1042,7 @@ describe('transport', () => {
 							listRandomConnected: sinonSandbox.stub().returns(peersList),
 						},
 						block: {
-							objectNormalize: sinonSandbox.stub().returns(Block()),
+							objectNormalize: sinonSandbox.stub().returns(new Block()),
 						},
 					},
 					db: {

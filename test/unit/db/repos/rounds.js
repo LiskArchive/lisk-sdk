@@ -79,9 +79,15 @@ describe('db', () => {
 			});
 
 			it('should return unique round numbers', function*() {
-				const round1 = roundsFixtures.Round({ round: 1 });
-				const round2 = roundsFixtures.Round({ round: 2 });
-				const round3 = roundsFixtures.Round({ round: 1 });
+				const round1 = new roundsFixtures.Round({
+					round: 1,
+				});
+				const round2 = new roundsFixtures.Round({
+					round: 2,
+				});
+				const round3 = new roundsFixtures.Round({
+					round: 1,
+				});
 
 				yield db.query(
 					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
@@ -115,8 +121,12 @@ describe('db', () => {
 			});
 
 			it('should remove round information for provided round number', function*() {
-				const round1 = roundsFixtures.Round({ round: 1 });
-				const round2 = roundsFixtures.Round({ round: 2 });
+				const round1 = new roundsFixtures.Round({
+					round: 1,
+				});
+				const round2 = new roundsFixtures.Round({
+					round: 2,
+				});
 				yield db.query(
 					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
 				);
@@ -183,7 +193,7 @@ describe('db', () => {
 			});
 
 			it('should increment missed blocks for an account if backward flag is set to false', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				yield db.accounts.insert(account);
 				const before = account.missedBlocks;
 				yield db.rounds.updateMissedBlocks(false, account.address);
@@ -194,7 +204,7 @@ describe('db', () => {
 			});
 
 			it('should decrement missed blocks for an account if backward flag is set to true', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				yield db.accounts.insert(account);
 				const before = account.missedBlocks;
 				yield db.rounds.updateMissedBlocks(true, account.address);
@@ -216,17 +226,19 @@ describe('db', () => {
 			});
 
 			it('should return votes for a round in correct format', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 
-				const round1 = roundsFixtures.Round({
+				const round1 = new roundsFixtures.Round({
 					round: 1,
 					delegate: account.publicKey,
 				});
-				const round2 = roundsFixtures.Round({
+				const round2 = new roundsFixtures.Round({
 					round: 1,
 					delegate: account.publicKey,
 				});
-				const round3 = roundsFixtures.Round({ round: 2 });
+				const round3 = new roundsFixtures.Round({
+					round: 2,
+				});
 				yield db.query(
 					db.rounds.pgp.helpers.insert(round1, null, { table: 'mem_round' })
 				);
@@ -270,7 +282,7 @@ describe('db', () => {
 			});
 
 			it('should update votes for a given account', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				yield db.accounts.insert(account);
 
 				yield db.rounds.updateVotes(account.address, '123');
@@ -380,9 +392,9 @@ describe('db', () => {
 			it('should copy the "mem_round" table to snapshot table "mem_round_snapshot"', function*() {
 				// Seed some data to mem_rounds
 				const rounds = [
-					roundsFixtures.Round(),
-					roundsFixtures.Round(),
-					roundsFixtures.Round(),
+					new roundsFixtures.Round(),
+					new roundsFixtures.Round(),
+					new roundsFixtures.Round(),
 				];
 
 				yield db.query(
@@ -434,9 +446,9 @@ describe('db', () => {
 			});
 
 			it('should return 1 when snapshot for requested round is available', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 
-				const round1 = roundsFixtures.Round({
+				const round1 = new roundsFixtures.Round({
 					round: 1,
 					delegate: account.publicKey,
 				});
@@ -454,9 +466,9 @@ describe('db', () => {
 			});
 
 			it('should return null when snapshot for requested round is not available', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 
-				const round1 = roundsFixtures.Round({
+				const round1 = new roundsFixtures.Round({
 					round: 1,
 					delegate: account.publicKey,
 				});
@@ -512,9 +524,9 @@ describe('db', () => {
 			it('should return proper number of records when table is not empty', function*() {
 				// Seed some data to mem_rounds
 				const rounds = [
-					roundsFixtures.Round(),
-					roundsFixtures.Round(),
-					roundsFixtures.Round(),
+					new roundsFixtures.Round(),
+					new roundsFixtures.Round(),
+					new roundsFixtures.Round(),
 				];
 
 				yield db.query(
@@ -580,7 +592,9 @@ describe('db', () => {
 
 			it('should return snapshot records in valid format', function*() {
 				// Seed some account
-				const account = accountsFixtures.Account({ isDelegate: true });
+				const account = new accountsFixtures.Account({
+					isDelegate: true,
+				});
 				yield db.accounts.insert(account);
 
 				// Perform the snapshot first
@@ -595,9 +609,15 @@ describe('db', () => {
 
 			it('should return snapshot records in valid order', function*() {
 				// Seed some account
-				const account1 = accountsFixtures.Account({ isDelegate: true });
-				const account2 = accountsFixtures.Account({ isDelegate: true });
-				const account3 = accountsFixtures.Account({ isDelegate: true });
+				const account1 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account2 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account3 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
 				const accounts = [account1, account2, account3];
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
@@ -619,9 +639,15 @@ describe('db', () => {
 
 			it('should return snapshot records with provided limit', function*() {
 				// Seed some account
-				const account1 = accountsFixtures.Account({ isDelegate: true });
-				const account2 = accountsFixtures.Account({ isDelegate: true });
-				const account3 = accountsFixtures.Account({ isDelegate: true });
+				const account1 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account2 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account3 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
 				yield db.accounts.insert(account3);
@@ -687,9 +713,15 @@ describe('db', () => {
 
 			it('should copy the "address", "publicKey", "vote", "producedBlocks", "missedBlocks" from table "mem_accounts" to snapshot table "mem_votes_snapshot" for delegates', function*() {
 				// Seed some account
-				const account1 = accountsFixtures.Account({ isDelegate: true });
-				const account2 = accountsFixtures.Account({ isDelegate: true });
-				const account3 = accountsFixtures.Account({ isDelegate: false });
+				const account1 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account2 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account3 = new accountsFixtures.Account({
+					isDelegate: false,
+				});
 				const delegates = [account1, account2];
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
@@ -757,9 +789,9 @@ describe('db', () => {
 			it('should restore round snapshot to "mem_round" table', function*() {
 				// Seed some data to mem_rounds
 				const rounds = [
-					roundsFixtures.Round(),
-					roundsFixtures.Round(),
-					roundsFixtures.Round(),
+					new roundsFixtures.Round(),
+					new roundsFixtures.Round(),
+					new roundsFixtures.Round(),
 				];
 
 				yield db.query(
@@ -816,9 +848,15 @@ describe('db', () => {
 
 			it('should update vote information to "mem_accounts" table from snapshot', function*() {
 				// Seed some account
-				const account1 = accountsFixtures.Account({ isDelegate: true });
-				const account2 = accountsFixtures.Account({ isDelegate: true });
-				const account3 = accountsFixtures.Account({ isDelegate: true });
+				const account1 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account2 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
+				const account3 = new accountsFixtures.Account({
+					isDelegate: true,
+				});
 				const accounts = [account1, account2, account3];
 				const addresses = accounts.map(a => a.address);
 				yield db.accounts.insert(account1);
@@ -894,7 +932,9 @@ describe('db', () => {
 
 			it('should insert one record to "mem_round" for valid parameters', function*() {
 				// Prepare an account first
-				const account = accountsFixtures.Account({ isDelegate: true });
+				const account = new accountsFixtures.Account({
+					isDelegate: true,
+				});
 				const delegate = '12345678';
 				yield db.accounts.insert(account);
 				yield db.accounts.insertDependencies(
@@ -966,7 +1006,7 @@ describe('db', () => {
 
 			it('should insert one record to "mem_round" for valid parameters with negative balance mode', function*() {
 				// Prepare an account first
-				const account = accountsFixtures.Account({
+				const account = new accountsFixtures.Account({
 					isDelegate: true,
 					balance: '100',
 				});
@@ -995,7 +1035,7 @@ describe('db', () => {
 
 			it('should insert one record to "mem_round" for valid parameters with positive balance mode', function*() {
 				// Prepare an account first
-				const account = accountsFixtures.Account({
+				const account = new accountsFixtures.Account({
 					isDelegate: true,
 					balance: '100',
 				});
@@ -1024,7 +1064,7 @@ describe('db', () => {
 
 			it('should insert one record to "mem_round" for valid parameters with considering positive balance mode if no balance mode is provided', function*() {
 				// Prepare an account first
-				const account = accountsFixtures.Account({
+				const account = new accountsFixtures.Account({
 					isDelegate: true,
 					balance: '100',
 				});

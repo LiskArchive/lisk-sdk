@@ -179,7 +179,7 @@ describe('ed', () => {
 
 	describe('hexToString', () => {
 		it('should throw error if the hex is not a string', () => {
-			const buff = new Buffer.from('ABC', 'utf8');
+			const buff = Buffer.from('ABC', 'utf8');
 			return expect(() => ed.hexToBuffer(buff)).to.throw(
 				'Argument must be a string.'
 			);
