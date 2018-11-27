@@ -83,4 +83,14 @@ module.exports = {
 			'2eb06bf528d60231a6b93a4d03b02200c938692e8a92d51d4dbaf94087b2e1261a904eb00cba4a0ed7e9d7e6a996666d4cfe3b7011a64252a8a286b8111b4701',
 		],
 	},
+	/**
+	 * In modules.delegates.js we are using generateDelegateList
+	 * to get the list of forgers for the round. However, we are
+	 * also caching this list to reduce calls to the database.
+	 * In the rounds below, using cache, creates forks.
+	 * See: https://github.com/LiskHQ/lisk/pull/2543#pullrequestreview-178505587
+	 *
+	 * So we are using the exception key below to skip caching for the rounds provided in the array.
+	 * */
+	ignoreDelegateListCacheForRounds: [80, 82],
 };

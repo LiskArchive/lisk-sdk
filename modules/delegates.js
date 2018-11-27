@@ -32,6 +32,7 @@ let modules;
 let library;
 let self;
 const { ACTIVE_DELEGATES } = global.constants;
+const exceptions = global.exceptions;
 const __private = {};
 
 __private.assetTypes = {};
@@ -768,7 +769,13 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 				.digest();
 		}
 
-		__private.updateDelegateListCache(round, truncDelegateList);
+		// If the round is not an exception, cache the round.
+		if (
+			!Array.isArray(exceptions.ignoreDelegateListCacheForRounds) ||
+			exceptions.ignoreDelegateListCacheForRounds.indexOf(round) === -1
+		) {
+			__private.updateDelegateListCache(round, truncDelegateList);
+		}
 		return setImmediate(cb, null, truncDelegateList);
 	}, tx);
 };
