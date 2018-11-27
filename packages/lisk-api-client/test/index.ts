@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClient from '../src';
+import { APIClient } from '../src';
 import { expect } from 'chai';
 
 describe('api client', () => {

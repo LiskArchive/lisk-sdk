@@ -4,6 +4,7 @@ interface QueueIndex {
 	[index: string]: Transaction;
 }
 
+
 interface RemoveForReduceObject {
 	readonly affected: Transaction[];
 	readonly unaffected: Transaction[];
