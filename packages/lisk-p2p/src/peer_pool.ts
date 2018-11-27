@@ -109,7 +109,7 @@ export class PeerPool extends EventEmitter {
 				height: 0,
 				id: `${socket.remoteAddress}:${queryObject.wsPort}`,
 				inboundSocket: socket,
-				ip: socket.remoteAddress,
+				ipAddress: socket.remoteAddress,
 				os: queryObject.os,
 				version: queryObject.version,
 				wsPort: queryObject.wsPort,

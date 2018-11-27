@@ -23,42 +23,42 @@ export interface IPeerConfig {
 	readonly height: number;
 	readonly id: string;
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
-	readonly ip: string;
+	readonly ipAddress: string;
 	readonly os?: string;
 	readonly version?: string;
 	readonly wsPort: number;
 }
 
 export class Peer {
-	private height: number;
-	private readonly id: string;
-	private readonly inboundSocket: any;
-	private readonly ip: string;
-	private readonly wsPort: number;
+	private _height: number;
+	private readonly _id: string;
+	private readonly _inboundSocket: any;
+	private readonly _ipAddress: string;
+	private readonly _wsPort: number;
 
 	public constructor(peerConfig: IPeerConfig) {
-		this.id = peerConfig.id;
-		this.ip = peerConfig.ip;
-		this.wsPort = peerConfig.wsPort;
-		this.inboundSocket = peerConfig.inboundSocket;
-		this.height = peerConfig.height;
+		this._id = peerConfig.id;
+		this._ipAddress = peerConfig.ipAddress;
+		this._wsPort = peerConfig.wsPort;
+		this._inboundSocket = peerConfig.inboundSocket;
+		this._height = peerConfig.height;
 	}
 
 	public getHeight(): number {
-		return this.height;
+		return this._height;
 	}
 
 	public getId(): string {
-		return this.id;
+		return this._id;
 	}
 
 	public getIp(): string {
-		return this.ip;
+		return this._ipAddress;
 	}
 
 	// TODO: Return BANNED when appropriate.
 	public getState(): PeerState {
-		if (this.inboundSocket.state === this.inboundSocket.OPEN) {
+		if (this._inboundSocket.state === this._inboundSocket.OPEN) {
 			return PeerState.CONNECTED;
 		}
 
@@ -66,10 +66,10 @@ export class Peer {
 	}
 
 	public getWsPort(): number {
-		return this.wsPort;
+		return this._wsPort;
 	}
 
 	public setHeight(height: number): void {
-		this.height = height;
+		this._height = height;
 	}
 }
