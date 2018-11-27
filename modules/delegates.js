@@ -772,7 +772,7 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 		// If the round is not an exception, cache the round.
 		if (
 			!Array.isArray(exceptions.ignoreDelegateListCacheForRounds) ||
-			exceptions.ignoreDelegateListCacheForRounds.indexOf(round) === -1
+			!exceptions.ignoreDelegateListCacheForRounds.includes(round)
 		) {
 			__private.updateDelegateListCache(round, truncDelegateList);
 		}
