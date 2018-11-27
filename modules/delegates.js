@@ -745,7 +745,7 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 		return setImmediate(cb, null, __private.delegatesListCache[round]);
 	}
 
-	source((err, truncDelegateList) => {
+	return source((err, truncDelegateList) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
