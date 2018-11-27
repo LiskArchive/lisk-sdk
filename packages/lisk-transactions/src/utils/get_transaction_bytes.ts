@@ -205,7 +205,6 @@ export const checkTransaction = (transaction: TransactionJSON): boolean => {
 
 export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	checkTransaction(transaction);
-
 	const {
 		type,
 		timestamp,

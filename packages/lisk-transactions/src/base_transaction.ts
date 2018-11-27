@@ -12,9 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
+// tslint:disable-next-line no-reference
+/// <reference path="../../../types/browserify-bignum/index.d.ts" />
+// See issue #912 for above reference
+
+import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
+import { BYTESIZES } from './constants';
 import { TransactionError } from './errors';
 import {
 	Account,
@@ -54,7 +58,6 @@ export abstract class BaseTransaction {
 		this.senderId = rawTransaction.senderId;
 		this.senderPublicKey = rawTransaction.senderPublicKey;
 		this.signature = rawTransaction.signature;
-		this.signatures = rawTransaction.signatures;
 		this.signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
@@ -76,14 +79,33 @@ export abstract class BaseTransaction {
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
+		};
+
+		if (!(typeof this.signature === 'string' && this.signature.length > 0)) {
+			return transaction;
+		}
+
+		const singleSignedTransaction = {
+			...transaction,
 			signature: this.signature,
+		};
+
+		if (
+			!(typeof this.signSignature === 'string' && this.signSignature.length > 0)
+		) {
+			return singleSignedTransaction;
+		}
+
+		const signedTransaction = {
+			...singleSignedTransaction,
 			signSignature: this.signSignature,
 		};
 
-		return transaction;
+		return signedTransaction;
 	}
 
 	public getBytes(): Buffer {
+		const { signature, signSignature } = this.toJSON();
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
@@ -100,21 +122,19 @@ export abstract class BaseTransaction {
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
 		const amountBigNum = new BigNum(this.amount);
-		if (amountBigNum.lt(0)) {
-			throw new TransactionError(
-				'Transaction amount must not be negative.',
-				this.id,
-			);
-		}
-		// BUG in browserify-bignum prevents us using `.gt` directly.
-		// See https://github.com/bored-engineer/b rowserify-bignum/pull/2
-		if (amountBigNum.gte(new BigNum(MAX_TRANSACTION_AMOUNT).add(1))) {
-			throw new TransactionError('Transaction amount is too large.', this.id);
-		}
+
 		const transactionAmount = amountBigNum.toBuffer({
 			endian: 'little',
 			size: BYTESIZES.AMOUNT,
 		});
+
+		const transactionSignature = signature
+			? cryptography.hexToBuffer(signature)
+			: Buffer.alloc(0);
+
+		const transactionSecondSignature = signSignature
+			? cryptography.hexToBuffer(signSignature)
+			: Buffer.alloc(0);
 
 		return Buffer.concat([
 			transactionType,
@@ -122,6 +142,8 @@ export abstract class BaseTransaction {
 			transactionSenderPublicKey,
 			transactionRecipientID,
 			transactionAmount,
+			transactionSignature,
+			transactionSecondSignature,
 		]);
 	}
 
@@ -178,7 +200,7 @@ export abstract class BaseTransaction {
 	}
 
 	public undo(sender: Account): StateReturn {
-		const updatedBalance = new BigNum(sender.balance).plus(this.fee);
+		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 
 		return {

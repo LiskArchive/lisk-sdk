@@ -142,13 +142,7 @@ export const isValidInteger = (num: unknown) =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
 
 export const normalizeInput = (rawTransaction: TransactionJSON): void => {
-	const {
-		amount,
-		fee,
-		signSignature,
-		signatures,
-		...strippedTransaction
-	} = rawTransaction;
+	const { amount, fee, ...strippedTransaction } = rawTransaction;
 
 	Object.entries({ amount, fee }).forEach(field => {
 		const [key, value] = field;
@@ -169,8 +163,7 @@ export const normalizeInput = (rawTransaction: TransactionJSON): void => {
 			if (typeof value !== 'number') {
 				throw new TransactionError(`\`${key}\` must be a number.`);
 			}
-		}
-		if (typeof value !== 'string') {
+		} else if (typeof value !== 'string') {
 			throw new TransactionError(`\`${key}\` must be a string.`);
 		}
 	});
