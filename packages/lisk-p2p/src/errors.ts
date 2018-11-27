@@ -12,8 +12,22 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export * from './errors';
-export * from './p2p';
-export * from './peer';
-export * from './peer_pool';
-export * from './peer_selector';
+/* tslint:disable: max-classes-per-file */
+import VError from 'verror';
+
+export class PeerTransportError extends VError {
+	public peerId: string;
+
+	public constructor(message: string, peerId: string) {
+		super(message || '');
+		this.name = 'PeerTransportError';
+		this.peerId = peerId;
+	}
+}
+
+export class NotEnoughPeersError extends VError {
+	public constructor(message: string) {
+		super(message || '');
+		this.name = 'NotEnoughPeersError';
+	}
+}

@@ -12,15 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+/* tslint:disable:no-unused-expression */
 import {
 	NetworkStatus,
+	P2PConfig,
 	P2PMessagePacket,
 	P2PNodeStatus,
+	P2PPenality,
 	P2PRequestPacket,
 	P2PResponsePacket,
 } from './p2p_types';
 
-import { Peer } from './peer';
 import { PeerPool } from './peer_pool';
 
 export class P2P {
@@ -37,7 +39,7 @@ export class P2P {
 		});
 	}
 
-	public applyPenalty = (penalty: IP2PPenalty): void => {
+	public applyPenalty = (penalty: P2PPenality): void => {
 		penalty;
 	};
 	// TODO
@@ -62,11 +64,7 @@ export class P2P {
 		// TODO
 	};
 	// TODO
-	public start = async (): Promise<void> => {
-		return this.peerPool.start();
-	};
+	public start = async (): Promise<void> => this.peerPool.start();
 	// TODO
-	public stop = async (): Promise<void> => {
-		return this.peerPool.stop();
-	};
+	public stop = async (): Promise<void> => this.peerPool.stop();
 }

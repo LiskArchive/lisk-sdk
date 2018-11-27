@@ -25,60 +25,68 @@ describe('helpers', () => {
 		};
 		const goodPeers = [
 			{
-				_ip: '192.28.138.1',
-				_wsPort: 5006,
-				_height: 645982,
+				ipAddress: '192.28.138.1',
+				wsPort: 5006,
+				height: 645982,
+				id: '192.28.138.1:5006',
+				inboundSocket: undefined,
 			},
 			{
-				_ip: '18.28.48.1',
-				_wsPort: 5008,
-				_height: 645980,
+				ipAddress: '18.28.48.1',
+				wsPort: 5008,
+				height: 645980,
+				id: '18.28.48.1:5008',
+				inboundSocket: undefined,
 			},
 		];
+
 		describe('get list of n number of good peers', () => {
 			beforeEach(async () => {
 				peerList = initializePeerList();
 			});
+
 			it('should return an object', () => {
 				return expect(selectPeers(peerList, option)).to.be.an('object');
 			});
-			it('should return an object with option property', () => {
-				return expect(selectPeers(peerList, option)).to.have.property(
-					'options',
-				);
-			});
+
 			it('should return an object with peers property', () => {
 				return expect(selectPeers(peerList, option)).to.have.property('peers');
 			});
+
 			it('peers property should contain an array of peers', () => {
 				return expect(selectPeers(peerList, option))
 					.to.have.property('peers')
 					.and.be.an('array');
 			});
+
 			it('peers property should contain good peers', () => {
 				return expect(selectPeers(peerList, option))
 					.to.have.property('peers')
 					.and.be.an('array')
 					.and.to.be.eql(goodPeers);
 			});
+
 			it('return empty peer list for no peers', () => {
 				return expect(selectPeers([], option))
 					.to.have.property('peers')
 					.and.be.an('array')
 					.and.to.be.eql([]);
 			});
+
 			it('should return an object with peers property', () => {
 				return expect(selectPeers(peerList, option, 1))
 					.to.have.property('peers')
 					.and.be.an('array')
 					.and.of.length(1);
 			});
+
 			it('should return an object with peers property', () => {
 				return expect(selectPeers(peerList, option, 2))
 					.to.have.property('peers')
 					.and.be.an('array')
 					.and.of.length(2);
 			});
+
 			it('should return an object with peers property', () => {
 				return expect(selectPeers.bind(selectPeers, peerList, option, 3))
 					.to.throw(
@@ -88,13 +96,15 @@ describe('helpers', () => {
 					.eql('NotEnoughPeersError');
 			});
 		});
+
 		describe('peers with lower blockheight', () => {
 			beforeEach(async () => {
 				peerList = initializePeerList();
 			});
 			const lowHeightPeers = peerList.filter(
-				peer => peer.Height < option.blockHeight,
+				peer => peer.height < option.blockHeight,
 			);
+
 			it('should return an object with peers property', () => {
 				return expect(selectPeers(lowHeightPeers, option, 2))
 					.to.have.property('peers')

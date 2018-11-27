@@ -16,25 +16,29 @@ import { PeerConfig, Peer } from '../../src';
 
 export const initializePeerList = (): ReadonlyArray<Peer> => {
 	const peerOption1: PeerConfig = {
-		ip: '12.12.12.12',
+		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
+		id: '12.12.12.12:5001',
 	};
 
 	const peerOption2: PeerConfig = {
-		ip: '127.0.0.1',
+		ipAddress: '127.0.0.1',
 		wsPort: 5002,
 		height: 545981,
+		id: '127.0.0.1:5002',
 	};
 	const peerOption3: PeerConfig = {
-		ip: '18.28.48.1',
+		ipAddress: '18.28.48.1',
 		wsPort: 5008,
 		height: 645980,
+		id: '18.28.48.1:5008',
 	};
 	const peerOption4: PeerConfig = {
-		ip: '192.28.138.1',
+		ipAddress: '192.28.138.1',
 		wsPort: 5006,
 		height: 645982,
+		id: '192.28.138.1:5006',
 	};
 	const peer1 = new Peer(peerOption1);
 	const peer2 = new Peer(peerOption2);

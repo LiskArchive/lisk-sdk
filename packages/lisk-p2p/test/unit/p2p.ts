@@ -17,7 +17,13 @@ import { P2P } from '../../src';
 
 describe('p2p', () => {
 	describe('#constructor', () => {
-		const lisk = new P2P();
+		const lisk = new P2P({
+			blacklistedPeers: [],
+			connectTimeout: 5000,
+			seedPeers: [],
+			wsEngine: 'ws',
+			wsPort: 5000,
+		});
 		it('should be an object', () => {
 			return expect(lisk).to.be.an('object');
 		});

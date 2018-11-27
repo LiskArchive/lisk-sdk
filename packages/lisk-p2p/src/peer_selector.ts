@@ -12,11 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { VError } from 'verror';
+import { NotEnoughPeersError } from './errors';
 import { Peer } from './peer';
 
 export interface PeerReturnType {
-	readonly options: PeerOptions;
 	readonly peers: ReadonlyArray<Peer>;
 }
 export interface PeerOptions {
@@ -34,22 +33,20 @@ interface HistogramValues {
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
-	options: PeerOptions = { blockHeight: 0 },
+	selectionParams: PeerOptions = { blockHeight: 0 },
 	numOfPeers?: number,
 ): PeerReturnType => {
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
-		(peer: Peer) => peer.Height >= options.blockHeight,
+		(peer: Peer) => peer.height >= selectionParams.blockHeight,
 	);
 
 	if (filteredPeers.length === 0) {
-		const optionsTemp = { ...options, blockHeight: 0 };
-
-		return { options: optionsTemp, peers: [] };
+		return { peers: [] };
 	}
 
 	// Order peers by descending height
-	const sortedPeers = filteredPeers.sort((a, b) => b.Height - a.Height);
+	const sortedPeers = filteredPeers.sort((a, b) => b.height - a.height);
 
 	const aggregation = 2;
 	const defaultValue: HistogramValues = { height: 0, histogram: {}, max: -1 };
@@ -62,7 +59,7 @@ export const selectPeers = (
 			},
 			peer: Peer,
 		) => {
-			const val = (peer.Height / aggregation) * aggregation;
+			const val = (peer.height / aggregation) * aggregation;
 			histogramValues.histogram[val] =
 				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
 				1;
@@ -82,7 +79,7 @@ export const selectPeers = (
 			peer &&
 			Math.abs(
 				(calculatedHistogramValues ? calculatedHistogramValues.height : 0) -
-					peer.Height,
+					peer.height,
 			) <
 				aggregation + 1,
 	);
@@ -90,26 +87,25 @@ export const selectPeers = (
 	// Select n number of peers
 	if (numOfPeers) {
 		if (numOfPeers > processedPeers.length) {
-			throw new VError(
-				{ name: 'NotEnoughPeersError' },
+			throw new NotEnoughPeersError(
 				`Requested no. of peers: '${numOfPeers}' is more than the available no. of good peers: '${
 					processedPeers.length
 				}'`,
 			);
 		}
 		if (numOfPeers === processedPeers.length) {
-			return { options, peers: processedPeers };
+			return { peers: processedPeers };
 		}
 		if (numOfPeers === 1) {
 			const goodPeer: ReadonlyArray<Peer> = [
 				processedPeers[Math.floor(Math.random() * processedPeers.length)],
 			];
 
-			return { options, peers: goodPeer };
+			return { peers: goodPeer };
 		}
 
 		const selectedPeersList = Array(numOfPeers)
-			.fill({})
+			.fill(0)
 			.reduce((peerList: ReadonlyArray<Peer>) => {
 				const peer =
 					processedPeers[Math.floor(Math.random() * processedPeers.length)];
@@ -121,8 +117,8 @@ export const selectPeers = (
 				return [...peerList, peer];
 			}, []);
 
-		return { options, peers: selectedPeersList };
+		return { peers: selectedPeersList };
 	}
 
-	return { options, peers: processedPeers };
+	return { peers: processedPeers };
 };

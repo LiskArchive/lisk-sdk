@@ -18,37 +18,36 @@ import { PeerConfig, Peer } from '../../src';
 
 describe('peer', () => {
 	const defaultPeerConfig: PeerConfig = {
-		ip: '12.12.12.12',
+		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
+		id: '12.12.12.12:5001',
 	};
 
 	const defaultPeer = new Peer(defaultPeerConfig);
+
 	describe('#constructor', () => {
 		it('should be an object', () => {
 			return expect(defaultPeer).to.be.an('object');
 		});
+
 		it('should be an instance of P2P blockchain', () => {
 			return expect(defaultPeer)
 				.to.be.an('object')
 				.and.be.instanceof(Peer);
 		});
 	});
+
 	describe('#instanceProperties', () => {
 		it('should set and gets height property', () => {
-			defaultPeer.Height = 100000;
-			return expect(defaultPeer.Height)
+			defaultPeer.height = 100000;
+			return expect(defaultPeer.height)
 				.to.be.a('number')
 				.and.be.eql(100000);
 		});
-		it('should set and gets wsPort property', () => {
-			defaultPeer.WsPort = 6001;
-			return expect(defaultPeer.WsPort)
-				.to.be.a('number')
-				.and.be.eql(6001);
-		});
+
 		it('should get readonly Ip property', () => {
-			return expect(defaultPeer.Ip)
+			return expect(defaultPeer.ipAddress)
 				.to.be.a('string')
 				.and.be.eql('12.12.12.12');
 		});

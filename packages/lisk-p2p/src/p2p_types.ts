@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable: no-empty-interface */
+/* tslint:disable:no-empty-interface*/
 export interface P2PMessagePacket {}
 
 export interface P2PRequestPacket {}
@@ -20,6 +20,8 @@ export interface P2PRequestPacket {}
 export interface P2PResponsePacket {}
 
 export interface P2PNodeStatus {}
+
+export interface P2PPenality {}
 
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<string>;
