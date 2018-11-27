@@ -193,13 +193,7 @@ class BlocksRepository {
 	 * @todo Add description for the params and the return value
 	 */
 	getCommonBlock(params) {
-		const query = values => {
-			values.comparePreviousBlock = values.previousBlock
-				? this.pgp.as.format('AND "previousBlock" = ${previousBlock}', values)
-				: '';
-			return sql.getCommonBlock;
-		};
-		return this.db.any(query, params);
+		return this.db.any(sql.getCommonBlock, params);
 	}
 
 	// TODO: Merge BlocksRepository#getHeightByLastId with BlocksRepository#list

@@ -20,14 +20,14 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('../common');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 5) - dapp registrations with repeated values', () => {
 	var library;
 
 	var account = randomUtil.account();
 	var transaction = lisk.transaction.transfer({
-		amount: 1000 * constants.normalizer,
+		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});

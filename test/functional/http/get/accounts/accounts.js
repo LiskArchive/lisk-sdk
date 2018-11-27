@@ -22,7 +22,7 @@ var randomUtil = require('../../../../common/utils/random');
 var waitFor = require('../../../../common/utils/wait_for');
 var apiHelpers = require('../../../../common/helpers/api');
 
-const constants = global.constants;
+const { FEES } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', () => {
@@ -180,7 +180,7 @@ describe('GET /accounts', () => {
 		describe('secondPublicKey', () => {
 			var secondPublicKeyAccount = randomUtil.account();
 			var creditTransaction = lisk.transaction.transfer({
-				amount: constants.fees.secondSignature,
+				amount: FEES.SECOND_SIGNATURE,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPublicKeyAccount.address,
 			});

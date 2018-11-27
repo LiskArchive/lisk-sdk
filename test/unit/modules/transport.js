@@ -28,7 +28,7 @@ var Rules = require('../../../api/ws/workers/rules');
 
 var TransportModule = rewire('../../../modules/transport.js');
 
-const constants = __testContext.config.constants;
+const { MAX_PEERS, MAX_SHARED_TRANSACTIONS } = __testContext.config.constants;
 var expect = chai.expect;
 
 // TODO: Sometimes the callback error is null, other times it's undefined. It should be consistent.
@@ -1133,7 +1133,7 @@ describe('transport', () => {
 					done();
 				});
 
-				describe('when modules.peers.calculateConsensus() < constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() < MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(50);
 						isPoorConsensusResult = transportInstance.poorConsensus();
@@ -1145,7 +1145,7 @@ describe('transport', () => {
 					});
 				});
 
-				describe('when modules.peers.calculateConsensus() >= constants.minBroadhashConsensus', () => {
+				describe('when modules.peers.calculateConsensus() >= MIN_BROADHASH_CONSENSUS', () => {
 					beforeEach(done => {
 						modules.peers.calculateConsensus = sinonSandbox.stub().returns(51);
 						isPoorConsensusResult = transportInstance.poorConsensus();
@@ -1332,11 +1332,11 @@ describe('transport', () => {
 				transportInstance.broadcastHeaders(done);
 			});
 
-			it('should call ibrary.logic.peers.listRandomConnected with {limit: constants.maxPeers}', () => {
+			it('should call ibrary.logic.peers.listRandomConnected with {limit: MAX_PEERS}', () => {
 				expect(library.logic.peers.listRandomConnected.calledOnce).to.be.true;
 				return expect(
 					library.logic.peers.listRandomConnected.calledWith({
-						limit: constants.maxPeers,
+						limit: MAX_PEERS,
 					})
 				).to.be.true;
 			});
@@ -1802,8 +1802,8 @@ describe('transport', () => {
 
 					it('should invoke callback with empty result', () => {
 						expect(modules.peers.list.calledOnce).to.be.true;
-						expect(modules.peers.list.calledWith({ limit: constants.maxPeers }))
-							.to.be.true;
+						expect(modules.peers.list.calledWith({ limit: MAX_PEERS })).to.be
+							.true;
 						expect(error).to.equal(null);
 						expect(result)
 							.to.have.property('success')
@@ -2126,11 +2126,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMultisignatureTransactionList with true and constants.maxSharedTransactions', () => {
+				it('should call modules.transactions.getMultisignatureTransactionList with true and MAX_SHARED_TRANSACTIONS', () => {
 					return expect(
 						modules.transactions.getMultisignatureTransactionList.calledWith(
 							true,
-							constants.maxSharedTransactions
+							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true;
 				});
@@ -2207,11 +2207,11 @@ describe('transport', () => {
 					});
 				});
 
-				it('should call modules.transactions.getMergedTransactionList with true and constants.maxSharedTransactions', () => {
+				it('should call modules.transactions.getMergedTransactionList with true and MAX_SHARED_TRANSACTIONS', () => {
 					return expect(
 						modules.transactions.getMergedTransactionList.calledWith(
 							true,
-							constants.maxSharedTransactions
+							MAX_SHARED_TRANSACTIONS
 						)
 					).to.be.true;
 				});

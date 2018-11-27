@@ -23,7 +23,7 @@ const slots = require('../helpers/slots.js');
 let modules;
 let library;
 let self;
-const constants = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -399,7 +399,7 @@ __private.sumRound = function(scope, cb, tx) {
 	library.logger.debug('Summing round', scope.round);
 
 	(tx || library.db).rounds
-		.summedRound(scope.round, constants.activeDelegates)
+		.summedRound(scope.round, ACTIVE_DELEGATES)
 		.then(rows => {
 			const rewards = [];
 

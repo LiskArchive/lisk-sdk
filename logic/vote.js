@@ -21,7 +21,7 @@ const slots = require('../helpers/slots.js');
 const Bignum = require('../helpers/bignum.js');
 
 const exceptions = global.exceptions;
-const constants = global.constants;
+const { FEES, MAX_VOTES_PER_TRANSACTION } = global.constants;
 
 let modules;
 let library;
@@ -130,7 +130,7 @@ Vote.prototype.bind = function(delegates) {
  * @returns {Bignumber} Transaction fee
  */
 Vote.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.vote);
+	return new Bignum(FEES.VOTE);
 };
 
 /**
@@ -169,13 +169,13 @@ Vote.prototype.verify = function(transaction, sender, cb, tx) {
 
 				if (
 					transaction.asset.votes &&
-					transaction.asset.votes.length > constants.maxVotesPerTransaction
+					transaction.asset.votes.length > MAX_VOTES_PER_TRANSACTION
 				) {
 					return setImmediate(
 						waterCb,
 						[
 							'Voting limit exceeded. Maximum is',
-							constants.maxVotesPerTransaction,
+							MAX_VOTES_PER_TRANSACTION,
 							'votes per transaction',
 						].join(' ')
 					);
@@ -251,12 +251,8 @@ Vote.prototype.verifyVote = function(vote, cb) {
 		return setImmediate(cb, 'Invalid vote type');
 	}
 
-	if (!/[-+]{1}[0-9a-z]{64}/.test(vote)) {
+	if (!/^[-+]{1}[0-9a-f]{64}$/.test(vote)) {
 		return setImmediate(cb, 'Invalid vote format');
-	}
-
-	if (vote.length !== 65) {
-		return setImmediate(cb, 'Invalid vote length');
 	}
 
 	return setImmediate(cb);
@@ -418,7 +414,7 @@ Vote.prototype.schema = {
 		votes: {
 			type: 'array',
 			minItems: 1,
-			maxItems: constants.maxVotesPerTransaction,
+			maxItems: MAX_VOTES_PER_TRANSACTION,
 			uniqueItems: true,
 		},
 	},

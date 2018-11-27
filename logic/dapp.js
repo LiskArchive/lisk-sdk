@@ -20,7 +20,7 @@ const dappCategories = require('../helpers/dapp_categories.js');
 const Bignum = require('../helpers/bignum.js');
 
 let library;
-const constants = global.constants;
+const { FEES } = global.constants;
 const __private = {};
 
 __private.unconfirmedNames = {};
@@ -66,7 +66,7 @@ DApp.prototype.bind = function() {};
  * @returns {Bignumber} Transaction fee
  */
 DApp.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.dappRegistration);
+	return new Bignum(FEES.DAPP_REGISTRATION);
 };
 
 /**

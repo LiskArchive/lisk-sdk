@@ -25,7 +25,7 @@ const Peer = require('../logic/peer.js');
 let modules;
 let library;
 let self;
-const constants = global.constants;
+const { MAX_PEERS } = global.constants;
 const __private = {};
 let definitions;
 
@@ -469,7 +469,7 @@ Peers.prototype.calculateConsensus = function(active, matched) {
 			.filter(peer => peer.state === Peer.STATE.CONNECTED);
 	const broadhash = modules.system.getBroadhash();
 	matched = matched || active.filter(peer => peer.broadhash === broadhash);
-	const activeCount = Math.min(active.length, constants.maxPeers);
+	const activeCount = Math.min(active.length, MAX_PEERS);
 	const matchedCount = Math.min(matched.length, activeCount);
 	const consensus = +(matchedCount / activeCount * 100).toPrecision(2);
 	self.consensus = isNaN(consensus) ? 0 : consensus;
@@ -651,7 +651,7 @@ Peers.prototype.acceptable = function(peers) {
  * Gets peers list and calculated consensus.
  *
  * @param {Object} options
- * @param {number} [options.limit=constants.maxPeers] - Maximum number of peers to get
+ * @param {number} [options.limit=MAX_PEERS] - Maximum number of peers to get
  * @param {string} [options.broadhash=null] - Broadhash to match peers by
  * @param {string} [options.normalized=undefined] - Return peers in normalized (json) form
  * @param {Array} [options.allowedStates=[2]] - Allowed peer states
@@ -662,7 +662,7 @@ Peers.prototype.acceptable = function(peers) {
  * @returns {setImmediateCallback} cb, err, peers
  */
 Peers.prototype.list = function(options, cb) {
-	let limit = options.limit || constants.maxPeers;
+	let limit = options.limit || MAX_PEERS;
 	const broadhash = options.broadhash || modules.system.getBroadhash();
 	const allowedStates = options.allowedStates || [Peer.STATE.CONNECTED];
 	const attempts =

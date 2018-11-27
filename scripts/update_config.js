@@ -25,8 +25,11 @@ const readline = require('readline');
 const _ = require('lodash');
 const program = require('commander');
 const lisk = require('lisk-elements').default;
+const tempy = require('tempy');
 const { observableDiff, applyChange } = require('deep-diff');
 const JSONHistory = require('../helpers/json_history');
+const AppConfig = require('../helpers/config');
+const packageJSON = require('../package.json');
 
 const rootPath = path.resolve(path.dirname(__filename), '../');
 const loadJSONFile = filePath => JSON.parse(fs.readFileSync(filePath), 'utf8');
@@ -63,15 +66,19 @@ if (typeof fromVersion === 'undefined') {
 	process.exit(1);
 }
 
+const network = program.network || process.env.LISK_NETWORK;
+
+if (typeof network === 'undefined') {
+	console.error('No network is provided');
+	process.exit(1);
+}
+
 const defaultConfig = loadJSONFile(
 	path.resolve(rootPath, 'config/default/config.json')
 );
 
 const networkConfig = loadJSONFileIfExists(
-	path.resolve(
-		rootPath,
-		`config/${program.network || process.env.LISK_NETWORK}/config.json`
-	)
+	path.resolve(rootPath, `config/${network}/config.json`)
 );
 
 const unifiedNewConfig = _.merge({}, defaultConfig, networkConfig);
@@ -206,10 +213,6 @@ history.version('1.0.0-rc.2', version => {
 		}
 	);
 });
-history.version('1.0.0-rc.3');
-history.version('1.0.0-rc.4');
-history.version('1.0.0-rc.5');
-history.version('1.0.0');
 history.version('1.1.0-rc.0', version => {
 	version.change('removed version and minVersion', config => {
 		delete config.version;
@@ -221,9 +224,6 @@ history.version('1.1.0-rc.0', version => {
 		return config;
 	});
 });
-history.version('1.1.0');
-history.version('1.1.1-rc.x');
-history.version('1.1.1');
 history.version('1.2.0-rc.x', version => {
 	version.change('remove malformed peer list items', config => {
 		config.peers.list = config.peers.list.filter(
@@ -232,7 +232,6 @@ history.version('1.2.0-rc.x', version => {
 		return config;
 	});
 });
-history.version('1.2.0');
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
@@ -257,7 +256,7 @@ const askPassword = (message, cb) => {
 };
 
 if (!toVersion) {
-	toVersion = require('../package.json').version;
+	toVersion = packageJSON.version;
 }
 
 history.migrate(
@@ -299,8 +298,21 @@ history.migrate(
 			applyChange(customConfig, json, d);
 		});
 
+		const tempFilePath = tempy.file();
+
+		console.info('\nWriting configuration file temporarily for validation.');
+		console.info(tempFilePath);
+		fs.writeFileSync(tempFilePath, JSON.stringify(customConfig, null, '\t'));
+
+		console.info('\nValidating the configuration file');
+		// Set the env variables to validate against correct network and config file
+		process.env.LISK_NETWORK = network;
+		process.env.LISK_CONFIG_FILE = tempFilePath;
+		AppConfig(packageJSON, false);
+		console.info('Validation finished successfully.');
+
 		if (program.output) {
-			console.info(`\nWriting updated configuration to ${program.output}`);
+			console.info(`\nWriting configuration file to ${program.output}`);
 			fs.writeFileSync(
 				program.output,
 				JSON.stringify(customConfig, null, '\t')

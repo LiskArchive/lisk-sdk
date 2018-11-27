@@ -32,8 +32,7 @@ def initializeNode() {
 def buildDependencies() {
 	try {
 		sh '''
-		rsync -axl -e "ssh -oUser=jenkins" master-01:/var/lib/jenkins/lisk/node_modules/ "$WORKSPACE/node_modules/"
-		npm install
+		npm ci
 		'''
 	} catch (err) {
 		echo "Error: ${err}"
@@ -170,13 +169,6 @@ lock(resource: "Lisk-Core-Nodes-v8", inversePrecedence: true) {
 					try {
 						deleteDir()
 						checkout scm
-						sh """
-						if [ ${params.JENKINS_PROFILE} = "jenkins-extensive" ]; then
-							rm -Rf "${env.WORKSPACE}/node_modules/"
-							npm install
-							rsync -axl --delete "${env.WORKSPACE}/node_modules/" /var/lib/jenkins/lisk/node_modules/
-						fi
-						"""
 					} catch (err) {
 						echo "Error: ${err}"
 						currentBuild.result = 'FAILURE'

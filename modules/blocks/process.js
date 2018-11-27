@@ -18,7 +18,7 @@ const _ = require('lodash');
 const async = require('async');
 const slots = require('../../helpers/slots.js');
 
-const constants = global.constants;
+const { MAX_TRANSACTIONS_PER_BLOCK } = global.constants;
 
 const __private = {};
 let modules;
@@ -537,7 +537,7 @@ Process.prototype.generateBlock = function(keypair, timestamp, cb) {
 	// Get transactions that will be included in block
 	const transactions = modules.transactions.getUnconfirmedTransactionList(
 		false,
-		constants.maxTransactionsPerBlock
+		MAX_TRANSACTIONS_PER_BLOCK
 	);
 	const ready = [];
 

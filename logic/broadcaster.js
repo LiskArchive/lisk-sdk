@@ -19,7 +19,7 @@ const extend = require('extend');
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue.js');
 
-const constants = global.constants;
+const { MAX_PEERS } = global.constants;
 
 let modules;
 let library;
@@ -64,7 +64,7 @@ class Broadcaster {
 
 		self.queue = [];
 		self.config = library.config.broadcasts;
-		self.config.peerLimit = constants.maxPeers;
+		self.config.peerLimit = MAX_PEERS;
 
 		// Broadcast routes
 		self.routes = [

@@ -18,7 +18,7 @@ const async = require('async');
 const Bignum = require('../helpers/bignum.js');
 
 const exceptions = global.exceptions;
-const constants = global.constants;
+const { FEES } = global.constants;
 let modules;
 let library;
 let self;
@@ -61,11 +61,11 @@ Delegate.prototype.bind = function(accounts) {
 /**
  * Obtains constant fee delegate.
  *
- * @returns {Bignumber} constants.fees.delegate
+ * @returns {Bignumber} FEES.DELEGATE
  * @todo Delete unused transaction, sender parameters
  */
 Delegate.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.delegate);
+	return new Bignum(FEES.DELEGATE);
 };
 
 /**

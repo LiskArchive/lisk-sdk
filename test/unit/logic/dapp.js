@@ -22,7 +22,7 @@ var randomUtil = require('../../common/utils/random');
 var typeRepresentatives = require('../../fixtures/types_representatives.js');
 var testData = require('./test_data/dapp.js');
 
-const constants = __testContext.config.constants;
+const { FEES } = __testContext.config.constants;
 var Dapp = rewire('../../../logic/dapp.js');
 var validKeypair = testData.validKeypair;
 var validSender = testData.validSender;
@@ -110,9 +110,9 @@ describe('dapp', () => {
 		});
 
 		describe('calculateFee', () => {
-			it('should return constants.fees.dappRegistration', () => {
+			it('should return FEES.DAPP_REGISTRATION', () => {
 				return expect(
-					dapp.calculateFee(transaction).equals(constants.fees.dappRegistration)
+					dapp.calculateFee(transaction).equals(FEES.DAPP_REGISTRATION)
 				);
 			});
 		});

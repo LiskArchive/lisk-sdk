@@ -24,7 +24,7 @@ var randomUtil = require('../../../common/utils/random');
 var apiHelpers = require('../../../common/helpers/api');
 var errorCodes = require('../../../../helpers/api_codes');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
@@ -281,7 +281,9 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 						errorCodes.PROCESSING_ERROR
 					).then(res => {
 						expect(res.body.message).to.equal(
-							`Failed to verify multisignature: ${signatureFromunknown.signature}`
+							`Failed to verify multisignature: ${
+								signatureFromunknown.signature
+							}`
 						);
 						badTransactions.push(scenario.multiSigTransaction);
 					});
@@ -377,7 +379,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				var scenario = scenarios.requesterPublicKey;
 
 				var transaction = lisk.transaction.transfer({
-					amount: 1 * constants.normalizer,
+					amount: 1 * NORMALIZER,
 					passphrase: scenario.members[0].passphrase,
 					recipientId: randomUtil.account().address,
 				});

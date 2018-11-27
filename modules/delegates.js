@@ -31,7 +31,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 let modules;
 let library;
 let self;
-const constants = global.constants;
+const { ACTIVE_DELEGATES } = global.constants;
 const __private = {};
 
 __private.assetTypes = {};
@@ -489,14 +489,12 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 						const downvotes = downvoteAccounts.length;
 						const totalVotes = existingVotes + upvotes - downvotes;
 
-						if (totalVotes > constants.activeDelegates) {
-							const exceeded = totalVotes - constants.activeDelegates;
+						if (totalVotes > ACTIVE_DELEGATES) {
+							const exceeded = totalVotes - ACTIVE_DELEGATES;
 
 							return setImmediate(
 								waterfallCb,
-								`Maximum number of ${
-									constants.activeDelegates
-								} votes exceeded (${exceeded} too many)`
+								`Maximum number of ${ACTIVE_DELEGATES} votes exceeded (${exceeded} too many)`
 							);
 						}
 						return setImmediate(waterfallCb);

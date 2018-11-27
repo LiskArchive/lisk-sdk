@@ -19,7 +19,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('../common');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 0) - double transfers', () => {
 	var library;
@@ -34,7 +34,7 @@ describe('system test (type 0) - double transfers', () => {
 		describe('executing 30 times', () => {
 			var account = randomUtil.account();
 			var transaction = lisk.transaction.transfer({
-				amount: 1100 * constants.normalizer,
+				amount: 1100 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
@@ -50,7 +50,7 @@ describe('system test (type 0) - double transfers', () => {
 
 			it('adding to pool transfer should be ok', done => {
 				transaction1 = lisk.transaction.transfer({
-					amount: 1000 * constants.normalizer,
+					amount: 1000 * NORMALIZER,
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 					timeOffset: -10000,
@@ -63,7 +63,7 @@ describe('system test (type 0) - double transfers', () => {
 
 			it('adding to pool same transfer with different timestamp should be ok', done => {
 				transaction2 = lisk.transaction.transfer({
-					amount: 1000 * constants.normalizer,
+					amount: 1000 * NORMALIZER,
 					passphrase: account.passphrase,
 					recipientId: accountFixtures.genesis.address,
 				});

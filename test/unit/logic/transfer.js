@@ -24,7 +24,7 @@ var ed = require('../../../helpers/ed');
 var Bignum = require('../../../helpers/bignum.js');
 var Transfer = require('../../../logic/transfer');
 
-const constants = __testContext.config.constants;
+const { FEES, ADDITIONAL_DATA } = __testContext.config.constants;
 var validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
 var validKeypair = ed.makeKeypair(
@@ -144,9 +144,7 @@ describe('transfer', () => {
 	describe('calculateFee', () => {
 		it('should return the correct fee for a transfer', () => {
 			return expect(
-				transfer
-					.calculateFee(validTransaction)
-					.equals(new Bignum(constants.fees.send))
+				transfer.calculateFee(validTransaction).equals(new Bignum(FEES.SEND))
 			).to.be.true;
 		});
 
@@ -158,7 +156,7 @@ describe('transfer', () => {
 			return expect(
 				transfer.calculateFee
 					.call(transactionLogic, transaction)
-					.equals(constants.fees.send)
+					.equals(FEES.SEND)
 			).to.be.true;
 		});
 	});
@@ -404,11 +402,9 @@ describe('transfer', () => {
 		});
 
 		it(`should throw error if data field length is greater than ${
-			constants.additionalData.maxLength
+			ADDITIONAL_DATA.MAX_LENGTH
 		} characters`, () => {
-			var invalidString = randomstring.generate(
-				constants.additionalData.maxLength + 1
-			);
+			var invalidString = randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH + 1);
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: invalidString,
@@ -422,10 +418,10 @@ describe('transfer', () => {
 		});
 
 		it(`should throw error if data field length is greater than ${
-			constants.additionalData.maxLength
+			ADDITIONAL_DATA.MAX_LENGTH
 		} bytes`, () => {
 			var invalidString = `${randomstring.generate(
-				constants.additionalData.maxLength - 1
+				ADDITIONAL_DATA.MAX_LENGTH - 1
 			)}现`;
 			var transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {

@@ -32,7 +32,7 @@ var Dapp = require('../../../logic/dapp');
 var InTransfer = require('../../../logic/in_transfer');
 var OutTransfer = require('../../../logic/out_transfer');
 
-const constants = __testContext.config.constants;
+const { TOTAL_AMOUNT } = __testContext.config.constants;
 const exceptions = global.exceptions;
 
 var validPassphrase =
@@ -753,7 +753,7 @@ describe('transaction', () => {
 			});
 		});
 
-		it('should return error when transaction amount is invalid', done => {
+		it("should return error when transaction amount is bigger than postgreSQL's Max BigInt value", done => {
 			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
 			var transaction = {
 				type: 0,
@@ -778,7 +778,7 @@ describe('transaction', () => {
 
 		it('should return error when account balance is less than transaction amount', done => {
 			var transactionDataClone = _.cloneDeep(transactionData);
-			transactionDataClone.amount = constants.totalAmount;
+			transactionDataClone.amount = TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
 				transactionLogic.verify(transaction, sender, null, null, err => {

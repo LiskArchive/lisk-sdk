@@ -25,7 +25,7 @@ var apiHelpers = require('../../../common/helpers/api');
 var swaggerEndpoint = require('../../../common/swagger_spec');
 var slots = require('../../../../helpers/slots');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -36,8 +36,8 @@ describe('GET /api/transactions', () => {
 	var account = randomUtil.account();
 	var account2 = randomUtil.account();
 	var account3 = accountFixtures.existingDelegate;
-	var minAmount = 20 * constants.normalizer; // 20 LSK
-	var maxAmount = 100 * constants.normalizer; // 100 LSK
+	var minAmount = 20 * NORMALIZER; // 20 LSK
+	var maxAmount = 100 * NORMALIZER; // 100 LSK
 	var transaction1 = lisk.transaction.transfer({
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
@@ -49,7 +49,7 @@ describe('GET /api/transactions', () => {
 		recipientId: account2.address,
 	});
 	var transaction3 = lisk.transaction.transfer({
-		amount: 20 * constants.normalizer, // 20 LSK
+		amount: 20 * NORMALIZER, // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
 	});

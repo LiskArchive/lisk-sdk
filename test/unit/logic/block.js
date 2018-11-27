@@ -21,7 +21,7 @@ const Bignum = require('../../../helpers/bignum.js');
 const modulesLoader = require('../../common/modules_loader');
 const transactionTypes = require('../../../helpers/transaction_types.js');
 
-const constants = __testContext.config.constants;
+const { FEES } = __testContext.config.constants;
 
 const Block = rewire('../../../logic/block.js');
 
@@ -667,7 +667,7 @@ describe('block', () => {
 
 	describe('calculateFee', () => {
 		it('should return the constant fee', () => {
-			return expect(block.calculateFee(blockData).equals(constants.fees.send));
+			return expect(block.calculateFee(blockData).equals(FEES.SEND));
 		});
 	});
 

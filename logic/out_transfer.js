@@ -19,7 +19,7 @@ const Bignum = require('../helpers/bignum.js');
 
 let modules;
 let library;
-const constants = global.constants;
+const { FEES } = global.constants;
 const exceptions = global.exceptions;
 const __private = {};
 
@@ -67,7 +67,7 @@ OutTransfer.prototype.bind = function(accounts, blocks) {
  * @returns {Bignumber} Transaction fee
  */
 OutTransfer.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.send);
+	return new Bignum(FEES.SEND);
 };
 
 /**

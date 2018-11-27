@@ -25,7 +25,7 @@ let modules;
 let definitions;
 let library;
 let self;
-const constants = global.constants;
+const { ACTIVE_DELEGATES, MAX_PEERS } = global.constants;
 const __private = {};
 
 __private.loaded = false;
@@ -766,18 +766,18 @@ __private.createSnapshot = height => {
 	library.logger.info('Snapshot mode enabled');
 
 	// Single round contains amount of blocks equal to number of active delegates
-	if (height < constants.activeDelegates) {
+	if (height < ACTIVE_DELEGATES) {
 		throw new Error(
 			'Unable to create snapshot, blockchain should contain at least one round of blocks'
 		);
 	}
 
 	const snapshotRound = library.config.loading.snapshotRound;
-	const totalRounds = Math.floor(height / constants.activeDelegates);
+	const totalRounds = Math.floor(height / ACTIVE_DELEGATES);
 	const targetRound = isNaN(snapshotRound)
 		? totalRounds
 		: Math.min(totalRounds, snapshotRound);
-	const targetHeight = targetRound * constants.activeDelegates;
+	const targetHeight = targetRound * ACTIVE_DELEGATES;
 
 	library.logger.info(
 		`Snapshotting to end of round: ${targetRound}, height: ${targetHeight}`
@@ -799,10 +799,10 @@ __private.createSnapshot = height => {
 							)}, height: ${currentHeight}`
 						);
 						modules.blocks.process.loadBlocksOffset(
-							constants.activeDelegates,
+							ACTIVE_DELEGATES,
 							currentHeight,
 							loadBlocksOffsetErr => {
-								currentHeight += constants.activeDelegates;
+								currentHeight += ACTIVE_DELEGATES;
 								return setImmediate(untilCb, loadBlocksOffsetErr);
 							}
 						);
@@ -1062,7 +1062,7 @@ Loader.prototype.findGoodPeers = function(peers) {
  */
 Loader.prototype.getNetwork = function(cb) {
 	const peers = library.logic.peers.listRandomConnected({
-		limit: constants.maxPeers,
+		limit: MAX_PEERS,
 	});
 	__private.network = self.findGoodPeers(peers);
 

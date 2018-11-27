@@ -25,7 +25,7 @@ var waitFor = require('../../../common/utils/wait_for');
 var errorCodes = require('../../../../helpers/api_codes');
 var common = require('./common');
 
-const constants = global.constants;
+const { FEES, NORMALIZER } = global.constants;
 
 var sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
@@ -47,22 +47,22 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 	before(() => {
 		var transactions = [];
 		var transaction1 = lisk.transaction.transfer({
-			amount: 1000 * constants.normalizer,
+			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
 		var transaction2 = lisk.transaction.transfer({
-			amount: constants.fees.delegate,
+			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
 		var transaction3 = lisk.transaction.transfer({
-			amount: constants.fees.delegate,
+			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountUpperCase.address,
 		});
 		var transaction4 = lisk.transaction.transfer({
-			amount: constants.fees.delegate,
+			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFormerDelegate.address,
 		});

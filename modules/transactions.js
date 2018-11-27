@@ -25,7 +25,7 @@ const transactionTypes = require('../helpers/transaction_types.js');
 const Transfer = require('../logic/transfer.js');
 
 // Private fields
-const constants = global.constants;
+const { EPOCH_TIME } = global.constants;
 const __private = {};
 let modules;
 let library;
@@ -104,7 +104,7 @@ __private.list = function(filter, cb) {
 	const where = [];
 	const allowedFieldsMap = {
 		senderIdOrRecipientId:
-			'"t_senderId" = ${senderIdOrRecipientId} OR "t_recipientId" = ${senderIdOrRecipientId}',
+			'("t_senderId" = ${senderIdOrRecipientId} OR "t_recipientId" = ${senderIdOrRecipientId})',
 		id: '"t_id" = ${id}',
 		blockId: '"t_blockId" = ${blockId}',
 		fromHeight: '"b_height" >= ${fromHeight}',
@@ -142,7 +142,7 @@ __private.list = function(filter, cb) {
 		// Mutating parametres when unix timestamp is supplied
 		if (_.includes(['fromUnixTime', 'toUnixTime'], field)) {
 			// Lisk epoch is 1464109200 as unix timestamp
-			value -= constants.epochTime.getTime() / 1000;
+			value -= EPOCH_TIME.getTime() / 1000;
 			field = field.replace('UnixTime', 'Timestamp');
 		}
 

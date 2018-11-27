@@ -22,7 +22,7 @@ const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
 
 const exceptions = global.exceptions;
-const constants = global.constants;
+const POSTGRESQL_BIGINT_MAX_VALUE = '9223372036854775807';
 const __private = {};
 
 /**
@@ -600,7 +600,14 @@ class Transaction {
 
 					// Iterate over public keys in keygroup, check if signature is valid for
 					for (let k = 0; k < keygroup.length; k++) {
-						if (!checked.includes(keygroup[k]) && this.verifySignature(transaction, keygroup[k], transaction.signatures[s])) {
+						if (
+							!checked.includes(keygroup[k]) &&
+							this.verifySignature(
+								transaction,
+								keygroup[k],
+								transaction.signatures[s]
+							)
+						) {
 							// If signature is valid for particular public key - add it to checked array
 							checked.push(keygroup[k]);
 							isValidSignature = true;
@@ -609,10 +616,17 @@ class Transaction {
 					}
 
 					if (!isValidSignature) {
-						const err = `Failed to verify multisignature: ${transaction.signatures[s]}`;
+						const err = `Failed to verify multisignature: ${
+							transaction.signatures[s]
+						}`;
 
 						// Check against exceptions
-						if (exceptions.duplicatedSignatures[transaction.id] && exceptions.duplicatedSignatures[transaction.id].includes(transaction.signatures[s])) {
+						if (
+							exceptions.duplicatedSignatures[transaction.id] &&
+							exceptions.duplicatedSignatures[transaction.id].includes(
+								transaction.signatures[s]
+							)
+						) {
 							this.scope.logger.warn('Transaction accepted due to exceptions', {
 								err,
 								transaction: JSON.stringify(transaction),
@@ -623,7 +637,10 @@ class Transaction {
 					}
 				}
 			} catch (e) {
-				return setImmediate(cb, `Failed to verify multisignature: ${e.toString()}`);
+				return setImmediate(
+					cb,
+					`Failed to verify multisignature: ${e.toString()}`
+				);
 			}
 		}
 
@@ -647,9 +664,9 @@ class Transaction {
 		// Check amount
 		let amount = transaction.amount;
 		if (
-			amount.lessThan(0) ||
-			amount.greaterThan(constants.totalAmount) ||
-			!amount.isInteger()
+			!amount.isInteger() ||
+			amount.greaterThan(POSTGRESQL_BIGINT_MAX_VALUE) ||
+			amount.lessThan(0)
 		) {
 			return setImmediate(cb, 'Invalid transaction amount');
 		}

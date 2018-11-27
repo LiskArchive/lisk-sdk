@@ -25,7 +25,7 @@ const randomUtil = require('../common/utils/random');
 const queriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
-const constants = global.constants;
+const { REWARDS } = global.constants;
 
 describe('rounds', () => {
 	let library;
@@ -35,7 +35,7 @@ describe('rounds', () => {
 	let deleteLastBlockPromise;
 
 	// Set rewards start at 150-th block
-	constants.rewards.offset = 150;
+	REWARDS.OFFSET = 150;
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
@@ -1183,7 +1183,7 @@ describe('rounds', () => {
 					transactionPool.queued.transactions = [];
 
 					// Set expected reward per block as first milestone
-					expectedRewardsPerBlock = constants.rewards.milestones[0];
+					expectedRewardsPerBlock = REWARDS.MILESTONES[0];
 					done();
 				});
 

@@ -18,7 +18,7 @@ const ByteBuffer = require('bytebuffer');
 const Bignum = require('../helpers/bignum.js');
 const ed = require('../helpers/ed.js');
 
-const constants = global.constants;
+const { FEES } = global.constants;
 let modules;
 let library;
 
@@ -63,7 +63,7 @@ Signature.prototype.bind = function(accounts) {
  * @returns {Bignumber} Transaction fee
  */
 Signature.prototype.calculateFee = function() {
-	return new Bignum(constants.fees.secondSignature);
+	return new Bignum(FEES.SECOND_SIGNATURE);
 };
 
 /**

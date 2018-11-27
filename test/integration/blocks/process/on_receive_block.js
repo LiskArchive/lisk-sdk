@@ -26,7 +26,7 @@ var genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 var application = require('../../../common/application.js');
 
-const constants = global.constants;
+const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
 describe('system test (blocks) - process onReceiveBlock()', () => {
 	var library;
@@ -423,7 +423,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 					beforeEach(() => {
 						blockFromPreviousRound =
-							forgedBlocks[forgedBlocks.length - constants.activeDelegates];
+							forgedBlocks[forgedBlocks.length - ACTIVE_DELEGATES];
 						blockFromPreviousRound.height = mutatedHeight;
 						return library.modules.blocks.process.onReceiveBlock(
 							blockFromPreviousRound
@@ -443,15 +443,13 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 				});
 
-				describe(`when received block is from same round and ${constants.blockSlotWindow -
+				describe(`when received block is from same round and ${BLOCK_SLOT_WINDOW -
 					1} slots in the past`, () => {
 					var inSlotsWindowBlock;
 
 					beforeEach(() => {
 						inSlotsWindowBlock =
-							forgedBlocks[
-								forgedBlocks.length - (constants.blockSlotWindow - 1)
-							];
+							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW - 1)];
 						inSlotsWindowBlock.height = mutatedHeight;
 						return library.modules.blocks.process.onReceiveBlock(
 							inSlotsWindowBlock
@@ -471,16 +469,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 				});
 
-				describe(`when received block is from same round and greater than ${
-					constants.blockSlotWindow
-				} slots in the past`, () => {
+				describe(`when received block is from same round and greater than ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
 					var outOfSlotWindowBlock;
 
 					beforeEach(() => {
 						outOfSlotWindowBlock =
-							forgedBlocks[
-								forgedBlocks.length - (constants.blockSlotWindow + 2)
-							];
+							forgedBlocks[forgedBlocks.length - (BLOCK_SLOT_WINDOW + 2)];
 						outOfSlotWindowBlock.height = mutatedHeight;
 						return library.modules.blocks.process.onReceiveBlock(
 							outOfSlotWindowBlock
@@ -734,7 +728,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 							beforeEach(() => {
 								// Slot and generatorPublicKey belongs to delegate who is 6 slots behind current slot
-								slot = slots.getSlotNumber() - (constants.blockSlotWindow + 1);
+								slot = slots.getSlotNumber() - (BLOCK_SLOT_WINDOW + 1);
 								timestamp = slots.getSlotTime(slot);
 								return getValidKeypairForSlot(slot).then(kp => {
 									keypair = kp;

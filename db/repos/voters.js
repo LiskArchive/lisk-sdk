@@ -43,12 +43,13 @@ class VotersRepository {
 	 * @param {string} params.publicKey
 	 * @param {int} params.limit
 	 * @param {int} params.offset
+	 * @param {string} params.sortField
+	 * @param {string} params.sortMethod
 	 * @returns {Promise}
 	 * @todo Add description for the params and the return value
 	 */
 	list(params) {
-		// TODO: Should use a result-specific method, not .query
-		return this.db.query(sql.getVoters, params);
+		return this.db.any(sql.getVoters, params);
 	}
 
 	/**

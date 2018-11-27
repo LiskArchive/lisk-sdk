@@ -18,7 +18,7 @@ const lisk = require('lisk-elements').default;
 const localCommon = require('../common');
 const accountFixtures = require('../../fixtures/accounts');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 0) - votes collision', () => {
 	let library;
@@ -40,7 +40,7 @@ describe('system test (type 0) - votes collision', () => {
 	};
 
 	const creditTransaction = lisk.transaction.transfer({
-		amount: 10000 * constants.normalizer,
+		amount: 10000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: collisionAccount.address,
 	});

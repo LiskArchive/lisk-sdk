@@ -19,7 +19,7 @@ var swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
 var modules;
-const constants = global.constants;
+const { EPOCH_TIME } = global.constants;
 
 /**
  * Description of the function.
@@ -147,7 +147,7 @@ DelegatesController.getForgingStatistics = function(context, next) {
 				count: reward.count,
 			},
 			meta: {
-				fromTimestamp: filters.start || constants.epochTime.getTime(),
+				fromTimestamp: filters.start || EPOCH_TIME.getTime(),
 				toTimestamp: filters.end || Date.now(),
 			},
 			links: {},

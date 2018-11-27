@@ -18,7 +18,7 @@ const _ = require('lodash');
 const BlockReward = require('../logic/block_reward.js');
 const slots = require('../helpers/slots.js');
 
-const constants = global.constants;
+const { EPOCH_TIME, FEES } = global.constants;
 
 // Private fields
 let modules;
@@ -144,8 +144,17 @@ Node.prototype.shared = {
 		return setImmediate(cb, null, {
 			build: library.build,
 			commit: library.lastCommit,
-			epoch: constants.epochTime,
-			fees: constants.fees,
+			epoch: EPOCH_TIME,
+			fees: {
+				send: FEES.SEND,
+				vote: FEES.VOTE,
+				secondSignature: FEES.SECOND_SIGNATURE,
+				delegate: FEES.DELEGATE,
+				multisignature: FEES.MULTISIGNATURE,
+				dappRegistration: FEES.DAPP_REGISTRATION,
+				dappWithdrawal: FEES.DAPP_WITHDRAWAL,
+				dappDeposit: FEES.DAPP_DEPOSIT,
+			},
 			nethash: library.config.nethash,
 			nonce: library.config.nonce,
 			milestone: blockReward.calcMilestone(height),

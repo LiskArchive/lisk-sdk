@@ -19,7 +19,7 @@ var accountFixtures = require('../../fixtures/accounts');
 var randomUtil = require('../../common/utils/random');
 var localCommon = require('../common');
 
-const constants = global.constants;
+const { NORMALIZER } = global.constants;
 
 describe('system test (type 3) - voting with duplicate submissions', () => {
 	var library;
@@ -41,7 +41,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 
 			account = randomUtil.account();
 			transaction = lisk.transaction.transfer({
-				amount: 1000 * constants.normalizer,
+				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
