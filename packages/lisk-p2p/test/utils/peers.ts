@@ -40,6 +40,7 @@ export const initializePeerList = (): ReadonlyArray<Peer> => {
 		height: 645982,
 		id: '192.28.138.1:5006',
 	};
+
 	const peer1 = new Peer(peerOption1);
 	const peer2 = new Peer(peerOption2);
 	const peer3 = new Peer(peerOption3);

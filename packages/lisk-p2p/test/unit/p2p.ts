@@ -24,9 +24,11 @@ describe('p2p', () => {
 			wsEngine: 'ws',
 			wsPort: 5000,
 		});
+
 		it('should be an object', () => {
 			return expect(lisk).to.be.an('object');
 		});
+
 		it('should be an instance of P2P blockchain', () => {
 			return expect(lisk)
 				.to.be.an('object')
