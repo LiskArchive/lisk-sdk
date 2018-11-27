@@ -196,9 +196,10 @@ __private.getByFilter = function(filter, cb) {
 	// Sorting
 	if (filter.sort) {
 		const sort_arr = String(filter.sort).split(':');
-		const sort_field = sort_arr[0]
-			? _.includes(allowedFields, sort_arr[0]) ? sort_arr[0] : null
+		const auxSortField = _.includes(allowedFields, sort_arr[0])
+			? sort_arr[0]
 			: null;
+		const sort_field = sort_arr[0] ? auxSortField : null;
 		const sort_method = sort_arr.length === 2 ? sort_arr[1] !== 'desc' : true;
 		if (sort_field) {
 			peers.sort(sortPeers(sort_field, sort_method));
@@ -685,13 +686,13 @@ Peers.prototype.list = function(options, cb) {
 				peersList = peersList.filter(peer => {
 					if (broadhash) {
 						// Skip banned and disconnected peers by default
+						// Unmatched broadhash when attempt 1
+						const auxAttemp =
+							attempt === 1 ? peer.broadhash !== broadhash : false;
 						return (
 							allowedStates.indexOf(peer.state) !== -1 &&
 							// Matched broadhash when attempt 0
-							(attempt === 0
-								? peer.broadhash === broadhash
-								: // Unmatched broadhash when attempt 1
-									attempt === 1 ? peer.broadhash !== broadhash : false)
+							(attempt === 0 ? peer.broadhash === broadhash : auxAttemp)
 						);
 					}
 					// Skip banned and disconnected peers by default

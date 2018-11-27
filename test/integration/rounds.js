@@ -218,22 +218,26 @@ describe('rounds', () => {
 				const aPK = accounts[a].publicKey;
 				const bPK = accounts[b].publicKey;
 
+				// If first is null - return -1, if not return 1
+				const auxAPK = aPK === null ? -1 : 1;
+
+				const auxBufferComp =
+					// If both are null - return 0
+					aPK === null && bPK === null ? 0 : auxAPK;
+
 				const bufferComp =
 					// If both are buffers
 					aPK && bPK
 						? // Return result of the compare
 							Buffer.compare(bPK, aPK)
-						: // If both are null - return 0
-							aPK === null && bPK === null
-							? 0
-							: // If first is null - return -1, if not return 1
-								aPK === null ? -1 : 1;
+						: auxBufferComp;
 
+				const auxAvoteLt = aVote.gt(bVote) ? 1 : bufferComp;
 				// Compare vote weights first:
 				// if first is less than second - return -1,
 				// if first is greather than second - return 1,
 				// if both are equal - compare public keys
-				return aVote.lt(bVote) ? -1 : aVote.gt(bVote) ? 1 : bufferComp;
+				return aVote.lt(bVote) ? -1 : auxAvoteLt;
 			})
 			.map(key => accounts[key])
 			.reverse();

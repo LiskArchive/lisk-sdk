@@ -125,10 +125,9 @@ const connectSteps = {
 			(peerExtendedWithRPC, localHandler, rpcProcedureName) => {
 				peerExtendedWithRPC.rpc[rpcProcedureName] = (data, rpcCallback) => {
 					// Provide default parameters if called with non standard parameter, callback
+					const auxRpcCallback = typeof data === 'function' ? data : () => {};
 					rpcCallback =
-						typeof rpcCallback === 'function'
-							? rpcCallback
-							: typeof data === 'function' ? data : () => {};
+						typeof rpcCallback === 'function' ? rpcCallback : auxRpcCallback;
 					data = data && typeof data !== 'function' ? data : {};
 
 					logger.trace(
