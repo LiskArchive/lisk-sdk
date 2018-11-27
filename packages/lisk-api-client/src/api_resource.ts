@@ -15,6 +15,7 @@
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { APIClient } from './api_client';
 import { ApiResponse, HashMap } from './api_types';
+import { APIError } from './errors';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
 
@@ -41,12 +42,12 @@ export class APIResource {
 		error: Error,
 		req: AxiosRequestConfig,
 		retryCount: number,
-	): Promise<ApiResponse | Error> {
+	): Promise<ApiResponse> {
 		if (this.apiClient.hasAvailableNodes()) {
-			return new Promise<ApiResponse | Error>(resolve =>
+			return new Promise<ApiResponse>(resolve =>
 				setTimeout(resolve, REQUEST_RETRY_TIMEOUT),
 			).then(
-				async (): Promise<ApiResponse | Error> => {
+				async (): Promise<ApiResponse> => {
 					if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
 						throw error;
 					}
@@ -66,23 +67,25 @@ export class APIResource {
 		req: AxiosRequestConfig,
 		retry: boolean,
 		retryCount: number = 1,
-	): Promise<ApiResponse | Error> {
+	): Promise<ApiResponse> {
 		const request = Axios.request(req)
 			.then((res: AxiosResponse) => res.data)
 			.catch(
 				(error: AxiosError): Error => {
 					if (error.response) {
 						if (error.response.data && error.response.data.message) {
-							throw new Error(
+							throw new APIError(
 								`Status ${error.response.status} : ${
 									error.response.data.message
 								}`,
+								error.response.status,
 							);
 						}
-						throw new Error(
+						throw new APIError(
 							`Status ${
 								error.response.status
 							} : An unknown error has occurred.`,
+							error.response.status,
 						);
 					}
 					throw error;

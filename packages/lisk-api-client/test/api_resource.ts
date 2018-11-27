@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import { APIClient } from '../src/api_client';
 import { APIResource } from '../src/api_resource';
 import sinon from 'sinon';
-
 // Required for stub
 const axios = require('axios');
 
@@ -134,7 +133,8 @@ describe('API resource module', () => {
 						data: sendRequestResult,
 					},
 				});
-				return resource.request(defaultRequest, true).catch(err => {
+
+				return resource.request(defaultRequest, false).catch(err => {
 					return expect(err.message).to.equal(
 						`Status ${statusCode} : An unknown error has occurred.`,
 					);
@@ -150,7 +150,8 @@ describe('API resource module', () => {
 						data: { message: serverErrorMessage },
 					},
 				});
-				return resource.request(defaultRequest, true).catch(err => {
+
+				return resource.request(defaultRequest, false).catch(err => {
 					return expect(err.message).to.eql(
 						`Status ${statusCode} : ${serverErrorMessage}`,
 					);
@@ -160,7 +161,7 @@ describe('API resource module', () => {
 			it('should reject with error if client rejects with plain error', () => {
 				const clientError = new Error('client error');
 				requestStub.rejects(clientError);
-				return resource.request(defaultRequest, true).catch(err => {
+				return resource.request(defaultRequest, false).catch(err => {
 					return expect(err).to.eql(clientError);
 				});
 			});

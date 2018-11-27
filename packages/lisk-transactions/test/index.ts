@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import transaction from '../src';
+import * as transaction from '../src';
 
 describe('transaction', () => {
 	describe('exports', () => {

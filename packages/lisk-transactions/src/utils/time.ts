@@ -13,7 +13,7 @@
  *
  */
 
-import { EPOCH_TIME_MILLISECONDS } from '@liskhq/lisk-constants';
+import { EPOCH_TIME_MILLISECONDS } from '../constants';
 
 const MS_TIME = 1000;
 

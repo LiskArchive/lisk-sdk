@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { BaseTransaction } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
