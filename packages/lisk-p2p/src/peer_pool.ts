@@ -25,11 +25,9 @@ import { PeerTransportError } from './errors';
 
 import socketClusterServer from 'socketcluster-server';
 
-const EVENT_INBOUND_PEER_FAIL = 'inboundPeerFail';
-const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
-const EVENT_NEW_PEER = 'newPeer';
-
-export { EVENT_INBOUND_PEER_FAIL, EVENT_NEW_INBOUND_PEER, EVENT_NEW_PEER };
+export const EVENT_INBOUND_PEER_FAIL = 'inboundPeerFail';
+export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
+export const EVENT_NEW_PEER = 'newPeer';
 
 export interface IPeerPoolConfig {
 	readonly blacklistedPeers?: ReadonlyArray<string>;
