@@ -25,6 +25,12 @@ import { PeerTransportError } from './errors';
 
 import socketClusterServer from 'socketcluster-server';
 
+const EVENT_INBOUND_PEER_FAIL = 'inboundPeerFail';
+const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
+const EVENT_NEW_PEER = 'newPeer';
+
+export { EVENT_INBOUND_PEER_FAIL, EVENT_NEW_INBOUND_PEER, EVENT_NEW_PEER };
+
 export interface IPeerPoolConfig {
 	readonly blacklistedPeers?: ReadonlyArray<string>;
 	readonly connectTimeout: number;
@@ -79,17 +85,17 @@ export class PeerPool extends EventEmitter {
 				`Received inbound connection from peer ${peerId} which is already in our triedPeers map.`,
 				peerId,
 			);
-			this.emit('inboundPeerFail', error);
+			this.emit(EVENT_INBOUND_PEER_FAIL, error);
 		} else if (this._newPeers.has(peerId)) {
 			const error: PeerTransportError = new PeerTransportError(
 				`Received inbound connection from peer ${peerId} which is already in our newPeers map.`,
 				peerId,
 			);
-			this.emit('inboundPeerFail', error);
+			this.emit(EVENT_INBOUND_PEER_FAIL, error);
 		} else {
 			this._newPeers.set(peerId, peer);
-			super.emit('newInboundPeer', peer);
-			super.emit('newPeer', peer);
+			super.emit(EVENT_NEW_INBOUND_PEER, peer);
+			super.emit(EVENT_NEW_PEER, peer);
 		}
 	}
 
