@@ -57,14 +57,13 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
-		"babel-runtime": "6.26.0"
+		"@types/node": "10.10.1"
 	},
 	"devDependencies": {
 		"@types/chai": "4.1.5",
 		"@types/expect": "1.20.3",
 		"@types/jquery": "3.3.9",
 		"@types/mocha": "5.2.5",
-		"@types/node": "10.10.1",
 		"browserify": "16.2.2",
 		"chai": "4.1.2",
 		"cypress": "3.1.0",
