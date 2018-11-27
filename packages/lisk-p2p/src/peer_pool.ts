@@ -80,7 +80,7 @@ export class PeerPool extends EventEmitter {
 	}
 
 	private _addInboundPeerToMaps(peer: Peer): void {
-		const peerId: string = peer.getId();
+		const peerId: string = peer.id;
 
 		if (this._triedPeers.has(peerId)) {
 			const error: PeerTransportError = new PeerTransportError(

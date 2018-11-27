@@ -44,20 +44,24 @@ export class Peer {
 		this._height = peerConfig.height;
 	}
 
-	public getHeight(): number {
+	public get height(): number {
 		return this._height;
 	}
 
-	public getId(): string {
+	public set height(value: number) {
+		this._height = value;
+	}
+
+	public get id(): string {
 		return this._id;
 	}
 
-	public getIp(): string {
+	public get ipAddress(): string {
 		return this._ipAddress;
 	}
 
 	// TODO: Return BANNED when appropriate.
-	public getState(): PeerState {
+	public get state(): PeerState {
 		if (this._inboundSocket.state === this._inboundSocket.OPEN) {
 			return PeerState.CONNECTED;
 		}
@@ -65,11 +69,7 @@ export class Peer {
 		return PeerState.DISCONNECTED;
 	}
 
-	public getWsPort(): number {
+	public get wsPort(): number {
 		return this._wsPort;
-	}
-
-	public setHeight(height: number): void {
-		this._height = height;
 	}
 }
