@@ -100,8 +100,7 @@
 		"/npm-shrinkwrap.json",
 		"/oclif.manifest.json",
 		"/dist",
-		"/docs",
-		"/default_config.json"
+		"/docs"
 	],
 	"dependencies": {
 		"@liskhq/lisk-api-client": "2.0.0",
