@@ -25,8 +25,10 @@ export interface IP2PNodeStatus {}
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<string>;
 	readonly connectTimeout: number;
+	readonly ipAddress?: string;
 	readonly seedPeers: ReadonlyArray<string>;
-	readonly wsEngine: string;
+	readonly wsEngine?: string;
+	readonly wsPort: number;
 }
 
 export interface IP2PPenalty {}

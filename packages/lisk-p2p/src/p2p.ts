@@ -41,8 +41,10 @@ export class P2P {
 		this.peerPool = new PeerPool({
 			blacklistedPeers: config.blacklistedPeers,
 			connectTimeout: config.connectTimeout,
+			ipAddress: config.ipAddress,
 			seedPeers: config.seedPeers,
 			wsEngine: config.wsEngine,
+			wsPort: config.wsPort,
 		});
 	}
 

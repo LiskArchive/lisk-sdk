@@ -34,8 +34,10 @@ export { EVENT_INBOUND_PEER_FAIL, EVENT_NEW_INBOUND_PEER, EVENT_NEW_PEER };
 export interface IPeerPoolConfig {
 	readonly blacklistedPeers?: ReadonlyArray<string>;
 	readonly connectTimeout: number;
+	readonly ipAddress?: string;
 	readonly seedPeers: ReadonlyArray<string>;
-	readonly wsEngine: string;
+	readonly wsEngine?: string;
+	readonly wsPort: number;
 }
 
 export class PeerPool extends EventEmitter {
