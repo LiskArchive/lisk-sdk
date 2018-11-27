@@ -84,7 +84,7 @@ module.exports = {
 		],
 	},
 	/**
-	 * In modules.delegates.js we are using generateDelegateList
+	 * In modules/delegates.js we are using generateDelegateList
 	 * to get the list of forgers for the round. However, we are
 	 * also caching this list to reduce calls to the database.
 	 * In the rounds below, using cache, creates forks.

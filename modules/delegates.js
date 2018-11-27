@@ -769,11 +769,12 @@ Delegates.prototype.generateDelegateList = function(round, source, cb, tx) {
 				.digest();
 		}
 
-		// If the round is not an exception, cache the round.
-		if (
+		const isRoundInExceptions =
 			!Array.isArray(exceptions.ignoreDelegateListCacheForRounds) ||
-			!exceptions.ignoreDelegateListCacheForRounds.includes(round)
-		) {
+			!exceptions.ignoreDelegateListCacheForRounds.includes(round);
+
+		// If the round is not an exception, cache the round.
+		if (!isRoundInExceptions) {
 			__private.updateDelegateListCache(round, truncDelegateList);
 		}
 		return setImmediate(cb, null, truncDelegateList);
