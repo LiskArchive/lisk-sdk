@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 module.exports = function(grunt) {
 	grunt.registerTask('mocha', 'Run test suite.', (tag, suite, section) => {
 		if (['unit', 'functional', 'integration', 'network'].indexOf(suite) < 0) {

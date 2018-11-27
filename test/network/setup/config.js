@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const fs = require('fs');
 const utils = require('../utils');
 

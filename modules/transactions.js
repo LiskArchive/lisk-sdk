@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const Promise = require('bluebird');
 const _ = require('lodash');
 const async = require('async');

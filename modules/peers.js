@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const _ = require('lodash');
 const async = require('async');
 const ip = require('ip');

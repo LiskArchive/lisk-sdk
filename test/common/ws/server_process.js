@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var randomstring = require('randomstring');
 var SocketCluster = require('socketcluster');
 var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');

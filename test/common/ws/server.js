@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../setup'); // Ensure availability of global variables
 
 var randomstring = require('randomstring');

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const expect = require('chai').expect;
 const lisk = require('lisk-elements').default;
 const accountFixtures = require('../../../fixtures/accounts');

@@ -1,5 +1,3 @@
-'use strict';
-
 const assert = require('assert');
 const semver = require('semver');
 const async = require('async');

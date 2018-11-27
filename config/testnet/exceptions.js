@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 module.exports = {
 	blockRewards: [
 		'11807740622680299921', // 2161

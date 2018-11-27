@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const async = require('async');
 const ByteBuffer = require('bytebuffer');
 const ed = require('../helpers/ed.js');

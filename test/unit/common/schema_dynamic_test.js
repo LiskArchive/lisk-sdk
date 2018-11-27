@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var util = require('util');
 var typesRepresentatives = require('../../fixtures/types_representatives');
 

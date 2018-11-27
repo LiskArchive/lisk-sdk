@@ -1,5 +1,3 @@
-'use strict';
-
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const accountsFixtures = require('../../../fixtures').accounts;
 const votesSQL = require('../../../../db/sql').votes;

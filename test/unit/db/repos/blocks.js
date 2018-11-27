@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const ed = require('../../../../helpers/ed.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const blocksFixtures = require('../../../fixtures').blocks;

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const async = require('async');
 const jobsQueue = require('../helpers/jobs_queue.js');
 const slots = require('../helpers/slots.js');

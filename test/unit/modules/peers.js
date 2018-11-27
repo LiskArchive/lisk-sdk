@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const sinon = require('sinon');
 const rewire = require('rewire');
 const randomstring = require('randomstring');

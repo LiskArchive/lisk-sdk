@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var popsicle = require('popsicle');
 var async = require('async');
 var Promise = require('bluebird');

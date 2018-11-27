@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const dappsSQL = require('../../../../db/sql').dapps;
 const seeder = require('../../../common/db_seed');

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const Signature = require('../logic/signature.js');

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var rewire = require('rewire');
 var chai = require('chai');
 var randomstring = require('randomstring');

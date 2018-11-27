@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const stampit = require('stampit');
 const randomstring = require('randomstring');
 

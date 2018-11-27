@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var ip = require('ip');
 var _ = require('lodash');
 var z_schema = require('z-schema');

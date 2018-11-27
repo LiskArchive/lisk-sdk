@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../functional.js');
 var WSServer = require('../../../common/ws/server_master');
 var SwaggerEndpoint = require('../../../common/swagger_spec');

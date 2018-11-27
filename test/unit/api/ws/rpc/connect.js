@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const rewire = require('rewire');
 const sinon = require('sinon');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;

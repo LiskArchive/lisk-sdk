@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const popsicle = require('popsicle');
 const apiCodes = require('../../../helpers/api_codes');
 

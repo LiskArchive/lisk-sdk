@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const blockVersion = require('../../../logic/block_version.js');
 
 const exceptions = global.exceptions;

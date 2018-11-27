@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var crypto = require('crypto');
 var randomstring = require('randomstring');
 var accountFixtures = require('../../fixtures/accounts');

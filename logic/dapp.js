@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const valid_url = require('valid-url');
 const ByteBuffer = require('bytebuffer');
 const dappCategories = require('../helpers/dapp_categories.js');

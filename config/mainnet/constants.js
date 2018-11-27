@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 module.exports = {
 	REWARDS: {
 		OFFSET: 1451520,

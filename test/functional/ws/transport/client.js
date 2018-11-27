@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../functional.js');
 const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 const connect = require('../../../../api/ws/rpc/connect');

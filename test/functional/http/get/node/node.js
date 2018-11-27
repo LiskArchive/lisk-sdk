@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../../functional.js');
 var SwaggerEndpoint = require('../../../../common/swagger_spec');
 var apiHelpers = require('../../../../common/helpers/api');

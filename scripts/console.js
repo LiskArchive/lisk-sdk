@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const path = require('path');
 const repl = require('repl');
 const fs = require('fs');

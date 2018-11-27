@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const async = require('async');
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue.js');

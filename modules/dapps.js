@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const apiCodes = require('../helpers/api_codes.js');
 const ApiError = require('../helpers/api_error.js');
 const DApp = require('../logic/dapp.js');
@@ -57,7 +55,7 @@ __private.assetTypes = {};
  * @param {scope} scope - App instance.
  * @returns {setImmediateCallback} cb, null, self
  * @todo Apply node pattern for callbacks: callback always at the end
- * @todo Add 'use strict';
+ * @todo Add
  */
 class DApps {
 	constructor(cb, scope) {

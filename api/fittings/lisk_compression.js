@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var debug = require('debug')('swagger:lisk:compression');
 var _ = require('lodash');
 var compression = require('compression');

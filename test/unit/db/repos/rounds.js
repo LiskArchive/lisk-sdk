@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const BigNumber = require('bignumber.js');
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const roundsFixtures = require('../../../fixtures').rounds;

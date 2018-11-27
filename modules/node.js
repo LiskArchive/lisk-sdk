@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const _ = require('lodash');
 const BlockReward = require('../logic/block_reward.js');
 const slots = require('../helpers/slots.js');

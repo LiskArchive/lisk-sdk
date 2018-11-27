@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const crypto = require('crypto');
 const rewire = require('rewire');
 const ed = require('../../../helpers/ed');

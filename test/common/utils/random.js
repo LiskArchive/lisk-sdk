@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var randomstring = require('randomstring');
 var lisk = require('lisk-elements').default;
 var Bignum = require('../../../helpers/bignum.js');

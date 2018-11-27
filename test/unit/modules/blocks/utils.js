@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var rewire = require('rewire');
 var modulesLoader = require('../../../common/modules_loader');
 

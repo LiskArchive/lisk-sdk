@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 /* eslint-disable mocha/no-pending-tests */
 
 describe('lisk_response_formatter', () => {

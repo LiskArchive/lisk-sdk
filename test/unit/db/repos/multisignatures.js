@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const DBSandbox = require('../../../common/db_sandbox').DBSandbox;
 const accountFixtures = require('../../../fixtures').accounts;
 const multisignaturesSQL = require('../../../../db/sql').multisignatures;

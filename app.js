@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 // eslint-disable-next-line import/order
 const AppConfig = require('./helpers/config.js');
 

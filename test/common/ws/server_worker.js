@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var SCWorker = require('socketcluster/scworker');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 

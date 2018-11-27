@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const os = require('os');
 const crypto = require('crypto');
 const async = require('async');

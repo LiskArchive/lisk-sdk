@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../functional.js');
 var WAMPClient = require('wamp-socket-cluster/WAMPClient');
 var randomstring = require('randomstring');

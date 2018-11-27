@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 module.exports = {
 	rounds: {
 		27040: { rewards_factor: 2, fees_factor: 2, fees_bonus: 10000000 },

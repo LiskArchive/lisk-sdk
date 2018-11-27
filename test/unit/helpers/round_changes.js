@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var RoundChanges = require('../../../helpers/round_changes.js');
 
 describe('RoundChanges', () => {

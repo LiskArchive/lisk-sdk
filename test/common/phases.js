@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../functional/functional.js');
 var Promise = require('bluebird');
 var apiHelpers = require('./helpers/api');

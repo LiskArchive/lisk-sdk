@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var Peer = require('../../../logic/peer');
 var failureCodes = require('../rpc/failure_codes');
 var PeerUpdateError = require('../rpc/failure_codes').PeerUpdateError;

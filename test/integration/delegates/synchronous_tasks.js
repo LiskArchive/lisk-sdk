@@ -1,5 +1,3 @@
-'use strict';
-
 const expect = require('chai').expect;
 const Rx = require('rx');
 const localCommon = require('../common.js');

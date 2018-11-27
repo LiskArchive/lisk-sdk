@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var fs = require('fs');
 var path = require('path');
 var moment = require('moment');

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
 describe('wsRPC', () => {

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 // Global imports
 var dns = require('dns');
 var net = require('net');

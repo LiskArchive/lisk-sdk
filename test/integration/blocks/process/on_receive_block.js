@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var crypto = require('crypto');
 var expect = require('chai').expect;
 var async = require('async');

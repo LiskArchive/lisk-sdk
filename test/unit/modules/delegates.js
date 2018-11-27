@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var lisk = require('lisk-elements').cryptography;
 var genesisDelegates = require('../../data/genesis_delegates.json');
 var delegatesRoundsList = require('../../data/delegates_rounds_list.json');

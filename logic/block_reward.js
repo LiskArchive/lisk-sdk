@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const Bignum = require('../helpers/bignum.js');
 
 const { REWARDS, TOTAL_AMOUNT } = global.constants;

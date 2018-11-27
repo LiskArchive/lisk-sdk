@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var url = require('url');
 var _ = require('lodash');
 var failureCodes = require('../../rpc/failure_codes.js');

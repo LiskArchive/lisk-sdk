@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var randomstring = require('randomstring');
 var sql = require('../common/sql/mem_accounts.js');
 var modulesLoader = require('../../common/modules_loader');

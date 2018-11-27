@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var async = require('async');
 var rewire = require('rewire');
 var transactionTypes = require('../../../helpers/transaction_types.js');

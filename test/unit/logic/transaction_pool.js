@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const _ = require('lodash');
 const rewire = require('rewire');
 const expect = require('chai').expect;

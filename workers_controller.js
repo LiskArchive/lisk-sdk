@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }

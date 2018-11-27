@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var util = require('util');
 var debug = require('debug')('swagger:lisk:error_handler');
 

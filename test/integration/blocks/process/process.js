@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var async = require('async');
 const blockVersion = require('../../../../logic/block_version.js');
 var application = require('../../../common/application');

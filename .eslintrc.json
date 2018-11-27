@@ -54,7 +54,6 @@
 				}
 			}
 		],
-		"strict": "off",
 		"space-before-function-paren": "off",
 		"vars-on-top": "off",
 		"wrap-iife": "off",

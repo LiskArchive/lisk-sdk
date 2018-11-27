@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const System = require('../../../modules/system');
 const connect = require('../../../api/ws/rpc/connect');
 const WSServerMaster = require('./server_master');

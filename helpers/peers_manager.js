@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const connect = require('../api/ws/rpc/connect');
 const disconnect = require('../api/ws/rpc/disconnect');
 

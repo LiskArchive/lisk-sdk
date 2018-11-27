@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const sinon = require('sinon');
 const disconnect = require('../../../../../api/ws/rpc/disconnect');
 const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var _ = require('lodash');
 var checkIpInList = require('../../helpers/check_ip_in_list.js');
 var apiCodes = require('../../helpers/api_codes');

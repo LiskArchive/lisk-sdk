@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const async = require('async');
 // eslint-disable-next-line prefer-const
 let Round = require('../logic/round.js');

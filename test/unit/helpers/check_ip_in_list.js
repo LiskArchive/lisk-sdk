@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var checkIpInList = require('../../../helpers/check_ip_in_list');
 
 describe('checkIpInList', () => {

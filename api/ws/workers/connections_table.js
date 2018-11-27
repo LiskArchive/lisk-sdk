@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 /**
  * ConnectionsTable - Stores connection (socket) ids and matches them with peer's nonces.
  *

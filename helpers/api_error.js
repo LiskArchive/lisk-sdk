@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 /**
  * Extends standard Error with a code field and toJson function.
  *

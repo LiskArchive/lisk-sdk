@@ -17,8 +17,6 @@
  * @property {module:db} db
  */
 
-'use strict';
-
 const Promise = require('bluebird');
 const monitor = require('pg-monitor');
 const pgpLib = require('pg-promise');

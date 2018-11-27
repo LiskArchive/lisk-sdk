@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
 var SwaggerSpec = require('../../../common/swagger_spec');

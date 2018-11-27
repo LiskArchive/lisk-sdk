@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 require('../../functional.js');
 const async = require('async');
 const WAMPServer = require('wamp-socket-cluster/WAMPServer');

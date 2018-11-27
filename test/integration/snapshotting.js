@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const Promise = require('bluebird');
 const elements = require('lisk-elements').default;
 const randomUtil = require('../common/utils/random');

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var httpMocks = require('node-mocks-http');
 var fitting = require('../../../../api/fittings/lisk_request_limit');
 

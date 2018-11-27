@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var debug = require('debug')('swagger:lisk:cache');
 var modules = require('../../helpers/swagger_module_registry');
 

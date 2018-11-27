@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var Bignum = require('../../../helpers/bignum.js');
 
 describe('BigNumber', () => {

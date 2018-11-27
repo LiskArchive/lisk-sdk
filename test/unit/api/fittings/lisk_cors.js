@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var httpMocks = require('node-mocks-http');
 var swaggerModuleRegistry = require('../../../../helpers/swagger_module_registry');
 var fitting = require('../../../../api/fittings/lisk_cors');

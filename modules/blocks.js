@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const { BLOCK_RECEIPT_TIMEOUT, EPOCH_TIME } = global.constants;
 const async = require('async');
 // Submodules

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const _ = require('lodash');
 const Promise = require('bluebird');
 const transactionTypes = require('../../../helpers/transaction_types');

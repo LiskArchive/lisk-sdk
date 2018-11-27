@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var _ = require('lodash');
 var ApiError = require('../../helpers/api_error');
 var swaggerHelper = require('../../helpers/swagger');

@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const find = require('find');
 const utils = require('./utils');
 const setup = require('./setup');

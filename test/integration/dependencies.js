@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 var DBSandbox = require('../common/db_sandbox').DBSandbox;
 

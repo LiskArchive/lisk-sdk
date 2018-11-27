@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var randomstring = require('randomstring');
 var Z_schema = require('../../../helpers/z_schema.js');
 

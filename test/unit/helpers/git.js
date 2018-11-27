@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var childProcess = require('child_process');
 var fs = require('fs');
 var git = require('../../../helpers/git');

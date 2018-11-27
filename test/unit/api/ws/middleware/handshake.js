@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var randomstring = require('randomstring');
 var typeRepresentatives = require('../../../../fixtures/types_representatives.js');
 var Handshake = require('../../../../../api/ws/workers/middlewares/handshake');

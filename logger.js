@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
 var fs = require('fs');
 var util = require('util');
 var child_process = require('child_process');
