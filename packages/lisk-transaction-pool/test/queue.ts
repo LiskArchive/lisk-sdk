@@ -64,7 +64,7 @@ describe('Queue', () => {
 		const checkIdsExists = (
 			ids: ReadonlyArray<string>,
 		): ((transaction: Transaction) => boolean) => {
-			return (transaction: Transaction) => ids.indexOf(transaction.id) !== -1;
+			return (transaction: Transaction) => ids.includes(transaction.id);
 		};
 
 		beforeEach(() => {
