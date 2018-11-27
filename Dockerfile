@@ -12,7 +12,10 @@ COPY --chown=lisk:lisk . /home/lisk/lisk/
 USER lisk
 WORKDIR /home/lisk/lisk
 
-RUN npm install
+RUN npm install && \
+    git rev-parse HEAD >REVISION && \
+    rm -rf .git && \
+    date "+%H:%M:%S %d/%m/%Y" >.build
 
 
 FROM node:8-alpine
@@ -27,9 +30,7 @@ RUN apk --no-cache upgrade && \
 RUN addgroup -g 1100 lisk && \
     adduser -h /home/lisk -s /bin/bash -u 1100 -G lisk -D lisk
 COPY --from=builder --chown=lisk:lisk /home/lisk/lisk/ /home/lisk/lisk/
-# git repository needed for build; cannot be added to .dockerignore
-RUN rm -rf /home/lisk/lisk/.git && \
-    mkdir -p /home/lisk/lisk/logs && \
+RUN mkdir -p /home/lisk/lisk/logs && \
     chown lisk:lisk /home/lisk/lisk/logs
 
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/${WFI_COMMIT}/wait-for-it.sh /home/lisk/wait-for-it.sh
