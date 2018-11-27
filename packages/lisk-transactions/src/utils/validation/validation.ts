@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-reference
+/// <reference path="../../../types/browserify-bignum/index.d.ts" />
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
@@ -105,17 +107,12 @@ export const validateAddress = (address: string): boolean => {
 	return true;
 };
 
-interface BigNumComparable {
-	cmp(n: number | string | BigNumComparable): number;
-}
+export const isGreaterThanZero = (amount: BigNum) => amount.cmp(0) > 0;
 
-export const isGreaterThanZero = (amount: BigNumComparable) =>
-	amount.cmp(0) > 0;
-
-export const isGreaterThanMaxTransactionAmount = (amount: BigNumComparable) =>
+export const isGreaterThanMaxTransactionAmount = (amount: BigNum) =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
-export const isGreaterThanMaxTransactionId = (id: BigNumComparable) =>
+export const isGreaterThanMaxTransactionId = (id: BigNum) =>
 	id.cmp(MAX_TRANSACTION_ID) > 0;
 
 export const isNumberString = (str: string) => {
