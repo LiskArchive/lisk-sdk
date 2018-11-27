@@ -106,7 +106,7 @@ export const validateAddress = (address: string): boolean => {
 };
 
 interface BigNumComparable {
-	cmp(n: number | string): number;
+	cmp(n: number | string | BigNumComparable): number;
 }
 
 export const isGreaterThanZero = (amount: BigNumComparable) =>
