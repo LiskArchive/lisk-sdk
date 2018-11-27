@@ -105,12 +105,17 @@ export const validateAddress = (address: string): boolean => {
 	return true;
 };
 
-export const isGreaterThanZero = (amount: BigNum) => amount.cmp(0) > 0;
+interface BigNumComparable {
+	cmp(n: number | string): number;
+}
 
-export const isGreaterThanMaxTransactionAmount = (amount: BigNum) =>
+export const isGreaterThanZero = (amount: BigNumComparable) =>
+	amount.cmp(0) > 0;
+
+export const isGreaterThanMaxTransactionAmount = (amount: BigNumComparable) =>
 	amount.cmp(MAX_TRANSACTION_AMOUNT) > 0;
 
-export const isGreaterThanMaxTransactionId = (id: BigNum) =>
+export const isGreaterThanMaxTransactionId = (id: BigNumComparable) =>
 	id.cmp(MAX_TRANSACTION_ID) > 0;
 
 export const isNumberString = (str: string) => {
