@@ -127,7 +127,7 @@ __private.updateDelegateListCache = function(round, delegatesList) {
  *
  * @returns {Void}
  */
-Delegates.prototype.clearDelegateListCache = function() {
+Delegates.prototype.clearLastDelegateListCache = function() {
 	library.logger.debug('Clearing delegate list cache.');
 	// We want to clear the cache for the latest round but want to keep the cache for previous round.
 	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
