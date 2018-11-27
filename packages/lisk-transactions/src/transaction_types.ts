@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { TransactionError } from './errors';
 export interface Account {
 	readonly address: string;
 	readonly balance: string;
@@ -51,6 +52,21 @@ export interface TransactionJSON {
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
+}
+
+export interface VerifyReturn {
+	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly verified: boolean;
+}
+
+export interface ValidateReturn {
+	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly validated: boolean;
+}
+
+export interface StateReturn {
+	readonly recipient?: Account;
+	readonly sender: Account;
 }
 
 type Partial<T> = { [P in keyof T]?: T[P] };

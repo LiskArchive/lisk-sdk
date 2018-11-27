@@ -14,55 +14,23 @@
  */
 import cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { TransactionError } from './errors';
-import { Account, TransactionJSON } from './transaction_types';
+import {
+	Account,
+	StateReturn,
+	TransactionJSON,
+	ValidateReturn,
+	VerifyReturn,
+} from './transaction_types';
 import {
 	checkBalance,
-	getTransactionBytes,
-	getTransactionId,
-	isNumberString,
-	secondSignTransaction,
-	signTransaction,
+	normalizeInput,
 	validateTransaction,
 	verifyTransaction,
 } from './utils';
 
-const normalizeInput = (rawTransaction: TransactionJSON): void => {
-	const {
-		amount,
-		fee,
-		signSignature,
-		signatures,
-		...strippedTransaction
-	} = rawTransaction;
-
-	Object.entries({ amount, fee }).forEach(field => {
-		const [key, value] = field;
-
-		if (
-			!((value as unknown) instanceof BigNum) &&
-			(!isNumberString(value) || !Number.isSafeInteger(parseInt(value, 10)))
-		) {
-			throw new TransactionError(
-				`\`${key}\` must be a valid string or BigNum.`,
-			);
-		}
-	});
-
-	Object.entries(strippedTransaction).forEach(field => {
-		const [key, value] = field;
-		if (['timestamp', 'type'].includes(key)) {
-			if (typeof value !== 'number') {
-				throw new TransactionError(`\`${key}\` must be a number.`);
-			}
-		}
-		if (typeof value !== 'string') {
-			throw new TransactionError(`\`${key}\` must be a string.`);
-		}
-	});
-};
-
-export class BaseTransaction {
+export abstract class BaseTransaction {
 	public readonly amount: BigNum;
 	public readonly fee: BigNum;
 	public readonly id: string;
@@ -92,28 +60,10 @@ export class BaseTransaction {
 		this.type = rawTransaction.type;
 	}
 
-	public prepareTransaction(
+	public abstract prepareTransaction(
 		passphrase: string,
 		secondPassphrase?: string,
-	): TransactionJSON {
-		const transaction = this.toJSON();
-		const singleSignedTransaction = {
-			...transaction,
-			signature: signTransaction(transaction, passphrase),
-		};
-
-		const signedTransaction =
-			typeof secondPassphrase === 'string' && transaction.type !== 1
-				? secondSignTransaction(singleSignedTransaction, secondPassphrase)
-				: singleSignedTransaction;
-
-		const transactionWithId = {
-			...signedTransaction,
-			id: getTransactionId(signedTransaction),
-		};
-
-		return transactionWithId;
-	}
+	): TransactionJSON;
 
 	public toJSON(): TransactionJSON {
 		const transaction = {
@@ -134,26 +84,50 @@ export class BaseTransaction {
 	}
 
 	public getBytes(): Buffer {
-		const {
-			signature,
-			signatures,
-			signSignature,
-			...transaction
-		} = this.toJSON();
+		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
+		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
 
-		return getTransactionBytes(transaction);
+		const transactionSenderPublicKey = cryptography.hexToBuffer(
+			this.senderPublicKey,
+		);
+
+		const transactionRecipientID = this.recipientId
+			? cryptography.bigNumberToBuffer(
+					this.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  )
+			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+
+		const amountBigNum = new BigNum(this.amount);
+		if (amountBigNum.lt(0)) {
+			throw new TransactionError(
+				'Transaction amount must not be negative.',
+				this.id,
+			);
+		}
+		// BUG in browserify-bignum prevents us using `.gt` directly.
+		// See https://github.com/bored-engineer/b rowserify-bignum/pull/2
+		if (amountBigNum.gte(new BigNum(MAX_TRANSACTION_AMOUNT).add(1))) {
+			throw new TransactionError('Transaction amount is too large.', this.id);
+		}
+		const transactionAmount = amountBigNum.toBuffer({
+			endian: 'little',
+			size: BYTESIZES.AMOUNT,
+		});
+
+		return Buffer.concat([
+			transactionType,
+			transactionTimestamp,
+			transactionSenderPublicKey,
+			transactionRecipientID,
+			transactionAmount,
+		]);
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
-	public containsUniqueData(): boolean {
-		// Always false for base transaction
-		return false;
-	}
+	public abstract containsUniqueData(): boolean;
 
-	public validate(): {
-		readonly validated: boolean;
-		readonly errors?: ReadonlyArray<TransactionError>;
-	} {
+	public validate(): ValidateReturn {
 		// Schema validation
 		const { valid, errors } = validateTransaction(this.toJSON());
 		const transactionErrors = errors
@@ -175,12 +149,7 @@ export class BaseTransaction {
 		};
 	}
 
-	public verifyAgainstState(
-		sender: Account,
-	): {
-		readonly verified: boolean;
-		readonly errors?: ReadonlyArray<TransactionError>;
-	} {
+	public verifyAgainstState(sender: Account): VerifyReturn {
 		// Check sender balance
 		const { exceeded, errors } = checkBalance(sender, this.fee);
 
@@ -195,22 +164,11 @@ export class BaseTransaction {
 		};
 	}
 
-	// tslint:disable-next-line prefer-function-over-method
-	public verifyAgainstTransactions(
+	public abstract verifyAgainstTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): {
-		readonly verified: boolean;
-		readonly errors?: ReadonlyArray<TransactionError>;
-	} {
-		// Only check argument type for base transaction
-		const verified = Array.isArray(transactions);
+	): VerifyReturn;
 
-		return { verified };
-	}
-
-	public apply(
-		sender: Account,
-	): { readonly sender: Account; readonly recipient?: Account } {
+	public apply(sender: Account): StateReturn {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 
@@ -219,9 +177,7 @@ export class BaseTransaction {
 		};
 	}
 
-	public undo(
-		sender: Account,
-	): { readonly sender: Account; readonly recipient?: Account } {
+	public undo(sender: Account): StateReturn {
 		const updatedBalance = new BigNum(sender.balance).plus(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 

@@ -43,4 +43,5 @@ export {
 	isValidInteger,
 	isNumberString,
 	validateTransaction,
+	normalizeInput,
 } from './validation';

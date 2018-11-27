@@ -26,6 +26,7 @@ export {
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
 	isNumberString,
+	normalizeInput,
 } from './validation';
 
 export { validateTransaction } from './validate_transaction';
