@@ -24,7 +24,6 @@
 		"guard-for-in": "off",
 		"generator-star-spacing": ["error", { "before": false, "after": false }],
 		"max-len": "off",
-		"no-bitwise": "off",
 		"no-nested-ternary": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
