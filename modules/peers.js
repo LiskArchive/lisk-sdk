@@ -683,21 +683,20 @@ Peers.prototype.list = function(options, cb) {
 				const found = peersList.length;
 				const attempt = attempts.pop();
 				// Apply filters
-				peersList = peersList.filter(peer => {
-					if (broadhash) {
-						// Skip banned and disconnected peers by default
-						// Unmatched broadhash when attempt 1
-						const auxAttemp =
-							attempt === 1 ? peer.broadhash !== broadhash : false;
-						return (
-							allowedStates.indexOf(peer.state) !== -1 &&
-							// Matched broadhash when attempt 0
-							(attempt === 0 ? peer.broadhash === broadhash : auxAttemp)
-						);
+				// Skip banned peers by default
+				peersList = peersList.filter(
+					peer => allowedStates.indexOf(peer.state) !== -1
+				);
+				// Filter peers by broadhash if present
+				if (broadhash) {
+					if (attempt === 0) {
+						// Look for peers matching (equal to) broadhash with the first attempt
+						peersList = peersList.filter(peer => peer.broadhash === broadhash);
+					} else if (attempt === 1) {
+						// Look for peers unmatching (not equal to) broadhash with the second attempt
+						peersList = peersList.filter(peer => peer.broadhash !== broadhash);
 					}
-					// Skip banned and disconnected peers by default
-					return allowedStates.indexOf(peer.state) !== -1;
-				});
+				}
 				const matched = peersList.length;
 				// Apply limit
 				peersList = peersList.slice(0, limit);
