@@ -12,6 +12,7 @@ describe('Integration tests for P2P library', () => {
 					connectTimeout: 5000,
 					seedPeers: [],
 					wsEngine: 'ws',
+					wsPort: 5000 + index,
 				});
 			});
 
