@@ -13,45 +13,63 @@
  *
  */
 /* tslint:disable:interface-name */
+import { PeerState } from './p2p_types';
+
+// TODO: Use to create outbound socket connection inside peer object.
+// TODO: const socketClusterClient = require('socketcluster-client');
 
 export interface IPeerConfig {
 	readonly clock?: Date;
 	readonly height: number;
-	readonly httpPort?: number;
-	readonly ip: string;
+	readonly id: string;
+	readonly inboundSocket?: any; // TODO: Type SCServerSocket
+	readonly ipAddress: string;
 	readonly os?: string;
-	readonly state?: number;
 	readonly version?: string;
 	readonly wsPort: number;
 }
 
 export class Peer {
-	private height: number;
-	private ip: string;
-	private wsPort: number;
+	private _height: number;
+	private readonly _id: string;
+	private readonly _inboundSocket: any;
+	private readonly _ipAddress: string;
+	private readonly _wsPort: number;
 
 	public constructor(peerConfig: IPeerConfig) {
-		this.height = peerConfig.height;
-		this.ip = peerConfig.ip;
-		this.wsPort = peerConfig.wsPort;
+		this._id = peerConfig.id;
+		this._ipAddress = peerConfig.ipAddress;
+		this._wsPort = peerConfig.wsPort;
+		this._inboundSocket = peerConfig.inboundSocket;
+		this._height = peerConfig.height;
 	}
 
-	public getHeight(): number {
-		return this.height;
+	public get height(): number {
+		return this._height;
 	}
-	public getIp(): string {
-		return this.ip;
+
+	public set height(value: number) {
+		this._height = value;
 	}
-	public getWsPort(): number {
-		return this.wsPort;
+
+	public get id(): string {
+		return this._id;
 	}
-	public setHeight(height: number): void {
-		this.height = height;
+
+	public get ipAddress(): string {
+		return this._ipAddress;
 	}
-	public setIp(ip: string): void {
-		this.ip = ip;
+
+	// TODO: Return BANNED when appropriate.
+	public get state(): PeerState {
+		if (this._inboundSocket.state === this._inboundSocket.OPEN) {
+			return PeerState.CONNECTED;
+		}
+
+		return PeerState.DISCONNECTED;
 	}
-	public setWsPort(wsPort: number): void {
-		this.wsPort = wsPort;
+
+	public get wsPort(): number {
+		return this._wsPort;
 	}
 }

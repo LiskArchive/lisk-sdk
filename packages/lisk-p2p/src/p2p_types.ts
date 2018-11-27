@@ -13,6 +13,7 @@
  *
  */
 /* tslint:disable:interface-name no-empty-interface */
+
 export interface IP2PMessagePacket {}
 
 export interface IP2PRequestPacket {}
@@ -21,6 +22,21 @@ export interface IP2PResponsePacket {}
 
 export interface IP2PNodeStatus {}
 
+export interface P2PConfig {
+	readonly blacklistedPeers: ReadonlyArray<string>;
+	readonly connectTimeout: number;
+	readonly ipAddress?: string;
+	readonly seedPeers: ReadonlyArray<string>;
+	readonly wsEngine?: string;
+	readonly wsPort: number;
+}
+
 export interface IP2PPenalty {}
 
 export interface INetworkStatus {}
+
+export enum PeerState {
+	BANNED = 0,
+	DISCONNECTED = 1,
+	CONNECTED = 2,
+}
