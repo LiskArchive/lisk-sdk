@@ -558,8 +558,8 @@ describe('delegates', () => {
 				const currentSlot = 35;
 				const round = 1;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (round, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -583,8 +583,8 @@ describe('delegates', () => {
 				const currentSlot = 578;
 				const round = 2;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (round, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -608,8 +608,8 @@ describe('delegates', () => {
 				const currentSlot = 1051;
 				const round = 3;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (round, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -634,8 +634,8 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (roundArg, source, cb) => {
-					cb(null, delegatesRoundsList[roundArg]);
+				delegates.generateDelegateList = (round, cb) => {
+					cb(null, delegatesRoundsList[round]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -653,7 +653,7 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (__round, source, cb) => {
+				delegates.generateDelegateList = (round, cb) => {
 					cb('generateDelegateList error');
 				};
 
