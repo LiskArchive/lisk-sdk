@@ -16,20 +16,19 @@
 /**
  * The purpose of the PeerPool
  */
-
+/* tslint:disable:variable-name */
 import { EventEmitter } from 'events';
 import http, { Server } from 'http';
 import querystring from 'querystring';
-import { Peer } from './peer';
-import { PeerTransportError } from './errors';
-
 import socketClusterServer from 'socketcluster-server';
+import { PeerTransportError } from './errors';
+import { Peer } from './peer';
 
 export const EVENT_INBOUND_PEER_FAIL = 'inboundPeerFail';
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
 
-export interface IPeerPoolConfig {
+export interface PeerPoolConfig {
 	readonly blacklistedPeers?: ReadonlyArray<string>;
 	readonly connectTimeout: number;
 	readonly ipAddress?: string;
@@ -39,19 +38,20 @@ export interface IPeerPoolConfig {
 }
 
 export class PeerPool extends EventEmitter {
-	private readonly _config: IPeerPoolConfig;
+	private readonly _config: PeerPoolConfig;
 	private readonly _httpServer: Server;
 	private readonly _newPeers: Map<string, Peer>;
-	private readonly _triedPeers: Map<string, Peer>;
+	/* tslint:disable:next-line: no-any */
 	private readonly _scServer: any;
+	private readonly _triedPeers: Map<string, Peer>;
 
-	public constructor(config: IPeerPoolConfig) {
+	public constructor(config: PeerPoolConfig) {
 		super();
 
 		this._config = config;
 		this._httpServer = http.createServer();
-		this._scServer = socketClusterServer.attach(this._httpServer);
 		this._newPeers = new Map();
+		this._scServer = socketClusterServer.attach(this._httpServer);
 		this._triedPeers = new Map();
 
 		this._handleInboundConnections(this._scServer);
@@ -67,12 +67,14 @@ export class PeerPool extends EventEmitter {
 
 	// TODO: Connect to seed nodes and start discovery process.
 	public async start(): Promise<void> {
+		/* tslint:disable:next-line: no-unused-expression */
 		this._config; // TODO: Connect to seed nodes from this._config
 
 		return Promise.resolve();
 	}
 
 	// TODO
+	/* tslint:disable:next-line: prefer-function-over-method */
 	public async stop(): Promise<void> {
 		return Promise.resolve();
 	}

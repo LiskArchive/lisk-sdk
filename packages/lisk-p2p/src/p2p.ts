@@ -12,27 +12,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+/* tslint:disable:no-unused-expression */
 import {
-	INetworkStatus,
-	IP2PMessagePacket,
-	IP2PNodeStatus,
-	IP2PPenalty,
-	IP2PRequestPacket,
-	IP2PResponsePacket,
+	NetworkStatus,
 	P2PConfig,
+	P2PMessagePacket,
+	P2PNodeStatus,
+	P2PPenality,
+	P2PRequestPacket,
+	P2PResponsePacket,
 } from './p2p_types';
 
-import { Peer } from './peer';
 import { PeerPool } from './peer_pool';
-
-export interface IPeerReturnType {
-	readonly options: IPeerOptions;
-	readonly peers: ReadonlyArray<Peer>;
-}
-export interface IPeerOptions {
-	readonly [key: string]: string | number;
-}
 
 export class P2P {
 	private readonly peerPool: PeerPool;
@@ -48,36 +39,32 @@ export class P2P {
 		});
 	}
 
-	public applyPenalty = (penalty: IP2PPenalty): void => {
+	public applyPenalty = (penalty: P2PPenality): void => {
 		penalty;
 	};
 	// TODO
-	public getNetworkStatus = (): INetworkStatus => true;
+	public getNetworkStatus = (): NetworkStatus => true;
 	// TODO
-	public getNodeStatus = (): IP2PNodeStatus => true;
+	public getNodeStatus = (): P2PNodeStatus => true;
 	// TODO
 	public request = async (
-		packet: IP2PRequestPacket,
-	): Promise<IP2PResponsePacket> => {
+		packet: P2PRequestPacket,
+	): Promise<P2PResponsePacket> => {
 		const response = packet;
 
 		return Promise.resolve(response);
 	};
 
-	public send = (message: IP2PMessagePacket): void => {
+	public send = (message: P2PMessagePacket): void => {
 		message;
 		// TODO
 	};
-	public setNodeStatus = (nodeStatus: IP2PNodeStatus): void => {
+	public setNodeStatus = (nodeStatus: P2PNodeStatus): void => {
 		nodeStatus;
 		// TODO
 	};
 	// TODO
-	public start = async (): Promise<void> => {
-		return this.peerPool.start();
-	};
+	public start = async (): Promise<void> => this.peerPool.start();
 	// TODO
-	public stop = async (): Promise<void> => {
-		return this.peerPool.stop();
-	};
+	public stop = async (): Promise<void> => this.peerPool.stop();
 }

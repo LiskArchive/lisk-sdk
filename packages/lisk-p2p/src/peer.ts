@@ -12,16 +12,17 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name */
+/* tslint:disable:interface-name variable-name */
 import { PeerState } from './p2p_types';
 
 // TODO: Use to create outbound socket connection inside peer object.
 // TODO: const socketClusterClient = require('socketcluster-client');
 
-export interface IPeerConfig {
+export interface PeerConfig {
 	readonly clock?: Date;
 	readonly height: number;
 	readonly id: string;
+	/* tslint:disable:next-line: no-any */
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
 	readonly ipAddress: string;
 	readonly os?: string;
@@ -30,36 +31,19 @@ export interface IPeerConfig {
 }
 
 export class Peer {
-	private _height: number;
+	private readonly _height: number;
 	private readonly _id: string;
 	private readonly _inboundSocket: any;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
 
-	public constructor(peerConfig: IPeerConfig) {
+	public constructor(peerConfig: PeerConfig) {
 		this._id = peerConfig.id;
 		this._ipAddress = peerConfig.ipAddress;
 		this._wsPort = peerConfig.wsPort;
 		this._inboundSocket = peerConfig.inboundSocket;
 		this._height = peerConfig.height;
 	}
-
-	public get height(): number {
-		return this._height;
-	}
-
-	public set height(value: number) {
-		this._height = value;
-	}
-
-	public get id(): string {
-		return this._id;
-	}
-
-	public get ipAddress(): string {
-		return this._ipAddress;
-	}
-
 	// TODO: Return BANNED when appropriate.
 	public get state(): PeerState {
 		if (this._inboundSocket.state === this._inboundSocket.OPEN) {
@@ -67,6 +51,22 @@ export class Peer {
 		}
 
 		return PeerState.DISCONNECTED;
+	}
+
+	public get height(): number {
+		return this._height;
+	}
+
+	public get id(): string {
+		return this._id;
+	}
+
+	public get inboundSocket(): any {
+		return this._inboundSocket;
+	}
+
+	public get ipAddress(): string {
+		return this._ipAddress;
 	}
 
 	public get wsPort(): number {
