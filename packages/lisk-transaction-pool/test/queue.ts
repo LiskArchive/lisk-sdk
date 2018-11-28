@@ -49,12 +49,12 @@ describe('Queue', () => {
 		it('should return true if transaction exists in queue', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
-			return expect(queue.exists(transaction)).to.equal(true);
+			return expect(queue.exists(transaction)).to.be.true;
 		});
 
 		it('should return false if transaction does not exist in queue', () => {
 			const transaction = transferTransactionInstances[0];
-			return expect(queue.exists(transaction)).to.equal(false);
+			return expect(queue.exists(transaction)).to.be.false;
 		});
 	});
 
