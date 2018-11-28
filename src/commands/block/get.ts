@@ -26,7 +26,9 @@ export default class GetCommand extends BaseCommand {
 		},
 	];
 
-	static description = 'Gets block information from the blockchain.';
+	static description = `
+		Gets block information from the blockchain.
+	`;
 
 	static examples = [
 		'block:get 17108498772892203620',
