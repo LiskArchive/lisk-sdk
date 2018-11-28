@@ -70,8 +70,8 @@ class DatabaseSeed {
 
 		return db
 			.task('db:seed:blocks', t => {
-				return Promise.mapSeries(blocks, mapSeriesBlock => {
-					return t.blocks.save(mapSeriesBlock);
+				return Promise.mapSeries(blocks, aBlock => {
+					return t.blocks.save(aBlock);
 				});
 			})
 			.then(() => blocks);

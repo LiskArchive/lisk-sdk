@@ -704,20 +704,18 @@ d.run(() => {
 
 					Object.keys(config.modules).forEach(name => {
 						tasks[name] = function(configModulescb) {
-							var domain = require('domain').create();
-
-							domain.on('error', err => {
+							d.on('error', err => {
 								modulesScope.logger.fatal(`Domain ${name}`, {
 									message: err.message,
 									stack: err.stack,
 								});
 							});
 
-							domain.run(() => {
+							d.run(() => {
 								logger.debug('Loading module', name);
 								// eslint-disable-next-line import/no-dynamic-require
-								var Klass = require(config.modules[name]);
-								var obj = new Klass(configModulescb, modulesScope);
+								var DynamicModule = require(config.modules[name]);
+								var obj = new DynamicModule(configModulescb, modulesScope);
 								modules.push(obj);
 							});
 						};

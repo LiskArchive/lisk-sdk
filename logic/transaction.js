@@ -616,7 +616,7 @@ class Transaction {
 					}
 
 					if (!isValidSignature) {
-						const validSignatureErr = `Failed to verify multisignature: ${
+						const invalidSignatureErr = `Failed to verify multisignature: ${
 							transaction.signatures[s]
 						}`;
 
@@ -628,11 +628,11 @@ class Transaction {
 							)
 						) {
 							this.scope.logger.warn('Transaction accepted due to exceptions', {
-								validSignatureErr,
+								invalidSignatureErr,
 								transaction: JSON.stringify(transaction),
 							});
 						} else {
-							return setImmediate(cb, validSignatureErr);
+							return setImmediate(cb, invalidSignatureErr);
 						}
 					}
 				}
@@ -696,21 +696,21 @@ class Transaction {
 		}
 
 		const verifyTransactionTypes = (
-			transaction1,
-			sender2,
-			tx3,
+			aTransaction,
+			aSender,
+			aTx,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transaction1.type].verify(
-				transaction1,
-				sender2,
+			__private.types[aTransaction.type].verify(
+				aTransaction,
+				aSender,
 				verifyErr => {
 					if (verifyErr) {
 						return setImmediate(verifyTransactionTypesCb, verifyErr);
 					}
 					return setImmediate(verifyTransactionTypesCb);
 				},
-				tx3
+				aTx
 			);
 		};
 

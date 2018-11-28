@@ -69,45 +69,45 @@ module.exports = function(config) {
 
 	Object.keys(config.levels).forEach(name => {
 		function log(message, data) {
-			var varLog = {
+			var logContext = {
 				level: name,
 				timestamp: strftime('%F %T', new Date()),
 			};
 
 			if (message instanceof Error) {
-				varLog.message = message.stack;
+				logContext.message = message.stack;
 			} else {
-				varLog.message = message;
+				logContext.message = message;
 			}
 
 			if (data && util.isObject(data)) {
-				varLog.data = JSON.stringify(snipFragileData(data));
+				logContext.data = JSON.stringify(snipFragileData(data));
 			} else {
-				varLog.data = data;
+				logContext.data = data;
 			}
 
-			varLog.symbol = config.level_abbr[varLog.level]
-				? config.level_abbr[varLog.level]
+			logContext.symbol = config.level_abbr[logContext.level]
+				? config.level_abbr[logContext.level]
 				: '???';
 
-			if (config.levels[config.errorLevel] <= config.levels[varLog.level]) {
-				if (varLog.data) {
+			if (config.levels[config.errorLevel] <= config.levels[logContext.level]) {
+				if (logContext.data) {
 					log_file.write(
 						util.format(
 							'[%s] %s | %s - %s\n',
-							varLog.symbol,
-							varLog.timestamp,
-							varLog.message,
-							varLog.data
+							logContext.symbol,
+							logContext.timestamp,
+							logContext.message,
+							logContext.data
 						)
 					);
 				} else {
 					log_file.write(
 						util.format(
 							'[%s] %s | %s\n',
-							varLog.symbol,
-							varLog.timestamp,
-							varLog.message
+							logContext.symbol,
+							logContext.timestamp,
+							logContext.message
 						)
 					);
 				}
@@ -115,23 +115,23 @@ module.exports = function(config) {
 
 			if (
 				config.echo &&
-				config.levels[config.echo] <= config.levels[varLog.level]
+				config.levels[config.echo] <= config.levels[logContext.level]
 			) {
-				if (varLog.data) {
+				if (logContext.data) {
 					console.info(
-						`[${varLog.symbol.bgYellow.black}]`,
-						varLog.timestamp.grey,
+						`[${logContext.symbol.bgYellow.black}]`,
+						logContext.timestamp.grey,
 						'|',
-						varLog.message,
+						logContext.message,
 						'-',
-						varLog.data
+						logContext.data
 					);
 				} else {
 					console.info(
-						`[${varLog.symbol.bgYellow.black}]`,
-						varLog.timestamp.grey,
+						`[${logContext.symbol.bgYellow.black}]`,
+						logContext.timestamp.grey,
 						'|',
-						varLog.message
+						logContext.message
 					);
 				}
 			}

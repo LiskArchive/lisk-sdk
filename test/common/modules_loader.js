@@ -158,13 +158,13 @@ var modulesLoader = new function() {
 	 * @param {Object>} scope
 	 * @param {function} cb
 	 */
-	this.initModules = function(modules, logic, scope, cb) {
+	this.initModules = function(modules, logics, scope, cb) {
 		scope = _.merge({}, this.scope, scope);
 		async.waterfall(
 			[
 				function(waterCb) {
 					async.reduce(
-						logic,
+						logics,
 						{},
 						(memo, logicObj, mapCb) => {
 							var name = _.keys(logicObj)[0];
@@ -180,9 +180,9 @@ var modulesLoader = new function() {
 						waterCb
 					);
 				}.bind(this),
-				function(logic1, waterCb) {
+				function(logic, waterCb) {
 					scope = _.merge({}, this.scope, scope, {
-						logic1,
+						logic,
 					});
 					async.reduce(
 						modules,
@@ -199,12 +199,12 @@ var modulesLoader = new function() {
 				}.bind(this),
 
 				function(modules1, waterCb) {
-					_.each(scope.logic, logic2 => {
-						if (typeof logic.bind === 'function') {
-							logic2.bind({ modules });
+					_.each(scope.logic, logic => {
+						if (typeof logics.bind === 'function') {
+							logic.bind({ modules });
 						}
-						if (typeof logic2.bindModules === 'function') {
-							logic2.bindModules(modules);
+						if (typeof logic.bindModules === 'function') {
+							logic.bindModules(modules);
 						}
 					});
 					waterCb(null, modules1);

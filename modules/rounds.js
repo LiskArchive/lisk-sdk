@@ -126,8 +126,8 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function backwardTick() {
-		const newRound = new Round(scope, tx);
+	function backwardTick(backwardTickTx) {
+		const newRound = new Round(scope, backwardTickTx);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);

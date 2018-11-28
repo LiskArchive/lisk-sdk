@@ -19,7 +19,7 @@ var rewire = require('rewire');
 
 var database = rewire('../../db');
 
-var testDatabaseNames = [];
+var dbNames = [];
 
 /**
  * @param {string} table
@@ -39,16 +39,16 @@ function clearDatabaseTable(db, logger, table, cb) {
 		});
 }
 
-function DBSandbox(dbConfig, testDatabaseName) {
+function DBSandbox(dbConfig, dbName) {
 	this.dbConfig = dbConfig;
-	this.originalDatabaseName = dbConfig.database;
-	this.testDatabaseName = testDatabaseName || this.originalDatabaseName;
+	this.originalDbName = dbConfig.database;
+	this.dbName = dbName || this.originalDbName;
 	this.dbConfig.database = this.testDatabaseName;
-	testDatabaseNames.push(this.testDatabaseName);
+	dbNames.push(this.dbName);
 
 	var dropCreatedDatabases = function() {
-		testDatabaseNames.forEach(aTestDatabaseName => {
-			child_process.exec(`dropdb ${aTestDatabaseName}`);
+		dbNames.forEach(aDbName => {
+			child_process.exec(`dropdb ${aDbName}`);
 		});
 	};
 
@@ -74,7 +74,7 @@ DBSandbox.prototype.create = function(cb) {
 
 DBSandbox.prototype.destroy = function(logger) {
 	database.disconnect(logger);
-	this.dbConfig.database = this.originalDatabaseName;
+	this.dbConfig.database = this.originalDbName;
 };
 
 module.exports = {

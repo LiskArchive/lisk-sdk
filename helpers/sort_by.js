@@ -41,7 +41,7 @@ function sortBy(sort, options) {
 	options.sortFields = Array.isArray(options.sortFields)
 		? options.sortFields
 		: [];
-	var self = this;
+	const self = this;
 
 	if (typeof options.quoteField === 'undefined') {
 		options.quoteField = true;
@@ -49,20 +49,15 @@ function sortBy(sort, options) {
 		options.quoteField = Boolean(options.quoteField);
 	}
 
-	var sortField;
-	var sortMethod;
+	let sortField;
+	let sortMethod;
 
 	if (typeof sort === 'string') {
-		var varSortBy = String(sort).split(':');
-		sortField = varSortBy[0].replace(/[^\w\s]/gi, '');
-
-		if (varSortBy.length === 2) {
-			sortMethod = varSortBy[1] === 'desc' ? 'DESC' : 'ASC';
-		} else {
-			sortMethod = 'ASC';
-		}
+		const [field, order] = sort.split(':');
+		sortField = field.replace(/[^\w\s]/gi, '');
+		sortMethod = order === 'desc' ? 'DESC' : 'ASC';
 	} else if (typeof sort === 'object') {
-		var keys = Object.keys(sort);
+		const keys = Object.keys(sort);
 
 		if (keys.length === 0) {
 			return self.sortBy('');
@@ -72,10 +67,10 @@ function sortBy(sort, options) {
 				options
 			);
 		}
-		var sortFields = [];
-		var sortMethods = [];
+		const sortFields = [];
+		const sortMethods = [];
 		keys.forEach(key => {
-			var sortResult = self.sortBy(
+			const sortResult = self.sortBy(
 				`${key}:${sort[key] === -1 ? 'desc' : 'asc'}`,
 				options
 			);
@@ -118,9 +113,9 @@ function sortBy(sort, options) {
 		return quoteSortedField;
 	}
 
-	var emptyWhiteList = options.sortFields.length === 0;
+	const emptyWhiteList = options.sortFields.length === 0;
 
-	var inWhiteList =
+	const inWhiteList =
 		options.sortFields.length >= 1 &&
 		options.sortFields.indexOf(sortField) > -1;
 
