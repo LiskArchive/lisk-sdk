@@ -43,7 +43,7 @@ function DBSandbox(dbConfig, dbName) {
 	this.dbConfig = dbConfig;
 	this.originalDbName = dbConfig.database;
 	this.dbName = dbName || this.originalDbName;
-	this.dbConfig.database = this.testDatabaseName;
+	this.dbConfig.database = this.dbName;
 	dbNames.push(this.dbName);
 
 	var dropCreatedDatabases = function() {
