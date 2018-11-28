@@ -116,7 +116,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
-				} else if (key != 'MULTI') {
+				} else if (key !== 'MULTI') {
 					it(`type ${index}: ${key} should be ok`, done => {
 						localCommon.loadTransactionType(
 							key,

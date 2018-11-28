@@ -587,7 +587,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						beforeEach(done => {
 							keypair = getKeypair(
 								_.find(genesisDelegates, value => {
-									return value.publicKey != lastBlock.generatorPublicKey;
+									return value.publicKey !== lastBlock.generatorPublicKey;
 								}).publicKey
 							);
 							done();
@@ -840,7 +840,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						slot = slots.getSlotNumber(lastBlock.timestamp);
 						keypair = getKeypair(
 							_.find(genesisDelegates, delegate => {
-								return lastBlock.generatorPublicKey == delegate.publicKey;
+								return lastBlock.generatorPublicKey === delegate.publicKey;
 							}).passphrase
 						);
 						done();
