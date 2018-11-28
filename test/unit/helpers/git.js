@@ -70,11 +70,12 @@ describe('git', () => {
 				sinonSandbox
 					.stub(childProcess, 'spawnSync')
 					.returns({ stderr: validErrorMessage });
+				sinonSandbox.stub(fs, 'readFileSync').throws(Error);
 				done();
 			});
 
 			it('should throw an error', done => {
-				expect(git.getLastCommit).throws(Error, validErrorMessage);
+				expect(git.getLastCommit).throw(Error, validErrorMessage);
 				done();
 			});
 		});
