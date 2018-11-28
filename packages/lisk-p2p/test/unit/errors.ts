@@ -37,6 +37,7 @@ describe('errors', () => {
 				return expect(notEnoughPeersError.name).to.eql('NotEnoughPeersError');
 			});
 		});
+
 		describe('should set error object properties', () => {
 			beforeEach(() => {
 				notEnoughPeersError = new NotEnoughPeersError(defaultMessage);
@@ -70,6 +71,7 @@ describe('errors', () => {
 				return expect(peerTransportError.name).to.eql('PeerTransportError');
 			});
 		});
+
 		describe('should set error object properties', () => {
 			beforeEach(() => {
 				peerTransportError = new PeerTransportError(defaultMessage, peerId);

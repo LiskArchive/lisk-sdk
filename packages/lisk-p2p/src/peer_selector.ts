@@ -15,6 +15,7 @@
 import { NotEnoughPeersError } from './errors';
 import { Peer } from './peer';
 
+// For future extension of return type
 export interface PeerReturnType {
 	readonly peers: ReadonlyArray<Peer>;
 }
@@ -33,12 +34,12 @@ interface HistogramValues {
 /* tslint:enable: readonly-keyword */
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
-	selectionParams: PeerOptions = { blockHeight: 0 },
+	selectionParams: PeerOptions = { lastBlockHeight: 0 },
 	numOfPeers?: number,
 ): PeerReturnType => {
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
-		(peer: Peer) => peer.height >= selectionParams.blockHeight,
+		(peer: Peer) => peer.height >= selectionParams.lastBlockHeight,
 	);
 
 	if (filteredPeers.length === 0) {
@@ -49,7 +50,7 @@ export const selectPeers = (
 	const sortedPeers = filteredPeers.sort((a, b) => b.height - a.height);
 
 	const aggregation = 2;
-	const defaultValue: HistogramValues = { height: 0, histogram: {}, max: -1 };
+
 	const calculatedHistogramValues = sortedPeers.reduce(
 		(
 			histogramValues: HistogramValues = {
@@ -59,7 +60,7 @@ export const selectPeers = (
 			},
 			peer: Peer,
 		) => {
-			const val = (peer.height / aggregation) * aggregation;
+			const val = Math.floor(peer.height / aggregation) * aggregation;
 			histogramValues.histogram[val] =
 				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
 				1;
@@ -70,7 +71,7 @@ export const selectPeers = (
 
 			return histogramValues;
 		},
-		defaultValue,
+		{ height: 0, histogram: {}, max: -1 },
 	);
 
 	// Perform histogram cut of peers too far from histogram maximum

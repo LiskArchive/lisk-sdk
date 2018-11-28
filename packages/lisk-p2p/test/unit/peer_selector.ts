@@ -20,7 +20,7 @@ describe('helpers', () => {
 	describe('#selectPeer', () => {
 		let peerList = initializePeerList();
 		const option: PeerOptions = {
-			blockHeight: 545777,
+			lastBlockHeight: 545777,
 			netHash: '73458irc3yb7rg37r7326dbt7236',
 		};
 		const goodPeers = [
