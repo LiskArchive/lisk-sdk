@@ -54,4 +54,5 @@ module.exports = {
 	recipientLeadingZero: {},
 	recipientExceedingUint64: {},
 	duplicatedSignatures: {},
+	ignoreDelegateListCacheForRounds: [],
 };
