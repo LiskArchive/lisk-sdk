@@ -45,7 +45,7 @@ describe('API resource module', () => {
 		limit: 0,
 	};
 
-	interface FakeApiClient {
+	interface FakeAPIClient {
 		headers: object;
 		currentNode: string;
 		hasAvailableNodes: () => boolean | void;
@@ -54,7 +54,7 @@ describe('API resource module', () => {
 	}
 
 	let resource: APIResource;
-	let apiClient: FakeApiClient;
+	let apiClient: FakeAPIClient;
 
 	beforeEach(() => {
 		apiClient = {

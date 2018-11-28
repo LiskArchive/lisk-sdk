@@ -13,7 +13,7 @@
  *
  */
 /* tslint:disable no-mixed-interface */
-export type ApiHandler = (
+export type APIHandler = (
 	// tslint:disable-next-line readonly-array
 	...args: Array<number | string | object>
 ) => Promise<APIResponse>;
