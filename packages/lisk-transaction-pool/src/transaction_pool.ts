@@ -30,6 +30,11 @@ export interface TransactionFunctions {
 	): boolean;
 }
 
+interface TransactionPoolOptions {
+	readonly MULTISIGNATURE_TIMEOUT: number;
+	readonly TRANSACTION_TIMEOUT: number;
+}
+
 export type Transaction = TransactionObject & TransactionFunctions;
 
 interface Block {
@@ -43,8 +48,10 @@ interface Queues {
 export class TransactionPool {
 	// tslint:disable-next-line variable-name
 	private readonly _queues: Queues;
+	private readonly MULTISIGNATURE_TIMEOUT: number;
+	private readonly TRANSACTION_TIMEOUT: number;
 
-	public constructor() {
+	public constructor({TRANSACTION_TIMEOUT, MULTISIGNATURE_TIMEOUT}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
@@ -52,6 +59,11 @@ export class TransactionPool {
 			pending: new Queue(),
 			ready: new Queue(),
 		};
+		this.TRANSACTION_TIMEOUT = TRANSACTION_TIMEOUT;
+		this.MULTISIGNATURE_TIMEOUT = MULTISIGNATURE_TIMEOUT;
+
+		// TODO: move this call to it's job, doing it here to stop linting errors
+		this.expireTransactions();
 	}
 
 	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
@@ -153,6 +165,15 @@ export class TransactionPool {
 					...this.queues.verified.transactions,
 			  ])
 			: true;
+	}
+
+	private expireTransactions(): void {
+		const {
+			pending,
+			...otherQueues
+		} = this._queues;
+		this.removeTransactionsFromQueues(otherQueues, queueCheckers.checkTransactionForExpiry(this.TRANSACTION_TIMEOUT));
+		this.removeTransactionsFromQueues({ pending }, queueCheckers.checkTransactionForExpiry(this.MULTISIGNATURE_TIMEOUT));
 	}
 
 	private removeTransactionsFromQueues(
