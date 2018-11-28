@@ -27,33 +27,34 @@ function filterGenerator(
 ) {
 	const filters = {};
 	const serializer = valueSerializer || inputSerializers.default;
-	const value = serializer.call(null, 'select', alias, fieldName);
+	const getValue = filterAlias =>
+		serializer.call(null, null, 'select', filterAlias, fieldName);
 
 	switch (filterType) {
 		case filterTypes.BOOLEAN:
-			filters[alias] = `"${fieldName}" = ${value}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${value}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${value}`;
+			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
 			break;
 
 		case filterTypes.TEXT:
-			filters[alias] = `"${fieldName}" = ${value}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${value}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${value}`;
+			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
 
 			filters[`${alias}_in`] = `"${fieldName}" IN ($\{${alias}_in:csv})`;
 			filters[`${alias}_like`] = `"${fieldName}" LIKE ($\{${alias}_like})`;
 			break;
 
 		case filterTypes.NUMBER:
-			filters[alias] = `"${fieldName}" = ${value}`;
-			filters[`${alias}_eql`] = `"${fieldName}" = ${value}`;
-			filters[`${alias}_ne`] = `"${fieldName}" <> ${value}`;
+			filters[alias] = `"${fieldName}" = ${getValue(alias)}`;
+			filters[`${alias}_eql`] = `"${fieldName}" = ${getValue(`${alias}_eql`)}`;
+			filters[`${alias}_ne`] = `"${fieldName}" <> ${getValue(`${alias}_ne`)}`;
 
-			filters[`${alias}_gt`] = `"${fieldName}" > ${value}`;
-			filters[`${alias}_gte`] = `"${fieldName}" >= ${value}`;
-			filters[`${alias}_lt`] = `"${fieldName}" < ${value}`;
-			filters[`${alias}_lte`] = `"${fieldName}" <= ${value}`;
+			filters[`${alias}_gt`] = `"${fieldName}" > ${getValue(`${alias}_gt`)}`;
+			filters[`${alias}_gte`] = `"${fieldName}" >= ${getValue(`${alias}_gte`)}`;
+			filters[`${alias}_lt`] = `"${fieldName}" < ${getValue(`${alias}_lt`)}`;
+			filters[`${alias}_lte`] = `"${fieldName}" <= ${getValue(`${alias}_lte`)}`;
 			filters[`${alias}_in`] = `"${fieldName}" IN ($\{${alias}_in:csv})`;
 			break;
 
@@ -61,7 +62,13 @@ function filterGenerator(
 			if (rawCondition) {
 				filters[alias] = rawCondition;
 			} else {
-				filters[alias] = `"${fieldName}" = ${value}`;
+				filters[alias] = `"${fieldName}" = ${serializer.call(
+					null,
+					null,
+					'select',
+					alias,
+					fieldName
+				)}`;
 			}
 			break;
 
