@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { PeerConfig, Peer } from '../../src';
+import { PeerConfig, Peer } from '../../src/peer';
 
 export const initializePeerList = (): ReadonlyArray<Peer> => {
 	const peerOption1: PeerConfig = {
@@ -41,10 +41,19 @@ export const initializePeerList = (): ReadonlyArray<Peer> => {
 		id: '192.28.138.1:5006',
 	};
 
+	const peerOption5: PeerConfig = {
+		ipAddress: '178.21.90.199',
+		wsPort: 5001,
+		height: 645980,
+		id: '178.21.90.199:5001',
+		inboundSocket: undefined,
+	};
+
 	const peer1 = new Peer(peerOption1);
 	const peer2 = new Peer(peerOption2);
 	const peer3 = new Peer(peerOption3);
 	const peer4 = new Peer(peerOption4);
+	const peer5 = new Peer(peerOption5);
 
-	return [peer1, peer2, peer3, peer4];
+	return [peer1, peer2, peer3, peer4, peer5];
 };

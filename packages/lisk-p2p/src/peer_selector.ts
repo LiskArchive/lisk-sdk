@@ -15,10 +15,6 @@
 import { NotEnoughPeersError } from './errors';
 import { Peer } from './peer';
 
-// For future extension of return type
-export interface PeerReturnType {
-	readonly peers: ReadonlyArray<Peer>;
-}
 export interface PeerOptions {
 	readonly [key: string]: string | number;
 }
@@ -35,15 +31,15 @@ interface HistogramValues {
 export const selectPeers = (
 	peers: ReadonlyArray<Peer>,
 	selectionParams: PeerOptions = { lastBlockHeight: 0 },
-	numOfPeers?: number,
-): PeerReturnType => {
+	numOfPeers: number = 0,
+): ReadonlyArray<Peer> => {
 	const filteredPeers = peers.filter(
 		// Remove unreachable peers or heights below last block height
 		(peer: Peer) => peer.height >= selectionParams.lastBlockHeight,
 	);
 
 	if (filteredPeers.length === 0) {
-		return { peers: [] };
+		return [];
 	}
 
 	// Order peers by descending height
@@ -52,14 +48,7 @@ export const selectPeers = (
 	const aggregation = 2;
 
 	const calculatedHistogramValues = sortedPeers.reduce(
-		(
-			histogramValues: HistogramValues = {
-				height: 0,
-				histogram: {},
-				max: -1,
-			},
-			peer: Peer,
-		) => {
+		(histogramValues: HistogramValues, peer: Peer) => {
 			const val = Math.floor(peer.height / aggregation) * aggregation;
 			histogramValues.histogram[val] =
 				(histogramValues.histogram[val] ? histogramValues.histogram[val] : 0) +
@@ -85,41 +74,43 @@ export const selectPeers = (
 				aggregation + 1,
 	);
 
-	// Select n number of peers
-	if (numOfPeers) {
-		if (numOfPeers > processedPeers.length) {
-			throw new NotEnoughPeersError(
-				`Requested no. of peers: '${numOfPeers}' is more than the available no. of good peers: '${
-					processedPeers.length
-				}'`,
-			);
-		}
-		if (numOfPeers === processedPeers.length) {
-			return { peers: processedPeers };
-		}
-		if (numOfPeers === 1) {
-			const goodPeer: ReadonlyArray<Peer> = [
-				processedPeers[Math.floor(Math.random() * processedPeers.length)],
-			];
-
-			return { peers: goodPeer };
-		}
-
-		const selectedPeersList = Array(numOfPeers)
-			.fill(0)
-			.reduce((peerList: ReadonlyArray<Peer>) => {
-				const peer =
-					processedPeers[Math.floor(Math.random() * processedPeers.length)];
-
-				if (peerList.includes(peer)) {
-					return peerList;
-				}
-
-				return [...peerList, peer];
-			}, []);
-
-		return { peers: selectedPeersList };
+	if (numOfPeers <= 0) {
+		return processedPeers;
 	}
 
-	return { peers: processedPeers };
+	// Select n number of peers
+	if (numOfPeers > processedPeers.length) {
+		throw new NotEnoughPeersError(
+			`Requested number of peers: '${numOfPeers}' is more than the available number of good peers: '${
+				processedPeers.length
+			}'`,
+		);
+	}
+
+	if (numOfPeers === processedPeers.length) {
+		return processedPeers;
+	}
+
+	if (numOfPeers === 1) {
+		const goodPeer: ReadonlyArray<Peer> = [
+			processedPeers[Math.floor(Math.random() * processedPeers.length)],
+		];
+
+		return goodPeer;
+	}
+
+	const selectedPeersList = Array(numOfPeers)
+		.fill(0)
+		.reduce((peerList: ReadonlyArray<Peer>) => {
+			const peer =
+				processedPeers[Math.floor(Math.random() * processedPeers.length)];
+
+			if (peerList.includes(peer)) {
+				return peerList;
+			}
+
+			return [...peerList, peer];
+		}, []);
+
+	return selectedPeersList;
 };

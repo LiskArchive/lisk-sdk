@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 
-import { PeerConfig, Peer } from '../../src';
+import { PeerConfig, Peer } from '../../src/peer';
 
 describe('peer', () => {
 	const defaultPeerConfig: PeerConfig = {
@@ -22,6 +22,7 @@ describe('peer', () => {
 		wsPort: 5001,
 		height: 545776,
 		id: '12.12.12.12:5001',
+		inboundSocket: undefined,
 	};
 
 	const defaultPeer = new Peer(defaultPeerConfig);
@@ -39,17 +40,32 @@ describe('peer', () => {
 	});
 
 	describe('#instanceProperties', () => {
-		it('should set and gets height property', () => {
-			defaultPeer.height = 100000;
+		it('should get height property', () => {
 			return expect(defaultPeer.height)
 				.to.be.a('number')
-				.and.be.eql(100000);
+				.and.be.eql(545776);
 		});
 
-		it('should get readonly Ip property', () => {
+		it('should get ip property', () => {
 			return expect(defaultPeer.ipAddress)
 				.to.be.a('string')
 				.and.be.eql('12.12.12.12');
+		});
+
+		it('should get wsPort property', () => {
+			return expect(defaultPeer.wsPort)
+				.to.be.a('number')
+				.and.be.eql(5001);
+		});
+
+		it('should get id property', () => {
+			return expect(defaultPeer.id)
+				.to.be.a('string')
+				.and.be.eql('12.12.12.12:5001');
+		});
+
+		it('should get inboundSocket property', () => {
+			return expect(defaultPeer.inboundSocket).to.be.undefined;
 		});
 	});
 });

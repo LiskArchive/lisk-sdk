@@ -14,6 +14,3 @@
  */
 export * from './errors';
 export * from './p2p';
-export * from './peer';
-export * from './peer_pool';
-export * from './peer_selector';

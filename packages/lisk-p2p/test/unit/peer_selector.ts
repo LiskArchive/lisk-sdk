@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { initializePeerList } from '../utils/peers';
-import { PeerOptions, selectPeers } from '../../src';
+import { PeerOptions, selectPeers } from '../../src/peer_selector';
 
 describe('helpers', () => {
 	describe('#selectPeer', () => {
@@ -25,18 +25,25 @@ describe('helpers', () => {
 		};
 		const goodPeers = [
 			{
-				ipAddress: '192.28.138.1',
-				wsPort: 5006,
-				height: 645982,
-				id: '192.28.138.1:5006',
-				inboundSocket: undefined,
+				_ipAddress: '192.28.138.1',
+				_wsPort: 5006,
+				_height: 645982,
+				_id: '192.28.138.1:5006',
+				_inboundSocket: undefined,
 			},
 			{
-				ipAddress: '18.28.48.1',
-				wsPort: 5008,
-				height: 645980,
-				id: '18.28.48.1:5008',
-				inboundSocket: undefined,
+				_ipAddress: '18.28.48.1',
+				_wsPort: 5008,
+				_height: 645980,
+				_id: '18.28.48.1:5008',
+				_inboundSocket: undefined,
+			},
+			{
+				_ipAddress: '178.21.90.199',
+				_wsPort: 5001,
+				_height: 645980,
+				_id: '178.21.90.199:5001',
+				_inboundSocket: undefined,
 			},
 		];
 
@@ -45,52 +52,56 @@ describe('helpers', () => {
 				peerList = initializePeerList();
 			});
 
-			it('should return an object', () => {
-				return expect(selectPeers(peerList, option)).to.be.an('object');
+			it('should return an array', () => {
+				return expect(selectPeers(peerList, option)).to.be.an('array');
 			});
 
-			it('should return an object with peers property', () => {
-				return expect(selectPeers(peerList, option)).to.have.property('peers');
-			});
-
-			it('peers property should contain an array of peers', () => {
+			it('returned array should contain good peers according to algorithm', () => {
 				return expect(selectPeers(peerList, option))
-					.to.have.property('peers')
-					.and.be.an('array');
-			});
-
-			it('peers property should contain good peers', () => {
-				return expect(selectPeers(peerList, option))
-					.to.have.property('peers')
 					.and.be.an('array')
 					.and.to.be.eql(goodPeers);
 			});
 
-			it('return empty peer list for no peers', () => {
+			it('return empty peer list for no peers as an argument', () => {
 				return expect(selectPeers([], option))
-					.to.have.property('peers')
 					.and.be.an('array')
 					.and.to.be.eql([]);
 			});
 
-			it('should return an object with peers property', () => {
+			it('should return an array having one good peer', () => {
 				return expect(selectPeers(peerList, option, 1))
-					.to.have.property('peers')
 					.and.be.an('array')
 					.and.of.length(1);
 			});
 
-			it('should return an object with peers property', () => {
+			it('should return an array having 2 good peers', () => {
 				return expect(selectPeers(peerList, option, 2))
-					.to.have.property('peers')
 					.and.be.an('array')
 					.and.of.length(2);
 			});
 
-			it('should return an object with peers property', () => {
-				return expect(selectPeers.bind(selectPeers, peerList, option, 3))
+			it('should return an array having all good peers', () => {
+				return expect(selectPeers(peerList, option, 0))
+					.and.be.an('array')
+					.and.of.length(3);
+			});
+
+			it('should return an array having all good peers ignoring requested negative number of peers', () => {
+				return expect(selectPeers(peerList, option, -1))
+					.and.be.an('array')
+					.and.of.length(3);
+			});
+
+			it('should return an array of equal length equal to requested number of peers', () => {
+				return expect(selectPeers(peerList, option, 3))
+					.and.be.an('array')
+					.and.of.length(3);
+			});
+
+			it('should throw an error when requested peers are greater than available good peers', () => {
+				return expect(selectPeers.bind(selectPeers, peerList, option, 4))
 					.to.throw(
-						`Requested no. of peers: '3' is more than the available no. of good peers: '2'`,
+						`Requested number of peers: '4' is more than the available number of good peers: '3'`,
 					)
 					.to.have.property('name')
 					.eql('NotEnoughPeersError');
@@ -105,9 +116,8 @@ describe('helpers', () => {
 				peer => peer.height < option.blockHeight,
 			);
 
-			it('should return an object with peers property', () => {
+			it('should return an array with 0 good peers', () => {
 				return expect(selectPeers(lowHeightPeers, option, 2))
-					.to.have.property('peers')
 					.and.be.an('array')
 					.and.of.length(0);
 			});

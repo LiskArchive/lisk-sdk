@@ -26,7 +26,7 @@ describe('errors', () => {
 			return Promise.resolve();
 		});
 
-		describe('should create error object', () => {
+		describe('should create an error object instance of NotEnoughPeersError', () => {
 			it('should create a new instance of NotEnoughPeersError', () => {
 				return expect(notEnoughPeersError)
 					.to.be.an('object')
@@ -50,7 +50,7 @@ describe('errors', () => {
 		});
 	});
 
-	describe('#P2PError', () => {
+	describe('#PeerTransportError', () => {
 		let peerTransportError: PeerTransportError;
 		let peerId = '0.0.0.0:80';
 		const defaultMessage = `Received inbound connection from peer ${peerId} which is already in our triedPeers map.`;
@@ -60,26 +60,26 @@ describe('errors', () => {
 			return Promise.resolve();
 		});
 
-		describe('should create error object', () => {
-			it('should create a new instance of NotEnoughPeersError', () => {
+		describe('should create an error object', () => {
+			it('should create a new instance of PeerTransportError', () => {
 				return expect(peerTransportError)
 					.to.be.an('object')
 					.and.be.instanceof(PeerTransportError);
 			});
 
-			it('should set error name to `Not Enough Peers Error`', () => {
+			it('should set error name to `PeerTransportError`', () => {
 				return expect(peerTransportError.name).to.eql('PeerTransportError');
 			});
 		});
 
-		describe('should set error object properties', () => {
+		describe('should set error object property', () => {
 			beforeEach(() => {
 				peerTransportError = new PeerTransportError(defaultMessage, peerId);
 				return Promise.resolve();
 			});
 
-			it('should set error message when passed an argument', () => {
-				return expect(peerTransportError.message).to.eql(defaultMessage);
+			it('should set error property peerId when passed as an argument', () => {
+				return expect(peerTransportError.peerId).to.eql(peerId);
 			});
 		});
 	});

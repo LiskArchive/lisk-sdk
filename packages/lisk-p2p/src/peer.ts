@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name */
+/* tslint:disable:interface-name variable-name */
 import { PeerState } from './p2p_types';
 
 // TODO: Use to create outbound socket connection inside peer object.
@@ -31,25 +31,45 @@ export interface PeerConfig {
 }
 
 export class Peer {
-	public height: number;
-	public readonly id: string;
-	public readonly inboundSocket: any;
-	public readonly ipAddress: string;
-	public readonly wsPort: number;
+	private readonly _height: number;
+	private readonly _id: string;
+	private readonly _inboundSocket: any;
+	private readonly _ipAddress: string;
+	private readonly _wsPort: number;
 
 	public constructor(peerConfig: PeerConfig) {
-		this.id = peerConfig.id;
-		this.ipAddress = peerConfig.ipAddress;
-		this.wsPort = peerConfig.wsPort;
-		this.inboundSocket = peerConfig.inboundSocket;
-		this.height = peerConfig.height;
+		this._id = peerConfig.id;
+		this._ipAddress = peerConfig.ipAddress;
+		this._wsPort = peerConfig.wsPort;
+		this._inboundSocket = peerConfig.inboundSocket;
+		this._height = peerConfig.height;
 	}
 	// TODO: Return BANNED when appropriate.
 	public get state(): PeerState {
-		if (this.inboundSocket.state === this.inboundSocket.OPEN) {
+		if (this._inboundSocket.state === this._inboundSocket.OPEN) {
 			return PeerState.CONNECTED;
 		}
 
 		return PeerState.DISCONNECTED;
+	}
+
+	public get height(): number {
+		return this._height;
+	}
+
+	public get id(): string {
+		return this._id;
+	}
+
+	public get inboundSocket(): any {
+		return this._inboundSocket;
+	}
+
+	public get ipAddress(): any {
+		return this._ipAddress;
+	}
+
+	public get wsPort(): any {
+		return this._wsPort;
 	}
 }

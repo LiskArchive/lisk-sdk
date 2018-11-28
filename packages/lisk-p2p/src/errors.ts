@@ -19,7 +19,7 @@ export class PeerTransportError extends VError {
 	public peerId: string;
 
 	public constructor(message: string, peerId: string) {
-		super(message || '');
+		super(message);
 		this.name = 'PeerTransportError';
 		this.peerId = peerId;
 	}
@@ -27,7 +27,7 @@ export class PeerTransportError extends VError {
 
 export class NotEnoughPeersError extends VError {
 	public constructor(message: string) {
-		super(message || '');
+		super(message);
 		this.name = 'NotEnoughPeersError';
 	}
 }
