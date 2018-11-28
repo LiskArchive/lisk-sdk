@@ -46,7 +46,7 @@ export const handleResponse = (
 	return res.data;
 };
 
-interface QueryParamter {
+interface QueryParameter {
 	readonly placeholder?: object;
 	readonly query: object;
 }
@@ -64,11 +64,11 @@ type EndpointTypes =
 export const query = async (
 	client: APIClient,
 	endpoint: EndpointTypes,
-	parameters: QueryParamter | ReadonlyArray<QueryParamter>,
+	parameters: QueryParameter | ReadonlyArray<QueryParameter>,
 ): Promise<unknown> =>
 	isArray(parameters)
 		? Promise.all(
-				parameters.map((param: QueryParamter) =>
+				parameters.map((param: QueryParameter) =>
 					client[endpoint]
 						.get(param.query)
 						.then((res: APIResponse) =>

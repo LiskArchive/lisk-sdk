@@ -56,7 +56,9 @@ describe('print utils', () => {
 		describe('when result is array', () => {
 			it('should call tablify with the ANSI', () => {
 				printer(arrayToPrint);
-				return expect(tablifyUtil.tablify).to.be.calledWithExactly(arrayToPrint);
+				return expect(tablifyUtil.tablify).to.be.calledWithExactly(
+					arrayToPrint,
+				);
 			});
 		});
 

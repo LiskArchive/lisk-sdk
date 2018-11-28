@@ -24,5 +24,8 @@
 		"readonly-keyword": [true, "ignore-class"],
 		"strict-boolean-expressions": false,
 		"strict-type-predicates": false
+	},
+	"linterOptions": {
+		"exclude": ["src/**/*.json"]
 	}
 }

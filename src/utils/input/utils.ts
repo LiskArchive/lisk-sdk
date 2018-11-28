@@ -38,12 +38,12 @@ const ERROR_DATA_MISSING = 'No data was provided.';
 const ERROR_DATA_SOURCE = 'Unknown data source type.';
 const DEFAULT_TIMEOUT = 100;
 
-interface SplittedSource {
+interface SplitSource {
 	readonly sourceIdentifier: string;
 	readonly sourceType: string;
 }
 
-export const splitSource = (source: string): SplittedSource => {
+export const splitSource = (source: string): SplitSource => {
 	const delimiter = ':';
 	const sourceParts = source.split(delimiter);
 
@@ -60,20 +60,20 @@ interface GetStdInInputs {
 	readonly secondPassphraseIsRequired?: boolean;
 }
 
-interface GetStdInOutputs {
+interface GetStdInOutput {
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly password?: string;
 	readonly secondPassphrase?: string;
 }
 
-export const getStdIn = ({
+export const getStdIn = async ({
 	passphraseIsRequired,
 	secondPassphraseIsRequired,
 	passwordIsRequired,
 	dataIsRequired,
-}: GetStdInInputs = {}): Promise<GetStdInOutputs> => {
-	const readFromStd = new Promise((resolve, reject) => {
+}: GetStdInInputs = {}): Promise<GetStdInOutput> => {
+	const readFromStd = new Promise<GetStdInOutput>((resolve, reject) => {
 		if (
 			!(
 				passphraseIsRequired ||
@@ -82,7 +82,9 @@ export const getStdIn = ({
 				dataIsRequired
 			)
 		) {
-			return resolve({});
+			resolve({});
+
+			return;
 		}
 		// tslint:disable readonly-array
 		const lines: string[] = [];
@@ -113,12 +115,14 @@ export const getStdIn = ({
 			const dataStartIndex = passwordIndex + (password !== undefined ? 1 : 0);
 			const dataLines = lines.slice(dataStartIndex);
 
-			return resolve({
+			resolve({
 				passphrase,
 				secondPassphrase,
 				password,
 				data: dataLines.length ? dataLines.join('\n') : undefined,
 			});
+
+			return;
 		};
 
 		return rl.on('line', line => lines.push(line)).on('close', handleClose);
@@ -180,25 +184,29 @@ export const getPassphraseFromEnvVariable = async (
 	return passphrase;
 };
 
-export const getPassphraseFromFile = (
-	path: string,
-): Promise<ReadonlyArray<string>> =>
-	new Promise((resolve, reject) => {
+export const getPassphraseFromFile = async (path: string): Promise<string> =>
+	new Promise<string>((resolve, reject) => {
 		const stream = fs.createReadStream(path);
 		const handleReadError = (error: Error) => {
 			stream.close();
 			const { message } = error;
 
 			if (message.match(/ENOENT/)) {
-				return reject(new FileSystemError(getFileDoesNotExistError(path)));
+				reject(new FileSystemError(getFileDoesNotExistError(path)));
+
+				return;
 			}
 			if (message.match(/EACCES/)) {
-				return reject(new FileSystemError(getFileUnreadableError(path)));
+				reject(new FileSystemError(getFileUnreadableError(path)));
+
+				return;
 			}
 
-			return reject(error);
+			reject(error);
+
+			return;
 		};
-		const handleLine = (line: ReadonlyArray<string>) => {
+		const handleLine = (line: string) => {
 			stream.close();
 			resolve(line);
 		};
@@ -214,7 +222,7 @@ export const getPassphraseFromFile = (
 export const getPassphraseFromSource = async (
 	source: string,
 	{ displayName }: { readonly displayName: string },
-): Promise<string | ReadonlyArray<string>> => {
+): Promise<string> => {
 	const { sourceType, sourceIdentifier } = splitSource(source);
 
 	switch (sourceType) {
@@ -234,7 +242,7 @@ export const getPassphraseFromSource = async (
 export const getPassphrase = async (
 	passphraseSource: string,
 	options: object,
-): Promise<string | ReadonlyArray<string>> => {
+): Promise<string> => {
 	const optionsWithDefaults = {
 		displayName: 'your secret passphrase',
 		...options,

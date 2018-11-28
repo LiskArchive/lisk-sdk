@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import stripANSI from 'strip-ansi';
+import strip_ansi from 'strip-ansi';
 import { tablify } from './tablify';
 
 export interface StringMap {
@@ -30,11 +30,11 @@ interface Printer {
 	log(message?: string, ...args: Array<unknown>): void;
 }
 
-const removeANSIFromObject = (object: StringMap): StringMap =>
-	Object.entries(object).reduce(
+const removeANSIFromObject = (object: StringMap) =>
+	Object.entries(object).reduce<StringMap>(
 		(strippedResult, [key, value]) => ({
 			...strippedResult,
-			[key]: stripANSI(value),
+			[key]: strip_ansi(value),
 		}),
 		{},
 	);

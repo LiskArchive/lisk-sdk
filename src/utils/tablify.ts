@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Table, { Cell, HorizontalTable } from 'cli-table3';
+import CliTable, { Cell, HorizontalTable } from 'cli-table3';
 
 const chars = {
 	top: '═',
@@ -59,7 +59,7 @@ const addValuesToTable = (table: object[], data: object) => {
 };
 
 export const tablify = (data: ReadonlyArray<object> | object) => {
-	const table = new Table({
+	const table = new CliTable({
 		chars,
 		style: {
 			head: [],

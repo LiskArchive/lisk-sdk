@@ -44,19 +44,17 @@ const attemptCallWithError = <T>(fn: () => T, errorMessage: string): T => {
 	}
 };
 
-const attemptToCreateDir = (dirPath: string) => {
+const attemptToCreateDir = (dirPath: string): void => {
 	const fn = fs.mkdirSync.bind(undefined, dirPath);
-
-	return attemptCallWithError(fn, fileWriteErrorMessage(dirPath));
+	attemptCallWithError<void>(fn, fileWriteErrorMessage(dirPath));
 };
 
-const attemptToCreateFile = (filePath: string) => {
+const attemptToCreateFile = (filePath: string): void => {
 	const fn = writeJSONSync.bind(undefined, filePath, defaultConfig);
-
-	return attemptCallWithError(fn, fileWriteErrorMessage(filePath));
+	attemptCallWithError<void>(fn, fileWriteErrorMessage(filePath));
 };
 
-const checkLockfile = (filePath: string) => {
+const checkLockfile = (filePath: string): void => {
 	const locked = lockfile.checkSync(filePath);
 	const errorMessage = `Config lockfile at ${filePath} found. Are you running Lisk Commander in another process?`;
 	if (locked) {
@@ -64,24 +62,25 @@ const checkLockfile = (filePath: string) => {
 	}
 };
 
-const attemptToReadJSONFile = <T>(filePath: string) => {
+const attemptToReadJSONFile = <T>(filePath: string): T => {
 	const fn = readJSONSync.bind(undefined, filePath);
 	const errorMessage = `Config file cannot be read or is not valid JSON. Please check ${filePath} or delete the file so we can create a new one from defaults.`;
 
 	return attemptCallWithError<T>(fn, errorMessage);
 };
 
-const attemptToValidateConfig = (config: object, filePath: string) => {
+const attemptToValidateConfig = (config: object, filePath: string): void => {
 	const rootKeys = CONFIG_VARIABLES.map(key => key.split('.')[0]);
-	const fn = () =>
+	const fn = (): void => {
 		rootKeys.forEach(key => {
 			if (!Object.keys(config).includes(key)) {
 				throw new ValidationError(`Key ${key} not found in config file.`);
 			}
 		});
+	};
 	const errorMessage = `Config file seems to be corrupted: missing required keys. Please check ${filePath} or delete the file so we can create a new one from defaults.`;
 
-	return attemptCallWithError(fn, errorMessage);
+	attemptCallWithError<void>(fn, errorMessage);
 };
 
 export const setConfig = (
