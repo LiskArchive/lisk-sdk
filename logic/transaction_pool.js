@@ -946,7 +946,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 									}`,
 									processVerifyErr
 								);
-								self.removeQueuedTransaction(transaction.id);
+								self.removeUnconfirmedTransaction(transaction.id);
 								return setImmediate(eachSeriesCb);
 							}
 							return modules.transactions.applyUnconfirmed(
@@ -960,7 +960,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 											}`,
 											applyUnconfirmErr
 										);
-										self.removeQueuedTransaction(transaction.id);
+										self.removeUnconfirmedTransaction(transaction.id);
 										return setImmediate(eachSeriesCb);
 									}
 									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list

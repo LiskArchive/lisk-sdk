@@ -81,6 +81,11 @@ describe('transactionPool', () => {
 		message: sinonSandbox.spy(),
 	};
 
+	const removeUnconfirmedTransactionSpy = sinonSandbox.spy(
+		TransactionPool.prototype,
+		'removeUnconfirmedTransaction'
+	);
+
 	const resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
 		transactionPool.bundled = _.cloneDeep(freshListState);
@@ -116,6 +121,8 @@ describe('transactionPool', () => {
 			'modules.transactions.undoUnconfirmed',
 			dummyUndoUnconfirmed
 		);
+
+		removeUnconfirmedTransactionSpy.reset();
 	};
 
 	before(done => {
@@ -1516,6 +1523,12 @@ describe('transactionPool', () => {
 									return expect(index).to.be.an('undefined');
 								});
 							});
+						});
+
+						it('should call removeQueuedTransaction when failed to process', () => {
+							return expect(removeUnconfirmedTransactionSpy.callCount).to.eql(
+								1
+							);
 						});
 
 						after(resetStates);
