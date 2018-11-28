@@ -180,37 +180,6 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
 };
 
 /**
- * Generates delegate list and checks if block generator publicKey matches delegate id.
- *
- * @param {block} block
- * @param {function} source - Source function for get delegates
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-__private.validateBlockSlot = function(block, source, cb) {
-	const round = slots.calcRound(block.height);
-	self.generateDelegateList(round, (err, activeDelegates) => {
-		if (err) {
-			return setImmediate(cb, err);
-		}
-
-		const currentSlot = slots.getSlotNumber(block.timestamp);
-		const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
-
-		if (delegateId && block.generatorPublicKey === delegateId) {
-			return setImmediate(cb);
-		}
-		library.logger.error(
-			`Expected generator: ${delegateId} Received generator: ${
-				block.generatorPublicKey
-			}`
-		);
-		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
-	});
-};
-
-/**
  * Gets the assigned delegate to current slot and returns its keypair if present.
  *
  * @private
@@ -771,26 +740,25 @@ Delegates.prototype.generateDelegateList = function(round, cb, tx) {
  * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlot = function(block, cb) {
-	__private.validateBlockSlot(block, __private.getKeysSortByVote, cb);
-};
+	const round = slots.calcRound(block.height);
+	self.generateDelegateList(round, (err, activeDelegates) => {
+		if (err) {
+			return setImmediate(cb, err);
+		}
 
-/**
- * Generates delegate list and checks if block generator public key matches delegate id - against previous round.
- *
- * @param {block} block
- * @param {function} cb - Callback function
- * @returns {setImmediateCallback} cb, err
- * @todo Add description for the params
- */
-Delegates.prototype.validateBlockSlotAgainstPreviousRound = function(
-	block,
-	cb
-) {
-	__private.validateBlockSlot(
-		block,
-		__private.getDelegatesFromPreviousRound,
-		cb
-	);
+		const currentSlot = slots.getSlotNumber(block.timestamp);
+		const delegateId = activeDelegates[currentSlot % ACTIVE_DELEGATES];
+
+		if (delegateId && block.generatorPublicKey === delegateId) {
+			return setImmediate(cb);
+		}
+		library.logger.error(
+			`Expected generator: ${delegateId} Received generator: ${
+				block.generatorPublicKey
+			}`
+		);
+		return setImmediate(cb, `Failed to verify slot: ${currentSlot}`);
+	});
 };
 
 /**
