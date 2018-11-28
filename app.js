@@ -696,8 +696,8 @@ d.run(() => {
 				 * Description of the function.
 				 *
 				 * @func modules[12]
-				 * @param {Object} scope
-				 * @param {function} cb - Callback function
+				 * @param {Object} modulesScope
+				 * @param {function} modulesCb - Callback function
 				 */
 				function(modulesScope, modulesCb) {
 					var tasks = {};

@@ -240,7 +240,7 @@ __private.getMatched = function(test, peers) {
 /**
  * Check if the ip exists in the peer blacklist coming from config file.
  *
- * @param ip
+ * @param suspiciousIp
  * @returns {boolean}
  * @todo Add description for the params and the return value
  */

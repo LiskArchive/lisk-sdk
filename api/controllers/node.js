@@ -45,7 +45,7 @@ function NodeController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} context
+ * @param {Object} _context
  * @param {function} next
  * @todo Add description for the function and the params
  */
@@ -82,7 +82,7 @@ NodeController.getConstants = function(_context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} context
+ * @param {Object} _context
  * @param {function} next
  * @todo Add description for the function and the params
  */
