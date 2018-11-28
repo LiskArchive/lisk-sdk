@@ -14,8 +14,8 @@
 
 'use strict';
 
-var childProcess = require('child_process');
-var fs = require('fs');
+const childProcess = require('child_process');
+const fs = require('fs');
 
 /**
  * Helper module for parsing git commit information.
@@ -32,12 +32,19 @@ var fs = require('fs');
  * @throws {Error} If cannot get last git commit
  */
 function getLastCommit() {
-	var spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
-	var err = spawn.stderr.toString().trim();
+	let spawn;
 
-	// If there is git tool available and current directory is a git owned directory
-	if (!err) {
-		return spawn.stdout.toString().trim();
+	try {
+		spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
+		// If there is git tool available and current directory is a git owned directory
+		if (!spawn.stderr) {
+			return spawn.stdout.toString().trim();
+		}
+	} catch (error) {
+		// It should read REVISION file if error is that Git is not installed
+		if (error.toString() !== 'Error: spawnSync git ENOEN') {
+			throw error;
+		}
 	}
 
 	// Try looking for a file REVISION for a compiled build
