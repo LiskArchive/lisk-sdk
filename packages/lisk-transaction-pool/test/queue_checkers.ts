@@ -60,6 +60,37 @@ describe('queueCheckers', () => {
 		});
 	});
 
+	describe('#checkTransactionForExpiry', () => {
+		const expiryTimeout = 30000;
+		it('should return a function', () => {
+			return expect(
+				queueCheckers.checkTransactionForExpiry(expiryTimeout)
+			).to.be.a('function');
+		});
+
+		it('should return false for transaction which is younger than expiryTimeout', () => {
+			const transactionExpiryCheckFunction = queueCheckers.checkTransactionForExpiry(expiryTimeout);
+			const youngerTransaction = {
+				...transactions[0],
+				receivedAt: new Date((new Date().getTime() - 29000))
+			};
+			return expect(
+				transactionExpiryCheckFunction(youngerTransaction),
+			).to.be.false;
+		});
+
+		it('should return true for transaction which is older than expiryTimeout', () => {
+			const transactionExpiryCheckFunction = queueCheckers.checkTransactionForExpiry(expiryTimeout);
+			const youngerTransaction = {
+				...transactions[0],
+				receivedAt: new Date((new Date().getTime() - 30010))
+			};
+			return expect(
+				transactionExpiryCheckFunction(youngerTransaction),
+			).to.be.true;
+		});
+	});
+
 	describe('#checkTransactionForSenderPublicKey', () => {
 		beforeEach(() => {
 			return sandbox
