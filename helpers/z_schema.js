@@ -208,7 +208,7 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	queryList(obj) {
-		if (!_.isObject(obj) || _.isArray(obj)) {
+		if (!_.isObject(obj) || Array.isArray(obj)) {
 			return false;
 		}
 
@@ -223,7 +223,7 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	delegatesList(obj) {
-		if (!_.isObject(obj) || _.isArray(obj)) {
+		if (!_.isObject(obj) || Array.isArray(obj)) {
 			return false;
 		}
 
