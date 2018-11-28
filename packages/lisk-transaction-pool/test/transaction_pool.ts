@@ -8,13 +8,16 @@ const Queue = require('../src/queue').Queue;
 const queueCheckers = require('../src/queue_checkers');
 
 describe('transaction pool', () => {
+	const MULTISIGNATURE_TIMEOUT = 86400;
+	const TRANSACTION_TIMEOUT = 10800;
 	let transactionPool: TransactionPool;
-	let stubs: {
+
+	let checkerStubs: {
 		[key: string]: sinon.SinonStub;
 	};
 
 	beforeEach('add transactions in the transaction pool', () => {
-		stubs = {
+		checkerStubs = {
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
 				'checkTransactionPropertyForValues',
@@ -31,9 +34,13 @@ describe('transaction pool', () => {
 				queueCheckers,
 				'checkTransactionForRecipientId',
 			),
+			checkTransactionForExpiry: sandbox.stub(
+				queueCheckers,
+				'checkTransactionForExpiry'
+			),
 		};
 
-		transactionPool = new TransactionPool();
+		transactionPool = new TransactionPool({ MULTISIGNATURE_TIMEOUT, TRANSACTION_TIMEOUT });
 		Object.keys(transactionPool.queues).forEach(queueName => {
 			sandbox
 				.stub((transactionPool as any)._queues, queueName)
@@ -54,7 +61,7 @@ describe('transaction pool', () => {
 
 		it('should call checkTransactionForRecipientId with block transactions', () => {
 			transactionPool.onDeleteBlock(block);
-			expect(stubs.checkTransactionForRecipientId).to.be.calledWithExactly(
+			expect(checkerStubs.checkTransactionForRecipientId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
@@ -98,14 +105,14 @@ describe('transaction pool', () => {
 
 		it('should call checkTransactionForId with block transactions', () => {
 			transactionPool.onNewBlock(block);
-			expect(stubs.checkTransactionForId).to.be.calledWithExactly(
+			expect(checkerStubs.checkTransactionForId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
 
 		it('should call checkTransactionForSenderPublicKey with block transactions', () => {
 			transactionPool.onNewBlock(block);
-			expect(stubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
+			expect(checkerStubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
@@ -150,7 +157,7 @@ describe('transaction pool', () => {
 			transactionPool.onRoundRollback(roundDelegateAddresses);
 			const senderProperty = 'senderPublicKey';
 			expect(
-				stubs.checkTransactionPropertyForValues.calledWithExactly(
+				checkerStubs.checkTransactionPropertyForValues.calledWithExactly(
 					roundDelegateAddresses,
 					senderProperty,
 				),
@@ -179,6 +186,26 @@ describe('transaction pool', () => {
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
+		});
+	});
+
+	describe('expireTransactions', () => {
+		let removeTransactionsFromQueuesStub: sinon.SinonStub;
+		let expireTransactions: () => boolean;
+
+		beforeEach(() => {
+			removeTransactionsFromQueuesStub = sandbox.stub(transactionPool as any, 'removeTransactionsFromQueues');
+			expireTransactions = (transactionPool as any)['expireTransactions'].bind(transactionPool);
+		});
+
+		it('should call removeTransactionsFromQueues twice', () => {
+			expireTransactions();
+			return expect(removeTransactionsFromQueuesStub).to.be.calledTwice;
+		});
+
+		it('should call checkTransactionForExpiry twice', () => {
+			expireTransactions();
+			return expect(checkerStubs.checkTransactionForExpiry).to.be.calledTwice;
 		});
 	});
 });
