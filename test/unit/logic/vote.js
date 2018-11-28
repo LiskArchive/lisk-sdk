@@ -106,7 +106,7 @@ describe('vote', () => {
 	}
 
 	function checkAccountVotes(senderPublicKey, state, votes, action, done) {
-		votes = action == 'apply' ? votes : diff.reverse(votes);
+		votes = action === 'apply' ? votes : diff.reverse(votes);
 		accountsModule.getAccount(
 			{ publicKey: senderPublicKey },
 			(err, account) => {
@@ -120,14 +120,14 @@ describe('vote', () => {
 				expect(
 					delegates.filter(v => {
 						return (
-							groupedVotes['+'] && groupedVotes['+'].indexOf(`+${v}`) != -1
+							groupedVotes['+'] && groupedVotes['+'].indexOf(`+${v}`) !== -1
 						);
 					}).length + 1
 				).to.be.above(groupedVotes['+'] ? groupedVotes['+'].length : 0);
 				expect(
 					delegates.filter(v => {
 						return (
-							groupedVotes['-'] && groupedVotes['-'].indexOf(`-${v}`) != -1
+							groupedVotes['-'] && groupedVotes['-'].indexOf(`-${v}`) !== -1
 						);
 					}).length
 				).to.equal(0);

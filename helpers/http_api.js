@@ -180,7 +180,7 @@ var middleware = {
 
 				if (
 					isNaN(value) ||
-					parseInt(value) != value ||
+					parseInt(value).toString() !== String(value) ||
 					isNaN(parseInt(value, radix))
 				) {
 					return value;

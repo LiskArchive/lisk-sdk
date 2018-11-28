@@ -95,9 +95,9 @@ describe('system test (type 1) - checking validated second signature registratio
 		describe('adding to pool other transaction types from the same account', () => {
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (
-					key != 'SIGNATURE' &&
-					key != 'IN_TRANSFER' &&
-					key != 'OUT_TRANSFER'
+					key !== 'SIGNATURE' &&
+					key !== 'IN_TRANSFER' &&
+					key !== 'OUT_TRANSFER'
 				) {
 					it(`type ${index}: ${key} without second signature should fail`, done => {
 						localCommon.loadTransactionType(

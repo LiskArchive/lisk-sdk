@@ -303,14 +303,14 @@ describe('system test (blocks) - chain/applyBlock', () => {
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
 									// the transaction will fail, so we will have the username, isDelegate we initially set
-									if (account == blockAccount1) {
+									if (account === blockAccount1) {
 										expect(accountRow.mem_accounts.username).to.equal(
 											randomUsername
 										);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(1);
 									}
 
-									if (account == blockAccount2) {
+									if (account === blockAccount2) {
 										expect(accountRow.mem_accounts.username).to.eql(null);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(0);
 									}

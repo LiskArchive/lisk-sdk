@@ -226,7 +226,7 @@ class Block {
 	 */
 	objectNormalize(block) {
 		for (const i of Object.keys(block)) {
-			if (block[i] == null || typeof block[i] === 'undefined') {
+			if (block[i] === null || typeof block[i] === 'undefined') {
 				delete block[i];
 			}
 		}
