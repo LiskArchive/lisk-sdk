@@ -69,10 +69,7 @@ export const selectPeers = (
 			peer &&
 			Math.abs(
 				(calculatedHistogramValues ? calculatedHistogramValues.height : 0) -
-					peer.height,
-			) <
-				aggregation + 1,
-	);
+					peer.height) < aggregation + 1);
 
 	if (numOfPeers <= 0) {
 		return processedPeers;

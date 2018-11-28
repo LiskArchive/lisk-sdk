@@ -65,11 +65,11 @@ export class Peer {
 		return this._inboundSocket;
 	}
 
-	public get ipAddress(): any {
+	public get ipAddress(): string {
 		return this._ipAddress;
 	}
 
-	public get wsPort(): any {
+	public get wsPort(): number {
 		return this._wsPort;
 	}
 }

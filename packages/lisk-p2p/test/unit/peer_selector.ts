@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import { initializePeerList } from '../utils/peers';
 import { PeerOptions, selectPeers } from '../../src/peer_selector';
 
-describe('helpers', () => {
+describe('peer selector', () => {
 	describe('#selectPeer', () => {
 		let peerList = initializePeerList();
 		const option: PeerOptions = {
@@ -113,7 +113,7 @@ describe('helpers', () => {
 				peerList = initializePeerList();
 			});
 			const lowHeightPeers = peerList.filter(
-				peer => peer.height < option.blockHeight,
+				peer => peer.height < option.lastBlockHeight,
 			);
 
 			it('should return an array with 0 good peers', () => {
