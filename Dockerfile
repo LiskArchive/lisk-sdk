@@ -15,7 +15,7 @@ WORKDIR /home/lisk/lisk
 RUN npm install && \
     git rev-parse HEAD >REVISION && \
     rm -rf .git && \
-    date "+%H:%M:%S %d/%m/%Y" >.build
+    date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
 
 
 FROM node:8-alpine
