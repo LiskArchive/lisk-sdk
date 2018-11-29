@@ -16,12 +16,17 @@
 'use strict';
 
 const rewire = require('rewire');
-const inputSerializers = require('../../../../storage/utils/inputSerializers');
 
 const Field = rewire('../../../../storage/utils/field');
 
-const filterGeneratorSpy = sinonSandbox.stub().returns({ key: { filter: '' } });
-Field.__set__('filterGenerator', filterGeneratorSpy);
+const filterGeneratorStub = sinonSandbox
+	.stub()
+	.returns({ key: { filter: '' } });
+const inputSerializersStub = {
+	default: sinonSandbox.stub().returns('serialized value'),
+};
+Field.__set__('filterGenerator', filterGeneratorStub);
+Field.__set__('inputSerializers', inputSerializersStub);
 
 describe('Field', () => {
 	afterEach(() => {
@@ -45,7 +50,7 @@ describe('Field', () => {
 			expect(field.name).to.be.eql('name');
 			expect(field.type).to.be.eql('type');
 			expect(field.filterType).to.be.eql(undefined);
-			expect(field.inputSerializer).to.be.eql(inputSerializers.default);
+			expect(field.inputSerializer).to.be.eql(inputSerializersStub.default);
 			return expect(field.filterCondition).to.be.eql(undefined);
 		});
 
@@ -55,10 +60,9 @@ describe('Field', () => {
 				fieldName: 'fieldName',
 				filterCondition: 'condition',
 			});
-			filterGeneratorSpy.returns({ key: { filter: '' } });
 
-			expect(filterGeneratorSpy).to.be.calledOnce;
-			expect(filterGeneratorSpy).to.be.calledWith(
+			expect(filterGeneratorStub).to.be.calledOnce;
+			expect(filterGeneratorStub).to.be.calledWith(
 				'STRING',
 				field.name,
 				field.fieldName,
@@ -66,6 +70,38 @@ describe('Field', () => {
 				'condition'
 			);
 			return expect(field.filters).to.be.eql({ key: { filter: '' } });
+		});
+	});
+
+	describe('getFilters()', () => {
+		it('should return the filters', () => {
+			const field = new Field('name', 'type', {
+				filter: 'STRING',
+				fieldName: 'fieldName',
+				filterCondition: 'condition',
+			});
+
+			return expect(field.getFilters()).to.be.eql({ key: { filter: '' } });
+		});
+	});
+
+	describe('serializeValue()', () => {
+		it('should return serialized value for field', () => {
+			const field = new Field('name', 'type', {
+				filter: 'STRING',
+				fieldName: 'fieldName',
+			});
+
+			expect(field.serializeValue(123, 'my-mode')).to.be.eql(
+				'serialized value'
+			);
+			expect(inputSerializersStub.default).to.be.calledOnce;
+			return expect(inputSerializersStub.default).to.be.calledWith(
+				123,
+				'my-mode',
+				field.name,
+				field.fieldName
+			);
 		});
 	});
 });
