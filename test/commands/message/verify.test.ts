@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import { expect, test } from '@oclif/test';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('message:verify', () => {
 	const message = 'Hello World';
@@ -35,7 +35,7 @@ describe('message:verify', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				cryptography,
@@ -43,8 +43,8 @@ describe('message:verify', () => {
 				sandbox.stub().returns(defaultVerifyMessageResult),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -80,7 +80,7 @@ describe('message:verify', () => {
 		setupTest()
 			.command(['message:verify', defaultPublicKey, defaultSignature, message])
 			.it('should verify message from the arg', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					data: null,
 				});
 				expect(cryptography.verifyMessageWithPublicKey).to.be.calledWithExactly(
@@ -106,7 +106,7 @@ describe('message:verify', () => {
 				`--message=${messageSource}`,
 			])
 			.it('should verify message from the flag', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					data: {
 						source: messageSource,
 					},

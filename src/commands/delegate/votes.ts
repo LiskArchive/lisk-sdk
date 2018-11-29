@@ -32,7 +32,11 @@ const VOTES_SORT_FIELDS = SORT_FIELDS.filter(
 	field => !field.includes('publicKey'),
 );
 
-const processFlagInputs = (limitStr: string, offsetStr: string, sortStr: string) => {
+const processFlagInputs = (
+	limitStr: string,
+	offsetStr: string,
+	sortStr: string,
+) => {
 	const limit = parseInt(limitStr, 10);
 	const offset = parseInt(offsetStr, 10);
 	const sort = sortStr ? sortStr.trim() : undefined;
@@ -126,4 +130,3 @@ export default class VotesCommand extends BaseCommand {
 		this.print(results);
 	}
 }
-

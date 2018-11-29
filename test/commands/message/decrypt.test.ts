@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import { expect, test } from '@oclif/test';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('message:decrypt', () => {
 	const message = 'Hello World';
@@ -36,7 +36,7 @@ describe('message:decrypt', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				cryptography,
@@ -44,8 +44,8 @@ describe('message:decrypt', () => {
 				sandbox.stub().returns(message),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -86,7 +86,7 @@ describe('message:decrypt', () => {
 				defaultEncryptedMessage,
 			])
 			.it('should decrypt the message with the arg', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 					},
@@ -115,7 +115,7 @@ describe('message:decrypt', () => {
 			.it(
 				'should decrypt the message with the arg and the message flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: undefined,
 						},
@@ -148,7 +148,7 @@ describe('message:decrypt', () => {
 			.it(
 				'should decrypt the message with the arg and the message flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source:
 								'pass:"card earn shift valley learn scorpion cage select help title control satoshi"',

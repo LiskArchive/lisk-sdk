@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import { expect, test } from '@oclif/test';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('message:sign', () => {
 	const message = 'Hello World';
@@ -37,7 +37,7 @@ describe('message:sign', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				cryptography,
@@ -45,8 +45,8 @@ describe('message:sign', () => {
 				sandbox.stub().returns(defaultSignedMessage),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -64,7 +64,7 @@ describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign', message])
 			.it('should sign the message with the arg', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -86,7 +86,7 @@ describe('message:sign', () => {
 		setupTest()
 			.command(['message:sign', `--message=${messageSource}`])
 			.it('should sign the message from flag', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -116,7 +116,7 @@ describe('message:sign', () => {
 				`--passphrase=${passphraseSource}`,
 			])
 			.it('should sign the message from the flag and passphrase', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: passphraseSource,
 						repeatPrompt: true,
