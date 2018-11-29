@@ -23,10 +23,10 @@ var apiHelpers = require('../helpers/api');
 const { ACTIVE_DELEGATES } = global.constants;
 
 /**
- * @param {function} cb
  * @param {number} [retries=10] retries
  * @param {number} [timeout=200] timeout
  * @param {string} [baseUrl='http://localhost:5000'] timeout
+ * @param {function} cb
  */
 function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 	if (!retries) {
