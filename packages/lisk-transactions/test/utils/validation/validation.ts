@@ -29,7 +29,9 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	isValidInteger,
+	normalizeInput,
 } from '../../../src/utils/validation/validation';
+// import { TransactionError } from '../../../src/errors';
 
 describe('validation', () => {
 	describe('#validatePublicKey', () => {
@@ -359,6 +361,194 @@ describe('validation', () => {
 
 		it('should return true when negative integer was provided', () => {
 			return expect(isValidInteger(-6)).to.be.true;
+		});
+	});
+
+	describe('#normalizeInput', () => {
+		let defaultTransaction: any;
+		beforeEach(() => {
+			defaultTransaction = {
+				id: '15822870279184933850',
+				type: 0,
+				timestamp: 79289378,
+				senderPublicKey:
+					'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
+				senderId: '18278674964748191682L',
+				recipientId: '17243547555692708431L',
+				recipientPublicKey:
+					'3f82af600f7507a5c95e8a1c2b69aa353b59f26906298dce1d8009a2a52c6f59',
+				amount: '9312934243',
+				fee: '10000000',
+				signature:
+					'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+				signatures: [],
+				asset: {},
+			};
+		});
+
+		it('should throw transaction error when invalid string amount provided', () => {
+			const invalidAmount = {
+				...defaultTransaction,
+				amount: '100invalid amount',
+			};
+
+			return expect(normalizeInput.bind(null, invalidAmount)).to.throw(
+				'`amount` must be a valid string or BigNum.',
+			);
+		});
+
+		it('should throw transaction error when number amount provided', () => {
+			const invalidAmount = {
+				...defaultTransaction,
+				amount: 10000,
+			};
+
+			return expect(normalizeInput.bind(null, invalidAmount)).to.throw(
+				'`amount` must be a valid string or BigNum.',
+			);
+		});
+
+		it('should throw transaction error when invalid string fee provided', () => {
+			const invalidFee = {
+				...defaultTransaction,
+				fee: '100invalid fee',
+			};
+
+			return expect(normalizeInput.bind(null, invalidFee)).to.throw(
+				'`fee` must be a valid string or BigNum.',
+			);
+		});
+
+		it('should throw transaction error when number fee provided', () => {
+			const invalidFee = {
+				...defaultTransaction,
+				fee: 10000,
+			};
+
+			return expect(normalizeInput.bind(null, invalidFee)).to.throw(
+				'`fee` must be a valid string or BigNum.',
+			);
+		});
+
+		it('should throw transaction error when invalid asset provided', () => {
+			const invalidAsset = {
+				...defaultTransaction,
+				asset: '{"asset":{"signature":"123456789"}}',
+			};
+
+			return expect(normalizeInput.bind(null, invalidAsset)).to.throw(
+				'`asset` must be an object.',
+			);
+		});
+
+		it('should throw transaction error when invalid timestamp provided', () => {
+			const invalidTimestamp = {
+				...defaultTransaction,
+				timestamp: '1234763456725',
+			};
+
+			return expect(normalizeInput.bind(null, invalidTimestamp)).to.throw(
+				'`timestamp` must be a number.',
+			);
+		});
+
+		it('should throw transaction error when invalid type provided', () => {
+			const invalidType = {
+				...defaultTransaction,
+				type: '0',
+			};
+
+			return expect(normalizeInput.bind(null, invalidType)).to.throw(
+				'`type` must be a number.',
+			);
+		});
+
+		it('should throw transaction error when invalid signatures provided', () => {
+			const invalidSignatures = {
+				...defaultTransaction,
+				signatures: { signatures: 'invalid signatures' },
+			};
+
+			return expect(normalizeInput.bind(null, invalidSignatures)).to.throw(
+				'`signatures` must be an array.',
+			);
+		});
+
+		it('should throw transaction error when invalid id', () => {
+			const invalidId = {
+				...defaultTransaction,
+				id: 123456789,
+			};
+
+			return expect(normalizeInput.bind(null, invalidId)).to.throw(
+				'`id` must be a string.',
+			);
+		});
+
+		it('should throw transaction error when invalid id', () => {
+			const invalidSenderPublicKey = {
+				...defaultTransaction,
+				senderPublicKey: 123456789,
+			};
+
+			return expect(normalizeInput.bind(null, invalidSenderPublicKey)).to.throw(
+				'`senderPublicKey` must be a string.',
+			);
+		});
+
+		it('should throw transaction error when invalid senderId', () => {
+			const invalidSenderId = {
+				...defaultTransaction,
+				senderId: 123456789,
+			};
+
+			return expect(normalizeInput.bind(null, invalidSenderId)).to.throw(
+				'`senderId` must be a string.',
+			);
+		});
+
+		it('should throw transaction error when invalid recipientId', () => {
+			const invalidRecipientId = {
+				...defaultTransaction,
+				recipientId: 123456789,
+			};
+
+			return expect(normalizeInput.bind(null, invalidRecipientId)).to.throw(
+				'`recipientId` must be a string.',
+			);
+		});
+
+		it('should throw transaction error when invalid recipientPublicKey', () => {
+			const invalidRecipientPublicKey = {
+				...defaultTransaction,
+				recipientPublicKey: 123456789,
+			};
+
+			return expect(
+				normalizeInput.bind(null, invalidRecipientPublicKey),
+			).to.throw('`recipientPublicKey` must be a string.');
+		});
+
+		it('should throw transaction error when invalid signature', () => {
+			const invalidSignature = {
+				...defaultTransaction,
+				signature: 123456789,
+			};
+
+			return expect(normalizeInput.bind(null, invalidSignature)).to.throw(
+				'`signature` must be a string.',
+			);
+		});
+
+		it('should throw transaction error when invalid signSignature', () => {
+			const invalidSignSignature = {
+				...defaultTransaction,
+				signSignature: 123456789,
+			};
+
+			return expect(normalizeInput.bind(null, invalidSignSignature)).to.throw(
+				'`signSignature` must be a string.',
+			);
 		});
 	});
 });
