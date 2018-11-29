@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
+require('use-strict');
+
 // eslint-disable-next-line import/order
 const AppConfig = require('./helpers/config.js');
 
@@ -101,7 +103,10 @@ var workersControllerPath = path.join(__dirname, 'workers_controller');
 process.stdin.resume();
 
 // Read build version from file
-var versionBuild = fs.readFileSync(path.join(__dirname, '.build'), 'utf8').toString().trim();
+var versionBuild = fs
+	.readFileSync(path.join(__dirname, '.build'), 'utf8')
+	.toString()
+	.trim();
 
 /**
  * Hash of the last git commit.

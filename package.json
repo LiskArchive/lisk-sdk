@@ -62,8 +62,8 @@
 		"js-yaml": "3.12.0",
 		"json-refs": "3.0.12",
 		"lisk-elements": "1.0.0",
-		"lodash": "4.17.11",
 		"lisk-newrelic": "LiskHQ/lisk-newrelic#1ea09b4",
+		"lodash": "4.17.11",
 		"method-override": "2.3.10",
 		"newrelic": "4.11.0",
 		"pg-monitor": "1.1.0",
@@ -81,6 +81,7 @@
 		"swagger-node-runner": "0.7.3",
 		"sway": "2.0.5",
 		"tempy": "0.2.1",
+		"use-strict": "=1.0.1",
 		"valid-url": "1.0.9",
 		"wamp-socket-cluster": "2.0.0-beta.4",
 		"z-schema": "3.18.2"
