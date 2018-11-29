@@ -240,6 +240,10 @@ class Network {
 
 		return new Promise((resolve, reject) => {
 			waitFor.blockchainReady(
+				retries,
+				timeout,
+				`http://${configuration.ip}:${configuration.httpPort}`,
+				!logRetries,
 				err => {
 					if (err) {
 						return reject(
@@ -250,11 +254,7 @@ class Network {
 						);
 					}
 					resolve();
-				},
-				retries,
-				timeout,
-				`http://${configuration.ip}:${configuration.httpPort}`,
-				!logRetries
+				}
 			);
 		});
 	}
