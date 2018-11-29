@@ -473,7 +473,7 @@ class Transaction {
 				sender.publicKey,
 			].join(' ');
 
-			if (exceptions.senderPublicKey.indexOf(transaction.id) > -1) {
+			if (exceptions.senderPublicKey.includes(transaction.id)) {
 				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 			} else {
@@ -541,7 +541,7 @@ class Transaction {
 		if (!valid) {
 			err = 'Failed to verify signature';
 
-			if (exceptions.signatures.indexOf(transaction.id) > -1) {
+			if (exceptions.signatures.includes(transaction.id)) {
 				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 				valid = true;

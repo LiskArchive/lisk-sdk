@@ -296,9 +296,9 @@ function beforeBlock(type, cb) {
 function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	var transaction;
 	var accountCopy = _.cloneDeep(account);
-	if (secondPassphrase == true) {
+	if (secondPassphrase === true) {
 		accountCopy.secondPassphrase = null;
-	} else if (secondPassphrase == false) {
+	} else if (secondPassphrase === false) {
 		accountCopy.secondPassphrase = 'invalid_second_passphrase';
 	}
 	switch (key) {

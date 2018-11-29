@@ -18,13 +18,11 @@
 			}
 		],
 		"consistent-return": "error",
-		"eqeqeq": "off",
 		"func-names": "off",
 		"global-require": "off",
 		"guard-for-in": "off",
 		"generator-star-spacing": ["error", { "before": false, "after": false }],
 		"max-len": "off",
-		"no-bitwise": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
