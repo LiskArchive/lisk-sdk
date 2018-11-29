@@ -69,7 +69,7 @@ describe('message:sign', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					data: null,
+					data: undefined,
 				});
 				expect(cryptography.signMessageWithPassphrase).to.be.calledWithExactly(
 					message,

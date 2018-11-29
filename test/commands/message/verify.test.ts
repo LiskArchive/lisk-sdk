@@ -81,7 +81,7 @@ describe('message:verify', () => {
 			.command(['message:verify', defaultPublicKey, defaultSignature, message])
 			.it('should verify message from the arg', () => {
 				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
-					data: null,
+					data: undefined,
 				});
 				expect(cryptography.verifyMessageWithPublicKey).to.be.calledWithExactly(
 					{

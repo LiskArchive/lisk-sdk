@@ -78,7 +78,7 @@ describe('message:encrypt', () => {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					data: null,
+					data: undefined,
 				});
 				expect(
 					cryptography.encryptMessageWithPassphrase,

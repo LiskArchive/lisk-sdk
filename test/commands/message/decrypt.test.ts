@@ -90,7 +90,7 @@ describe('message:decrypt', () => {
 					passphrase: {
 						source: undefined,
 					},
-					data: null,
+					data: undefined,
 				});
 				expect(
 					cryptography.decryptMessageWithPassphrase,
