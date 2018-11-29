@@ -53,3 +53,13 @@ export const MAX_ADDRESS_NUMBER = MAX_EIGHT_BYTE_NUMBER;
 export const MAX_TRANSACTION_ID = MAX_EIGHT_BYTE_NUMBER;
 // Largest possible amount. Maximum value for PostgreSQL bigint.
 export const MAX_TRANSACTION_AMOUNT = '9223372036854775807';
+export const TRANSACTION_TYPES: ReadonlyArray<number> = [
+	0,
+	1,
+	2,
+	3,
+	4,
+	5,
+	6,
+	7,
+];

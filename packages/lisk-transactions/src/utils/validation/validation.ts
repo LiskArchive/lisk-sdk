@@ -159,9 +159,17 @@ export const normalizeInput = (rawTransaction: TransactionJSON): void => {
 
 	Object.entries(strippedTransaction).forEach(field => {
 		const [key, value] = field;
-		if (['timestamp', 'type'].includes(key)) {
+		if (key === 'asset') {
+			if (typeof value !== 'object') {
+				throw new TransactionError(`\`${key}\` must be an object.`);
+			}
+		} else if (['timestamp', 'type'].includes(key)) {
 			if (typeof value !== 'number') {
 				throw new TransactionError(`\`${key}\` must be a number.`);
+			}
+		} else if (key === 'signatures') {
+			if (!Array.isArray(value)) {
+				throw new TransactionError(`\`${key}\` must be an array.`);
 			}
 		} else if (typeof value !== 'string') {
 			throw new TransactionError(`\`${key}\` must be a string.`);

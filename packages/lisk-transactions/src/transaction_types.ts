@@ -16,7 +16,7 @@ import { TransactionError } from './errors';
 export interface Account {
 	readonly address: string;
 	readonly balance: string;
-	readonly delegate: Delegate;
+	readonly delegate?: Delegate;
 	readonly publicKey: string;
 	readonly secondPublicKey?: string;
 	readonly unconfirmedBalance: string;
@@ -40,7 +40,7 @@ export interface RequiredState {
 
 export interface TransactionJSON {
 	readonly amount: string;
-	readonly asset?: TransactionAsset;
+	readonly asset: TransactionAsset;
 	readonly fee: string;
 	readonly id: string;
 	readonly recipientId: string;
@@ -48,7 +48,7 @@ export interface TransactionJSON {
 	readonly senderId: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
-	readonly signatures?: ReadonlyArray<string>;
+	readonly signatures: ReadonlyArray<string>;
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
@@ -81,7 +81,8 @@ export type TransactionAsset =
 	| MultiSignatureAsset
 	| DappAsset
 	| InTransferAsset
-	| OutTransferAsset;
+	| OutTransferAsset
+	| object;
 
 export interface TransferTransaction extends TransactionJSON {
 	readonly asset: TransferAsset;

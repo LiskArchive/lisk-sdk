@@ -178,9 +178,7 @@ const transactionTypeAssetGetBytesMap: {
 };
 
 export const getAssetBytes = (transaction: TransactionJSON): Buffer =>
-	transactionTypeAssetGetBytesMap[transaction.type](
-		transaction.asset as TransactionAsset,
-	);
+	transactionTypeAssetGetBytesMap[transaction.type](transaction.asset);
 
 const REQUIRED_TRANSACTION_PARAMETERS: ReadonlyArray<string> = [
 	'type',

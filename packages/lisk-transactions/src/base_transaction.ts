@@ -18,11 +18,12 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES } from './constants';
+import { BYTESIZES, TRANSACTION_TYPES } from './constants';
 import { TransactionError } from './errors';
 import {
 	Account,
 	StateReturn,
+	TransactionAsset,
 	TransactionJSON,
 	ValidateReturn,
 	VerifyReturn,
@@ -43,14 +44,17 @@ export abstract class BaseTransaction {
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
 	public readonly signature?: string;
-	public readonly signatures?: ReadonlyArray<string>;
+	public readonly signatures: ReadonlyArray<string> = [];
 	public readonly signSignature?: string;
 	public readonly timestamp: number;
 	public readonly type: number;
+	public readonly asset: TransactionAsset = {};
+	private applied = false;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		normalizeInput(rawTransaction);
 		this.amount = new BigNum(rawTransaction.amount);
+		this.asset = rawTransaction.asset;
 		this.fee = new BigNum(rawTransaction.fee);
 		this.id = rawTransaction.id;
 		this.recipientId = rawTransaction.recipientId;
@@ -58,6 +62,7 @@ export abstract class BaseTransaction {
 		this.senderId = rawTransaction.senderId;
 		this.senderPublicKey = rawTransaction.senderPublicKey;
 		this.signature = rawTransaction.signature;
+		this.signatures = rawTransaction.signatures;
 		this.signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
@@ -79,6 +84,8 @@ export abstract class BaseTransaction {
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
+			signatures: this.signatures,
+			asset: this.asset,
 		};
 
 		if (!(typeof this.signature === 'string' && this.signature.length > 0)) {
@@ -150,14 +157,40 @@ export abstract class BaseTransaction {
 	public abstract containsUniqueData(): boolean;
 
 	public validate(): ValidateReturn {
+		const transaction = this.toJSON();
+
+		if (!TRANSACTION_TYPES.includes(transaction.type)) {
+			return {
+				validated: false,
+				errors: [new TransactionError('Invalid transaction type.')],
+			};
+		}
+
 		// Schema validation
-		const { valid, errors } = validateTransaction(this.toJSON());
+		const { valid, errors } = validateTransaction(transaction);
 		const transactionErrors = errors
-			? errors.map(error => new TransactionError(error.message, error.dataPath))
+			? errors.map(
+					error =>
+						new TransactionError(
+							`'${error.dataPath}' ${error.message}`,
+							error.dataPath,
+						),
+			  )
 			: undefined;
 
 		// Single signature validation
-		const verified = verifyTransaction(this.toJSON());
+		if (!transaction.signature) {
+			return {
+				validated: false,
+				errors: [
+					new TransactionError(
+						'Cannot validate transaction without signature.',
+					),
+				],
+			};
+		}
+
+		const verified = verifyTransaction(transaction);
 
 		return {
 			validated: valid && verified,
@@ -186,13 +219,20 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public abstract verifyAgainstTransactions(
+	public abstract verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): VerifyReturn;
 
 	public apply(sender: Account): StateReturn {
+		if (this.applied) {
+			return {
+				sender,
+			};
+		}
+
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		this.applied = true;
 
 		return {
 			sender: updatedAccount,
@@ -200,6 +240,11 @@ export abstract class BaseTransaction {
 	}
 
 	public undo(sender: Account): StateReturn {
+		if (!this.applied) {
+			return {
+				sender,
+			};
+		}
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 

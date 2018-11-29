@@ -84,6 +84,7 @@ export const baseTransaction = {
 				type: 'string',
 				format: 'signature',
 			},
+			minItems: 0,
 		},
 		asset: {
 			type: 'object',
