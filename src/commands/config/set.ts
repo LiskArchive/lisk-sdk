@@ -171,11 +171,10 @@ export default class SetCommand extends BaseCommand {
 		'config:set api.nodes https://127.0.0.1:4000,http://mynode.com:7000',
 	];
 
-	
 
 	async run(): Promise<void> {
 		const { args: { variable, values: valuesStr } } = this.parse(SetCommand);
-		const values = valuesStr.Split(',').filter(Boolean)
+		const values = (valuesStr || '').split(',').filter(Boolean)
 		const safeValues = values || [];
 		const safeValue = safeValues[0] || '';
 		const result = handlers[variable](
