@@ -42,9 +42,11 @@ function getLastCommit() {
 		}
 	} catch (error) {
 		// It should read REVISION file if error is that Git is not installed
-		if (error.toString() !== 'Error: spawnSync git ENOEN') {
-			throw error;
-		}
+		// eslint-disable-next-line no-console
+		console.log(
+			'When getting git rev-parse HEAD, following error happened',
+			error.toString()
+		);
 	}
 
 	// Try looking for a file REVISION for a compiled build

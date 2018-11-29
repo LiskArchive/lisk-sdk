@@ -100,13 +100,19 @@ describe('git', () => {
 		});
 
 		describe('when another error different than git is not installed', () => {
+			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
+
 			beforeEach(done => {
 				sinonSandbox.stub(childProcess, 'spawnSync').throws(Error);
+				sinonSandbox.stub(fs, 'readFileSync').returns(validCommitHash);
 				done();
 			});
 
-			it('should throw an error', done => {
-				expect(git.getLastCommit).throw(Error);
+			it('should return a commit hash', done => {
+				expect(git.getLastCommit()).equal(validCommitHash);
+				expect(childProcess.spawnSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledWith('REVISION');
 				done();
 			});
 		});
