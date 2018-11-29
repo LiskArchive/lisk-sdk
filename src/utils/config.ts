@@ -21,7 +21,14 @@ import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
 
-interface ConfigOptions {
+export type WritableValue = string | ReadonlyArray<string> | boolean | number | object;
+
+interface ConfigOptionsIndex {
+	// tslint:disable-next-line readonly-keyword
+	[key: string]: WritableValue;
+}
+
+interface ConfigObject {
 	readonly api: {
 		readonly network: string;
 		readonly nodes: ReadonlyArray<string>;
@@ -29,6 +36,8 @@ interface ConfigOptions {
 	readonly json: boolean;
 	readonly pretty: boolean;
 }
+
+export type ConfigOptions = ConfigOptionsIndex & ConfigObject;
 
 const configFileName = 'config.json';
 const lockfileName = 'config.lock';

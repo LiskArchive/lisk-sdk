@@ -15,7 +15,7 @@
  */
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
+import * as printUtils from '../../../src/utils/print';
 
 describe('config:set', () => {
 	const defaultConfig = {
@@ -31,7 +31,7 @@ describe('config:set', () => {
 	const setupTest = () =>
 		test
 			.env({ LISK_COMMANDER_CONFIG_DIR: defaultDir })
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig))
 			.stub(config, 'setConfig', sandbox.stub().returns(true));
 

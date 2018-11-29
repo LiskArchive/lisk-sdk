@@ -15,7 +15,7 @@
  */
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
+import * as printUtils from '../../../src/utils/print';
 
 describe('config:show', () => {
 	const defaultConfig = {
@@ -28,7 +28,7 @@ describe('config:show', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig));
 
 	describe('config:show', () => {
@@ -36,7 +36,7 @@ describe('config:show', () => {
 			.stdout()
 			.command(['config:show'])
 			.it('should call print with the user config', () => {
-				expect(print.default).to.be.called;
+				expect(printUtils.print).to.be.called;
 				return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
 			});
 
@@ -44,7 +44,7 @@ describe('config:show', () => {
 			.stdout()
 			.command(['config:show', '--json', '--pretty'])
 			.it('should call print with json', () => {
-				expect(print.default).to.be.calledWith({ json: true, pretty: true });
+				expect(printUtils.print).to.be.calledWith({ json: true, pretty: true });
 				return expect(printMethodStub).to.be.calledWithExactly(defaultConfig);
 			});
 	});
