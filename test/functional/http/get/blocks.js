@@ -47,7 +47,7 @@ describe('GET /blocks', () => {
 	}
 
 	before(() => {
-		return waitFor.blocksPromise(2);
+		return waitFor.blocksPromise(2, null);
 	});
 
 	describe('?', () => {

@@ -293,6 +293,7 @@ class Network {
 		return new Promise((resolve, reject) => {
 			waitFor.blocks(
 				blocksToWait,
+				`http://${configuration.ip}:${configuration.httpPort}`,
 				err => {
 					if (err) {
 						return reject(
@@ -303,8 +304,7 @@ class Network {
 						);
 					}
 					return resolve();
-				},
-				`http://${configuration.ip}:${configuration.httpPort}`
+				}
 			);
 		});
 	}
