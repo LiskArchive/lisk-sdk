@@ -1531,6 +1531,12 @@ describe('transactionPool', () => {
 							);
 						});
 
+						it('should call removeQueuedTransaction with the correct transactionId', () => {
+							return expect(
+								removeUnconfirmedTransactionSpy.calledWith(badTransaction.id)
+							).to.eql(true);
+						});
+
 						after(resetStates);
 					});
 
