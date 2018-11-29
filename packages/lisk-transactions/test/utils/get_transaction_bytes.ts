@@ -764,7 +764,6 @@ describe('getTransactionBytes module', () => {
 					senderId: defaultSenderId,
 					signature: defaultSignature,
 					id: defaultTransactionId,
-					signatures: [],
 				};
 				return Promise.resolve();
 			});

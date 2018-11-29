@@ -15,9 +15,10 @@
 import { expect } from 'chai';
 import { BaseTransaction } from '../src/base_transaction';
 import * as utils from '../src/utils';
-import { TransactionJSON, VerifyReturn } from '../src/transaction_types';
+import { TransactionJSON } from '../src/transaction_types';
 import { TransactionError } from '../src/errors';
 import BigNum from 'browserify-bignum';
+import { Transaction } from './helpers/test_transaction_class';
 
 describe('Base transaction class', () => {
 	const defaultSignature =
@@ -47,32 +48,6 @@ describe('Base transaction class', () => {
 			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
 		secondPublicKey: '',
 	};
-
-	class Transaction extends BaseTransaction {
-		public prepareTransaction(passphrase: string, secondPassphrase?: string) {
-			const mockSignature = passphrase.toUpperCase();
-			const secondMockSignature = secondPassphrase
-				? secondPassphrase.toUpperCase()
-				: undefined;
-			return {
-				...this.toJSON(),
-				signature: mockSignature,
-				signSignature: secondMockSignature,
-			};
-		}
-
-		public containsUniqueData() {
-			return true;
-		}
-
-		public verifyAgainstOtherTransactions(
-			transactions: ReadonlyArray<TransactionJSON>,
-		): VerifyReturn {
-			transactions.forEach(() => true);
-
-			return { verified: true };
-		}
-	}
 
 	let baseTransaction: BaseTransaction;
 
@@ -143,7 +118,10 @@ describe('Base transaction class', () => {
 	describe('#constructor', () => {
 		let normalizeInputStub: () => void;
 		beforeEach(() => {
-			normalizeInputStub = sandbox.stub(utils, 'normalizeInput');
+			normalizeInputStub = sandbox
+				.stub(utils, 'normalizeInput')
+				.returns(defaultTransaction);
+
 			return Promise.resolve();
 		});
 
@@ -170,39 +148,60 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#getBytes', () => {
-		it('should return a buffer of transaction without signature', () => {
-			const { signature, ...unsignedTransaction } = defaultTransaction;
-			baseTransaction = new Transaction(unsignedTransaction);
-			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
-				'hex',
-			);
+		describe('when transaction is unsigned', () => {
+			beforeEach(() => {
+				const { signature, ...unsignedTransaction } = defaultTransaction;
+				baseTransaction = new Transaction(unsignedTransaction);
 
-			return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+				return Promise.resolve();
+			});
+
+			it('should return a buffer', () => {
+				const expectedBuffer = Buffer.from(
+					'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
+					'hex',
+				);
+
+				return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+			});
 		});
 
-		it('should return a buffer of transaction with signature', () => {
-			baseTransaction = new Transaction(defaultTransaction);
-			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
-				'hex',
-			);
+		describe('when transaction is signed', () => {
+			beforeEach(() => {
+				baseTransaction = new Transaction(defaultTransaction);
 
-			return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+				return Promise.resolve();
+			});
+
+			it('should return a buffer', () => {
+				const expectedBuffer = Buffer.from(
+					'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+					'hex',
+				);
+
+				return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+			});
 		});
 
-		it('should return a buffer of transaction with signature and signSignature', () => {
-			const signedTransaction = {
-				...defaultTransaction,
-				signSignature: defaultSignature,
-			};
-			baseTransaction = new Transaction(signedTransaction);
-			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b3092092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
-				'hex',
-			);
+		describe('when transaction is signed and has a second signature', () => {
+			beforeEach(() => {
+				const signedTransaction = {
+					...defaultTransaction,
+					signSignature: defaultSignature,
+				};
+				baseTransaction = new Transaction(signedTransaction);
 
-			return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+				return Promise.resolve();
+			});
+
+			it('should return a buffer', () => {
+				const expectedBuffer = Buffer.from(
+					'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b3092092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+					'hex',
+				);
+
+				return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+			});
 		});
 	});
 
