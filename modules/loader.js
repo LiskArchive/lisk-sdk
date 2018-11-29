@@ -1000,7 +1000,7 @@ Loader.prototype.findGoodPeers = function(peers) {
 	peers = peers.filter(
 		item =>
 			// Remove unreachable peers or heights below last block height
-			item != null && item.height >= lastBlockHeight
+			item && item.height >= lastBlockHeight
 	);
 
 	library.logger.trace('Good peers - filtered', { count: peers.length });

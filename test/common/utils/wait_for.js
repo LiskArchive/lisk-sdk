@@ -205,7 +205,7 @@ function confirmations(transactions, limitHeight) {
 	}
 
 	function waitUntilLimit(limit) {
-		if (limit == 0) {
+		if (limit === 0) {
 			throw new Error('Exceeded limit to wait for confirmations');
 		}
 		limit -= 1;

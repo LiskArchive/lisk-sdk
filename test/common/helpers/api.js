@@ -83,7 +83,7 @@ var http = {
 function paramsHelper(url, params) {
 	if (
 		typeof params !== 'undefined' &&
-		params != null &&
+		params !== null &&
 		Array.isArray(params) &&
 		params.length > 0
 	) {

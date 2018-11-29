@@ -208,7 +208,7 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	queryList(obj) {
-		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
+		if (!_.isObject(obj) || Array.isArray(obj)) {
 			return false;
 		}
 
@@ -223,7 +223,7 @@ var liskFormats = {
 	 * @todo Add description for the function, the params and the return value
 	 */
 	delegatesList(obj) {
-		if (obj == null || typeof obj !== 'object' || _.isArray(obj)) {
+		if (!_.isObject(obj) || Array.isArray(obj)) {
 			return false;
 		}
 
@@ -241,7 +241,7 @@ var liskFormats = {
 	parsedInt(value) {
 		if (
 			isNaN(value) ||
-			parseInt(value) != value ||
+			parseInt(value).toString() !== String(value) ||
 			isNaN(parseInt(value, 10))
 		) {
 			return false;
@@ -339,7 +339,7 @@ Object.keys(liskFormats).forEach(formatName => {
 });
 
 // Assigned as custom attribute to be used later
-// since z_schema.getRegisteredFormats() only resturns keys not the methods
+// since z_schema.getRegisteredFormats() only returns keys not the methods
 z_schema.formatsCache = liskFormats;
 
 // Exports

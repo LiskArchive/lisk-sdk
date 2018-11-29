@@ -127,11 +127,7 @@ describe('accounts', () => {
 			accounts.getAccounts({ secondSignature: 0 }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
-				expect(
-					res.filter(a => {
-						return a.secondSignature != 0;
-					}).length
-				).to.equal(0);
+				expect(res.filter(a => a.secondSignature !== false).length).to.equal(0);
 				done();
 			});
 		});

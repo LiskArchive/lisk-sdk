@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
  * Copyright © 2018 Lisk Foundation
  *

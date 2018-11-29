@@ -70,7 +70,7 @@ describe('rounds', () => {
 	});
 
 	function isPromise(obj) {
-		return typeof obj.then == 'function';
+		return typeof obj.then === 'function';
 	}
 
 	describe('constructor', () => {
