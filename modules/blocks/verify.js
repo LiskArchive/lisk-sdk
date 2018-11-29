@@ -250,7 +250,7 @@ __private.verifyReward = function(block, result) {
 	if (
 		block.height !== 1 &&
 		!expectedReward.isEqualTo(block.reward) &&
-		exceptions.blockRewards.indexOf(block.id) === -1
+		!exceptions.blockRewards.includes(block.id)
 	) {
 		result.errors.push(
 			['Invalid block reward:', block.reward, 'expected:', expectedReward].join(

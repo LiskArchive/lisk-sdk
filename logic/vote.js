@@ -272,7 +272,7 @@ Vote.prototype.checkConfirmedDelegates = function(transaction, cb, tx) {
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
-			if (err && exceptions.votes.indexOf(transaction.id) > -1) {
+			if (err && exceptions.votes.includes(transaction.id)) {
 				library.logger.debug(err);
 				library.logger.debug(JSON.stringify(transaction));
 				err = null;
@@ -297,7 +297,7 @@ Vote.prototype.checkUnconfirmedDelegates = function(transaction, cb, tx) {
 		transaction.senderPublicKey,
 		transaction.asset.votes,
 		err => {
-			if (err && exceptions.votes.indexOf(transaction.id) > -1) {
+			if (err && exceptions.votes.includes(transaction.id)) {
 				library.logger.debug(err);
 				library.logger.debug(JSON.stringify(transaction));
 				err = null;
