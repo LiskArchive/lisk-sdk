@@ -254,6 +254,7 @@ export abstract class BaseTransaction {
 		}
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
+		this.applied = false;
 
 		return {
 			sender: updatedAccount,
