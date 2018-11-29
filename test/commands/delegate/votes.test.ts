@@ -15,12 +15,12 @@
  */
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 import * as queryHandler from '../../../src/utils/query';
 
-describe('delegate:voters', () => {
-	const endpoint = 'voters';
+describe('delegate:votes', () => {
+	const endpoint = 'votes';
 	const apiConfig = {
 		nodes: ['http://local.host'],
 		network: 'main',
@@ -32,58 +32,59 @@ describe('delegate:voters', () => {
 	};
 	const printMethodStub = sandbox.stub();
 	const apiClientStub = sandbox.stub();
-	const usernames = ['genesis_5', 'genesis_6'];
+	const addresses = ['13133549779353512613L', '16010222169256538112L'];
 	const queryResult = [
 		{
-			username: usernames[0],
+			address: addresses[0],
 			balance: '0',
 			publicKey:
 				'0a47b151eafe8cfc278721ba14305071cae727395abf4c00bd298296c851dab9',
-			address: '10730473708113756935L',
-			voters: [
+			votes: [
 				{
-					address: '17534106505153007102L',
-					balance: '370400962539',
+					balance: '999999999999',
+					username: 'mitsujutsu',
 					publicKey:
-						'e2281b7bb0e7cd51cc5ac49d9463c6a1640aac20ae9baa9333ddc92a5ad63e42',
+						'e7cz206a33d0f019d9d030c2e34870767d8994680e7b10ebdaf2af0e59332524',
+					address: '1721671824473341641L',
 				},
 			],
-			votes: 47,
+			votesUsed: 101,
+			votesAvailable: 0,
 		},
 	];
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
-	describe('delegate:voters', () => {
+	describe('delegate:votes', () => {
 		setupTest()
-			.command(['delegate:voters'])
+			.command(['delegate:votes'])
 			.catch(error => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error when arg is not provided');
 
-		describe('delegate:voters delegate', () => {
+		describe('delegate:votes account', () => {
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-				.command(['delegate:voters', usernames[0]])
-				.it('should get delegate voters and display as an array', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+				.command(['delegate:votes', addresses[0]])
+				.it('should get account votes and display as an array', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
 							{
 								query: {
-									username: usernames[0],
+									address: addresses[0],
 									...defaultQuery,
 								},
 								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
+									address: addresses[0],
+									message: 'Account not found.',
 								},
 							},
 						],
@@ -92,36 +93,36 @@ describe('delegate:voters', () => {
 				});
 		});
 
-		describe('delegate:voters delegates', () => {
-			const usernamesWithEmpty = ['genesis_4', ''];
+		describe('delegate:votes accounts', () => {
+			const addressesWithEmpty = ['13133549779353512613L', ''];
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-				.command(['delegate:voters', usernames.join(',')])
-				.it('should get delegates voters and display as an array', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+				.command(['delegate:votes', addresses.join(',')])
+				.it('should get account votes and display as an array', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
 							{
 								query: {
-									username: usernames[0],
+									address: addresses[0],
 									...defaultQuery,
 								},
 								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
+									address: addresses[0],
+									message: 'Account not found.',
 								},
 							},
 							{
 								query: {
-									username: usernames[1],
+									address: addresses[1],
 									...defaultQuery,
 								},
 								placeholder: {
-									username: usernames[1],
-									message: 'Delegate not found.',
+									address: addresses[1],
+									message: 'Account not found.',
 								},
 							},
 						],
@@ -131,23 +132,23 @@ describe('delegate:voters', () => {
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-				.command(['delegate:voters', usernamesWithEmpty.join(',')])
+				.command(['delegate:votes', addressesWithEmpty.join(',')])
 				.it(
-					'should get delegates voters only using non-empty args and display as an array',
+					'should get account votes only using non-empty args and display as an array',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.query).to.be.calledWithExactly(
 							apiClientStub,
 							endpoint,
 							[
 								{
 									query: {
-										username: usernamesWithEmpty[0],
+										address: addressesWithEmpty[0],
 										...defaultQuery,
 									},
 									placeholder: {
-										username: usernamesWithEmpty[0],
-										message: 'Delegate not found.',
+										address: addressesWithEmpty[0],
+										message: 'Account not found.',
 									},
 								},
 							],
@@ -157,9 +158,9 @@ describe('delegate:voters', () => {
 				);
 		});
 
-		describe('delegate:voters --limit=xxx', () => {
+		describe('delegate:votes --limit=xxx', () => {
 			setupTest()
-				.command(['delegate:voters', usernames[0], '--limit=wronglimit'])
+				.command(['delegate:votes', addresses[0], '--limit=wronglimit'])
 				.catch(error => {
 					return expect(error.message).to.contain(
 						'Limit must be an integer and greater than 0',
@@ -168,7 +169,7 @@ describe('delegate:voters', () => {
 				.it('should throw an error when limit is not a valid integer');
 
 			setupTest()
-				.command(['delegate:voters', usernames[0], '--limit=0'])
+				.command(['delegate:votes', addresses[0], '--limit=0'])
 				.catch(error => {
 					return expect(error.message).to.contain(
 						'Limit must be an integer and greater than 0',
@@ -177,7 +178,7 @@ describe('delegate:voters', () => {
 				.it('should throw an error when limit is 0');
 
 			setupTest()
-				.command(['delegate:voters', usernames[0], '--limit=101'])
+				.command(['delegate:votes', addresses[0], '--limit=101'])
 				.catch(error => {
 					return expect(error.message).to.contain(
 						'Maximum limit amount is 100',
@@ -187,23 +188,23 @@ describe('delegate:voters', () => {
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-				.command(['delegate:voters', usernames[0], '--limit=3'])
-				.it('should get voters for delegate with limit', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+				.command(['delegate:votes', addresses[0], '--limit=3'])
+				.it('should get votes for account with limit', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
 							{
 								query: {
-									username: usernames[0],
+									address: addresses[0],
 									limit: 3,
 									offset: 0,
 									sort: 'balance:desc',
 								},
 								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
+									address: addresses[0],
+									message: 'Account not found.',
 								},
 							},
 						],
@@ -213,9 +214,9 @@ describe('delegate:voters', () => {
 				});
 		});
 
-		describe('delegate:voters --offset=xxx', () => {
+		describe('delegate:votes --offset=xxx', () => {
 			setupTest()
-				.command(['delegate:voters', usernames[0], '--offset=wrongoffset'])
+				.command(['delegate:votes', addresses[0], '--offset=wrongoffset'])
 				.catch(error => {
 					return expect(error.message).to.contain(
 						'Offset must be an integer and greater than or equal to 0',
@@ -224,7 +225,7 @@ describe('delegate:voters', () => {
 				.it('should throw an error when offset is not a valid integer');
 
 			setupTest()
-				.command(['delegate:voters', usernames[0], '--offset=-1'])
+				.command(['delegate:votes', addresses[0], '--offset=-1'])
 				.catch(error => {
 					return expect(error.message).to.contain(
 						'Offset must be an integer and greater than or equal to 0',
@@ -234,23 +235,23 @@ describe('delegate:voters', () => {
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-				.command(['delegate:voters', usernames[0], '--offset=1'])
-				.it('should get voters for delegate with offset', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+				.command(['delegate:votes', addresses[0], '--offset=1'])
+				.it('should get votes for account with offset', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
 							{
 								query: {
-									username: usernames[0],
+									address: addresses[0],
 									limit: 10,
 									offset: 1,
 									sort: 'balance:desc',
 								},
 								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
+									address: addresses[0],
+									message: 'Account not found.',
 								},
 							},
 						],
@@ -260,35 +261,35 @@ describe('delegate:voters', () => {
 				});
 		});
 
-		describe('delegate:voters --sort=xxx', () => {
+		describe('delegate:votes --sort=xxx', () => {
 			setupTest()
-				.command(['delegate:voters', usernames[0], '--sort=wrongsort'])
+				.command(['delegate:votes', addresses[0], '--sort=wrongsort'])
 				.catch(error => {
 					return expect(error.message).to.contain(
-						'Sort must be one of: publicKey:asc, publicKey:desc, balance:asc, balance:desc, username:asc, username:desc',
+						'Sort must be one of: balance:asc, balance:desc, username:asc, username:desc',
 					);
 				})
 				.it('should throw an error when given incorrect sort input');
 
 			setupTest()
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
-				.command(['delegate:voters', usernames[0], '--sort=publicKey:asc'])
-				.it('should get sorted voters for delegate', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+				.command(['delegate:votes', addresses[0], '--sort=balance:asc'])
+				.it('should get sorted votes for account', () => {
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
 						[
 							{
 								query: {
-									username: usernames[0],
+									address: addresses[0],
 									limit: 10,
 									offset: 0,
-									sort: 'publicKey:asc',
+									sort: 'balance:asc',
 								},
 								placeholder: {
-									username: usernames[0],
-									message: 'Delegate not found.',
+									address: addresses[0],
+									message: 'Account not found.',
 								},
 							},
 						],
