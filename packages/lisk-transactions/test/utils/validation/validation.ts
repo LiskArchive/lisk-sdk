@@ -31,7 +31,6 @@ import {
 	isValidInteger,
 	normalizeInput,
 } from '../../../src/utils/validation/validation';
-// import { TransactionError } from '../../../src/errors';
 
 describe('validation', () => {
 	describe('#validatePublicKey', () => {

@@ -21,12 +21,12 @@ export const checkBalance = (
 	amount: BigNum,
 ): {
 	readonly errors?: ReadonlyArray<TransactionError>;
-	readonly exceeded: boolean;
+	readonly verified: boolean;
 } => {
 	const exceeded = new BigNum(account.balance).lt(amount);
 
 	return {
-		exceeded,
+		verified: !exceeded,
 		errors: exceeded
 			? [
 					new TransactionError(

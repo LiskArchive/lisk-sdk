@@ -44,7 +44,7 @@ export abstract class BaseTransaction {
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
 	public readonly signature?: string;
-	public readonly signatures: ReadonlyArray<string> = [];
+	public readonly signatures?: ReadonlyArray<string> = [];
 	public readonly signSignature?: string;
 	public readonly timestamp: number;
 	public readonly type: number;
@@ -210,15 +210,18 @@ export abstract class BaseTransaction {
 
 	public verifyAgainstState(sender: Account): VerifyReturn {
 		// Check sender balance
-		const { exceeded, errors } = checkBalance(sender, this.fee);
+		const { verified: balanceVerified, errors } = checkBalance(
+			sender,
+			this.fee,
+		);
 
 		// Check multisig
-		const verified = sender.secondPublicKey
+		const multisigVerified = sender.secondPublicKey
 			? verifyTransaction(this.toJSON(), sender.secondPublicKey)
 			: true;
 
 		return {
-			verified: !exceeded && verified,
+			verified: balanceVerified && multisigVerified,
 			errors,
 		};
 	}

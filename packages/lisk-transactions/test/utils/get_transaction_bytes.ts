@@ -41,7 +41,8 @@ const defaultSenderPublicKey =
 const defaultSenderId = '18160565574430594874L';
 const defaultSenderSecondPublicKey =
 	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82f';
-const defaultRecipientPublicKey = '0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82z';
+const defaultRecipientPublicKey =
+	'0401c8ac9f29ded9e1e4d5b6b43051cb25b22f27c7b7b35092161e851946f82z';
 // Use (1<<62) + 3 to ensure the highest and the lowest bytes are set and contain different data.
 // This exceeds the safe integer range of JavaScript numbers and thus is expressed as a string.
 const defaultAmount = '10000000000000000';
@@ -156,13 +157,15 @@ describe('getTransactionBytes module', () => {
 			it('should return Buffer from multisignature type 0 (transfer LSK) transaction', () => {
 				const multiSignatureTransaction = {
 					...defaultTransaction,
-					signatures: []
+					signatures: [],
 				};
 				const expectedBuffer = Buffer.from(
 					'00aa2902005d036a858ce89f844491762eb89e2bfbd50a4a0a0da658e4b2628b25b117ae0900cebcaa8d34153d0000c16ff2862300618a54975212ead93df8c881655c625544bce8ed7ccdfe6f08a42eecfb1adebd051307be5014bb051617baf7815d50f62129e70918190361e5d4dd4796541b0a',
 					'hex',
 				);
-				const transactionBytes = getTransactionBytes(multiSignatureTransaction as any);
+				const transactionBytes = getTransactionBytes(
+					multiSignatureTransaction as any,
+				);
 
 				return expect(transactionBytes).to.be.eql(expectedBuffer);
 			});
@@ -761,6 +764,7 @@ describe('getTransactionBytes module', () => {
 					senderId: defaultSenderId,
 					signature: defaultSignature,
 					id: defaultTransactionId,
+					signatures: [],
 				};
 				return Promise.resolve();
 			});
