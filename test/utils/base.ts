@@ -31,8 +31,7 @@ describe('base command', () => {
 	const printMethodStub = sandbox.stub();
 
 	class BaseExtended extends BaseCommand {
-		async run(): Promise<void> {
-		}
+		async run(): Promise<void> {}
 	}
 
 	const setupTest = () => {
@@ -67,7 +66,8 @@ describe('base command', () => {
 			.do(async ctx => ctx.command.init())
 			.it(
 				'should call getConfig with the config folder set by the environment variable',
-				() => expect(configUtils.getConfig).to.be.calledWithExactly(configFolder),
+				() =>
+					expect(configUtils.getConfig).to.be.calledWithExactly(configFolder),
 			);
 
 		setupTest()

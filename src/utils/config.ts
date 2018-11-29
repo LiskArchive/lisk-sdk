@@ -21,7 +21,12 @@ import { CONFIG_VARIABLES } from './constants';
 import { ValidationError } from './error';
 import { readJSONSync, writeJSONSync } from './fs';
 
-export type WritableValue = string | ReadonlyArray<string> | boolean | number | object;
+export type WritableValue =
+	| string
+	| ReadonlyArray<string>
+	| boolean
+	| number
+	| object;
 
 interface ConfigOptionsIndex {
 	// tslint:disable-next-line readonly-keyword

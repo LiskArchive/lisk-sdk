@@ -16,7 +16,7 @@
 import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import url from 'url';
 import BaseCommand from '../../base';
-import { ConfigOptions, setConfig, WritableValue} from '../../utils/config';
+import { ConfigOptions, setConfig, WritableValue } from '../../utils/config';
 import {
 	API_PROTOCOLS,
 	CONFIG_VARIABLES,
@@ -44,7 +44,11 @@ const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PR
 
 const checkBoolean = (value: string) => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = (config: ConfigOptions , path: string, value: WritableValue): void => {
+const setNestedConfigProperty = (
+	config: ConfigOptions,
+	path: string,
+	value: WritableValue,
+): void => {
 	const dotNotationArray = path.split('.');
 	dotNotationArray.reduce<ConfigOptions>((obj, pathComponent, i) => {
 		if (i === dotNotationArray.length - 1) {
@@ -66,8 +70,15 @@ const setNestedConfigProperty = (config: ConfigOptions , path: string, value: Wr
 	}, config);
 };
 
-const attemptWriteToFile = (newConfig: ConfigOptions, value: WritableValue, dotNotation: string): WriteResult => {
-	const writeSuccess = setConfig(process.env.XDG_CONFIG_HOME as string, newConfig);
+const attemptWriteToFile = (
+	newConfig: ConfigOptions,
+	value: WritableValue,
+	dotNotation: string,
+): WriteResult => {
+	const writeSuccess = setConfig(
+		process.env.XDG_CONFIG_HOME as string,
+		newConfig,
+	);
 
 	if (!writeSuccess) {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
@@ -85,13 +96,21 @@ const attemptWriteToFile = (newConfig: ConfigOptions, value: WritableValue, dotN
 	return result;
 };
 
-const setValue = (config: ConfigOptions, dotNotation: string, value: WritableValue) => {
+const setValue = (
+	config: ConfigOptions,
+	dotNotation: string,
+	value: WritableValue,
+) => {
 	setNestedConfigProperty(config, dotNotation, value);
 
 	return attemptWriteToFile(config, value, dotNotation);
 };
 
-const setBoolean = (config: ConfigOptions, dotNotation: string, value: string) => {
+const setBoolean = (
+	config: ConfigOptions,
+	dotNotation: string,
+	value: string,
+) => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
@@ -100,10 +119,19 @@ const setBoolean = (config: ConfigOptions, dotNotation: string, value: string) =
 	return setValue(config, dotNotation, newValue);
 };
 
-const setArrayURL = (config: ConfigOptions, dotNotation: string, _: string, inputs: ReadonlyArray<string>) => {
+const setArrayURL = (
+	config: ConfigOptions,
+	dotNotation: string,
+	_: string,
+	inputs: ReadonlyArray<string>,
+) => {
 	inputs.forEach(input => {
 		const { protocol, hostname } = url.parse(input);
-		if (protocol === undefined || !API_PROTOCOLS.includes(protocol) || !hostname) {
+		if (
+			protocol === undefined ||
+			!API_PROTOCOLS.includes(protocol) ||
+			!hostname
+		) {
 			throw new ValidationError(URL_ERROR_MESSAGE);
 		}
 	});
@@ -111,8 +139,11 @@ const setArrayURL = (config: ConfigOptions, dotNotation: string, _: string, inpu
 	return setValue(config, dotNotation, inputs);
 };
 
-
-const setNethash = (config: ConfigOptions, dotNotation: string, value: string) => {
+const setNethash = (
+	config: ConfigOptions,
+	dotNotation: string,
+	value: string,
+) => {
 	if (
 		dotNotation === 'api.network' &&
 		!Object.keys(NETHASHES).includes(value)
@@ -132,7 +163,12 @@ const setNethash = (config: ConfigOptions, dotNotation: string, value: string) =
 };
 
 interface KeywordHandler {
-	readonly [key: string]: (config: ConfigOptions, dotNotation: string, value: string, inputs: ReadonlyArray<string>) => WriteResult;
+	readonly [key: string]: (
+		config: ConfigOptions,
+		dotNotation: string,
+		value: string,
+		inputs: ReadonlyArray<string>,
+	) => WriteResult;
 }
 
 const handlers: KeywordHandler = {
@@ -171,10 +207,9 @@ export default class SetCommand extends BaseCommand {
 		'config:set api.nodes https://127.0.0.1:4000,http://mynode.com:7000',
 	];
 
-
 	async run(): Promise<void> {
 		const { args: { variable, values: valuesStr } } = this.parse(SetCommand);
-		const values = (valuesStr || '').split(',').filter(Boolean)
+		const values = (valuesStr || '').split(',').filter(Boolean);
 		const safeValues = values || [];
 		const safeValue = safeValues[0] || '';
 		const result = handlers[variable](

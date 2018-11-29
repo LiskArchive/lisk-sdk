@@ -16,7 +16,6 @@
 import BaseCommand from '../../base';
 
 export default class ShowCommand extends BaseCommand {
-
 	static description = `
 		Prints the current configuration.
 	`;
@@ -31,4 +30,3 @@ export default class ShowCommand extends BaseCommand {
 		this.print(this.userConfig);
 	}
 }
-
