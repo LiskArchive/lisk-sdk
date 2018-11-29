@@ -162,7 +162,9 @@ export abstract class BaseTransaction {
 		if (!TRANSACTION_TYPES.includes(transaction.type)) {
 			return {
 				validated: false,
-				errors: [new TransactionError('Invalid transaction type.')],
+				errors: [
+					new TransactionError('Invalid transaction type.', transaction.id),
+				],
 			};
 		}
 
@@ -173,6 +175,7 @@ export abstract class BaseTransaction {
 					error =>
 						new TransactionError(
 							`'${error.dataPath}' ${error.message}`,
+							transaction.id,
 							error.dataPath,
 						),
 			  )
@@ -185,6 +188,7 @@ export abstract class BaseTransaction {
 				errors: [
 					new TransactionError(
 						'Cannot validate transaction without signature.',
+						transaction.id,
 					),
 				],
 			};
