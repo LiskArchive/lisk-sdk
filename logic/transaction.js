@@ -696,21 +696,21 @@ class Transaction {
 		}
 
 		const verifyTransactionTypes = (
-			aTransaction,
-			aSender,
-			aTx,
+			transactionToVeryfi,
+			senderToVerify,
+			txToVerify,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[aTransaction.type].verify(
-				aTransaction,
-				aSender,
+			__private.types[transactionToVeryfi.type].verify(
+				transactionToVeryfi,
+				senderToVerify,
 				verifyErr => {
 					if (verifyErr) {
 						return setImmediate(verifyTransactionTypesCb, verifyErr);
 					}
 					return setImmediate(verifyTransactionTypesCb);
 				},
-				aTx
+				txToVerify
 			);
 		};
 

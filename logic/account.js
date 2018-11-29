@@ -23,7 +23,6 @@ const BlockReward = require('./block_reward.js');
 const { ACTIVE_DELEGATES, MULTISIG_CONSTRAINTS } = global.constants;
 
 // Private fields
-let self; // eslint-disable-line no-unused-vars
 let library;
 let modules;
 
@@ -57,7 +56,6 @@ class Account {
 
 		__private.blockReward = new BlockReward();
 
-		self = this;
 		library = {
 			logger,
 		};
@@ -337,7 +335,7 @@ class Account {
 		}
 		delete filter.sort;
 
-		const getAllSelf = this;
+		const self = this;
 
 		(tx || this.scope.db).accounts
 			.list(filter, fields, {
@@ -356,7 +354,7 @@ class Account {
 
 				if (performComputationFor.includes('approval')) {
 					rows.forEach(accountRow => {
-						accountRow.approval = getAllSelf.calculateApproval(
+						accountRow.approval = self.calculateApproval(
 							accountRow.vote,
 							totalSupply
 						);
@@ -365,7 +363,7 @@ class Account {
 
 				if (performComputationFor.includes('productivity')) {
 					rows.forEach(accountRow => {
-						accountRow.productivity = getAllSelf.calculateProductivity(
+						accountRow.productivity = self.calculateProductivity(
 							accountRow.producedBlocks,
 							accountRow.missedBlocks
 						);
@@ -471,11 +469,11 @@ class Account {
 		// Normalize address
 		address = String(address).toUpperCase();
 
-		const mergSelf = this;
+		const self = this;
 
 		// If merge was called without any diff object
 		if (Object.keys(diff).length === 0) {
-			return mergSelf.get(
+			return self.get(
 				{
 					address,
 				},
@@ -490,12 +488,12 @@ class Account {
 
 			Object.keys(diff).forEach(updatedField => {
 				// Return if updated field is not editable
-				if (!mergSelf.editable.includes(updatedField)) {
+				if (!self.editable.includes(updatedField)) {
 					return;
 				}
 
 				// Get field data type
-				const fieldType = mergSelf.conv[updatedField];
+				const fieldType = self.conv[updatedField];
 				const updatedValue = diff[updatedField];
 
 				// Make execution selection based on field type
@@ -601,9 +599,9 @@ class Account {
 			return dbTx.batch(promises);
 		};
 
-		return (tx ? job(tx) : mergSelf.scope.db.tx('logic:account:merge', job))
+		return (tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
 			.then(() =>
-				mergSelf.get(
+				self.get(
 					{
 						address,
 					},

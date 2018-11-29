@@ -357,8 +357,8 @@ Multisignature.prototype.applyConfirmed = function(
 			// Get public keys
 			return async.eachSeries(
 				transaction.asset.multisignature.keysgroup,
-				(aTransaction, eachSeriesCb) => {
-					const key = aTransaction.substring(1);
+				(transactionToGetKey, eachSeriesCb) => {
+					const key = transactionToGetKey.substring(1);
 					const address = modules.accounts.generateAddressByPublicKey(key);
 
 					// Create accounts
