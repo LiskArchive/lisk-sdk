@@ -14,8 +14,9 @@
 
 'use strict';
 
+const assert = require('assert');
 const { filterGenerator } = require('./filters');
-const inputSerialzers = require('./inputSerialzers');
+const inputSerializers = require('./inputSerializers');
 
 class Field {
 	/**
@@ -26,13 +27,17 @@ class Field {
 	 * @param {string} [options.fieldName] - Real name of the field
 	 * @param {string} [options.filter] - Filter type
 	 * @param {string} [options.filterCondition] - Filter condition
+	 * @param {Function} [inputSerializer] - Serializer function
 	 */
 	constructor(name, type, options = {}, inputSerializer) {
+		assert(name, 'Name is required to initialize field.');
+		assert(type, 'Type is required to initialize field.');
+
 		this.name = name;
 		this.type = type;
 		this.fieldName = options.fieldName || this.name;
 		this.filterType = options.filter;
-		this.inputSerializer = inputSerializer || inputSerialzers.default;
+		this.inputSerializer = inputSerializer || inputSerializers.default;
 		this.filterCondition = options.filterCondition;
 
 		if (this.filterType) {

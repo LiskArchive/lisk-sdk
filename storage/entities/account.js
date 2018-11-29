@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const { stringToByte, booleanToInt } = require('../utils/inputSerialzers');
+const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
 const { NonSupportedFilterTypeError } = require('../errors');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
