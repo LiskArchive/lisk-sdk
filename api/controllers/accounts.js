@@ -83,7 +83,7 @@ AccountsController.getAccounts = function(context, next) {
 			return account;
 		});
 
-		next(null, {
+		return next(null, {
 			data,
 			meta: {
 				offset: filters.offset,
@@ -119,24 +119,27 @@ AccountsController.getMultisignatureGroups = function(context, next) {
 		);
 	}
 
-	modules.multisignatures.shared.getGroups(_.clone(filters), (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = err.code;
-				delete err.code;
+	return modules.multisignatures.shared.getGroups(
+		_.clone(filters),
+		(err, data) => {
+			if (err) {
+				if (err instanceof ApiError) {
+					context.statusCode = err.code;
+					delete err.code;
+				}
+
+				return next(err);
 			}
 
-			return next(err);
+			return next(null, {
+				data,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+				},
+			});
 		}
-
-		next(null, {
-			data,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-			},
-		});
-	});
+	);
 };
 
 /**
@@ -165,7 +168,7 @@ AccountsController.getMultisignatureMemberships = function(context, next) {
 		);
 	}
 
-	modules.multisignatures.shared.getMemberships(
+	return modules.multisignatures.shared.getMemberships(
 		_.clone(filters),
 		(err, data) => {
 			if (err) {
@@ -177,7 +180,7 @@ AccountsController.getMultisignatureMemberships = function(context, next) {
 				return next(err);
 			}
 
-			next(null, {
+			return next(null, {
 				data,
 				meta: {
 					offset: filters.offset,

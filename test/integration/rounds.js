@@ -22,7 +22,7 @@ const slots = require('../../helpers/slots');
 const Bignum = require('../../helpers/bignum.js');
 const accountsFixtures = require('../fixtures/accounts');
 const randomUtil = require('../common/utils/random');
-const queriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
 const { REWARDS, ACTIVE_DELEGATES } = global.constants;
@@ -39,7 +39,7 @@ describe('rounds', () => {
 
 	localCommon.beforeBlock('lisk_functional_rounds', lib => {
 		library = lib;
-		Queries = new queriesHelper(lib, lib.db);
+		Queries = new QueriesHelper(lib, lib.db);
 
 		generateDelegateListPromise = Promise.promisify(
 			library.modules.delegates.generateDelegateList
@@ -399,6 +399,8 @@ describe('rounds', () => {
 											}
 										);
 									}
+
+									return true;
 								}
 							);
 						}

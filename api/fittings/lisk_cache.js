@@ -78,16 +78,15 @@ module.exports = function create(fittingDef) {
 
 		// If cache fitting is called before response processing
 		if (mode === 'pre_response') {
-			cache.getJsonForKey(cacheKey, (err, cachedValue) => {
+			return cache.getJsonForKey(cacheKey, (err, cachedValue) => {
 				if (!err && cachedValue) {
 					logger.debug(
 						'Cache - Sending cached response for url:',
 						context.request.url
 					);
-					context.response.json(cachedValue);
-				} else {
-					return next(null, context.input);
+					return context.response.json(cachedValue);
 				}
+				return next(null, context.input);
 			});
 		}
 
@@ -98,12 +97,13 @@ module.exports = function create(fittingDef) {
 					'Cache - Setting response cache for url:',
 					context.request.url
 				);
-				cache.setJsonForKey(cacheKey, context.input, () =>
+				return cache.setJsonForKey(cacheKey, context.input, () =>
 					next(null, context.input)
 				);
-			} else {
-				return next(null, context.input);
 			}
+			return next(null, context.input);
 		}
+
+		return next(`The cache mode ${mode} is not possible`);
 	};
 };

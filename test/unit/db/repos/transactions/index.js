@@ -170,7 +170,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 						})
 					);
@@ -208,7 +208,7 @@ describe('db', () => {
 				let transaction = null;
 
 				for (let i = 0; i < numSeedRecords; i++) {
-					transaction = transactionsFixtures.Transaction({
+					transaction = new transactionsFixtures.Transaction({
 						blockId: seeder.getLastBlock().id,
 					});
 					yield db.transactions.save(transaction);
@@ -246,7 +246,7 @@ describe('db', () => {
 				let transaction = null;
 
 				for (let i = 0; i < numSeedRecords; i++) {
-					transaction = transactionsFixtures.Transaction({
+					transaction = new transactionsFixtures.Transaction({
 						blockId: seeder.getLastBlock().id,
 					});
 					yield db.transactions.save(transaction);
@@ -294,7 +294,7 @@ describe('db', () => {
 				let transaction = null;
 
 				for (let i = 0; i < numSeedRecords; i++) {
-					transaction = transactionsFixtures.Transaction({
+					transaction = new transactionsFixtures.Transaction({
 						blockId: seeder.getLastBlock().id,
 					});
 					yield db.transactions.save(transaction);
@@ -317,7 +317,7 @@ describe('db', () => {
 				let transaction = null;
 
 				for (let i = 0; i < numSeedRecords; i++) {
-					transaction = transactionsFixtures.Transaction({
+					transaction = new transactionsFixtures.Transaction({
 						blockId: block.id,
 					});
 					yield db.transactions.save(transaction);
@@ -344,7 +344,7 @@ describe('db', () => {
 				const block = seeder.getLastBlock();
 				for (let i = 0; i < numSeedRecords; i++) {
 					yield db.transactions.save(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: block.id,
 						})
 					);
@@ -379,7 +379,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.SEND,
 						})
@@ -416,7 +416,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.VOTE,
 						})
@@ -455,7 +455,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.DELEGATE,
 						})
@@ -497,7 +497,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.SIGNATURE,
 						})
@@ -537,7 +537,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.MULTI,
 						})
@@ -579,7 +579,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.DAPP,
 						})
@@ -627,7 +627,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.IN_TRANSFER,
 						})
@@ -669,7 +669,7 @@ describe('db', () => {
 
 				for (let i = 0; i < numSeedRecords; i++) {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: seeder.getLastBlock().id,
 							type: transactionTypes.OUT_TRANSFER,
 						})
@@ -700,7 +700,7 @@ describe('db', () => {
 				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
 
 				const block = seeder.getLastBlock();
-				const transaction = transactionsFixtures.Transaction({
+				const transaction = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
 				yield db.transactions.save(transaction);
@@ -727,7 +727,7 @@ describe('db', () => {
 
 			it('should save single transaction', function*() {
 				const block = seeder.getLastBlock();
-				const transaction = transactionsFixtures.Transaction({
+				const transaction = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
 				yield db.transactions.save(transaction);
@@ -741,10 +741,10 @@ describe('db', () => {
 
 			it('should save multiple transactions', function*() {
 				const block = seeder.getLastBlock();
-				const transaction1 = transactionsFixtures.Transaction({
+				const transaction1 = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
-				const transaction2 = transactionsFixtures.Transaction({
+				const transaction2 = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
 				yield db.transactions.save([transaction1, transaction2]);
@@ -760,7 +760,7 @@ describe('db', () => {
 			it('should save transform necessary attributes of transaction', function*() {
 				sinonSandbox.spy(Buffer, 'from');
 				const block = seeder.getLastBlock();
-				const transaction = transactionsFixtures.Transaction({
+				const transaction = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
 				transaction.requesterPublicKey = randomstring.generate({
@@ -789,7 +789,7 @@ describe('db', () => {
 
 			it('should throw error if serialization to any attribute failed', () => {
 				const block = seeder.getLastBlock();
-				const transaction = transactionsFixtures.Transaction({
+				const transaction = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
 				transaction.senderPublicKey = 'ABFGH';
@@ -801,7 +801,7 @@ describe('db', () => {
 
 			it('should execute all queries in one database transaction', done => {
 				const block = seeder.getLastBlock();
-				const transaction = transactionsFixtures.Transaction({
+				const transaction = new transactionsFixtures.Transaction({
 					blockId: block.id,
 				});
 
@@ -814,7 +814,7 @@ describe('db', () => {
 							event.ctx.tag === 'transactions:save'
 						)
 					) {
-						return done(
+						done(
 							`Some query executed outside transaction context: ${event.query}`,
 							event
 						);
@@ -844,7 +844,7 @@ describe('db', () => {
 				const transactions = [];
 				Object.keys(transactionTypes).forEach(type => {
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: block.id,
 							type: transactionTypes[type],
 						})
@@ -852,7 +852,7 @@ describe('db', () => {
 					// Create two transactions of each type to test respective transaction type
 					//  save function called once for both transactions
 					transactions.push(
-						transactionsFixtures.Transaction({
+						new transactionsFixtures.Transaction({
 							blockId: block.id,
 							type: transactionTypes[type],
 						})

@@ -127,11 +127,7 @@ describe('accounts', () => {
 			accounts.getAccounts({ secondSignature: 0 }, (err, res) => {
 				expect(err).to.not.exist;
 				expect(res).to.be.an('Array');
-				expect(
-					res.filter(a => {
-						return a.secondSignature != 0;
-					}).length
-				).to.equal(0);
+				expect(res.filter(a => a.secondSignature !== false).length).to.equal(0);
 				done();
 			});
 		});
@@ -153,7 +149,7 @@ describe('accounts', () => {
 
 	describe('setAccountAndGet', () => {
 		it('should fail if address and publicKey is missing', done => {
-			const account = accountFixtures.Account();
+			const account = new accountFixtures.Account();
 
 			delete account.address;
 			delete account.publicKey;
@@ -166,7 +162,7 @@ describe('accounts', () => {
 		});
 
 		it('should set and get account when sending address but no publicKey', done => {
-			const account = accountFixtures.Account();
+			const account = new accountFixtures.Account();
 
 			delete account.publicKey;
 
@@ -179,7 +175,7 @@ describe('accounts', () => {
 		});
 
 		it('should set and get account with address when publicKey is provided but address is not provided', done => {
-			const account = accountFixtures.Account();
+			const account = new accountFixtures.Account();
 
 			delete account.address;
 
@@ -192,7 +188,7 @@ describe('accounts', () => {
 		});
 
 		it('should set and get account using `Accounts:setAccountAndGet` database transaction with txLevel = 0', done => {
-			const account = accountFixtures.Account();
+			const account = new accountFixtures.Account();
 			let eventCtx;
 
 			db.$config.options.query = function(event) {
@@ -214,7 +210,7 @@ describe('accounts', () => {
 		});
 
 		it('should set and get account using `Tests:setAccountAndGet` database transaction with txLevel = 0', done => {
-			const account = accountFixtures.Account();
+			const account = new accountFixtures.Account();
 			let eventCtx;
 
 			db.$config.options.query = function(event) {

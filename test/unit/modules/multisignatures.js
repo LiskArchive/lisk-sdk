@@ -21,9 +21,9 @@ const transactionTypes = require('../../../helpers/transaction_types.js');
 const ApiError = require('../../../helpers/api_error');
 const errorCodes = require('../../../helpers/api_codes');
 
-const rewiredMultisignatures = rewire('../../../modules/multisignatures.js');
+const RewiredMultisignatures = rewire('../../../modules/multisignatures.js');
 
-const validAccount = accountsFixtures.Account();
+const validAccount = new accountsFixtures.Account();
 
 describe('multisignatures', () => {
 	let __private;
@@ -36,11 +36,11 @@ describe('multisignatures', () => {
 	let attachAssetTypeStubResponse;
 
 	function get(variable) {
-		return rewiredMultisignatures.__get__(variable);
+		return RewiredMultisignatures.__get__(variable);
 	}
 
 	function set(variable, value) {
-		return rewiredMultisignatures.__set__(variable, value);
+		return RewiredMultisignatures.__set__(variable, value);
 	}
 
 	beforeEach(done => {
@@ -72,17 +72,17 @@ describe('multisignatures', () => {
 		};
 		stubs.logic.account = sinonSandbox.stub();
 
-		stubs.multisignature = sinonSandbox.stub();
-		set('Multisignature', stubs.multisignature);
+		stubs.Multisignature = sinonSandbox.stub();
+		set('Multisignature', stubs.Multisignature);
 
-		stubs.logic.multisignature = new stubs.multisignature(
+		stubs.logic.multisignature = new stubs.Multisignature(
 			stubs.schema,
 			stubs.network,
 			stubs.logic.transaction,
 			stubs.logic.account,
 			stubs.logger
 		);
-		stubs.multisignature.resetHistory();
+		stubs.Multisignature.resetHistory();
 
 		// Create stubbed scope
 		validScope = {
@@ -103,7 +103,7 @@ describe('multisignatures', () => {
 		};
 
 		// Create instance of multisignatures module
-		multisignaturesInstance = new rewiredMultisignatures(
+		multisignaturesInstance = new RewiredMultisignatures(
 			(err, __multisignatures) => {
 				self = __multisignatures;
 				__private = get('__private');
@@ -131,8 +131,8 @@ describe('multisignatures', () => {
 		});
 
 		it('should instantiate Multisignature logic with proper params', () => {
-			expect(stubs.multisignature).to.have.been.calledOnce;
-			return expect(stubs.multisignature).to.have.been.calledWith(
+			expect(stubs.Multisignature).to.have.been.calledOnce;
+			return expect(stubs.Multisignature).to.have.been.calledWith(
 				validScope.schema,
 				validScope.network,
 				validScope.logic.transaction,
@@ -168,7 +168,7 @@ describe('multisignatures', () => {
 	describe('__private.isValidSignature', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
-			data.transaction = transactionsFixtures.Transaction({
+			data.transaction = new transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
 			});
 			data.signatures = [
@@ -568,7 +568,7 @@ describe('multisignatures', () => {
 
 	describe('__private.validateSignature', () => {
 		beforeEach(done => {
-			data.sender = accountsFixtures.Account();
+			data.sender = new accountsFixtures.Account();
 			stubs.isValidSignature = sinonSandbox.stub();
 			__private.isValidSignature = stubs.isValidSignature;
 			done();
@@ -649,7 +649,7 @@ describe('multisignatures', () => {
 	describe('__private.processSignatureForMultisignatureAccountCreation', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
-			data.transaction = transactionsFixtures.Transaction({
+			data.transaction = new transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
 			});
 			data.transaction.asset.multisignature.keysgroup = [
@@ -691,10 +691,10 @@ describe('multisignatures', () => {
 	describe('__private.processSignatureFromMultisignatureAccount', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
-			data.sender = accountsFixtures.Account();
+			data.sender = new accountsFixtures.Account();
 			data.sender.multisignatures = ['publicKey1', 'publicKey2'];
 
-			data.transaction = transactionsFixtures.Transaction({
+			data.transaction = new transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
 			});
 			data.signature = {
@@ -806,7 +806,7 @@ describe('multisignatures', () => {
 		beforeEach(done => {
 			// Set some random data used for tests
 
-			data.transaction = transactionsFixtures.Transaction({
+			data.transaction = new transactionsFixtures.Transaction({
 				type: transactionTypes.MULTI,
 			});
 			data.signature = {

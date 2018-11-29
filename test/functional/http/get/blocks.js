@@ -17,14 +17,14 @@
 require('../../functional.js');
 
 var waitFor = require('../../../common/utils/wait_for');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var apiHelpers = require('../../../common/helpers/api');
 var slots = require('../../../../helpers/slots');
 
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /blocks', () => {
-	var blocksEndpoint = new swaggerEndpoint('GET /blocks');
+	var blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 	// Testnet genesis block data
 	var block = {

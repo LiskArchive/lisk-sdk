@@ -178,7 +178,6 @@ __private.getByFilter = function(filter, cb) {
 	let peers = library.logic.peers.list(normalized);
 
 	peers = peers.filter(peer => {
-		// const peer = __private.peers[index];
 		let passed = true;
 		_.each(filter, (value, key) => {
 			// Every filter field need to be in allowed fields, exists and match value
@@ -189,6 +188,7 @@ __private.getByFilter = function(filter, cb) {
 				passed = false;
 				return false;
 			}
+			return true;
 		});
 		return passed;
 	});
@@ -324,7 +324,7 @@ __private.insertSeeds = function(cb) {
 
 			// Continue if peer it is not blacklisted nor banned
 			if (peer.state !== Peer.STATE.BANNED) {
-				peer.rpc.status((err, status) => {
+				return peer.rpc.status((err, status) => {
 					__private.updatePeerStatus(err, status, peer);
 					if (!err) {
 						updated += 1;
@@ -333,9 +333,8 @@ __private.insertSeeds = function(cb) {
 					}
 					return setImmediate(eachCb);
 				});
-			} else {
-				return setImmediate(eachCb);
 			}
+			return setImmediate(eachCb);
 		},
 		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
@@ -429,7 +428,7 @@ __private.dbSave = function(cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	library.db
+	return library.db
 		.tx('modules:peers:dbSave', t =>
 			t.peers.clear().then(() => t.peers.insert(peers))
 		)
@@ -540,16 +539,15 @@ Peers.prototype.discover = function(cb) {
 			(err, peers) => {
 				const randomPeer = peers.length ? peers[0] : null;
 				if (!err && randomPeer) {
-					randomPeer.rpc.status((err, status) => {
+					return randomPeer.rpc.status((err, status) => {
 						__private.updatePeerStatus(err, status, randomPeer);
 						if (err) {
 							return setImmediate(waterCb, err);
 						}
-						randomPeer.rpc.list(waterCb);
+						return randomPeer.rpc.list(waterCb);
 					});
-				} else {
-					return setImmediate(waterCb, err || 'No acceptable peers found');
 				}
+				return setImmediate(waterCb, err || 'No acceptable peers found');
 			}
 		);
 	}
@@ -857,7 +855,7 @@ Peers.prototype.onPeersReady = function() {
 								(!peer.updated || Date.now() - peer.updated > 3000)
 							) {
 								library.logger.trace('Updating peer', peer.object());
-								peer.rpc.status((err, status) => {
+								return peer.rpc.status((err, status) => {
 									__private.updatePeerStatus(err, status, peer);
 									if (!err) {
 										updated += 1;
@@ -869,9 +867,8 @@ Peers.prototype.onPeersReady = function() {
 									}
 									return setImmediate(eachCb);
 								});
-							} else {
-								return setImmediate(eachCb);
 							}
+							return setImmediate(eachCb);
 						},
 						() => {
 							library.logger.trace('Peers updated', {

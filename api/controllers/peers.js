@@ -59,7 +59,7 @@ PeersController.getPeers = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.peers.shared.getPeers(filters, (err, data) => {
+	return modules.peers.shared.getPeers(filters, (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -72,7 +72,7 @@ PeersController.getPeers = function(context, next) {
 			return peer;
 		});
 
-		next(null, {
+		return next(null, {
 			data,
 			meta: {
 				offset: filters.offset,

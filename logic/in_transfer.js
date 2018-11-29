@@ -100,7 +100,7 @@ InTransfer.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid transaction asset');
 	}
 
-	(tx || library.db).dapps
+	return (tx || library.db).dapps
 		.countByTransactionId(transaction.asset.inTransfer.dappId)
 		.then(count => {
 			if (count === 0) {
@@ -172,7 +172,7 @@ InTransfer.prototype.applyConfirmed = function(
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			modules.accounts.mergeAccountAndGet(
+			return modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: transaction.amount,
@@ -212,7 +212,7 @@ InTransfer.prototype.undoConfirmed = function(
 			if (getGenesisErr) {
 				return setImmediate(cb, getGenesisErr);
 			}
-			modules.accounts.mergeAccountAndGet(
+			return modules.accounts.mergeAccountAndGet(
 				{
 					address: res.authorId,
 					balance: -transaction.amount,

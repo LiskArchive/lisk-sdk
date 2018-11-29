@@ -171,6 +171,8 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 					if (allFiles.length > 0) {
 						return next();
 					}
+
+					return resolve();
 				})
 				.catch(err => {
 					console.error(`Parallel test failed: ${testFile}`);

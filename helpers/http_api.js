@@ -70,7 +70,7 @@ var middleware = {
 			// Express JSON body-parser throws an error with status === 400 if the
 			// payload cannot be parsed to valid JSON, in this case we want to send
 			// a response with status code 400.
-			res.status(400).send({
+			return res.status(400).send({
 				message: 'Parse errors',
 				errors: [
 					{
@@ -81,13 +81,12 @@ var middleware = {
 					},
 				],
 			});
-		} else {
-			logger.error(`API error ${req.url}`, err.message);
-			logger.trace(err);
-			res
-				.status(500)
-				.send({ success: false, error: `API error: ${err.message}` });
 		}
+		logger.error(`API error ${req.url}`, err.message);
+		logger.trace(err);
+		return res
+			.status(500)
+			.send({ success: false, error: `API error: ${err.message}` });
 	},
 
 	/**
@@ -138,21 +137,22 @@ var middleware = {
 	 */
 	applyAPIAccessRules(config, req, res, next) {
 		if (!config.api.enabled) {
-			res.status(apiCodes.FORBIDDEN).send({
+			return res.status(apiCodes.FORBIDDEN).send({
 				message: 'API access disabled',
 				errors: ['API is not enabled in this node.'],
 			});
-		} else if (
+		}
+
+		if (
 			!config.api.access.public &&
 			!checkIpInList(config.api.access.whiteList, req.ip)
 		) {
-			res.status(apiCodes.FORBIDDEN).send({
+			return res.status(apiCodes.FORBIDDEN).send({
 				message: 'API access denied',
 				errors: ['API access blocked.'],
 			});
-		} else {
-			return next();
 		}
+		return next();
 	},
 
 	queryParser() {
@@ -182,7 +182,7 @@ var middleware = {
 
 				if (
 					isNaN(value) ||
-					parseInt(value) != value ||
+					parseInt(value).toString() !== String(value) ||
 					isNaN(parseInt(value, radix))
 				) {
 					return value;

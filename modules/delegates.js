@@ -249,7 +249,7 @@ __private.forge = function(cb) {
 	// We calculate round using height + 1, because we want the delegate keypair for next block to be forged
 	const round = slots.calcRound(lastBlock.height + 1);
 
-	__private.getDelegateKeypairForCurrentSlot(
+	return __private.getDelegateKeypairForCurrentSlot(
 		currentSlot,
 		round,
 		(getDelegateKeypairForCurrentSlotError, delegateKeypair) => {
@@ -290,7 +290,7 @@ __private.forge = function(cb) {
 				].join(' ')
 			);
 
-			modules.blocks.process.generateBlock(
+			return modules.blocks.process.generateBlock(
 				delegateKeypair,
 				slots.getSlotTime(currentSlot),
 				blockGenerationErr => {
@@ -383,7 +383,7 @@ __private.checkDelegates = function(senderPublicKey, votes, state, cb, tx) {
 		return setImmediate(cb, e);
 	}
 
-	async.waterfall(
+	return async.waterfall(
 		[
 			// get all  public keys of delegates sender has voted for. Confirmed or unconfirmed based on state parameter.
 			function getExistingVotedPublicKeys(waterfallCb) {
@@ -533,7 +533,7 @@ __private.loadDelegates = function(cb) {
 		} delegates using encrypted passphrases from config`
 	);
 
-	async.eachSeries(
+	return async.eachSeries(
 		encryptedList,
 		(encryptedItem, seriesCb) => {
 			let passphrase;
@@ -567,7 +567,7 @@ __private.loadDelegates = function(cb) {
 				);
 			}
 
-			modules.accounts.getAccount(
+			return modules.accounts.getAccount(
 				{
 					publicKey: keypair.publicKey.toString('hex'),
 				},
@@ -655,7 +655,7 @@ Delegates.prototype.updateForgingStatus = function(
 		return setImmediate(cb, 'Invalid password and public key combination');
 	}
 
-	modules.accounts.getAccount(
+	return modules.accounts.getAccount(
 		{ publicKey: keypair.publicKey.toString('hex') },
 		(err, account) => {
 			if (err) {
@@ -830,7 +830,7 @@ Delegates.prototype.getForgers = function(query, cb) {
 			}
 		}
 
-		library.db.delegates
+		return library.db.delegates
 			.getDelegatesByPublicKeys(forgerKeys)
 			.then(rows => {
 				rows.forEach(forger => {

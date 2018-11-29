@@ -140,6 +140,7 @@ class Broadcaster {
 				if (cb) {
 					return setImmediate(cb, err, { peers });
 				}
+				return true;
 			}
 		);
 	}
@@ -310,7 +311,7 @@ __private.releaseQueue = function(cb) {
 		return setImmediate(cb);
 	}
 
-	async.waterfall(
+	return async.waterfall(
 		[
 			function filterQueue(waterCb) {
 				return __private.filterQueue(waterCb);

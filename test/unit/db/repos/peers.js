@@ -94,7 +94,7 @@ describe('db', () => {
 
 				// Prepare some fixture data to seed the database
 				for (let i = 0; i < numSeedRecords; i++) {
-					const peer = peersFixtures.DBPeer();
+					const peer = new peersFixtures.DBPeer();
 					const peer2 = Object.assign({}, peer);
 					peer2.broadhash = ed.hexToBuffer(peer2.broadhash);
 					yield db.query(
@@ -133,7 +133,7 @@ describe('db', () => {
 			it('should clear all peers and resolve with empty response', function*() {
 				// Prepare some fixture data to seed the database
 				for (let i = 0; i < 5; i++) {
-					const peer = peersFixtures.DBPeer();
+					const peer = new peersFixtures.DBPeer();
 					peer.broadhash = ed.hexToBuffer(peer.broadhash);
 					yield db.query(
 						db.$config.pgp.helpers.insert(peer, null, { table: 'peers' })
@@ -155,7 +155,7 @@ describe('db', () => {
 				sinonSandbox.spy(db, 'none');
 				sinonSandbox.spy(db.peers.pgp.helpers, 'insert');
 
-				const peer = peersFixtures.DBPeer();
+				const peer = new peersFixtures.DBPeer();
 				yield db.peers.insert(peer);
 
 				expect(db.none).to.be.calledOnce;
@@ -166,7 +166,7 @@ describe('db', () => {
 			});
 
 			it('should insert single peer to database', function*() {
-				const peer = peersFixtures.DBPeer();
+				const peer = new peersFixtures.DBPeer();
 				yield db.peers.insert(peer);
 
 				const result = yield db.peers.list();
@@ -177,15 +177,15 @@ describe('db', () => {
 			});
 
 			it('should insert single peer with port number bigger than smallint', function*() {
-				const peer = peersFixtures.DBPeer();
+				const peer = new peersFixtures.DBPeer();
 				peer.wsPort = 65535;
 				const res = yield db.peers.insert(peer);
 				return expect(res).not.to.be.an.instanceof(Error);
 			});
 
 			it('should insert multiple peers to database', function*() {
-				const peer1 = peersFixtures.DBPeer();
-				const peer2 = peersFixtures.DBPeer();
+				const peer1 = new peersFixtures.DBPeer();
+				const peer2 = new peersFixtures.DBPeer();
 				yield db.peers.insert([peer1, peer2]);
 
 				const result = yield db.peers.list();
@@ -196,14 +196,14 @@ describe('db', () => {
 			});
 
 			it('should be resolved without error if unknown attribute is provided by ignoring it', () => {
-				const peer = peersFixtures.DBPeer();
+				const peer = new peersFixtures.DBPeer();
 				peer.unknwon = 'value';
 
 				return expect(db.peers.insert(peer)).to.be.fulfilled;
 			});
 
 			describe('required attributes', () => {
-				const peer = peersFixtures.DBPeer();
+				const peer = new peersFixtures.DBPeer();
 
 				// Broadhash has default value of null
 				delete peer.broadhash;

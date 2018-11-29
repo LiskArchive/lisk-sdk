@@ -190,7 +190,7 @@ function addTransactionToUnconfirmedQueue(library, transaction, cb) {
 			var transactionPool = library.rewiredModules.transactions.__get__(
 				'__private.transactionPool'
 			);
-			transactionPool.fillPool(cb);
+			return transactionPool.fillPool(cb);
 		}
 	);
 }
@@ -296,9 +296,9 @@ function beforeBlock(type, cb) {
 function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	var transaction;
 	var accountCopy = _.cloneDeep(account);
-	if (secondPassphrase == true) {
+	if (secondPassphrase === true) {
 		accountCopy.secondPassphrase = null;
-	} else if (secondPassphrase == false) {
+	} else if (secondPassphrase === false) {
 		accountCopy.secondPassphrase = 'invalid_second_passphrase';
 	}
 	switch (key) {

@@ -141,7 +141,7 @@ __private.list = function(filter, cb) {
 	if (filter.category) {
 		const category = dappCategories[filter.category];
 
-		if (category != null) {
+		if (category !== null) {
 			where.push('"category" = ${category}');
 			params.category = category;
 		} else {
@@ -178,7 +178,7 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.dapps
+	return library.db.dapps
 		.list(
 			Object.assign(
 				{},

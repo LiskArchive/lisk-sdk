@@ -50,6 +50,7 @@ module.exports = {
 				if (connectedTo === configurations.length) {
 					return cb(null, sockets);
 				}
+				return undefined;
 			});
 			socket.on('error', () => {});
 			socket.on('connectAbort', (errorCode, reason) => {

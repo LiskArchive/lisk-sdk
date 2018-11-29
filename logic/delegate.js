@@ -131,7 +131,7 @@ Delegate.prototype.verify = function(transaction, sender, cb, tx) {
 		);
 	}
 
-	self.checkConfirmed(
+	return self.checkConfirmed(
 		transaction,
 		err => setImmediate(cb, err, transaction),
 		tx

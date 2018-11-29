@@ -85,12 +85,12 @@ describe('db', () => {
 
 			it('should return list of public keys of members for an existing address', function*() {
 				const members = [];
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				yield db.accounts.insert(account);
 
 				// Prepare some fixture data to seed the database
 				for (let i = 0; i < numSeedRecords; i++) {
-					const dependent = accountFixtures.Dependent({
+					const dependent = new accountFixtures.Dependent({
 						accountId: account.address,
 					});
 					members.push(dependent);
@@ -131,12 +131,12 @@ describe('db', () => {
 
 			it('should return list of addresses for groups/accounts for which a public key is member', function*() {
 				const groups = [];
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				yield db.accounts.insert(account);
 
 				// Prepare some fixture data to seed the database
 				for (let i = 0; i < numSeedRecords; i++) {
-					const groupAccount = accountFixtures.Account();
+					const groupAccount = new accountFixtures.Account();
 					yield db.accounts.insert(groupAccount);
 					yield db.accounts.insertDependencies(
 						groupAccount.address,

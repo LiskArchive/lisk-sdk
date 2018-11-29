@@ -43,7 +43,7 @@ function SignaturesController(scope) {
 SignaturesController.postSignature = function(context, next) {
 	var signature = context.request.swagger.params.signature.value;
 
-	modules.signatures.shared.postSignature(signature, (err, data) => {
+	return modules.signatures.shared.postSignature(signature, (err, data) => {
 		if (err) {
 			if (err instanceof ApiError) {
 				context.statusCode = err.code;
@@ -51,7 +51,7 @@ SignaturesController.postSignature = function(context, next) {
 			}
 			return next(err);
 		}
-		next(null, {
+		return next(null, {
 			data: { message: data.status },
 			meta: { status: true },
 		});

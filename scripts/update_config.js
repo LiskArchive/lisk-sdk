@@ -161,7 +161,7 @@ history.version('1.0.0-rc.1', version => {
 				return setImmediate(cb, null, config);
 			}
 
-			askPassword(
+			return askPassword(
 				'We found some secrets in your config, if you want to migrate, please enter password with minimum 5 characters (enter to skip): ',
 				(err, password) => {
 					config.forging.delegates = [];
@@ -253,6 +253,8 @@ const askPassword = (message, cb) => {
 		if (rl.stdoutMuted) rl.output.write('*');
 		else rl.output.write(stringToWrite);
 	};
+
+	return true;
 };
 
 if (!toVersion) {
@@ -308,7 +310,7 @@ history.migrate(
 		// Set the env variables to validate against correct network and config file
 		process.env.LISK_NETWORK = network;
 		process.env.LISK_CONFIG_FILE = tempFilePath;
-		AppConfig(packageJSON, false);
+		new AppConfig(packageJSON, false);
 		console.info('Validation finished successfully.');
 
 		if (program.output) {

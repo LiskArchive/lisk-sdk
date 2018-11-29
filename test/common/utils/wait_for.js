@@ -122,17 +122,16 @@ function newRound(baseUrl, cb) {
 		var nextRound = slots.calcRound(height);
 		var blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
-		newBlock(height, blocksToWait, null, cb);
+		return newBlock(height, blocksToWait, cb);
 	});
 }
-
 // Waits for (n) blocks to be created
 function blocks(blocksToWait, baseUrl, cb) {
 	getHeight(baseUrl, (err, height) => {
 		if (err) {
 			return cb(err);
 		}
-		newBlock(height, blocksToWait, baseUrl, cb);
+		return newBlock(height, blocksToWait, baseUrl, cb);
 	});
 }
 
@@ -144,7 +143,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 	var counter = 1;
 	var target = height + blocksToWait;
 
-	async.doWhilst(
+	return async.doWhilst(
 		cb => {
 			var request = popsicle.get(
 				`${baseUrl || __testContext.baseUrl}/api/node/status`
@@ -168,7 +167,7 @@ function newBlock(height, blocksToWait, baseUrl, cb) {
 					counter++
 				);
 				height = res.body.data.height;
-				setTimeout(cb, 1000);
+				return setTimeout(cb, 1000);
 			});
 
 			request.catch(err => {
@@ -205,7 +204,7 @@ function confirmations(transactions, limitHeight) {
 	}
 
 	function waitUntilLimit(limit) {
-		if (limit == 0) {
+		if (limit === 0) {
 			throw new Error('Exceeded limit to wait for confirmations');
 		}
 		limit -= 1;

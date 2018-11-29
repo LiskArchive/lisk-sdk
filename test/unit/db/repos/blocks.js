@@ -200,7 +200,7 @@ describe('db', () => {
 			});
 
 			it('should return block id if block exists for given id', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const block = yield db.blocks.getGenesisBlockId(genesisBlock.id);
 
 				expect(block).to.be.not.empty;
@@ -228,7 +228,7 @@ describe('db', () => {
 			});
 
 			it('should delete a block for given id if it exists', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const before = yield db.one(
 					'SELECT count(*) from blocks WHERE id = $1',
 					[genesisBlock.id]
@@ -314,7 +314,7 @@ describe('db', () => {
 			});
 
 			it('should return empty data set if a valid but non existant key is passed', function*() {
-				const account = accountsFixtures.Account();
+				const account = new accountsFixtures.Account();
 				const rewards = yield db.blocks.aggregateBlocksReward({
 					generatorPublicKey: account.publicKey,
 					start: (+new Date() / 1000).toFixed(),
@@ -335,7 +335,9 @@ describe('db', () => {
 			});
 
 			it('should return empty data set if a valid public key of a non-delegate account is passed', function*() {
-				const account = accountsFixtures.Account({ isDelegate: false });
+				const account = new accountsFixtures.Account({
+					isDelegate: false,
+				});
 				yield db.accounts.insert(account);
 
 				const rewards = yield db.blocks.aggregateBlocksReward({
@@ -461,7 +463,7 @@ describe('db', () => {
 			});
 
 			it('should return valid blocks for single condition', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const result = yield db.blocks.list({
 					where: [`b_id = '${genesisBlock.id}'`],
 					limit: 10,
@@ -476,7 +478,7 @@ describe('db', () => {
 			});
 
 			it('should return valid response with composite conditions joining with AND', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const result = yield db.blocks.list({
 					where: [`b_id = '${genesisBlock.id}'`, 'b_height = 2'],
 					limit: 10,
@@ -620,7 +622,7 @@ describe('db', () => {
 
 			it('should return the count of blocks matching the id and height', function*() {
 				const params = {
-					id: blocksFixtures.GenesisBlock().id,
+					id: new blocksFixtures.GenesisBlock().id,
 					height: 1,
 					previousBlock: null,
 				};
@@ -635,7 +637,7 @@ describe('db', () => {
 
 			it('should return the count of blocks matching "previousBlock", "id" and "height" condition', function*() {
 				const params = {
-					id: blocksFixtures.GenesisBlock().id,
+					id: new blocksFixtures.GenesisBlock().id,
 					height: 1,
 					previousBlock: '111111',
 				};
@@ -665,7 +667,7 @@ describe('db', () => {
 			});
 
 			it('should resolve with correct height of the given block id', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const height = yield db.blocks.getHeightByLastId(genesisBlock.id);
 
 				expect(height).to.be.not.empty;
@@ -712,7 +714,7 @@ describe('db', () => {
 			});
 
 			it('should return data for given block id', function*() {
-				const block = blocksFixtures.GenesisBlock();
+				const block = new blocksFixtures.GenesisBlock();
 				const data = yield db.blocks.loadBlocksData({
 					id: block.id,
 					limit: 10,
@@ -726,7 +728,7 @@ describe('db', () => {
 			});
 
 			it('should return data for given lastBlock id', function*() {
-				const block = blocksFixtures.GenesisBlock();
+				const block = new blocksFixtures.GenesisBlock();
 				const data = yield db.blocks.loadBlocksData({
 					lastId: block.id,
 					height: 1,
@@ -825,7 +827,7 @@ describe('db', () => {
 			});
 
 			it('should return last block ids', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const data = yield db.blocks.loadLastNBlockIds(5);
 
 				expect(data).to.be.not.empty;
@@ -850,7 +852,7 @@ describe('db', () => {
 			});
 
 			it('should return block id if provided id exists', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const data = yield db.blocks.blockExists(genesisBlock.id);
 
 				expect(data).to.be.not.empty;
@@ -878,7 +880,7 @@ describe('db', () => {
 			});
 
 			it('should delete all blocks with height above or equal to given block id', function*() {
-				const genesisBlock = blocksFixtures.GenesisBlock();
+				const genesisBlock = new blocksFixtures.GenesisBlock();
 				const before = yield db.query(
 					'SELECT height FROM blocks WHERE height >= $1',
 					[genesisBlock.height]
@@ -944,7 +946,7 @@ describe('db', () => {
 			it('should use pgp.helpers.insert with correct parameters', function*() {
 				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
 
-				const block = blocksFixtures.Block();
+				const block = new blocksFixtures.Block();
 				yield db.blocks.save(block);
 
 				block.payloadHash = ed.hexToBuffer(block.payloadHash);
@@ -961,7 +963,7 @@ describe('db', () => {
 			it('should save a valid block without any error', function*() {
 				sinonSandbox.spy(db, 'none');
 
-				const block = blocksFixtures.Block();
+				const block = new blocksFixtures.Block();
 				yield db.blocks.save(block);
 				expect(db.none).to.be.calledOnce;
 
@@ -974,7 +976,7 @@ describe('db', () => {
 			});
 
 			it('should be rejected with error, if invalid block "id" is not provided', () => {
-				const block = blocksFixtures.Block();
+				const block = new blocksFixtures.Block();
 				delete block.id;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
@@ -983,7 +985,7 @@ describe('db', () => {
 			});
 
 			it('should be rejected with error, if invalid block "payloadHash" is provided', () => {
-				const block = blocksFixtures.Block();
+				const block = new blocksFixtures.Block();
 				delete block.payloadHash;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
@@ -992,7 +994,7 @@ describe('db', () => {
 			});
 
 			it('should be rejected with error, if invalid block "generatorPublicKey" is provided', () => {
-				const block = blocksFixtures.Block();
+				const block = new blocksFixtures.Block();
 				delete block.generatorPublicKey;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
@@ -1001,7 +1003,7 @@ describe('db', () => {
 			});
 
 			it('should be rejected with error, if invalid block "blockSignature" is provided', () => {
-				const block = blocksFixtures.Block();
+				const block = new blocksFixtures.Block();
 				delete block.blockSignature;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
@@ -1010,8 +1012,8 @@ describe('db', () => {
 			});
 
 			it('should be rejected with error if duplicate block id is provided', () => {
-				const block = blocksFixtures.Block();
-				block.id = blocksFixtures.GenesisBlock().id;
+				const block = new blocksFixtures.Block();
+				block.id = new blocksFixtures.GenesisBlock().id;
 
 				return expect(db.blocks.save(block)).to.be.eventually.rejectedWith(
 					'duplicate key value violates unique constraint "blocks_pkey"'

@@ -70,7 +70,7 @@ function JSONHistory(title, logger) {
 		}
 
 		// It was an async change
-		change.change(data, (error, updatedData) =>
+		return change.change(data, (error, updatedData) =>
 			setImmediate(cb, error, updatedData)
 		);
 	};
@@ -188,7 +188,7 @@ function JSONHistory(title, logger) {
 
 		let currentVersionIndex = startIndex;
 
-		async.whilst(
+		return async.whilst(
 			() => currentVersionIndex <= tillIndex,
 			whileCb => {
 				applyChangesOfVersion(
