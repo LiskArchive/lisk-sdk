@@ -72,11 +72,13 @@ pipeline {
 		}
 		stage('Run browser tests') {
 			steps {
-				nvm(getNodejsVersion()) {
-					sh '''
-					npm run build:browsertest
-					npm run test:browser
-					'''
+				ansiColor('xterm') {
+					nvm(getNodejsVersion()) {
+						sh '''
+						npm run build:browsertest
+						npm run test:browser
+						'''
+					}
 				}
 			}
 		}
