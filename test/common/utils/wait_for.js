@@ -122,7 +122,7 @@ function newRound(baseUrl, cb) {
 		var nextRound = slots.calcRound(height);
 		var blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
-		return newBlock(height, blocksToWait, cb);
+		return newBlock(height, blocksToWait, null, cb);
 	});
 }
 // Waits for (n) blocks to be created
