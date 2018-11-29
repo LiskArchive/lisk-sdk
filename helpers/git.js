@@ -37,7 +37,7 @@ function getLastCommit() {
 	try {
 		spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
 		// If there is git tool available and current directory is a git owned directory
-		if (!spawn.stderr) {
+		if (!spawn.stderr.toString().trim()) {
 			return spawn.stdout.toString().trim();
 		}
 	} catch (error) {
