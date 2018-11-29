@@ -103,7 +103,7 @@ export const selectPeers = (
 				const index = Math.floor(
 					Math.random() * peerObject.processedPeers.length,
 				);
-				const peer = processedPeers[index];
+				const peer = peerObject.processedPeers[index];
 				// This will ensure that the selected peer is not choosen again by the random function above
 				const tempProcessedPeers = peerObject.processedPeers.filter(
 					(findPeer: Peer) => findPeer !== peer,
