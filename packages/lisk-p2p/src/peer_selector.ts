@@ -67,9 +67,9 @@ export const selectPeers = (
 	const processedPeers = sortedPeers.filter(
 		peer =>
 			peer &&
-			Math.abs(
-				(calculatedHistogramValues ? calculatedHistogramValues.height : 0) -
-					peer.height) < aggregation + 1);
+			Math.abs(calculatedHistogramValues.height - peer.height) <
+				aggregation + 1,
+	);
 
 	if (numOfPeers <= 0) {
 		return processedPeers;
@@ -98,16 +98,24 @@ export const selectPeers = (
 
 	const selectedPeersList = Array(numOfPeers)
 		.fill(0)
-		.reduce((peerList: ReadonlyArray<Peer>) => {
-			const peer =
-				processedPeers[Math.floor(Math.random() * processedPeers.length)];
+		.reduce(
+			peerObject => {
+				const index = Math.floor(
+					Math.random() * peerObject.processedPeers.length,
+				);
+				const peer = processedPeers[index];
+				// This will ensure that the selected peer is not choosen again by the random function above
+				const tempProcessedPeers = peerObject.processedPeers.filter(
+					(findPeer: Peer) => findPeer !== peer,
+				);
 
-			if (peerList.includes(peer)) {
-				return peerList;
-			}
+				return {
+					peerList: [...peerObject.peerList, peer],
+					processedPeers: tempProcessedPeers,
+				};
+			},
+			{ peerList: [], processedPeers },
+		);
 
-			return [...peerList, peer];
-		}, []);
-
-	return selectedPeersList;
+	return selectedPeersList.peerList;
 };
