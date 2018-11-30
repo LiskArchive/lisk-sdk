@@ -23,7 +23,7 @@ function filterGenerator(
 	alias,
 	fieldName,
 	valueSerializer,
-	rawCondition
+	condition
 ) {
 	const filters = {};
 	const serializer = valueSerializer || inputSerializers.default;
@@ -59,8 +59,8 @@ function filterGenerator(
 			break;
 
 		case filterTypes.CUSTOM:
-			if (rawCondition) {
-				filters[alias] = rawCondition;
+			if (condition) {
+				filters[alias] = condition;
 			} else {
 				filters[alias] = `"${fieldName}" = ${serializer.call(
 					null,
@@ -73,7 +73,11 @@ function filterGenerator(
 			break;
 
 		default:
-			throw new NonSupportedFilterTypeError(filterType);
+			throw new NonSupportedFilterTypeError(
+				`"${filterType}" not supported filter type. Supported types are: ${Object.keys(
+					filterTypes
+				)}.`
+			);
 	}
 
 	return filters;
