@@ -16,6 +16,7 @@
 
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
+const { NonSupportedFilterTypeError } = require('../errors');
 const { blocks: { toEntity } } = require('../mappers');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
@@ -160,6 +161,31 @@ class Block extends BaseEntity {
 			{},
 			tx
 		);
+	}
+
+	/**
+	 * Check if the record exists with following conditions
+	 *
+	 * @param {filters.Account} filters
+	 * @param {Object} [options]
+	 * @param {Object} [tx]
+	 * @returns {Promise.<boolean, Error>}
+	 */
+	// eslint-disable-next-line no-unused-vars
+	isPersisted(filters, options = {}, tx) {
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		if (parsedFilters === '') {
+			throw new NonSupportedFilterTypeError(
+				'Please provide some filters to check.',
+				filters
+			);
+		}
+
+		return this.adapter
+			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
+			.then(result => result[0].exists);
 	}
 
 	getFieldSets() {
