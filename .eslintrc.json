@@ -36,7 +36,6 @@
 		"no-underscore-dangle": "off",
 		"no-unused-expressions": "off",
 		"no-use-before-define": "off",
-		"no-var": "off",
 		"prefer-destructuring": "off",
 		"prefer-rest-params": "off",
 		"radix": "off",

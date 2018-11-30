@@ -14,11 +14,11 @@
 
 'use strict';
 
-var popsicle = require('popsicle');
-var async = require('async');
-var Promise = require('bluebird');
-var slots = require('../../../helpers/slots');
-var apiHelpers = require('../helpers/api');
+const popsicle = require('popsicle');
+const async = require('async');
+const Promise = require('bluebird');
+const slots = require('../../../helpers/slots');
+const apiHelpers = require('../helpers/api');
 
 const { ACTIVE_DELEGATES } = global.constants;
 
@@ -83,7 +83,7 @@ function blockchainReady(cb, retries, timeout, baseUrl, doNotLogRetries) {
 }
 
 function nodeStatus(cb, baseUrl) {
-	var request = popsicle.get(
+	const request = popsicle.get(
 		`${baseUrl || __testContext.baseUrl}/api/node/status`
 	);
 
@@ -119,8 +119,8 @@ function newRound(cb, baseUrl) {
 		if (err) {
 			return cb(err);
 		}
-		var nextRound = slots.calcRound(height);
-		var blocksToWait = nextRound * ACTIVE_DELEGATES - height;
+		const nextRound = slots.calcRound(height);
+		const blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
 		return newBlock(height, blocksToWait, cb);
 	}, baseUrl);
@@ -141,12 +141,12 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 		return setImmediate(cb, null, height);
 	}
 
-	var counter = 1;
-	var target = height + blocksToWait;
+	let counter = 1;
+	const target = height + blocksToWait;
 
 	return async.doWhilst(
 		cb => {
-			var request = popsicle.get(
+			const request = popsicle.get(
 				`${baseUrl || __testContext.baseUrl}/api/node/status`
 			);
 
@@ -223,7 +223,7 @@ function confirmations(transactions, limitHeight) {
 	return waitUntilLimit(limitHeight);
 }
 
-var blocksPromise = Promise.promisify(blocks);
+const blocksPromise = Promise.promisify(blocks);
 
 module.exports = {
 	blockchainReady,

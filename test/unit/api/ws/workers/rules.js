@@ -14,14 +14,14 @@
 
 'use strict';
 
-var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
-var Rules = require('../../../../../api/ws/workers/rules');
+const failureCodes = require('../../../../../api/ws/rpc/failure_codes');
+const Rules = require('../../../../../api/ws/workers/rules');
 
 describe('Rules', () => {
-	var rules;
-	var insertMock = sinonSandbox.spy();
-	var removeMock = sinonSandbox.spy();
-	var blockMock = sinonSandbox.spy();
+	let rules;
+	const insertMock = sinonSandbox.spy();
+	const removeMock = sinonSandbox.spy();
+	const blockMock = sinonSandbox.spy();
 
 	beforeEach(done => {
 		rules = new Rules(insertMock, removeMock, blockMock);
@@ -93,7 +93,7 @@ describe('Rules', () => {
 		});
 
 		describe('error codes', () => {
-			var updateType;
+			let updateType;
 
 			describe('insert', () => {
 				beforeEach(done => {

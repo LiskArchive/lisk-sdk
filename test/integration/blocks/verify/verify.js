@@ -14,28 +14,28 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var lisk = require('lisk-elements').default;
-var _ = require('lodash');
-var rewire = require('rewire');
-var async = require('async'); // eslint-disable-line no-unused-vars
-var Promise = require('bluebird');
-var Bignum = require('../../../../helpers/bignum.js');
-var application = require('../../../common/application'); // eslint-disable-line no-unused-vars
-var clearDatabaseTable = require('../../../common/db_sandbox')
+const crypto = require('crypto');
+const lisk = require('lisk-elements').default;
+const _ = require('lodash');
+const rewire = require('rewire');
+const async = require('async'); // eslint-disable-line no-unused-vars
+const Promise = require('bluebird');
+const Bignum = require('../../../../helpers/bignum.js');
+const application = require('../../../common/application'); // eslint-disable-line no-unused-vars
+const clearDatabaseTable = require('../../../common/db_sandbox')
 	.clearDatabaseTable; // eslint-disable-line no-unused-vars
-var modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
-var random = require('../../../common/utils/random');
-var slots = require('../../../../helpers/slots.js');
-var accountFixtures = require('../../../fixtures/accounts');
-var genesisDelegates = require('../../../data/genesis_delegates.json')
+const modulesLoader = require('../../../common/modules_loader'); // eslint-disable-line no-unused-vars
+const random = require('../../../common/utils/random');
+const slots = require('../../../../helpers/slots.js');
+const accountFixtures = require('../../../fixtures/accounts');
+const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
 const blockVersion = require('../../../../logic/block_version.js');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW, NORMALIZER } = global.constants;
 const genesisBlock = __testContext.config.genesisBlock;
 
-var previousBlock = {
+const previousBlock = {
 	blockSignature:
 		'696f78bed4d02faae05224db64e964195c39f715471ebf416b260bc01fa0148f3bddf559127b2725c222b01cededb37c7652293eb1a81affe2acdc570266b501',
 	generatorPublicKey:
@@ -56,7 +56,7 @@ var previousBlock = {
 	version: 0,
 };
 
-var validBlock = {
+const validBlock = {
 	blockSignature:
 		'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
 	generatorPublicKey:
@@ -111,7 +111,7 @@ var validBlock = {
 	id: '884740302254229983',
 };
 
-var testAccount = {
+const testAccount = {
 	account: {
 		username: 'test_verify',
 		isDelegate: 1,
@@ -124,9 +124,9 @@ var testAccount = {
 		'message crash glance horror pear opera hedgehog monitor connect vague chuckle advice',
 };
 
-var block1;
+let block1;
 
-var block2;
+let block2;
 
 function createBlock(
 	blocksModule,
@@ -137,14 +137,14 @@ function createBlock(
 	previousBlock
 ) {
 	random.convertToBignum(transactions);
-	var keypair = blockLogic.scope.ed.makeKeypair(
+	const keypair = blockLogic.scope.ed.makeKeypair(
 		crypto
 			.createHash('sha256')
 			.update(passphrase, 'utf8')
 			.digest()
 	);
 	blocksModule.lastBlock.set(previousBlock);
-	var newBlock = blockLogic.create({
+	const newBlock = blockLogic.create({
 		keypair,
 		timestamp,
 		previousBlock: blocksModule.lastBlock.get(),
@@ -156,16 +156,16 @@ function createBlock(
 }
 
 function getValidKeypairForSlot(library, slot) {
-	var generateDelegateListPromisified = Promise.promisify(
+	const generateDelegateListPromisified = Promise.promisify(
 		library.modules.delegates.generateDelegateList
 	);
-	var lastBlock = genesisBlock;
+	const lastBlock = genesisBlock;
 	const round = slots.calcRound(lastBlock.height);
 
 	return generateDelegateListPromisified(round, null)
 		.then(list => {
-			var delegatePublicKey = list[slot % ACTIVE_DELEGATES];
-			var passphrase = _.find(genesisDelegates, delegate => {
+			const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+			const passphrase = _.find(genesisDelegates, delegate => {
 				return delegate.publicKey === delegatePublicKey;
 			}).passphrase;
 			return passphrase;
@@ -176,14 +176,14 @@ function getValidKeypairForSlot(library, slot) {
 }
 
 describe('blocks/verify', () => {
-	var library;
-	var accounts;
-	var blocksVerify;
-	var blocks;
-	var blockLogic;
-	var delegates;
-	var db;
-	var results;
+	let library;
+	let accounts;
+	let blocksVerify;
+	let blocks;
+	let blockLogic;
+	let delegates;
+	let db;
+	let results;
 
 	before(done => {
 		application.init(
@@ -235,12 +235,12 @@ describe('blocks/verify', () => {
 	});
 
 	describe('__private', () => {
-		var privateFunctions;
-		var RewiredVerify;
+		let privateFunctions;
+		let RewiredVerify;
 
 		before(done => {
 			RewiredVerify = rewire('../../../../modules/blocks/verify.js');
-			var verify = new RewiredVerify(
+			const verify = new RewiredVerify(
 				library.logger,
 				library.logic.block,
 				library.logic.transaction,
@@ -262,10 +262,10 @@ describe('blocks/verify', () => {
 
 		describe('verifySignature', () => {
 			it('should fail when blockSignature property is not a hex string', done => {
-				var blockSignature = validBlock.blockSignature;
+				const blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature = 'invalidBlockSignature';
 
-				var result = privateFunctions.verifySignature(validBlock, results);
+				const result = privateFunctions.verifySignature(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -281,11 +281,11 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when blockSignature property is an invalid hex string', done => {
-				var blockSignature = validBlock.blockSignature;
+				const blockSignature = validBlock.blockSignature;
 				validBlock.blockSignature =
 					'bfaaabdc8612e177f1337d225a8a5af18cf2534f9e41b66c114850aa50ca2ea2621c4b2d34c4a8b62ea7d043e854c8ae3891113543f84f437e9d3c9cb24c0e05';
 
-				var result = privateFunctions.verifySignature(validBlock, results);
+				const result = privateFunctions.verifySignature(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -297,10 +297,10 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when generatorPublicKey property is not a hex string', done => {
-				var generatorPublicKey = validBlock.generatorPublicKey;
+				const generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey = 'invalidBlockSignature';
 
-				var result = privateFunctions.verifySignature(validBlock, results);
+				const result = privateFunctions.verifySignature(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -315,11 +315,11 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when generatorPublicKey property is an invalid hex string', done => {
-				var generatorPublicKey = validBlock.generatorPublicKey;
+				const generatorPublicKey = validBlock.generatorPublicKey;
 				validBlock.generatorPublicKey =
 					'948b8b509579306694c00db2206ddb1517bfeca2b0dc833ec1c0f81e9644871b';
 
-				var result = privateFunctions.verifySignature(validBlock, results);
+				const result = privateFunctions.verifySignature(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -333,10 +333,13 @@ describe('blocks/verify', () => {
 
 		describe('verifyPreviousBlock', () => {
 			it('should fail when previousBlock property is missing', done => {
-				var previousBlock = validBlock.previousBlock;
+				const previousBlock = validBlock.previousBlock;
 				delete validBlock.previousBlock;
 
-				var result = privateFunctions.verifyPreviousBlock(validBlock, results);
+				const result = privateFunctions.verifyPreviousBlock(
+					validBlock,
+					results
+				);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -350,10 +353,10 @@ describe('blocks/verify', () => {
 
 		describe('verifyVersion', () => {
 			it('should fail when block version != 0', done => {
-				var version = validBlock.version;
+				const version = validBlock.version;
 				validBlock.version = 1;
 
-				var result = privateFunctions.verifyVersion(validBlock, results);
+				const result = privateFunctions.verifyVersion(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -369,7 +372,7 @@ describe('blocks/verify', () => {
 			it('should fail when block reward = 99 instead of 0', done => {
 				validBlock.reward = 99;
 
-				var result = privateFunctions.verifyReward(validBlock, results);
+				const result = privateFunctions.verifyReward(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -386,7 +389,7 @@ describe('blocks/verify', () => {
 		/* eslint-disable mocha/no-skipped-tests */
 		describe.skip('verifyId', () => {
 			it('should reset block id when block id is an invalid alpha-numeric string value', () => {
-				var blockId = '884740302254229983';
+				const blockId = '884740302254229983';
 				validBlock.id = 'invalid-block-id';
 
 				expect(validBlock.id).to.equal(blockId);
@@ -394,7 +397,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should reset block id when block id is an invalid numeric string value', () => {
-				var blockId = '884740302254229983';
+				const blockId = '884740302254229983';
 				validBlock.id = '11850828211026019526';
 
 				expect(validBlock.id).to.equal(blockId);
@@ -402,7 +405,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should reset block id when block id is an invalid integer value', () => {
-				var blockId = '884740302254229983';
+				const blockId = '884740302254229983';
 				validBlock.id = 11850828211026019526;
 
 				expect(validBlock.id).to.equal(blockId);
@@ -410,7 +413,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should reset block id when block id is a valid integer value', () => {
-				var blockId = '884740302254229983';
+				const blockId = '884740302254229983';
 				validBlock.id = 11850828211026019525;
 				expect(validBlock.id).to.equal(blockId);
 				return expect(validBlock.id).to.not.equal(11850828211026019525);
@@ -420,10 +423,10 @@ describe('blocks/verify', () => {
 
 		describe('verifyPayload', () => {
 			it('should fail when payload length greater than MAX_PAYLOAD_LENGTH constant value', done => {
-				var payloadLength = validBlock.payloadLength;
+				const payloadLength = validBlock.payloadLength;
 				validBlock.payloadLength = 1024 * 1024 * 2;
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -437,7 +440,7 @@ describe('blocks/verify', () => {
 			it('should fail when transactions length != numberOfTransactions property', done => {
 				validBlock.numberOfTransactions = validBlock.transactions.length + 1;
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -451,11 +454,11 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when transactions length > maxTransactionsPerBlock constant value', done => {
-				var transactions = validBlock.transactions;
+				const transactions = validBlock.transactions;
 				validBlock.transactions = new Array(26);
 				validBlock.numberOfTransactions = validBlock.transactions.length;
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -472,10 +475,10 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when a transaction is of an unknown type', done => {
-				var transactionType = validBlock.transactions[0].type;
+				const transactionType = validBlock.transactions[0].type;
 				validBlock.transactions[0].type = 555;
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -490,10 +493,10 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when a transaction is duplicated', done => {
-				var secondTransaction = validBlock.transactions[1];
+				const secondTransaction = validBlock.transactions[1];
 				validBlock.transactions[1] = validBlock.transactions[0];
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -509,10 +512,10 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when payload hash is invalid', done => {
-				var payloadHash = validBlock.payloadHash;
+				const payloadHash = validBlock.payloadHash;
 				validBlock.payloadHash = 'invalidPayloadHash';
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -524,10 +527,10 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when summed transaction amounts do not match totalAmount property', done => {
-				var totalAmount = validBlock.totalAmount;
+				const totalAmount = validBlock.totalAmount;
 				validBlock.totalAmount = 99;
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -539,10 +542,10 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when summed transaction fees do not match totalFee property', done => {
-				var totalFee = validBlock.totalFee;
+				const totalFee = validBlock.totalFee;
 				validBlock.totalFee = 99;
 
-				var result = privateFunctions.verifyPayload(validBlock, results);
+				const result = privateFunctions.verifyPayload(validBlock, results);
 
 				expect(result.errors)
 					.to.be.an('array')
@@ -558,7 +561,7 @@ describe('blocks/verify', () => {
 			it('should fail when previousBlock value is invalid', done => {
 				validBlock.previousBlock = '10937893559311260102';
 
-				var result = privateFunctions.verifyForkOne(
+				const result = privateFunctions.verifyForkOne(
 					validBlock,
 					previousBlock,
 					results
@@ -583,10 +586,10 @@ describe('blocks/verify', () => {
 
 		describe('verifyBlockSlot', () => {
 			it('should fail when block timestamp < than previousBlock timestamp', done => {
-				var timestamp = validBlock.timestamp;
+				const timestamp = validBlock.timestamp;
 				validBlock.timestamp = 32578350;
 
-				var result = privateFunctions.verifyBlockSlot(
+				const result = privateFunctions.verifyBlockSlot(
 					validBlock,
 					previousBlock,
 					results
@@ -603,8 +606,8 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyBlockSlotWindow', () => {
-			var verifyBlockSlotWindow;
-			var result;
+			let verifyBlockSlotWindow;
+			let result;
 
 			before(done => {
 				verifyBlockSlotWindow = RewiredVerify.__get__(
@@ -621,7 +624,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe('for current slot number', () => {
-				var dummyBlock;
+				let dummyBlock;
 
 				before(done => {
 					dummyBlock = {
@@ -638,7 +641,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe(`for slot number ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
-				var dummyBlock;
+				let dummyBlock;
 
 				before(done => {
 					dummyBlock = {
@@ -657,7 +660,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe('for slot number in the future', () => {
-				var dummyBlock;
+				let dummyBlock;
 
 				before(done => {
 					dummyBlock = {
@@ -675,7 +678,7 @@ describe('blocks/verify', () => {
 
 			describe(`for slot number ${BLOCK_SLOT_WINDOW +
 				1} slots in the past`, () => {
-				var dummyBlock;
+				let dummyBlock;
 
 				before(done => {
 					dummyBlock = {
@@ -695,7 +698,7 @@ describe('blocks/verify', () => {
 		});
 
 		describe('onBlockchainReady', () => {
-			var onBlockchainReady;
+			let onBlockchainReady;
 
 			before(done => {
 				RewiredVerify.__set__('library', {
@@ -708,7 +711,9 @@ describe('blocks/verify', () => {
 
 			it('should set the __private.lastNBlockIds variable', () => {
 				return onBlockchainReady().then(() => {
-					var lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
+					const lastNBlockIds = RewiredVerify.__get__(
+						'__private.lastNBlockIds'
+					);
 					expect(lastNBlockIds)
 						.to.be.an('array')
 						.and.to.have.length.below(BLOCK_SLOT_WINDOW + 1);
@@ -721,7 +726,7 @@ describe('blocks/verify', () => {
 
 		describe('onNewBlock', () => {
 			describe('with lastNBlockIds', () => {
-				var lastNBlockIds;
+				let lastNBlockIds;
 
 				before(done => {
 					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
@@ -729,7 +734,7 @@ describe('blocks/verify', () => {
 				});
 
 				describe('when onNewBlock function is called once', () => {
-					var dummyBlock;
+					let dummyBlock;
 
 					before(() => {
 						dummyBlock = {
@@ -745,15 +750,15 @@ describe('blocks/verify', () => {
 				});
 
 				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW}times`, () => {
-					var blockIds = [];
+					const blockIds = [];
 
 					before(() => {
 						return _.map(_.range(0, BLOCK_SLOT_WINDOW), () => {
-							var randomId = Math.floor(
+							const randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
 							blockIds.push(randomId);
-							var dummyBlock = {
+							const dummyBlock = {
 								id: randomId,
 							};
 
@@ -768,17 +773,17 @@ describe('blocks/verify', () => {
 
 				describe(`when onNewBlock function is called ${BLOCK_SLOT_WINDOW *
 					2} times`, () => {
-					var recentNBlockIds;
-					var olderThanNBlockIds;
+					let recentNBlockIds;
+					let olderThanNBlockIds;
 
 					before(done => {
-						var blockIds = [];
+						const blockIds = [];
 						_.map(_.range(0, BLOCK_SLOT_WINDOW * 2), () => {
-							var randomId = Math.floor(
+							const randomId = Math.floor(
 								Math.random() * 100000000000
 							).toString();
 							blockIds.push(randomId);
-							var dummyBlock = {
+							const dummyBlock = {
 								id: randomId,
 							};
 
@@ -806,8 +811,8 @@ describe('blocks/verify', () => {
 		});
 
 		describe('verifyAgainstLastNBlockIds', () => {
-			var verifyAgainstLastNBlockIds;
-			var result = {
+			let verifyAgainstLastNBlockIds;
+			let result = {
 				verified: true,
 				errors: [],
 			};
@@ -828,7 +833,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe('when __private.lastNBlockIds', () => {
-				var lastNBlockIds;
+				let lastNBlockIds;
 
 				before(done => {
 					lastNBlockIds = RewiredVerify.__get__('__private.lastNBlockIds');
@@ -836,7 +841,7 @@ describe('blocks/verify', () => {
 				});
 
 				describe('contains block id', () => {
-					var dummyBlockId = '123123123123';
+					const dummyBlockId = '123123123123';
 
 					before(() => {
 						return lastNBlockIds.push(dummyBlockId);
@@ -903,8 +908,8 @@ describe('blocks/verify', () => {
 		});
 
 		it('should generate block 1', done => {
-			var slot = slots.getSlotNumber();
-			var time = slots.getSlotTime(slots.getSlotNumber());
+			const slot = slots.getSlotNumber();
+			const time = slots.getSlotTime(slots.getSlotNumber());
 
 			getValidKeypairForSlot(library, slot)
 				.then(passphrase => {
@@ -958,10 +963,10 @@ describe('blocks/verify', () => {
 
 	// Receives a block from network, save it locally
 	describe('processBlock for invalid block {broadcast: false, saveBlock: true}', () => {
-		var invalidBlock2;
+		let invalidBlock2;
 
 		it('should generate block 2 with invalid generator slot', done => {
-			var passphrase =
+			const passphrase =
 				'latin swamp simple bridge pilot become topic summer budget dentist hollow seed';
 
 			invalidBlock2 = createBlock(
@@ -1023,7 +1028,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when transaction type property is missing', done => {
-				var transactionType = block2.transactions[0].type;
+				const transactionType = block2.transactions[0].type;
 				delete block2.transactions[0].type;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
@@ -1035,7 +1040,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should fail when transaction timestamp property is missing', done => {
-				var transactionTimestamp = block2.transactions[0].timestamp;
+				const transactionTimestamp = block2.transactions[0].timestamp;
 				delete block2.transactions[0].timestamp;
 				blocksVerify.processBlock(block2, false, true, err => {
 					if (err) {
@@ -1058,11 +1063,11 @@ describe('blocks/verify', () => {
 			});
 
 			describe('block with processed transaction', () => {
-				var block2;
+				let block2;
 
 				it('should generate block 1 with valid generator slot and processed transaction', done => {
-					var slot = slots.getSlotNumber();
-					var time = slots.getSlotTime(slots.getSlotNumber());
+					const slot = slots.getSlotNumber();
+					const time = slots.getSlotTime(slots.getSlotNumber());
 
 					getValidKeypairForSlot(library, slot)
 						.then(passphrase => {
@@ -1171,8 +1176,8 @@ describe('blocks/verify', () => {
 
 	describe('processBlock for valid block {broadcast: false, saveBlock: true}', () => {
 		it('should generate block 2 with valid generator slot', done => {
-			var slot = slots.getSlotNumber();
-			var time = slots.getSlotTime(slots.getSlotNumber());
+			const slot = slots.getSlotNumber();
+			const time = slots.getSlotTime(slots.getSlotNumber());
 
 			getValidKeypairForSlot(library, slot)
 				.then(passphrase => {

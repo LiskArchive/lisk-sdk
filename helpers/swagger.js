@@ -14,17 +14,17 @@
 
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var Promise = require('bluebird');
-var _ = require('lodash');
-var jsonRefs = require('json-refs');
-var YAML = require('js-yaml');
-var SwayHelpers = require('sway/lib/helpers');
-var ZSchema = require('./z_schema');
+const fs = require('fs');
+const path = require('path');
+const Promise = require('bluebird');
+const _ = require('lodash');
+const jsonRefs = require('json-refs');
+const YAML = require('js-yaml');
+const SwayHelpers = require('sway/lib/helpers');
+const ZSchema = require('./z_schema');
 
 // Used as private member to cache the spec resolution process
-var resolvedSwaggerSpec = null;
+let resolvedSwaggerSpec = null;
 
 /**
  * Uses default swagger validator and extend with custom formats.
@@ -48,7 +48,7 @@ var resolvedSwaggerSpec = null;
  */
 function getValidator() {
 	// Get validator instace attached to Swagger
-	var validator = SwayHelpers.getJSONSchemaValidator();
+	const validator = SwayHelpers.getJSONSchemaValidator();
 
 	// Register lisk formats with swagger
 	Object.keys(ZSchema.formatsCache).forEach(formatName => {
@@ -71,9 +71,9 @@ function getResolvedSwaggerSpec() {
 	if (resolvedSwaggerSpec) {
 		return Promise.resolve(resolvedSwaggerSpec);
 	}
-	var content = getSwaggerSpec();
+	const content = getSwaggerSpec();
 
-	var options = {
+	const options = {
 		includeInvalid: true,
 		loaderOptions: {
 			processContent(content, callback) {
@@ -113,11 +113,11 @@ function generateParamsErrorObject(params, messages, codes) {
 		codes = [];
 	}
 
-	var error = new Error('Validation errors');
+	const error = new Error('Validation errors');
 	error.statusCode = 400;
 
 	error.errors = params.map((p, i) => {
-		var def = p.parameterObject;
+		const def = p.parameterObject;
 
 		if (def) {
 			return {
@@ -146,8 +146,8 @@ function generateParamsErrorObject(params, messages, codes) {
  * @todo Add description for the return value
  */
 function invalidParams(request) {
-	var swaggerParams = Object.keys(request.swagger.params);
-	var requestParams = Object.keys(request.query);
+	const swaggerParams = Object.keys(request.swagger.params);
+	const requestParams = Object.keys(request.query);
 
 	return _.difference(requestParams, swaggerParams);
 }

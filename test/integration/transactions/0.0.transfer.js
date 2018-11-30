@@ -14,33 +14,33 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../fixtures/accounts');
-var randomUtil = require('../../common/utils/random');
-var localCommon = require('../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../../common/utils/random');
+const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 0) - double transfers', () => {
-	var library;
+	let library;
 	localCommon.beforeBlock('system_0_0_transfer', lib => {
 		library = lib;
 	});
 
-	var i = 0;
-	var t = 0;
+	let i = 0;
+	let t = 0;
 
 	/* eslint-disable no-loop-func */
 	while (i < 1) {
 		describe('executing 30 times', () => {
-			var account = randomUtil.account();
-			var transaction = lisk.transaction.transfer({
+			const account = randomUtil.account();
+			const transaction = lisk.transaction.transfer({
 				amount: 1100 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
 			});
-			var transaction1;
-			var transaction2;
+			let transaction1;
+			let transaction2;
 
 			before(done => {
 				console.info(`Iteration count: ${++t}`);
@@ -82,7 +82,7 @@ describe('system test (type 0) - double transfers', () => {
 				});
 
 				it('first transaction to arrive should not be included', done => {
-					var filter = {
+					const filter = {
 						id: transaction1.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -96,7 +96,7 @@ describe('system test (type 0) - double transfers', () => {
 				});
 
 				it('last transaction to arrive should be included', done => {
-					var filter = {
+					const filter = {
 						id: transaction2.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {

@@ -15,22 +15,22 @@
 'use strict';
 
 // Init tests dependencies
-var rewire = require('rewire');
+const rewire = require('rewire');
 // Instantiate test subject
-var Rounds = rewire('../../../modules/rounds.js');
-var Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
-var DBSandbox = require('../../common/db_sandbox').DBSandbox;
+const Rounds = rewire('../../../modules/rounds.js');
+const Round = rewire('../../../logic/round.js'); // eslint-disable-line no-unused-vars
+const DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
-var sinon = sinonSandbox;
+const sinon = sinonSandbox;
 
 describe('rounds', () => {
-	var db;
-	var dbSandbox;
-	var rounds;
-	var validScope;
+	let db;
+	let dbSandbox;
+	let rounds;
+	let validScope;
 
 	// Init fake logger
-	var logger = {
+	const logger = {
 		trace: sinon.spy(),
 		debug: sinon.spy(),
 		info: sinon.spy(),
@@ -63,7 +63,7 @@ describe('rounds', () => {
 	});
 
 	describe('constructor', () => {
-		var scope;
+		let scope;
 
 		before(done => {
 			scope = _.cloneDeep(validScope);
@@ -85,16 +85,16 @@ describe('rounds', () => {
 		});
 
 		it('should set self object', () => {
-			var self = Rounds.__get__('self');
+			const self = Rounds.__get__('self');
 			return expect(self).to.deep.equal(rounds);
 		});
 	});
 
 	describe('loaded', () => {
 		it('should return __private.loaded', () => {
-			var variable = '__private.loaded';
-			var backup = get(variable);
-			var value = 'abc';
+			const variable = '__private.loaded';
+			const backup = get(variable);
+			const value = 'abc';
 			set(variable, value);
 			expect(get(variable)).to.equal(value);
 			return set(variable, backup);
@@ -103,9 +103,9 @@ describe('rounds', () => {
 
 	describe('ticking', () => {
 		it('should return __private.ticking', () => {
-			var variable = '__private.ticking';
-			var backup = get(variable);
-			var value = 'abc';
+			const variable = '__private.ticking';
+			const backup = get(variable);
+			const value = 'abc';
 			set(variable, value);
 			expect(get(variable)).to.equal(value);
 			return set(variable, backup);
@@ -113,8 +113,8 @@ describe('rounds', () => {
 	});
 
 	describe('flush', () => {
-		var stub;
-		var error;
+		let stub;
+		let error;
 
 		before(() => {
 			stub = sinon.stub(db.rounds, 'flush');
@@ -171,9 +171,9 @@ describe('rounds', () => {
 
 	describe('onBind', () => {
 		it('should set modules', () => {
-			var variable = 'modules';
-			var backup = get(variable);
-			var value = {
+			const variable = 'modules';
+			const backup = get(variable);
+			const value = {
 				blocks: 'blocks',
 				accounts: 'accounts',
 				delegates: 'delegates',
@@ -186,9 +186,9 @@ describe('rounds', () => {
 
 	describe('onBlockchainReady', () => {
 		it('should set __private.loaded = true', () => {
-			var variable = '__private.loaded ';
-			var backup = get(variable);
-			var value = false;
+			const variable = '__private.loaded ';
+			const backup = get(variable);
+			const value = false;
 			set(variable, value);
 			rounds.onBlockchainReady();
 			expect(get(variable)).to.equal(true);
@@ -198,7 +198,7 @@ describe('rounds', () => {
 
 	describe('onFinishRound', () => {
 		it('should call library.network.io.sockets.emit once, with proper params', () => {
-			var round = 123;
+			const round = 123;
 			rounds.onFinishRound(round);
 
 			expect(validScope.network.io.sockets.emit.calledOnce).to.be.true;
@@ -213,9 +213,9 @@ describe('rounds', () => {
 
 	describe('cleanup', () => {
 		it('should set __private.loaded = false and call a callback', done => {
-			var variable = '__private.loaded ';
-			var backup = get(variable);
-			var value = true;
+			const variable = '__private.loaded ';
+			const backup = get(variable);
+			const value = true;
 			set(variable, value);
 			rounds.cleanup(() => {
 				expect(get(variable)).to.equal(false);
@@ -226,7 +226,7 @@ describe('rounds', () => {
 	});
 
 	describe('__private.getOutsiders', () => {
-		var getOutsiders;
+		let getOutsiders;
 
 		before(done => {
 			getOutsiders = get('__private.getOutsiders');
@@ -234,7 +234,7 @@ describe('rounds', () => {
 		});
 
 		describe('when scope.block.height = 1', () => {
-			var scope = { block: { height: 1 } };
+			const scope = { block: { height: 1 } };
 
 			it('should call a callback', done => {
 				getOutsiders(scope, err => {
@@ -245,10 +245,10 @@ describe('rounds', () => {
 		});
 
 		describe('when scope.block.height != 1', () => {
-			var scope = { block: { height: 2 } };
+			const scope = { block: { height: 2 } };
 
 			describe('when generateDelegateList is successful', () => {
-				var modules;
+				let modules;
 
 				before(() => {
 					// Bind fake modules
@@ -268,7 +268,7 @@ describe('rounds', () => {
 				});
 
 				describe('when all delegates are on list (no outsiders)', () => {
-					var initialScope;
+					let initialScope;
 
 					before(done => {
 						scope.roundDelegates = ['delegate1', 'delegate2', 'delegate3'];
@@ -292,7 +292,7 @@ describe('rounds', () => {
 				});
 
 				describe('when 1 delegates is not on list (outsider)', () => {
-					var initialScope;
+					let initialScope;
 
 					before(done => {
 						scope.roundDelegates = ['delegate2', 'delegate3'];
@@ -317,7 +317,7 @@ describe('rounds', () => {
 				});
 
 				describe('when 2 delegates are not on list (outsiders)', () => {
-					var initialScope;
+					let initialScope;
 
 					before(done => {
 						scope.roundDelegates = ['delegate3'];
@@ -346,7 +346,7 @@ describe('rounds', () => {
 			describe('when generateDelegateList fails', () => {
 				before(() => {
 					// Bind fake modules
-					var modules = {
+					const modules = {
 						delegates: {
 							generateDelegateList(a, b, cb) {
 								cb('error');
@@ -367,8 +367,8 @@ describe('rounds', () => {
 	});
 
 	describe('__private.sumRound', () => {
-		var sumRound;
-		var stub;
+		let sumRound;
+		let stub;
 
 		beforeEach(done => {
 			sumRound = get('__private.sumRound');
@@ -414,7 +414,7 @@ describe('rounds', () => {
 
 			describe('when summedRound query is successful', () => {
 				beforeEach(done => {
-					var rows = [
+					const rows = [
 						{
 							rewards: [1.001, 2, 3],
 							fees: 100.001,
@@ -475,18 +475,18 @@ describe('rounds', () => {
 	});
 
 	describe('tick', () => {
-		var block;
-		var roundScope;
+		let block;
+		let roundScope;
 
 		// Init stubs
-		var mergeBlockGenerator_stub = sinon.stub().resolves();
-		var land_stub = sinon.stub().resolves();
-		var sumRound_stub = sinon.stub().callsArg(1);
-		var getOutsiders_stub = sinon.stub().callsArg(1);
-		var clearRoundSnapshot_stub;
-		var performRoundSnapshot_stub;
-		var clearVotesSnapshot_stub;
-		var performVotesSnapshot_stub;
+		const mergeBlockGenerator_stub = sinon.stub().resolves();
+		const land_stub = sinon.stub().resolves();
+		const sumRound_stub = sinon.stub().callsArg(1);
+		const getOutsiders_stub = sinon.stub().callsArg(1);
+		let clearRoundSnapshot_stub;
+		let performRoundSnapshot_stub;
+		let clearVotesSnapshot_stub;
+		let performVotesSnapshot_stub;
 
 		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();
@@ -564,7 +564,7 @@ describe('rounds', () => {
 		});
 
 		describe('scope.finishRound', () => {
-			var bus;
+			let bus;
 
 			before(() => {
 				bus = get('library.bus.message');
@@ -603,7 +603,7 @@ describe('rounds', () => {
 				});
 
 				it('library.bus.message should be called once with proper params', () => {
-					var bus = get('library.bus.message');
+					const bus = get('library.bus.message');
 					expect(bus.calledOnce).to.be.true;
 					return expect(bus.calledWith('finishRound', roundScope.round)).to.be
 						.true;
@@ -642,7 +642,7 @@ describe('rounds', () => {
 				});
 
 				it('library.bus.message should be not called', () => {
-					var bus = get('library.bus.message');
+					const bus = get('library.bus.message');
 					return expect(bus.called).to.be.false;
 				});
 			});
@@ -658,7 +658,7 @@ describe('rounds', () => {
 
 			describe('when (block.height+1) % ACTIVE_DELEGATES === 0', () => {
 				describe('when queries are successful', () => {
-					var res;
+					let res;
 
 					before(done => {
 						// Init fake round logic
@@ -715,7 +715,7 @@ describe('rounds', () => {
 				});
 
 				describe('when clearRoundSnapshot query fails', () => {
-					var res;
+					let res;
 
 					before(done => {
 						// Init fake round logic
@@ -773,7 +773,7 @@ describe('rounds', () => {
 				});
 
 				describe('when performRoundSnapshot query fails', () => {
-					var res;
+					let res;
 
 					before(done => {
 						// Init fake round logic
@@ -831,7 +831,7 @@ describe('rounds', () => {
 				});
 
 				describe('when clearVotesSnapshot query fails', () => {
-					var res;
+					let res;
 
 					before(done => {
 						// Init fake round logic
@@ -889,7 +889,7 @@ describe('rounds', () => {
 				});
 
 				describe('when performVotesSnapshot query fails', () => {
-					var res;
+					let res;
 
 					before(done => {
 						// Init fake round logic
@@ -980,15 +980,15 @@ describe('rounds', () => {
 	});
 
 	describe('backwardTick', () => {
-		var block;
-		var previousBlock;
-		var roundScope;
+		let block;
+		let previousBlock;
+		let roundScope;
 
 		// Init stubs
-		var mergeBlockGenerator_stub = sinon.stub().resolves();
-		var backwardLand_stub = sinon.stub().resolves();
-		var sumRound_stub = sinon.stub().callsArg(1);
-		var getOutsiders_stub = sinon.stub().callsArg(1);
+		const mergeBlockGenerator_stub = sinon.stub().resolves();
+		const backwardLand_stub = sinon.stub().resolves();
+		const sumRound_stub = sinon.stub().callsArg(1);
+		const getOutsiders_stub = sinon.stub().callsArg(1);
 
 		function resetStubsHistory() {
 			mergeBlockGenerator_stub.resetHistory();

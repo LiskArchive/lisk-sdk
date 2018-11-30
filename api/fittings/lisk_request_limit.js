@@ -14,12 +14,12 @@
 
 'use strict';
 
-var _ = require('lodash');
-var RateLimit = require('express-rate-limit');
-var debug = require('debug')('swagger:lisk:request_limit');
-var config = require('../../helpers/swagger_module_registry').getConfig();
+const _ = require('lodash');
+const RateLimit = require('express-rate-limit');
+const debug = require('debug')('swagger:lisk:request_limit');
+const config = require('../../helpers/swagger_module_registry').getConfig();
 
-var defaults = {
+const defaults = {
 	max: 0, // Disabled
 	delayMs: 0, // Disabled
 	delayAfter: 0, // Disabled
@@ -42,9 +42,9 @@ var defaults = {
  */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
-	var limits = {};
-	var appConfigLimits = {};
-	var overrideLimits = {};
+	const limits = {};
+	let appConfigLimits = {};
+	let overrideLimits = {};
 
 	if (config) {
 		appConfigLimits = config.api.options.limits;
@@ -62,7 +62,7 @@ module.exports = function create(fittingDef) {
 
 	debug('limits: %j', limits);
 
-	var middleware = new RateLimit(_.clone(limits));
+	const middleware = new RateLimit(_.clone(limits));
 
 	/**
 	 * Description of the function.

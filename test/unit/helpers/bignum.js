@@ -14,16 +14,16 @@
 
 'use strict';
 
-var Bignum = require('../../../helpers/bignum.js');
+const Bignum = require('../../../helpers/bignum.js');
 
 describe('BigNumber', () => {
-	var validBuf;
-	var validOpts;
-	var bignumResult;
-	var validSeed;
-	var validBufferSeed;
-	var validBufferSeedSize2;
-	var validBufferSeedMpint;
+	let validBuf;
+	let validOpts;
+	let bignumResult;
+	let validSeed;
+	let validBufferSeed;
+	let validBufferSeedSize2;
+	let validBufferSeedMpint;
 
 	describe('exponential values', () => {
 		it('should not return exponential value for a long number', () => {
@@ -182,7 +182,7 @@ describe('BigNumber', () => {
 		});
 
 		describe('when it does not throw an error', () => {
-			var toBufferResult;
+			let toBufferResult;
 
 			before(done => {
 				validSeed = '782910138827292261791972728324982';

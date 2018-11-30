@@ -14,32 +14,31 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var async = require('async');
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const async = require('async');
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 2) - double delegate registrations', () => {
-	var library;
+	let library;
 	localCommon.beforeBlock('system_2_2_delegates_4', lib => {
 		library = lib;
 	});
 
-	var i = 0;
-	var t = 0;
+	let i = 0;
+	let t = 0;
 
 	/* eslint-disable no-loop-func */
 	while (i < 30) {
 		describe('executing 30 times', () => {
-			var account = randomUtil.account();
-			var account2 = randomUtil.account();
-			var transaction;
-			var transaction1;
-			var transaction2;
-			transaction = lisk.transaction.transfer({
+			const account = randomUtil.account();
+			const account2 = randomUtil.account();
+			let transaction1;
+			let transaction2;
+			const transaction = lisk.transaction.transfer({
 				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -104,7 +103,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 						async.every(
 							[transaction1, transaction2],
 							(transaction, callback) => {
-								var filter = {
+								const filter = {
 									id: transaction.id,
 								};
 

@@ -14,16 +14,16 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var ed = require('../../../helpers/ed');
+const crypto = require('crypto');
+const ed = require('../../../helpers/ed');
 
 describe('ed', () => {
 	describe('makeKeypair', () => {
-		var keys;
+		let keys;
 
 		before(done => {
-			var randomstring = 'ABCDE';
-			var hash = crypto
+			const randomstring = 'ABCDE';
+			const hash = crypto
 				.createHash('sha256')
 				.update(randomstring, 'utf8')
 				.digest();
@@ -49,14 +49,14 @@ describe('ed', () => {
 	});
 
 	describe('sign', () => {
-		var keys;
-		var messageToSign = {
+		let keys;
+		const messageToSign = {
 			field: 'value',
 		};
 
 		before(done => {
-			var randomstring = 'ABCDE';
-			var hash = crypto
+			const randomstring = 'ABCDE';
+			const hash = crypto
 				.createHash('sha256')
 				.update(randomstring, 'utf8')
 				.digest();
@@ -65,7 +65,7 @@ describe('ed', () => {
 		});
 
 		it('should create signature as Buffer from data as Buffer and privateKey', done => {
-			var signature = ed.sign(
+			const signature = ed.sign(
 				Buffer.from(JSON.stringify(messageToSign)),
 				keys.privateKey
 			);
@@ -74,7 +74,7 @@ describe('ed', () => {
 		});
 
 		it('should create signature as Buffer from data as Buffer and a privateKey after Buffer.from function applied on it', done => {
-			var signature = ed.sign(
+			const signature = ed.sign(
 				Buffer.from(JSON.stringify(messageToSign)),
 				Buffer.from(keys.privateKey, 'hex')
 			);
@@ -98,15 +98,15 @@ describe('ed', () => {
 	});
 
 	describe('verify', () => {
-		var keys;
-		var signature;
-		var messageToSign = {
+		let keys;
+		let signature;
+		const messageToSign = {
 			field: 'value',
 		};
 
 		before(done => {
-			var randomstring = 'ABCDE';
-			var hash = crypto
+			const randomstring = 'ABCDE';
+			const hash = crypto
 				.createHash('sha256')
 				.update(randomstring, 'utf8')
 				.digest();
@@ -119,7 +119,7 @@ describe('ed', () => {
 		});
 
 		it('should return true when valid Buffer signature is checked with matching Buffer public key and valid Buffer message', done => {
-			var verified = ed.verify(
+			const verified = ed.verify(
 				Buffer.from(JSON.stringify(messageToSign)),
 				signature,
 				keys.publicKey
@@ -129,11 +129,11 @@ describe('ed', () => {
 		});
 
 		it('should return false when malformed signature is checked with Buffer public key', done => {
-			var wrongSignature = ed.sign(
+			const wrongSignature = ed.sign(
 				Buffer.from(JSON.stringify('wrong message')),
 				keys.privateKey
 			);
-			var verified = ed.verify(
+			const verified = ed.verify(
 				Buffer.from(JSON.stringify(messageToSign)),
 				wrongSignature,
 				keys.publicKey
@@ -143,7 +143,7 @@ describe('ed', () => {
 		});
 
 		it('should return false proper signature and proper publicKey is check against malformed data', done => {
-			var verified = ed.verify(
+			const verified = ed.verify(
 				Buffer.from('malformed data'),
 				signature,
 				keys.publicKey

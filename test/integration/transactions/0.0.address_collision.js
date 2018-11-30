@@ -14,20 +14,20 @@
 
 'use strict';
 
-var async = require('async');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../fixtures/accounts');
-var localCommon = require('../common');
+const async = require('async');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../fixtures/accounts');
+const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 0) - address collision', () => {
-	var library;
+	let library;
 	localCommon.beforeBlock('system_0_0_address_collision', lib => {
 		library = lib;
 	});
 
-	var collision = {
+	const collision = {
 		address: '13555181540209512417L',
 		passphrases: [
 			'merry field slogan sibling convince gold coffee town fold glad mix page',
@@ -35,7 +35,7 @@ describe('system test (type 0) - address collision', () => {
 		],
 	};
 
-	var publicKeys = [
+	const publicKeys = [
 		lisk.cryptography.getPrivateAndPublicKeyFromPassphrase(
 			collision.passphrases[0]
 		).publicKey,
@@ -44,26 +44,26 @@ describe('system test (type 0) - address collision', () => {
 		).publicKey,
 	];
 
-	var firstTransaction = lisk.transaction.transfer({
+	const firstTransaction = lisk.transaction.transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 	});
 
-	var secondTransaction = lisk.transaction.transfer({
+	const secondTransaction = lisk.transaction.transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
 	});
 
-	var firstTransactionWithData = lisk.transaction.transfer({
+	const firstTransactionWithData = lisk.transaction.transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[0],
 		recipientId: accountFixtures.genesis.address,
 		data: 'addtional data from 1',
 	});
 
-	var secondTransactionWithData = lisk.transaction.transfer({
+	const secondTransactionWithData = lisk.transaction.transfer({
 		amount: 10 * NORMALIZER,
 		passphrase: collision.passphrases[1],
 		recipientId: accountFixtures.genesis.address,
@@ -71,7 +71,7 @@ describe('system test (type 0) - address collision', () => {
 	});
 
 	before(done => {
-		var creditTransaction = lisk.transaction.transfer({
+		const creditTransaction = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: collision.address,
@@ -122,7 +122,7 @@ describe('system test (type 0) - address collision', () => {
 			});
 
 			it('first transaction to arrive should be included', done => {
-				var filter = {
+				const filter = {
 					id: firstTransaction.id,
 				};
 
@@ -138,7 +138,7 @@ describe('system test (type 0) - address collision', () => {
 			});
 
 			it('last transaction to arrive should not be included', done => {
-				var filter = {
+				const filter = {
 					id: secondTransaction.id,
 				};
 

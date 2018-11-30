@@ -14,30 +14,30 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 2) - double delegate registrations', () => {
-	var library;
+	let library;
 	localCommon.beforeBlock('system_2_2_delegates_3', lib => {
 		library = lib;
 	});
 
-	var i = 0;
-	var t = 0;
+	let i = 0;
+	let t = 0;
 
 	/* eslint-disable no-loop-func */
 	while (i < 30) {
 		describe('executing 30 times', () => {
-			var account = randomUtil.account();
-			var account2 = randomUtil.account();
-			var transaction;
-			var transaction1;
-			var transaction2;
+			const account = randomUtil.account();
+			const account2 = randomUtil.account();
+			let transaction;
+			let transaction1;
+			let transaction2;
 			transaction = lisk.transaction.transfer({
 				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
@@ -91,7 +91,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('first delegate registration to arrive should not be included', done => {
-						var filter = {
+						const filter = {
 							id: transaction1.id,
 						};
 						localCommon.getTransactionFromModule(
@@ -109,7 +109,7 @@ describe('system test (type 2) - double delegate registrations', () => {
 					});
 
 					it('last delegate registration to arrive should be included', done => {
-						var filter = {
+						const filter = {
 							id: transaction2.id,
 						};
 						localCommon.getTransactionFromModule(

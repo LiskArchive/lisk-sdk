@@ -14,19 +14,19 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var ed = require('../../../../helpers/ed');
+const crypto = require('crypto');
+const ed = require('../../../../helpers/ed');
 
-var validPassphrase =
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var validSender = {
+const validSender = {
 	passphrase: '1vi3igdedurk9ctbj4i',
 	secondPassphrase: 'lpdrphar6g5fcac3di',
 	username: 'p1obslna292ypj',
@@ -35,7 +35,7 @@ var validSender = {
 	secondPublicKey:
 		'32f8c9b4b674c027de01fa685596bdc4ed07caabf6ecac3a8273be6fc4cbe842',
 };
-var validTransaction = {
+const validTransaction = {
 	id: '12010334009048463571',
 	height: 382,
 	blockId: '7608840392099654665',
@@ -62,7 +62,7 @@ var validTransaction = {
 	},
 };
 
-var rawValidTransaction = {
+const rawValidTransaction = {
 	t_id: '12010334009048463571',
 	b_height: 382,
 	t_blockId: '7608840392099654665',
@@ -84,15 +84,15 @@ var rawValidTransaction = {
 	ot_outTransactionId: '14144353162277138821',
 };
 
-var validGetGensisResult = {
+const validGetGensisResult = {
 	authorId: 'validAuthorId',
 };
 
-var senderHash = crypto
+const senderHash = crypto
 	.createHash('sha256')
 	.update(validSender.passphrase, 'utf8')
 	.digest();
-var senderKeypair = ed.makeKeypair(senderHash);
+const senderKeypair = ed.makeKeypair(senderHash);
 
 module.exports = {
 	validSender,

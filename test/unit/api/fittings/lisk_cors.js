@@ -14,14 +14,14 @@
 
 'use strict';
 
-var httpMocks = require('node-mocks-http');
-var swaggerModuleRegistry = require('../../../../helpers/swagger_module_registry');
-var fitting = require('../../../../api/fittings/lisk_cors');
+const httpMocks = require('node-mocks-http');
+const swaggerModuleRegistry = require('../../../../helpers/swagger_module_registry');
+const fitting = require('../../../../api/fittings/lisk_cors');
 
 describe('lisk_cors', () => {
-	var context;
-	var cors_fititng;
-	var next;
+	let context;
+	let cors_fititng;
+	let next;
 
 	beforeEach(done => {
 		context = {
@@ -75,7 +75,7 @@ describe('lisk_cors', () => {
 	});
 
 	it('should enable requests for test.com when provided origin = test.com', done => {
-		var originalOrigin = __testContext.config.api.options.cors.origin;
+		const originalOrigin = __testContext.config.api.options.cors.origin;
 		__testContext.config.api.options.cors.origin = 'test.com';
 		cors_fititng = fitting();
 		context.request.method = 'OPTIONS';
@@ -96,7 +96,7 @@ describe('lisk_cors', () => {
 	});
 
 	it('should return actual request origin if cors origin set to true', done => {
-		var originalOrigin = __testContext.config.api.options.cors.origin;
+		const originalOrigin = __testContext.config.api.options.cors.origin;
 		__testContext.config.api.options.cors.origin = true;
 		cors_fititng = fitting();
 		context.request.headers.origin = 'my-custom-origin.com';
@@ -117,7 +117,7 @@ describe('lisk_cors', () => {
 	});
 
 	it('should disable cors request completely if cors origin set to false', done => {
-		var originalOrigin = __testContext.config.api.options.cors.origin;
+		const originalOrigin = __testContext.config.api.options.cors.origin;
 		__testContext.config.api.options.cors.origin = false;
 		cors_fititng = fitting();
 		context.request.headers.origin = 'my-custom-origin.com';
@@ -138,7 +138,7 @@ describe('lisk_cors', () => {
 	});
 
 	it('should enable requests for GET, POST when provided methods = GET POST', done => {
-		var originalMethods = __testContext.config.api.options.cors.methods;
+		const originalMethods = __testContext.config.api.options.cors.methods;
 		__testContext.config.api.options.cors.methods = ['GET', 'POST'];
 		cors_fititng = fitting();
 		context.request.method = 'OPTIONS';

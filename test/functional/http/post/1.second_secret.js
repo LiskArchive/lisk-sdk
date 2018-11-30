@@ -15,48 +15,48 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-elements').default;
-var Promise = require('bluebird');
-var phases = require('../../../common/phases');
-var accountFixtures = require('../../../fixtures/accounts');
-var apiHelpers = require('../../../common/helpers/api');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var errorCodes = require('../../../../helpers/api_codes');
-var common = require('./common');
+const lisk = require('lisk-elements').default;
+const Promise = require('bluebird');
+const phases = require('../../../common/phases');
+const accountFixtures = require('../../../fixtures/accounts');
+const apiHelpers = require('../../../common/helpers/api');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const errorCodes = require('../../../../helpers/api_codes');
+const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
 
 describe('POST /api/transactions (type 1) register second passphrase', () => {
-	var transaction;
-	var transactionsToWaitFor = [];
-	var badTransactions = [];
-	var goodTransactions = [];
+	let transaction;
+	const transactionsToWaitFor = [];
+	const badTransactions = [];
+	const goodTransactions = [];
 
-	var account = randomUtil.account();
-	var accountNoFunds = randomUtil.account();
-	var accountMinimalFunds = randomUtil.account();
-	var accountNoSecondPassphrase = randomUtil.account();
+	const account = randomUtil.account();
+	const accountNoFunds = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account();
+	const accountNoSecondPassphrase = randomUtil.account();
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.transfer({
+		const transaction1 = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		var transaction2 = lisk.transaction.transfer({
+		const transaction2 = lisk.transaction.transfer({
 			amount: FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
-		var transaction3 = lisk.transaction.transfer({
+		const transaction3 = lisk.transaction.transfer({
 			amount: FEES.SECOND_SIGNATURE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountNoSecondPassphrase.address,
 		});
 
-		var promises = [];
+		const promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 		promises.push(apiHelpers.sendTransactionPromise(transaction3));

@@ -14,10 +14,10 @@
 
 'use strict';
 
-var ApiError = require('../../helpers/api_error');
+const ApiError = require('../../helpers/api_error');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -41,7 +41,7 @@ function SignaturesController(scope) {
  * @todo Add description for the function and the params
  */
 SignaturesController.postSignature = function(context, next) {
-	var signature = context.request.swagger.params.signature.value;
+	const signature = context.request.swagger.params.signature.value;
 
 	return modules.signatures.shared.postSignature(signature, (err, data) => {
 		if (err) {

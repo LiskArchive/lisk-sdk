@@ -15,17 +15,17 @@
 'use strict';
 
 require('colors');
-var mocha = require('mocha');
-var coMocha = require('co-mocha');
-var chai = require('chai');
-var sinon = require('sinon');
-var sinonChai = require('sinon-chai');
-var chaiAsPromised = require('chai-as-promised');
-var supertest = require('supertest');
-var _ = require('lodash');
-var AppConfig = require('../helpers/config');
+const mocha = require('mocha');
+const coMocha = require('co-mocha');
+const chai = require('chai');
+const sinon = require('sinon');
+const sinonChai = require('sinon-chai');
+const chaiAsPromised = require('chai-as-promised');
+const supertest = require('supertest');
+const _ = require('lodash');
+const AppConfig = require('../helpers/config');
 const packageJson = require('../package.json');
-var Bignum = require('../helpers/bignum.js');
+const Bignum = require('../helpers/bignum.js');
 
 coMocha(mocha);
 
@@ -34,7 +34,7 @@ process.env.NODE_ENV = 'test';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
-var testContext = {};
+const testContext = {};
 
 testContext.config = new AppConfig(packageJson, false);
 
@@ -82,7 +82,7 @@ _.mixin(
 		 * @return {*}
 		 */
 		dbSort(arr, sortOrder) {
-			var sortFactor = sortOrder === 'desc' ? -1 : 1;
+			const sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return _.clone(arr).sort((a, b) => {
 				// If first element is empty push it downard
@@ -101,8 +101,8 @@ _.mixin(
 				}
 
 				// Convert to lowercase and remove special characters
-				var s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
-				var s2lower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
+				const s1lower = a.toLowerCase().replace(/[^a-z0-9]/g, '');
+				const s2lower = b.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 				return s1lower.localeCompare(s2lower) * sortFactor;
 			});
@@ -116,7 +116,7 @@ _.mixin(
 		 */
 		appearsInLast(arr, valueCheck) {
 			// Get list of indexes of desired value
-			var indices = _.compact(
+			const indices = _.compact(
 				arr.filter(data => data === valueCheck).map((_data, index) => index)
 			);
 
@@ -138,7 +138,7 @@ _.mixin(
 		 * @return {*}
 		 */
 		sortNumbers(arr, sortOrder) {
-			var sortFactor = sortOrder === 'desc' ? -1 : 1;
+			const sortFactor = sortOrder === 'desc' ? -1 : 1;
 
 			return arr.sort((a, b) => {
 				return (a - b) * sortFactor;

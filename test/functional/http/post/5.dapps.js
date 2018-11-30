@@ -15,43 +15,43 @@
 'use strict';
 
 require('../../functional.js');
-var Promise = require('bluebird');
-var randomstring = require('randomstring');
-var lisk = require('lisk-elements').default;
-var phases = require('../../../common/phases');
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var apiHelpers = require('../../../common/helpers/api');
-var errorCodes = require('../../../../helpers/api_codes');
-var common = require('./common');
+const Promise = require('bluebird');
+const randomstring = require('randomstring');
+const lisk = require('lisk-elements').default;
+const phases = require('../../../common/phases');
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const apiHelpers = require('../../../common/helpers/api');
+const errorCodes = require('../../../../helpers/api_codes');
+const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 5) register dapp', () => {
-	var transaction;
-	var transactionsToWaitFor = [];
-	var badTransactions = [];
-	var goodTransactions = [];
+	let transaction;
+	const transactionsToWaitFor = [];
+	const badTransactions = [];
+	const goodTransactions = [];
 
-	var account = randomUtil.account();
-	var accountNoFunds = randomUtil.account();
-	var accountMinimalFunds = randomUtil.account();
+	const account = randomUtil.account();
+	const accountNoFunds = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account();
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.transfer({
+		const transaction1 = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		var transaction2 = lisk.transaction.transfer({
+		const transaction2 = lisk.transaction.transfer({
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
-		var promises = [];
+		const promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
 
@@ -176,7 +176,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		describe('description', () => {
 			it('without should be ok', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				delete application.description;
 
 				transaction = lisk.transaction.createDapp({
@@ -209,7 +209,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with empty string should be ok', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.description = '';
 
 				transaction = lisk.transaction.createDapp({
@@ -224,7 +224,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with string longer than maximum(160) should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.description = randomstring.generate({
 					length: 161,
 				});
@@ -247,7 +247,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		describe('icon', () => {
 			it('without should be ok', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				delete application.icon;
 
 				transaction = lisk.transaction.createDapp({
@@ -280,7 +280,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with invalid url should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.icon = 'invalidUrl';
 
 				transaction = lisk.transaction.createDapp({
@@ -298,7 +298,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with invalid file type should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.icon += '.invalid';
 
 				transaction = lisk.transaction.createDapp({
@@ -320,7 +320,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		describe('link', () => {
 			it('with empty string should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.link = '';
 
 				transaction = lisk.transaction.createDapp({
@@ -356,7 +356,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with invalid extension type should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.link += '.invalid';
 
 				transaction = lisk.transaction.createDapp({
@@ -428,7 +428,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with string longer than maximum(32) should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.name = randomstring.generate({
 					length: 33,
 				});
@@ -451,7 +451,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 		describe('tags', () => {
 			it('without should be ok', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				delete application.tags;
 
 				transaction = lisk.transaction.createDapp({
@@ -484,7 +484,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with empty string should be ok', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.tags = '';
 
 				transaction = lisk.transaction.createDapp({
@@ -499,7 +499,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with string longer than maximum(160) should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.tags = randomstring.generate({
 					length: 161,
 				});
@@ -520,7 +520,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with several should be ok', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.tags += `,${randomUtil.applicationName()}`;
 
 				transaction = lisk.transaction.createDapp({
@@ -535,8 +535,8 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with duplicate tag should be ok', () => {
-				var application = randomUtil.application();
-				var tag = application.tags;
+				const application = randomUtil.application();
+				const tag = application.tags;
 				application.tags += `,${tag}`;
 
 				transaction = lisk.transaction.createDapp({
@@ -606,7 +606,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 			});
 
 			it('with integer greater than maximum should fail', () => {
-				var application = randomUtil.application();
+				const application = randomUtil.application();
 				application.type = 2;
 				transaction = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
@@ -626,7 +626,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 
 	describe('transactions processing', () => {
 		it('using registered name should fail', () => {
-			var dapp = randomUtil.application();
+			const dapp = randomUtil.application();
 			dapp.name = randomUtil.guestbookDapp.name;
 			transaction = lisk.transaction.createDapp({
 				passphrase: account.passphrase,
@@ -645,7 +645,7 @@ describe('POST /api/transactions (type 5) register dapp', () => {
 		});
 
 		it('using registered link should fail', () => {
-			var dapp = randomUtil.application();
+			const dapp = randomUtil.application();
 			dapp.link = randomUtil.guestbookDapp.link;
 			transaction = lisk.transaction.createDapp({
 				passphrase: account.passphrase,

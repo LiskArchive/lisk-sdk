@@ -14,36 +14,36 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var lisk = require('lisk-elements').default;
-var modulesLoader = require('../../common/modules_loader');
-var randomUtil = require('../../common/utils/random');
-var accountFixtures = require('../../fixtures/accounts');
-var slots = require('../../../helpers/slots');
-var Diff = require('../../../helpers/diff');
-var testData = require('./test_data/multisignature');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const lisk = require('lisk-elements').default;
+const modulesLoader = require('../../common/modules_loader');
+const randomUtil = require('../../common/utils/random');
+const accountFixtures = require('../../fixtures/accounts');
+const slots = require('../../../helpers/slots');
+const Diff = require('../../../helpers/diff');
+const testData = require('./test_data/multisignature');
 
 const { MULTISIG_CONSTRAINTS } = __testContext.config.constants;
-var Multisignature = rewire('../../../logic/multisignature');
-var validKeypair = testData.validKeypair;
-var validSender = testData.validSender;
-var validTransaction = testData.validTransaction;
-var rawValidTransaction = testData.rawValidTransaction;
-var multiSigAccount1 = testData.multiSigAccount1;
-var multiSigAccount2 = testData.multiSigAccount2;
+const Multisignature = rewire('../../../logic/multisignature');
+const validKeypair = testData.validKeypair;
+const validSender = testData.validSender;
+const validTransaction = testData.validTransaction;
+const rawValidTransaction = testData.rawValidTransaction;
+const multiSigAccount1 = testData.multiSigAccount1;
+const multiSigAccount2 = testData.multiSigAccount2;
 
 describe('multisignature', () => {
-	var transactionMock;
+	let transactionMock;
 	// logic is singular, modules are plural
-	var accountMock;
-	var accountsMock;
+	let accountMock;
+	let accountsMock;
 
-	var dummyBlock;
-	var multisignature;
-	var transaction;
-	var rawTransaction;
-	var sender;
+	let dummyBlock;
+	let multisignature;
+	let transaction;
+	let rawTransaction;
+	let sender;
 
 	beforeEach(() => {
 		transactionMock = {
@@ -82,7 +82,7 @@ describe('multisignature', () => {
 	});
 
 	describe('constructor', () => {
-		var library;
+		let library;
 
 		beforeEach(done => {
 			new Multisignature(
@@ -121,7 +121,7 @@ describe('multisignature', () => {
 		describe('modules', () => {
 			it('should assign accounts', () => {
 				multisignature.bind(accountsMock);
-				var modules = Multisignature.__get__('modules');
+				const modules = Multisignature.__get__('modules');
 
 				return expect(modules).to.eql({
 					accounts: accountsMock,
@@ -174,12 +174,12 @@ describe('multisignature', () => {
 	describe('verify', () => {
 		describe('from multisignature.verify tests', () => {
 			it('should return error when min value is smaller than minimum acceptable value', done => {
-				var minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
-				var keysgroup = [
+				const minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -197,9 +197,12 @@ describe('multisignature', () => {
 		});
 
 		it('should return error when min value is greater than maximum acceptable value', done => {
-			var minimum = MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
-			var keysgroup = [multiSigAccount1.publicKey, multiSigAccount2.publicKey];
-			var transaction = lisk.transaction.registerMultisignature({
+			const minimum = MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
+			const keysgroup = [
+				multiSigAccount1.publicKey,
+				multiSigAccount2.publicKey,
+			];
+			const transaction = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
 				keysgroup,
 				lifetime: 1,
@@ -477,7 +480,7 @@ describe('multisignature', () => {
 			});
 
 			it('should get bytes of valid transaction', () => {
-				var bytes = multisignature.getBytes(transaction);
+				const bytes = multisignature.getBytes(transaction);
 				expect(bytes.toString('utf8')).to.equal(
 					'\u0002\u0002+bd6d0388dcc0b07ab2035689c60a78d3ebb27901c5a5ed9a07262eab1a2e9bd2+addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9'
 				);
@@ -499,7 +502,7 @@ describe('multisignature', () => {
 		});
 
 		it('should set __private.unconfirmedSignatures[sender.address] = false', () => {
-			var unconfirmedSignatures = Multisignature.__get__(
+			const unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
 			return expect(unconfirmedSignatures)
@@ -516,7 +519,7 @@ describe('multisignature', () => {
 		});
 
 		it('should call library.logic.account.merge with expected params', () => {
-			var expectedParams = {
+			const expectedParams = {
 				multisignatures: transaction.asset.multisignature.keysgroup,
 				multimin: transaction.asset.multisignature.min,
 				multilifetime: transaction.asset.multisignature.lifetime,
@@ -561,8 +564,8 @@ describe('multisignature', () => {
 					});
 
 					describe('when key and the address', () => {
-						var key;
-						var address;
+						let key;
+						let address;
 
 						beforeEach(done => {
 							key = member.substring(1);
@@ -650,7 +653,7 @@ describe('multisignature', () => {
 		/* eslint-enable */
 
 		it('should set __private.unconfirmedSignatures[sender.address] = true', () => {
-			var unconfirmedSignatures = Multisignature.__get__(
+			const unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
 			return expect(unconfirmedSignatures)
@@ -667,7 +670,7 @@ describe('multisignature', () => {
 		});
 
 		it('should call library.logic.account.merge with expected params', () => {
-			var expectedParams = {
+			const expectedParams = {
 				multisignatures: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
@@ -725,7 +728,7 @@ describe('multisignature', () => {
 	describe('applyUnconfirmed', () => {
 		describe('when transaction is pending for confirmation', () => {
 			beforeEach(done => {
-				var unconfirmedSignatures = Multisignature.__get__(
+				const unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
 				);
 				unconfirmedSignatures[sender.address] = true;
@@ -744,7 +747,7 @@ describe('multisignature', () => {
 
 		describe('when transaction is not pending confirmation', () => {
 			beforeEach(done => {
-				var unconfirmedSignatures = Multisignature.__get__(
+				const unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
 				);
 				unconfirmedSignatures[sender.address] = false;
@@ -752,7 +755,7 @@ describe('multisignature', () => {
 			});
 
 			it('should set __private.unconfirmedSignatures[sender.address] = true', done => {
-				var unconfirmedSignatures = Multisignature.__get__(
+				const unconfirmedSignatures = Multisignature.__get__(
 					'__private.unconfirmedSignatures'
 				);
 				multisignature.applyUnconfirmed(transaction, sender, () => {
@@ -778,7 +781,7 @@ describe('multisignature', () => {
 			});
 
 			it('should call library.logic.account.merge with expected params', done => {
-				var expectedParams = {
+				const expectedParams = {
 					u_multisignatures: transaction.asset.multisignature.keysgroup,
 					u_multimin: transaction.asset.multisignature.min,
 					u_multilifetime: transaction.asset.multisignature.lifetime,
@@ -832,7 +835,7 @@ describe('multisignature', () => {
 		});
 
 		it('should set __private.unconfirmedSignatures[sender.address] = false', () => {
-			var unconfirmedSignatures = Multisignature.__get__(
+			const unconfirmedSignatures = Multisignature.__get__(
 				'__private.unconfirmedSignatures'
 			);
 			return expect(unconfirmedSignatures)
@@ -849,7 +852,7 @@ describe('multisignature', () => {
 		});
 
 		it('should call library.logic.account.merge with expected params', () => {
-			var expectedParams = {
+			const expectedParams = {
 				u_multisignatures: Diff.reverse(
 					transaction.asset.multisignature.keysgroup
 				),
@@ -905,12 +908,12 @@ describe('multisignature', () => {
 	describe('objectNormalize', () => {
 		describe('min', () => {
 			it('should return error when value is not an integer', () => {
-				var minimum = '2';
-				var keysgroup = [
+				const minimum = '2';
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -926,12 +929,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is a negative integer', () => {
-				var minimum = -1;
-				var keysgroup = [
+				const minimum = -1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -947,12 +950,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
-				var keysgroup = [
+				const minimum = MULTISIG_CONSTRAINTS.MIN.MINIMUM - 1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -967,12 +970,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var minimum = MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
-				var keysgroup = [
+				const minimum = MULTISIG_CONSTRAINTS.MIN.MAXIMUM + 1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -987,12 +990,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is an overflow number', () => {
-				var minimum = Number.MAX_VALUE + 1;
-				var keysgroup = [
+				const minimum = Number.MAX_VALUE + 1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1010,12 +1013,12 @@ describe('multisignature', () => {
 
 		describe('lifetime', () => {
 			it('should return error when value is not an integer', () => {
-				var lifetime = '2';
-				var keysgroup = [
+				const lifetime = '2';
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1031,12 +1034,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is smaller than minimum acceptable value', () => {
-				var lifetime = MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1;
-				var keysgroup = [
+				const lifetime = MULTISIG_CONSTRAINTS.LIFETIME.MINIMUM - 1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime,
@@ -1051,12 +1054,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is greater than maximum acceptable value', () => {
-				var lifetime = MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1;
-				var keysgroup = [
+				const lifetime = MULTISIG_CONSTRAINTS.LIFETIME.MAXIMUM + 1;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime,
@@ -1071,12 +1074,12 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when value is an overflow number', () => {
-				var lifetime = Number.MAX_VALUE;
-				var keysgroup = [
+				const lifetime = Number.MAX_VALUE;
+				const keysgroup = [
 					multiSigAccount1.publicKey,
 					multiSigAccount2.publicKey,
 				];
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1094,8 +1097,8 @@ describe('multisignature', () => {
 
 		describe('keysgroup', () => {
 			it('should return error when it is not an array', () => {
-				var keysgroup = [multiSigAccount1.publicKey];
-				var transaction = lisk.transaction.registerMultisignature({
+				const keysgroup = [multiSigAccount1.publicKey];
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1111,8 +1114,8 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when array length is smaller than minimum acceptable value', () => {
-				var keysgroup = [multiSigAccount1.publicKey];
-				var transaction = lisk.transaction.registerMultisignature({
+				const keysgroup = [multiSigAccount1.publicKey];
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1128,14 +1131,14 @@ describe('multisignature', () => {
 			});
 
 			it('should return error when array length is greater than maximum acceptable value', () => {
-				var keysgroup = Array(
+				const keysgroup = Array(
 					...Array(MULTISIG_CONSTRAINTS.KEYSGROUP.MAX_ITEMS + 1)
 				).map(() => {
 					return `${
 						lisk.cryptography.getKeys(randomUtil.password()).publicKey
 					}`;
 				});
-				var transaction = lisk.transaction.registerMultisignature({
+				const transaction = lisk.transaction.registerMultisignature({
 					passphrase: accountFixtures.genesis.passphrase,
 					keysgroup,
 					lifetime: 1,
@@ -1151,11 +1154,11 @@ describe('multisignature', () => {
 		});
 
 		it('should return transaction when created using createMultisignature', () => {
-			var keysgroup = Array(...Array(10)).map(() => {
+			const keysgroup = Array(...Array(10)).map(() => {
 				return `${lisk.cryptography.getKeys(randomUtil.password()).publicKey}`;
 			});
 
-			var transaction = lisk.transaction.registerMultisignature({
+			const transaction = lisk.transaction.registerMultisignature({
 				passphrase: accountFixtures.genesis.passphrase,
 				keysgroup,
 				lifetime: 1,
@@ -1168,8 +1171,8 @@ describe('multisignature', () => {
 		});
 
 		it('should use the correct format to validate against', () => {
-			var library = Multisignature.__get__('library');
-			var schemaSpy = sinonSandbox.spy(library.schema, 'validate');
+			const library = Multisignature.__get__('library');
+			const schemaSpy = sinonSandbox.spy(library.schema, 'validate');
 			multisignature.objectNormalize(transaction);
 			expect(schemaSpy.calledOnce).to.equal(true);
 			expect(

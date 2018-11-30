@@ -15,7 +15,7 @@
 'use strict';
 
 const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
-var DBSandbox = require('../common/db_sandbox').DBSandbox;
+const DBSandbox = require('../common/db_sandbox').DBSandbox;
 
 describe('Dependency versions', () => {
 	describe('node version', () => {

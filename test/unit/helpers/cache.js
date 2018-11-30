@@ -14,20 +14,20 @@
 
 'use strict';
 
-var redis = require('redis');
-var cache = require('../../../helpers/cache');
+const redis = require('redis');
+const cache = require('../../../helpers/cache');
 
 describe('cache', () => {
 	describe('connect', () => {
-		var redisCreateClientStub;
-		var redisCreateClientOnStub;
-		var redisCreateClientResult;
-		var validCacheEnabled;
-		var validConfig;
-		var validLogger;
-		var validRedisClientError = new Error('Valid redis client error');
-		var err;
-		var result;
+		let redisCreateClientStub;
+		let redisCreateClientOnStub;
+		let redisCreateClientResult;
+		let validCacheEnabled;
+		let validConfig;
+		let validLogger;
+		const validRedisClientError = new Error('Valid redis client error');
+		let err;
+		let result;
 		const READY = 0;
 		const ERROR = 1;
 		const CALLBACK = 1;

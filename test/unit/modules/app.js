@@ -14,7 +14,7 @@
 
 'use strict';
 
-var config = __testContext.config;
+const config = __testContext.config;
 
 describe('app', () => {
 	before(done => {

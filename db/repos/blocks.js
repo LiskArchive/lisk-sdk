@@ -355,7 +355,7 @@ const Queries = {
 	 * @todo Add @returns tag
 	 */
 	loadBlocksData(params) {
-		var limitPart;
+		let limitPart;
 
 		if (!params.id && !params.lastId) {
 			limitPart = 'WHERE "b_height" < ${limit}';
