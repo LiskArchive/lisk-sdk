@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-passphrase",
-	"version": "1.1.0",
+	"version": "1.1.2",
 	"description": "Mnemonic passphrase helpers for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -17,16 +17,15 @@
 		"url": "https://github.com/LiskHQ/lisk-elements/issues"
 	},
 	"engines": {
-		"node": ">=6.3 <=10",
-		"npm": ">=3 <=6"
+		"node": ">=8.10 <=10",
+		"npm": ">=5"
 	},
-	"browser": "dist-browser/index.min.js",
 	"main": "dist-node/index.js",
 	"scripts": {
 		"transpile": "tsc",
 		"transpile:browsertest": "tsc -p tsconfig.browsertest.json",
-		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s lisk --node",
-		"browserify:browsertest": "browserify ./browsertest.build/test/*.js -o ./browsertest.build/browsertest.js -s lisk",
+		"browserify": "browserify ./dist-node/index.js -o ./dist-browser/index.js -s liskPassphrase",
+		"browserify:browsertest": "browserify ./browsertest.build/test/*.js -o ./browsertest.build/browsertest.js -s liskPassphrase",
 		"uglify": "uglifyjs -nm -o ./dist-browser/index.min.js ./dist-browser/index.js",
 		"uglify:browsertest": "uglifyjs -o ./browsertest.build/browsertest.min.js ./browsertest.build/browsertest.js",
 		"clean": "./scripts/clean.sh",

@@ -1,3 +1,18 @@
+/*
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+
 import { Queue } from '../src/queue';
 import { Transaction } from '../src/transaction_pool';
 import { expect } from 'chai';
@@ -49,12 +64,12 @@ describe('Queue', () => {
 		it('should return true if transaction exists in queue', () => {
 			const transaction = transferTransactionInstances[0];
 			queue.enqueueOne(transaction);
-			return expect(queue.exists(transaction)).to.equal(true);
+			return expect(queue.exists(transaction)).to.be.true;
 		});
 
 		it('should return false if transaction does not exist in queue', () => {
 			const transaction = transferTransactionInstances[0];
-			return expect(queue.exists(transaction)).to.equal(false);
+			return expect(queue.exists(transaction)).to.be.false;
 		});
 	});
 
@@ -64,7 +79,7 @@ describe('Queue', () => {
 		const checkIdsExists = (
 			ids: ReadonlyArray<string>,
 		): ((transaction: Transaction) => boolean) => {
-			return (transaction: Transaction) => ids.indexOf(transaction.id) !== -1;
+			return (transaction: Transaction) => ids.includes(transaction.id);
 		};
 
 		beforeEach(() => {

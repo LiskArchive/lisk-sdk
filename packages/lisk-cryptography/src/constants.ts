@@ -12,7 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Mnemonic from 'bip39';
-import * as validation from './validation';
-
-export { Mnemonic, validation };
+export const SIGNED_MESSAGE_PREFIX = 'Lisk Signed Message:\n';

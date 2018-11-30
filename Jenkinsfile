@@ -30,7 +30,11 @@ pipeline {
 			steps {
 				script {
 					cache_file = restoreCache("package.json")
+				}
+				nvm(getNodejsVersion()) {
 					sh 'npm install --verbose'
+				}
+				script {
 					saveCache(cache_file, './node_modules', 10)
 					sh '''
 					if [ ! -f "/home/lisk/.cache/Cypress/$(jq -r .devDependencies.cypress ./packages/lisk-constants/package.json)/Cypress/Cypress" ]; then
@@ -42,36 +46,46 @@ pipeline {
 		}
 		stage('Build') {
 			steps {
-				sh 'npm run build'
+				nvm(getNodejsVersion()) {
+					sh 'npm run build'
+				}
 			}
 		}
 		stage('Run lint') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run lint'
+					nvm(getNodejsVersion()) {
+						sh 'npm run lint'
+					}
 				}
 			}
 		}
 		stage('Run tests') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run test'
+					nvm(getNodejsVersion()) {
+						sh 'npm run test'
+					}
 				}
 			}
 		}
 		stage('Run node tests') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run test:node'
+					nvm(getNodejsVersion()) {
+						sh 'npm run test:node'
+					}
 				}
 			}
 		}
 		stage('Run browser tests') {
 			steps {
-				sh '''
-				npm run build:browsertest
-				npm run test:browser
-				'''
+				nvm(getNodejsVersion()) {
+					sh '''
+					npm run build:browsertest
+					npm run test:browser
+					'''
+				}
 			}
 		}
 	}

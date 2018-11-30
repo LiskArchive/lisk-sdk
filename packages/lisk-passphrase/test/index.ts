@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import passphrase from '../src';
+import * as passphrase from '../src';
 
 describe('passphrase index.js', () => {
 	it('should export an object', () => {
