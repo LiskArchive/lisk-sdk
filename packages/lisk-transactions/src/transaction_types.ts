@@ -22,6 +22,12 @@ export interface Account {
 	readonly unconfirmedBalance: string;
 }
 
+export interface MultisignatureAccount extends Account {
+	readonly min: number;
+	readonly lifetime: number;
+	readonly members: ReadonlyArray<Account>;
+}
+
 export interface Delegate {
 	readonly approval: number;
 	readonly missedBlocks: number;

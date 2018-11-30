@@ -215,13 +215,13 @@ export abstract class BaseTransaction {
 			this.fee,
 		);
 
-		// Check multisig
-		const multisigVerified = sender.secondPublicKey
+		// Check secondPublicKey
+		const verified = sender.secondPublicKey
 			? verifyTransaction(this.toJSON(), sender.secondPublicKey)
 			: true;
 
 		return {
-			verified: balanceVerified && multisigVerified,
+			verified: balanceVerified && verified,
 			errors,
 		};
 	}

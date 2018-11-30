@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
 import { BaseTransaction } from '../src/base_transaction';
 import * as utils from '../src/utils';
@@ -164,6 +165,27 @@ describe('Base transaction class', () => {
 
 				return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
 			});
+
+			it('should call cryptography.hexToBuffer once', () => {
+				const hexToBufferStub = sandbox
+					.stub(cryptography, 'hexToBuffer')
+					.returns(Buffer.from('senderPublicKey'));
+				baseTransaction.getBytes();
+
+				return expect(hexToBufferStub).to.be.calledWithExactly(
+					baseTransaction.senderPublicKey,
+				);
+			});
+
+			it('should call cryptography.bigNumberToBuffer once when recipientId provided', () => {
+				const bigNumberToBufferStub = sandbox
+					.stub(cryptography, 'bigNumberToBuffer')
+					.returns(Buffer.from('recipientId'));
+
+				baseTransaction.getBytes();
+
+				return expect(bigNumberToBufferStub).to.be.calledOnce;
+			});
 		});
 
 		describe('when transaction is signed', () => {
@@ -180,6 +202,33 @@ describe('Base transaction class', () => {
 				);
 
 				return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+			});
+
+			it('should call cryptography.hexToBuffer twice', () => {
+				const hexToBufferStub = sandbox
+					.stub(cryptography, 'hexToBuffer')
+					.onFirstCall()
+					.returns(Buffer.from('senderPublicKey'))
+					.onSecondCall()
+					.returns(Buffer.from('signature'));
+				baseTransaction.getBytes();
+
+				expect(hexToBufferStub).calledWithExactly(
+					baseTransaction.senderPublicKey,
+				);
+				return expect(hexToBufferStub).calledWithExactly(
+					baseTransaction.signature,
+				);
+			});
+
+			it('should call cryptography.bigNumberToBuffer once when recipientId provided', () => {
+				const bigNumberToBufferStub = sandbox
+					.stub(cryptography, 'bigNumberToBuffer')
+					.returns(Buffer.from('recipientId'));
+
+				baseTransaction.getBytes();
+
+				return expect(bigNumberToBufferStub).to.be.calledOnce;
 			});
 		});
 
@@ -201,6 +250,36 @@ describe('Base transaction class', () => {
 				);
 
 				return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
+			});
+
+			it('should call cryptography.hexToBuffer thrice', () => {
+				const hexToBufferStub = sandbox
+					.stub(cryptography, 'hexToBuffer')
+					.onFirstCall()
+					.returns(Buffer.from('senderPublicKey'))
+					.onSecondCall()
+					.returns(Buffer.from('signature'))
+					.onThirdCall()
+					.returns(Buffer.from('signSignature'));
+				baseTransaction.getBytes();
+
+				expect(hexToBufferStub).calledWithExactly(
+					baseTransaction.senderPublicKey,
+				);
+				expect(hexToBufferStub).calledWithExactly(baseTransaction.signature);
+				return expect(hexToBufferStub).calledWithExactly(
+					baseTransaction.signSignature,
+				);
+			});
+
+			it('should call cryptography.bigNumberToBuffer once when recipientId provided', () => {
+				const bigNumberToBufferStub = sandbox
+					.stub(cryptography, 'bigNumberToBuffer')
+					.returns(Buffer.from('recipientId'));
+
+				baseTransaction.getBytes();
+
+				return expect(bigNumberToBufferStub).to.be.calledOnce;
 			});
 		});
 	});
@@ -226,8 +305,9 @@ describe('Base transaction class', () => {
 		});
 
 		describe('when given invalid data', () => {
+			let invalidTransaction: any;
 			beforeEach(() => {
-				const invalidTransaction = {
+				invalidTransaction = {
 					type: 4,
 					amount: '0',
 					fee: '3000000000',
@@ -256,7 +336,29 @@ describe('Base transaction class', () => {
 				return Promise.resolve();
 			});
 
-			it('should return an object with boolean `validated` = false for invalid input', () => {
+			it('should call validateTransaction', () => {
+				const transaction = baseTransaction.toJSON();
+				const validateTransactionStub = sandbox
+					.stub(utils, 'validateTransaction')
+					.returns({ valid: true });
+				baseTransaction.validate();
+				return expect(validateTransactionStub).to.be.calledWithExactly(
+					transaction,
+				);
+			});
+
+			it('should call verifyTransaction', () => {
+				const transaction = baseTransaction.toJSON();
+				const validateTransactionStub = sandbox
+					.stub(utils, 'verifyTransaction')
+					.returns({ valid: true });
+				baseTransaction.validate();
+				return expect(validateTransactionStub).to.be.calledWithExactly(
+					transaction,
+				);
+			});
+
+			it('should return an object with boolean `validated` = false', () => {
 				const { validated } = baseTransaction.validate();
 
 				return expect(validated).to.not.be.true;
@@ -325,6 +427,22 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#verifyAgainstState', () => {
+		it('should call verifyTransaction for account with secondPublicKey', () => {
+			const transaction = baseTransaction.toJSON();
+			const senderAccountWithSecondPublicKey = {
+				...defaultSenderAccount,
+				secondPublicKey: '123456789',
+			};
+			const verifyTransactionStub = sandbox
+				.stub(utils, 'verifyTransaction')
+				.returns({ valid: true });
+			baseTransaction.verifyAgainstState(senderAccountWithSecondPublicKey);
+			return expect(verifyTransactionStub).to.be.calledWithExactly(
+				transaction,
+				senderAccountWithSecondPublicKey.secondPublicKey,
+			);
+		});
+
 		describe('when receiving account state with sufficient balance', () => {
 			it('should return an object with boolean `verified` = true', () => {
 				const { verified } = baseTransaction.verifyAgainstState(
