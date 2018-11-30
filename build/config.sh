@@ -14,7 +14,7 @@
 
 # shellcheck disable=SC2034
 
-VERSION="$VERSION"
+VERSION="$LISK_VERSION"
 OS=$(uname)
 ARCH="${ARCH:-$( uname -m )}"
 BUILD_NAME="lisk-$VERSION-$OS-$ARCH"
@@ -37,11 +37,8 @@ LISK_SCRIPTS_DIR="lisk-scripts-$LISK_SCRIPTS_VERSION"
 LISK_SCRIPTS_FILE="$LISK_SCRIPTS_DIR.tar.gz"
 LISK_SCRIPTS_URL="https://github.com/LiskHQ/lisk-scripts/archive/v$LISK_SCRIPTS_VERSION.tar.gz"
 
-NODE_VERSION="8.13.0"
-NODE_SHA256SUM="8fa1227b28113e25a8960d7fa6779a8c18bf20cfaafc9c5d0e46a3ee88373669"
 NODE_DIR="node-v$NODE_VERSION-linux-x64"
 NODE_FILE="$NODE_DIR.tar.xz"
-NODE_BIN_URL="https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"
 
 POSTGRESQL_VERSION="10.6"
 POSTGRESQL_SHA256SUM="95b7573acc6c5554ab06dbf224c1315bd1d008f5d1a12bcb6c9c5edee0c5fddb"
