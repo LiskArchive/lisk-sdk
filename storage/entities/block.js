@@ -138,6 +138,30 @@ class Block extends BaseEntity {
 			.then(dataValues => toEntity(dataValues));
 	}
 
+	/**
+	 * Create object record
+	 *
+	 * @param {Object} data
+	 * @param {Object} [options]
+	 * @param {Object} tx - Transaction object
+	 * @return {*}
+	 */
+	// eslint-disable-next-line no-unused-vars
+	create(data, options = {}, tx) {
+		const objectData = data;
+		const createSet = this.getValuesSet(objectData);
+		const attributes = Object.keys(data)
+			.map(k => `"${this.fields[k].fieldName}"`)
+			.join(',');
+
+		return this.adapter.executeFile(
+			this.SQLs.create,
+			{ attributes, createSet },
+			{},
+			tx
+		);
+	}
+
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE];
 	}
