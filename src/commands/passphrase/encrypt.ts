@@ -13,33 +13,64 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import {
+	encryptPassphraseWithPassword,
+	getKeys,
+	stringifyEncryptedPassphrase,
+} from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
+import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
-import { getInputsFromSources } from '../../utils/input';
+import { getInputsFromSources, InputFromSourceOutput } from '../../utils/input';
 
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';
 
-const processInputs = outputPublicKey => ({ passphrase, password }) => {
-	const encryptedPassphraseObject = cryptography.encryptPassphraseWithPassword(
+const processInputs = (outputPublicKey: boolean) => ({
+	passphrase,
+	password,
+}: InputFromSourceOutput) => {
+	if (!passphrase) {
+		throw new ValidationError('No passphrase was provided');
+	}
+	if (!password) {
+		throw new ValidationError('No password was provided');
+	}
+
+	const encryptedPassphraseObject = encryptPassphraseWithPassword(
 		passphrase,
 		password,
 	);
-	const encryptedPassphrase = cryptography.stringifyEncryptedPassphrase(
+	const encryptedPassphrase = stringifyEncryptedPassphrase(
 		encryptedPassphraseObject,
 	);
+
 	return outputPublicKey
 		? {
 				encryptedPassphrase,
-				publicKey: cryptography.getKeys(passphrase).publicKey,
+				publicKey: getKeys(passphrase).publicKey,
 			}
 		: { encryptedPassphrase };
 };
 
 export default class EncryptCommand extends BaseCommand {
-	async run() {
+	static description = `
+		Encrypts your secret passphrase under a password.
+	`;
+
+	static examples = ['passphrase:encrypt'];
+
+	static flags = {
+		...BaseCommand.flags,
+		password: flagParser.string(commonFlags.password),
+		passphrase: flagParser.string(commonFlags.passphrase),
+		outputPublicKey: flagParser.boolean({
+			description: outputPublicKeyOptionDescription,
+		}),
+	};
+
+	async run(): Promise<void> {
 		const {
 			flags: {
 				passphrase: passphraseSource,
@@ -61,18 +92,3 @@ export default class EncryptCommand extends BaseCommand {
 		this.print(result);
 	}
 }
-
-EncryptCommand.flags = {
-	...BaseCommand.flags,
-	password: flagParser.string(commonFlags.password),
-	passphrase: flagParser.string(commonFlags.passphrase),
-	outputPublicKey: flagParser.boolean({
-		description: outputPublicKeyOptionDescription,
-	}),
-};
-
-EncryptCommand.description = `
-Encrypts your secret passphrase under a password.
-`;
-
-EncryptCommand.examples = ['passphrase:encrypt'];
