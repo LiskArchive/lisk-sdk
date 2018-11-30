@@ -14,6 +14,8 @@
 
 'use strict';
 
+/* eslint-disable class-methods-use-this */
+
 const { EventEmitter } = require('events');
 const { ImplementationPendingError } = require('../errors');
 
@@ -30,32 +32,34 @@ class BaseAdapter extends EventEmitter {
 		this.inTest = options.inTest;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	connect() {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	disconnect() {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	execute() {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
+	transaction() {
+		throw new ImplementationPendingError();
+	}
+
+	task() {
+		throw new ImplementationPendingError();
+	}
+
 	executeFile() {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	loadSQLFile() {
 		throw new ImplementationPendingError();
 	}
 
-	// eslint-disable-next-line class-methods-use-this
 	parseQueryComponent() {
 		throw new ImplementationPendingError();
 	}
