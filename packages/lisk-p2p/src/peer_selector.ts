@@ -96,26 +96,24 @@ export const selectPeers = (
 		return goodPeer;
 	}
 
-	const selectedPeersList = Array(numOfPeers)
-		.fill(0)
-		.reduce(
-			peerObject => {
-				const index = Math.floor(
-					Math.random() * peerObject.processedPeers.length,
-				);
-				const peer = peerObject.processedPeers[index];
-				// This will ensure that the selected peer is not choosen again by the random function above
-				const tempProcessedPeers = peerObject.processedPeers.filter(
-					(findPeer: Peer) => findPeer !== peer,
-				);
+	const { peerList } = new Array(numOfPeers).fill(0).reduce(
+		peerListObject => {
+			const index = Math.floor(
+				Math.random() * peerListObject.processedPeersArray.length,
+			);
+			const peer = peerListObject.processedPeersArray[index];
+			// This will ensure that the selected peer is not choosen again by the random function above
+			const tempProcessedPeers = peerListObject.processedPeersArray.filter(
+				(findPeer: Peer) => findPeer !== peer,
+			);
 
-				return {
-					peerList: [...peerObject.peerList, peer],
-					processedPeers: tempProcessedPeers,
-				};
-			},
-			{ peerList: [], processedPeers },
-		);
+			return {
+				peerList: [...peerListObject.peerList, peer],
+				processedPeersArray: tempProcessedPeers,
+			};
+		},
+		{ peerList: [], processedPeersArray: processedPeers },
+	);
 
-	return selectedPeersList.peerList;
+	return peerList;
 };
