@@ -44,7 +44,10 @@ class Block extends BaseEntity {
 		this.addField('payloadHash', 'string', { filter: ft.TEXT }, stringToByte);
 		this.addField('payloadLength', 'number', { filter: ft.NUMBER });
 		this.addField('numberOfTransactions', 'number', { filter: ft.NUMBER });
-		this.addField('previousBlock', 'string', { filter: ft.TEXT });
+		this.addField('previousBlockId', 'string', {
+			filter: ft.TEXT,
+			fieldName: 'previousBlock',
+		});
 		this.addField('timestamp', 'number', { filter: ft.NUMBER });
 		this.addField('totalAmount', 'string', { filter: ft.NUMBER });
 		this.addField('totalFee', 'string', { filter: ft.NUMBER });
@@ -69,7 +72,8 @@ class Block extends BaseEntity {
 	 * @return {*}
 	 */
 	get(filters = {}, options = {}, tx) {
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'fieldSet']),
@@ -111,7 +115,8 @@ class Block extends BaseEntity {
 			_.pick(options, ['limit', 'offset', 'fieldSet']),
 			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
 		);
-		const parsedFilters = this.parseFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 
 		const params = Object.assign(
 			{},
@@ -135,6 +140,21 @@ class Block extends BaseEntity {
 
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE];
+	}
+
+	mergeFilters(filters) {
+		const mergedFilters = filters;
+
+		if (Array.isArray(mergedFilters)) {
+			const lastIndex = mergedFilters.length - 1;
+			mergedFilters[lastIndex] = Object.assign(
+				{},
+				mergedFilters[lastIndex],
+				this.defaultFilters
+			);
+			return mergedFilters;
+		}
+		return Object.assign({}, mergedFilters, this.defaultFilters);
 	}
 }
 
