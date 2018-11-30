@@ -152,8 +152,7 @@ class Block extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	// eslint-disable-next-line no-unused-vars
-	create(data, options = {}, tx) {
+	create(data, _options, tx) {
 		const objectData = data;
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
@@ -198,8 +197,7 @@ class Block extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	// eslint-disable-next-line no-unused-vars
-	isPersisted(filters, options = {}, tx) {
+	isPersisted(filters, _options, tx) {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
