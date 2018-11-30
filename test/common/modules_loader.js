@@ -93,7 +93,7 @@ var modulesLoader = new function() {
 							new Account(scope.db, scope.schema, scope.logger, accountCb);
 						},
 					},
-					(__err, result) => {
+					(err, result) => {
 						new Logic(
 							scope.db,
 							scope.ed,

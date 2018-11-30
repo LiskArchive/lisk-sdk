@@ -36,8 +36,8 @@ describe('Dependency versions', () => {
 
 		it('should be 10.x', done => {
 			dbSandbox = new DBSandbox(__testContext.config.db, 'postgresql-version');
-			dbSandbox.create((createErr, __db) => {
-				const Queries = new QueriesHelper(null, __db);
+			dbSandbox.create((createErr, db) => {
+				const Queries = new QueriesHelper(null, db);
 				Queries.getPostgresVersion().then(data => {
 					try {
 						expect(data[0].version).to.contain('PostgreSQL 10.');

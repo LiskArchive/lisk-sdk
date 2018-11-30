@@ -208,8 +208,8 @@ describe('app', () => {
 					).filter(a => a); // We call filter here to remove null values
 
 					// Get accounts from database
-					return Queries.getAccounts().then(_accounts => {
-						accounts = _accounts;
+					return Queries.getAccounts().then(gotAccounts => {
+						accounts = gotAccounts;
 					});
 				});
 

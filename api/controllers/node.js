@@ -45,11 +45,11 @@ function NodeController(scope) {
 /**
  * Description of the function.
  *
- * @param {Object} _context
+ * @param {Object} context
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getConstants = function(_context, next) {
+NodeController.getConstants = function(context, next) {
 	return modules.node.shared.getConstants(null, (err, data) => {
 		try {
 			if (err) {
@@ -82,11 +82,11 @@ NodeController.getConstants = function(_context, next) {
 /**
  * Description of the function.
  *
- * @param {Object} _context
+ * @param {Object} context
  * @param {function} next
  * @todo Add description for the function and the params
  */
-NodeController.getStatus = function(_context, next) {
+NodeController.getStatus = function(context, next) {
 	return modules.node.shared.getStatus(null, (getStatusErr, data) => {
 		try {
 			if (getStatusErr) {
