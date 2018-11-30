@@ -16,7 +16,10 @@
 
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
-const { NonSupportedFilterTypeError } = require('../errors');
+const {
+	NonSupportedFilterTypeError,
+	NonSupportedOperationError,
+} = require('../errors');
 const { blocks: { toEntity } } = require('../mappers');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
@@ -163,6 +166,28 @@ class Block extends BaseEntity {
 			{},
 			tx
 		);
+	}
+
+	/**
+	 * Update operation is not supported for Blocks
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	update() {
+		throw new NonSupportedOperationError();
+	}
+
+	/**
+	 * Update operation is not supported for Blocks
+	 *
+	 * @override
+	 * @throws {NonSupportedOperationError}
+	 */
+	// eslint-disable-next-line class-methods-use-this
+	updateOne() {
+		throw new NonSupportedOperationError();
 	}
 
 	/**
