@@ -77,7 +77,7 @@ describe('passphrase:decrypt', () => {
 					password: {
 						source: undefined,
 					},
-					data: null,
+					data: undefined,
 				});
 				expect(cryptography.parseEncryptedPassphrase).to.be.calledWithExactly(
 					defaultEncryptedPassphrase,
