@@ -53,7 +53,6 @@ class Block extends BaseEntity {
 
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('blocks/get_simple.sql'),
-			selectFull: this.adapter.loadSQLFile('blocks/get_full.sql'),
 		};
 	}
 
@@ -85,7 +84,6 @@ class Block extends BaseEntity {
 		return this.adapter.executeFile(
 			{
 				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				[this.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[parsedOptions.fieldSet],
 			params,
 			{},
@@ -123,7 +121,6 @@ class Block extends BaseEntity {
 		return this.adapter.executeFile(
 			{
 				[Block.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				[Block.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[parsedOptions.fieldSet],
 			params,
 			{ expectedResult: 1 },
@@ -132,12 +129,11 @@ class Block extends BaseEntity {
 	}
 
 	getFieldSets() {
-		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
+		return [this.FIELD_SET_SIMPLE];
 	}
 }
 
 Block.prototype.FIELD_SET_SIMPLE = 'FIELD_SET_SIMPLE';
-Block.prototype.FIELD_SET_FULL = 'FIELD_SET_FULL';
 Block.prototype.defaultOptions = {
 	limit: 10,
 	offset: 0,
