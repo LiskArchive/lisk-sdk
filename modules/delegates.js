@@ -686,7 +686,6 @@ Delegates.prototype.updateForgingStatus = function(
  * Gets delegate list based on input function by vote and changes order.
  *
  * @param {number} round
- * @param {function} memo - Source function for get delegates
  * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback} cb, err, truncated delegate list
