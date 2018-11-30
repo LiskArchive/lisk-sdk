@@ -121,7 +121,7 @@ const connectSteps = {
 		// Register RPC methods on peer
 		peer = _.reduce(
 			wsServer.endpoints.rpc,
-			(peerExtendedWithRPC, _localHandler, rpcProcedureName) => {
+			(peerExtendedWithRPC, localHandler, rpcProcedureName) => {
 				peerExtendedWithRPC.rpc[rpcProcedureName] = (data, rpcCallback) => {
 					// Provide default parameters if called with non standard parameter, callback
 					if (typeof rpcCallback !== 'function') {
@@ -164,7 +164,7 @@ const connectSteps = {
 		// Register Publish methods on peer
 		return _.reduce(
 			wsServer.endpoints.event,
-			(peerExtendedWithPublish, _localHandler, eventProcedureName) => {
+			(peerExtendedWithPublish, localHandler, eventProcedureName) => {
 				peerExtendedWithPublish.rpc[eventProcedureName] = data => {
 					logger.trace(
 						`[Outbound socket :: emit] Peer event '${eventProcedureName}' called with data`,
