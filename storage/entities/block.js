@@ -166,13 +166,13 @@ class Block extends BaseEntity {
 	}
 
 	/**
-	 * Get list of accounts
+	 * Get list of blocks
 	 *
-	 * @param {filters.Account|filters.Account[]} [filters = {}]
+	 * @param {filters.Block|filters.Block[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
+	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
 	 * @return {*}
 	 */
@@ -291,7 +291,7 @@ class Block extends BaseEntity {
 	/**
 	 * Check if the record exists with following conditions
 	 *
-	 * @param {filters.Account} filters
+	 * @param {filters.Block} filters
 	 * @param {Object} [options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
