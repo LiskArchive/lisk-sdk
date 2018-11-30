@@ -105,7 +105,6 @@ class Delegates {
  * @private
  * @param {number} round - Round Number
  * @param {array} delegatesList - Delegate list
- * @returns {Void}
  */
 __private.updateDelegateListCache = function(round, delegatesList) {
 	library.logger.debug('Updating delegate list cache for round', round);
@@ -125,7 +124,6 @@ __private.updateDelegateListCache = function(round, delegatesList) {
 /**
  * Invalidates the cached delegate list.
  *
- * @returns {Void}
  */
 Delegates.prototype.clearLastDelegateListCache = function() {
 	library.logger.debug('Clearing delegate list cache.');
