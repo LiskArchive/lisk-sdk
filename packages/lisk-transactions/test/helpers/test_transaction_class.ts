@@ -1,7 +1,7 @@
 import { BaseTransaction } from '../../src/base_transaction';
 import { TransactionJSON, VerifyReturn } from '../../src/transaction_types';
 
-export class Transaction extends BaseTransaction {
+export class TestTransaction extends BaseTransaction {
 	public prepareTransaction(passphrase: string, secondPassphrase?: string) {
 		const mockSignature = passphrase.toUpperCase();
 		const secondMockSignature = secondPassphrase

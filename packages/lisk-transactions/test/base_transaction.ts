@@ -19,7 +19,7 @@ import * as utils from '../src/utils';
 import { TransactionJSON } from '../src/transaction_types';
 import { TransactionError } from '../src/errors';
 import BigNum from 'browserify-bignum';
-import { Transaction } from './helpers/test_transaction_class';
+import { TestTransaction } from './helpers/test_transaction_class';
 
 describe('Base transaction class', () => {
 	const defaultSignature =
@@ -53,7 +53,7 @@ describe('Base transaction class', () => {
 	let baseTransaction: BaseTransaction;
 
 	beforeEach(() => {
-		baseTransaction = new Transaction(defaultTransaction);
+		baseTransaction = new TestTransaction(defaultTransaction);
 	});
 
 	it('should have amount of type BigNum', () => {
@@ -133,7 +133,7 @@ describe('Base transaction class', () => {
 		});
 
 		it('should call normalizeInput with provided rawTransaction', () => {
-			baseTransaction = new Transaction(defaultTransaction);
+			baseTransaction = new TestTransaction(defaultTransaction);
 			return expect(normalizeInputStub).to.be.calledWithExactly(
 				defaultTransaction,
 			);
@@ -152,7 +152,7 @@ describe('Base transaction class', () => {
 		describe('when transaction is unsigned', () => {
 			beforeEach(() => {
 				const { signature, ...unsignedTransaction } = defaultTransaction;
-				baseTransaction = new Transaction(unsignedTransaction);
+				baseTransaction = new TestTransaction(unsignedTransaction);
 
 				return Promise.resolve();
 			});
@@ -181,7 +181,6 @@ describe('Base transaction class', () => {
 				const bigNumberToBufferStub = sandbox
 					.stub(cryptography, 'bigNumberToBuffer')
 					.returns(Buffer.from('recipientId'));
-
 				baseTransaction.getBytes();
 
 				return expect(bigNumberToBufferStub).to.be.calledOnce;
@@ -190,7 +189,7 @@ describe('Base transaction class', () => {
 
 		describe('when transaction is signed', () => {
 			beforeEach(() => {
-				baseTransaction = new Transaction(defaultTransaction);
+				baseTransaction = new TestTransaction(defaultTransaction);
 
 				return Promise.resolve();
 			});
@@ -225,7 +224,6 @@ describe('Base transaction class', () => {
 				const bigNumberToBufferStub = sandbox
 					.stub(cryptography, 'bigNumberToBuffer')
 					.returns(Buffer.from('recipientId'));
-
 				baseTransaction.getBytes();
 
 				return expect(bigNumberToBufferStub).to.be.calledOnce;
@@ -238,7 +236,7 @@ describe('Base transaction class', () => {
 					...defaultTransaction,
 					signSignature: defaultSignature,
 				};
-				baseTransaction = new Transaction(signedTransaction);
+				baseTransaction = new TestTransaction(signedTransaction);
 
 				return Promise.resolve();
 			});
@@ -276,7 +274,6 @@ describe('Base transaction class', () => {
 				const bigNumberToBufferStub = sandbox
 					.stub(cryptography, 'bigNumberToBuffer')
 					.returns(Buffer.from('recipientId'));
-
 				baseTransaction.getBytes();
 
 				return expect(bigNumberToBufferStub).to.be.calledOnce;
@@ -293,7 +290,7 @@ describe('Base transaction class', () => {
 	describe('#validate', () => {
 		describe('when given valid signed transaction', () => {
 			beforeEach(() => {
-				baseTransaction = new Transaction(defaultTransaction);
+				baseTransaction = new TestTransaction(defaultTransaction);
 				return Promise.resolve();
 			});
 
@@ -332,7 +329,7 @@ describe('Base transaction class', () => {
 						'57b54da646c7567df86fec60aa57a40bfadb6cdc65cccecfc442c822a7b0372f4958a280edd3fc2d83d38e2d3bf922a1da01249c500f0309a9638e941a21c501',
 					id: '13916871066741078807',
 				};
-				baseTransaction = new Transaction(invalidTransaction as any);
+				baseTransaction = new TestTransaction(invalidTransaction as any);
 				return Promise.resolve();
 			});
 
@@ -376,7 +373,7 @@ describe('Base transaction class', () => {
 			describe('when given transaction with invalid or missing type', () => {
 				beforeEach(() => {
 					const { type, ...invalidTypeTransaction } = defaultTransaction;
-					baseTransaction = new Transaction(invalidTypeTransaction as any);
+					baseTransaction = new TestTransaction(invalidTypeTransaction as any);
 					return Promise.resolve();
 				});
 
@@ -393,7 +390,7 @@ describe('Base transaction class', () => {
 			describe('when given transaction with no signature', () => {
 				beforeEach(() => {
 					const { signature, ...unsignedTransaction } = defaultTransaction;
-					baseTransaction = new Transaction(unsignedTransaction as any);
+					baseTransaction = new TestTransaction(unsignedTransaction as any);
 					return Promise.resolve();
 				});
 
@@ -497,7 +494,7 @@ describe('Base transaction class', () => {
 
 	describe('#apply', () => {
 		beforeEach(() => {
-			baseTransaction = new Transaction(defaultTransaction);
+			baseTransaction = new TestTransaction(defaultTransaction);
 
 			return Promise.resolve();
 		});
@@ -531,7 +528,7 @@ describe('Base transaction class', () => {
 
 	describe('#undo', () => {
 		beforeEach(() => {
-			baseTransaction = new Transaction(defaultTransaction);
+			baseTransaction = new TestTransaction(defaultTransaction);
 
 			return Promise.resolve();
 		});
