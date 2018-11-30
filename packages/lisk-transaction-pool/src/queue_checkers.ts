@@ -10,7 +10,7 @@ export const checkTransactionPropertyForValues = (
 	values: ReadonlyArray<string | number>,
 	propertyName: TransactionFilterableKeys,
 ): ((transaction: Transaction) => boolean) => (transaction: Transaction) =>
-	values.indexOf(transaction[propertyName]) !== -1;
+	values.includes(transaction[propertyName]);
 
 export const returnTrueUntilLimit = (
 	limit: number,
