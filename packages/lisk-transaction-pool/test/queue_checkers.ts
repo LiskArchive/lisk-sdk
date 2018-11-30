@@ -8,7 +8,7 @@ describe('queueCheckers', () => {
 	const [unincludedTransaction, ...includedTransactions] = transactions;
 
 	describe('#checkTransactionPropertyForValues', () => {
-		const propertyName: queueCheckers.transactionFilterableKeys =
+		const propertyName: queueCheckers.TransactionFilterableKeys =
 			'senderPublicKey';
 		const values = includedTransactions.map(
 			(transaction: Transaction) => transaction.senderPublicKey,
@@ -75,7 +75,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderPublicKey property', () => {
 			queueCheckers.checkTransactionForSenderPublicKey(includedTransactions);
-			const senderProperty: queueCheckers.transactionFilterableKeys =
+			const senderProperty: queueCheckers.TransactionFilterableKeys =
 				'senderPublicKey';
 			const transactionSenderPublicKeys = includedTransactions.map(
 				(transaction: Transaction) => transaction.senderPublicKey,
@@ -101,7 +101,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transactions id values and id property', () => {
 			queueCheckers.checkTransactionForId(includedTransactions);
-			const idProperty: queueCheckers.transactionFilterableKeys = 'id';
+			const idProperty: queueCheckers.TransactionFilterableKeys = 'id';
 			const transactionIds = includedTransactions.map(
 				(transaction: Transaction) => transaction.id,
 			);
@@ -126,7 +126,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transacitons recipientId values and recipientId property', () => {
 			queueCheckers.checkTransactionForRecipientId(includedTransactions);
-			const recipientProperty: queueCheckers.transactionFilterableKeys =
+			const recipientProperty: queueCheckers.TransactionFilterableKeys =
 				'recipientId';
 			const transactionRecipientIds = includedTransactions.map(
 				(transaction: Transaction) => transaction.recipientId,
@@ -152,7 +152,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transaciton type values and type property', () => {
 			queueCheckers.checkTransactionForTypes(includedTransactions);
-			const typeProperty: queueCheckers.transactionFilterableKeys = 'type';
+			const typeProperty: queueCheckers.TransactionFilterableKeys = 'type';
 			const transactionTypes = includedTransactions.map(
 				(transaction: Transaction) => transaction.type,
 			);
