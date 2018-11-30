@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import Job, { Job } from './job';
 import { Queue } from './queue';
 import * as queueCheckers from './queue_checkers';
 
@@ -31,6 +32,7 @@ export interface TransactionFunctions {
 }
 
 interface TransactionPoolOptions {
+	readonly EXPIRE_TRANSACTIONS_JOB: number;
 	readonly MULTISIGNATURE_TIMEOUT: number;
 	readonly TRANSACTION_TIMEOUT: number;
 }
@@ -48,10 +50,11 @@ interface Queues {
 export class TransactionPool {
 	// tslint:disable-next-line variable-name
 	private readonly _queues: Queues;
+	private readonly EXPIRE_TRANSACTIONS_JOB: number;
 	private readonly MULTISIGNATURE_TIMEOUT: number;
 	private readonly TRANSACTION_TIMEOUT: number;
 
-	public constructor({TRANSACTION_TIMEOUT, MULTISIGNATURE_TIMEOUT}: TransactionPoolOptions) {
+	public constructor({TRANSACTION_TIMEOUT, MULTISIGNATURE_TIMEOUT, EXPIRE_TRANSACTIONS_JOB}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
@@ -61,9 +64,10 @@ export class TransactionPool {
 		};
 		this.TRANSACTION_TIMEOUT = TRANSACTION_TIMEOUT;
 		this.MULTISIGNATURE_TIMEOUT = MULTISIGNATURE_TIMEOUT;
+		this.EXPIRE_TRANSACTIONS_JOB = EXPIRE_TRANSACTIONS_JOB;
 
-		// TODO: move this call to it's job, doing it here to stop linting errors
-		this.expireTransactions();
+		// tslint:disable-next-line
+		new Job(this, this.expireTransactions, this.EXPIRE_TRANSACTIONS_JOB, false)
 	}
 
 	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
