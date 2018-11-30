@@ -14,11 +14,12 @@
  */
 import { Queue } from './queue';
 
-	// tslint:disable
+// tslint:disable
 export interface TransactionObject {
 	readonly id: string;
 	readonly recipientId: string;
 	readonly senderPublicKey: string;
+	readonly type: number;
 	receivedAt?: Date;
 }
 
@@ -72,38 +73,29 @@ export class TransactionPool {
 		this.applyTransactions = applyTransactions;
 	}
 
-	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
-	}
+	public addTransactions(transactions: ReadonlyArray<Transaction>): void {}
 
-	public getProcessableTransactions(limit: number): ReadonlyArray<Transaction> {
-	}
+	public getProcessableTransactions(
+		limit: number,
+	): ReadonlyArray<Transaction> {}
 
-	public onDeleteBlock(block: Block): void {
-	}
+	public onDeleteBlock(block: Block): void {}
 
-	public onNewBlock(block: Block): void {
-	}
+	public onNewBlock(block: Block): void {}
 
-	public onRoundRollback(delegates: ReadonlyArray<string>): void {
-	}
+	public onRoundRollback(delegates: ReadonlyArray<string>): void {}
 
-	public verifyTransaction(): void {
-	}
+	public verifyTransaction(): void {}
 
-	private existsInTransactionPool(transaction: Transaction): boolean {
-	}
+	private existsInTransactionPool(transaction: Transaction): boolean {}
 
-	private expireTransactions(): void {
-	}
+	private expireTransactions(): void {}
 
-	private processVerifiedTransactions(): void {
-	}
+	private processVerifiedTransactions(): void {}
 
-	private validateReceivedTransactions(): void {
-	}
+	private validateReceivedTransactions(): void {}
 
 	private verifyValidatedTransactions(
 		transactions: ReadonlyArray<Transaction>,
-	): void {
-	}
+	): void {}
 }
