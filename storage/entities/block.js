@@ -58,6 +58,8 @@ class Block extends BaseEntity {
 
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('blocks/get_simple.sql'),
+			create: this.adapter.loadSQLFile('blocks/create.sql'),
+			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
 		};
 	}
 
