@@ -20,8 +20,9 @@ describe('api errors module', () => {
 	const defaultMessage = 'this is an error';
 	const defaultErrno = 401;
 
-	beforeEach(async () => {
+	beforeEach(() => {
 		apiError = new APIError();
+		return Promise.resolve();
 	});
 
 	describe('#constructor', () => {
