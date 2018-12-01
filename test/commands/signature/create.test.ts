@@ -13,12 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
+import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as inputUtilsModule from '../../../src/utils/input';
 
 describe('signature:create', () => {
 	const defaultTransaction = {
@@ -51,7 +51,7 @@ describe('signature:create', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				transactions,
@@ -62,8 +62,8 @@ describe('signature:create', () => {
 				validateTransaction: sandbox.stub().returns({ valid: true }),
 			})
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtilsModule,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -107,7 +107,7 @@ describe('signature:create', () => {
 		setupTest()
 			.command(['signature:create', JSON.stringify(defaultTransaction)])
 			.it('should take transaction from arg to create', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -133,7 +133,7 @@ describe('signature:create', () => {
 			.it(
 				'should take transaction from arg and passphrase from flag to create',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
@@ -183,7 +183,7 @@ describe('signature:create', () => {
 			.it(
 				'should take transaction from stdin and create signature object',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: undefined,
 							repeatPrompt: true,
@@ -211,7 +211,7 @@ describe('signature:create', () => {
 			.it(
 				'should take transaction from stdin and sign with passphrase from flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,

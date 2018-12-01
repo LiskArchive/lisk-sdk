@@ -16,18 +16,23 @@
 import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import { getStdIn } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
-import { parseTransactionString } from '../../utils/transactions';
-import { getInputsFromSources } from '../../utils/input';
 import { flags as commonFlags } from '../../utils/flags';
+import { getInputsFromSources } from '../../utils/input';
+import { getStdIn } from '../../utils/input/utils';
+import { parseTransactionString } from '../../utils/transactions';
 
-const getTransactionInput = async () => {
+interface Args {
+	readonly transaction?: string;
+}
+
+const getTransactionInput = async (): Promise<string> => {
 	try {
 		const { data } = await getStdIn({ dataIsRequired: true });
 		if (!data) {
 			throw new ValidationError('No transaction was provided.');
 		}
+
 		return data;
 	} catch (e) {
 		throw new ValidationError('No transaction was provided.');
@@ -35,12 +40,34 @@ const getTransactionInput = async () => {
 };
 
 export default class CreateCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'transaction',
+			description: 'Transaction in JSON format.',
+		},
+	];
+
+	static description = `
+	Create a signature object for a transaction from a multisignature account.
+	Accepts a stringified JSON transaction as an argument.
+	`;
+
+	static examples = [
+		'signature:create \'{"amount":"10","recipientId":"8050281191221330746L","senderPublicKey":"3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b","timestamp":59353522,"type":0,"asset":{},"signature":"b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e604"}\'',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { transaction },
+			args,
 			flags: { passphrase: passphraseSource },
 		} = this.parse(CreateCommand);
 
+		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());
 
 		const transactionObject = parseTransactionString(transactionInput);
@@ -57,6 +84,10 @@ export default class CreateCommand extends BaseCommand {
 			},
 		});
 
+		if (!passphrase) {
+			throw new ValidationError('No passphrase was provided.');
+		}
+
 		const result = transactions.createSignatureObject(
 			transactionObject,
 			passphrase,
@@ -65,24 +96,3 @@ export default class CreateCommand extends BaseCommand {
 		this.print(result);
 	}
 }
-
-CreateCommand.args = [
-	{
-		name: 'transaction',
-		description: 'Transaction in JSON format.',
-	},
-];
-
-CreateCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-};
-
-CreateCommand.description = `
-Create a signature object for a transaction from a multisignature account.
-Accepts a stringified JSON transaction as an argument.
-`;
-
-CreateCommand.examples = [
-	'signature:create \'{"amount":"10","recipientId":"8050281191221330746L","senderPublicKey":"3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b","timestamp":59353522,"type":0,"asset":{},"signature":"b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e604"}\'',
-];
