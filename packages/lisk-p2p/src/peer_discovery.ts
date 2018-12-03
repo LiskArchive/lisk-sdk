@@ -24,8 +24,8 @@ export const discoverPeers = (
 ): PeerConnectionSchema => {
 	// Make a list of peers from peer's peerlist
 	const allPeersOfPeer = Array.from(peersOfPeerList.values()).reduce(
-		(peerListArray: ReadonlyArray<Peer>, peerList) => [
-			...peerListArray,
+		(allPeersArray: ReadonlyArray<Peer>, peerList) => [
+			...allPeersArray,
 			...peerList,
 		],
 	);
