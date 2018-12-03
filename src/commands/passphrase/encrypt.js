@@ -14,10 +14,10 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
-import commonFlags from '../../utils/flags';
-import getInputsFromSources from '../../utils/input';
+import { flags as commonFlags } from '../../utils/flags';
+import { getInputsFromSources } from '../../utils/input';
 
 const outputPublicKeyOptionDescription =
 	'Includes the public key in the output. This option is provided for the convenience of node operators.';

@@ -16,7 +16,6 @@
 import { expect } from 'chai';
 import { query, queryNodeTransaction } from '../../src/utils/query';
 import { APIClient } from '@liskhq/lisk-api-client';
-import { ApiResponse } from '@liskhq/lisk-api-client/dist-node/api_types';
 
 describe('query utils', () => {
 	const defaultEndpoint = 'accounts';
@@ -41,13 +40,7 @@ describe('query utils', () => {
 		},
 	];
 
-	interface MockAPIClient {
-		readonly accounts: {
-			get: () => ApiResponse;
-		};
-	}
-
-	let apiClient: MockAPIClient;
+	let apiClient: APIClient;
 	let response: {
 		readonly data?: unknown;
 		readonly no?: string;
@@ -63,7 +56,7 @@ describe('query utils', () => {
 				accounts: {
 					get: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			queryResult = query(
 				(apiClient as unknown) as APIClient,
 				defaultEndpoint,
@@ -93,13 +86,13 @@ describe('query utils', () => {
 				accounts: {
 					get: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			return Promise.resolve();
 		});
 
 		it('should call API client and should reject with an error', () => {
 			queryResult = query(
-				(apiClient as unknown) as APIClient,
+				apiClient,
 				defaultEndpoint,
 				defaultParameters,
 			);
@@ -122,7 +115,7 @@ describe('query utils', () => {
 				placeholder,
 			};
 			queryResult = query(
-				(apiClient as unknown) as APIClient,
+				apiClient,
 				defaultEndpoint,
 				paramWithPlaceholder,
 			);
@@ -148,9 +141,9 @@ describe('query utils', () => {
 				accounts: {
 					get: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			queryResult = query(
-				(apiClient as unknown) as APIClient,
+				apiClient,
 				defaultEndpoint,
 				defaultParameters,
 			);
@@ -184,7 +177,7 @@ describe('query utils', () => {
 				accounts: {
 					get: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
@@ -209,9 +202,9 @@ describe('query utils', () => {
 				accounts: {
 					get: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			queryResult = query(
-				(apiClient as unknown) as APIClient,
+				apiClient,
 				defaultEndpoint,
 				defaultParameters,
 			);
@@ -239,9 +232,9 @@ describe('query utils', () => {
 				accounts: {
 					get: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			query(
-				(apiClient as unknown) as APIClient,
+				apiClient,
 				defaultEndpoint,
 				defaultArrayParameters,
 			);
@@ -285,7 +278,7 @@ describe('query utils', () => {
 				node: {
 					getTransactions: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			queryResult = queryNodeTransaction(
 				apiClient.node,
 				txnState,
@@ -335,7 +328,7 @@ describe('query utils', () => {
 				node: {
 					getTransactions: sandbox.stub().resolves(response),
 				},
-			};
+			} as any;
 			queryResult = queryNodeTransaction(
 				apiClient.node,
 				txnState,

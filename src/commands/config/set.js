@@ -14,7 +14,7 @@
  *
  */
 import url from 'url';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
 import {
 	CONFIG_VARIABLES,

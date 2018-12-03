@@ -14,11 +14,11 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
-import getInputsFromSources from '../../utils/input';
-import commonFlags from '../../utils/flags';
+import { getInputsFromSources } from '../../utils/input';
+import { flags as commonFlags } from '../../utils/flags';
 
 const processInputs = (nonce, senderPublicKey, message) => ({
 	passphrase,

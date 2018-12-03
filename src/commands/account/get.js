@@ -14,7 +14,7 @@
  *
  */
 import BaseCommand from '../../base';
-import getAPIClient from '../../utils/api';
+import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
 export default class GetCommand extends BaseCommand {

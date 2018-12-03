@@ -15,7 +15,7 @@
  */
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import commonFlags from '../../utils/flags';
+import { flags as commonFlags } from '../../utils/flags';
 import TransferCommand from './create/transfer';
 import SecondPassphraseCommand from './create/second-passphrase';
 import VoteCommand from './create/vote';

@@ -14,10 +14,10 @@
  *
  */
 import BaseCommand from '../../base';
-import parseTransactionString from '../../utils/transactions';
+import { parseTransactionString } from '../../utils/transactions';
 import { ValidationError } from '../../utils/error';
 import { getStdIn } from '../../utils/input/utils';
-import getAPIClient from '../../utils/api';
+import { getAPIClient } from '../../utils/api';
 
 const getTransactionInput = async () => {
 	try {

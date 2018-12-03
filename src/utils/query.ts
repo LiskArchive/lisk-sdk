@@ -1,4 +1,6 @@
 import { APIClient } from '@liskhq/lisk-api-client';
+// tslint:disable-next-line no-submodule-imports
+import { NodeResource } from '@liskhq/lisk-api-client/dist-node/resources/node';
 
 /*
  * LiskHQ/lisk-commander
@@ -86,9 +88,9 @@ export const query = async (
 				);
 
 export const queryNodeTransaction =
-	async (client: APIClient, txnState: string, parameters: QueryParameter | ReadonlyArray<QueryParameter>): Promise<unknown> =>
+	async (client: NodeResource, txnState: string, parameters: ReadonlyArray<QueryParameter>): Promise<unknown> =>
 		Promise.all(
-			parameters.map(param =>
+			parameters.map(async (param: QueryParameter) =>
 				client
 					.getTransactions(txnState, param.query)
 					.then(res =>
