@@ -42,6 +42,7 @@ export const handleResponse = (
 		if (res.data.length > 1) {
 			return res.data;
 		}
+
 		return res.data[0];
 	}
 
