@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { apiMethod } from '../src/api_method';
-import { Resource, ApiHandler } from '../src/api_types';
+import { Resource, APIHandler } from '../src/api_types';
 
 describe('API method module', () => {
 	const GET = 'GET';
@@ -36,7 +36,7 @@ describe('API method module', () => {
 	const secondURLParam = 123;
 	let resource: Resource;
 	let requestResult: object;
-	let handler: ApiHandler;
+	let handler: APIHandler;
 	let validationError: Error;
 
 	beforeEach(() => {

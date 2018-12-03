@@ -1,1 +1,10 @@
-../../../templates/tsconfig-test.json.tmpl
+{
+	"extends": "../tsconfig",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"declaration": false,
+		"target": "es2017",
+		"typeRoots": ["../types", "../../../types", "../node_modules/@types"]
+	},
+	"include": ["../../../types/**/*", "./**/*"]
+}

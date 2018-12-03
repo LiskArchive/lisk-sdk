@@ -13,15 +13,26 @@
  *
  */
 /* tslint:disable no-mixed-interface */
-export type ApiHandler = (
+export type APIHandler = (
 	// tslint:disable-next-line readonly-array
 	...args: Array<number | string | object>
-) => Promise<ApiResponse>;
+) => Promise<APIResponse>;
 
-export interface ApiResponse {
+export interface APIResponse {
 	readonly data: unknown;
 	readonly links: object;
 	readonly meta: object;
+}
+
+export interface APIErrorResponse {
+	readonly error?: string;
+	readonly errors?: ReadonlyArray<APIErrorContents>;
+	readonly message?: string;
+}
+
+export interface APIErrorContents {
+	readonly code?: string;
+	readonly message?: string;
 }
 
 export interface HashMap {
@@ -48,6 +59,6 @@ export interface RequestConfig {
 export interface Resource {
 	readonly headers: HashMap;
 	readonly path: string;
-	readonly request: (data: object, retry: boolean) => Promise<ApiResponse>;
+	readonly request: (data: object, retry: boolean) => Promise<APIResponse>;
 	readonly resourcePath: string;
 }
