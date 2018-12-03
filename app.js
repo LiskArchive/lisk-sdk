@@ -531,7 +531,6 @@ d.run(() => {
 						port: scope.config.wsPort,
 						nonce: scope.config.nonce,
 						blackListedPeers: scope.config.peers.access.blackList,
-						httpServer: {},
 					};
 
 					scope.socketCluster = new SocketCluster(webSocketConfig);
