@@ -105,7 +105,7 @@ class TransactionPool {
 function nextBundle(cb) {
 	self.processBundled(err => {
 		if (err) {
-			library.logger.log('Bundled transaction timer', err);
+			library.logger.error('Bundled transaction timer', err);
 		}
 		return setImmediate(cb);
 	});
@@ -115,7 +115,7 @@ function nextBundle(cb) {
 function nextExpiry(cb) {
 	self.expireTransactions(err => {
 		if (err) {
-			library.logger.log(
+			library.logger.error(
 				'Error while processing the expired transactions',
 				err
 			);
@@ -521,7 +521,7 @@ TransactionPool.prototype.processBundled = function(cb) {
 					if (!transaction) {
 						return setImmediate(eachSeriesCb);
 					}
-					__private.processVerifyTransaction(
+					return __private.processVerifyTransaction(
 						transaction,
 						true,
 						(processVerifyErr, sender) => {
@@ -539,7 +539,7 @@ TransactionPool.prototype.processBundled = function(cb) {
 								);
 								return setImmediate(eachSeriesCb);
 							}
-							self.queueTransaction(transaction, sender, queueErr => {
+							return self.queueTransaction(transaction, sender, queueErr => {
 								if (queueErr) {
 									library.logger.debug(
 										`Failed to queue bundled transaction: ${transaction.id}`,
@@ -591,7 +591,7 @@ TransactionPool.prototype.processUnconfirmedTransaction = function(
 		return self.queueTransaction(transaction, null, cb);
 	}
 
-	__private.processVerifyTransaction(
+	return __private.processVerifyTransaction(
 		transaction,
 		broadcast,
 		(err, sender) => {
@@ -663,7 +663,7 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 				(transaction, eachSeriesCb) => {
 					if (transaction) {
 						ids.push(transaction.id);
-						modules.transactions.undoUnconfirmed(
+						return modules.transactions.undoUnconfirmed(
 							transaction,
 							undoUnconfirmErr => {
 								// Remove transaction from unconfirmed, queued and multisignature lists
@@ -677,7 +677,7 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 								}
 
 								// Transaction successfully undone from unconfirmed states, try moving it to queued list
-								self.processUnconfirmedTransaction(
+								return self.processUnconfirmedTransaction(
 									transaction,
 									false,
 									processUnconfirmErr => {
@@ -696,9 +696,8 @@ TransactionPool.prototype.undoUnconfirmedList = function(cb, tx) {
 							},
 							tx
 						);
-					} else {
-						return setImmediate(eachSeriesCb);
 					}
+					return setImmediate(eachSeriesCb);
 				},
 				eachSeriesErr => setImmediate(balancesSequenceCb, eachSeriesErr)
 			);
@@ -839,7 +838,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 		return setImmediate(cb, 'Transaction is already in unconfirmed state');
 	}
 
-	async.waterfall(
+	return async.waterfall(
 		[
 			function setAccountAndGet(waterCb) {
 				modules.accounts.setAccountAndGet(
@@ -858,7 +857,7 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 				}
 
 				if (sender && transaction.requesterPublicKey && multisignatures) {
-					modules.accounts.getAccount(
+					return modules.accounts.getAccount(
 						{ publicKey: transaction.requesterPublicKey },
 						(err, requester) => {
 							if (!requester) {
@@ -868,9 +867,8 @@ __private.processVerifyTransaction = function(transaction, broadcast, cb, tx) {
 						},
 						tx
 					);
-				} else {
-					return setImmediate(waterCb, null, sender, null);
 				}
+				return setImmediate(waterCb, null, sender, null);
 			},
 			function processTransaction(sender, requester, waterCb) {
 				library.logic.transaction.process(
@@ -937,7 +935,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 					if (!transaction) {
 						return setImmediate(eachSeriesCb);
 					}
-					__private.processVerifyTransaction(
+					return __private.processVerifyTransaction(
 						transaction,
 						false,
 						(processVerifyErr, sender) => {
@@ -951,7 +949,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 								self.removeQueuedTransaction(transaction.id);
 								return setImmediate(eachSeriesCb);
 							}
-							modules.transactions.applyUnconfirmed(
+							return modules.transactions.applyUnconfirmed(
 								transaction,
 								sender,
 								applyUnconfirmErr => {
@@ -1065,23 +1063,26 @@ __private.expireAndUndoUnconfirmedTransactions = (transactions, cb) => {
 			if (!__private.isExpired(transaction)) {
 				return setImmediate(eachSeriesCb);
 			}
-			modules.transactions.undoUnconfirmed(transaction, undoUnconfirmErr => {
-				if (undoUnconfirmErr) {
-					library.logger.error(
-						`Failed to undo unconfirmed transaction: ${transaction.id}`,
-						undoUnconfirmErr
+			return modules.transactions.undoUnconfirmed(
+				transaction,
+				undoUnconfirmErr => {
+					if (undoUnconfirmErr) {
+						library.logger.error(
+							`Failed to undo unconfirmed transaction: ${transaction.id}`,
+							undoUnconfirmErr
+						);
+						return setImmediate(eachSeriesCb, undoUnconfirmErr);
+					}
+					// Remove transaction from unconfirmed, queued and multisignature lists
+					self.removeUnconfirmedTransaction(transaction.id);
+					library.logger.info(
+						`Expired transaction: ${
+							transaction.id
+						} received at: ${transaction.receivedAt.toUTCString()}`
 					);
-					return setImmediate(eachSeriesCb, undoUnconfirmErr);
+					return setImmediate(eachSeriesCb);
 				}
-				// Remove transaction from unconfirmed, queued and multisignature lists
-				self.removeUnconfirmedTransaction(transaction.id);
-				library.logger.info(
-					`Expired transaction: ${
-						transaction.id
-					} received at: ${transaction.receivedAt.toUTCString()}`
-				);
-				return setImmediate(eachSeriesCb);
-			});
+			);
 		},
 		err => setImmediate(cb, err)
 	);

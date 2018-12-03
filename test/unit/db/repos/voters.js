@@ -135,18 +135,18 @@ describe('db', () => {
 			});
 
 			it('should paginate the result properly', function*() {
-				const delegate = accountsFixtures.Delegate();
-				const account1 = accountsFixtures.Account();
-				const account2 = accountsFixtures.Account();
+				const delegate = new accountsFixtures.Delegate();
+				const account1 = new accountsFixtures.Account();
+				const account2 = new accountsFixtures.Account();
 				yield db.accounts.insert(delegate);
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
 
-				const vote1 = accountsFixtures.Dependent({
+				const vote1 = new accountsFixtures.Dependent({
 					accountId: account1.address,
 					dependentId: delegate.publicKey,
 				});
-				const vote2 = accountsFixtures.Dependent({
+				const vote2 = new accountsFixtures.Dependent({
 					accountId: account2.address,
 					dependentId: delegate.publicKey,
 				});
@@ -181,9 +181,9 @@ describe('db', () => {
 			});
 
 			it('should return the all vote objects for a specific address', function*() {
-				const delegate = accountsFixtures.Delegate();
-				const account1 = accountsFixtures.Account();
-				const account2 = accountsFixtures.Account();
+				const delegate = new accountsFixtures.Delegate();
+				const account1 = new accountsFixtures.Account();
+				const account2 = new accountsFixtures.Account();
 				yield db.accounts.insert(delegate);
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
@@ -197,11 +197,11 @@ describe('db', () => {
 					return 0;
 				});
 
-				const vote1 = accountsFixtures.Dependent({
+				const vote1 = new accountsFixtures.Dependent({
 					accountId: account1.address,
 					dependentId: delegate.publicKey,
 				});
-				const vote2 = accountsFixtures.Dependent({
+				const vote2 = new accountsFixtures.Dependent({
 					accountId: account2.address,
 					dependentId: delegate.publicKey,
 				});
@@ -245,18 +245,18 @@ describe('db', () => {
 			});
 
 			it('should return integer type count of total votes of a specific lisk id', function*() {
-				const delegate = accountsFixtures.Delegate();
-				const account1 = accountsFixtures.Account();
-				const account2 = accountsFixtures.Account();
+				const delegate = new accountsFixtures.Delegate();
+				const account1 = new accountsFixtures.Account();
+				const account2 = new accountsFixtures.Account();
 				yield db.accounts.insert(delegate);
 				yield db.accounts.insert(account1);
 				yield db.accounts.insert(account2);
 
-				const vote1 = accountsFixtures.Dependent({
+				const vote1 = new accountsFixtures.Dependent({
 					accountId: account1.address,
 					dependentId: delegate.publicKey,
 				});
-				const vote2 = accountsFixtures.Dependent({
+				const vote2 = new accountsFixtures.Dependent({
 					accountId: account2.address,
 					dependentId: delegate.publicKey,
 				});

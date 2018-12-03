@@ -17,16 +17,12 @@
 				"functions": "never"
 			}
 		],
-		"consistent-return": "off",
-		"eqeqeq": "off",
+		"consistent-return": "error",
 		"func-names": "off",
 		"global-require": "off",
 		"guard-for-in": "off",
 		"generator-star-spacing": ["error", { "before": false, "after": false }],
 		"max-len": "off",
-		"new-cap": "off",
-		"no-bitwise": "off",
-		"no-nested-ternary": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",

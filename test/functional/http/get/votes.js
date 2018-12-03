@@ -19,7 +19,7 @@ var randomstring = require('randomstring');
 var lisk = require('lisk-elements').default;
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
-var swaggerEndpoint = require('../../../common/swagger_spec');
+var SwaggerEndpoint = require('../../../common/swagger_spec');
 var waitFor = require('../../../common/utils/wait_for');
 var apiHelpers = require('../../../common/helpers/api');
 var Bignum = require('../../../../helpers/bignum.js');
@@ -28,7 +28,7 @@ const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
 var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {
-	var votesEndpoint = new swaggerEndpoint('GET /votes');
+	var votesEndpoint = new SwaggerEndpoint('GET /votes');
 	var nonVoterDelegate = accountFixtures.existingDelegate;
 	var voterDelegate = accountFixtures.genesis;
 	var validNotExistingAddress = '11111111111111111111L';

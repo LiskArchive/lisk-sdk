@@ -17,7 +17,7 @@
 var lisk = require('lisk-elements').default;
 var Promise = require('bluebird');
 var accountFixtures = require('../../fixtures/accounts');
-var swaggerSpec = require('../swagger_spec');
+var SwaggerSpec = require('../swagger_spec');
 
 var http = {
 	abstractRequest(options, done) {
@@ -32,6 +32,8 @@ var http = {
 			) {
 				return new Error('Unexpected content-type!');
 			}
+
+			return Promise.resolve();
 		});
 
 		if (options.params) {
@@ -47,7 +49,7 @@ var http = {
 		}
 
 		if (done) {
-			request.end((err, res) => {
+			return request.end((err, res) => {
 				__testContext.debug(
 					'> Status:'.grey,
 					JSON.stringify(res ? res.statusCode : '')
@@ -56,11 +58,10 @@ var http = {
 					'> Response:'.grey,
 					JSON.stringify(res ? res.body : err)
 				);
-				done(err, res);
+				return done(err, res);
 			});
-		} else {
-			return request;
 		}
+		return request;
 	},
 
 	// Get the given path
@@ -82,7 +83,7 @@ var http = {
 function paramsHelper(url, params) {
 	if (
 		typeof params !== 'undefined' &&
-		params != null &&
+		params !== null &&
 		Array.isArray(params) &&
 		params.length > 0
 	) {
@@ -97,7 +98,7 @@ function httpCallbackHelperWithStatus(cb, err, res) {
 	if (err) {
 		return cb(err);
 	}
-	cb(null, {
+	return cb(null, {
 		status: res.status,
 		body: res.body,
 	});
@@ -107,14 +108,14 @@ function httpCallbackHelper(cb, err, res) {
 	if (err) {
 		return cb(err);
 	}
-	cb(null, res.body);
+	return cb(null, res.body);
 }
 
 function httpResponseCallbackHelper(cb, err, res) {
 	if (err) {
 		return cb(err);
 	}
-	cb(null, res);
+	return cb(null, res);
 }
 
 function getNotFoundEndpoint(cb) {
@@ -188,7 +189,7 @@ function getPendingMultisignatures(params, cb) {
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-var postTransactionsEndpoint = new swaggerSpec('POST /transactions');
+var postTransactionsEndpoint = new SwaggerSpec('POST /transactions');
 
 function sendTransactionPromise(transaction, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;

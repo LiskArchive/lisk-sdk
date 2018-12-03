@@ -16,7 +16,7 @@
 
 require('../../functional.js');
 var lisk = require('lisk-elements').default;
-var swaggerSpec = require('../../../common/swagger_spec');
+var SwaggerSpec = require('../../../common/swagger_spec');
 var randomUtil = require('../../../common/utils/random');
 var accountFixtures = require('../../../fixtures/accounts');
 var sendTransactionPromise = require('../../../common/helpers/api')
@@ -25,7 +25,7 @@ var errorCodes = require('../../../../helpers/api_codes');
 var phases = require('../../../common/phases');
 
 describe('POST /api/transactions (general)', () => {
-	var transactionsEndpoint = new swaggerSpec('POST /transactions');
+	var transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
 	const transaction = lisk.transaction.transfer({
 		amount: 1,

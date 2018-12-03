@@ -18,7 +18,7 @@ const lisk = require('lisk-elements').default;
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
-const queriesHelper = require('../../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../../common/integration/sql/queriesHelper.js');
 const localCommon = require('../common');
 const Bignum = require('../../../helpers/bignum.js');
 
@@ -99,7 +99,7 @@ describe('expire transactions', () => {
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
 		transactionPool.hourInSeconds = 0;
-		queries = new queriesHelper(lib, lib.db);
+		queries = new QueriesHelper(lib, lib.db);
 	});
 
 	after('reset states', done => {

@@ -49,17 +49,17 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb(null, { cacheEnabled, client });
 		}
+		return cb(null, { cacheEnabled, client });
 	});
 
-	client.on('error', err => {
+	return client.on('error', err => {
 		logger.error('Redis:', err);
 		// Returns redis client so application can continue to try to connect with the redis server,
 		// and modules/cache can have client reference once it's connected
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb(null, { cacheEnabled, client });
 		}
+		return cb(null, { cacheEnabled, client });
 	});
 };

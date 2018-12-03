@@ -58,37 +58,40 @@ DelegatesController.getDelegates = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.delegates.shared.getDelegates(_.clone(filters), (err, data) => {
-		if (err) {
-			return next(err);
+	return modules.delegates.shared.getDelegates(
+		_.clone(filters),
+		(err, data) => {
+			if (err) {
+				return next(err);
+			}
+
+			data = _.cloneDeep(data);
+
+			data = _.map(data, delegate => {
+				delegate.account = {
+					address: delegate.address,
+					publicKey: delegate.publicKey,
+					secondPublicKey: delegate.secondPublicKey || '',
+				};
+
+				delete delegate.secondPublicKey;
+				delete delegate.publicKey;
+				delete delegate.address;
+
+				delegate.rank = parseInt(delegate.rank);
+
+				return delegate;
+			});
+
+			return next(null, {
+				data,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+				},
+			});
 		}
-
-		data = _.cloneDeep(data);
-
-		data = _.map(data, delegate => {
-			delegate.account = {
-				address: delegate.address,
-				publicKey: delegate.publicKey,
-				secondPublicKey: delegate.secondPublicKey || '',
-			};
-
-			delete delegate.secondPublicKey;
-			delete delegate.publicKey;
-			delete delegate.address;
-
-			delegate.rank = parseInt(delegate.rank);
-
-			return delegate;
-		});
-
-		next(null, {
-			data,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-			},
-		});
-	});
+	);
 };
 
 /**
@@ -106,7 +109,7 @@ DelegatesController.getForgers = function(context, next) {
 		offset: params.offset.value,
 	};
 
-	modules.delegates.shared.getForgers(_.clone(filters), (err, data) => {
+	return modules.delegates.shared.getForgers(_.clone(filters), (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -116,7 +119,7 @@ DelegatesController.getForgers = function(context, next) {
 
 		data.links = {};
 
-		next(null, data);
+		return next(null, data);
 	});
 };
 
@@ -129,30 +132,36 @@ DelegatesController.getForgingStatistics = function(context, next) {
 		end: params.toTimestamp.value,
 	};
 
-	modules.delegates.shared.getForgingStatistics(filters, (err, reward) => {
-		if (err) {
-			if (err === 'Account not found' || err === 'Account is not a delegate') {
-				return next(
-					swaggerHelper.generateParamsErrorObject([params.address], [err])
-				);
+	return modules.delegates.shared.getForgingStatistics(
+		filters,
+		(err, reward) => {
+			if (err) {
+				if (
+					err === 'Account not found' ||
+					err === 'Account is not a delegate'
+				) {
+					return next(
+						swaggerHelper.generateParamsErrorObject([params.address], [err])
+					);
+				}
+				return next(err);
 			}
-			return next(err);
-		}
 
-		return next(null, {
-			data: {
-				fees: reward.fees,
-				rewards: reward.rewards,
-				forged: reward.forged,
-				count: reward.count,
-			},
-			meta: {
-				fromTimestamp: filters.start || EPOCH_TIME.getTime(),
-				toTimestamp: filters.end || Date.now(),
-			},
-			links: {},
-		});
-	});
+			return next(null, {
+				data: {
+					fees: reward.fees,
+					rewards: reward.rewards,
+					forged: reward.forged,
+					count: reward.count,
+				},
+				meta: {
+					fromTimestamp: filters.start || EPOCH_TIME.getTime(),
+					toTimestamp: filters.end || Date.now(),
+				},
+				links: {},
+			});
+		}
+	);
 };
 
 module.exports = DelegatesController;

@@ -33,7 +33,7 @@ var Rules = require('./api/ws/workers/rules');
 var failureCodes = require('./api/ws/rpc/failure_codes');
 var Logger = require('./logger');
 var AppConfig = require('./helpers/config.js');
-var config = AppConfig(require('./package.json'), false);
+var config = new AppConfig(require('./package.json'), false);
 
 /**
  * Instantiate the SocketCluster SCWorker instance with custom logic
@@ -99,11 +99,11 @@ SCWorker.create({
 				handshake: [
 					'system',
 					function(scope, cb) {
-						return cb(null, Handshake(scope.system, scope.config));
+						return cb(null, new Handshake(scope.system, scope.config));
 					},
 				],
 			},
-			(err, scope) => {
+			(_err, scope) => {
 				scServer.addMiddleware(
 					scServer.MIDDLEWARE_HANDSHAKE_WS,
 					(req, next) => {
@@ -123,7 +123,7 @@ SCWorker.create({
 							}
 							// Pass through the WebSocket MIDDLEWARE_HANDSHAKE_WS successfully, but
 							// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
-							next();
+							return next();
 						});
 					}
 				);
@@ -172,7 +172,7 @@ SCWorker.create({
 						} succeeded`
 					);
 
-					updatePeerConnection(
+					return updatePeerConnection(
 						Rules.UPDATES.INSERT,
 						socket,
 						socket.request.peerObject,

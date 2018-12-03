@@ -287,7 +287,7 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 	}
 
 	// Get height of block with supplied ID
-	(tx || library.db).blocks
+	return (tx || library.db).blocks
 		.getHeightByLastId(filter.lastId || null)
 		.then(rows => {
 			const height = rows.length ? rows[0].height : 0;
@@ -419,7 +419,7 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 		}
 
 		// Get calculated rewards
-		library.db.blocks
+		return library.db.blocks
 			.aggregateBlocksReward(params)
 			.then(rows => {
 				let data = rows[0];

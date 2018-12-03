@@ -136,7 +136,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 		const err =
 			'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
-		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
+		if (exceptions.multisignatures.includes(transaction.id)) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(transaction));
 		} else {
@@ -218,7 +218,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 		);
 	}
 
-	async.eachSeries(
+	return async.eachSeries(
 		transaction.asset.multisignature.keysgroup,
 		(key, cb) => {
 			if (!key || typeof key !== 'string') {
@@ -355,7 +355,7 @@ Multisignature.prototype.applyConfirmed = function(
 			}
 
 			// Get public keys
-			async.eachSeries(
+			return async.eachSeries(
 				transaction.asset.multisignature.keysgroup,
 				(transaction, cb) => {
 					const key = transaction.substring(1);
@@ -438,7 +438,7 @@ Multisignature.prototype.applyUnconfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	library.logic.account.merge(
+	return library.logic.account.merge(
 		sender.address,
 		{
 			u_multisignatures: transaction.asset.multisignature.keysgroup,

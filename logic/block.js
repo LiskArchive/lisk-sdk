@@ -228,7 +228,7 @@ class Block {
 	 */
 	objectNormalize(block) {
 		for (const i of Object.keys(block)) {
-			if (block[i] == null || typeof block[i] === 'undefined') {
+			if (block[i] === null || typeof block[i] === 'undefined') {
 				delete block[i];
 			}
 		}
@@ -469,6 +469,7 @@ Block.prototype.getId = function(block) {
 		temp[i] = hash[7 - i];
 	}
 
+	// eslint-disable-next-line new-cap
 	const id = new Bignum.fromBuffer(temp).toString();
 	return id;
 };

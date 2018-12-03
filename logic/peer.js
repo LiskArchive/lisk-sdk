@@ -79,7 +79,7 @@ class Peer {
 
 		peer.wsPort = this.parseInt(peer.wsPort, 0);
 
-		if (peer.httpPort != null) {
+		if (peer.httpPort) {
 			peer.httpPort = this.parseInt(peer.httpPort, 0);
 		}
 		peer.state = this.parseInt(peer.state, Peer.STATE.DISCONNECTED);

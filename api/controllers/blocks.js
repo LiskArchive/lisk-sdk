@@ -56,7 +56,7 @@ BlocksController.getBlocks = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.blocks.shared.getBlocks(_.clone(filters), (err, data) => {
+	return modules.blocks.shared.getBlocks(_.clone(filters), (err, data) => {
 		if (err) {
 			return next(err);
 		}
@@ -77,7 +77,7 @@ BlocksController.getBlocks = function(context, next) {
 			return block;
 		});
 
-		next(null, {
+		return next(null, {
 			data,
 			meta: {
 				offset: filters.offset,

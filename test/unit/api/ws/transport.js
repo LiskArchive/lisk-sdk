@@ -59,7 +59,7 @@ describe('TransportWSApi', () => {
 			wsRPC: wsRPCMock,
 			slaveRPCStub: slaveRPCStubStub,
 		});
-		TransportWSApi(transportModuleMock);
+		new TransportWSApi(transportModuleMock);
 		done();
 	});
 

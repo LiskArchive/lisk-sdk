@@ -77,31 +77,34 @@ TransactionsController.getTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.transactions.shared.getTransactions(_.clone(filters), (err, data) => {
-		if (err) {
-			return next(err);
+	return modules.transactions.shared.getTransactions(
+		_.clone(filters),
+		(err, data) => {
+			if (err) {
+				return next(err);
+			}
+
+			var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
+				transaction.senderId = transaction.senderId || '';
+				transaction.recipientId = transaction.recipientId || '';
+				transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+
+				transaction.amount = transaction.amount.toString();
+				transaction.fee = transaction.fee.toString();
+
+				return transaction;
+			});
+
+			return next(null, {
+				data: transactions,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+					count: parseInt(data.count),
+				},
+			});
 		}
-
-		var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
-			transaction.senderId = transaction.senderId || '';
-			transaction.recipientId = transaction.recipientId || '';
-			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
-
-			transaction.amount = transaction.amount.toString();
-			transaction.fee = transaction.fee.toString();
-
-			return transaction;
-		});
-
-		next(null, {
-			data: transactions,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-				count: parseInt(data.count),
-			},
-		});
-	});
+	);
 };
 
 /**
@@ -114,21 +117,24 @@ TransactionsController.getTransactions = function(context, next) {
 TransactionsController.postTransaction = function(context, next) {
 	var transaction = context.request.swagger.params.transaction.value;
 
-	modules.transactions.shared.postTransaction(transaction, (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = err.code;
-				delete err.code;
+	return modules.transactions.shared.postTransaction(
+		transaction,
+		(err, data) => {
+			if (err) {
+				if (err instanceof ApiError) {
+					context.statusCode = err.code;
+					delete err.code;
+				}
+
+				return next(err);
 			}
 
-			return next(err);
+			return next(null, {
+				data: { message: data },
+				meta: { status: true },
+			});
 		}
-
-		next(null, {
-			data: { message: data },
-			meta: { status: true },
-		});
-	});
+	);
 };
 
 module.exports = TransactionsController;
