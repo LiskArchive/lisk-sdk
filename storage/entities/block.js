@@ -142,8 +142,14 @@ const BaseEntity = require('./base_entity');
  */
 
 class Block extends BaseEntity {
-	constructor() {
+	/**
+	 * Constructor
+	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
+	 */
+	constructor(defaultFilters = {}) {
 		super();
+
+		this.defaultFilters = defaultFilters;
 
 		this.addField('id', 'string', { filter: ft.TEXT });
 		this.addField('height', 'number', { filter: ft.NUMBER });
