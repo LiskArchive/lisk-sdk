@@ -21,11 +21,11 @@ SELECT
 	"totalFee",
 	"reward",
 	"payloadLength",
-	"previousBlock",
+	"previousBlock" as "previousBlockId",
 	"numberOfTransactions",
 	"totalAmount",
 	"timestamp",
-	"version"
+	"version"::text
 FROM
 	blocks
 

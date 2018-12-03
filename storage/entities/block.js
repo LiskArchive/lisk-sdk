@@ -20,7 +20,6 @@ const {
 	NonSupportedFilterTypeError,
 	NonSupportedOperationError,
 } = require('../errors');
-const { blocks: { toEntity } } = require('../mappers');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -191,16 +190,14 @@ class Block extends BaseEntity {
 			{ parsedFilters }
 		);
 
-		return this.adapter
-			.executeFile(
-				{
-					[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				}[parsedOptions.fieldSet],
-				params,
-				{},
-				tx
-			)
-			.then(dataValues => dataValues.map(toEntity));
+		return this.adapter.executeFile(
+			{
+				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
+			}[parsedOptions.fieldSet],
+			params,
+			{},
+			tx
+		);
 	}
 
 	/**
@@ -231,16 +228,14 @@ class Block extends BaseEntity {
 			}
 		);
 
-		return this.adapter
-			.executeFile(
-				{
-					[Block.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				}[parsedOptions.fieldSet],
-				params,
-				{ expectedResult: 1 },
-				tx
-			)
-			.then(dataValues => toEntity(dataValues));
+		return this.adapter.executeFile(
+			{
+				[Block.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
+			}[parsedOptions.fieldSet],
+			params,
+			{ expectedResult: 1 },
+			tx
+		);
 	}
 
 	/**
