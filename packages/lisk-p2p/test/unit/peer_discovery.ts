@@ -17,7 +17,7 @@ import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import { discoverPeers } from '../../src/peer_discovery';
 
-describe('peer disocovery', () => {
+describe('peer discovery', () => {
 	describe('#discoverPeer', () => {
 		const peers = initializePeerList();
 		const peerOption: PeerConfig = {

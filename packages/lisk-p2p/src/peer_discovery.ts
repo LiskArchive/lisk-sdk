@@ -23,11 +23,13 @@ export const discoverPeers = (
 	peersOfPeerList: Map<string, ReadonlyArray<Peer>>,
 ): PeerConnectionSchema => {
 	// Make a list of peers from peer's peerlist
-	const allPeersOfPeer = Array.from(peersOfPeerList.values()).reduce(
-		(allPeersArray: ReadonlyArray<Peer>, peerList) => [
-			...allPeersArray,
-			...peerList,
-		],
+	const allPeersOfPeer = Array.from(peersOfPeerList.values())
+		.reduce<ReadonlyArray<Peer>>(
+			(allPeersArray: ReadonlyArray<Peer>, peerList) => [
+				...allPeersArray,
+				...peerList,
+			],
+		[],
 	);
 
 	// Get unique list of peers based on peer id
