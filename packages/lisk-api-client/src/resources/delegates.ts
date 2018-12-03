@@ -15,14 +15,14 @@
 import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
-import { ApiHandler } from '../api_types';
+import { APIHandler } from '../api_types';
 import { GET } from '../constants';
 
 export class DelegatesResource extends APIResource {
-	public get: ApiHandler;
-	public getForgers: ApiHandler;
-	public getForgingStatistics: ApiHandler;
-	public getStandby: ApiHandler;
+	public get: APIHandler;
+	public getForgers: APIHandler;
+	public getForgingStatistics: APIHandler;
+	public getStandby: APIHandler;
 	public path: string;
 
 	public constructor(apiClient: APIClient) {

@@ -14,7 +14,7 @@
  */
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { APIClient } from './api_client';
-import { ApiResponse, HashMap } from './api_types';
+import { APIErrorResponse, APIResponse, HashMap } from './api_types';
 import { APIError } from './errors';
 
 const API_RECONNECT_MAX_RETRY_COUNT = 3;
@@ -42,12 +42,12 @@ export class APIResource {
 		error: Error,
 		req: AxiosRequestConfig,
 		retryCount: number,
-	): Promise<ApiResponse> {
+	): Promise<APIResponse> {
 		if (this.apiClient.hasAvailableNodes()) {
-			return new Promise<ApiResponse>(resolve =>
+			return new Promise<APIResponse>(resolve =>
 				setTimeout(resolve, REQUEST_RETRY_TIMEOUT),
 			).then(
-				async (): Promise<ApiResponse> => {
+				async (): Promise<APIResponse> => {
 					if (retryCount > API_RECONNECT_MAX_RETRY_COUNT) {
 						throw error;
 					}
@@ -67,26 +67,26 @@ export class APIResource {
 		req: AxiosRequestConfig,
 		retry: boolean,
 		retryCount: number = 1,
-	): Promise<ApiResponse> {
+	): Promise<APIResponse> {
 		const request = Axios.request(req)
 			.then((res: AxiosResponse) => res.data)
 			.catch(
-				(error: AxiosError): Error => {
+				(error: AxiosError): void => {
 					if (error.response) {
-						if (error.response.data && error.response.data.message) {
+						const { status } = error.response;
+						if (error.response.data) {
+							const {
+								error: errorString,
+								errors,
+								message,
+							}: APIErrorResponse = error.response.data;
 							throw new APIError(
-								`Status ${error.response.status} : ${
-									error.response.data.message
-								}`,
-								error.response.status,
+								message || errorString || 'An unknown error has occurred.',
+								status,
+								errors,
 							);
 						}
-						throw new APIError(
-							`Status ${
-								error.response.status
-							} : An unknown error has occurred.`,
-							error.response.status,
-						);
+						throw new APIError('An unknown error has occurred.', status);
 					}
 					throw error;
 				},
