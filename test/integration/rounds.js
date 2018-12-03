@@ -219,23 +219,31 @@ describe('rounds', () => {
 				const bVote = new Bignum(accounts[b].vote);
 				const aPK = accounts[a].publicKey;
 				const bPK = accounts[b].publicKey;
-
-				const bufferComp =
-					// If both are buffers
-					aPK && bPK
-						? // Return result of the compare
-							Buffer.compare(bPK, aPK)
-						: // If both are null - return 0
-							aPK === null && bPK === null
-							? 0
-							: // If first is null - return -1, if not return 1
-								aPK === null ? -1 : 1;
-
 				// Compare vote weights first:
 				// if first is less than second - return -1,
 				// if first is greather than second - return 1,
 				// if both are equal - compare public keys
-				return aVote.lt(bVote) ? -1 : aVote.gt(bVote) ? 1 : bufferComp;
+				if (aVote.lt(bVote)) {
+					return -1;
+				}
+				if (aVote.gt(bVote)) {
+					return 1;
+				}
+				// If both are buffers
+				// Return result of the compare
+				if (aPK && bPK) {
+					return Buffer.compare(bPK, aPK);
+				}
+				// If both are null - return 0
+				if (aPK === null && bPK === null) {
+					return 0;
+				}
+				// If first is null - return -1,
+				if (aPK === null) {
+					return -1;
+				}
+				// if not return 1;
+				return 1;
 			})
 			.map(key => accounts[key])
 			.reverse();
