@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-reference
+/// <reference path="../../../types/browserify-bignum/index.d.ts" />
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
