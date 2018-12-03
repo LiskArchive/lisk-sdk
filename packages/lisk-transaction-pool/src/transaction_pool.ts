@@ -129,7 +129,7 @@ export class TransactionPool {
 	public onRoundRollback(delegates: ReadonlyArray<string>): void {
 		// Move transactions from the verified, pending and ready queues to the validated queue which were sent from delegate accounts
 		const { received, validated, ...otherQueues } = this._queues;
-		const senderProperty: queueCheckers.transactionFilterableKeys =
+		const senderProperty: queueCheckers.TransactionFilterableKeys =
 			'senderPublicKey';
 		const transactionsFromAffectedAccounts = this.removeTransactionsFromQueues(
 			otherQueues,
