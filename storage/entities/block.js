@@ -24,6 +24,24 @@ const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 /**
+ * Basic Block
+ * @typedef {Object} BasicBlock
+ * @property {string} id
+ * @property {string} payloadHash
+ * @property {string} generatorPublicKey
+ * @property {string} blockSignature
+ * @property {number} height
+ * @property {string} totalFee
+ * @property {string} reward
+ * @property {number} payloadLength
+ * @property {string} previousBlockId
+ * @property {number} numberOfTransactions
+ * @property {string} totalAmount
+ * @property {number} timestamp
+ * @property {string} version
+ */
+
+/**
  * Block Filters
  * @typedef {Object} filters.Block
  * @property {string} [id]
@@ -173,7 +191,7 @@ class Block extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {*}
+	 * @return {Promise.<BasicBlock[], Error>}
 	 */
 	get(filters = {}, options = {}, tx) {
 		const mergedFilters = this.mergeFilters(filters);
@@ -209,7 +227,7 @@ class Block extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {*}
+	 * @return {Promise.<BasicBlock, Error>}
 	 */
 	getOne(filters, options = {}, tx) {
 		const parsedOptions = _.defaults(
@@ -311,6 +329,11 @@ class Block extends BaseEntity {
 		return [this.FIELD_SET_SIMPLE];
 	}
 
+	/**
+	 * Merge multiple filters together
+	 * @param {Array.<Object>|Object} filters
+	 * @return {*}
+	 */
 	mergeFilters(filters) {
 		const mergedFilters = filters;
 
