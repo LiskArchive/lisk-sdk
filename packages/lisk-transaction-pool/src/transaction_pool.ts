@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Job, { Job } from './job';
+import { Job } from './job';
 import { Queue } from './queue';
 import * as queueCheckers from './queue_checkers';
 
@@ -21,11 +21,13 @@ export interface TransactionObject {
 	receivedAt?: Date;
 	readonly recipientId: string;
 	readonly senderPublicKey: string;
+	signatures?: ReadonlyArray<string>;
 	readonly type: number;
 }
 
 export interface TransactionFunctions {
 	containsUniqueData?(): boolean;
+	isExpired(date: Date): boolean;
 	verifyTransactionAgainstOtherTransactions?(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
@@ -33,8 +35,6 @@ export interface TransactionFunctions {
 
 interface TransactionPoolOptions {
 	readonly EXPIRE_TRANSACTIONS_JOB: number;
-	readonly MULTISIGNATURE_TIMEOUT: number;
-	readonly TRANSACTION_TIMEOUT: number;
 }
 
 export type Transaction = TransactionObject & TransactionFunctions;
@@ -51,10 +51,8 @@ export class TransactionPool {
 	// tslint:disable-next-line variable-name
 	private readonly _queues: Queues;
 	private readonly EXPIRE_TRANSACTIONS_JOB: number;
-	private readonly MULTISIGNATURE_TIMEOUT: number;
-	private readonly TRANSACTION_TIMEOUT: number;
 
-	public constructor({TRANSACTION_TIMEOUT, MULTISIGNATURE_TIMEOUT, EXPIRE_TRANSACTIONS_JOB}: TransactionPoolOptions) {
+	public constructor({EXPIRE_TRANSACTIONS_JOB}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
@@ -62,12 +60,10 @@ export class TransactionPool {
 			pending: new Queue(),
 			ready: new Queue(),
 		};
-		this.TRANSACTION_TIMEOUT = TRANSACTION_TIMEOUT;
-		this.MULTISIGNATURE_TIMEOUT = MULTISIGNATURE_TIMEOUT;
 		this.EXPIRE_TRANSACTIONS_JOB = EXPIRE_TRANSACTIONS_JOB;
 
 		// tslint:disable-next-line
-		new Job(this, this.expireTransactions, this.EXPIRE_TRANSACTIONS_JOB, false)
+		new Job(this, this.expireTransactions, this.EXPIRE_TRANSACTIONS_JOB)
 	}
 
 	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
@@ -171,13 +167,8 @@ export class TransactionPool {
 			: true;
 	}
 
-	private expireTransactions(): void {
-		const {
-			pending,
-			...otherQueues
-		} = this._queues;
-		this.removeTransactionsFromQueues(otherQueues, queueCheckers.checkTransactionForExpiry(this.TRANSACTION_TIMEOUT));
-		this.removeTransactionsFromQueues({ pending }, queueCheckers.checkTransactionForExpiry(this.MULTISIGNATURE_TIMEOUT));
+	private expireTransactions(): Promise<ReadonlyArray<Transaction>> {
+		return Promise.resolve(this.removeTransactionsFromQueues(this._queues, queueCheckers.checkTransactionForExpiry()));
 	}
 
 	private removeTransactionsFromQueues(
