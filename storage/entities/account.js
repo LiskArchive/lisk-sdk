@@ -52,6 +52,46 @@ const defaultCreateValues = {
 const readOnlyFields = ['address'];
 
 /**
+ * Basic Account
+ * @typedef {Object} BasicAccount
+ * @property {string} address
+ * @property {string} username
+ * @property {Boolean} isDelegate
+ * @property {string} balance
+ * @property {number} missedBlocks
+ * @property {number} producedBlocks
+ * @property {string} rank
+ * @property {string} fees
+ * @property {string} rewards
+ * @property {string} vote
+ * @property {Boolean} nameExist
+ * @property {string} delegates
+ * @property {number} multiMin
+ * @property {number} multiLifetime
+ * @property {string} secondPublicKey
+ * @property {string} secondSignature
+ */
+
+/**
+ * Extended Account
+ * @typedef {BasicAccount} ExtendedAccount
+ * @property {string} u_secondSignature
+ * @property {string} u_username
+ * @property {Boolean} u_isDelegate
+ * @property {string} u_balance
+ * @property {string} u_delegates
+ * @property {string} u_delegates
+ * @property {Boolean} u_nameExist
+ * @property {number} u_multiMin
+ * @property {number} u_multiLifetime
+ * @property {string} u_multiSignatures
+ * @property {Array.<string>} members - Public keys of all members if its a multi-signature account
+ * @property {Array.<string>} u_members - Public keys of all members including unconfirmed if its a multi-signature account
+ * @property {Array.<string>} votes - Public keys of all delegates for which this account voted for
+ * @property {Array.<string>} u_votes - Public keys of all delegates including unconfirmed for which this account voted for
+ */
+
+/**
  * Account Filters
  * @typedef {Object} filters.Account
  * @property {string} [address]
@@ -143,8 +183,8 @@ const readOnlyFields = ['address'];
  * @property {string} [rank_lt]
  * @property {string} [rank_lte]
  * @property {string} [rank_in]
- * @property {string} [votedFor]
- * @property {string} [votedFor_in]'
+ * @property {string} [votes]
+ * @property {string} [votes_in]'
  */
 
 /**
@@ -232,13 +272,22 @@ class Account extends BaseEntity {
 			fieldName: 'u_multisignatures',
 		});
 
-		this.addFilter('votedFor', ft.CUSTOM, {
+		this.addFilter('votes', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" = ${votedFor})',
 		});
-		this.addFilter('votedFor_in', ft.CUSTOM, {
+		this.addFilter('votes_in', ft.CUSTOM, {
 			condition:
 				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2delegates WHERE "dependentId" IN (${votedFor_in:csv}))',
+		});
+
+		this.addFilter('members', ft.CUSTOM, {
+			condition:
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" = ${votedFor})',
+		});
+		this.addFilter('members_in', ft.CUSTOM, {
+			condition:
+				'mem_accounts.address IN (SELECT "accountId" FROM mem_accounts2multisignatures WHERE "dependentId" IN (${votedFor_in:csv}))',
 		});
 
 		this.SQLs = {
@@ -260,7 +309,7 @@ class Account extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {*}
+	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
 	getOne(filters, options = {}, tx) {
 		const parsedOptions = _.defaults(
@@ -299,7 +348,7 @@ class Account extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {*}
+	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
 	 */
 	get(filters = {}, options = {}, tx) {
 		const mergedFilters = this.mergeFilters(filters);
@@ -428,6 +477,11 @@ class Account extends BaseEntity {
 		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
 	}
 
+	/**
+	 * Merge multiple filters together
+	 * @param {Array.<Object>|Object} filters
+	 * @return {*}
+	 */
 	mergeFilters(filters) {
 		const mergedFilters = filters;
 

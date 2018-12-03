@@ -13,21 +13,21 @@
  */
 
 SELECT
-	address,
+	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
 	ENCODE("secondPublicKey", 'hex') as "publicKey",
-	username,
+	"username",
 	"isDelegate",
 	"secondSignature",
-	balance,
-	multimin as "multiMin",
-	multilifetime as "multiLifetime",
-	nameexist as "nameExist",
-	fees,
-	rewards,
+	"balance",
+	"multimin" as "multiMin",
+	"multilifetime" as "multiLifetime",
+	"nameexist" as "nameExist",
+	"fees",
+	"rewards",
 	"producedBlocks",
 	"missedBlocks",
-	rank
+	"rank"
 FROM
 	mem_accounts
 

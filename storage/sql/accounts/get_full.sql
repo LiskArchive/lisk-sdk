@@ -13,22 +13,21 @@
  */
 
 SELECT
-	address,
+	"address",
 	ENCODE("publicKey", 'hex') as "publicKey",
 	ENCODE("secondPublicKey", 'hex') as "publicKey",
-	username,
+	"username",
 	"isDelegate",
 	"secondSignature",
-	balance,
-	multimin as "multiMin",
-	multilifetime as "multiLifetime",
-	nameexist as "nameExist",
-	fees,
-	rewards,
+	"balance",
+	"multimin" as "multiMin",
+	"multilifetime" as "multiLifetime",
+	"nameexist" as "nameExist",
+	"fees",
+	"rewards",
 	"producedBlocks",
 	"missedBlocks",
-	rank,
-
+	"rank",
 	"u_isDelegate",
 	"u_secondSignature",
 	"u_balance",
@@ -39,11 +38,11 @@ SELECT
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "votedFor",
+	) as "votes",
 	(SELECT array_agg("dependentId")
 		FROM mem_accounts2u_delegates
 		WHERE "accountId" = mem_accounts.address
-	) as "u_votedFor",
+	) as "votes",
 	(SELECT array_agg("dependentId")
   		FROM mem_accounts2multisignatures
   		WHERE "accountId" = mem_accounts.address
