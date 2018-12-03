@@ -1,4 +1,7 @@
---require babel-register
---require ./test/setup.js
---reporter spec
 --recursive
+--require ts-node/register
+--require tsconfig-paths/register
+--require source-map-support/register
+--require ./test/setup.ts
+--file ./test/_global_hooks.ts
+--watch-extensions ts

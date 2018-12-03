@@ -1,0 +1,10 @@
+{
+	"extends": "../tsconfig",
+	"compilerOptions": {
+		"declaration": false,
+		"baseUrl": ".",
+		"noEmit": true,
+		"typeRoots": ["../types", "../node_modules/@types"]
+	},
+	"include": ["./**/*", "../types/**/*", "../src/**/*"]
+}
