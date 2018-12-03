@@ -1,15 +1,14 @@
-type SynchronousJob = () => void;
-type AsynchronousJob = () => Promise<void>;
+import { Transaction } from "./transaction_pool";
 
 export class Job {
 	// tslint:disable-next-line variable-name
 	private readonly _interval: number;
 	// tslint:disable-next-line variable-name
-	private readonly _job: SynchronousJob | AsynchronousJob;
+	private readonly _job: () => Promise<ReadonlyArray<Transaction>>;
 
 	public constructor(
 		context: object,
-		job: SynchronousJob | AsynchronousJob,
+		job: () => Promise<ReadonlyArray<Transaction>>,
 		interval: number,
 	) {
 		this._interval = interval;
