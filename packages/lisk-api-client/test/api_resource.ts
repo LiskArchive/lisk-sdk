@@ -45,7 +45,7 @@ describe('API resource module', () => {
 		limit: 0,
 	};
 
-	interface FakeApiClient {
+	interface FakeAPIClient {
 		headers: object;
 		currentNode: string;
 		hasAvailableNodes: () => boolean | void;
@@ -54,7 +54,7 @@ describe('API resource module', () => {
 	}
 
 	let resource: APIResource;
-	let apiClient: FakeApiClient;
+	let apiClient: FakeAPIClient;
 
 	beforeEach(() => {
 		apiClient = {
@@ -125,6 +125,34 @@ describe('API resource module', () => {
 		});
 
 		describe('when response status is greater than 300', () => {
+			it('should reject with errno if status code is supplied', () => {
+				const statusCode = 300;
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: undefined,
+					},
+				});
+
+				return resource.request(defaultRequest, false).catch(err => {
+					return expect(err.errno).to.equal(statusCode);
+				});
+			});
+
+			it('should reject with "An unknown error has occured." message if there is no data is supplied', () => {
+				const statusCode = 300;
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: undefined,
+					},
+				});
+
+				return resource.request(defaultRequest, false).catch(err => {
+					return expect(err.message).to.equal('An unknown error has occurred.');
+				});
+			});
+
 			it('should reject with "An unknown error has occured." message if there is no message is supplied', () => {
 				const statusCode = 300;
 				requestStub.rejects({
@@ -135,9 +163,7 @@ describe('API resource module', () => {
 				});
 
 				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.equal(
-						`Status ${statusCode} : An unknown error has occurred.`,
-					);
+					return expect(err.message).to.equal('An unknown error has occurred.');
 				});
 			});
 
@@ -152,9 +178,47 @@ describe('API resource module', () => {
 				});
 
 				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.eql(
-						`Status ${statusCode} : ${serverErrorMessage}`,
-					);
+					return expect(err.message).to.eql(serverErrorMessage);
+				});
+			});
+
+			it('should reject with error message from server if message is undefined and error is supplied', () => {
+				const serverErrorMessage = 'error from server';
+				const statusCode = 300;
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: { message: undefined, error: serverErrorMessage },
+					},
+				});
+
+				return resource.request(defaultRequest, false).catch(err => {
+					return expect(err.message).to.eql(serverErrorMessage);
+				});
+			});
+
+			it('should reject with errors from server if errors are supplied', () => {
+				const serverErrorMessage = 'validation error';
+				const statusCode = 300;
+				const errors = [
+					{
+						code: 'error_code_1',
+						message: 'message1',
+					},
+					{
+						code: 'error_code_2',
+						message: 'message2',
+					},
+				];
+				requestStub.rejects({
+					response: {
+						status: statusCode,
+						data: { message: serverErrorMessage, errors },
+					},
+				});
+
+				return resource.request(defaultRequest, false).catch(err => {
+					return expect(err.errors).to.eql(errors);
 				});
 			});
 

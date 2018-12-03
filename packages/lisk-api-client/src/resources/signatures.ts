@@ -15,11 +15,11 @@
 import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
-import { ApiHandler } from '../api_types';
+import { APIHandler } from '../api_types';
 import { POST } from '../constants';
 
 export class SignaturesResource extends APIResource {
-	public broadcast: ApiHandler;
+	public broadcast: APIHandler;
 	public path: string;
 
 	public constructor(apiClient: APIClient) {

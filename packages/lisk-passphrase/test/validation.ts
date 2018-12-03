@@ -356,66 +356,87 @@ describe('passphrase validation', () => {
 			});
 		});
 
-		describe('given a passphrase with too many words', () => {
+		describe('given a passphrase with valid 15 words passphrase', () => {
 			const passphrase =
-				'model actor shallow eight glue upper seat lobster reason label enlist bridge actor';
+				'post dumb recycle buddy round normal scrap better people corn crystal again never shrimp kidney';
 
-			const passphraseTooManyWordsErrors = [
-				{
-					actual: 13,
-					code: 'INVALID_AMOUNT_OF_WORDS',
-					expected: 12,
-					message:
-						'Passphrase contains 13 words instead of expected 12. Please check the passphrase.',
-				},
-				{
-					actual: 12,
-					code: 'INVALID_AMOUNT_OF_WHITESPACES',
-					expected: 11,
-					location: [],
-					message:
-						'Passphrase contains 12 whitespaces instead of expected 11. Please check the passphrase.',
-				},
-				{
-					actual: false,
-					code: 'INVALID_MNEMONIC',
-					expected: true,
-					message:
-						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-				},
-			];
-
-			it('should return the array with the errors', () => {
+			it('should return an array with the errors when validating with default expectedWords', () => {
+				const errors = [
+					{
+						actual: 15,
+						code: 'INVALID_AMOUNT_OF_WORDS',
+						expected: 12,
+						message:
+							'Passphrase contains 15 words instead of expected 12. Please check the passphrase.',
+					},
+					{
+						actual: 14,
+						code: 'INVALID_AMOUNT_OF_WHITESPACES',
+						expected: 11,
+						location: [],
+						message:
+							'Passphrase contains 14 whitespaces instead of expected 11. Please check the passphrase.',
+					},
+				];
 				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
-					passphraseTooManyWordsErrors,
+					errors,
 				);
 			});
-		});
 
-		describe('given a passphrase with too few words', () => {
-			const passphrase =
-				'model actor shallow eight glue upper seat lobster reason label enlist';
-			const passphraseTooFewWordsErrors = [
-				{
-					actual: 11,
-					code: 'INVALID_AMOUNT_OF_WORDS',
-					expected: 12,
-					message:
-						'Passphrase contains 11 words instead of expected 12. Please check the passphrase.',
-				},
-				{
-					actual: false,
-					code: 'INVALID_MNEMONIC',
-					expected: true,
-					message:
-						'Passphrase is not a valid mnemonic passphrase. Please check the passphrase.',
-				},
-			];
+			it('should return an array with the errors when validating with lower expectedWords', () => {
+				const errors = [
+					{
+						actual: 15,
+						code: 'INVALID_AMOUNT_OF_WORDS',
+						expected: 12,
+						message:
+							'Passphrase contains 15 words instead of expected 12. Please check the passphrase.',
+					},
+					{
+						actual: 14,
+						code: 'INVALID_AMOUNT_OF_WHITESPACES',
+						expected: 11,
+						location: [],
+						message:
+							'Passphrase contains 14 whitespaces instead of expected 11. Please check the passphrase.',
+					},
+				];
+				return expect(
+					getPassphraseValidationErrors(passphrase, undefined, 12),
+				).to.be.eql(errors);
+			});
 
-			it('should return the array with the errors', () => {
-				return expect(getPassphraseValidationErrors(passphrase)).to.be.eql(
-					passphraseTooFewWordsErrors,
-				);
+			it('should return an array with the errors when validating with higher expectedWords', () => {
+				const errors = [
+					{
+						actual: 15,
+						code: 'INVALID_AMOUNT_OF_WORDS',
+						expected: 18,
+						message:
+							'Passphrase contains 15 words instead of expected 18. Please check the passphrase.',
+					},
+					{
+						actual: 14,
+						code: 'INVALID_AMOUNT_OF_WHITESPACES',
+						expected: 17,
+						location: [],
+						message:
+							'Passphrase contains 14 whitespaces instead of expected 17. Please check the passphrase.',
+					},
+				];
+				return expect(
+					getPassphraseValidationErrors(
+						passphrase,
+						Mnemonic.wordlists.english,
+						18,
+					),
+				).to.be.eql(errors);
+			});
+
+			it('should return an empty array when validating with exact expectedWords', () => {
+				return expect(
+					getPassphraseValidationErrors(passphrase, undefined, 15),
+				).to.be.eql([]);
 			});
 		});
 

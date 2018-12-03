@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-api-client",
-	"version": "1.1.1",
+	"version": "2.0.0",
 	"description": "An API client for the Lisk network",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -57,6 +57,8 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
+		"@types/node": "10.10.1",
+		"@types/verror": "1.10.3",
 		"axios": "0.18.0",
 		"verror": "1.10.0"
 	},
@@ -66,10 +68,8 @@
 		"@types/expect": "1.20.3",
 		"@types/jquery": "3.3.9",
 		"@types/mocha": "5.2.5",
-		"@types/node": "10.10.1",
 		"@types/sinon": "5.0.5",
 		"@types/sinon-chai": "3.2.0",
-		"@types/verror": "1.10.3",
 		"browserify": "16.2.2",
 		"chai": "4.1.2",
 		"chai-as-promised": "7.1.1",

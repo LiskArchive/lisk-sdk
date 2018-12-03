@@ -14,8 +14,8 @@
  */
 import { AxiosRequestConfig } from 'axios';
 import {
-	ApiHandler,
-	ApiResponse,
+	APIHandler,
+	APIResponse,
 	HashMap,
 	RequestConfig,
 	Resource,
@@ -24,12 +24,12 @@ import { GET } from './constants';
 import { solveURLParams, toQueryString } from './utils';
 
 // Bind to resource class
-export const apiMethod = (options: RequestConfig = {}): ApiHandler =>
+export const apiMethod = (options: RequestConfig = {}): APIHandler =>
 	async function apiHandler(
 		this: Resource,
 		// tslint:disable-next-line readonly-array
 		...args: Array<number | string | object>
-	): Promise<ApiResponse> {
+	): Promise<APIResponse> {
 		const {
 			method = GET,
 			path = '',

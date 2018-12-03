@@ -1,6 +1,6 @@
 {
 	"name": "@liskhq/lisk-constants",
-	"version": "1.1.1",
+	"version": "1.2.0",
 	"description": "General constants for use with Lisk-related software",
 	"author": "Lisk Foundation <admin@lisk.io>, lightcurve GmbH <admin@lightcurve.io>",
 	"license": "GPL-3.0",
@@ -56,12 +56,14 @@
 		"build:check": "node -e \"require('./dist-node')\"",
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
+	"dependencies": {
+		"@types/node": "10.10.1"
+	},
 	"devDependencies": {
 		"@types/chai": "4.1.5",
 		"@types/expect": "1.20.3",
 		"@types/jquery": "3.3.9",
 		"@types/mocha": "5.2.5",
-		"@types/node": "10.10.1",
 		"browserify": "16.2.2",
 		"chai": "4.1.2",
 		"cypress": "3.1.0",

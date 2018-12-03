@@ -28,18 +28,10 @@ pipeline {
 		}
 		stage('Install dependencies') {
 			steps {
-				script {
-					cache_file = restoreCache("package.json")
-				}
 				nvm(getNodejsVersion()) {
-					sh 'npm install --verbose'
-				}
-				script {
-					saveCache(cache_file, './node_modules', 10)
 					sh '''
-					if [ ! -f "/home/lisk/.cache/Cypress/$(jq -r .devDependencies.cypress ./packages/lisk-constants/package.json)/Cypress/Cypress" ]; then
-						./packages/lisk-constants/node_modules/.bin/cypress install --force
-					fi
+					mkdir -p "/home/lisk/.cache/Cypress/$( jq -r .devDependencies.cypress ./packages/lisk-constants/package.json )/Cypress"
+					npm ci
 					'''
 				}
 			}
@@ -80,11 +72,13 @@ pipeline {
 		}
 		stage('Run browser tests') {
 			steps {
-				nvm(getNodejsVersion()) {
-					sh '''
-					npm run build:browsertest
-					npm run test:browser
-					'''
+				ansiColor('xterm') {
+					nvm(getNodejsVersion()) {
+						sh '''
+						npm run build:browsertest
+						npm run test:browser
+						'''
+					}
 				}
 			}
 		}

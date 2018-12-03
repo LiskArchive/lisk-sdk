@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import { APIError } from '../src/errors';
+import { APIError, APIErrorData } from '../src/errors';
 
 describe('api errors module', () => {
 	let apiError: APIError;
@@ -32,8 +32,8 @@ describe('api errors module', () => {
 				.and.be.instanceof(APIError);
 		});
 
-		it('should set error name to `API Error`', () => {
-			return expect(apiError.name).to.eql('API Error');
+		it('should set error name to `APIError`', () => {
+			return expect(apiError.name).to.eql('APIError');
 		});
 
 		it('should set error message to empty string by default', () => {
@@ -44,7 +44,7 @@ describe('api errors module', () => {
 			return expect(apiError.errno).to.eql(500);
 		});
 
-		describe('when passed arguments', () => {
+		describe('when passed errno', () => {
 			beforeEach(() => {
 				apiError = new APIError(defaultMessage, defaultErrno);
 				return Promise.resolve();
@@ -56,6 +56,39 @@ describe('api errors module', () => {
 
 			it('should set errno when passed through second argument', () => {
 				return expect(apiError.errno).to.eql(defaultErrno);
+			});
+		});
+
+		describe('when passed errno and errors', () => {
+			const errors = [
+				{
+					code: 'error_code_1',
+					message: 'message1',
+				},
+				{
+					code: 'error_code_2',
+					message: 'message2',
+				},
+			];
+
+			beforeEach(() => {
+				apiError = new APIError(defaultMessage, defaultErrno, errors);
+				return Promise.resolve();
+			});
+
+			it('should set error message when passed through first argument', () => {
+				return expect(apiError.message).to.eql(defaultMessage);
+			});
+
+			it('should set errno when passed through second argument', () => {
+				return expect(apiError.errno).to.eql(defaultErrno);
+			});
+
+			it('should set errors when passed through third argument', () => {
+				expect(apiError.errors).to.have.lengthOf(2);
+				const errorData = apiError.errors as ReadonlyArray<APIErrorData>;
+				expect(errorData[0].code).to.equal(errors[0].code);
+				return expect(errorData[0].message).to.equal(errors[0].message);
 			});
 		});
 	});
