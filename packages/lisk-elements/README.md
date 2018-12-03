@@ -79,13 +79,13 @@ Full documentation can be found on the [Lisk documentation site][].
 
 | Package                                                 |                                                      Version                                                      | Description                                                        |
 | ------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------: | ------------------------------------------------------------------ |
-| [lisk-elements](/packages/lisk-elements)                 |       [![](https://img.shields.io/badge/npm-v1.1.3-green.svg)](https://www.npmjs.com/package/lisk-elements)       | Package contains everything                                        |
-| [@liskhq/lisk-client](/packages/lisk-client)             |    [![](https://img.shields.io/badge/npm-v1.1.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-client)    | A default set of Elements for use by clients of the Lisk network   |
-| [@liskhq/lisk-api-client](/packages/lisk-api-client)     |  [![](https://img.shields.io/badge/npm-v1.1.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
-| [@liskhq/lisk-constants](/packages/lisk-constants)       |  [![](https://img.shields.io/badge/npm-v1.1.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
-| [@liskhq/lisk-cryptography](/packages/lisk-cryptography) | [![](https://img.shields.io/badge/npm-v1.1.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
-| [@liskhq/lisk-passphrase](/packages/lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v1.1.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
-| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v1.1.2-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
+| [lisk-elements](/packages/lisk-elements)                 |       [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/lisk-elements)       | Package contains everything                                        |
+| [@liskhq/lisk-client](/packages/lisk-client)             |    [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-client)    | A default set of Elements for use by clients of the Lisk network   |
+| [@liskhq/lisk-api-client](/packages/lisk-api-client)     |  [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-api-client)  | An API client for the Lisk network                                 |
+| [@liskhq/lisk-constants](/packages/lisk-constants)       |  [![](https://img.shields.io/badge/npm-v1.2.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-constants)   | General constants for use with Lisk-related software               |
+| [@liskhq/lisk-cryptography](/packages/lisk-cryptography) | [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-cryptography) | General cryptographic functions for use with Lisk-related software |
+| [@liskhq/lisk-passphrase](/packages/lisk-passphrase)     |  [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-passphrase)  | Mnemonic passphrase helpers for use with Lisk-related software     |
+| [@liskhq/lisk-transactions](/packages/lisk-transactions) | [![](https://img.shields.io/badge/npm-v2.0.0-green.svg)](https://www.npmjs.com/package/@liskhq/lisk-transactions) | Everything related to transactions according to the Lisk protocol  |
 
 ## Tests
 
