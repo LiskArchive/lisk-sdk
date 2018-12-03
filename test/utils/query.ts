@@ -14,7 +14,7 @@
  *
  */
 import { expect } from 'chai';
-import { query } from '../../src/utils/query';
+import { query, queryNodeTransaction } from '../../src/utils/query';
 import { APIClient } from '@liskhq/lisk-api-client';
 import { ApiResponse } from '@liskhq/lisk-api-client/dist-node/api_types';
 
@@ -166,6 +166,37 @@ describe('query utils', () => {
 		});
 	});
 
+	describe('when the response is an array with more than 1 records', () => {
+		beforeEach(() => {
+			response = {
+				data: [
+					{
+						id: 'someid',
+						address: 'address',
+					},
+					{
+						id: 'someid',
+						address: 'address',
+					},
+				],
+			};
+			apiClient = {
+				accounts: {
+					get: sandbox.stub().resolves(response),
+				},
+			};
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
+			return Promise.resolve();
+		});
+
+		it('should call API client and resolve to an array', () => {
+			expect(apiClient.accounts.get).to.be.calledWithExactly(
+				defaultParameters.query,
+			);
+			return expect(queryResult).to.eventually.eql(response.data);
+		});
+	});
+
 	describe('when the response is an object', () => {
 		beforeEach(() => {
 			response = {
@@ -220,6 +251,105 @@ describe('query utils', () => {
 		it('should call API client', () => {
 			defaultArrayParameters.forEach(param =>
 				expect(apiClient.accounts.get).to.be.calledWithExactly(param.query),
+			);
+			return Promise.resolve();
+		});
+	});
+
+	describe('query node transaction handler', () => {
+		const txnState = 'unprocessed';
+		const transactionParameters = {
+			query: {
+				id: 'transaction1',
+				limit: 1,
+			},
+		};
+		const transactionArray = [
+			{
+				query: {
+					id: 'transaction1',
+					limit: 1,
+				},
+			},
+		];
+
+		beforeEach(() => {
+			response = {
+				data: [
+					{
+						id: 'transaction1',
+					},
+				],
+			};
+			apiClient = {
+				node: {
+					getTransactions: sandbox.stub().resolves(response),
+				},
+			};
+			queryResult = queryNodeTransaction(
+				apiClient.node,
+				txnState,
+				transactionArray,
+			);
+			return Promise.resolve();
+		});
+
+		it('should call node API client and resolve to an object', () => {
+			expect(apiClient.node.getTransactions).to.be.calledWithExactly(
+				txnState,
+				transactionParameters.query,
+			);
+			return expect(queryResult).to.eventually.eql(response.data);
+		});
+	});
+
+	describe('an array of parameters objects is provided to query node transaction', () => {
+		const txnState = 'unsigned';
+		const transactionArray = [
+			{
+				query: {
+					id: 'transaction1',
+					limit: 1,
+				},
+			},
+			{
+				query: {
+					id: 'transaction2',
+					limit: 1,
+				},
+			},
+		];
+
+		beforeEach(() => {
+			response = {
+				data: [
+					{
+						id: 'transaction1',
+					},
+					{
+						id: 'transaction2',
+					},
+				],
+			};
+			apiClient = {
+				node: {
+					getTransactions: sandbox.stub().resolves(response),
+				},
+			};
+			queryResult = queryNodeTransaction(
+				apiClient.node,
+				txnState,
+				transactionArray,
+			);
+			return Promise.resolve();
+		});
+
+		it('should call getTransaction handler of node API client', () => {
+			transactionArray.forEach(param =>
+				expect(apiClient.node.getTransactions).to.be.calledWithExactly(
+					txnState,
+					param.query,
+				),
 			);
 			return Promise.resolve();
 		});

@@ -39,7 +39,9 @@ export const handleResponse = (
 			}
 			throw new Error(`No ${endpoint} found using specified parameters.`);
 		}
-
+		if (res.data.length > 1) {
+			return res.data;
+		}
 		return res.data[0];
 	}
 
@@ -81,3 +83,15 @@ export const query = async (
 				.then((res: APIResponse) =>
 					handleResponse(endpoint, res, parameters.placeholder),
 				);
+
+export const queryNodeTransaction =
+	async (client: APIClient, txnState: string, parameters: QueryParameter | ReadonlyArray<QueryParameter>): Promise<unknown> =>
+		Promise.all(
+			parameters.map(param =>
+				client
+					.getTransactions(txnState, param.query)
+					.then(res =>
+						handleResponse('node/transactions', res, param.placeholder),
+					),
+			),
+		);
