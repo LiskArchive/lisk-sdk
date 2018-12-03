@@ -1,9 +1,10 @@
-import { Transaction } from '../../src/transaction_pool';
+import { TransactionObject, Transaction } from '../../src/transaction_pool';
 
-export const wrapTransferTransaction = (transferTransaction: Transaction) => {
+export const wrapTransferTransaction = (transferTransaction: TransactionObject): Transaction => {
 	return {
 		...transferTransaction,
-		containsUnqiueData: () => false,
+		containsUniqueData: () => false,
 		verifyTransactionAgainstOtherTransactions: () => true,
+		isExpired: (time: Date) => false
 	};
 };
