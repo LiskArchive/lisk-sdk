@@ -17,6 +17,10 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly addresses: string;
+}
+
 export default class GetCommand extends BaseCommand {
 	static args = [
 		{
@@ -40,8 +44,9 @@ Gets account information from the blockchain.
 	};
 
 	async run(): Promise<void> {
-		const { args: { addresses: addressesStr } } = this.parse(GetCommand);
-		const addresses: ReadonlyArray<string> = addressesStr
+		const { args } = this.parse(GetCommand);
+		const { addresses: addressesStr }: Args = args;
+		const addresses = addressesStr
 			.split(',')
 			.filter(Boolean);
 		const req = addresses.map((address: string) => ({
