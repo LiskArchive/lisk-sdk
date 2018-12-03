@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
-import { discoverPeers, PeersListType } from '../../src/peer_discovery';
+import { discoverPeers } from '../../src/peer_discovery';
 
 describe('peer disocovery', () => {
 	describe('#discoverPeer', () => {
@@ -36,31 +36,23 @@ describe('peer disocovery', () => {
 		const newPeer = new Peer(peerOption);
 		const peerDuplicate = new Peer(peerOptionDuplicate);
 
-		const peerList1: PeersListType = {
-			peer: peers[0],
-			peerList: [...peers, newPeer],
-		};
-
-		const peerList2: PeersListType = {
-			peer: peers[1],
-			peerList: [newPeer, peerDuplicate],
-		};
-
-		const peerListArray = [peerList1, peerList2];
+		const peerList = new Map<string, ReadonlyArray<Peer>>();
+		peerList.set(peers[0].id, peers);
+		peerList.set(peers[1].id, [newPeer, peerDuplicate]);
 
 		describe('return an object with properties', () => {
 			it('should return an object', () => {
-				return expect(discoverPeers(peerListArray)).to.be.an('object');
+				return expect(discoverPeers(peerList)).to.be.an('object');
 			});
 
 			it('should return an object with inbound property', () => {
-				return expect(discoverPeers(peerListArray))
+				return expect(discoverPeers(peerList))
 					.to.be.an('object')
 					.to.have.property('inbound');
 			});
 
 			it('should return an object with outbound property', () => {
-				return expect(discoverPeers(peerListArray))
+				return expect(discoverPeers(peerList))
 					.to.be.an('object')
 					.to.have.property('outbound');
 			});
@@ -70,7 +62,7 @@ describe('peer disocovery', () => {
 			const unqiueList = [...peers, newPeer];
 
 			it('should return an object with an inbound unique list of peers', () => {
-				return expect(discoverPeers(peerListArray))
+				return expect(discoverPeers(peerList))
 					.to.be.an('object')
 					.to.have.property('inbound')
 					.to.be.an('array')
@@ -79,7 +71,7 @@ describe('peer disocovery', () => {
 			});
 
 			it('should return an object with an outbound unique list of peers', () => {
-				return expect(discoverPeers(peerListArray))
+				return expect(discoverPeers(peerList))
 					.to.be.an('object')
 					.to.have.property('outbound')
 					.to.be.an('array')

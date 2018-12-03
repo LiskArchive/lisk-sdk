@@ -14,26 +14,24 @@
  */
 import { Peer } from './peer';
 
-export interface DiscoverPeersReturntype {
+export interface PeerConnectionSchema {
 	readonly inbound: ReadonlyArray<Peer>;
 	readonly outbound: ReadonlyArray<Peer>;
 }
-
-export interface PeersListType {
-	readonly peer: Peer;
-	readonly peerList: ReadonlyArray<Peer>;
-}
-
+// Argument peersOfPeerList is a map with key as the peer id string and value as its peerslist
 export const discoverPeers = (
-	peersList: ReadonlyArray<PeersListType>,
-): DiscoverPeersReturntype => {
-	// Make a list of all the peers
-	const allPeers = peersList.reduce<ReadonlyArray<Peer>>(
-		(allPeersArray, peer) => [...allPeersArray, ...peer.peerList],
-		[],
+	peersOfPeerList: Map<string, ReadonlyArray<Peer>>,
+): PeerConnectionSchema => {
+	// Make a list of peers from peer's peerlist
+	const allPeersOfPeer = Array.from(peersOfPeerList.values()).reduce(
+		(peerListArray: ReadonlyArray<Peer>, peerList) => [
+			...peerListArray,
+			...peerList,
+		],
 	);
-	// Get unique list of peers based on Id
-	const uniquePeers = allPeers.reduce<ReadonlyArray<Peer>>(
+
+	// Get unique list of peers based on peer id
+	const uniquePeers = allPeersOfPeer.reduce<ReadonlyArray<Peer>>(
 		(uniquePeersArray, peer) => {
 			const found = uniquePeersArray.find(findPeer => findPeer.id === peer.id);
 
