@@ -42,24 +42,16 @@ var config = AppConfig(require('./package.json'), false);
  * is ready to accept requests/connections.
  */
 
-let resolveHTTPServerPromise;
-
 SCWorker.create({
 	// Pass the custom configuration to P2P HTTP Server to mitigate security issues fixed by Node v8.14.0 (
 	createHTTPServer() {
-		return new Promise((resolve, reject) => {
-			let rejectTimeout;
-			resolveHTTPServerPromise = httpServerConfig => {
-				clearTimeout(rejectTimeout);
-				resolve(http.createServer(httpServerConfig));
-			};
-			const ONE_MINUTE_IN_MS = 60000;
-			rejectTimeout = setTimeout(
-				reject,
-				ONE_MINUTE_IN_MS,
-				`Worker pid ${process.pid} - P2P HTTP Server not configured`
-			);
+		const httpServer = http.createServer();
+		httpServer.headersTimeout = config.api.options.limits.headersTimeout;
+		httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
+		httpServer.on('timeout', socket => {
+			socket.destroy();
 		});
+		return httpServer;
 	},
 	run() {
 		var self = this;
@@ -87,7 +79,6 @@ SCWorker.create({
 				config: [
 					'slaveWAMPServer',
 					function(scope, cb) {
-						resolveHTTPServerPromise(scope.slaveWAMPServer.config.httpServer);
 						cb(null, scope.slaveWAMPServer.config);
 					},
 				],
