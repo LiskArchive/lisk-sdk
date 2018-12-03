@@ -22,12 +22,10 @@ export const returnTrueUntilLimit = (
 };
 
 export const checkTransactionForExpiry = (
-	expiryInterval: number,
 ): ((transaction: Transaction) => boolean) => {
-	const currentTime = new Date().getTime();
+	const timeNow = new Date();
 
-	return (transaction: Transaction) =>
-		currentTime - (transaction.receivedAt as Date).getTime() > expiryInterval;
+	return (transaction: Transaction) => transaction.isExpired(timeNow);
 };
 
 export const checkTransactionForSenderPublicKey = (
