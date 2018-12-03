@@ -135,7 +135,7 @@ describe('API resource module', () => {
 				});
 
 				return resource.request(defaultRequest, false).catch(err => {
-					return expect(err.message).to.equal('An unknown error has occurred.');
+					return expect(err.errno).to.equal(statusCode);
 				});
 			});
 
@@ -183,7 +183,7 @@ describe('API resource module', () => {
 			});
 
 			it('should reject with error message from server if message is undefined and error is supplied', () => {
-				const serverErrorMessage = 'validation error';
+				const serverErrorMessage = 'error from server';
 				const statusCode = 300;
 				requestStub.rejects({
 					response: {
