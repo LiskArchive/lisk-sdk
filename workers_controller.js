@@ -18,6 +18,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
+var http = require('http');
 var async = require('async');
 var SCWorker = require('socketcluster/scworker');
 var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
@@ -40,11 +41,29 @@ var config = AppConfig(require('./package.json'), false);
  * inside the run function. The run function is invoked when the worker process
  * is ready to accept requests/connections.
  */
+
+let resolveHTTPServerPromise;
+
 SCWorker.create({
+	// Pass the custom configuration to P2P HTTP Server to mitigate security issues fixed by Node v8.14.0 (
+	createHTTPServer() {
+		return new Promise((resolve, reject) => {
+			let rejectTimeout;
+			resolveHTTPServerPromise = httpServerConfig => {
+				clearTimeout(rejectTimeout);
+				resolve(http.createServer(httpServerConfig));
+			};
+			const ONE_MINUTE_IN_MS = 60000;
+			rejectTimeout = setTimeout(
+				reject,
+				ONE_MINUTE_IN_MS,
+				`Worker pid ${process.pid} - P2P HTTP Server not configured`
+			);
+		});
+	},
 	run() {
 		var self = this;
 		var scServer = this.getSCServer();
-
 		async.auto(
 			{
 				logger(cb) {
@@ -68,6 +87,7 @@ SCWorker.create({
 				config: [
 					'slaveWAMPServer',
 					function(scope, cb) {
+						resolveHTTPServerPromise(scope.slaveWAMPServer.config.httpServer);
 						cb(null, scope.slaveWAMPServer.config);
 					},
 				],
