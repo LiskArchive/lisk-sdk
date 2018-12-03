@@ -32,12 +32,21 @@ const fs = require('fs');
  * @throws {Error} If cannot get last git commit
  */
 function getLastCommit() {
-	const spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
-	const err = spawn.stderr.toString().trim();
+	let spawn;
 
-	// If there is git tool available and current directory is a git owned directory
-	if (!err) {
-		return spawn.stdout.toString().trim();
+	try {
+		spawn = childProcess.spawnSync('git', ['rev-parse', 'HEAD']);
+		// If there is git tool available and current directory is a git owned directory
+		if (!spawn.stderr.toString().trim()) {
+			return spawn.stdout.toString().trim();
+		}
+	} catch (error) {
+		// It should read REVISION file if error is that Git is not installed
+		// eslint-disable-next-line no-console
+		console.log(
+			'When getting git rev-parse HEAD, following error happened',
+			error.toString()
+		);
 	}
 
 	// Try looking for a file REVISION for a compiled build
