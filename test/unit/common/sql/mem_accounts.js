@@ -14,7 +14,7 @@
 
 'use strict';
 
-var MemAccounts = {
+const MemAccounts = {
 	getAccountByAddress: 'SELECT * FROM mem_accounts WHERE address = ${address}',
 
 	updateUsername:

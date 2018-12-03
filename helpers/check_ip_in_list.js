@@ -14,8 +14,8 @@
 
 'use strict';
 
-var _ = require('lodash');
-var ip = require('ip');
+const _ = require('lodash');
+const ip = require('ip');
 
 /**
  * Checks if ip address is in list (e.g. whitelist, blacklist).
@@ -26,7 +26,7 @@ var ip = require('ip');
  * @returns {boolean} True if ip is in the list, false otherwise
  */
 function CheckIpInList(list, addr) {
-	var entry;
+	let entry;
 	if (!_.isArray(list) || list.length === 0) {
 		return false;
 	}

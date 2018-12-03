@@ -14,24 +14,24 @@
 
 'use strict';
 
-var failureCodes = require('../../../api/ws/rpc/failure_codes');
-var modulesLoader = require('../../common/modules_loader');
-var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-var RandomPeer = require('../../fixtures/peers').Peer;
-var Peers = require('../../../logic/peers.js');
-var Peer = require('../../../logic/peer.js');
-var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const failureCodes = require('../../../api/ws/rpc/failure_codes');
+const modulesLoader = require('../../common/modules_loader');
+const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
+const RandomPeer = require('../../fixtures/peers').Peer;
+const Peers = require('../../../logic/peers.js');
+const Peer = require('../../../logic/peer.js');
+const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
-var masterWAMPServerMock;
+let masterWAMPServerMock;
 
-var validRPCProcedureName = 'rpcProcedureA';
-var validEventProcedureName = 'eventProcedureB';
+const validRPCProcedureName = 'rpcProcedureA';
+const validEventProcedureName = 'eventProcedureB';
 
 describe('peers', () => {
-	var peersModuleMock;
-	var peers;
-	var validPeer;
-	var validNodeNonce;
+	let peersModuleMock;
+	let peers;
+	let validPeer;
+	let validNodeNonce;
 
 	before(done => {
 		peersModuleMock = {
@@ -73,7 +73,7 @@ describe('peers', () => {
 	}
 
 	function arePeersEqual(peerA, peerB) {
-		var allPeersProperties = function(peer) {
+		const allPeersProperties = function(peer) {
 			return _.keys(peer).every(property => {
 				return (
 					Peer.prototype.properties
@@ -92,7 +92,7 @@ describe('peers', () => {
 			throw new Error('Not a peer: ', peerB);
 		}
 
-		var commonProperties = _.intersection(_.keys(peerA), _.keys(peerB));
+		const commonProperties = _.intersection(_.keys(peerA), _.keys(peerB));
 
 		if (
 			commonProperties.indexOf('ip') === -1 ||
@@ -207,16 +207,16 @@ describe('peers', () => {
 
 		it('should update height of existing peer', () => {
 			peers.upsert(validPeer);
-			var list = peers.list();
-			var inserted = list[0];
+			let list = peers.list();
+			const inserted = list[0];
 			expect(list.length).equal(1);
 			expect(arePeersEqual(inserted, validPeer)).to.be.ok;
 
-			var modifiedPeer = _.clone(validPeer);
+			const modifiedPeer = _.clone(validPeer);
 			modifiedPeer.height += 1;
 			peers.upsert(modifiedPeer);
 			list = peers.list();
-			var updated = list[0];
+			const updated = list[0];
 			expect(list.length).equal(1);
 			expect(arePeersEqual(updated, modifiedPeer)).to.be.ok;
 			return expect(arePeersEqual(updated, validPeer)).to.be.not.ok;
@@ -224,16 +224,16 @@ describe('peers', () => {
 
 		it('should not update height with insertOnly param', () => {
 			peers.upsert(validPeer);
-			var list = peers.list();
-			var inserted = list[0];
+			let list = peers.list();
+			const inserted = list[0];
 			expect(list.length).equal(1);
 			expect(arePeersEqual(inserted, validPeer)).to.be.ok;
 
-			var modifiedPeer = _.clone(validPeer);
+			const modifiedPeer = _.clone(validPeer);
 			modifiedPeer.height += 1;
 			peers.upsert(modifiedPeer, true);
 			list = peers.list();
-			var updated = list[0];
+			const updated = list[0];
 			expect(list.length).equal(1);
 			expect(arePeersEqual(updated, modifiedPeer)).to.be.not.ok;
 			return expect(arePeersEqual(updated, validPeer)).to.be.ok;
@@ -243,15 +243,15 @@ describe('peers', () => {
 			peers.upsert(validPeer);
 			expect(peers.list().length).equal(1);
 
-			var differentPortPeer = _.clone(validPeer);
+			const differentPortPeer = _.clone(validPeer);
 			differentPortPeer.nonce = 'differentNonce';
 			differentPortPeer.wsPort += 1;
 			peers.upsert(differentPortPeer);
-			var list = peers.list();
+			const list = peers.list();
 			expect(list.length).equal(2);
 
-			var demandedPorts = _.map([validPeer, differentPortPeer], 'wsPort');
-			var listPorts = _.map(list, 'wsPort');
+			const demandedPorts = _.map([validPeer, differentPortPeer], 'wsPort');
+			const listPorts = _.map(list, 'wsPort');
 
 			return expect(_.isEqual(demandedPorts.sort(), listPorts.sort())).to.be.ok;
 		});
@@ -260,17 +260,17 @@ describe('peers', () => {
 			peers.upsert(validPeer);
 			expect(peers.list().length).equal(1);
 
-			var differentIpPeer = _.clone(validPeer);
+			const differentIpPeer = _.clone(validPeer);
 			delete differentIpPeer.string;
 			differentIpPeer.ip = '40.40.40.41';
 			differentIpPeer.nonce = 'differentNonce';
 
 			peers.upsert(differentIpPeer);
-			var list = peers.list();
+			const list = peers.list();
 			expect(list.length).equal(2);
 
-			var demandedIps = _.map([validPeer, differentIpPeer], 'ip');
-			var listIps = _.map(list, 'ip');
+			const demandedIps = _.map([validPeer, differentIpPeer], 'ip');
+			const listIps = _.map(list, 'ip');
 
 			return expect(_.isEqual(demandedIps.sort(), listIps.sort())).to.be.ok;
 		});
@@ -316,14 +316,14 @@ describe('peers', () => {
 
 		it('should return true if peer is on the list', () => {
 			peers.upsert(validPeer);
-			var list = peers.list(true);
+			const list = peers.list(true);
 			expect(list.length).equal(1);
 			return expect(peers.exists(validPeer)).to.be.ok;
 		});
 
 		/* eslint-disable mocha/no-skipped-tests */
 		it.skip('should return true if peer with same nonce is on the list', () => {
-			var list = peers.list(true);
+			const list = peers.list(true);
 			expect(list.length).equal(1);
 			return expect(
 				peers.exists({
@@ -337,7 +337,7 @@ describe('peers', () => {
 
 		it('should return true if peer with same address is on the list', () => {
 			peers.upsert(validPeer);
-			var list = peers.list(true);
+			const list = peers.list(true);
 			expect(list.length).equal(1);
 			return expect(
 				peers.exists({ ip: validPeer.ip, wsPort: validPeer.wsPort })
@@ -352,13 +352,13 @@ describe('peers', () => {
 
 		it('should return inserted peer', () => {
 			peers.upsert(validPeer);
-			var insertedPeer = peers.get(validPeer);
+			const insertedPeer = peers.get(validPeer);
 			return expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
 		});
 
 		it('should return inserted peer by address', () => {
 			peers.upsert(validPeer);
-			var insertedPeer = peers.get(`${validPeer.ip}:${validPeer.wsPort}`);
+			const insertedPeer = peers.get(`${validPeer.ip}:${validPeer.wsPort}`);
 			return expect(arePeersEqual(insertedPeer, validPeer)).to.be.ok;
 		});
 
@@ -375,13 +375,13 @@ describe('peers', () => {
 		it('should remove added peer', () => {
 			peers.upsert(validPeer);
 			expect(peers.list().length).equal(1);
-			var result = peers.remove(validPeer);
+			const result = peers.remove(validPeer);
 			expect(result).to.be.ok;
 			return expect(peers.list().length).equal(0);
 		});
 
 		it('should return an error when trying to remove a non-existent peer', () => {
-			var result = peers.remove(validPeer);
+			const result = peers.remove(validPeer);
 			expect(result)
 				.to.be.a('number')
 				.equal(failureCodes.ON_MASTER.REMOVE.NOT_ON_LIST);

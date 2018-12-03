@@ -14,11 +14,11 @@
 
 'use strict';
 
-var connectionsTable = require('../../../../../api/ws/workers/connections_table');
+const connectionsTable = require('../../../../../api/ws/workers/connections_table');
 
 describe('ConnectionsTable', () => {
-	var validNonce = '123456789ABCDEF';
-	var validConnectionId = 'ABCDEF123456789';
+	const validNonce = '123456789ABCDEF';
+	const validConnectionId = 'ABCDEF123456789';
 
 	beforeEach(done => {
 		connectionsTable.connectionIdToNonceMap = {};

@@ -14,14 +14,14 @@
 
 'use strict';
 
-var genesisDelegates = require('../../data/genesis_delegates.json');
-var accountFixtures = require('../../fixtures/accounts');
-var application = require('../../common/application');
+const genesisDelegates = require('../../data/genesis_delegates.json');
+const accountFixtures = require('../../fixtures/accounts');
+const application = require('../../common/application');
 
 describe('node', () => {
-	var testDelegate = genesisDelegates.delegates[0];
-	var defaultPassword;
-	var library;
+	const testDelegate = genesisDelegates.delegates[0];
+	let defaultPassword;
+	let library;
 	const stubs = {};
 
 	before(done => {
@@ -67,7 +67,7 @@ describe('node', () => {
 	});
 
 	describe('internal', () => {
-		var node_module;
+		let node_module;
 
 		before(done => {
 			node_module = library.modules.node;
@@ -113,7 +113,7 @@ describe('node', () => {
 			});
 
 			it('should return error with invalid publicKey', done => {
-				var invalidPublicKey =
+				const invalidPublicKey =
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 
 				node_module.internal.updateForgingStatus(
@@ -252,7 +252,7 @@ describe('node', () => {
 			});
 
 			it('should return empty array when invalid publicKey is provided', done => {
-				var invalidPublicKey =
+				const invalidPublicKey =
 					'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9fff0a';
 				node_module.internal.getForgingStatus(invalidPublicKey, (err, data) => {
 					expect(err).to.be.null;

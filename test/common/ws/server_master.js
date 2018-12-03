@@ -17,13 +17,13 @@
 // Initialize global variables
 require('../../setup');
 
-var ChildProcess = require('child_process');
-var path = require('path');
-var Promise = require('bluebird');
-var randomstring = require('randomstring');
-var random = require('../../common/utils/random');
+const ChildProcess = require('child_process');
+const path = require('path');
+const Promise = require('bluebird');
+const randomstring = require('randomstring');
+const random = require('../../common/utils/random');
 
-var testConfig = __testContext.config;
+const testConfig = __testContext.config;
 
 /**
  * WSServerMaster
@@ -50,7 +50,7 @@ function WSServerMaster() {
  * @return {Promise}
  */
 WSServerMaster.prototype.start = function() {
-	var self = this;
+	const self = this;
 
 	return new Promise((resolve, reject) => {
 		self.masterProcess = ChildProcess.fork(
@@ -97,10 +97,10 @@ WSServerMaster.generatePeerHeaders = function(headers) {
 		headers = {};
 	}
 
-	var operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];
-	var httpPort = headers.httpPort || random.number(1025, 65536);
+	const operatingSystems = ['win32', 'win64', 'ubuntu', 'debian', 'centos'];
+	const httpPort = headers.httpPort || random.number(1025, 65536);
 
-	var defaults = {
+	const defaults = {
 		broadhash: testConfig.nethash,
 		nethash: testConfig.nethash,
 		state: 2,

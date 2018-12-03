@@ -664,7 +664,7 @@ __private.normalizeBlock = function(block, cb) {
 __private.verifyBlock = function(block, cb) {
 	// Sanity check of the block, if values are coherent
 	// No access to database
-	var result = self.verifyBlock(block);
+	const result = self.verifyBlock(block);
 
 	if (!result.verified) {
 		library.logger.error(
@@ -691,7 +691,7 @@ __private.broadcastBlock = function(block, broadcast, cb) {
 	if (broadcast) {
 		try {
 			// Delete default properties
-			var reducedBlock = self.deleteBlockProperties(block);
+			const reducedBlock = self.deleteBlockProperties(block);
 			modules.blocks.chain.broadcastReducedBlock(reducedBlock, broadcast);
 		} catch (err) {
 			return setImmediate(cb, err);

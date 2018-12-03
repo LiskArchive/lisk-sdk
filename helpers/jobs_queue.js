@@ -29,7 +29,7 @@
  * @memberof module:helpers/jobs_queue
  * @see Parent: {@link helpers~jobsQueue}
  */
-var jobsQueue = {
+const jobsQueue = {
 	jobs: {},
 
 	/**
@@ -58,7 +58,7 @@ var jobsQueue = {
 			throw new Error('Syntax error - invalid parameters supplied');
 		}
 
-		var nextJob = function() {
+		const nextJob = function() {
 			return job(() => {
 				jobsQueue.jobs[name] = setTimeout(nextJob, time);
 			});

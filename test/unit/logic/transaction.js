@@ -14,38 +14,38 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../fixtures/accounts');
-var modulesLoader = require('../../common/modules_loader');
-var application = require('../../common/application');
-var ed = require('../../../helpers/ed');
-var Bignum = require('../../../helpers/bignum.js');
-var transactionTypes = require('../../../helpers/transaction_types');
-var slots = require('../../../helpers/slots');
-var Vote = require('../../../logic/vote');
-var Transfer = require('../../../logic/transfer');
-var Delegate = require('../../../logic/delegate');
-var Signature = require('../../../logic/signature');
-var Multisignature = require('../../../logic/multisignature');
-var Dapp = require('../../../logic/dapp');
-var InTransfer = require('../../../logic/in_transfer');
-var OutTransfer = require('../../../logic/out_transfer');
-var MultisignatureMocks = require('./test_data/multisignature.js');
+const crypto = require('crypto');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../fixtures/accounts');
+const modulesLoader = require('../../common/modules_loader');
+const application = require('../../common/application');
+const ed = require('../../../helpers/ed');
+const Bignum = require('../../../helpers/bignum.js');
+const transactionTypes = require('../../../helpers/transaction_types');
+const slots = require('../../../helpers/slots');
+const Vote = require('../../../logic/vote');
+const Transfer = require('../../../logic/transfer');
+const Delegate = require('../../../logic/delegate');
+const Signature = require('../../../logic/signature');
+const Multisignature = require('../../../logic/multisignature');
+const Dapp = require('../../../logic/dapp');
+const InTransfer = require('../../../logic/in_transfer');
+const OutTransfer = require('../../../logic/out_transfer');
+const MultisignatureMocks = require('./test_data/multisignature.js');
 
 const { TOTAL_AMOUNT } = __testContext.config.constants;
 const exceptions = global.exceptions;
 
-var validPassphrase =
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var senderPassphrase = accountFixtures.genesis.passphrase;
+const senderPassphrase = accountFixtures.genesis.passphrase;
 
 const generateHash = passPhrase =>
 	crypto
@@ -60,7 +60,7 @@ const senderKeyPair = passPhrase => {
 
 const keyPair = senderKeyPair();
 
-var sender = {
+const sender = {
 	username: null,
 	isDelegate: 0,
 	secondSignature: 0,
@@ -81,7 +81,7 @@ var sender = {
 	rewards: new Bignum('0'),
 };
 
-var transactionData = {
+const transactionData = {
 	type: 0,
 	amount: new Bignum('8067474861277'),
 	sender,
@@ -92,7 +92,7 @@ var transactionData = {
 	passphrase: senderPassphrase,
 };
 
-var validTransaction = {
+const validTransaction = {
 	id: '16140284222734558289',
 	rowId: 133,
 	blockId: '1462190441827192029',
@@ -112,7 +112,7 @@ var validTransaction = {
 	asset: {},
 };
 
-var rawTransaction = {
+const rawTransaction = {
 	t_id: '16140284222734558289',
 	b_height: 981,
 	t_blockId: '1462190441827192029',
@@ -131,7 +131,7 @@ var rawTransaction = {
 	confirmations: 8343,
 };
 
-var genesisTransaction = {
+const genesisTransaction = {
 	type: 0,
 	amount: new Bignum('10000000000000000'),
 	fee: new Bignum('0'),
@@ -146,7 +146,7 @@ var genesisTransaction = {
 	id: '1465651642158264047',
 };
 
-var unconfirmedTransaction = {
+const unconfirmedTransaction = {
 	type: 0,
 	amount: new Bignum('8067474861277'),
 	senderPublicKey:
@@ -164,11 +164,11 @@ var unconfirmedTransaction = {
 };
 
 describe('transaction', () => {
-	var transactionLogic;
-	var accountModule;
+	let transactionLogic;
+	let accountModule;
 
 	before(done => {
-		var transfer = new Transfer(
+		const transfer = new Transfer(
 			modulesLoader.scope.logger,
 			modulesLoader.scope.schema
 		);
@@ -217,8 +217,8 @@ describe('transaction', () => {
 		});
 
 		it('should update signature when data is changed', () => {
-			var originalSignature = validTransaction.signature;
-			var transaction = _.cloneDeep(validTransaction);
+			const originalSignature = validTransaction.signature;
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.data = '123';
 
 			return expect(transactionLogic.sign(keyPair, transaction))
@@ -251,8 +251,8 @@ describe('transaction', () => {
 		});
 
 		it('should update id if a field in transaction value changes', () => {
-			var id = validTransaction.id;
-			var transaction = _.cloneDeep(validTransaction);
+			const id = validTransaction.id;
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = 4000;
 
 			return expect(transactionLogic.getId(transaction)).to.not.equal(id);
@@ -265,8 +265,8 @@ describe('transaction', () => {
 		});
 
 		it('should return hash for transaction', () => {
-			var transaction = validTransaction;
-			var expectedHash =
+			const transaction = validTransaction;
+			const expectedHash =
 				'5164ef55fccefddf72360ea6e05f19eed7c8d2653c5069df4db899c47246dd2f';
 
 			return expect(transactionLogic.getHash(transaction).toString('hex'))
@@ -275,9 +275,9 @@ describe('transaction', () => {
 		});
 
 		it('should update hash if a field is transaction value changes', () => {
-			var originalTransactionHash =
+			const originalTransactionHash =
 				'5164ef55fccefddf72360ea6e05f19eed7c8d2653c5069df4db899c47246dd2f';
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = 4000;
 
 			return expect(
@@ -292,17 +292,17 @@ describe('transaction', () => {
 		});
 
 		it('should return same result when called multiple times (without data field)', () => {
-			var firstCalculation = transactionLogic.getBytes(validTransaction);
-			var secondCalculation = transactionLogic.getBytes(validTransaction);
+			const firstCalculation = transactionLogic.getBytes(validTransaction);
+			const secondCalculation = transactionLogic.getBytes(validTransaction);
 
 			return expect(firstCalculation.equals(secondCalculation)).to.be.ok;
 		});
 
 		it('should return same result of getBytes using /logic/transaction and lisk-elements package (without data field)', () => {
-			var transactionBytesFromLogic = transactionLogic.getBytes(
+			const transactionBytesFromLogic = transactionLogic.getBytes(
 				validTransaction
 			);
-			var transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(
+			const transactionBytesFromLiskJs = lisk.transaction.utils.getTransactionBytes(
 				validTransaction
 			);
 
@@ -312,7 +312,10 @@ describe('transaction', () => {
 		});
 
 		it('should skip signature, second signature for getting bytes', () => {
-			var transactionBytes = transactionLogic.getBytes(validTransaction, true);
+			const transactionBytes = transactionLogic.getBytes(
+				validTransaction,
+				true
+			);
 
 			return expect(transactionBytes.length).to.equal(53);
 		});
@@ -324,8 +327,8 @@ describe('transaction', () => {
 		});
 
 		it('should throw error when transaction type is invalid', () => {
-			var transaction = _.cloneDeep(validTransaction);
-			var invalidTransactionType = -1;
+			const transaction = _.cloneDeep(validTransaction);
+			const invalidTransactionType = -1;
 			transaction.type = invalidTransactionType;
 
 			return expect(() => {
@@ -423,7 +426,7 @@ describe('transaction', () => {
 		});
 
 		it('should not return error when transaction is not confirmed', done => {
-			var transaction = lisk.transaction.transfer({
+			const transaction = lisk.transaction.transfer({
 				amount: transactionData.amount,
 				passphrase: transactionData.passphrase,
 				recipientId: transactionData.recipientId,
@@ -436,7 +439,7 @@ describe('transaction', () => {
 		});
 
 		it('should return true for transaction which is already confirmed', done => {
-			var dummyConfirmedTransaction = {
+			const dummyConfirmedTransaction = {
 				id: '1465651642158264047',
 			};
 
@@ -457,9 +460,9 @@ describe('transaction', () => {
 		});
 
 		it('should return error when sender has insufficiant balance', () => {
-			var amount = '9850458911801509';
-			var balanceKey = 'balance';
-			var res = transactionLogic.checkBalance(
+			const amount = '9850458911801509';
+			const balanceKey = 'balance';
+			const res = transactionLogic.checkBalance(
 				amount,
 				balanceKey,
 				validTransaction,
@@ -471,9 +474,9 @@ describe('transaction', () => {
 		});
 
 		it('should be okay if insufficient balance from genesis account', () => {
-			var amount = '999823366072900';
-			var balanceKey = 'balance';
-			var res = transactionLogic.checkBalance(
+			const amount = '999823366072900';
+			const balanceKey = 'balance';
+			const res = transactionLogic.checkBalance(
 				amount,
 				balanceKey,
 				genesisTransaction,
@@ -485,8 +488,8 @@ describe('transaction', () => {
 		});
 
 		it('should be okay if sender has sufficient balance', () => {
-			var balanceKey = 'balance';
-			var res = transactionLogic.checkBalance(
+			const balanceKey = 'balance';
+			const res = transactionLogic.checkBalance(
 				validTransaction.amount,
 				balanceKey,
 				validTransaction,
@@ -511,7 +514,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error if generated id is different from id supplied of transaction', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.id = 'invalid transaction id';
 
 			transactionLogic.process(transaction, sender, err => {
@@ -521,7 +524,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error when failed to generate id', done => {
-			var transaction = {
+			const transaction = {
 				type: 0,
 			};
 
@@ -545,13 +548,13 @@ describe('transaction', () => {
 
 	describe('verify', () => {
 		function createAndProcess(transactionData, sender, cb) {
-			var transferObject = {
+			const transferObject = {
 				amount: transactionData.amount,
 				passphrase: transactionData.passphrase,
 				secondPassphrase: transactionData.secondPassphrase,
 				recipientId: transactionData.recipientId,
 			};
-			var transaction = lisk.transaction.transfer(transferObject);
+			const transaction = lisk.transaction.transfer(transferObject);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
 			transactionLogic.process(transaction, sender, (err, transaction) => {
@@ -567,7 +570,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error with invalid transaction type', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.type = -1;
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
@@ -577,8 +580,8 @@ describe('transaction', () => {
 		});
 
 		it('should return error when missing sender second signature', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(sender);
+			const transaction = _.cloneDeep(validTransaction);
+			const vs = _.cloneDeep(sender);
 			vs.secondSignature =
 				'839eba0f811554b9f935e39a68b3078f90bea22c5424d3ad16630f027a48362f78349ddc3948360045d6460404f5bc8e25b662d4fd09e60c89453776962df40d';
 
@@ -589,7 +592,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error when sender does not have a second signature', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.signSignature = [
 				transactionLogic.sign(validKeypair, transaction),
 			];
@@ -601,8 +604,8 @@ describe('transaction', () => {
 		});
 
 		it('should return error when requester does not have a second signature', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var dummyRequester = {
+			const transaction = _.cloneDeep(validTransaction);
+			const dummyRequester = {
 				secondSignature:
 					'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 			};
@@ -622,8 +625,8 @@ describe('transaction', () => {
 		});
 
 		it('should return error when transaction sender publicKey and sender public key are different', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var invalidPublicKey =
+			const transaction = _.cloneDeep(validTransaction);
+			const invalidPublicKey =
 				'01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398db746';
 			transaction.senderPublicKey = invalidPublicKey;
 
@@ -641,11 +644,11 @@ describe('transaction', () => {
 		});
 
 		it('should be impossible to send the money from genesis account', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			// genesis account info
 			transaction.senderPublicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
-			var vs = _.cloneDeep(sender);
+			const vs = _.cloneDeep(sender);
 			vs.publicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 
@@ -658,7 +661,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error on different sender address in transaction and sender', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.senderId = '2581762640681118072L';
 
 			transactionLogic.verify(transaction, sender, null, null, err => {
@@ -668,8 +671,8 @@ describe('transaction', () => {
 		});
 
 		it('should return error when transaction has requester', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(sender);
+			const transaction = _.cloneDeep(validTransaction);
+			const vs = _.cloneDeep(sender);
 			// Different publicKey for multisignature account
 			vs.multisignatures = [accountFixtures.existingDelegate.publicKey];
 			transaction.requesterPublicKey = validKeypair.publicKey.toString('hex');
@@ -683,7 +686,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error when signature is not correct', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			// valid keypair is a different account
 			transaction.signature = transactionLogic.sign(validKeypair, transaction);
 
@@ -694,8 +697,8 @@ describe('transaction', () => {
 		});
 
 		it('should return error when duplicate signature in transaction', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(sender);
+			const transaction = _.cloneDeep(validTransaction);
+			const vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
 			transaction.signatures = Array(...Array(2)).map(() => {
@@ -709,8 +712,8 @@ describe('transaction', () => {
 		});
 
 		it('should be okay with valid multisignature', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(sender);
+			const transaction = _.cloneDeep(validTransaction);
+			const vs = _.cloneDeep(sender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
@@ -727,11 +730,11 @@ describe('transaction', () => {
 		});
 
 		it('should return error when second signature is invalid', done => {
-			var vs = _.cloneDeep(sender);
+			const vs = _.cloneDeep(sender);
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
 			vs.secondSignature = 1;
 
-			var transactionDataClone = _.cloneDeep(transactionData);
+			const transactionDataClone = _.cloneDeep(transactionData);
 			transactionDataClone.passphrase = senderPassphrase;
 			transactionDataClone.secondPassphrase = validPassphrase;
 
@@ -746,11 +749,11 @@ describe('transaction', () => {
 		});
 
 		it('should be okay for valid second signature', done => {
-			var vs = _.cloneDeep(sender);
+			const vs = _.cloneDeep(sender);
 			vs.secondPublicKey = validKeypair.publicKey.toString('hex');
 			vs.secondSignature = 1;
 
-			var transactionDataClone = _.cloneDeep(transactionData);
+			const transactionDataClone = _.cloneDeep(transactionData);
 			transactionDataClone.passphrase = senderPassphrase;
 			transactionDataClone.secondPassphrase = validPassphrase;
 
@@ -763,7 +766,7 @@ describe('transaction', () => {
 		});
 
 		it('should throw return error transaction fee is incorrect', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(-100);
 
@@ -774,7 +777,7 @@ describe('transaction', () => {
 		});
 
 		it('should verify transaction with correct fee (with data field)', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset = { data: '123' };
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
@@ -796,7 +799,7 @@ describe('transaction', () => {
 
 		it("should return error when transaction amount is bigger than postgreSQL's Max BigInt value", done => {
 			// lisk-elements cannot create a transaction with higher amount than max amount. So, this test needs to use hardcoded transaction object
-			var transaction = {
+			const transaction = {
 				type: 0,
 				amount: new Bignum('1000000000000000000000000000'),
 				senderId: '16313739661670634666L',
@@ -818,7 +821,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error when account balance is less than transaction amount', done => {
-			var transactionDataClone = _.cloneDeep(transactionData);
+			const transactionDataClone = _.cloneDeep(transactionData);
 			transactionDataClone.amount = TOTAL_AMOUNT;
 
 			createAndProcess(transactionDataClone, sender, (err, transaction) => {
@@ -830,7 +833,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error on timestamp below the int32 range', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = -2147483648 - 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
@@ -845,7 +848,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error on timestamp above the int32 range', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = 2147483647 + 1;
 			delete transaction.signature;
 			transaction.signature = transactionLogic.sign(keyPair, transaction);
@@ -860,7 +863,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error on future timestamp', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.timestamp = slots.getTime() + 100;
 			delete transaction.signature;
 
@@ -894,7 +897,7 @@ describe('transaction', () => {
 		});
 
 		it('should return false if transaction is changed', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			// change transaction value
 			transaction.amount = 1001;
 
@@ -928,8 +931,8 @@ describe('transaction', () => {
 		});
 
 		it('should throw if public key is invalid', () => {
-			var transaction = _.cloneDeep(validTransaction);
-			var invalidPublicKey = '123123123';
+			const transaction = _.cloneDeep(validTransaction);
+			const invalidPublicKey = '123123123';
 
 			return expect(() => {
 				transactionLogic.verifySignature(
@@ -947,7 +950,7 @@ describe('transaction', () => {
 		});
 
 		it('should verify the second signature correctly', () => {
-			var signature = transactionLogic.sign(validKeypair, validTransaction);
+			const signature = transactionLogic.sign(validKeypair, validTransaction);
 
 			return expect(
 				transactionLogic.verifySecondSignature(
@@ -965,8 +968,8 @@ describe('transaction', () => {
 		});
 
 		it('should return when sender public is different', () => {
-			var transactionBytes = transactionLogic.getBytes(validTransaction);
-			var invalidPublicKey =
+			const transactionBytes = transactionLogic.getBytes(validTransaction);
+			const invalidPublicKey =
 				'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
 
 			return expect(
@@ -979,8 +982,8 @@ describe('transaction', () => {
 		});
 
 		it('should throw when publickey is not in the right format', () => {
-			var transactionBytes = transactionLogic.getBytes(validTransaction);
-			var invalidPublicKey =
+			const transactionBytes = transactionLogic.getBytes(validTransaction);
+			const invalidPublicKey =
 				'iddb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9';
 
 			return expect(() => {
@@ -993,12 +996,12 @@ describe('transaction', () => {
 		});
 
 		it('should be okay for valid bytes', () => {
-			var transactionBytes = transactionLogic.getBytes(
+			const transactionBytes = transactionLogic.getBytes(
 				validTransaction,
 				true,
 				true
 			);
-			var res = transactionLogic.verifyBytes(
+			const res = transactionLogic.verifyBytes(
 				transactionBytes,
 				validTransaction.senderPublicKey,
 				validTransaction.signature
@@ -1009,7 +1012,7 @@ describe('transaction', () => {
 	});
 
 	describe('applyConfirmed', () => {
-		var dummyBlock = {
+		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
@@ -1034,7 +1037,7 @@ describe('transaction', () => {
 		});
 
 		it('should return error on if balance is low', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = new Bignum('9850458911801908');
 
 			transactionLogic.applyConfirmed(transaction, dummyBlock, sender, err => {
@@ -1047,10 +1050,10 @@ describe('transaction', () => {
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
 				(err, accountBefore) => {
-					var amount = new Bignum(validTransaction.amount.toString()).plus(
+					const amount = new Bignum(validTransaction.amount.toString()).plus(
 						validTransaction.fee.toString()
 					);
-					var balanceBefore = new Bignum(accountBefore.balance.toString());
+					const balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.applyConfirmed(
 						validTransaction,
@@ -1061,7 +1064,7 @@ describe('transaction', () => {
 								{ publicKey: validTransaction.senderPublicKey },
 								(err, accountAfter) => {
 									expect(err).to.not.exist;
-									var balanceAfter = new Bignum(
+									const balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
 
@@ -1080,7 +1083,7 @@ describe('transaction', () => {
 	});
 
 	describe('undoConfirmed', () => {
-		var dummyBlock = {
+		const dummyBlock = {
 			id: '9314232245035524467',
 			height: 1,
 		};
@@ -1094,8 +1097,8 @@ describe('transaction', () => {
 		});
 
 		it('should not update sender balance when transaction is invalid', done => {
-			var transaction = _.cloneDeep(validTransaction);
-			var amount = new Bignum(transaction.amount.toString()).plus(
+			const transaction = _.cloneDeep(validTransaction);
+			const amount = new Bignum(transaction.amount.toString()).plus(
 				transaction.fee.toString()
 			);
 			delete transaction.recipientId;
@@ -1103,7 +1106,7 @@ describe('transaction', () => {
 			accountModule.getAccount(
 				{ publicKey: transaction.senderPublicKey },
 				(err, accountBefore) => {
-					var balanceBefore = new Bignum(accountBefore.balance.toString());
+					const balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undoConfirmed(
 						transaction,
@@ -1114,7 +1117,7 @@ describe('transaction', () => {
 								{ publicKey: transaction.senderPublicKey },
 								(err, accountAfter) => {
 									expect(err).to.not.exist;
-									var balanceAfter = new Bignum(
+									const balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
 
@@ -1134,15 +1137,15 @@ describe('transaction', () => {
 		});
 
 		it('should be okay with valid params', done => {
-			var transaction = validTransaction;
-			var amount = new Bignum(transaction.amount.toString()).plus(
+			const transaction = validTransaction;
+			const amount = new Bignum(transaction.amount.toString()).plus(
 				transaction.fee.toString()
 			);
 
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
 				(err, accountBefore) => {
-					var balanceBefore = new Bignum(accountBefore.balance.toString());
+					const balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undoConfirmed(
 						transaction,
@@ -1153,7 +1156,7 @@ describe('transaction', () => {
 								{ publicKey: transaction.senderPublicKey },
 								(err, accountAfter) => {
 									expect(err).to.not.exist;
-									var balanceAfter = new Bignum(
+									const balanceAfter = new Bignum(
 										accountAfter.balance.toString()
 									);
 
@@ -1182,12 +1185,12 @@ describe('transaction', () => {
 		});
 
 		it('should be okay with valid params', done => {
-			var transaction = validTransaction;
+			const transaction = validTransaction;
 			transactionLogic.applyUnconfirmed(transaction, sender, done);
 		});
 
 		it('should return error on if balance is low', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = new Bignum('9850458911801908');
 
 			transactionLogic.applyUnconfirmed(transaction, sender, err => {
@@ -1237,7 +1240,7 @@ describe('transaction', () => {
 		});
 
 		it('should remove keys with null or undefined attribute', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = null;
 
 			return expect(
@@ -1246,7 +1249,7 @@ describe('transaction', () => {
 		});
 
 		it('should convert amount and fee to bignumber when values are null', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = null;
 			transaction.fee = null;
 
@@ -1256,7 +1259,7 @@ describe('transaction', () => {
 		});
 
 		it('should convert amount and fee to bignumber when values are undefined', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = undefined;
 			transaction.fee = undefined;
 
@@ -1272,11 +1275,13 @@ describe('transaction', () => {
 		});
 
 		it('should not remove data field after normalization', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset = {
 				data: '123',
 			};
-			var normalizedTransaction = transactionLogic.objectNormalize(transaction);
+			const normalizedTransaction = transactionLogic.objectNormalize(
+				transaction
+			);
 
 			return expect(normalizedTransaction)
 				.to.have.property('asset')
@@ -1284,7 +1289,7 @@ describe('transaction', () => {
 		});
 
 		it('should throw error for invalid schema types', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.amount = 'Invalid value';
 			transaction.data = 124;
 
@@ -1382,25 +1387,25 @@ describe('transaction', () => {
 		});
 
 		it('should return transaction object with data field', () => {
-			var rawTransactionClone = _.cloneDeep(rawTransaction);
-			var transactionFromDb = transactionLogic.dbRead(rawTransactionClone);
+			const rawTransactionClone = _.cloneDeep(rawTransaction);
+			const transactionFromDb = transactionLogic.dbRead(rawTransactionClone);
 
 			expect(transactionFromDb).to.be.an('object');
 			return expect(transactionFromDb.asset).to.have.property('data');
 		});
 
 		it('should return null if id field is not present', () => {
-			var rawTransactionClone = _.cloneDeep(rawTransaction);
+			const rawTransactionClone = _.cloneDeep(rawTransaction);
 			delete rawTransactionClone.t_id;
 
-			var transaction = transactionLogic.dbRead(rawTransactionClone);
+			const transaction = transactionLogic.dbRead(rawTransactionClone);
 
 			return expect(transaction).to.be.a('null');
 		});
 
 		it('should return transaction object with correct fields', () => {
-			var transaction = transactionLogic.dbRead(rawTransaction);
-			var expectedKeys = [
+			const transaction = transactionLogic.dbRead(rawTransaction);
+			const expectedKeys = [
 				'id',
 				'height',
 				'blockId',
@@ -1496,7 +1501,7 @@ describe('transaction', () => {
 
 		it('should throw an error on invalid asset', () => {
 			return expect(() => {
-				var invalidAsset = {};
+				const invalidAsset = {};
 				transactionLogic.attachAssetType(-1, invalidAsset);
 			}).to.throw('Invalid instance interface');
 		});

@@ -35,21 +35,21 @@ if (NewRelicConfig.license_key || process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
-var path = require('path');
-var fs = require('fs');
-var d = require('domain').create();
-var dns = require('dns');
-var net = require('net');
-var SocketCluster = require('socketcluster');
-var async = require('async');
-var Logger = require('./logger.js');
-var wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
-var WsTransport = require('./api/ws/transport');
-var git = require('./helpers/git.js');
-var Sequence = require('./helpers/sequence.js');
-var httpApi = require('./helpers/http_api.js');
+const path = require('path');
+const fs = require('fs');
+const d = require('domain').create();
+const dns = require('dns');
+const net = require('net');
+const SocketCluster = require('socketcluster');
+const async = require('async');
+const Logger = require('./logger.js');
+const wsRPC = require('./api/ws/rpc/ws_rpc').wsRPC;
+const WsTransport = require('./api/ws/transport');
+const git = require('./helpers/git.js');
+const Sequence = require('./helpers/sequence.js');
+const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
-var swaggerHelper = require('./helpers/swagger');
+const swaggerHelper = require('./helpers/swagger');
 
 /**
  * Main application entry point.
@@ -97,20 +97,23 @@ var swaggerHelper = require('./helpers/swagger');
  */
 
 // Define workers_controller path
-var workersControllerPath = path.join(__dirname, 'workers_controller');
+const workersControllerPath = path.join(__dirname, 'workers_controller');
 
 // Begin reading from stdin
 process.stdin.resume();
 
 // Read build version from file
-var versionBuild = fs.readFileSync(path.join(__dirname, '.build'), 'utf8').toString().trim();
+const versionBuild = fs
+	.readFileSync(path.join(__dirname, '.build'), 'utf8')
+	.toString()
+	.trim();
 
 /**
  * Hash of the last git commit.
  *
  * @memberof! app
  */
-var lastCommit = '';
+let lastCommit = '';
 
 if (typeof gc !== 'undefined') {
 	setInterval(() => {
@@ -127,7 +130,7 @@ global.exceptions = appConfig.exceptions;
  *
  * @memberof! app
  */
-var config = {
+const config = {
 	db: appConfig.db,
 	cache: appConfig.redis,
 	cacheEnabled: appConfig.cacheEnabled,
@@ -155,7 +158,7 @@ var config = {
  *
  * @memberof! app
  */
-var logger = new Logger({
+const logger = new Logger({
 	echo: process.env.LOG_LEVEL || appConfig.consoleLogLevel,
 	errorLevel: process.env.FILE_LOG_LEVEL || appConfig.fileLogLevel,
 	filename: appConfig.logFileName,
@@ -166,7 +169,7 @@ var logger = new Logger({
  *
  * @memberof! app
  */
-var dbLogger = null;
+let dbLogger = null;
 
 if (
 	appConfig.db.logFileName &&
@@ -198,7 +201,7 @@ d.on('error', err => {
 logger.info(`Starting lisk with "${appConfig.network}" genesis block.`);
 // Run domain
 d.run(() => {
-	var modules = [];
+	const modules = [];
 	async.auto(
 		{
 			/**
@@ -221,7 +224,7 @@ d.run(() => {
 				}
 
 				// In case domain names are used, resolve those to IP addresses.
-				var peerDomainLookupTasks = appConfig.peers.list.map(
+				const peerDomainLookupTasks = appConfig.peers.list.map(
 					peer => callback => {
 						if (net.isIPv4(peer.ip)) {
 							return setImmediate(() => callback(null, peer));
@@ -289,12 +292,12 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
-					var express = require('express');
-					var app = express();
+					const express = require('express');
+					const app = express();
 
 					if (appConfig.coverage) {
 						// eslint-disable-next-line import/no-extraneous-dependencies
-						var im = require('istanbul-middleware');
+						const im = require('istanbul-middleware');
 						logger.debug(
 							'Hook loader for coverage - Do not use in production environment!'
 						);
@@ -306,13 +309,13 @@ d.run(() => {
 						app.enable('trust proxy');
 					}
 
-					var server = require('http').createServer(app);
-					var io = require('socket.io')(server);
+					const server = require('http').createServer(app);
+					const io = require('socket.io')(server);
 
-					var privateKey;
-					var certificate;
-					var https;
-					var https_io;
+					let privateKey;
+					let certificate;
+					let https;
+					let https_io;
 
 					if (scope.config.api.ssl.enabled) {
 						privateKey = fs.readFileSync(scope.config.api.ssl.options.key);
@@ -354,7 +357,7 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					var sequence = new Sequence({
+					const sequence = new Sequence({
 						onWarning(current) {
 							scope.logger.warn('Main queue', current);
 						},
@@ -375,7 +378,7 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					var sequence = new Sequence({
+					const sequence = new Sequence({
 						onWarning(current) {
 							scope.logger.warn('Balance queue', current);
 						},
@@ -432,13 +435,13 @@ d.run(() => {
 				 * @todo Add description for the function and its params
 				 */
 				function(scope, cb) {
-					var changeCase = require('change-case');
-					var Bus = function() {
+					const changeCase = require('change-case');
+					const Bus = function() {
 						this.message = function() {
-							var args = [];
+							const args = [];
 							Array.prototype.push.apply(args, arguments);
-							var topic = args.shift();
-							var eventName = `on${changeCase.pascalCase(topic)}`;
+							const topic = args.shift();
+							const eventName = `on${changeCase.pascalCase(topic)}`;
 
 							// Iterate over modules and execute event functions (on*)
 							modules.forEach(module => {
@@ -470,7 +473,7 @@ d.run(() => {
 			 * @todo Add description for the function and its params
 			 */
 			db(cb) {
-				var db = require('./db');
+				const db = require('./db');
 				db
 					.connect(config.db, dbLogger)
 					.then(db => cb(null, db))
@@ -487,7 +490,7 @@ d.run(() => {
 			 * @todo Add description for the params
 			 */
 			cache(cb) {
-				var cache = require('./helpers/cache.js');
+				const cache = require('./helpers/cache.js');
 				logger.debug(
 					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
 				);
@@ -515,7 +518,7 @@ d.run(() => {
 						);
 						return cb();
 					}
-					var webSocketConfig = {
+					const webSocketConfig = {
 						workers: scope.config.wsWorkers,
 						port: scope.config.wsPort,
 						host: '0.0.0.0',
@@ -533,7 +536,7 @@ d.run(() => {
 						logLevel: 0,
 					};
 
-					var childProcessOptions = {
+					const childProcessOptions = {
 						version: scope.config.version,
 						minVersion: scope.config.minVersion,
 						nethash: scope.config.nethash,
@@ -543,7 +546,7 @@ d.run(() => {
 					};
 
 					scope.socketCluster = new SocketCluster(webSocketConfig);
-					var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+					const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 					scope.network.app.rpc = wsRPC.setServer(
 						new MasterWAMPServer(scope.socketCluster, childProcessOptions)
 					);
@@ -557,14 +560,14 @@ d.run(() => {
 					scope.socketCluster.on('fail', err => {
 						scope.logger.error(err);
 						if (err.name === 'WSEngineInitError') {
-							var extendedError =
+							const extendedError =
 								'If you are not able to install sc-uws, you can try setting the wsEngine property in config.json to "ws" before starting the node';
 							scope.logger.error(extendedError);
 						}
 					});
 
 					return scope.socketCluster.on('workerExit', workerInfo => {
-						var exitMessage = `Worker with pid ${workerInfo.pid} exited`;
+						let exitMessage = `Worker with pid ${workerInfo.pid} exited`;
 						if (workerInfo.signal) {
 							exitMessage += ` due to signal: '${workerInfo.signal}'`;
 						}
@@ -587,10 +590,10 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
-					var Transaction = require('./logic/transaction.js');
-					var Block = require('./logic/block.js');
-					var Account = require('./logic/account.js');
-					var Peers = require('./logic/peers.js');
+					const Transaction = require('./logic/transaction.js');
+					const Block = require('./logic/block.js');
+					const Account = require('./logic/account.js');
+					const Peers = require('./logic/peers.js');
 
 					async.auto(
 						{
@@ -690,11 +693,11 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
-					var tasks = {};
+					const tasks = {};
 
 					Object.keys(config.modules).forEach(name => {
 						tasks[name] = function(cb) {
-							var d = require('domain').create();
+							const d = require('domain').create();
 
 							d.on('error', err => {
 								scope.logger.fatal(`Domain ${name}`, {
@@ -706,8 +709,8 @@ d.run(() => {
 							d.run(() => {
 								logger.debug('Loading module', name);
 								// eslint-disable-next-line import/no-dynamic-require
-								var Klass = require(config.modules[name]);
-								var obj = new Klass(cb, scope);
+								const Klass = require(config.modules[name]);
+								const obj = new Klass(cb, scope);
 								modules.push(obj);
 							});
 						};

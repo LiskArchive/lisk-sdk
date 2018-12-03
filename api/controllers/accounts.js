@@ -14,12 +14,12 @@
 
 'use strict';
 
-var _ = require('lodash');
-var ApiError = require('../../helpers/api_error');
-var swaggerHelper = require('../../helpers/swagger');
+const _ = require('lodash');
+const ApiError = require('../../helpers/api_error');
+const swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -44,9 +44,9 @@ function AccountsController(scope) {
  * @todo Add description for the function and the params
  */
 AccountsController.getAccounts = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
 		secondPublicKey: params.secondPublicKey.value,
@@ -101,9 +101,9 @@ AccountsController.getAccounts = function(context, next) {
  * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureGroups = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		address: params.address.value,
 	};
 
@@ -150,9 +150,9 @@ AccountsController.getMultisignatureGroups = function(context, next) {
  * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureMemberships = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		address: params.address.value,
 	};
 

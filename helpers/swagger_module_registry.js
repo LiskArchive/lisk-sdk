@@ -15,7 +15,7 @@
 'use strict';
 
 // Private fields
-var __private = {};
+let __private = {};
 
 /**
  * Description of the module.

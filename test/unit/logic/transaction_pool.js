@@ -263,7 +263,7 @@ describe('transactionPool', () => {
 		});
 
 		describe('when transaction is in pool', () => {
-			var validTransaction = '123';
+			const validTransaction = '123';
 
 			describe('unconfirmed list', () => {
 				describe('with index 0', () => {

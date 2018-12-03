@@ -22,11 +22,11 @@ const expect = chai.expect;
 const failureCodesRewired = rewire('../../../../../api/ws/rpc/failure_codes');
 const PeerUpdateError = failureCodesRewired.PeerUpdateError;
 
-var peerUpdateErrorInstance;
-var errorCode;
-var errorMessage;
-var errorDesc;
-var result;
+let peerUpdateErrorInstance;
+let errorCode;
+let errorMessage;
+let errorDesc;
+let result;
 
 describe('failure_codes', () => {
 	beforeEach(done => {

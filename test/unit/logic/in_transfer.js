@@ -14,17 +14,17 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var ed = require('../../../helpers/ed');
-var slots = require('../../../helpers/slots');
-var typesRepresentatives = require('../../fixtures/types_representatives');
-var modulesLoader = require('../../common/modules_loader');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const ed = require('../../../helpers/ed');
+const slots = require('../../../helpers/slots');
+const typesRepresentatives = require('../../fixtures/types_representatives');
+const modulesLoader = require('../../common/modules_loader');
 
-var InTransfer = rewire('../../../logic/in_transfer.js');
-var validPassphrase =
+const InTransfer = rewire('../../../logic/in_transfer.js');
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
@@ -34,7 +34,7 @@ var validKeypair = ed.makeKeypair(
 const { FEES } = __testContext.config.constants;
 const exceptions = __testContext.config.exceptions;
 
-var validSender = {
+const validSender = {
 	balance: '0',
 	passphrase: 'zdv72jrts9y8613e4s4i',
 	secondPassphrase: '33ibzztls7xlrocpzxgvi',
@@ -45,7 +45,7 @@ var validSender = {
 		'b9aa5c8d1e1cbcf97eb6393cda8315b7d35cecbc8e2eb0629fa3cf80df4cdda7',
 };
 
-var validTransaction = {
+const validTransaction = {
 	id: '2273003018673898961',
 	height: 843,
 	blockId: '11870363750006389009',
@@ -71,7 +71,7 @@ var validTransaction = {
 	},
 };
 
-var rawValidTransaction = {
+const rawValidTransaction = {
 	t_id: '2273003018673898961',
 	b_height: 843,
 	t_blockId: '11870363750006389009',
@@ -92,21 +92,21 @@ var rawValidTransaction = {
 	in_dappId: '7400202127695414450',
 };
 
-var validGetGensisResult = {
+const validGetGensisResult = {
 	authorId: 'validAuthorId',
 };
 
 describe('inTransfer', () => {
-	var inTransfer;
-	var dbStub;
-	var sharedStub;
-	var accountsStub;
-	var blocksStub;
+	let inTransfer;
+	let dbStub;
+	let sharedStub;
+	let accountsStub;
+	let blocksStub;
 
-	var trs;
-	var rawTrs;
-	var sender;
-	var dummyBlock;
+	let trs;
+	let rawTrs;
+	let sender;
+	let dummyBlock;
 
 	beforeEach(done => {
 		dbStub = {
@@ -151,7 +151,7 @@ describe('inTransfer', () => {
 
 	describe('constructor', () => {
 		describe('library', () => {
-			var library;
+			let library;
 
 			beforeEach(done => {
 				new InTransfer(dbStub, modulesLoader.scope.schema);
@@ -174,8 +174,8 @@ describe('inTransfer', () => {
 	});
 
 	describe('bind', () => {
-		var modules;
-		var shared;
+		let modules;
+		let shared;
 
 		beforeEach(done => {
 			inTransfer.bind(accountsStub, blocksStub, sharedStub);
@@ -670,8 +670,8 @@ describe('inTransfer', () => {
 	});
 
 	describe('objectNormalize', () => {
-		var library;
-		var schemaSpy;
+		let library;
+		let schemaSpy;
 
 		beforeEach(done => {
 			library = InTransfer.__get__('library');

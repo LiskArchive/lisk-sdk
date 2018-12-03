@@ -14,10 +14,10 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -40,9 +40,9 @@ function BlocksController(scope) {
  * @todo Add description for the function and the params
  */
 BlocksController.getBlocks = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		id: params.blockId.value,
 		height: params.height.value,
 		generatorPublicKey: params.generatorPublicKey.value,

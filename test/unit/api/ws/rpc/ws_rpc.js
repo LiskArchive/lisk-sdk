@@ -23,10 +23,10 @@ const ws_rpc = rewire('../../../../../api/ws/rpc/ws_rpc');
 const wsRPC = ws_rpc.wsRPC;
 const slaveRPCStub = ws_rpc.slaveRPCStub;
 
-var result;
-var serverMock;
-var authKeyMock;
-var error;
+let result;
+let serverMock;
+let authKeyMock;
+let error;
 
 describe('ws_rpc', () => {
 	beforeEach(done => {
@@ -44,7 +44,7 @@ describe('ws_rpc', () => {
 	describe('wsRPC', () => {
 		describe('get/set server', () => {
 			describe('setServer', () => {
-				var wsServerInternal;
+				let wsServerInternal;
 
 				beforeEach(done => {
 					wsRPC.setServer(serverMock);

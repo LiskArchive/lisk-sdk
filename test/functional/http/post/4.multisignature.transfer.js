@@ -16,14 +16,14 @@
 
 require('../../functional.js');
 
-var lisk = require('lisk-elements').default;
+const lisk = require('lisk-elements').default;
 const phases = require('../../../common/phases');
 const Scenarios = require('../../../common/scenarios');
 const waitFor = require('../../../common/utils/wait_for');
 const randomUtil = require('../../../common/utils/random');
 const apiHelpers = require('../../../common/helpers/api');
 
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 0) transfer from multisignature account', () => {
 	const scenarios = {
@@ -37,7 +37,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 	let multiSigAccount;
 
 	before(() => {
-		var transactions = [];
+		const transactions = [];
 
 		Object.keys(scenarios)
 			.filter(type => type !== 'no_funds')
@@ -63,7 +63,7 @@ describe('POST /api/transactions (type 0) transfer from multisignature account',
 				multiSigAccount.multiSigTransaction.signatures = _.map(
 					multiSigAccount.members,
 					member => {
-						var signatureObject = apiHelpers.createSignatureObject(
+						const signatureObject = apiHelpers.createSignatureObject(
 							multiSigAccount.multiSigTransaction,
 							member
 						);

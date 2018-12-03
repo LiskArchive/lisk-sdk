@@ -14,9 +14,9 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../fixtures/accounts');
-var randomUtil = require('./utils/random');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../fixtures/accounts');
+const randomUtil = require('./utils/random');
 
 function Multisig(options) {
 	if (!options) {
@@ -30,8 +30,8 @@ function Multisig(options) {
 	if (!options.members) {
 		options.members = 3;
 	}
-	var i;
-	var auxAccount;
+	let i;
+	let auxAccount;
 	for (i = 0; i < options.members - 1; i++) {
 		auxAccount = randomUtil.account();
 		this.members.push(auxAccount);

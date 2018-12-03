@@ -14,8 +14,8 @@
 
 'use strict';
 
-var parallelTests = require('../../../common/parallel_tests').parallelTests;
+const parallelTests = require('../../../common/parallel_tests').parallelTests;
 
-var pathFiles = ['./node'];
+const pathFiles = ['./node'];
 
 parallelTests(pathFiles, 'test/functional/http/put/');

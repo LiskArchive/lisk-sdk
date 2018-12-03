@@ -14,8 +14,8 @@
 
 'use strict';
 
-var debug = require('debug')('swagger:lisk:response_formatter');
-var _ = require('lodash');
+const debug = require('debug')('swagger:lisk:response_formatter');
+const _ = require('lodash');
 
 /**
  * Description of the function.
@@ -53,7 +53,7 @@ module.exports = function create() {
 			return;
 		}
 
-		var output = {};
+		let output = {};
 
 		if (_.isArray(context.input)) {
 			output = {

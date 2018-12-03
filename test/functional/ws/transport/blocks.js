@@ -42,7 +42,7 @@ describe('WS transport blocks', () => {
 		done();
 	});
 
-	var testBlock = {
+	const testBlock = {
 		id: '2807833455815592401',
 		version: 0,
 		timestamp: 39997040,

@@ -14,24 +14,24 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var modulesLoader = require('../../common/modules_loader');
-var typesRepresentatives = require('../../fixtures/types_representatives');
-var ed = require('../../../helpers/ed');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const modulesLoader = require('../../common/modules_loader');
+const typesRepresentatives = require('../../fixtures/types_representatives');
+const ed = require('../../../helpers/ed');
 
 const { FEES } = __testContext.config.constants;
-var Signature = rewire('../../../logic/signature');
-var validPassphrase =
+const Signature = rewire('../../../logic/signature');
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var validSender = {
+const validSender = {
 	passphrase: 'yjyhgnu32jmwuii442t9',
 	secondPassphrase: 'kub8gm2w330pvptx1or',
 	username: 'mix8',
@@ -41,7 +41,7 @@ var validSender = {
 		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
-var validTransaction = {
+const validTransaction = {
 	id: '5197781214824378819',
 	height: 6,
 	blockId: '341020236706783045',
@@ -67,7 +67,7 @@ var validTransaction = {
 	},
 };
 
-var rawValidTransaction = {
+const rawValidTransaction = {
 	t_id: '5197781214824378819',
 	b_height: 6,
 	t_blockId: '341020236706783045',
@@ -90,9 +90,9 @@ var rawValidTransaction = {
 };
 
 describe('signature', () => {
-	var accountsMock;
-	var signature;
-	var dummyBlock;
+	let accountsMock;
+	let signature;
+	let dummyBlock;
 
 	beforeEach(done => {
 		dummyBlock = {
@@ -116,9 +116,9 @@ describe('signature', () => {
 	});
 
 	describe('with transaction and sender objects', () => {
-		var transaction;
-		var rawTransaction;
-		var sender;
+		let transaction;
+		let rawTransaction;
+		let sender;
 
 		beforeEach(done => {
 			transaction = _.cloneDeep(validTransaction);
@@ -128,7 +128,7 @@ describe('signature', () => {
 		});
 
 		describe('constructor', () => {
-			var library;
+			let library;
 
 			beforeEach(done => {
 				new Signature(modulesLoader.scope.schema, modulesLoader.scope.logger);
@@ -149,7 +149,7 @@ describe('signature', () => {
 			describe('modules', () => {
 				it('should assign accounts', () => {
 					signature.bind(accountsMock);
-					var modules = Signature.__get__('modules');
+					const modules = Signature.__get__('modules');
 					return expect(modules).to.eql({
 						accounts: accountsMock,
 					});
@@ -158,7 +158,7 @@ describe('signature', () => {
 		});
 
 		describe('calculateFee', () => {
-			var fee;
+			let fee;
 
 			beforeEach(done => {
 				fee = signature.calculateFee(transaction);
@@ -251,7 +251,7 @@ describe('signature', () => {
 		describe('getBytes', () => {
 			describe('when asset is invalid', () => {
 				describe('when transaction.asset.signature.publicKey is a number', () => {
-					var validNumber = 1;
+					const validNumber = 1;
 
 					beforeEach(done => {
 						transaction.asset.signature.publicKey = validNumber;
@@ -276,7 +276,7 @@ describe('signature', () => {
 
 			describe('when asset is valid', () => {
 				describe('when transaction.asset.signature.publicKey is defined', () => {
-					var signatureBytes;
+					let signatureBytes;
 
 					beforeEach(done => {
 						signatureBytes = signature.getBytes(transaction);
@@ -448,8 +448,8 @@ describe('signature', () => {
 
 		describe('objectNormalize', () => {
 			describe('schema.validate should validate against signature schema', () => {
-				var library;
-				var schemaSpy;
+				let library;
+				let schemaSpy;
 
 				beforeEach(() => {
 					library = Signature.__get__('library');
@@ -477,7 +477,7 @@ describe('signature', () => {
 
 			describe('when schema.validate fails', () => {
 				describe('for non-string types', () => {
-					var nonStrings = _.difference(
+					const nonStrings = _.difference(
 						typesRepresentatives.allTypes,
 						typesRepresentatives.strings
 					);
@@ -497,7 +497,7 @@ describe('signature', () => {
 				});
 
 				describe('for non-publicKey format strings', () => {
-					var nonEmptyStrings = typesRepresentatives.nonEmptyStrings;
+					const nonEmptyStrings = typesRepresentatives.nonEmptyStrings;
 
 					nonEmptyStrings.forEach(type => {
 						it(`should throw when username is: ${type.description}`, () => {
@@ -535,9 +535,9 @@ describe('signature', () => {
 			});
 
 			describe('with valid signature properties', () => {
-				var publicKey =
+				const publicKey =
 					'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7';
-				var transactionId = '5197781214824378819';
+				const transactionId = '5197781214824378819';
 
 				it('should return publicKey property', () => {
 					return expect(

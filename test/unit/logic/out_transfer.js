@@ -14,31 +14,31 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var modulesLoader = require('../../common/modules_loader');
-var typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
-var slots = require('../../../helpers/slots');
-var testData = require('./test_data/out_transfer');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const modulesLoader = require('../../common/modules_loader');
+const typesRepresentatives = require('../../fixtures/types_representatives'); // eslint-disable-line no-unused-vars
+const slots = require('../../../helpers/slots');
+const testData = require('./test_data/out_transfer');
 
 const { FEES } = __testContext.config.constants;
 const exceptions = __testContext.config.exceptions;
-var OutTransfer = rewire('../../../logic/out_transfer');
-var validKeypair = testData.validKeypair;
-var validSender = testData.validSender;
-var validTransaction = testData.validTransaction;
-var rawValidTransaction = testData.rawValidTransaction;
+const OutTransfer = rewire('../../../logic/out_transfer');
+const validKeypair = testData.validKeypair;
+const validSender = testData.validSender;
+const validTransaction = testData.validTransaction;
+const rawValidTransaction = testData.rawValidTransaction;
 
 describe('outTransfer', () => {
-	var outTransfer;
-	var dbStub;
-	var accountsStub;
-	var blocksStub;
+	let outTransfer;
+	let dbStub;
+	let accountsStub;
+	let blocksStub;
 
-	var dummyBlock;
-	var transaction;
-	var rawTransaction;
-	var sender;
+	let dummyBlock;
+	let transaction;
+	let rawTransaction;
+	let sender;
 
 	beforeEach(() => {
 		dbStub = {
@@ -82,7 +82,7 @@ describe('outTransfer', () => {
 
 	describe('constructor', () => {
 		describe('library', () => {
-			var library;
+			let library;
 
 			beforeEach(done => {
 				new OutTransfer(
@@ -115,7 +115,7 @@ describe('outTransfer', () => {
 	});
 
 	describe('bind', () => {
-		var modules;
+		let modules;
 
 		beforeEach(done => {
 			outTransfer.bind(accountsStub, blocksStub);
@@ -356,7 +356,7 @@ describe('outTransfer', () => {
 
 				describe('when unconfirmed out transfer exists', () => {
 					beforeEach(() => {
-						var unconfirmedTransactionExistsMap = {};
+						const unconfirmedTransactionExistsMap = {};
 						unconfirmedTransactionExistsMap[
 							transaction.asset.outTransfer.transactionId
 						] = true;
@@ -533,7 +533,7 @@ describe('outTransfer', () => {
 		});
 
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', () => {
-			var unconfirmedOutTransfers = OutTransfer.__get__(
+			const unconfirmedOutTransfers = OutTransfer.__get__(
 				'__private.unconfirmedOutTansfers'
 			);
 			return expect(unconfirmedOutTransfers)
@@ -667,7 +667,7 @@ describe('outTransfer', () => {
 		});
 
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', () => {
-			var unconfirmedOutTransfers = OutTransfer.__get__(
+			const unconfirmedOutTransfers = OutTransfer.__get__(
 				'__private.unconfirmedOutTansfers'
 			);
 			return expect(unconfirmedOutTransfers)
@@ -797,7 +797,7 @@ describe('outTransfer', () => {
 
 	describe('applyUnconfirmed', () => {
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = true', done => {
-			var unconfirmedOutTransfers = OutTransfer.__get__(
+			const unconfirmedOutTransfers = OutTransfer.__get__(
 				'__private.unconfirmedOutTansfers'
 			);
 			outTransfer.applyUnconfirmed(transaction, sender, () => {
@@ -825,7 +825,7 @@ describe('outTransfer', () => {
 
 	describe('undoUnconfirmed', () => {
 		it('should set __private.unconfirmedOutTansfers[transaction.asset.outTransfer.transactionId] = false', done => {
-			var unconfirmedOutTransfers = OutTransfer.__get__(
+			const unconfirmedOutTransfers = OutTransfer.__get__(
 				'__private.unconfirmedOutTansfers'
 			);
 			outTransfer.undoUnconfirmed(transaction, sender, () => {
@@ -852,8 +852,8 @@ describe('outTransfer', () => {
 	});
 
 	describe('objectNormalize', () => {
-		var library;
-		var schemaSpy;
+		let library;
+		let schemaSpy;
 
 		beforeEach(done => {
 			library = OutTransfer.__get__('library');

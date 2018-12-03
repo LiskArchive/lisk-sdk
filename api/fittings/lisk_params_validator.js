@@ -14,8 +14,8 @@
 
 'use strict';
 
-var _ = require('lodash');
-var debug = require('debug')('swagger:lisk:params_validator');
+const _ = require('lodash');
+const debug = require('debug')('swagger:lisk:params_validator');
 
 /**
  * Description of the function.
@@ -40,7 +40,7 @@ module.exports = function create() {
 	 * @todo Add description for the function and the params
 	 */
 	return function lisk_params_validator(context, cb) {
-		var error = null;
+		let error = null;
 
 		// TODO: Add support for validating accept header against produces declarations
 		// See: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
@@ -49,7 +49,7 @@ module.exports = function create() {
 		// var produces = _.union(operation.api.definition.produces, operation.definition.produces);
 
 		if (context.request.swagger.operation) {
-			var validateResult = context.request.swagger.operation.validateRequest(
+			const validateResult = context.request.swagger.operation.validateRequest(
 				context.request
 			);
 
@@ -62,7 +62,7 @@ module.exports = function create() {
 				});
 
 				error.errors = _.map(validateResult.errors, e => {
-					var errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
+					const errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
 					errors.errors = _.map(e.errors, e =>
 						_.pick(e, ['code', 'message', 'path'])
 					);

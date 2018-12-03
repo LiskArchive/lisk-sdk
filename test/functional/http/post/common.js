@@ -15,16 +15,16 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-elements').default;
-var typesRepresentatives = require('../../../fixtures/types_representatives');
-var accountFixtures = require('../../../fixtures/accounts');
-var apiHelpers = require('../../../common/helpers/api');
-var randomUtil = require('../../../common/utils/random');
-var errorCodes = require('../../../../helpers/api_codes');
+const lisk = require('lisk-elements').default;
+const typesRepresentatives = require('../../../fixtures/types_representatives');
+const accountFixtures = require('../../../fixtures/accounts');
+const apiHelpers = require('../../../common/helpers/api');
+const randomUtil = require('../../../common/utils/random');
+const errorCodes = require('../../../../helpers/api_codes');
 
 function invalidAssets(option, badTransactions) {
 	describe('using invalid asset values', () => {
-		var transaction;
+		let transaction;
 
 		beforeEach(done => {
 			switch (option) {
@@ -71,7 +71,7 @@ function invalidAssets(option, badTransactions) {
 				it(`using ${test.description} should fail`, () => {
 					transaction.asset = test.input;
 
-					var expectedResponse =
+					const expectedResponse =
 						test.expectation === 'object' && test.description !== 'date'
 							? errorCodes.PROCESSING_ERROR
 							: errorCodes.BAD_REQUEST;

@@ -14,15 +14,15 @@
 
 'use strict';
 
-var set = require('lodash').set;
-var codes = require('../rpc/failure_codes');
+const set = require('lodash').set;
+const codes = require('../rpc/failure_codes');
 
-var UPDATES = {
+const UPDATES = {
 	INSERT: 0,
 	REMOVE: 1,
 };
 
-var ON_CONNECTIONS_TABLE = {
+const ON_CONNECTIONS_TABLE = {
 	NONCE: {
 		PRESENT: true,
 		NOT_PRESENT: false,
@@ -33,7 +33,7 @@ var ON_CONNECTIONS_TABLE = {
 	},
 };
 
-var ON_MASTER = {
+const ON_MASTER = {
 	PRESENT: true,
 	NOT_PRESENT: false,
 };

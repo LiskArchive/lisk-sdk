@@ -29,9 +29,9 @@ module.exports = {
 	 * @todo Add description for the params
 	 */
 	reverse(diff) {
-		var copyDiff = diff.slice();
-		for (var i = 0; i < copyDiff.length; i++) {
-			var math = copyDiff[i][0] === '-' ? '+' : '-';
+		const copyDiff = diff.slice();
+		for (let i = 0; i < copyDiff.length; i++) {
+			const math = copyDiff[i][0] === '-' ? '+' : '-';
 			copyDiff[i] = math + copyDiff[i].slice(1);
 		}
 		return copyDiff;
@@ -46,12 +46,12 @@ module.exports = {
 	 * @todo Add description for the params
 	 */
 	merge(source, diff) {
-		var res = source ? source.slice() : [];
-		var index;
+		let res = source ? source.slice() : [];
+		let index;
 
-		for (var i = 0; i < diff.length; i++) {
-			var math = diff[i][0];
-			var publicKey = diff[i].slice(1);
+		for (let i = 0; i < diff.length; i++) {
+			const math = diff[i][0];
+			const publicKey = diff[i].slice(1);
 
 			if (math === '+') {
 				res = res || [];

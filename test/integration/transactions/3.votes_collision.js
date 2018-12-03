@@ -68,7 +68,7 @@ describe('system test (type 0) - votes collision', () => {
 		});
 
 		it('transaction should be confirmed', done => {
-			var filter = {
+			const filter = {
 				id: delegateRegistrationTransaction.id,
 			};
 
@@ -103,7 +103,7 @@ describe('system test (type 0) - votes collision', () => {
 			});
 
 			it('transaction should not be confirmed', done => {
-				var filter = {
+				const filter = {
 					id: voteTransactionWithCollisionPublicKey.id,
 				};
 
@@ -136,7 +136,7 @@ describe('system test (type 0) - votes collision', () => {
 			});
 
 			it('transaction should be confirmed', done => {
-				var filter = {
+				const filter = {
 					id: voteTransactionWithActualPublicKey.id,
 				};
 

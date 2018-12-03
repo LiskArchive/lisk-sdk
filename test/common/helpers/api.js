@@ -14,14 +14,14 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var Promise = require('bluebird');
-var accountFixtures = require('../../fixtures/accounts');
-var SwaggerSpec = require('../swagger_spec');
+const lisk = require('lisk-elements').default;
+const Promise = require('bluebird');
+const accountFixtures = require('../../fixtures/accounts');
+const SwaggerSpec = require('../swagger_spec');
 
-var http = {
+const http = {
 	abstractRequest(options, done) {
-		var request = __testContext.api[options.verb.toLowerCase()](options.path);
+		const request = __testContext.api[options.verb.toLowerCase()](options.path);
 
 		request.set('Accept', 'application/json');
 		request.expect(response => {
@@ -40,7 +40,7 @@ var http = {
 			request.send(options.params);
 		}
 
-		var verb = options.verb.toUpperCase();
+		const verb = options.verb.toUpperCase();
 		__testContext.debug(['> Path:'.grey, verb, options.path].join(' '));
 		if (verb === 'POST' || verb === 'PUT') {
 			__testContext.debug(
@@ -88,7 +88,7 @@ function paramsHelper(url, params) {
 		params.length > 0
 	) {
 		// It is an defined array with at least one element
-		var queryString = params.join('&');
+		const queryString = params.join('&');
 		url += `?${queryString}`;
 	}
 	return url;
@@ -134,7 +134,7 @@ function getTransactionById(transactionId, cb) {
 }
 
 function getTransactions(params, cb) {
-	var url = '/api/transactions';
+	let url = '/api/transactions';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
@@ -183,13 +183,13 @@ function getMultisignaturesTransactions(cb) {
 }
 
 function getPendingMultisignatures(params, cb) {
-	var url = '/api/node/transactions/unsigned';
+	let url = '/api/node/transactions/unsigned';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
-var postTransactionsEndpoint = new SwaggerSpec('POST /transactions');
+const postTransactionsEndpoint = new SwaggerSpec('POST /transactions');
 
 function sendTransactionPromise(transaction, expectedStatusCode) {
 	expectedStatusCode = expectedStatusCode || 200;
@@ -217,7 +217,7 @@ function sendSignature(signature, cb) {
 }
 
 function creditAccount(address, amount, cb) {
-	var transaction = lisk.transaction.transfer({
+	const transaction = lisk.transaction.transfer({
 		amount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: address,
@@ -230,7 +230,7 @@ function getCount(param, cb) {
 }
 
 function registerDelegate(account, cb) {
-	var transaction = lisk.transaction.registerDelegate({
+	const transaction = lisk.transaction.registerDelegate({
 		passphrase: account.passphrase,
 		username: account.username,
 	});
@@ -238,35 +238,35 @@ function registerDelegate(account, cb) {
 }
 
 function getForgingStatus(params, cb) {
-	var url = '/api/delegates/forging';
+	let url = '/api/delegates/forging';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getDelegates(params, cb) {
-	var url = '/api/delegates';
+	let url = '/api/delegates';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getDelegateVoters(params, cb) {
-	var url = '/api/delegates/voters';
+	let url = '/api/delegates/voters';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getVoters(params, cb) {
-	var url = '/api/voters';
+	let url = '/api/voters';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
 }
 
 function searchDelegates(params, cb) {
-	var url = '/api/delegates/search';
+	let url = '/api/delegates/search';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
@@ -277,14 +277,14 @@ function putForgingDelegate(params, cb) {
 }
 
 function getForgedByAccount(params, cb) {
-	var url = '/api/delegates/forging/getForgedByAccount';
+	let url = '/api/delegates/forging/getForgedByAccount';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
 }
 
 function getForgers(params, cb) {
-	var url = '/api/delegates/forgers';
+	let url = '/api/delegates/forgers';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpCallbackHelper.bind(null, cb));
@@ -298,7 +298,7 @@ function getAccounts(params, cb) {
 }
 
 function getBlocks(params, cb) {
-	var url = '/api/blocks';
+	let url = '/api/blocks';
 	url = paramsHelper(url, params);
 
 	http.get(url, httpResponseCallbackHelper.bind(null, cb));
@@ -337,40 +337,40 @@ function createSignatureObject(transaction, signer) {
 	};
 }
 
-var getTransactionByIdPromise = Promise.promisify(getTransactionById);
-var getTransactionsPromise = Promise.promisify(getTransactions);
-var getQueuedTransactionPromise = Promise.promisify(getQueuedTransaction);
-var getQueuedTransactionsPromise = Promise.promisify(getQueuedTransactions);
-var getUnconfirmedTransactionPromise = Promise.promisify(
+const getTransactionByIdPromise = Promise.promisify(getTransactionById);
+const getTransactionsPromise = Promise.promisify(getTransactions);
+const getQueuedTransactionPromise = Promise.promisify(getQueuedTransaction);
+const getQueuedTransactionsPromise = Promise.promisify(getQueuedTransactions);
+const getUnconfirmedTransactionPromise = Promise.promisify(
 	getUnconfirmedTransaction
 );
-var getUnconfirmedTransactionsPromise = Promise.promisify(
+const getUnconfirmedTransactionsPromise = Promise.promisify(
 	getUnconfirmedTransactions
 );
-var getMultisignaturesTransactionPromise = Promise.promisify(
+const getMultisignaturesTransactionPromise = Promise.promisify(
 	getMultisignaturesTransaction
 );
-var getMultisignaturesTransactionsPromise = Promise.promisify(
+const getMultisignaturesTransactionsPromise = Promise.promisify(
 	getMultisignaturesTransactions
 );
-var getPendingMultisignaturesPromise = Promise.promisify(
+const getPendingMultisignaturesPromise = Promise.promisify(
 	getPendingMultisignatures
 );
-var creditAccountPromise = Promise.promisify(creditAccount);
-var sendSignaturePromise = Promise.promisify(sendSignature);
-var getCountPromise = Promise.promisify(getCount);
-var registerDelegatePromise = Promise.promisify(registerDelegate);
-var getForgingStatusPromise = Promise.promisify(getForgingStatus);
-var getDelegatesPromise = Promise.promisify(getDelegates);
-var getDelegateVotersPromise = Promise.promisify(getDelegateVoters);
-var getVotersPromise = Promise.promisify(getVoters);
-var searchDelegatesPromise = Promise.promisify(searchDelegates);
-var putForgingDelegatePromise = Promise.promisify(putForgingDelegate);
-var getForgedByAccountPromise = Promise.promisify(getForgedByAccount);
-var getForgersPromise = Promise.promisify(getForgers);
-var getAccountsPromise = Promise.promisify(getAccounts);
-var getBlocksPromise = Promise.promisify(getBlocks);
-var getNotFoundEndpointPromise = Promise.promisify(getNotFoundEndpoint);
+const creditAccountPromise = Promise.promisify(creditAccount);
+const sendSignaturePromise = Promise.promisify(sendSignature);
+const getCountPromise = Promise.promisify(getCount);
+const registerDelegatePromise = Promise.promisify(registerDelegate);
+const getForgingStatusPromise = Promise.promisify(getForgingStatus);
+const getDelegatesPromise = Promise.promisify(getDelegates);
+const getDelegateVotersPromise = Promise.promisify(getDelegateVoters);
+const getVotersPromise = Promise.promisify(getVoters);
+const searchDelegatesPromise = Promise.promisify(searchDelegates);
+const putForgingDelegatePromise = Promise.promisify(putForgingDelegate);
+const getForgedByAccountPromise = Promise.promisify(getForgedByAccount);
+const getForgersPromise = Promise.promisify(getForgers);
+const getAccountsPromise = Promise.promisify(getAccounts);
+const getBlocksPromise = Promise.promisify(getBlocks);
+const getNotFoundEndpointPromise = Promise.promisify(getNotFoundEndpoint);
 
 module.exports = {
 	getTransactionByIdPromise,

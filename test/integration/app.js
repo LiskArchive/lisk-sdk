@@ -37,7 +37,7 @@ describe('app', () => {
 	});
 
 	describe('genesis block', () => {
-		var genesisBlock;
+		let genesisBlock;
 
 		before(() => {
 			// Get genesis block from database
@@ -321,7 +321,7 @@ describe('app', () => {
 			it('should contain public keys of all 101 genesis delegates', done => {
 				_.each(delegatesList, pk => {
 					// Search for that pk in genesis block
-					var found = _.find(library.genesisBlock.block.transactions, {
+					const found = _.find(library.genesisBlock.block.transactions, {
 						senderPublicKey: pk,
 					});
 					expect(found).to.be.an('object');
