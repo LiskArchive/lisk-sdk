@@ -761,10 +761,10 @@ d.run(() => {
 				 * @param {function} cb - Callback function
 				 */
 				function(scope, cb) {
-					// Slowloris prevention
+					// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 					scope.network.server.headersTimeout =
 						appConfig.api.options.limits.headersTimeout;
-
+					// Disconnect idle clients
 					scope.network.server.setTimeout(
 						appConfig.api.options.limits.serverSetTimeout
 					);
@@ -788,7 +788,7 @@ d.run(() => {
 
 							if (!err) {
 								if (scope.config.api.ssl.enabled) {
-									// Slowloris prevention
+									// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 									scope.network.https.headersTimeout =
 										appConfig.api.options.limits.headersTimeout;
 									scope.network.https.setTimeout(
