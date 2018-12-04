@@ -43,7 +43,7 @@ var config = AppConfig(require('./package.json'), false);
  */
 
 SCWorker.create({
-	// Pass the custom configuration to P2P HTTP Server to mitigate security issues fixed by Node v8.14.0 (
+	// Pass the custom configuration to P2P HTTP Server to mitigate the security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 	createHTTPServer() {
 		const httpServer = http.createServer();
 		httpServer.headersTimeout = config.api.options.limits.headersTimeout;
