@@ -351,6 +351,7 @@ describe('rounds', () => {
 							generateDelegateList(a, b, cb) {
 								cb('error');
 							},
+							clearLastDelegateListCache() {},
 						},
 					};
 					return rounds.onBind(modules);

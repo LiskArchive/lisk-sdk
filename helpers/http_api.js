@@ -209,7 +209,6 @@ const middleware = {
  * @param {Object} logger - Application Logger
  * @param {Object} scope - Application Scope
  * @param {function} cb - Callback function
- * @returns {void}
  */
 function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
