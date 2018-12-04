@@ -89,11 +89,11 @@ const modulesLoader = new function() {
 			case 'Transaction':
 				async.series(
 					{
-						account(cb) {
-							new Account(scope.db, scope.schema, scope.logger, cb);
+						account(accountCb) {
+							new Account(scope.db, scope.schema, scope.logger, accountCb);
 						},
 					},
-					(__err, result) => {
+					(err, result) => {
 						new Logic(
 							scope.db,
 							scope.ed,
@@ -158,13 +158,13 @@ const modulesLoader = new function() {
 	 * @param {Object>} scope
 	 * @param {function} cb
 	 */
-	this.initModules = function(modules, logic, scope, cb) {
+	this.initModules = function(modules, logics, scope, cb) {
 		scope = _.merge({}, this.scope, scope);
 		async.waterfall(
 			[
 				function(waterCb) {
 					async.reduce(
-						logic,
+						logics,
 						{},
 						(memo, logicObj, mapCb) => {
 							const name = _.keys(logicObj)[0];
@@ -181,7 +181,9 @@ const modulesLoader = new function() {
 					);
 				}.bind(this),
 				function(logic, waterCb) {
-					scope = _.merge({}, this.scope, scope, { logic });
+					scope = _.merge({}, this.scope, scope, {
+						logic,
+					});
 					async.reduce(
 						modules,
 						{},
@@ -196,16 +198,16 @@ const modulesLoader = new function() {
 					);
 				}.bind(this),
 
-				function(modules, waterCb) {
+				function(modules1, waterCb) {
 					_.each(scope.logic, logic => {
-						if (typeof logic.bind === 'function') {
+						if (typeof logics.bind === 'function') {
 							logic.bind({ modules });
 						}
 						if (typeof logic.bindModules === 'function') {
 							logic.bindModules(modules);
 						}
 					});
-					waterCb(null, modules);
+					waterCb(null, modules1);
 				},
 			],
 			cb

@@ -158,8 +158,8 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 		const next = () => {
 			const testFile = allFiles.splice(0, 1);
 			spawnParallelTest(testFile, mochaArguments)
-				.then(testFile => {
-					completedFiles[testFile] = 'done';
+				.then(testFileAfter => {
+					completedFiles[testFileAfter] = 'done';
 					if (
 						allFiles.length === 0 &&
 						Object.keys(completedFiles).length === allFilesLength

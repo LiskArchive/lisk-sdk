@@ -102,9 +102,9 @@ describe('system test (type 2) - double delegate registrations', () => {
 					it('both transactions should be included', done => {
 						async.every(
 							[transaction1, transaction2],
-							(transaction, callback) => {
+							(everyTransaction, callback) => {
 								const filter = {
-									id: transaction.id,
+									id: everyTransaction.id,
 								};
 
 								localCommon.getTransactionFromModule(
@@ -116,7 +116,9 @@ describe('system test (type 2) - double delegate registrations', () => {
 											.to.have.property('transactions')
 											.which.is.an('Array');
 										expect(res.transactions.length).to.equal(1);
-										expect(res.transactions[0].id).to.equal(transaction.id);
+										expect(res.transactions[0].id).to.equal(
+											everyTransaction.id
+										);
 										callback(null, !err);
 									}
 								);

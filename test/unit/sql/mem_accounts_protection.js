@@ -188,10 +188,10 @@ describe('mem_accounts protection', () => {
 			});
 
 			describe('for valid username', () => {
-				const validUsername = randomstring.generate(10).toLowerCase();
+				const auxValidUsername = randomstring.generate(10).toLowerCase();
 
 				before(done => {
-					queries.updateUsername(noUsernameAccount, validUsername, done);
+					queries.updateUsername(noUsernameAccount, auxValidUsername, done);
 				});
 
 				it('should set the new value', done => {
@@ -201,7 +201,7 @@ describe('mem_accounts protection', () => {
 							expect(err).to.be.null;
 							expect(updatedAccount)
 								.to.have.property('username')
-								.equal(validUsername);
+								.equal(auxValidUsername);
 							done();
 						}
 					);

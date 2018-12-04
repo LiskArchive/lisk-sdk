@@ -120,14 +120,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 				for (let i = 0; i < MAX_VOTES_PER_TRANSACTION; i++) {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerTransaction.push(tempAccount);
-					const transaction = lisk.transaction.transfer({
+					const transfer1 = lisk.transaction.transfer({
 						amount: FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
-					transactionsCreditMaxVotesPerTransaction.push(transaction);
+					transactionsCreditMaxVotesPerTransaction.push(transfer1);
 					promisesCreditsMaxVotesPerTransaction.push(
-						sendTransactionPromise(transaction)
+						sendTransactionPromise(transfer1)
 					);
 				}
 
@@ -150,14 +150,14 @@ describe('POST /api/transactions (type 3) votes', () => {
 				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
 					const tempAccount = randomUtil.account();
 					delegatesMaxVotesPerAccount.push(tempAccount);
-					const transaction = lisk.transaction.transfer({
+					const transfer2 = lisk.transaction.transfer({
 						amount: FEES.DELEGATE,
 						passphrase: accountFixtures.genesis.passphrase,
 						recipientId: tempAccount.address,
 					});
-					transactionsCreditMaxVotesPerAccount.push(transaction);
+					transactionsCreditMaxVotesPerAccount.push(transfer2);
 					promisesCreditsMaxVotesPerAccount.push(
-						sendTransactionPromise(transaction)
+						sendTransactionPromise(transfer2)
 					);
 				}
 
@@ -177,26 +177,26 @@ describe('POST /api/transactions (type 3) votes', () => {
 			})
 			.then(() => {
 				transactionsToWaitFor = [];
-				const transaction = lisk.transaction.registerDelegate({
+				const delegateRegistration = lisk.transaction.registerDelegate({
 					passphrase: delegateAccount.passphrase,
 					username: delegateAccount.username,
 				});
-				return sendTransactionPromise(transaction).then(result => {
+				return sendTransactionPromise(delegateRegistration).then(result => {
 					expect(result.body.data.message).to.equal('Transaction(s) accepted');
-					transactionsToWaitFor.push(transaction.id);
+					transactionsToWaitFor.push(delegateRegistration.id);
 				});
 			})
 			.then(() => {
 				const promisesDelegatesMaxVotesPerTransaction = [];
 				const transactionsDelegateMaxForPerTransaction = [];
 				for (let i = 0; i < MAX_VOTES_PER_TRANSACTION; i++) {
-					const transaction = lisk.transaction.registerDelegate({
+					const delegateRegistration = lisk.transaction.registerDelegate({
 						passphrase: delegatesMaxVotesPerTransaction[i].passphrase,
 						username: delegatesMaxVotesPerTransaction[i].username,
 					});
-					transactionsDelegateMaxForPerTransaction.push(transaction);
+					transactionsDelegateMaxForPerTransaction.push(delegateRegistration);
 					promisesDelegatesMaxVotesPerTransaction.push(
-						sendTransactionPromise(transaction)
+						sendTransactionPromise(delegateRegistration)
 					);
 				}
 
@@ -217,13 +217,13 @@ describe('POST /api/transactions (type 3) votes', () => {
 				const transactionsDelegateMaxVotesPerAccount = [];
 				const promisesDelegatesMaxVotesPerAccount = [];
 				for (let i = 0; i < ACTIVE_DELEGATES; i++) {
-					const transaction = lisk.transaction.registerDelegate({
+					const delegateRegistration = lisk.transaction.registerDelegate({
 						passphrase: delegatesMaxVotesPerAccount[i].passphrase,
 						username: delegatesMaxVotesPerAccount[i].username,
 					});
-					transactionsDelegateMaxVotesPerAccount.push(transaction);
+					transactionsDelegateMaxVotesPerAccount.push(delegateRegistration);
 					promisesDelegatesMaxVotesPerAccount.push(
-						sendTransactionPromise(transaction)
+						sendTransactionPromise(delegateRegistration)
 					);
 				}
 

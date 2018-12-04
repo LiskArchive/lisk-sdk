@@ -156,9 +156,9 @@ BigNumber.prototype.toBuffer = function(opts) {
 		.split(new RegExp(`(.{${2 * size}})`))
 		.filter(s => s.length > 0);
 
-	hx.forEach((chunk, i) => {
+	hx.forEach((chunk, hxI) => {
 		for (let j = 0; j < size; j++) {
-			const ix = i * size + (endian === 'big' ? j : size - j - 1);
+			const ix = hxI * size + (endian === 'big' ? j : size - j - 1);
 			buf[ix] = parseInt(chunk.slice(j * 2, j * 2 + 2), 16);
 		}
 	});

@@ -498,12 +498,12 @@ describe('rounds', () => {
 
 		before(() => {
 			// Init fake round logic
-			function Round(__scope) {
+			function round(__scope) {
 				roundScope = __scope;
 			}
-			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-			Round.prototype.land = land_stub;
-			Rounds.__set__('Round', Round);
+			round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+			round.prototype.land = land_stub;
+			Rounds.__set__('Round', round);
 
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);
@@ -604,10 +604,10 @@ describe('rounds', () => {
 				});
 
 				it('library.bus.message should be called once with proper params', () => {
-					const bus = get('library.bus.message');
-					expect(bus.calledOnce).to.be.true;
-					return expect(bus.calledWith('finishRound', roundScope.round)).to.be
-						.true;
+					const busMessage = get('library.bus.message');
+					expect(busMessage.calledOnce).to.be.true;
+					return expect(busMessage.calledWith('finishRound', roundScope.round))
+						.to.be.true;
 				});
 			});
 
@@ -643,8 +643,8 @@ describe('rounds', () => {
 				});
 
 				it('library.bus.message should be not called', () => {
-					const bus = get('library.bus.message');
-					return expect(bus.called).to.be.false;
+					const busMessage = get('library.bus.message');
+					return expect(busMessage.called).to.be.false;
 				});
 			});
 		});
@@ -663,7 +663,7 @@ describe('rounds', () => {
 
 					before(done => {
 						// Init fake round logic
-						function Round(__scope, __t) {
+						function round(__scope, __t) {
 							roundScope = __scope;
 
 							clearRoundSnapshot_stub = sinon
@@ -679,9 +679,9 @@ describe('rounds', () => {
 								.stub(__t.rounds, 'performVotesSnapshot')
 								.resolves();
 						}
-						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						Round.prototype.land = land_stub;
-						Rounds.__set__('Round', Round);
+						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						round.prototype.land = land_stub;
+						Rounds.__set__('Round', round);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
@@ -720,7 +720,7 @@ describe('rounds', () => {
 
 					before(done => {
 						// Init fake round logic
-						function Round(__scope, __t) {
+						function round(__scope, __t) {
 							roundScope = __scope;
 
 							clearRoundSnapshot_stub = sinon
@@ -736,9 +736,9 @@ describe('rounds', () => {
 								.stub(__t.rounds, 'performVotesSnapshot')
 								.resolves();
 						}
-						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						Round.prototype.land = land_stub;
-						Rounds.__set__('Round', Round);
+						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						round.prototype.land = land_stub;
+						Rounds.__set__('Round', round);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
@@ -778,7 +778,7 @@ describe('rounds', () => {
 
 					before(done => {
 						// Init fake round logic
-						function Round(__scope, __t) {
+						function round(__scope, __t) {
 							roundScope = __scope;
 
 							clearRoundSnapshot_stub = sinon
@@ -794,9 +794,9 @@ describe('rounds', () => {
 								.stub(__t.rounds, 'performVotesSnapshot')
 								.resolves();
 						}
-						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						Round.prototype.land = land_stub;
-						Rounds.__set__('Round', Round);
+						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						round.prototype.land = land_stub;
+						Rounds.__set__('Round', round);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
@@ -836,7 +836,7 @@ describe('rounds', () => {
 
 					before(done => {
 						// Init fake round logic
-						function Round(__scope, __t) {
+						function round(__scope, __t) {
 							roundScope = __scope;
 
 							clearRoundSnapshot_stub = sinon
@@ -852,9 +852,9 @@ describe('rounds', () => {
 								.stub(__t.rounds, 'performVotesSnapshot')
 								.resolves();
 						}
-						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						Round.prototype.land = land_stub;
-						Rounds.__set__('Round', Round);
+						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						round.prototype.land = land_stub;
+						Rounds.__set__('Round', round);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
@@ -894,7 +894,7 @@ describe('rounds', () => {
 
 					before(done => {
 						// Init fake round logic
-						function Round(__scope, __t) {
+						function round(__scope, __t) {
 							roundScope = __scope;
 
 							clearRoundSnapshot_stub = sinon
@@ -910,9 +910,9 @@ describe('rounds', () => {
 								.stub(__t.rounds, 'performVotesSnapshot')
 								.rejects('performVotesSnapshot');
 						}
-						Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-						Round.prototype.land = land_stub;
-						Rounds.__set__('Round', Round);
+						round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+						round.prototype.land = land_stub;
+						Rounds.__set__('Round', round);
 
 						block = { height: 100 };
 						rounds.tick(block, err => {
@@ -1000,12 +1000,12 @@ describe('rounds', () => {
 
 		before(() => {
 			// Init fake round logic
-			function Round(__scope) {
+			function round(__scope) {
 				roundScope = __scope;
 			}
-			Round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
-			Round.prototype.backwardLand = backwardLand_stub;
-			Rounds.__set__('Round', Round);
+			round.prototype.mergeBlockGenerator = mergeBlockGenerator_stub;
+			round.prototype.backwardLand = backwardLand_stub;
+			Rounds.__set__('Round', round);
 
 			// Set more stubs
 			set('__private.sumRound', sumRound_stub);

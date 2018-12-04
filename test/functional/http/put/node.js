@@ -42,11 +42,11 @@ describe('PUT /node/status/forging', () => {
 							},
 							200
 						)
-						.then(res => {
-							expect(res.body.data[0].publicKey).to.be.eql(
+						.then(updateForgingEndpointRes => {
+							expect(updateForgingEndpointRes.body.data[0].publicKey).to.be.eql(
 								validDelegate.publicKey
 							);
-							expect(res.body.data[0].forging).to.be.true;
+							expect(updateForgingEndpointRes.body.data[0].forging).to.be.true;
 						});
 				}
 

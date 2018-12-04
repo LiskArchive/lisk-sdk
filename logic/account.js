@@ -23,7 +23,6 @@ const BlockReward = require('./block_reward.js');
 const { ACTIVE_DELEGATES, MULTISIG_CONSTRAINTS } = global.constants;
 
 // Private fields
-let self; // eslint-disable-line no-unused-vars
 let library;
 let modules;
 
@@ -57,7 +56,6 @@ class Account {
 
 		__private.blockReward = new BlockReward();
 
-		self = this;
 		library = {
 			logger,
 		};
@@ -475,7 +473,13 @@ class Account {
 
 		// If merge was called without any diff object
 		if (Object.keys(diff).length === 0) {
-			return self.get({ address }, cb, tx);
+			return self.get(
+				{
+					address,
+				},
+				cb,
+				tx
+			);
 		}
 
 		// Loop through each of updated attribute
@@ -596,7 +600,15 @@ class Account {
 		};
 
 		return (tx ? job(tx) : self.scope.db.tx('logic:account:merge', job))
-			.then(() => self.get({ address }, cb, tx))
+			.then(() =>
+				self.get(
+					{
+						address,
+					},
+					cb,
+					tx
+				)
+			)
 			.catch(err => {
 				library.logger.error(err.stack);
 				return setImmediate(cb, _.isString(err) ? err : 'Account#merge error');

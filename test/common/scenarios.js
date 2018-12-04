@@ -48,6 +48,15 @@ function Multisig(options) {
 		lifetime: this.lifetime,
 		minimum: this.minimum,
 	});
+	this.multiSigSecondSignatureTransaction = lisk.transaction.registerMultisignature(
+		{
+			passphrase: this.account.passphrase,
+			secondPassphrase: this.account.secondPassphrase,
+			keysgroup: this.keysgroup,
+			lifetime: this.lifetime,
+			minimum: this.minimum,
+		}
+	);
 	this.creditTransaction = lisk.transaction.transfer({
 		amount: this.amount,
 		passphrase: accountFixtures.genesis.passphrase,

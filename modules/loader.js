@@ -211,30 +211,30 @@ __private.loadSignatures = function(cb) {
 					return library.schema.validate(
 						res,
 						definitions.WSSignaturesResponse,
-						err => setImmediate(waterCb, err, res.signatures)
+						validateErr => setImmediate(waterCb, validateErr, res.signatures)
 					);
 				});
 			},
 			function(signatures, waterCb) {
-				library.sequence.add(cb => {
+				library.sequence.add(addSequenceCb => {
 					async.eachSeries(
 						signatures,
 						(signature, eachSeriesCb) => {
 							async.eachSeries(
 								signature.signatures,
-								(s, eachSeriesCb) => {
+								(s, secondEachSeriesCb) => {
 									modules.multisignatures.processSignature(
 										{
 											signature: s,
 											transactionId: signature.transactionId,
 										},
-										err => setImmediate(eachSeriesCb, err)
+										err => setImmediate(secondEachSeriesCb, err)
 									);
 								},
 								eachSeriesCb
 							);
 						},
-						cb
+						addSequenceCb
 					);
 				}, waterCb);
 			},
@@ -275,9 +275,9 @@ __private.loadTransactions = function(cb) {
 					return library.schema.validate(
 						res,
 						definitions.WSTransactionsResponse,
-						err => {
-							if (err) {
-								return setImmediate(waterCb, err[0].message);
+						validateErr => {
+							if (validateErr) {
+								return setImmediate(waterCb, validateErr[0].message);
 							}
 							return setImmediate(waterCb, null, peer, res.transactions);
 						}
@@ -321,12 +321,12 @@ __private.loadTransactions = function(cb) {
 					transactions,
 					(transaction, eachSeriesCb) => {
 						library.balancesSequence.add(
-							cb => {
+							addSequenceCb => {
 								transaction.bundled = true;
 								modules.transactions.processUnconfirmedTransaction(
 									transaction,
 									false,
-									cb
+									addSequenceCb
 								);
 							},
 							err => {
@@ -541,7 +541,7 @@ __private.loadBlockChain = function() {
 
 				return library.db
 					.task(updateMemAccounts)
-					.spread((updateMemAccounts, getDelegates) => {
+					.spread((_updateMemAccounts, getDelegates) => {
 						if (getDelegates.length === 0) {
 							return reload(blocksCount, 'No delegates found');
 						}
@@ -657,7 +657,7 @@ __private.validateOwnChain = cb => {
 	}
 
 	// Validate the top most block
-	const validateCurrentBlock = cb => {
+	const validateCurrentBlock = validateCurrentBlockCb => {
 		library.logger.info(
 			`Validating current block with height ${currentHeight}`
 		);
@@ -670,18 +670,18 @@ __private.validateOwnChain = cb => {
 					}.`
 				);
 			}
-			return setImmediate(cb, validateBlockErr);
+			return setImmediate(validateCurrentBlockCb, validateBlockErr);
 		});
 	};
 
-	const validateStartBlock = cb => {
+	const validateStartBlock = validateStartBlockCb => {
 		library.logger.info(
 			`Validating last block of second last round with height ${validateTillHeight}`
 		);
 
 		modules.blocks.utils.loadBlockByHeight(
 			validateTillHeight,
-			(lastBlockError, startBlock) => {
+			(_lastBlockError, startBlock) => {
 				__private.validateBlock(startBlock, validateBlockErr => {
 					if (validateBlockErr) {
 						library.logger.error(
@@ -689,27 +689,27 @@ __private.validateOwnChain = cb => {
 								validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
 						);
 						return setImmediate(
-							cb,
+							validateStartBlockCb,
 							new Error(
 								'Your block chain is invalid. Please rebuild from snapshot.'
 							)
 						);
 					}
 
-					return setImmediate(cb, null);
+					return setImmediate(validateStartBlockCb, null);
 				});
 			}
 		);
 	};
 
-	const deleteInvalidBlocks = cb => {
+	const deleteInvalidBlocks = deleteInvalidBlocksCb => {
 		async.doDuring(
 			// Iterator
 			doDuringCb => {
 				modules.blocks.chain.deleteLastBlock(doDuringCb);
 			},
 			// Test condition
-			(deleteLastBlockStatus, testCb) => {
+			(_deleteLastBlockStatus, testCb) => {
 				__private.validateBlock(
 					modules.blocks.lastBlock.get(),
 					validateError => setImmediate(testCb, null, !!validateError) // Continue deleting if there is an error
@@ -722,7 +722,7 @@ __private.validateOwnChain = cb => {
 						doDuringErr
 					);
 					return setImmediate(
-						cb,
+						deleteInvalidBlocksCb,
 						new Error(
 							"Your block chain can't be recovered. Please rebuild from snapshot."
 						)
@@ -734,7 +734,7 @@ __private.validateOwnChain = cb => {
 						modules.blocks.lastBlock.get().height
 					}.`
 				);
-				return setImmediate(cb, null);
+				return setImmediate(deleteInvalidBlocksCb, null);
 			}
 		);
 	};

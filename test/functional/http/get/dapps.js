@@ -256,14 +256,14 @@ describe('GET /dapps', () => {
 			before(() => {
 				const promises = [];
 				let transaction;
-				const transactionsToWaitFor = [];
+				const transactionsToWaitFor2 = [];
 
 				for (let i = 1; i <= 20; i++) {
 					transaction = lisk.transaction.createDapp({
 						passphrase: account.passphrase,
 						options: randomUtil.application(),
 					});
-					transactionsToWaitFor.push(transaction.id);
+					transactionsToWaitFor2.push(transaction.id);
 					promises.push(apiHelpers.sendTransactionPromise(transaction));
 				}
 
@@ -273,7 +273,7 @@ describe('GET /dapps', () => {
 							.to.have.property('status')
 							.to.equal(200);
 					});
-					return waitFor.confirmations(transactionsToWaitFor);
+					return waitFor.confirmations(transactionsToWaitFor2);
 				});
 			});
 

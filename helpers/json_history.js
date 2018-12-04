@@ -20,6 +20,7 @@ function JSONHistory(title, logger) {
 	function VersionObject(version) {
 		this.version = version;
 
+		// eslint-disable-next-line no-shadow
 		this.change = (title, change) => {
 			assert(title, 'Title for the change is required.');
 			assert(
@@ -39,7 +40,7 @@ function JSONHistory(title, logger) {
 		};
 	}
 
-	this.version = (version, changes) => {
+	this.version = (version, versionChanges) => {
 		assert(version, 'Invalid version specified.');
 		assert(
 			semver.valid(version) || semver.validRange(version),
@@ -49,8 +50,8 @@ function JSONHistory(title, logger) {
 
 		versions.push(version);
 
-		if (changes) {
-			changes.call(self, new VersionObject(version));
+		if (versionChanges) {
+			versionChanges.call(self, new VersionObject(version));
 		}
 	};
 

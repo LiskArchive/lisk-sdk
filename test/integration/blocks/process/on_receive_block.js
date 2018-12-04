@@ -110,8 +110,8 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 				},
 				function(delegatePublicKey, waterFallCb) {
-					delegate = _.find(genesisDelegates, delegate => {
-						return delegate.publicKey === delegatePublicKey;
+					delegate = _.find(genesisDelegates, foundDelegate => {
+						return foundDelegate.publicKey === delegatePublicKey;
 					});
 					const keypair = getKeypair(delegate.passphrase);
 
@@ -724,12 +724,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						});
 
 						describe('when timestamp is outside slot window', () => {
-							let timestamp;
+							let auxTimestamp;
 
 							beforeEach(() => {
 								// Slot and generatorPublicKey belongs to delegate who is 6 slots behind current slot
 								slot = slots.getSlotNumber() - (BLOCK_SLOT_WINDOW + 1);
-								timestamp = slots.getSlotTime(slot);
+								auxTimestamp = slots.getSlotTime(slot);
 								return getValidKeypairForSlot(slot).then(kp => {
 									keypair = kp;
 								});
@@ -738,7 +738,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							it('should reject received block when blockslot outside window', done => {
 								const blockWithDifferentKeyAndTimestamp = createBlock(
 									[],
-									timestamp,
+									auxTimestamp,
 									keypair,
 									secondLastBlock
 								);

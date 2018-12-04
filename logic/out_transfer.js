@@ -145,8 +145,8 @@ OutTransfer.prototype.process = function(transaction, sender, cb) {
 
 			return library.db.dapps
 				.countByOutTransactionId(transaction.asset.outTransfer.transactionId)
-				.then(count => {
-					if (count > 0) {
+				.then(counterById => {
+					if (counterById > 0) {
 						return setImmediate(
 							cb,
 							`Transaction is already confirmed: ${

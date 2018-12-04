@@ -145,7 +145,7 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 	const target = height + blocksToWait;
 
 	return async.doWhilst(
-		cb => {
+		doWhilstCb => {
 			const request = popsicle.get(
 				`${baseUrl || __testContext.baseUrl}/api/node/status`
 			);
@@ -154,7 +154,7 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 
 			request.then(res => {
 				if (res.status !== 200) {
-					return cb(
+					return doWhilstCb(
 						['Received bad response code', res.status, res.url].join(' ')
 					);
 				}
@@ -168,11 +168,11 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 					counter++
 				);
 				height = res.body.data.height;
-				return setTimeout(cb, 1000);
+				return setTimeout(doWhilstCb, 1000);
 			});
 
 			request.catch(err => {
-				return cb(err);
+				return doWhilstCb(err);
 			});
 		},
 		() => {
@@ -190,9 +190,9 @@ function newBlock(height, blocksToWait, cb, baseUrl) {
 function confirmations(transactions, limitHeight) {
 	limitHeight = limitHeight || 15;
 
-	function checkConfirmations(transactions) {
+	function checkConfirmations(transactionsToCheck) {
 		return Promise.all(
-			transactions.map(transactionId => {
+			transactionsToCheck.map(transactionId => {
 				return apiHelpers.getTransactionByIdPromise(transactionId);
 			})
 		).then(res => {

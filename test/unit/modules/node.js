@@ -74,21 +74,21 @@ describe('node', () => {
 			done();
 		});
 
-		function updateForgingStatus(testDelegate, forging, cb) {
+		function updateForgingStatus(testDelegateArg, forging, cb) {
 			node_module.internal.getForgingStatus(
-				testDelegate.publicKey,
+				testDelegateArg.publicKey,
 				(err, res) => {
 					if (res.length) {
 						return node_module.internal.updateForgingStatus(
-							testDelegate.publicKey,
-							testDelegate.password,
+							testDelegateArg.publicKey,
+							testDelegateArg.password,
 							forging,
 							cb
 						);
 					}
 					return cb(err, {
-						publicKey: testDelegate.publicKey,
-						password: testDelegate.password,
+						publicKey: testDelegateArg.publicKey,
+						password: testDelegateArg.password,
 					});
 				}
 			);
@@ -151,8 +151,8 @@ describe('node', () => {
 						testDelegate.publicKey,
 						defaultPassword,
 						false,
-						(err, res) => {
-							expect(err).to.not.exist;
+						(updateForgingStatusErr, res) => {
+							expect(updateForgingStatusErr).to.not.exist;
 							expect(res).to.eql({
 								publicKey: testDelegate.publicKey,
 								forging: false,
@@ -171,8 +171,8 @@ describe('node', () => {
 						testDelegate.publicKey,
 						defaultPassword,
 						true,
-						(err, res) => {
-							expect(err).to.not.exist;
+						(updateForgingStatusErr, res) => {
+							expect(updateForgingStatusErr).to.not.exist;
 							expect(res).to.eql({
 								publicKey: testDelegate.publicKey,
 								forging: true,
@@ -225,8 +225,8 @@ describe('node', () => {
 						});
 						node_module.internal.getForgingStatus(
 							testDelegate.publicKey,
-							(err, data) => {
-								expect(err).to.be.null;
+							(getForgingStatusErr, data) => {
+								expect(getForgingStatusErr).to.be.null;
 								expect(data[0]).to.deep.equal({
 									forging: false,
 									publicKey: testDelegate.publicKey,

@@ -174,7 +174,7 @@ describe('transaction', () => {
 		);
 		application.init(
 			{ sandbox: { name: 'lisk_test_logic_transactions' } },
-			(err, scope) => {
+			(_err, scope) => {
 				transactionLogic = scope.logic.transaction;
 				accountModule = scope.modules.accounts;
 				transfer.bind(accountModule);
@@ -547,19 +547,23 @@ describe('transaction', () => {
 	});
 
 	describe('verify', () => {
-		function createAndProcess(transactionData, sender, cb) {
+		function createAndProcess(transactionDataArg, senderArg, cb) {
 			const transferObject = {
-				amount: transactionData.amount,
-				passphrase: transactionData.passphrase,
-				secondPassphrase: transactionData.secondPassphrase,
-				recipientId: transactionData.recipientId,
+				amount: transactionDataArg.amount,
+				passphrase: transactionDataArg.passphrase,
+				secondPassphrase: transactionDataArg.secondPassphrase,
+				recipientId: transactionDataArg.recipientId,
 			};
 			const transaction = lisk.transaction.transfer(transferObject);
 			transaction.amount = new Bignum(transaction.amount);
 			transaction.fee = new Bignum(transaction.fee);
-			transactionLogic.process(transaction, sender, (err, transaction) => {
-				cb(err, transaction);
-			});
+			transactionLogic.process(
+				transaction,
+				senderArg,
+				(err, processedTransaction) => {
+					cb(err, processedTransaction);
+				}
+			);
 		}
 
 		it('should return error when sender is missing', done => {
@@ -738,7 +742,7 @@ describe('transaction', () => {
 			transactionDataClone.passphrase = senderPassphrase;
 			transactionDataClone.secondPassphrase = validPassphrase;
 
-			createAndProcess(transactionDataClone, vs, (err, transaction) => {
+			createAndProcess(transactionDataClone, vs, (_err, transaction) => {
 				transaction.signSignature =
 					'7af5f0ee2c4d4c83d6980a46efe31befca41f7aa8cda5f7b4c2850e4942d923af058561a6a3312005ddee566244346bdbccf004bc8e2c84e653f9825c20be008';
 				transactionLogic.verify(transaction, vs, null, null, err => {
@@ -757,7 +761,7 @@ describe('transaction', () => {
 			transactionDataClone.passphrase = senderPassphrase;
 			transactionDataClone.secondPassphrase = validPassphrase;
 
-			createAndProcess(transactionDataClone, vs, (err, transaction) => {
+			createAndProcess(transactionDataClone, vs, (_err, transaction) => {
 				transactionLogic.verify(transaction, vs, null, null, err => {
 					expect(err).to.not.exist;
 					done();
@@ -824,7 +828,7 @@ describe('transaction', () => {
 			const transactionDataClone = _.cloneDeep(transactionData);
 			transactionDataClone.amount = TOTAL_AMOUNT;
 
-			createAndProcess(transactionDataClone, sender, (err, transaction) => {
+			createAndProcess(transactionDataClone, sender, (_err, transaction) => {
 				transactionLogic.verify(transaction, sender, null, null, err => {
 					expect(err).to.include('Account does not have enough LSK:');
 					done();
@@ -1017,8 +1021,8 @@ describe('transaction', () => {
 			height: 1,
 		};
 
-		function undoConfirmedTransaction(transaction, sender, done) {
-			transactionLogic.undoConfirmed(transaction, dummyBlock, sender, done);
+		function undoConfirmedTransaction(transaction, senderArg, done) {
+			transactionLogic.undoConfirmed(transaction, dummyBlock, senderArg, done);
 		}
 
 		it('should throw an error with no param', () => {
@@ -1049,7 +1053,7 @@ describe('transaction', () => {
 		it('should subtract balance from sender account on valid transaction', done => {
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
-				(err, accountBefore) => {
+				(_err, accountBefore) => {
 					const amount = new Bignum(validTransaction.amount.toString()).plus(
 						validTransaction.fee.toString()
 					);
@@ -1088,8 +1092,8 @@ describe('transaction', () => {
 			height: 1,
 		};
 
-		function applyConfirmedTransaction(transaction, sender, done) {
-			transactionLogic.applyConfirmed(transaction, dummyBlock, sender, done);
+		function applyConfirmedTransaction(transaction, senderArg, done) {
+			transactionLogic.applyConfirmed(transaction, dummyBlock, senderArg, done);
 		}
 
 		it('should throw an error with no param', () => {
@@ -1105,7 +1109,7 @@ describe('transaction', () => {
 
 			accountModule.getAccount(
 				{ publicKey: transaction.senderPublicKey },
-				(err, accountBefore) => {
+				(_err, accountBefore) => {
 					const balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undoConfirmed(
@@ -1144,7 +1148,7 @@ describe('transaction', () => {
 
 			accountModule.getAccount(
 				{ publicKey: validTransaction.senderPublicKey },
-				(err, accountBefore) => {
+				(_err, accountBefore) => {
 					const balanceBefore = new Bignum(accountBefore.balance.toString());
 
 					transactionLogic.undoConfirmed(
@@ -1174,8 +1178,8 @@ describe('transaction', () => {
 	});
 
 	describe('applyUnconfirmed', () => {
-		function undoUnconfirmedTransaction(transaction, sender, done) {
-			transactionLogic.undoUnconfirmed(transaction, sender, done);
+		function undoUnconfirmedTransaction(transaction, senderArg, done) {
+			transactionLogic.undoUnconfirmed(transaction, senderArg, done);
 		}
 
 		it('should throw an error with no param', () => {
@@ -1208,8 +1212,8 @@ describe('transaction', () => {
 	});
 
 	describe('undoUnconfirmed', () => {
-		function applyUnconfirmedTransaction(transaction, sender, done) {
-			transactionLogic.applyUnconfirmed(transaction, sender, done);
+		function applyUnconfirmedTransaction(transaction, senderArg, done) {
+			transactionLogic.applyUnconfirmed(transaction, senderArg, done);
 		}
 
 		it('should throw an error with no param', () => {

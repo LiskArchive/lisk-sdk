@@ -112,7 +112,7 @@ describe('lisk_request_limit', () => {
 
 		setTimeout(() => {
 			next = sinonSandbox.spy();
-			for (let i = 0; i < limits.max + 5; i++) {
+			for (let auxI = 0; auxI < limits.max + 5; auxI++) {
 				limit_fititng(context, cb);
 			}
 			expect(success).to.be.equal(limits.max);

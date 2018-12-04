@@ -35,12 +35,12 @@ module.exports = function(configurations, network) {
 		const numberOfTransactions = 3;
 
 		const postSignatures = signature => {
-			const postSignatures = {
+			const signaturesToPost = {
 				signatures: [signature],
 			};
 			return Promise.all(
 				network.sockets.map(socket => {
-					return socket.emit('postSignatures', postSignatures);
+					return socket.emit('postSignatures', signaturesToPost);
 				})
 			);
 		};

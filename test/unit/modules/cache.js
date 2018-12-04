@@ -54,8 +54,8 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.getJsonForKey(key, (err, res) => {
-					expect(err).to.not.exist;
+				cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+					expect(getJsonForKeyErr).to.not.exist;
 					expect(res).to.eql(value);
 					done(err, value);
 				});
@@ -81,8 +81,8 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.getJsonForKey(key, (err, res) => {
-					expect(err).to.not.exist;
+				cache.getJsonForKey(key, (getJsonForKeyErrErr, res) => {
+					expect(getJsonForKeyErrErr).to.not.exist;
 					expect(res).to.eql(value);
 					done(err, value);
 				});
@@ -154,10 +154,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.removeByPattern(pattern, err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.removeByPattern(pattern, removeByPatternErr => {
+					expect(removeByPatternErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
@@ -173,10 +173,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.removeByPattern(pattern, err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.removeByPattern(pattern, removeByPatternErr => {
+					expect(removeByPatternErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -192,10 +192,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.clearCacheFor('/api/transactions*', err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.clearCacheFor('/api/transactions*', clearCacheForErr => {
+					expect(clearCacheForErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
@@ -211,10 +211,10 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.clearCacheFor('/api/blocks*', err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.clearCacheFor('/api/blocks*', clearCacheForErr => {
+					expect(clearCacheForErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
@@ -230,10 +230,10 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.clearCacheFor('/api/blocks*', err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.clearCacheFor('/api/blocks*', clearCacheForErr => {
+					expect(clearCacheForErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -250,11 +250,11 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.clearCacheFor('/api/transactions*', err => {
-					expect(err).to.equal('Cache Disabled');
+				cache.clearCacheFor('/api/transactions*', clearCacheForErr => {
+					expect(clearCacheForErr).to.equal('Cache Disabled');
 					cache.onSyncFinished();
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -271,10 +271,10 @@ describe('cache', () => {
 			cache.setJsonForKey(key, value, (err, status) => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
-				cache.onFinishRound(null, err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.onFinishRound(null, onFinishRoundErr => {
+					expect(onFinishRoundErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
@@ -290,10 +290,10 @@ describe('cache', () => {
 				expect(err).to.not.exist;
 				expect(status).to.equal('OK');
 
-				cache.onFinishRound(null, err => {
-					expect(err).to.not.exist;
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+				cache.onFinishRound(null, onFinishRoundErr => {
+					expect(onFinishRoundErr).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -310,11 +310,11 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 
 				cache.onSyncStarted();
-				cache.onFinishRound(null, err => {
-					expect(err).to.equal('Cache Disabled');
+				cache.onFinishRound(null, onFinishRoundErr => {
+					expect(onFinishRoundErr).to.equal('Cache Disabled');
 					cache.onSyncFinished();
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -339,8 +339,8 @@ describe('cache', () => {
 				});
 
 				cache.onTransactionsSaved([transaction], () => {
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -361,8 +361,8 @@ describe('cache', () => {
 				});
 
 				cache.onTransactionsSaved([transaction], () => {
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
@@ -385,8 +385,8 @@ describe('cache', () => {
 				});
 
 				cache.onTransactionsSaved([transaction], () => {
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.equal(null);
 						done();
 					});
@@ -403,8 +403,8 @@ describe('cache', () => {
 				expect(status).to.equal('OK');
 
 				cache.onTransactionsSaved([], () => {
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});
@@ -425,11 +425,11 @@ describe('cache', () => {
 				});
 
 				cache.onSyncStarted();
-				cache.onTransactionsSaved([transaction], err => {
-					expect(err).to.equal('Cache Disabled');
+				cache.onTransactionsSaved([transaction], onTransactionsSavedErr => {
+					expect(onTransactionsSavedErr).to.equal('Cache Disabled');
 					cache.onSyncFinished();
-					cache.getJsonForKey(key, (err, res) => {
-						expect(err).to.not.exist;
+					cache.getJsonForKey(key, (getJsonForKeyErr, res) => {
+						expect(getJsonForKeyErr).to.not.exist;
 						expect(res).to.eql(value);
 						done();
 					});

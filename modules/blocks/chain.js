@@ -116,14 +116,14 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 		return transaction;
 	});
 
-	function saveBlockBatch(tx) {
-		const promises = [tx.blocks.save(block)];
+	function saveBlockBatch(saveBlockBatchTx) {
+		const promises = [saveBlockBatchTx.blocks.save(block)];
 
 		if (block.transactions.length) {
-			promises.push(tx.transactions.save(block.transactions));
+			promises.push(saveBlockBatchTx.transactions.save(block.transactions));
 		}
 
-		tx
+		saveBlockBatchTx
 			.batch(promises)
 			.then(() => __private.afterSave(block, cb))
 			.catch(err => {
@@ -157,7 +157,8 @@ __private.afterSave = function(block, cb) {
 	library.bus.message('transactionsSaved', block.transactions);
 	async.eachSeries(
 		block.transactions,
-		(transaction, cb) => library.logic.transaction.afterSave(transaction, cb),
+		(transaction, eachSeriesCb) =>
+			library.logic.transaction.afterSave(transaction, eachSeriesCb),
 		err => setImmediate(cb, err)
 	);
 };
@@ -293,8 +294,8 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			transaction,
 			block,
 			sender,
-			err => {
-				if (err) {
+			applyConfirmedErr => {
+				if (applyConfirmedErr) {
 					return setImmediate(cb, {
 						message: `Failed to apply transaction: ${
 							transaction.id
@@ -461,9 +462,9 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 					// DATABASE write. Update delegates accounts
 					return modules.rounds.tick(
 						block,
-						err => {
-							if (err) {
-								return setImmediate(reject, err);
+						tickErr => {
+							if (tickErr) {
+								return setImmediate(reject, tickErr);
 							}
 
 							library.bus.message('newBlock', block);

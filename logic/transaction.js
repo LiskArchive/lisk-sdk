@@ -377,11 +377,11 @@ class Transaction {
 		return __private.types[transaction.type].process(
 			transaction,
 			sender,
-			(err, transaction) => {
+			(err, processedTransaction) => {
 				if (err) {
 					return setImmediate(cb, err);
 				}
-				return setImmediate(cb, null, transaction);
+				return setImmediate(cb, null, processedTransaction);
 			},
 			tx
 		);
@@ -616,7 +616,7 @@ class Transaction {
 					}
 
 					if (!isValidSignature) {
-						const err = `Failed to verify multisignature: ${
+						const invalidSignatureErr = `Failed to verify multisignature: ${
 							transaction.signatures[s]
 						}`;
 
@@ -628,11 +628,11 @@ class Transaction {
 							)
 						) {
 							this.scope.logger.warn('Transaction accepted due to exceptions', {
-								err,
+								invalidSignatureErr,
 								transaction: JSON.stringify(transaction),
 							});
 						} else {
-							return setImmediate(cb, err);
+							return setImmediate(cb, invalidSignatureErr);
 						}
 					}
 				}
@@ -696,21 +696,21 @@ class Transaction {
 		}
 
 		const verifyTransactionTypes = (
-			transaction,
-			sender,
-			tx,
+			transactionToVeryfi,
+			senderToVerify,
+			txToVerify,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transaction.type].verify(
-				transaction,
-				sender,
-				err => {
-					if (err) {
-						return setImmediate(verifyTransactionTypesCb, err);
+			__private.types[transactionToVeryfi.type].verify(
+				transactionToVeryfi,
+				senderToVerify,
+				verifyErr => {
+					if (verifyErr) {
+						return setImmediate(verifyTransactionTypesCb, verifyErr);
 					}
 					return setImmediate(verifyTransactionTypesCb);
 				},
-				tx
+				txToVerify
 			);
 		};
 
@@ -883,7 +883,7 @@ class Transaction {
 				balance: `-${amount}`,
 				round: slots.calcRound(block.height),
 			},
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
@@ -894,11 +894,11 @@ class Transaction {
 				return __private.types[transaction.type].applyConfirmed(
 					transaction,
 					block,
-					sender,
+					mergedSender,
 					applyConfirmedErr => {
 						if (applyConfirmedErr) {
 							return this.scope.account.merge(
-								sender.address,
+								mergedSender.address,
 								{
 									balance: amount,
 									round: slots.calcRound(block.height),
@@ -950,7 +950,7 @@ class Transaction {
 				balance: amount,
 				round: slots.calcRound(block.height),
 			},
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
@@ -958,11 +958,11 @@ class Transaction {
 				return __private.types[transaction.type].undoConfirmed(
 					transaction,
 					block,
-					sender,
+					mergedSender,
 					undoConfirmedErr => {
 						if (undoConfirmedErr) {
 							return this.scope.account.merge(
-								sender.address,
+								mergedSender.address,
 								{
 									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
@@ -1026,18 +1026,18 @@ class Transaction {
 		return this.scope.account.merge(
 			sender.address,
 			{ u_balance: `-${amount}` },
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
 
 				return __private.types[transaction.type].applyUnconfirmed(
 					transaction,
-					sender,
+					mergedSender,
 					applyUnconfirmedErr => {
 						if (applyUnconfirmedErr) {
 							return this.scope.account.merge(
-								sender.address,
+								mergedSender.address,
 								{ u_balance: amount },
 								reverseMergeErr =>
 									setImmediate(cb, reverseMergeErr || applyUnconfirmedErr),
@@ -1077,18 +1077,18 @@ class Transaction {
 		return this.scope.account.merge(
 			sender.address,
 			{ u_balance: amount },
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
 
 				return __private.types[transaction.type].undoUnconfirmed(
 					transaction,
-					sender,
+					mergedSender,
 					undoUnconfirmedErr => {
 						if (undoUnconfirmedErr) {
 							return this.scope.account.merge(
-								sender.address,
+								mergedSender.address,
 								{ u_balance: `-${amount}` },
 								reverseMergeErr =>
 									setImmediate(cb, reverseMergeErr || undoUnconfirmedErr),

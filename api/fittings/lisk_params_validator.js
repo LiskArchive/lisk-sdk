@@ -57,14 +57,17 @@ module.exports = function create() {
 				error = new Error('Validation errors');
 				error.statusCode = 400;
 
-				validateResult.errors.forEach(error => {
-					debug('param error: %j', error);
-				});
-
-				error.errors = _.map(validateResult.errors, e => {
-					const errors = _.pick(e, ['code', 'message', 'in', 'name', 'errors']);
-					errors.errors = _.map(e.errors, e =>
-						_.pick(e, ['code', 'message', 'path'])
+				error.errors = _.map(validateResult.errors, validateResultErr => {
+					const errors = _.pick(validateResultErr, [
+						'code',
+						'message',
+						'in',
+						'name',
+						'errors',
+					]);
+					debug('param error: %j', validateResultErr);
+					errors.errors = _.map(validateResultErr.errors, err2 =>
+						_.pick(err2, ['code', 'message', 'path'])
 					);
 					return errors;
 				});

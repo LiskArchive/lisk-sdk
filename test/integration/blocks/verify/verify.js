@@ -134,7 +134,7 @@ function createBlock(
 	passphrase,
 	timestamp,
 	transactions,
-	previousBlock
+	previousBlockArgs
 ) {
 	random.convertToBignum(transactions);
 	const keypair = blockLogic.scope.ed.makeKeypair(
@@ -143,7 +143,7 @@ function createBlock(
 			.update(passphrase, 'utf8')
 			.digest()
 	);
-	blocksModule.lastBlock.set(previousBlock);
+	blocksModule.lastBlock.set(previousBlockArgs);
 	const newBlock = blockLogic.create({
 		keypair,
 		timestamp,
@@ -333,7 +333,7 @@ describe('blocks/verify', () => {
 
 		describe('verifyPreviousBlock', () => {
 			it('should fail when previousBlock property is missing', done => {
-				const previousBlock = validBlock.previousBlock;
+				const auxPreviousBlock = validBlock.previousBlock;
 				delete validBlock.previousBlock;
 
 				const result = privateFunctions.verifyPreviousBlock(
@@ -346,7 +346,7 @@ describe('blocks/verify', () => {
 					.with.lengthOf(1);
 				expect(result.errors[0]).to.equal('Invalid previous block');
 
-				validBlock.previousBlock = previousBlock;
+				validBlock.previousBlock = auxPreviousBlock;
 				done();
 			});
 		});
@@ -1063,7 +1063,7 @@ describe('blocks/verify', () => {
 			});
 
 			describe('block with processed transaction', () => {
-				let block2;
+				let auxBlock;
 
 				it('should generate block 1 with valid generator slot and processed transaction', done => {
 					const slot = slots.getSlotNumber();
@@ -1071,7 +1071,7 @@ describe('blocks/verify', () => {
 
 					getValidKeypairForSlot(library, slot)
 						.then(passphrase => {
-							block2 = createBlock(
+							auxBlock = createBlock(
 								blocks,
 								blockLogic,
 								passphrase,
@@ -1080,18 +1080,18 @@ describe('blocks/verify', () => {
 								genesisBlock
 							);
 
-							expect(block2.version).to.equal(0);
-							expect(block2.timestamp).to.equal(time);
-							expect(block2.numberOfTransactions).to.equal(1);
-							expect(block2.reward.isEqualTo('0')).to.be.true;
-							expect(block2.totalFee.isEqualTo('0')).to.be.true;
-							expect(block2.totalAmount.isEqualTo('10000000000000000')).to.be
+							expect(auxBlock.version).to.equal(0);
+							expect(auxBlock.timestamp).to.equal(time);
+							expect(auxBlock.numberOfTransactions).to.equal(1);
+							expect(auxBlock.reward.isEqualTo('0')).to.be.true;
+							expect(auxBlock.totalFee.isEqualTo('0')).to.be.true;
+							expect(auxBlock.totalAmount.isEqualTo('10000000000000000')).to.be
 								.true;
-							expect(block2.payloadLength).to.equal(117);
-							expect(block2.transactions).to.deep.equal([
+							expect(auxBlock.payloadLength).to.equal(117);
+							expect(auxBlock.transactions).to.deep.equal([
 								genesisBlock.transactions[0],
 							]);
-							expect(block2.previousBlock).to.equal(genesisBlock.id);
+							expect(auxBlock.previousBlock).to.equal(genesisBlock.id);
 							done();
 						})
 						.catch(err => {
@@ -1111,7 +1111,7 @@ describe('blocks/verify', () => {
 					const createBlockPayload = (
 						passPhrase,
 						transactions,
-						previousBlock
+						previousBlockArgs
 					) => {
 						const time = slots.getSlotTime(slots.getSlotNumber());
 						const firstBlock = createBlock(
@@ -1120,7 +1120,7 @@ describe('blocks/verify', () => {
 							passPhrase,
 							time,
 							transactions,
-							previousBlock
+							previousBlockArgs
 						);
 
 						return blocksVerify.deleteBlockProperties(firstBlock);
@@ -1139,9 +1139,9 @@ describe('blocks/verify', () => {
 								// Wait for next slot
 								setTimeout(() => {
 									getValidKeypairForSlot(library, slots.getSlotNumber())
-										.then(passPhrase => {
+										.then(resultedPassPhrase => {
 											const secondBlock = createBlockPayload(
-												passPhrase,
+												resultedPassPhrase,
 												transactions,
 												firstBlock
 											);
@@ -1149,8 +1149,8 @@ describe('blocks/verify', () => {
 												secondBlock,
 												false,
 												true,
-												err => {
-													expect(err).to.equal(
+												processBlockErr => {
+													expect(processBlockErr).to.equal(
 														[
 															'Transaction is already confirmed:',
 															transaction.id,
@@ -1160,14 +1160,14 @@ describe('blocks/verify', () => {
 												}
 											);
 										})
-										.catch(err => {
-											done(err);
+										.catch(getValidKeypairForSlotErr2 => {
+											done(getValidKeypairForSlotErr2);
 										});
 								}, 10000);
 							});
 						})
-						.catch(err => {
-							done(err);
+						.catch(getValidKeypairForSlotErr1 => {
+							done(getValidKeypairForSlotErr1);
 						});
 				});
 			});

@@ -53,14 +53,9 @@ function sortBy(sort, options) {
 	let sortMethod;
 
 	if (typeof sort === 'string') {
-		const sortBy = String(sort).split(':');
-		sortField = sortBy[0].replace(/[^\w\s]/gi, '');
-
-		if (sortBy.length === 2) {
-			sortMethod = sortBy[1] === 'desc' ? 'DESC' : 'ASC';
-		} else {
-			sortMethod = 'ASC';
-		}
+		const [field, order] = sort.split(':');
+		sortField = field.replace(/[^\w\s]/gi, '');
+		sortMethod = order === 'desc' ? 'DESC' : 'ASC';
 	} else if (typeof sort === 'object') {
 		const keys = Object.keys(sort);
 
@@ -92,15 +87,15 @@ function sortBy(sort, options) {
 	 * @todo Add @returns tag
 	 * @todo Add description for the function
 	 */
-	function prefixField(sortField) {
-		if (!sortField) {
-			return sortField;
+	function prefixField(prefixSortedField) {
+		if (!prefixSortedField) {
+			return prefixSortedField;
 		} else if (typeof options.fieldPrefix === 'string') {
-			return options.fieldPrefix + sortField;
+			return options.fieldPrefix + prefixSortedField;
 		} else if (typeof options.fieldPrefix === 'function') {
-			return options.fieldPrefix(sortField);
+			return options.fieldPrefix(prefixSortedField);
 		}
-		return sortField;
+		return prefixSortedField;
 	}
 
 	/**
@@ -111,11 +106,11 @@ function sortBy(sort, options) {
 	 * @todo Add @returns tag
 	 * @todo Add description for the function
 	 */
-	function quoteField(sortField) {
-		if (sortField && options.quoteField) {
+	function quoteField(quoteSortedField) {
+		if (quoteSortedField && options.quoteField) {
 			return `"${sortField}"`;
 		}
-		return sortField;
+		return quoteSortedField;
 	}
 
 	const emptyWhiteList = options.sortFields.length === 0;

@@ -241,12 +241,12 @@ __private.getMatched = function(test, peers) {
 /**
  * Check if the ip exists in the peer blacklist coming from config file.
  *
- * @param ip
+ * @param suspiciousIp
  * @returns {boolean}
  * @todo Add description for the params and the return value
  */
-__private.isBlacklisted = function(ip) {
-	return self.blackListedPeers.includes(ip);
+__private.isBlacklisted = function(suspiciousIp) {
+	return self.blackListedPeers.includes(suspiciousIp);
 };
 
 /**
@@ -540,10 +540,10 @@ Peers.prototype.discover = function(cb) {
 			(err, peers) => {
 				const randomPeer = peers.length ? peers[0] : null;
 				if (!err && randomPeer) {
-					return randomPeer.rpc.status((err, status) => {
-						__private.updatePeerStatus(err, status, randomPeer);
-						if (err) {
-							return setImmediate(waterCb, err);
+					return randomPeer.rpc.status((rpcStatusErr, status) => {
+						__private.updatePeerStatus(rpcStatusErr, status, randomPeer);
+						if (rpcStatusErr) {
+							return setImmediate(waterCb, rpcStatusErr);
 						}
 						return randomPeer.rpc.list(waterCb);
 					});
@@ -675,7 +675,7 @@ Peers.prototype.list = function(options, cb) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function randomList(peers, cb) {
+	function randomList(peers, randomListCb) {
 		// Get full peers list (random)
 		__private.getByFilter(
 			{ normalized: options.normalized },
@@ -709,7 +709,7 @@ Peers.prototype.list = function(options, cb) {
 					picked,
 					accepted: accepted.length,
 				});
-				return setImmediate(cb, null, accepted);
+				return setImmediate(randomListCb, null, accepted);
 			}
 		);
 	}

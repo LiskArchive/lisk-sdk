@@ -19,10 +19,10 @@ const SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 
 const worker = SCWorker.create({
 	run() {
-		const worker = this;
+		const selfWorker = this;
 		const scServer = this.getSCServer();
 
-		const slaveWAMPServer = new SlaveWAMPServer(worker, 20e3);
+		const slaveWAMPServer = new SlaveWAMPServer(selfWorker, 20e3);
 
 		slaveWAMPServer.reassignRPCSlaveEndpoints({
 			updateMyself(data, callback) {

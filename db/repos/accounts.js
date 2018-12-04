@@ -312,8 +312,8 @@ class AccountsRepository {
 	 * @todo Add description for the return value
 	 */
 	remove(address) {
-		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
-		return this.db.none(sql, [this.dbTable, 'address', address]);
+		const removeSql = 'DELETE FROM $1:name WHERE $2:name = $3';
+		return this.db.none(removeSql, [this.dbTable, 'address', address]);
 	}
 
 	/**
@@ -398,7 +398,7 @@ class AccountsRepository {
 			);
 		}
 
-		let sql = '${fields:raw} ${conditions:raw} ';
+		let fielsAndConditionsSql = '${fields:raw} ${conditions:raw} ';
 		let limit;
 		let offset;
 		let sortField = '';
@@ -415,7 +415,8 @@ class AccountsRepository {
 				if (typeof options.sortField === 'string') {
 					sortField = options.sortField;
 					sortMethod = options.sortMethod || 'DESC';
-					sql += ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+					fielsAndConditionsSql +=
+						' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
 					// As per implementation of sort sortBy helper helpers/sort_by
 				} else if (
 					Array.isArray(options.sortField) &&
@@ -431,7 +432,7 @@ class AccountsRepository {
 							])
 						)
 					);
-					sql += `ORDER BY ${sortSQL.join()}`;
+					fielsAndConditionsSql += `ORDER BY ${sortSQL.join()}`;
 				}
 			}
 
@@ -440,7 +441,7 @@ class AccountsRepository {
 				limit = options.limit;
 				offset = options.offset || 0;
 
-				sql += ' LIMIT ${limit} OFFSET ${offset}';
+				fielsAndConditionsSql += ' LIMIT ${limit} OFFSET ${offset}';
 			}
 
 			const selectClause = new Selects(this.cs.select, fields, pgp);
@@ -475,7 +476,7 @@ class AccountsRepository {
 				conditions = ` WHERE ${conditions.join(' AND ')}`;
 			}
 
-			return this.pgp.as.format(sql, {
+			return this.pgp.as.format(fielsAndConditionsSql, {
 				fields: selectClause,
 				conditions,
 				sortField,

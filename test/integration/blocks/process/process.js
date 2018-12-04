@@ -68,7 +68,7 @@ describe('system test (blocks) - process', () => {
 							'forks_stat',
 							'votes WHERE "transactionId" = \'17502993173215211070\'',
 						],
-						(table, seriesCb) => {
+						table => {
 							clearDatabaseTable(db, modulesLoader.logger, table, seriesCb);
 						},
 						err => {
@@ -82,7 +82,7 @@ describe('system test (blocks) - process', () => {
 				loadTables: seriesCb => {
 					async.everySeries(
 						loadTables,
-						(table, seriesCb) => {
+						(table, everySeriesCb) => {
 							const cs = new db.$config.pgp.helpers.ColumnSet(table.fields, {
 								table: table.name,
 							});
@@ -90,7 +90,7 @@ describe('system test (blocks) - process', () => {
 							db
 								.none(insert)
 								.then(() => {
-									seriesCb(null, true);
+									everySeriesCb(null, true);
 								})
 								.catch(err => {
 									return setImmediate(err);

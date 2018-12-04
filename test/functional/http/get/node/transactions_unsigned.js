@@ -118,8 +118,8 @@ describe('GET /api/node', () => {
 							);
 						}
 
-						return Promise.map(transactionList, transaction => {
-							return sendTransactionPromise(transaction);
+						return Promise.map(transactionList, mapTransaction => {
+							return sendTransactionPromise(mapTransaction);
 						});
 					})
 					.then(responses => {
@@ -246,8 +246,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							return expect(transaction.type).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.type).to.be.equal(
 								transactionInCheck.type
 							);
 						});
@@ -272,8 +272,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							return expect(transaction.senderId).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.senderId).to.be.equal(
 								senderAccount.address
 							);
 						});
@@ -307,8 +307,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							return expect(transaction.senderPublicKey).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.senderPublicKey).to.be.equal(
 								senderAccount.publicKey
 							);
 						});
@@ -345,8 +345,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							return expect(transaction.recipientId).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);
 						});
@@ -380,8 +380,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							return expect(transaction.recipientId).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);
 						});
@@ -441,8 +441,8 @@ describe('GET /api/node', () => {
 							return UnsignedEndpoint.makeRequest({ offset: 1, limit: 2 }, 200);
 						})
 						.then(res => {
-							res.body.data.forEach(transaction => {
-								expect(transaction.id).to.not.equal(firstTransaction.id);
+							res.body.data.forEach(mapTransaction => {
+								expect(mapTransaction.id).to.not.equal(firstTransaction.id);
 							});
 						});
 				});

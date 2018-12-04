@@ -161,13 +161,17 @@ describe('app', () => {
 								_.each(voters, voter => {
 									const balance = _.reduce(
 										library.genesisBlock.block.transactions,
-										(balance, acc) => {
+										(reduceBalance, acc) => {
 											if (acc.recipientId === voter.senderId) {
-												return new Bignum(balance).plus(acc.amount).toString();
+												return new Bignum(reduceBalance)
+													.plus(acc.amount)
+													.toString();
 											} else if (acc.senderId === voter.senderId) {
-												return new Bignum(balance).minus(acc.amount).toString();
+												return new Bignum(reduceBalance)
+													.minus(acc.amount)
+													.toString();
 											}
-											return balance;
+											return reduceBalance;
 										},
 										'0'
 									);
@@ -204,8 +208,8 @@ describe('app', () => {
 					).filter(a => a); // We call filter here to remove null values
 
 					// Get accounts from database
-					return Queries.getAccounts().then(_accounts => {
-						accounts = _accounts;
+					return Queries.getAccounts().then(gotAccounts => {
+						accounts = gotAccounts;
 					});
 				});
 
@@ -259,11 +263,13 @@ describe('app', () => {
 								// Sum all outgoing transactions from genesis account
 								const balance = _.reduce(
 									library.genesisBlock.block.transactions,
-									(balance, acc) => {
+									(reduceBalance, acc) => {
 										if (acc.senderId === genesisAccount.address) {
-											return new Bignum(balance).minus(acc.amount).toString();
+											return new Bignum(reduceBalance)
+												.minus(acc.amount)
+												.toString();
 										}
-										return balance;
+										return reduceBalance;
 									},
 									'0'
 								);
