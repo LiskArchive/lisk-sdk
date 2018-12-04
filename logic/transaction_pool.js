@@ -86,18 +86,6 @@ class TransactionPool {
 		self.bundleLimit = library.config.broadcasts.releaseLimit;
 		self.processed = 0;
 		self.hourInSeconds = 3600;
-
-		jobsQueue.register(
-			'transactionPoolNextBundle',
-			nextBundle,
-			self.bundledInterval
-		);
-
-		jobsQueue.register(
-			'transactionPoolNextExpiry',
-			nextExpiry,
-			self.expiryInterval
-		);
 	}
 }
 
@@ -139,6 +127,18 @@ TransactionPool.prototype.bind = function(accounts, transactions, loader) {
 		transactions,
 		loader,
 	};
+
+	jobsQueue.register(
+		'transactionPoolNextBundle',
+		nextBundle,
+		self.bundledInterval
+	);
+
+	jobsQueue.register(
+		'transactionPoolNextExpiry',
+		nextExpiry,
+		self.expiryInterval
+	);
 };
 
 /**
@@ -513,11 +513,9 @@ TransactionPool.prototype.reindexQueues = function() {
 TransactionPool.prototype.processBundled = function(cb) {
 	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
 
-	if (modules && modules.loader) {
-		if (modules.loader.syncing()) {
-			// There is no need to process bundled transacions if node is syncing
-			return setImmediate(cb);
-		}
+	if (modules.loader.syncing()) {
+		// There is no need to process bundled transacions if node is syncing
+		return setImmediate(cb);
 	}
 
 	return library.balancesSequence.add(
