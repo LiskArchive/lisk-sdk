@@ -764,7 +764,7 @@ d.run(() => {
 					// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
 					scope.network.server.headersTimeout =
 						appConfig.api.options.limits.headersTimeout;
-
+					// Disconnect idle clients
 					scope.network.server.setTimeout(
 						appConfig.api.options.limits.serverSetTimeout
 					);
