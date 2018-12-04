@@ -1032,6 +1032,27 @@ describe('transactionPool', () => {
 				done();
 			});
 		});
+
+		describe('when node is syncing', () => {
+			it('should not process bundled transactions', done => {
+				const processVerifyTransactionStub = sinonSandbox.stub();
+				const queueTransactionStub = sinonSandbox.stub();
+				TransactionPool.__set__(
+					'__private.processVerifyTransaction',
+					processVerifyTransactionStub
+				);
+				TransactionPool.__set__(
+					'__private.queueTransaction',
+					queueTransactionStub
+				);
+				loaderStub.syncing.returns(true);
+				transactionPool.processBundled(() => {
+					expect(processVerifyTransactionStub.called).to.be.false;
+					expect(queueTransactionStub.called).to.be.false;
+					done();
+				});
+			});
+		});
 	});
 
 	describe('undoUnconfirmedList', () => {

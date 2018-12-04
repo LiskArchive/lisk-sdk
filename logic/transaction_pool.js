@@ -513,7 +513,14 @@ TransactionPool.prototype.reindexQueues = function() {
 TransactionPool.prototype.processBundled = function(cb) {
 	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
 
-	library.balancesSequence.add(
+	if (modules && modules.loader) {
+		if (modules.loader.syncing()) {
+			// There is no need to process bundled transacions if node is syncing
+			return setImmediate(cb);
+		}
+	}
+
+	return library.balancesSequence.add(
 		balancesSequenceCb => {
 			async.eachSeries(
 				bundled,
