@@ -1,15 +1,16 @@
 import addresses from '../fixtures/addresses.json';
 import { expect } from 'chai';
-import transactions from '../fixtures/transactions.json';
-import { TransactionPool } from '../src/transaction_pool';
+import transactionsObjects from '../fixtures/transactions.json';
+import { TransactionPool, Transaction } from '../src/transaction_pool';
+import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
 // Require is used for stubbing
 const Queue = require('../src/queue').Queue;
 const queueCheckers = require('../src/queue_checkers');
 
 describe('transaction pool', () => {
-	const MULTISIGNATURE_TIMEOUT = 86400;
-	const TRANSACTION_TIMEOUT = 10800;
+	const EXPIRE_TRANSACTIONS_JOB = 1000;
+	const transactions = transactionsObjects.map(wrapTransferTransaction);
 	let transactionPool: TransactionPool;
 
 	let checkerStubs: {
@@ -40,7 +41,7 @@ describe('transaction pool', () => {
 			),
 		};
 
-		transactionPool = new TransactionPool({ MULTISIGNATURE_TIMEOUT, TRANSACTION_TIMEOUT });
+		transactionPool = new TransactionPool({ EXPIRE_TRANSACTIONS_JOB });
 		Object.keys(transactionPool.queues).forEach(queueName => {
 			sandbox
 				.stub((transactionPool as any)._queues, queueName)
@@ -189,23 +190,19 @@ describe('transaction pool', () => {
 		});
 	});
 
-	describe('expireTransactions', () => {
+	describe('#expireTransactions', () => {
 		let removeTransactionsFromQueuesStub: sinon.SinonStub;
-		let expireTransactions: () => boolean;
+		let expireTransactions: () => Promise<ReadonlyArray<Transaction>>;
 
 		beforeEach(() => {
 			removeTransactionsFromQueuesStub = sandbox.stub(transactionPool as any, 'removeTransactionsFromQueues');
-			expireTransactions = (transactionPool as any)['expireTransactions'].bind(transactionPool);
+			return expireTransactions = (transactionPool as any)['expireTransactions'].bind(transactionPool);
 		});
 
-		it('should call removeTransactionsFromQueues twice', () => {
-			expireTransactions();
-			return expect(removeTransactionsFromQueuesStub).to.be.calledTwice;
-		});
-
-		it('should call checkTransactionForExpiry twice', () => {
-			expireTransactions();
-			return expect(checkerStubs.checkTransactionForExpiry).to.be.calledTwice;
+		it('should call removeTransactionsFromQueues once', () => {
+			return expireTransactions().then(() =>
+				expect(removeTransactionsFromQueuesStub).to.be.calledOnce
+			);
 		});
 	});
 });
