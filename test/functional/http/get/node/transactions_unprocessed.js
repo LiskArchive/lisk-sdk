@@ -15,32 +15,32 @@
 'use strict';
 
 require('../../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var apiHelpers = require('../../../../common/helpers/api');
-var randomUtil = require('../../../../common/utils/random');
-var SwaggerEndpoint = require('../../../../common/swagger_spec');
-var accountFixtures = require('../../../../fixtures/accounts');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const apiHelpers = require('../../../../common/helpers/api');
+const randomUtil = require('../../../../common/utils/random');
+const SwaggerEndpoint = require('../../../../common/swagger_spec');
+const accountFixtures = require('../../../../fixtures/accounts');
 
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
 		describe('/unprocessed', () => {
-			var UnProcessedEndpoint = new SwaggerEndpoint(
+			const UnProcessedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unprocessed' });
 
-			var account = randomUtil.account();
-			var transactionList = [];
-			var numOfTransactions = 100;
+			const account = randomUtil.account();
+			const transactionList = [];
+			const numOfTransactions = 100;
 
 			before(() => {
-				var data = 'extra information';
+				const data = 'extra information';
 
 				// Create numOfTransactions transactions
-				for (var i = 0; i < numOfTransactions; i++) {
+				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						lisk.transaction.transfer({
 							amount: randomUtil.number(100000000, 1000000000),
@@ -139,7 +139,8 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid id should be ok', () => {
-					var transactionInCheck = transactionList[transactionList.length - 1];
+					const transactionInCheck =
+						transactionList[transactionList.length - 1];
 
 					return UnProcessedEndpoint.makeRequest(
 						{ id: transactionInCheck.id },
@@ -169,7 +170,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid type should be ok @unstable', () => {
-					var transactionInCheck = transactionList[0];
+					const transactionInCheck = transactionList[0];
 
 					return UnProcessedEndpoint.makeRequest(
 						{ type: transactionInCheck.type },
@@ -369,7 +370,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using offset=1 should be ok', () => {
-					var firstTransaction = null;
+					let firstTransaction = null;
 
 					return UnProcessedEndpoint.makeRequest({ offset: 0, limit: 2 }, 200)
 						.then(res => {
@@ -397,7 +398,7 @@ describe('GET /api/node', () => {
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
-							var values = _.map(res.body.data, 'amount').map(value => {
+							const values = _.map(res.body.data, 'amount').map(value => {
 								return parseInt(value);
 							});
 
@@ -412,7 +413,7 @@ describe('GET /api/node', () => {
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
-							var values = _.map(res.body.data, 'amount').map(value => {
+							const values = _.map(res.body.data, 'amount').map(value => {
 								return parseInt(value);
 							});
 
@@ -429,7 +430,7 @@ describe('GET /api/node', () => {
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
-							var values = _.map(res.body.data, 'fee').map(value => {
+							const values = _.map(res.body.data, 'fee').map(value => {
 								return parseInt(value);
 							});
 
@@ -444,7 +445,7 @@ describe('GET /api/node', () => {
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
-							var values = _.map(res.body.data, 'fee').map(value => {
+							const values = _.map(res.body.data, 'fee').map(value => {
 								return parseInt(value);
 							});
 

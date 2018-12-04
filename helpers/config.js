@@ -155,8 +155,8 @@ function Config(packageJson, parseCommandLineOptions = true) {
 		}
 	);
 
-	var validator = new Z_schema();
-	var valid = validator.validate(appConfig, configSchema.config);
+	const validator = new Z_schema();
+	const valid = validator.validate(appConfig, configSchema.config);
 
 	if (!valid) {
 		console.error('Failed to validate config data', validator.getLastErrors());

@@ -14,12 +14,12 @@
 
 'use strict';
 
-var faker = require('faker');
-var difference = require('lodash').difference;
+const faker = require('faker');
+const difference = require('lodash').difference;
 
 const { ADDITIONAL_DATA } = __testContext.config.constants;
 
-var arrays = [
+const arrays = [
 	{
 		input: [],
 		description: 'empty array',
@@ -32,7 +32,7 @@ var arrays = [
 	},
 ];
 
-var booleans = [
+const booleans = [
 	{
 		input: true,
 		description: 'true',
@@ -45,7 +45,7 @@ var booleans = [
 	},
 ];
 
-var positiveIntegers = [
+const positiveIntegers = [
 	{
 		input: 0,
 		description: 'zero',
@@ -58,7 +58,7 @@ var positiveIntegers = [
 	},
 ];
 
-var negativeIntegers = [
+const negativeIntegers = [
 	{
 		input: -1,
 		description: 'negative integer',
@@ -66,7 +66,7 @@ var negativeIntegers = [
 	},
 ];
 
-var positiveNumbers = [
+const positiveNumbers = [
 	{
 		input: 0.1,
 		description: 'float',
@@ -79,7 +79,7 @@ var positiveNumbers = [
 	},
 ];
 
-var negativeNumbers = [
+const negativeNumbers = [
 	{
 		input: -0.1,
 		description: 'negative float',
@@ -92,7 +92,7 @@ var negativeNumbers = [
 	},
 ];
 
-var objects = [
+const objects = [
 	{
 		input: {},
 		description: 'empty object',
@@ -110,7 +110,7 @@ var objects = [
 	},
 ];
 
-var others = [
+const others = [
 	{
 		input: NaN,
 		description: 'Not a number',
@@ -123,7 +123,7 @@ var others = [
 	},
 ];
 
-var nonEmptyStrings = [
+const nonEmptyStrings = [
 	{
 		input: '0',
 		description: '0 as string',
@@ -166,7 +166,7 @@ var nonEmptyStrings = [
 	},
 ];
 
-var emptyString = [
+const emptyString = [
 	{
 		input: '',
 		description: 'empty string',
@@ -174,7 +174,7 @@ var emptyString = [
 	},
 ];
 
-var additionalDataValidCases = [
+const additionalDataValidCases = [
 	{
 		input: faker.internet.email(),
 		description: 'email',
@@ -222,7 +222,7 @@ var additionalDataValidCases = [
 	},
 ];
 
-var additionalDataInvalidCases = [
+const additionalDataInvalidCases = [
 	{
 		input: `${faker.random.alphaNumeric(ADDITIONAL_DATA.MAX_LENGTH - 1)}现`,
 		description: 'overflowed string',
@@ -235,9 +235,9 @@ var additionalDataInvalidCases = [
 	},
 ];
 
-var strings = nonEmptyStrings.concat(emptyString);
+const strings = nonEmptyStrings.concat(emptyString);
 
-var allTypes = arrays
+const allTypes = arrays
 	.concat(booleans)
 	.concat(positiveIntegers)
 	.concat(negativeIntegers)

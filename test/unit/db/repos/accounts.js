@@ -560,8 +560,8 @@ describe('db', () => {
 					eventCtx = event.ctx;
 				};
 
-				var connect = sinonSandbox.stub();
-				var disconnect = sinonSandbox.stub();
+				const connect = sinonSandbox.stub();
+				const disconnect = sinonSandbox.stub();
 
 				db.$config.options.connect = connect;
 				db.$config.options.disconnect = disconnect;

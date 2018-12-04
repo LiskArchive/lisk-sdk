@@ -89,7 +89,7 @@ __private.getCountByFilter = function(filter) {
 	filter.normalized = false;
 	delete filter.limit;
 	delete filter.offset;
-	var peers = __private.getByFilter(filter);
+	const peers = __private.getByFilter(filter);
 	return peers.length;
 };
 

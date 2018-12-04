@@ -15,24 +15,24 @@
 'use strict';
 
 require('../../functional.js');
-var WAMPClient = require('wamp-socket-cluster/WAMPClient');
-var randomstring = require('randomstring');
-var scClient = require('socketcluster-client');
-var failureCodes = require('../../../../api/ws/rpc/failure_codes');
-var wsServer = require('../../../common/ws/server');
-var WSServerMaster = require('../../../common/ws/server_master');
+const WAMPClient = require('wamp-socket-cluster/WAMPClient');
+const randomstring = require('randomstring');
+const scClient = require('socketcluster-client');
+const failureCodes = require('../../../../api/ws/rpc/failure_codes');
+const wsServer = require('../../../common/ws/server');
+const WSServerMaster = require('../../../common/ws/server_master');
 
 describe('handshake', () => {
-	var wsServerPort = 9999;
-	var frozenHeaders = WSServerMaster.generatePeerHeaders();
-	var validClientSocketOptions;
-	var clientSocket;
+	const wsServerPort = 9999;
+	const frozenHeaders = WSServerMaster.generatePeerHeaders();
+	let validClientSocketOptions;
+	let clientSocket;
 
-	var connectAbortStub;
-	var disconnectStub;
-	var connectStub;
-	var closeStub;
-	var errorStub;
+	let connectAbortStub;
+	let disconnectStub;
+	let connectStub;
+	let closeStub;
+	let errorStub;
 
 	function connect() {
 		clientSocket = scClient.connect(validClientSocketOptions);
@@ -216,7 +216,7 @@ describe('handshake', () => {
 	});
 
 	describe('with valid headers', () => {
-		var originalPort;
+		let originalPort;
 
 		before(() => {
 			originalPort = wsServer.options.wsPort;
@@ -276,7 +276,7 @@ describe('handshake', () => {
 		});
 
 		describe('when not present on master', () => {
-			var wampClient = new WAMPClient();
+			const wampClient = new WAMPClient();
 
 			beforeEach(function(done) {
 				connect();

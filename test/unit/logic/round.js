@@ -14,21 +14,21 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var Promise = require('bluebird');
-var Bignum = require('../../../helpers/bignum.js');
-var DBSandbox = require('../../common/db_sandbox').DBSandbox;
+const rewire = require('rewire');
+const Promise = require('bluebird');
+const Bignum = require('../../../helpers/bignum.js');
+const DBSandbox = require('../../common/db_sandbox').DBSandbox;
 
-var Round = rewire('../../../logic/round.js');
-var genesisBlock = __testContext.config.genesisBlock;
+const Round = rewire('../../../logic/round.js');
+const genesisBlock = __testContext.config.genesisBlock;
 
 const { ACTIVE_DELEGATES } = global.constants;
 
 describe('rounds', () => {
-	var db;
-	var dbSandbox;
-	var round;
-	var validScope;
+	let db;
+	let dbSandbox;
+	let round;
+	let validScope;
 
 	before(done => {
 		dbSandbox = new DBSandbox(__testContext.config.db, 'rounds_logic');
@@ -74,7 +74,7 @@ describe('rounds', () => {
 	}
 
 	describe('constructor', () => {
-		var scope;
+		let scope;
 
 		describe('when calling with required properties', () => {
 			before(done => {
@@ -105,7 +105,7 @@ describe('rounds', () => {
 			/* eslint-disable mocha/no-skipped-tests */
 			describe.skip('library', () => {
 				it('should throw', done => {
-					var property = 'library';
+					const property = 'library';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
@@ -120,7 +120,7 @@ describe('rounds', () => {
 
 			describe.skip('modules', () => {
 				it('should throw', done => {
-					var property = 'modules';
+					const property = 'modules';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
@@ -135,7 +135,7 @@ describe('rounds', () => {
 
 			describe.skip('block', () => {
 				it('should throw', done => {
-					var property = 'block';
+					const property = 'block';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
@@ -151,7 +151,7 @@ describe('rounds', () => {
 
 			describe('round', () => {
 				it('should throw', done => {
-					var property = 'round';
+					const property = 'round';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
@@ -166,7 +166,7 @@ describe('rounds', () => {
 
 			describe('backwards', () => {
 				it('should throw', done => {
-					var property = 'backwards';
+					const property = 'backwards';
 					delete scope[property];
 					try {
 						round = new Round(_.cloneDeep(scope), db);
@@ -188,7 +188,7 @@ describe('rounds', () => {
 
 				describe('roundFees', () => {
 					it('should throw', done => {
-						var property = 'roundFees';
+						const property = 'roundFees';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
@@ -203,7 +203,7 @@ describe('rounds', () => {
 
 				describe('roundRewards', () => {
 					it('should throw', done => {
-						var property = 'roundRewards';
+						const property = 'roundRewards';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
@@ -218,7 +218,7 @@ describe('rounds', () => {
 
 				describe('roundDelegates', () => {
 					it('should throw', done => {
-						var property = 'roundDelegates';
+						const property = 'roundDelegates';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
@@ -233,7 +233,7 @@ describe('rounds', () => {
 
 				describe('roundOutsiders', () => {
 					it('should throw', done => {
-						var property = 'roundOutsiders';
+						const property = 'roundOutsiders';
 						delete scope[property];
 						try {
 							round = new Round(_.cloneDeep(scope), db);
@@ -250,10 +250,10 @@ describe('rounds', () => {
 	});
 
 	describe('mergeBlockGenerator', () => {
-		var scope;
+		let scope;
 
 		describe('when going forward', () => {
-			var args = null;
+			let args = null;
 
 			before(() => {
 				scope = _.cloneDeep(validScope);
@@ -276,7 +276,7 @@ describe('rounds', () => {
 		});
 
 		describe('when going backwards', () => {
-			var args = null;
+			let args = null;
 
 			before(() => {
 				scope = _.cloneDeep(validScope);
@@ -300,9 +300,9 @@ describe('rounds', () => {
 	});
 
 	describe('updateMissedBlocks', () => {
-		var scope;
-		var stub;
-		var res;
+		let scope;
+		let stub;
+		let res;
 
 		describe('when there are no outsiders', () => {
 			before(done => {
@@ -345,9 +345,9 @@ describe('rounds', () => {
 	});
 
 	describe('getVotes', () => {
-		var stub;
-		var res;
-		var scope;
+		let stub;
+		let res;
+		let scope;
 
 		before(done => {
 			scope = _.cloneDeep(validScope);
@@ -370,11 +370,11 @@ describe('rounds', () => {
 	});
 
 	describe('updateVotes', () => {
-		var getVotes_stub;
-		var updateVotes_stub;
-		var res;
-		var scope;
-		var delegate;
+		let getVotes_stub;
+		let updateVotes_stub;
+		let res;
+		let scope;
+		let delegate;
 
 		describe('when getVotes returns at least one entry', () => {
 			before(() => {
@@ -476,9 +476,9 @@ describe('rounds', () => {
 	});
 
 	describe('flushRound', () => {
-		var stub;
-		var res;
-		var scope;
+		let stub;
+		let res;
+		let scope;
 
 		before(done => {
 			scope = _.cloneDeep(validScope);
@@ -528,7 +528,7 @@ describe('rounds', () => {
 	});
 
 	describe('restoreRoundSnapshot', () => {
-		var res;
+		let res;
 
 		before(done => {
 			sinonSandbox
@@ -552,8 +552,8 @@ describe('rounds', () => {
 	});
 
 	describe('restoreVotesSnapshot', () => {
-		var stub;
-		var res;
+		let stub;
+		let res;
 
 		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'restoreVotesSnapshot');
@@ -648,8 +648,8 @@ describe('rounds', () => {
 	});
 
 	describe('deleteRoundRewards', () => {
-		var stub;
-		var res;
+		let stub;
+		let res;
 
 		before(done => {
 			stub = sinonSandbox.stub(db.rounds, 'deleteRoundRewards');
@@ -672,13 +672,13 @@ describe('rounds', () => {
 	});
 
 	describe('applyRound', () => {
-		var res;
-		var batch_stub;
-		var insertRoundRewards_stub;
-		var scope;
+		let res;
+		let batch_stub;
+		let insertRoundRewards_stub;
+		let scope;
 
 		function sumChanges(forward, backwards) {
-			var results = {};
+			const results = {};
 			forward.forEach(response => {
 				if (results[response.publicKey]) {
 					results[response.publicKey].balance += response.balance || 0;
@@ -758,8 +758,8 @@ describe('rounds', () => {
 
 		describe('with only one delegate', () => {
 			describe('when there are no remaining fees', () => {
-				var forwardResults = [];
-				var backwardsResults = [];
+				const forwardResults = [];
+				const backwardsResults = [];
 
 				before(done => {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
@@ -768,7 +768,7 @@ describe('rounds', () => {
 				});
 
 				describe('forward', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -792,8 +792,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -802,13 +802,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -816,7 +816,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -841,7 +841,7 @@ describe('rounds', () => {
 				});
 
 				describe('backwards', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -865,8 +865,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(validScope.roundFees.toPrecision(15))
@@ -875,13 +875,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: validScope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -889,7 +889,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -validScope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -908,7 +908,7 @@ describe('rounds', () => {
 				});
 
 				describe('consistency checks for each delegate', () => {
-					var result;
+					let result;
 
 					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
@@ -942,8 +942,8 @@ describe('rounds', () => {
 			});
 
 			describe('when there are remaining fees', () => {
-				var forwardResults = [];
-				var backwardsResults = [];
+				const forwardResults = [];
+				const backwardsResults = [];
 
 				before(done => {
 					validScope.roundDelegates = [genesisBlock.generatorPublicKey];
@@ -952,7 +952,7 @@ describe('rounds', () => {
 				});
 
 				describe('forward', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -976,8 +976,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(validScope.roundFees.toPrecision(15))
@@ -986,13 +986,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: validScope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1000,7 +1000,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: validScope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1008,26 +1008,26 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
-						var index = 0; // Delegate index on list
-						var feesPerDelegate = new Bignum(
+						const index = 0; // Delegate index on list
+						const feesPerDelegate = new Bignum(
 							validScope.roundFees.toPrecision(15)
 						)
 							.dividedBy(ACTIVE_DELEGATES)
 							.integerValue(Bignum.ROUND_FLOOR);
-						var remainingFees = Number(
+						const remainingFees = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
-						var args = {
+						const args = {
 							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
 							round: validScope.round,
 							fees: remainingFees,
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1052,7 +1052,7 @@ describe('rounds', () => {
 				});
 
 				describe('backwards', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -1076,8 +1076,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (apply rewards)', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(validScope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(validScope.roundFees.toPrecision(15))
@@ -1086,13 +1086,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: validScope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1100,7 +1100,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -validScope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1108,26 +1108,26 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
-						var index = 0; // Delegate index on list
-						var feesPerDelegate = new Bignum(
+						const index = 0; // Delegate index on list
+						const feesPerDelegate = new Bignum(
 							validScope.roundFees.toPrecision(15)
 						)
 							.dividedBy(ACTIVE_DELEGATES)
 							.integerValue(Bignum.ROUND_FLOOR);
-						var remainingFees = Number(
+						const remainingFees = Number(
 							new Bignum(validScope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
-						var args = {
+						const args = {
 							publicKey: validScope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
 							round: validScope.round,
 							fees: -remainingFees,
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1146,7 +1146,7 @@ describe('rounds', () => {
 				});
 
 				describe('consistency checks for each delegate', () => {
-					var result;
+					let result;
 
 					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
@@ -1182,8 +1182,8 @@ describe('rounds', () => {
 
 		describe('with 3 delegates', () => {
 			describe('when there are no remaining fees', () => {
-				var forwardResults = [];
-				var backwardsResults = [];
+				const forwardResults = [];
+				const backwardsResults = [];
 
 				before(done => {
 					validScope.roundDelegates = [
@@ -1197,7 +1197,7 @@ describe('rounds', () => {
 				});
 
 				describe('forward', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -1221,8 +1221,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1231,13 +1231,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1245,7 +1245,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1253,8 +1253,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
-						var index = 1; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 1; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1263,13 +1263,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1277,7 +1277,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1285,8 +1285,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
-						var index = 2; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 2; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1295,13 +1295,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1309,7 +1309,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1348,7 +1348,7 @@ describe('rounds', () => {
 				});
 
 				describe('backwards', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -1372,8 +1372,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
-						var index = 2; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 2; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1382,13 +1382,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1396,7 +1396,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1404,8 +1404,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
-						var index = 1; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 1; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1414,13 +1414,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1428,7 +1428,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1436,8 +1436,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1446,13 +1446,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1460,7 +1460,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1479,7 +1479,7 @@ describe('rounds', () => {
 				});
 
 				describe('consistency checks for each delegate', () => {
-					var result;
+					let result;
 
 					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
@@ -1513,8 +1513,8 @@ describe('rounds', () => {
 			});
 
 			describe('when there are remaining fees', () => {
-				var forwardResults = [];
-				var backwardsResults = [];
+				const forwardResults = [];
+				const backwardsResults = [];
 
 				before(done => {
 					validScope.roundDelegates = [
@@ -1528,7 +1528,7 @@ describe('rounds', () => {
 				});
 
 				describe('forward', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -1552,8 +1552,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1562,13 +1562,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1576,7 +1576,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1584,8 +1584,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
-						var index = 1; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 1; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1594,13 +1594,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1608,7 +1608,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1616,8 +1616,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
-						var index = 2; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 2; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1626,13 +1626,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: balancePerDelegate,
 							u_balance: balancePerDelegate,
@@ -1640,7 +1640,7 @@ describe('rounds', () => {
 							fees: feesPerDelegate,
 							rewards: scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1648,24 +1648,24 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
-						var index = 2; // Delegate index on list
-						var feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
+						const index = 2; // Delegate index on list
+						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
 							.integerValue(Bignum.ROUND_FLOOR);
-						var remainingFees = Number(
+						const remainingFees = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: remainingFees,
 							u_balance: remainingFees,
 							round: scope.round,
 							fees: remainingFees,
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1704,7 +1704,7 @@ describe('rounds', () => {
 				});
 
 				describe('backwards', () => {
-					var called = 0;
+					let called = 0;
 
 					before(() => {
 						round.scope.modules.accounts.mergeAccountAndGet.resetHistory();
@@ -1728,8 +1728,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 1st delegate', () => {
-						var index = 2; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 2; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1738,13 +1738,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1752,7 +1752,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1760,8 +1760,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 2nd delegate', () => {
-						var index = 1; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 1; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1770,13 +1770,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1784,7 +1784,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1792,8 +1792,8 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (rewards) - 3th delegate', () => {
-						var index = 0; // Delegate index on list
-						var balancePerDelegate = Number(
+						const index = 0; // Delegate index on list
+						const balancePerDelegate = Number(
 							new Bignum(scope.roundRewards[index].toPrecision(15))
 								.plus(
 									new Bignum(scope.roundFees.toPrecision(15))
@@ -1802,13 +1802,13 @@ describe('rounds', () => {
 								)
 								.toFixed()
 						);
-						var feesPerDelegate = Number(
+						const feesPerDelegate = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.dividedBy(ACTIVE_DELEGATES)
 								.integerValue(Bignum.ROUND_FLOOR)
 								.toFixed()
 						);
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index],
 							balance: -balancePerDelegate,
 							u_balance: -balancePerDelegate,
@@ -1816,7 +1816,7 @@ describe('rounds', () => {
 							fees: -feesPerDelegate,
 							rewards: -scope.roundRewards[index],
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						backwardsResults.push(result);
 						called++;
@@ -1824,24 +1824,24 @@ describe('rounds', () => {
 					});
 
 					it('should call mergeAccountAndGet with proper args (fees)', () => {
-						var index = 2; // Delegate index on list
-						var feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
+						const index = 2; // Delegate index on list
+						const feesPerDelegate = new Bignum(scope.roundFees.toPrecision(15))
 							.dividedBy(ACTIVE_DELEGATES)
 							.integerValue(Bignum.ROUND_FLOOR);
-						var remainingFees = Number(
+						const remainingFees = Number(
 							new Bignum(scope.roundFees.toPrecision(15))
 								.minus(feesPerDelegate.multipliedBy(ACTIVE_DELEGATES))
 								.toFixed()
 						);
 
-						var args = {
+						const args = {
 							publicKey: scope.roundDelegates[index], // Remaining fees are applied to last delegate of round
 							balance: -remainingFees,
 							u_balance: -remainingFees,
 							round: scope.round,
 							fees: -remainingFees,
 						};
-						var result =
+						const result =
 							round.scope.modules.accounts.mergeAccountAndGet.args[called][0];
 						forwardResults.push(result);
 						called++;
@@ -1860,7 +1860,7 @@ describe('rounds', () => {
 				});
 
 				describe('consistency checks for each delegate', () => {
-					var result;
+					let result;
 
 					before(done => {
 						result = sumChanges(forwardResults, backwardsResults);
@@ -1896,14 +1896,14 @@ describe('rounds', () => {
 	});
 
 	describe('land', () => {
-		var batch_stub; // eslint-disable-line no-unused-vars
-		var roundOutsiders_stub;
-		var updateVotes_stub;
-		var getVotes_stub;
+		let batch_stub; // eslint-disable-line no-unused-vars
+		let roundOutsiders_stub;
+		let updateVotes_stub;
+		let getVotes_stub;
 		let updateDelegatesRanks_stub;
-		var flush_stub;
-		var res;
-		var scope;
+		let flush_stub;
+		let res;
+		let scope;
 
 		before(() => {
 			scope = _.cloneDeep(validScope);
@@ -1914,7 +1914,7 @@ describe('rounds', () => {
 				return delegate.address;
 			};
 
-			var delegate = {
+			const delegate = {
 				amount: 10000,
 				delegate:
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',
@@ -1978,18 +1978,18 @@ describe('rounds', () => {
 	});
 
 	describe('backwardLand', () => {
-		var batch_stub; // eslint-disable-line no-unused-vars
-		var roundOutsiders_stub;
-		var updateVotes_stub;
-		var getVotes_stub;
-		var restoreRoundSnapshot_stub;
-		var restoreVotesSnapshot_stub;
+		let batch_stub; // eslint-disable-line no-unused-vars
+		let roundOutsiders_stub;
+		let updateVotes_stub;
+		let getVotes_stub;
+		let restoreRoundSnapshot_stub;
+		let restoreVotesSnapshot_stub;
 		let checkSnapshotAvailability_stub;
 		let updateDelegatesRanks_stub;
-		var deleteRoundRewards_stub;
-		var flush_stub;
-		var res;
-		var scope;
+		let deleteRoundRewards_stub;
+		let flush_stub;
+		let res;
+		let scope;
 
 		before(() => {
 			scope = _.cloneDeep(validScope);
@@ -2000,7 +2000,7 @@ describe('rounds', () => {
 				return delegate.address;
 			};
 
-			var delegate = {
+			const delegate = {
 				amount: 10000,
 				delegate:
 					'6a01c4b86f4519ec9fa5c3288ae20e2e7a58822ebe891fb81e839588b95b242a',

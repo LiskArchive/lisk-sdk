@@ -14,22 +14,22 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
-var typeRepresentatives = require('../../../../fixtures/types_representatives.js');
-var Handshake = require('../../../../../api/ws/workers/middlewares/handshake');
-var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
-var WSServerMaster = require('../../../../common/ws/server_master');
-var System = require('../../../../../modules/system');
+const randomstring = require('randomstring');
+const typeRepresentatives = require('../../../../fixtures/types_representatives.js');
+const Handshake = require('../../../../../api/ws/workers/middlewares/handshake');
+const failureCodes = require('../../../../../api/ws/rpc/failure_codes');
+const WSServerMaster = require('../../../../common/ws/server_master');
+const System = require('../../../../../modules/system');
 
-var config = __testContext.config;
+const config = __testContext.config;
 
 describe('Handshake', () => {
-	var system;
-	var handshake;
-	var minVersion = '1.0.0';
-	var validPeerNonce = randomstring.generate(16);
-	var validNodeNonce = randomstring.generate(16);
-	var validConfig = {
+	let system;
+	let handshake;
+	const minVersion = '1.0.0';
+	const validPeerNonce = randomstring.generate(16);
+	const validNodeNonce = randomstring.generate(16);
+	const validConfig = {
 		config: {
 			version: config.version,
 			minVersion,
@@ -38,7 +38,7 @@ describe('Handshake', () => {
 			blackListedPeers: [],
 		},
 	};
-	var validHeaders;
+	let validHeaders;
 
 	before(done => {
 		new System((err, __system) => {
@@ -117,7 +117,7 @@ describe('Handshake', () => {
 		});
 
 		describe('schema tests', () => {
-			var headers;
+			let headers;
 
 			beforeEach(beforeDone => {
 				headers = _.cloneDeep(validHeaders);
@@ -125,7 +125,7 @@ describe('Handshake', () => {
 			});
 
 			describe('handshake', () => {
-				var invalidTypes = _.difference(
+				const invalidTypes = _.difference(
 					typeRepresentatives.allTypes,
 					typeRepresentatives.objects
 				);
@@ -153,12 +153,12 @@ describe('Handshake', () => {
 				});
 
 				describe('nonce', () => {
-					var auxInvalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					var validValues = _.map(new Array(10), () => {
+					const validValues = _.map(new Array(10), () => {
 						return randomstring.generate(16);
 					});
 
@@ -200,11 +200,11 @@ describe('Handshake', () => {
 				});
 
 				describe('height', () => {
-					var validValues = _.map(new Array(10), () => {
+					const validValues = _.map(new Array(10), () => {
 						return Math.floor(Math.random() * Number.MAX_VALUE);
 					});
 
-					var auxInvalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
@@ -252,7 +252,7 @@ describe('Handshake', () => {
 				});
 
 				describe('nethash', () => {
-					var auxInvalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
@@ -287,7 +287,7 @@ describe('Handshake', () => {
 				});
 
 				describe('version', () => {
-					var auxInvalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
@@ -321,7 +321,7 @@ describe('Handshake', () => {
 					});
 				});
 
-				var requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
+				const requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
 				requiredProperties.forEach(property => {
 					it(`should call callback with error for required property: ${property}`, itDone => {
 						headers[property] = undefined;

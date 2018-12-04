@@ -14,15 +14,15 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
-var SocketCluster = require('socketcluster');
-var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
-var Promise = require('bluebird');
-var sinon = require('sinon');
-var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
-var WSClient = require('./client');
+const randomstring = require('randomstring');
+const SocketCluster = require('socketcluster');
+const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+const Promise = require('bluebird');
+const sinon = require('sinon');
+const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const WSClient = require('./client');
 
-var sandbox = sinon.createSandbox();
+const sandbox = sinon.createSandbox();
 
 function WSServer(headers) {
 	this.headers = headers;
@@ -48,9 +48,9 @@ function WSServer(headers) {
 }
 
 WSServer.prototype.start = function() {
-	var self = this;
+	const self = this;
 
-	var childProcessOptions = {
+	const childProcessOptions = {
 		version: self.headers.version,
 		nethash: self.headers.nethash,
 		port: self.headers.wsPort,
@@ -123,7 +123,7 @@ WSServer.prototype.stop = function() {
 	this.socketCluster = null;
 };
 
-var server = new WSServer(JSON.parse(process.argv[2]));
+const server = new WSServer(JSON.parse(process.argv[2]));
 
 server
 	.start()

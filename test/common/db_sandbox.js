@@ -14,12 +14,12 @@
 
 'use strict';
 
-var child_process = require('child_process');
-var rewire = require('rewire');
+const child_process = require('child_process');
+const rewire = require('rewire');
 
-var database = rewire('../../db');
+const database = rewire('../../db');
 
-var dbNames = [];
+const dbNames = [];
 
 /**
  * @param {string} table
@@ -46,7 +46,7 @@ function DBSandbox(dbConfig, dbName) {
 	this.dbConfig.database = this.dbName;
 	dbNames.push(this.dbName);
 
-	var dropCreatedDatabases = function() {
+	const dropCreatedDatabases = function() {
 		dbNames.forEach(aDbName => {
 			child_process.exec(`dropdb ${aDbName}`);
 		});

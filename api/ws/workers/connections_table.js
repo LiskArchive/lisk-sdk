@@ -77,7 +77,7 @@ ConnectionsTable.prototype.remove = function(nonce) {
 	if (!nonce) {
 		throw new Error('Cannot remove connection table entry without nonce');
 	}
-	var connectionId = this.getConnectionId(nonce);
+	const connectionId = this.getConnectionId(nonce);
 	this.nonceToConnectionIdMap[nonce] = null;
 	delete this.nonceToConnectionIdMap[nonce];
 	this.connectionIdToNonceMap[connectionId] = null;

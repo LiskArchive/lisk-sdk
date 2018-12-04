@@ -15,42 +15,42 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-elements').default;
-var Promise = require('bluebird');
-var phases = require('../../../common/phases');
-var accountFixtures = require('../../../fixtures/accounts');
-var Bignum = require('../../../../helpers/bignum.js');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var apiHelpers = require('../../../common/helpers/api');
-var errorCodes = require('../../../../helpers/api_codes');
-var common = require('./common');
+const lisk = require('lisk-elements').default;
+const Promise = require('bluebird');
+const phases = require('../../../common/phases');
+const accountFixtures = require('../../../fixtures/accounts');
+const Bignum = require('../../../../helpers/bignum.js');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const apiHelpers = require('../../../common/helpers/api');
+const errorCodes = require('../../../../helpers/api_codes');
+const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 6) inTransfer dapp', () => {
-	var transaction;
-	var transactionsToWaitFor = [];
-	var badTransactions = [];
-	var goodTransactions = [];
+	let transaction;
+	const transactionsToWaitFor = [];
+	const badTransactions = [];
+	const goodTransactions = [];
 
-	var account = randomUtil.account();
-	var accountMinimalFunds = randomUtil.account();
+	const account = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account();
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.transfer({
+		const transaction1 = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		var transaction2 = lisk.transaction.transfer({
+		const transaction2 = lisk.transaction.transfer({
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
-		var promises = [];
+		const promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
 
@@ -214,7 +214,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 			});
 
 			it('with invalid string should fail', () => {
-				var invalidDappId = '1L';
+				const invalidDappId = '1L';
 				transaction = lisk.transfer.createInTransfer(
 					invalidDappId,
 					1,
@@ -260,8 +260,8 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 							.to.have.nested.property('data')
 							.to.have.lengthOf(1);
 
-						var balance = res.body.data[0].balance;
-						var amount = new Bignum(balance).plus('1').toString();
+						const balance = res.body.data[0].balance;
+						const amount = new Bignum(balance).plus('1').toString();
 						transaction = lisk.transfer.createInTransfer(
 							randomUtil.guestbookDapp.id,
 							amount,
@@ -285,7 +285,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 
 	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', () => {
-			var unknownDappId = '1';
+			const unknownDappId = '1';
 			transaction = lisk.transfer.createInTransfer(
 				unknownDappId,
 				1,
@@ -304,7 +304,7 @@ describe('POST /api/transactions (type 6) inTransfer dapp', () => {
 		});
 
 		it('using valid but inexistent transaction id as dapp id should fail', () => {
-			var inexistentId = randomUtil.transaction().id;
+			const inexistentId = randomUtil.transaction().id;
 			transaction = lisk.transfer.createInTransfer(
 				inexistentId,
 				1,

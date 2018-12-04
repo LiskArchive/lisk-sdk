@@ -14,15 +14,15 @@
 
 'use strict';
 
-var SCWorker = require('socketcluster/scworker');
-var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
+const SCWorker = require('socketcluster/scworker');
+const SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
 
-var worker = SCWorker.create({
+const worker = SCWorker.create({
 	run() {
-		var selfWorker = this;
-		var scServer = this.getSCServer();
+		const selfWorker = this;
+		const scServer = this.getSCServer();
 
-		var slaveWAMPServer = new SlaveWAMPServer(selfWorker, 20e3);
+		const slaveWAMPServer = new SlaveWAMPServer(selfWorker, 20e3);
 
 		slaveWAMPServer.reassignRPCSlaveEndpoints({
 			updateMyself(data, callback) {

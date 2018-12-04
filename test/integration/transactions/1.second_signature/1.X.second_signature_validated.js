@@ -14,29 +14,29 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var transactionTypes = require('../../../../helpers/transaction_types.js');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const transactionTypes = require('../../../../helpers/transaction_types.js');
+const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - checking validated second signature registrations against other transaction types', () => {
-	var library;
+	let library;
 
-	var account = randomUtil.account();
-	var creditTransaction = lisk.transaction.transfer({
+	const account = randomUtil.account();
+	const creditTransaction = lisk.transaction.transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
-	var transaction = lisk.transaction.registerSecondPassphrase({
+	const transaction = lisk.transaction.registerSecondPassphrase({
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
-	var dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp({
+	const dapp = randomUtil.application();
+	const dappTransaction = lisk.transaction.createDapp({
 		passphrase: account.passphrase,
 		options: dapp,
 	});
@@ -69,7 +69,7 @@ describe('system test (type 1) - checking validated second signature registratio
 		});
 
 		it('transaction should be included', done => {
-			var filter = {
+			const filter = {
 				id: transaction.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {

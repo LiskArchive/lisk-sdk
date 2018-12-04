@@ -14,44 +14,44 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var async = require('async');
-var accountFixtures = require('../../fixtures/accounts');
-var randomUtil = require('../../common/utils/random');
-var localCommon = require('../common');
+const lisk = require('lisk-elements').default;
+const async = require('async');
+const accountFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../../common/utils/random');
+const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 5) - dapp registrations with repeated values', () => {
-	var library;
+	let library;
 
-	var account = randomUtil.account();
-	var transaction = lisk.transaction.transfer({
+	const account = randomUtil.account();
+	const transaction = lisk.transaction.transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
-	var dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp({
+	const dapp = randomUtil.application();
+	const dappTransaction = lisk.transaction.createDapp({
 		passphrase: account.passphrase,
 		options: dapp,
 	});
 	dapp.id = dappTransaction.id;
-	var goodTransactions = [];
-	var badTransactions = [];
-	var transaction1;
-	var transaction2;
-	var transaction3;
-	var transaction4;
-	var transaction5;
-	var transaction6;
+	const goodTransactions = [];
+	const badTransactions = [];
+	let transaction1;
+	let transaction2;
+	let transaction3;
+	let transaction4;
+	let transaction5;
+	let transaction6;
 
-	var dappDuplicate = randomUtil.application();
-	var dappDuplicateNameSuccess = randomUtil.application();
-	var dappDuplicateNameFail = randomUtil.application();
+	const dappDuplicate = randomUtil.application();
+	const dappDuplicateNameSuccess = randomUtil.application();
+	const dappDuplicateNameFail = randomUtil.application();
 	dappDuplicateNameSuccess.name = dappDuplicateNameFail.name;
-	var dappDuplicateLinkSuccess = randomUtil.application();
-	var dappDuplicateLinkFail = randomUtil.application();
+	const dappDuplicateLinkSuccess = randomUtil.application();
+	const dappDuplicateLinkFail = randomUtil.application();
 	dappDuplicateLinkSuccess.link = dappDuplicateLinkFail.link;
 
 	localCommon.beforeBlock('system_5_5_dapps', lib => {
@@ -153,7 +153,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			async.every(
 				badTransactions,
 				(everyTransaction, callback) => {
-					var filter = {
+					const filter = {
 						id: everyTransaction.id,
 					};
 
@@ -176,7 +176,7 @@ describe('system test (type 5) - dapp registrations with repeated values', () =>
 			async.every(
 				goodTransactions,
 				(everyTransaction, callback) => {
-					var filter = {
+					const filter = {
 						id: everyTransaction.id,
 					};
 

@@ -14,34 +14,32 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../fixtures/accounts');
-var randomUtil = require('../../common/utils/random');
-var localCommon = require('../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../../common/utils/random');
+const localCommon = require('../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 3) - voting with duplicate submissions', () => {
-	var library;
+	let library;
 	localCommon.beforeBlock('system_3_3_votes', lib => {
 		library = lib;
 	});
 
-	var i = 0;
-	var t = 0;
+	let i = 0;
+	let t = 0;
 
 	/* eslint-disable no-loop-func */
 	while (i < 30) {
 		describe('executing 30 times', () => {
-			var transaction1;
-			var transaction2;
-			var transaction3;
-			var transaction4;
-			var account;
-			var transaction;
+			let transaction1;
+			let transaction2;
+			let transaction3;
+			let transaction4;
 
-			account = randomUtil.account();
-			transaction = lisk.transaction.transfer({
+			const account = randomUtil.account();
+			const transaction = lisk.transaction.transfer({
 				amount: 1000 * NORMALIZER,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: account.address,
@@ -85,7 +83,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 				});
 
 				it('first upvoting transaction to arrive should not be included', done => {
-					var filter = {
+					const filter = {
 						id: transaction1.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -99,7 +97,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 				});
 
 				it('last upvoting transaction to arrive should be included', done => {
-					var filter = {
+					const filter = {
 						id: transaction2.id,
 					};
 					localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -155,7 +153,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 					});
 
 					it('first downvoting transaction to arrive should not be included', done => {
-						var filter = {
+						const filter = {
 							id: transaction3.id,
 						};
 						localCommon.getTransactionFromModule(
@@ -173,7 +171,7 @@ describe('system test (type 3) - voting with duplicate submissions', () => {
 					});
 
 					it('last downvoting transaction to arrive should be included', done => {
-						var filter = {
+						const filter = {
 							id: transaction4.id,
 						};
 						localCommon.getTransactionFromModule(

@@ -14,31 +14,31 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var async = require('async');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../fixtures/accounts');
-var application = require('../../common/application');
-var randomUtil = require('../../common/utils/random');
-var modulesLoader = require('../../common/modules_loader');
-var ed = require('../../../helpers/ed');
-var diff = require('../../../helpers/diff');
-var transactionTypes = require('../../../helpers/transaction_types');
-var Bignum = require('../../../helpers/bignum.js');
-var Vote = require('../../../logic/vote');
-var Transfer = require('../../../logic/transfer');
+const crypto = require('crypto');
+const async = require('async');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../fixtures/accounts');
+const application = require('../../common/application');
+const randomUtil = require('../../common/utils/random');
+const modulesLoader = require('../../common/modules_loader');
+const ed = require('../../../helpers/ed');
+const diff = require('../../../helpers/diff');
+const transactionTypes = require('../../../helpers/transaction_types');
+const Bignum = require('../../../helpers/bignum.js');
+const Vote = require('../../../logic/vote');
+const Transfer = require('../../../logic/transfer');
 
 const { FEES, MAX_VOTES_PER_TRANSACTION } = __testContext.config.constants;
-var validPassphrase =
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var validSender = {
+const validSender = {
 	balance: '8067474861277',
 	u_balance: '8067474861277',
 	passphrase: 'hacnj1113nn7tujzia4i',
@@ -48,13 +48,13 @@ var validSender = {
 	address: '2262452491031990877L',
 };
 
-var senderHash = crypto
+const senderHash = crypto
 	.createHash('sha256')
 	.update(validSender.passphrase, 'utf8')
 	.digest();
-var senderKeypair = ed.makeKeypair(senderHash);
+const senderKeypair = ed.makeKeypair(senderHash);
 
-var validTransaction = {
+const validTransaction = {
 	type: 3,
 	amount: '0',
 	senderPublicKey:
@@ -76,23 +76,23 @@ var validTransaction = {
 };
 
 describe('vote', () => {
-	var voteBindings;
-	var vote;
-	var accountsModule;
-	var delegatesModule;
-	var transactionLogic;
-	var dummyBlock = {
+	let voteBindings;
+	let vote;
+	let accountsModule;
+	let delegatesModule;
+	let transactionLogic;
+	const dummyBlock = {
 		id: '9314232245035524467',
 		height: 1,
 	};
 
-	var votedDelegates = [
+	const votedDelegates = [
 		'76c9494237e608d43fd6fb0114106a7517f5503cf79d7482db58a02304339b6c',
 		'bf9f5cfc548d29983cc0dfa5c4ec47c66c31df0f87aa669869678996902ab47f',
 		'904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37',
 	];
 	function addVotes(votes, done) {
-		var transaction = _.clone(validTransaction);
+		const transaction = _.clone(validTransaction);
 		transaction.asset.votes = votes;
 		async.parallel(
 			[
@@ -112,10 +112,10 @@ describe('vote', () => {
 		accountsModule.getAccount(
 			{ publicKey: senderPublicKey },
 			(err, account) => {
-				var delegates =
+				const delegates =
 					(state === 'confirmed' ? account.delegates : account.u_delegates) ||
 					[];
-				var groupedVotes = _.groupBy(votes, v => {
+				const groupedVotes = _.groupBy(votes, v => {
 					return v[0];
 				});
 				// added one because expect doesn't have isGreaterThanOrEqualTo condition
@@ -170,11 +170,11 @@ describe('vote', () => {
 	/* eslint-disable mocha/no-sibling-hooks */
 	before(done => {
 		// create new account for testing;
-		var transfer = new Transfer();
+		const transfer = new Transfer();
 		transfer.bind(voteBindings.account);
 		transactionLogic.attachAssetType(transactionTypes.SEND, transfer);
 
-		var sendTransaction = {
+		const sendTransaction = {
 			type: 0,
 			amount: new Bignum('8067474861277'),
 			senderPublicKey:
@@ -191,7 +191,7 @@ describe('vote', () => {
 			senderId: '16313739661670634666L',
 		};
 
-		var sender = {
+		const sender = {
 			username: null,
 			isDelegate: 0,
 			address: '16313739661670634666L',
@@ -239,7 +239,7 @@ describe('vote', () => {
 
 	describe('verify', () => {
 		it('should return error when receipientId and sender id are different', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.recipientId = accountFixtures.genesis.address;
 			vote.verify(transaction, validSender, err => {
 				expect(err).to.equal('Invalid recipient');
@@ -248,7 +248,7 @@ describe('vote', () => {
 		});
 
 		it('should return error when votes are not set', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			delete transaction.asset.votes;
 			vote.verify(transaction, validSender, err => {
 				expect(err).to.equal('Invalid transaction asset');
@@ -257,7 +257,7 @@ describe('vote', () => {
 		});
 
 		it('should return error asset votes are not an array', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = `+${votedDelegates[0]}`;
 			vote.verify(transaction, validSender, err => {
 				expect(err).to.equal('Invalid votes. Must be an array');
@@ -266,7 +266,7 @@ describe('vote', () => {
 		});
 
 		it('should return error when voting for an account twice', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(...Array(2)).map((v, i) => {
 				return (i % 2 ? '+' : '-') + votedDelegates[0];
 			});
@@ -280,7 +280,7 @@ describe('vote', () => {
 		});
 
 		it('should return error when votes array is empty', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [];
 			vote.verify(transaction, validSender, err => {
 				expect(err).to.equal('Invalid votes. Must not be empty');
@@ -289,7 +289,7 @@ describe('vote', () => {
 		});
 
 		it('should return error when removing vote for delegate sender has not voted', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				`-${accountFixtures.existingDelegate.publicKey}`,
 			];
@@ -304,7 +304,7 @@ describe('vote', () => {
 		});
 
 		it('should return error if votes are more than 33', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				'-904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37',
 				'-399a7d14610c4da8800ed929fc6a05133deb8fbac8403dec93226e96fa7590ee',
@@ -357,7 +357,7 @@ describe('vote', () => {
 		});
 
 		it('should return error for casting multiple votes for same account in a transaction', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(...Array(2)).map(() => {
 				return '+904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37';
 			});
@@ -370,7 +370,7 @@ describe('vote', () => {
 		});
 
 		it('should verify transaction with correct params', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				'-904c294899819cce0283d8d351cb10febfa0e9f0acd90a820ec8eb90a7084c37',
 			];
@@ -407,13 +407,13 @@ describe('vote', () => {
 		});
 
 		it('should be okay for removing vote', done => {
-			var validVote =
+			const validVote =
 				'-01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746f';
 			vote.verifyVote(validVote, done);
 		});
 
 		it('should be okay for adding vote', done => {
-			var validVote =
+			const validVote =
 				'+01389197bbaf1afb0acd47bbfeabb34aca80fb372a8f694a1c0716b3398d746f';
 			vote.verifyVote(validVote, done);
 		});
@@ -421,7 +421,7 @@ describe('vote', () => {
 
 	describe('checkConfirmedDelegates (add vote)', () => {
 		it('should return err if vote is already made to a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
@@ -434,7 +434,7 @@ describe('vote', () => {
 		});
 
 		it('should return err when account is not a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [`+${accountFixtures.genesis.publicKey}`];
 			vote.checkConfirmedDelegates(transaction, err => {
 				expect(err).to.equal('Delegate not found');
@@ -443,7 +443,7 @@ describe('vote', () => {
 		});
 
 		it('should be okay when adding vote to a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				`+${accountFixtures.existingDelegate.publicKey}`,
 			];
@@ -453,7 +453,7 @@ describe('vote', () => {
 
 	describe('checkConfirmedDelegates (remove vote)', () => {
 		it('should return err if vote is not made for a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				'-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c',
 			];
@@ -466,7 +466,7 @@ describe('vote', () => {
 		});
 
 		it('should be okay when removing vote for a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
@@ -476,7 +476,7 @@ describe('vote', () => {
 
 	describe('checkUnconfirmedDelegates (add vote)', () => {
 		it('should return err if vote is already made to a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
@@ -490,7 +490,7 @@ describe('vote', () => {
 		});
 
 		it('should return err when account is not a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [`+${accountFixtures.genesis.publicKey}`];
 			vote.checkUnconfirmedDelegates(transaction, err => {
 				expect(err).to.equal('Delegate not found');
@@ -499,7 +499,7 @@ describe('vote', () => {
 		});
 
 		it('should be okay when adding vote to a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				`+${accountFixtures.existingDelegate.publicKey}`,
 			];
@@ -509,7 +509,7 @@ describe('vote', () => {
 
 	describe('checkUnconfirmedDelegates (remove vote)', () => {
 		it('should return err if vote is not made for a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = [
 				'-9f2fcc688518324273da230afff9756312bf23592174896fab669c2d78b1533c',
 			];
@@ -522,7 +522,7 @@ describe('vote', () => {
 		});
 
 		it('should return okay when removing vote for a delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
@@ -579,7 +579,7 @@ describe('vote', () => {
 
 	describe('applyConfirmed', () => {
 		it('should remove votes for delegates', done => {
-			var transaction = _.clone(validTransaction);
+			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
@@ -595,7 +595,7 @@ describe('vote', () => {
 		});
 
 		it('should add vote for delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
@@ -613,7 +613,7 @@ describe('vote', () => {
 
 	describe('undoConfirmed', () => {
 		it('should undoConfirmed remove votes for delegates', done => {
-			var transaction = _.clone(validTransaction);
+			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
@@ -629,7 +629,7 @@ describe('vote', () => {
 		});
 
 		it('should undoConfirmed add vote for delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
@@ -647,7 +647,7 @@ describe('vote', () => {
 
 	describe('applyUnconfirmed', () => {
 		it('should remove votes for delegates', done => {
-			var transaction = _.clone(validTransaction);
+			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
@@ -663,7 +663,7 @@ describe('vote', () => {
 		});
 
 		it('should add vote for delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
@@ -681,7 +681,7 @@ describe('vote', () => {
 
 	describe('undoUnconfirmed', () => {
 		it('should undo remove votes for delegates', done => {
-			var transaction = _.clone(validTransaction);
+			const transaction = _.clone(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `-${v}`;
 			});
@@ -697,7 +697,7 @@ describe('vote', () => {
 		});
 
 		it('should undo add vote for delegate', done => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = votedDelegates.map(v => {
 				return `+${v}`;
 			});
@@ -721,7 +721,7 @@ describe('vote', () => {
 		});
 
 		it('should throw error for duplicate votes in a transaction', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes.push(transaction.asset.votes[0]);
 			return expect(() => {
 				vote.objectNormalize(transaction);
@@ -731,7 +731,7 @@ describe('vote', () => {
 		});
 
 		it('should return error when votes array is longer than maximum acceptable', () => {
-			var transaction = _.cloneDeep(validTransaction);
+			const transaction = _.cloneDeep(validTransaction);
 			transaction.asset.votes = Array(
 				...Array(MAX_VOTES_PER_TRANSACTION + 1)
 			).map(() => {
@@ -747,7 +747,7 @@ describe('vote', () => {
 
 	describe('dbRead', () => {
 		it('should read votes correct', () => {
-			var rawVotes =
+			const rawVotes =
 				'+9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f,+141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a,+3ff32442bb6da7d60c1b7752b24e6467813c9b698e0f278d48c43580da972135';
 			return expect(
 				vote.dbRead({
@@ -773,15 +773,15 @@ describe('vote', () => {
 		});
 
 		it('should return false for multi signature transaction with less signatures', () => {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(validSender);
+			const transaction = _.cloneDeep(validTransaction);
+			const vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			return expect(transactionLogic.ready(transaction, vs)).to.equal(false);
 		});
 
 		it('should return true for multi signature transaction with alteast min signatures', () => {
-			var transaction = _.cloneDeep(validTransaction);
-			var vs = _.cloneDeep(validSender);
+			const transaction = _.cloneDeep(validTransaction);
+			const vs = _.cloneDeep(validSender);
 			vs.multisignatures = [validKeypair.publicKey.toString('hex')];
 			vs.multimin = 1;
 			delete transaction.signature;

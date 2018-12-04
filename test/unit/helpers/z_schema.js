@@ -14,15 +14,15 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
-var Z_schema = require('../../../helpers/z_schema.js');
+const randomstring = require('randomstring');
+const Z_schema = require('../../../helpers/z_schema.js');
 
 const { ADDITIONAL_DATA } = __testContext.config.constants;
 
-var validator = new Z_schema();
+const validator = new Z_schema();
 
-var shouldReturnFalseForEmptyNonStringValues = function() {
-	var composedSchema = {
+const shouldReturnFalseForEmptyNonStringValues = function() {
+	const composedSchema = {
 		type: 'object',
 		properties: {
 			test: {},
@@ -59,7 +59,7 @@ var shouldReturnFalseForEmptyNonStringValues = function() {
 	});
 };
 
-var shouldReturnTrueForEmptyStringValues = function() {
+const shouldReturnTrueForEmptyStringValues = function() {
 	it('should return true for empty string values', function() {
 		return expect(validator.validate('', this.schema)).to.equal(true);
 	});
@@ -75,7 +75,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if contains non-numeric value', function() {
-			var invalidData = ['L1234', '1234L', 'ABCD', '12L34'];
+			const invalidData = ['L1234', '1234L', 'ABCD', '12L34'];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -87,7 +87,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true if string contains numeric value', function() {
-			var validData = ['123', '0', '663332353555532'];
+			const validData = ['123', '0', '663332353555532'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
@@ -107,7 +107,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if string is longer than maxLength (either chars or bytes)', function() {
-			var invalidData = [];
+			const invalidData = [];
 			invalidData.push(
 				`${randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH - 1)}现`
 			);
@@ -119,7 +119,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true if string is between minLength and maxLength', function() {
-			var validData = [];
+			const validData = [];
 			validData.push(randomstring.generate(ADDITIONAL_DATA.MIN_LENGTH));
 			validData.push(randomstring.generate(ADDITIONAL_DATA.MAX_LENGTH));
 
@@ -141,7 +141,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if value does not end with L', function() {
-			var invalidData = ['L1234', '1234L1', 'LABCD', '12L34'];
+			const invalidData = ['L1234', '1234L1', 'LABCD', '12L34'];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -149,7 +149,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for non-numeric addresses', function() {
-			var invalidData = ['123aL', 'aaaaL', 'a123L', '___L', 'L'];
+			const invalidData = ['123aL', 'aaaaL', 'a123L', '___L', 'L'];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -157,7 +157,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true if string contains numeric value', function() {
-			var validData = ['123L', '0L', '663332353555532L'];
+			const validData = ['123L', '0L', '663332353555532L'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
@@ -165,7 +165,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if string contains leading zeros', function() {
-			var validData = ['0123L'];
+			const validData = ['0123L'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -173,7 +173,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true if string contains contains number less than UINT64_MAX', function() {
-			var validData = ['18446744073709551614L'];
+			const validData = ['18446744073709551614L'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
@@ -181,7 +181,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true if string contains contains number equal to UINT64_MAX', function() {
-			var validData = ['18446744073709551615L'];
+			const validData = ['18446744073709551615L'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
@@ -189,7 +189,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if string contains contains number greater than UINT64_MAX', function() {
-			var validData = ['18446744073709551616L'];
+			const validData = ['18446744073709551616L'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -209,14 +209,14 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for invalid username value', function() {
-			var invalidUsername = 'hello^lisk';
+			const invalidUsername = 'hello^lisk';
 			return expect(validator.validate(invalidUsername, this.schema)).to.equal(
 				false
 			);
 		});
 
 		it('should return true for valid username value', function() {
-			var validUsername = 'hello111_lisk!';
+			const validUsername = 'hello111_lisk!';
 			return expect(validator.validate(validUsername, this.schema)).to.equal(
 				true
 			);
@@ -235,14 +235,14 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for invalid hex value', function() {
-			var invalidHex = 'ec0c50z';
+			const invalidHex = 'ec0c50z';
 			return expect(validator.validate(invalidHex, this.schema)).to.equal(
 				false
 			);
 		});
 
 		it('should return true for valid hex value', function() {
-			var validHex = 'ec0c50e';
+			const validHex = 'ec0c50e';
 			return expect(validator.validate(validHex, this.schema)).to.equal(true);
 		});
 
@@ -259,7 +259,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if value is not in hex format', function() {
-			var invalidPublicKey =
+			const invalidPublicKey =
 				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(validator.validate(invalidPublicKey, this.schema)).to.equal(
 				false
@@ -267,7 +267,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for value < 64', function() {
-			var invalidLengthPublicKey =
+			const invalidLengthPublicKey =
 				'c3595ff6041c3bd28b76b8cf75dce8225173d1241624ee89b50f2a8';
 			return expect(
 				validator.validate(invalidLengthPublicKey, this.schema)
@@ -275,7 +275,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for value > 64', function() {
-			var invalidLengthPublicKey =
+			const invalidLengthPublicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8123';
 			return expect(
 				validator.validate(invalidLengthPublicKey, this.schema)
@@ -283,7 +283,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for valid publicKey', function() {
-			var validPublicKey =
+			const validPublicKey =
 				'c96dec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(validator.validate(validPublicKey, this.schema)).to.equal(
 				true
@@ -303,19 +303,19 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for invalid csv value', function() {
-			var invalidCsv = ['foo', 'bar'];
+			const invalidCsv = ['foo', 'bar'];
 			return expect(validator.validate(invalidCsv, this.schema)).to.equal(
 				false
 			);
 		});
 
 		it('should return true for valid csv value', function() {
-			var validCsv = '1,2,3,4,5';
+			const validCsv = '1,2,3,4,5';
 			return expect(validator.validate(validCsv, this.schema)).to.equal(true);
 		});
 
 		it('should return false for too many csv values', function() {
-			var invalidCsv = `1${Array(1100).join(',1')}`;
+			const invalidCsv = `1${Array(1100).join(',1')}`;
 			return expect(validator.validate(invalidCsv, this.schema)).to.equal(
 				false
 			);
@@ -333,7 +333,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if value is not in hex format', function() {
-			var invalidPublicKey =
+			const invalidPublicKey =
 				'zxcdec3595ff6041c3bd28b76b8cf75dce8225173d1bd00241624ee89b50f2a8';
 			return expect(validator.validate(invalidPublicKey, this.schema)).to.equal(
 				false
@@ -341,7 +341,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if value < 128', function() {
-			var invalidLengthSignature =
+			const invalidLengthSignature =
 				'3d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(
 				validator.validate(invalidLengthSignature, this.schema)
@@ -349,7 +349,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if value > 128', function() {
-			var invalidLengthSignature =
+			const invalidLengthSignature =
 				'1231d8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(
 				validator.validate(invalidLengthSignature, this.schema)
@@ -357,7 +357,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for valid publicKey', function() {
-			var validSignature =
+			const validSignature =
 				'd8103d0ea2004c3dea8076a6a22c6db8bae95bc0db819240c77fc5335f32920e91b9f41f58b01fc86dfda11019c9fd1c6c3dcbab0a4e478e3c9186ff6090dc05';
 			return expect(validator.validate(validSignature, this.schema)).to.equal(
 				true
@@ -377,7 +377,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for non-object values', function() {
-			var invalidData = ['xxx', 123, NaN, undefined, [1, 2], '', null];
+			const invalidData = ['xxx', 123, NaN, undefined, [1, 2], '', null];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -385,7 +385,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for object values', function() {
-			var validQueryList = { foo: 'bar' };
+			const validQueryList = { foo: 'bar' };
 			return expect(validator.validate(validQueryList, this.schema)).to.equal(
 				true
 			);
@@ -401,7 +401,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for non-object values', function() {
-			var invalidData = ['xxx', 123, NaN, undefined, [1, 2], '', null];
+			const invalidData = ['xxx', 123, NaN, undefined, [1, 2], '', null];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -409,7 +409,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for object values', function() {
-			var validDelegateList = { foo: 'bar' };
+			const validDelegateList = { foo: 'bar' };
 			return expect(
 				validator.validate(validDelegateList, this.schema)
 			).to.equal(true);
@@ -425,7 +425,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for non-numeric values', function() {
-			var invalidData = ['xxx', {}, NaN, undefined, [1, 2], null, 1.123];
+			const invalidData = ['xxx', {}, NaN, undefined, [1, 2], null, 1.123];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -433,7 +433,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for numeric values', function() {
-			var validData = [123, '123', 0, '0'];
+			const validData = [123, '123', 0, '0'];
 
 			return validData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(true);
@@ -452,12 +452,12 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for invalid os value', function() {
-			var invalidOs = 'atari!!!!';
+			const invalidOs = 'atari!!!!';
 			return expect(validator.validate(invalidOs, this.schema)).to.equal(false);
 		});
 
 		it('should return true for valid os value', function() {
-			var validOs = 'linux_1';
+			const validOs = 'linux_1';
 			return expect(validator.validate(validOs, this.schema)).to.equal(true);
 		});
 
@@ -474,7 +474,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false for invalid version value', function() {
-			var invalidData = [
+			const invalidData = [
 				'1a.1',
 				'1111.11.11',
 				'1.1.1.1.1',
@@ -491,7 +491,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true for valid version value', function() {
-			var validData = [
+			const validData = [
 				'1.1.1',
 				'111.1.1',
 				'11.11.22',
@@ -519,7 +519,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return false if value is not an IP or not a FQDN', function() {
-			var invalidData = ['192.168', 'alpha-', 'apha_server', 'alpha.server.'];
+			const invalidData = ['192.168', 'alpha-', 'apha_server', 'alpha.server.'];
 
 			return invalidData.forEach(function(item) {
 				expect(validator.validate(item, this.schema)).to.equal(false);
@@ -527,7 +527,7 @@ describe('schema - custom formats', () => {
 		});
 
 		it('should return true if value is an IP or a valid FQDN', function() {
-			var validData = [
+			const validData = [
 				'192.168.0.1',
 				'127.0.0.1',
 				'localhost',

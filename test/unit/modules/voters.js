@@ -119,7 +119,7 @@ describe('voters', () => {
 			});
 
 			describe('when library.schema.validate succeeds', () => {
-				var expectErrorResponse = function(error) {
+				const expectErrorResponse = function(error) {
 					describe('when err.message = "No data returned"', () => {
 						it('should call callback with error = null');
 

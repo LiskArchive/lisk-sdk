@@ -14,14 +14,14 @@
 
 'use strict';
 
-var _ = require('lodash');
-var checkIpInList = require('../../helpers/check_ip_in_list.js');
-var apiCodes = require('../../helpers/api_codes');
-var swaggerHelper = require('../../helpers/swagger');
+const _ = require('lodash');
+const checkIpInList = require('../../helpers/check_ip_in_list.js');
+const apiCodes = require('../../helpers/api_codes');
+const swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
-var modules;
-var config;
+let modules;
+let config;
 
 /**
  * Description of the function.
@@ -130,7 +130,7 @@ NodeController.getForgingStatus = function(context, next) {
 		return next(new Error('Access Denied'));
 	}
 
-	var publicKey = context.request.swagger.params.publicKey.value;
+	const publicKey = context.request.swagger.params.publicKey.value;
 
 	return modules.node.internal.getForgingStatus(publicKey, (err, data) => {
 		if (err) {
@@ -154,9 +154,9 @@ NodeController.updateForgingStatus = function(context, next) {
 		return next(new Error('Access Denied'));
 	}
 
-	var publicKey = context.request.swagger.params.data.value.publicKey;
-	var password = context.request.swagger.params.data.value.password;
-	var forging = context.request.swagger.params.data.value.forging;
+	const publicKey = context.request.swagger.params.data.value.publicKey;
+	const password = context.request.swagger.params.data.value.password;
+	const forging = context.request.swagger.params.data.value.forging;
 
 	return modules.node.internal.updateForgingStatus(
 		publicKey,
@@ -181,23 +181,23 @@ NodeController.updateForgingStatus = function(context, next) {
  * @todo Add description for the function and the params
  */
 NodeController.getPooledTransactions = function(context, next) {
-	var invalidParams = swaggerHelper.invalidParams(context.request);
+	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var state = context.request.swagger.params.state.value;
+	const state = context.request.swagger.params.state.value;
 
-	var stateMap = {
+	const stateMap = {
 		unprocessed: 'getUnProcessedTransactions',
 		unconfirmed: 'getUnconfirmedTransactions',
 		unsigned: 'getMultisignatureTransactions',
 	};
 
-	var filters = {
+	let filters = {
 		id: params.id.value,
 		recipientId: params.recipientId.value,
 		recipientPublicKey: params.recipientPublicKey.value,
@@ -220,16 +220,19 @@ NodeController.getPooledTransactions = function(context, next) {
 				return next(err);
 			}
 
-			var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
-				transaction.senderId = transaction.senderId || '';
-				transaction.recipientId = transaction.recipientId || '';
-				transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+			const transactions = _.map(
+				_.cloneDeep(data.transactions),
+				transaction => {
+					transaction.senderId = transaction.senderId || '';
+					transaction.recipientId = transaction.recipientId || '';
+					transaction.recipientPublicKey = transaction.recipientPublicKey || '';
 
-				transaction.amount = transaction.amount.toString();
-				transaction.fee = transaction.fee.toString();
+					transaction.amount = transaction.amount.toString();
+					transaction.fee = transaction.fee.toString();
 
-				return transaction;
-			});
+					return transaction;
+				}
+			);
 
 			return next(null, {
 				data: transactions,

@@ -14,12 +14,12 @@
 
 'use strict';
 
-var ip = require('ip');
-var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-var Peer = require('../../../logic/peer.js');
+const ip = require('ip');
+const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
+const Peer = require('../../../logic/peer.js');
 
 describe('peer', () => {
-	var peer;
+	let peer;
 
 	beforeEach(done => {
 		peer = new Peer({});
@@ -28,7 +28,7 @@ describe('peer', () => {
 
 	describe('constructor', () => {
 		it('should create Peer with all properties implemented', () => {
-			var __peer = new Peer({ ip: '127.0.0.1', wsPort: 4000 });
+			const __peer = new Peer({ ip: '127.0.0.1', wsPort: 4000 });
 			expect(__peer)
 				.to.have.property('ip')
 				.equal('127.0.0.1');
@@ -46,8 +46,8 @@ describe('peer', () => {
 
 	describe('accept', () => {
 		it('should accept valid peer', () => {
-			var auxPeer = new Peer({});
-			var __peer = auxPeer.accept(prefixedPeer);
+			const auxPeer = new Peer({});
+			const __peer = auxPeer.accept(prefixedPeer);
 			['height', 'ip', 'wsPort', 'state'].forEach(property => {
 				expect(__peer[property]).equals(prefixedPeer[property]);
 			});
@@ -57,7 +57,7 @@ describe('peer', () => {
 		});
 
 		it('should accept empty peer and set default values', () => {
-			var __peer = peer.accept({});
+			const __peer = peer.accept({});
 			expect(__peer.wsPort).to.equal(0);
 			expect(__peer.ip).to.be.undefined;
 			expect(__peer.state).to.equal(1);
@@ -66,7 +66,7 @@ describe('peer', () => {
 		});
 
 		it('should accept peer with ip as long', () => {
-			var __peer = peer.accept({ ip: ip.toLong(prefixedPeer.ip) });
+			const __peer = peer.accept({ ip: ip.toLong(prefixedPeer.ip) });
 			return expect(__peer.ip).to.equal(prefixedPeer.ip);
 		});
 	});
@@ -94,7 +94,7 @@ describe('peer', () => {
 			return peer.headers.forEach(header => {
 				delete peer[header];
 				if (prefixedPeer[header]) {
-					var headers = {};
+					const headers = {};
 					headers[header] = prefixedPeer[header];
 					peer.applyHeaders(headers);
 					expect(peer[header]).to.equal(prefixedPeer[header]);
@@ -109,7 +109,7 @@ describe('peer', () => {
 					prefixedPeer[header] === null ||
 					prefixedPeer[header] === undefined
 				) {
-					var headers = {};
+					const headers = {};
 					headers[header] = prefixedPeer[header];
 					peer.applyHeaders(headers);
 					expect(peer[header]).to.not.exist;
@@ -118,7 +118,7 @@ describe('peer', () => {
 		});
 
 		it('should parse height and port', () => {
-			var appliedHeaders = peer.applyHeaders({ wsPort: '4000', height: '1' });
+			const appliedHeaders = peer.applyHeaders({ wsPort: '4000', height: '1' });
 
 			expect(appliedHeaders.wsPort).to.equal(4000);
 			return expect(appliedHeaders.height).to.equal(1);
@@ -142,7 +142,7 @@ describe('peer', () => {
 		});
 
 		it('should change state of banned peer', done => {
-			var initialState = peer.state;
+			const initialState = peer.state;
 			// Ban peer
 			peer.state = 0;
 			// Try to unban peer
@@ -153,7 +153,7 @@ describe('peer', () => {
 		});
 
 		it('should update defined values', () => {
-			var updateData = {
+			const updateData = {
 				os: 'test os',
 				version: '0.0.0',
 				broadhash: 'test broadhash',
@@ -170,8 +170,8 @@ describe('peer', () => {
 		});
 
 		it('should not update required properties once peer is created', () => {
-			var peerBeforeUpdate = _.clone(peer);
-			var updateRequiredData = {
+			const peerBeforeUpdate = _.clone(peer);
+			const updateRequiredData = {
 				ip: prefixedPeer.ip,
 				wsPort: prefixedPeer.wsPort,
 				string: `${prefixedPeer.ip}:${prefixedPeer.wsPort}`,
@@ -187,11 +187,11 @@ describe('peer', () => {
 		});
 
 		it('should update the optional properties only for the first time', () => {
-			var updateOptionalData = {
+			const updateOptionalData = {
 				httpPort: prefixedPeer.httpPort,
 				nonce: 'nonce added first time after peer creation',
 			};
-			var updateOptionalDataForSecondTime = {
+			const updateOptionalDataForSecondTime = {
 				httpPort: 10909,
 				nonce: 'update after nonce exists should fail',
 			};
@@ -208,7 +208,7 @@ describe('peer', () => {
 		});
 
 		it('should not delete values which were previously set but are not updated now', () => {
-			var updateData = {
+			const updateData = {
 				os: 'test os',
 				version: '0.0.0',
 				dappid: ['test dappid'],
@@ -217,7 +217,7 @@ describe('peer', () => {
 				nonce: 'ABCD123',
 			};
 			peer.update(updateData);
-			var peerBeforeUpdate = _.clone(peer);
+			const peerBeforeUpdate = _.clone(peer);
 			peer.update({ height: (peer.height += 1) });
 			peer.height -= 1;
 			return expect(_.isEqual(peer, peerBeforeUpdate)).to.be.ok;
@@ -226,8 +226,8 @@ describe('peer', () => {
 
 	describe('object', () => {
 		it('should create proper copy of peer', () => {
-			var __peer = new Peer(prefixedPeer);
-			var peerCopy = __peer.object();
+			const __peer = new Peer(prefixedPeer);
+			const peerCopy = __peer.object();
 			return _.keys(prefixedPeer).forEach(property => {
 				if (__peer.properties.indexOf(property) !== -1) {
 					if (typeof prefixedPeer[property] !== 'object') {
@@ -238,9 +238,9 @@ describe('peer', () => {
 		});
 
 		it('should always return state', done => {
-			var initialState = peer.state;
+			const initialState = peer.state;
 			peer.update({ state: 'unreadable' });
-			var peerCopy = peer.object();
+			const peerCopy = peer.object();
 			expect(peerCopy.state).to.equal(1);
 			peer.state = initialState;
 			done();

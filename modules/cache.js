@@ -17,12 +17,12 @@
 const async = require('async');
 const transactionTypes = require('../helpers/transaction_types.js');
 
-var cacheReady = true;
-var errorCacheDisabled = 'Cache Disabled';
-var client;
-var self;
-var logger;
-var cacheEnabled;
+let cacheReady = true;
+const errorCacheDisabled = 'Cache Disabled';
+let client;
+let self;
+let logger;
+let cacheEnabled;
 
 /**
  * Cache module.

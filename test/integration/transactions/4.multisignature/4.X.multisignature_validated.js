@@ -14,21 +14,21 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var randomUtil = require('../../../common/utils/random');
-var Scenarios = require('../../../common/scenarios');
-var transactionTypes = require('../../../../helpers/transaction_types.js');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const randomUtil = require('../../../common/utils/random');
+const Scenarios = require('../../../common/scenarios');
+const transactionTypes = require('../../../../helpers/transaction_types.js');
+const localCommon = require('../../common');
 
 describe('system test (type 4) - checking registered multisignature transaction against other transaction types', () => {
-	var library;
+	let library;
 
-	var scenarios = {
+	const scenarios = {
 		regular: new Scenarios.Multisig(),
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = lisk.transaction.createDapp({
 		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
@@ -38,7 +38,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 	scenarios.regular.multiSigTransaction.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		var signature = lisk.transaction.utils.multiSignTransaction(
+		const signature = lisk.transaction.utils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
 			member.passphrase
 		);
@@ -80,7 +80,7 @@ describe('system test (type 4) - checking registered multisignature transaction 
 		});
 
 		it('transaction should be included', done => {
-			var filter = {
+			const filter = {
 				id: scenarios.regular.multiSigTransaction.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {

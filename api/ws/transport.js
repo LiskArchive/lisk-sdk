@@ -14,8 +14,8 @@
 
 'use strict';
 
-var wsRPC = require('./rpc/ws_rpc').wsRPC;
-var slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
+const wsRPC = require('./rpc/ws_rpc').wsRPC;
+const slaveRPCStub = require('./rpc/ws_rpc').slaveRPCStub;
 
 /**
  * Description of the function.

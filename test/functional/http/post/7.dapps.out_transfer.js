@@ -15,43 +15,43 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-elements').default;
-var Promise = require('bluebird');
-var accountFixtures = require('../../../fixtures/accounts');
-var phases = require('../../../common/phases');
-var Bignum = require('../../../../helpers/bignum.js');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var elements = require('../../../common/utils/elements');
-var apiHelpers = require('../../../common/helpers/api');
-var errorCodes = require('../../../../helpers/api_codes');
-var common = require('./common');
+const lisk = require('lisk-elements').default;
+const Promise = require('bluebird');
+const accountFixtures = require('../../../fixtures/accounts');
+const phases = require('../../../common/phases');
+const Bignum = require('../../../../helpers/bignum.js');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const elements = require('../../../common/utils/elements');
+const apiHelpers = require('../../../common/helpers/api');
+const errorCodes = require('../../../../helpers/api_codes');
+const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 7) outTransfer dapp', () => {
-	var transaction;
-	var transactionsToWaitFor = [];
-	var badTransactions = [];
-	var goodTransactions = [];
+	let transaction;
+	const transactionsToWaitFor = [];
+	const badTransactions = [];
+	const goodTransactions = [];
 
-	var account = randomUtil.account();
-	var accountMinimalFunds = randomUtil.account();
+	const account = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account();
 
 	// Crediting accounts
 	before(() => {
-		var transaction1 = lisk.transaction.transfer({
+		const transaction1 = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		var transaction2 = lisk.transaction.transfer({
+		const transaction2 = lisk.transaction.transfer({
 			amount: FEES.DAPP_REGISTRATION,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
-		var promises = [];
+		const promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
 
@@ -226,7 +226,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with invalid string should fail', () => {
-				var invalidDappId = '1L';
+				const invalidDappId = '1L';
 				transaction = lisk.transfer.createOutTransfer(
 					invalidDappId,
 					randomUtil.transaction().id,
@@ -374,7 +374,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with invalid string should fail', () => {
-				var invalidTransactionId = '1L';
+				const invalidTransactionId = '1L';
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					invalidTransactionId,
@@ -482,7 +482,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('with invalid string should fail', () => {
-				var invalidRecipientId = '1X';
+				const invalidRecipientId = '1X';
 				transaction = lisk.transfer.createOutTransfer(
 					randomUtil.guestbookDapp.id,
 					randomUtil.transaction().id,
@@ -521,7 +521,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 			});
 
 			it('using > balance should fail', () => {
-				var params = [`address=${account.address}`];
+				const params = [`address=${account.address}`];
 
 				return apiHelpers
 					.getAccountsPromise(params)
@@ -530,8 +530,8 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 							.to.have.nested.property('data')
 							.to.have.lengthOf(1);
 
-						var balance = res.body.data[0].balance;
-						var amount = new Bignum(balance).plus('1').toString();
+						const balance = res.body.data[0].balance;
+						const amount = new Bignum(balance).plus('1').toString();
 						transaction = lisk.transfer.createOutTransfer(
 							randomUtil.guestbookDapp.id,
 							randomUtil.transaction().id,
@@ -557,7 +557,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 
 	describe.skip('transactions processing', () => {
 		it('using unknown dapp id should fail', () => {
-			var unknownDappId = '1';
+			const unknownDappId = '1';
 			transaction = lisk.transfer.createOutTransfer(
 				unknownDappId,
 				randomUtil.transaction().id,
@@ -578,7 +578,7 @@ describe('POST /api/transactions (type 7) outTransfer dapp', () => {
 		});
 
 		it('using valid but inexistent transaction id as dapp id should fail', () => {
-			var inexistentId = randomUtil.transaction().id;
+			const inexistentId = randomUtil.transaction().id;
 			transaction = lisk.transfer.createOutTransfer(
 				inexistentId,
 				randomUtil.transaction().id,

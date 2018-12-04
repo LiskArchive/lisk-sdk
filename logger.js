@@ -14,17 +14,17 @@
 
 'use strict';
 
-var fs = require('fs');
-var util = require('util');
-var child_process = require('child_process');
-var path = require('path');
-var strftime = require('strftime').utc();
+const fs = require('fs');
+const util = require('util');
+const child_process = require('child_process');
+const path = require('path');
+const strftime = require('strftime').utc();
 
 require('colors');
 
 module.exports = function(config) {
 	config = config || {};
-	var exports = {};
+	const exports = {};
 
 	config.levels = config.levels || {
 		none: 99,
@@ -52,14 +52,14 @@ module.exports = function(config) {
 	config.errorLevel = config.errorLevel || 'log';
 
 	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
-	var log_file = fs.createWriteStream(config.filename, { flags: 'a' });
+	const log_file = fs.createWriteStream(config.filename, { flags: 'a' });
 
 	exports.setLevel = function(errorLevel) {
 		config.errorLevel = errorLevel;
 	};
 
 	function snipFragileData(data) {
-		for (var key in data) {
+		for (const key in data) {
 			if (key.search(/passphrase|password/i) > -1) {
 				data[key] = 'XXXXXXXXXX';
 			}
@@ -69,7 +69,7 @@ module.exports = function(config) {
 
 	Object.keys(config.levels).forEach(name => {
 		function log(message, data) {
-			var logContext = {
+			const logContext = {
 				level: name,
 				timestamp: strftime('%F %T', new Date()),
 			};

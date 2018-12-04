@@ -103,7 +103,7 @@ module.exports = {
 	 * @todo Add description for the function and the params
 	 */
 	getNextSlot() {
-		var slot = this.getSlotNumber();
+		const slot = this.getSlotNumber();
 
 		return slot + 1;
 	},

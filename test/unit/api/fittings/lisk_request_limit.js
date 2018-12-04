@@ -14,13 +14,13 @@
 
 'use strict';
 
-var httpMocks = require('node-mocks-http');
-var fitting = require('../../../../api/fittings/lisk_request_limit');
+const httpMocks = require('node-mocks-http');
+const fitting = require('../../../../api/fittings/lisk_request_limit');
 
 describe('lisk_request_limit', () => {
-	var context;
-	var limit_fititng;
-	var next;
+	let context;
+	let limit_fititng;
+	let next;
 
 	beforeEach(done => {
 		context = {
@@ -51,7 +51,7 @@ describe('lisk_request_limit', () => {
 	});
 
 	it('should set limits to override if provided by config', done => {
-		var limits = {
+		const limits = {
 			max: 10,
 			delayMs: 0,
 			delayAfter: 0,
@@ -63,7 +63,7 @@ describe('lisk_request_limit', () => {
 	});
 
 	it('should limit the number of request to 5 if limits.max = 5', done => {
-		var limits = {
+		const limits = {
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
@@ -74,7 +74,7 @@ describe('lisk_request_limit', () => {
 
 		limit_fititng = fitting({ limits });
 
-		for (var i = 0; i < limits.max + 5; i++) {
+		for (let i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, next);
 		}
 
@@ -83,7 +83,7 @@ describe('lisk_request_limit', () => {
 	});
 
 	it('should limit the number of request to 5 every 2 seconds if limits.max = 5 and limits.windowMs = 2000', done => {
-		var limits = {
+		const limits = {
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
@@ -92,18 +92,18 @@ describe('lisk_request_limit', () => {
 
 		limit_fititng = fitting({ limits });
 
-		var success = 0;
+		let success = 0;
 
 		function cb() {
 			success += 1;
-			var lmitiHeader = context.response.getHeader('X-RateLimit-Limit');
-			var remainingLimitHeader =
+			const lmitiHeader = context.response.getHeader('X-RateLimit-Limit');
+			const remainingLimitHeader =
 				context.response.getHeader('X-RateLimit-Remaining') || 0;
 			expect(lmitiHeader).to.be.equal(limits.max);
 			expect(remainingLimitHeader).to.be.equal(limits.max - success);
 		}
 
-		for (var i = 0; i < limits.max + 5; i++) {
+		for (let i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, cb);
 		}
 		expect(success).to.be.equal(limits.max);
@@ -112,7 +112,7 @@ describe('lisk_request_limit', () => {
 
 		setTimeout(() => {
 			next = sinonSandbox.spy();
-			for (var auxI = 0; auxI < limits.max + 5; auxI++) {
+			for (let auxI = 0; auxI < limits.max + 5; auxI++) {
 				limit_fititng(context, cb);
 			}
 			expect(success).to.be.equal(limits.max);
@@ -121,13 +121,13 @@ describe('lisk_request_limit', () => {
 	});
 
 	it('should respect limit for different IPs explicitly', done => {
-		var context2 = {
+		const context2 = {
 			request: httpMocks.createRequest(),
 			response: null,
 		};
 		context2.response = httpMocks.createResponse({ req: context2.request });
-		var next2 = sinonSandbox.spy();
-		var limits = {
+		const next2 = sinonSandbox.spy();
+		const limits = {
 			max: 5,
 			delayMs: 0,
 			delayAfter: 0,
@@ -139,7 +139,7 @@ describe('lisk_request_limit', () => {
 
 		limit_fititng = fitting({ limits });
 
-		for (var i = 0; i < limits.max + 5; i++) {
+		for (let i = 0; i < limits.max + 5; i++) {
 			limit_fititng(context, next);
 			limit_fititng(context2, next2);
 		}

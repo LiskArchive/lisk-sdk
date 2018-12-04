@@ -14,14 +14,14 @@
 
 'use strict';
 
-var chai = require('chai');
-var supertest = require('supertest');
-var Promise = require('bluebird');
-var swaggerHelper = require('../../helpers/swagger');
+const chai = require('chai');
+const supertest = require('supertest');
+const Promise = require('bluebird');
+const swaggerHelper = require('../../helpers/swagger');
 
-var apiSpec = swaggerHelper.getSwaggerSpec();
-var refsResolved = false;
-var validator = swaggerHelper.getValidator();
+let apiSpec = swaggerHelper.getSwaggerSpec();
+let refsResolved = false;
+const validator = swaggerHelper.getValidator();
 
 // Make sure no additional attributes are passed in response
 validator.options.assumeAdditional = true;
@@ -31,10 +31,10 @@ validator.options.assumeAdditional = true;
 // e.g. expect(res.body).to.be.validResponse
 chai.use((chaiArgument, utils) => {
 	chaiArgument.Assertion.addMethod('validResponse', function(responsePath) {
-		var result = validator.validate(utils.flag(this, 'object'), apiSpec, {
+		const result = validator.validate(utils.flag(this, 'object'), apiSpec, {
 			schemaPath: responsePath,
 		});
-		var errorDetail = '';
+		let errorDetail = '';
 
 		if (!result) {
 			utils.flag(this, 'message', 'InvalidResponseBody');
@@ -68,7 +68,7 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
 	} else if (method) {
 		// Considering that object was created with single param format
 		// 'GET /node/status 200'
-		var specParam = method.split(' ');
+		const specParam = method.split(' ');
 
 		this.path = _.trim(specParam[1]);
 		this.method = _.trim(specParam[0]).toLowerCase();
@@ -80,7 +80,7 @@ function SwaggerTestSpec(method, apiPath, responseCode) {
 		throw 'SwaggerTestSpec was created with invalid params';
 	}
 
-	var self = this;
+	const self = this;
 
 	this.getResponseSpec = function(statusCode) {
 		return self.spec.responses[statusCode];
@@ -142,21 +142,21 @@ SwaggerTestSpec.prototype.addParameters = function(parameters) {
  * @return {*|Promise<any>}
  */
 SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
-	var query = {};
-	var post = {};
-	var headers = {
+	const query = {};
+	let post = {};
+	const headers = {
 		Accept: 'application/json',
 		'Content-Type': 'application/json',
 	};
-	var formData = false;
-	var self = this;
-	var callPath = self.getPath();
+	let formData = false;
+	const self = this;
+	let callPath = self.getPath();
 	parameters = _.assignIn({}, self.defaultParams, parameters);
 
 	return this.resolveJSONRefs()
 		.then(() => {
 			_.each(_.keys(parameters), param => {
-				var p = _.find(self.spec.parameters, { name: param });
+				const p = _.find(self.spec.parameters, { name: param });
 
 				// If a swagger defined parameter
 				if (p) {
@@ -178,7 +178,7 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 				}
 			});
 
-			var req = supertest(__testContext.baseUrl);
+			let req = supertest(__testContext.baseUrl);
 
 			if (self.method === 'post') {
 				req = req.post(callPath);
@@ -224,7 +224,7 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
 				JSON.stringify(res.body)
 			);
 
-			var expectedResponseCode = responseCode || self.responseCode;
+			const expectedResponseCode = responseCode || self.responseCode;
 
 			expect(res.statusCode).to.be.eql(expectedResponseCode);
 			expect(res.headers['content-type']).to.match(/json/);
@@ -251,8 +251,8 @@ SwaggerTestSpec.prototype.makeRequest = function(parameters, responseCode) {
  * @return {*|Promise<any>}
  */
 SwaggerTestSpec.prototype.makeRequests = function(parameters, responseCode) {
-	var self = this;
-	var requests = [];
+	const self = this;
+	const requests = [];
 	parameters.forEach(paramSet => {
 		requests.push(self.makeRequest(paramSet, responseCode));
 	});

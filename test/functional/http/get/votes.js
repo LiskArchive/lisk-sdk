@@ -15,23 +15,23 @@
 'use strict';
 
 require('../../functional.js');
-var randomstring = require('randomstring');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var SwaggerEndpoint = require('../../../common/swagger_spec');
-var waitFor = require('../../../common/utils/wait_for');
-var apiHelpers = require('../../../common/helpers/api');
-var Bignum = require('../../../../helpers/bignum.js');
+const randomstring = require('randomstring');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const waitFor = require('../../../common/utils/wait_for');
+const apiHelpers = require('../../../common/helpers/api');
+const Bignum = require('../../../../helpers/bignum.js');
 
 const { FEES, MAX_VOTES_PER_ACCOUNT } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/votes', () => {
-	var votesEndpoint = new SwaggerEndpoint('GET /votes');
-	var nonVoterDelegate = accountFixtures.existingDelegate;
-	var voterDelegate = accountFixtures.genesis;
-	var validNotExistingAddress = '11111111111111111111L';
+	const votesEndpoint = new SwaggerEndpoint('GET /votes');
+	const nonVoterDelegate = accountFixtures.existingDelegate;
+	const voterDelegate = accountFixtures.genesis;
+	const validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVoterDelegateResponse(res) {
 		expect(res.body.data.votesUsed).to.be.least(res.body.data.votes.length);
@@ -344,7 +344,7 @@ describe('GET /api/votes', () => {
 
 			describe('limit=2 & offset=1', () => {
 				it('should return 2 voters, containing 1 from the previous result', () => {
-					var votes = null;
+					let votes = null;
 
 					return votesEndpoint
 						.makeRequest(
@@ -372,13 +372,13 @@ describe('GET /api/votes', () => {
 
 		describe('increased votes numbers after posting vote transaction', () => {
 			it('should increase votes and votesUsed after posting a vote', done => {
-				var account = randomUtil.account();
-				var creditTransaction = lisk.transaction.transfer({
+				const account = randomUtil.account();
+				const creditTransaction = lisk.transaction.transfer({
 					amount: new Bignum(FEES.DELEGATE).plus(FEES.VOTE),
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: account.address,
 				});
-				var delegateTransaction = lisk.transaction.registerDelegate({
+				const delegateTransaction = lisk.transaction.registerDelegate({
 					passphrase: account.passphrase,
 					username: randomstring.generate({
 						length: 10,
@@ -386,7 +386,7 @@ describe('GET /api/votes', () => {
 						capitalization: 'lowercase',
 					}),
 				});
-				var voteTransaction = lisk.transaction.castVotes({
+				const voteTransaction = lisk.transaction.castVotes({
 					passphrase: account.passphrase,
 					votes: [`${nonVoterDelegate.publicKey}`],
 				});
