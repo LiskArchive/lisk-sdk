@@ -19,14 +19,13 @@ export {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-	validateAmount,
+	validateNonTransferAmount,
 	validateTransferAmount,
 	validateFee,
 	isValidInteger,
 	isGreaterThanMaxTransactionAmount,
 	isGreaterThanZero,
 	isNumberString,
-	normalizeInput,
 } from './validation';
-
 export { validateTransaction } from './validate_transaction';
+export { validator } from './validator';

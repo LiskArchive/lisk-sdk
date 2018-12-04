@@ -20,8 +20,8 @@ import {
 	isGreaterThanMaxTransactionId,
 	isNumberString,
 	validateAddress,
-	validateAmount,
 	validateFee,
+	validateNonTransferAmount,
 	validatePublicKey,
 	validateTransferAmount,
 } from './validation';
@@ -47,9 +47,11 @@ validator.addFormat('address', data => {
 	}
 });
 
-validator.addFormat('amount', validateAmount);
+validator.addFormat('amount', isNumberString);
 
 validator.addFormat('transferAmount', validateTransferAmount);
+
+validator.addFormat('nonTransferAmount', validateNonTransferAmount);
 
 validator.addFormat('fee', validateFee);
 

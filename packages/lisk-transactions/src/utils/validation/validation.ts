@@ -23,8 +23,6 @@ import {
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
-import { TransactionError } from '../../errors';
-import { TransactionJSON } from '../../transaction_types';
 
 const MAX_PUBLIC_KEY_LENGTH = 32;
 export const validatePublicKey = (publicKey: string) => {
@@ -125,7 +123,7 @@ export const isNumberString = (str: string) => {
 	return /^[0-9]+$/g.test(str);
 };
 
-export const validateAmount = (data: string) =>
+export const validateNonTransferAmount = (data: string) =>
 	isNumberString(data) && !isGreaterThanZero(new BigNum(data));
 
 export const validateTransferAmount = (data: string) =>
@@ -140,39 +138,3 @@ export const validateFee = (data: string) =>
 
 export const isValidInteger = (num: unknown) =>
 	typeof num === 'number' ? Math.floor(num) === num : false;
-
-export const normalizeInput = (rawTransaction: TransactionJSON): void => {
-	const { amount, fee, ...strippedTransaction } = rawTransaction;
-
-	Object.entries({ amount, fee }).forEach(field => {
-		const [key, value] = field;
-
-		if (
-			!((value as unknown) instanceof BigNum) &&
-			(!isNumberString(value) || !Number.isSafeInteger(parseInt(value, 10)))
-		) {
-			throw new TransactionError(
-				`\`${key}\` must be a valid string or BigNum.`,
-			);
-		}
-	});
-
-	Object.entries(strippedTransaction).forEach(field => {
-		const [key, value] = field;
-		if (key === 'asset') {
-			if (typeof value !== 'object') {
-				throw new TransactionError(`\`${key}\` must be an object.`);
-			}
-		} else if (['timestamp', 'type'].includes(key)) {
-			if (typeof value !== 'number') {
-				throw new TransactionError(`\`${key}\` must be a number.`);
-			}
-		} else if (key === 'signatures') {
-			if (!Array.isArray(value)) {
-				throw new TransactionError(`\`${key}\` must be an array.`);
-			}
-		} else if (typeof value !== 'string') {
-			throw new TransactionError(`\`${key}\` must be a string.`);
-		}
-	});
-};

@@ -37,11 +37,11 @@ export {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-	validateAmount,
+	validateNonTransferAmount,
 	validateTransferAmount,
 	validateFee,
 	isValidInteger,
 	isNumberString,
 	validateTransaction,
-	normalizeInput,
+	validator,
 } from './validation';

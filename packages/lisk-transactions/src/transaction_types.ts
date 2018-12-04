@@ -19,22 +19,15 @@ export interface Account {
 	readonly delegate?: Delegate;
 	readonly publicKey: string;
 	readonly secondPublicKey?: string;
-	readonly unconfirmedBalance: string;
 }
 
-export interface MultisignatureAccount extends Account {
+export interface MultiSignatureAccount extends Account {
 	readonly min: number;
 	readonly lifetime: number;
 	readonly members: ReadonlyArray<Account>;
 }
 
 export interface Delegate {
-	readonly approval: number;
-	readonly missedBlocks: number;
-	readonly producedBlocks: number;
-	readonly productivity: number;
-	readonly rank: number;
-	readonly rewards: number;
 	readonly username: string;
 	readonly vote: string;
 }
@@ -58,6 +51,7 @@ export interface TransactionJSON {
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
+	readonly receivedAt?: number;
 }
 
 export interface VerifyReturn {
@@ -67,15 +61,13 @@ export interface VerifyReturn {
 
 export interface ValidateReturn {
 	readonly errors?: ReadonlyArray<TransactionError>;
-	readonly validated: boolean;
+	readonly valid: boolean;
 }
 
 export interface StateReturn {
 	readonly recipient?: Account;
 	readonly sender: Account;
 }
-
-type Partial<T> = { [P in keyof T]?: T[P] };
 
 export type PartialTransaction = Partial<TransactionJSON>;
 

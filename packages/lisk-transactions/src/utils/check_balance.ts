@@ -13,6 +13,7 @@
  *
  */
 import BigNum from 'browserify-bignum';
+import { FIXED_POINT } from '../constants';
 import { TransactionError } from '../errors';
 import { Account } from '../transaction_types';
 
@@ -32,9 +33,8 @@ export const checkBalance = (
 					new TransactionError(
 						`Account does not have enough LSK: ${
 							account.address
-						} balance: ${new BigNum(account.balance.toString() || '0').div(
-							// tslint:disable-next-line:no-magic-numbers
-							Math.pow(10, 8),
+						} balance: ${new BigNum(account.balance.toString()).div(
+							FIXED_POINT,
 						)}`,
 					),
 			  ]

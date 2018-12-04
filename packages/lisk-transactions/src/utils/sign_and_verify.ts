@@ -44,6 +44,7 @@ export const multiSignTransaction = (
 	return cryptography.signData(transactionHash, passphrase);
 };
 
+// TODO: Change name to validate but keep same name for exposed in index
 export const verifyTransaction = (
 	transaction: TransactionJSON,
 	secondPublicKey?: string,

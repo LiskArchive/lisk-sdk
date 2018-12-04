@@ -30,7 +30,7 @@ import {
 	multiSignTransaction,
 	verifyTransaction,
 	validateAddress,
-	validateAmount,
+	validateNonTransferAmount,
 	isValidInteger,
 	validateKeysgroup,
 	validatePublicKey,
@@ -104,8 +104,8 @@ describe('transaction utils', () => {
 			return expect(validateAddress).to.be.a('function');
 		});
 
-		it('should have validateAmount', () => {
-			return expect(validateAmount).to.be.a('function');
+		it('should have validateNonTransferAmount', () => {
+			return expect(validateNonTransferAmount).to.be.a('function');
 		});
 
 		it('should have isValidInteger', () => {
