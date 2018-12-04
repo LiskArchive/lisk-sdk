@@ -65,7 +65,7 @@
 		"js-yaml": "=3.10.0",
 		"json-refs": "=3.0.12",
 		"lisk-elements": "=1.0.0",
-		"lisk-newrelic": "LiskHQ/lisk-newrelic#1ea09b4",
+		"lisk-newrelic": "LiskHQ/lisk-newrelic#8f2188c",
 		"lodash": "=4.17.11",
 		"method-override": "=2.3.10",
 		"newrelic": "=4.8.1",
