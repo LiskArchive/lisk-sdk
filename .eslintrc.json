@@ -2,7 +2,6 @@
 	"extends": ["lisk-base"],
 	"plugins": ["mocha", "chai-expect"],
 	"rules": {
-		"array-callback-return": "error",
 		"callback-return": "error",
 		"camelcase": "off",
 		"chai-expect/missing-assertion": "error",
@@ -17,7 +16,6 @@
 				"functions": "never"
 			}
 		],
-		"consistent-return": "error",
 		"func-names": "off",
 		"global-require": "off",
 		"guard-for-in": "off",
