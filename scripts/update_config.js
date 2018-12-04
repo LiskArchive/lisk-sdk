@@ -232,6 +232,13 @@ history.version('1.2.0-rc.x', version => {
 		return config;
 	});
 });
+history.version('1.3.1-rc.0', version => {
+	version.change('add http timeout items', config => {
+		config.api.options.limits.headersTimeout = 5000;
+		config.api.options.limits.serverSetTimeout = 20000;
+		return config;
+	});
+});
 
 const askPassword = (message, cb) => {
 	if (program.password && program.password.trim().length !== 0) {
