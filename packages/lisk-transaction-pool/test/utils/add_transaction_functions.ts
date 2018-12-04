@@ -5,6 +5,6 @@ export const wrapTransferTransaction = (transferTransaction: TransactionObject):
 		...transferTransaction,
 		containsUniqueData: () => false,
 		verifyTransactionAgainstOtherTransactions: () => true,
-		isExpired: (time: Date) => false
+		isExpired: (time: Date) => time.getTime() > 0
 	};
 };
