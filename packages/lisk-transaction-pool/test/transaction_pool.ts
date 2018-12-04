@@ -13,7 +13,7 @@ describe('transaction pool', () => {
 		[key: string]: sinon.SinonStub;
 	};
 
-	beforeEach('add transactions in the transaction pool', () => {
+	beforeEach(() => {
 		stubs = {
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
@@ -45,9 +45,9 @@ describe('transaction pool', () => {
 		return sandbox.restore();
 	});
 
-	describe('addTransactions', () => {});
-	describe('getProcessableTransactions', () => {});
-	describe('onDeleteBlock', () => {
+	describe('#addTransactions', () => {});
+	describe('#getProcessableTransactions', () => {});
+	describe('#onDeleteBlock', () => {
 		const block = {
 			transactions: [transactions[0], transactions[1], transactions[2]],
 		};
@@ -91,7 +91,7 @@ describe('transaction pool', () => {
 		});
 	});
 
-	describe('onNewBlock', () => {
+	describe('#onNewBlock', () => {
 		const block = {
 			transactions: [transactions[0], transactions[1], transactions[2]],
 		};
@@ -143,7 +143,7 @@ describe('transaction pool', () => {
 		});
 	});
 
-	describe('onRoundRollback', () => {
+	describe('#onRoundRollback', () => {
 		const roundDelegateAddresses = addresses;
 
 		it('should call checkTransactionForProperty with block sender addresses and "senderPublicKey" property', () => {
