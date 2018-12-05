@@ -78,7 +78,7 @@ describe('account:create', () => {
 	describe('account:create', () => {
 		setupTest()
 			.command(['account:create'])
-			.it('should create account', async () => {
+			.it('should create account', () => {
 				expect(printUtils.print).to.be.called;
 				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
