@@ -82,7 +82,7 @@ module.exports = function(configurations, network) {
 						// to update across all nodes.
 						setTimeout(() => {
 							resolve();
-						}, 5000);
+						}, 10000);
 					});
 				});
 			});
