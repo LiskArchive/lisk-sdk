@@ -23,6 +23,8 @@ const seeder = require('../../common/db_seed');
 
 let db;
 
+const exceptions = global.exceptions;
+
 describe('delegates', () => {
 	let library;
 
@@ -495,6 +497,7 @@ describe('delegates', () => {
 		describe('getDelegateKeypairForCurrentSlot', () => {
 			let delegates;
 			let __private;
+			let originalgenerateDelegateList;
 
 			const genesis1 = {
 				passphrase:
@@ -540,6 +543,13 @@ describe('delegates', () => {
 				__private.keypairs[genesis2.publicKey] = genesis2Keypair;
 				__private.keypairs[genesis3.publicKey] = genesis3Keypair;
 
+				originalgenerateDelegateList = delegates.generateDelegateList;
+
+				done();
+			});
+
+			after(done => {
+				delegates.generateDelegateList = originalgenerateDelegateList;
 				done();
 			});
 
@@ -747,6 +757,115 @@ describe('delegates', () => {
 					);
 				});
 			});
+		});
+	});
+
+	describe('generateDelegateList', () => {
+		let __private;
+		let sourceStub;
+		let txObjectStub;
+		let originalExceptions;
+		const dummyDelegateList = ['x', 'y', 'z'];
+		beforeEach(done => {
+			__private = library.rewiredModules.delegates.__get__('__private');
+			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
+			txObjectStub = sinonSandbox.stub();
+			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
+			done();
+		});
+
+		afterEach(done => {
+			exceptions.ignoreDelegateListCacheForRounds = originalExceptions;
+			done();
+		});
+
+		it('should return the cached delegate list when there is cache for the round', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				1,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(delegateList).to.deep.equal(initialSate[1]);
+					expect(sourceStub).to.not.been.called;
+					done();
+				},
+				txObjectStub
+			);
+		});
+
+		it('should call the source function when cache not found', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				2,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(sourceStub).to.been.called;
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					done();
+				},
+				txObjectStub
+			);
+		});
+
+		it('should update the delegate list cache when source function was executed', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+			const shuffledDummyDelegateList = ['y', 'z', 'x'];
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				2,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					expect(__private.delegatesListCache['2']).to.deep.equal(
+						shuffledDummyDelegateList
+					);
+					done();
+				},
+				txObjectStub
+			);
+		});
+
+		it('should not update the delegate list cache when round is an exception', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+			exceptions.ignoreDelegateListCacheForRounds.push(666);
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				666,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					expect(__private.delegatesListCache).to.not.have.property('666');
+					done();
+				},
+				txObjectStub
+			);
 		});
 	});
 
