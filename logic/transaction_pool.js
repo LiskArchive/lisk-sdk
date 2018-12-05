@@ -511,12 +511,12 @@ TransactionPool.prototype.reindexQueues = function() {
  * @todo Compare / standardize the returns-description
  */
 TransactionPool.prototype.processBundled = function(cb) {
-	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
-
 	if (modules.loader.syncing()) {
 		// There is no need to process bundled transacions if node is syncing
 		return setImmediate(cb);
 	}
+
+	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
 
 	return library.balancesSequence.add(
 		balancesSequenceCb => {

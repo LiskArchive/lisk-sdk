@@ -1035,8 +1035,13 @@ describe('transactionPool', () => {
 
 		describe('when node is syncing', () => {
 			it('should not process bundled transactions', done => {
+				const getBundledTransactionListStub = sinonSandbox.stub();
 				const processVerifyTransactionStub = sinonSandbox.stub();
 				const queueTransactionStub = sinonSandbox.stub();
+				TransactionPool.__set__(
+					'TransactionPool.prototype.getBundledTransactionList',
+					getBundledTransactionListStub
+				);
 				TransactionPool.__set__(
 					'__private.processVerifyTransaction',
 					processVerifyTransactionStub
@@ -1047,6 +1052,7 @@ describe('transactionPool', () => {
 				);
 				loaderStub.syncing.returns(true);
 				transactionPool.processBundled(() => {
+					expect(getBundledTransactionListStub.called).to.be.false;
 					expect(processVerifyTransactionStub.called).to.be.false;
 					expect(queueTransactionStub.called).to.be.false;
 					done();
