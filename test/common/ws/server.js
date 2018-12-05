@@ -16,11 +16,11 @@
 
 require('../../setup'); // Ensure availability of global variables
 
-var randomstring = require('randomstring');
-var WAMPServer = require('wamp-socket-cluster/WAMPServer');
-var SocketCluster = require('socketcluster');
+const randomstring = require('randomstring');
+const WAMPServer = require('wamp-socket-cluster/WAMPServer');
+const SocketCluster = require('socketcluster');
 
-var wsServer = {
+const wsServer = {
 	validNonce: randomstring.generate(16),
 	testSocketCluster: null,
 	testWampServer: null,
@@ -44,7 +44,7 @@ var wsServer = {
 	// Invoked by each worker
 	run(worker) {
 		console.info('wsServer: run invoked');
-		var scServer = worker.scServer;
+		const scServer = worker.scServer;
 		this.rpcServer = new WAMPServer();
 		this.rpcServer.registerRPCEndpoints(this.necessaryRPCEndpoints);
 		scServer.on('connection', socket => {

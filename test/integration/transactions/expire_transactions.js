@@ -203,8 +203,8 @@ describe('expire transactions', () => {
 			transaction = createTransaction(amount, recipientId);
 			address = getSenderAddress(transaction);
 
-			return queries.getAccount(address).then(account => {
-				memAccountBefore = account;
+			return queries.getAccount(address).then(gotAccount => {
+				memAccountBefore = gotAccount;
 				// Transfer balance to multi-signature account
 				// so that multi-signature account can be registered
 				return addTransactionsAndForgePromise(library, [transaction], 0);
@@ -272,10 +272,10 @@ describe('expire transactions', () => {
 		});
 
 		it('multi-signature account balance should exists with the balance', done => {
-			const address = getSenderAddress(multiSigTransaction);
+			const senderAddress = getSenderAddress(multiSigTransaction);
 
 			queries
-				.getAccount(address)
+				.getAccount(senderAddress)
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance

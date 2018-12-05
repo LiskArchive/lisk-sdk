@@ -15,31 +15,31 @@
 'use strict';
 
 require('../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var SwaggerEndpoint = require('../../../common/swagger_spec');
-var apiHelpers = require('../../../common/helpers/api');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const apiHelpers = require('../../../common/helpers/api');
 
 const { NORMALIZER } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /dapps', () => {
-	var dappsEndpoint = new SwaggerEndpoint('GET /dapps');
+	const dappsEndpoint = new SwaggerEndpoint('GET /dapps');
 
-	var transactionsToWaitFor = [];
+	let transactionsToWaitFor = [];
 
-	var account = randomUtil.account();
-	var dapp1 = randomUtil.application();
+	const account = randomUtil.account();
+	const dapp1 = randomUtil.application();
 	dapp1.category = 1;
-	var dapp2 = randomUtil.application();
+	const dapp2 = randomUtil.application();
 	dapp2.category = 2;
-	var registeredDappsAmount = 2;
+	const registeredDappsAmount = 2;
 
 	before(() => {
-		var transaction = lisk.transaction.transfer({
+		const transaction = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
@@ -56,15 +56,15 @@ describe('GET /dapps', () => {
 			.then(() => {
 				transactionsToWaitFor = [];
 
-				var transaction1 = lisk.transaction.createDapp({
+				const transaction1 = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: dapp1,
 				});
-				var transaction2 = lisk.transaction.createDapp({
+				const transaction2 = lisk.transaction.createDapp({
 					passphrase: account.passphrase,
 					options: dapp2,
 				});
-				var promises = [];
+				const promises = [];
 				promises.push(apiHelpers.sendTransactionPromise(transaction1));
 				promises.push(apiHelpers.sendTransactionPromise(transaction2));
 
@@ -254,16 +254,16 @@ describe('GET /dapps', () => {
 		describe('sort=', () => {
 			// Create 20 random applications to increase data set
 			before(() => {
-				var promises = [];
-				var transaction;
-				var transactionsToWaitFor = [];
+				const promises = [];
+				let transaction;
+				const transactionsToWaitFor2 = [];
 
-				for (var i = 1; i <= 20; i++) {
+				for (let i = 1; i <= 20; i++) {
 					transaction = lisk.transaction.createDapp({
 						passphrase: account.passphrase,
 						options: randomUtil.application(),
 					});
-					transactionsToWaitFor.push(transaction.id);
+					transactionsToWaitFor2.push(transaction.id);
 					promises.push(apiHelpers.sendTransactionPromise(transaction));
 				}
 
@@ -273,7 +273,7 @@ describe('GET /dapps', () => {
 							.to.have.property('status')
 							.to.equal(200);
 					});
-					return waitFor.confirmations(transactionsToWaitFor);
+					return waitFor.confirmations(transactionsToWaitFor2);
 				});
 			});
 
@@ -297,9 +297,9 @@ describe('GET /dapps', () => {
 				return dappsEndpoint
 					.makeRequest({ sort: 'name:asc' }, 200)
 					.then(res => {
-						var obtainedArray = _.map(res.body.dapps, 'name');
-						var cloneObtainedArray = _.clone(obtainedArray);
-						var expectedArray = cloneObtainedArray.sort();
+						const obtainedArray = _.map(res.body.dapps, 'name');
+						const cloneObtainedArray = _.clone(obtainedArray);
+						const expectedArray = cloneObtainedArray.sort();
 
 						expect(expectedArray).eql(obtainedArray);
 					});
@@ -309,9 +309,9 @@ describe('GET /dapps', () => {
 				return dappsEndpoint
 					.makeRequest({ sort: 'name:desc' }, 200)
 					.then(res => {
-						var obtainedArray = _.map(res.body.dapps, 'name');
-						var cloneObtainedArray = _.clone(obtainedArray);
-						var expectedArray = cloneObtainedArray.sort().reverse();
+						const obtainedArray = _.map(res.body.dapps, 'name');
+						const cloneObtainedArray = _.clone(obtainedArray);
+						const expectedArray = cloneObtainedArray.sort().reverse();
 
 						expect(expectedArray).eql(obtainedArray);
 					});

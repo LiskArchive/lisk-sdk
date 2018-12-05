@@ -72,7 +72,7 @@ Node.prototype.internal = {
 		const internalForgers = library.config.forging.delegates;
 		const forgersPublicKeys = {};
 
-		for (var pair in keyPairs) {
+		for (const pair in keyPairs) {
 			forgersPublicKeys[keyPairs[pair].publicKey.toString('hex')] = true;
 		}
 

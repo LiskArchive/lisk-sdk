@@ -89,7 +89,7 @@ __private.getCountByFilter = function(filter) {
 	filter.normalized = false;
 	delete filter.limit;
 	delete filter.offset;
-	var peers = __private.getByFilter(filter);
+	const peers = __private.getByFilter(filter);
 	return peers.length;
 };
 
@@ -196,9 +196,10 @@ __private.getByFilter = function(filter, cb) {
 	// Sorting
 	if (filter.sort) {
 		const sort_arr = String(filter.sort).split(':');
-		const sort_field = sort_arr[0]
-			? _.includes(allowedFields, sort_arr[0]) ? sort_arr[0] : null
+		const auxSortField = _.includes(allowedFields, sort_arr[0])
+			? sort_arr[0]
 			: null;
+		const sort_field = sort_arr[0] ? auxSortField : null;
 		const sort_method = sort_arr.length === 2 ? sort_arr[1] !== 'desc' : true;
 		if (sort_field) {
 			peers.sort(sortPeers(sort_field, sort_method));
@@ -240,12 +241,12 @@ __private.getMatched = function(test, peers) {
 /**
  * Check if the ip exists in the peer blacklist coming from config file.
  *
- * @param ip
+ * @param suspiciousIp
  * @returns {boolean}
  * @todo Add description for the params and the return value
  */
-__private.isBlacklisted = function(ip) {
-	return self.blackListedPeers.includes(ip);
+__private.isBlacklisted = function(suspiciousIp) {
+	return self.blackListedPeers.includes(suspiciousIp);
 };
 
 /**
@@ -539,10 +540,10 @@ Peers.prototype.discover = function(cb) {
 			(err, peers) => {
 				const randomPeer = peers.length ? peers[0] : null;
 				if (!err && randomPeer) {
-					return randomPeer.rpc.status((err, status) => {
-						__private.updatePeerStatus(err, status, randomPeer);
-						if (err) {
-							return setImmediate(waterCb, err);
+					return randomPeer.rpc.status((rpcStatusErr, status) => {
+						__private.updatePeerStatus(rpcStatusErr, status, randomPeer);
+						if (rpcStatusErr) {
+							return setImmediate(waterCb, rpcStatusErr);
 						}
 						return randomPeer.rpc.list(waterCb);
 					});
@@ -674,7 +675,7 @@ Peers.prototype.list = function(options, cb) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function randomList(peers, cb) {
+	function randomList(peers, randomListCb) {
 		// Get full peers list (random)
 		__private.getByFilter(
 			{ normalized: options.normalized },
@@ -682,21 +683,20 @@ Peers.prototype.list = function(options, cb) {
 				const found = peersList.length;
 				const attempt = attempts.pop();
 				// Apply filters
-				peersList = peersList.filter(peer => {
-					if (broadhash) {
-						// Skip banned and disconnected peers by default
-						return (
-							allowedStates.indexOf(peer.state) !== -1 &&
-							// Matched broadhash when attempt 0
-							(attempt === 0
-								? peer.broadhash === broadhash
-								: // Unmatched broadhash when attempt 1
-									attempt === 1 ? peer.broadhash !== broadhash : false)
-						);
+				// Skip banned peers by default
+				peersList = peersList.filter(
+					peer => allowedStates.indexOf(peer.state) !== -1
+				);
+				// Filter peers by broadhash if present
+				if (broadhash) {
+					if (attempt === 0) {
+						// Look for peers matching (equal to) broadhash with the first attempt
+						peersList = peersList.filter(peer => peer.broadhash === broadhash);
+					} else if (attempt === 1) {
+						// Look for peers unmatching (not equal to) broadhash with the second attempt
+						peersList = peersList.filter(peer => peer.broadhash !== broadhash);
 					}
-					// Skip banned and disconnected peers by default
-					return allowedStates.indexOf(peer.state) !== -1;
-				});
+				}
 				const matched = peersList.length;
 				// Apply limit
 				peersList = peersList.slice(0, limit);
@@ -709,7 +709,7 @@ Peers.prototype.list = function(options, cb) {
 					picked,
 					accepted: accepted.length,
 				});
-				return setImmediate(cb, null, accepted);
+				return setImmediate(randomListCb, null, accepted);
 			}
 		);
 	}

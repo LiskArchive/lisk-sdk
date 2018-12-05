@@ -14,29 +14,29 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var Promise = require('bluebird');
-var Bignum = require('../../../../helpers/bignum.js');
+const rewire = require('rewire');
+const Promise = require('bluebird');
+const Bignum = require('../../../../helpers/bignum.js');
 
-var BlocksProcess = rewire('../../../../modules/blocks/process.js');
+const BlocksProcess = rewire('../../../../modules/blocks/process.js');
 
 describe('blocks/process', () => {
-	var __private;
-	var library;
-	var modules;
-	var blocksProcessModule;
-	var dbStub;
-	var loggerStub;
-	var dummyBlock;
-	var dummyCommonBlock;
-	var blockStub;
-	var transactionStub;
-	var peersStub;
-	var schemaStub;
-	var sequenceStub;
-	var genesisBlockStub;
-	var modulesStub;
-	var definitions;
+	let __private;
+	let library;
+	let modules;
+	let blocksProcessModule;
+	let dbStub;
+	let loggerStub;
+	let dummyBlock;
+	let dummyCommonBlock;
+	let blockStub;
+	let transactionStub;
+	let peersStub;
+	let schemaStub;
+	let sequenceStub;
+	let genesisBlockStub;
+	let modulesStub;
+	let definitions;
 
 	beforeEach(done => {
 		// Logic
@@ -54,7 +54,7 @@ describe('blocks/process', () => {
 			},
 		};
 
-		var peerStub = {
+		const peerStub = {
 			rpc: {
 				blocksCommon: sinonSandbox.stub(),
 				blocks: sinonSandbox.stub(),
@@ -154,11 +154,11 @@ describe('blocks/process', () => {
 			reward: new Bignum(100),
 		};
 
-		var modulesAccountsStub = {
+		const modulesAccountsStub = {
 			getAccount: sinonSandbox.stub(),
 		};
 
-		var modulesBlocksStub = {
+		const modulesBlocksStub = {
 			lastReceipt: {
 				update: sinonSandbox.stub(),
 			},
@@ -188,33 +188,33 @@ describe('blocks/process', () => {
 			},
 		};
 
-		var modulesDelegatesStub = {
+		const modulesDelegatesStub = {
 			fork: sinonSandbox.stub(),
 			validateBlockSlotAgainstPreviousRound: sinonSandbox.stub(),
 			validateBlockSlot: sinonSandbox.stub(),
 		};
 
-		var modulesLoaderStub = {
+		const modulesLoaderStub = {
 			syncing: sinonSandbox.stub(),
 		};
 
-		var modulesRoundsStub = {
+		const modulesRoundsStub = {
 			ticking: sinonSandbox.stub(),
 		};
 
-		var modulesTransactionsStub = {
+		const modulesTransactionsStub = {
 			getUnconfirmedTransactionList: sinonSandbox.stub(),
 		};
 
-		var modulesTransportStub = {
+		const modulesTransportStub = {
 			poorConsensus: sinonSandbox.stub(),
 		};
 
-		var modulesPeersStub = {
+		const modulesPeersStub = {
 			remove: sinonSandbox.spy(),
 		};
 
-		var swaggerDefinitionsStub = sinonSandbox.stub();
+		const swaggerDefinitionsStub = sinonSandbox.stub();
 
 		modulesStub = {
 			accounts: modulesAccountsStub,
@@ -294,7 +294,7 @@ describe('blocks/process', () => {
 	});
 
 	describe('__private.receiveForkOne', () => {
-		var tempValidateBlockSlot;
+		let tempValidateBlockSlot;
 		before(done => {
 			tempValidateBlockSlot = __private.validateBlockSlot;
 			done();
@@ -564,7 +564,7 @@ describe('blocks/process', () => {
 	});
 
 	describe('__private.receiveForkFive', () => {
-		var tempValidateBlockSlot;
+		let tempValidateBlockSlot;
 		before(done => {
 			tempValidateBlockSlot = __private.validateBlockSlot;
 			done();
@@ -2105,9 +2105,9 @@ describe('blocks/process', () => {
 	});
 
 	describe('onReceiveBlock', () => {
-		var tempReceiveBlock;
-		var tempReceiveForkOne;
-		var tempReceiveForkFive;
+		let tempReceiveBlock;
+		let tempReceiveForkOne;
+		let tempReceiveForkFive;
 
 		beforeEach(done => {
 			tempReceiveBlock = __private.receiveBlock;
@@ -2186,7 +2186,7 @@ describe('blocks/process', () => {
 
 				it('should call __private.receiveBlock', done => {
 					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
+						const fn = Promise.promisify(cb);
 						fn().then(() => {
 							done();
 						});
@@ -2225,7 +2225,7 @@ describe('blocks/process', () => {
 
 				it('should call __private.receiveForkOne', done => {
 					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
+						const fn = Promise.promisify(cb);
 						fn().then(() => {
 							done();
 						});
@@ -2269,7 +2269,7 @@ describe('blocks/process', () => {
 
 				it('should call __private.receiveForkFive', done => {
 					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
+						const fn = Promise.promisify(cb);
 						fn().then(() => {
 							done();
 						});
@@ -2293,7 +2293,7 @@ describe('blocks/process', () => {
 
 				it('should log debug message and call a callback', done => {
 					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
+						const fn = Promise.promisify(cb);
 						fn().then(() => {
 							done();
 						});
@@ -2315,7 +2315,7 @@ describe('blocks/process', () => {
 
 				it('should discard block, when it does not match with current chain', done => {
 					library.sequence.add = function(cb) {
-						var fn = Promise.promisify(cb);
+						const fn = Promise.promisify(cb);
 						fn().then(() => {
 							done();
 						});

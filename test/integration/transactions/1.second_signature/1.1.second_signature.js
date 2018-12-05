@@ -14,24 +14,24 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - double second signature registrations', () => {
-	var library;
+	let library;
 
-	var account = randomUtil.account();
-	var transaction = lisk.transaction.transfer({
+	const account = randomUtil.account();
+	const transaction = lisk.transaction.transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
-	var transaction1;
-	var transaction2;
+	let transaction1;
+	let transaction2;
 
 	localCommon.beforeBlock('system_1_1_second_sign', lib => {
 		library = lib;
@@ -74,7 +74,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 		});
 
 		it('first transaction to arrive should not be included', done => {
-			var filter = {
+			const filter = {
 				id: transaction1.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -88,7 +88,7 @@ describe('system test (type 1) - double second signature registrations', () => {
 		});
 
 		it('last transaction to arrive should be included', done => {
-			var filter = {
+			const filter = {
 				id: transaction2.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {

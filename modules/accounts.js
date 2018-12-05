@@ -212,8 +212,8 @@ Accounts.prototype.setAccountAndGet = function(data, cb, tx) {
 		: library.db.tx('Accounts:setAccountAndGet', task);
 
 	return taskPromise
-		.then(data => setImmediate(cb, null, data))
-		.catch(err => setImmediate(cb, err));
+		.then(taskPromiseData => setImmediate(cb, null, taskPromiseData))
+		.catch(taskPromiseErr => setImmediate(cb, taskPromiseErr));
 };
 
 /**

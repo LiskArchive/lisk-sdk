@@ -126,15 +126,15 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function backwardTick(tx) {
-		const round = new Round(scope, tx);
+	function backwardTick(backwardTickTx) {
+		const newRound = new Round(scope, backwardTickTx);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
 
-		return round
+		return newRound
 			.mergeBlockGenerator()
-			.then(() => (scope.finishRound ? round.backwardLand() : round));
+			.then(() => (scope.finishRound ? newRound.backwardLand() : newRound));
 	}
 
 	async.series(
@@ -170,7 +170,21 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 		err => {
 			// Stop round ticking
 			__private.ticking = false;
-			return done(err);
+			if (err) {
+				return done(err);
+			}
+
+			/**
+			 * If we delete first block of the round,
+			 * that means we go to last block of the previous round
+			 * That's why we need to clear the cache to recalculate
+			 * delegate list.
+			 * */
+			if (scope.finishRound) {
+				modules.delegates.clearLastDelegateListCache();
+			}
+
+			return done();
 		}
 	);
 };
@@ -366,9 +380,9 @@ __private.getOutsiders = function(scope, cb, tx) {
 					}
 					return setImmediate(eachCb);
 				},
-				err => {
+				eachSeriesErr => {
 					library.logger.trace('Got outsiders', scope.roundOutsiders);
-					return setImmediate(cb, err);
+					return setImmediate(cb, eachSeriesErr);
 				}
 			);
 		},

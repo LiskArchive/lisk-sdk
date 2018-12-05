@@ -109,8 +109,8 @@ describe('snapshotting', () => {
 						expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
 						done();
 					})
-					.catch(err => {
-						done(err);
+					.catch(getMemAccountsErr => {
+						done(getMemAccountsErr);
 					});
 			};
 

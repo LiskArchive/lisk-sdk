@@ -14,16 +14,16 @@
 
 'use strict';
 
-var prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
-var Peer = require('../../../logic/peer');
-var PeersManager = require('../../../helpers/peers_manager');
-var wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
+const prefixedPeer = require('../../fixtures/peers').randomNormalizedPeer;
+const Peer = require('../../../logic/peer');
+const PeersManager = require('../../../helpers/peers_manager');
+const wsRPC = require('../../../api/ws/rpc/ws_rpc').wsRPC;
 
-var peersManagerInstance;
-var masterWAMPServerMock;
+let peersManagerInstance;
+let masterWAMPServerMock;
 
-var validRPCProcedureName = 'rpcProcedureA';
-var validEventProcedureName = 'eventProcedureB';
+const validRPCProcedureName = 'rpcProcedureA';
+const validEventProcedureName = 'eventProcedureB';
 
 describe('PeersManager', () => {
 	beforeEach(done => {
@@ -66,7 +66,7 @@ describe('PeersManager', () => {
 	});
 
 	describe('method', () => {
-		var validPeer;
+		let validPeer;
 
 		beforeEach(done => {
 			validPeer = new Peer(prefixedPeer);
@@ -140,8 +140,8 @@ describe('PeersManager', () => {
 			});
 
 			describe('multiple valid entries', () => {
-				var validPeerA;
-				var validPeerB;
+				let validPeerA;
+				let validPeerB;
 
 				beforeEach(() => {
 					validPeerA = _.clone(validPeer);
@@ -321,7 +321,7 @@ describe('PeersManager', () => {
 
 			it('should return map of added peers', () => {
 				peersManagerInstance.add(validPeer);
-				var validResult = {};
+				const validResult = {};
 				validResult[validPeer.string] = validPeer;
 				return expect(peersManagerInstance.getAll(validPeer.nonce)).eql(
 					validResult
@@ -368,8 +368,8 @@ describe('PeersManager', () => {
 
 	describe('multiple instances', () => {
 		describe('when required 2 times', () => {
-			var peersManagerInstanceA;
-			var peersManagerInstanceB;
+			let peersManagerInstanceA;
+			let peersManagerInstanceB;
 
 			beforeEach(done => {
 				peersManagerInstanceA = new PeersManager({

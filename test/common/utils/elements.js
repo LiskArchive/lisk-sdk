@@ -14,9 +14,9 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
+const lisk = require('lisk-elements').default;
 
-var elements = {};
+const elements = {};
 
 elements.redoSignature = function(transaction, passphrase) {
 	delete transaction.signature;

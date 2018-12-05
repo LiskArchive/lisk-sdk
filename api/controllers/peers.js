@@ -14,10 +14,10 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -40,9 +40,9 @@ function PeersController(scope) {
  * @todo Add description for the function and the params
  */
 PeersController.getPeers = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		ip: params.ip.value,
 		wsPort: params.wsPort.value,
 		httpPort: params.httpPort.value,

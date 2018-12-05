@@ -14,16 +14,16 @@
 
 'use strict';
 
-var path = require('path');
-var fs = require('fs');
-var _ = require('lodash');
-var bodyParser = require('body-parser');
-var queryParser = require('express-query-int');
-var methodOverride = require('method-override');
-var SwaggerRunner = require('swagger-node-runner');
-var swaggerHelper = require('../helpers/swagger');
-var checkIpInList = require('./check_ip_in_list');
-var apiCodes = require('./api_codes');
+const path = require('path');
+const fs = require('fs');
+const _ = require('lodash');
+const bodyParser = require('body-parser');
+const queryParser = require('express-query-int');
+const methodOverride = require('method-override');
+const SwaggerRunner = require('swagger-node-runner');
+const swaggerHelper = require('../helpers/swagger');
+const checkIpInList = require('./check_ip_in_list');
+const apiCodes = require('./api_codes');
 
 // Its necessary to require this file to extend swagger validator with our custom formats
 require('./swagger').getValidator();
@@ -49,7 +49,7 @@ require('./swagger').getValidator();
  * @see Parent: {@link module:helpers/http_api}
  * @memberof module:helpers/http_api
  */
-var middleware = {
+const middleware = {
 	/**
 	 * Logs all api errors.
 	 *
@@ -209,7 +209,6 @@ var middleware = {
  * @param {Object} logger - Application Logger
  * @param {Object} scope - Application Scope
  * @param {function} cb - Callback function
- * @returns {void}
  */
 function bootstrapSwagger(app, config, logger, scope, cb) {
 	// Register modules to be used in swagger fittings
@@ -275,7 +274,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 	app.use(middleware.errorLogger.bind(null, logger));
 
 	// Load Swagger controllers and bind the scope
-	var controllerFolder = '/api/controllers/';
+	const controllerFolder = '/api/controllers/';
 	fs.readdirSync(config.root + controllerFolder).forEach(file => {
 		if (path.basename(file) !== 'index.js') {
 			// eslint-disable-next-line import/no-dynamic-require
@@ -283,7 +282,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		}
 	});
 
-	var swaggerConfig = {
+	const swaggerConfig = {
 		appRoot: config.root,
 		configDir: `${config.root}/config/swagger`,
 		swaggerFile: path.join(`${config.root}/schema/swagger.yml`),
@@ -322,7 +321,7 @@ function bootstrapSwagger(app, config, logger, scope, cb) {
 		}
 
 		// Swagger express middleware
-		var swaggerExpress = runner.expressMiddleware();
+		const swaggerExpress = runner.expressMiddleware();
 
 		// Check the response and act appropriately on error
 		runner.on('responseValidationError', validationResponse => {

@@ -14,7 +14,7 @@
 
 'use strict';
 
-var util = require('util');
+const util = require('util');
 
 /**
  * Creates a FIFO sequence array and default settings with config values.
@@ -28,12 +28,12 @@ var util = require('util');
  * @todo Add description for the params
  */
 function Sequence(config) {
-	var _default = {
+	let _default = {
 		onWarning: null,
 		warningLimit: 50,
 	};
 	_default = Object.assign(_default, config);
-	var self = this;
+	const self = this;
 	this.sequence = [];
 
 	setImmediate(function nextSequenceTick() {
@@ -54,11 +54,11 @@ function Sequence(config) {
  * @todo Add description for the params
  */
 Sequence.prototype.__tick = function(cb) {
-	var task = this.sequence.shift();
+	const task = this.sequence.shift();
 	if (!task) {
 		return setImmediate(cb);
 	}
-	var args = [
+	let args = [
 		function(err, res) {
 			if (task.done) {
 				setImmediate(task.done, err, res);
@@ -86,7 +86,7 @@ Sequence.prototype.add = function(worker, args, done) {
 		args = undefined;
 	}
 	if (worker && typeof worker === 'function') {
-		var task = { worker, done };
+		const task = { worker, done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}

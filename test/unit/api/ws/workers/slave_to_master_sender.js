@@ -14,13 +14,13 @@
 
 'use strict';
 
-var SlaveToMasterSender = require('../../../../../api/ws/workers/slave_to_master_sender');
+const SlaveToMasterSender = require('../../../../../api/ws/workers/slave_to_master_sender');
 
 describe('SlaveToMasterSender', () => {
-	var slaveWAMPServerMock;
-	var slaveToMasterSender;
-	var validNonce;
-	var validCb;
+	let slaveWAMPServerMock;
+	let slaveToMasterSender;
+	let validNonce;
+	let validCb;
 
 	before(done => {
 		slaveWAMPServerMock = {
@@ -55,10 +55,10 @@ describe('SlaveToMasterSender', () => {
 	});
 
 	describe('send', () => {
-		var expectedPayload;
-		var validProcedureName;
-		var validPeer;
-		var validUpdateType;
+		let expectedPayload;
+		let validProcedureName;
+		let validPeer;
+		let validUpdateType;
 
 		beforeEach(done => {
 			validProcedureName = 'validProcedureName';
@@ -109,7 +109,7 @@ describe('SlaveToMasterSender', () => {
 	});
 
 	describe('getPeer', () => {
-		var expectedPayload;
+		let expectedPayload;
 
 		beforeEach(done => {
 			expectedPayload = {

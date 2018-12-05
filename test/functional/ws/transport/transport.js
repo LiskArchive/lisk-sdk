@@ -48,7 +48,7 @@ describe('RPC', () => {
 
 	describe('internal', () => {
 		describe('updatePeer', () => {
-			var validAcceptRequest;
+			let validAcceptRequest;
 
 			beforeEach(done => {
 				validAcceptRequest = {
@@ -102,7 +102,7 @@ describe('RPC', () => {
 				});
 
 				it('should reject requests when updateType is not a number', done => {
-					var nonNumbers = [{}, [], 'A', '1', NaN, true];
+					const nonNumbers = [{}, [], 'A', '1', NaN, true];
 					async.forEachOf(
 						nonNumbers,
 						(nonNumber, index, eachCb) => {
@@ -183,10 +183,10 @@ describe('RPC', () => {
 		});
 
 		it('asking for a list multiple times should be ok', done => {
-			var successfulAsks = 0;
+			let successfulAsks = 0;
 
 			/* eslint-disable no-loop-func */
-			for (var i = 0; i < 100; i += 1) {
+			for (let i = 0; i < 100; i += 1) {
 				connectedPeer.rpc.list((err, result) => {
 					expect(result).to.have.property('success').to.be.ok;
 					expect(result)

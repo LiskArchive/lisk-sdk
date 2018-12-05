@@ -14,21 +14,21 @@
 
 'use strict';
 
-var express = require('express');
-var randomstring = require('randomstring');
-var async = require('async');
-var Sequence = require('../../helpers/sequence.js');
-var database = require('../../db');
-var Logger = require('../../logger.js');
-var Z_schema = require('../../helpers/z_schema.js');
-var cacheHelper = require('../../helpers/cache.js');
-var Cache = require('../../modules/cache.js');
-var ed = require('../../helpers/ed');
-var jobsQueue = require('../../helpers/jobs_queue');
-var Transaction = require('../../logic/transaction.js');
-var Account = require('../../logic/account.js');
+const express = require('express');
+const randomstring = require('randomstring');
+const async = require('async');
+const Sequence = require('../../helpers/sequence.js');
+const database = require('../../db');
+const Logger = require('../../logger.js');
+const Z_schema = require('../../helpers/z_schema.js');
+const cacheHelper = require('../../helpers/cache.js');
+const Cache = require('../../modules/cache.js');
+const ed = require('../../helpers/ed');
+const jobsQueue = require('../../helpers/jobs_queue');
+const Transaction = require('../../logic/transaction.js');
+const Account = require('../../logic/account.js');
 
-var modulesLoader = new function() {
+const modulesLoader = new function() {
 	this.db = null;
 	this.logger = new Logger({
 		echo: null,
@@ -89,11 +89,11 @@ var modulesLoader = new function() {
 			case 'Transaction':
 				async.series(
 					{
-						account(cb) {
-							new Account(scope.db, scope.schema, scope.logger, cb);
+						account(accountCb) {
+							new Account(scope.db, scope.schema, scope.logger, accountCb);
 						},
 					},
-					(__err, result) => {
+					(err, result) => {
 						new Logic(
 							scope.db,
 							scope.ed,
@@ -158,16 +158,16 @@ var modulesLoader = new function() {
 	 * @param {Object>} scope
 	 * @param {function} cb
 	 */
-	this.initModules = function(modules, logic, scope, cb) {
+	this.initModules = function(modules, logics, scope, cb) {
 		scope = _.merge({}, this.scope, scope);
 		async.waterfall(
 			[
 				function(waterCb) {
 					async.reduce(
-						logic,
+						logics,
 						{},
 						(memo, logicObj, mapCb) => {
-							var name = _.keys(logicObj)[0];
+							const name = _.keys(logicObj)[0];
 							return this.initLogic(
 								logicObj[name],
 								scope,
@@ -181,12 +181,14 @@ var modulesLoader = new function() {
 					);
 				}.bind(this),
 				function(logic, waterCb) {
-					scope = _.merge({}, this.scope, scope, { logic });
+					scope = _.merge({}, this.scope, scope, {
+						logic,
+					});
 					async.reduce(
 						modules,
 						{},
 						(memo, moduleObj, mapCb) => {
-							var name = _.keys(moduleObj)[0];
+							const name = _.keys(moduleObj)[0];
 							return this.initModule(moduleObj[name], scope, (err, module) => {
 								memo[name] = module;
 								return mapCb(err, memo);
@@ -196,16 +198,16 @@ var modulesLoader = new function() {
 					);
 				}.bind(this),
 
-				function(modules, waterCb) {
+				function(modules1, waterCb) {
 					_.each(scope.logic, logic => {
-						if (typeof logic.bind === 'function') {
+						if (typeof logics.bind === 'function') {
 							logic.bind({ modules });
 						}
 						if (typeof logic.bindModules === 'function') {
 							logic.bindModules(modules);
 						}
 					});
-					waterCb(null, modules);
+					waterCb(null, modules1);
 				},
 			],
 			cb
@@ -287,10 +289,8 @@ var modulesLoader = new function() {
 	 * @param {function} cb
 	 */
 	this.initCache = function(cb) {
-		var cacheEnabled;
-		var cacheConfig;
-		cacheEnabled = this.scope.config.cacheEnabled;
-		cacheConfig = this.scope.config.redis;
+		const cacheEnabled = this.scope.config.cacheEnabled;
+		const cacheConfig = this.scope.config.redis;
 		cacheHelper.connect(
 			cacheEnabled,
 			cacheConfig,

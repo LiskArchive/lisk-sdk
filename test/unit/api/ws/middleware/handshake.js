@@ -14,22 +14,22 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
-var typeRepresentatives = require('../../../../fixtures/types_representatives.js');
-var Handshake = require('../../../../../api/ws/workers/middlewares/handshake');
-var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
-var WSServerMaster = require('../../../../common/ws/server_master');
-var System = require('../../../../../modules/system');
+const randomstring = require('randomstring');
+const typeRepresentatives = require('../../../../fixtures/types_representatives.js');
+const Handshake = require('../../../../../api/ws/workers/middlewares/handshake');
+const failureCodes = require('../../../../../api/ws/rpc/failure_codes');
+const WSServerMaster = require('../../../../common/ws/server_master');
+const System = require('../../../../../modules/system');
 
-var config = __testContext.config;
+const config = __testContext.config;
 
 describe('Handshake', () => {
-	var system;
-	var handshake;
-	var minVersion = '1.0.0';
-	var validPeerNonce = randomstring.generate(16);
-	var validNodeNonce = randomstring.generate(16);
-	var validConfig = {
+	let system;
+	let handshake;
+	const minVersion = '1.0.0';
+	const validPeerNonce = randomstring.generate(16);
+	const validNodeNonce = randomstring.generate(16);
+	const validConfig = {
 		config: {
 			version: config.version,
 			minVersion,
@@ -38,7 +38,7 @@ describe('Handshake', () => {
 			blackListedPeers: [],
 		},
 	};
-	var validHeaders;
+	let validHeaders;
 
 	before(done => {
 		new System((err, __system) => {
@@ -117,15 +117,15 @@ describe('Handshake', () => {
 		});
 
 		describe('schema tests', () => {
-			var headers;
+			let headers;
 
-			beforeEach(done => {
+			beforeEach(beforeDone => {
 				headers = _.cloneDeep(validHeaders);
-				done();
+				beforeDone();
 			});
 
 			describe('handshake', () => {
-				var invalidTypes = _.difference(
+				const invalidTypes = _.difference(
 					typeRepresentatives.allTypes,
 					typeRepresentatives.objects
 				);
@@ -133,39 +133,39 @@ describe('Handshake', () => {
 				invalidTypes.forEach(type => {
 					it(`should call callback with error.description when input is: ${
 						type.description
-					}`, done => {
+					}`, eachDone => {
 						handshake(type.input, err => {
 							expect(err.description).to.equal(
 								`Expected type object but found type ${type.expectation}`
 							);
-							done();
+							eachDone();
 						});
 					});
 
 					it(`should call callback with error.code when input is: ${
 						type.description
-					}`, done => {
+					}`, itDone => {
 						handshake(type.input, err => {
 							expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-							done();
+							itDone();
 						});
 					});
 				});
 
 				describe('nonce', () => {
-					var invalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					var validValues = _.map(new Array(10), () => {
+					const validValues = _.map(new Array(10), () => {
 						return randomstring.generate(16);
 					});
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}`, itDone => {
 							headers.nonce = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -173,37 +173,38 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.nonce = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 
 					validValues.forEach(input => {
-						it(`should call callback with error = null when input is:${input}`, done => {
+						it(`should call callback with error = null when input is:${input}`, itDone => {
 							handshake(headers, err => {
 								expect(err).to.not.exist;
-								done();
+								itDone();
 							});
 						});
 					});
 				});
 
 				describe('height', () => {
-					var validValues = _.map(new Array(10), () => {
+					const validValues = _.map(new Array(10), () => {
 						return Math.floor(Math.random() * Number.MAX_VALUE);
 					});
 
-					var invalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
@@ -211,10 +212,11 @@ describe('Handshake', () => {
 						typeRepresentatives.negativeNumbers
 					);
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.height = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -222,42 +224,44 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.height = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 
 					validValues.forEach(input => {
-						it(`should call callback with error = null when input is: ${input}`, done => {
+						it(`should call callback with error = null when input is: ${input}`, itDone => {
 							headers.height = input;
 							handshake(headers, err => {
 								expect(err).to.not.exist;
-								done();
+								itDone();
 							});
 						});
 					});
 				});
 
 				describe('nethash', () => {
-					var invalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.nethash = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -265,32 +269,34 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.nethash = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 				});
 
 				describe('version', () => {
-					var invalidTypes = _.difference(
+					const auxInvalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings
 					);
 
-					invalidTypes.forEach(type => {
+					auxInvalidTypes.forEach(type => {
 						it(`should call callback with error.description when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.version = type.input;
 							handshake(headers, err => {
 								expect(err.description).to.equal(
@@ -298,31 +304,32 @@ describe('Handshake', () => {
 										type.expectation
 									}`
 								);
-								done();
+								itDone();
 							});
 						});
 
 						it(`should call callback with error.code when input is: ${
 							type.description
-						}`, done => {
+						}
+						`, itDone => {
 							headers.version = type.input;
 							handshake(headers, err => {
 								expect(err.code).to.equal(failureCodes.INVALID_HEADERS);
-								done();
+								itDone();
 							});
 						});
 					});
 				});
 
-				var requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
+				const requiredProperties = ['wsPort', 'version', 'nonce', 'nethash'];
 				requiredProperties.forEach(property => {
-					it(`should call callback with error for required property: ${property}`, done => {
+					it(`should call callback with error for required property: ${property}`, itDone => {
 						headers[property] = undefined;
 						handshake(headers, err => {
 							expect(err.description).to.equal(
 								`Missing required property: ${property}`
 							);
-							done();
+							itDone();
 						});
 					});
 				});

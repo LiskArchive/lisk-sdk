@@ -14,13 +14,13 @@
 
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-var moment = require('moment');
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment');
 
 module.exports = function(grunt) {
 	grunt.registerTask('newMigration', 'Create a new migration file.', name => {
-		var migration = {
+		const migration = {
 			id: moment().format('YYYYMMDDHHmmss'),
 			name: String(name),
 		};

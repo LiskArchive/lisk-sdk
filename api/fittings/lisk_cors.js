@@ -14,9 +14,9 @@
 
 'use strict';
 
-var debug = require('debug')('swagger:lisk:cors');
-var CORS = require('cors');
-var modules = require('../../helpers/swagger_module_registry');
+const debug = require('debug')('swagger:lisk:cors');
+const CORS = require('cors');
+const modules = require('../../helpers/swagger_module_registry');
 
 /**
  * Description of the function.
@@ -33,9 +33,9 @@ var modules = require('../../helpers/swagger_module_registry');
  */
 module.exports = function create(fittingDef) {
 	debug('config: %j', fittingDef);
-	var config = modules.getConfig();
+	const config = modules.getConfig();
 
-	var middleware = new CORS({
+	const middleware = new CORS({
 		origin: config.api.options.cors.origin,
 		methods: config.api.options.cors.methods,
 	});

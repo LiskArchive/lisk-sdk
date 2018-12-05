@@ -14,27 +14,27 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const localCommon = require('../../common');
 const Bignum = require('../../../../helpers/bignum.js');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 4) - effect of multisignature registration on memory tables', () => {
-	var library;
-	var multisigSender;
+	let library;
+	let multisigSender;
 
-	var multisigAccount = randomUtil.account();
-	var multisigTransaction;
-	var creditTransaction = lisk.transaction.transfer({
+	const multisigAccount = randomUtil.account();
+	let multisigTransaction;
+	const creditTransaction = lisk.transaction.transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: multisigAccount.address,
 	});
-	var signer1 = randomUtil.account();
-	var signer2 = randomUtil.account();
+	const signer1 = randomUtil.account();
+	const signer2 = randomUtil.account();
 
 	localCommon.beforeBlock('system_4_multisig_account', lib => {
 		library = lib;
@@ -54,7 +54,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	describe('forge block with multisignature transaction', () => {
 		before('forge block with multisignature transaction', done => {
-			var keysgroup = [signer1.publicKey, signer2.publicKey];
+			const keysgroup = [signer1.publicKey, signer2.publicKey];
 
 			multisigTransaction = lisk.transaction.registerMultisignature({
 				passphrase: multisigAccount.passphrase,
@@ -62,11 +62,11 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				lifetime: 4,
 				minimum: 2,
 			});
-			var sign1 = lisk.transaction.utils.multiSignTransaction(
+			const sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer1.passphrase
 			);
-			var sign2 = lisk.transaction.utils.multiSignTransaction(
+			const sign2 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer2.passphrase
 			);
@@ -77,7 +77,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		});
 
 		describe('check sender db rows', () => {
-			var accountRow;
+			let accountRow;
 
 			before(
 				'get mem_account, mem_account2multisignature and mem_account2u_multisignature rows',
@@ -91,7 +91,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			);
 
 			it('should include rows in mem_accounts2multisignatures', () => {
-				var signKeysInDb = _.map(
+				const signKeysInDb = _.map(
 					accountRow.mem_accounts2multisignatures,
 					row => {
 						return row.dependentId;
@@ -116,7 +116,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', () => {
-				var signKeysInDb = _.map(
+				const signKeysInDb = _.map(
 					accountRow.mem_accounts2u_multisignatures,
 					row => {
 						return row.dependentId;
@@ -142,7 +142,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		});
 
 		describe('check sender account', () => {
-			var account;
+			let account;
 
 			before('get multisignature account', done => {
 				library.logic.account.get(
@@ -201,7 +201,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			describe('sender db rows', () => {
-				var accountRow;
+				let accountRow;
 
 				before(
 					'get mem_account, mem_account2multisignature and mem_account2u_multisignature rows',
@@ -240,7 +240,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			describe('sender account', () => {
-				var account;
+				let account;
 
 				before('get multisignature account', done => {
 					library.logic.account.get(
@@ -282,18 +282,18 @@ describe('system test (type 4) - effect of multisignature registration on memory
 
 	describe('apply unconfirmed transaction', () => {
 		before('apply unconfirmed multisig transaction', done => {
-			var keysgroup = [signer1.publicKey, signer2.publicKey];
+			const keysgroup = [signer1.publicKey, signer2.publicKey];
 			multisigTransaction = lisk.transaction.registerMultisignature({
 				passphrase: multisigAccount.passphrase,
 				keysgroup,
 				lifetime: 4,
 				minimum: 2,
 			});
-			var sign1 = lisk.transaction.utils.multiSignTransaction(
+			const sign1 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer1.passphrase
 			);
-			var sign2 = lisk.transaction.utils.multiSignTransaction(
+			const sign2 = lisk.transaction.utils.multiSignTransaction(
 				multisigTransaction,
 				signer2.passphrase
 			);
@@ -311,7 +311,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		});
 
 		describe('check sender db rows', () => {
-			var accountRow;
+			let accountRow;
 
 			before(
 				'get mem_account, mem_account2multisignature and mem_account2u_multisignature rows',
@@ -337,7 +337,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 			});
 
 			it('should include rows in mem_accounts2u_multisignatures', () => {
-				var signKeysInDb = _.map(
+				const signKeysInDb = _.map(
 					accountRow.mem_accounts2u_multisignatures,
 					row => {
 						return row.dependentId;
@@ -363,7 +363,7 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		});
 
 		describe('check sender account', () => {
-			var account;
+			let account;
 
 			before('get multisignature account', done => {
 				library.logic.account.get(
@@ -397,12 +397,12 @@ describe('system test (type 4) - effect of multisignature registration on memory
 		});
 
 		describe('with another multisig transaction', () => {
-			var multisigTransaction2;
-			var signer3 = randomUtil.account();
-			var signer4 = randomUtil.account();
+			let multisigTransaction2;
+			const signer3 = randomUtil.account();
+			const signer4 = randomUtil.account();
 
 			before('process multisignature transaction', done => {
-				var keysgroup = [signer3.publicKey, signer4.publicKey];
+				const keysgroup = [signer3.publicKey, signer4.publicKey];
 				multisigTransaction2 = lisk.transaction.registerMultisignature({
 					passphrase: multisigAccount.passphrase,
 					keysgroup,
@@ -411,11 +411,11 @@ describe('system test (type 4) - effect of multisignature registration on memory
 				});
 				multisigTransaction2.amount = new Bignum(multisigTransaction2.amount);
 				multisigTransaction2.fee = new Bignum(multisigTransaction2.fee);
-				var sign3 = lisk.transaction.utils.multiSignTransaction(
+				const sign3 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
 					signer3.passphrase
 				);
-				var sign4 = lisk.transaction.utils.multiSignTransaction(
+				const sign4 = lisk.transaction.utils.multiSignTransaction(
 					multisigTransaction2,
 					signer4.passphrase
 				);

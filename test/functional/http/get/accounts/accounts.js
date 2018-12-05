@@ -15,19 +15,19 @@
 'use strict';
 
 require('../../../functional.js');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../../fixtures/accounts');
-var SwaggerEndpoint = require('../../../../common/swagger_spec');
-var randomUtil = require('../../../../common/utils/random');
-var waitFor = require('../../../../common/utils/wait_for');
-var apiHelpers = require('../../../../common/helpers/api');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../../fixtures/accounts');
+const SwaggerEndpoint = require('../../../../common/swagger_spec');
+const randomUtil = require('../../../../common/utils/random');
+const waitFor = require('../../../../common/utils/wait_for');
+const apiHelpers = require('../../../../common/helpers/api');
 
 const { FEES } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /accounts', () => {
-	var account = randomUtil.account();
-	var accountsEndpoint = new SwaggerEndpoint('GET /accounts');
+	const account = randomUtil.account();
+	const accountsEndpoint = new SwaggerEndpoint('GET /accounts');
 
 	describe('?', () => {
 		describe('address', () => {
@@ -178,13 +178,13 @@ describe('GET /accounts', () => {
 		});
 
 		describe('secondPublicKey', () => {
-			var secondPublicKeyAccount = randomUtil.account();
-			var creditTransaction = lisk.transaction.transfer({
+			const secondPublicKeyAccount = randomUtil.account();
+			const creditTransaction = lisk.transaction.transfer({
 				amount: FEES.SECOND_SIGNATURE,
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPublicKeyAccount.address,
 			});
-			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+			const signatureTransaction = lisk.transaction.registerSecondPassphrase({
 				passphrase: secondPublicKeyAccount.passphrase,
 				secondPassphrase: secondPublicKeyAccount.secondPassphrase,
 			});
@@ -300,7 +300,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						var balances = _(res.body.data)
+						const balances = _(res.body.data)
 							.map('balance')
 							.value();
 						expect(_.clone(balances).sort()).to.be.eql(balances);
@@ -311,7 +311,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc' }, 200)
 					.then(res => {
-						var balances = _.map(res.body.data, 'balance');
+						const balances = _.map(res.body.data, 'balance');
 						expect(
 							_(res.body.data)
 								.map('balance')
@@ -324,7 +324,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:desc' }, 200)
 					.then(res => {
-						var balances = _.map(res.body.data, 'balance');
+						const balances = _.map(res.body.data, 'balance');
 						expect(
 							_(res.body.data)
 								.map('balance')
@@ -342,7 +342,7 @@ describe('GET /accounts', () => {
 			});
 
 			it('using offset = 5 should return accounts including top 5', () => {
-				var res1;
+				let res1;
 
 				return accountsEndpoint
 					.makeRequest({ offset: 0 }, 200)
@@ -363,7 +363,7 @@ describe('GET /accounts', () => {
 				return accountsEndpoint
 					.makeRequest({ sort: 'balance:asc', offset: 1, limit: 5 }, 200)
 					.then(res => {
-						var balances = _(res.body.data)
+						const balances = _(res.body.data)
 							.map('balance')
 							.value();
 

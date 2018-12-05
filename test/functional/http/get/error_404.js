@@ -15,7 +15,7 @@
 'use strict';
 
 require('../../functional.js');
-var apiHelpers = require('../../../common/helpers/api');
+const apiHelpers = require('../../../common/helpers/api');
 
 describe('GET /unknown_endpoint', () => {
 	it('should fail with error 404', () => {

@@ -14,23 +14,23 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var expect = require('chai').expect;
-var async = require('async');
-var _ = require('lodash');
-var Promise = require('bluebird');
-var PQ = require('pg-promise').ParameterizedQuery;
-var accountFixtures = require('../../../fixtures/accounts');
-var slots = require('../../../../helpers/slots');
-var genesisDelegates = require('../../../data/genesis_delegates.json')
+const crypto = require('crypto');
+const expect = require('chai').expect;
+const async = require('async');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const PQ = require('pg-promise').ParameterizedQuery;
+const accountFixtures = require('../../../fixtures/accounts');
+const slots = require('../../../../helpers/slots');
+const genesisDelegates = require('../../../data/genesis_delegates.json')
 	.delegates;
-var application = require('../../../common/application.js');
+const application = require('../../../common/application.js');
 
 const { ACTIVE_DELEGATES, BLOCK_SLOT_WINDOW } = global.constants;
 
 describe('system test (blocks) - process onReceiveBlock()', () => {
-	var library;
-	var db;
+	let library;
+	let db;
 
 	before(done => {
 		application.init(
@@ -64,7 +64,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	});
 
 	function createBlock(transactions, timestamp, keypair, previousBlock) {
-		var block = library.logic.block.create({
+		const block = library.logic.block.create({
 			keypair,
 			timestamp,
 			previousBlock,
@@ -77,13 +77,13 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function forge(forgingSlot, cb) {
-		var last_block = library.modules.blocks.lastBlock.get();
-		var slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
-		var delegate;
+		let last_block = library.modules.blocks.lastBlock.get();
+		const slot = forgingSlot || slots.getSlotNumber(last_block.timestamp) + 1;
+		let delegate;
 
 		function getNextForger(offset, seriesCb) {
 			offset = !offset ? 0 : offset;
-			var keys = library.rewiredModules.delegates.__get__(
+			const keys = library.rewiredModules.delegates.__get__(
 				'__private.getKeysSortByVote'
 			);
 			const round = slots.calcRound(last_block.height + 1);
@@ -91,13 +91,13 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				round,
 				keys,
 				(err, delegateList) => {
-					var nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
+					const nextForger = delegateList[(slot + offset) % ACTIVE_DELEGATES];
 					return seriesCb(nextForger);
 				}
 			);
 		}
 
-		var transactionPool = library.rewiredModules.transactions.__get__(
+		const transactionPool = library.rewiredModules.transactions.__get__(
 			'__private.transactionPool'
 		);
 
@@ -110,10 +110,10 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 				},
 				function(delegatePublicKey, waterFallCb) {
-					delegate = _.find(genesisDelegates, delegate => {
-						return delegate.publicKey === delegatePublicKey;
+					delegate = _.find(genesisDelegates, foundDelegate => {
+						return foundDelegate.publicKey === delegatePublicKey;
 					});
-					var keypair = getKeypair(delegate.passphrase);
+					const keypair = getKeypair(delegate.passphrase);
 
 					__testContext.debug(
 						`Last block height: ${last_block.height}
@@ -149,12 +149,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function forgeMultipleBlocks(numberOfBlocksToForge, cb) {
-		var forgedBlocks = [];
+		const forgedBlocks = [];
 		// Setting the initialSlot based on the numberOfBlocksToForge. Because:
 		// a) We don't want to forge blocks with timestamp too far in the past
 		// b) We don't want to forge blocks with timestamp in the future
 		// This allows us to play with onReceiveBlock function and different fork scenarios
-		var initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
+		const initialSlot = slots.getSlotNumber() - numberOfBlocksToForge + 1;
 
 		async.mapSeries(
 			_.range(0, numberOfBlocksToForge),
@@ -180,15 +180,15 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 	}
 
 	function getValidKeypairForSlot(slot) {
-		var generateDelegateListPromisified = Promise.promisify(
+		const generateDelegateListPromisified = Promise.promisify(
 			library.modules.delegates.generateDelegateList
 		);
-		var lastBlock = library.modules.blocks.lastBlock.get();
+		const lastBlock = library.modules.blocks.lastBlock.get();
 		const round = slots.calcRound(lastBlock.height);
 
 		return generateDelegateListPromisified(round, null)
 			.then(list => {
-				var delegatePublicKey = list[slot % ACTIVE_DELEGATES];
+				const delegatePublicKey = list[slot % ACTIVE_DELEGATES];
 				return getKeypair(
 					_.find(genesisDelegates, delegate => {
 						return delegate.publicKey === delegatePublicKey;
@@ -235,12 +235,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 	describe('onReceiveBlock (empty transactions)', () => {
 		describe('for valid block', () => {
-			var lastBlock;
-			var block;
+			let lastBlock;
+			let block;
 
 			before(() => {
 				lastBlock = library.modules.blocks.lastBlock.get();
-				var slot = slots.getSlotNumber();
+				const slot = slots.getSlotNumber();
 				return getValidKeypairForSlot(slot).then(keypair => {
 					block = createBlock([], slots.getSlotTime(slot), keypair, lastBlock);
 				});
@@ -260,13 +260,13 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 		describe('forkThree', () => {
 			describe('validate block slot', () => {
 				describe('when generator is not a delegate', () => {
-					var lastBlock;
-					var block;
+					let lastBlock;
+					let block;
 
 					beforeEach(done => {
 						lastBlock = library.modules.blocks.lastBlock.get();
-						var slot = slots.getSlotNumber();
-						var nonDelegateKeypair = getKeypair(
+						const slot = slots.getSlotNumber();
+						const nonDelegateKeypair = getKeypair(
 							accountFixtures.genesis.passphrase
 						);
 						block = createBlock(
@@ -290,13 +290,13 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('when block generator has incorrect slot', () => {
-					var lastBlock;
-					var block;
+					let lastBlock;
+					let block;
 
 					beforeEach(() => {
 						lastBlock = library.modules.blocks.lastBlock.get();
 						// Using last block's slot
-						var slot = slots.getSlotNumber() - 1;
+						const slot = slots.getSlotNumber() - 1;
 						return getValidKeypairForSlot(slot - 1).then(keypair => {
 							block = createBlock([], slots.getTime(slot), keypair, lastBlock);
 						});
@@ -316,9 +316,9 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 		});
 
 		describe('forkOne', () => {
-			var forgedBlocks = [];
-			var secondLastBlock;
-			var lastBlock;
+			let forgedBlocks = [];
+			let secondLastBlock;
+			let lastBlock;
 
 			beforeEach('forge 300 blocks', done => {
 				forgeMultipleBlocks(300, (err, blocks) => {
@@ -331,15 +331,15 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			describe('when received block timestamp is greater than previous block', () => {
-				var blockWithGreaterTimestamp;
-				var slot;
-				var keypair;
+				let blockWithGreaterTimestamp;
+				let slot;
+				let keypair;
 
 				beforeEach(() => {
 					slot = slots.getSlotNumber(lastBlock.timestamp) + 1;
 					return getValidKeypairForSlot(slot).then(kp => {
 						keypair = kp;
-						var dummyBlock = {
+						const dummyBlock = {
 							id: '0',
 							height: lastBlock.height,
 						};
@@ -373,15 +373,15 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			describe('when received block timestamp is lower than previous block', () => {
-				var blockWithLowerTimestamp;
-				var slot;
-				var keypair;
+				let blockWithLowerTimestamp;
+				let slot;
+				let keypair;
 
 				beforeEach(() => {
 					slot = slots.getSlotNumber(lastBlock.timestamp);
 					return getValidKeypairForSlot(slot).then(kp => {
 						keypair = kp;
-						var dummyBlock = {
+						const dummyBlock = {
 							id: '0',
 							height: lastBlock.height,
 						};
@@ -411,7 +411,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			describe('when block height is mutated', () => {
-				var mutatedHeight;
+				let mutatedHeight;
 
 				beforeEach(done => {
 					mutatedHeight = lastBlock.height + 1;
@@ -419,7 +419,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('when received block is from previous round (101 blocks back)', () => {
-					var blockFromPreviousRound;
+					let blockFromPreviousRound;
 
 					beforeEach(() => {
 						blockFromPreviousRound =
@@ -445,7 +445,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 				describe(`when received block is from same round and ${BLOCK_SLOT_WINDOW -
 					1} slots in the past`, () => {
-					var inSlotsWindowBlock;
+					let inSlotsWindowBlock;
 
 					beforeEach(() => {
 						inSlotsWindowBlock =
@@ -470,7 +470,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe(`when received block is from same round and greater than ${BLOCK_SLOT_WINDOW} slots in the past`, () => {
-					var outOfSlotWindowBlock;
+					let outOfSlotWindowBlock;
 
 					beforeEach(() => {
 						outOfSlotWindowBlock =
@@ -495,12 +495,12 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('when received block is from a future slot', () => {
-					var blockFromFutureSlot;
+					let blockFromFutureSlot;
 
 					beforeEach(() => {
-						var slot = slots.getSlotNumber() + 1;
+						const slot = slots.getSlotNumber() + 1;
 						return getValidKeypairForSlot(slot).then(keypair => {
-							var dummyBlock = {
+							const dummyBlock = {
 								id: '0',
 								height: mutatedHeight - 1,
 							};
@@ -533,10 +533,10 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 		describe('forkFive', () => {
 			describe('with 5 blocks forged', () => {
-				var secondLastBlock;
-				var lastBlock;
-				var slot;
-				var keypair;
+				let secondLastBlock;
+				let lastBlock;
+				let slot;
+				let keypair;
 
 				beforeEach(done => {
 					forgeMultipleBlocks(5, (err, forgedBlocks) => {
@@ -554,7 +554,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('when timestamp is greater than last block', () => {
-					var timestamp;
+					let timestamp;
 
 					beforeEach(done => {
 						timestamp = lastBlock.timestamp + 1;
@@ -562,7 +562,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should reject received block', done => {
-						var blockWithGreaterTimestamp = createBlock(
+						const blockWithGreaterTimestamp = createBlock(
 							[],
 							timestamp,
 							keypair,
@@ -594,7 +594,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						});
 
 						it('should reject received block', done => {
-							var blockWithGreaterTimestamp = createBlock(
+							const blockWithGreaterTimestamp = createBlock(
 								[],
 								timestamp,
 								keypair,
@@ -619,7 +619,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('when timestamp is lower than last block', () => {
-					var timestamp;
+					let timestamp;
 
 					beforeEach(done => {
 						timestamp = lastBlock.timestamp - 1;
@@ -635,7 +635,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						});
 
 						it('should reject received block when blockslot is invalid', done => {
-							var blockWithInvalidSlot = createBlock(
+							const blockWithInvalidSlot = createBlock(
 								[],
 								timestamp,
 								keypair,
@@ -659,7 +659,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 					describe('when blockslot and generator publicKey is valid', () => {
 						it('should replace last block with received block', done => {
-							var blockWithLowerTimestamp = createBlock(
+							const blockWithLowerTimestamp = createBlock(
 								[],
 								timestamp,
 								keypair,
@@ -698,7 +698,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 							});
 
 							it('should reject received block and delete last block', done => {
-								var blockWithDifferentKeyAndTimestamp = createBlock(
+								const blockWithDifferentKeyAndTimestamp = createBlock(
 									[],
 									timestamp,
 									keypair,
@@ -724,21 +724,21 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 						});
 
 						describe('when timestamp is outside slot window', () => {
-							var timestamp;
+							let auxTimestamp;
 
 							beforeEach(() => {
 								// Slot and generatorPublicKey belongs to delegate who is 6 slots behind current slot
 								slot = slots.getSlotNumber() - (BLOCK_SLOT_WINDOW + 1);
-								timestamp = slots.getSlotTime(slot);
+								auxTimestamp = slots.getSlotTime(slot);
 								return getValidKeypairForSlot(slot).then(kp => {
 									keypair = kp;
 								});
 							});
 
 							it('should reject received block when blockslot outside window', done => {
-								var blockWithDifferentKeyAndTimestamp = createBlock(
+								const blockWithDifferentKeyAndTimestamp = createBlock(
 									[],
-									timestamp,
+									auxTimestamp,
 									keypair,
 									secondLastBlock
 								);
@@ -766,8 +766,8 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('when last block skipped a slot', () => {
-					var nextSlotBlock;
-					var nextSlotKeypair;
+					let nextSlotBlock;
+					let nextSlotKeypair;
 
 					beforeEach(done => {
 						Promise.all([
@@ -803,7 +803,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 					});
 
 					it('should delete skipped block and save received block (with lower slot)', done => {
-						var blockWithUnskippedSlot = createBlock(
+						const blockWithUnskippedSlot = createBlock(
 							[],
 							slots.getSlotTime(slot + 1),
 							keypair,
@@ -828,10 +828,10 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			describe('with 100 blocks forged', () => {
-				var secondLastBlock;
-				var lastBlock;
-				var keypair;
-				var slot;
+				let secondLastBlock;
+				let lastBlock;
+				let keypair;
+				let slot;
 
 				beforeEach(done => {
 					forgeMultipleBlocks(100, (err, forgedBlocks) => {
@@ -848,7 +848,7 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 				});
 
 				describe('after new round', () => {
-					var blockFromPreviousRound;
+					let blockFromPreviousRound;
 
 					beforeEach(done => {
 						blockFromPreviousRound = createBlock(
@@ -881,8 +881,8 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 
 		describe('discard blocks', () => {
 			describe('when block is already processed', () => {
-				var lastBlock;
-				var block;
+				let lastBlock;
+				let block;
 
 				beforeEach(done => {
 					lastBlock = library.modules.blocks.lastBlock.get();
@@ -904,15 +904,15 @@ describe('system test (blocks) - process onReceiveBlock()', () => {
 			});
 
 			describe('when block does not match blockchain', () => {
-				var differentChainBlock;
+				let differentChainBlock;
 
 				beforeEach(done => {
-					var dummyLastBlock = {
+					const dummyLastBlock = {
 						height: 11,
 						id: '14723131253653198332',
 					};
 
-					var keypair = getKeypair(genesisDelegates[0].passphrase);
+					const keypair = getKeypair(genesisDelegates[0].passphrase);
 					differentChainBlock = createBlock(
 						[],
 						slots.getSlotTime(10),

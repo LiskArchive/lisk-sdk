@@ -608,23 +608,23 @@ describe('blocks/verify', () => {
 	describe('__private.verifyReward', () => {
 		let verifyReward;
 		let blockRewardTemp;
-		let exceptions;
 		let exceptionsTemp;
+		let exceptionsTemp2;
 
 		beforeEach(done => {
 			blockRewardTemp = __private.blockReward;
 			__private.blockReward = {
 				calcReward: sinonSandbox.stub(),
 			};
-			exceptions = BlocksVerify.__get__('exceptions');
-			exceptionsTemp = exceptions;
-			exceptions.blockRewards = [1, 2, 3, 4];
+			exceptionsTemp2 = BlocksVerify.__get__('exceptions');
+			exceptionsTemp = exceptionsTemp2;
+			exceptionsTemp2.blockRewards = [1, 2, 3, 4];
 			done();
 		});
 
 		afterEach(done => {
 			__private.blockReward = blockRewardTemp;
-			exceptions = exceptionsTemp;
+			exceptionsTemp2 = exceptionsTemp;
 			done();
 		});
 
@@ -2089,7 +2089,7 @@ describe('blocks/verify', () => {
 			});
 
 			it('should not be called if snapshotting was activated', done => {
-				const blocksVerifyModule = new BlocksVerify(
+				const blocksVerifyAuxModule = new BlocksVerify(
 					loggerStub,
 					logicBlockStub,
 					logicTransactionStub,
@@ -2099,7 +2099,7 @@ describe('blocks/verify', () => {
 					}
 				);
 
-				blocksVerifyModule.processBlock(
+				blocksVerifyAuxModule.processBlock(
 					dummyBlock,
 					broadcast,
 					saveBlock,

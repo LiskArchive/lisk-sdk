@@ -482,8 +482,8 @@ TransactionPool.prototype.receiveTransactions = function(
 ) {
 	async.eachSeries(
 		transactions,
-		(transaction, cb) => {
-			self.processUnconfirmedTransaction(transaction, broadcast, cb);
+		(transaction, eachSeriesCb) => {
+			self.processUnconfirmedTransaction(transaction, broadcast, eachSeriesCb);
 		},
 		err => setImmediate(cb, err, transactions)
 	);

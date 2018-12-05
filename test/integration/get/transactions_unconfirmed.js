@@ -14,29 +14,29 @@
 
 'use strict';
 
-var async = require('async');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../fixtures/accounts');
-var randomUtil = require('../../common/utils/random');
-var localCommon = require('./../common');
+const async = require('async');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../fixtures/accounts');
+const randomUtil = require('../../common/utils/random');
+const localCommon = require('./../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test - get unconfirmed transactions', () => {
-	var account1 = randomUtil.account();
-	var account2 = randomUtil.account();
-	var transaction1 = lisk.transaction.transfer({
+	const account1 = randomUtil.account();
+	const account2 = randomUtil.account();
+	const transaction1 = lisk.transaction.transfer({
 		amount: 1100 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account1.address,
 	});
-	var transaction2 = lisk.transaction.transfer({
+	const transaction2 = lisk.transaction.transfer({
 		amount: 1100 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 	});
 
-	var library;
+	let library;
 	localCommon.beforeBlock('system_get_transactions_unconfirmed', lib => {
 		library = lib;
 	});
@@ -67,7 +67,7 @@ describe('system test - get unconfirmed transactions', () => {
 	});
 
 	it('using no params should be ok', done => {
-		var filter = {
+		const filter = {
 			offset: 0,
 			limit: 10,
 		};
@@ -90,7 +90,7 @@ describe('system test - get unconfirmed transactions', () => {
 
 	describe('id', () => {
 		it('using valid but unknown id should be ok', done => {
-			var filter = {
+			const filter = {
 				id: '79fjdfd',
 				offset: 0,
 				limit: 10,
@@ -111,7 +111,7 @@ describe('system test - get unconfirmed transactions', () => {
 		});
 
 		it('using known id should be ok', done => {
-			var filter = {
+			const filter = {
 				id: transaction1.id,
 				offset: 0,
 				limit: 10,

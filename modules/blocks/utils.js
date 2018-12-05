@@ -301,7 +301,7 @@ Utils.prototype.loadBlocksData = function(filter, cb, tx) {
 			// FIXME: That SQL query have mess logic, need to be refactored
 			(tx || library.db).blocks
 				.loadBlocksData(Object.assign({}, filter, params))
-				.then(rows => setImmediate(cb, null, rows));
+				.then(blockRows => setImmediate(cb, null, blockRows));
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -329,9 +329,13 @@ Utils.prototype.getBlockProgressLogger = function(
 	 * @class
 	 * @todo Add @param tags
 	 */
-	function BlockProgressLogger(transactionsCount, logsFrequency, msg) {
-		this.target = transactionsCount;
-		this.step = Math.floor(transactionsCount / logsFrequency);
+	function BlockProgressLogger(
+		loggerTransactionsCount,
+		loggerFrequencyLogs,
+		loggerMsg
+	) {
+		this.target = loggerTransactionsCount;
+		this.step = Math.floor(loggerTransactionsCount / loggerFrequencyLogs);
 		this.applied = 0;
 
 		/**
@@ -367,7 +371,7 @@ Utils.prototype.getBlockProgressLogger = function(
 		 */
 		this.log = function() {
 			library.logger.info(
-				msg,
+				loggerMsg,
 				`${(this.applied / this.target * 100).toPrecision(4)} %: applied ${
 					this.applied
 				} of ${this.target} transactions`
@@ -433,8 +437,8 @@ Utils.prototype.aggregateBlocksReward = function(filter, cb) {
 				};
 				return setImmediate(cb, null, data);
 			})
-			.catch(err => {
-				library.logger.error(err.stack);
+			.catch(aggregateBlocksRewardErr => {
+				library.logger.error(aggregateBlocksRewardErr.stack);
 				return setImmediate(cb, 'Blocks#aggregateBlocksReward error');
 			});
 	});

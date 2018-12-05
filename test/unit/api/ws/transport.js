@@ -21,11 +21,11 @@ const expect = chai.expect;
 
 const TransportWSApi = rewire('../../../../api/ws/transport');
 
-var transportModuleMock;
-var registerRPCEndpointsStub;
-var registerEventEndpointsStub;
-var wsRPCMock;
-var slaveRPCStubStub;
+let transportModuleMock;
+let registerRPCEndpointsStub;
+let registerEventEndpointsStub;
+let wsRPCMock;
+let slaveRPCStubStub;
 
 describe('TransportWSApi', () => {
 	beforeEach(done => {

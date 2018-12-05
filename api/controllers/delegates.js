@@ -14,11 +14,11 @@
 
 'use strict';
 
-var _ = require('lodash');
-var swaggerHelper = require('../../helpers/swagger');
+const _ = require('lodash');
+const swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
-var modules;
+let modules;
 const { EPOCH_TIME } = global.constants;
 
 /**
@@ -42,9 +42,9 @@ function DelegatesController(scope) {
  * @todo Add description for the function and the params
  */
 DelegatesController.getDelegates = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
 		secondPublicKey: params.secondPublicKey.value,
@@ -102,9 +102,9 @@ DelegatesController.getDelegates = function(context, next) {
  * @todo Add description for the function and the params
  */
 DelegatesController.getForgers = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	const filters = {
 		limit: params.limit.value,
 		offset: params.offset.value,
 	};
@@ -124,9 +124,9 @@ DelegatesController.getForgers = function(context, next) {
 };
 
 DelegatesController.getForgingStatistics = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	const filters = {
 		address: params.address.value,
 		start: params.fromTimestamp.value,
 		end: params.toTimestamp.value,

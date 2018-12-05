@@ -14,12 +14,12 @@
 
 'use strict';
 
-var ApiError = require('../../../helpers/api_error.js');
+const ApiError = require('../../../helpers/api_error.js');
 
 describe('helpers/apiError', () => {
-	var apiError;
-	var validErrorMessage;
-	var validErrorCode;
+	let apiError;
+	let validErrorMessage;
+	let validErrorCode;
 
 	beforeEach(done => {
 		validErrorMessage = 'Valid error message';

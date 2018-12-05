@@ -14,28 +14,28 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var rewire = require('rewire');
-var randomstring = require('randomstring');
-var modulesLoader = require('../../common/modules_loader.js');
-var randomUtil = require('../../common/utils/random');
-var typeRepresentatives = require('../../fixtures/types_representatives.js');
-var testData = require('./test_data/dapp.js');
+const crypto = require('crypto');
+const rewire = require('rewire');
+const randomstring = require('randomstring');
+const modulesLoader = require('../../common/modules_loader.js');
+const randomUtil = require('../../common/utils/random');
+const typeRepresentatives = require('../../fixtures/types_representatives.js');
+const testData = require('./test_data/dapp.js');
 
 const { FEES } = __testContext.config.constants;
-var Dapp = rewire('../../../logic/dapp.js');
-var validKeypair = testData.validKeypair;
-var validSender = testData.validSender;
-var validTransaction = testData.validTransaction;
-var rawValidTransaction = testData.rawValidTransaction;
+const Dapp = rewire('../../../logic/dapp.js');
+const validKeypair = testData.validKeypair;
+const validSender = testData.validSender;
+const validTransaction = testData.validTransaction;
+const rawValidTransaction = testData.rawValidTransaction;
 
 describe('dapp', () => {
-	var dapp;
-	var dbStub;
+	let dapp;
+	let dbStub;
 
-	var transaction;
-	var rawTransaction;
-	var sender;
+	let transaction;
+	let rawTransaction;
+	let sender;
 
 	beforeEach(done => {
 		dbStub = {
@@ -72,7 +72,7 @@ describe('dapp', () => {
 
 		describe('constructor', () => {
 			describe('private library object', () => {
-				var library;
+				let library;
 
 				beforeEach(done => {
 					new Dapp(
@@ -311,7 +311,7 @@ describe('dapp', () => {
 				});
 
 				describe('when dbStub rejects proimse', () => {
-					var dbError = new Error();
+					const dbError = new Error();
 
 					it('should call callback with error = "DApp#verify error"', done => {
 						dbStub.dapps.getExisting
@@ -330,7 +330,7 @@ describe('dapp', () => {
 				});
 
 				describe('when dbStub resolves with application', () => {
-					var dappParams;
+					let dappParams;
 
 					beforeEach(done => {
 						dappParams = {
@@ -497,13 +497,13 @@ describe('dapp', () => {
 		});
 
 		describe('applyConfirmed', () => {
-			var dummyBlock = {
+			const dummyBlock = {
 				id: '9314232245035524467',
 				height: 1,
 			};
 
-			var unconfirmedNames;
-			var unconfirmedLinks;
+			let unconfirmedNames;
+			let unconfirmedLinks;
 
 			beforeEach(done => {
 				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
@@ -528,7 +528,7 @@ describe('dapp', () => {
 
 		describe('undoConfirmed', () => {
 			describe('with vaid parameters', () => {
-				var dummyBlock = {
+				const dummyBlock = {
 					id: '9314232245035524467',
 					height: 1,
 				};
@@ -542,7 +542,7 @@ describe('dapp', () => {
 		describe('applyUnconfirmed', () => {
 			describe('when unconfirmed names already exists', () => {
 				beforeEach(() => {
-					var dappNames = {};
+					const dappNames = {};
 					dappNames[transaction.asset.dapp.name] = true;
 					Dapp.__set__('__private.unconfirmedNames', dappNames);
 					return Dapp.__set__('__private.unconfirmedLinks', {});
@@ -558,7 +558,7 @@ describe('dapp', () => {
 
 			describe('when unconfirmed link already exists', () => {
 				beforeEach(() => {
-					var dappLinks = {};
+					const dappLinks = {};
 					dappLinks[transaction.asset.dapp.link] = true;
 					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
 					return Dapp.__set__('__private.unconfirmedNames', {});
@@ -573,12 +573,12 @@ describe('dapp', () => {
 			});
 
 			describe('when unconfirmed dapp does not exist', () => {
-				var unconfirmedNames;
-				var unconfirmedLinks;
+				let unconfirmedNames;
+				let unconfirmedLinks;
 
 				beforeEach(done => {
-					var dappNames = {};
-					var dappLinks = {};
+					const dappNames = {};
+					const dappLinks = {};
 					Dapp.__set__('__private.unconfirmedLinks', dappLinks);
 					Dapp.__set__('__private.unconfirmedNames', dappNames);
 					unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
@@ -613,12 +613,12 @@ describe('dapp', () => {
 		});
 
 		describe('undoUnconfirmed', () => {
-			var unconfirmedNames;
-			var unconfirmedLinks;
+			let unconfirmedNames;
+			let unconfirmedLinks;
 
 			beforeEach(done => {
-				var dappNames = {};
-				var dappLinks = {};
+				const dappNames = {};
+				const dappLinks = {};
 				Dapp.__set__('__private.unconfirmedLinks', dappLinks);
 				Dapp.__set__('__private.unconfirmedNames', dappNames);
 				unconfirmedNames = Dapp.__get__('__private.unconfirmedNames');
@@ -649,7 +649,7 @@ describe('dapp', () => {
 
 		describe('objectNormalize', () => {
 			describe('using undefined properties in the dapp asset', () => {
-				var invalidProperties = {
+				const invalidProperties = {
 					dummyUndefinedProperty: undefined,
 					dummpyNullProperty: null,
 				};
@@ -676,8 +676,8 @@ describe('dapp', () => {
 			});
 
 			describe('schema properties', () => {
-				var library;
-				var schemaSpy;
+				let library;
+				let schemaSpy;
 
 				beforeEach(done => {
 					library = Dapp.__get__('library');
@@ -703,17 +703,17 @@ describe('dapp', () => {
 
 			describe('dynamic schema tests', () => {
 				describe('category', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
 						typeRepresentatives.others
 					);
 
-					var otherTypes = typeRepresentatives.others;
+					const otherTypes = typeRepresentatives.others;
 
-					var invalidCategoriesNumber = [-1, -2, 0.1, 9, 10];
-					var validCategories = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+					const invalidCategoriesNumber = [-1, -2, 0.1, 9, 10];
+					const validCategories = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
 					invalidTypes.forEach(type => {
 						it(`should throw error for: ${type.description}`, () => {
@@ -755,20 +755,20 @@ describe('dapp', () => {
 				});
 
 				describe('name', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					var otherTypes = typeRepresentatives.others;
+					const otherTypes = typeRepresentatives.others;
 
-					var invalidNames = [
+					const invalidNames = [
 						'',
 						_.fill(new Array(33), 'a'),
 						_.fill(new Array(34), 'b'),
 					];
-					var validNames = _.fill(new Array(5), 'a').map(() => {
+					const validNames = _.fill(new Array(5), 'a').map(() => {
 						return randomUtil.applicationName();
 					});
 
@@ -814,17 +814,17 @@ describe('dapp', () => {
 				});
 
 				describe('description', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					var invalidDescriptions = [
+					const invalidDescriptions = [
 						_.fill(new Array(161), 'a'),
 						_.fill(new Array(162), 'b'),
 					];
-					var validDescriptions = _.fill(new Array(33), 'a').map(() => {
+					const validDescriptions = _.fill(new Array(33), 'a').map(() => {
 						return randomstring.generate(Math.random() * 160);
 					});
 
@@ -861,18 +861,18 @@ describe('dapp', () => {
 				});
 
 				describe('tags', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
 					);
 
-					var invalidTags = [
+					const invalidTags = [
 						_.fill(new Array(161), 'a'),
 						_.fill(new Array(81), 'b').join(),
 					];
 
-					var validTags = [
+					const validTags = [
 						_.fill(
 							new Array(_.toInteger(Math.random() * 80)),
 							randomstring.generate(1)
@@ -913,18 +913,18 @@ describe('dapp', () => {
 				});
 
 				describe('type', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.positiveIntegers,
 						typeRepresentatives.negativeIntegers,
 						typeRepresentatives.others
 					);
 
-					var otherTypes = typeRepresentatives.others;
+					const otherTypes = typeRepresentatives.others;
 					// No max limit set on type. Type verification is partially handled here
 					// and the rest is handled in verify function.
 					// TODO: Do stronger schema checks
-					var validTypes = [1, 2, 4, 11].concat(
+					const validTypes = [1, 2, 4, 11].concat(
 						_.map(typeRepresentatives.positiveIntegers, 'input')
 					);
 					invalidTypes.forEach(type => {
@@ -969,7 +969,7 @@ describe('dapp', () => {
 				});
 
 				describe('link', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
@@ -977,11 +977,11 @@ describe('dapp', () => {
 
 					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
-					var invalidLinks = [
+					const invalidLinks = [
 						_.fill(new Array(2002), 'a'),
 						_.fill(new Array(2001), 'a'),
 					];
-					var validLinks = _.fill(new Array(5), '').map(() => {
+					const validLinks = _.fill(new Array(5), '').map(() => {
 						return randomUtil.applicationName();
 					});
 
@@ -1018,7 +1018,7 @@ describe('dapp', () => {
 				});
 
 				describe('icon', () => {
-					var invalidTypes = _.difference(
+					const invalidTypes = _.difference(
 						typeRepresentatives.allTypes,
 						typeRepresentatives.strings,
 						typeRepresentatives.others
@@ -1026,11 +1026,11 @@ describe('dapp', () => {
 
 					// TODO: Schema checks only check whether property is a string or not,
 					// and not whether value is actually a link. We need to handle it here.
-					var invalidIcons = [
+					const invalidIcons = [
 						_.fill(new Array(2002), 'a'),
 						_.fill(new Array(2001), 'a'),
 					];
-					var validIcons = _.fill(new Array(5), '').map(() => {
+					const validIcons = _.fill(new Array(5), '').map(() => {
 						return randomUtil.applicationName();
 					});
 

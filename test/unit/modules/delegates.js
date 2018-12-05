@@ -14,17 +14,17 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').cryptography;
-var genesisDelegates = require('../../data/genesis_delegates.json');
-var delegatesRoundsList = require('../../data/delegates_rounds_list.json');
-var accountFixtures = require('../../fixtures/accounts');
-var application = require('../../common/application');
+const lisk = require('lisk-elements').cryptography;
+const genesisDelegates = require('../../data/genesis_delegates.json');
+const delegatesRoundsList = require('../../data/delegates_rounds_list.json');
+const accountFixtures = require('../../fixtures/accounts');
+const application = require('../../common/application');
 const seeder = require('../../common/db_seed');
 
 let db;
 
 describe('delegates', () => {
-	var library;
+	let library;
 
 	before(done => {
 		application.init(
@@ -52,11 +52,11 @@ describe('delegates', () => {
 
 	describe('__private', () => {
 		describe('loadDelegates', () => {
-			var loadDelegates;
-			var config;
-			var __private;
+			let loadDelegates;
+			let config;
+			let __private;
 
-			var delegates = [
+			const delegates = [
 				{
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
@@ -125,7 +125,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if number of iterations is omitted', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// iterations is removed but should be set to 1
@@ -147,7 +147,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if number of iterations is incorrect', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// iterations is set to 2 instead of 1
@@ -169,7 +169,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has no salt', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedPassphrase:
@@ -192,7 +192,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has a modified salt', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// salt is 1 character different
@@ -214,7 +214,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has no cipher text', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedPassphrase:
@@ -237,7 +237,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has a modified ciphertext', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// cipher text is 1 character different
@@ -259,7 +259,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has no iv', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedPassphrase:
@@ -282,7 +282,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has a modified iv', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// iv is 1 character different
@@ -304,7 +304,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has no tag', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					encryptedPassphrase:
@@ -327,7 +327,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has invalid tag', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// tag is 1 character different
@@ -349,7 +349,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if encrypted passphrase has shortened tag', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'9d3058175acab969f41ad9b86f7a2926c74258670fe56b37c429c01fca9f2f0f',
 					// tag is 4 characters shorter
@@ -371,7 +371,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if publicKeys do not match', done => {
-				var accountDetails = {
+				const accountDetails = {
 					publicKey:
 						'141b16ac8d5bd150f16b1caa08f689057ca4c4434445e56661831f4e671b7c0a',
 					encryptedPassphrase:
@@ -392,7 +392,7 @@ describe('delegates', () => {
 			});
 
 			it('should return error if account does not exist', done => {
-				var randomAccount = {
+				const randomAccount = {
 					passphrase:
 						'robust swift deputy enable forget peasant grocery road convince',
 					publicKey:
@@ -400,7 +400,7 @@ describe('delegates', () => {
 					encryptedPassphrase:
 						'iterations=1&salt=b51aba5a50cc44a8badd26bb89eb19c9&cipherText=9e345573201d8d064409deaa9d4125f85974c1309f7bd5087ea84b77cb0d46f1fc71b6f317bcd14de0f1cf76fd25293671273f57266876dc6afd4732b24db6&iv=ecc42c613ad6a72e4320231a&tag=7febd325fbcd7f81f3cd39f055ef356a&version=1',
 				};
-				var accountDetails = {
+				const accountDetails = {
 					encryptedPassphrase: randomAccount.encryptedPassphrase,
 					publicKey: randomAccount.publicKey,
 				};
@@ -548,8 +548,8 @@ describe('delegates', () => {
 				const currentSlot = 35;
 				const round = 1;
 
-				delegates.generateDelegateList = (round, source, cb) => {
-					cb(null, delegatesRoundsList[round]);
+				delegates.generateDelegateList = (roundArg, source, cb) => {
+					cb(null, delegatesRoundsList[roundArg]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -573,8 +573,8 @@ describe('delegates', () => {
 				const currentSlot = 578;
 				const round = 2;
 
-				delegates.generateDelegateList = (round, source, cb) => {
-					cb(null, delegatesRoundsList[round]);
+				delegates.generateDelegateList = (roundArg, source, cb) => {
+					cb(null, delegatesRoundsList[roundArg]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -598,8 +598,8 @@ describe('delegates', () => {
 				const currentSlot = 1051;
 				const round = 3;
 
-				delegates.generateDelegateList = (round, source, cb) => {
-					cb(null, delegatesRoundsList[round]);
+				delegates.generateDelegateList = (roundArg, source, cb) => {
+					cb(null, delegatesRoundsList[roundArg]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -624,8 +624,8 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (round, source, cb) => {
-					cb(null, delegatesRoundsList[round]);
+				delegates.generateDelegateList = (roundArg, source, cb) => {
+					cb(null, delegatesRoundsList[roundArg]);
 				};
 
 				__private.getDelegateKeypairForCurrentSlot(
@@ -643,7 +643,7 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (round, source, cb) => {
+				delegates.generateDelegateList = (__round, source, cb) => {
 					cb('generateDelegateList error');
 				};
 

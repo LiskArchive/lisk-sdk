@@ -14,11 +14,11 @@
 
 'use strict';
 
-var ip = require('ip');
-var _ = require('lodash');
-var z_schema = require('z-schema');
-var FormatValidators = require('z-schema/src/FormatValidators');
-var Bignum = require('./bignum.js');
+const ip = require('ip');
+const _ = require('lodash');
+const z_schema = require('z-schema');
+const FormatValidators = require('z-schema/src/FormatValidators');
+const Bignum = require('./bignum.js');
 // new BigNumber(2).pow(64).minus(1)
 const UINT64_MAX = new Bignum('18446744073709551615');
 
@@ -53,7 +53,7 @@ const UINT64_MAX = new Bignum('18446744073709551615');
 /**
  * @exports helpers/z_schema
  */
-var liskFormats = {
+const liskFormats = {
 	/**
 	 * Description of the function.
 	 *
@@ -159,7 +159,7 @@ var liskFormats = {
 			return false;
 		}
 
-		var a = str.split(',');
+		const a = str.split(',');
 
 		if (a.length > 0 && a.length <= 1000) {
 			return true;

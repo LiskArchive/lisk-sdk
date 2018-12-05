@@ -15,23 +15,23 @@
 'use strict';
 
 require('../../functional.js');
-var randomstring = require('randomstring');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var SwaggerEndpoint = require('../../../common/swagger_spec');
-var waitFor = require('../../../common/utils/wait_for');
-var apiHelpers = require('../../../common/helpers/api');
-var Bignum = require('../../../../helpers/bignum.js');
+const randomstring = require('randomstring');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const waitFor = require('../../../common/utils/wait_for');
+const apiHelpers = require('../../../common/helpers/api');
+const Bignum = require('../../../../helpers/bignum.js');
 
 const { FEES } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/voters', () => {
-	var votersEndpoint = new SwaggerEndpoint('GET /voters');
-	var validVotedDelegate = accountFixtures.existingDelegate;
-	var validNotVotedDelegate = accountFixtures.genesis;
-	var validNotExistingAddress = '11111111111111111111L';
+	const votersEndpoint = new SwaggerEndpoint('GET /voters');
+	const validVotedDelegate = accountFixtures.existingDelegate;
+	const validNotVotedDelegate = accountFixtures.genesis;
+	const validNotExistingAddress = '11111111111111111111L';
 
 	function expectValidVotedDelegateResponse(res) {
 		expect(res.body.data.votes).to.be.least(res.body.data.voters.length);
@@ -238,19 +238,19 @@ describe('GET /api/voters', () => {
 		});
 
 		describe('sort', () => {
-			var validExtraDelegateVoter = randomUtil.account();
+			const validExtraDelegateVoter = randomUtil.account();
 
 			before(() => {
 				const amount = new Bignum(FEES.DELEGATE)
 					.plus(FEES.VOTE)
 					.plus(FEES.SECOND_SIGNATURE);
-				var enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
+				const enrichExtraDelegateVoterTransaction = lisk.transaction.transfer({
 					amount,
 					passphrase: accountFixtures.genesis.passphrase,
 					recipientId: validExtraDelegateVoter.address,
 				});
 
-				var registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
+				const registerExtraVoterAsADelegateTransaction = lisk.transaction.registerDelegate(
 					{
 						passphrase: validExtraDelegateVoter.passphrase,
 						username: randomstring.generate({
@@ -261,7 +261,7 @@ describe('GET /api/voters', () => {
 					}
 				);
 
-				var voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
+				const voteByExtraDelegateVoterTransaction = lisk.transaction.castVotes({
 					passphrase: validExtraDelegateVoter.passphrase,
 					votes: [`${validVotedDelegate.publicKey}`],
 				});
@@ -451,7 +451,7 @@ describe('GET /api/voters', () => {
 
 			describe('limit=2 & offset=1', () => {
 				it('should return 2 voters, containing 1 from the previous result', done => {
-					var voters = null;
+					let voters = null;
 
 					votersEndpoint
 						.makeRequest(

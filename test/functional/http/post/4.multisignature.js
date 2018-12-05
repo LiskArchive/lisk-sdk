@@ -15,24 +15,24 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-elements').default;
-var phases = require('../../../common/phases');
-var Scenarios = require('../../../common/scenarios');
-var accountFixtures = require('../../../fixtures/accounts');
-var apiCodes = require('../../../../helpers/api_codes');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var elements = require('../../../common/utils/elements');
-var SwaggerEndpoint = require('../../../common/swagger_spec');
-var apiHelpers = require('../../../common/helpers/api');
-var errorCodes = require('../../../../helpers/api_codes');
-var common = require('./common');
+const lisk = require('lisk-elements').default;
+const phases = require('../../../common/phases');
+const Scenarios = require('../../../common/scenarios');
+const accountFixtures = require('../../../fixtures/accounts');
+const apiCodes = require('../../../../helpers/api_codes');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const elements = require('../../../common/utils/elements');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const apiHelpers = require('../../../common/helpers/api');
+const errorCodes = require('../../../../helpers/api_codes');
+const common = require('./common');
 
 const { FEES, MULTISIG_CONSTRAINTS } = global.constants;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 4) register multisignature', () => {
-	var scenarios = {
+	const scenarios = {
 		no_funds: new Scenarios.Multisig({
 			amount: 0,
 		}),
@@ -55,15 +55,15 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		regular_with_second_signature: new Scenarios.Multisig(),
 	};
 
-	var transaction;
-	var transactionsToWaitFor = [];
-	var badTransactions = [];
-	var goodTransactions = [];
-	var pendingMultisignatures = [];
-	var signatureEndpoint = new SwaggerEndpoint('POST /signatures');
+	let transaction;
+	let transactionsToWaitFor = [];
+	const badTransactions = [];
+	const goodTransactions = [];
+	const pendingMultisignatures = [];
+	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
 	before(() => {
-		var transactions = [];
+		const transactions = [];
 
 		Object.keys(scenarios)
 			.filter(type => type !== 'no_funds')
@@ -114,7 +114,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using empty member should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					`${accountFixtures.existingDelegate.publicKey}`,
 					`${scenarios.no_funds.account.publicKey}`,
 					`${scenarios.minimal_funds.account.publicKey}`,
@@ -143,7 +143,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('including sender should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					`${accountFixtures.existingDelegate.publicKey}`,
 					`${scenarios.regular.account.publicKey}`,
 				];
@@ -167,7 +167,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using same member twice should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					randomUtil.account().publicKey,
 					randomUtil.account().publicKey,
 				];
@@ -200,7 +200,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using invalid publicKey should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					scenarios.no_funds.account.publicKey,
 					accountFixtures.existingDelegate.publicKey,
 				];
@@ -233,7 +233,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using no math operator (just publicKey) should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					accountFixtures.existingDelegate.publicKey,
 					scenarios.no_funds.account.publicKey,
 					scenarios.minimal_funds.account.publicKey,
@@ -267,7 +267,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using just math operator should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					accountFixtures.existingDelegate.publicKey,
 					randomUtil.account().publicKey,
 				];
@@ -297,7 +297,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using invalid math operator should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					accountFixtures.existingDelegate.publicKey,
 					scenarios.no_funds.account.publicKey,
 				];
@@ -330,7 +330,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('using duplicated correct operator should fail', () => {
-				var keysgroup = [
+				const keysgroup = [
 					accountFixtures.existingDelegate.publicKey,
 					scenarios.no_funds.account.publicKey,
 				];
@@ -508,7 +508,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 	describe('transactions processing', () => {
 		it('with no_funds scenario should fail', () => {
-			var scenario = scenarios.no_funds;
+			const scenario = scenarios.no_funds;
 
 			return sendTransactionPromise(
 				scenario.multiSigTransaction,
@@ -524,7 +524,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		it('with minimal_funds scenario should be ok', () => {
-			var scenario = scenarios.minimal_funds;
+			const scenario = scenarios.minimal_funds;
 
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -532,12 +532,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		it('using valid params regular scenario should be ok', () => {
-			var scenario = scenarios.regular;
+			const scenario = scenarios.regular;
 
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-				var signatureRequests = _.map(scenario.members, member => {
+				const signatureRequests = _.map(scenario.members, member => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
@@ -549,9 +549,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return signatureEndpoint
 					.makeRequests(signatureRequests, 200)
 					.then(results => {
-						results.forEach(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						results.forEach(makeRequestsRes => {
+							expect(makeRequestsRes.body.meta.status).to.be.true;
+							expect(makeRequestsRes.body.data.message).to.be.equal(
+								'Signature Accepted'
+							);
 						});
 
 						goodTransactions.push(scenario.multiSigTransaction);
@@ -560,8 +562,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		it('using valid params regular_with_second_signature scenario should be ok', () => {
-			var scenario = scenarios.regular_with_second_signature;
-			var multiSigSecondPassphraseTransaction = lisk.transaction.registerMultisignature(
+			const scenario = scenarios.regular_with_second_signature;
+			const multiSigSecondPassphraseTransaction = lisk.transaction.registerMultisignature(
 				{
 					passphrase: scenario.account.passphrase,
 					secondPassphrase: scenario.account.secondPassphrase,
@@ -585,7 +587,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				.then(res => {
 					expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-					var signatureRequests = _.map(scenario.members, member => {
+					const signatureRequests = _.map(scenario.members, member => {
 						return {
 							signature: apiHelpers.createSignatureObject(
 								multiSigSecondPassphraseTransaction,
@@ -597,9 +599,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 					return signatureEndpoint
 						.makeRequests(signatureRequests, 200)
 						.then(results => {
-							results.forEach(res => {
-								expect(res.body.meta.status).to.be.true;
-								expect(res.body.data.message).to.be.equal('Signature Accepted');
+							results.forEach(makeRequestsRes => {
+								expect(makeRequestsRes.body.meta.status).to.be.true;
+								expect(makeRequestsRes.body.data.message).to.be.equal(
+									'Signature Accepted'
+								);
 							});
 
 							goodTransactions.push(multiSigSecondPassphraseTransaction);
@@ -608,7 +612,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		it('using valid params unsigned scenario should be ok and remain in pending queue', () => {
-			var scenario = scenarios.unsigned;
+			const scenario = scenarios.unsigned;
 
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
@@ -618,12 +622,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		it('using valid params max_members scenario should be ok', () => {
-			var scenario = scenarios.max_members;
+			const scenario = scenarios.max_members;
 
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-				var signatureRequests = _.map(scenario.members, member => {
+				const signatureRequests = _.map(scenario.members, member => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
@@ -635,9 +639,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return signatureEndpoint
 					.makeRequests(signatureRequests, 200)
 					.then(results => {
-						results.forEach(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						results.forEach(eachRes => {
+							expect(eachRes.body.meta.status).to.be.true;
+							expect(eachRes.body.data.message).to.be.equal(
+								'Signature Accepted'
+							);
 						});
 
 						goodTransactions.push(scenario.multiSigTransaction);
@@ -646,12 +652,12 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 		});
 
 		it('using valid params max_members_max_min scenario should be ok', () => {
-			var scenario = scenarios.max_members_max_min;
+			const scenario = scenarios.max_members_max_min;
 
 			return sendTransactionPromise(scenario.multiSigTransaction).then(res => {
 				expect(res.body.data.message).to.be.equal('Transaction(s) accepted');
 
-				var signatureRequests = _.map(scenario.members, member => {
+				const signatureRequests = _.map(scenario.members, member => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
@@ -663,9 +669,11 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 				return signatureEndpoint
 					.makeRequests(signatureRequests, 200)
 					.then(results => {
-						results.forEach(res => {
-							expect(res.body.meta.status).to.be.true;
-							expect(res.body.data.message).to.be.equal('Signature Accepted');
+						results.forEach(eachRes => {
+							expect(eachRes.body.meta.status).to.be.true;
+							expect(eachRes.body.data.message).to.be.equal(
+								'Signature Accepted'
+							);
 						});
 
 						goodTransactions.push(scenario.multiSigTransaction);
@@ -675,8 +683,8 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 
 		describe('signing transactions', () => {
 			it('twice with the same account should fail', () => {
-				var scenario = scenarios.unsigned;
-				var signature = apiHelpers.createSignatureObject(
+				const scenario = scenarios.unsigned;
+				const signature = apiHelpers.createSignatureObject(
 					scenario.multiSigTransaction,
 					scenario.members[0]
 				);
@@ -702,7 +710,7 @@ describe('POST /api/transactions (type 4) register multisignature', () => {
 			});
 
 			it('with not requested account should fail', () => {
-				var signature = apiHelpers.createSignatureObject(
+				const signature = apiHelpers.createSignatureObject(
 					scenarios.unsigned.multiSigTransaction,
 					randomUtil.account()
 				);

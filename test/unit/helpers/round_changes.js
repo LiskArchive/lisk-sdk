@@ -14,10 +14,10 @@
 
 'use strict';
 
-var RoundChanges = require('../../../helpers/round_changes.js');
+const RoundChanges = require('../../../helpers/round_changes.js');
 
 describe('RoundChanges', () => {
-	var validScope;
+	let validScope;
 
 	beforeEach(done => {
 		validScope = {
@@ -30,7 +30,7 @@ describe('RoundChanges', () => {
 
 	describe('constructor', () => {
 		it('should accept valid scope', () => {
-			var roundChanges = new RoundChanges(validScope);
+			const roundChanges = new RoundChanges(validScope);
 
 			expect(roundChanges.roundFees).equal(validScope.roundFees);
 			return expect(
@@ -41,7 +41,7 @@ describe('RoundChanges', () => {
 		it('should floor fees value', () => {
 			validScope.roundFees = 50.9999999999999; // Float
 
-			var roundChanges = new RoundChanges(validScope);
+			const roundChanges = new RoundChanges(validScope);
 
 			return expect(roundChanges.roundFees).equal(50);
 		});
@@ -49,7 +49,7 @@ describe('RoundChanges', () => {
 		it('should round up fees after exceeding precision', () => {
 			validScope.roundFees = 50.999999999999999; // Exceeded precision
 
-			var roundChanges = new RoundChanges(validScope);
+			const roundChanges = new RoundChanges(validScope);
 
 			return expect(roundChanges.roundFees).equal(51);
 		});
@@ -57,7 +57,7 @@ describe('RoundChanges', () => {
 		it('should accept Infinite fees as expected', () => {
 			validScope.roundFees = Number.MAX_VALUE * 2; // Infinity
 
-			var roundChanges = new RoundChanges(validScope);
+			const roundChanges = new RoundChanges(validScope);
 
 			return expect(roundChanges.roundFees).equal(Infinity);
 		});
@@ -65,9 +65,9 @@ describe('RoundChanges', () => {
 
 	describe('at', () => {
 		it('should calculate round changes from valid scope', () => {
-			var roundChanges = new RoundChanges(validScope);
-			var rewardsAt = 2;
-			var res = roundChanges.at(rewardsAt);
+			const roundChanges = new RoundChanges(validScope);
+			const rewardsAt = 2;
+			const res = roundChanges.at(rewardsAt);
 
 			expect(res.fees).equal(4);
 			expect(res.feesRemaining).equal(96);
@@ -78,9 +78,9 @@ describe('RoundChanges', () => {
 		it('should calculate round changes from Infinite fees', () => {
 			validScope.roundFees = Infinity;
 
-			var roundChanges = new RoundChanges(validScope);
-			var rewardsAt = 2;
-			var res = roundChanges.at(rewardsAt);
+			const roundChanges = new RoundChanges(validScope);
+			const rewardsAt = 2;
+			const res = roundChanges.at(rewardsAt);
 
 			expect(res.fees).equal(Infinity);
 			expect(res.feesRemaining).to.be.NaN;
@@ -91,16 +91,16 @@ describe('RoundChanges', () => {
 		it('should calculate round changes from Number.MAX_VALUE fees', () => {
 			validScope.roundFees = Number.MAX_VALUE; // 1.7976931348623157e+308
 
-			var roundChanges = new RoundChanges(validScope);
-			var rewardsAt = 2;
-			var res = roundChanges.at(rewardsAt);
-			var expectedFees = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099; // 1.7976931348623157e+308 / 101 (delegates num)
+			const roundChanges = new RoundChanges(validScope);
+			const rewardsAt = 2;
+			const res = roundChanges.at(rewardsAt);
+			const expectedFees = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099; // 1.7976931348623157e+308 / 101 (delegates num)
 
 			expect(res.fees).equal(expectedFees);
 			expect(res.rewards).equal(validScope.roundRewards[rewardsAt]); // 100
 			expect(res.feesRemaining).equal(1);
 
-			var expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
+			const expectedBalance = 1779894192932990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990099009900990199; // 1.7976931348623157e+308 / 101 (delegates num) + 100
 			return expect(res.balance).equal(expectedBalance);
 		});
 	});

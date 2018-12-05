@@ -334,9 +334,9 @@ describe('helpers/JSONHistory', () => {
 	});
 });
 
-const validMigrationExpectations = (history, versions, skipped) => {
+const validMigrationExpectations = (historyArg, versions, skipped) => {
 	expect(loggerStub.info).to.be.calledWith(
-		`Applying migration of ${history.title} from ${versions[0]} to ${
+		`Applying migration of ${historyArg.title} from ${versions[0]} to ${
 			versions[versions.length - 1]
 		}`
 	);
@@ -356,19 +356,19 @@ const validMigrationExpectations = (history, versions, skipped) => {
 	});
 };
 
-const validVersionsExpectations = (history, cb) => {
-	history.version('1.1.0');
-	history.version('1.2.0');
-	expect(history.getVersions()).to.be.eql(['1.1.0', '1.2.0']);
+const validVersionsExpectations = (historyArg, cb) => {
+	historyArg.version('1.1.0');
+	historyArg.version('1.2.0');
+	expect(historyArg.getVersions()).to.be.eql(['1.1.0', '1.2.0']);
 	cb();
 };
 
-const validChangeSetExpectations = (history, cb) => {
-	history.version('1.1.0', version => {
+const validChangeSetExpectations = (historyArg, cb) => {
+	historyArg.version('1.1.0', version => {
 		version.change('dummy change 1', data => data);
 		version.change('dummy change 2', data => data);
 	});
-	history.version('1.2.0', version => {
+	historyArg.version('1.2.0', version => {
 		version.change('dummy change 3', data => data);
 		version.change('dummy change 4', data => data);
 	});
