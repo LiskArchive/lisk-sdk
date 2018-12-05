@@ -1,4 +1,4 @@
-import addresses from '../fixtures/addresses.json';
+import publicKeys from '../fixtures/public_keys.json';
 import { expect } from 'chai';
 import transactionObjects from '../fixtures/transactions.json';
 import { TransactionPool } from '../src/transaction_pool';
@@ -42,10 +42,6 @@ describe('transaction pool', () => {
 				.value(sinon.createStubInstance(Queue));
 		});
 		return;
-	});
-
-	afterEach(() => {
-		return sandbox.restore();
 	});
 
 	describe('#addTransactions', () => {});
@@ -147,21 +143,19 @@ describe('transaction pool', () => {
 	});
 
 	describe('#onRoundRollback', () => {
-		const roundDelegateAddresses = addresses;
-
 		it('should call checkTransactionForProperty with block sender addresses and "senderPublicKey" property', () => {
-			transactionPool.onRoundRollback(roundDelegateAddresses);
+			transactionPool.onRoundRollback(publicKeys);
 			const senderProperty = 'senderPublicKey';
 			return expect(
 				checkerStubs.checkTransactionPropertyForValues.calledWithExactly(
-					roundDelegateAddresses,
+					publicKeys,
 					senderProperty,
 				),
 			).to.equal(true);
 		});
 
 		it('should call removeFor for pending, verified and ready queues once', () => {
-			transactionPool.onRoundRollback(roundDelegateAddresses);
+			transactionPool.onRoundRollback(publicKeys);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
 			expect(verified.removeFor).to.be.calledOnce;
@@ -178,7 +172,7 @@ describe('transaction pool', () => {
 					return removedTransactions;
 				})
 				.reduce((acc, value) => acc.concat(value), []);
-			transactionPool.onRoundRollback(roundDelegateAddresses);
+			transactionPool.onRoundRollback(publicKeys);
 			return expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
