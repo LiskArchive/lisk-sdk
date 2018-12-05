@@ -78,7 +78,7 @@ describe('account:create', () => {
 	describe('account:create', () => {
 		setupTest()
 			.command(['account:create'])
-			.it('should create account', () => {
+			.it('should create account', async () => {
 				expect(printUtils.print).to.be.called;
 				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
@@ -121,7 +121,7 @@ describe('account:create', () => {
 
 		setupTest()
 			.command(['account:create', '--number=NaN'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Number flag must be an integer and greater than 0',
 				);
@@ -130,7 +130,7 @@ describe('account:create', () => {
 
 		setupTest()
 			.command(['account:create', '--number=0'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Number flag must be an integer and greater than 0',
 				);
@@ -139,7 +139,7 @@ describe('account:create', () => {
 
 		setupTest()
 			.command(['account:create', '--number=10sk24'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Number flag must be an integer and greater than 0',
 				);

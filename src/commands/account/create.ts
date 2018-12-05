@@ -40,8 +40,8 @@ const createAccount = (): AccountInfo => {
 
 export default class CreateCommand extends BaseCommand {
 	static description = `
-Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
-`;
+		Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
+	`;
 
 	static examples = ['account:create', 'account:create --number=3'];
 
@@ -55,8 +55,8 @@ Returns a randomly-generated mnemonic passphrase with its corresponding public/p
 	};
 
 	async run(): Promise<void> {
-		const { flags: { number: numberStr = '1' } } = this.parse(CreateCommand);
-		const numberOfAccount = parseInt(numberStr, 10);
+		const { flags: { number: numberStr } } = this.parse(CreateCommand);
+		const numberOfAccount = parseInt(numberStr as string, 10);
 		if (
 			numberStr !== numberOfAccount.toString() ||
 			!Number.isInteger(numberOfAccount) ||

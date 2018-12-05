@@ -31,8 +31,8 @@ export default class GetCommand extends BaseCommand {
 	];
 
 	static description = `
-Gets account information from the blockchain.
-`;
+		Gets account information from the blockchain.
+	`;
 
 	static examples = [
 		'account:get 3520445367460290306L',
