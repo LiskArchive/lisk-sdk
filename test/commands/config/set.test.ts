@@ -39,7 +39,7 @@ describe('config:set', () => {
 		setupTest()
 			.stdout()
 			.command(['config:set'])
-			.catch(error =>
+			.catch((error: Error) =>
 				expect(error.message).to.contain('Missing 1 required arg'),
 			)
 			.it('should throw an error when no value is set');
@@ -50,7 +50,7 @@ describe('config:set', () => {
 		setupTest()
 			.stdout()
 			.command(['config:set', 'newvalue'])
-			.catch(error =>
+			.catch((error: Error) =>
 				expect(error.message).to.contain(
 					`Expected ${unknownValue} to be one of:`,
 				),
@@ -115,7 +115,7 @@ describe('config:set', () => {
 			setupTest()
 				.stdout()
 				.command(['config:set', 'api.nodes', 'ws://hostname'])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain(
 						'Node URLs must include a supported protocol (http, https) and a hostname.',
 					),
@@ -127,7 +127,7 @@ describe('config:set', () => {
 			setupTest()
 				.stdout()
 				.command(['config:set', 'api.nodes', 'http://'])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain(
 						'Node URLs must include a supported protocol (http, https) and a hostname.',
 					),
@@ -138,7 +138,7 @@ describe('config:set', () => {
 				.stdout()
 				.stub(config, 'getConfig', sandbox.stub().returns({}))
 				.command(['config:set', 'api.nodes', 'http://hostname'])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain(
 						'It looks like your configuration file is corrupted. Please check the file at',
 					),
@@ -165,7 +165,7 @@ describe('config:set', () => {
 				.stub(config, 'setConfig', sandbox.stub().returns(false))
 				.stdout()
 				.command(['config:set', 'json', 'true'])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain(
 						'Config file could not be written: your changes will not be persisted',
 					),
@@ -175,7 +175,7 @@ describe('config:set', () => {
 			setupTest()
 				.stdout()
 				.command(['config:set', 'json', 'truely'])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain('Value must be a boolean.'),
 				)
 				.it('should throw error when json value is not boolean');
@@ -183,7 +183,7 @@ describe('config:set', () => {
 			setupTest()
 				.stdout()
 				.command(['config:set', 'json'])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain('Value must be a boolean.'),
 				)
 				.it('should throw error when json value is not specified');
@@ -233,7 +233,7 @@ describe('config:set', () => {
 					'api.network',
 					'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9b24f78',
 				])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain(
 						'Value must be a hex string with 64 characters, or one of main or test.',
 					),
@@ -249,7 +249,7 @@ describe('config:set', () => {
 					'api.network',
 					'198f2b61a8eb95fbeed58b8216780b68f697f26b849acf00c8c93bb9zzzzzzzz',
 				])
-				.catch(error =>
+				.catch((error: Error) =>
 					expect(error.message).to.contain(
 						'Value must be a hex string with 64 characters, or one of main or test.',
 					),
