@@ -24,6 +24,11 @@ import {
 } from '../../utils/constants';
 import { FileSystemError, ValidationError } from '../../utils/error';
 
+interface Args {
+	readonly values?: string;
+	readonly variable: string;
+}
+
 interface WriteResult {
 	readonly message: string;
 }
@@ -208,8 +213,9 @@ export default class SetCommand extends BaseCommand {
 	];
 
 	async run(): Promise<void> {
-		const { args: { variable, values: valuesStr } } = this.parse(SetCommand);
-		const values = (valuesStr || '').split(',').filter(Boolean);
+		const { args } = this.parse(SetCommand);
+		const { variable, values: valuesStr = '' }: Args = args;
+		const values = valuesStr.split(',').filter(Boolean);
 		const safeValues = values || [];
 		const safeValue = safeValues[0] || '';
 		const result = handlers[variable](
