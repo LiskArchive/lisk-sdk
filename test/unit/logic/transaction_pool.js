@@ -226,6 +226,28 @@ describe('transactionPool', () => {
 				});
 			});
 		});
+
+		describe('jobsQueue', () => {
+			it('should register transactionPoolNextBundle with bundledInterval', () => {
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
+				expect(jobsQueue.jobs).to.have.any.key('transactionPoolNextBundle');
+				return expect(
+					jobsQueue.jobs.transactionPoolNextBundle._idleTimeout
+				).to.equal(transactionPool.bundledInterval);
+			});
+
+			it('should register transactionPoolNextExpiry with expiryInterval', () => {
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
+				expect(jobsQueue.jobs).to.have.any.key('transactionPoolNextExpiry');
+				return expect(
+					jobsQueue.jobs.transactionPoolNextExpiry._idleTimeout
+				).to.equal(transactionPool.expiryInterval);
+			});
+		});
 	});
 
 	describe('expireTransactions', () => {
