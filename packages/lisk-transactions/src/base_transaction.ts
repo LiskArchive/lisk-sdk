@@ -16,9 +16,9 @@
 /// <reference path="../../../types/browserify-bignum/index.d.ts" />
 
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { ErrorObject } from 'ajv';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES } from './constants';
+import { MultiError } from 'verror';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { TransactionError } from './errors';
 import {
 	Account,
@@ -27,40 +27,28 @@ import {
 	TransactionJSON,
 	ValidateReturn,
 	VerifyReturn,
+	// TransferAsset,
 } from './transaction_types';
-import { checkBalance, validator, verifyTransaction } from './utils';
+import { checkBalance,  getTransactionBytes, validator } from './utils';
 import * as schemas from './utils/validation/schema';
-
-interface CheckTransactionTypesResult {
-	readonly message: string;
-	readonly dataPath: string;
-}
 
 const checkTransactionTypes = (
 	tx: TransactionJSON,
-): CheckTransactionTypesResult | undefined => {
+): ReadonlyArray<Error> | undefined => {
 	const typeValidator = validator.compile(schemas.transaction);
 	typeValidator(tx);
-
-	const result = typeValidator.errors
-		? typeValidator.errors.reduce(
-				(object: CheckTransactionTypesResult, error: ErrorObject) => {
-					const message = `${object.message} ${object.message ? ':' : ''} '${
-						error.dataPath
-					}' ${error.message}`;
-
-					const dataPath = `${object.dataPath} : ${error.dataPath}`;
-
-					return {
-						message,
-						dataPath,
-					};
-				},
-				{ message: '', dataPath: '' },
+	const transactionErrors = typeValidator.errors
+		? typeValidator.errors.map(
+				error =>
+					new TransactionError(
+						`'${error.dataPath}' ${error.message}`,
+						undefined,
+						error.dataPath,
+					),
 		  )
 		: undefined;
 
-	return result;
+	return transactionErrors;
 };
 
 export abstract class BaseTransaction {
@@ -83,8 +71,9 @@ export abstract class BaseTransaction {
 	public constructor(rawTransaction: TransactionJSON) {
 		const result = checkTransactionTypes(rawTransaction);
 		if (result) {
-			const { message, dataPath } = result;
-			throw new TransactionError(message, dataPath);
+			// TODO: TransactionOperationsResponse
+			// tslint:disable-next-line readonly-array
+			throw new MultiError(result as Error[]);
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
@@ -102,6 +91,7 @@ export abstract class BaseTransaction {
 		this.type = rawTransaction.type;
 	}
 
+	// TODO: Deserialization of asset
 	public toJSON(): TransactionJSON {
 		const transaction = {
 			id: this.id,
@@ -138,7 +128,7 @@ export abstract class BaseTransaction {
 		return signedTransaction;
 	}
 
-	public getBytes(): Buffer {
+	protected getBasicBytes(): Buffer {
 		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
 		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
 		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
@@ -154,9 +144,16 @@ export abstract class BaseTransaction {
 			  )
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
 
-		const amountBigNum = new BigNum(this.amount);
+		if (this.amount.lt(0)) {
+			throw new Error('Transaction amount must not be negative.');
+		}
+		// BUG in browserify-bignum prevents us using `.gt` directly.
+		// See https://github.com/bored-engineer/browserify-bignum/pull/2
+		if (this.amount.gte(new BigNum(MAX_TRANSACTION_AMOUNT).add(1))) {
+			throw new Error('Transaction amount is too large.');
+		}
 
-		const transactionAmount = amountBigNum.toBuffer({
+		const transactionAmount = this.amount.toBuffer({
 			endian: 'little',
 			size: BYTESIZES.AMOUNT,
 		});
@@ -170,9 +167,11 @@ export abstract class BaseTransaction {
 		]);
 	}
 
+	public abstract getBytes(): Buffer;
+
 	public abstract containsUniqueData(): boolean;
 
-	public checkSchema = (): ValidateReturn => {
+	public checkSchema(): ValidateReturn {
 		const transaction = this.toJSON();
 		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
 		const valid = baseTransactionValidator(transaction) as boolean;
@@ -192,37 +191,82 @@ export abstract class BaseTransaction {
 			valid,
 			errors,
 		};
-	};
+	}
 
 	public validate(): ValidateReturn {
 		const transaction = this.toJSON();
+		const transactionHash = cryptography.hash(this.getBasicBytes());
 
-		const errors = Object.entries(transaction).reduce(
+		const validateErrors = Object.entries(transaction).reduce(
 			(
 				errorArray: ReadonlyArray<TransactionError>,
-				property: ReadonlyArray<string>,
+				property: ReadonlyArray<string & ReadonlyArray<string>>,
 			): ReadonlyArray<TransactionError> => {
 				const [key, value] = property;
-				if (key === 'signature' && !value) {
-					return [
-						...errorArray,
-						new TransactionError(
-							'Cannot validate transaction without signature.',
-							this.id,
-						),
-					];
+				if (key === 'id') {
+					const transactionBytesWithSignatures = getTransactionBytes(this.toJSON());
+					const transactionHashWithSignatures = cryptography.hash(transactionBytesWithSignatures);
+					const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
+						transactionHashWithSignatures ,
+					);
+					const transactionId = cryptography.bufferToBigNumberString(
+						bufferFromFirstEntriesReversed,
+					);
+					if (value !== transactionId) {
+						return [
+							...errorArray,
+							new TransactionError('Invalid transaction id', this.id, '.id'),
+						];
+					}
 				}
-				if (key === 'senderPublicKey' && !value) {
-					return [
-						...errorArray,
-						new TransactionError('`senderPublicKey` is missing.', this.id),
-					];
+				if (key === 'senderId') {
+					if (
+						value.toUpperCase() !==
+						cryptography
+							.getAddressFromPublicKey(this.senderPublicKey)
+							.toUpperCase()
+					) {
+						return [
+							...errorArray,
+							new TransactionError(
+								'`senderId` does not match `senderPublicKey`',
+								this.id,
+								'.senderId',
+							),
+						];
+					}
 				}
-				if (key === 'senderId' && !value) {
-					return [
-						...errorArray,
-						new TransactionError('`senderId` is missing.', this.id),
-					];
+				if (key === 'signature') {
+					const signatureVerified = cryptography.verifyData(
+						transactionHash,
+						value,
+						this.senderPublicKey,
+					);
+
+					if (!signatureVerified) {
+						return [
+							...errorArray,
+							new TransactionError(
+								'Failed to verify signature',
+								this.id,
+								'.signature',
+							),
+						];
+					}
+				}
+				if (key === 'signatures' && Array.isArray(value) && value.length > 0) {
+					// Check that signatures are unique
+					const uniqueSignatures: ReadonlyArray<string> = [...new Set(value)];
+					if (uniqueSignatures.length !== value.length) {
+						return [
+							...errorArray,
+							new TransactionError(
+								'Encountered duplicate signature in transaction',
+								this.id,
+								'.signatures',
+							),
+						];
+					}
 				}
 
 				return errorArray;
@@ -230,42 +274,15 @@ export abstract class BaseTransaction {
 			[],
 		);
 
-		if (errors.length > 0) {
+		if (validateErrors.length > 0) {
 			return {
 				valid: false,
-				errors,
-			};
-		}
-
-		if (
-			this.senderPublicKey &&
-			this.senderId &&
-			this.senderId.toUpperCase() !==
-				cryptography.getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
-		) {
-			return {
-				valid: false,
-				errors: [new TransactionError('Invalid senderId', this.id)],
-			};
-		}
-
-		const transactionHash = cryptography.hash(this.getBytes());
-
-		const valid = cryptography.verifyData(
-			transactionHash,
-			this.signature as string,
-			this.senderPublicKey,
-		);
-
-		if (!valid) {
-			return {
-				valid: false,
-				errors: [new TransactionError('Invalid signature.', this.id)],
+				errors: validateErrors,
 			};
 		}
 
 		return {
-			valid,
+			valid: true,
 		};
 	}
 
@@ -276,22 +293,171 @@ export abstract class BaseTransaction {
 	}
 
 	public verify(sender: Account): VerifyReturn {
-		// Check sender balance
-		const { verified: balanceVerified, errors } = checkBalance(
-			sender,
-			this.fee,
+		// Balance verification
+		const { errors: balanceError } = checkBalance(sender, this.fee);
+
+		// Check transaction fields against account
+		const transactionErrors = Object.entries(sender).reduce(
+			(
+				errorArray: ReadonlyArray<TransactionError>,
+				property: ReadonlyArray<string>,
+			): ReadonlyArray<TransactionError> => {
+				const [key, value] = property;
+
+				// Check sender publicKey
+				if (key === 'publicKey' && value !== this.senderPublicKey) {
+					return [
+						...errorArray,
+						new TransactionError(
+							'Invalid sender publicKey',
+							this.id,
+							'.senderPublicKey',
+						),
+					];
+				}
+
+				// Check for missing signSignature on transaction
+				if (key === 'secondPublicKey' && value && !this.signSignature) {
+					return [
+						...errorArray,
+						new TransactionError(
+							'Missing signSignature',
+							this.id,
+							'.signSignature',
+						),
+					];
+				}
+
+				// Check for missing multisignatures on transaction
+				if (
+					key === 'multisignatures' &&
+					Array.isArray(value) &&
+					value.length > 0 &&
+					(!this.signatures ||
+						(this.signatures && this.signatures.length === 0))
+				) {
+					return [
+						...errorArray,
+						new TransactionError('Missing signatures', this.id, '.signatures'),
+					];
+				}
+
+				// Check sender address
+				if (
+					key === 'address' &&
+					value.toUpperCase() !== this.senderId.toUpperCase()
+				) {
+					return [
+						...errorArray,
+						new TransactionError(
+							'Invalid sender address',
+							this.id,
+							'.senderId',
+						),
+					];
+				}
+
+				return errorArray;
+			},
+			[],
 		);
 
-		// TODO: Check multisignatures
+		// Check missing secondPublicKey on account
+		const missingSecondPublicKeyError =
+			this.signSignature && !sender.secondPublicKey
+				? [
+						new TransactionError(
+							'Sender does not have a secondPublicKey',
+							this.id,
+						),
+				  ]
+				: [];
 
-		// Check secondPublicKey
-		const signSignatureVerified = sender.secondPublicKey
-			? verifyTransaction(this.toJSON(), sender.secondPublicKey)
-			: true;
+		// Signature verifications
+
+		const transactionHash = cryptography.hash(this.getBasicBytes());
+
+		// Verify signSignature
+		const signSignatureError =
+			sender.secondPublicKey &&
+			!cryptography.verifyData(
+				transactionHash,
+				this.signSignature as string,
+				sender.secondPublicKey,
+			)
+				? [
+						new TransactionError(
+							'Failed to verify second signature',
+							this.id,
+							'.signSignature',
+						),
+				  ]
+				: [];
+
+		// Verify multisignatures
+		const transactionSignatures = this.signatures as ReadonlyArray<string>;
+		const multisignatureKeys = sender.multisignatures || [];
+		// tslint:disable-next-line no-let
+		let checkedKeys: ReadonlyArray<string> = [];
+
+		const multisignatureErrors =
+			Array.isArray(sender.multisignatures) && sender.multisignatures.length > 0
+				? transactionSignatures.reduce(
+						(
+							errorArray: ReadonlyArray<TransactionError>,
+							signature: string,
+						): ReadonlyArray<TransactionError> => {
+							multisignatureKeys.forEach((publicKey, index, signatureArray) => {
+								if (checkedKeys.includes(publicKey)) {
+									return errorArray;
+								}
+
+								if (
+									cryptography.verifyData(transactionHash, signature, publicKey)
+								) {
+									checkedKeys = [...checkedKeys, publicKey];
+
+									return errorArray;
+								}
+
+								const multisignatureVerificationErrors =
+									index === signatureArray.length - 1
+										? [
+												...errorArray,
+												new TransactionError(
+													`Failed to verify multisignature: ${signature}`,
+													this.id,
+													'.signatures',
+												),
+										  ]
+										: errorArray;
+
+								return multisignatureVerificationErrors;
+							});
+
+							return errorArray;
+						},
+						[],
+				  )
+				: [];
+
+		const verifyErrors: ReadonlyArray<TransactionError> = [
+			...balanceError,
+			...transactionErrors,
+			...missingSecondPublicKeyError,
+			...signSignatureError,
+			...multisignatureErrors,
+		];
+
+		if (verifyErrors.length > 0) {
+			return {
+				verified: false,
+				errors: verifyErrors,
+			};
+		}
 
 		return {
-			verified: balanceVerified && signSignatureVerified,
-			errors,
+			verified: true,
 		};
 	}
 

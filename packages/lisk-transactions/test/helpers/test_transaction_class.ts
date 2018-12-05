@@ -6,6 +6,12 @@ export class TestTransaction extends BaseTransaction {
 		return true;
 	}
 
+	public getBytes() {
+		const transactionBytes = this.getBasicBytes();
+		
+		return transactionBytes
+	}
+
 	public verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
 	): VerifyReturn {

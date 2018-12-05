@@ -19,6 +19,7 @@ export interface Account {
 	readonly delegate?: Delegate;
 	readonly publicKey: string;
 	readonly secondPublicKey?: string;
+	readonly multisignatures?: ReadonlyArray<string>;
 }
 
 export interface MultiSignatureAccount extends Account {

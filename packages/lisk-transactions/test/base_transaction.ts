@@ -14,8 +14,8 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
+import { MultiError } from 'verror';
 import { BaseTransaction } from '../src/base_transaction';
-import * as utils from '../src/utils';
 import { TransactionJSON } from '../src/transaction_types';
 import { TransactionError } from '../src/errors';
 import BigNum from 'browserify-bignum';
@@ -133,10 +133,10 @@ describe('Base transaction class', () => {
 				};
 			});
 
-			it('should throw a transaction error', () => {
+			it('should throw a multierror', () => {
 				return expect(
 					() => new TestTransaction(invalidTypeTransaction),
-				).to.throw(TransactionError);
+				).to.throw(MultiError);
 			});
 		});
 	});
@@ -149,10 +149,10 @@ describe('Base transaction class', () => {
 		});
 	});
 
-	describe('#getBytes', () => {
+	describe('#getBasicBytes', () => {
 		beforeEach(() => {
 			baseTransaction = new TestTransaction(defaultTransaction);
-
+			
 			return Promise.resolve();
 		});
 
@@ -216,6 +216,7 @@ describe('Base transaction class', () => {
 					fee: '0000',
 					recipientId: '',
 					senderPublicKey: '111111111',
+					senderId: '11111111',
 					timestamp: 79289378,
 					asset: {},
 					signature: '1111111111',
@@ -244,6 +245,103 @@ describe('Base transaction class', () => {
 
 	// TODO: Add more tests
 	describe('#validate', () => {
+		describe('when given valid transaction', () => {
+			beforeEach(() => {
+				baseTransaction = new TestTransaction(defaultTransaction);
+				sandbox
+				.stub(baseTransaction, 'getBytes')
+				.returns(Buffer.from('0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309'));
+				
+				return Promise.resolve();
+			});
+			it('should return an object with boolean `valid` = true', () => {
+				const { valid } = baseTransaction.validate();
+				
+				return expect(valid).to.be.true;
+			});
+		});
+
+		describe('when given invalid transaction', () => {
+			beforeEach(() => {
+				sandbox
+				.stub(baseTransaction, 'getBytes')
+				.returns(Buffer.from('0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309'));
+			});
+
+			describe('with invalid id', () => {
+				beforeEach(() => {
+					const invalidIdTransaction = {
+						...defaultTransaction,
+						id: defaultTransaction.id.replace('1', '0'),
+					};
+					baseTransaction = new TestTransaction(
+						invalidIdTransaction as any,
+					);
+					return Promise.resolve();
+				});
+
+				it('should return an object with boolean `valid` = false', () => {
+					const { valid } = baseTransaction.validate();
+	
+					return expect(valid).to.not.be.true;
+				});
+
+				it('should return an object with an array containing id error', () => {
+					const { errors } = baseTransaction.validate();
+					const errorArray = errors as ReadonlyArray<TransactionError>;
+
+					return expect(errorArray[0])
+						.to.be.instanceof(TransactionError)
+						.and.to.have.property('message', 'Invalid transaction id');
+				});
+			});
+
+			describe('with duplicate signatures', () => {
+				beforeEach(() => {
+					const invalidSignaturesTransaction = {
+						...defaultTransaction,
+						signatures: [defaultSignature, defaultSignature],
+					};
+					baseTransaction = new TestTransaction(
+						invalidSignaturesTransaction as any,
+					);
+					return Promise.resolve();
+				});
+
+				it('should return an object with boolean `valid` = false', () => {
+					const { valid } = baseTransaction.validate();
+	
+					return expect(valid).to.not.be.true;
+				});
+
+				it('should return an object with an array containing signatures error', () => {
+					const { errors } = baseTransaction.validate();
+					const errorArray = errors as ReadonlyArray<TransactionError>;
+
+					return expect(errorArray[0])
+						.to.be.instanceof(TransactionError)
+						.and.to.have.property('message', 'Encountered duplicate signature in transaction');
+				});
+			});
+		});
+	});
+
+	describe('#getRequiredAttributes', () => {
+		it('should return an object with property `ACCOUNTS` containing address of sender', () => {
+			const expectedAddressArray = ['18278674964748191682L'];
+			const requiredAttributes: any = baseTransaction.getRequiredAttributes();
+			expect(requiredAttributes)
+				.to.be.an('object')
+				.and.to.have.property('ACCOUNTS');
+
+			return expect(requiredAttributes['ACCOUNTS']).to.be.eql(
+				expectedAddressArray,
+			);
+		});
+	});
+
+	// TODO: Add more tests
+	describe('#verify', () => {
 		describe('when given invalid data', () => {
 			let invalidTransaction: any;
 			beforeEach(() => {
@@ -275,76 +373,8 @@ describe('Base transaction class', () => {
 				baseTransaction = new TestTransaction(invalidTransaction as any);
 				return Promise.resolve();
 			});
+		})
 
-			it('should return an object with boolean `valid` = false', () => {
-				const { valid } = baseTransaction.validate();
-
-				return expect(valid).to.not.be.true;
-			});
-
-			it('should return an object with an array of transactions errors ', () => {
-				const { errors } = baseTransaction.validate();
-				const errorsArray = errors as ReadonlyArray<TransactionError>;
-
-				return errorsArray.forEach(error =>
-					expect(error).to.be.instanceof(TransactionError),
-				);
-			});
-
-			describe('when given transaction with invalid signature', () => {
-				beforeEach(() => {
-					const invalidSignatureTransaction = {
-						...defaultTransaction,
-						signature: defaultSignature.replace('2', '0'),
-					};
-					baseTransaction = new TestTransaction(
-						invalidSignatureTransaction as any,
-					);
-					return Promise.resolve();
-				});
-
-				it('should return an object with an array containing transaction signature error', () => {
-					const { errors } = baseTransaction.validate();
-					const errorArray = errors as ReadonlyArray<TransactionError>;
-
-					return expect(errorArray[0])
-						.to.be.instanceof(TransactionError)
-						.and.to.have.property('message', 'Invalid signature.');
-				});
-			});
-		});
-	});
-
-	describe('#getRequiredAttributes', () => {
-		it('should return an object with property `ACCOUNTS` containing address of sender', () => {
-			const expectedAddressArray = ['18278674964748191682L'];
-			const requiredAttributes: any = baseTransaction.getRequiredAttributes();
-			expect(requiredAttributes)
-				.to.be.an('object')
-				.and.to.have.property('ACCOUNTS');
-
-			return expect(requiredAttributes['ACCOUNTS']).to.be.eql(
-				expectedAddressArray,
-			);
-		});
-	});
-
-	describe('#verify', () => {
-		it('should call verifyTransaction for account with secondPublicKey', () => {
-			const transaction = baseTransaction.toJSON();
-			const senderAccountWithSecondPublicKey = {
-				...defaultSenderAccount,
-				secondPublicKey: '123456789',
-			};
-			const verifyTransactionStub = sandbox
-				.stub(utils, 'verifyTransaction')
-				.returns({ valid: true });
-			baseTransaction.verify(senderAccountWithSecondPublicKey);
-			return expect(verifyTransactionStub).to.be.calledWithExactly(
-				transaction,
-				senderAccountWithSecondPublicKey.secondPublicKey,
-			);
-		});
 
 		describe('when receiving account state with sufficient balance', () => {
 			it('should return an object with boolean `verified` = true', () => {
