@@ -14,7 +14,7 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../src/utils/config';
 import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
