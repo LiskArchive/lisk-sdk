@@ -44,7 +44,9 @@ export default class GetCommand extends BaseCommand {
 			...statusResponse.data,
 		}));
 		if (!showForgingStatus) {
-			return this.print(baseInfo);
+			this.print(baseInfo);
+
+			return;
 		}
 		const fullInfo = await client.node
 			.getForgingStatus()
@@ -57,7 +59,7 @@ export default class GetCommand extends BaseCommand {
 				forgingStatus: error.message,
 			}));
 
-		return this.print(fullInfo);
+		this.print(fullInfo);
 	}
 }
 
