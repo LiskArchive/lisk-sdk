@@ -53,7 +53,7 @@ describe('message:decrypt', () => {
 	describe('message:decrypt', () => {
 		setupTest()
 			.command(['message:decrypt'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 2 required arg');
 			})
 			.it('should throw an error');
@@ -62,7 +62,7 @@ describe('message:decrypt', () => {
 	describe('message:decrypt senderPublicKey', () => {
 		setupTest()
 			.command(['message:decrypt', defaultSenderPublicKey])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error');
@@ -71,7 +71,7 @@ describe('message:decrypt', () => {
 	describe('message:decrypt senderPublicKey nonce', () => {
 		setupTest()
 			.command(['message:decrypt', defaultSenderPublicKey, defaultNonce])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No message was provided.');
 			})
 			.it('should throw an error');

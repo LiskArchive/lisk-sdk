@@ -54,7 +54,7 @@ describe('message:encrypt', () => {
 	describe('message:encrypt', () => {
 		setupTest()
 			.command(['message:encrypt'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error');
@@ -63,7 +63,7 @@ describe('message:encrypt', () => {
 	describe('message:encrypt recipientPublicKey', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No message was provided.');
 			})
 			.it('should throw an error');
