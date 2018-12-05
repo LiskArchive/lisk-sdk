@@ -47,13 +47,15 @@ interface Queues {
 	readonly [queue: string]: Queue;
 }
 
+const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
+
 export class TransactionPool {
 	// tslint:disable-next-line variable-name
 	private readonly _queues: Queues;
 	private readonly expireTransactionsInterval: number;
 	private readonly expireTransactionsJob: Job;
 
-	public constructor({expireTransactionsInterval}: TransactionPoolOptions) {
+	public constructor({expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
@@ -167,7 +169,7 @@ export class TransactionPool {
 			: true;
 	}
 
-	private expireTransactions(): Promise<ReadonlyArray<Transaction>> {
+	private async expireTransactions(): Promise<ReadonlyArray<Transaction>> {
 		return Promise.resolve(this.removeTransactionsFromQueues(this._queues, queueCheckers.checkTransactionForExpiry()));
 	}
 
