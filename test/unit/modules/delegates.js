@@ -658,6 +658,96 @@ describe('delegates', () => {
 				);
 			});
 		});
+
+		describe('__private.delegatesListCache operations', () => {
+			let __private;
+			beforeEach(done => {
+				__private = library.rewiredModules.delegates.__get__('__private');
+				done();
+			});
+
+			describe('__private.updateDelegateListCache', () => {
+				it('should insert the given delegateList array to __private.delegateListCache for given round.', () => {
+					// Arrange
+					__private.delegatesListCache = {};
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 1;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					expect(__private.delegatesListCache).to.have.property(round);
+					return expect(__private.delegatesListCache[round]).to.deep.equal(
+						delegateListArray
+					);
+				});
+
+				it('should sort rounds in ascending order.', () => {
+					// Arrange
+					__private.delegatesListCache = {
+						2: ['x', 'y', 'z'],
+					};
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 1;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					return expect(
+						Object.keys(__private.delegatesListCache)
+					).to.deep.equal(['1', '2']);
+				});
+
+				it('should keep only the last two rounds in the __private.delegateListCache.', () => {
+					// Arrange
+					const initialSate = {
+						1: ['j', 'k', 'l'],
+						2: ['x', 'y', 'z'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 3;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					expect(Object.keys(__private.delegatesListCache)).to.deep.equal([
+						'2',
+						'3',
+					]);
+					expect(__private.delegatesListCache['2']).to.deep.equal(
+						initialSate['2']
+					);
+					return expect(__private.delegatesListCache[round]).to.deep.equal(
+						delegateListArray
+					);
+				});
+			});
+
+			describe('__private.clearLastDelegateListCache', () => {
+				it('delete the last round in the __private.delegateListCache object.', () => {
+					// Arrange
+					const initialSate = {
+						1: ['j', 'k', 'l'],
+						2: ['x', 'y', 'z'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+
+					// Act
+					library.modules.delegates.clearLastDelegateListCache();
+
+					// Assert
+					expect(__private.delegatesListCache).to.have.property('1');
+					expect(__private.delegatesListCache).to.not.have.property('2');
+					return expect(__private.delegatesListCache['1']).to.deep.equal(
+						initialSate['1']
+					);
+				});
+			});
+		});
 	});
 
 	describe('shared', () => {
