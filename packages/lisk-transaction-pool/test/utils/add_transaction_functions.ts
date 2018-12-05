@@ -1,6 +1,6 @@
-import { Transaction } from '../../src/transaction_pool';
+import { TransactionObject } from '../../src/transaction_pool';
 
-export const wrapTransferTransaction = (transferTransaction: Transaction) => {
+export const wrapTransferTransaction = (transferTransaction: TransactionObject) => {
 	return {
 		...transferTransaction,
 		containsUniqueData: () => false,

@@ -24,7 +24,7 @@ export interface TransactionObject {
 }
 
 export interface TransactionFunctions {
-	containsUniqueData?(): boolean;
+	containsUniqueData(): boolean;
 	verifyTransactionAgainstOtherTransactions?(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;

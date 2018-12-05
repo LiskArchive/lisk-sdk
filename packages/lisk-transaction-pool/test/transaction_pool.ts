@@ -1,7 +1,8 @@
 import addresses from '../fixtures/addresses.json';
 import { expect } from 'chai';
-import transactions from '../fixtures/transactions.json';
+import transactionObjects from '../fixtures/transactions.json';
 import { TransactionPool } from '../src/transaction_pool';
+import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
 // Require is used for stubbing
 const Queue = require('../src/queue').Queue;
@@ -9,6 +10,8 @@ const queueCheckers = require('../src/queue_checkers');
 
 describe('transaction pool', () => {
 	let transactionPool: TransactionPool;
+	const transactions = transactionObjects.map(wrapTransferTransaction);
+
 	let stubs: {
 		[key: string]: sinon.SinonStub;
 	};
