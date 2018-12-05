@@ -16,28 +16,36 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { flags as commonFlags } from '../../utils/flags';
-import TransferCommand from './create/transfer';
-import SecondPassphraseCommand from './create/second-passphrase';
-import VoteCommand from './create/vote';
 import DelegateCommand from './create/delegate';
 import MultisignatureCommand from './create/multisignature';
+import SecondPassphraseCommand from './create/second-passphrase';
+import TransferCommand from './create/transfer';
+import VoteCommand from './create/vote';
 
 const MAX_ARG_NUM = 3;
 
-const typeNumberMap = {
-	0: 'transfer',
-	1: 'second-passphrase',
-	2: 'delegate',
-	3: 'vote',
-	4: 'multisignature',
+interface TypeNumberMap {
+	readonly [key: string]: string;
+}
+
+const typeNumberMap: TypeNumberMap = {
+	'0': 'transfer',
+	'1': 'second-passphrase',
+	'2': 'delegate',
+	'3': 'vote',
+	'4': 'multisignature',
 };
 
 const options = Object.entries(typeNumberMap).reduce(
-	(accumulated, [key, value]) => [...accumulated, key, value],
+	(accumulated: ReadonlyArray<string>, [key, value]: [string, string]) => [...accumulated, key, value],
 	[],
 );
 
-const typeClassMap = {
+interface TypeClassMap {
+	readonly [key: string]: typeof BaseCommand;
+}
+
+const typeClassMap: TypeClassMap = {
 	transfer: TransferCommand,
 	'second-passphrase': SecondPassphraseCommand,
 	vote: VoteCommand,
@@ -45,7 +53,7 @@ const typeClassMap = {
 	multisignature: MultisignatureCommand,
 };
 
-const resolveFlags = (accumulated, [key, value]) => {
+const resolveFlags = (accumulated: ReadonlyArray<string>, [key, value]: [string, string | boolean | undefined]) => {
 	if (key === 'type') {
 		return accumulated;
 	}
@@ -53,11 +61,40 @@ const resolveFlags = (accumulated, [key, value]) => {
 		return [...accumulated, `--${key}`, value];
 	}
 	const boolKey = value === false ? `--no-${key}` : `--${key}`;
+
 	return [...accumulated, boolKey];
 };
 
 export default class CreateCommand extends BaseCommand {
-	async run() {
+	static args = new Array(MAX_ARG_NUM).fill(0).map(i => ({
+		name: `${i}_arg`,
+	}));
+
+	static description = `
+	Creates a transaction object.
+	`;
+
+	static examples = [
+		'transaction:create --type=0 100 13356260975429434553L',
+		'transaction:create --type=delegate lightcurve',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		type: flagParser.string({
+			char: 't',
+			description: 'type of transaction to create',
+			required: true,
+			options,
+		}),
+		passphrase: flagParser.string(commonFlags.passphrase),
+		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
+		'no-signature': flagParser.boolean(commonFlags.noSignature),
+		votes: flagParser.string(commonFlags.votes),
+		unvotes: flagParser.string(commonFlags.unvotes),
+	};
+
+	async run(): Promise<void> {
 		const { argv, flags } = this.parse(CreateCommand);
 		const { type } = flags;
 		const commandType = Object.keys(typeNumberMap).includes(type)
@@ -68,30 +105,5 @@ export default class CreateCommand extends BaseCommand {
 	}
 }
 
-CreateCommand.flags = {
-	...BaseCommand.flags,
-	type: flagParser.string({
-		char: 't',
-		description: 'type of transaction to create',
-		required: true,
-		options,
-	}),
-	passphrase: flagParser.string(commonFlags.passphrase),
-	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
-	'no-signature': flagParser.boolean(commonFlags.noSignature),
-	votes: flagParser.string(commonFlags.votes),
-	unvotes: flagParser.string(commonFlags.unvotes),
-};
 
-CreateCommand.args = new Array(MAX_ARG_NUM).fill().map(i => ({
-	name: `${i}_arg`,
-}));
 
-CreateCommand.description = `
-Creates a transaction object.
-`;
-
-CreateCommand.examples = [
-	'transaction:create --type=0 100 13356260975429434553L',
-	'transaction:create --type=delegate lightcurve',
-];

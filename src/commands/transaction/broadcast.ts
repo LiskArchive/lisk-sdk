@@ -14,17 +14,18 @@
  *
  */
 import BaseCommand from '../../base';
-import { parseTransactionString } from '../../utils/transactions';
+import { getAPIClient } from '../../utils/api';
 import { ValidationError } from '../../utils/error';
 import { getStdIn } from '../../utils/input/utils';
-import { getAPIClient } from '../../utils/api';
+import { parseTransactionString } from '../../utils/transactions';
 
-const getTransactionInput = async () => {
+const getTransactionInput = async (): Promise<string> => {
 	try {
 		const { data } = await getStdIn({ dataIsRequired: true });
 		if (!data) {
 			throw new ValidationError('No transaction was provided.');
 		}
+
 		return data;
 	} catch (e) {
 		throw new ValidationError('No transaction was provided.');
@@ -32,7 +33,29 @@ const getTransactionInput = async () => {
 };
 
 export default class BroadcastCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'transaction',
+			description: 'Transaction to broadcast in JSON format.',
+		},
+	];
+
+	static description = `
+	Broadcasts a transaction to the network via the node specified in the current config.
+	Accepts a stringified JSON transaction as an argument, or a transaction can be piped from a previous command.
+	If piping make sure to quote out the entire command chain to avoid piping-related conflicts in your shell.
+	`;
+
+	static examples = [
+		'broadcast transaction \'{"type":0,"amount":"100",...}\'',
+		'echo \'{"type":0,"amount":"100",...}\' | lisk transaction:broadcast',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
 		const { args: { transaction } } = this.parse(BroadcastCommand);
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
@@ -42,24 +65,3 @@ export default class BroadcastCommand extends BaseCommand {
 	}
 }
 
-BroadcastCommand.args = [
-	{
-		name: 'transaction',
-		description: 'Transaction to broadcast in JSON format.',
-	},
-];
-
-BroadcastCommand.flags = {
-	...BaseCommand.flags,
-};
-
-BroadcastCommand.description = `
-Broadcasts a transaction to the network via the node specified in the current config.
-Accepts a stringified JSON transaction as an argument, or a transaction can be piped from a previous command.
-If piping make sure to quote out the entire command chain to avoid piping-related conflicts in your shell.
-`;
-
-BroadcastCommand.examples = [
-	'broadcast transaction \'{"type":0,"amount":"100",...}\'',
-	'echo \'{"type":0,"amount":"100",...}\' | lisk transaction:broadcast',
-];

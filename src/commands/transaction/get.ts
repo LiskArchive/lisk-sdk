@@ -16,7 +16,12 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
+import { AlphabetLowercase } from '../../utils/flags';
 import { query, queryNodeTransaction } from '../../utils/query';
+
+interface Args {
+	readonly ids?: string;
+}
 
 const TRANSACTION_STATES = ['unsigned', 'unprocessed'];
 const SORT_OPTIONS = [
@@ -37,7 +42,7 @@ const senderIdFlag = {
 `,
 };
 const stateFlag = {
-	char: 's',
+	char: 's' as AlphabetLowercase,
 	options: TRANSACTION_STATES,
 	description: `Get transactions based on a given state. Possible values for the state are 'unsigned' and 'unprocessed'.
 	Examples:
@@ -47,9 +52,53 @@ const stateFlag = {
 };
 
 export default class GetCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'ids',
+			required: false,
+			description: 'Comma-separated transaction ID(s) to get information about.',
+		},
+	];
+
+	static description = `
+	Gets transaction information from the blockchain.
+	`;
+
+	static examples = [
+		'transaction:get 10041151099734832021',
+		'transaction:get 10041151099734832021,1260076503909567890',
+		'transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed',
+		'transaction:get --state=unsigned --sender-id=1813095620424213569L',
+		'transaction:get 10041151099734832021 --state=unsigned --sender-id=1813095620424213569L',
+		'transaction:get --sender-id=1813095620424213569L',
+		'transaction:get --limit=10 --sort=amount:desc',
+		'transaction:get --limit=10 --offset=5',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		state: flagParser.string(stateFlag),
+		'sender-id': flagParser.string(senderIdFlag),
+		limit: flagParser.string({
+			description:
+				'Limits the returned transactions array by specified integer amount. Maximum is 100.',
+			default: '10',
+		}),
+		offset: flagParser.string({
+			description:
+				'Offsets the returned transactions array by specified integer amount.',
+			default: '0',
+		}),
+		sort: flagParser.string({
+			description: 'Fields to sort results by.',
+			default: 'timestamp:desc',
+			options: SORT_OPTIONS,
+		}),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { ids },
+			args,
 			flags: {
 				limit,
 				offset,
@@ -58,6 +107,8 @@ export default class GetCommand extends BaseCommand {
 				state: txnState,
 			},
 		} = this.parse(GetCommand);
+		const { ids: idsStr = '' }: Args = args;
+		const ids = idsStr.split(',').filter(Boolean);
 
 		const client = getAPIClient(this.userConfig.api);
 
@@ -75,13 +126,13 @@ export default class GetCommand extends BaseCommand {
 				},
 			}));
 
-			const results = await queryNodeTransaction(
+			const stateSenderIdsResult = await queryNodeTransaction(
 				client.node,
 				txnState,
 				reqTxnSenderId,
 			);
 
-			return this.print(results);
+			return this.print(stateSenderIdsResult);
 		}
 
 		if (txnState && ids) {
@@ -96,13 +147,13 @@ export default class GetCommand extends BaseCommand {
 				},
 			}));
 
-			const results = await queryNodeTransaction(
+			const txnStateIdsResult = await queryNodeTransaction(
 				client.node,
 				txnState,
 				reqTransactionIds,
 			);
 
-			return this.print(results);
+			return this.print(txnStateIdsResult);
 		}
 		if (txnState && senderAddress) {
 			const reqWithSenderId = [
@@ -120,13 +171,13 @@ export default class GetCommand extends BaseCommand {
 				},
 			];
 
-			const results = await queryNodeTransaction(
+			const txnStateSenderResult = await queryNodeTransaction(
 				client.node,
 				txnState,
 				reqWithSenderId,
 			);
 
-			return this.print(results);
+			return this.print(txnStateSenderResult);
 		}
 
 		if (txnState) {
@@ -143,13 +194,13 @@ export default class GetCommand extends BaseCommand {
 				},
 			];
 
-			const results = await queryNodeTransaction(
+			const txnStateResult = await queryNodeTransaction(
 				client.node,
 				txnState,
 				reqByLimitOffset,
 			);
 
-			return this.print(results);
+			return this.print(txnStateResult);
 		}
 
 		if (ids) {
@@ -163,9 +214,9 @@ export default class GetCommand extends BaseCommand {
 					message: 'Transaction not found.',
 				},
 			}));
-			const results = await query(client, 'transactions', reqTransactionIDs);
+			const idsResult = await query(client, 'transactions', reqTransactionIDs);
 
-			return this.print(results);
+			return this.print(idsResult);
 		}
 
 		if (senderAddress) {
@@ -180,9 +231,9 @@ export default class GetCommand extends BaseCommand {
 					message: 'No transactions found.',
 				},
 			};
-			const results = await query(client, 'transactions', reqSenderId);
+			const senderAddressResult = await query(client, 'transactions', reqSenderId);
 
-			return this.print(results);
+			return this.print(senderAddressResult);
 		}
 
 		const req = {
@@ -195,53 +246,8 @@ export default class GetCommand extends BaseCommand {
 				message: 'No transactions found.',
 			},
 		};
-		const results = await query(client, 'transactions', req);
+		const defaultResults = await query(client, 'transactions', req);
 
-		return this.print(results);
+		return this.print(defaultResults);
 	}
 }
-
-GetCommand.args = [
-	{
-		name: 'ids',
-		required: false,
-		description: 'Comma-separated transaction ID(s) to get information about.',
-		parse: input => input.split(',').filter(Boolean),
-	},
-];
-
-GetCommand.flags = {
-	...BaseCommand.flags,
-	state: flagParser.string(stateFlag),
-	'sender-id': flagParser.string(senderIdFlag),
-	limit: flagParser.string({
-		description:
-			'Limits the returned transactions array by specified integer amount. Maximum is 100.',
-		default: '10',
-	}),
-	offset: flagParser.string({
-		description:
-			'Offsets the returned transactions array by specified integer amount.',
-		default: '0',
-	}),
-	sort: flagParser.string({
-		description: 'Fields to sort results by.',
-		default: 'timestamp:desc',
-		options: SORT_OPTIONS,
-	}),
-};
-
-GetCommand.description = `
-Gets transaction information from the blockchain.
-`;
-
-GetCommand.examples = [
-	'transaction:get 10041151099734832021',
-	'transaction:get 10041151099734832021,1260076503909567890',
-	'transaction:get 10041151099734832021,1260076503909567890 --state=unprocessed',
-	'transaction:get --state=unsigned --sender-id=1813095620424213569L',
-	'transaction:get 10041151099734832021 --state=unsigned --sender-id=1813095620424213569L',
-	'transaction:get --sender-id=1813095620424213569L',
-	'transaction:get --limit=10 --sort=amount:desc',
-	'transaction:get --limit=10 --offset=5',
-];
