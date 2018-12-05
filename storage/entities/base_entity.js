@@ -20,7 +20,8 @@ const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
 
 class BaseEntity {
-	constructor() {
+	constructor(adapter) {
+		this.adapter = adapter;
 		this.fields = {};
 		this.filters = {};
 		this.defaultOptions = {

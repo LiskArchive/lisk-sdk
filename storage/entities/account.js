@@ -202,8 +202,8 @@ class Account extends BaseEntity {
 	 * Constructor
 	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
 	 */
-	constructor(defaultFilters = {}) {
-		super();
+	constructor(adapter, defaultFilters = {}) {
+		super(adapter);
 
 		this.defaultFilters = defaultFilters;
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });

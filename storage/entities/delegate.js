@@ -17,8 +17,8 @@
 const Account = require('./account');
 
 class Delegate extends Account {
-	constructor() {
-		super({ isDelegate: true });
+	constructor(adapter) {
+		super(adapter, { isDelegate: true });
 		this.defaultOptions.fieldSet = Account.prototype.FIELD_SET_FULL;
 	}
 }
