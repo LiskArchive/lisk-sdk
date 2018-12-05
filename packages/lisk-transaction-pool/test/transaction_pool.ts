@@ -142,7 +142,7 @@ describe('transaction pool', () => {
 	});
 
 	describe('#onRoundRollback', () => {
-		it('should call checkTransactionForProperty with block sender addresses and "senderPublicKey" property', async () => {
+		it('should call checkTransactionForProperty with publicKeys and "senderPublicKey" property', async () => {
 			transactionPool.onRoundRollback(publicKeys);
 			const senderProperty = 'senderPublicKey';
 			expect(
