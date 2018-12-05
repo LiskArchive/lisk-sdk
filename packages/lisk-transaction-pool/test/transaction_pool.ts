@@ -4,20 +4,19 @@ import transactionObjects from '../fixtures/transactions.json';
 import { TransactionPool } from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
-// Require is used for stubbing
-const Queue = require('../src/queue').Queue;
-const queueCheckers = require('../src/queue_checkers');
+import { Queue } from '../src/queue';
+import * as queueCheckers from '../src/queue_checkers';
 
 describe('transaction pool', () => {
 	let transactionPool: TransactionPool;
 	const transactions = transactionObjects.map(wrapTransferTransaction);
 
-	let stubs: {
+	let checkerStubs: {
 		[key: string]: sinon.SinonStub;
 	};
 
 	beforeEach(() => {
-		stubs = {
+		checkerStubs = {
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
 				'checkTransactionPropertyForValues',
@@ -58,7 +57,7 @@ describe('transaction pool', () => {
 
 		it('should call checkTransactionForRecipientId with block transactions', () => {
 			transactionPool.onDeleteBlock(block);
-			return expect(stubs.checkTransactionForRecipientId).to.be.calledWithExactly(
+			return expect(checkerStubs.checkTransactionForRecipientId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
@@ -102,14 +101,14 @@ describe('transaction pool', () => {
 
 		it('should call checkTransactionForId with block transactions', () => {
 			transactionPool.onNewBlock(block);
-			return expect(stubs.checkTransactionForId).to.be.calledWithExactly(
+			return expect(checkerStubs.checkTransactionForId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
 
 		it('should call checkTransactionForSenderPublicKey with block transactions', () => {
 			transactionPool.onNewBlock(block);
-			return expect(stubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
+			return expect(checkerStubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
@@ -154,7 +153,7 @@ describe('transaction pool', () => {
 			transactionPool.onRoundRollback(roundDelegateAddresses);
 			const senderProperty = 'senderPublicKey';
 			return expect(
-				stubs.checkTransactionPropertyForValues.calledWithExactly(
+				checkerStubs.checkTransactionPropertyForValues.calledWithExactly(
 					roundDelegateAddresses,
 					senderProperty,
 				),
