@@ -14,7 +14,10 @@
 
 'use strict';
 
-const { ImplementationPendingError } = require('../errors');
+const {
+	ImplementationPendingError,
+	NonSupportedFilterTypeError,
+} = require('../errors');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
@@ -225,6 +228,38 @@ class BaseEntity {
 				options.condition
 			)
 		);
+	}
+
+	/**
+	 * Validate allowed filters
+	 * @param {Array.<Object>|Object} filters
+	 * @return {true, NonSupportedFilterTypeError>}
+	 */
+	validateFilters(filters) {
+		let flattenedFilters = [];
+		let invalidFilters = [];
+
+		if (Array.isArray(filters)) {
+			flattenedFilters = filters.reduce(
+				(acc, curr) => Object.assign(acc, curr),
+				{}
+			);
+		} else {
+			flattenedFilters = filters;
+		}
+
+		invalidFilters = Object.keys(flattenedFilters).filter(
+			item => !this.getFilters().includes(item)
+		);
+
+		if (invalidFilters.length) {
+			throw new NonSupportedFilterTypeError(
+				'One or more filters are not supported.',
+				invalidFilters
+			);
+		}
+
+		return true;
 	}
 
 	parseFilters(filters) {

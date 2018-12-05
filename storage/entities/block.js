@@ -197,9 +197,10 @@ class Block extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock[], Error>}
+	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError>}
 	 */
 	get(filters = {}, options = {}, tx) {
+		this.validateFilters(filters);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
@@ -233,23 +234,22 @@ class Block extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock, Error>}
+	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError>}
 	 */
 	getOne(filters, options = {}, tx) {
+		this.validateFilters(filters);
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'fieldSet']),
 			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
 		);
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
 
 		const params = Object.assign(
 			{},
 			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{
-				parsedFilters,
-			}
+			{ parsedFilters }
 		);
 
 		return this.adapter.executeFile(
