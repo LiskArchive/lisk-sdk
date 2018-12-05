@@ -58,7 +58,7 @@ describe('query utils', () => {
 				},
 			} as any;
 			queryResult = query(
-				(apiClient as unknown) as APIClient,
+				apiClient,
 				defaultEndpoint,
 				defaultParameters,
 			);
