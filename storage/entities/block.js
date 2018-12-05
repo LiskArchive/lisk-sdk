@@ -341,18 +341,10 @@ class Block extends BaseEntity {
 	 * @return {*}
 	 */
 	mergeFilters(filters) {
-		const mergedFilters = filters;
-
-		if (Array.isArray(mergedFilters)) {
-			const lastIndex = mergedFilters.length - 1;
-			mergedFilters[lastIndex] = Object.assign(
-				{},
-				mergedFilters[lastIndex],
-				this.defaultFilters
-			);
-			return mergedFilters;
+		if (Array.isArray(filters)) {
+			return filters.map(item => Object.assign({}, item, this.defaultFilters));
 		}
-		return Object.assign({}, mergedFilters, this.defaultFilters);
+		return Object.assign({}, filters, this.defaultFilters);
 	}
 }
 
