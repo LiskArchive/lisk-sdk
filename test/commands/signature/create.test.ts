@@ -76,7 +76,7 @@ describe('signature:create', () => {
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['signature:create'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
 			})
 			.it('should throw an error');
@@ -85,7 +85,7 @@ describe('signature:create', () => {
 	describe('signature:create transaction', () => {
 		setupTest()
 			.command(['signature:create', invalidTransaction])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse transaction JSON.',
 				);
@@ -97,7 +97,7 @@ describe('signature:create', () => {
 				validateTransaction: sandbox.stub().returns({ valid: false }),
 			})
 			.command(['signature:create', JSON.stringify(defaultTransaction)])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Provided transaction is invalid.',
 				);
@@ -154,7 +154,7 @@ describe('signature:create', () => {
 		setupTest()
 			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['signature:create'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
 			})
 			.it('should throw an error when stdin is empty');
@@ -166,7 +166,7 @@ describe('signature:create', () => {
 				sandbox.stub().resolves({ data: invalidTransaction }),
 			)
 			.command(['signature:create'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse transaction JSON.',
 				);
