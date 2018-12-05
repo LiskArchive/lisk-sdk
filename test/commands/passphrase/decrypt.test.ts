@@ -61,7 +61,7 @@ describe('passphrase:decrypt', () => {
 	describe('passphrase:decrypt', () => {
 		setupTest()
 			.command(['passphrase:decrypt'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'No encrypted passphrase was provided.',
 				);
