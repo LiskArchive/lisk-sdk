@@ -520,11 +520,11 @@ function __init(initScope, done) {
 								return done(loadDelegatesErr, scope);
 							}
 
-							return Promise.resolve();
+							return null;
 						});
 					};
 
-					return Promise.resolve();
+					return null;
 				}
 			);
 		});
