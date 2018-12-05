@@ -15,7 +15,7 @@ describe('transaction pool', () => {
 		[key: string]: sinon.SinonStub;
 	};
 
-	beforeEach(() => {
+	beforeEach(async () => {
 		checkerStubs = {
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
@@ -41,7 +41,6 @@ describe('transaction pool', () => {
 				.stub((transactionPool as any)._queues, queueName)
 				.value(sinon.createStubInstance(Queue));
 		});
-		return;
 	});
 
 	describe('#addTransactions', () => {});
@@ -51,29 +50,29 @@ describe('transaction pool', () => {
 			transactions: [transactions[0], transactions[1], transactions[2]],
 		};
 
-		it('should call checkTransactionForRecipientId with block transactions', () => {
+		it('should call checkTransactionForRecipientId with block transactions', async () => {
 			transactionPool.onDeleteBlock(block);
-			return expect(checkerStubs.checkTransactionForRecipientId).to.be.calledWithExactly(
+			expect(checkerStubs.checkTransactionForRecipientId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
 
-		it('should call removeFor for verified, pending and ready queues once', () => {
+		it('should call removeFor for verified, pending and ready queues once', async () => {
 			transactionPool.onDeleteBlock(block);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
 			expect(verified.removeFor).to.be.calledOnce;
-			return expect(ready.removeFor).to.be.calledOnce;
+			expect(ready.removeFor).to.be.calledOnce;
 		});
 
-		it('should call enqueueMany for verified queue with transactions from the deleted block', () => {
+		it('should call enqueueMany for verified queue with transactions from the deleted block', async () => {
 			transactionPool.onDeleteBlock(block);
-			return expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
+			expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
 				block.transactions,
 			);
 		});
 
-		it('should call enqueueMany for validated queue with transactions removed from other queues', () => {
+		it('should call enqueueMany for validated queue with transactions removed from other queues', async () => {
 			const { received, validated, ...otherQueues } = transactionPool.queues;
 			const removedTransactions = Object.keys(otherQueues)
 				.map(queueName => {
@@ -84,7 +83,7 @@ describe('transaction pool', () => {
 				})
 				.reduce((acc, value) => acc.concat(value), []);
 			transactionPool.onDeleteBlock(block);
-			return expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
+			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
 		});
@@ -95,36 +94,36 @@ describe('transaction pool', () => {
 			transactions: [transactions[0], transactions[1], transactions[2]],
 		};
 
-		it('should call checkTransactionForId with block transactions', () => {
+		it('should call checkTransactionForId with block transactions', async () => {
 			transactionPool.onNewBlock(block);
-			return expect(checkerStubs.checkTransactionForId).to.be.calledWithExactly(
+			expect(checkerStubs.checkTransactionForId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
 
-		it('should call checkTransactionForSenderPublicKey with block transactions', () => {
+		it('should call checkTransactionForSenderPublicKey with block transactions', async () => {
 			transactionPool.onNewBlock(block);
-			return expect(checkerStubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
+			expect(checkerStubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
 
-		it('should call removeFor for received and validated queues once', () => {
+		it('should call removeFor for received and validated queues once', async () => {
 			transactionPool.onNewBlock(block);
 			const { received, validated } = transactionPool.queues;
 			expect(received.removeFor).to.be.calledOnce;
-			return expect(validated.removeFor).to.be.calledOnce;
+			expect(validated.removeFor).to.be.calledOnce;
 		});
 
-		it('should call removeFor for pending, verified and ready queues thrice', () => {
+		it('should call removeFor for pending, verified and ready queues thrice', async () => {
 			transactionPool.onNewBlock(block);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledThrice;
 			expect(verified.removeFor).to.be.calledThrice;
-			return expect(ready.removeFor).to.be.calledThrice;
+			expect(ready.removeFor).to.be.calledThrice;
 		});
 
-		it('should call enqueueMany for validated queue with transactions removed from other queues', () => {
+		it('should call enqueueMany for validated queue with transactions removed from other queues', async () => {
 			const { received, validated, ...otherQueues } = transactionPool.queues;
 			const removedTransactions = Object.keys(otherQueues)
 				.map(queueName => {
@@ -135,7 +134,7 @@ describe('transaction pool', () => {
 				})
 				.reduce((acc, value) => acc.concat(value), []);
 			transactionPool.onNewBlock(block);
-			return expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith([
+			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith([
 				...removedTransactions,
 				...removedTransactions,
 			]);
@@ -143,10 +142,10 @@ describe('transaction pool', () => {
 	});
 
 	describe('#onRoundRollback', () => {
-		it('should call checkTransactionForProperty with block sender addresses and "senderPublicKey" property', () => {
+		it('should call checkTransactionForProperty with block sender addresses and "senderPublicKey" property', async () => {
 			transactionPool.onRoundRollback(publicKeys);
 			const senderProperty = 'senderPublicKey';
-			return expect(
+			expect(
 				checkerStubs.checkTransactionPropertyForValues.calledWithExactly(
 					publicKeys,
 					senderProperty,
@@ -154,15 +153,15 @@ describe('transaction pool', () => {
 			).to.equal(true);
 		});
 
-		it('should call removeFor for pending, verified and ready queues once', () => {
+		it('should call removeFor for pending, verified and ready queues once', async () => {
 			transactionPool.onRoundRollback(publicKeys);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
 			expect(verified.removeFor).to.be.calledOnce;
-			return expect(ready.removeFor).to.be.calledOnce;
+			expect(ready.removeFor).to.be.calledOnce;
 		});
 
-		it('should call enqueueMany for validated queue with transactions removed from other queues', () => {
+		it('should call enqueueMany for validated queue with transactions removed from other queues', async () => {
 			const { received, validated, ...otherQueues } = transactionPool.queues;
 			const removedTransactions = Object.keys(otherQueues)
 				.map(queueName => {
@@ -173,7 +172,7 @@ describe('transaction pool', () => {
 				})
 				.reduce((acc, value) => acc.concat(value), []);
 			transactionPool.onRoundRollback(publicKeys);
-			return expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
+			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
 		});
