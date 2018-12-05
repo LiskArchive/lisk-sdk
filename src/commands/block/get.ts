@@ -17,6 +17,10 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly blockIds: string;
+}
+
 export default class GetCommand extends BaseCommand {
 	static args = [
 		{
@@ -40,7 +44,8 @@ export default class GetCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args: { blockIds: blockIdsStr } } = this.parse(GetCommand);
+		const { args } = this.parse(GetCommand);
+		const { blockIds: blockIdsStr }: Args = args;
 		const blockIds = blockIdsStr.split(',').filter(Boolean);
 		const req = blockIds.map((blockId: string) => ({
 			query: {
