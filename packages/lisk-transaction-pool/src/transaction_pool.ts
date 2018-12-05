@@ -85,7 +85,7 @@ export class TransactionPool {
 
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the delete block
 		const removedTransactionsByRecipientIds = this.removeTransactionsFromQueues(
-			otherQueues,
+			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForRecipientId(block.transactions),
 		);
 
@@ -97,14 +97,14 @@ export class TransactionPool {
 	public onNewBlock(block: Block): void {
 		// Remove transactions in the transaction pool which were included in the new block
 		this.removeTransactionsFromQueues(
-			this._queues,
+			Object.keys(this._queues),
 			queueCheckers.checkTransactionForId(block.transactions),
 		);
 
 		const { received, validated, ...otherQueues } = this._queues;
 		// Remove transactions from the verified, pending and ready queues which were sent from the accounts in the new block
 		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
-			otherQueues,
+			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForSenderPublicKey(block.transactions),
 		);
 
@@ -115,7 +115,7 @@ export class TransactionPool {
 				transaction.containsUniqueData && transaction.containsUniqueData(),
 		);
 		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
-			otherQueues,
+			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForTypes(blockTransactionsWithUniqueData),
 		);
 
@@ -132,7 +132,7 @@ export class TransactionPool {
 		const senderProperty: queueCheckers.TransactionFilterableKeys =
 			'senderPublicKey';
 		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
-			otherQueues,
+			Object.keys(otherQueues),
 			queueCheckers.checkTransactionPropertyForValues(
 				publicKeys,
 				senderProperty,
@@ -156,10 +156,10 @@ export class TransactionPool {
 	}
 
 	private removeTransactionsFromQueues(
-		queues: Queues,
+		queueNames: ReadonlyArray<string>,
 		condition: (transaction: Transaction) => boolean,
 	): ReadonlyArray<Transaction> {
-		return Object.keys(queues)
+		return queueNames
 			.map(queueName => this._queues[queueName].removeFor(condition))
 			.reduce(
 				(
