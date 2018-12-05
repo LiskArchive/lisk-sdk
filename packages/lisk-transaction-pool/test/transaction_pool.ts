@@ -9,7 +9,7 @@ const Queue = require('../src/queue').Queue;
 const queueCheckers = require('../src/queue_checkers');
 
 describe('transaction pool', () => {
-	const EXPIRE_TRANSACTIONS_JOB = 1000;
+	const expireTransactionsInterval = 1000;
 	const transactions = transactionsObjects.map(wrapTransferTransaction);
 	let transactionPool: TransactionPool;
 
@@ -41,7 +41,7 @@ describe('transaction pool', () => {
 			),
 		};
 
-		transactionPool = new TransactionPool({ EXPIRE_TRANSACTIONS_JOB });
+		transactionPool = new TransactionPool({ expireTransactionsInterval });
 		Object.keys(transactionPool.queues).forEach(queueName => {
 			sandbox
 				.stub((transactionPool as any)._queues, queueName)

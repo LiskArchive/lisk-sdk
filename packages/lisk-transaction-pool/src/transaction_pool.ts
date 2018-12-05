@@ -34,7 +34,7 @@ export interface TransactionFunctions {
 }
 
 interface TransactionPoolOptions {
-	readonly EXPIRE_TRANSACTIONS_JOB: number;
+	readonly expireTransactionsInterval: number;
 }
 
 export type Transaction = TransactionObject & TransactionFunctions;
@@ -50,9 +50,10 @@ interface Queues {
 export class TransactionPool {
 	// tslint:disable-next-line variable-name
 	private readonly _queues: Queues;
-	private readonly EXPIRE_TRANSACTIONS_JOB: number;
+	private readonly expireTransactionsInterval: number;
+	private readonly expireTransactionsJob: Job;
 
-	public constructor({EXPIRE_TRANSACTIONS_JOB}: TransactionPoolOptions) {
+	public constructor({expireTransactionsInterval}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
@@ -60,10 +61,9 @@ export class TransactionPool {
 			pending: new Queue(),
 			ready: new Queue(),
 		};
-		this.EXPIRE_TRANSACTIONS_JOB = EXPIRE_TRANSACTIONS_JOB;
-
-		// tslint:disable-next-line
-		new Job(this, this.expireTransactions, this.EXPIRE_TRANSACTIONS_JOB)
+		this.expireTransactionsInterval = expireTransactionsInterval;
+		this.expireTransactionsJob = new Job(this, this.expireTransactions, this.expireTransactionsInterval)
+		this.expireTransactionsJob.start();
 	}
 
 	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
