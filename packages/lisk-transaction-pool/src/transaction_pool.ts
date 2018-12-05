@@ -84,12 +84,12 @@ export class TransactionPool {
 		const { received, validated, ...otherQueues } = this._queues;
 
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the delete block
-		const transactionsToAffectedAccounts = this.removeTransactionsFromQueues(
+		const removedTransactionsByRecipientIds = this.removeTransactionsFromQueues(
 			otherQueues,
 			queueCheckers.checkTransactionForRecipientId(block.transactions),
 		);
 
-		this._queues.validated.enqueueMany(transactionsToAffectedAccounts);
+		this._queues.validated.enqueueMany(removedTransactionsByRecipientIds);
 		// Add transactions to the verfied queue which were included in the deleted block
 		this._queues.verified.enqueueMany(block.transactions);
 	}
@@ -103,7 +103,7 @@ export class TransactionPool {
 
 		const { received, validated, ...otherQueues } = this._queues;
 		// Remove transactions from the verified, pending and ready queues which were sent from the accounts in the new block
-		const transactionsFromAffectedAccounts = this.removeTransactionsFromQueues(
+		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
 			otherQueues,
 			queueCheckers.checkTransactionForSenderPublicKey(block.transactions),
 		);
@@ -114,15 +114,15 @@ export class TransactionPool {
 			(transaction: Transaction) =>
 				transaction.containsUniqueData && transaction.containsUniqueData(),
 		);
-		const transactionsOfTypesWithUniqueData = this.removeTransactionsFromQueues(
+		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
 			otherQueues,
 			queueCheckers.checkTransactionForTypes(blockTransactionsWithUniqueData),
 		);
 
 		// Add transactions which need to be reverified to the validated queue
 		this._queues.validated.enqueueMany([
-			...transactionsFromAffectedAccounts,
-			...transactionsOfTypesWithUniqueData,
+			...removedTransactionsBySenderPublicKeys,
+			...removedTransactionsByTypes,
 		]);
 	}
 
@@ -131,7 +131,7 @@ export class TransactionPool {
 		const { received, validated, ...otherQueues } = this._queues;
 		const senderProperty: queueCheckers.TransactionFilterableKeys =
 			'senderPublicKey';
-		const transactionsFromAffectedAccounts = this.removeTransactionsFromQueues(
+		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
 			otherQueues,
 			queueCheckers.checkTransactionPropertyForValues(
 				delegates,
@@ -139,7 +139,7 @@ export class TransactionPool {
 			),
 		);
 
-		this._queues.validated.enqueueMany(transactionsFromAffectedAccounts);
+		this._queues.validated.enqueueMany(removedTransactionsBySenderPublicKeys);
 	}
 
 	public validateTransactionAgainstTransactionsInPool(
