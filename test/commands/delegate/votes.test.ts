@@ -62,7 +62,7 @@ describe('delegate:votes', () => {
 	describe('delegate:votes', () => {
 		setupTest()
 			.command(['delegate:votes'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error when arg is not provided');
@@ -161,7 +161,7 @@ describe('delegate:votes', () => {
 		describe('delegate:votes --limit=xxx', () => {
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--limit=wronglimit'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Limit must be an integer and greater than 0',
 					);
@@ -170,7 +170,7 @@ describe('delegate:votes', () => {
 
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--limit=0'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Limit must be an integer and greater than 0',
 					);
@@ -179,7 +179,7 @@ describe('delegate:votes', () => {
 
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--limit=101'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Maximum limit amount is 100',
 					);
@@ -217,7 +217,7 @@ describe('delegate:votes', () => {
 		describe('delegate:votes --offset=xxx', () => {
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--offset=wrongoffset'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Offset must be an integer and greater than or equal to 0',
 					);
@@ -226,7 +226,7 @@ describe('delegate:votes', () => {
 
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--offset=-1'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Offset must be an integer and greater than or equal to 0',
 					);
@@ -264,7 +264,7 @@ describe('delegate:votes', () => {
 		describe('delegate:votes --sort=xxx', () => {
 			setupTest()
 				.command(['delegate:votes', addresses[0], '--sort=wrongsort'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Sort must be one of: balance:asc, balance:desc, username:asc, username:desc',
 					);

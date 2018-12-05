@@ -19,6 +19,10 @@ import { getAPIClient } from '../../utils/api';
 import { SORT_FIELDS } from '../../utils/constants';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly addresses: string;
+}
+
 const MAXIMUM_LIMIT = 100;
 const DEFAULT_LIMIT = 10;
 const DEFAULT_OFFSET = 0;
@@ -93,11 +97,12 @@ export default class VotesCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const {
-			args: { addresses: addressesStr },
+			args,
 			flags: { limit: limitStr, offset: offsetStr, sort: sortStr },
 		} = this.parse(VotesCommand);
 
-		const addresses: ReadonlyArray<string> = addressesStr.split(',').filter(Boolean);
+		const { addresses: addressesStr }: Args = args;
+		const addresses = addressesStr.split(',').filter(Boolean);
 		const { limit, offset, sort } = processFlagInputs(
 			limitStr as string,
 			offsetStr as string,

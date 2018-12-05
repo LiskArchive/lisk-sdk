@@ -19,16 +19,20 @@ import { getAPIClient } from '../../utils/api';
 import { SORT_FIELDS } from '../../utils/constants';
 import { query } from '../../utils/query';
 
-const MAXIMUM_LIMIT = 100;
-const DEFAULT_LIMIT = 10;
-const DEFAULT_OFFSET = 0;
-const DEFAULT_SORT = 'balance:desc';
+interface Args {
+	readonly usernames: string;
+}
 
 interface QueryParameters {
 	readonly limit: number;
 	readonly offset: number;
 	readonly sort?: string;
 }
+
+const MAXIMUM_LIMIT = 100;
+const DEFAULT_LIMIT = 10;
+const DEFAULT_OFFSET = 0;
+const DEFAULT_SORT = 'balance:desc';
 
 const processFlagInputs = (limitStr: string, offsetStr: string, sortStr: string): QueryParameters => {
 	const limit = parseInt(limitStr, 10);
@@ -95,11 +99,12 @@ export default class VotersCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const {
-			args: { usernames: usernamesStr },
+			args,
 			flags: { limit: limitStr, offset: offsetStr, sort: sortStr },
 		} = this.parse(VotersCommand);
+		const { usernames: usernamesStr }: Args = args;
 
-		const usernames: ReadonlyArray<string> = usernamesStr.split(',').filter(Boolean);
+		const usernames = usernamesStr.split(',').filter(Boolean);
 
 		const { limit, offset, sort } = processFlagInputs(
 			limitStr as string,

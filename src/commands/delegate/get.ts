@@ -17,6 +17,10 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly usernames: string;
+}
+
 export default class GetCommand extends BaseCommand {
 	static args = [
 		{
@@ -40,7 +44,8 @@ export default class GetCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const { args: { usernames: usernamesStr } } = this.parse(GetCommand);
+		const { args } = this.parse(GetCommand);
+		const { usernames: usernamesStr }: Args = args;
 		const usernames: ReadonlyArray<string> = usernamesStr.split(',').filter(Boolean);
 		const req = usernames.map(username => ({
 			query: {

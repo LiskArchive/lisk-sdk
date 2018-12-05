@@ -37,7 +37,7 @@ describe('delegate:get', () => {
 		setupTest()
 			.stdout()
 			.command(['delegate:get'])
-			.catch(error =>
+			.catch((error: Error) =>
 				expect(error.message).to.contain('Missing 1 required arg'),
 			)
 			.it('should throw an error when arg is not provided');
