@@ -77,115 +77,109 @@ describe('system test - multi signature edge cases', () => {
 	);
 
 	describe('forge new block trying to register more signatures than balance will allow', () => {
-		describe('forge new block trying to register more signatures than balance will allow', () => {
-			let queueStatus;
-			const transactionIds = [];
-			let allTransactionsInPool = false;
-			let isInvalidTransactionConfirmed = true;
-			before(
-				'Create more transactions than available funds can cover',
-				done => {
-					const transactions = [];
-					const memberPassphrases = [signer1.passphrase, signer2.passphrase];
-					const charset =
-						'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-					for (let i = 0; i < 3; i++) {
-						const dappName = randomstring.generate({
-							length: 32,
-							charset,
-						});
+		let queueStatus;
+		const transactionIds = [];
+		let allTransactionsInPool = false;
+		let isInvalidTransactionConfirmed = true;
+		before('Create more transactions than available funds can cover', done => {
+			const transactions = [];
+			const memberPassphrases = [signer1.passphrase, signer2.passphrase];
+			const charset =
+				'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+			for (let i = 0; i < 3; i++) {
+				const dappName = randomstring.generate({
+					length: 32,
+					charset,
+				});
 
-						const string160 = randomstring.generate({
-							length: 160,
-							charset,
-						});
+				const string160 = randomstring.generate({
+					length: 160,
+					charset,
+				});
 
-						const string1KB = randomstring.generate({
-							length: 20,
-							charset,
-						});
+				const string1KB = randomstring.generate({
+					length: 20,
+					charset,
+				});
 
-						const application = {
-							category: randomUtil.number(0, 9),
-							name: dappName,
-							description: string160,
-							tags: string160,
-							type: 0,
-							link: `https://${string1KB}.zip`,
-							icon: `https://${string1KB}.png`,
-						};
+				const application = {
+					category: randomUtil.number(0, 9),
+					name: dappName,
+					description: string160,
+					tags: string160,
+					type: 0,
+					link: `https://${string1KB}.zip`,
+					icon: `https://${string1KB}.png`,
+				};
 
-						const dappTransaction = lisk.transaction.createDapp({
-							passphrase: multisigAccount.passphrase,
-							options: application,
-						});
+				const dappTransaction = lisk.transaction.createDapp({
+					passphrase: multisigAccount.passphrase,
+					options: application,
+				});
 
-						const signatures = memberPassphrases.map(memberPassphrase => {
-							const sigObj = lisk.transaction.createSignatureObject(
-								dappTransaction,
-								memberPassphrase
-							).signature;
-							return sigObj;
-						});
+				const signatures = memberPassphrases.map(memberPassphrase => {
+					const sigObj = lisk.transaction.createSignatureObject(
+						dappTransaction,
+						memberPassphrase
+					).signature;
+					return sigObj;
+				});
 
-						dappTransaction.signatures = signatures;
+				dappTransaction.signatures = signatures;
 
-						transactions.push(dappTransaction);
-						transactionIds.push(dappTransaction.id);
-					}
+				transactions.push(dappTransaction);
+				transactionIds.push(dappTransaction.id);
+			}
 
-					async.map(
-						transactions,
-						(transaction, eachCb) => {
-							localCommon.addTransaction(library, transaction, err => {
-								expect(err).to.not.exist;
-								eachCb();
-							});
-						},
-						err => {
-							expect(err).to.not.exist;
-							allTransactionsInPool =
-								transactionIds.filter(
-									trs => localCommon.transactionInPool(library, trs) === true
-								).length === transactions.length;
-							localCommon.forge(library, () => {
-								localCommon.getMultisignatureTransactions(
+			async.map(
+				transactions,
+				(transaction, eachCb) => {
+					localCommon.addTransaction(library, transaction, err => {
+						expect(err).to.not.exist;
+						eachCb();
+					});
+				},
+				err => {
+					expect(err).to.not.exist;
+					allTransactionsInPool =
+						transactionIds.filter(
+							trs => localCommon.transactionInPool(library, trs) === true
+						).length === transactions.length;
+					localCommon.forge(library, () => {
+						localCommon.getMultisignatureTransactions(
+							library,
+							{},
+							(err, queueStatusRes) => {
+								queueStatus = queueStatusRes;
+								/* First transaction in the array is the one that gets rejected in this scenario
+										the reason why this is valid is that the transaction pool gets pooled
+										transaction in the reverse order
+									*/
+								localCommon.getTransactionFromModule(
 									library,
-									{},
-									(err, queueStatusRes) => {
-										queueStatus = queueStatusRes;
-										/* First transaction in the array is the one that gets rejected in this scenario
-										 the reason why this is valid is that the transaction pool gets pooled
-										 transaction in the reverse order
-										*/
-										localCommon.getTransactionFromModule(
-											library,
-											{ id: transactionIds[0] },
-											(err, res) => {
-												isInvalidTransactionConfirmed =
-													res.transactions.lenght > 0;
-												done();
-											}
-										);
+									{ id: transactionIds[0] },
+									(err, res) => {
+										isInvalidTransactionConfirmed = res.transactions.lenght > 0;
+										done();
 									}
 								);
-							});
-						}
-					);
+							}
+						);
+					});
 				}
 			);
+		});
 
-			it('all transactions should have been added to the pool', () => {
-				return expect(allTransactionsInPool).to.eql(true);
-			});
+		it('all transactions should have been added to the pool', () => {
+			return expect(allTransactionsInPool).to.eql(true);
+		});
 
-			it('once account balance is not enough transactions should be removed from the queue', () => {
-				return expect(queueStatus.count).to.eql(0);
-			});
+		it('once account balance is not enough transactions should be removed from the queue', () => {
+			return expect(queueStatus.count).to.eql(0);
+		});
 
-			it('invalid transaction should not be confirmed', () => {
-				return expect(isInvalidTransactionConfirmed).to.eql(false);
-			});
+		it('invalid transaction should not be confirmed', () => {
+			return expect(isInvalidTransactionConfirmed).to.eql(false);
 		});
 	});
 });
