@@ -233,9 +233,16 @@ class BaseEntity {
 	/**
 	 * Validate allowed filters
 	 * @param {Array.<Object>|Object} filters
+	 * @param {Boolean} required
 	 * @return {true, NonSupportedFilterTypeError>}
 	 */
-	validateFilters(filters) {
+	validateFilters(filters = {}, required = false) {
+		if (required && (!filters || !Object.keys(filters).length)) {
+			throw new NonSupportedFilterTypeError(
+				'Filters are required for this operation.'
+			);
+		}
+
 		let flattenedFilters = [];
 		let invalidFilters = [];
 
