@@ -16,7 +16,7 @@ import * as cryptography from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
 import { MultiError } from 'verror';
 import { BaseTransaction } from '../src/base_transaction';
-import { TransactionJSON } from '../src/transaction_types';
+import { TransactionJSON, Status, Account } from '../src/transaction_types';
 import { TransactionError } from '../src/errors';
 import BigNum from 'browserify-bignum';
 import { TestTransaction } from './helpers/test_transaction_class';
@@ -152,7 +152,7 @@ describe('Base transaction class', () => {
 	describe('#getBasicBytes', () => {
 		beforeEach(() => {
 			baseTransaction = new TestTransaction(defaultTransaction);
-			
+
 			return Promise.resolve();
 		});
 
@@ -201,9 +201,9 @@ describe('Base transaction class', () => {
 			});
 
 			it('should return an object with boolean `validated` = true for valid input', () => {
-				const { valid } = baseTransaction.checkSchema();
+				const { status } = baseTransaction.checkSchema();
 
-				return expect(valid).to.be.true;
+				return expect(status).to.eql(Status.OK);
 			});
 		});
 
@@ -226,13 +226,13 @@ describe('Base transaction class', () => {
 				return Promise.resolve();
 			});
 
-			it('should return an object with boolean `valid` = false', () => {
-				const { valid } = baseTransaction.checkSchema();
+			it('should return a transaction response with status = FAIL', () => {
+				const { status } = baseTransaction.checkSchema();
 
-				return expect(valid).to.not.be.true;
+				return expect(status).to.eql(Status.FAIL);
 			});
 
-			it('should return an object with an array of transactions errors ', () => {
+			it('should return a transaction response with errors ', () => {
 				const { errors } = baseTransaction.checkSchema();
 				const errorsArray = errors as ReadonlyArray<TransactionError>;
 
@@ -249,23 +249,31 @@ describe('Base transaction class', () => {
 			beforeEach(() => {
 				baseTransaction = new TestTransaction(defaultTransaction);
 				sandbox
-				.stub(baseTransaction, 'getBytes')
-				.returns(Buffer.from('0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309'));
-				
+					.stub(baseTransaction, 'getBytes')
+					.returns(
+						Buffer.from(
+							'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+						),
+					);
+
 				return Promise.resolve();
 			});
-			it('should return an object with boolean `valid` = true', () => {
-				const { valid } = baseTransaction.validate();
-				
-				return expect(valid).to.be.true;
+			it('should return a transaction response with status = OK', () => {
+				const { status } = baseTransaction.validate();
+
+				return expect(status).to.eql(Status.OK);
 			});
 		});
 
 		describe('when given invalid transaction', () => {
 			beforeEach(() => {
 				sandbox
-				.stub(baseTransaction, 'getBytes')
-				.returns(Buffer.from('0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309'));
+					.stub(baseTransaction, 'getBytes')
+					.returns(
+						Buffer.from(
+							'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+						),
+					);
 			});
 
 			describe('with invalid id', () => {
@@ -274,19 +282,17 @@ describe('Base transaction class', () => {
 						...defaultTransaction,
 						id: defaultTransaction.id.replace('1', '0'),
 					};
-					baseTransaction = new TestTransaction(
-						invalidIdTransaction as any,
-					);
+					baseTransaction = new TestTransaction(invalidIdTransaction as any);
 					return Promise.resolve();
 				});
 
-				it('should return an object with boolean `valid` = false', () => {
-					const { valid } = baseTransaction.validate();
-	
-					return expect(valid).to.not.be.true;
+				it('should return a transaction response with status = FAIL', () => {
+					const { status } = baseTransaction.validate();
+
+					return expect(status).to.eql(Status.FAIL);
 				});
 
-				it('should return an object with an array containing id error', () => {
+				it('should return a transaction response containing Invalid ID error', () => {
 					const { errors } = baseTransaction.validate();
 					const errorArray = errors as ReadonlyArray<TransactionError>;
 
@@ -308,10 +314,10 @@ describe('Base transaction class', () => {
 					return Promise.resolve();
 				});
 
-				it('should return an object with boolean `valid` = false', () => {
-					const { valid } = baseTransaction.validate();
-	
-					return expect(valid).to.not.be.true;
+				it('should return a transaction response with status = FAIL', () => {
+					const { status } = baseTransaction.validate();
+
+					return expect(status).to.eql(Status.FAIL);
 				});
 
 				it('should return an object with an array containing signatures error', () => {
@@ -320,7 +326,10 @@ describe('Base transaction class', () => {
 
 					return expect(errorArray[0])
 						.to.be.instanceof(TransactionError)
-						.and.to.have.property('message', 'Encountered duplicate signature in transaction');
+						.and.to.have.property(
+							'message',
+							'Encountered duplicate signature in transaction',
+						);
 				});
 			});
 		});
@@ -373,30 +382,29 @@ describe('Base transaction class', () => {
 				baseTransaction = new TestTransaction(invalidTransaction as any);
 				return Promise.resolve();
 			});
-		})
-
+		});
 
 		describe('when receiving account state with sufficient balance', () => {
-			it('should return an object with boolean `verified` = true', () => {
-				const { verified } = baseTransaction.verify(defaultSenderAccount);
+			it('should return a transaction response with status = OK', () => {
+				const { status } = baseTransaction.verify(defaultSenderAccount);
 
-				return expect(verified).to.be.true;
+				return expect(status).to.eql(Status.OK);
 			});
 		});
 
 		describe('when receiving account state with insufficient balance', () => {
-			it('should return an object with boolean `verified` = false', () => {
+			it('should return a transaction response with status = FAIL', () => {
 				const senderAccount = {
 					...defaultSenderAccount,
 					unconfirmedBalance: '0',
 					balance: '0',
 				};
-				const { verified } = baseTransaction.verify(senderAccount);
+				const { status } = baseTransaction.verify(senderAccount);
 
-				return expect(verified).to.be.false;
+				return expect(status).to.eql(Status.FAIL);
 			});
 
-			it('should return an object with an array containing transaction type error', () => {
+			it('should return a transaction response containing insufficient balance error', () => {
 				const senderAccount = {
 					...defaultSenderAccount,
 					unconfirmedBalance: '0',
@@ -416,13 +424,13 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#verifyAgainstOtherTransactions', () => {
-		it('should return an object with boolean `verified`', () => {
+		it('should return a transaction response with status of type number', () => {
 			const otherTransactions = [defaultTransaction, defaultTransaction];
-			const { verified } = baseTransaction.verifyAgainstOtherTransactions(
+			const { status } = baseTransaction.verifyAgainstOtherTransactions(
 				otherTransactions,
 			);
 
-			return expect(verified).to.be.a('boolean');
+			return expect(status).to.be.a('number');
 		});
 	});
 
@@ -435,9 +443,9 @@ describe('Base transaction class', () => {
 
 		describe('when transaction not yet applied', () => {
 			it('should return an updated sender account with balance minus transaction fee', () => {
-				const { sender } = baseTransaction.apply(defaultSenderAccount);
+				const { state } = baseTransaction.apply(defaultSenderAccount);
 
-				return expect(sender)
+				return expect(state)
 					.to.be.an('object')
 					.and.to.have.property('balance', '0');
 			});
@@ -452,12 +460,12 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return sender account with original balance', () => {
-			const { sender: appliedSender } = baseTransaction.apply(
+			const { state: appliedState } = baseTransaction.apply(
 				defaultSenderAccount,
 			);
-			const { sender } = baseTransaction.undo(appliedSender);
+			const { state } = baseTransaction.undo(appliedState as Account);
 
-			return expect(sender)
+			return expect(state)
 				.to.be.an('object')
 				.and.to.have.property('balance', '10000000');
 		});

@@ -22,14 +22,11 @@ import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
 import { TransactionError } from './errors';
 import {
 	Account,
-	StateReturn,
+	Status,
 	TransactionAsset,
 	TransactionJSON,
-	ValidateReturn,
-	VerifyReturn,
-	// TransferAsset,
 } from './transaction_types';
-import { checkBalance,  getTransactionBytes, validator } from './utils';
+import { checkBalance, getTransactionBytes, validator } from './utils';
 import * as schemas from './utils/validation/schema';
 
 const checkTransactionTypes = (
@@ -51,6 +48,13 @@ const checkTransactionTypes = (
 	return transactionErrors;
 };
 
+export interface TransactionResponse {
+	readonly id: string;
+	readonly status: Status;
+	readonly errors: ReadonlyArray<TransactionError>;
+	readonly state?: Account;
+}
+
 export abstract class BaseTransaction {
 	public readonly amount: BigNum;
 	public readonly fee: BigNum;
@@ -71,7 +75,6 @@ export abstract class BaseTransaction {
 	public constructor(rawTransaction: TransactionJSON) {
 		const result = checkTransactionTypes(rawTransaction);
 		if (result) {
-			// TODO: TransactionOperationsResponse
 			// tslint:disable-next-line readonly-array
 			throw new MultiError(result as Error[]);
 		}
@@ -171,7 +174,7 @@ export abstract class BaseTransaction {
 
 	public abstract containsUniqueData(): boolean;
 
-	public checkSchema(): ValidateReturn {
+	public checkSchema(): TransactionResponse {
 		const transaction = this.toJSON();
 		const baseTransactionValidator = validator.compile(schemas.baseTransaction);
 		const valid = baseTransactionValidator(transaction) as boolean;
@@ -185,15 +188,16 @@ export abstract class BaseTransaction {
 							error.dataPath,
 						),
 			  )
-			: undefined;
+			: [];
 
 		return {
-			valid,
+			id: this.id,
+			status: valid ? Status.OK : Status.FAIL,
 			errors,
 		};
 	}
 
-	public validate(): ValidateReturn {
+	public validate(): TransactionResponse {
 		const transaction = this.toJSON();
 		const transactionHash = cryptography.hash(this.getBasicBytes());
 
@@ -204,10 +208,14 @@ export abstract class BaseTransaction {
 			): ReadonlyArray<TransactionError> => {
 				const [key, value] = property;
 				if (key === 'id') {
-					const transactionBytesWithSignatures = getTransactionBytes(this.toJSON());
-					const transactionHashWithSignatures = cryptography.hash(transactionBytesWithSignatures);
+					const transactionBytesWithSignatures = getTransactionBytes(
+						this.toJSON(),
+					);
+					const transactionHashWithSignatures = cryptography.hash(
+						transactionBytesWithSignatures,
+					);
 					const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
-						transactionHashWithSignatures ,
+						transactionHashWithSignatures,
 					);
 					const transactionId = cryptography.bufferToBigNumberString(
 						bufferFromFirstEntriesReversed,
@@ -274,15 +282,10 @@ export abstract class BaseTransaction {
 			[],
 		);
 
-		if (validateErrors.length > 0) {
-			return {
-				valid: false,
-				errors: validateErrors,
-			};
-		}
-
 		return {
-			valid: true,
+			id: this.id,
+			status: validateErrors.length === 0 ? Status.OK : Status.FAIL,
+			errors: validateErrors,
 		};
 	}
 
@@ -292,7 +295,7 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public verify(sender: Account): VerifyReturn {
+	public verify(sender: Account): TransactionResponse {
 		// Balance verification
 		const { errors: balanceError } = checkBalance(sender, this.fee);
 
@@ -449,37 +452,38 @@ export abstract class BaseTransaction {
 			...multisignatureErrors,
 		];
 
-		if (verifyErrors.length > 0) {
-			return {
-				verified: false,
-				errors: verifyErrors,
-			};
-		}
-
 		return {
-			verified: true,
+			id: this.id,
+			status: verifyErrors.length === 0 ? Status.OK : Status.FAIL,
+			errors: verifyErrors,
 		};
 	}
 
 	public abstract verifyAgainstOtherTransactions(
 		transactions: ReadonlyArray<TransactionJSON>,
-	): VerifyReturn;
+	): TransactionResponse;
 
-	public apply(sender: Account): StateReturn {
+	public apply(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).sub(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 
 		return {
-			sender: updatedAccount,
+			id: this.id,
+			status: Status.OK,
+			state: updatedAccount,
+			errors: [],
 		};
 	}
 
-	public undo(sender: Account): StateReturn {
+	public undo(sender: Account): TransactionResponse {
 		const updatedBalance = new BigNum(sender.balance).add(this.fee);
 		const updatedAccount = { ...sender, balance: updatedBalance.toString() };
 
 		return {
-			sender: updatedAccount,
+			id: this.id,
+			status: Status.OK,
+			state: updatedAccount,
+			errors: [],
 		};
 	}
 }

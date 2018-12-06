@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
 export const transaction = {
 	$id: 'lisk/transaction',
 	type: 'object',
