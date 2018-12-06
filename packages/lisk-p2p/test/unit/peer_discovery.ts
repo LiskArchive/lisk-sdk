@@ -34,18 +34,17 @@ describe('peer discovery', () => {
 		// TODO need to cover all the test
 		const newPeer = new Peer(peerOption);
 		const peerDuplicate = new Peer(peerOptionDuplicate);
-		const seedNodes = [...initializePeerList(), newPeer, peerDuplicate];
+		const peers = [...initializePeerList(), newPeer, peerDuplicate];
 
-		const blacklist = [seedNodes[4]];
+		const blacklistIds = [peers[4].id];
 
 		describe('return an array with all the peers of seed nodes', () => {
 			let discoveredPeers: ReadonlyArray<Peer>;
 
 			beforeEach(async () => {
-				discoveredPeers = await discoverPeers.discoverPeers(
-					seedNodes,
-					blacklist,
-				);
+				discoveredPeers = await discoverPeers.discoverPeers(peers, {
+					blacklistIds,
+				});
 			});
 
 			it('should return an array', () => {

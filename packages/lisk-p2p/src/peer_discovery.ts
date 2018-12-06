@@ -12,52 +12,51 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { RPCGetPeersFailed } from './errors';
 import { Peer, RPCRequest, RPCResponse } from './peer';
 
+export interface Options {
+	readonly blacklistIds: ReadonlyArray<string>;
+}
+
 const rpcRequestHandler = async (
-	seedNodes: ReadonlyArray<Peer>,
+	peers: ReadonlyArray<Peer>,
 	rpcRequest: RPCRequest<void>,
 ) =>
 	Promise.all(
-		seedNodes.map(async seedNode =>
-			seedNode
+		peers.map(async peer =>
+			peer
 				.request(rpcRequest)
 				.then((response: RPCResponse<ReadonlyArray<Peer>>) => response.data)
-				.catch((err: Error) => {
-					throw err;
+				.catch((error: Error) => {
+					throw new RPCGetPeersFailed(
+						`Error when fetching peerlist of peer with peer id ${peer.id}`,
+						error,
+						peer.id,
+					);
 				}),
 		),
 	);
 
 export const discoverPeers = async (
-	seedNodes: ReadonlyArray<Peer>,
-	blacklist: ReadonlyArray<Peer>,
+	peers: ReadonlyArray<Peer>,
+	options: Options = { blacklistIds: [] },
 ): Promise<ReadonlyArray<Peer>> => {
 	const rpcRequest: RPCRequest<void> = {
 		procedure: 'getPeers',
 	};
-	const peersOfSeedNodes = await rpcRequestHandler(seedNodes, rpcRequest);
+	const peersOfPeer = await rpcRequestHandler(peers, rpcRequest);
 
-	const peersOfSeedNodesFlat: ReadonlyArray<Peer> = peersOfSeedNodes.reduce(
+	const peersOfPeerFlat: ReadonlyArray<Peer> = peersOfPeer.reduce(
 		(flattenedPeersList: ReadonlyArray<Peer>, peersList) => [
 			...flattenedPeersList,
 			...peersList,
 		],
-	);
-
-	// Create list of blacklist peer ids
-	const blackListIds = blacklist.reduce(
-		(blacklistIdsArray: ReadonlyArray<string>, blacklistPeer: Peer) => [
-			...blacklistIdsArray,
-			blacklistPeer.id,
-		],
 		[],
 	);
 
-	// Create new Peers array, filter by blacklist and triedPeers and remove duplicates
-	const discoveredPeers = peersOfSeedNodesFlat
-		.filter((peer: Peer) => !blackListIds.includes(peer.id))
-		.reduce((uniquePeersArray: ReadonlyArray<Peer>, peer: Peer) => {
+	const discoveredPeers = peersOfPeerFlat.reduce(
+		(uniquePeersArray: ReadonlyArray<Peer>, peer: Peer) => {
 			const found = uniquePeersArray.find(findPeer => findPeer.id === peer.id);
 
 			if (found) {
@@ -65,7 +64,17 @@ export const discoverPeers = async (
 			}
 
 			return [...uniquePeersArray, peer];
-		}, []);
+		},
+		[],
+	);
 
-	return Promise.resolve(discoveredPeers);
+	if (options.blacklistIds.length === 0) {
+		return Promise.resolve(discoveredPeers);
+	}
+
+	const discoveredPeersFiltered = discoveredPeers.filter(
+		(peer: Peer) => !options.blacklistIds.includes(peer.id),
+	);
+
+	return Promise.resolve(discoveredPeersFiltered);
 };
