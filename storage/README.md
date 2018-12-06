@@ -62,4 +62,11 @@ Following conventions must be followed strictly
 * If getter functions are dynamic they must accept a `fitlers` object as first parameter.
 * Every entity should set some field sets to describe collection of fields.
 * Entities should always return full set of attributes related to a field set and never implement field selection logic.
-* Every method in the entity must return `Promise` or a a real value. No callbacks should be implemented.
+* Every interface in the entity must return `Promise` and declared as `async`.
+* Timestamp always refer to Epoch timestamp
+* In case of Unix the attribute name must be prefixed with Unix
+* All values related to amount should be exposed as strings
+* Height should always be integer because of Number.MAX_SAFE_INTEGER is too high
+* Round number should be exposed as integer
+* All `BYTEA` fields with 'hex' encoding should be exposed as strings
+* All other `BYTEA` fields should be exposed as Buffer
