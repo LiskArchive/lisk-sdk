@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { RPCGetPeersFailed } from './errors';
+import { RPCGetPeersFailedError } from './errors';
 import { Peer, RPCRequest, RPCResponse } from './peer';
 
 export interface Options {
@@ -29,7 +29,7 @@ const rpcRequestHandler = async (
 				.request(rpcRequest)
 				.then((response: RPCResponse<ReadonlyArray<Peer>>) => response.data)
 				.catch((error: Error) => {
-					throw new RPCGetPeersFailed(
+					throw new RPCGetPeersFailedError(
 						`Error when fetching peerlist of peer with peer id ${peer.id}`,
 						error,
 						peer.id,
