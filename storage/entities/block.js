@@ -16,10 +16,7 @@
 
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
-const {
-	NonSupportedFilterTypeError,
-	NonSupportedOperationError,
-} = require('../errors');
+const { NonSupportedOperationError } = require('../errors');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -319,20 +316,28 @@ class Block extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	isPersisted(filters, _options, tx) {
+	isPersisted(filters, options, tx) {
+		const filtersRequired = true;
+		this.validateFilters(filters, filtersRequired);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedOptions = _.defaults(
+			{},
+			_.pick(options, ['limit', 'offset', 'fieldSet']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
+		);
 
-		if (parsedFilters === '') {
-			throw new NonSupportedFilterTypeError(
-				'Please provide some filters to check.',
-				filters
-			);
-		}
+		const params = Object.assign(
+			{},
+			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			{ parsedFilters }
+		);
 
 		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
-			.then(result => result[0].exists);
+			.executeFile(this.SQLs.isPersisted, { params }, {}, tx)
+			.then(result => !!result[0]);
 	}
 
 	getFieldSets() {
