@@ -497,7 +497,7 @@ describe('delegates', () => {
 		describe('getDelegateKeypairForCurrentSlot', () => {
 			let delegates;
 			let __private;
-			let originalgenerateDelegateList;
+			let originalGenerateDelegateList;
 
 			const genesis1 = {
 				passphrase:
@@ -543,13 +543,13 @@ describe('delegates', () => {
 				__private.keypairs[genesis2.publicKey] = genesis2Keypair;
 				__private.keypairs[genesis3.publicKey] = genesis3Keypair;
 
-				originalgenerateDelegateList = delegates.generateDelegateList;
+				originalGenerateDelegateList = delegates.generateDelegateList;
 
 				done();
 			});
 
 			after(done => {
-				delegates.generateDelegateList = originalgenerateDelegateList;
+				delegates.generateDelegateList = originalGenerateDelegateList;
 				done();
 			});
 
@@ -737,8 +737,8 @@ describe('delegates', () => {
 				});
 			});
 
-			describe('__private.clearLastDelegateListCache', () => {
-				it('delete the last round in the __private.delegateListCache object.', () => {
+			describe('__private.clearDelegateListCache', () => {
+				it('should clear __private.delegateListCache object.', () => {
 					// Arrange
 					const initialSate = {
 						1: ['j', 'k', 'l'],
@@ -747,37 +747,7 @@ describe('delegates', () => {
 					__private.delegatesListCache = { ...initialSate };
 
 					// Act
-					library.modules.delegates.clearLastDelegateListCache();
-
-					// Assert
-					expect(__private.delegatesListCache).to.have.property('1');
-					expect(__private.delegatesListCache).to.not.have.property('2');
-					return expect(__private.delegatesListCache['1']).to.deep.equal(
-						initialSate['1']
-					);
-				});
-
-				it('should not mutate the __private.delegateListCache object when there is only 1 cached round.', () => {
-					// Arrange
-					const initialSate = {
-						1: ['j', 'k', 'l'],
-					};
-					__private.delegatesListCache = { ...initialSate };
-
-					// Act
-					library.modules.delegates.clearLastDelegateListCache();
-
-					// Assert
-					return expect(__private.delegatesListCache).to.deep.equal(
-						initialSate
-					);
-				});
-
-				it('should not mutate the __private.delegateListCache object when there is no cached round.', () => {
-					__private.delegatesListCache = {};
-
-					// Act
-					library.modules.delegates.clearLastDelegateListCache();
+					library.modules.delegates.clearDelegateListCache();
 
 					// Assert
 					return expect(__private.delegatesListCache).to.deep.equal({});
