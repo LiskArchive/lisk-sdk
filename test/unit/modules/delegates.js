@@ -756,6 +756,32 @@ describe('delegates', () => {
 						initialSate['1']
 					);
 				});
+
+				it('should not mutate the __private.delegateListCache object when there is only 1 cached round.', () => {
+					// Arrange
+					const initialSate = {
+						1: ['j', 'k', 'l'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+
+					// Act
+					library.modules.delegates.clearLastDelegateListCache();
+
+					// Assert
+					return expect(__private.delegatesListCache).to.deep.equal(
+						initialSate
+					);
+				});
+
+				it('should not mutate the __private.delegateListCache object when there is no cached round.', () => {
+					__private.delegatesListCache = {};
+
+					// Act
+					library.modules.delegates.clearLastDelegateListCache();
+
+					// Assert
+					return expect(__private.delegatesListCache).to.deep.equal({});
+				});
 			});
 		});
 	});
