@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
-import * as discoverPeers from '../../src/peer_discovery';
+import * as discoverPeersModule from '../../src/peer_discovery';
 import { stub } from 'sinon';
 
 describe('peer discovery', () => {
@@ -38,32 +38,54 @@ describe('peer discovery', () => {
 		const peers = [...initializePeerList(), newPeer, peerDuplicate];
 		const blacklistIds = [peers[4].id];
 
-		describe('return an array with all the peers of seed nodes', () => {
+		describe('return an array with all the peers of input peers', () => {
 			let discoveredPeers: ReadonlyArray<Peer>;
 			const peerList1 = [newPeer];
 			const peerList2 = [newPeer, peerDuplicate];
 			const peerList3 = [newPeer, peers[2]];
+			const discoveredPeersResult = [newPeer, peers[2]];
 
-			stub(discoverPeers, 'rpcRequestHandler').resolves([
+			stub(discoverPeersModule, 'rpcRequestHandler').resolves([
 				peerList1,
 				peerList2,
 				peerList3,
 			]);
 
 			beforeEach(async () => {
-				discoveredPeers = await discoverPeers.discoverPeers(peers, {
+				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
 					blacklistIds,
 				});
 			});
 
 			it('should return an array', () => {
+				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
+					peers,
+					{ procedure: 'getPeers' },
+				);
+
 				return expect(discoveredPeers).to.be.an('array');
 			});
 
-			it('should return an object with an inbound unique list of peers', () => {
+			it('should return an array with length of 2', () => {
+				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
+					peers,
+					{ procedure: 'getPeers' },
+				);
+
 				return expect(discoveredPeers)
 					.to.be.an('array')
 					.of.length(2);
+			});
+
+			it('should return an array with discovered peers', () => {
+				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
+					peers,
+					{ procedure: 'getPeers' },
+				);
+
+				return expect(discoveredPeers)
+					.to.be.an('array')
+					.and.eql(discoveredPeersResult);
 			});
 		});
 	});
