@@ -18,7 +18,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import { MultiError } from 'verror';
-import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from './constants';
+import { BYTESIZES } from './constants';
 import { TransactionError } from './errors';
 import {
 	Account,
@@ -146,15 +146,6 @@ export abstract class BaseTransaction {
 					BYTESIZES.RECIPIENT_ID,
 			  )
 			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
-
-		if (this.amount.lt(0)) {
-			throw new Error('Transaction amount must not be negative.');
-		}
-		// BUG in browserify-bignum prevents us using `.gt` directly.
-		// See https://github.com/bored-engineer/browserify-bignum/pull/2
-		if (this.amount.gte(new BigNum(MAX_TRANSACTION_AMOUNT).add(1))) {
-			throw new Error('Transaction amount is too large.');
-		}
 
 		const transactionAmount = this.amount.toBuffer({
 			endian: 'little',
@@ -485,5 +476,9 @@ export abstract class BaseTransaction {
 			state: updatedAccount,
 			errors: [],
 		};
+	}
+
+	public expire() {
+
 	}
 }
