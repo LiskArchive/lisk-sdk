@@ -15,6 +15,7 @@
 'use strict';
 
 var lisk = require('lisk-elements').default;
+const randomstring = require('randomstring');
 var accountFixtures = require('../../../fixtures/accounts');
 var randomUtil = require('../../../common/utils/random');
 var localCommon = require('../../common');
@@ -448,6 +449,125 @@ describe('system test (type 4) - effect of multisignature registration on memory
 						done
 					);
 				});
+			});
+		});
+	});
+
+	describe('forge new block with multisignature transaction', () => {
+		const multisigAccount = randomUtil.account();
+		let multisigTransaction;
+		const creditTransaction = lisk.transaction.transfer({
+			amount: 65 * NORMALIZER,
+			passphrase: accountFixtures.genesis.passphrase,
+			recipientId: multisigAccount.address,
+		});
+		const signer1 = randomUtil.account();
+		const signer2 = randomUtil.account();
+
+		before('forge new block with multisignature transaction', done => {
+			localCommon.addTransactionsAndForge(
+				library,
+				[creditTransaction],
+				0,
+				() => {
+					const keysgroup = [signer1.publicKey, signer2.publicKey];
+
+					multisigTransaction = lisk.transaction.registerMultisignature({
+						passphrase: multisigAccount.passphrase,
+						keysgroup,
+						lifetime: 4,
+						minimum: 2,
+					});
+					const sign1 = lisk.transaction.utils.multiSignTransaction(
+						multisigTransaction,
+						signer1.passphrase
+					);
+					const sign2 = lisk.transaction.utils.multiSignTransaction(
+						multisigTransaction,
+						signer2.passphrase
+					);
+
+					multisigTransaction.signatures = [sign1, sign2];
+					multisigTransaction.ready = true;
+					localCommon.addTransactionsAndForge(
+						library,
+						[multisigTransaction],
+						done
+					);
+				}
+			);
+		});
+
+		describe('Register Dapps from an account with not enough balance', () => {
+			let queueStatus;
+			before(
+				'Create more transactions than available funds can cover',
+				done => {
+					const transactions = [];
+					const memberPassphrases = [signer1.passphrase, signer2.passphrase];
+					const charset =
+						'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+					for (let i = 0; i < 3; i++) {
+						const dappName = randomstring.generate({
+							length: 32,
+							charset,
+						});
+
+						const string160 = randomstring.generate({
+							length: 160,
+							charset,
+						});
+
+						const string1KB = randomstring.generate({
+							length: 20,
+							charset,
+						});
+
+						const application = {
+							category: randomUtil.number(0, 9),
+							name: dappName,
+							description: string160,
+							tags: string160,
+							type: 0,
+							link: `https://${string1KB}.zip`,
+							icon: `https://${string1KB}.png`,
+						};
+
+						const dappTransaction = lisk.transaction.createDapp({
+							passphrase: multisigAccount.passphrase,
+							options: application,
+						});
+
+						const signatures = memberPassphrases.map(memberPassphrase => {
+							const sigObj = lisk.transaction.createSignatureObject(
+								dappTransaction,
+								memberPassphrase
+							).signature;
+							return sigObj;
+						});
+
+						dappTransaction.signatures = signatures;
+
+						transactions.push(dappTransaction);
+					}
+
+					localCommon.addTransactionsAndForge(library, transactions, () => {
+						localCommon.forge(library, () => {
+							localCommon.getMultisignatureTransactions(
+								library,
+								{},
+								(err, queueStatusRes) => {
+									queueStatus = queueStatusRes;
+									done();
+								}
+							);
+						});
+					});
+				}
+			);
+
+			it('once funds are exhausted transactions should be removed from the queue', () => {
+				return expect(queueStatus.count).to.eql(0);
 			});
 		});
 	});
