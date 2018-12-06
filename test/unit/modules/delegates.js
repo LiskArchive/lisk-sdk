@@ -770,13 +770,11 @@ describe('delegates', () => {
 	describe('generateDelegateList', () => {
 		let __private;
 		let sourceStub;
-		let txObjectStub;
 		let originalExceptions;
 		const dummyDelegateList = ['x', 'y', 'z'];
 		beforeEach(done => {
 			__private = library.rewiredModules.delegates.__get__('__private');
 			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
-			txObjectStub = sinonSandbox.stub();
 			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
 			done();
 		});
@@ -802,8 +800,7 @@ describe('delegates', () => {
 					expect(delegateList).to.deep.equal(initialSate[1]);
 					expect(sourceStub).to.not.been.called;
 					done();
-				},
-				txObjectStub
+				}
 			);
 		});
 
@@ -823,8 +820,7 @@ describe('delegates', () => {
 					expect(sourceStub).to.been.called;
 					expect(delegateList).to.deep.equal(dummyDelegateList);
 					done();
-				},
-				txObjectStub
+				}
 			);
 		});
 
@@ -847,8 +843,7 @@ describe('delegates', () => {
 						shuffledDummyDelegateList
 					);
 					done();
-				},
-				txObjectStub
+				}
 			);
 		});
 
@@ -870,8 +865,7 @@ describe('delegates', () => {
 					expect(delegateList).to.deep.equal(dummyDelegateList);
 					expect(__private.delegatesListCache).to.not.have.property('666');
 					done();
-				},
-				txObjectStub
+				}
 			);
 		});
 	});
