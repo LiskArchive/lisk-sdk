@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeers from '../../src/peer_discovery';
+import { stub } from 'sinon';
 
 describe('peer discovery', () => {
 	describe('#discoverPeer', () => {
@@ -35,11 +36,19 @@ describe('peer discovery', () => {
 		const newPeer = new Peer(peerOption);
 		const peerDuplicate = new Peer(peerOptionDuplicate);
 		const peers = [...initializePeerList(), newPeer, peerDuplicate];
-
 		const blacklistIds = [peers[4].id];
 
 		describe('return an array with all the peers of seed nodes', () => {
 			let discoveredPeers: ReadonlyArray<Peer>;
+			const peerList1 = [newPeer];
+			const peerList2 = [newPeer, peerDuplicate];
+			const peerList3 = [newPeer, peers[2]];
+
+			stub(discoverPeers, 'rpcRequestHandler').resolves([
+				peerList1,
+				peerList2,
+				peerList3,
+			]);
 
 			beforeEach(async () => {
 				discoveredPeers = await discoverPeers.discoverPeers(peers, {
@@ -54,7 +63,7 @@ describe('peer discovery', () => {
 			it('should return an object with an inbound unique list of peers', () => {
 				return expect(discoveredPeers)
 					.to.be.an('array')
-					.of.length(0);
+					.of.length(2);
 			});
 		});
 	});

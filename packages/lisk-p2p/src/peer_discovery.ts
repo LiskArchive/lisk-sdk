@@ -19,7 +19,7 @@ export interface Options {
 	readonly blacklistIds: ReadonlyArray<string>;
 }
 
-const rpcRequestHandler = async (
+export const rpcRequestHandler = async (
 	peers: ReadonlyArray<Peer>,
 	rpcRequest: RPCRequest<void>,
 ) =>
