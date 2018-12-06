@@ -81,8 +81,8 @@ describe('system test - multi signature edge cases', () => {
 		const transactionIds = [];
 		let allTransactionsInPool = false;
 		let isInvalidTransactionConfirmed = true;
+		const transactions = [];
 		before('Create more transactions than available funds can cover', done => {
-			const transactions = [];
 			const memberPassphrases = [signer1.passphrase, signer2.passphrase];
 			const charset =
 				'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -141,16 +141,16 @@ describe('system test - multi signature edge cases', () => {
 				},
 				err => {
 					expect(err).to.not.exist;
-					allTransactionsInPool =
-						transactionIds.filter(
-							trs => localCommon.transactionInPool(library, trs) === true
-						).length === transactions.length;
 					done();
 				}
 			);
 		});
 
 		it('all transactions should have been added to the pool', () => {
+			allTransactionsInPool =
+				transactionIds.filter(
+					trs => localCommon.transactionInPool(library, trs) === true
+				).length === transactions.length;
 			return expect(allTransactionsInPool).to.be.true;
 		});
 
