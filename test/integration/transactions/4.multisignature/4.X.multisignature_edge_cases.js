@@ -145,27 +145,7 @@ describe('system test - multi signature edge cases', () => {
 						transactionIds.filter(
 							trs => localCommon.transactionInPool(library, trs) === true
 						).length === transactions.length;
-					localCommon.forge(library, () => {
-						localCommon.getMultisignatureTransactions(
-							library,
-							{},
-							(err, queueStatusRes) => {
-								queueStatus = queueStatusRes;
-								/* First transaction in the array is the one that gets rejected in this scenario
-										the reason why this is valid is that the transaction pool gets pooled
-										transaction in the reverse order
-									*/
-								localCommon.getTransactionFromModule(
-									library,
-									{ id: transactionIds[0] },
-									(err, res) => {
-										isInvalidTransactionConfirmed = res.transactions.lenght > 0;
-										done();
-									}
-								);
-							}
-						);
-					});
+					done();
 				}
 			);
 		});
@@ -175,11 +155,30 @@ describe('system test - multi signature edge cases', () => {
 		});
 
 		it('once account balance is not enough transactions should be removed from the queue', () => {
-			return expect(queueStatus.count).to.eql(0);
+			return localCommon.forge(library, () => {
+				localCommon.getMultisignatureTransactions(
+					library,
+					{},
+					(err, queueStatusRes) => {
+						queueStatus = queueStatusRes;
+						return expect(queueStatus.count).to.eql(0);
+					}
+				);
+			});
 		});
 
 		it('invalid transaction should not be confirmed', () => {
-			return expect(isInvalidTransactionConfirmed).to.be.false;
+			/* 	First transaction in the array is the one that gets rejected in this scenario
+				the reason why this is valid is that the transaction pool gets pooled
+				transaction in the reverse order */
+			return localCommon.getTransactionFromModule(
+				library,
+				{ id: transactionIds[0] },
+				(err, res) => {
+					isInvalidTransactionConfirmed = res.transactions.lenght > 0;
+					return expect(isInvalidTransactionConfirmed).to.be.false;
+				}
+			);
 		});
 	});
 });
