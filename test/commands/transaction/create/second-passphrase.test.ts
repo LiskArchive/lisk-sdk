@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import { expect, test } from '@oclif/test';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
-import * as print from '../../../../src/utils/print';
-import * as getInputsFromSources from '../../../../src/utils/input';
+import * as printUtils from '../../../../src/utils/print';
+import * as inputUtils from '../../../../src/utils/input';
 
 describe('transaction:create:second-passphrase', () => {
 	const defaultInputs = {
@@ -39,7 +39,7 @@ describe('transaction:create:second-passphrase', () => {
 
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				transactions,
@@ -47,8 +47,8 @@ describe('transaction:create:second-passphrase', () => {
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -57,7 +57,7 @@ describe('transaction:create:second-passphrase', () => {
 		setupTest()
 			.command(['transaction:create:second-passphrase'])
 			.it('should create second passphrase transaction', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -85,7 +85,7 @@ describe('transaction:create:second-passphrase', () => {
 			.it(
 				'should create second passphrase transaction with passphrase from flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
@@ -115,7 +115,7 @@ describe('transaction:create:second-passphrase', () => {
 			.it(
 				'should create second passphrase transaction with passphrase and second passphrase from flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
@@ -141,8 +141,8 @@ describe('transaction:create:second-passphrase', () => {
 			.it(
 				'should create second passphrase transaction withoug passphrase',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
-						passphrase: null,
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
+						passphrase: undefined,
 						secondPassphrase: {
 							source: undefined,
 							repeatPrompt: true,

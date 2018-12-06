@@ -37,7 +37,7 @@ const typeNumberMap: TypeNumberMap = {
 };
 
 const options = Object.entries(typeNumberMap).reduce(
-	(accumulated: ReadonlyArray<string>, [key, value]: [string, string]) => [...accumulated, key, value],
+	(accumulated: string[], [key, value]: [string, string]) => [...accumulated, key, value],
 	[],
 );
 

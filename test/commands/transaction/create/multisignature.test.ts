@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import { expect, test } from '@oclif/test';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
-import * as print from '../../../../src/utils/print';
-import * as getInputsFromSources from '../../../../src/utils/input';
+import * as printUtils from '../../../../src/utils/print';
+import * as inputUtils from '../../../../src/utils/input';
 
 describe('transaction:create:multisignature', () => {
 	const defaultLifetime = '24';
@@ -48,7 +48,7 @@ describe('transaction:create:multisignature', () => {
 
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				transactions,
@@ -57,8 +57,8 @@ describe('transaction:create:multisignature', () => {
 			)
 			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -132,12 +132,12 @@ describe('transaction:create:multisignature', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultKeysgroup,
 				);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
@@ -165,12 +165,12 @@ describe('transaction:create:multisignature', () => {
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultKeysgroup,
 				);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: 'pass:123',
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				expect(transactions.registerMultisignature).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
@@ -201,7 +201,7 @@ describe('transaction:create:multisignature', () => {
 					expect(
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultKeysgroup);
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
@@ -240,10 +240,10 @@ describe('transaction:create:multisignature', () => {
 					expect(
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultKeysgroup);
-					expect(getInputsFromSources.default).not.to.be.called;
+					expect(inputUtils.getInputsFromSources).not.to.be.called;
 					expect(transactions.registerMultisignature).to.be.calledWithExactly({
-						passphrase: null,
-						secondPassphrase: null,
+						passphrase: undefined,
+						secondPassphrase: undefined,
 						keysgroup: defaultKeysgroup,
 						lifetime: parseInt(defaultLifetime, 10),
 						minimum: parseInt(defaultMinimum, 10),

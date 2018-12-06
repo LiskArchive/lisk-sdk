@@ -13,20 +13,40 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { registerSecondPassphrase } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
-import * as transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
+import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources } from '../../../utils/input';
+import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
 
-export const processInputs = () => ({ passphrase, secondPassphrase }) =>
-	transactions.registerSecondPassphrase({
+export const processInputs = () => ({ passphrase, secondPassphrase }: InputFromSourceOutput) => {
+	if (!secondPassphrase) {
+		throw new ValidationError('No second passphrase was provided.');
+	}
+
+	return registerSecondPassphrase({
 		passphrase,
 		secondPassphrase,
 	});
+}
+	
 
 export default class SecondPassphraseCommand extends BaseCommand {
-	async run() {
+	static description = `
+	Creates a transaction which will register a second passphrase for the account if broadcast to the network.
+	`;
+
+	static examples = ['transaction:create:second-passphrase'];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
+		'no-signature': flagParser.boolean(commonFlags.noSignature),
+	};
+
+	async run(): Promise<void> {
 		const {
 			flags: {
 				passphrase: passphraseSource,
@@ -39,7 +59,7 @@ export default class SecondPassphraseCommand extends BaseCommand {
 
 		const inputs = noSignature
 			? await getInputsFromSources({
-					passphrase: null,
+					passphrase: undefined,
 					secondPassphrase: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
@@ -59,16 +79,3 @@ export default class SecondPassphraseCommand extends BaseCommand {
 		this.print(result);
 	}
 }
-
-SecondPassphraseCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
-	'no-signature': flagParser.boolean(commonFlags.noSignature),
-};
-
-SecondPassphraseCommand.description = `
-Creates a transaction which will register a second passphrase for the account if broadcast to the network.
-`;
-
-SecondPassphraseCommand.examples = ['transaction:create:second-passphrase'];

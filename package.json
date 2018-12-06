@@ -33,7 +33,7 @@
 		"lint": "tslint --format codeFrame --project .",
 		"lint:fix": "npm run lint -- --fix",
 		"test": "if [ -z $JENKINS_HOME ]; then npm run test:local; else npm run test:ci; fi",
-		"test:local": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/,/**/**/}/*.ts",
+		"test:local": "TS_NODE_PROJECT=./test/tsconfig.json nyc mocha test/{,/**/,/**/**/,/**/**/**/}/*.ts",
 		"test:ci": "NODE_ENV=test nyc --exclude \"**/node_modules/** coverage/**\" mocha test",
 		"test:watch": "npm run test:local -- --watch",
 		"test:watch:min": "npm run test:watch -- --reporter=min",

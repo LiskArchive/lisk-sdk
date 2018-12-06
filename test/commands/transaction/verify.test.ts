@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import { expect, test } from '@oclif/test';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
+import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 
 describe('transaction:verify', () => {
@@ -48,7 +48,7 @@ describe('transaction:verify', () => {
 	};
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(
@@ -66,7 +66,7 @@ describe('transaction:verify', () => {
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:verify'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
 			})
 			.it('should throw an error');
@@ -75,7 +75,7 @@ describe('transaction:verify', () => {
 	describe('transaction:verify transaction', () => {
 		setupTest()
 			.command(['transaction:verify', invalidTransaction])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse transaction JSON.',
 				);
@@ -87,7 +87,7 @@ describe('transaction:verify', () => {
 			.it('should verify transaction from arg', () => {
 				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
 					defaultTransaction,
-					null,
+					undefined,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultVerifyTransactionResult,
@@ -141,7 +141,7 @@ describe('transaction:verify', () => {
 		setupTest()
 			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['transaction:verify'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
 			})
 			.it('should throw an error when no stdin was provided');
@@ -153,7 +153,7 @@ describe('transaction:verify', () => {
 				sandbox.stub().resolves({ data: invalidTransaction }),
 			)
 			.command(['transaction:verify'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse transaction JSON.',
 				);
@@ -170,7 +170,7 @@ describe('transaction:verify', () => {
 			.it('should verify transaction from stdin', () => {
 				expect(transactionUtilStub.verifyTransaction).to.be.calledWithExactly(
 					defaultTransaction,
-					null,
+					undefined,
 				);
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultVerifyTransactionResult,

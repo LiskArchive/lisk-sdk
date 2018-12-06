@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import { expect, test } from '@oclif/test';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
-import * as print from '../../../../src/utils/print';
-import * as getInputsFromSources from '../../../../src/utils/input';
+import * as printUtils from '../../../../src/utils/print';
+import * as inputUtils from '../../../../src/utils/input';
 
 describe('transaction:create:delegate', () => {
 	const defaultUsername = 'user-light';
@@ -40,7 +40,7 @@ describe('transaction:create:delegate', () => {
 
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				transactions,
@@ -48,8 +48,8 @@ describe('transaction:create:delegate', () => {
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -67,12 +67,12 @@ describe('transaction:create:delegate', () => {
 		setupTest()
 			.command(['transaction:create:delegate', defaultUsername])
 			.it('create a transaction with the username', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
 					passphrase: defaultInputs.passphrase,
@@ -95,12 +95,12 @@ describe('transaction:create:delegate', () => {
 			.it(
 				'create a transaction with the username with the passphrase from flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
 						},
-						secondPassphrase: null,
+						secondPassphrase: undefined,
 					});
 					expect(transactions.registerDelegate).to.be.calledWithExactly({
 						passphrase: defaultInputs.passphrase,
@@ -125,7 +125,7 @@ describe('transaction:create:delegate', () => {
 			.it(
 				'create a transaction with the username and the passphrase and second passphrase from the flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
@@ -156,11 +156,11 @@ describe('transaction:create:delegate', () => {
 			])
 			.it('create a transaction with the username without signature', () => {
 				expect(transactions.registerDelegate).to.be.calledWithExactly({
-					passphrase: null,
-					secondPassphrase: null,
+					passphrase: undefined,
+					secondPassphrase: undefined,
 					username: defaultUsername,
 				});
-				expect(getInputsFromSources.default).not.to.be.called;
+				expect(inputUtils.getInputsFromSources).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
 				);

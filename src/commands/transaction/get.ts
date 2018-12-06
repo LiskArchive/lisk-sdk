@@ -107,8 +107,8 @@ export default class GetCommand extends BaseCommand {
 				state: txnState,
 			},
 		} = this.parse(GetCommand);
-		const { ids: idsStr = '' }: Args = args;
-		const ids = idsStr.split(',').filter(Boolean);
+		const { ids: idsStr }: Args = args;
+		const ids = idsStr ? idsStr.split(',').filter(Boolean) : undefined;
 
 		const client = getAPIClient(this.userConfig.api);
 
@@ -131,8 +131,9 @@ export default class GetCommand extends BaseCommand {
 				txnState,
 				reqTxnSenderId,
 			);
+			this.print(stateSenderIdsResult);
 
-			return this.print(stateSenderIdsResult);
+			return;
 		}
 
 		if (txnState && ids) {
@@ -152,8 +153,9 @@ export default class GetCommand extends BaseCommand {
 				txnState,
 				reqTransactionIds,
 			);
+			this.print(txnStateIdsResult);
 
-			return this.print(txnStateIdsResult);
+			return;
 		}
 		if (txnState && senderAddress) {
 			const reqWithSenderId = [
@@ -176,8 +178,9 @@ export default class GetCommand extends BaseCommand {
 				txnState,
 				reqWithSenderId,
 			);
+			this.print(txnStateSenderResult);
 
-			return this.print(txnStateSenderResult);
+			return;
 		}
 
 		if (txnState) {
@@ -199,8 +202,9 @@ export default class GetCommand extends BaseCommand {
 				txnState,
 				reqByLimitOffset,
 			);
+			this.print(txnStateResult);
 
-			return this.print(txnStateResult);
+			return;
 		}
 
 		if (ids) {
@@ -215,8 +219,9 @@ export default class GetCommand extends BaseCommand {
 				},
 			}));
 			const idsResult = await query(client, 'transactions', reqTransactionIDs);
+			this.print(idsResult);
 
-			return this.print(idsResult);
+			return;
 		}
 
 		if (senderAddress) {
@@ -232,8 +237,9 @@ export default class GetCommand extends BaseCommand {
 				},
 			};
 			const senderAddressResult = await query(client, 'transactions', reqSenderId);
+			this.print(senderAddressResult);
 
-			return this.print(senderAddressResult);
+			return;
 		}
 
 		const req = {
@@ -248,6 +254,6 @@ export default class GetCommand extends BaseCommand {
 		};
 		const defaultResults = await query(client, 'transactions', req);
 
-		return this.print(defaultResults);
+		this.print(defaultResults);
 	}
 }
