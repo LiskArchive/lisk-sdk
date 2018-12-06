@@ -752,6 +752,17 @@ describe('delegates', () => {
 					// Assert
 					return expect(__private.delegatesListCache).to.deep.equal({});
 				});
+
+				it('should not mutate empty __private.delegateListCache object.', () => {
+					// Arrange
+					__private.delegatesListCache = {};
+
+					// Act
+					library.modules.delegates.clearDelegateListCache();
+
+					// Assert
+					return expect(__private.delegatesListCache).to.deep.equal({});
+				});
 			});
 		});
 	});
