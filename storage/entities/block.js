@@ -197,10 +197,12 @@ class Block extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError>}
+	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	get(filters = {}, options = {}, tx) {
 		this.validateFilters(filters);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
@@ -234,10 +236,12 @@ class Block extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError>}
+	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	getOne(filters, options = {}, tx) {
 		this.validateFilters(filters);
+		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(

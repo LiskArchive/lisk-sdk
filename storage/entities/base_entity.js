@@ -17,6 +17,7 @@
 const {
 	ImplementationPendingError,
 	NonSupportedFilterTypeError,
+	NonSupportedOptionError,
 } = require('../errors');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
@@ -263,6 +264,35 @@ class BaseEntity {
 			throw new NonSupportedFilterTypeError(
 				'One or more filters are not supported.',
 				invalidFilters
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate allowed options
+	 * @param {Object} options
+	 * @param {Boolean} required
+	 * @return {true, NonSupportedFilterTypeError>}
+	 */
+	validateOptions(options = {}, required = false) {
+		if (required && (!options || !Object.keys(options).length)) {
+			throw new NonSupportedOptionError(
+				'Options are required for this operation.'
+			);
+		}
+
+		let invalidOptions = [];
+
+		invalidOptions = Object.keys(options).filter(
+			item => !(item in this.defaultOptions)
+		);
+
+		if (invalidOptions.length) {
+			throw new NonSupportedOptionError(
+				'One or more options are not supported.',
+				invalidOptions
 			);
 		}
 
