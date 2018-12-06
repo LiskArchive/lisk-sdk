@@ -76,7 +76,7 @@ describe('system test - multi signature edge cases', () => {
 		}
 	);
 
-	describe('forge new block trying to register more signatures than balance will allow', () => {
+	describe('try to register more dapps than balance will allow from a multisignature account', () => {
 		let queueStatus;
 		const transactionIds = [];
 		let allTransactionsInPool = false;
