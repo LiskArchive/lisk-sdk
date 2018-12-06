@@ -77,7 +77,6 @@ describe('system test - multi signature edge cases', () => {
 	);
 
 	describe('try to register more dapps than balance will allow from a multisignature account', () => {
-		let queueStatus;
 		const transactionIds = [];
 		let allTransactionsInPool = false;
 		let isInvalidTransactionConfirmed = true;
@@ -160,8 +159,7 @@ describe('system test - multi signature edge cases', () => {
 					library,
 					{},
 					(err, queueStatusRes) => {
-						queueStatus = queueStatusRes;
-						return expect(queueStatus.count).to.eql(0);
+						return expect(queueStatusRes.count).to.eql(0);
 					}
 				);
 			});
