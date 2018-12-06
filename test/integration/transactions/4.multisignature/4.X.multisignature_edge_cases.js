@@ -171,7 +171,7 @@ describe('system test - multi signature edge cases', () => {
 		});
 
 		it('all transactions should have been added to the pool', () => {
-			return expect(allTransactionsInPool).to.eql(true);
+			return expect(allTransactionsInPool).to.be.true;
 		});
 
 		it('once account balance is not enough transactions should be removed from the queue', () => {
@@ -179,7 +179,7 @@ describe('system test - multi signature edge cases', () => {
 		});
 
 		it('invalid transaction should not be confirmed', () => {
-			return expect(isInvalidTransactionConfirmed).to.eql(false);
+			return expect(isInvalidTransactionConfirmed).to.be.false;
 		});
 	});
 });
