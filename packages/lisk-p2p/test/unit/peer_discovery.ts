@@ -15,11 +15,10 @@
 import { expect } from 'chai';
 import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
-import { discoverPeers } from '../../src/peer_discovery';
+import * as discoverPeers from '../../src/peer_discovery';
 
 describe('peer discovery', () => {
 	describe('#discoverPeer', () => {
-		const peers = initializePeerList();
 		const peerOption: PeerConfig = {
 			ipAddress: '12.13.12.12',
 			wsPort: 5001,
@@ -32,51 +31,31 @@ describe('peer discovery', () => {
 			height: 545981,
 			id: '12.13.12.12:5001',
 		};
-
+		// TODO need to cover all the test
 		const newPeer = new Peer(peerOption);
 		const peerDuplicate = new Peer(peerOptionDuplicate);
+		const seedNodes = [...initializePeerList(), newPeer, peerDuplicate];
 
-		const peerList = new Map<string, ReadonlyArray<Peer>>();
-		peerList.set(peers[0].id, peers);
-		peerList.set(peers[1].id, [newPeer, peerDuplicate]);
+		const blacklist = [seedNodes[4]];
 
-		describe('return an object with properties', () => {
-			it('should return an object', () => {
-				return expect(discoverPeers(peerList)).to.be.an('object');
+		describe('return an array with all the peers of seed nodes', () => {
+			let discoveredPeers: ReadonlyArray<Peer>;
+
+			beforeEach(async () => {
+				discoveredPeers = await discoverPeers.discoverPeers(
+					seedNodes,
+					blacklist,
+				);
 			});
 
-			it('should return an object with inbound property', () => {
-				return expect(discoverPeers(peerList))
-					.to.be.an('object')
-					.to.have.property('inbound');
+			it('should return an array', () => {
+				return expect(discoveredPeers).to.be.an('array');
 			});
-
-			it('should return an object with outbound property', () => {
-				return expect(discoverPeers(peerList))
-					.to.be.an('object')
-					.to.have.property('outbound');
-			});
-		});
-
-		describe('return an object with inbound and outboud list of peers', () => {
-			const unqiueList = [...peers, newPeer];
 
 			it('should return an object with an inbound unique list of peers', () => {
-				return expect(discoverPeers(peerList))
-					.to.be.an('object')
-					.to.have.property('inbound')
+				return expect(discoveredPeers)
 					.to.be.an('array')
-					.of.length(6)
-					.to.be.eql(unqiueList);
-			});
-
-			it('should return an object with an outbound unique list of peers', () => {
-				return expect(discoverPeers(peerList))
-					.to.be.an('object')
-					.to.have.property('outbound')
-					.to.be.an('array')
-					.of.length(6)
-					.to.be.eql(unqiueList);
+					.of.length(0);
 			});
 		});
 	});
