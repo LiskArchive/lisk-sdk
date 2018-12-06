@@ -49,10 +49,6 @@ describe('transaction pool', () => {
 		});
 	});
 
-	afterEach(() => {
-		return sandbox.restore();
-	});
-
 	describe('addTransactions', () => {});
 	describe('getProcessableTransactions', () => {});
 	describe('onDeleteBlock', () => {
@@ -194,15 +190,14 @@ describe('transaction pool', () => {
 		let removeTransactionsFromQueuesStub: sinon.SinonStub;
 		let expireTransactions: () => Promise<ReadonlyArray<Transaction>>;
 
-		beforeEach(() => {
+		beforeEach(async () => {
 			removeTransactionsFromQueuesStub = sandbox.stub(transactionPool as any, 'removeTransactionsFromQueues');
-			return expireTransactions = (transactionPool as any)['expireTransactions'].bind(transactionPool);
+			expireTransactions = (transactionPool as any)['expireTransactions'].bind(transactionPool);
 		});
 
-		it('should call removeTransactionsFromQueues once', () => {
-			return expireTransactions().then(() =>
-				expect(removeTransactionsFromQueuesStub).to.be.calledOnce
-			);
+		it('should call removeTransactionsFromQueues once', async () => {
+			await expireTransactions();
+			expect(removeTransactionsFromQueuesStub).to.be.calledOnce
 		});
 	});
 });

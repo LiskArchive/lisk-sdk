@@ -53,7 +53,7 @@ export class TransactionPool {
 	// tslint:disable-next-line variable-name
 	private readonly _queues: Queues;
 	private readonly expireTransactionsInterval: number;
-	private readonly expireTransactionsJob: Job;
+	private readonly expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
 
 	public constructor({expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL}: TransactionPoolOptions) {
 		this._queues = {
