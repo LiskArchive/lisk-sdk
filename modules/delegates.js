@@ -125,17 +125,10 @@ __private.updateDelegateListCache = function(round, delegatesList) {
  * Invalidates the cached delegate list.
  *
  */
-Delegates.prototype.clearLastDelegateListCache = function() {
+Delegates.prototype.clearDelegateListCache = function() {
 	library.logger.debug('Clearing delegate list cache.');
-	// We want to clear the cache for the latest round but want to keep the cache for previous round.
-	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
-		.sort()
-		// delete all round cache except previous round.
-		.slice(0, 1)
-		.reduce((acc, current) => {
-			acc[current] = __private.delegatesListCache[current];
-			return acc;
-		}, {});
+	// We want to clear the cache.
+	__private.delegatesListCache = {};
 };
 
 /**
