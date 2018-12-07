@@ -135,6 +135,55 @@ random.password = function() {
 		.substring(7);
 };
 
+random.multisigDappRegistration = function(account, members, charset) {
+	charset =
+		charset || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	const dappName = randomstring.generate({
+		length: 32,
+		charset,
+	});
+
+	const string160 = randomstring.generate({
+		length: 160,
+		charset,
+	});
+
+	const string1KB = randomstring.generate({
+		length: 20,
+		charset,
+	});
+
+	const application = {
+		category: random.number(0, 9),
+		name: dappName,
+		description: string160,
+		tags: string160,
+		type: 0,
+		link: `https://${string1KB}.zip`,
+		icon: `https://${string1KB}.png`,
+	};
+
+	const dappTransaction = lisk.transaction.createDapp({
+		passphrase: account.passphrase,
+		options: application,
+	});
+
+	const signatures = members
+		.map(aMember => aMember.passphrase)
+		.map(memberPassphrase => {
+			const sigObj = lisk.transaction.createSignatureObject(
+				dappTransaction,
+				memberPassphrase
+			).signature;
+			return sigObj;
+		});
+
+	dappTransaction.signatures = signatures;
+
+	return dappTransaction;
+};
+
 const convertToBignum = transactions => {
 	return transactions.forEach(transaction => {
 		transaction.amount = new Bignum(transaction.amount);

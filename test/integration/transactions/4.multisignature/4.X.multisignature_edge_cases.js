@@ -16,7 +16,6 @@
 
 const async = require('async');
 const lisk = require('lisk-elements').default;
-const randomstring = require('randomstring');
 const accountFixtures = require('../../../fixtures/accounts');
 const randomUtil = require('../../../common/utils/random');
 const localCommon = require('../../common');
@@ -78,53 +77,13 @@ describe('system test - multi signature edge cases', () => {
 
 	describe('try to register more dapps than balance will allow from a multisignature account', () => {
 		const transactionIds = [];
-		let allTransactionsInPool = false;
-		let isInvalidTransactionConfirmed = true;
 		const transactions = [];
 		before('Create more transactions than available funds can cover', done => {
-			const memberPassphrases = [signer1.passphrase, signer2.passphrase];
-			const charset =
-				'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 			for (let i = 0; i < 3; i++) {
-				const dappName = randomstring.generate({
-					length: 32,
-					charset,
-				});
-
-				const string160 = randomstring.generate({
-					length: 160,
-					charset,
-				});
-
-				const string1KB = randomstring.generate({
-					length: 20,
-					charset,
-				});
-
-				const application = {
-					category: randomUtil.number(0, 9),
-					name: dappName,
-					description: string160,
-					tags: string160,
-					type: 0,
-					link: `https://${string1KB}.zip`,
-					icon: `https://${string1KB}.png`,
-				};
-
-				const dappTransaction = lisk.transaction.createDapp({
-					passphrase: multisigAccount.passphrase,
-					options: application,
-				});
-
-				const signatures = memberPassphrases.map(memberPassphrase => {
-					const sigObj = lisk.transaction.createSignatureObject(
-						dappTransaction,
-						memberPassphrase
-					).signature;
-					return sigObj;
-				});
-
-				dappTransaction.signatures = signatures;
+				const dappTransaction = randomUtil.multisigDappRegistration(
+					multisigAccount,
+					[signer1, signer2]
+				);
 
 				transactions.push(dappTransaction);
 				transactionIds.push(dappTransaction.id);
@@ -146,7 +105,7 @@ describe('system test - multi signature edge cases', () => {
 		});
 
 		it('all transactions should have been added to the pool', () => {
-			allTransactionsInPool =
+			const allTransactionsInPool =
 				transactionIds.filter(
 					trs => localCommon.transactionInPool(library, trs) === true
 				).length === transactions.length;
@@ -173,8 +132,7 @@ describe('system test - multi signature edge cases', () => {
 				library,
 				{ id: transactionIds[0] },
 				(err, res) => {
-					isInvalidTransactionConfirmed = res.transactions.lenght > 0;
-					return expect(isInvalidTransactionConfirmed).to.be.false;
+					return expect(res.transactions.lenght > 0).to.be.false;
 				}
 			);
 		});
