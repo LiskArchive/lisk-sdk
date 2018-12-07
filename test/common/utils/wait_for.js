@@ -23,12 +23,12 @@ const apiHelpers = require('../helpers/api');
 const { ACTIVE_DELEGATES } = global.constants;
 
 /**
- * @param {function} cb
  * @param {number} [retries=10] retries
  * @param {number} [timeout=200] timeout
  * @param {string} [baseUrl='http://localhost:5000'] timeout
+ * @param {function} cb
  */
-function blockchainReady(cb, retries, timeout, baseUrl, doNotLogRetries) {
+function blockchainReady(retries, timeout, baseUrl, doNotLogRetries, cb) {
 	if (!retries) {
 		retries = 10;
 	}
@@ -82,7 +82,7 @@ function blockchainReady(cb, retries, timeout, baseUrl, doNotLogRetries) {
 	})();
 }
 
-function nodeStatus(cb, baseUrl) {
+function nodeStatus(baseUrl, cb) {
 	const request = popsicle.get(
 		`${baseUrl || __testContext.baseUrl}/api/node/status`
 	);
@@ -104,39 +104,38 @@ function nodeStatus(cb, baseUrl) {
 	});
 }
 // Returns current block height
-function getHeight(cb, baseUrl) {
-	nodeStatus((err, res) => {
+function getHeight(baseUrl, cb) {
+	nodeStatus(baseUrl, (err, res) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
 		return setImmediate(cb, null, res.height);
-	}, baseUrl);
+	});
 }
 
 // Run callback on new round
-function newRound(cb, baseUrl) {
-	getHeight((err, height) => {
+function newRound(baseUrl, cb) {
+	getHeight(baseUrl, (err, height) => {
 		if (err) {
 			return cb(err);
 		}
 		const nextRound = slots.calcRound(height);
 		const blocksToWait = nextRound * ACTIVE_DELEGATES - height;
 		__testContext.debug('blocks to wait: '.grey, blocksToWait);
-		return newBlock(height, blocksToWait, cb);
-	}, baseUrl);
+		return newBlock(height, blocksToWait, null, cb);
+	});
 }
-
 // Waits for (n) blocks to be created
-function blocks(blocksToWait, cb, baseUrl) {
-	getHeight((err, height) => {
+function blocks(blocksToWait, baseUrl, cb) {
+	getHeight(baseUrl, (err, height) => {
 		if (err) {
 			return cb(err);
 		}
-		return newBlock(height, blocksToWait, cb, baseUrl);
-	}, baseUrl);
+		return newBlock(height, blocksToWait, baseUrl, cb);
+	});
 }
 
-function newBlock(height, blocksToWait, cb, baseUrl) {
+function newBlock(height, blocksToWait, baseUrl, cb) {
 	if (blocksToWait === 0) {
 		return setImmediate(cb, null, height);
 	}
@@ -210,7 +209,7 @@ function confirmations(transactions, limitHeight) {
 		}
 		limit -= 1;
 
-		return blocksPromise(1)
+		return blocksPromise(1, null)
 			.then(() => {
 				return checkConfirmations(transactions);
 			})

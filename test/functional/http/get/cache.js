@@ -154,7 +154,7 @@ describe('cached endpoints', () => {
 						expect(responses).to.deep.include(initialResponse.body);
 					})
 					.then(() => {
-						return waitForBlocksPromise(1);
+						return waitForBlocksPromise(1, null);
 					})
 					.then(() => {
 						return getJsonForKeyPromise(initialResponse.req.path);
@@ -217,7 +217,7 @@ describe('cached endpoints', () => {
 						})
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
-						return onNewRoundPromise().then(() => {
+						return onNewRoundPromise(null).then(() => {
 							return getJsonForKeyPromise(urlPath).then(result => {
 								expect(result).to.not.exist;
 							});
