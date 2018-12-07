@@ -18,6 +18,7 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
+const http = require('http');
 const async = require('async');
 const SCWorker = require('socketcluster/scworker');
 const SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
@@ -41,6 +42,16 @@ const config = new AppConfig(require('./package.json'), false);
  * is ready to accept requests/connections.
  */
 SCWorker.create({
+	// Pass the custom configuration to P2P HTTP Server to mitigate the security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
+	createHTTPServer() {
+		const httpServer = http.createServer();
+		httpServer.headersTimeout = config.api.options.limits.headersTimeout;
+		httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
+		httpServer.on('timeout', socket => {
+			socket.destroy();
+		});
+		return httpServer;
+	},
 	run() {
 		const self = this;
 		const scServer = this.getSCServer();
@@ -103,7 +114,7 @@ SCWorker.create({
 					},
 				],
 			},
-			(_err, scope) => {
+			(asyncAutoErr, scope) => {
 				scServer.addMiddleware(
 					scServer.MIDDLEWARE_HANDSHAKE_WS,
 					(req, next) => {
