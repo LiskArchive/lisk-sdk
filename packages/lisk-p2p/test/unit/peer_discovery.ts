@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import { PeerConfig, Peer } from '../../src/peer';
 import { initializePeerList } from '../utils/peers';
 import * as discoverPeersModule from '../../src/peer_discovery';
-import { stub } from 'sinon';
 
 describe('peer discovery', () => {
 	describe('#discoverPeer', () => {
@@ -45,13 +44,11 @@ describe('peer discovery', () => {
 			const peerList3 = [newPeer, peers[2]];
 			const discoveredPeersResult = [newPeer, peers[2]];
 
-			stub(discoverPeersModule, 'rpcRequestHandler').resolves([
-				peerList1,
-				peerList2,
-				peerList3,
-			]);
-
 			beforeEach(async () => {
+				sandbox
+					.stub(discoverPeersModule, 'rpcRequestHandler')
+					.resolves([peerList1, peerList2, peerList3]);
+
 				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
 					blacklistIds,
 				});
