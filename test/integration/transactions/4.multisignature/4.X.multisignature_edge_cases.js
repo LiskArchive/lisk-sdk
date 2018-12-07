@@ -154,7 +154,7 @@ describe('system test - multi signature edge cases', () => {
 						);
 					},
 					() => {
-						expect(found).to.eql(validTransactions);
+						expect(found).to.have.members(validTransactions);
 						done();
 					}
 				);
