@@ -226,6 +226,28 @@ describe('transactionPool', () => {
 				});
 			});
 		});
+
+		describe('jobsQueue', () => {
+			it('should register transactionPoolNextBundle with bundledInterval', () => {
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
+				expect(jobsQueue.jobs).to.have.any.key('transactionPoolNextBundle');
+				return expect(
+					jobsQueue.jobs.transactionPoolNextBundle._idleTimeout
+				).to.equal(transactionPool.bundledInterval);
+			});
+
+			it('should register transactionPoolNextExpiry with expiryInterval', () => {
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
+				expect(jobsQueue.jobs).to.have.any.key('transactionPoolNextExpiry');
+				return expect(
+					jobsQueue.jobs.transactionPoolNextExpiry._idleTimeout
+				).to.equal(transactionPool.expiryInterval);
+			});
+		});
 	});
 
 	describe('expireTransactions', () => {
@@ -1030,6 +1052,33 @@ describe('transactionPool', () => {
 					'Failed to queue bundled transaction'
 				);
 				done();
+			});
+		});
+
+		describe('when node is syncing', () => {
+			it('should not process bundled transactions', done => {
+				const getBundledTransactionListStub = sinonSandbox.stub();
+				const processVerifyTransactionStub = sinonSandbox.stub();
+				const queueTransactionStub = sinonSandbox.stub();
+				TransactionPool.__set__(
+					'TransactionPool.prototype.getBundledTransactionList',
+					getBundledTransactionListStub
+				);
+				TransactionPool.__set__(
+					'__private.processVerifyTransaction',
+					processVerifyTransactionStub
+				);
+				TransactionPool.__set__(
+					'__private.queueTransaction',
+					queueTransactionStub
+				);
+				loaderStub.syncing.returns(true);
+				transactionPool.processBundled(() => {
+					expect(getBundledTransactionListStub.called).to.be.false;
+					expect(processVerifyTransactionStub.called).to.be.false;
+					expect(queueTransactionStub.called).to.be.false;
+					done();
+				});
 			});
 		});
 	});

@@ -222,7 +222,7 @@ class Round {
 						}
 					});
 				}
-				return Promise.resolve();
+				return null;
 			});
 	}
 

@@ -33,7 +33,7 @@ const http = {
 				return new Error('Unexpected content-type!');
 			}
 
-			return Promise.resolve();
+			return null;
 		});
 
 		if (options.params) {
