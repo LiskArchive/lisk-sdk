@@ -194,6 +194,9 @@ const readOnlyFields = ['address'];
  * @value 'FIELD_SET_FULL'
  */
 
+const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
+const FIELD_SET_FULL = Symbol('FIELD_SET_FULL');
+
 class Account extends BaseEntity {
 	/**
 	 * Constructor
@@ -203,6 +206,7 @@ class Account extends BaseEntity {
 		super();
 
 		this.defaultFilters = defaultFilters;
+		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });
 		this.addField(
@@ -298,6 +302,16 @@ class Account extends BaseEntity {
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
 		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	get FIELD_SET_SIMPLE() {
+		return FIELD_SET_SIMPLE;
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	get FIELD_SET_FULL() {
+		return FIELD_SET_FULL;
 	}
 
 	/**
@@ -497,13 +511,5 @@ class Account extends BaseEntity {
 		return Object.assign({}, mergedFilters, this.defaultFilters);
 	}
 }
-
-Account.prototype.FIELD_SET_SIMPLE = 'FIELD_SET_SIMPLE';
-Account.prototype.FIELD_SET_FULL = 'FIELD_SET_FULL';
-Account.prototype.defaultOptions = {
-	limit: 10,
-	offset: 0,
-	fieldSet: Account.prototype.FIELD_SET_SIMPLE,
-};
 
 module.exports = Account;

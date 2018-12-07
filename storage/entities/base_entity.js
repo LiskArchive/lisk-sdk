@@ -23,6 +23,11 @@ class BaseEntity {
 	constructor() {
 		this.fields = {};
 		this.filters = {};
+		this.defaultOptions = {
+			limit: 10,
+			offset: 0,
+		};
+		this.defaultFilters = {};
 	}
 
 	/**
@@ -120,6 +125,15 @@ class BaseEntity {
 
 	getFilters() {
 		return Object.keys(this.filters);
+	}
+
+	/**
+	 * Update the default options to be used in all methods
+	 *
+	 * @param {Object} options - Options object
+	 */
+	overrideDefaultOptions(options) {
+		this.defaultOptions = Object.assign({}, this.defaultOptions, options);
 	}
 
 	/**
