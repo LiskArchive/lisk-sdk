@@ -614,8 +614,6 @@ paths:
       produces:
         - application/json
       parameters:
-        - $ref: '#/parameters/limit'
-        - $ref: '#/parameters/offset'
         - name: limit
           in: query
           description: Limit applied to results
