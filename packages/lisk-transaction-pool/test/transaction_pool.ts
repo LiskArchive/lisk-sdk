@@ -4,9 +4,8 @@ import transactionsObjects from '../fixtures/transactions.json';
 import { TransactionPool, Transaction } from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
-// Require is used for stubbing
-const Queue = require('../src/queue').Queue;
-const queueCheckers = require('../src/queue_checkers');
+import { Queue } from '../src/queue';
+import * as queueCheckers from '../src/queue_checkers';
 
 describe('transaction pool', () => {
 	const expireTransactionsInterval = 1000;
@@ -41,12 +40,18 @@ describe('transaction pool', () => {
 			),
 		};
 
+
 		transactionPool = new TransactionPool({ expireTransactionsInterval });
+		// Stub queues
 		Object.keys(transactionPool.queues).forEach(queueName => {
 			sandbox
 				.stub((transactionPool as any)._queues, queueName)
 				.value(sinon.createStubInstance(Queue));
 		});
+	});
+
+	afterEach(() => {
+		(transactionPool as any).expireTransactionsJob.stop();
 	});
 
 	describe('addTransactions', () => {});
@@ -56,14 +61,14 @@ describe('transaction pool', () => {
 			transactions: [transactions[0], transactions[1], transactions[2]],
 		};
 
-		it('should call checkTransactionForRecipientId with block transactions', () => {
+		it('should call checkTransactionForRecipientId with block transactions', async () => {
 			transactionPool.onDeleteBlock(block);
 			expect(checkerStubs.checkTransactionForRecipientId).to.be.calledWithExactly(
 				block.transactions,
 			);
 		});
 
-		it('should call removeFor for verified, pending and ready queues once', () => {
+		it('should call removeFor for verified, pending and ready queues once', async () => {
 			transactionPool.onDeleteBlock(block);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
