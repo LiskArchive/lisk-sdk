@@ -14,21 +14,21 @@
 
 'use strict';
 
-var failureCodes = require('../../../../../api/ws/rpc/failure_codes');
-var PeerUpdateError = require('../../../../../api/ws/rpc/failure_codes')
+const failureCodes = require('../../../../../api/ws/rpc/failure_codes');
+const PeerUpdateError = require('../../../../../api/ws/rpc/failure_codes')
 	.PeerUpdateError;
-var prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
-var connectionsTable = require('../../../../../api/ws/workers/connections_table');
-var PeersUpdateRules = require('../../../../../api/ws/workers/peers_update_rules');
-var Rules = require('../../../../../api/ws/workers/rules');
+const prefixedPeer = require('../../../../fixtures/peers').randomNormalizedPeer;
+const connectionsTable = require('../../../../../api/ws/workers/connections_table');
+const PeersUpdateRules = require('../../../../../api/ws/workers/peers_update_rules');
+const Rules = require('../../../../../api/ws/workers/rules');
 
 describe('PeersUpdateRules', () => {
-	var slaveWAMPServerMock;
-	var peersUpdateRules;
-	var validConnectionId;
-	var validErrorCode;
-	var validPeer;
-	var actionCb = sinonSandbox.spy();
+	let slaveWAMPServerMock;
+	let peersUpdateRules;
+	let validConnectionId;
+	let validErrorCode;
+	let validPeer;
+	const actionCb = sinonSandbox.spy();
 
 	beforeEach(done => {
 		slaveWAMPServerMock = {
@@ -198,10 +198,10 @@ describe('PeersUpdateRules', () => {
 		});
 
 		describe('multiple valid entries', () => {
-			var validPeerA;
-			var validPeerB;
-			var validConnectionIdA = `${validConnectionId}A`;
-			var validConnectionIdB = `${validConnectionId}B`;
+			let validPeerA;
+			let validPeerB;
+			const validConnectionIdA = `${validConnectionId}A`;
+			const validConnectionIdB = `${validConnectionId}B`;
 
 			beforeEach(done => {
 				validPeerA = _.clone(validPeer);
@@ -389,7 +389,7 @@ describe('PeersUpdateRules', () => {
 	});
 
 	describe('block', () => {
-		var validFailureCode = 4100;
+		const validFailureCode = 4100;
 
 		it('should return the PeerUpdateError when called', done => {
 			peersUpdateRules.block(
@@ -405,9 +405,9 @@ describe('PeersUpdateRules', () => {
 	});
 
 	describe('internal.update', () => {
-		var insertStub;
-		var removeStub;
-		var blockStub;
+		let insertStub;
+		let removeStub;
+		let blockStub;
 
 		before(done => {
 			insertStub = sinonSandbox.stub(PeersUpdateRules.prototype, 'insert');
@@ -708,7 +708,7 @@ describe('PeersUpdateRules', () => {
 	});
 
 	describe('external.update', () => {
-		var minimalValidUpdateRequest;
+		let minimalValidUpdateRequest;
 
 		beforeEach(done => {
 			minimalValidUpdateRequest = {

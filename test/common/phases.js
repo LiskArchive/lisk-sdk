@@ -15,9 +15,9 @@
 'use strict';
 
 require('../functional/functional.js');
-var Promise = require('bluebird');
-var apiHelpers = require('./helpers/api');
-var waitFor = require('./utils/wait_for');
+const Promise = require('bluebird');
+const apiHelpers = require('./helpers/api');
+const waitFor = require('./utils/wait_for');
 
 function confirmation(
 	goodTransactions,
@@ -31,7 +31,7 @@ function confirmation(
 
 		it('bad transactions should not be confirmed', () => {
 			return Promise.map(badTransactions, transaction => {
-				var params = [`id=${transaction.id}`];
+				const params = [`id=${transaction.id}`];
 				return apiHelpers.getTransactionsPromise(params).then(res => {
 					expect(res.body.data).to.have.length(0);
 				});
@@ -50,7 +50,7 @@ function confirmation(
 
 		it('good transactions should be confirmed', () => {
 			return Promise.map(goodTransactions, transaction => {
-				var params = [`id=${transaction.id}`];
+				const params = [`id=${transaction.id}`];
 				return apiHelpers.getTransactionsPromise(params).then(res => {
 					expect(res.body.data).to.have.length(1);
 				});
@@ -60,7 +60,7 @@ function confirmation(
 		if (pendingMultisignatures) {
 			it('pendingMultisignatures should remain in the pending queue', () => {
 				return Promise.map(pendingMultisignatures, transaction => {
-					var params = [`id=${transaction.id}`];
+					const params = [`id=${transaction.id}`];
 
 					return apiHelpers
 						.getPendingMultisignaturesPromise(params)
@@ -73,7 +73,7 @@ function confirmation(
 
 			it('pendingMultisignatures should not be confirmed', () => {
 				return Promise.map(pendingMultisignatures, transaction => {
-					var params = [`id=${transaction.id}`];
+					const params = [`id=${transaction.id}`];
 					return apiHelpers.getTransactionsPromise(params).then(res => {
 						expect(res.body.data).to.have.length(0);
 					});

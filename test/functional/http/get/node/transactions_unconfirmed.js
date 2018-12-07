@@ -15,33 +15,33 @@
 'use strict';
 
 require('../../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var apiHelpers = require('../../../../common/helpers/api');
-var randomUtil = require('../../../../common/utils/random');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
-var accountFixtures = require('../../../../fixtures/accounts');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const apiHelpers = require('../../../../common/helpers/api');
+const randomUtil = require('../../../../common/utils/random');
+const SwaggerEndpoint = require('../../../../common/swagger_spec');
+const accountFixtures = require('../../../../fixtures/accounts');
 
 const { NORMALIZER } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
 		describe('/unconfirmed', () => {
-			var UnconfirmedEndpoint = new swaggerEndpoint(
+			const UnconfirmedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unconfirmed' });
 
-			var account = randomUtil.account();
-			var transactionList = [];
-			var numOfTransactions = 5;
+			const account = randomUtil.account();
+			const transactionList = [];
+			const numOfTransactions = 5;
 
 			before(() => {
-				var data = 'extra information';
+				const data = 'extra information';
 
 				// Create numOfTransactions transactions
-				for (var i = 0; i < numOfTransactions; i++) {
+				for (let i = 0; i < numOfTransactions; i++) {
 					transactionList.push(
 						lisk.transaction.transfer({
 							amount: (i + 1) * NORMALIZER,
@@ -56,7 +56,7 @@ describe('GET /api/node', () => {
 					return sendTransactionPromise(transaction);
 				}).then(responses => {
 					responses.map(res => {
-						expect(res.body.data.message).to.be.equal(
+						return expect(res.body.data.message).to.be.equal(
 							'Transaction(s) accepted'
 						);
 					});

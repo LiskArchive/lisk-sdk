@@ -15,53 +15,53 @@
 'use strict';
 
 require('../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var phases = require('../../../common/phases');
-var accountFixtures = require('../../../fixtures/accounts');
-var apiHelpers = require('../../../common/helpers/api');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var errorCodes = require('../../../../helpers/api_codes');
-var common = require('./common');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const phases = require('../../../common/phases');
+const accountFixtures = require('../../../fixtures/accounts');
+const apiHelpers = require('../../../common/helpers/api');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const errorCodes = require('../../../../helpers/api_codes');
+const common = require('./common');
 
 const { FEES, NORMALIZER } = global.constants;
 
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('POST /api/transactions (type 2) register delegate', () => {
-	var transaction;
-	var transactionsToWaitFor = [];
-	var badTransactions = [];
-	var goodTransactions = [];
-	var badTransactionsEnforcement = [];
-	var goodTransactionsEnforcement = [];
+	let transaction;
+	const transactionsToWaitFor = [];
+	const badTransactions = [];
+	const goodTransactions = [];
+	const badTransactionsEnforcement = [];
+	const goodTransactionsEnforcement = [];
 
-	var account = randomUtil.account();
-	var accountNoFunds = randomUtil.account();
-	var accountMinimalFunds = randomUtil.account();
-	var accountUpperCase = randomUtil.account();
-	var accountFormerDelegate = randomUtil.account();
+	const account = randomUtil.account();
+	const accountNoFunds = randomUtil.account();
+	const accountMinimalFunds = randomUtil.account();
+	const accountUpperCase = randomUtil.account();
+	const accountFormerDelegate = randomUtil.account();
 
 	// Crediting accounts
 	before(() => {
-		var transactions = [];
-		var transaction1 = lisk.transaction.transfer({
+		const transactions = [];
+		const transaction1 = lisk.transaction.transfer({
 			amount: 1000 * NORMALIZER,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: account.address,
 		});
-		var transaction2 = lisk.transaction.transfer({
+		const transaction2 = lisk.transaction.transfer({
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountMinimalFunds.address,
 		});
-		var transaction3 = lisk.transaction.transfer({
+		const transaction3 = lisk.transaction.transfer({
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountUpperCase.address,
 		});
-		var transaction4 = lisk.transaction.transfer({
+		const transaction4 = lisk.transaction.transfer({
 			amount: FEES.DELEGATE,
 			passphrase: accountFixtures.genesis.passphrase,
 			recipientId: accountFormerDelegate.address,
@@ -71,7 +71,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		transactions.push(transaction3);
 		transactions.push(transaction4);
 
-		var promises = [];
+		const promises = [];
 		promises.push(sendTransactionPromise(transaction1));
 		promises.push(sendTransactionPromise(transaction2));
 		promises.push(sendTransactionPromise(transaction3));
@@ -137,7 +137,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using invalid username should fail', () => {
-			var username = '~!@#$ %^&*()_+.,?/';
+			const username = '~!@#$ %^&*()_+.,?/';
 			transaction = lisk.transaction.registerDelegate({
 				passphrase: account.passphrase,
 				username,
@@ -155,7 +155,7 @@ describe('POST /api/transactions (type 2) register delegate', () => {
 		});
 
 		it('using username longer than 20 characters should fail', () => {
-			var delegateName = `${randomUtil.delegateName()}x`;
+			const delegateName = `${randomUtil.delegateName()}x`;
 			transaction = lisk.transaction.registerDelegate({
 				passphrase: account.passphrase,
 				username: delegateName,

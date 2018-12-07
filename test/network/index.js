@@ -29,7 +29,7 @@ const NUMBER_OF_MONITORING_CONNECTIONS = TOTAL_PEERS * 2;
 
 const wsPorts = [];
 _.range(TOTAL_PEERS).map(index => {
-	wsPorts.push(5000 + index);
+	return wsPorts.push(5000 + index);
 });
 const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 
@@ -45,7 +45,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			console.warn(`Test failed: ${this.currentTest.title}`);
 			return done(this.currentTest.err);
 		}
-		done();
+		return done();
 	});
 
 	after(() => {
@@ -59,12 +59,11 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			}
 
 			if (numOfConnections === TOTAL_PEERS) {
-				done();
-			} else {
-				done(
-					`There are ${numOfConnections} listening connections on web socket ports.`
-				);
+				return done();
 			}
+			return done(
+				`There are ${numOfConnections} listening connections on web socket ports.`
+			);
 		});
 	});
 
@@ -78,12 +77,11 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				numOfConnections <=
 				EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS
 			) {
-				done();
-			} else {
-				done(
-					`There are ${numOfConnections} established connections on web socket ports.`
-				);
+				return done();
 			}
+			return done(
+				`There are ${numOfConnections} established connections on web socket ports.`
+			);
 		});
 	});
 

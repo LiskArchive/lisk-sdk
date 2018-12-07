@@ -89,7 +89,7 @@ __private.getCountByFilter = function(filter) {
 	filter.normalized = false;
 	delete filter.limit;
 	delete filter.offset;
-	var peers = __private.getByFilter(filter);
+	const peers = __private.getByFilter(filter);
 	return peers.length;
 };
 
@@ -178,7 +178,6 @@ __private.getByFilter = function(filter, cb) {
 	let peers = library.logic.peers.list(normalized);
 
 	peers = peers.filter(peer => {
-		// const peer = __private.peers[index];
 		let passed = true;
 		_.each(filter, (value, key) => {
 			// Every filter field need to be in allowed fields, exists and match value
@@ -189,6 +188,7 @@ __private.getByFilter = function(filter, cb) {
 				passed = false;
 				return false;
 			}
+			return true;
 		});
 		return passed;
 	});
@@ -196,9 +196,10 @@ __private.getByFilter = function(filter, cb) {
 	// Sorting
 	if (filter.sort) {
 		const sort_arr = String(filter.sort).split(':');
-		const sort_field = sort_arr[0]
-			? _.includes(allowedFields, sort_arr[0]) ? sort_arr[0] : null
+		const auxSortField = _.includes(allowedFields, sort_arr[0])
+			? sort_arr[0]
 			: null;
+		const sort_field = sort_arr[0] ? auxSortField : null;
 		const sort_method = sort_arr.length === 2 ? sort_arr[1] !== 'desc' : true;
 		if (sort_field) {
 			peers.sort(sortPeers(sort_field, sort_method));
@@ -240,12 +241,12 @@ __private.getMatched = function(test, peers) {
 /**
  * Check if the ip exists in the peer blacklist coming from config file.
  *
- * @param ip
+ * @param suspiciousIp
  * @returns {boolean}
  * @todo Add description for the params and the return value
  */
-__private.isBlacklisted = function(ip) {
-	return self.blackListedPeers.includes(ip);
+__private.isBlacklisted = function(suspiciousIp) {
+	return self.blackListedPeers.includes(suspiciousIp);
 };
 
 /**
@@ -324,7 +325,7 @@ __private.insertSeeds = function(cb) {
 
 			// Continue if peer it is not blacklisted nor banned
 			if (peer.state !== Peer.STATE.BANNED) {
-				peer.rpc.status((err, status) => {
+				return peer.rpc.status((err, status) => {
 					__private.updatePeerStatus(err, status, peer);
 					if (!err) {
 						updated += 1;
@@ -333,9 +334,8 @@ __private.insertSeeds = function(cb) {
 					}
 					return setImmediate(eachCb);
 				});
-			} else {
-				return setImmediate(eachCb);
 			}
+			return setImmediate(eachCb);
 		},
 		() => {
 			library.logger.trace('Peers->insertSeeds - Peers discovered', {
@@ -429,7 +429,7 @@ __private.dbSave = function(cb) {
 	}
 
 	// Wrap sql queries in transaction and execute
-	library.db
+	return library.db
 		.tx('modules:peers:dbSave', t =>
 			t.peers.clear().then(() => t.peers.insert(peers))
 		)
@@ -540,16 +540,15 @@ Peers.prototype.discover = function(cb) {
 			(err, peers) => {
 				const randomPeer = peers.length ? peers[0] : null;
 				if (!err && randomPeer) {
-					randomPeer.rpc.status((err, status) => {
-						__private.updatePeerStatus(err, status, randomPeer);
-						if (err) {
-							return setImmediate(waterCb, err);
+					return randomPeer.rpc.status((rpcStatusErr, status) => {
+						__private.updatePeerStatus(rpcStatusErr, status, randomPeer);
+						if (rpcStatusErr) {
+							return setImmediate(waterCb, rpcStatusErr);
 						}
-						randomPeer.rpc.list(waterCb);
+						return randomPeer.rpc.list(waterCb);
 					});
-				} else {
-					return setImmediate(waterCb, err || 'No acceptable peers found');
 				}
+				return setImmediate(waterCb, err || 'No acceptable peers found');
 			}
 		);
 	}
@@ -676,7 +675,7 @@ Peers.prototype.list = function(options, cb) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function randomList(peers, cb) {
+	function randomList(peers, randomListCb) {
 		// Get full peers list (random)
 		__private.getByFilter(
 			{ normalized: options.normalized },
@@ -684,21 +683,20 @@ Peers.prototype.list = function(options, cb) {
 				const found = peersList.length;
 				const attempt = attempts.pop();
 				// Apply filters
-				peersList = peersList.filter(peer => {
-					if (broadhash) {
-						// Skip banned and disconnected peers by default
-						return (
-							allowedStates.indexOf(peer.state) !== -1 &&
-							// Matched broadhash when attempt 0
-							(attempt === 0
-								? peer.broadhash === broadhash
-								: // Unmatched broadhash when attempt 1
-									attempt === 1 ? peer.broadhash !== broadhash : false)
-						);
+				// Skip banned peers by default
+				peersList = peersList.filter(
+					peer => allowedStates.indexOf(peer.state) !== -1
+				);
+				// Filter peers by broadhash if present
+				if (broadhash) {
+					if (attempt === 0) {
+						// Look for peers matching (equal to) broadhash with the first attempt
+						peersList = peersList.filter(peer => peer.broadhash === broadhash);
+					} else if (attempt === 1) {
+						// Look for peers unmatching (not equal to) broadhash with the second attempt
+						peersList = peersList.filter(peer => peer.broadhash !== broadhash);
 					}
-					// Skip banned and disconnected peers by default
-					return allowedStates.indexOf(peer.state) !== -1;
-				});
+				}
 				const matched = peersList.length;
 				// Apply limit
 				peersList = peersList.slice(0, limit);
@@ -711,7 +709,7 @@ Peers.prototype.list = function(options, cb) {
 					picked,
 					accepted: accepted.length,
 				});
-				return setImmediate(cb, null, accepted);
+				return setImmediate(randomListCb, null, accepted);
 			}
 		);
 	}
@@ -857,7 +855,7 @@ Peers.prototype.onPeersReady = function() {
 								(!peer.updated || Date.now() - peer.updated > 3000)
 							) {
 								library.logger.trace('Updating peer', peer.object());
-								peer.rpc.status((err, status) => {
+								return peer.rpc.status((err, status) => {
 									__private.updatePeerStatus(err, status, peer);
 									if (!err) {
 										updated += 1;
@@ -869,9 +867,8 @@ Peers.prototype.onPeersReady = function() {
 									}
 									return setImmediate(eachCb);
 								});
-							} else {
-								return setImmediate(eachCb);
 							}
+							return setImmediate(eachCb);
 						},
 						() => {
 							library.logger.trace('Peers updated', {

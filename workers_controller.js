@@ -18,22 +18,23 @@ if (process.env.NEW_RELIC_LICENSE_KEY) {
 	require('./helpers/newrelic_lisk');
 }
 
-var async = require('async');
-var SCWorker = require('socketcluster/scworker');
-var SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
-var Peer = require('./logic/peer');
-var System = require('./modules/system');
-var Handshake = require('./api/ws/workers/middlewares/handshake').middleware
+const http = require('http');
+const async = require('async');
+const SCWorker = require('socketcluster/scworker');
+const SlaveWAMPServer = require('wamp-socket-cluster/SlaveWAMPServer');
+const Peer = require('./logic/peer');
+const System = require('./modules/system');
+const Handshake = require('./api/ws/workers/middlewares/handshake').middleware
 	.Handshake;
-var extractHeaders = require('./api/ws/workers/middlewares/handshake')
+const extractHeaders = require('./api/ws/workers/middlewares/handshake')
 	.extractHeaders;
-var emitMiddleware = require('./api/ws/workers/middlewares/emit');
-var PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
-var Rules = require('./api/ws/workers/rules');
-var failureCodes = require('./api/ws/rpc/failure_codes');
-var Logger = require('./logger');
-var AppConfig = require('./helpers/config.js');
-var config = AppConfig(require('./package.json'), false);
+const emitMiddleware = require('./api/ws/workers/middlewares/emit');
+const PeersUpdateRules = require('./api/ws/workers/peers_update_rules');
+const Rules = require('./api/ws/workers/rules');
+const failureCodes = require('./api/ws/rpc/failure_codes');
+const Logger = require('./logger');
+const AppConfig = require('./helpers/config.js');
+const config = new AppConfig(require('./package.json'), false);
 
 /**
  * Instantiate the SocketCluster SCWorker instance with custom logic
@@ -41,9 +42,19 @@ var config = AppConfig(require('./package.json'), false);
  * is ready to accept requests/connections.
  */
 SCWorker.create({
+	// Pass the custom configuration to P2P HTTP Server to mitigate the security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
+	createHTTPServer() {
+		const httpServer = http.createServer();
+		httpServer.headersTimeout = config.api.options.limits.headersTimeout;
+		httpServer.setTimeout(config.api.options.limits.serverSetTimeout);
+		httpServer.on('timeout', socket => {
+			socket.destroy();
+		});
+		return httpServer;
+	},
 	run() {
-		var self = this;
-		var scServer = this.getSCServer();
+		const self = this;
+		const scServer = this.getSCServer();
 
 		async.auto(
 			{
@@ -99,11 +110,11 @@ SCWorker.create({
 				handshake: [
 					'system',
 					function(scope, cb) {
-						return cb(null, Handshake(scope.system, scope.config));
+						return cb(null, new Handshake(scope.system, scope.config));
 					},
 				],
 			},
-			(err, scope) => {
+			(asyncAutoErr, scope) => {
 				scServer.addMiddleware(
 					scServer.MIDDLEWARE_HANDSHAKE_WS,
 					(req, next) => {
@@ -123,7 +134,7 @@ SCWorker.create({
 							}
 							// Pass through the WebSocket MIDDLEWARE_HANDSHAKE_WS successfully, but
 							// we will handle the req.failedQueryValidation error later inside scServer.on('handshake', handler);
-							next();
+							return next();
 						});
 					}
 				);
@@ -142,9 +153,9 @@ SCWorker.create({
 					// so we can access our custom socket.request.failedQueryValidation property here.
 					// If the property exists then we disconnect the connection.
 					if (socket.request.failedHeadersValidationError) {
-						var handshakeFailedCode =
+						const handshakeFailedCode =
 							socket.request.failedHeadersValidationError.code;
-						var handshakeFailedDesc =
+						const handshakeFailedDesc =
 							socket.request.failedHeadersValidationError.description;
 						scope.logger.debug(
 							`[Inbound socket :: handshake] WebSocket handshake from ${
@@ -155,8 +166,9 @@ SCWorker.create({
 					}
 
 					if (!socket.request.peerObject) {
-						var handshakeErrorCode = failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
-						var handshakeErrorDesc =
+						const handshakeErrorCode =
+							failureCodes.ON_MASTER.UPDATE.INVALID_PEER;
+						const handshakeErrorDesc =
 							'Could not find the peerObject property on the handshake request';
 						scope.logger.error(
 							`[Inbound socket :: handshake] WebSocket handshake from ${
@@ -172,7 +184,7 @@ SCWorker.create({
 						} succeeded`
 					);
 
-					updatePeerConnection(
+					return updatePeerConnection(
 						Rules.UPDATES.INSERT,
 						socket,
 						socket.request.peerObject,
@@ -202,7 +214,7 @@ SCWorker.create({
 					if (failureCodes.errorMessages[code]) {
 						return;
 					}
-					var headers = extractHeaders(socket.request);
+					const headers = extractHeaders(socket.request);
 					updatePeerConnection(
 						Rules.UPDATES.REMOVE,
 						socket,
@@ -217,7 +229,7 @@ SCWorker.create({
 						peer,
 						socket.id,
 						onUpdateError => {
-							var actionName = Object.keys(Rules.UPDATES)[updateType];
+							const actionName = Object.keys(Rules.UPDATES)[updateType];
 							if (onUpdateError) {
 								scope.logger.warn(
 									`Peer ${actionName} error: code: ${

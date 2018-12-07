@@ -112,11 +112,11 @@ const Transaction = stampit({
 				break;
 
 			case transactionTypes.DAPP:
-				this.asset.dapp = Dapps.Dapp({ transactionId: this.id });
+				this.asset.dapp = new Dapps.Dapp({ transactionId: this.id });
 				break;
 
 			case transactionTypes.IN_TRANSFER:
-				this.asset.inTransfer = Dapps.OutTransfer({
+				this.asset.inTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id
 						: randomstring.generate({ length: 20, charset: 'numeric' }),
@@ -125,7 +125,7 @@ const Transaction = stampit({
 				break;
 
 			case transactionTypes.OUT_TRANSFER:
-				this.asset.outTransfer = Dapps.OutTransfer({
+				this.asset.outTransfer = new Dapps.OutTransfer({
 					dappId: dapp
 						? dapp.id
 						: randomstring.generate({ length: 20, charset: 'numeric' }),

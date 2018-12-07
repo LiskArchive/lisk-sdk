@@ -14,17 +14,17 @@
 
 'use strict';
 
-var fs = require('fs');
-var util = require('util');
-var child_process = require('child_process');
-var path = require('path');
-var strftime = require('strftime').utc();
+const fs = require('fs');
+const util = require('util');
+const child_process = require('child_process');
+const path = require('path');
+const strftime = require('strftime').utc();
 
 require('colors');
 
 module.exports = function(config) {
 	config = config || {};
-	var exports = {};
+	const exports = {};
 
 	config.levels = config.levels || {
 		none: 99,
@@ -52,14 +52,14 @@ module.exports = function(config) {
 	config.errorLevel = config.errorLevel || 'log';
 
 	child_process.execSync(`mkdir -p ${path.dirname(config.filename)}`);
-	var log_file = fs.createWriteStream(config.filename, { flags: 'a' });
+	const log_file = fs.createWriteStream(config.filename, { flags: 'a' });
 
 	exports.setLevel = function(errorLevel) {
 		config.errorLevel = errorLevel;
 	};
 
 	function snipFragileData(data) {
-		for (var key in data) {
+		for (const key in data) {
 			if (key.search(/passphrase|password/i) > -1) {
 				data[key] = 'XXXXXXXXXX';
 			}
@@ -69,45 +69,45 @@ module.exports = function(config) {
 
 	Object.keys(config.levels).forEach(name => {
 		function log(message, data) {
-			var log = {
+			const logContext = {
 				level: name,
 				timestamp: strftime('%F %T', new Date()),
 			};
 
 			if (message instanceof Error) {
-				log.message = message.stack;
+				logContext.message = message.stack;
 			} else {
-				log.message = message;
+				logContext.message = message;
 			}
 
 			if (data && util.isObject(data)) {
-				log.data = JSON.stringify(snipFragileData(data));
+				logContext.data = JSON.stringify(snipFragileData(data));
 			} else {
-				log.data = data;
+				logContext.data = data;
 			}
 
-			log.symbol = config.level_abbr[log.level]
-				? config.level_abbr[log.level]
+			logContext.symbol = config.level_abbr[logContext.level]
+				? config.level_abbr[logContext.level]
 				: '???';
 
-			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
-				if (log.data) {
+			if (config.levels[config.errorLevel] <= config.levels[logContext.level]) {
+				if (logContext.data) {
 					log_file.write(
 						util.format(
 							'[%s] %s | %s - %s\n',
-							log.symbol,
-							log.timestamp,
-							log.message,
-							log.data
+							logContext.symbol,
+							logContext.timestamp,
+							logContext.message,
+							logContext.data
 						)
 					);
 				} else {
 					log_file.write(
 						util.format(
 							'[%s] %s | %s\n',
-							log.symbol,
-							log.timestamp,
-							log.message
+							logContext.symbol,
+							logContext.timestamp,
+							logContext.message
 						)
 					);
 				}
@@ -115,23 +115,23 @@ module.exports = function(config) {
 
 			if (
 				config.echo &&
-				config.levels[config.echo] <= config.levels[log.level]
+				config.levels[config.echo] <= config.levels[logContext.level]
 			) {
-				if (log.data) {
+				if (logContext.data) {
 					console.info(
-						`[${log.symbol.bgYellow.black}]`,
-						log.timestamp.grey,
+						`[${logContext.symbol.bgYellow.black}]`,
+						logContext.timestamp.grey,
 						'|',
-						log.message,
+						logContext.message,
 						'-',
-						log.data
+						logContext.data
 					);
 				} else {
 					console.info(
-						`[${log.symbol.bgYellow.black}]`,
-						log.timestamp.grey,
+						`[${logContext.symbol.bgYellow.black}]`,
+						logContext.timestamp.grey,
 						'|',
-						log.message
+						logContext.message
 					);
 				}
 			}

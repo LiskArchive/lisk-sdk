@@ -14,7 +14,7 @@
 
 'use strict';
 
-var sodium = require('sodium-native');
+const sodium = require('sodium-native');
 
 /**
  * Crypto functions that implements sodium.
@@ -23,7 +23,7 @@ var sodium = require('sodium-native');
  * @requires sodium
  * @see Parent: {@link helpers}
  */
-var ed = {};
+const ed = {};
 
 /**
  * Creates a keypar based on a hash.
@@ -34,8 +34,8 @@ var ed = {};
  * @todo Add description for the params and the return value
  */
 ed.makeKeypair = function(hash) {
-	var publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
-	var privateKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
+	const publicKey = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES);
+	const privateKey = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES);
 	sodium.crypto_sign_seed_keypair(publicKey, privateKey, hash);
 
 	return {
@@ -57,7 +57,7 @@ ed.sign = function(hash, privateKey) {
 	if (!(hash instanceof Buffer))
 		throw new Error('argument message must be a buffer');
 
-	var signature = Buffer.alloc(sodium.crypto_sign_BYTES);
+	const signature = Buffer.alloc(sodium.crypto_sign_BYTES);
 	sodium.crypto_sign_detached(signature, hash, privateKey);
 
 	return signature;

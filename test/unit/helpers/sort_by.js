@@ -14,10 +14,10 @@
 
 'use strict';
 
-var SortBy = require('../../../helpers/sort_by');
+const SortBy = require('../../../helpers/sort_by');
 
 describe('SortBy', () => {
-	var validSortFieldsArray = ['address', 'balance', 'username', 'publicKey'];
+	const validSortFieldsArray = ['address', 'balance', 'username', 'publicKey'];
 
 	describe('sortBy', () => {
 		describe('sort', () => {
@@ -93,7 +93,7 @@ describe('SortBy', () => {
 				});
 
 				it('should return object with string values if single key object is given', () => {
-					var result = SortBy.sortBy({ address: 1 });
+					const result = SortBy.sortBy({ address: 1 });
 
 					expect(result).to.eql({ sortField: '"address"', sortMethod: 'ASC' });
 
@@ -102,7 +102,7 @@ describe('SortBy', () => {
 				});
 
 				it('should return object with array values if multiple keys object is given', () => {
-					var result = SortBy.sortBy({ address: 1, publicKey: -1 });
+					const result = SortBy.sortBy({ address: 1, publicKey: -1 });
 
 					expect(result).to.eql({
 						sortField: ['"address"', '"publicKey"'],

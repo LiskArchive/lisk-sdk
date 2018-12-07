@@ -360,8 +360,8 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 			it('should delete block', done => {
 				library.modules.blocks.chain.deleteLastBlock(err => {
 					expect(err).to.not.exist;
-					localCommon.getBlocks(library, (err, ids) => {
-						expect(err).to.not.exist;
+					localCommon.getBlocks(library, (getBlocksErr, ids) => {
+						expect(getBlocksErr).to.not.exist;
 						expect(ids).to.not.include(block.id);
 						done();
 					});
@@ -374,8 +374,8 @@ describe('system test (blocks) - chain/popLastBlock', () => {
 					localCommon.getTransactionFromModule(
 						library,
 						{ id: fundTrsForAccount1.id },
-						(err, res) => {
-							expect(err).to.not.exist;
+						(getTransactionFromModuleErr, res) => {
+							expect(getTransactionFromModuleErr).to.not.exist;
 							expect(res.transactions).to.have.length(0);
 							done();
 						}

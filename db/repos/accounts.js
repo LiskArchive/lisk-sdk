@@ -253,9 +253,7 @@ class AccountsRepository {
 			);
 		}
 
-		this.getImmutableFields().map(field => {
-			delete data[field];
-		});
+		this.getImmutableFields().map(field => delete data[field]);
 
 		// To avoid Error: Cannot generate an UPDATE without any columns.
 		// If there is nothing to update, return else pg-promise will fail
@@ -314,8 +312,8 @@ class AccountsRepository {
 	 * @todo Add description for the return value
 	 */
 	remove(address) {
-		const sql = 'DELETE FROM $1:name WHERE $2:name = $3';
-		return this.db.none(sql, [this.dbTable, 'address', address]);
+		const removeSql = 'DELETE FROM $1:name WHERE $2:name = $3';
+		return this.db.none(removeSql, [this.dbTable, 'address', address]);
 	}
 
 	/**
@@ -400,7 +398,7 @@ class AccountsRepository {
 			);
 		}
 
-		let sql = '${fields:raw} ${conditions:raw} ';
+		let fielsAndConditionsSql = '${fields:raw} ${conditions:raw} ';
 		let limit;
 		let offset;
 		let sortField = '';
@@ -417,7 +415,8 @@ class AccountsRepository {
 				if (typeof options.sortField === 'string') {
 					sortField = options.sortField;
 					sortMethod = options.sortMethod || 'DESC';
-					sql += ' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
+					fielsAndConditionsSql +=
+						' ORDER BY ${sortField:name} ${sortMethod:raw}  ';
 					// As per implementation of sort sortBy helper helpers/sort_by
 				} else if (
 					Array.isArray(options.sortField) &&
@@ -425,15 +424,15 @@ class AccountsRepository {
 				) {
 					const sortSQL = [];
 
-					options.sortField.map((field, index) => {
+					options.sortField.map((field, index) =>
 						sortSQL.push(
 							this.pgp.as.format('$1:name $2:raw', [
 								field,
 								options.sortMethod[index],
 							])
-						);
-					});
-					sql += `ORDER BY ${sortSQL.join()}`;
+						)
+					);
+					fielsAndConditionsSql += `ORDER BY ${sortSQL.join()}`;
 				}
 			}
 
@@ -442,10 +441,10 @@ class AccountsRepository {
 				limit = options.limit;
 				offset = options.offset || 0;
 
-				sql += ' LIMIT ${limit} OFFSET ${offset}';
+				fielsAndConditionsSql += ' LIMIT ${limit} OFFSET ${offset}';
 			}
 
-			const selectClause = Selects(this.cs.select, fields, pgp);
+			const selectClause = new Selects(this.cs.select, fields, pgp);
 
 			if (filters) {
 				const filterKeys = Object.keys(filters);
@@ -477,7 +476,7 @@ class AccountsRepository {
 				conditions = ` WHERE ${conditions.join(' AND ')}`;
 			}
 
-			return this.pgp.as.format(sql, {
+			return this.pgp.as.format(fielsAndConditionsSql, {
 				fields: selectClause,
 				conditions,
 				sortField,
@@ -600,29 +599,27 @@ function Selects(columnSet, fields, pgp) {
 		const table = columnSet.table;
 		const selectFields = [];
 
-		columnSet.columns.map(column => {
-			if (fields.includes(column.name)) {
+		columnSet.columns
+			.filter(column => fields.includes(column.name))
+			.map(column => {
 				const propName = column.name;
-
 				if (column.init) {
-					selectFields.push(
+					return selectFields.push(
 						pgp.as.format(selectClauseWithSQL, [
 							column.init(column),
 							column.castText,
 							propName,
 						])
 					);
-				} else {
-					selectFields.push(
-						pgp.as.format(selectClauseWithName, [
-							column.name,
-							column.castText,
-							propName,
-						])
-					);
 				}
-			}
-		});
+				return selectFields.push(
+					pgp.as.format(selectClauseWithName, [
+						column.name,
+						column.castText,
+						propName,
+					])
+				);
+			});
 
 		return pgp.as.format(selectSQL, [selectFields.join(), table]);
 	};

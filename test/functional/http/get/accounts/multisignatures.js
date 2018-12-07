@@ -16,19 +16,19 @@
 
 require('../../../functional.js');
 
-var Scenarios = require('../../../../common/scenarios');
-var accountFixtures = require('../../../../fixtures/accounts');
-var apiHelpers = require('../../../../common/helpers/api');
-var waitFor = require('../../../../common/utils/wait_for');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
+const Scenarios = require('../../../../common/scenarios');
+const accountFixtures = require('../../../../fixtures/accounts');
+const apiHelpers = require('../../../../common/helpers/api');
+const waitFor = require('../../../../common/utils/wait_for');
+const SwaggerEndpoint = require('../../../../common/swagger_spec');
 
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /api/accounts', () => {
-	var signatureEndpoint = new swaggerEndpoint('POST /signatures');
+	const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
-	var scenario = new Scenarios.Multisig();
-	var account = scenario.account;
+	const scenario = new Scenarios.Multisig();
+	const account = scenario.account;
 
 	before(() => {
 		// Crediting accounts
@@ -48,7 +48,7 @@ describe('GET /api/accounts', () => {
 					.to.have.property('status')
 					.to.equal(200);
 
-				var signatureRequests = scenario.members.map(member => {
+				const signatureRequests = scenario.members.map(member => {
 					return {
 						signature: apiHelpers.createSignatureObject(
 							scenario.multiSigTransaction,
@@ -67,7 +67,7 @@ describe('GET /api/accounts', () => {
 	});
 
 	describe('/{address}/multisignature_groups', () => {
-		var multisigGroupsEndpoint = new swaggerEndpoint(
+		const multisigGroupsEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_groups'
 		);
 
@@ -77,7 +77,7 @@ describe('GET /api/accounts', () => {
 					.makeRequest({ address: account.address }, 200)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
-						var group = res.body.data[0];
+						const group = res.body.data[0];
 						expect(group.address).to.be.equal(account.address);
 						expect(group.publicKey).to.be.equal(account.publicKey);
 						expect(group.members).to.have.length(scenario.members.length);
@@ -127,7 +127,7 @@ describe('GET /api/accounts', () => {
 	});
 
 	describe('/{address}/multisignature_memberships', () => {
-		var multisigMembersEndpoint = new swaggerEndpoint(
+		const multisigMembersEndpoint = new SwaggerEndpoint(
 			'GET /accounts/{address}/multisignature_memberships'
 		);
 
@@ -145,7 +145,7 @@ describe('GET /api/accounts', () => {
 					.makeRequest({ address: scenario.members[0].address }, 200)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
-						var group = res.body.data[0];
+						const group = res.body.data[0];
 						expect(group.address).to.be.equal(account.address);
 						expect(group.publicKey).to.be.equal(account.publicKey);
 						expect(group.members).to.have.length(scenario.members.length);
@@ -160,7 +160,7 @@ describe('GET /api/accounts', () => {
 					.makeRequest({ address: scenario.members[1].address }, 200)
 					.then(res => {
 						expect(res.body.data).to.have.length(1);
-						var group = res.body.data[0];
+						const group = res.body.data[0];
 						expect(group.address).to.be.equal(account.address);
 						expect(group.publicKey).to.be.equal(account.publicKey);
 						expect(group.members).to.have.length(scenario.members.length);

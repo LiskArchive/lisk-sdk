@@ -17,12 +17,12 @@
 const async = require('async');
 const transactionTypes = require('../helpers/transaction_types.js');
 
-var cacheReady = true;
-var errorCacheDisabled = 'Cache Disabled';
-var client;
-var self;
-var logger;
-var cacheEnabled;
+let cacheReady = true;
+const errorCacheDisabled = 'Cache Disabled';
+let client;
+let self;
+let logger;
+let cacheEnabled;
 
 /**
  * Cache module.
@@ -85,7 +85,7 @@ Cache.prototype.getJsonForKey = function(key, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	client.get(key, (err, value) => {
+	return client.get(key, (err, value) => {
 		if (err) {
 			return cb(err, value);
 		}
@@ -120,7 +120,7 @@ Cache.prototype.setJsonForKey = function(key, value, cb) {
 	}
 
 	// Redis calls toString on objects, which converts it to object [object] so calling stringify before saving
-	client.set(key, JSON.stringify(value), cb);
+	return client.set(key, JSON.stringify(value), cb);
 };
 
 /**
@@ -142,7 +142,7 @@ Cache.prototype.deleteJsonForKey = function(key, cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	client.del(key, cb);
+	return client.del(key, cb);
 };
 
 /**
@@ -159,7 +159,7 @@ Cache.prototype.removeByPattern = function(pattern, cb) {
 	}
 	let keys;
 	let cursor = 0;
-	async.doWhilst(
+	return async.doWhilst(
 		whilstCb => {
 			client.scan(cursor, 'MATCH', pattern, (err, res) => {
 				if (err) {
@@ -168,10 +168,9 @@ Cache.prototype.removeByPattern = function(pattern, cb) {
 				cursor = Number(res.shift());
 				keys = res.shift();
 				if (keys.length > 0) {
-					client.del(keys, whilstCb);
-				} else {
-					return whilstCb();
+					return client.del(keys, whilstCb);
 				}
+				return whilstCb();
 			});
 		},
 		() => cursor > 0,
@@ -191,7 +190,7 @@ Cache.prototype.flushDb = function(cb) {
 	if (!self.isConnected()) {
 		return cb(errorCacheDisabled);
 	}
-	client.flushdb(cb);
+	return client.flushdb(cb);
 };
 
 /**
@@ -219,7 +218,7 @@ Cache.prototype.quit = function(cb) {
 		// Because connection is not established in the first place
 		return cb();
 	}
-	client.quit(cb);
+	return client.quit(cb);
 };
 
 /**
@@ -243,7 +242,7 @@ Cache.prototype.clearCacheFor = function(pattern, cb) {
 		return cb(errorCacheDisabled);
 	}
 
-	self.removeByPattern(pattern, err => {
+	return self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
 				[
@@ -284,7 +283,7 @@ Cache.prototype.onFinishRound = function(round, cb) {
 		return cb(errorCacheDisabled);
 	}
 	const pattern = self.KEYS.delegatesApi;
-	self.removeByPattern(pattern, err => {
+	return self.removeByPattern(pattern, err => {
 		if (err) {
 			logger.error(
 				[
@@ -324,7 +323,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 		return cb(errorCacheDisabled);
 	}
 
-	async.parallel(
+	return async.parallel(
 		[
 			async.reflect(reflectCb => {
 				const pattern = self.KEYS.delegatesApi;
@@ -338,7 +337,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 					return setImmediate(reflectCb, null);
 				}
 
-				self.removeByPattern(pattern, removeByPatternErr => {
+				return self.removeByPattern(pattern, removeByPatternErr => {
 					if (removeByPatternErr) {
 						logger.error(
 							[
@@ -365,7 +364,7 @@ Cache.prototype.onTransactionsSaved = function(transactions, cb) {
 					return setImmediate(reflectCb, null);
 				}
 
-				self.deleteJsonForKey(
+				return self.deleteJsonForKey(
 					self.KEYS.transactionCount,
 					deleteJsonForKeyErr => {
 						if (deleteJsonForKeyErr) {

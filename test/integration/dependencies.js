@@ -14,8 +14,8 @@
 
 'use strict';
 
-const queriesHelper = require('../common/integration/sql/queriesHelper.js');
-var DBSandbox = require('../common/db_sandbox').DBSandbox;
+const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
+const DBSandbox = require('../common/db_sandbox').DBSandbox;
 
 describe('Dependency versions', () => {
 	describe('node version', () => {
@@ -36,14 +36,14 @@ describe('Dependency versions', () => {
 
 		it('should be 10.x', done => {
 			dbSandbox = new DBSandbox(__testContext.config.db, 'postgresql-version');
-			dbSandbox.create((err, __db) => {
-				const Queries = new queriesHelper(null, __db);
+			dbSandbox.create((createErr, db) => {
+				const Queries = new QueriesHelper(null, db);
 				Queries.getPostgresVersion().then(data => {
 					try {
 						expect(data[0].version).to.contain('PostgreSQL 10.');
-						done(err);
-					} catch (err) {
-						done(err);
+						done(createErr);
+					} catch (getPostgresVersionErr) {
+						done(getPostgresVersionErr);
 					}
 				});
 			});

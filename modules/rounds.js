@@ -126,15 +126,15 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 	 * @todo Add @returns tag
 	 * @todo Add description of the function
 	 */
-	function backwardTick(tx) {
-		const round = new Round(scope, tx);
+	function backwardTick(backwardTickTx) {
+		const newRound = new Round(scope, backwardTickTx);
 
 		library.logger.debug('Performing backward tick');
 		library.logger.trace(scope);
 
-		return round
+		return newRound
 			.mergeBlockGenerator()
-			.then(() => (scope.finishRound ? round.backwardLand() : round));
+			.then(() => (scope.finishRound ? newRound.backwardLand() : newRound));
 	}
 
 	async.series(
@@ -170,7 +170,21 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 		err => {
 			// Stop round ticking
 			__private.ticking = false;
-			return done(err);
+			if (err) {
+				return done(err);
+			}
+
+			/**
+			 * If we delete first block of the round,
+			 * that means we go to last block of the previous round
+			 * That's why we need to clear the cache to recalculate
+			 * delegate list.
+			 * */
+			if (scope.finishRound) {
+				modules.delegates.clearDelegateListCache();
+			}
+
+			return done();
 		}
 	);
 };
@@ -221,6 +235,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 						library.bus.message('finishRound', round);
 					});
 				}
+				return true;
 			})
 			.then(() => {
 				// Check if we are one block before last block of round, if yes - perform round snapshot
@@ -242,6 +257,7 @@ Rounds.prototype.tick = function(block, done, tx) {
 							throw err;
 						});
 				}
+				return true;
 			});
 	}
 
@@ -347,14 +363,14 @@ __private.getOutsiders = function(scope, cb, tx) {
 	if (scope.block.height === 1) {
 		return setImmediate(cb);
 	}
-	modules.delegates.generateDelegateList(
+	return modules.delegates.generateDelegateList(
 		scope.round,
 		null,
 		(err, roundDelegates) => {
 			if (err) {
 				return setImmediate(cb, err);
 			}
-			async.eachSeries(
+			return async.eachSeries(
 				roundDelegates,
 				(delegate, eachCb) => {
 					if (scope.roundDelegates.indexOf(delegate) === -1) {
@@ -364,9 +380,9 @@ __private.getOutsiders = function(scope, cb, tx) {
 					}
 					return setImmediate(eachCb);
 				},
-				err => {
+				eachSeriesErr => {
 					library.logger.trace('Got outsiders', scope.roundOutsiders);
-					return setImmediate(cb, err);
+					return setImmediate(cb, eachSeriesErr);
 				}
 			);
 		},
@@ -398,7 +414,7 @@ __private.sumRound = function(scope, cb, tx) {
 
 	library.logger.debug('Summing round', scope.round);
 
-	(tx || library.db).rounds
+	return (tx || library.db).rounds
 		.summedRound(scope.round, ACTIVE_DELEGATES)
 		.then(rows => {
 			const rewards = [];

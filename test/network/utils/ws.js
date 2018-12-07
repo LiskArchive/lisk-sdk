@@ -48,8 +48,9 @@ module.exports = {
 			socket.once('connect', () => {
 				connectedTo += 1;
 				if (connectedTo === configurations.length) {
-					cb(null, sockets);
+					return cb(null, sockets);
 				}
+				return undefined;
 			});
 			socket.on('error', () => {});
 			socket.on('connectAbort', (errorCode, reason) => {

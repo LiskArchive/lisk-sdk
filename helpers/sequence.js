@@ -14,8 +14,7 @@
 
 'use strict';
 
-var util = require('util');
-var extend = require('extend');
+const util = require('util');
 
 /**
  * Creates a FIFO sequence array and default settings with config values.
@@ -23,19 +22,18 @@ var extend = require('extend');
  *
  * @class
  * @memberof helpers
- * @requires extend
  * @requires util
  * @param {string} config
  * @see Parent: {@link helpers}
  * @todo Add description for the params
  */
 function Sequence(config) {
-	var _default = {
+	let _default = {
 		onWarning: null,
 		warningLimit: 50,
 	};
-	_default = extend(_default, config);
-	var self = this;
+	_default = Object.assign(_default, config);
+	const self = this;
 	this.sequence = [];
 
 	setImmediate(function nextSequenceTick() {
@@ -56,11 +54,11 @@ function Sequence(config) {
  * @todo Add description for the params
  */
 Sequence.prototype.__tick = function(cb) {
-	var task = this.sequence.shift();
+	const task = this.sequence.shift();
 	if (!task) {
 		return setImmediate(cb);
 	}
-	var args = [
+	let args = [
 		function(err, res) {
 			if (task.done) {
 				setImmediate(task.done, err, res);
@@ -71,7 +69,7 @@ Sequence.prototype.__tick = function(cb) {
 	if (task.args) {
 		args = args.concat(task.args);
 	}
-	task.worker.apply(task.worker, args);
+	return task.worker.apply(task.worker, args);
 };
 
 /**
@@ -88,7 +86,7 @@ Sequence.prototype.add = function(worker, args, done) {
 		args = undefined;
 	}
 	if (worker && typeof worker === 'function') {
-		var task = { worker, done };
+		const task = { worker, done };
 		if (util.isArray(args)) {
 			task.args = args;
 		}

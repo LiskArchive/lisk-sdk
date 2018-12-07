@@ -14,19 +14,19 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var ed = require('../../../../helpers/ed');
+const crypto = require('crypto');
+const ed = require('../../../../helpers/ed');
 
-var validPassphrase =
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var validSender = {
+const validSender = {
 	passphrase: 'yjyhgnu32jmwuii442t9',
 	secondPassphrase: 'kub8gm2w330pvptx1or',
 	username: 'mix8',
@@ -36,13 +36,13 @@ var validSender = {
 		'ebfb1157f9f9ad223b1c7468b0d643663ec5a34ac7a6d557243834ae604d72b7',
 };
 
-var senderHash = crypto
+const senderHash = crypto
 	.createHash('sha256')
 	.update(validSender.passphrase, 'utf8')
 	.digest();
-var senderKeypair = ed.makeKeypair(senderHash);
+const senderKeypair = ed.makeKeypair(senderHash);
 
-var validTransaction = {
+const validTransaction = {
 	id: '1907088915785679339',
 	height: 371,
 	blockId: '17233974955873751907',
@@ -72,7 +72,7 @@ var validTransaction = {
 	},
 };
 
-var rawValidTransaction = {
+const rawValidTransaction = {
 	t_id: '1907088915785679339',
 	b_height: 371,
 	t_blockId: '17233974955873751907',

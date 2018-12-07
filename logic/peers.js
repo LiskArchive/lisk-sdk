@@ -131,7 +131,9 @@ Peers.prototype.ban = function(peer) {
 	}
 	self.banManager.banTemporarily(peer, self.unban);
 	library.logger.info('Banned peer', peer.string);
-	library.logger.debug('Banned peer', { peer: peer.object() });
+	return library.logger.debug('Banned peer', {
+		peer: peer.object(),
+	});
 };
 
 /**
@@ -153,7 +155,9 @@ Peers.prototype.unban = function(peer) {
 		return self.remove(peer);
 	}
 	library.logger.info('Unbanned peer', peer.string);
-	library.logger.debug('Unbanned peer', { peer: peer.object() });
+	return library.logger.debug('Unbanned peer', {
+		peer: peer.object(),
+	});
 };
 
 /**
@@ -166,27 +170,27 @@ Peers.prototype.unban = function(peer) {
  */
 Peers.prototype.upsert = function(peer, insertOnly) {
 	// Insert new peer
-	const insert = function(peer) {
-		peer.updated = Date.now();
+	const insert = function(insertedPeer) {
+		insertedPeer.updated = Date.now();
 		return self.peersManager.add(peer);
 	};
 
 	// Update existing peer
-	const update = function(recentPeer, peer) {
-		peer.updated = Date.now();
+	const update = function(recentPeer, updatedPeer) {
+		updatedPeer.updated = Date.now();
 		const diff = {};
 
 		// Make a copy for logging difference purposes only
 		const recentPeerBeforeUpdate = Object.assign({}, recentPeer);
 
-		recentPeer.update(peer);
+		recentPeer.update(updatedPeer);
 		self.peersManager.add(recentPeer);
 
 		// Create a log after peer update to summarize updated fields
 		_.each(recentPeer, (value, key) => {
 			if (
 				key !== 'updated' &&
-				peer.properties.indexOf(key) !== -1 &&
+				updatedPeer.properties.indexOf(key) !== -1 &&
 				recentPeerBeforeUpdate[key] !== value
 			) {
 				diff[key] = value;
@@ -251,15 +255,15 @@ Peers.prototype.upsert = function(peer, insertOnly) {
 	let cnt_empty_height = 0;
 	let cnt_empty_broadhash = 0;
 
-	_.each(self.peersManager.peers, peer => {
+	_.each(self.peersManager.peers, aPeer => {
 		++cnt_total;
-		if (peer.state === Peer.STATE.CONNECTED) {
+		if (aPeer.state === Peer.STATE.CONNECTED) {
 			++cnt_active;
 		}
-		if (!peer.height) {
+		if (!aPeer.height) {
 			++cnt_empty_height;
 		}
-		if (!peer.broadhash) {
+		if (!aPeer.broadhash) {
 			++cnt_empty_broadhash;
 		}
 	});

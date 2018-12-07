@@ -222,6 +222,7 @@ class Round {
 						}
 					});
 				}
+				return null;
 			});
 	}
 

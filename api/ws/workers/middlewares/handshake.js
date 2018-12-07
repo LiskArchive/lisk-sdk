@@ -14,11 +14,11 @@
 
 'use strict';
 
-var url = require('url');
-var _ = require('lodash');
-var failureCodes = require('../../rpc/failure_codes.js');
-var swaggerHelper = require('../../../../helpers/swagger');
-var Peer = require('../../../../logic/peer.js');
+const url = require('url');
+const _ = require('lodash');
+const failureCodes = require('../../rpc/failure_codes.js');
+const swaggerHelper = require('../../../../helpers/swagger');
+const Peer = require('../../../../logic/peer.js');
 
 /**
  * Description of the module.
@@ -35,9 +35,9 @@ var Peer = require('../../../../logic/peer.js');
  * @todo Add description for the module and the properties
  */
 
-var definitions = swaggerHelper.getSwaggerSpec().definitions;
+const definitions = swaggerHelper.getSwaggerSpec().definitions;
 
-var z_schema = swaggerHelper.getValidator();
+const z_schema = swaggerHelper.getValidator();
 
 /**
  * Middleware functions to add cors, log errors and conections, send status
@@ -47,7 +47,7 @@ var z_schema = swaggerHelper.getValidator();
  * @memberof module:helpers/ws_api
  * @see Parent: {@link module:helpers/ws_api}
  */
-var middleware = {
+const middleware = {
 	/**
 	 * Description of the class.
 	 *
@@ -72,7 +72,7 @@ var middleware = {
 		return function(headers, cb) {
 			z_schema.validate(headers, definitions.WSPeerHeaders, error => {
 				if (error) {
-					var errorDescription = error[0].message;
+					let errorDescription = error[0].message;
 					if (error[0].path && error[0].path.length) {
 						errorDescription = `${error[0].path}: ${errorDescription}`;
 					}
@@ -87,7 +87,7 @@ var middleware = {
 				}
 
 				headers.state = Peer.STATE.CONNECTED;
-				var peer = new Peer(headers);
+				const peer = new Peer(headers);
 
 				if (!system.nonceCompatible(headers.nonce)) {
 					return setImmediate(
@@ -152,12 +152,12 @@ var middleware = {
  * @todo Add description for the function and the params
  * @todo Add @returns tag
  */
-var extractHeaders = function(request) {
-	var headers = _.get(url.parse(request.url, true), 'query', null);
+const extractHeaders = function(request) {
+	const headers = _.get(url.parse(request.url, true), 'query', null);
 	headers.ip = request.remoteAddress.split(':').pop();
 	headers.httpPort = +headers.httpPort;
 	headers.wsPort = +headers.wsPort;
-	if (headers.height != null) {
+	if (headers.height) {
 		headers.height = +headers.height;
 	}
 	return headers;

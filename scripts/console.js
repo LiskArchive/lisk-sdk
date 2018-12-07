@@ -36,9 +36,15 @@ application.init(
 		let replServer;
 
 		function replEvalPromise(cmd, ctx, filename, cb) {
-			originalEval.call(replServer, cmd, ctx, filename, (err, res) => {
-				Promise.resolve(res).then(response => cb(null, response));
-			});
+			originalEval.call(
+				replServer,
+				cmd,
+				ctx,
+				filename,
+				(replEvalPromiseErr, res) => {
+					Promise.resolve(res).then(response => cb(null, response));
+				}
+			);
 		}
 
 		replServer = repl.start({
@@ -54,8 +60,8 @@ application.init(
 
 		const helpersFolder = './helpers/';
 		fs.readdirSync(helpersFolder).forEach(file => {
-			var filePath = path.resolve(helpersFolder, file);
-			var fileName = path.basename(filePath, '.js');
+			const filePath = path.resolve(helpersFolder, file);
+			const fileName = path.basename(filePath, '.js');
 			// eslint-disable-next-line import/no-dynamic-require
 			helpers[fileName] = require(filePath);
 		});
@@ -64,7 +70,7 @@ application.init(
 
 		// A dummy callback method to be utilized in repl
 		// e.g. modules.accounts.shared.getAccount({body: {}}, cb)
-		replServer.context.cb = function(err, data) {
+		replServer.context.cb = function(replServerErr, data) {
 			// Make sure cab response showed in terminal
 			console.info(data);
 		};

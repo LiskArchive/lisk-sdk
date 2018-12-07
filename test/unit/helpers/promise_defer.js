@@ -14,15 +14,15 @@
 
 'use strict';
 
-var PromiseDefer = require('../../../helpers/promise_defer');
+const PromiseDefer = require('../../../helpers/promise_defer');
 
 describe('PromiseDefer', () => {
-	var promiseDefer;
-	var RESOLVED = 'resolved';
-	var REJECTED = 'rejected';
+	let promiseDefer;
+	const RESOLVED = 'resolved';
+	const REJECTED = 'rejected';
 
 	beforeEach(done => {
-		promiseDefer = PromiseDefer();
+		promiseDefer = new PromiseDefer();
 		promiseDefer.promise
 			.then(input => {
 				expect(input.message).to.equal(RESOLVED);

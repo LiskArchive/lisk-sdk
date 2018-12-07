@@ -134,44 +134,6 @@ describe('loader', () => {
 		});
 	});
 
-	describe('getNetwork', () => {
-		describe('when __private.network.height > 0 and differs from last block height with 1', () => {
-			it('should call callback with error = null');
-
-			it('should call callback with result = __private.network');
-
-			it('should not call modules.peers.list');
-		});
-
-		describe('when __private.network.height = 0 or differs from last block height with more than 1', () => {
-			it('should call modules.peers.list');
-
-			it('should call modules.peers.list with {normalized: false}');
-
-			describe('when modules.peers.list fails', () => {
-				it('should call callback with error');
-			});
-
-			describe('when modules.peers.list succeeds', () => {
-				it('should call self.findGoodPeers');
-
-				it('should assign __private.network');
-
-				describe('when __private.network.peers.length = 0', () => {
-					it(
-						'should call callback with error = "Failed to find enough good peers"'
-					);
-				});
-
-				describe('when __private.network.peers.length > 0', () => {
-					it('should call callback with error = null');
-
-					it('should call callback with result = __private.network');
-				});
-			});
-		});
-	});
-
 	describe('syncing', () => {
 		it('should return true if __private.syncIntervalId exists');
 
@@ -197,13 +159,13 @@ describe('loader', () => {
 			it('should call __private.loadTransactions');
 
 			describe('when __private.loadTransactions fails', () => {
-				it('should call library.logger.log');
+				it('should call library.logger.error');
 
 				it(
-					'should call library.logger.log with "Unconfirmed transactions loader"'
+					'should call library.logger.error with "Unconfirmed transactions loader"'
 				);
 
-				it('should call library.logger.log with error');
+				it('should call library.logger.error with error');
 
 				it('should call __private.loadTransactions 4 more times');
 
@@ -216,11 +178,11 @@ describe('loader', () => {
 				it('should call __private.loadSignatures');
 
 				describe('when __private.loadSignatures fails', () => {
-					it('should call library.logger.log');
+					it('should call library.logger.error');
 
-					it('should call library.logger.log with "Signatures loader"');
+					it('should call library.logger.error with "Signatures loader"');
 
-					it('should call library.logger.log with error');
+					it('should call library.logger.error with error');
 
 					it('should call __private.loadSignatures 4 more times');
 

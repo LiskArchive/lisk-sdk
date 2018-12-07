@@ -15,17 +15,17 @@
 'use strict';
 
 require('../../functional.js');
-var lisk = require('lisk-elements').default;
-var swaggerSpec = require('../../../common/swagger_spec');
-var randomUtil = require('../../../common/utils/random');
-var accountFixtures = require('../../../fixtures/accounts');
-var sendTransactionPromise = require('../../../common/helpers/api')
+const lisk = require('lisk-elements').default;
+const SwaggerSpec = require('../../../common/swagger_spec');
+const randomUtil = require('../../../common/utils/random');
+const accountFixtures = require('../../../fixtures/accounts');
+const sendTransactionPromise = require('../../../common/helpers/api')
 	.sendTransactionPromise;
-var errorCodes = require('../../../../helpers/api_codes');
-var phases = require('../../../common/phases');
+const errorCodes = require('../../../../helpers/api_codes');
+const phases = require('../../../common/phases');
 
 describe('POST /api/transactions (general)', () => {
-	var transactionsEndpoint = new swaggerSpec('POST /transactions');
+	const transactionsEndpoint = new SwaggerSpec('POST /transactions');
 	const account = randomUtil.account();
 	const transaction = lisk.transaction.transfer({
 		amount: 1,

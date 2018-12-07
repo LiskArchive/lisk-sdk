@@ -14,10 +14,10 @@
 
 'use strict';
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -40,9 +40,9 @@ function DappsController(scope) {
  * @todo Add description for the function and the params
  */
 DappsController.getDapps = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		transactionId: params.transactionId.value,
 		name: params.name.value,
 		sort: params.sort.value,
@@ -74,7 +74,7 @@ DappsController.getDapps = function(context, next) {
 				return dapp;
 			});
 
-			next(null, {
+			return next(null, {
 				data,
 				meta: {
 					offset: filters.offset,
@@ -82,7 +82,7 @@ DappsController.getDapps = function(context, next) {
 				},
 			});
 		} catch (error) {
-			next(error);
+			return next(error);
 		}
 	});
 };

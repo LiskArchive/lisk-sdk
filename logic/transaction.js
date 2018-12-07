@@ -15,7 +15,6 @@
 'use strict';
 
 const crypto = require('crypto');
-const extend = require('extend');
 const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
@@ -33,7 +32,6 @@ const __private = {};
  * @see Parent: {@link logic}
  * @requires bytebuffer
  * @requires crypto
- * @requires extend
  * @requires lodash
  * @requires helpers/bignum
  * @requires helpers/slots
@@ -290,7 +288,7 @@ class Transaction {
 		if (!transaction || !transaction.id) {
 			return setImmediate(cb, 'Invalid transaction id', false);
 		}
-		this.countById(transaction, (err, count) => {
+		return this.countById(transaction, (err, count) => {
 			if (err) {
 				return setImmediate(cb, err, false);
 			} else if (count > 0) {
@@ -376,14 +374,14 @@ class Transaction {
 		transaction.senderId = sender.address;
 
 		// Call process on transaction type
-		__private.types[transaction.type].process(
+		return __private.types[transaction.type].process(
 			transaction,
 			sender,
-			(err, transaction) => {
+			(err, processedTransaction) => {
 				if (err) {
 					return setImmediate(cb, err);
 				}
-				return setImmediate(cb, null, transaction);
+				return setImmediate(cb, null, processedTransaction);
 			},
 			tx
 		);
@@ -475,7 +473,7 @@ class Transaction {
 				sender.publicKey,
 			].join(' ');
 
-			if (exceptions.senderPublicKey.indexOf(transaction.id) > -1) {
+			if (exceptions.senderPublicKey.includes(transaction.id)) {
 				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 			} else {
@@ -543,7 +541,7 @@ class Transaction {
 		if (!valid) {
 			err = 'Failed to verify signature';
 
-			if (exceptions.signatures.indexOf(transaction.id) > -1) {
+			if (exceptions.signatures.includes(transaction.id)) {
 				this.scope.logger.error(err);
 				this.scope.logger.debug(JSON.stringify(transaction));
 				valid = true;
@@ -618,7 +616,7 @@ class Transaction {
 					}
 
 					if (!isValidSignature) {
-						const err = `Failed to verify multisignature: ${
+						const invalidSignatureErr = `Failed to verify multisignature: ${
 							transaction.signatures[s]
 						}`;
 
@@ -630,11 +628,11 @@ class Transaction {
 							)
 						) {
 							this.scope.logger.warn('Transaction accepted due to exceptions', {
-								err,
+								invalidSignatureErr,
 								transaction: JSON.stringify(transaction),
 							});
 						} else {
-							return setImmediate(cb, err);
+							return setImmediate(cb, invalidSignatureErr);
 						}
 					}
 				}
@@ -698,21 +696,21 @@ class Transaction {
 		}
 
 		const verifyTransactionTypes = (
-			transaction,
-			sender,
-			tx,
+			transactionToVeryfi,
+			senderToVerify,
+			txToVerify,
 			verifyTransactionTypesCb
 		) => {
-			__private.types[transaction.type].verify(
-				transaction,
-				sender,
-				err => {
-					if (err) {
-						return setImmediate(verifyTransactionTypesCb, err);
+			__private.types[transactionToVeryfi.type].verify(
+				transactionToVeryfi,
+				senderToVerify,
+				verifyErr => {
+					if (verifyErr) {
+						return setImmediate(verifyTransactionTypesCb, verifyErr);
 					}
 					return setImmediate(verifyTransactionTypesCb);
 				},
-				tx
+				txToVerify
 			);
 		};
 
@@ -726,23 +724,25 @@ class Transaction {
 		}
 
 		if (checkExists) {
-			this.checkConfirmed(transaction, (checkConfirmedErr, isConfirmed) => {
-				if (checkConfirmedErr) {
-					return setImmediate(cb, checkConfirmedErr);
-				}
+			return this.checkConfirmed(
+				transaction,
+				(checkConfirmedErr, isConfirmed) => {
+					if (checkConfirmedErr) {
+						return setImmediate(cb, checkConfirmedErr);
+					}
 
-				if (isConfirmed) {
-					return setImmediate(
-						cb,
-						`Transaction is already confirmed: ${transaction.id}`
-					);
-				}
+					if (isConfirmed) {
+						return setImmediate(
+							cb,
+							`Transaction is already confirmed: ${transaction.id}`
+						);
+					}
 
-				verifyTransactionTypes(transaction, sender, tx, cb);
-			});
-		} else {
-			verifyTransactionTypes(transaction, sender, tx, cb);
+					return verifyTransactionTypes(transaction, sender, tx, cb);
+				}
+			);
 		}
+		return verifyTransactionTypes(transaction, sender, tx, cb);
 	}
 
 	/**
@@ -877,13 +877,13 @@ class Transaction {
 			round: slots.calcRound(block.height),
 		});
 
-		this.scope.account.merge(
+		return this.scope.account.merge(
 			sender.address,
 			{
 				balance: `-${amount}`,
 				round: slots.calcRound(block.height),
 			},
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
@@ -891,14 +891,14 @@ class Transaction {
 				 * Calls applyConfirmed for Transfer, Signature, Delegate, Vote, Multisignature,
 				 * DApp, InTransfer or OutTransfer.
 				 */
-				__private.types[transaction.type].applyConfirmed(
+				return __private.types[transaction.type].applyConfirmed(
 					transaction,
 					block,
-					sender,
+					mergedSender,
 					applyConfirmedErr => {
 						if (applyConfirmedErr) {
-							this.scope.account.merge(
-								sender.address,
+							return this.scope.account.merge(
+								mergedSender.address,
 								{
 									balance: amount,
 									round: slots.calcRound(block.height),
@@ -907,9 +907,8 @@ class Transaction {
 									setImmediate(cb, reverseMergeErr || applyConfirmedErr),
 								tx
 							);
-						} else {
-							return setImmediate(cb);
 						}
+						return setImmediate(cb);
 					},
 					tx
 				);
@@ -945,25 +944,25 @@ class Transaction {
 			round: slots.calcRound(block.height),
 		});
 
-		this.scope.account.merge(
+		return this.scope.account.merge(
 			sender.address,
 			{
 				balance: amount,
 				round: slots.calcRound(block.height),
 			},
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undoConfirmed(
+				return __private.types[transaction.type].undoConfirmed(
 					transaction,
 					block,
-					sender,
+					mergedSender,
 					undoConfirmedErr => {
 						if (undoConfirmedErr) {
-							this.scope.account.merge(
-								sender.address,
+							return this.scope.account.merge(
+								mergedSender.address,
 								{
 									balance: `-${amount}`,
 									round: slots.calcRound(block.height),
@@ -972,9 +971,8 @@ class Transaction {
 									setImmediate(cb, reverseMergeErr || undoConfirmedErr),
 								tx
 							);
-						} else {
-							return setImmediate(cb);
 						}
+						return setImmediate(cb);
 					},
 					tx
 				);
@@ -1025,29 +1023,28 @@ class Transaction {
 			return setImmediate(cb, senderBalance.error);
 		}
 
-		this.scope.account.merge(
+		return this.scope.account.merge(
 			sender.address,
 			{ u_balance: `-${amount}` },
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].applyUnconfirmed(
+				return __private.types[transaction.type].applyUnconfirmed(
 					transaction,
-					sender,
+					mergedSender,
 					applyUnconfirmedErr => {
 						if (applyUnconfirmedErr) {
-							this.scope.account.merge(
-								sender.address,
+							return this.scope.account.merge(
+								mergedSender.address,
 								{ u_balance: amount },
 								reverseMergeErr =>
 									setImmediate(cb, reverseMergeErr || applyUnconfirmedErr),
 								tx
 							);
-						} else {
-							return setImmediate(cb);
 						}
+						return setImmediate(cb);
 					},
 					tx
 				);
@@ -1077,29 +1074,28 @@ class Transaction {
 
 		const amount = transaction.amount.plus(transaction.fee);
 
-		this.scope.account.merge(
+		return this.scope.account.merge(
 			sender.address,
 			{ u_balance: amount },
-			(mergeErr, sender) => {
+			(mergeErr, mergedSender) => {
 				if (mergeErr) {
 					return setImmediate(cb, mergeErr);
 				}
 
-				__private.types[transaction.type].undoUnconfirmed(
+				return __private.types[transaction.type].undoUnconfirmed(
 					transaction,
-					sender,
+					mergedSender,
 					undoUnconfirmedErr => {
 						if (undoUnconfirmedErr) {
-							this.scope.account.merge(
-								sender.address,
+							return this.scope.account.merge(
+								mergedSender.address,
 								{ u_balance: `-${amount}` },
 								reverseMergeErr =>
 									setImmediate(cb, reverseMergeErr || undoUnconfirmedErr),
 								tx
 							);
-						} else {
-							return setImmediate(cb);
 						}
+						return setImmediate(cb);
 					},
 					tx
 				);
@@ -1244,7 +1240,7 @@ class Transaction {
 		const asset = __private.types[transaction.type].dbRead(raw);
 
 		if (asset) {
-			transaction.asset = extend(transaction.asset, asset);
+			transaction.asset = Object.assign(transaction.asset, asset);
 		}
 
 		return transaction;

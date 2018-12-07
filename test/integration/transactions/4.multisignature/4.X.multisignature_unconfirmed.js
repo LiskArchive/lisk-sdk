@@ -14,21 +14,21 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var randomUtil = require('../../../common/utils/random');
-var Scenarios = require('../../../common/scenarios');
-var transactionTypes = require('../../../../helpers/transaction_types.js');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const randomUtil = require('../../../common/utils/random');
+const Scenarios = require('../../../common/scenarios');
+const transactionTypes = require('../../../../helpers/transaction_types.js');
+const localCommon = require('../../common');
 
 describe('system test (type 4) - sending transactions on top of unconfirmed multisignature registration', () => {
-	var library;
+	let library;
 
-	var scenarios = {
+	const scenarios = {
 		regular: new Scenarios.Multisig(),
 	};
 
 	scenarios.regular.dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp({
+	const dappTransaction = lisk.transaction.createDapp({
 		passphrase: scenarios.regular.account.passphrase,
 		options: scenarios.regular.dapp,
 	});
@@ -65,7 +65,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 		Object.keys(transactionTypes).forEach((key, index) => {
 			if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 				return true;
-			} else if (key != 'MULTI') {
+			} else if (key !== 'MULTI') {
 				it(`type ${index}: ${key} should be ok`, done => {
 					localCommon.loadTransactionType(
 						key,
@@ -81,6 +81,7 @@ describe('system test (type 4) - sending transactions on top of unconfirmed mult
 					);
 				});
 			}
+			return true;
 		});
 	});
 });

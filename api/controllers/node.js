@@ -14,14 +14,14 @@
 
 'use strict';
 
-var _ = require('lodash');
-var checkIpInList = require('../../helpers/check_ip_in_list.js');
-var apiCodes = require('../../helpers/api_codes');
-var swaggerHelper = require('../../helpers/swagger');
+const _ = require('lodash');
+const checkIpInList = require('../../helpers/check_ip_in_list.js');
+const apiCodes = require('../../helpers/api_codes');
+const swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
-var modules;
-var config;
+let modules;
+let config;
 
 /**
  * Description of the function.
@@ -50,7 +50,7 @@ function NodeController(scope) {
  * @todo Add description for the function and the params
  */
 NodeController.getConstants = function(context, next) {
-	modules.node.shared.getConstants(null, (err, data) => {
+	return modules.node.shared.getConstants(null, (err, data) => {
 		try {
 			if (err) {
 				return next(err);
@@ -72,9 +72,9 @@ NodeController.getConstants = function(context, next) {
 			data.fees.vote = data.fees.vote.toString();
 			data.fees.send = data.fees.send.toString();
 
-			next(null, data);
+			return next(null, data);
 		} catch (error) {
-			next(error);
+			return next(error);
 		}
 	});
 };
@@ -87,10 +87,10 @@ NodeController.getConstants = function(context, next) {
  * @todo Add description for the function and the params
  */
 NodeController.getStatus = function(context, next) {
-	modules.node.shared.getStatus(null, (err, data) => {
+	return modules.node.shared.getStatus(null, (getStatusErr, data) => {
 		try {
-			if (err) {
-				return next(err);
+			if (getStatusErr) {
+				return next(getStatusErr);
 			}
 
 			data = _.cloneDeep(data);
@@ -100,17 +100,19 @@ NodeController.getStatus = function(context, next) {
 			data.networkHeight = data.networkHeight || 0;
 			data.consensus = data.consensus || 0;
 
-			modules.transactions.shared.getTransactionsCount((err, count) => {
-				if (err) {
-					return next(err);
+			return modules.transactions.shared.getTransactionsCount(
+				(getTransactionsCountErr, count) => {
+					if (getTransactionsCountErr) {
+						return next(getTransactionsCountErr);
+					}
+
+					data.transactions = count;
+
+					return next(null, data);
 				}
-
-				data.transactions = count;
-
-				next(null, data);
-			});
+			);
 		} catch (error) {
-			next(error);
+			return next(error);
 		}
 	});
 };
@@ -128,14 +130,14 @@ NodeController.getForgingStatus = function(context, next) {
 		return next(new Error('Access Denied'));
 	}
 
-	var publicKey = context.request.swagger.params.publicKey.value;
+	const publicKey = context.request.swagger.params.publicKey.value;
 
-	modules.node.internal.getForgingStatus(publicKey, (err, data) => {
+	return modules.node.internal.getForgingStatus(publicKey, (err, data) => {
 		if (err) {
 			return next(err);
 		}
 
-		next(null, data);
+		return next(null, data);
 	});
 };
 
@@ -152,11 +154,11 @@ NodeController.updateForgingStatus = function(context, next) {
 		return next(new Error('Access Denied'));
 	}
 
-	var publicKey = context.request.swagger.params.data.value.publicKey;
-	var password = context.request.swagger.params.data.value.password;
-	var forging = context.request.swagger.params.data.value.forging;
+	const publicKey = context.request.swagger.params.data.value.publicKey;
+	const password = context.request.swagger.params.data.value.password;
+	const forging = context.request.swagger.params.data.value.forging;
 
-	modules.node.internal.updateForgingStatus(
+	return modules.node.internal.updateForgingStatus(
 		publicKey,
 		password,
 		forging,
@@ -166,7 +168,7 @@ NodeController.updateForgingStatus = function(context, next) {
 				return next(err);
 			}
 
-			next(null, [data]);
+			return next(null, [data]);
 		}
 	);
 };
@@ -179,23 +181,23 @@ NodeController.updateForgingStatus = function(context, next) {
  * @todo Add description for the function and the params
  */
 NodeController.getPooledTransactions = function(context, next) {
-	var invalidParams = swaggerHelper.invalidParams(context.request);
+	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var state = context.request.swagger.params.state.value;
+	const state = context.request.swagger.params.state.value;
 
-	var stateMap = {
+	const stateMap = {
 		unprocessed: 'getUnProcessedTransactions',
 		unconfirmed: 'getUnconfirmedTransactions',
 		unsigned: 'getMultisignatureTransactions',
 	};
 
-	var filters = {
+	let filters = {
 		id: params.id.value,
 		recipientId: params.recipientId.value,
 		recipientPublicKey: params.recipientPublicKey.value,
@@ -210,7 +212,7 @@ NodeController.getPooledTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.transactions.shared[stateMap[state]].call(
+	return modules.transactions.shared[stateMap[state]].call(
 		this,
 		_.clone(filters),
 		(err, data) => {
@@ -218,18 +220,21 @@ NodeController.getPooledTransactions = function(context, next) {
 				return next(err);
 			}
 
-			var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
-				transaction.senderId = transaction.senderId || '';
-				transaction.recipientId = transaction.recipientId || '';
-				transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+			const transactions = _.map(
+				_.cloneDeep(data.transactions),
+				transaction => {
+					transaction.senderId = transaction.senderId || '';
+					transaction.recipientId = transaction.recipientId || '';
+					transaction.recipientPublicKey = transaction.recipientPublicKey || '';
 
-				transaction.amount = transaction.amount.toString();
-				transaction.fee = transaction.fee.toString();
+					transaction.amount = transaction.amount.toString();
+					transaction.fee = transaction.fee.toString();
 
-				return transaction;
-			});
+					return transaction;
+				}
+			);
 
-			next(null, {
+			return next(null, {
 				data: transactions,
 				meta: {
 					offset: filters.offset,

@@ -14,12 +14,12 @@
 
 'use strict';
 
-var _ = require('lodash');
-var ApiError = require('../../helpers/api_error');
-var swaggerHelper = require('../../helpers/swagger');
+const _ = require('lodash');
+const ApiError = require('../../helpers/api_error');
+const swaggerHelper = require('../../helpers/swagger');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -44,9 +44,9 @@ function AccountsController(scope) {
  * @todo Add description for the function and the params
  */
 AccountsController.getAccounts = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		address: params.address.value,
 		publicKey: params.publicKey.value,
 		secondPublicKey: params.secondPublicKey.value,
@@ -83,7 +83,7 @@ AccountsController.getAccounts = function(context, next) {
 			return account;
 		});
 
-		next(null, {
+		return next(null, {
 			data,
 			meta: {
 				offset: filters.offset,
@@ -101,9 +101,9 @@ AccountsController.getAccounts = function(context, next) {
  * @todo Add description for the function and the params
  */
 AccountsController.getMultisignatureGroups = function(context, next) {
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		address: params.address.value,
 	};
 
@@ -119,53 +119,7 @@ AccountsController.getMultisignatureGroups = function(context, next) {
 		);
 	}
 
-	modules.multisignatures.shared.getGroups(_.clone(filters), (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = err.code;
-				delete err.code;
-			}
-
-			return next(err);
-		}
-
-		next(null, {
-			data,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-			},
-		});
-	});
-};
-
-/**
- * Description of the function.
- *
- * @param {Object} context
- * @param {function} next
- * @todo Add description for the function and the params
- */
-AccountsController.getMultisignatureMemberships = function(context, next) {
-	var params = context.request.swagger.params;
-
-	var filters = {
-		address: params.address.value,
-	};
-
-	// Remove filters with null values
-	filters = _.pickBy(filters, v => !(v === undefined || v === null));
-
-	if (!filters.address) {
-		return next(
-			swaggerHelper.generateParamsErrorObject(
-				['address'],
-				['Invalid address specified']
-			)
-		);
-	}
-
-	modules.multisignatures.shared.getMemberships(
+	return modules.multisignatures.shared.getGroups(
 		_.clone(filters),
 		(err, data) => {
 			if (err) {
@@ -177,7 +131,56 @@ AccountsController.getMultisignatureMemberships = function(context, next) {
 				return next(err);
 			}
 
-			next(null, {
+			return next(null, {
+				data,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+				},
+			});
+		}
+	);
+};
+
+/**
+ * Description of the function.
+ *
+ * @param {Object} context
+ * @param {function} next
+ * @todo Add description for the function and the params
+ */
+AccountsController.getMultisignatureMemberships = function(context, next) {
+	const params = context.request.swagger.params;
+
+	let filters = {
+		address: params.address.value,
+	};
+
+	// Remove filters with null values
+	filters = _.pickBy(filters, v => !(v === undefined || v === null));
+
+	if (!filters.address) {
+		return next(
+			swaggerHelper.generateParamsErrorObject(
+				['address'],
+				['Invalid address specified']
+			)
+		);
+	}
+
+	return modules.multisignatures.shared.getMemberships(
+		_.clone(filters),
+		(err, data) => {
+			if (err) {
+				if (err instanceof ApiError) {
+					context.statusCode = err.code;
+					delete err.code;
+				}
+
+				return next(err);
+			}
+
+			return next(null, {
 				data,
 				meta: {
 					offset: filters.offset,

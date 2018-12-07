@@ -14,20 +14,20 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var jobsQueue = require('../../../helpers/jobs_queue.js');
+const rewire = require('rewire');
+const jobsQueue = require('../../../helpers/jobs_queue.js');
 
-var peers = rewire('../../../modules/peers');
+const peers = rewire('../../../modules/peers');
 
 // These tests are breaking other tests (relying on setTimeout) running on the same process because of a time stubbing
 describe('helpers/jobsQueue', () => {
 	// Test global variables
-	var recallInterval = 1000;
-	var execTimeInterval = 1;
+	let recallInterval = 1000;
+	let execTimeInterval = 1;
 
 	describe('register', () => {
 		describe('should throw an erorr', () => {
-			var validFunction;
+			let validFunction;
 
 			beforeEach(done => {
 				validFunction = sinonSandbox.spy();
@@ -64,8 +64,8 @@ describe('helpers/jobsQueue', () => {
 			}
 
 			function testExecution(job, name, spy) {
-				var expectingTimesToCall = 5;
-				var interval = execTimeInterval + recallInterval;
+				const expectingTimesToCall = 5;
+				const interval = execTimeInterval + recallInterval;
 
 				setTimeout(() => {
 					expect(jobsQueue.jobs).to.be.an('object');
@@ -109,7 +109,7 @@ describe('helpers/jobsQueue', () => {
 				expect(job).to.not.equal(jobsQueue.jobs[name]);
 			}
 
-			var clock;
+			let clock;
 
 			before(done => {
 				clock = sinonSandbox.useFakeTimers();
@@ -123,9 +123,9 @@ describe('helpers/jobsQueue', () => {
 			});
 
 			it('should register first new job correctly and call properly (job exec: instant, job recall: 1s)', () => {
-				var name = 'job1';
-				var spy = sinonSandbox.spy(dummyFunction);
-				var job = jobsQueue.register(name, spy, recallInterval);
+				const name = 'job1';
+				const spy = sinonSandbox.spy(dummyFunction);
+				const job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(1);
@@ -135,9 +135,9 @@ describe('helpers/jobsQueue', () => {
 			it('should register second new job correctly and call properly (job exec: 10s, job recall: 1s)', () => {
 				execTimeInterval = 10000;
 
-				var name = 'job2';
-				var spy = sinonSandbox.spy(dummyFunction);
-				var job = jobsQueue.register(name, spy, recallInterval);
+				const name = 'job2';
+				const spy = sinonSandbox.spy(dummyFunction);
+				const job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(2);
@@ -148,9 +148,9 @@ describe('helpers/jobsQueue', () => {
 				recallInterval = 10000;
 				execTimeInterval = 2000;
 
-				var name = 'job3';
-				var spy = sinonSandbox.spy(dummyFunction);
-				var job = jobsQueue.register(name, spy, recallInterval);
+				const name = 'job3';
+				const spy = sinonSandbox.spy(dummyFunction);
+				const job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(3);
@@ -158,9 +158,9 @@ describe('helpers/jobsQueue', () => {
 			});
 
 			it('should throw an error immediately when trying to register same job twice', () => {
-				var name = 'job4';
-				var spy = sinonSandbox.spy(dummyFunction);
-				var job = jobsQueue.register(name, spy, recallInterval);
+				const name = 'job4';
+				const spy = sinonSandbox.spy(dummyFunction);
+				const job = jobsQueue.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueue.jobs))
 					.to.be.an('array')
 					.and.lengthOf(4);
@@ -172,14 +172,14 @@ describe('helpers/jobsQueue', () => {
 			});
 
 			it('should use same instance when required in different module (because of modules cache)', () => {
-				var jobsQueuePeers = peers.__get__('jobsQueue');
+				const jobsQueuePeers = peers.__get__('jobsQueue');
 				// Instances should be the same
 				expect(jobsQueuePeers).to.equal(jobsQueue);
 
 				// Register new job in peers module
-				var name = 'job5';
-				var spy = sinonSandbox.spy(dummyFunction);
-				var job = jobsQueuePeers.register(name, spy, recallInterval);
+				const name = 'job5';
+				const spy = sinonSandbox.spy(dummyFunction);
+				const job = jobsQueuePeers.register(name, spy, recallInterval);
 				expect(Object.keys(jobsQueuePeers.jobs))
 					.to.be.an('array')
 					.and.lengthOf(5);

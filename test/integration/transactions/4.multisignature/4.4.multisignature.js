@@ -14,18 +14,18 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var Scenarios = require('../../../common/scenarios');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const Scenarios = require('../../../common/scenarios');
+const localCommon = require('../../common');
 
 describe('system test (type 4) - double multisignature registrations', () => {
-	var library;
+	let library;
 
-	var scenarios = {
+	const scenarios = {
 		regular: new Scenarios.Multisig(),
 	};
 
-	var transactionToBeNotConfirmed = lisk.transaction.registerMultisignature({
+	const transactionToBeNotConfirmed = lisk.transaction.registerMultisignature({
 		passphrase: scenarios.regular.account.passphrase,
 		keysgroup: scenarios.regular.keysgroup,
 		lifetime: scenarios.regular.lifetime,
@@ -39,16 +39,16 @@ describe('system test (type 4) - double multisignature registrations', () => {
 	transactionToBeNotConfirmed.signatures = [];
 
 	scenarios.regular.members.map(member => {
-		var signatureToBeNotconfirmed = lisk.transaction.utils.multiSignTransaction(
+		const signatureToBeNotconfirmed = lisk.transaction.utils.multiSignTransaction(
 			transactionToBeNotConfirmed,
 			member.passphrase
 		);
 		transactionToBeNotConfirmed.signatures.push(signatureToBeNotconfirmed);
-		var signature = lisk.transaction.utils.multiSignTransaction(
+		const signature = lisk.transaction.utils.multiSignTransaction(
 			scenarios.regular.multiSigTransaction,
 			member.passphrase
 		);
-		scenarios.regular.multiSigTransaction.signatures.push(signature);
+		return scenarios.regular.multiSigTransaction.signatures.push(signature);
 	});
 
 	localCommon.beforeBlock('system_4_4_multisig', lib => {
@@ -95,7 +95,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		});
 
 		it('first transaction to arrive should not be included', done => {
-			var filter = {
+			const filter = {
 				id: transactionToBeNotConfirmed.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {
@@ -109,7 +109,7 @@ describe('system test (type 4) - double multisignature registrations', () => {
 		});
 
 		it('last transaction to arrive should be included', done => {
-			var filter = {
+			const filter = {
 				id: scenarios.regular.multiSigTransaction.id,
 			};
 			localCommon.getTransactionFromModule(library, filter, (err, res) => {

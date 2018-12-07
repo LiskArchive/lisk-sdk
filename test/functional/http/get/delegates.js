@@ -15,25 +15,25 @@
 'use strict';
 
 require('../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var genesisDelegates = require('../../../data/genesis_delegates.json');
-var accountFixtures = require('../../../fixtures/accounts');
-var slots = require('../../../../helpers/slots');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var swaggerEndpoint = require('../../../common/swagger_spec');
-var apiHelpers = require('../../../common/helpers/api');
-var Bignum = require('../../../../helpers/bignum.js');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const genesisDelegates = require('../../../data/genesis_delegates.json');
+const accountFixtures = require('../../../fixtures/accounts');
+const slots = require('../../../../helpers/slots');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const apiHelpers = require('../../../common/helpers/api');
+const Bignum = require('../../../../helpers/bignum.js');
 
 Promise.promisify(waitFor.newRound);
 const { FEES } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('GET /delegates', () => {
-	var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
-	var validDelegate = genesisDelegates.delegates[0];
-	var validNotExistingPublicKey =
+	const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
+	const validDelegate = genesisDelegates.delegates[0];
+	const validNotExistingPublicKey =
 		'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca8';
 
 	describe('/', () => {
@@ -44,7 +44,7 @@ describe('GET /delegates', () => {
 		});
 
 		it('using no params but with higher limit should return at least 101 genesis delegates', () => {
-			var data = [];
+			let data = [];
 
 			return delegatesEndpoint
 				.makeRequest({ limit: 101 }, 200)
@@ -101,18 +101,18 @@ describe('GET /delegates', () => {
 		});
 
 		describe('secondPublicKey', () => {
-			var secondPassphraseAccount = randomUtil.account();
+			const secondPassphraseAccount = randomUtil.account();
 
-			var creditTransaction = lisk.transaction.transfer({
+			const creditTransaction = lisk.transaction.transfer({
 				amount: new Bignum(FEES.SECOND_SIGNATURE).plus(FEES.DELEGATE),
 				passphrase: accountFixtures.genesis.passphrase,
 				recipientId: secondPassphraseAccount.address,
 			});
-			var signatureTransaction = lisk.transaction.registerSecondPassphrase({
+			const signatureTransaction = lisk.transaction.registerSecondPassphrase({
 				passphrase: secondPassphraseAccount.passphrase,
 				secondPassphrase: secondPassphraseAccount.secondPassphrase,
 			});
-			var delegateTransaction = lisk.transaction.registerDelegate({
+			const delegateTransaction = lisk.transaction.registerDelegate({
 				passphrase: secondPassphraseAccount.passphrase,
 				username: secondPassphraseAccount.username,
 			});
@@ -283,7 +283,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length.at.least(1);
 						res.body.data.map(d => {
-							expect(/99/.test(d.username)).to.be.true;
+							return expect(/99/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -313,7 +313,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(13);
 						res.body.data.map(d => {
-							expect(/^genesis_1.*/.test(d.username)).to.be.true;
+							return expect(/^genesis_1.*/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -324,7 +324,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(3);
 						res.body.data.map(d => {
-							expect(/^genesis_10.*/.test(d.username)).to.be.true;
+							return expect(/^genesis_10.*/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -344,7 +344,7 @@ describe('GET /delegates', () => {
 					.then(res => {
 						expect(res.body.data).to.have.length(101);
 						res.body.data.map(d => {
-							expect(/^genesis_.*/.test(d.username)).to.be.true;
+							return expect(/^genesis_.*/.test(d.username)).to.be.true;
 						});
 					});
 			});
@@ -470,7 +470,7 @@ describe('GET /delegates', () => {
 			});
 
 			it('using sort with any of sort fields should not place NULLs first', () => {
-				var delegatesSortFields = [
+				const delegatesSortFields = [
 					'rank',
 					'username',
 					'missedBlocks',
@@ -554,7 +554,7 @@ describe('GET /delegates', () => {
 	});
 
 	describe('GET /forgers', () => {
-		var forgersEndpoint = new swaggerEndpoint('GET /delegates/forgers');
+		const forgersEndpoint = new SwaggerEndpoint('GET /delegates/forgers');
 
 		it('using no params should be ok', () => {
 			return forgersEndpoint.makeRequest({}, 200).then(res => {
@@ -583,7 +583,7 @@ describe('GET /delegates', () => {
 		});
 
 		describe('slot numbers are correct', () => {
-			var forgersData;
+			let forgersData;
 
 			before(() => {
 				return forgersEndpoint.makeRequest({}, 200).then(res => {
@@ -606,7 +606,7 @@ describe('GET /delegates', () => {
 	});
 
 	describe('GET /{address}/forging_statistics', () => {
-		var forgedEndpoint = new swaggerEndpoint(
+		const forgedEndpoint = new SwaggerEndpoint(
 			'GET /delegates/{address}/forging_statistics'
 		);
 
@@ -615,12 +615,12 @@ describe('GET /delegates', () => {
 				return forgedEndpoint
 					.makeRequest({ address: validDelegate.address }, 200)
 					.then(res => {
-						var group = res.body.data;
+						const group = res.body.data;
 						expect(parseInt(group.fees)).to.be.at.least(0);
 						expect(parseInt(group.rewards)).to.be.at.least(0);
 						expect(parseInt(group.forged)).to.be.at.least(0);
 						expect(parseInt(group.count)).to.be.at.least(0);
-						var meta = res.body.meta;
+						const meta = res.body.meta;
 						expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
 						expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
 					});
@@ -669,7 +669,7 @@ describe('GET /delegates', () => {
 
 					it('using valid fromTimestamp should return transactions', () => {
 						// Last hour lisk time
-						var queryTime = slots.getTime() - 60 * 60;
+						const queryTime = slots.getTime() - 60 * 60;
 
 						return forgedEndpoint
 							.makeRequest(
@@ -677,12 +677,12 @@ describe('GET /delegates', () => {
 								200
 							)
 							.then(res => {
-								var group = res.body.data;
+								const group = res.body.data;
 								expect(parseInt(group.fees)).to.be.at.least(0);
 								expect(parseInt(group.rewards)).to.be.at.least(0);
 								expect(parseInt(group.forged)).to.be.at.least(0);
 								expect(parseInt(group.count)).to.be.at.least(0);
-								var meta = res.body.meta;
+								const meta = res.body.meta;
 								expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
 								expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
 							});
@@ -703,7 +703,7 @@ describe('GET /delegates', () => {
 
 					it('using valid toTimestamp should return transactions', () => {
 						// Current lisk time
-						var queryTime = slots.getTime();
+						const queryTime = slots.getTime();
 
 						return forgedEndpoint
 							.makeRequest(
@@ -711,12 +711,12 @@ describe('GET /delegates', () => {
 								200
 							)
 							.then(res => {
-								var group = res.body.data;
+								const group = res.body.data;
 								expect(parseInt(group.fees)).to.be.at.least(0);
 								expect(parseInt(group.rewards)).to.be.at.least(0);
 								expect(parseInt(group.forged)).to.be.at.least(0);
 								expect(parseInt(group.count)).to.be.at.least(0);
-								var meta = res.body.meta;
+								const meta = res.body.meta;
 								expect(parseInt(meta.fromTimestamp)).to.be.at.least(0);
 								expect(parseInt(meta.toTimestamp)).to.be.at.least(1);
 							});

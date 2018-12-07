@@ -48,7 +48,9 @@
 				"max": 0,
 				"delayMs": 0,
 				"delayAfter": 0,
-				"windowMs": 60000
+				"windowMs": 60000,
+				"headersTimeout": 5000,
+				"serverSetTimeout": 20000
 			},
 			"cors": {
 				"origin": "*",

@@ -14,15 +14,15 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
-var sql = require('../common/sql/mem_accounts.js');
-var modulesLoader = require('../../common/modules_loader');
+const randomstring = require('randomstring');
+const sql = require('../common/sql/mem_accounts.js');
+const modulesLoader = require('../../common/modules_loader');
 
-var db;
+let db;
 
-var validUsername = randomstring.generate(10).toLowerCase();
+const validUsername = randomstring.generate(10).toLowerCase();
 
-var validAccount = {
+let validAccount = {
 	username: validUsername,
 	isDelegate: 1,
 	u_isDelegate: 0,
@@ -53,7 +53,7 @@ var validAccount = {
 	rewards: '0',
 };
 
-var queries = {
+const queries = {
 	getAccountByAddress(address, cb) {
 		db
 			.query(sql.getAccountByAddress, { address })
@@ -109,7 +109,7 @@ describe('mem_accounts protection', () => {
 				return done(err);
 			}
 			db = __db;
-			queries.insertAccount(validAccount, done);
+			return queries.insertAccount(validAccount, done);
 		});
 	});
 
@@ -128,7 +128,7 @@ describe('mem_accounts protection', () => {
 			});
 
 			describe('for value != null', () => {
-				var nonNullValidUsername =
+				const nonNullValidUsername =
 					validAccount.username + randomstring.generate(1).toLowerCase();
 
 				before(done => {
@@ -167,7 +167,7 @@ describe('mem_accounts protection', () => {
 		});
 
 		describe('when account with username = null exists', () => {
-			var noUsernameAccount;
+			let noUsernameAccount;
 
 			before(done => {
 				noUsernameAccount = _.clone(validAccount);
@@ -188,10 +188,10 @@ describe('mem_accounts protection', () => {
 			});
 
 			describe('for valid username', () => {
-				var validUsername = randomstring.generate(10).toLowerCase();
+				const auxValidUsername = randomstring.generate(10).toLowerCase();
 
 				before(done => {
-					queries.updateUsername(noUsernameAccount, validUsername, done);
+					queries.updateUsername(noUsernameAccount, auxValidUsername, done);
 				});
 
 				it('should set the new value', done => {
@@ -201,7 +201,7 @@ describe('mem_accounts protection', () => {
 							expect(err).to.be.null;
 							expect(updatedAccount)
 								.to.have.property('username')
-								.equal(validUsername);
+								.equal(auxValidUsername);
 							done();
 						}
 					);
@@ -221,7 +221,7 @@ describe('mem_accounts protection', () => {
 			});
 
 			describe('for value != null', () => {
-				var nonNullValidUsername =
+				const nonNullValidUsername =
 					validAccount.username + randomstring.generate(1).toLowerCase();
 
 				before(done => {
@@ -261,7 +261,7 @@ describe('mem_accounts protection', () => {
 		});
 
 		describe('when account with u_username = null exists', () => {
-			var noU_usernameAccount;
+			let noU_usernameAccount;
 
 			before(done => {
 				noU_usernameAccount = _.clone(validAccount);
@@ -282,7 +282,7 @@ describe('mem_accounts protection', () => {
 			});
 
 			describe('for valid u_username', () => {
-				var validU_username = randomstring.generate(10).toLowerCase();
+				const validU_username = randomstring.generate(10).toLowerCase();
 
 				before(done => {
 					queries.updateU_username(noU_usernameAccount, validU_username, done);

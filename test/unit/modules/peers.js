@@ -31,16 +31,16 @@ const swagerHelper = require('../../../helpers/swagger');
 const { MAX_PEERS } = __testContext.config.constants;
 
 describe('peers', () => {
-	var dbMock;
-	var peers;
-	var PeersRewired;
-	var modules;
+	let dbMock;
+	let peers;
+	let PeersRewired;
+	let modules;
 
-	var peersLogicMock;
-	var systemModuleMock;
-	var transportModuleMock;
+	let peersLogicMock;
+	let systemModuleMock;
+	let transportModuleMock;
 
-	var NONCE = randomstring.generate(16);
+	const NONCE = randomstring.generate(16);
 
 	before(done => {
 		dbMock = {
@@ -80,9 +80,9 @@ describe('peers', () => {
 	});
 
 	describe('list', () => {
-		var listResult;
-		var validOptions;
-		var randomPeers;
+		let listResult;
+		let validOptions;
+		let randomPeers;
 
 		before(done => {
 			validOptions = {};
@@ -132,7 +132,7 @@ describe('peers', () => {
 
 			describe('options.limit', () => {
 				describe('when options.limit < 1000', () => {
-					var validLimit;
+					let validLimit;
 
 					before(done => {
 						validLimit = random.number(1, 1000);
@@ -162,12 +162,12 @@ describe('peers', () => {
 
 			describe('options.broadhash', () => {
 				describe('when 250 peers matching and 750 not matching broadhash', () => {
-					var validBroadhash;
-					var validLimit;
+					let validBroadhash;
+					let validLimit;
 
 					before(() => {
 						// Ensure that different than checking broadhashes will be generated
-						var broadhashes = generateMatchedAndUnmatchedBroadhashes(750);
+						const broadhashes = generateMatchedAndUnmatchedBroadhashes(750);
 						validBroadhash = broadhashes.matchedBroadhash;
 						validOptions.broadhash = validBroadhash;
 						// 250 peers matching broadhash, next 750 with different one
@@ -293,14 +293,14 @@ describe('peers', () => {
 
 		describe('when logic.peers.list returns 1000 random state peers and limit = 1000', () => {
 			describe('options.allowedStates', () => {
-				var CONNECTED_STATE = 2;
-				var BANNED_STATE = 1;
-				var DISCONNECTED_STATE = 0;
+				const CONNECTED_STATE = 2;
+				const BANNED_STATE = 1;
+				const DISCONNECTED_STATE = 0;
 
 				before(done => {
 					validOptions.limit = 1000;
 					randomPeers = _.range(1000).map(() => {
-						var peer = generateRandomActivePeer();
+						const peer = generateRandomActivePeer();
 						peer.state = random.number(DISCONNECTED_STATE, CONNECTED_STATE + 1);
 						return peer;
 					});
@@ -400,9 +400,9 @@ describe('peers', () => {
 				// in that specific height, so the majority is 5
 				let count = 0;
 				[5, 3, 2].map(height => {
-					_.range(height).map(() => {
+					return _.range(height).map(() => {
 						peerList[count].height = height;
-						count++;
+						return count++;
 					});
 				});
 				peersLogicMock.list = sinonSandbox.stub().returns(peerList);
@@ -418,9 +418,9 @@ describe('peers', () => {
 	});
 
 	describe('update', () => {
-		var validPeer;
-		var updateResult;
-		var validUpsertResult;
+		let validPeer;
+		let updateResult;
+		let validUpsertResult;
 
 		before(done => {
 			validUpsertResult = true;
@@ -448,9 +448,9 @@ describe('peers', () => {
 	});
 
 	describe('remove', () => {
-		var validPeer;
-		var removeResult;
-		var validLogicRemoveResult;
+		let validPeer;
+		let removeResult;
+		let validLogicRemoveResult;
 
 		before(done => {
 			validLogicRemoveResult = true;
@@ -467,8 +467,8 @@ describe('peers', () => {
 		});
 
 		describe('when removable peer is frozen', () => {
-			var originalFrozenPeersList;
-			var loggerDebugSpy;
+			let originalFrozenPeersList;
+			let loggerDebugSpy;
 
 			before(done => {
 				originalFrozenPeersList = _.assign(
@@ -542,9 +542,9 @@ describe('peers', () => {
 	});
 
 	describe('calculateConsensus', () => {
-		var validActive;
-		var validMatched;
-		var calculateConsensusResult;
+		let validActive;
+		let validMatched;
+		let calculateConsensusResult;
 
 		before(done => {
 			validActive = null;
@@ -588,7 +588,7 @@ describe('peers', () => {
 
 			describe('when CONNECTED peers exists with matching broadhash', () => {
 				before(done => {
-					var connectedPeer = _.assign({}, prefixedPeer);
+					const connectedPeer = _.assign({}, prefixedPeer);
 					connectedPeer.state = Peer.STATE.CONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([connectedPeer]);
 					systemModuleMock.getBroadhash = sinonSandbox
@@ -604,7 +604,7 @@ describe('peers', () => {
 
 			describe('when BANNED peers exists with matching broadhash', () => {
 				before(done => {
-					var bannedPeer = _.assign({}, prefixedPeer);
+					const bannedPeer = _.assign({}, prefixedPeer);
 					bannedPeer.state = Peer.STATE.BANNED;
 					peersLogicMock.list = sinonSandbox.stub().returns([bannedPeer]);
 					systemModuleMock.getBroadhash = sinonSandbox
@@ -620,7 +620,7 @@ describe('peers', () => {
 
 			describe('when DISCONNECTED peers exists with matching broadhash', () => {
 				before(done => {
-					var disconnectedPeer = _.assign({}, prefixedPeer);
+					const disconnectedPeer = _.assign({}, prefixedPeer);
 					disconnectedPeer.state = Peer.STATE.DISCONNECTED;
 					peersLogicMock.list = sinonSandbox.stub().returns([disconnectedPeer]);
 					systemModuleMock.getBroadhash = sinonSandbox
@@ -636,8 +636,8 @@ describe('peers', () => {
 		});
 
 		describe('when matched peers not passed and there are 100 active peers', () => {
-			var oneHundredActivePeers;
-			var broadhashes;
+			let oneHundredActivePeers;
+			let broadhashes;
 
 			before(done => {
 				oneHundredActivePeers = _.range(100).map(() => {
@@ -789,14 +789,14 @@ describe('peers', () => {
 		});
 
 		it('should not accept peer with private ip', () => {
-			var privatePeer = _.clone(prefixedPeer);
+			const privatePeer = _.clone(prefixedPeer);
 			privatePeer.ip = '127.0.0.1';
 			return expect(peers.acceptable([privatePeer])).that.is.an('array').and.to
 				.be.empty;
 		});
 
 		it("should not accept peer with host's nonce", () => {
-			var peer = _.clone(prefixedPeer);
+			const peer = _.clone(prefixedPeer);
 			peer.nonce = NONCE;
 			return expect(peers.acceptable([peer])).that.is.an('array').and.to.be
 				.empty;
@@ -804,7 +804,7 @@ describe('peers', () => {
 
 		it('should not accept peer with different ip but the same nonce', () => {
 			process.env.NODE_ENV = 'TEST';
-			var meAsPeer = {
+			const meAsPeer = {
 				ip: '40.00.40.40',
 				wsPort: 4001,
 				nonce: NONCE,
@@ -933,7 +933,7 @@ describe('peers', () => {
 	});
 
 	describe('discover', () => {
-		var randomPeerStub;
+		let randomPeerStub;
 
 		beforeEach(done => {
 			PeersRewired.__set__('__private.updatePeerStatus', sinonSandbox.spy());

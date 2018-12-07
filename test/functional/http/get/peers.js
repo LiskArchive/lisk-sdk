@@ -15,15 +15,15 @@
 'use strict';
 
 require('../../functional.js');
-var WSServer = require('../../../common/ws/server_master');
-var swaggerEndpoint = require('../../../common/swagger_spec');
-var apiHelpers = require('../../../common/helpers/api');
+const WSServer = require('../../../common/ws/server_master');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const apiHelpers = require('../../../common/helpers/api');
 
 describe('GET /peers', () => {
-	var peersEndpoint = new swaggerEndpoint('GET /peers');
-	var wsServer1 = new WSServer();
-	var wsServer2 = new WSServer();
-	var validHeaders = wsServer1.headers;
+	const peersEndpoint = new SwaggerEndpoint('GET /peers');
+	const wsServer1 = new WSServer();
+	const wsServer2 = new WSServer();
+	const validHeaders = wsServer1.headers;
 
 	before(() => {
 		return wsServer1
@@ -43,7 +43,7 @@ describe('GET /peers', () => {
 		return wsServer2.stop();
 	});
 
-	var paramSet = {
+	const paramSet = {
 		ip: {
 			valid: ['192.168.99.1'],
 			invalid: ['invalid', '1278.0.0.2'],
@@ -94,7 +94,7 @@ describe('GET /peers', () => {
 			paramSet[param].invalid.forEach(val => {
 				// Test case for each invalid param
 				it(`using invalid value ${param}=${val}`, () => {
-					var params = {};
+					const params = {};
 					params[param] = val;
 					return peersEndpoint.makeRequest(params, 400).then(res => {
 						apiHelpers.expectSwaggerParamError(res, param);
@@ -105,7 +105,7 @@ describe('GET /peers', () => {
 			paramSet[param].valid.forEach(val => {
 				// Test case for each valid param
 				it(`using valid value ${param}=${val}`, () => {
-					var params = {};
+					const params = {};
 					params[param] = val;
 					return peersEndpoint.makeRequest(params, 200).then(res => {
 						if (paramSet[param].checkResponse) {
@@ -162,7 +162,7 @@ describe('GET /peers', () => {
 			return peersEndpoint
 				.makeRequest({ sort: 'version:asc' }, 200)
 				.then(res => {
-					var versions = _(res.body.data)
+					const versions = _(res.body.data)
 						.map('version')
 						.value();
 					expect(_.clone(versions).sort()).to.be.eql(versions);
@@ -173,7 +173,7 @@ describe('GET /peers', () => {
 			return peersEndpoint
 				.makeRequest({ sort: 'version:desc' }, 200)
 				.then(res => {
-					var versions = _(res.body.data)
+					const versions = _(res.body.data)
 						.map('version')
 						.value();
 					expect(
@@ -185,8 +185,8 @@ describe('GET /peers', () => {
 		});
 
 		it('using limit = 1 and offset = 1 should be ok', () => {
-			var limit = 1;
-			var firstObject = null;
+			const limit = 1;
+			let firstObject = null;
 
 			return peersEndpoint
 				.makeRequest({ limit }, 200)

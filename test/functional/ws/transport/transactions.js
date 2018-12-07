@@ -29,9 +29,9 @@ describe('Posting transaction (type 0)', () => {
 	const account = randomUtil.account();
 	let wsTestClient;
 
-	function postTransaction(transaction) {
+	function postTransaction(transactionToPost) {
 		wsTestClient.client.rpc.postTransactions({
-			transactions: [transaction],
+			transactions: [transactionToPost],
 		});
 	}
 

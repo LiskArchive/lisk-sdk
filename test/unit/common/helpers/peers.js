@@ -14,12 +14,12 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
+const randomstring = require('randomstring');
 
 module.exports = {
 	generateMatchedAndUnmatchedBroadhashes(unmatchedAmount) {
-		var characterNotPresentInValidBroadhash = '@';
-		var validBroadhash = randomstring.generate({
+		const characterNotPresentInValidBroadhash = '@';
+		const validBroadhash = randomstring.generate({
 			length: 64,
 			custom: 'abcdefghijklmnopqrstuvwxyz0123456789!$&_.',
 		});

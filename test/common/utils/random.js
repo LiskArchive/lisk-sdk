@@ -14,12 +14,12 @@
 
 'use strict';
 
-var randomstring = require('randomstring');
-var lisk = require('lisk-elements').default;
-var Bignum = require('../../../helpers/bignum.js');
-var accountFixtures = require('../../fixtures/accounts');
+const randomstring = require('randomstring');
+const lisk = require('lisk-elements').default;
+const Bignum = require('../../../helpers/bignum.js');
+const accountFixtures = require('../../fixtures/accounts');
 
-var random = {};
+const random = {};
 
 // Returns a random number between min (inclusive) and max (exclusive)
 random.number = function(min, max) {
@@ -30,13 +30,13 @@ random.number = function(min, max) {
 
 // Returns a random username of 16 characters
 random.username = function() {
-	var randomLetter = randomstring.generate({
+	const randomLetter = randomstring.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase',
 	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomstring.generate({
+	const custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	const username = randomstring.generate({
 		length: 15,
 		charset: custom,
 	});
@@ -46,13 +46,13 @@ random.username = function() {
 
 // Returns a random delegate name of 20 characters
 random.delegateName = function() {
-	var randomLetter = randomstring.generate({
+	const randomLetter = randomstring.generate({
 		length: 1,
 		charset: 'alphabetic',
 		capitalization: 'lowercase',
 	});
-	var custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
-	var username = randomstring.generate({
+	const custom = 'abcdefghijklmnopqrstuvwxyz0123456789!@$&_.';
+	const username = randomstring.generate({
 		length: 19,
 		charset: custom,
 	});
@@ -62,7 +62,8 @@ random.delegateName = function() {
 
 // Returns a random application name of 32 characteres
 random.applicationName = function() {
-	var custom = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const custom =
+		'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	return randomstring.generate({
 		length: random.number(5, 32),
@@ -80,7 +81,7 @@ random.dataField = function(bytes) {
 
 // Test random application
 random.application = function() {
-	var application = {
+	const application = {
 		category: random.number(0, 9),
 		name: random.applicationName(),
 		description: 'Blockchain based home monitoring tool',
@@ -100,7 +101,7 @@ random.blockDataDapp = random.application();
 
 // Returns a basic random account
 random.account = function() {
-	var account = {
+	const account = {
 		balance: '0',
 	};
 
@@ -136,7 +137,7 @@ random.password = function() {
 };
 
 const convertToBignum = transactions => {
-	return transactions.map(transaction => {
+	return transactions.forEach(transaction => {
 		transaction.amount = new Bignum(transaction.amount);
 		transaction.fee = new Bignum(transaction.fee);
 	});

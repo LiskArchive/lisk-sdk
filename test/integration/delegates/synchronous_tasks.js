@@ -13,12 +13,12 @@ describe('system test (delegates) - synchronous tasks', () => {
 	});
 
 	describe('when events are emitted after any of synchronous task starts', () => {
-		var intervalMs;
-		var durationMs;
-		var attemptToForgeRunningSubject;
-		var synchronizeBlockchainRunningSubject;
+		let intervalMs;
+		let durationMs;
+		let attemptToForgeRunningSubject;
+		let synchronizeBlockchainRunningSubject;
 
-		var synchronousTaskMock = function(isTaskRunningSubject, nextCb) {
+		const synchronousTaskMock = function(isTaskRunningSubject, nextCb) {
 			isTaskRunningSubject.onNext(true);
 			setTimeout(() => {
 				isTaskRunningSubject.onNext(false);
@@ -67,7 +67,7 @@ describe('system test (delegates) - synchronous tasks', () => {
 						'__private.sync',
 						synchronousTaskMock.bind(null, synchronizeBlockchainRunningSubject)
 					);
-					var originalLoaderSyncTimerJob = jobsQueue.jobs.loaderSyncTimer;
+					const originalLoaderSyncTimerJob = jobsQueue.jobs.loaderSyncTimer;
 					clearTimeout(originalLoaderSyncTimerJob); // Terminate original job
 					delete jobsQueue.jobs.loaderSyncTimer; // Remove original job
 					library.modules.loader.onPeersReady(); // Execute the mocked blockchain synchronization process

@@ -14,7 +14,7 @@
 
 'use strict';
 
-var slots = require('../../../helpers/slots.js');
+const slots = require('../../../helpers/slots.js');
 
 describe('helpers/slots', () => {
 	describe('calc', () => {
@@ -26,7 +26,7 @@ describe('helpers/slots', () => {
 		});
 
 		it('should calculate round number from Number.MAX_VALUE', () => {
-			var res = slots.calcRound(Number.MAX_VALUE);
+			const res = slots.calcRound(Number.MAX_VALUE);
 			expect(_.isNumber(res)).to.be.ok;
 			return expect(res).to.be.below(Number.MAX_VALUE);
 		});

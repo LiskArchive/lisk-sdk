@@ -14,12 +14,12 @@
 
 'use strict';
 
-var _ = require('lodash');
-var swaggerHelper = require('../../helpers/swagger');
-var ApiError = require('../../helpers/api_error');
+const _ = require('lodash');
+const swaggerHelper = require('../../helpers/swagger');
+const ApiError = require('../../helpers/api_error');
 
 // Private Fields
-var modules;
+let modules;
 
 /**
  * Description of the function.
@@ -45,15 +45,15 @@ function TransactionsController(scope) {
  * @todo Add description for the function and the params
  */
 TransactionsController.getTransactions = function(context, next) {
-	var invalidParams = swaggerHelper.invalidParams(context.request);
+	const invalidParams = swaggerHelper.invalidParams(context.request);
 
 	if (invalidParams.length) {
 		return next(swaggerHelper.generateParamsErrorObject(invalidParams));
 	}
 
-	var params = context.request.swagger.params;
+	const params = context.request.swagger.params;
 
-	var filters = {
+	let filters = {
 		senderIdOrRecipientId: params.senderIdOrRecipientId.value,
 		id: params.id.value,
 		blockId: params.blockId.value,
@@ -77,31 +77,37 @@ TransactionsController.getTransactions = function(context, next) {
 	// Remove filters with null values
 	filters = _.pickBy(filters, v => !(v === undefined || v === null));
 
-	modules.transactions.shared.getTransactions(_.clone(filters), (err, data) => {
-		if (err) {
-			return next(err);
+	return modules.transactions.shared.getTransactions(
+		_.clone(filters),
+		(err, data) => {
+			if (err) {
+				return next(err);
+			}
+
+			const transactions = _.map(
+				_.cloneDeep(data.transactions),
+				transaction => {
+					transaction.senderId = transaction.senderId || '';
+					transaction.recipientId = transaction.recipientId || '';
+					transaction.recipientPublicKey = transaction.recipientPublicKey || '';
+
+					transaction.amount = transaction.amount.toString();
+					transaction.fee = transaction.fee.toString();
+
+					return transaction;
+				}
+			);
+
+			return next(null, {
+				data: transactions,
+				meta: {
+					offset: filters.offset,
+					limit: filters.limit,
+					count: parseInt(data.count),
+				},
+			});
 		}
-
-		var transactions = _.map(_.cloneDeep(data.transactions), transaction => {
-			transaction.senderId = transaction.senderId || '';
-			transaction.recipientId = transaction.recipientId || '';
-			transaction.recipientPublicKey = transaction.recipientPublicKey || '';
-
-			transaction.amount = transaction.amount.toString();
-			transaction.fee = transaction.fee.toString();
-
-			return transaction;
-		});
-
-		next(null, {
-			data: transactions,
-			meta: {
-				offset: filters.offset,
-				limit: filters.limit,
-				count: parseInt(data.count),
-			},
-		});
-	});
+	);
 };
 
 /**
@@ -112,23 +118,26 @@ TransactionsController.getTransactions = function(context, next) {
  * @todo Add description for the function and the params
  */
 TransactionsController.postTransaction = function(context, next) {
-	var transaction = context.request.swagger.params.transaction.value;
+	const transaction = context.request.swagger.params.transaction.value;
 
-	modules.transactions.shared.postTransaction(transaction, (err, data) => {
-		if (err) {
-			if (err instanceof ApiError) {
-				context.statusCode = err.code;
-				delete err.code;
+	return modules.transactions.shared.postTransaction(
+		transaction,
+		(err, data) => {
+			if (err) {
+				if (err instanceof ApiError) {
+					context.statusCode = err.code;
+					delete err.code;
+				}
+
+				return next(err);
 			}
 
-			return next(err);
+			return next(null, {
+				data: { message: data },
+				meta: { status: true },
+			});
 		}
-
-		next(null, {
-			data: { message: data },
-			meta: { status: true },
-		});
-	});
+	);
 };
 
 module.exports = TransactionsController;

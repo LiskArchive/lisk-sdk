@@ -159,7 +159,7 @@ __private.syncTimer = function() {
 			!self.syncing() &&
 			modules.blocks.lastReceipt.isStale()
 		) {
-			library.sequence.add(
+			return library.sequence.add(
 				sequenceCb => {
 					__private.sync(sequenceCb);
 				},
@@ -170,12 +170,15 @@ __private.syncTimer = function() {
 					return setImmediate(cb);
 				}
 			);
-		} else {
-			return setImmediate(cb);
 		}
+		return setImmediate(cb);
 	}
 
-	jobsQueue.register('loaderSyncTimer', nextSync, __private.syncInterval);
+	return jobsQueue.register(
+		'loaderSyncTimer',
+		nextSync,
+		__private.syncInterval
+	);
 };
 
 /**
@@ -191,47 +194,47 @@ __private.loadSignatures = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getNetwork((err, network) => {
-					if (err) {
-						return setImmediate(waterCb, err);
+				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
+					if (getRandomPeerFromNetworkErr) {
+						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
 					}
-					const peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
 			},
 			function(peer, waterCb) {
-				library.logger.log(`Loading signatures from: ${peer.string}`);
+				library.logger.info(`Loading signatures from: ${peer.string}`);
 				peer.rpc.getSignatures((err, res) => {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
-					library.schema.validate(res, definitions.WSSignaturesResponse, err =>
-						setImmediate(waterCb, err, res.signatures)
+					return library.schema.validate(
+						res,
+						definitions.WSSignaturesResponse,
+						validateErr => setImmediate(waterCb, validateErr, res.signatures)
 					);
 				});
 			},
 			function(signatures, waterCb) {
-				library.sequence.add(cb => {
+				library.sequence.add(addSequenceCb => {
 					async.eachSeries(
 						signatures,
 						(signature, eachSeriesCb) => {
 							async.eachSeries(
 								signature.signatures,
-								(s, eachSeriesCb) => {
+								(s, secondEachSeriesCb) => {
 									modules.multisignatures.processSignature(
 										{
 											signature: s,
 											transactionId: signature.transactionId,
 										},
-										err => setImmediate(eachSeriesCb, err)
+										err => setImmediate(secondEachSeriesCb, err)
 									);
 								},
 								eachSeriesCb
 							);
 						},
-						cb
+						addSequenceCb
 					);
 				}, waterCb);
 			},
@@ -255,28 +258,26 @@ __private.loadTransactions = function(cb) {
 	async.waterfall(
 		[
 			function(waterCb) {
-				self.getNetwork((err, network) => {
-					if (err) {
-						return setImmediate(waterCb, err);
+				self.getRandomPeerFromNetwork((getRandomPeerFromNetworkErr, peer) => {
+					if (getRandomPeerFromNetworkErr) {
+						return setImmediate(waterCb, getRandomPeerFromNetworkErr);
 					}
-					const peer =
-						network.peers[Math.floor(Math.random() * network.peers.length)];
 					return setImmediate(waterCb, null, peer);
 				});
 			},
 			function(peer, waterCb) {
-				library.logger.log(`Loading transactions from: ${peer.string}`);
+				library.logger.info(`Loading transactions from: ${peer.string}`);
 				peer.rpc.getTransactions((err, res) => {
 					if (err) {
 						modules.peers.remove(peer);
 						return setImmediate(waterCb, err);
 					}
-					library.schema.validate(
+					return library.schema.validate(
 						res,
 						definitions.WSTransactionsResponse,
-						err => {
-							if (err) {
-								return setImmediate(waterCb, err[0].message);
+						validateErr => {
+							if (validateErr) {
+								return setImmediate(waterCb, validateErr[0].message);
 							}
 							return setImmediate(waterCb, null, peer, res.transactions);
 						}
@@ -320,12 +321,12 @@ __private.loadTransactions = function(cb) {
 					transactions,
 					(transaction, eachSeriesCb) => {
 						library.balancesSequence.add(
-							cb => {
+							addSequenceCb => {
 								transaction.bundled = true;
 								modules.transactions.processUnconfirmedTransaction(
 									transaction,
 									false,
-									cb
+									addSequenceCb
 								);
 							},
 							err => {
@@ -540,19 +541,19 @@ __private.loadBlockChain = function() {
 
 				return library.db
 					.task(updateMemAccounts)
-					.spread((updateMemAccounts, getDelegates) => {
+					.spread((_updateMemAccounts, getDelegates) => {
 						if (getDelegates.length === 0) {
 							return reload(blocksCount, 'No delegates found');
 						}
 
-						modules.blocks.utils.loadLastBlock((err, block) => {
+						return modules.blocks.utils.loadLastBlock((err, block) => {
 							if (err) {
 								return reload(blocksCount, err || 'Failed to load last block');
 							}
 
 							__private.lastBlock = block;
 
-							__private.validateOwnChain(validateOwnChainError => {
+							return __private.validateOwnChain(validateOwnChainError => {
 								if (validateOwnChainError) {
 									throw validateOwnChainError;
 								}
@@ -656,7 +657,7 @@ __private.validateOwnChain = cb => {
 	}
 
 	// Validate the top most block
-	const validateCurrentBlock = cb => {
+	const validateCurrentBlock = validateCurrentBlockCb => {
 		library.logger.info(
 			`Validating current block with height ${currentHeight}`
 		);
@@ -669,18 +670,18 @@ __private.validateOwnChain = cb => {
 					}.`
 				);
 			}
-			return setImmediate(cb, validateBlockErr);
+			return setImmediate(validateCurrentBlockCb, validateBlockErr);
 		});
 	};
 
-	const validateStartBlock = cb => {
+	const validateStartBlock = validateStartBlockCb => {
 		library.logger.info(
 			`Validating last block of second last round with height ${validateTillHeight}`
 		);
 
 		modules.blocks.utils.loadBlockByHeight(
 			validateTillHeight,
-			(lastBlockError, startBlock) => {
+			(_lastBlockError, startBlock) => {
 				__private.validateBlock(startBlock, validateBlockErr => {
 					if (validateBlockErr) {
 						library.logger.error(
@@ -688,27 +689,27 @@ __private.validateOwnChain = cb => {
 								validateTillHeight} invalid blocks. Can't delete those to recover the chain.`
 						);
 						return setImmediate(
-							cb,
+							validateStartBlockCb,
 							new Error(
 								'Your block chain is invalid. Please rebuild from snapshot.'
 							)
 						);
 					}
 
-					return setImmediate(cb, null);
+					return setImmediate(validateStartBlockCb, null);
 				});
 			}
 		);
 	};
 
-	const deleteInvalidBlocks = cb => {
+	const deleteInvalidBlocks = deleteInvalidBlocksCb => {
 		async.doDuring(
 			// Iterator
 			doDuringCb => {
 				modules.blocks.chain.deleteLastBlock(doDuringCb);
 			},
 			// Test condition
-			(deleteLastBlockStatus, testCb) => {
+			(_deleteLastBlockStatus, testCb) => {
 				__private.validateBlock(
 					modules.blocks.lastBlock.get(),
 					validateError => setImmediate(testCb, null, !!validateError) // Continue deleting if there is an error
@@ -721,7 +722,7 @@ __private.validateOwnChain = cb => {
 						doDuringErr
 					);
 					return setImmediate(
-						cb,
+						deleteInvalidBlocksCb,
 						new Error(
 							"Your block chain can't be recovered. Please rebuild from snapshot."
 						)
@@ -733,7 +734,7 @@ __private.validateOwnChain = cb => {
 						modules.blocks.lastBlock.get().height
 					}.`
 				);
-				return setImmediate(cb, null);
+				return setImmediate(deleteInvalidBlocksCb, null);
 			}
 		);
 	};
@@ -744,13 +745,13 @@ __private.validateOwnChain = cb => {
 			return setImmediate(cb, null);
 		}
 
-		validateStartBlock(startBlockError => {
+		return validateStartBlock(startBlockError => {
 			// If start block is invalid can't proceed further
 			if (startBlockError) {
 				return setImmediate(cb, startBlockError);
 			}
 
-			deleteInvalidBlocks(cb);
+			return deleteInvalidBlocks(cb);
 		});
 	});
 };
@@ -846,90 +847,81 @@ __private.snapshotFinished = err => {
  * @todo Add description for the params
  */
 __private.loadBlocksFromNetwork = function(cb) {
-	let errorCount = 0;
+	// Number of failed attempts to load from peers.
+	let failedAttemptsToLoad = 0;
+	// If True, own node's db contains same number of blocks than the asked peer.
 	let loaded = false;
 
 	async.whilst(
-		() => !loaded && errorCount < 5,
-		next => {
-			self.getNetwork((err, network) => {
-				if (err) {
-					errorCount += 1;
-					return next();
-				}
-				const peer =
-					network.peers[Math.floor(Math.random() * network.peers.length)];
-				let lastBlock = modules.blocks.lastBlock.get();
-
-				function loadBlocks() {
-					__private.blocksToSync = peer.height;
-
-					modules.blocks.process.loadBlocksFromPeer(
-						peer,
-						(err, lastValidBlock) => {
-							if (err) {
-								library.logger.error(err.toString());
-								library.logger.error(
-									`Failed to load blocks from: ${peer.string}`
-								);
-								errorCount += 1;
-							}
-							loaded = lastValidBlock.id === lastBlock.id;
-							lastBlock = null;
-							lastValidBlock = null;
-							next();
-						}
-					);
-				}
-
-				/**
-				 * Description of getCommonBlock.
-				 *
-				 * @todo Add @returns and @param tags
-				 * @todo Add description for the function
-				 */
-				function getCommonBlock(cb) {
-					library.logger.info(`Looking for common block with: ${peer.string}`);
-					modules.blocks.process.getCommonBlock(
-						peer,
-						lastBlock.height,
-						(err, commonBlock) => {
-							if (!commonBlock) {
-								if (err) {
-									library.logger.error(err.toString());
+		() => !loaded && failedAttemptsToLoad < 5,
+		whilstCb => {
+			async.waterfall(
+				[
+					function getRandomPeerFromNetwork(waterCb) {
+						self.getRandomPeerFromNetwork(
+							(getRandomPeerFromNetworkErr, peer) => {
+								if (getRandomPeerFromNetworkErr) {
+									return waterCb('Failed to get random peer from network');
 								}
-								library.logger.error(
-									`Failed to find common block with: ${peer.string}`
-								);
-								errorCount += 1;
-								return next();
+								__private.blocksToSync = peer.height;
+								const lastBlock = modules.blocks.lastBlock.get();
+								return waterCb(null, peer, lastBlock);
 							}
-							library.logger.info(
-								[
-									'Found common block:',
-									commonBlock.id,
-									'with:',
-									peer.string,
-								].join(' ')
-							);
-							return setImmediate(cb);
+						);
+					},
+					function getCommonBlock(peer, lastBlock, waterCb) {
+						// No need to call getCommonBlock if height is Genesis block
+						if (lastBlock.height === 1) {
+							return waterCb(null, peer, lastBlock);
 						}
-					);
+
+						library.logger.info(
+							`Looking for common block with: ${peer.string}`
+						);
+						return modules.blocks.process.getCommonBlock(
+							peer,
+							lastBlock.height,
+							(getCommonBlockErr, commonBlock) => {
+								if (getCommonBlockErr) {
+									return waterCb(getCommonBlockErr.toString());
+								}
+								if (!commonBlock) {
+									return waterCb(
+										`Failed to find common block with: ${peer.string}`
+									);
+								}
+								library.logger.info(
+									`Found common block: ${commonBlock.id} with: ${peer.string}`
+								);
+								return waterCb(null, peer, lastBlock);
+							}
+						);
+					},
+					function loadBlocksFromPeer(peer, lastBlock, waterCb) {
+						modules.blocks.process.loadBlocksFromPeer(
+							peer,
+							(loadBlocksFromPeerErr, lastValidBlock) => {
+								if (loadBlocksFromPeerErr) {
+									return waterCb(`Failed to load blocks from: ${peer.string}`);
+								}
+								loaded = lastValidBlock.id === lastBlock.id;
+								// Reset counter after a batch of blocks was successfully loaded from a peer
+								failedAttemptsToLoad = 0;
+								return waterCb();
+							}
+						);
+					},
+				],
+				waterErr => {
+					if (waterErr) {
+						failedAttemptsToLoad += 1;
+						library.logger.error(waterErr);
+					}
+					whilstCb();
 				}
-				if (lastBlock.height === 1) {
-					loadBlocks();
-				} else {
-					getCommonBlock(loadBlocks);
-				}
-			});
+			);
 		},
-		err => {
-			if (err) {
-				library.logger.error('Failed to load blocks from network', err);
-				return setImmediate(cb, err);
-			}
-			return setImmediate(cb);
-		}
+		() => setImmediate(cb)
 	);
 };
 
@@ -1008,7 +1000,7 @@ Loader.prototype.findGoodPeers = function(peers) {
 	peers = peers.filter(
 		item =>
 			// Remove unreachable peers or heights below last block height
-			item != null && item.height >= lastBlockHeight
+			item && item.height >= lastBlockHeight
 	);
 
 	library.logger.trace('Good peers - filtered', { count: peers.length });
@@ -1054,13 +1046,13 @@ Loader.prototype.findGoodPeers = function(peers) {
 
 // Public methods
 /**
- * Gets a list of "good" peers from network.
+ * Gets a "good" randomPeer from network.
  *
  * @param {function} cb
- * @returns {setImmediateCallback} cb, err, good peers
+ * @returns {setImmediateCallback} cb, err, good randomPeer
  * @todo Add description for the params
  */
-Loader.prototype.getNetwork = function(cb) {
+Loader.prototype.getRandomPeerFromNetwork = function(cb) {
 	const peers = library.logic.peers.listRandomConnected({
 		limit: MAX_PEERS,
 	});
@@ -1069,7 +1061,13 @@ Loader.prototype.getNetwork = function(cb) {
 	if (!__private.network.peers.length) {
 		return setImmediate(cb, 'Failed to find enough good peers');
 	}
-	return setImmediate(cb, null, __private.network);
+
+	const randomPeer =
+		__private.network.peers[
+			Math.floor(Math.random() * __private.network.peers.length)
+		];
+
+	return setImmediate(cb, null, randomPeer);
 };
 
 /**
@@ -1117,29 +1115,35 @@ Loader.prototype.onPeersReady = function() {
 			{
 				loadTransactions(seriesCb) {
 					if (__private.loaded) {
-						async.retry(__private.retries, __private.loadTransactions, err => {
-							if (err) {
-								library.logger.log('Unconfirmed transactions loader', err);
-							}
+						return async.retry(
+							__private.retries,
+							__private.loadTransactions,
+							err => {
+								if (err) {
+									library.logger.error('Unconfirmed transactions loader', err);
+								}
 
-							return setImmediate(seriesCb);
-						});
-					} else {
-						return setImmediate(seriesCb);
+								return setImmediate(seriesCb);
+							}
+						);
 					}
+					return setImmediate(seriesCb);
 				},
 				loadSignatures(seriesCb) {
 					if (__private.loaded) {
-						async.retry(__private.retries, __private.loadSignatures, err => {
-							if (err) {
-								library.logger.log('Signatures loader', err);
-							}
+						return async.retry(
+							__private.retries,
+							__private.loadSignatures,
+							err => {
+								if (err) {
+									library.logger.error('Signatures loader', err);
+								}
 
-							return setImmediate(seriesCb);
-						});
-					} else {
-						return setImmediate(seriesCb);
+								return setImmediate(seriesCb);
+							}
+						);
 					}
+					return setImmediate(seriesCb);
 				},
 			},
 			err => {

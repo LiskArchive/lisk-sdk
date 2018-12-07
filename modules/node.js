@@ -72,7 +72,7 @@ Node.prototype.internal = {
 		const internalForgers = library.config.forging.delegates;
 		const forgersPublicKeys = {};
 
-		for (var pair in keyPairs) {
+		for (const pair in keyPairs) {
 			forgersPublicKeys[keyPairs[pair].publicKey.toString('hex')] = true;
 		}
 
@@ -175,18 +175,21 @@ Node.prototype.shared = {
 		if (!loaded) {
 			return setImmediate(cb, 'Blockchain is loading');
 		}
-		modules.peers.networkHeight({ normalized: false }, (err, networkHeight) => {
-			setImmediate(cb, null, {
-				broadhash: modules.system.getBroadhash(),
-				consensus: modules.peers.getLastConsensus(),
-				currentTime: Date.now(),
-				secondsSinceEpoch: slots.getTime(),
-				height: modules.blocks.lastBlock.get().height,
-				loaded: modules.loader.loaded(),
-				networkHeight,
-				syncing: modules.loader.syncing(),
-			});
-		});
+		return modules.peers.networkHeight(
+			{ normalized: false },
+			(err, networkHeight) => {
+				setImmediate(cb, null, {
+					broadhash: modules.system.getBroadhash(),
+					consensus: modules.peers.getLastConsensus(),
+					currentTime: Date.now(),
+					secondsSinceEpoch: slots.getTime(),
+					height: modules.blocks.lastBlock.get().height,
+					loaded: modules.loader.loaded(),
+					networkHeight,
+					syncing: modules.loader.syncing(),
+				});
+			}
+		);
 	},
 };
 

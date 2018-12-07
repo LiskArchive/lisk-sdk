@@ -305,14 +305,14 @@ describe('system test (blocks) - chain/applyBlock', () => {
 								.getAccountFromDb(library, account.address)
 								.then(accountRow => {
 									// the transaction will fail, so we will have the username, isDelegate we initially set
-									if (account == blockAccount1) {
+									if (account === blockAccount1) {
 										expect(accountRow.mem_accounts.username).to.equal(
 											randomUsername
 										);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(1);
 									}
 
-									if (account == blockAccount2) {
+									if (account === blockAccount2) {
 										expect(accountRow.mem_accounts.username).to.eql(null);
 										expect(accountRow.mem_accounts.isDelegate).to.equal(0);
 									}
@@ -354,7 +354,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 
 		describe('saveBlock', () => {
 			describe('when block contains invalid transaction - timestamp out of postgres integer range', () => {
-				const block = {
+				const auxBlock = {
 					blockSignature:
 						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
 					generatorPublicKey:
@@ -389,7 +389,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				};
 
 				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(block, err => {
+					library.modules.blocks.chain.saveBlock(auxBlock, err => {
 						expect(err).to.eql('Blocks#saveBlock error');
 						done();
 					});
@@ -397,7 +397,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 			});
 
 			describe('when block is invalid - previousBlockId not exists', () => {
-				const block = {
+				const auxBlock = {
 					blockSignature:
 						'56d63b563e00332ec31451376f5f2665fcf7e118d45e68f8db0b00db5963b56bc6776a42d520978c1522c39545c9aff62a7d5bdcf851bf65904b2c2158870f00',
 					generatorPublicKey:
@@ -418,7 +418,7 @@ describe('system test (blocks) - chain/applyBlock', () => {
 				};
 
 				it('should call a callback with proper error', done => {
-					library.modules.blocks.chain.saveBlock(block, err => {
+					library.modules.blocks.chain.saveBlock(auxBlock, err => {
 						expect(err).to.eql('Blocks#saveBlock error');
 						done();
 					});

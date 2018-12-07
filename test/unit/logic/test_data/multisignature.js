@@ -14,19 +14,19 @@
 
 'use strict';
 
-var crypto = require('crypto');
-var ed = require('../../../../helpers/ed');
+const crypto = require('crypto');
+const ed = require('../../../../helpers/ed');
 
-var validPassphrase =
+const validPassphrase =
 	'robust weapon course unknown head trial pencil latin acid';
-var validKeypair = ed.makeKeypair(
+const validKeypair = ed.makeKeypair(
 	crypto
 		.createHash('sha256')
 		.update(validPassphrase, 'utf8')
 		.digest()
 );
 
-var validSender = {
+const validSender = {
 	address: '16313739661670634666L',
 	publicKey: 'c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f',
 	passphrase:
@@ -34,13 +34,13 @@ var validSender = {
 	balance: '10000000000000000',
 };
 
-var senderHash = crypto
+const senderHash = crypto
 	.createHash('sha256')
 	.update(validSender.passphrase, 'utf8')
 	.digest();
-var senderKeypair = ed.makeKeypair(senderHash);
+const senderKeypair = ed.makeKeypair(senderHash);
 
-var multiSigAccount1 = {
+const multiSigAccount1 = {
 	balance: '0',
 	passphrase: 'jcja4vxibnw5dayk3xr',
 	secondPassphrase: '0j64m005jyjj37bpdgqfr',
@@ -49,7 +49,7 @@ var multiSigAccount1 = {
 	address: '5936324907841470379L',
 };
 
-var multiSigAccount2 = {
+const multiSigAccount2 = {
 	address: '10881167371402274308L',
 	publicKey: 'addb0e15a44b0fdc6ff291be28d8c98f5551d0cd9218d749e30ddb87c6e31ca9',
 	passphrase:
@@ -58,7 +58,7 @@ var multiSigAccount2 = {
 	delegateName: 'genesis_100',
 };
 
-var validTransaction = {
+const validTransaction = {
 	id: '10004093306508192097',
 	height: 2967,
 	blockId: '16880210663552206127',
@@ -90,7 +90,7 @@ var validTransaction = {
 	},
 };
 
-var invalidAllSignaturesReadyFalse = {
+const invalidAllSignaturesReadyFalse = {
 	id: '10004093306508192097',
 	height: 2967,
 	blockId: '16880210663552206127',
@@ -122,7 +122,7 @@ var invalidAllSignaturesReadyFalse = {
 	ready: false,
 };
 
-var invalidSomeSignaturesReadyTrue = {
+const invalidSomeSignaturesReadyTrue = {
 	id: '10004093306508192097',
 	height: 2967,
 	blockId: '16880210663552206127',
@@ -153,7 +153,7 @@ var invalidSomeSignaturesReadyTrue = {
 	ready: true,
 };
 
-var invalidNoSignaturesReadyTrue = {
+const invalidNoSignaturesReadyTrue = {
 	id: '10004093306508192097',
 	height: 2967,
 	blockId: '16880210663552206127',
@@ -181,7 +181,7 @@ var invalidNoSignaturesReadyTrue = {
 	ready: true,
 };
 
-var rawValidTransaction = {
+const rawValidTransaction = {
 	t_id: '10004093306508192097',
 	b_height: 2967,
 	t_blockId: '16880210663552206127',

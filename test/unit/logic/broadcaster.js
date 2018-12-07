@@ -139,11 +139,11 @@ describe('Broadcaster', () => {
 		});
 
 		it('should register jobsQueue', () => {
-			const nextRelease = Broadcaster.__get__('nextRelease');
+			const auxNextRelease = Broadcaster.__get__('nextRelease');
 			expect(jobsQueue.register.calledOnce).to.be.true;
 			return expect(jobsQueue.register).calledWith(
 				'broadcasterNextRelease',
-				nextRelease,
+				auxNextRelease,
 				broadcasts.broadcastInterval
 			);
 		});
@@ -274,10 +274,10 @@ describe('Broadcaster', () => {
 		});
 
 		it('should push params and options to queue', () => {
-			const params = {};
-			const options = {};
-			expect(broadcaster.enqueue(params, options)).to.eql(1);
-			return expect(broadcaster.enqueue(params, options)).to.eql(2);
+			const auxParams = {};
+			const auxOptions = {};
+			expect(broadcaster.enqueue(auxParams, auxOptions)).to.eql(1);
+			return expect(broadcaster.enqueue(auxParams, auxOptions)).to.eql(2);
 		});
 	});
 
@@ -486,7 +486,7 @@ describe('Broadcaster', () => {
 		});
 
 		describe('having many transaction and signatures broadcasts in queue', () => {
-			const broadcasts = [];
+			const auxBroadcasts = [];
 			beforeEach(done => {
 				broadcaster.enqueue(params, {
 					api: 'postTransactions',
@@ -503,7 +503,7 @@ describe('Broadcaster', () => {
 					data: { transaction: { id: 3 } },
 					immediate: false,
 				});
-				broadcasts.push(
+				auxBroadcasts.push(
 					Object.assign(
 						{},
 						{ params },
@@ -516,7 +516,7 @@ describe('Broadcaster', () => {
 						}
 					)
 				);
-				broadcasts.push(
+				auxBroadcasts.push(
 					Object.assign(
 						{},
 						{ params },
@@ -529,7 +529,7 @@ describe('Broadcaster', () => {
 						}
 					)
 				);
-				broadcasts.push(
+				auxBroadcasts.push(
 					Object.assign(
 						{},
 						{ params },
@@ -552,7 +552,7 @@ describe('Broadcaster', () => {
 					data: { signature: { transactionId: 2 } },
 					immediate: false,
 				});
-				broadcasts.push(
+				auxBroadcasts.push(
 					Object.assign(
 						{},
 						{ params },
@@ -565,7 +565,7 @@ describe('Broadcaster', () => {
 						}
 					)
 				);
-				broadcasts.push(
+				auxBroadcasts.push(
 					Object.assign(
 						{},
 						{ params },
@@ -590,7 +590,7 @@ describe('Broadcaster', () => {
 					filterQueue(() => {
 						expect(broadcaster.queue)
 							.to.be.an('Array')
-							.to.eql(broadcasts);
+							.to.eql(auxBroadcasts);
 						done();
 					});
 				});
@@ -605,12 +605,12 @@ describe('Broadcaster', () => {
 		});
 
 		it('should be able to squash the queue', () => {
-			const broadcasts = {
+			const auxBroadcasts = {
 				broadcast: {
 					options: { api: 'postTransactions', data: { peer: {}, block: {} } },
 				},
 			};
-			return expect(squashQueue(broadcasts)).to.eql([
+			return expect(squashQueue(auxBroadcasts)).to.eql([
 				{
 					immediate: false,
 					options: {

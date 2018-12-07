@@ -296,8 +296,8 @@ describe('blocks', () => {
 
 	describe('onBind', () => {
 		it('should set __private.loaded = true', () => {
-			const scope = {};
-			blocksInstance.onBind(scope);
+			const onBindScope = {};
+			blocksInstance.onBind(onBindScope);
 			return expect(__private.loaded).to.be.true;
 		});
 	});
@@ -402,8 +402,8 @@ describe('blocks', () => {
 			done();
 		});
 		it('should return __private.loaded', () => {
-			const scope = {};
-			blocksInstance.onBind(scope);
+			const isLoadedScope = {};
+			blocksInstance.onBind(isLoadedScope);
 			return expect(__private.loaded).to.be.true;
 		});
 	});

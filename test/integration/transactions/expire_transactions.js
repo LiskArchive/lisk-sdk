@@ -18,7 +18,7 @@ const lisk = require('lisk-elements').default;
 const Promise = require('bluebird');
 const randomUtil = require('../../common/utils/random');
 const accountsFixtures = require('../../fixtures/accounts');
-const queriesHelper = require('../../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../../common/integration/sql/queriesHelper.js');
 const localCommon = require('../common');
 const Bignum = require('../../../helpers/bignum.js');
 
@@ -99,7 +99,7 @@ describe('expire transactions', () => {
 
 		// Set hourInSeconds to zero to test multi-signature transaction expiry
 		transactionPool.hourInSeconds = 0;
-		queries = new queriesHelper(lib, lib.db);
+		queries = new QueriesHelper(lib, lib.db);
 	});
 
 	after('reset states', done => {
@@ -203,8 +203,8 @@ describe('expire transactions', () => {
 			transaction = createTransaction(amount, recipientId);
 			address = getSenderAddress(transaction);
 
-			return queries.getAccount(address).then(account => {
-				memAccountBefore = account;
+			return queries.getAccount(address).then(gotAccount => {
+				memAccountBefore = gotAccount;
 				// Transfer balance to multi-signature account
 				// so that multi-signature account can be registered
 				return addTransactionsAndForgePromise(library, [transaction], 0);
@@ -272,10 +272,10 @@ describe('expire transactions', () => {
 		});
 
 		it('multi-signature account balance should exists with the balance', done => {
-			const address = getSenderAddress(multiSigTransaction);
+			const senderAddress = getSenderAddress(multiSigTransaction);
 
 			queries
-				.getAccount(address)
+				.getAccount(senderAddress)
 				.then(multiSigAccount => {
 					// Multi-signature transaction was expired, however
 					// the account still exists with the balance

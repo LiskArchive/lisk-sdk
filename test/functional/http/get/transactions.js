@@ -15,54 +15,54 @@
 'use strict';
 
 require('../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var transactionTypes = require('../../../../helpers/transaction_types');
-var randomUtil = require('../../../common/utils/random');
-var waitFor = require('../../../common/utils/wait_for');
-var apiHelpers = require('../../../common/helpers/api');
-var swaggerEndpoint = require('../../../common/swagger_spec');
-var slots = require('../../../../helpers/slots');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const transactionTypes = require('../../../../helpers/transaction_types');
+const randomUtil = require('../../../common/utils/random');
+const waitFor = require('../../../common/utils/wait_for');
+const apiHelpers = require('../../../common/helpers/api');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const slots = require('../../../../helpers/slots');
 
 const { NORMALIZER } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/transactions', () => {
-	var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
-	var transactionList = [];
+	const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
+	const transactionList = [];
 
-	var account = randomUtil.account();
-	var account2 = randomUtil.account();
-	var account3 = accountFixtures.existingDelegate;
-	var minAmount = 20 * NORMALIZER; // 20 LSK
-	var maxAmount = 100 * NORMALIZER; // 100 LSK
-	var transaction1 = lisk.transaction.transfer({
+	const account = randomUtil.account();
+	const account2 = randomUtil.account();
+	const account3 = accountFixtures.existingDelegate;
+	const minAmount = 20 * NORMALIZER; // 20 LSK
+	const maxAmount = 100 * NORMALIZER; // 100 LSK
+	const transaction1 = lisk.transaction.transfer({
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 		data: 'transaction1',
 	});
-	var transaction2 = lisk.transaction.transfer({
+	const transaction2 = lisk.transaction.transfer({
 		amount: minAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account2.address,
 		data: 'transaction2 ฿',
 	});
-	var transaction3 = lisk.transaction.transfer({
+	const transaction3 = lisk.transaction.transfer({
 		amount: 20 * NORMALIZER, // 20 LSK
 		passphrase: account.passphrase,
 		recipientId: account2.address,
 		data: '\u0000 hey :)',
 	});
-	var transaction4 = lisk.transaction.transfer({
+	const transaction4 = lisk.transaction.transfer({
 		amount: maxAmount,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account3.address,
 		data: 'Tx4',
 	});
-	var transactionType5 = {
+	const transactionType5 = {
 		amount: '0',
 		recipientId: '',
 		senderPublicKey:
@@ -86,7 +86,7 @@ describe('GET /api/transactions', () => {
 			'074ad8f2fc4146c1122913a147e71b67ceccbd9a45d769b4bc9ed1cdbdf4404eaa4475f30e9ea5d33d715e3208506aee18425cf03f971d85f027e5dbc0530a02',
 		id: '3173899516019557774',
 	};
-	var transactionType6 = {
+	const transactionType6 = {
 		type: 6,
 		amount: '0',
 		fee: '10000000',
@@ -103,7 +103,7 @@ describe('GET /api/transactions', () => {
 			'89a5d3abe53815d2cc36aaf04d242735bb8eaa767c8e8d9a31c049968189b500e87b61188a5ec80a1c191aa1bcf6bb7980f726c837fa3d3d753673ce7ab3060e',
 		id: '9616264103046411489',
 	};
-	var transactionType7 = {
+	const transactionType7 = {
 		type: 7,
 		amount: '0',
 		fee: '10000000',
@@ -123,7 +123,7 @@ describe('GET /api/transactions', () => {
 	};
 	// Crediting accounts'
 	before(() => {
-		var promises = [];
+		const promises = [];
 		promises.push(apiHelpers.sendTransactionPromise(transaction1));
 		promises.push(apiHelpers.sendTransactionPromise(transaction2));
 
@@ -271,7 +271,7 @@ describe('GET /api/transactions', () => {
 
 		describe('id', () => {
 			it('using valid id should be ok', () => {
-				var transactionInCheck = transactionList[0];
+				const transactionInCheck = transactionList[0];
 
 				return transactionsEndpoint
 					.makeRequest({ id: transactionInCheck.id }, 200)
@@ -291,7 +291,7 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('should get transaction with asset for id', () => {
-				var transactionInCheck = __testContext.config.genesisBlock.transactions.find(
+				const transactionInCheck = __testContext.config.genesisBlock.transactions.find(
 					trs => {
 						// Vote type transaction from genesisBlock
 						return trs.id === '9314232245035524467';
@@ -304,7 +304,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data).to.has.length(1);
 
-						var transaction = res.body.data[0];
+						const transaction = res.body.data[0];
 
 						expect(transaction.id).to.be.equal(transactionInCheck.id);
 						expect(transaction.type).to.be.equal(transactionTypes.VOTE);
@@ -339,7 +339,9 @@ describe('GET /api/transactions', () => {
 					.then(res => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
-							expect(transaction.type).to.be.equal(transactionTypes.SEND);
+							return expect(transaction.type).to.be.equal(
+								transactionTypes.SEND
+							);
 						});
 					});
 			});
@@ -361,7 +363,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.senderId).to.be.equal(
+							return expect(transaction.senderId).to.be.equal(
 								accountFixtures.genesis.address
 							);
 						});
@@ -404,7 +406,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.senderPublicKey).to.be.equal(
+							return expect(transaction.senderPublicKey).to.be.equal(
 								accountFixtures.genesis.publicKey
 							);
 						});
@@ -444,7 +446,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.recipientId).to.be.equal(
+							return expect(transaction.recipientId).to.be.equal(
 								accountFixtures.genesis.address
 							);
 						});
@@ -487,7 +489,7 @@ describe('GET /api/transactions', () => {
 					});
 			});
 			it('using senderIdOrRecipientId should return incoming and outgoing transactions of an account', () => {
-				var accountId = account.address;
+				const accountId = account.address;
 				return transactionsEndpoint
 					.makeRequest({ senderIdOrRecipientId: accountId }, 200)
 					.then(res => {
@@ -517,7 +519,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 
 						res.body.data.map(transaction => {
-							expect(transaction.recipientPublicKey).to.be.equal(
+							return expect(transaction.recipientPublicKey).to.be.equal(
 								accountFixtures.genesis.publicKey
 							);
 						});
@@ -551,11 +553,11 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('using one blockId should return transactions', () => {
-				var blockId = '6524861224470851795';
+				const blockId = '6524861224470851795';
 
 				return transactionsEndpoint.makeRequest({ blockId }, 200).then(res => {
 					res.body.data.map(transaction => {
-						expect(transaction.blockId).to.be.equal(blockId);
+						return expect(transaction.blockId).to.be.equal(blockId);
 					});
 				});
 			});
@@ -575,7 +577,7 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ height: 1 }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							expect(transaction.height).to.be.equal(1);
+							return expect(transaction.height).to.be.equal(1);
 						});
 					});
 			});
@@ -587,7 +589,9 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ minAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							expect(parseInt(transaction.amount)).to.be.at.least(minAmount);
+							return expect(parseInt(transaction.amount)).to.be.at.least(
+								minAmount
+							);
 						});
 					});
 			});
@@ -599,7 +603,9 @@ describe('GET /api/transactions', () => {
 					.makeRequest({ maxAmount }, 200)
 					.then(res => {
 						res.body.data.map(transaction => {
-							expect(parseInt(transaction.amount)).to.be.at.most(maxAmount);
+							return expect(parseInt(transaction.amount)).to.be.at.most(
+								maxAmount
+							);
 						});
 					});
 			});
@@ -616,7 +622,7 @@ describe('GET /api/transactions', () => {
 
 			it('using valid fromTimestamp should return transactions', () => {
 				// Last hour lisk time
-				var queryTime = slots.getTime() - 60 * 60;
+				const queryTime = slots.getTime() - 60 * 60;
 
 				return transactionsEndpoint
 					.makeRequest({ fromTimestamp: queryTime }, 200)
@@ -639,7 +645,7 @@ describe('GET /api/transactions', () => {
 
 			it('using valid toTimestamp should return transactions', () => {
 				// Current lisk time
-				var queryTime = slots.getTime();
+				const queryTime = slots.getTime();
 
 				return transactionsEndpoint
 					.makeRequest({ toTimestamp: queryTime }, 200)
@@ -653,7 +659,7 @@ describe('GET /api/transactions', () => {
 
 		describe('data', () => {
 			it('using specific string should return transactions', () => {
-				var dataFilter = 'transaction1';
+				const dataFilter = 'transaction1';
 				return transactionsEndpoint
 					.makeRequest(
 						{
@@ -671,7 +677,7 @@ describe('GET /api/transactions', () => {
 
 			it('using unicode null characters should return transactions', () => {
 				// This case works in Javascripts but not in CURL or POSTMAN
-				var dataFilter = '\u0000 hey :)';
+				const dataFilter = '\u0000 hey :)';
 				return transactionsEndpoint
 					.makeRequest(
 						{
@@ -688,8 +694,8 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('using regex string should return several transactions', () => {
-				var dataFilter = 'transaction';
-				var fuzzyCommand = '%';
+				const dataFilter = 'transaction';
+				const fuzzyCommand = '%';
 				return transactionsEndpoint
 					.makeRequest(
 						{
@@ -706,8 +712,8 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('using unicode character combine with regEx should return transactions', () => {
-				var unicodeCharacter = '฿';
-				var fuzzyCommand = '%';
+				const unicodeCharacter = '฿';
+				const fuzzyCommand = '%';
 				return transactionsEndpoint
 					.makeRequest(
 						{
@@ -762,9 +768,9 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('should paginate consistently when using offset with unprecise sorting param', () => {
-				var lastId = null;
-				var firstId = null;
-				var limit = 51;
+				let lastId = null;
+				let firstId = null;
+				const limit = 51;
 
 				return transactionsEndpoint
 					.makeRequest(
@@ -792,7 +798,7 @@ describe('GET /api/transactions', () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'amount:asc', minAmount: 100 }, 200)
 						.then(res => {
-							var values = _.map(res.body.data, 'amount').map(value => {
+							const values = _.map(res.body.data, 'amount').map(value => {
 								return parseInt(value);
 							});
 
@@ -804,7 +810,7 @@ describe('GET /api/transactions', () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'amount:desc' }, 200)
 						.then(res => {
-							var values = _.map(res.body.data, 'amount').map(value => {
+							const values = _.map(res.body.data, 'amount').map(value => {
 								return parseInt(value);
 							});
 
@@ -818,7 +824,7 @@ describe('GET /api/transactions', () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'fee:asc', minAmount: 100 }, 200)
 						.then(res => {
-							var values = _.map(res.body.data, 'fee').map(value => {
+							const values = _.map(res.body.data, 'fee').map(value => {
 								return parseInt(value);
 							});
 
@@ -830,7 +836,7 @@ describe('GET /api/transactions', () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: 'fee:desc' }, 200)
 						.then(res => {
-							var values = _.map(res.body.data, 'fee').map(value => {
+							const values = _.map(res.body.data, 'fee').map(value => {
 								return parseInt(value);
 							});
 
@@ -892,7 +898,7 @@ describe('GET /api/transactions', () => {
 			});
 
 			it('using sort with any of sort fields should not place NULLs first', () => {
-				var transactionSortFields = [
+				const transactionSortFields = [
 					'amount:asc',
 					'amount:desc',
 					'fee:asc',
@@ -907,7 +913,7 @@ describe('GET /api/transactions', () => {
 					return transactionsEndpoint
 						.makeRequest({ sort: sortField }, 200)
 						.then(res => {
-							var dividedIndices = res.body.data.reduce(
+							const dividedIndices = res.body.data.reduce(
 								(memo, peer, index) => {
 									memo[
 										peer[sortField] === null ? 'nullIndices' : 'notNullIndices'
@@ -921,7 +927,7 @@ describe('GET /api/transactions', () => {
 								dividedIndices.nullIndices.length &&
 								dividedIndices.notNullIndices.length
 							) {
-								var ascOrder = function(a, b) {
+								const ascOrder = function(a, b) {
 									return a - b;
 								};
 								dividedIndices.notNullIndices.sort(ascOrder);
@@ -958,7 +964,7 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						var values = _.map(res.body.data, 'amount').map(value => {
+						const values = _.map(res.body.data, 'amount').map(value => {
 							return parseInt(value);
 						});
 
@@ -986,7 +992,7 @@ describe('GET /api/transactions', () => {
 						200
 					)
 					.then(res => {
-						var values = _.map(res.body.data, 'amount').map(value => {
+						const values = _.map(res.body.data, 'amount').map(value => {
 							return parseInt(value);
 						});
 						expect(_(_.clone(values)).sortNumbers('asc')).to.be.eql(values);
@@ -1061,7 +1067,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
 							expect(transaction.asset).to.have.key('inTransfer');
-							expect(transaction.asset.inTransfer).to.have.key('dappId');
+							return expect(transaction.asset.inTransfer).to.have.key('dappId');
 						});
 					});
 			});
@@ -1072,7 +1078,7 @@ describe('GET /api/transactions', () => {
 						expect(res.body.data).to.not.empty;
 						res.body.data.map(transaction => {
 							expect(transaction.asset).to.have.key('outTransfer');
-							expect(transaction.asset.outTransfer).to.have.all.keys(
+							return expect(transaction.asset.outTransfer).to.have.all.keys(
 								'dappId',
 								'transactionId'
 							);

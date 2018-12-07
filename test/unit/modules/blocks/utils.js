@@ -14,12 +14,12 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var modulesLoader = require('../../../common/modules_loader');
+const rewire = require('rewire');
+const modulesLoader = require('../../../common/modules_loader');
 
-var BlocksUtils = rewire('../../../../modules/blocks/utils.js');
+const BlocksUtils = rewire('../../../../modules/blocks/utils.js');
 
-var fullBlocksListRows = [
+const fullBlocksListRows = [
 	{
 		b_id: '13068833527549895884',
 		b_height: 3, // Block 1
@@ -47,16 +47,16 @@ var fullBlocksListRows = [
 ];
 
 describe('blocks/utils', () => {
-	var dbStub;
-	var loggerStub;
-	var blockMock;
-	var transactionMock;
-	var accountMock;
-	var blocksUtilsModule;
-	var modulesStub;
-	var __private;
-	var library;
-	var modules;
+	let dbStub;
+	let loggerStub;
+	let blockMock;
+	let transactionMock;
+	let accountMock;
+	let blocksUtilsModule;
+	let modulesStub;
+	let __private;
+	let library;
+	let modules;
 
 	beforeEach(done => {
 		dbStub = {
@@ -195,7 +195,7 @@ describe('blocks/utils', () => {
 		});
 
 		describe('with 2 blocks each containing 2 transactions', () => {
-			var blocks;
+			let blocks;
 
 			beforeEach(() => {
 				blocks = blocksUtilsModule.readDbRows(fullBlocksListRows);
@@ -230,7 +230,7 @@ describe('blocks/utils', () => {
 		});
 
 		it('should generate fake signature for genesis block', () => {
-			var genesisBlock_view_full_blocks_list = [
+			const genesisBlock_view_full_blocks_list = [
 				{
 					b_id: '6524861224470851795',
 					b_height: 1,
@@ -245,7 +245,7 @@ describe('blocks/utils', () => {
 				},
 			];
 
-			var blockObject = blocksUtilsModule.readDbRows(
+			const blockObject = blocksUtilsModule.readDbRows(
 				genesisBlock_view_full_blocks_list
 			);
 
@@ -540,7 +540,7 @@ describe('blocks/utils', () => {
 	});
 
 	describe('getBlockProgressLogger', () => {
-		var testTracker;
+		let testTracker;
 
 		it('should initialize BlockProgressLogger', () => {
 			testTracker = blocksUtilsModule.getBlockProgressLogger(

@@ -93,7 +93,7 @@ const getVotersForDelegates = function(filters, delegate, cb) {
 		});
 	}
 
-	library.db.voters
+	return library.db.voters
 		.list({
 			publicKey: delegate.publicKey,
 			limit: filters.limit,
@@ -123,7 +123,7 @@ const getVotersCountForDelegates = function(delegate, cb) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
 
-	library.db.voters
+	return library.db.voters
 		.count(delegate.publicKey)
 		.then(votersCount => setImmediate(cb, null, parseInt(votersCount)))
 		.catch(err => {
@@ -147,7 +147,7 @@ const getVotesCountForDelegates = function(delegate, cb) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
 
-	library.db.votes
+	return library.db.votes
 		.count(delegate.address)
 		.then(votesCount => setImmediate(cb, null, parseInt(votesCount)))
 		.catch(err => {
@@ -170,7 +170,7 @@ const getVotesForDelegates = function(filters, delegate, cb) {
 	if (!delegate) {
 		return setImmediate(cb, new ApiError({}, apiCodes.NO_CONTENT));
 	}
-	library.db.votes
+	return library.db.votes
 		.list({
 			address: delegate.address,
 			limit: filters.limit,

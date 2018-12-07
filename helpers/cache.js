@@ -14,7 +14,7 @@
 
 'use strict';
 
-var redis = require('redis');
+const redis = require('redis');
 /**
  * Description of the module.
  *
@@ -32,7 +32,7 @@ var redis = require('redis');
  * @todo Add description for the function and the params
  */
 module.exports.connect = function(cacheEnabled, config, logger, cb) {
-	var isRedisLoaded = false;
+	let isRedisLoaded = false;
 
 	if (!cacheEnabled) {
 		return cb(null, { cacheEnabled, client: null });
@@ -42,24 +42,24 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 	if (config.password === null) {
 		delete config.password;
 	}
-	var client = redis.createClient(config);
+	const client = redis.createClient(config);
 
 	client.on('ready', () => {
 		logger.info('App connected with redis server');
 
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb(null, { cacheEnabled, client });
 		}
+		return cb(null, { cacheEnabled, client });
 	});
 
-	client.on('error', err => {
+	return client.on('error', err => {
 		logger.error('Redis:', err);
 		// Returns redis client so application can continue to try to connect with the redis server,
 		// and modules/cache can have client reference once it's connected
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
-			return cb(null, { cacheEnabled, client });
 		}
+		return cb(null, { cacheEnabled, client });
 	});
 };

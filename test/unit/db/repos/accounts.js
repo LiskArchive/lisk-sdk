@@ -26,7 +26,7 @@ let dbSandbox;
 let validAccount;
 
 function createAccount() {
-	validAccount = accountFixtures.Account();
+	validAccount = new accountFixtures.Account();
 
 	return db
 		.query(db.$config.pgp.helpers.insert(validAccount, db.accounts.cs.insert))
@@ -310,7 +310,9 @@ describe('db', () => {
 			let delegateAccount;
 
 			beforeEach(function*() {
-				delegateAccount = accountFixtures.Account({ isDelegate: true });
+				delegateAccount = new accountFixtures.Account({
+					isDelegate: true,
+				});
 				return yield db.accounts.insert(delegateAccount);
 			});
 
@@ -342,7 +344,7 @@ describe('db', () => {
 
 		describe('upsert()', () => {
 			it('should throw error if no conflict field is specified', done => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				db.accounts
 					.upsert(account)
@@ -369,7 +371,7 @@ describe('db', () => {
 			});
 
 			it('should succeed with null', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return db.accounts.upsert(account, 'address').then(result => {
 					expect(result).to.be.null;
@@ -377,7 +379,7 @@ describe('db', () => {
 			});
 
 			it('should insert account if conflictField="address" not found', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return db.accounts.upsert(account, 'address').then(() => {
 					return db.accounts.list({ address: account.address }).then(result => {
@@ -388,8 +390,8 @@ describe('db', () => {
 			});
 
 			it('should update account if conflictField="address" found', () => {
-				const account1 = accountFixtures.Account();
-				const account2 = accountFixtures.Account();
+				const account1 = new accountFixtures.Account();
+				const account2 = new accountFixtures.Account();
 
 				// Since DB trigger protects from updating username only if it was null before
 				delete account1.username;
@@ -419,7 +421,7 @@ describe('db', () => {
 			});
 
 			it('should insert only the columns specified in columnSet.insert', () => {
-				const account = accountFixtures.Account({
+				const account = new accountFixtures.Account({
 					delegates: [randomstring.generate(10).toLowerCase()],
 				});
 
@@ -432,8 +434,8 @@ describe('db', () => {
 			});
 
 			it('should update only the columns specified in columnSet.update', () => {
-				const originalAccount = accountFixtures.Account();
-				const updatedAccount = accountFixtures.Account();
+				const originalAccount = new accountFixtures.Account();
+				const updatedAccount = new accountFixtures.Account();
 
 				// Since DB trigger protects from updating username only if it was null before
 				delete originalAccount.username;
@@ -470,8 +472,8 @@ describe('db', () => {
 			});
 
 			it('should update data attributes specified as "data" if argument "updateData" is missing', () => {
-				const originalAccount = accountFixtures.Account();
-				const updatedAccount = accountFixtures.Account();
+				const originalAccount = new accountFixtures.Account();
+				const updatedAccount = new accountFixtures.Account();
 
 				// Since DB trigger protects from updating username only if it was null before
 				delete originalAccount.username;
@@ -508,8 +510,8 @@ describe('db', () => {
 			});
 
 			it('should match the values for conflict keys case sensitively', () => {
-				const originalAccount = accountFixtures.Account();
-				const updatedAccount = accountFixtures.Account({
+				const originalAccount = new accountFixtures.Account();
+				const updatedAccount = new accountFixtures.Account({
 					username: originalAccount.username.toUpperCase(),
 				});
 
@@ -527,10 +529,10 @@ describe('db', () => {
 			});
 
 			it('should match the multiple conflict keys with AND composite', () => {
-				const originalAccount = accountFixtures.Account({
+				const originalAccount = new accountFixtures.Account({
 					u_username: 'alpha',
 				});
-				const updatedAccount = accountFixtures.Account({
+				const updatedAccount = new accountFixtures.Account({
 					username: originalAccount.username,
 					u_username: originalAccount.u_username,
 				});
@@ -551,15 +553,15 @@ describe('db', () => {
 			});
 
 			it('should execute all queries in one database transaction (txLevel = 0) tagged as `db:accounts:upsert`', done => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				let eventCtx;
 
 				db.$config.options.query = function(event) {
 					eventCtx = event.ctx;
 				};
 
-				var connect = sinonSandbox.stub();
-				var disconnect = sinonSandbox.stub();
+				const connect = sinonSandbox.stub();
+				const disconnect = sinonSandbox.stub();
 
 				db.$config.options.connect = connect;
 				db.$config.options.disconnect = disconnect;
@@ -590,7 +592,7 @@ describe('db', () => {
 			it('should use pgp.helpers.insert with correct parameters', function*() {
 				sinonSandbox.spy(db.$config.pgp.helpers, 'insert');
 
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				yield db.accounts.insert(account);
 
 				return expect(db.$config.pgp.helpers.insert).to.be.calledWithExactly(
@@ -600,13 +602,13 @@ describe('db', () => {
 			});
 
 			it('should insert account without any error', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return db.accounts.insert(account);
 			});
 
 			it('should succeed with null', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return db.accounts.insert(account).then(result => {
 					expect(result).to.be.null;
@@ -614,7 +616,7 @@ describe('db', () => {
 			});
 
 			it('should insert all columns specified in db.accounts.cs.insert', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return db.accounts.insert(account).then(() => {
 					return db.accounts.list({ address: account.address }).then(result => {
@@ -630,7 +632,7 @@ describe('db', () => {
 			});
 
 			it('should not throw error when any unknown attribute is passed', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				account.unknownColumn = 'unnownValue';
 
 				return db.accounts.insert(account);
@@ -641,7 +643,7 @@ describe('db', () => {
 			it('should use pgp.helpers.update with correct parameters', function*() {
 				sinonSandbox.spy(db.$config.pgp.helpers, 'update');
 
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				yield db.accounts.update(account.address, account);
 
 				return expect(db.$config.pgp.helpers.update).to.be.calledWithExactly(
@@ -651,7 +653,7 @@ describe('db', () => {
 			});
 
 			it('should update account without any error', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return db.accounts.insert(account).then(() => {
 					return db.accounts.update(account.address, account);
@@ -659,8 +661,8 @@ describe('db', () => {
 			});
 
 			it('should succeed with null', () => {
-				const account = accountFixtures.Account();
-				const updateAccount = accountFixtures.Account();
+				const account = new accountFixtures.Account();
+				const updateAccount = new accountFixtures.Account();
 
 				return db.accounts.insert(account).then(() => {
 					return db.accounts
@@ -672,7 +674,7 @@ describe('db', () => {
 			});
 
 			it('should throw error if called without an address', () => {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 
 				return expect(db.accounts.update(null, account)).to.be.rejectedWith(
 					'Error: db.accounts.update - invalid address argument'
@@ -684,8 +686,8 @@ describe('db', () => {
 			});
 
 			it('should update all columns specified in db.accounts.cs.update', () => {
-				const account = accountFixtures.Account();
-				const updateAccount = accountFixtures.Account();
+				const account = new accountFixtures.Account();
+				const updateAccount = new accountFixtures.Account();
 
 				// Since DB trigger protects from updating username/publicKey only if it was null before
 				delete account.username;
@@ -710,8 +712,8 @@ describe('db', () => {
 			});
 
 			it('should not throw error when any unknown attribute is passed', () => {
-				const account = accountFixtures.Account();
-				const updateAccount = accountFixtures.Account();
+				const account = new accountFixtures.Account();
+				const updateAccount = new accountFixtures.Account();
 
 				updateAccount.unkownAttr = 'unknownAttr';
 
@@ -732,7 +734,7 @@ describe('db', () => {
 			});
 
 			it('should increment account attribute', function*() {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				account.balance = 15000;
 
 				yield db.accounts.insert(account);
@@ -752,7 +754,7 @@ describe('db', () => {
 			});
 
 			it('should increment balance with string data', function*() {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				account.balance = '15000';
 
 				yield db.accounts.insert(account);
@@ -778,7 +780,7 @@ describe('db', () => {
 			});
 
 			it('should decrement account attribute', function*() {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				account.balance = 15000;
 
 				yield db.accounts.insert(account);
@@ -793,7 +795,7 @@ describe('db', () => {
 			});
 
 			it('should increment balance with string data', function*() {
-				const account = accountFixtures.Account();
+				const account = new accountFixtures.Account();
 				account.balance = '15000';
 
 				yield db.accounts.insert(account);
@@ -1164,7 +1166,7 @@ describe('db', () => {
 				it('should use pgp.helpers.sets with correct parameters', function*() {
 					sinonSandbox.spy(db.$config.pgp.helpers, 'sets');
 
-					const account = accountFixtures.Account();
+					const account = new accountFixtures.Account();
 					yield db.accounts.insert(account);
 					yield db.accounts.list({ address: account.address }, [
 						'address',
@@ -1180,7 +1182,7 @@ describe('db', () => {
 				});
 
 				it('should return a multisig account if filter.multisig is provided', function*() {
-					const account = accountFixtures.Account();
+					const account = new accountFixtures.Account();
 					account.multimin = 1;
 
 					yield db.accounts.insert(account);
@@ -1191,8 +1193,8 @@ describe('db', () => {
 				});
 
 				it('should return a multiple accounts if filter.address is provided as array', function*() {
-					const account1 = accountFixtures.Account();
-					const account2 = accountFixtures.Account();
+					const account1 = new accountFixtures.Account();
+					const account2 = new accountFixtures.Account();
 
 					yield db.accounts.insert(account1);
 					yield db.accounts.insert(account2);
@@ -1216,8 +1218,10 @@ describe('db', () => {
 				});
 
 				it('should return valid result if filter.username is provided with $like object', function*() {
-					const account1 = accountFixtures.Account({ username: 'AlphaBravo' });
-					const account2 = accountFixtures.Account({
+					const account1 = new accountFixtures.Account({
+						username: 'AlphaBravo',
+					});
+					const account2 = new accountFixtures.Account({
 						username: 'BravoCharlie',
 					});
 
@@ -1329,7 +1333,7 @@ describe('db', () => {
 
 				describe('extraCondition', () => {
 					it('should use additional SQL condition if options.extraCondition is provided', function*() {
-						const account = accountFixtures.Account({
+						const account = new accountFixtures.Account({
 							username: 'AlphaBravo',
 						});
 

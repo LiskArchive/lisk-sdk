@@ -14,14 +14,14 @@
 
 'use strict';
 
-var checkIpInList = require('../../../helpers/check_ip_in_list');
+const checkIpInList = require('../../../helpers/check_ip_in_list');
 
 describe('checkIpInList', () => {
 	describe('CheckIpInList', () => {
-		var validList;
-		var validAddress;
-		var spyConsoleError;
-		var checkIpInListResult;
+		let validList;
+		let validAddress;
+		let spyConsoleError;
+		let checkIpInListResult;
 
 		before(done => {
 			validList = ['1.2.3.0/24', '5.6.7.8'];

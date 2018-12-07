@@ -18,7 +18,7 @@ const Promise = require('bluebird');
 const elements = require('lisk-elements').default;
 const randomUtil = require('../common/utils/random');
 const accountsFixtures = require('../fixtures/accounts');
-const queriesHelper = require('../common/integration/sql/queriesHelper.js');
+const QueriesHelper = require('../common/integration/sql/queriesHelper.js');
 const localCommon = require('./common');
 
 const { REWARDS } = global.constants;
@@ -33,7 +33,7 @@ describe('snapshotting', () => {
 
 	localCommon.beforeBlock('lisk_functional_snapshotting', lib => {
 		library = lib;
-		Queries = new queriesHelper(lib, lib.db);
+		Queries = new QueriesHelper(lib, lib.db);
 
 		addTransactionsAndForgePromise = Promise.promisify(
 			localCommon.addTransactionsAndForge
@@ -109,8 +109,8 @@ describe('snapshotting', () => {
 						expect(_accounts).to.deep.equal(memAccountsBeforeSnapshot);
 						done();
 					})
-					.catch(err => {
-						done(err);
+					.catch(getMemAccountsErr => {
+						done(getMemAccountsErr);
 					});
 			};
 

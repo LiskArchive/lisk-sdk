@@ -158,8 +158,8 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 		const next = () => {
 			const testFile = allFiles.splice(0, 1);
 			spawnParallelTest(testFile, mochaArguments)
-				.then(testFile => {
-					completedFiles[testFile] = 'done';
+				.then(testFileAfter => {
+					completedFiles[testFileAfter] = 'done';
 					if (
 						allFiles.length === 0 &&
 						Object.keys(completedFiles).length === allFilesLength
@@ -171,6 +171,8 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 					if (allFiles.length > 0) {
 						return next();
 					}
+
+					return null;
 				})
 				.catch(err => {
 					console.error(`Parallel test failed: ${testFile}`);
@@ -183,6 +185,7 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 			i < limit;
 			i += 1
 		) {
+			// eslint-disable-next-line callback-return
 			next();
 		}
 	});

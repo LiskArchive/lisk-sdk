@@ -15,34 +15,34 @@
 'use strict';
 
 require('../../../functional.js');
-var Promise = require('bluebird');
-var lisk = require('lisk-elements').default;
-var apiHelpers = require('../../../../common/helpers/api');
-var randomUtil = require('../../../../common/utils/random');
-var swaggerEndpoint = require('../../../../common/swagger_spec');
-var accountFixtures = require('../../../../fixtures/accounts');
-var waitFor = require('../../../../common/utils/wait_for');
+const Promise = require('bluebird');
+const lisk = require('lisk-elements').default;
+const apiHelpers = require('../../../../common/helpers/api');
+const randomUtil = require('../../../../common/utils/random');
+const SwaggerEndpoint = require('../../../../common/swagger_spec');
+const accountFixtures = require('../../../../fixtures/accounts');
+const waitFor = require('../../../../common/utils/wait_for');
 
 const { NORMALIZER } = global.constants;
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
-var sendTransactionPromise = apiHelpers.sendTransactionPromise;
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const sendTransactionPromise = apiHelpers.sendTransactionPromise;
 
 describe('GET /api/node', () => {
 	describe('/transactions', () => {
 		describe('/unsigned', () => {
-			var UnsignedEndpoint = new swaggerEndpoint(
+			const UnsignedEndpoint = new SwaggerEndpoint(
 				'GET /node/transactions/{state}'
 			).addParameters({ state: 'unsigned' });
-			var signatureEndpoint = new swaggerEndpoint('POST /signatures');
+			const signatureEndpoint = new SwaggerEndpoint('POST /signatures');
 
-			var senderAccount = randomUtil.account();
-			var recipientAccount = randomUtil.account();
+			const senderAccount = randomUtil.account();
+			const recipientAccount = randomUtil.account();
 
-			var transactionList = [];
-			var numOfTransactions = 5;
-			var transaction = null;
+			const transactionList = [];
+			const numOfTransactions = 5;
+			let transaction = null;
 
-			var randomMember = randomUtil.account();
+			const randomMember = randomUtil.account();
 
 			before(() => {
 				// Credit account with some funds
@@ -93,7 +93,7 @@ describe('GET /api/node', () => {
 							'Transaction(s) accepted'
 						);
 
-						var signature = apiHelpers.createSignatureObject(
+						const signature = apiHelpers.createSignatureObject(
 							transaction,
 							randomMember
 						);
@@ -107,7 +107,7 @@ describe('GET /api/node', () => {
 					})
 					.then(() => {
 						// Create numOfTransactions transactions
-						for (var i = 0; i < numOfTransactions; i++) {
+						for (let i = 0; i < numOfTransactions; i++) {
 							transactionList.push(
 								lisk.transaction.transfer({
 									amount: (i + 1) * NORMALIZER,
@@ -118,13 +118,13 @@ describe('GET /api/node', () => {
 							);
 						}
 
-						return Promise.map(transactionList, transaction => {
-							return sendTransactionPromise(transaction);
+						return Promise.map(transactionList, mapTransaction => {
+							return sendTransactionPromise(mapTransaction);
 						});
 					})
 					.then(responses => {
 						responses.map(res => {
-							expect(res.body.data.message).to.be.equal(
+							return expect(res.body.data.message).to.be.equal(
 								'Transaction(s) accepted'
 							);
 						});
@@ -208,7 +208,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid id should be ok', () => {
-					var transactionInCheck = transactionList[0];
+					const transactionInCheck = transactionList[0];
 
 					return UnsignedEndpoint.makeRequest(
 						{ id: transactionInCheck.id },
@@ -238,7 +238,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using valid type should be ok', () => {
-					var transactionInCheck = transactionList[0];
+					const transactionInCheck = transactionList[0];
 
 					return UnsignedEndpoint.makeRequest(
 						{ type: transactionInCheck.type },
@@ -246,8 +246,10 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							expect(transaction.type).to.be.equal(transactionInCheck.type);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.type).to.be.equal(
+								transactionInCheck.type
+							);
 						});
 					});
 				});
@@ -270,8 +272,10 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							expect(transaction.senderId).to.be.equal(senderAccount.address);
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.senderId).to.be.equal(
+								senderAccount.address
+							);
 						});
 					});
 				});
@@ -303,8 +307,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							expect(transaction.senderPublicKey).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.senderPublicKey).to.be.equal(
 								senderAccount.publicKey
 							);
 						});
@@ -341,8 +345,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							expect(transaction.recipientId).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);
 						});
@@ -376,8 +380,8 @@ describe('GET /api/node', () => {
 					).then(res => {
 						expect(res.body.data).to.not.empty;
 						expect(res.body.data.length).to.be.at.least(numOfTransactions);
-						res.body.data.map(transaction => {
-							expect(transaction.recipientId).to.be.equal(
+						res.body.data.map(mapTransaction => {
+							return expect(mapTransaction.recipientId).to.be.equal(
 								recipientAccount.address
 							);
 						});
@@ -428,7 +432,7 @@ describe('GET /api/node', () => {
 				});
 
 				it('using offset=1 should be ok', () => {
-					var firstTransaction = null;
+					let firstTransaction = null;
 
 					return UnsignedEndpoint.makeRequest({ offset: 0, limit: 2 }, 200)
 						.then(res => {
@@ -437,8 +441,8 @@ describe('GET /api/node', () => {
 							return UnsignedEndpoint.makeRequest({ offset: 1, limit: 2 }, 200);
 						})
 						.then(res => {
-							res.body.data.forEach(transaction => {
-								expect(transaction.id).to.not.equal(firstTransaction.id);
+							res.body.data.forEach(mapTransaction => {
+								expect(mapTransaction.id).to.not.equal(firstTransaction.id);
 							});
 						});
 				});
@@ -453,7 +457,7 @@ describe('GET /api/node', () => {
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
-							var values = _.map(res.body.data, 'amount').map(value => {
+							const values = _.map(res.body.data, 'amount').map(value => {
 								return parseInt(value);
 							});
 
@@ -468,7 +472,7 @@ describe('GET /api/node', () => {
 						).then(res => {
 							expect(res.body.data).to.not.be.empty;
 
-							var values = _.map(res.body.data, 'amount').map(value => {
+							const values = _.map(res.body.data, 'amount').map(value => {
 								return parseInt(value);
 							});
 
@@ -483,7 +487,7 @@ describe('GET /api/node', () => {
 							res => {
 								expect(res.body.data).to.not.be.empty;
 
-								var values = _.map(res.body.data, 'fee').map(value => {
+								const values = _.map(res.body.data, 'fee').map(value => {
 									return parseInt(value);
 								});
 
@@ -497,7 +501,7 @@ describe('GET /api/node', () => {
 							res => {
 								expect(res.body.data).to.not.be.empty;
 
-								var values = _.map(res.body.data, 'fee').map(value => {
+								const values = _.map(res.body.data, 'fee').map(value => {
 									return parseInt(value);
 								});
 

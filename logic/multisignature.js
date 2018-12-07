@@ -136,7 +136,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 		const err =
 			'Invalid multisignature min. Must be less than or equal to keysgroup size';
 
-		if (exceptions.multisignatures.indexOf(transaction.id) > -1) {
+		if (exceptions.multisignatures.includes(transaction.id)) {
 			library.logger.debug(err);
 			library.logger.debug(JSON.stringify(transaction));
 		} else {
@@ -218,11 +218,11 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 		);
 	}
 
-	async.eachSeries(
+	return async.eachSeries(
 		transaction.asset.multisignature.keysgroup,
-		(key, cb) => {
+		(key, eachSeriesCb) => {
 			if (!key || typeof key !== 'string') {
-				return setImmediate(cb, 'Invalid member in keysgroup');
+				return setImmediate(eachSeriesCb, 'Invalid member in keysgroup');
 			}
 
 			const math = key[0];
@@ -230,7 +230,7 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 
 			if (math !== '+') {
 				return setImmediate(
-					cb,
+					eachSeriesCb,
 					'Invalid math operator in multisignature keysgroup'
 				);
 			}
@@ -239,19 +239,19 @@ Multisignature.prototype.verify = function(transaction, sender, cb) {
 				const b = ed.hexToBuffer(publicKey);
 				if (b.length !== 32) {
 					return setImmediate(
-						cb,
+						eachSeriesCb,
 						'Invalid public key in multisignature keysgroup'
 					);
 				}
 			} catch (e) {
 				library.logger.trace(e.stack);
 				return setImmediate(
-					cb,
+					eachSeriesCb,
 					'Invalid public key in multisignature keysgroup'
 				);
 			}
 
-			return setImmediate(cb);
+			return setImmediate(eachSeriesCb);
 		},
 		err => {
 			if (err) {
@@ -355,10 +355,10 @@ Multisignature.prototype.applyConfirmed = function(
 			}
 
 			// Get public keys
-			async.eachSeries(
+			return async.eachSeries(
 				transaction.asset.multisignature.keysgroup,
-				(transaction, cb) => {
-					const key = transaction.substring(1);
+				(transactionToGetKey, eachSeriesCb) => {
+					const key = transactionToGetKey.substring(1);
 					const address = modules.accounts.generateAddressByPublicKey(key);
 
 					// Create accounts
@@ -367,7 +367,8 @@ Multisignature.prototype.applyConfirmed = function(
 							address,
 							publicKey: key,
 						},
-						setAccountAndGetErr => setImmediate(cb, setAccountAndGetErr),
+						setAccountAndGetErr =>
+							setImmediate(eachSeriesCb, setAccountAndGetErr),
 						tx
 					);
 				},
@@ -438,7 +439,7 @@ Multisignature.prototype.applyUnconfirmed = function(
 
 	__private.unconfirmedSignatures[sender.address] = true;
 
-	library.logic.account.merge(
+	return library.logic.account.merge(
 		sender.address,
 		{
 			u_multisignatures: transaction.asset.multisignature.keysgroup,

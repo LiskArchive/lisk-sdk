@@ -4,7 +4,6 @@
 __MACOSX/
 *.swp
 *.swo
-release/
 ssl/
 tmp/
 
@@ -18,7 +17,7 @@ node_modules/
 docs/jsdoc/
 
 # Logs
-logs/*.log
+logs/*
 npm-debug.log
 tmux-client-*.log
 test/network/logs/

@@ -49,7 +49,7 @@ module.exports = function(
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
 								wsPorts.add(peer.wsPort);
-								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+								return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 							});
 						}
 					});
@@ -68,12 +68,11 @@ module.exports = function(
 							numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
 							EXPECTED_TOTAL_CONNECTIONS
 						) {
-							done();
-						} else {
-							done(
-								`There are ${numOfConnections} established connections on web socket ports.`
-							);
+							return done();
 						}
+						return done(
+							`There are ${numOfConnections} established connections on web socket ports.`
+						);
 					}
 				);
 			});
@@ -107,12 +106,11 @@ module.exports = function(
 									EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING ===
 								EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING
 							) {
-								done();
-							} else {
-								done(
-									`There are ${numOfConnections} established connections on web socket ports.`
-								);
+								return done();
 							}
+							return done(
+								`There are ${numOfConnections} established connections on web socket ports.`
+							);
 						}
 					);
 				});
@@ -124,7 +122,7 @@ module.exports = function(
 							if (mutualPeer) {
 								expect(mutualPeer.peers.length).to.be.eql(TOTAL_PEERS - 2);
 								mutualPeer.peers.map(peer => {
-									expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+									return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 								});
 							}
 						});
@@ -134,7 +132,7 @@ module.exports = function(
 				it('node_0 should have every peer banned', () => {
 					return utils.http.getPeers().then(peers => {
 						peers.map(peer => {
-							expect(peer.state).to.be.eql(Peer.STATE.BANNED);
+							return expect(peer.state).to.be.eql(Peer.STATE.BANNED);
 						});
 					});
 				});
@@ -142,11 +140,10 @@ module.exports = function(
 				it('node_1 should have only himself and node_0 disconnected', () => {
 					return utils.http.getPeers(4001).then(peers => {
 						peers.map(peer => {
-							if (peer.wsPort == 5000 || peer.wsPort == 5001) {
-								expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
-							} else {
-								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+							if (peer.wsPort === 5000 || peer.wsPort === 5001) {
+								return expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
 							}
+							return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 						});
 					});
 				});
@@ -165,7 +162,7 @@ module.exports = function(
 						.then(() => {
 							// Make sure that there is enough time for monitoring connection
 							// to be re-established after restart.
-							return network.waitForBlocksOnNode('node_0', 1);
+							return network.waitForBlocksOnNode('node_0', 2);
 						})
 						.then(done)
 						.catch(err => {
@@ -185,12 +182,11 @@ module.exports = function(
 								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
 								EXPECTED_TOTAL_CONNECTIONS
 							) {
-								done();
-							} else {
-								done(
-									`There are ${numOfConnections} established connections on web socket ports.`
-								);
+								return done();
 							}
+							return done(
+								`There are ${numOfConnections} established connections on web socket ports.`
+							);
 						}
 					);
 				});
@@ -198,11 +194,10 @@ module.exports = function(
 				it('node_0 should have every peer connected but himself', () => {
 					return utils.http.getPeers().then(peers => {
 						peers.map(peer => {
-							if (peer.wsPort == 5000) {
-								expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
-							} else {
-								expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+							if (peer.wsPort === 5000) {
+								return expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
 							}
+							return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 						});
 					});
 				});

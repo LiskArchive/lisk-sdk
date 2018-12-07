@@ -14,8 +14,8 @@
 
 'use strict';
 
-var debug = require('debug')('swagger:lisk:cache');
-var modules = require('../../helpers/swagger_module_registry');
+const debug = require('debug')('swagger:lisk:cache');
+const modules = require('../../helpers/swagger_module_registry');
 
 /**
  * Description of the function.
@@ -31,10 +31,10 @@ var modules = require('../../helpers/swagger_module_registry');
  * @todo Add description for the function and the params
  */
 module.exports = function create(fittingDef) {
-	var cache = modules.getCache();
-	var logger = modules.getLogger();
-	var mode = fittingDef.mode;
-	var cacheSpecKey = fittingDef.swagger_cache_key;
+	const cache = modules.getCache();
+	const logger = modules.getLogger();
+	const mode = fittingDef.mode;
+	const cacheSpecKey = fittingDef.swagger_cache_key;
 
 	debug('create', mode);
 
@@ -74,20 +74,19 @@ module.exports = function create(fittingDef) {
 			return next(null, context.input);
 		}
 
-		var cacheKey = context.request.originalUrl;
+		const cacheKey = context.request.originalUrl;
 
 		// If cache fitting is called before response processing
 		if (mode === 'pre_response') {
-			cache.getJsonForKey(cacheKey, (err, cachedValue) => {
+			return cache.getJsonForKey(cacheKey, (err, cachedValue) => {
 				if (!err && cachedValue) {
 					logger.debug(
 						'Cache - Sending cached response for url:',
 						context.request.url
 					);
-					context.response.json(cachedValue);
-				} else {
-					return next(null, context.input);
+					return context.response.json(cachedValue);
 				}
+				return next(null, context.input);
 			});
 		}
 
@@ -98,12 +97,13 @@ module.exports = function create(fittingDef) {
 					'Cache - Setting response cache for url:',
 					context.request.url
 				);
-				cache.setJsonForKey(cacheKey, context.input, () =>
+				return cache.setJsonForKey(cacheKey, context.input, () =>
 					next(null, context.input)
 				);
-			} else {
-				return next(null, context.input);
 			}
+			return next(null, context.input);
 		}
+
+		return next(`The cache mode ${mode} is not possible`);
 	};
 };

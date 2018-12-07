@@ -14,24 +14,24 @@
 
 'use strict';
 
-var util = require('util');
-var typesRepresentatives = require('../../fixtures/types_representatives');
+const util = require('util');
+const typesRepresentatives = require('../../fixtures/types_representatives');
 
-var assign = _.assign;
-var difference = _.difference;
-var set = _.set;
+const assign = _.assign;
+const difference = _.difference;
+const set = _.set;
 
-var allTypes = typesRepresentatives.allTypes;
-var arrays = typesRepresentatives.arrays;
-var booleans = typesRepresentatives.booleans;
-var positiveIntegers = typesRepresentatives.positiveIntegers;
-var negativeIntegers = typesRepresentatives.negativeIntegers;
-var positiveNumbers = typesRepresentatives.positiveNumbers;
-var negativeNumbers = typesRepresentatives.negativeNumbers;
-var objects = typesRepresentatives.objects;
-var strings = typesRepresentatives.strings;
+const allTypes = typesRepresentatives.allTypes;
+const arrays = typesRepresentatives.arrays;
+const booleans = typesRepresentatives.booleans;
+const positiveIntegers = typesRepresentatives.positiveIntegers;
+const negativeIntegers = typesRepresentatives.negativeIntegers;
+const positiveNumbers = typesRepresentatives.positiveNumbers;
+const negativeNumbers = typesRepresentatives.negativeNumbers;
+const objects = typesRepresentatives.objects;
+const strings = typesRepresentatives.strings;
 
-var self;
+let self;
 
 SchemaDynamicTest.TEST_STYLE = {
 	// eslint-disable-next-line object-shorthand
@@ -41,9 +41,9 @@ SchemaDynamicTest.TEST_STYLE = {
 	// eslint-disable-next-line object-shorthand
 	THROWABLE: function(testFunction, argument, cb) {
 		try {
-			testFunction(argument);
+			return testFunction(argument);
 		} catch (ex) {
-			cb(ex);
+			return cb(ex);
 		}
 	},
 };
@@ -250,9 +250,9 @@ SchemaDynamicTest.prototype.testArgument = function(
 	invalidInputs,
 	testedFunction
 ) {
-	var assertion =
+	const assertion =
 		this.customArgumentAssertion || this.standardInvalidArgumentAssertion;
-	var test = function(invalidInput, eachCb) {
+	const test = function(invalidInput, eachCb) {
 		this.testStyle(testedFunction, invalidInput.input, err => {
 			assertion(invalidInput, expectedType, err);
 			eachCb();
@@ -272,13 +272,13 @@ SchemaDynamicTest.prototype.testProperty = function(
 	validArgument,
 	property
 ) {
-	var assertion =
+	const assertion =
 		this.customPropertyAssertion || this.standardInvalidPropertyAssertion;
-	var test = function(invalidInput, eachCb) {
-		var malformedPart = {};
+	const test = function(invalidInput, eachCb) {
+		const malformedPart = {};
 		set(malformedPart, property, invalidInput.input);
 
-		var invalidArgument = assign({}, validArgument, malformedPart);
+		const invalidArgument = assign({}, validArgument, malformedPart);
 		this.testStyle(testedFunction, invalidArgument, err => {
 			assertion(invalidInput, expectedType, property, err);
 			eachCb();
@@ -306,18 +306,18 @@ SchemaDynamicTest.prototype.testRequired = function(
 	validArgument,
 	properties
 ) {
-	var assertion =
+	const assertion =
 		this.customRequiredPropertiesAssertion ||
 		this.standardMissingRequiredPropertiesAssertion;
-	var test = function(missingProperty, eachCb) {
-		var invalidArgument = assign({}, validArgument);
+	const test = function(missingProperty, eachCb) {
+		const invalidArgument = assign({}, validArgument);
 		delete invalidArgument[missingProperty.description];
 		this.testStyle(testedFunction, invalidArgument, err => {
 			assertion(missingProperty.description, err);
 			eachCb();
 		});
 	}.bind(this);
-	var missingFieldsDescriptions = properties.map(property => {
+	const missingFieldsDescriptions = properties.map(property => {
 		return { description: property };
 	});
 	this.carpetTesting(

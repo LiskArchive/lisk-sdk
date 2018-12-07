@@ -14,9 +14,9 @@
 
 'use strict';
 
-var childProcess = require('child_process');
-var fs = require('fs');
-var git = require('../../../helpers/git');
+const childProcess = require('child_process');
+const fs = require('fs');
+const git = require('../../../helpers/git');
 
 describe('git', () => {
 	afterEach(done => {
@@ -26,7 +26,7 @@ describe('git', () => {
 
 	describe('getLastCommit', () => {
 		describe('when "git rev-parse HEAD" command succeeds', () => {
-			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
+			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 
 			beforeEach(done => {
 				sinonSandbox
@@ -42,7 +42,7 @@ describe('git', () => {
 		});
 
 		describe('when "git rev-parse HEAD" command failed and a revision file found', () => {
-			var validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
+			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
 
 			beforeEach(done => {
 				sinonSandbox
@@ -63,18 +63,56 @@ describe('git', () => {
 		});
 
 		describe('when "git rev-parse HEAD" command failed and no revision file found', () => {
-			var validErrorMessage =
+			const validErrorMessage =
 				'Not a git repository and no revision file found.';
 
 			beforeEach(done => {
 				sinonSandbox
 					.stub(childProcess, 'spawnSync')
 					.returns({ stderr: validErrorMessage });
+				sinonSandbox.stub(fs, 'readFileSync').throws(Error);
 				done();
 			});
 
 			it('should throw an error', done => {
-				expect(git.getLastCommit).throws(Error, validErrorMessage);
+				expect(git.getLastCommit).throw(Error, validErrorMessage);
+				done();
+			});
+		});
+
+		describe('when git is not installed', () => {
+			const gitNotInstalledErr = 'Error: spawnSync git ENOEN';
+			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
+
+			beforeEach(done => {
+				sinonSandbox.stub(childProcess, 'spawnSync').throws(gitNotInstalledErr);
+				sinonSandbox.stub(fs, 'readFileSync').returns(validCommitHash);
+				done();
+			});
+
+			it('should return a commit hash', done => {
+				expect(git.getLastCommit()).equal(validCommitHash);
+				expect(childProcess.spawnSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledWith('REVISION');
+				done();
+			});
+		});
+
+		describe('when another error different than git is not installed', () => {
+			const validCommitHash = '99e5458d721f73623a6fc866f15cfe2e2b18edcd';
+
+			beforeEach(done => {
+				sinonSandbox.stub(childProcess, 'spawnSync').throws(Error);
+				sinonSandbox.stub(fs, 'readFileSync').returns(validCommitHash);
+				done();
+			});
+
+			it('should return a commit hash', done => {
+				expect(git.getLastCommit()).equal(validCommitHash);
+				expect(childProcess.spawnSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledOnce;
+				expect(fs.readFileSync).to.be.calledWith('REVISION');
 				done();
 			});
 		});

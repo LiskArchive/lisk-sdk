@@ -159,7 +159,7 @@ __private.list = function(filter, cb) {
 		return setImmediate(cb, sort.error);
 	}
 
-	library.db.blocks
+	return library.db.blocks
 		.list(
 			Object.assign(
 				{},
@@ -200,7 +200,7 @@ API.prototype.getBlocks = function(filters, cb) {
 		return setImmediate(cb, 'Blockchain is loading');
 	}
 
-	__private.list(filters, (err, data) => {
+	return __private.list(filters, (err, data) => {
 		if (err) {
 			return setImmediate(
 				cb,

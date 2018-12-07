@@ -14,7 +14,7 @@
 
 'use strict';
 
-var Promise = require('bluebird');
+const Promise = require('bluebird');
 
 /**
  * Description of the class.
@@ -26,9 +26,9 @@ var Promise = require('bluebird');
  * @todo Add description for the class and the return value
  */
 function PromiseDefer() {
-	var resolve;
-	var reject;
-	var promise = new Promise((__resolve, __reject) => {
+	let resolve;
+	let reject;
+	const promise = new Promise((__resolve, __reject) => {
 		resolve = __resolve;
 		reject = __reject;
 	});

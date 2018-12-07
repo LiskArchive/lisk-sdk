@@ -35,12 +35,12 @@ module.exports = function(configurations, network) {
 		const numberOfTransactions = 3;
 
 		const postSignatures = signature => {
-			const postSignatures = {
+			const signaturesToPost = {
 				signatures: [signature],
 			};
 			return Promise.all(
 				network.sockets.map(socket => {
-					return socket.emit('postSignatures', postSignatures);
+					return socket.emit('postSignatures', signaturesToPost);
 				})
 			);
 		};
@@ -126,7 +126,7 @@ module.exports = function(configurations, network) {
 			it('sending the required signatures in the keysgroup agreement', () => {
 				return Promise.all(
 					numbers.map(member => {
-						postSignatures(signatures[member][0]).then(() => {
+						return postSignatures(signatures[member][0]).then(() => {
 							return postSignatures(signatures[member][1]);
 						});
 					})

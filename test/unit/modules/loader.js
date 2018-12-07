@@ -14,69 +14,41 @@
 
 'use strict';
 
-var rewire = require('rewire');
-var modulesLoader = require('../../common/modules_loader');
-var swaggerHelper = require('../../../helpers/swagger');
+const rewire = require('rewire');
+const application = require('../../common/application');
 
 const { ACTIVE_DELEGATES } = __testContext.config.constants;
 
 describe('loader', () => {
-	var loaderModule;
-	var blocksModuleMock;
-	var loadBlockChainStub;
+	let library;
+	let __private;
+	let loader_module;
+	let blocks_module;
 
 	before(done => {
-		var loaderModuleRewired = rewire('../../../modules/loader');
-		blocksModuleMock = {
-			lastBlock: {
-				get() {},
-			},
-		};
-
-		swaggerHelper.getResolvedSwaggerSpec().then(resolvedSwaggerSpec => {
-			modulesLoader.initModule(
-				loaderModuleRewired,
-				_.assign({}, modulesLoader.scope, {
-					logic: {
-						transaction: sinonSandbox.mock(),
-						account: sinonSandbox.mock(),
-						peers: {
-							create: sinonSandbox.stub().returnsArg(0),
-						},
-					},
-				}),
-				(err, __loaderModule) => {
-					if (err) {
-						return done(err);
-					}
-					loaderModule = __loaderModule;
-					loadBlockChainStub = sinonSandbox.stub(
-						loaderModuleRewired.__get__('__private'),
-						'loadBlockChain'
-					);
-					loaderModule.onBind({
-						blocks: blocksModuleMock,
-						swagger: {
-							definitions: resolvedSwaggerSpec.definitions,
-						},
-					});
-					done();
-				}
-			);
-		});
+		application.init(
+			{ sandbox: { name: 'lisk_test_unit_module_loader' } },
+			(err, scope) => {
+				library = scope;
+				loader_module = library.modules.loader;
+				__private = library.rewiredModules.loader.__get__('__private');
+				blocks_module = library.modules.blocks;
+				done(err);
+			}
+		);
 	});
 
-	after(() => {
-		return loadBlockChainStub.restore();
+	after(done => {
+		application.cleanup(done);
 	});
 
 	describe('findGoodPeers', () => {
-		var HEIGHT_TWO = 2;
-		var getLastBlockStub;
+		const HEIGHT_TWO = 2;
+		let getLastBlockStub;
 
 		beforeEach(done => {
 			getLastBlockStub = sinonSandbox
-				.stub(blocksModuleMock.lastBlock, 'get')
+				.stub(library.modules.blocks.lastBlock, 'get')
 				.returns({ height: HEIGHT_TWO });
 			done();
 		});
@@ -86,7 +58,7 @@ describe('loader', () => {
 		});
 
 		it('should return peers list sorted by height', () => {
-			var peers = [
+			const peers = [
 				{
 					ip: '1.1.1.1',
 					wsPort: '4000',
@@ -109,7 +81,7 @@ describe('loader', () => {
 				},
 			];
 
-			var goodPeers = loaderModule.findGoodPeers(peers);
+			const goodPeers = loader_module.findGoodPeers(peers);
 			expect(goodPeers)
 				.to.have.property('height')
 				.equal(HEIGHT_TWO); // Good peers - above my height (above and equal 2)
@@ -148,14 +120,14 @@ describe('loader', () => {
 	});
 
 	describe('__private.createSnapshot', () => {
-		let __private;
-		let library;
+		let __privateVar;
+		let libraryVar;
 		let validScope;
 		let loggerStub;
 		let loadBlocksOffsetStub;
 		let resetMemTablesStub;
 		let deleteBlocksAfterHeightStub;
-		let rewiredLoader;
+		let RewiredLoader;
 
 		beforeEach(done => {
 			resetMemTablesStub = sinonSandbox.stub().callsArgWith(0, null, true);
@@ -208,11 +180,11 @@ describe('loader', () => {
 				swagger: { definitions: null },
 			};
 
-			rewiredLoader = rewire('../../../modules/loader.js');
-			__private = rewiredLoader.__get__('__private');
-			rewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
-			new rewiredLoader((err, __loader) => {
-				library = rewiredLoader.__get__('library');
+			RewiredLoader = rewire('../../../modules/loader.js');
+			__privateVar = RewiredLoader.__get__('__private');
+			RewiredLoader.__set__('__private.loadBlockChain', sinonSandbox.stub());
+			new RewiredLoader((__err, __loader) => {
+				libraryVar = RewiredLoader.__get__('library');
 				__loader.onBind(modulesStub);
 				done();
 			}, validScope);
@@ -220,7 +192,7 @@ describe('loader', () => {
 
 		it('should throw an error when called with height below active delegates count', done => {
 			try {
-				__private.createSnapshot(ACTIVE_DELEGATES - 1);
+				__privateVar.createSnapshot(ACTIVE_DELEGATES - 1);
 			} catch (err) {
 				expect(err).to.exist;
 				expect(err.message).to.eql(
@@ -232,32 +204,32 @@ describe('loader', () => {
 
 		it('should emit an event with proper error when resetMemTables fails', done => {
 			resetMemTablesStub.callsArgWith(0, 'resetMemTables#ERR', true);
-			__private.snapshotFinished = err => {
+			__privateVar.snapshotFinished = err => {
 				expect(err).to.eql('resetMemTables#ERR');
 				done();
 			};
 
-			__private.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when loadBlocksOffset fails', done => {
 			loadBlocksOffsetStub.callsArgWith(2, 'loadBlocksOffsetStub#ERR', true);
-			__private.snapshotFinished = err => {
+			__privateVar.snapshotFinished = err => {
 				expect(err).to.eql('loadBlocksOffsetStub#ERR');
 				done();
 			};
 
-			__private.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		it('should emit an event with proper error when deleteBlocksAfterHeight fails', done => {
 			deleteBlocksAfterHeightStub.rejects('deleteBlocksAfterHeightStub#ERR');
-			__private.snapshotFinished = err => {
+			__privateVar.snapshotFinished = err => {
 				expect(err.name).to.eql('deleteBlocksAfterHeightStub#ERR');
 				done();
 			};
 
-			__private.createSnapshot(ACTIVE_DELEGATES);
+			__privateVar.createSnapshot(ACTIVE_DELEGATES);
 		});
 
 		describe('should emit an event with no error', () => {
@@ -270,8 +242,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = 1;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = 1;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledWith(ACTIVE_DELEGATES, 1);
@@ -281,7 +253,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 1 when snapshotRound = 1 and 202 blocks available', done => {
@@ -289,8 +261,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = snapshotRound;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
@@ -301,7 +273,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 2 when snapshotRound = 2 and 202 blocks available', done => {
@@ -309,8 +281,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES * 2;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = snapshotRound;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
@@ -328,7 +300,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 2 when snapshotRound = 2 and 303 blocks available', done => {
@@ -336,8 +308,8 @@ describe('loader', () => {
 				blocksAvailable = ACTIVE_DELEGATES * 3;
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES * snapshotRound;
 
-				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				libraryVar.config.loading.snapshotRound = snapshotRound;
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledTwice;
@@ -355,7 +327,7 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
 			});
 
 			it('and snapshot to end of round 1 when snapshotRound = 2 and 101 blocks available', done => {
@@ -364,7 +336,7 @@ describe('loader', () => {
 				deleteBlocksAfterHeight = ACTIVE_DELEGATES;
 
 				library.config.loading.snapshotRound = snapshotRound;
-				__private.snapshotFinished = err => {
+				__privateVar.snapshotFinished = err => {
 					expect(err).to.not.exist;
 					expect(resetMemTablesStub).to.be.calledOnce;
 					expect(loadBlocksOffsetStub).to.be.calledOnce;
@@ -375,7 +347,293 @@ describe('loader', () => {
 					done();
 				};
 
-				__private.createSnapshot(blocksAvailable);
+				__privateVar.createSnapshot(blocksAvailable);
+			});
+		});
+	});
+
+	describe('__private.loadBlocksFromNetwork', () => {
+		let getRandomPeerFromNetworkStub;
+		let getCommonBlockStub;
+		let loadBlocksFromPeerStub;
+		let getLastBlockStub;
+
+		beforeEach(done => {
+			getRandomPeerFromNetworkStub = sinonSandbox.stub(
+				loader_module,
+				'getRandomPeerFromNetwork'
+			);
+			getLastBlockStub = sinonSandbox.stub(
+				library.modules.blocks.lastBlock,
+				'get'
+			);
+			getCommonBlockStub = sinonSandbox.stub(
+				blocks_module.process,
+				'getCommonBlock'
+			);
+			loadBlocksFromPeerStub = sinonSandbox.stub(
+				blocks_module.process,
+				'loadBlocksFromPeer'
+			);
+			done();
+		});
+
+		afterEach(() => {
+			return sinonSandbox.restore();
+		});
+
+		describe('when getRandomPeerFromNetwork fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Failed to get random peer from network'
+				);
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					expect(getLastBlockStub).to.not.be.called;
+					expect(getCommonBlockStub).to.not.be.called;
+					expect(loadBlocksFromPeerStub).to.not.be.called;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when getCommonBlock fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({ height: 1 });
+				getCommonBlockStub.callsArgWith(2, 'Error in getCommonBlock');
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					sinonSandbox.assert.callCount(getLastBlockStub, 5);
+					expect(__private.blocksToSync).to.equal(peer.height);
+					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
+					expect(loadBlocksFromPeerStub).to.not.be.called;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when no common block found', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({
+					height: 4,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, undefined);
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					sinonSandbox.assert.callCount(getLastBlockStub, 5);
+					expect(__private.blocksToSync).to.equal(peer.height);
+					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
+					expect(loadBlocksFromPeerStub).to.not.be.called;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when height is 0 (Genesis block)', () => {
+			it('should not call getCommonBlock', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 2,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub
+					.onFirstCall()
+					.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Error after first called'
+				);
+				getLastBlockStub.returns({
+					height: 1,
+				});
+				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 6);
+					expect(getLastBlockStub).to.be.calledOnce;
+					expect(__private.blocksToSync).to.equal(peer.height);
+					expect(getCommonBlockStub).to.be.not.called;
+					expect(loadBlocksFromPeerStub).to.be.calledOnce;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when loadBlocksFromPeerStub fails', () => {
+			it('should call callback with error = null after 5 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 3,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub.callsArgWith(0, undefined, peer);
+				getLastBlockStub.returns({
+					height: 2,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, 1);
+				loadBlocksFromPeerStub.callsArgWith(
+					1,
+					'Failed to load blocks with peer'
+				);
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 5);
+					sinonSandbox.assert.callCount(getLastBlockStub, 5);
+					expect(__private.blocksToSync).to.equal(peer.height);
+					sinonSandbox.assert.callCount(getCommonBlockStub, 5);
+					sinonSandbox.assert.callCount(loadBlocksFromPeerStub, 5);
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when getCommonBlock starts failing after the first call', () => {
+			it('should call callback with error = null after 6 tries', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 3,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub
+					.onFirstCall()
+					.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Error after first called'
+				);
+				getLastBlockStub.returns({
+					height: 2,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, 1);
+				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 6);
+					expect(getLastBlockStub).to.be.calledOnce;
+					expect(__private.blocksToSync).to.equal(peer.height);
+					expect(getCommonBlockStub).to.be.calledOnce;
+					expect(loadBlocksFromPeerStub).to.be.calledOnce;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+
+		describe('when a batch of blocks is sucessfully loaded', () => {
+			it('should reset counter of failed attemps to load', () => {
+				const peer = {
+					ip: '2.2.2.2',
+					wsPort: '4000',
+					height: 3,
+					string: '2.2.2.2:4000',
+				};
+
+				getRandomPeerFromNetworkStub
+					.onFirstCall()
+					.callsArgWith(0, 'Error after first called');
+				getRandomPeerFromNetworkStub
+					.onSecondCall()
+					.callsArgWith(0, undefined, peer);
+				getRandomPeerFromNetworkStub.callsArgWith(
+					0,
+					'Error after first called'
+				);
+				getLastBlockStub.returns({
+					height: 2,
+				});
+				getCommonBlockStub.callsArgWith(2, undefined, 1);
+				loadBlocksFromPeerStub.callsArgWith(1, undefined, { id: 1 });
+
+				return __private.loadBlocksFromNetwork(err => {
+					sinonSandbox.assert.callCount(getRandomPeerFromNetworkStub, 7);
+					expect(getLastBlockStub).to.be.calledOnce;
+					expect(__private.blocksToSync).to.equal(peer.height);
+					expect(getCommonBlockStub).to.be.calledOnce;
+					expect(loadBlocksFromPeerStub).to.be.calledOnce;
+					expect(err).to.be.undefined;
+				});
+			});
+		});
+	});
+
+	describe('__private.getRandomPeerFromNetwork', () => {
+		let listRandomConnectedStub;
+		let findGoodPeersSpy;
+
+		beforeEach(done => {
+			listRandomConnectedStub = sinonSandbox.stub(
+				library.logic.peers,
+				'listRandomConnected'
+			);
+			findGoodPeersSpy = sinonSandbox.spy(loader_module, 'findGoodPeers');
+			done();
+		});
+
+		afterEach(() => {
+			return sinonSandbox.restore();
+		});
+
+		describe('when there are good peers', () => {
+			it('should call callback with error = null and result = random peer', () => {
+				const peers = [
+					{
+						ip: '2.2.2.2',
+						wsPort: '4000',
+						height: 2,
+					},
+				];
+				listRandomConnectedStub.returns(peers);
+
+				return loader_module.getRandomPeerFromNetwork((err, peer) => {
+					expect(listRandomConnectedStub).to.be.calledOnce;
+					expect(findGoodPeersSpy).to.be.calledOnce;
+					expect(err).to.be.null;
+					expect(peer).to.nested.include(peers[0]);
+				});
+			});
+		});
+
+		describe('when there are no good peers', () => {
+			it('should call callback with error = "Failed to find enough good peers"', () => {
+				const peers = [
+					{
+						ip: '2.2.2.2',
+						wsPort: '4000',
+						height: 0,
+					},
+				];
+
+				listRandomConnectedStub.returns(peers);
+
+				return loader_module.getRandomPeerFromNetwork(err => {
+					expect(listRandomConnectedStub).to.be.calledOnce;
+					expect(findGoodPeersSpy).to.be.calledOnce;
+					expect(err).to.equal('Failed to find enough good peers');
+				});
 			});
 		});
 	});

@@ -15,7 +15,6 @@
 'use strict';
 
 const async = require('async');
-const extend = require('extend');
 const _ = require('lodash');
 const jobsQueue = require('../helpers/jobs_queue.js');
 
@@ -34,7 +33,6 @@ const __private = {};
  * @class
  * @memberof logic
  * @see Parent: {@link logic}
- * @requires extend
  * @requires lodash
  * @requires helpers/jobs_queue
  * @param {Object} broadcasts
@@ -142,6 +140,7 @@ class Broadcaster {
 				if (cb) {
 					return setImmediate(cb, err, { peers });
 				}
+				return true;
 			}
 		);
 	}
@@ -312,7 +311,7 @@ __private.releaseQueue = function(cb) {
 		return setImmediate(cb);
 	}
 
-	async.waterfall(
+	return async.waterfall(
 		[
 			function filterQueue(waterCb) {
 				return __private.filterQueue(waterCb);
@@ -326,12 +325,12 @@ __private.releaseQueue = function(cb) {
 					setImmediate(waterCb, err, broadcasts, peers)
 				);
 			},
-			function broadcast(broadcasts, peers, waterCb) {
+			function broadcasting(broadcasts, peers, waterCb) {
 				async.eachSeries(
 					broadcasts,
 					(broadcast, eachSeriesCb) => {
 						self.broadcast(
-							extend({ peers }, broadcast.params),
+							Object.assign({ peers }, broadcast.params),
 							broadcast.options,
 							eachSeriesCb
 						);

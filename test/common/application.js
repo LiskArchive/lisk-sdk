@@ -15,19 +15,19 @@
 'use strict';
 
 // Global imports
-var dns = require('dns');
-var net = require('net');
-var Promise = require('bluebird');
-var rewire = require('rewire');
-var async = require('async');
-var dbRepos = require('../../db/repos');
-var httpApi = require('../../helpers/http_api');
-var jobsQueue = require('../../helpers/jobs_queue');
-var Sequence = require('../../helpers/sequence');
-var DBSandbox = require('./db_sandbox').DBSandbox;
+const dns = require('dns');
+const net = require('net');
+const Promise = require('bluebird');
+const rewire = require('rewire');
+const async = require('async');
+const dbRepos = require('../../db/repos');
+const httpApi = require('../../helpers/http_api');
+const jobsQueue = require('../../helpers/jobs_queue');
+const Sequence = require('../../helpers/sequence');
+const DBSandbox = require('./db_sandbox').DBSandbox;
 
-var dbSandbox;
-var currentAppScope;
+let dbSandbox;
+let currentAppScope;
 
 function init(options, cb) {
 	options = options || {};
@@ -56,11 +56,11 @@ function __init(initScope, done) {
 	);
 
 	jobsQueue.jobs = {};
-	var modules = [];
-	var rewiredModules = {};
-	var pgp;
+	const modules = [];
+	const rewiredModules = {};
+	let pgp;
 	// Init dummy connection with database - valid, used for tests here
-	var options = {
+	const options = {
 		capSQL: true,
 		promiseLib: Promise,
 
@@ -73,7 +73,7 @@ function __init(initScope, done) {
 		},
 		receive: (/* data, result, e */) => {},
 	};
-	var db = initScope.db;
+	let db = initScope.db;
 	if (!db) {
 		pgp = require('pg-promise')(options);
 		__testContext.config.db.user =
@@ -95,7 +95,7 @@ function __init(initScope, done) {
 			]);
 		})
 		.then(() => {
-			var logger = initScope.logger || {
+			const logger = initScope.logger || {
 				trace: sinonSandbox.spy(),
 				debug: sinonSandbox.spy(),
 				info: sinonSandbox.spy(),
@@ -104,7 +104,7 @@ function __init(initScope, done) {
 				error: sinonSandbox.spy(),
 			};
 
-			var modulesInit = {
+			const modulesInit = {
 				accounts: '../../modules/accounts.js',
 				blocks: '../../modules/blocks.js',
 				cache: '../../modules/cache.js',
@@ -127,14 +127,14 @@ function __init(initScope, done) {
 				{
 					config(cb) {
 						// In case domain names are used, resolve those to IP addresses.
-						var peerDomainLookupTasks = __testContext.config.peers.list.map(
+						const peerDomainLookupTasks = __testContext.config.peers.list.map(
 							peer => callback => {
 								if (net.isIPv4(peer.ip)) {
 									return setImmediate(() => {
 										callback(null, peer);
 									});
 								}
-								dns.lookup(peer.ip, { family: 4 }, (err, address) => {
+								return dns.lookup(peer.ip, { family: 4 }, (err, address) => {
 									if (err) {
 										console.error(
 											`Failed to resolve peer domain name ${
@@ -143,7 +143,10 @@ function __init(initScope, done) {
 										);
 										return callback(err, peer);
 									}
-									callback(null, Object.assign({}, peer, { ip: address }));
+									return callback(
+										null,
+										Object.assign({}, peer, { ip: address })
+									);
 								});
 							}
 						);
@@ -162,8 +165,8 @@ function __init(initScope, done) {
 					},
 
 					schema(cb) {
-						var z_schema = require('../../helpers/z_schema.js');
-						cb(null, new z_schema());
+						const Z_schema = require('../../helpers/z_schema.js');
+						cb(null, new Z_schema());
 					},
 					network(cb) {
 						// Init with empty function
@@ -173,7 +176,7 @@ function __init(initScope, done) {
 						});
 					},
 					cache(cb) {
-						var cache = require('../../helpers/cache.js');
+						const cache = require('../../helpers/cache.js');
 						cache.connect(
 							__testContext.config.cacheEnabled,
 							__testContext.config.redis,
@@ -187,14 +190,14 @@ function __init(initScope, done) {
 						'network',
 						function(scope, cb) {
 							// Init with empty functions
-							var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+							const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-							var dummySocketCluster = { on() {} };
-							var dummyWAMPServer = new MasterWAMPServer(
+							const dummySocketCluster = { on() {} };
+							const dummyWAMPServer = new MasterWAMPServer(
 								dummySocketCluster,
 								{}
 							);
-							var wsRPC = require('../../api/ws/rpc/ws_rpc.js').wsRPC;
+							const wsRPC = require('../../api/ws/rpc/ws_rpc.js').wsRPC;
 
 							wsRPC.setServer(dummyWAMPServer);
 							wsRPC.clientsConnectionsMap = {};
@@ -208,7 +211,7 @@ function __init(initScope, done) {
 					sequence: [
 						'logger',
 						function(scope, cb) {
-							var sequence = new Sequence({
+							const sequence = new Sequence({
 								onWarning(current) {
 									scope.logger.warn('Main queue', current);
 								},
@@ -219,7 +222,7 @@ function __init(initScope, done) {
 					balancesSequence: [
 						'logger',
 						function(scope, cb) {
-							var sequence = new Sequence({
+							const sequence = new Sequence({
 								onWarning(current) {
 									scope.logger.warn('Balance queue', current);
 								},
@@ -250,16 +253,16 @@ function __init(initScope, done) {
 					bus: [
 						'ed',
 						function(scope, cb) {
-							var changeCase = require('change-case');
+							const changeCase = require('change-case');
 
-							var bus =
+							const bus =
 								initScope.bus ||
 								new function() {
 									this.message = function() {
-										var args = [];
+										const args = [];
 										Array.prototype.push.apply(args, arguments);
-										var topic = args.shift();
-										var eventName = `on${changeCase.pascalCase(topic)}`;
+										const topic = args.shift();
+										const eventName = `on${changeCase.pascalCase(topic)}`;
 
 										// Iterate over modules and execute event functions (on*)
 										modules.forEach(module => {
@@ -297,17 +300,17 @@ function __init(initScope, done) {
 						'bus',
 						'logger',
 						function(scope, cb) {
-							var wsRPC = require('../../api/ws/rpc/ws_rpc').wsRPC;
-							var transport = require('../../api/ws/transport');
-							var MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
+							const wsRPC = require('../../api/ws/rpc/ws_rpc').wsRPC;
+							const transport = require('../../api/ws/transport');
+							const MasterWAMPServer = require('wamp-socket-cluster/MasterWAMPServer');
 
-							var socketClusterMock = {
+							const socketClusterMock = {
 								on: sinonSandbox.spy(),
 							};
 							wsRPC.setServer(new MasterWAMPServer(socketClusterMock));
 
 							// Register RPC
-							var transportModuleMock = { internal: {}, shared: {} };
+							const transportModuleMock = { internal: {}, shared: {} };
 							transport(transportModuleMock);
 							cb();
 						},
@@ -319,34 +322,34 @@ function __init(initScope, done) {
 						'network',
 						'genesisBlock',
 						function(scope, cb) {
-							var Transaction = require('../../logic/transaction.js');
-							var Block = require('../../logic/block.js');
-							var Multisignature = require('../../logic/multisignature.js');
-							var Account = require('../../logic/account.js');
-							var Peers = require('../../logic/peers.js');
+							const Transaction = require('../../logic/transaction.js');
+							const Block = require('../../logic/block.js');
+							const Multisignature = require('../../logic/multisignature.js');
+							const Account = require('../../logic/account.js');
+							const Peers = require('../../logic/peers.js');
 
 							async.auto(
 								{
-									bus(cb) {
-										cb(null, scope.bus);
+									bus(busCb) {
+										busCb(null, scope.bus);
 									},
-									config(cb) {
-										cb(null, scope.config);
+									config(configCb) {
+										configCb(null, scope.config);
 									},
-									db(cb) {
-										cb(null, scope.db);
+									db(dbCb) {
+										dbCb(null, scope.db);
 									},
-									ed(cb) {
-										cb(null, scope.ed);
+									ed(edCb) {
+										edCb(null, scope.ed);
 									},
-									logger(cb) {
-										cb(null, scope.logger);
+									logger(loggerCb) {
+										loggerCb(null, scope.logger);
 									},
-									schema(cb) {
-										cb(null, scope.schema);
+									schema(schemaCb) {
+										schemaCb(null, scope.schema);
 									},
-									genesisBlock(cb) {
-										cb(null, scope.genesisBlock);
+									genesisBlock(genesisBlockCb) {
+										genesisBlockCb(null, scope.genesisBlock);
 									},
 									account: [
 										'db',
@@ -355,8 +358,13 @@ function __init(initScope, done) {
 										'schema',
 										'genesisBlock',
 										'logger',
-										function(scope, cb) {
-											new Account(scope.db, scope.schema, scope.logger, cb);
+										function(accountScope, accountCb) {
+											new Account(
+												accountScope.db,
+												accountScope.schema,
+												accountScope.logger,
+												accountCb
+											);
 										},
 									],
 									transaction: [
@@ -367,15 +375,15 @@ function __init(initScope, done) {
 										'genesisBlock',
 										'account',
 										'logger',
-										function(scope, cb) {
+										function(transactionScope, transactionCb) {
 											new Transaction(
-												scope.db,
-												scope.ed,
-												scope.schema,
-												scope.genesisBlock,
-												scope.account,
-												scope.logger,
-												cb
+												transactionScope.db,
+												transactionScope.ed,
+												transactionScope.schema,
+												transactionScope.genesisBlock,
+												transactionScope.account,
+												transactionScope.logger,
+												transactionCb
 											);
 										},
 									],
@@ -387,29 +395,34 @@ function __init(initScope, done) {
 										'genesisBlock',
 										'account',
 										'transaction',
-										function(scope, cb) {
-											new Block(scope.ed, scope.schema, scope.transaction, cb);
+										function(blockScope, blockCb) {
+											new Block(
+												blockScope.ed,
+												blockScope.schema,
+												blockScope.transaction,
+												blockCb
+											);
 										},
 									],
 									peers: [
 										'logger',
 										'config',
-										function(scope, cb) {
-											new Peers(scope.logger, scope.config, cb);
+										function(peersScope, peerscb) {
+											new Peers(peersScope.logger, peersScope.config, peerscb);
 										},
 									],
 									multisignature: [
 										'schema',
 										'transaction',
 										'logger',
-										function(scope, cb) {
-											cb(
+										function(multisignatureScope, multisignaturecb) {
+											multisignaturecb(
 												null,
 												new Multisignature(
-													scope.schema,
-													scope.network,
-													scope.transaction,
-													scope.logger
+													multisignatureScope.schema,
+													multisignatureScope.network,
+													multisignatureScope.transaction,
+													multisignatureScope.logger
 												)
 											);
 										},
@@ -431,14 +444,14 @@ function __init(initScope, done) {
 						'rpc',
 						'cache',
 						function(scope, cb) {
-							var tasks = {};
+							const tasks = {};
 							scope.rewiredModules = {};
 
 							Object.keys(modulesInit).forEach(name => {
-								tasks[name] = function(cb) {
-									var Instance = rewire(modulesInit[name]);
+								tasks[name] = function(tasksCb) {
+									const Instance = rewire(modulesInit[name]);
 									rewiredModules[name] = Instance;
-									var obj = new rewiredModules[name](cb, scope);
+									const obj = new rewiredModules[name](tasksCb, scope);
 									modules.push(obj);
 								};
 							});
@@ -486,14 +499,14 @@ function __init(initScope, done) {
 						);
 						__testContext.debug('initApplication: Loading delegates...');
 
-						var loadDelegates = scope.rewiredModules.delegates.__get__(
+						const loadDelegates = scope.rewiredModules.delegates.__get__(
 							'__private.loadDelegates'
 						);
-						loadDelegates(err => {
-							var keypairs = scope.rewiredModules.delegates.__get__(
+						loadDelegates(loadDelegatesErr => {
+							const keypairs = scope.rewiredModules.delegates.__get__(
 								'__private.keypairs'
 							);
-							var delegates_cnt = Object.keys(keypairs).length;
+							const delegates_cnt = Object.keys(keypairs).length;
 							expect(delegates_cnt).to.equal(
 								__testContext.config.forging.delegates.length
 							);
@@ -504,10 +517,14 @@ function __init(initScope, done) {
 							__testContext.debug('initApplication: Done');
 
 							if (initScope.waitForGenesisBlock) {
-								return done(err, scope);
+								return done(loadDelegatesErr, scope);
 							}
+
+							return null;
 						});
 					};
+
+					return null;
 				}
 			);
 		});
@@ -518,10 +535,9 @@ function cleanup(done) {
 		currentAppScope.modules,
 		(module, cb) => {
 			if (typeof module.cleanup === 'function') {
-				module.cleanup(cb);
-			} else {
-				cb();
+				return module.cleanup(cb);
 			}
+			return cb();
 		},
 		err => {
 			if (err) {

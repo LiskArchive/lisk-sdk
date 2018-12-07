@@ -14,31 +14,31 @@
 
 'use strict';
 
-var lisk = require('lisk-elements').default;
-var accountFixtures = require('../../../fixtures/accounts');
-var randomUtil = require('../../../common/utils/random');
-var transactionTypes = require('../../../../helpers/transaction_types.js');
-var localCommon = require('../../common');
+const lisk = require('lisk-elements').default;
+const accountFixtures = require('../../../fixtures/accounts');
+const randomUtil = require('../../../common/utils/random');
+const transactionTypes = require('../../../../helpers/transaction_types.js');
+const localCommon = require('../../common');
 
 const { NORMALIZER } = global.constants;
 
 describe('system test (type 1) - sending transactions on top of unconfirmed second signature', () => {
-	var library;
+	let library;
 
-	var account = randomUtil.account();
-	var transaction = lisk.transaction.transfer({
+	const account = randomUtil.account();
+	const transaction = lisk.transaction.transfer({
 		amount: 1000 * NORMALIZER,
 		passphrase: accountFixtures.genesis.passphrase,
 		recipientId: account.address,
 	});
-	var dapp = randomUtil.application();
-	var dappTransaction = lisk.transaction.createDapp({
+	const dapp = randomUtil.application();
+	const dappTransaction = lisk.transaction.createDapp({
 		passphrase: account.passphrase,
 		options: dapp,
 	});
 	dapp.id = dappTransaction.id;
-	var transactionWith;
-	var transactionSecondSignature = lisk.transaction.registerSecondPassphrase({
+	let transactionWith;
+	const transactionSecondSignature = lisk.transaction.registerSecondPassphrase({
 		passphrase: account.passphrase,
 		secondPassphrase: account.secondPassphrase,
 	});
@@ -105,8 +105,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 							account,
 							dapp,
 							null,
-							transaction => {
-								localCommon.addTransaction(library, transaction, err => {
+							loadedTransaction => {
+								localCommon.addTransaction(library, loadedTransaction, err => {
 									expect(err).to.equal(
 										'Sender does not have a second signature'
 									);
@@ -116,6 +116,8 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 						);
 					});
 				}
+
+				return true;
 			});
 		});
 
@@ -123,22 +125,27 @@ describe('system test (type 1) - sending transactions on top of unconfirmed seco
 			Object.keys(transactionTypes).forEach((key, index) => {
 				if (key === 'IN_TRANSFER' || key === 'OUT_TRANSFER') {
 					return true;
-				} else if (key != 'SIGNATURE') {
+				} else if (key !== 'SIGNATURE') {
 					it(`type ${index}: ${key} should be ok`, done => {
 						localCommon.loadTransactionType(
 							key,
 							account,
 							dapp,
 							true,
-							transaction => {
-								localCommon.addTransaction(library, transaction, (err, res) => {
-									expect(res).to.equal(transaction.id);
-									done();
-								});
+							loadedTransaction => {
+								localCommon.addTransaction(
+									library,
+									loadedTransaction,
+									(err, res) => {
+										expect(res).to.equal(loadedTransaction.id);
+										done();
+									}
+								);
 							}
 						);
 					});
 				}
+				return true;
 			});
 		});
 	});

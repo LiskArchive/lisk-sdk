@@ -163,12 +163,18 @@ __private.receiveSignature = function(query, cb) {
 			return setImmediate(cb, `Invalid signature body ${err[0].message}`);
 		}
 
-		modules.multisignatures.processSignature(query, err => {
-			if (err) {
-				return setImmediate(cb, `Error processing signature: ${err.message}`);
+		return modules.multisignatures.processSignature(
+			query,
+			processSignatureErr => {
+				if (processSignatureErr) {
+					return setImmediate(
+						cb,
+						`Error processing signature: ${processSignatureErr.message}`
+					);
+				}
+				return setImmediate(cb);
 			}
-			return setImmediate(cb);
-		});
+		);
 	});
 };
 
@@ -241,7 +247,7 @@ __private.receiveTransaction = function(
 		return setImmediate(cb, 'Multisig request is not allowed');
 	}
 
-	library.balancesSequence.add(balancesSequenceCb => {
+	return library.balancesSequence.add(balancesSequenceCb => {
 		if (!nonce) {
 			library.logger.debug(
 				`Received transaction ${transaction.id} from public client`
@@ -384,7 +390,7 @@ Transport.prototype.broadcastHeaders = cb => {
 	);
 
 	// Execute remote procedure updateMyself for every peer
-	async.each(
+	return async.each(
 		peers,
 		(peer, eachCb) => {
 			peer.rpc.updateMyself(library.logic.peers.me(), err => {
@@ -419,13 +425,15 @@ Transport.prototype.onBroadcastBlock = function(block, broadcast) {
 
 	// Check if we are free to broadcast
 	if (__private.broadcaster.maxRelays(block)) {
-		return library.logger.debug(
+		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - max block relays exhausted'
 		);
+		return;
 	} else if (modules.loader.syncing()) {
-		return library.logger.debug(
+		library.logger.debug(
 			'Transport->onBroadcastBlock: Aborted - blockchain synchronization in progress'
 		);
+		return;
 	}
 
 	if (block.totalAmount) {
@@ -526,11 +534,11 @@ Transport.prototype.shared = {
 					return setImmediate(cb, 'Invalid block id sequence');
 				}
 
-				library.db.blocks
+				return library.db.blocks
 					.getBlockForTransport(escapedIds[0])
 					.then(row => setImmediate(cb, null, { success: true, common: row }))
-					.catch(err => {
-						library.logger.error(err.stack);
+					.catch(getBlockForTransportErr => {
+						library.logger.error(getBlockForTransportErr.stack);
 						return setImmediate(cb, 'Failed to get common block');
 					});
 			}
@@ -590,32 +598,36 @@ Transport.prototype.shared = {
 			);
 		}
 		query = query || {};
-		library.schema.validate(query, definitions.WSBlocksBroadcast, err => {
-			if (err) {
-				return library.logger.debug(
-					'Received post block broadcast request in unexpected format',
-					{
-						err,
+		return library.schema.validate(
+			query,
+			definitions.WSBlocksBroadcast,
+			err => {
+				if (err) {
+					return library.logger.debug(
+						'Received post block broadcast request in unexpected format',
+						{
+							err,
+							module: 'transport',
+							query,
+						}
+					);
+				}
+				let block;
+				try {
+					block = modules.blocks.verify.addBlockProperties(query.block);
+					block = library.logic.block.objectNormalize(block);
+				} catch (e) {
+					library.logger.debug('Block normalization failed', {
+						err: e.toString(),
 						module: 'transport',
-						query,
-					}
-				);
-			}
-			let block;
-			try {
-				block = modules.blocks.verify.addBlockProperties(query.block);
-				block = library.logic.block.objectNormalize(block);
-			} catch (e) {
-				library.logger.debug('Block normalization failed', {
-					err: e.toString(),
-					module: 'transport',
-					block: query.block,
-				});
+						block: query.block,
+					});
 
-				__private.removePeer({ nonce: query.nonce, code: 'EBLOCK' });
+					__private.removePeer({ nonce: query.nonce, code: 'EBLOCK' });
+				}
+				return library.bus.message('receiveBlock', block);
 			}
-			library.bus.message('receiveBlock', block);
-		});
+		);
 	},
 
 	/**
@@ -702,11 +714,11 @@ Transport.prototype.shared = {
 				'Receiving signatures disabled by user through config.json'
 			);
 		}
-		library.schema.validate(query, definitions.WSSignaturesList, err => {
+		return library.schema.validate(query, definitions.WSSignaturesList, err => {
 			if (err) {
 				return library.logger.debug('Invalid signatures body', err);
 			}
-			__private.receiveSignatures(query.signatures);
+			return __private.receiveSignatures(query.signatures);
 		});
 	},
 
@@ -794,16 +806,20 @@ Transport.prototype.shared = {
 				'Receiving transactions disabled by user through config.json'
 			);
 		}
-		library.schema.validate(query, definitions.WSTransactionsRequest, err => {
-			if (err) {
-				return library.logger.debug('Invalid transactions body', err);
+		return library.schema.validate(
+			query,
+			definitions.WSTransactionsRequest,
+			err => {
+				if (err) {
+					return library.logger.debug('Invalid transactions body', err);
+				}
+				return __private.receiveTransactions(
+					query.transactions,
+					query.nonce,
+					query.extraLogMessage
+				);
 			}
-			__private.receiveTransactions(
-				query.transactions,
-				query.nonce,
-				query.extraLogMessage
-			);
-		});
+		);
 	},
 };
 

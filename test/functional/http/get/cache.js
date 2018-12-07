@@ -15,20 +15,20 @@
 'use strict';
 
 require('../../functional.js');
-var Promise = require('bluebird');
-var swaggerEndpoint = require('../../../common/swagger_spec');
-var accountFixtures = require('../../../fixtures/accounts');
-var modulesLoader = require('../../../common/modules_loader');
-var apiHelpers = require('../../../common/helpers/api');
-var waitFor = require('../../../common/utils/wait_for');
+const Promise = require('bluebird');
+const SwaggerEndpoint = require('../../../common/swagger_spec');
+const accountFixtures = require('../../../fixtures/accounts');
+const modulesLoader = require('../../../common/modules_loader');
+const apiHelpers = require('../../../common/helpers/api');
+const waitFor = require('../../../common/utils/wait_for');
 
-var waitForBlocksPromise = Promise.promisify(waitFor.blocks);
-var onNewRoundPromise = Promise.promisify(waitFor.newRound);
-var expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
+const waitForBlocksPromise = Promise.promisify(waitFor.blocks);
+const onNewRoundPromise = Promise.promisify(waitFor.newRound);
+const expectSwaggerParamError = apiHelpers.expectSwaggerParamError;
 
 describe('cached endpoints', () => {
-	var cache;
-	var getJsonForKeyPromise;
+	let cache;
+	let getJsonForKeyPromise;
 
 	before(done => {
 		__testContext.config.cacheEnabled = true;
@@ -55,10 +55,10 @@ describe('cached endpoints', () => {
 
 	describe('@sequential tests', () => {
 		describe('GET /transactions', () => {
-			var transactionsEndpoint = new swaggerEndpoint('GET /transactions');
+			const transactionsEndpoint = new SwaggerEndpoint('GET /transactions');
 
 			it('cache transactions by the url and parameters when response is a success', () => {
-				var params = {
+				const params = {
 					senderId: accountFixtures.genesis.address,
 				};
 
@@ -76,7 +76,7 @@ describe('cached endpoints', () => {
 			});
 
 			it('should not cache if response is not a success', () => {
-				var params = {
+				const params = {
 					whateversenderId: accountFixtures.genesis.address,
 				};
 
@@ -94,13 +94,13 @@ describe('cached endpoints', () => {
 		});
 
 		describe('GET /blocks', () => {
-			var blocksEndpoint = new swaggerEndpoint('GET /blocks');
+			const blocksEndpoint = new SwaggerEndpoint('GET /blocks');
 
 			it('cache blocks by the url and parameters when response is a success', () => {
-				var params = {
+				const params = {
 					height: '1',
 				};
-				var initialResponse = null;
+				let initialResponse = null;
 
 				return blocksEndpoint
 					.makeRequest(params, 200)
@@ -132,11 +132,11 @@ describe('cached endpoints', () => {
 			});
 
 			it('should remove entry from cache on new block', () => {
-				var params = {
+				const params = {
 					height: 1,
 				};
 
-				var initialResponse = null;
+				let initialResponse = null;
 
 				return blocksEndpoint
 					.makeRequest(params, 200)
@@ -154,7 +154,7 @@ describe('cached endpoints', () => {
 						expect(responses).to.deep.include(initialResponse.body);
 					})
 					.then(() => {
-						return waitForBlocksPromise(1);
+						return waitForBlocksPromise(1, null);
 					})
 					.then(() => {
 						return getJsonForKeyPromise(initialResponse.req.path);
@@ -166,7 +166,7 @@ describe('cached endpoints', () => {
 		});
 
 		describe('GET /delegates', () => {
-			var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
+			const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 
 			it('should cache delegates when response is successful', () => {
 				return delegatesEndpoint.makeRequest({}, 200).then(res => {
@@ -183,7 +183,7 @@ describe('cached endpoints', () => {
 			});
 
 			it('should not cache delegates when response is unsuccessful', () => {
-				var params = {
+				const params = {
 					sort: 'invalidValue',
 				};
 
@@ -198,13 +198,13 @@ describe('cached endpoints', () => {
 
 	describe('@slow tests', () => {
 		describe('GET /delegates', () => {
-			var delegatesEndpoint = new swaggerEndpoint('GET /delegates');
+			const delegatesEndpoint = new SwaggerEndpoint('GET /delegates');
 
 			it('should flush cache on the next round @slow', () => {
-				var params = {
+				const params = {
 					username: 'genesis_90',
 				};
-				var urlPath;
+				let urlPath;
 
 				return delegatesEndpoint.makeRequest(params, 200).then(res => {
 					urlPath = res.req.path;
@@ -217,7 +217,7 @@ describe('cached endpoints', () => {
 						})
 					).then(responses => {
 						expect(responses).to.deep.include(res.body);
-						return onNewRoundPromise().then(() => {
+						return onNewRoundPromise(null).then(() => {
 							return getJsonForKeyPromise(urlPath).then(result => {
 								expect(result).to.not.exist;
 							});

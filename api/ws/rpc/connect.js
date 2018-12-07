@@ -45,20 +45,19 @@ const connectSteps = {
 	addConnectionOptions: peer => {
 		const systemHeaders = System.getHeaders();
 		const queryParams = {};
-
-		if (systemHeaders.version != null) {
+		if (systemHeaders.version) {
 			queryParams.version = systemHeaders.version;
 		}
-		if (systemHeaders.wsPort != null) {
+		if (systemHeaders.wsPort) {
 			queryParams.wsPort = systemHeaders.wsPort;
 		}
-		if (systemHeaders.httpPort != null) {
+		if (systemHeaders.httpPort) {
 			queryParams.httpPort = systemHeaders.httpPort;
 		}
-		if (systemHeaders.nethash != null) {
+		if (systemHeaders.nethash) {
 			queryParams.nethash = systemHeaders.nethash;
 		}
-		if (systemHeaders.nonce != null) {
+		if (systemHeaders.nonce) {
 			queryParams.nonce = systemHeaders.nonce;
 		}
 		peer.connectionOptions = {
@@ -125,11 +124,16 @@ const connectSteps = {
 			(peerExtendedWithRPC, localHandler, rpcProcedureName) => {
 				peerExtendedWithRPC.rpc[rpcProcedureName] = (data, rpcCallback) => {
 					// Provide default parameters if called with non standard parameter, callback
-					rpcCallback =
-						typeof rpcCallback === 'function'
-							? rpcCallback
-							: typeof data === 'function' ? data : () => {};
-					data = data && typeof data !== 'function' ? data : {};
+					if (typeof rpcCallback !== 'function') {
+						rpcCallback = () => {};
+					}
+					if (typeof data === 'function') {
+						rpcCallback = data;
+						data = {};
+					}
+					if (!data) {
+						data = {};
+					}
 
 					logger.trace(
 						`[Outbound socket :: call] Peer RPC procedure '${rpcProcedureName}' called with data`,

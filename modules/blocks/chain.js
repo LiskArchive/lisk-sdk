@@ -89,12 +89,11 @@ Chain.prototype.saveGenesisBlock = function(cb) {
 				// If there is no block with genesis ID - save to database
 				// WARNING: DB_WRITE
 				// FIXME: This will fail if we already have genesis block in database, but with different ID
-				self.saveBlock(library.genesisBlock.block, err =>
+				return self.saveBlock(library.genesisBlock.block, err =>
 					setImmediate(cb, err)
 				);
-			} else {
-				return setImmediate(cb);
 			}
+			return setImmediate(cb);
 		})
 		.catch(err => {
 			library.logger.error(err.stack);
@@ -117,14 +116,14 @@ Chain.prototype.saveBlock = function(block, cb, tx) {
 		return transaction;
 	});
 
-	function saveBlockBatch(tx) {
-		const promises = [tx.blocks.save(block)];
+	function saveBlockBatch(saveBlockBatchTx) {
+		const promises = [saveBlockBatchTx.blocks.save(block)];
 
 		if (block.transactions.length) {
-			promises.push(tx.transactions.save(block.transactions));
+			promises.push(saveBlockBatchTx.transactions.save(block.transactions));
 		}
 
-		tx
+		saveBlockBatchTx
 			.batch(promises)
 			.then(() => __private.afterSave(block, cb))
 			.catch(err => {
@@ -158,7 +157,8 @@ __private.afterSave = function(block, cb) {
 	library.bus.message('transactionsSaved', block.transactions);
 	async.eachSeries(
 		block.transactions,
-		(transaction, cb) => library.logic.transaction.afterSave(transaction, cb),
+		(transaction, eachSeriesCb) =>
+			library.logic.transaction.afterSave(transaction, eachSeriesCb),
 		err => setImmediate(cb, err)
 	);
 };
@@ -249,7 +249,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 					// WARNING: DB_WRITE
 					__private.applyTransaction(block, transaction, sender, eachSeriesCb);
 					// Update block progress tracker
-					tracker.applyNext();
+					return tracker.applyNext();
 				}
 			);
 		},
@@ -263,7 +263,7 @@ Chain.prototype.applyGenesisBlock = function(block, cb) {
 			modules.blocks.lastBlock.set(block);
 			// Tick round
 			// WARNING: DB_WRITE
-			modules.rounds.tick(block, cb);
+			return modules.rounds.tick(block, cb);
 		}
 	);
 };
@@ -290,18 +290,23 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
 			});
 		}
 
-		modules.transactions.applyConfirmed(transaction, block, sender, err => {
-			if (err) {
-				return setImmediate(cb, {
-					message: `Failed to apply transaction: ${
-						transaction.id
-					} to confirmed state of account:`,
-					transaction,
-					block,
-				});
+		return modules.transactions.applyConfirmed(
+			transaction,
+			block,
+			sender,
+			applyConfirmedErr => {
+				if (applyConfirmedErr) {
+					return setImmediate(cb, {
+						message: `Failed to apply transaction: ${
+							transaction.id
+						} to confirmed state of account:`,
+						transaction,
+						block,
+					});
+				}
+				return setImmediate(cb);
 			}
-			return setImmediate(cb);
-		});
+		);
 	});
 };
 
@@ -314,7 +319,7 @@ __private.applyTransaction = function(block, transaction, sender, cb) {
  * @returns {Object}   cb.err - Error if occurred
  */
 __private.undoUnconfirmedListStep = function(cb) {
-	modules.transactions.undoUnconfirmedList(err => {
+	return modules.transactions.undoUnconfirmedList(err => {
 		if (err) {
 			// Fatal error, memory tables will be inconsistent
 			library.logger.error('Failed to undo unconfirmed list', err);
@@ -350,7 +355,7 @@ __private.applyUnconfirmedStep = function(block, tx) {
 							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
-						modules.transactions.applyUnconfirmed(
+						return modules.transactions.applyUnconfirmed(
 							transaction,
 							sender,
 							err => {
@@ -399,7 +404,7 @@ __private.applyConfirmedStep = function(block, tx) {
 							return setImmediate(reject, new Error(err));
 						}
 						// DATABASE: write
-						modules.transactions.applyConfirmed(
+						return modules.transactions.applyConfirmed(
 							transaction,
 							block,
 							sender,
@@ -455,11 +460,11 @@ __private.saveBlockStep = function(block, saveBlock, tx) {
 					);
 
 					// DATABASE write. Update delegates accounts
-					modules.rounds.tick(
+					return modules.rounds.tick(
 						block,
-						err => {
-							if (err) {
-								return setImmediate(reject, err);
+						tickErr => {
+							if (tickErr) {
+								return setImmediate(reject, tickErr);
 							}
 
 							library.bus.message('newBlock', block);
@@ -504,7 +509,7 @@ Chain.prototype.applyBlock = function(block, saveBlock, cb) {
 		if (err) {
 			return setImmediate(cb, err);
 		}
-		library.db
+		return library.db
 			.tx('Chain:applyBlock', tx => {
 				modules.blocks.isActive.set(true);
 
@@ -594,7 +599,7 @@ __private.undoConfirmedStep = function(transaction, oldLastBlock, tx) {
 				}
 				// Undoing confirmed transaction - refresh confirmed balance (see: logic.transaction.undo, logic.transfer.undo)
 				// WARNING: DB_WRITE
-				modules.transactions.undoConfirmed(
+				return modules.transactions.undoConfirmed(
 					transaction,
 					oldLastBlock,
 					sender,
@@ -753,7 +758,7 @@ Chain.prototype.deleteLastBlock = function(cb) {
 
 	let deletedBlockTransactions;
 
-	async.series(
+	return async.series(
 		{
 			popLastBlock(seriesCb) {
 				// Perform actual delete of last block

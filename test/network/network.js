@@ -69,7 +69,7 @@ class Network {
 						);
 					}
 					this.sockets = socketsResult;
-					resolve(socketsResult);
+					return resolve(socketsResult);
 				}
 			);
 		});
@@ -82,7 +82,7 @@ class Network {
 					return reject(err);
 				}
 				this.sockets = [];
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -123,6 +123,8 @@ class Network {
 						return this.waitForBlocksOnAllNodes(1);
 					});
 				}
+
+				return true;
 			})
 			.then(() => {
 				return this.establishMonitoringSocketsConnections();
@@ -138,7 +140,7 @@ class Network {
 						if (err) {
 							return reject(err);
 						}
-						resolve();
+						return resolve();
 					}, WAIT_BEFORE_CONNECT_MS);
 				});
 			});
@@ -156,7 +158,7 @@ class Network {
 						)
 					);
 				}
-				resolve(pm2Configs);
+				return resolve(pm2Configs);
 			});
 		});
 	}
@@ -172,7 +174,7 @@ class Network {
 						)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -188,7 +190,7 @@ class Network {
 						)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -204,7 +206,7 @@ class Network {
 						)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -218,7 +220,7 @@ class Network {
 						if (err) {
 							return reject(err);
 						}
-						resolve();
+						return resolve();
 					});
 				});
 			})
@@ -240,6 +242,10 @@ class Network {
 
 		return new Promise((resolve, reject) => {
 			waitFor.blockchainReady(
+				retries,
+				timeout,
+				`http://${configuration.ip}:${configuration.httpPort}`,
+				!logRetries,
 				err => {
 					if (err) {
 						return reject(
@@ -249,12 +255,8 @@ class Network {
 							)
 						);
 					}
-					resolve();
-				},
-				retries,
-				timeout,
-				`http://${configuration.ip}:${configuration.httpPort}`,
-				!logRetries
+					return resolve();
+				}
 			);
 		});
 	}
@@ -291,6 +293,7 @@ class Network {
 		return new Promise((resolve, reject) => {
 			waitFor.blocks(
 				blocksToWait,
+				`http://${configuration.ip}:${configuration.httpPort}`,
 				err => {
 					if (err) {
 						return reject(
@@ -300,9 +303,8 @@ class Network {
 							)
 						);
 					}
-					resolve();
-				},
-				`http://${configuration.ip}:${configuration.httpPort}`
+					return resolve();
+				}
 			);
 		});
 	}
@@ -329,16 +331,17 @@ class Network {
 
 		const enableForgingPromises = [];
 		this.configurations.forEach(configuration => {
-			configuration.forging.delegates.map(keys => {
-				if (!configuration.forging.force) {
+			configuration.forging.delegates
+				.filter(() => !configuration.forging.force)
+				.map(keys => {
 					const enableForgingPromise = utils.http.enableForging(
 						keys,
 						configuration.httpPort
 					);
-					enableForgingPromises.push(enableForgingPromise);
-				}
-			});
+					return enableForgingPromises.push(enableForgingPromise);
+				});
 		});
+
 		return Promise.all(enableForgingPromises)
 			.then(forgingResults => {
 				const someFailures = forgingResults.some(forgingResult => {
@@ -408,7 +411,7 @@ class Network {
 							)
 						);
 					}
-					resolve();
+					return resolve();
 				}
 			);
 		});
@@ -423,7 +426,7 @@ class Network {
 						new Error(`Failed to stop node ${nodeName}: ${err.message || err}`)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 	}
@@ -436,7 +439,7 @@ class Network {
 						new Error(`Failed to start node ${nodeName}: ${err.message || err}`)
 					);
 				}
-				resolve();
+				return resolve();
 			});
 		});
 		if (waitForSync) {
