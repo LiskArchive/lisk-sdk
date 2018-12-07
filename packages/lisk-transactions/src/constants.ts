@@ -63,3 +63,5 @@ export const TRANSACTION_TYPES: ReadonlyArray<number> = [
 	6,
 	7,
 ];
+export const UNCONFIRMED_TRANSACTION_TIMEOUT = 10800;
+export const UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT = 10800 * 8;

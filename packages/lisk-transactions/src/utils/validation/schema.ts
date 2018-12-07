@@ -82,8 +82,6 @@ export const baseTransaction = {
 		'amount',
 		'fee',
 		'senderPublicKey',
-		'senderId',
-		'recipientId',
 		'timestamp',
 		'asset',
 		'signature',

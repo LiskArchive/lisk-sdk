@@ -24,7 +24,6 @@ describe('#checkBalance', () => {
 	beforeEach(() => {
 		defaultAccount = {
 			address: '18278674964748191682L',
-			unconfirmedBalance: '10000000',
 			balance: '10000000',
 			publicKey:
 				'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',

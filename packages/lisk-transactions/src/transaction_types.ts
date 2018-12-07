@@ -12,8 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { TransactionError } from './errors';
-
 export enum Status {
 	OK = 1,
 	FAIL,
@@ -25,6 +23,7 @@ export interface Account {
 	readonly publicKey: string;
 	readonly secondPublicKey?: string;
 	readonly multisignatures?: ReadonlyArray<string>;
+	readonly multimin?: number;
 }
 
 export interface MultiSignatureAccount extends Account {
@@ -57,22 +56,7 @@ export interface TransactionJSON {
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
-	readonly receivedAt?: number;
-}
-
-export interface VerifyReturn {
-	readonly errors?: ReadonlyArray<TransactionError>;
-	readonly verified: boolean;
-}
-
-export interface ValidateReturn {
-	readonly errors?: ReadonlyArray<TransactionError>;
-	readonly valid: boolean;
-}
-
-export interface StateReturn {
-	readonly recipient?: Account;
-	readonly sender: Account;
+	readonly receivedAt: Date;
 }
 
 export type PartialTransaction = Partial<TransactionJSON>;

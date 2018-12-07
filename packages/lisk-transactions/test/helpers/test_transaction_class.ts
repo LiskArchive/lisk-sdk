@@ -9,6 +9,10 @@ export class TestTransaction extends BaseTransaction {
 		return true;
 	}
 
+	public assetToJSON() {
+		return {};
+	}
+
 	public getBytes() {
 		const transactionBytes = this.getBasicBytes();
 

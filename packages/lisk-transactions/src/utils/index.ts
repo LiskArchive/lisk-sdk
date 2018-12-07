@@ -45,3 +45,4 @@ export {
 	validateTransaction,
 	validator,
 } from './validation';
+export { validateMultisignatures } from './validate_multisignatures';

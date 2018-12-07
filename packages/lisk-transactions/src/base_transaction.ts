@@ -17,16 +17,24 @@
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { MultiError } from 'verror';
-import { BYTESIZES } from './constants';
-import { TransactionError } from './errors';
+import {
+	BYTESIZES,
+	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
+	UNCONFIRMED_TRANSACTION_TIMEOUT,
+} from './constants';
+import { TransactionError, TransactionMultiError } from './errors';
 import {
 	Account,
 	Status,
 	TransactionAsset,
 	TransactionJSON,
 } from './transaction_types';
-import { checkBalance, getTransactionBytes, validator } from './utils';
+import {
+	checkBalance,
+	getTransactionBytes,
+	validateMultisignatures,
+	validator,
+} from './utils';
 import * as schemas from './utils/validation/schema';
 
 const checkTransactionTypes = (
@@ -69,14 +77,16 @@ export abstract class BaseTransaction {
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
-	public readonly receivedAt?: number;
-	public readonly isMultiSignature?: boolean;
+	public readonly receivedAt: Date = new Date();
+	public readonly isMultiSignature?: boolean = false;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const result = checkTransactionTypes(rawTransaction);
 		if (result) {
-			// tslint:disable-next-line readonly-array
-			throw new MultiError(result as Error[]);
+			throw new TransactionMultiError(
+				'Invalid field types',
+				result as ReadonlyArray<TransactionError>,
+			);
 		}
 
 		this.amount = new BigNum(rawTransaction.amount);
@@ -92,9 +102,11 @@ export abstract class BaseTransaction {
 		this.signSignature = rawTransaction.signSignature;
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
+		this.receivedAt = rawTransaction.receivedAt;
 	}
 
-	// TODO: Deserialization of asset
+	public abstract assetToJSON(asset: TransactionAsset): TransactionAsset;
+
 	public toJSON(): TransactionJSON {
 		const transaction = {
 			id: this.id,
@@ -107,7 +119,8 @@ export abstract class BaseTransaction {
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
 			signatures: this.signatures,
-			asset: this.asset,
+			asset: this.assetToJSON(this.asset),
+			receivedAt: this.receivedAt,
 		};
 
 		if (!this.signature) {
@@ -200,7 +213,7 @@ export abstract class BaseTransaction {
 				const [key, value] = property;
 				if (key === 'id') {
 					const transactionBytesWithSignatures = getTransactionBytes(
-						this.toJSON(),
+						transaction,
 					);
 					const transactionHashWithSignatures = cryptography.hash(
 						transactionBytesWithSignatures,
@@ -290,7 +303,7 @@ export abstract class BaseTransaction {
 		// Balance verification
 		const { errors: balanceError } = checkBalance(sender, this.fee);
 
-		// Check transaction fields against account
+		// Check transaction against account
 		const transactionErrors = Object.entries(sender).reduce(
 			(
 				errorArray: ReadonlyArray<TransactionError>,
@@ -298,7 +311,7 @@ export abstract class BaseTransaction {
 			): ReadonlyArray<TransactionError> => {
 				const [key, value] = property;
 
-				// Check sender publicKey
+				// Check senderPublicKey
 				if (key === 'publicKey' && value !== this.senderPublicKey) {
 					return [
 						...errorArray,
@@ -310,7 +323,7 @@ export abstract class BaseTransaction {
 					];
 				}
 
-				// Check for missing signSignature on transaction
+				// Check for missing signSignature
 				if (key === 'secondPublicKey' && value && !this.signSignature) {
 					return [
 						...errorArray,
@@ -322,7 +335,8 @@ export abstract class BaseTransaction {
 					];
 				}
 
-				// Check for missing multisignatures on transaction
+				// FIXME: Check vice versa?
+				// Check for missing multisignatures on transaction signatures property
 				if (
 					key === 'multisignatures' &&
 					Array.isArray(value) &&
@@ -336,7 +350,7 @@ export abstract class BaseTransaction {
 					];
 				}
 
-				// Check sender address
+				// Check senderId
 				if (
 					key === 'address' &&
 					value.toUpperCase() !== this.senderId.toUpperCase()
@@ -389,58 +403,31 @@ export abstract class BaseTransaction {
 				: [];
 
 		// Verify multisignatures
-		const transactionSignatures = this.signatures as ReadonlyArray<string>;
-		const multisignatureKeys = sender.multisignatures || [];
-		// tslint:disable-next-line no-let
-		let checkedKeys: ReadonlyArray<string> = [];
-
-		const multisignatureErrors =
-			Array.isArray(sender.multisignatures) && sender.multisignatures.length > 0
-				? transactionSignatures.reduce(
-						(
-							errorArray: ReadonlyArray<TransactionError>,
-							signature: string,
-						): ReadonlyArray<TransactionError> => {
-							multisignatureKeys.forEach((publicKey, index, signatureArray) => {
-								if (checkedKeys.includes(publicKey)) {
-									return errorArray;
-								}
-
-								if (
-									cryptography.verifyData(transactionHash, signature, publicKey)
-								) {
-									checkedKeys = [...checkedKeys, publicKey];
-
-									return errorArray;
-								}
-
-								const multisignatureVerificationErrors =
-									index === signatureArray.length - 1
-										? [
-												...errorArray,
-												new TransactionError(
-													`Failed to verify multisignature: ${signature}`,
-													this.id,
-													'.signatures',
-												),
-										  ]
-										: errorArray;
-
-								return multisignatureVerificationErrors;
-							});
-
-							return errorArray;
-						},
-						[],
-				  )
-				: [];
+		const transaction = this.toJSON();
+		const transactionSignatures = transaction.signatures as ReadonlyArray<
+			string
+		>;
+		const multisignatureVerificationErrors = validateMultisignatures(
+			sender,
+			transaction,
+			transactionHash,
+		)
+			? []
+			: transactionSignatures.map(
+					signature =>
+						new TransactionError(
+							`Failed to verify multisignature: ${signature}`,
+							transaction.id,
+							'.signatures',
+						),
+			  );
 
 		const verifyErrors: ReadonlyArray<TransactionError> = [
 			...balanceError,
 			...transactionErrors,
 			...missingSecondPublicKeyError,
 			...signSignatureError,
-			...multisignatureErrors,
+			...multisignatureVerificationErrors,
 		];
 
 		return {
@@ -478,7 +465,16 @@ export abstract class BaseTransaction {
 		};
 	}
 
-	public expire() {
+	public isExpired(): boolean {
+		// tslint:disable-next-line no-magic-numbers
+		const timeNow = Math.floor(Date.now() / 1000);
+		const timeOut = this.isMultiSignature
+			? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
+			: UNCONFIRMED_TRANSACTION_TIMEOUT;
+		const timeElapsed =
+			// tslint:disable-next-line no-magic-numbers
+			timeNow - Math.floor(this.receivedAt.getTime() / 1000);
 
+		return timeElapsed > timeOut;
 	}
 }
