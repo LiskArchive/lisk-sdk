@@ -19,6 +19,10 @@
 const { EventEmitter } = require('events');
 const { ImplementationPendingError } = require('../errors');
 
+const EVENT_CONNECT = Symbol('ADAPTER_EVENT_CONNECT');
+const EVENT_ERROR = Symbol('ADAPTER_EVENT_ERROR');
+const EVENT_DISCONNECT = Symbol('ADAPTER_EVENT_DISCONNECT');
+
 class BaseAdapter extends EventEmitter {
 	/**
 	 * Constructor for the adapter
@@ -32,6 +36,17 @@ class BaseAdapter extends EventEmitter {
 		this.inTest = options.inTest;
 	}
 
+	get EVENT_CONNECT() {
+		return EVENT_CONNECT;
+	}
+
+	get EVENT_ERROR() {
+		return EVENT_ERROR;
+	}
+
+	get EVENT_DISCONNECT() {
+		return EVENT_DISCONNECT;
+	}
 	connect() {
 		throw new ImplementationPendingError();
 	}

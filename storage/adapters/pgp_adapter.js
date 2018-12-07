@@ -21,24 +21,6 @@ const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
-const initOptions = {
-	capSQL: true,
-	promiseLib: Promise,
-
-	// Extending the database protocol with our custom repositories;
-	// API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
-	extend: (/* object */) => {
-		// Object.keys(repos).forEach(repoName => {
-		// 	object[repoName] = new repos[repoName](object, pgp);
-		// });
-	},
-	receive: (/* data, result, e */) => {
-		// Can log result.duration when available and/or necessary,
-		// to analyze performance of individual queries;
-		// API: http://vitaly-t.github.io/pg-promise/global.html#event:receive
-	},
-};
-
 const resultCountToMethodMap = {
 	0: 'none',
 	1: 'one',
@@ -62,13 +44,22 @@ class PgpAdapter extends BaseAdapter {
 
 		this.options = options;
 		this.logger = options.logger;
-
 		this.sqlDirectory = options.sqlDirectory;
 
-		this.pgpOptions = Object.assign({}, initOptions, {
-			// Prevent protocol locking, so we can redefine database properties in test environment
+		this.pgpOptions = {
+			capSQL: true,
+			promiseLib: Promise,
 			noLocking: options.inTest,
-		});
+			connect: () => {
+				this.emit(this.EVENT_CONNECT);
+			},
+			error: () => {
+				this.emit(this.EVENT_ERROR);
+			},
+			disconnect: () => {
+				this.emit(this.EVENT_DISCONNECT);
+			},
+		};
 
 		this.pgp = pgpLib(this.pgpOptions);
 		this.db = null;
@@ -110,8 +101,27 @@ class PgpAdapter extends BaseAdapter {
 		self.pgp.end();
 		self.db = self.pgp(self.options);
 
-		// Hack for now to mimic the connect event
-		return Promise.delay(3000, true);
+		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
+		// So to actually verify the connection works fine
+		// based on the provided options, we need to test it by acquiring
+		// the connection a manually
+
+		// return Promise.resolve(true);
+
+		let connectionObject = null;
+
+		return self.db
+			.connect()
+			.then(co => {
+				connectionObject = co;
+				return Promise.resolve(true);
+			})
+			.finally(() => {
+				if (connectionObject) {
+					connectionObject.done();
+				}
+				return Promise.resolve(true);
+			});
 	}
 
 	disconnect() {
