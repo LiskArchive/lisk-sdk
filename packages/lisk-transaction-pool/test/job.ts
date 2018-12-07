@@ -41,7 +41,7 @@ describe('job', () => {
             expect(jobStub).to.be.calledOn(context);
         });
 
-        it('should run the function again after interval', async () => {
+        it('should run twice when interval is passed two times', async () => {
             job.start();
             clock.tick(220000);
             expect(jobStub).to.be.calledTwice;
@@ -61,10 +61,10 @@ describe('job', () => {
         beforeEach(async () => {
             job = new Job(context, jobStub, interval);
             clock = sandbox.useFakeTimers();
+            job.start();
         });
 
         it('should not run the job after stop is called', async () => {
-            job.start();
             job.stop();
             clock.tick(220000);
             expect(jobStub).to.not.be.called;

@@ -22,7 +22,7 @@ export class Job<T> {
 	}
 
 	public stop(): void {
-		if (!(typeof this._id === 'undefined')) {
+		if (typeof this._id !== 'undefined') {
 			clearInterval(this._id);
 			this._id = undefined;
 		}
