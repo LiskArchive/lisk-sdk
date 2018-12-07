@@ -80,7 +80,7 @@ describe('system test - multi signature edge cases', () => {
 		const transactions = [];
 		before('Create more transactions than available funds can cover', done => {
 			for (let i = 0; i < 3; i++) {
-				const dappTransaction = randomUtil.multisigDappRegistration(
+				const dappTransaction = randomUtil.multisigDappRegistrationMaxiumData(
 					multisigAccount,
 					[signer1, signer2]
 				);
@@ -135,6 +135,30 @@ describe('system test - multi signature edge cases', () => {
 					return expect(res.transactions.lenght > 0).to.be.false;
 				}
 			);
+		});
+
+		it('valid transactions should be confirmed', done => {
+			localCommon.forge(library, () => {
+				const found = [];
+				const validTransactions = transactionIds.slice(1);
+				async.map(
+					validTransactions,
+					(transactionId, eachCb) => {
+						localCommon.getTransactionFromModule(
+							library,
+							{ id: transactionId },
+							(err, res) => {
+								found.push(res.transactions[0].id);
+								eachCb();
+							}
+						);
+					},
+					() => {
+						expect(found).to.eql(validTransactions);
+						done();
+					}
+				);
+			});
 		});
 	});
 });

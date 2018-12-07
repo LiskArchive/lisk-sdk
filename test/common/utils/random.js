@@ -135,7 +135,11 @@ random.password = function() {
 		.substring(7);
 };
 
-random.multisigDappRegistration = function(account, members, charset) {
+random.multisigDappRegistrationMaxiumData = function(
+	account,
+	members,
+	charset
+) {
 	charset =
 		charset || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
