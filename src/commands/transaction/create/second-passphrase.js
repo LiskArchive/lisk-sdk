@@ -14,10 +14,10 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import transactions from '@liskhq/lisk-transactions';
+import * as transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
-import commonFlags from '../../../utils/flags';
-import getInputsFromSources from '../../../utils/input';
+import { flags as commonFlags } from '../../../utils/flags';
+import { getInputsFromSources } from '../../../utils/input';
 
 export const processInputs = () => ({ passphrase, secondPassphrase }) =>
 	transactions.registerSecondPassphrase({

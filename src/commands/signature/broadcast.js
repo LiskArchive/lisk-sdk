@@ -16,7 +16,7 @@
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
 import { getStdIn } from '../../utils/input/utils';
-import getAPIClient from '../../utils/api';
+import { getAPIClient } from '../../utils/api';
 
 const getSignatureInput = async () => {
 	try {

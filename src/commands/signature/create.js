@@ -13,14 +13,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transactions from '@liskhq/lisk-transactions';
+import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { getStdIn } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
-import parseTransactionString from '../../utils/transactions';
-import getInputsFromSources from '../../utils/input';
-import commonFlags from '../../utils/flags';
+import { parseTransactionString } from '../../utils/transactions';
+import { getInputsFromSources } from '../../utils/input';
+import { flags as commonFlags } from '../../utils/flags';
 
 const getTransactionInput = async () => {
 	try {

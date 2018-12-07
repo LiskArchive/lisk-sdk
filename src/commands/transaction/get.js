@@ -15,7 +15,7 @@
  */
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import getAPIClient from '../../utils/api';
+import { getAPIClient } from '../../utils/api';
 import { query, queryNodeTransaction } from '../../utils/query';
 
 const TRANSACTION_STATES = ['unsigned', 'unprocessed'];

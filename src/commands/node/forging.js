@@ -14,11 +14,11 @@
  *
  */
 import { flags as flagParser } from '@oclif/command';
-import transactions from '@liskhq/lisk-transactions';
+import * as transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../base';
-import commonFlags from '../../utils/flags';
-import getAPIClient from '../../utils/api';
-import getInputsFromSources from '../../utils/input';
+import { flags as commonFlags } from '../../utils/flags';
+import { getAPIClient } from '../../utils/api';
+import { getInputsFromSources } from '../../utils/input';
 
 const STATUS_ENABLE = 'enable';
 const STATUS_DISABLE = 'disable';

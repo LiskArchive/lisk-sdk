@@ -104,11 +104,11 @@
 		"/default_config.json"
 	],
 	"dependencies": {
-		"@liskhq/lisk-api-client": "1.1.1",
-		"@liskhq/lisk-constants": "1.1.1",
-		"@liskhq/lisk-cryptography": "1.1.1",
-		"@liskhq/lisk-passphrase": "1.1.1",
-		"@liskhq/lisk-transactions": "1.1.1",
+		"@liskhq/lisk-api-client": "2.0.0",
+		"@liskhq/lisk-constants": "1.2.0",
+		"@liskhq/lisk-cryptography": "2.0.0",
+		"@liskhq/lisk-passphrase": "2.0.0",
+		"@liskhq/lisk-transactions": "2.0.0",
 		"@oclif/command": "1.5.0",
 		"@oclif/config": "1.7.4",
 		"@oclif/errors": "1.2.0",

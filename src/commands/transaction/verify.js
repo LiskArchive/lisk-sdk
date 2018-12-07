@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import transactions from '@liskhq/lisk-transactions';
+import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import parseTransactionString from '../../utils/transactions';
+import { parseTransactionString } from '../../utils/transactions';
 import { getStdIn, getData } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
 
