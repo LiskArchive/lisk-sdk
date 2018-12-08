@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.11.0
+version: v1.13.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   'npm:deep-extend:20180409':
@@ -13,19 +13,19 @@ ignore:
     - socketcluster > sc-auth > sc-jsonwebtoken > joi > hoek:
         reason: None given
         expires: '2018-06-06T14:18:01.514Z'
-      joi > hoek:
-        reason: None given
-        expires: '2018-06-06T14:24:54.002Z'
     - socketcluster > sc-auth > sc-jsonwebtoken > joi > topo > hoek:
         reason: None given
         expires: '2018-06-06T14:18:01.514Z'
-      joi > topo > hoek:
-        reason: None given
-        expires: '2018-06-06T14:24:54.002Z'
     - sc-auth > sc-jsonwebtoken > joi > hoek:
         reason: None given
         expires: '2018-06-06T14:24:54.002Z'
     - sc-auth > sc-jsonwebtoken > joi > topo > hoek:
+        reason: None given
+        expires: '2018-06-06T14:24:54.002Z'
+    - joi > hoek:
+        reason: None given
+        expires: '2018-06-06T14:24:54.002Z'
+    - joi > topo > hoek:
         reason: None given
         expires: '2018-06-06T14:24:54.002Z'
   'npm:lodash:20180130':
@@ -66,3 +66,22 @@ patch:
         patched: '2018-05-07T14:24:08.423Z'
     - joi > moment:
         patched: '2018-05-07T14:24:08.423Z'
+  'npm:lodash:20180130':
+    - swagger-node-runner > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machine > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machine > rttc > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machine > switchback > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > machine > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
+    - swagger-node-runner > bagpipes > machinepack-http > machinepack-urls > machine > rttc > lodash:
+        patched: '2018-12-08T10:03:33.040Z'
