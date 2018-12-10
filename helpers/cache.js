@@ -46,11 +46,12 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 
 	client.on('ready', () => {
 		logger.info('App connected with redis server');
-
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
+			return cb(null, { cacheEnabled, client });
 		}
-		return cb(null, { cacheEnabled, client });
+
+		return null;
 	});
 
 	return client.on('error', err => {
@@ -59,7 +60,9 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 		// and modules/cache can have client reference once it's connected
 		if (!isRedisLoaded) {
 			isRedisLoaded = true;
+			return cb(null, { cacheEnabled, client });
 		}
-		return cb(null, { cacheEnabled, client });
+
+		return null;
 	});
 };
