@@ -12,9 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import reverseBuffer from 'buffer-reverse';
-import ed2curve from 'ed2curve';
-import querystring from 'querystring';
+// Required because first level function export
+// tslint:disable-next-line no-require-imports
+import reverse = require('buffer-reverse');
+import * as ed2curve from 'ed2curve';
+import * as querystring from 'querystring';
 import { bufferToBigNumberString } from './buffer';
 import { EncryptedPassphraseObject } from './encrypt';
 import { hash } from './hash';
@@ -24,10 +26,10 @@ export const getFirstEightBytesReversed = (input: string | Buffer): Buffer => {
 	// Union type arguments on overloaded functions do not work in typescript.
 	// Relevant discussion: https://github.com/Microsoft/TypeScript/issues/23155
 	if (typeof input === 'string') {
-		return reverseBuffer(Buffer.from(input).slice(0, BUFFER_SIZE));
+		return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 	}
 
-	return reverseBuffer(Buffer.from(input).slice(0, BUFFER_SIZE));
+	return reverse(Buffer.from(input).slice(0, BUFFER_SIZE));
 };
 
 export const toAddress = (buffer: Buffer): string => {

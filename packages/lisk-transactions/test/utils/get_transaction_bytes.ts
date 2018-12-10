@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import BigNum from 'browserify-bignum';
+import * as BigNum from 'browserify-bignum';
 import {
 	getTransactionBytes,
 	getAssetDataForTransferTransaction,

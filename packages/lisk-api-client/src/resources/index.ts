@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { default as AccountsResource } from './accounts';
-export { default as BlocksResource } from './blocks';
-export { default as DappsResource } from './dapps';
-export { default as DelegatesResource } from './delegates';
-export { default as NodeResource } from './node';
-export { default as PeersResource } from './peers';
-export { default as SignaturesResource } from './signatures';
-export { default as TransactionsResource } from './transactions';
-export { default as VotersResource } from './voters';
-export { default as VotesResource } from './votes';
+export { AccountsResource } from './accounts';
+export { BlocksResource } from './blocks';
+export { DappsResource } from './dapps';
+export { DelegatesResource } from './delegates';
+export { NodeResource } from './node';
+export { PeersResource } from './peers';
+export { SignaturesResource } from './signatures';
+export { TransactionsResource } from './transactions';
+export { VotersResource } from './voters';
+export { VotesResource } from './votes';
