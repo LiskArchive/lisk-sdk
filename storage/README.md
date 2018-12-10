@@ -31,23 +31,21 @@ Filters are convention to provide a flexible but powerful structure to fetch dat
 
 Following is the list of available suffixes based on filter types
 
-| Filter Type | Filter Suffixes | Description |
-| ----------- | --------------- | ----------- |
-| BOOLEAN     | \_eql           |             |
-|             | \_ne            |             |
-| TEXT        | \_eql           |             |
-|             | \_ne            |             |
-|             | \_in            |             |
-|             | \_like          |             |
-| NUMBER      | \_eq            |             |
-|             | \_ne            |             |
-|             | \_gt            |             |
-|             | \_gte           |             |
-|             | \_lt            |             |
-|             | \_lte           |             |
-|             | \_in            |             |
-| BINARY      | \_eq            |             |
-|             | \_ne            |             |
+| Filter Type | Filter Suffixes | Description                                                |
+| ----------- | --------------- | ---------------------------------------------------------- |
+| BOOLEAN     | \_eql           | returns entries that matches the value                     |
+|             | \_ne            | returns entries that does not matche the value             |
+| TEXT        | \_eql           | returns entries that matches the value                     |
+|             | \_ne            | returns entries that does not matche the value             |
+|             | \_in            | returns entries that matches any values in a list          |
+|             | \_like          | returns entries that matches a pattern                     |
+| NUMBER      | \_eq            | returns entries that matches the value                     |
+|             | \_ne            | returns entries that does not matche the value             |
+|             | \_gt            | returns entries that is greater than the value             |
+|             | \_gte           | returns entries that is greater then or equal to the value |
+|             | \_lt            | returns entries that is less than the value                |
+|             | \_lte           | returns entries that is less than or equal to the value    |
+|             | \_in            | returns entries that matches any values in a list          |
 
 You can call `<Entity>.getFilters()` to see a list of available filters for any entity.
 
