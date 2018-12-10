@@ -39,7 +39,6 @@
 			}
 		],
 		"strict": "off",
-		"vars-on-top": "off",
 		// To keep
 		"import/no-extraneous-dependencies": [
 			"error",
