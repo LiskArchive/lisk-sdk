@@ -17,8 +17,10 @@
 
 describe('Account', () => {
 	it('should be a constructable function');
-
 	it('should be be inherited by BaseEntity');
+	it('should assign a prototype property FIELD_SET_SIMPLE');
+	it('should assign a prototype property FIELD_SET_FULL');
+	it('should assign a prototype property defaultOptions');
 
 	describe('constructor()', () => {
 		it('should accept only one parameter');
@@ -148,8 +150,4 @@ describe('Account', () => {
 			'should merge provided filter with default filters by preserving default filters values '
 		);
 	});
-
-	it('should assign a prototype property FIELD_SET_SIMPLE');
-	it('should assign a prototype property FIELD_SET_FULL');
-	it('should assign a prototype property defaultOptions');
 });
