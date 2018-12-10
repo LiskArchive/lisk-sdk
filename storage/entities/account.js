@@ -398,8 +398,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	// eslint-disable-next-line no-unused-vars
-	create(data, options = {}, tx) {
+	create(data, _options, tx) {
 		const objectData = _.defaults(data, defaultCreateValues);
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
@@ -423,8 +422,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	// eslint-disable-next-line no-unused-vars
-	update(filters, data, options = {}, tx) {
+	update(filters, data, _options, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -447,8 +445,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	// eslint-disable-next-line no-unused-vars
-	updateOne(filters, data, options = {}, tx) {
+	updateOne(filters, data, _options, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -470,8 +467,7 @@ class Account extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	// eslint-disable-next-line no-unused-vars
-	isPersisted(filters, options = {}, tx) {
+	isPersisted(filters, _options, tx) {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
