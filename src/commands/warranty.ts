@@ -27,17 +27,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 `.trim();
 
 export default class WarrantyCommand extends BaseCommand {
-	async run() {
+	static description = `
+	Displays warranty notice.
+	`;
+
+	static examples = ['warranty'];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
 		this.print({ warranty });
 	}
 }
-
-WarrantyCommand.flags = {
-	...BaseCommand.flags,
-};
-
-WarrantyCommand.description = `
-Displays warranty notice.
-`;
-
-WarrantyCommand.examples = ['warranty'];
