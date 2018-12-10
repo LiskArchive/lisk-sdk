@@ -39,7 +39,7 @@ export const validateMultisignatures = (
 							return collectedSignatures;
 						}
 
-						return collectedSignatures;
+						return [signature, ...collectedSignatures];
 					},
 					[],
 				),

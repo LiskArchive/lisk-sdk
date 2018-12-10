@@ -350,100 +350,43 @@ describe('Base transaction class', () => {
 
 	// TODO: Add more tests
 	describe('#verify', () => {
-		describe('when given invalid data', () => {
-			let defaultMultisigTransaction: any;
-			let defaultMultisigAccount: any;
-			beforeEach(() => {
-				defaultMultisigTransaction = {
-					id: '8191213966308378713',
-					type: 4,
-					timestamp: 15869462,
-					senderPublicKey:
-						'0e88b1ca1414078f51a5f173356dfbf48a95b941764b894594c54f211c636941',
-					senderId: '15682180043073388494L',
-					recipientId: '',
-					recipientPublicKey: '',
-					amount: '0',
-					fee: '1500000000',
-					signature:
-						'bdfae7698da7e6082bfdc170db811d1e787ae9b5fa4c39acb980b551b7acefef64a8ed0c635a17f0b42233cf871903bcb90e5148e0bfa8b9dea2a05a58f3200b',
-					signatures: [
-						'd67e178056f896ffd4c04a752fa68d5df6c00765ef2a427426d2aeb67fbc624237aa230b577ddbb8dfa7068b87c8849b00ae58b7f0b2464c5f9675256d392706',
-						'db7fe4e0c58e458edd53ee1d61223f1da411a9e0cb3d15735219958fb9b3d646721584ea62716695bcf978b8210b9cf14645b672533182b8989f9577a0e18309',
-					],
-					asset: {
-						multisignature: {
-							min: 3,
-							lifetime: 24,
-							keysgroup: [
-								'+02e229bc194aa90ef80cc8461eccc830b52d01678add6e0426252f3a0aa7f14f',
-								'+1f2bc9022d0440254c33b5a9c09abfb864623ac9c9ea3285d79bc25d4de430f7',
-							],
-						},
-					},
+		describe('when given valid data', () => {
+			it('should return a transaction response with status = OK', () => {
+				const senderAccount = {
+					...defaultSenderAccount,
 				};
+				const { status } = baseTransaction.verify(senderAccount);
 
-				defaultMultisigAccount = {
-					address: '15682180043073388494L',
-					balance: '31351052901',
-					publicKey:
-						'0e88b1ca1414078f51a5f173356dfbf48a95b941764b894594c54f211c636941',
-					secondPublicKey: '',
-					multisignatures: [],
-					multimin: 2,
-				};
-
-				baseTransaction = new TestTransaction(
-					defaultMultisigTransaction as any,
-				);
-				return Promise.resolve();
+				return expect(status).to.eql(Status.OK);
 			});
+		});
 
-			// describe('when receiving account state with sufficient balance', () => {
-			// 	it('should return a transaction response with status = OK', () => {
-			// 		// const sender = { ...defaultSenderAccount, balance: '500000000000'}
-			// 		const { status } = baseTransaction.verify(defaultMultisigAccount);
-
-			// 		return expect(status).to.eql(Status.OK);
-			// 	});
-			// });
-
-			// describe('when receiving account state with insufficient balance', () => {
-			// 	it('should return a transaction response with status = FAIL', () => {
-			// 		const senderAccount = {
-			// 			...defaultMultisigAccount,
-			// 			balance: '0',
-			// 		};
-			// 		const { status } = baseTransaction.verify(senderAccount);
-
-			// 		return expect(status).to.eql(Status.FAIL);
-			// 	});
-
-			// 	it('should return a transaction response containing insufficient balance error', () => {
-			// 		const senderAccount = {
-			// 			...defaultMultisigAccount,
-			// 			balance: '0',
-			// 		};
-			// 		const { errors } = baseTransaction.verify(senderAccount);
-			// 		const errorArray = errors as ReadonlyArray<TransactionError>;
-
-			// 		return expect(errorArray[0])
-			// 			.to.be.instanceof(TransactionError)
-			// 			.and.to.have.property(
-			// 				'message',
-			// 				'Account does not have enough LSK: 18278674964748191682L balance: 0',
-			// 			);
-			// 	});
-			// });
-
-			describe('when receiving account state with invalid multisignatures', () => {
+		describe('when given invalid data', () => {
+			describe('when receiving account state with insufficient balance', () => {
 				it('should return a transaction response with status = FAIL', () => {
 					const senderAccount = {
-						...defaultMultisigAccount,
+						...defaultSenderAccount,
+						balance: '0',
 					};
 					const { status } = baseTransaction.verify(senderAccount);
 
 					return expect(status).to.eql(Status.FAIL);
+				});
+
+				it('should return a transaction response containing insufficient balance error', () => {
+					const senderAccount = {
+						...defaultSenderAccount,
+						balance: '0',
+					};
+					const { errors } = baseTransaction.verify(senderAccount);
+					const errorArray = errors as ReadonlyArray<TransactionError>;
+
+					return expect(errorArray[0])
+						.to.be.instanceof(TransactionError)
+						.and.to.have.property(
+							'message',
+							'Account does not have enough LSK: 18278674964748191682L balance: 0',
+						);
 				});
 			});
 		});
@@ -470,8 +413,9 @@ describe('Base transaction class', () => {
 		describe('when transaction not yet applied', () => {
 			it('should return an updated sender account with balance minus transaction fee', () => {
 				const { state } = baseTransaction.apply(defaultSenderAccount);
-
-				return expect(state)
+				expect(state).to.be.an('array');
+				const appliedState = state as ReadonlyArray<Account>;
+				return expect(appliedState[0])
 					.to.be.an('object')
 					.and.to.have.property('balance', '0');
 			});
@@ -486,12 +430,17 @@ describe('Base transaction class', () => {
 		});
 
 		it('should return sender account with original balance', () => {
-			const { state: appliedState } = baseTransaction.apply(
+			const { state: returnedState } = baseTransaction.apply(
 				defaultSenderAccount,
 			);
-			const { state } = baseTransaction.undo(appliedState as Account);
-
-			return expect(state)
+			const appliedStateArray = returnedState as ReadonlyArray<Account>;
+			const appliedState = appliedStateArray[0];
+			const { state: secondReturnedState } = baseTransaction.undo(
+				appliedState as Account,
+			);
+			const undoneState = secondReturnedState as ReadonlyArray<Account>;
+			expect(undoneState).to.be.an('array');
+			return expect(undoneState[0])
 				.to.be.an('object')
 				.and.to.have.property('balance', '10000000');
 		});

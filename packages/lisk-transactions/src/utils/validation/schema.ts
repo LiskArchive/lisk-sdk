@@ -70,6 +70,9 @@ export const transaction = {
 		asset: {
 			type: 'object',
 		},
+		receivedAt: {
+			type: 'object',
+		},
 	},
 };
 

@@ -60,7 +60,7 @@ export interface TransactionResponse {
 	readonly id: string;
 	readonly status: Status;
 	readonly errors: ReadonlyArray<TransactionError>;
-	readonly state?: Account;
+	readonly state?: ReadonlyArray<Account>;
 }
 
 export abstract class BaseTransaction {
@@ -421,9 +421,6 @@ export abstract class BaseTransaction {
 
 		// Verify multisignatures
 		const transaction = this.toJSON();
-		const transactionSignatures = transaction.signatures as ReadonlyArray<
-			string
-		>;
 		const unvalidatedSignatures = validateMultisignatures(
 			sender,
 			transaction,
@@ -432,15 +429,15 @@ export abstract class BaseTransaction {
 
 		const multisignatureVerificationErrors =
 			unvalidatedSignatures.length > 0
-				? []
-				: transactionSignatures.map(
+				? unvalidatedSignatures.map(
 						signature =>
 							new TransactionError(
 								`Failed to verify multisignature: ${signature}`,
 								transaction.id,
 								'.signatures',
 							),
-				  );
+				  )
+				: [];
 
 		const verifyErrors: ReadonlyArray<TransactionError> = [
 			...balanceError,
@@ -468,7 +465,7 @@ export abstract class BaseTransaction {
 		return {
 			id: this.id,
 			status: Status.OK,
-			state: updatedAccount,
+			state: [updatedAccount],
 			errors: [],
 		};
 	}
@@ -480,7 +477,7 @@ export abstract class BaseTransaction {
 		return {
 			id: this.id,
 			status: Status.OK,
-			state: updatedAccount,
+			state: [updatedAccount],
 			errors: [],
 		};
 	}
