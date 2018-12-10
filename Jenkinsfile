@@ -11,422 +11,226 @@
  *
  * Removal or modification of this copyright notice is prohibited.
  */
-def initializeNode() {
-	try {
+
+@Library('lisk-jenkins') _
+
+def setup() {
+	cleanWs()
+	unstash 'build'
+	nvm(getNodejsVersion()) {
 		sh '''
-		pkill -f app.js -9 || true
-		sudo service postgresql restart
-		dropdb lisk_dev || true
+		# teardown() should have killed all node processes but we want to be sure
+		# this shouldn't hurt assuming the 'lisk-core' jenkins nodes have 1 executor
+		killall --verbose --wait node || true
+		dropdb --if-exists lisk_dev
 		createdb lisk_dev
+		NODE_ENV=test node app.js >.app.log 2>&1 &
 		'''
-		deleteDir()
-		checkout scm
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: initializing build failed')
 	}
-}
-
-def buildDependencies() {
-	try {
-		sh '''
-		npm ci
-		'''
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: building dependencies failed')
-	}
-}
-
-def startLisk() {
-	try {
-		sh '''
-		NODE_ENV=test JENKINS_NODE_COOKIE=dontKillMe nohup node app.js &> .app.log &
-		sleep 15
-		'''
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: Lisk failed to start')
-	}
-}
-
-def cleanUp() {
-	try {
-		sh 'pkill -f app.js -9'
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: clean up failed')
-	}
-}
-
-def cleanUpMaster() {
-	try{
-		dir('/var/lib/jenkins/coverage/') {
-			sh '''
-			rm -rf node-0*
-			rm -rf *.zip
-			rm -rf coverage-unit/*
-			rm -f merged-lcov.info
-			rm -rf lisk/*
-			rm -f coverage.json
-			rm -f lcov.info
-			'''
-		}
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: master clean up failed')
-	}
-}
-
-def archiveLogs() {
-	sh '''
-	mv "${WORKSPACE%@*}/logs" "${WORKSPACE}/logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}" || true
-	'''
-	try {
-		archiveArtifacts artifacts: "logs_${NODE_NAME}_${JOB_BASE_NAME}_${BUILD_ID}/*", allowEmptyArchive: true
-	} catch (err) {
-		echo "Error: ${err}"
-	}
-}
-
-def runAction(action) {
-	try {
-		if (action == 'lint') {
-			sh """
-			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-			npm run ${action}
-			"""
-		} else {
-			sh """
-			cd "\$(echo ${env.WORKSPACE} | cut -f 1 -d '@')"
-			npm test -- ${action}
-			"""
-		}
-	} catch (err) {
-		archiveLogs()
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: ' + action + ' failed')
-	}
-}
-
-def reportCoverage(node) {
-	try {
-		sh """
-		export HOST=127.0.0.1:4000
-		# Gathers tests into single lcov.info
-		npm run cover:report
-		npm run cover:fetch
-		# Submit coverage reports to Master
-		scp -r test/.coverage-unit/* jenkins@master-01:/var/lib/jenkins/coverage/coverage-unit/
-		scp test/.coverage-func.zip jenkins@master-01:/var/lib/jenkins/coverage/coverage-func-node-${node}.zip
-		"""
-	} catch (err) {
-		echo "Error: ${err}"
-		currentBuild.result = 'FAILURE'
-		report()
-		error('Stopping build: reporting coverage statistics failed node-' + node)
-	}
-}
-
-def report() {
-	if (currentBuild.result == 'FAILURE') {
-		def prBranch = ''
-		if (env.CHANGE_BRANCH != null) {
-			prBranch = " (${env.CHANGE_BRANCH})"
-		}
-		slackSend color: 'danger', message: "Build #${env.BUILD_NUMBER} of <${env.BUILD_URL}|${env.JOB_NAME}>${prBranch} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)", channel: '#lisk-ci-core'
-	}
-}
-
-lock(resource: "Lisk-Core-Nodes-v8", inversePrecedence: true) {
-
-	properties([
-		parameters([
-			string(name: 'JENKINS_PROFILE', defaultValue: 'jenkins', description: 'To build cache dependencies and run slow tests, change this value to jenkins-extensive.', ),
-			string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
-			string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
-			string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
-			string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
-		 ])
-	])
-
-	stage('Prepare workspace') {
-		parallel(
-			"Build cached dependencies" : {
-				node('master-01') {
-					try {
-						deleteDir()
-						checkout scm
-					} catch (err) {
-						echo "Error: ${err}"
-						currentBuild.result = 'FAILURE'
-						report()
-						error('Stopping build: caching dependencies failed')
-					}
-				}
-			},
-			"Initialize node-01" : {
-				node('node-v8-01') {
-					initializeNode()
-				}
-			},
-			"Initialize node-02" : {
-				node('node-v8-02') {
-					initializeNode()
-				}
-			},
-			"Initialize node-03" : {
-				node('node-v8-03') {
-					initializeNode()
-				}
-			},
-			"Initialize node-04" : {
-				node('node-v8-04') {
-					initializeNode()
-				}
-			},
-			"Initialize node-05" : {
-				node('node-v8-05') {
-					initializeNode()
-				}
-			},
-			"Initialize master workspace" : {
-				node('master-01') {
-					cleanUpMaster()
-				}
+	// wait for the Core API to be reachable
+	timeout(1) {
+		waitUntil {
+			script {
+				def api_available = sh script: 'curl --silent http://localhost:4000/api/node/constants >/dev/null', returnStatus: true
+				return (api_available == 0)
 			}
-		)
+		}
 	}
+}
 
-	stage('Build dependencies') {
-		parallel(
-			"Build dependencies node-01" : {
-				node('node-v8-01') {
-					buildDependencies()
-				}
-			},
-			"Build dependencies node-02" : {
-				node('node-v8-02') {
-					buildDependencies()
-				}
-			},
-			"Build dependencies node-03" : {
-				node('node-v8-03') {
-					buildDependencies()
-				}
-			},
-			"Build dependencies node-04" : {
-				node('node-v8-04') {
-					buildDependencies()
-				}
-			},
-			"Build dependencies node-05" : {
-				node('node-v8-05') {
-					buildDependencies()
-				}
-			}
-		)
-	}
-
-	stage('Start Lisk') {
-		parallel(
-			"Start Lisk node-01" : {
-				node('node-v8-01') {
-					startLisk()
-				}
-			},
-			"Start Lisk node-02" : {
-				node('node-v8-02') {
-					startLisk()
-				}
-			},
-			"Start Lisk node-03" : {
-				node('node-v8-03') {
-					startLisk()
-				}
-			},
-			"Start Lisk node-04" : {
-				node('node-v8-04') {
-					startLisk()
-				}
-			},
-			"Start Lisk node-05" : {
-				node('node-v8-05') {
-					startLisk()
-				}
-			}
-		)
-	}
-
-	stage('Run parallel tests') {
+def run_test(test_name) {
+	ansiColor('xterm') {
 		timestamps {
-			parallel(
-				"Lint" : {
-					node('node-v8-01') {
-						runAction('lint')
-					}
-				},
-				"Functional HTTP GET tests" : {
-					node('node-v8-01') {
-						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							runAction('mocha:extensive:functional:get')
-						} else {
-							runAction('mocha:default:functional:get')
-						}
-						archiveLogs()
-					}
-				}, // End node-01 tests
-				"Functional HTTP POST tests" : {
-					node('node-v8-02') {
-						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							runAction('mocha:extensive:functional:post')
-						} else {
-							runAction('mocha:default:functional:post')
-						}
-						archiveLogs()
-					}
-				}, // End node-02 tests
-				"Functional WS tests" : {
-					node('node-v8-03') {
-						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							runAction('mocha:extensive:functional:ws')
-						} else {
-							runAction('mocha:default:functional:ws')
-						}
-						archiveLogs()
-					}
-				}, // End node-03 tests
-				"Unit tests" : {
-					node('node-v8-04') {
-						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							runAction('mocha:extensive:unit')
-						} else {
-							runAction('mocha:default:unit')
-						}
-						archiveLogs()
-					}
-				}, // End node-04 tests
-				"Integration tests" : {
-					node('node-v8-05') {
-						if (params.JENKINS_PROFILE == 'jenkins-extensive') {
-							runAction('mocha:extensive:integration')
-						} else {
-							runAction('mocha:default:integration')
-						}
-						archiveLogs()
-					}
-				} // End node-05 tests
-			) // End parallel
-		} // End timestamp
-	}
-
-	stage('Gather coverage') {
-		parallel(
-			"Gather coverage node-01" : {
-				node('node-v8-01') {
-					reportCoverage('01')
-				}
-			},
-			"Gather coverage node-02" : {
-				node('node-v8-02') {
-					reportCoverage('02')
-				}
-			},
-			"Gather coverage node-03" : {
-				node('node-v8-03') {
-					reportCoverage('03')
-				}
-			},
-			"Gather coverage node-04" : {
-				node('node-v8-04') {
-					reportCoverage('04')
-				}
-			},
-			"Gather coverage node-05" : {
-				node('node-v8-05') {
-					reportCoverage('05')
-				}
+			nvm(getNodejsVersion()) {
+				sh 'npm test -- mocha:${JENKINS_PROFILE:-default}:' + "${test_name}"
 			}
-		)
-	}
-
-	stage('Submit coverage') {
-		node('master-01') {
-			try {
-				sh '''
-				cd /var/lib/jenkins/coverage/
-				unzip coverage-func-node-01.zip -d node-01
-				unzip coverage-func-node-02.zip -d node-02
-				unzip coverage-func-node-03.zip -d node-03
-				unzip coverage-func-node-04.zip -d node-04
-				unzip coverage-func-node-05.zip -d node-05
-				bash merge_lcov.sh . merged-lcov.info
-				cp merged-lcov.info $WORKSPACE/merged-lcov.info
-				cp .coveralls.yml $WORKSPACE/.coveralls.yml
-				cd $WORKSPACE
-				cat merged-lcov.info | coveralls -v
-				'''
-			} catch (err) {
-				echo "Error: ${err}"
-				currentBuild.result = 'FAILURE'
-				report()
-				error('Stopping build: submitting coverage failed')
-			}
-		}
-	}
-
-	stage('Clean up') {
-		parallel(
-			"Clean up node-01" : {
-				node('node-v8-01') {
-					cleanUp()
-				}
-			},
-			"Clean up node-02" : {
-				node('node-v8-02') {
-					cleanUp()
-				}
-			},
-			"Clean up node-03" : {
-				node('node-v8-03') {
-					cleanUp()
-				}
-			},
-			"Clean up node-04" : {
-				node('node-v8-04') {
-					cleanUp()
-				}
-			},
-			"Clean up node-05" : {
-				node('node-v8-05') {
-					cleanUp()
-				}
-			},
-			"Clean up master" : {
-				node('master-01') {
-					cleanUpMaster()
-				}
-			}
-		)
-	}
-
-	stage('Set milestone') {
-		node('master-01') {
-			milestone 1
-			currentBuild.result = 'SUCCESS'
-			report()
 		}
 	}
 }
+
+def teardown(test_name) {
+	// teardown() gets called in post actions and so we don't want it to fail
+	try {
+		nvm(getNodejsVersion()) {
+			sh """
+			rm -rf coverage_${test_name}; mkdir -p coverage_${test_name}
+			./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit/
+			cp test/.coverage-unit/lcov.info coverage_${test_name}/ || true
+			./node_modules/.bin/istanbul report cobertura --root ./test/.coverage-unit/ --dir ./test/.coverage-unit/
+			cp test/.coverage-unit/cobertura-coverage.xml coverage_${test_name}/ || true
+			curl --silent http://localhost:4000/coverage/download --output functional-coverage.zip
+			unzip functional-coverage.zip lcov.info -d coverage_${test_name}/functional/
+			"""
+		}
+	} catch(err) {
+		println "Could gather coverage statistics:\n${err}"
+	}
+	stash name: "coverage_${test_name}", includes: "coverage_${test_name}/"
+	timeout(1) {
+		sh 'killall --verbose --wait node || true'
+	}
+	sh """
+	mv .app.log lisk_${test_name}.stdout.txt || true
+	mv logs/devnet/lisk.log lisk_${test_name}.log || true
+	"""
+	archiveArtifacts artifacts: 'lisk_*.log', allowEmptyArchive: true
+	archiveArtifacts artifacts: 'lisk_*.stdout.txt', allowEmptyArchive: true
+	cleanWs()
+}
+
+
+properties([
+	parameters([
+		string(name: 'JENKINS_PROFILE', defaultValue: '', description: 'To build cache dependencies and run slow tests, change this value to "extensive".', ),
+		// read by the application
+		string(name: 'LOG_LEVEL', defaultValue: 'error', description: 'To get desired build log output change the log level', ),
+		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
+		// used by tests
+		string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
+		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', )
+	 ])
+])
+
+
+pipeline {
+	agent { node { label 'lisk-core' } }
+
+	stages {
+		stage('Build') {
+			steps {
+				nvm(getNodejsVersion()) {
+					sh '''
+					npm ci
+					# needed by one of the "Functional HTTP GET tests"
+					git rev-parse HEAD >REVISION
+					'''
+				}
+				stash name: 'build'
+			}
+		}
+		// dummy stage to have consistent ouput in both blue ocean and the classi webui
+		stage('Parallel: tests wrapper') {
+			parallel {
+				stage('Linter') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						unstash 'build'
+						nvm(getNodejsVersion()) {
+							sh 'npm run lint'
+						}
+					}
+				}
+				stage('Functional HTTP GET tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test('functional:get')
+					}
+					post {
+						cleanup {
+							teardown('get')
+						}
+					}
+				}
+				stage('Functional HTTP POST tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test('functional:post')
+					}
+					post {
+						cleanup {
+							teardown('post')
+						}
+					}
+				}
+				stage ('Functional WS tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test('functional:ws')
+					}
+					post {
+						cleanup {
+							teardown('ws')
+						}
+					}
+				}
+				stage('Unit tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						run_test('unit')
+					}
+					post {
+						cleanup {
+							teardown('unit')
+						}
+					}
+				}
+				stage('Integation tests') {
+					agent { node { label 'lisk-core' } }
+					steps {
+						setup()
+						timeout(10) {
+							run_test('integration')
+						}
+					}
+					post {
+						cleanup {
+							teardown('integration')
+						}
+					}
+				}
+			}
+		}
+	}
+	post {
+		always {
+			// teardown() should have run cleanWs()
+			// but it can't hurt to make sure no old coverage files remain
+			sh 'rm -rf coverage; mkdir -p coverage'
+			script {
+				dir('coverage') {
+					['get', 'post', 'ws', 'unit', 'integration'].each {
+						// some test stages might have failed and have no coverage data
+						try {
+							unstash "coverage_${it}"
+						} catch(err) {
+							println "Could not unstash ${it}. Continuing."
+						}
+					}
+				}
+				// it won't do to fail in a post action
+				try {
+					nvm(getNodejsVersion()) {
+						sh '''
+						find coverage/ -name lcov.info |sed 's/^/-a /' |xargs lcov -o coverage/merged.lcov
+						sed -i -r -e "s#$WORKSPACE/#./#g" coverage/merged.lcov
+						cp ~/.core_coveralls.yml .coveralls.yml
+						./node_modules/.bin/coveralls <coverage/merged.lcov
+						# remove prefix from package names
+						sed -i -r -e "s/${WORKSPACE##*/}\\.//" coverage/coverage_*/cobertura-coverage.xml
+						'''
+					}
+					cobertura coberturaReportFile: 'coverage_*/cobertura-coverage.xml'
+				} catch(err) {
+					println "Could not report coverage statistics:\n${err}"
+				} finally {
+					sh 'rm -f .coveralls.yml'
+				}
+			}
+		}
+		failure {
+			script {
+				build_info = getBuildInfo()
+				// TODO: uncomment
+				//liskSlackSend('danger', "Build ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)")
+			}
+		}
+		cleanup {
+			cleanWs()
+		}
+	}
+}
+// vim: filetype=groovy
