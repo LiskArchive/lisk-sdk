@@ -17,7 +17,7 @@
 /* eslint-disable no-unused-vars */
 
 module.exports = {
-	default: (value, mode, alias, fieldName) => `$\{${alias}}`,
+	defaultInput: (value, mode, alias, fieldName) => `$\{${alias}}`,
 	booleanToInt: (value, mode, alias, fieldName) => `$\{${alias}}::int`,
 	stringToByte: (value, mode, alias, fieldName) =>
 		value ? `DECODE($\{${alias}}, 'hex')` : 'NULL',

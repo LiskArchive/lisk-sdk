@@ -21,7 +21,7 @@ const filterTypes = require('../../../../storage/utils/filter_types');
 const filters = rewire('../../../../storage/utils/filters');
 
 const inputSerializersStub = {
-	default: sinonSandbox.stub().returns('default serialized value'),
+	defaultInput: sinonSandbox.stub().returns('defaultInput serialized value'),
 };
 filters.__set__('inputSerializers', inputSerializersStub);
 
@@ -46,7 +46,7 @@ describe('filters', () => {
 		});
 
 		describe('filter types', () => {
-			['default', 'custom'].forEach(serializer => {
+			['defaultInput', 'custom'].forEach(serializer => {
 				describe(`using ${serializer} serializer`, () => {
 					const ser = serializer === 'custom' ? customSerializer : null;
 
@@ -90,7 +90,7 @@ describe('filters', () => {
 			});
 
 			describe('custom filter type', () => {
-				it('should use raw condition if specified', () => {
+				it('should use defaultInput condition if specified', () => {
 					return expect(
 						filterGenerator(
 							filterTypes.CUSTOM,
@@ -113,10 +113,10 @@ describe('filters', () => {
 					).to.be.eql({ alias: '"name" = custom serialized value' });
 				});
 
-				it('should use default serializer if serializer and condition not provided', () => {
+				it('should use defaultInput serializer if serializer and condition not provided', () => {
 					return expect(
 						filterGenerator(filterTypes.CUSTOM, 'alias', 'name')
-					).to.be.eql({ alias: '"name" = default serialized value' });
+					).to.be.eql({ alias: '"name" = defaultInput serialized value' });
 				});
 			});
 

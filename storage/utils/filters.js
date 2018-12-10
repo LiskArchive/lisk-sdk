@@ -26,7 +26,7 @@ function filterGenerator(
 	condition
 ) {
 	const filters = {};
-	const serializer = valueSerializer || inputSerializers.default;
+	const serializer = valueSerializer || inputSerializers.defaultInput;
 	const getValue = filterAlias =>
 		serializer.call(null, null, 'select', filterAlias, fieldName);
 

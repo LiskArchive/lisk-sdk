@@ -37,7 +37,7 @@ class Field {
 		this.type = type;
 		this.fieldName = options.fieldName || this.name;
 		this.filterType = options.filter;
-		this.inputSerializer = inputSerializer || inputSerializers.default;
+		this.inputSerializer = inputSerializer || inputSerializers.defaultInput;
 		this.filterCondition = options.filterCondition;
 
 		if (this.filterType) {

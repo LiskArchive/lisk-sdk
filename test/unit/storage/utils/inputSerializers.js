@@ -24,20 +24,20 @@ describe('inputSerializers', () => {
 
 	it('should export three functions', () => {
 		return expect(Object.keys(inputSerializers)).to.be.eql([
-			'default',
+			'defaultInput',
 			'booleanToInt',
 			'stringToByte',
 		]);
 	});
 
-	describe('default', () => {
+	describe('defaultInput', () => {
 		it('should accept four parameters', () => {
-			return expect(inputSerializers.default).to.have.length(4);
+			return expect(inputSerializers.defaultInput).to.have.length(4);
 		});
 
 		it('should return proper value', () => {
 			return expect(
-				inputSerializers.default('value', 'mode', 'alias', 'name')
+				inputSerializers.defaultInput('value', 'mode', 'alias', 'name')
 			).to.be.eql('${alias}');
 		});
 	});

@@ -23,7 +23,7 @@ const filterGeneratorStub = sinonSandbox
 	.stub()
 	.returns({ key: { filter: '' } });
 const inputSerializersStub = {
-	default: sinonSandbox.stub().returns('serialized value'),
+	defaultInput: sinonSandbox.stub().returns('serialized value'),
 };
 Field.__set__('filterGenerator', filterGeneratorStub);
 Field.__set__('inputSerializers', inputSerializersStub);
@@ -50,7 +50,9 @@ describe('Field', () => {
 			expect(field.name).to.be.eql('name');
 			expect(field.type).to.be.eql('type');
 			expect(field.filterType).to.be.eql(undefined);
-			expect(field.inputSerializer).to.be.eql(inputSerializersStub.default);
+			expect(field.inputSerializer).to.be.eql(
+				inputSerializersStub.defaultInput
+			);
 			return expect(field.filterCondition).to.be.eql(undefined);
 		});
 
@@ -95,8 +97,8 @@ describe('Field', () => {
 			expect(field.serializeValue(123, 'my-mode')).to.be.eql(
 				'serialized value'
 			);
-			expect(inputSerializersStub.default).to.be.calledOnce;
-			return expect(inputSerializersStub.default).to.be.calledWith(
+			expect(inputSerializersStub.defaultInput).to.be.calledOnce;
+			return expect(inputSerializersStub.defaultInput).to.be.calledWith(
 				123,
 				'my-mode',
 				field.name,
