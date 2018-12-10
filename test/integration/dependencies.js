@@ -19,8 +19,8 @@ const DBSandbox = require('../common/db_sandbox').DBSandbox;
 
 describe('Dependency versions', () => {
 	describe('node version', () => {
-		it('should be v8.x.x', () => {
-			return expect(process.version).to.contain('v8');
+		it('should be v10.x.x', () => {
+			return expect(process.version).to.contain('v10');
 		});
 	});
 
