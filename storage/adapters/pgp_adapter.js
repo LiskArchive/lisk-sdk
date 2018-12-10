@@ -69,15 +69,13 @@ class PgpAdapter extends BaseAdapter {
 	 * @return {Promise}
 	 */
 	connect() {
-		const self = this;
-
 		if (monitor.isAttached()) {
 			monitor.detach();
 		}
 
 		const monitorOptions = {
 			error: (error, e) => {
-				self.logger.error(error);
+				this.logger.error(error);
 
 				// e.cn corresponds to an object, which exists only when there is a connection related error.
 				// https://vitaly-t.github.io/pg-promise/global.html#event:error
@@ -88,18 +86,18 @@ class PgpAdapter extends BaseAdapter {
 		};
 		monitor.attach(
 			Object.assign(this.pgpOptions, monitorOptions),
-			self.options.logEvents
+			this.options.logEvents
 		);
 		monitor.setLog((msg, info) => {
-			self.logger.log(info.event, info.text);
+			this.logger.log(info.event, info.text);
 			info.display = false;
 		});
 		monitor.setTheme('matrix');
 
-		self.options.user = self.options.user || process.env.USER;
+		this.options.user = this.options.user || process.env.USER;
 
-		self.pgp.end();
-		self.db = self.pgp(self.options);
+		this.pgp.end();
+		this.db = this.pgp(this.options);
 
 		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
 		// So to actually verify the connection works fine
@@ -110,7 +108,7 @@ class PgpAdapter extends BaseAdapter {
 
 		let connectionObject = null;
 
-		return self.db
+		return this.db
 			.connect()
 			.then(co => {
 				connectionObject = co;
