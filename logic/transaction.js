@@ -1141,15 +1141,15 @@ class Transaction {
 			throw `Unknown transaction type ${transaction.type}`;
 		}
 
-		for (const i of Object.keys(transaction)) {
+		Object.keys(transaction).forEach(key => {
 			if (
-				transaction[i] === null ||
-				typeof transaction[i] === 'undefined' ||
-				(_.isString(transaction[i]) && _.isEmpty(transaction[i]))
+				transaction[key] === null ||
+				typeof transaction[key] === 'undefined' ||
+				(_.isString(transaction[key]) && _.isEmpty(transaction[key]))
 			) {
-				delete transaction[i];
+				delete transaction[key];
 			}
-		}
+		});
 
 		transaction.amount = new Bignum(transaction.amount || 0);
 
