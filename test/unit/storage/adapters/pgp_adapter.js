@@ -65,8 +65,6 @@ describe('PgpAdapter', () => {
 			expect(adapter.pgpOptions.noLocking).to.be.eql(true);
 			expect(adapter.pgpOptions.capSQL).to.be.eql(true);
 			expect(adapter.pgpOptions.promiseLib).to.be.eql(Promise);
-			expect(adapter.pgpOptions.extend).to.be.a('function');
-			expect(adapter.pgpOptions.receive).to.be.a('function');
 			expect(adapter.pgp).to.be.a('function');
 			return expect(adapter.db).to.be.null;
 		});
