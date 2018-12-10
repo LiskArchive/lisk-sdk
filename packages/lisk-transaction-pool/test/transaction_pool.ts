@@ -42,10 +42,6 @@ describe('transaction pool', () => {
 				.value(sinon.createStubInstance(Queue));
 		});
 	});
-	
-	afterEach(() => {
-		return sandbox.restore();
-	});
 
 	describe('#addTransaction', () => { });
 	describe('getProcessableTransactions', () => {});
