@@ -73,7 +73,9 @@ Node.prototype.internal = {
 		const forgersPublicKeys = {};
 
 		for (const pair in keyPairs) {
-			forgersPublicKeys[keyPairs[pair].publicKey.toString('hex')] = true;
+			if (Object.prototype.hasOwnProperty.call(keyPairs, pair)) {
+				forgersPublicKeys[keyPairs[pair].publicKey.toString('hex')] = true;
+			}
 		}
 
 		const fullList = internalForgers.map(forger => ({

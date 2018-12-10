@@ -1021,12 +1021,14 @@ Loader.prototype.findGoodPeers = function(peers) {
 
 	// Perform histogram calculation, together with histogram maximum
 	for (const i in peers) {
-		const val = parseInt(peers[i].height / aggregation) * aggregation;
-		histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
+		if (Object.prototype.hasOwnProperty.call(peers, i)) {
+			const val = parseInt(peers[i].height / aggregation) * aggregation;
+			histogram[val] = (histogram[val] ? histogram[val] : 0) + 1;
 
-		if (histogram[val] > max) {
-			max = histogram[val];
-			height = val;
+			if (histogram[val] > max) {
+				max = histogram[val];
+				height = val;
+			}
 		}
 	}
 

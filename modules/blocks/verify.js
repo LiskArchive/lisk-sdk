@@ -319,27 +319,29 @@ __private.verifyPayload = function(block, result) {
 	const appliedTransactions = {};
 
 	for (const i in block.transactions) {
-		const transaction = block.transactions[i];
-		let bytes;
+		if (Object.prototype.hasOwnProperty.call(block.transactions, i)) {
+			const transaction = block.transactions[i];
+			let bytes;
 
-		try {
-			bytes = library.logic.transaction.getBytes(transaction);
-		} catch (e) {
-			result.errors.push(e.toString());
-		}
+			try {
+				bytes = library.logic.transaction.getBytes(transaction);
+			} catch (e) {
+				result.errors.push(e.toString());
+			}
 
-		if (appliedTransactions[transaction.id]) {
-			result.errors.push(
-				`Encountered duplicate transaction: ${transaction.id}`
-			);
-		}
+			if (appliedTransactions[transaction.id]) {
+				result.errors.push(
+					`Encountered duplicate transaction: ${transaction.id}`
+				);
+			}
 
-		appliedTransactions[transaction.id] = transaction;
-		if (bytes) {
-			payloadHash.update(bytes);
+			appliedTransactions[transaction.id] = transaction;
+			if (bytes) {
+				payloadHash.update(bytes);
+			}
+			totalAmount = totalAmount.plus(transaction.amount);
+			totalFee = totalFee.plus(transaction.fee);
 		}
-		totalAmount = totalAmount.plus(transaction.amount);
-		totalFee = totalFee.plus(transaction.fee);
 	}
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
