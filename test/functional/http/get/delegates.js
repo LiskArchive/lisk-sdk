@@ -582,6 +582,14 @@ describe('GET /delegates', () => {
 			});
 		});
 
+		it('using offset=100 should be ok', () => {
+			return forgersEndpoint
+				.makeRequest({ offset: 100 }, 200)
+				.then(res => {
+					expect(res.body.data).to.have.length(1);
+				});
+		});
+
 		it('using invalid offset should fail', () => {
 			return forgersEndpoint
 				.makeRequest({ offset: 101 }, 400)
