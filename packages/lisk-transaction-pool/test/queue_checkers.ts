@@ -1,11 +1,12 @@
 import { expect } from 'chai';
 import { Transaction } from '../src/transaction_pool';
+import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as queueCheckers from '../src/queue_checkers';
 import transactions from '../fixtures/transactions.json';
 import { SinonStub } from 'sinon';
 
 describe('queueCheckers', () => {
-	const [unincludedTransaction, ...includedTransactions] = transactions;
+	const [unincludedTransaction, ...includedTransactions] = transactions.map(wrapTransferTransaction);
 
 	describe('#checkTransactionPropertyForValues', () => {
 		const propertyName: queueCheckers.TransactionFilterableKeys =

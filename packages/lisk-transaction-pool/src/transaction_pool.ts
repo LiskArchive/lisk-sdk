@@ -32,10 +32,6 @@ export interface TransactionFunctions {
 
 export type Transaction = TransactionObject & TransactionFunctions;
 
-interface Block {
-	readonly transactions: ReadonlyArray<Transaction>;
-}
-
 interface Queues {
 	readonly [queue: string]: Queue;
 }
@@ -62,6 +58,20 @@ export class TransactionPool {
 		});
 	}
 
+	public addVerifiedRemovedTransactions(transactions: ReadonlyArray<Transaction>): void {
+		const { received, validated, ...otherQueues } = this._queues;
+
+		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the delete block
+		const transactionsToAffectedAccounts = this.removeTransactionsFromQueues(
+			Object.keys(otherQueues),
+			queueCheckers.checkTransactionForRecipientId(transactions),
+		);
+
+		this._queues.validated.enqueueMany(transactionsToAffectedAccounts);
+		// Add transactions to the verfied queue which were included in the deleted block
+		this._queues.verified.enqueueMany(transactions);
+	}
+
 	public existsInTransactionPool(transaction: Transaction): boolean {
 		return Object.keys(this._queues).reduce(
 			(previousValue, currentValue) =>
@@ -80,37 +90,23 @@ export class TransactionPool {
 		);
 	}
 
-	public onDeleteBlock(block: Block): void {
-		const { received, validated, ...otherQueues } = this._queues;
-
-		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the delete block
-		const removedTransactionsByRecipientIds = this.removeTransactionsFromQueues(
-			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForRecipientId(block.transactions),
-		);
-
-		this._queues.validated.enqueueMany(removedTransactionsByRecipientIds);
-		// Add transactions to the verfied queue which were included in the deleted block
-		this._queues.verified.enqueueMany(block.transactions);
-	}
-
-	public onNewBlock(block: Block): void {
+	public removeConfirmedTransactions(transactions: ReadonlyArray<Transaction>): void {
 		// Remove transactions in the transaction pool which were included in the new block
 		this.removeTransactionsFromQueues(
 			Object.keys(this._queues),
-			queueCheckers.checkTransactionForId(block.transactions),
+			queueCheckers.checkTransactionForId(transactions),
 		);
 
 		const { received, validated, ...otherQueues } = this._queues;
 		// Remove transactions from the verified, pending and ready queues which were sent from the accounts in the new block
 		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForSenderPublicKey(block.transactions),
+			queueCheckers.checkTransactionForSenderPublicKey(transactions),
 		);
 
 		// Remove all transactions from the verified, pending and ready queues if they are of a type which includes unique data and that type is included in the block
 		// TODO: remove the condition for checking `containsUniqueData` exists, because it should always exist
-		const blockTransactionsWithUniqueData = block.transactions.filter(
+		const blockTransactionsWithUniqueData = transactions.filter(
 			(transaction: Transaction) =>
 				transaction.containsUniqueData && transaction.containsUniqueData(),
 		);
@@ -126,7 +122,7 @@ export class TransactionPool {
 		]);
 	}
 
-	public onRoundRollback(publicKeys: ReadonlyArray<string>): void {
+	public reverifyTransactionsFromSenders(senderPublicKeys: ReadonlyArray<string>): void {
 		// Move transactions from the verified, pending and ready queues to the validated queue which were sent from delegate accounts
 		const { received, validated, ...otherQueues } = this._queues;
 		const senderProperty: queueCheckers.TransactionFilterableKeys =
@@ -134,7 +130,7 @@ export class TransactionPool {
 		const removedTransactionsBySenderPublicKeys = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionPropertyForValues(
-				publicKeys,
+				senderPublicKeys,
 				senderProperty,
 			),
 		);

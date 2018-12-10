@@ -42,33 +42,35 @@ describe('transaction pool', () => {
 				.value(sinon.createStubInstance(Queue));
 		});
 	});
+	
+	afterEach(() => {
+		return sandbox.restore();
+	});
 
-	describe('#addTransactions', () => {});
-	describe('#getProcessableTransactions', () => {});
-	describe('#onDeleteBlock', () => {
-		const block = {
-			transactions: [transactions[0], transactions[1], transactions[2]],
-		};
+	describe('#addTransaction', () => { });
+	describe('getProcessableTransactions', () => {});
+	describe('#addVerifiedRemovedTransactions', () => {
+		const verifiedRemovedTransactions = [transactions[0], transactions[1], transactions[2]];
 
-		it('should call checkTransactionForRecipientId with block transactions', async () => {
-			transactionPool.onDeleteBlock(block);
-			expect(checkerStubs.checkTransactionForRecipientId).to.be.calledWithExactly(
-				block.transactions,
-			);
+		it('should call checkTransactionForRecipientId with transactions', () => {
+			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
+			expect(
+				checkerStubs.checkTransactionForRecipientId,
+			).to.be.calledWithExactly(verifiedRemovedTransactions);
 		});
 
-		it('should call removeFor for verified, pending and ready queues once', async () => {
-			transactionPool.onDeleteBlock(block);
+		it('should call removeFor for verified, pending and ready queues once', () => {
+			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
 			expect(verified.removeFor).to.be.calledOnce;
 			expect(ready.removeFor).to.be.calledOnce;
 		});
 
-		it('should call enqueueMany for verified queue with transactions from the deleted block', async () => {
-			transactionPool.onDeleteBlock(block);
+		it('should call enqueueMany for verified queue with transactions', () => {
+			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
 			expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
-				block.transactions,
+				verifiedRemovedTransactions
 			);
 		});
 
@@ -82,41 +84,39 @@ describe('transaction pool', () => {
 					return removedTransactions;
 				})
 				.reduce((acc, value) => acc.concat(value), []);
-			transactionPool.onDeleteBlock(block);
+			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
 		});
 	});
 
-	describe('#onNewBlock', () => {
-		const block = {
-			transactions: [transactions[0], transactions[1], transactions[2]],
-		};
+	describe('#removeConfirmedTransactions', () => {
+		const confirmedTransactions = [transactions[0], transactions[1], transactions[2]];
 
-		it('should call checkTransactionForId with block transactions', async () => {
-			transactionPool.onNewBlock(block);
+		it('should call checkTransactionForId with confirmed transactions', async () => {
+			transactionPool.removeConfirmedTransactions(confirmedTransactions);
 			expect(checkerStubs.checkTransactionForId).to.be.calledWithExactly(
-				block.transactions,
+				confirmedTransactions,
 			);
 		});
 
-		it('should call checkTransactionForSenderPublicKey with block transactions', async () => {
-			transactionPool.onNewBlock(block);
-			expect(checkerStubs.checkTransactionForSenderPublicKey).to.be.calledWithExactly(
-				block.transactions,
-			);
+		it('should call checkTransactionForSenderPublicKey with confirmed transactions', async () => {
+			transactionPool.removeConfirmedTransactions(confirmedTransactions);
+			expect(
+				checkerStubs.checkTransactionForSenderPublicKey,
+			).to.be.calledWithExactly(confirmedTransactions);
 		});
 
 		it('should call removeFor for received and validated queues once', async () => {
-			transactionPool.onNewBlock(block);
+			transactionPool.removeConfirmedTransactions(confirmedTransactions);
 			const { received, validated } = transactionPool.queues;
 			expect(received.removeFor).to.be.calledOnce;
 			expect(validated.removeFor).to.be.calledOnce;
 		});
 
 		it('should call removeFor for pending, verified and ready queues thrice', async () => {
-			transactionPool.onNewBlock(block);
+			transactionPool.removeConfirmedTransactions(confirmedTransactions);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledThrice;
 			expect(verified.removeFor).to.be.calledThrice;
@@ -133,7 +133,7 @@ describe('transaction pool', () => {
 					return removedTransactions;
 				})
 				.reduce((acc, value) => acc.concat(value), []);
-			transactionPool.onNewBlock(block);
+			transactionPool.removeConfirmedTransactions(removedTransactions);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith([
 				...removedTransactions,
 				...removedTransactions,
@@ -141,9 +141,9 @@ describe('transaction pool', () => {
 		});
 	});
 
-	describe('#onRoundRollback', () => {
-		it('should call checkTransactionForProperty with publicKeys and "senderPublicKey" property', async () => {
-			transactionPool.onRoundRollback(publicKeys);
+	describe('#reverifyTransactionsFromSenders', () => {
+		it('should call checkTransactionForProperty with block sender addresses and "senderPublicKey" property', async () => {
+			transactionPool.reverifyTransactionsFromSenders(publicKeys);
 			const senderProperty = 'senderPublicKey';
 			expect(
 				checkerStubs.checkTransactionPropertyForValues.calledWithExactly(
@@ -154,7 +154,7 @@ describe('transaction pool', () => {
 		});
 
 		it('should call removeFor for pending, verified and ready queues once', async () => {
-			transactionPool.onRoundRollback(publicKeys);
+			transactionPool.reverifyTransactionsFromSenders(publicKeys);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
 			expect(verified.removeFor).to.be.calledOnce;
@@ -171,7 +171,7 @@ describe('transaction pool', () => {
 					return removedTransactions;
 				})
 				.reduce((acc, value) => acc.concat(value), []);
-			transactionPool.onRoundRollback(publicKeys);
+			transactionPool.reverifyTransactionsFromSenders(publicKeys);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
