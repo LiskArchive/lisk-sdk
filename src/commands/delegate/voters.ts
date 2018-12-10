@@ -34,7 +34,11 @@ const DEFAULT_LIMIT = 10;
 const DEFAULT_OFFSET = 0;
 const DEFAULT_SORT = 'balance:desc';
 
-const processFlagInputs = (limitStr: string, offsetStr: string, sortStr: string): QueryParameters => {
+const processFlagInputs = (
+	limitStr: string,
+	offsetStr: string,
+	sortStr: string,
+): QueryParameters => {
 	const limit = parseInt(limitStr, 10);
 	const offset = parseInt(offsetStr, 10);
 	const sort = sortStr ? sortStr.trim() : undefined;

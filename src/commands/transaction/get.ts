@@ -56,7 +56,8 @@ export default class GetCommand extends BaseCommand {
 		{
 			name: 'ids',
 			required: false,
-			description: 'Comma-separated transaction ID(s) to get information about.',
+			description:
+				'Comma-separated transaction ID(s) to get information about.',
 		},
 	];
 
@@ -236,7 +237,11 @@ export default class GetCommand extends BaseCommand {
 					message: 'No transactions found.',
 				},
 			};
-			const senderAddressResult = await query(client, 'transactions', reqSenderId);
+			const senderAddressResult = await query(
+				client,
+				'transactions',
+				reqSenderId,
+			);
 			this.print(senderAddressResult);
 
 			return;

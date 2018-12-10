@@ -30,7 +30,12 @@ interface Args {
 const STATUS_ENABLE = 'enable';
 const STATUS_DISABLE = 'disable';
 
-const processInput = (client: APIClient, status: string, publicKey: string, password?: string) => {
+const processInput = (
+	client: APIClient,
+	status: string,
+	publicKey: string,
+	password?: string,
+) => {
 	if (!password) {
 		throw new ValidationError('No password was provided.');
 	}
@@ -42,8 +47,7 @@ const processInput = (client: APIClient, status: string, publicKey: string, pass
 			forging: status === STATUS_ENABLE,
 		})
 		.then(response => response.data);
-}
-	
+};
 
 export default class ForgingCommand extends BaseCommand {
 	static args = [
@@ -75,10 +79,9 @@ export default class ForgingCommand extends BaseCommand {
 	};
 
 	async run(): Promise<void> {
-		const {
-			args,
-			flags: { password: passwordSource },
-		} = this.parse(ForgingCommand);
+		const { args, flags: { password: passwordSource } } = this.parse(
+			ForgingCommand,
+		);
 
 		const { status, publicKey }: Args = args;
 		transactions.utils.validatePublicKey(publicKey);
@@ -94,4 +97,3 @@ export default class ForgingCommand extends BaseCommand {
 		this.print(result);
 	}
 }
-

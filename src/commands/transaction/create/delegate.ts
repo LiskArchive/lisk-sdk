@@ -17,13 +17,19 @@ import { registerDelegate } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+import {
+	getInputsFromSources,
+	InputFromSourceOutput,
+} from '../../../utils/input';
 
 interface Args {
 	readonly username: string;
 }
 
-const processInputs = (username: string) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+const processInputs = (username: string) => ({
+	passphrase,
+	secondPassphrase,
+}: InputFromSourceOutput) =>
 	registerDelegate({
 		passphrase,
 		secondPassphrase,

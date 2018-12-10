@@ -57,11 +57,7 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			} as any;
-			queryResult = query(
-				apiClient,
-				defaultEndpoint,
-				defaultParameters,
-			);
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
@@ -91,11 +87,7 @@ describe('query utils', () => {
 		});
 
 		it('should call API client and should reject with an error', () => {
-			queryResult = query(
-				apiClient,
-				defaultEndpoint,
-				defaultParameters,
-			);
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters.query,
 			);
@@ -114,11 +106,7 @@ describe('query utils', () => {
 				...defaultParameters,
 				placeholder,
 			};
-			queryResult = query(
-				apiClient,
-				defaultEndpoint,
-				paramWithPlaceholder,
-			);
+			queryResult = query(apiClient, defaultEndpoint, paramWithPlaceholder);
 			expect(apiClient.accounts.get).to.be.calledWithExactly(
 				defaultParameters.query,
 			);
@@ -142,11 +130,7 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			} as any;
-			queryResult = query(
-				apiClient,
-				defaultEndpoint,
-				defaultParameters,
-			);
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
@@ -203,11 +187,7 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			} as any;
-			queryResult = query(
-				apiClient,
-				defaultEndpoint,
-				defaultParameters,
-			);
+			queryResult = query(apiClient, defaultEndpoint, defaultParameters);
 			return Promise.resolve();
 		});
 
@@ -233,11 +213,7 @@ describe('query utils', () => {
 					get: sandbox.stub().resolves(response),
 				},
 			} as any;
-			query(
-				apiClient,
-				defaultEndpoint,
-				defaultArrayParameters,
-			);
+			query(apiClient, defaultEndpoint, defaultArrayParameters);
 			return Promise.resolve();
 		});
 

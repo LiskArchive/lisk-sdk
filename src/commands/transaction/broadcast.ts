@@ -64,4 +64,3 @@ export default class BroadcastCommand extends BaseCommand {
 		this.print(response.data);
 	}
 }
-

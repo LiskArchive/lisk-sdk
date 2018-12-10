@@ -63,8 +63,8 @@ export default abstract class BaseCommand extends Command {
 
 	async init(): Promise<void> {
 		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
-		const { flags } = this.parse((// tslint:disable-next-line no-any
-		this.constructor as unknown) as flagParser.Input<any>);
+		const { flags } = this.parse(// tslint:disable-next-line no-any
+		(this.constructor as unknown) as flagParser.Input<any>);
 		this.printFlags = flags;
 
 		process.stdout.on('error', handleEPIPE);
