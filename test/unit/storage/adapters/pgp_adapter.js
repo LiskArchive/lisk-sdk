@@ -44,7 +44,7 @@ describe('PgpAdapter', () => {
 		);
 	});
 
-	it('should be be inherited by BaseAdapter', () => {
+	it('should extend BaseAdapter', () => {
 		return expect(PgpAdapter.prototype).to.be.an.instanceof(BaseAdapter);
 	});
 
