@@ -41,7 +41,7 @@ class Field {
 		this.filterCondition = options.filterCondition;
 
 		if (this.filterType) {
-			this.filters = filterGenerator(
+			this.filters = this.generateFilters(
 				this.filterType,
 				this.name,
 				this.fieldName,
@@ -62,6 +62,16 @@ class Field {
 			mode,
 			this.name,
 			this.fieldName
+		);
+	}
+
+	generateFilters() {
+		return filterGenerator(
+			this.filterType,
+			this.name,
+			this.fieldName,
+			this.inputSerializer,
+			this.filterCondition
 		);
 	}
 }
