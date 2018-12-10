@@ -498,10 +498,36 @@ describe('Base transaction class', () => {
 	});
 
 	describe('#isExpired', () => {
-		beforeEach(() => {
-			return Promise.resolve();
+		describe('when transaction is not expired', () => {
+			beforeEach(() => {
+				let expiredTransaction = {
+					...defaultTransaction,
+					receivedAt: new Date(),
+				};
+				baseTransaction = new TestTransaction(expiredTransaction);
+
+				return Promise.resolve();
+			});
+
+			it('should return false', () => {
+				return expect(baseTransaction.isExpired()).to.be.false;
+			});
 		});
 
-		it('', () => {});
+		describe('when transaction is expired', () => {
+			beforeEach(() => {
+				let expiredTransaction = {
+					...defaultTransaction,
+					receivedAt: new Date(+new Date() - 1300 * 60000),
+				};
+				baseTransaction = new TestTransaction(expiredTransaction);
+
+				return Promise.resolve();
+			});
+
+			it('should return true', () => {
+				return expect(baseTransaction.isExpired()).to.be.true;
+			});
+		});
 	});
 });

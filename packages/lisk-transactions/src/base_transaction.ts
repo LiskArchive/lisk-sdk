@@ -103,6 +103,11 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt;
+		this.isMultiSignature =
+			Array.isArray(rawTransaction.signatures) &&
+			rawTransaction.signatures.length > 0
+				? true
+				: false;
 	}
 
 	public abstract assetToJSON(asset: TransactionAsset): TransactionAsset;
@@ -307,7 +312,7 @@ export abstract class BaseTransaction {
 		const transactionErrors = Object.entries(sender).reduce(
 			(
 				errorArray: ReadonlyArray<TransactionError>,
-				property: ReadonlyArray<string>,
+				property: ReadonlyArray<string | number>,
 			): ReadonlyArray<TransactionError> => {
 				const [key, value] = property;
 
@@ -335,8 +340,7 @@ export abstract class BaseTransaction {
 					];
 				}
 
-				// FIXME: Check vice versa?
-				// Check for missing multisignatures on transaction signatures property
+				// Check signatures on transaction
 				if (
 					key === 'multisignatures' &&
 					Array.isArray(value) &&
@@ -350,9 +354,22 @@ export abstract class BaseTransaction {
 					];
 				}
 
+				// Check if transaction has enough signatures to be confirmed
+				if (
+					key === 'multimin' &&
+					this.signatures &&
+					this.signatures.length < value
+				) {
+					return [
+						...errorArray,
+						new TransactionError('Missing signatures', this.id, '.signatures'),
+					];
+				}
+
 				// Check senderId
 				if (
 					key === 'address' &&
+					typeof value === 'string' &&
 					value.toUpperCase() !== this.senderId.toUpperCase()
 				) {
 					return [
@@ -407,20 +424,23 @@ export abstract class BaseTransaction {
 		const transactionSignatures = transaction.signatures as ReadonlyArray<
 			string
 		>;
-		const multisignatureVerificationErrors = validateMultisignatures(
+		const unvalidatedSignatures = validateMultisignatures(
 			sender,
 			transaction,
 			transactionHash,
-		)
-			? []
-			: transactionSignatures.map(
-					signature =>
-						new TransactionError(
-							`Failed to verify multisignature: ${signature}`,
-							transaction.id,
-							'.signatures',
-						),
-			  );
+		);
+
+		const multisignatureVerificationErrors =
+			unvalidatedSignatures.length > 0
+				? []
+				: transactionSignatures.map(
+						signature =>
+							new TransactionError(
+								`Failed to verify multisignature: ${signature}`,
+								transaction.id,
+								'.signatures',
+							),
+				  );
 
 		const verifyErrors: ReadonlyArray<TransactionError> = [
 			...balanceError,
