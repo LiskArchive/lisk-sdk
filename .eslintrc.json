@@ -24,7 +24,6 @@
 		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
-		"no-prototype-builtins": "off",
 		"no-restricted-globals": "off",
 		"no-restricted-syntax": "off",
 		"no-template-curly-in-string": "off",
