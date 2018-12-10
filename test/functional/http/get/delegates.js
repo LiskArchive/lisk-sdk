@@ -576,6 +576,14 @@ describe('GET /delegates', () => {
 				});
 		});
 
+		it('using invalid offset should fail', () => {
+			return delegatesEndpoint
+				.makeRequest({ offset: 102 }, 400)
+				.then(res => {
+					expectSwaggerParamError(res, 'offset');
+				});
+		});
+
 		it('using limit=101 should be ok', () => {
 			return forgersEndpoint.makeRequest({ limit: 101 }, 200).then(res => {
 				expect(res.body.data).to.have.length(101);
