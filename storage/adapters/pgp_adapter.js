@@ -62,7 +62,7 @@ class PgpAdapter extends BaseAdapter {
 		};
 
 		this.pgp = pgpLib(this.pgpOptions);
-		this.db = null;
+		this.db = undefined;
 	}
 
 	/**
