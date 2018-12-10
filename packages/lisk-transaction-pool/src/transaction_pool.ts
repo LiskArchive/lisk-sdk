@@ -62,12 +62,12 @@ export class TransactionPool {
 		const { received, validated, ...otherQueues } = this._queues;
 
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
-		const transactionsToAffectedAccounts = this.removeTransactionsFromQueues(
+		const removedTransactionsByRecipientId = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
 			queueCheckers.checkTransactionForRecipientId(transactions),
 		);
 
-		this._queues.validated.enqueueMany(transactionsToAffectedAccounts);
+		this._queues.validated.enqueueMany(removedTransactionsByRecipientId);
 		// Add transactions to the verfied queue which were included in the verified removed transactions
 		this._queues.verified.enqueueMany(transactions);
 	}
@@ -106,13 +106,13 @@ export class TransactionPool {
 
 		// Remove all transactions from the verified, pending and ready queues if they are of a type which includes unique data and that type is included in the confirmed transactions
 		// TODO: remove the condition for checking `containsUniqueData` exists, because it should always exist
-		const removeConfirmedTransactionsWithUniqueData = transactions.filter(
+		const confirmedTransactionsWithUniqueData = transactions.filter(
 			(transaction: Transaction) =>
 				transaction.containsUniqueData && transaction.containsUniqueData(),
 		);
 		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForTypes(removeConfirmedTransactionsWithUniqueData),
+			queueCheckers.checkTransactionForTypes(confirmedTransactionsWithUniqueData),
 		);
 
 		// Add transactions which need to be reverified to the validated queue
