@@ -15,11 +15,9 @@
 
 'use strict';
 
-const rewire = require('rewire');
 const Promise = require('bluebird');
 const BaseAdapter = require('../../../../storage/adapters/base_adapter');
-
-const PgpAdapter = rewire('../../../../storage/adapters/pgp_adapter');
+const PgpAdapter = require('../../../../storage/adapters/pgp_adapter');
 
 const loggerStub = {
 	info: sinonSandbox.stub(),

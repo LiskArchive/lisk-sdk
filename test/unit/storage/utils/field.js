@@ -15,20 +15,22 @@
 
 'use strict';
 
-const rewire = require('rewire');
-
-const Field = rewire('../../../../storage/utils/field');
-
-const filterGeneratorStub = sinonSandbox
-	.stub()
-	.returns({ key: { filter: '' } });
-const inputSerializersStub = {
-	defaultInput: sinonSandbox.stub().returns('serialized value'),
-};
-Field.__set__('filterGenerator', filterGeneratorStub);
-Field.__set__('inputSerializers', inputSerializersStub);
+const Field = require('../../../../storage/utils/field');
+const inputSerializers = require('../../../../storage/utils/inputSerializers');
 
 describe('Field', () => {
+	beforeEach(done => {
+		sinonSandbox
+			.stub(Field.prototype, 'generateFilters')
+			.returns({ key: { filter: '' } });
+
+		sinonSandbox
+			.stub(inputSerializers, 'defaultInput')
+			.returns('serialized value');
+
+		done();
+	});
+
 	afterEach(() => {
 		return sinonSandbox.restore();
 	});
@@ -39,33 +41,33 @@ describe('Field', () => {
 				new Field();
 			}).to.throw('Name is required to initialize field.');
 		});
+
 		it('should fail without required param "type"', () => {
 			return expect(() => {
 				new Field('name');
 			}).to.throw('Type is required to initialize field.');
 		});
+
 		it('should assign param and data members properly if optional attributes not provided', () => {
 			const field = new Field('name', 'type');
 
 			expect(field.name).to.be.eql('name');
 			expect(field.type).to.be.eql('type');
 			expect(field.filterType).to.be.eql(undefined);
-			expect(field.inputSerializer).to.be.eql(
-				inputSerializersStub.defaultInput
-			);
+			expect(field.inputSerializer).to.be.eql(inputSerializers.defaultInput);
 			return expect(field.filterCondition).to.be.eql(undefined);
 		});
 
 		it('should assign filters if filter type provided', () => {
 			const field = new Field('name', 'type', {
-				filter: 'STRING',
+				filter: 'TEXT',
 				fieldName: 'fieldName',
 				filterCondition: 'condition',
 			});
 
-			expect(filterGeneratorStub).to.be.calledOnce;
-			expect(filterGeneratorStub).to.be.calledWith(
-				'STRING',
+			expect(field.generateFilters).to.be.calledOnce;
+			expect(field.generateFilters).to.be.calledWith(
+				'TEXT',
 				field.name,
 				field.fieldName,
 				field.inputSerializer,
@@ -78,7 +80,7 @@ describe('Field', () => {
 	describe('getFilters()', () => {
 		it('should return the filters', () => {
 			const field = new Field('name', 'type', {
-				filter: 'STRING',
+				filter: 'TEXT',
 				fieldName: 'fieldName',
 				filterCondition: 'condition',
 			});
@@ -90,15 +92,17 @@ describe('Field', () => {
 	describe('serializeValue()', () => {
 		it('should return serialized value for field', () => {
 			const field = new Field('name', 'type', {
-				filter: 'STRING',
+				filter: 'TEXT',
 				fieldName: 'fieldName',
 			});
 
 			expect(field.serializeValue(123, 'my-mode')).to.be.eql(
 				'serialized value'
 			);
-			expect(inputSerializersStub.defaultInput).to.be.calledOnce;
-			return expect(inputSerializersStub.defaultInput).to.be.calledWith(
+
+			expect(inputSerializers.defaultInput).to.be.calledOnce;
+
+			return expect(inputSerializers.defaultInput).to.be.calledWith(
 				123,
 				'my-mode',
 				field.name,

@@ -15,19 +15,21 @@
 
 'use strict';
 
-const rewire = require('rewire');
 const filterTypes = require('../../../../storage/utils/filter_types');
-
-const filters = rewire('../../../../storage/utils/filters');
-
-const inputSerializersStub = {
-	defaultInput: sinonSandbox.stub().returns('defaultInput serialized value'),
-};
-filters.__set__('inputSerializers', inputSerializersStub);
+const inputSerializers = require('../../../../storage/utils/inputSerializers');
+const filters = require('../../../../storage/utils/filters');
 
 const customSerializer = sinonSandbox.stub().returns('custom serialized value');
 
 describe('filters', () => {
+	beforeEach(done => {
+		sinonSandbox
+			.stub(inputSerializers, 'defaultInput')
+			.returns('defaultInput serialized value');
+
+		done();
+	});
+
 	afterEach(() => {
 		return sinonSandbox.restore();
 	});
