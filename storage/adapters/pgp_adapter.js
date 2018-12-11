@@ -104,8 +104,6 @@ class PgpAdapter extends BaseAdapter {
 		// based on the provided options, we need to test it by acquiring
 		// the connection a manually
 
-		// return Promise.resolve(true);
-
 		let connectionObject = null;
 
 		return this.db
