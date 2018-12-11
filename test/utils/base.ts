@@ -14,10 +14,10 @@
  *
  */
 import os from 'os';
-import { test } from '@oclif/test';
-import BaseCommand, { defaultConfigFolder } from '../src/base';
-import * as config from '../src/utils/config';
-import * as print from '../src/utils/print';
+import { test, expect } from '@oclif/test';
+import BaseCommand, { defaultConfigFolder } from '../../src/base';
+import * as configUtils from '../../src/utils/config';
+import * as printUtils from '../../src/utils/print';
 
 describe('base command', () => {
 	const defaultFlags = {
@@ -30,13 +30,18 @@ describe('base command', () => {
 
 	const printMethodStub = sandbox.stub();
 
+	class BaseExtended extends BaseCommand {
+		async run(): Promise<void> {
+		}
+	}
+
 	const setupTest = () => {
-		const command = new BaseCommand();
+		const command = new BaseExtended([], {} as any);
 		return test
 			.stub(command, 'parse', sandbox.stub().returns({ flags: defaultFlags }))
 			.stub(command, 'error', sandbox.stub())
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
-			.stub(config, 'getConfig', sandbox.stub().returns(defaultConfig))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
+			.stub(configUtils, 'getConfig', sandbox.stub().returns(defaultConfig))
 			.add('command', () => command);
 	};
 
@@ -62,14 +67,14 @@ describe('base command', () => {
 			.do(async ctx => ctx.command.init())
 			.it(
 				'should call getConfig with the config folder set by the environment variable',
-				() => expect(config.getConfig).to.be.calledWithExactly(configFolder),
+				() => expect(configUtils.getConfig).to.be.calledWithExactly(configFolder),
 			);
 
 		setupTest()
 			.do(async ctx => ctx.command.init())
 			.it(
 				'should set the flags to the return value of the parse function',
-				ctx => expect(ctx.command.flags).to.equal(defaultFlags),
+				ctx => expect(ctx.command.printFlags).to.equal(defaultFlags),
 			);
 
 		setupTest()
@@ -117,24 +122,24 @@ describe('base command', () => {
 			.it(
 				'should call getConfig with the process.env.XDG_CONFIG_HOME when readAgain is true',
 				() =>
-					expect(config.getConfig).to.be.calledWithExactly(
+					expect(configUtils.getConfig).to.be.calledWithExactly(
 						process.env.XDG_CONFIG_HOME,
 					),
 			);
 
 		setupTest()
 			.do(async ctx => {
-				ctx.command.userConfig = {};
+				ctx.command.userConfig = {} as any;
 				return ctx.command.print(result);
 			})
 			.it(
 				'should not call getConfig when readAgain is falsy',
-				() => expect(config.getConfig).not.to.be.called,
+				() => expect(configUtils.getConfig).not.to.be.called,
 			);
 
 		setupTest()
 			.do(async ctx => {
-				ctx.command.userConfig = {};
+				ctx.command.userConfig = {} as any;
 				return ctx.command.print(result);
 			})
 			.it('should call print method with the result', () =>
@@ -145,11 +150,11 @@ describe('base command', () => {
 			.do(async ctx => {
 				ctx.command.userConfig = {
 					json: false,
-				};
+				} as any;
 				return ctx.command.print(result);
 			})
 			.it('should call print with the userConfig', () =>
-				expect(print.default).to.be.calledWithExactly({
+				expect(printUtils.print).to.be.calledWithExactly({
 					json: false,
 					pretty: undefined,
 				}),
@@ -164,12 +169,12 @@ describe('base command', () => {
 				ctx.command.userConfig = {
 					json: false,
 					pretty: true,
-				};
-				ctx.command.flags = ctx.overwritingFlags;
+				} as any;
+				ctx.command.printFlags = ctx.overwritingFlags;
 				ctx.command.print(result);
 			})
 			.it('should call print method with flags overriding the config', ctx =>
-				expect(print.default).to.be.calledWithExactly(ctx.overwritingFlags),
+				expect(printUtils.print).to.be.calledWithExactly(ctx.overwritingFlags),
 			);
 	});
 });

@@ -13,15 +13,23 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
 import { createMnemonicPassphrase } from '../../utils/mnemonic';
 
-const createAccount = () => {
+interface AccountInfo {
+	readonly address: string;
+	readonly passphrase: string;
+	readonly privateKey: string;
+	readonly publicKey: string;
+}
+
+const createAccount = (): AccountInfo => {
 	const passphrase = createMnemonicPassphrase();
-	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-	const address = cryptography.getAddressFromPublicKey(publicKey);
+	const { privateKey, publicKey } = getKeys(passphrase);
+	const address = getAddressFromPublicKey(publicKey);
+
 	return {
 		passphrase,
 		privateKey,
@@ -31,31 +39,32 @@ const createAccount = () => {
 };
 
 export default class CreateCommand extends BaseCommand {
-	async run() {
+	static description = `
+		Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
+	`;
+
+	static examples = ['account:create', 'account:create --number=3'];
+
+	static flags = {
+		...BaseCommand.flags,
+		number: flagParser.string({
+			char: 'n',
+			description: 'Number of accounts to create.',
+			default: '1',
+		}),
+	};
+
+	async run(): Promise<void> {
 		const { flags: { number: numberStr } } = this.parse(CreateCommand);
-		const number = parseInt(numberStr, 10);
+		const numberOfAccounts = parseInt(numberStr as string, 10);
 		if (
-			numberStr !== number.toString() ||
-			!Number.isInteger(number) ||
-			number <= 0
+			numberStr !== numberOfAccounts.toString() ||
+			!Number.isInteger(numberOfAccounts) ||
+			numberOfAccounts <= 0
 		) {
 			throw new Error('Number flag must be an integer and greater than 0');
 		}
-		const accounts = new Array(number).fill().map(createAccount);
+		const accounts = new Array(numberOfAccounts).fill(0).map(createAccount);
 		this.print(accounts);
 	}
 }
-
-CreateCommand.flags = {
-	...BaseCommand.flags,
-	number: flagParser.string({
-		char: 'n',
-		description: 'Number of accounts to create.',
-		default: '1',
-	}),
-};
-
-CreateCommand.description = `
-Returns a randomly-generated mnemonic passphrase with its corresponding public/private key pair and Lisk address.
-`;
-CreateCommand.examples = ['account:create', 'account:create --number=3'];

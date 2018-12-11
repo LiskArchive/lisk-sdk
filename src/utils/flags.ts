@@ -65,7 +65,42 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
-export const flags = {
+type AlphabetLowercase =
+	| 'a'
+	| 'b'
+	| 'c'
+	| 'd'
+	| 'e'
+	| 'f'
+	| 'g'
+	| 'h'
+	| 'i'
+	| 'j'
+	| 'k'
+	| 'l'
+	| 'm'
+	| 'n'
+	| 'o'
+	| 'p'
+	| 'q'
+	| 'r'
+	| 's'
+	| 't'
+	| 'u'
+	| 'v'
+	| 'w'
+	| 'x'
+	| 'y'
+	| 'z';
+
+interface FlagMap {
+	readonly [key: string]: {
+		readonly char?: AlphabetLowercase;
+		readonly description: string;
+	};
+}
+
+export const flags: FlagMap = {
 	message: {
 		char: 'm',
 		description: messageDescription,

@@ -14,9 +14,9 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
+import * as printUtils from '../../../src/utils/print';
 import * as mnemonic from '../../../src/utils/mnemonic';
 
 describe('account:create', () => {
@@ -54,7 +54,7 @@ describe('account:create', () => {
 			.returns(secondDefaultAddress);
 
 		return test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				mnemonic,
@@ -79,7 +79,7 @@ describe('account:create', () => {
 		setupTest()
 			.command(['account:create'])
 			.it('should create account', () => {
-				expect(print.default).to.be.called;
+				expect(printUtils.print).to.be.called;
 				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
 					defaultKeys.publicKey,
@@ -99,7 +99,7 @@ describe('account:create', () => {
 		setupTest()
 			.command(['account:create', `--number=${defaultNumber}`])
 			.it('should create account', () => {
-				expect(print.default).to.be.calledOnce;
+				expect(printUtils.print).to.be.calledOnce;
 				expect(cryptography.getKeys).to.be.calledWithExactly(defaultMnemonic);
 				expect(cryptography.getAddressFromPublicKey).to.be.calledWithExactly(
 					defaultKeys.publicKey,
@@ -121,7 +121,7 @@ describe('account:create', () => {
 
 		setupTest()
 			.command(['account:create', '--number=NaN'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Number flag must be an integer and greater than 0',
 				);
@@ -130,7 +130,7 @@ describe('account:create', () => {
 
 		setupTest()
 			.command(['account:create', '--number=0'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Number flag must be an integer and greater than 0',
 				);
@@ -139,7 +139,7 @@ describe('account:create', () => {
 
 		setupTest()
 			.command(['account:create', '--number=10sk24'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Number flag must be an integer and greater than 0',
 				);

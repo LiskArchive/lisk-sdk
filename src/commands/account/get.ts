@@ -17,10 +17,39 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly addresses: string;
+}
+
 export default class GetCommand extends BaseCommand {
-	async run() {
-		const { args: { addresses } } = this.parse(GetCommand);
-		const req = addresses.map(address => ({
+	static args = [
+		{
+			name: 'addresses',
+			required: true,
+			description: 'Comma-separated address(es) to get information about.',
+		},
+	];
+
+	static description = `
+		Gets account information from the blockchain.
+	`;
+
+	static examples = [
+		'account:get 3520445367460290306L',
+		'account:get 3520445367460290306L,2802325248134221536L',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
+		const { args } = this.parse(GetCommand);
+		const { addresses: addressesStr }: Args = args;
+		const addresses = addressesStr
+			.split(',')
+			.filter(Boolean);
+		const req = addresses.map((address: string) => ({
 			query: {
 				limit: 1,
 				address,
@@ -35,25 +64,3 @@ export default class GetCommand extends BaseCommand {
 		this.print(results);
 	}
 }
-
-GetCommand.args = [
-	{
-		name: 'addresses',
-		required: true,
-		description: 'Comma-separated address(es) to get information about.',
-		parse: input => input.split(',').filter(Boolean),
-	},
-];
-
-GetCommand.flags = {
-	...BaseCommand.flags,
-};
-
-GetCommand.description = `
-Gets account information from the blockchain.
-`;
-
-GetCommand.examples = [
-	'account:get 3520445367460290306L',
-	'account:get 3520445367460290306L,2802325248134221536L',
-];

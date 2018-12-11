@@ -1,7 +1,9 @@
 {
 	"compilerOptions": {
-		"allowJs": true,
+		"composite": true,
+		"declaration": true,
 		"esModuleInterop": true,
+		"importHelpers": true,
 		"forceConsistentCasingInFileNames": true,
 		"target": "es2017",
 		"module": "commonjs",
@@ -18,5 +20,6 @@
 		"rootDir": "src",
 		"outDir": "dist"
 	},
-	"include": ["src/**/*", "types/**/*"]
+	"include": ["src/**/*", "types/**/*"],
+	"files": ["src/default_config.json"]
 }

@@ -15,8 +15,8 @@
  */
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 import * as queryHandler from '../../../src/utils/query';
 
 describe('account:get command', () => {
@@ -29,15 +29,15 @@ describe('account:get command', () => {
 	const apiClientStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub));
 
 	describe('account:get', () => {
 		setupTest()
 			.stdout()
 			.command(['account:get'])
-			.catch(error =>
+			.catch((error: Error) =>
 				expect(error.message).to.contain('Missing 1 required arg'),
 			)
 			.it('should throw an error when arg is not provided');
@@ -57,7 +57,7 @@ describe('account:get command', () => {
 			.stdout()
 			.command(['account:get', address])
 			.it('should get an account info and display as an object', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
 					endpoint,
@@ -97,7 +97,7 @@ describe('account:get command', () => {
 			.stdout()
 			.command(['account:get', addresses.join(',')])
 			.it('should get accounts info and display as an array', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
 					endpoint,
@@ -134,7 +134,7 @@ describe('account:get command', () => {
 			.it(
 				'should get accounts info only using non-empty args and display as an array',
 				() => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,

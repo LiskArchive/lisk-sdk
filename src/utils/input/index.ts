@@ -23,7 +23,7 @@ export const getFirstLineFromString = (multilineString: unknown) =>
 
 interface InputSource {
 	readonly repeatPrompt?: boolean;
-	readonly source: string;
+	readonly source?: string;
 }
 
 interface InputFromSourceInputs {
@@ -31,6 +31,13 @@ interface InputFromSourceInputs {
 	readonly passphrase?: InputSource;
 	readonly password?: InputSource;
 	readonly secondPassphrase?: InputSource;
+}
+
+interface InputFromSourceOutput {
+	readonly data?: string;
+	readonly passphrase?: string;
+	readonly password?: string;
+	readonly secondPassphrase?: string;
 }
 
 interface MnemonicError {
@@ -43,7 +50,7 @@ export const getInputsFromSources = async ({
 	secondPassphrase: secondPassphraseInput,
 	password: passwordInput,
 	data: dataInput,
-}: InputFromSourceInputs) => {
+}: InputFromSourceInputs): Promise<InputFromSourceOutput> => {
 	const [
 		passphraseIsRequired,
 		secondPassphraseIsRequired,

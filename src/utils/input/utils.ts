@@ -240,7 +240,7 @@ export const getPassphraseFromSource = async (
 };
 
 export const getPassphrase = async (
-	passphraseSource: string,
+	passphraseSource: string | undefined,
 	options: object,
 ): Promise<string> => {
 	const optionsWithDefaults = {

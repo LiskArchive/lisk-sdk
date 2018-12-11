@@ -13,15 +13,21 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
+import { getAddressFromPublicKey, getKeys } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import { getInputsFromSources } from '../../utils/input';
+import { ValidationError } from '../../utils/error';
 import { flags as commonFlags } from '../../utils/flags';
+import { getInputsFromSources } from '../../utils/input';
 
-const processInput = ({ passphrase }) => {
-	const { privateKey, publicKey } = cryptography.getKeys(passphrase);
-	const address = cryptography.getAddressFromPublicKey(publicKey);
+const processInput = ({ passphrase }: { readonly passphrase?: string }) => {
+	if (!passphrase) {
+		throw new ValidationError('Passphrase cannot be empty');
+	}
+
+	const { privateKey, publicKey } = getKeys(passphrase);
+	const address = getAddressFromPublicKey(publicKey);
+
 	return {
 		privateKey,
 		publicKey,
@@ -30,7 +36,18 @@ const processInput = ({ passphrase }) => {
 };
 
 export default class ShowCommand extends BaseCommand {
-	async run() {
+	static description = `
+		Shows account information for a given passphrase.
+	`;
+
+	static examples = ['account:show'];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+	};
+
+	async run(): Promise<void> {
 		const { flags: { passphrase: passphraseSource } } = this.parse(ShowCommand);
 		const input = await getInputsFromSources({
 			passphrase: {
@@ -41,13 +58,3 @@ export default class ShowCommand extends BaseCommand {
 		this.print(processInput(input));
 	}
 }
-
-ShowCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-};
-
-ShowCommand.description = `
-Shows account information for a given passphrase.
-`;
-ShowCommand.examples = ['account:show'];
