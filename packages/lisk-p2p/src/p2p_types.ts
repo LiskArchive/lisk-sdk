@@ -39,7 +39,9 @@ export interface NodeInfo {
 	readonly version: string;
 }
 
-export interface P2PPenality {}
+export interface P2PNodeStatus {}
+
+export interface P2PPenalty {}
 
 export interface P2PConfig {
 	readonly blacklistedPeers: ReadonlyArray<PeerInfo>;
