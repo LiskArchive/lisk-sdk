@@ -12,24 +12,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import APIClientModule from '@liskhq/lisk-api-client';
-import * as constantsModule from '@liskhq/lisk-constants';
-import cryptographyModule from '@liskhq/lisk-cryptography';
-import passphraseModule from '@liskhq/lisk-passphrase';
-import transactionModule from '@liskhq/lisk-transactions';
+import { APIClient } from '@liskhq/lisk-api-client';
+import * as constants from '@liskhq/lisk-constants';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import * as passphrase from '@liskhq/lisk-passphrase';
+import * as transaction from '@liskhq/lisk-transactions';
 
-// tslint:disable-next-line variable-name
-export const APIClient = APIClientModule;
-export const constants = constantsModule;
-export const cryptography = cryptographyModule;
-export const passphrase = passphraseModule;
-export const transaction = transactionModule;
-
-// tslint:disable-next-line no-default-export
-export default {
-	APIClient,
-	constants,
-	cryptography,
-	passphrase,
-	transaction,
-};
+export { APIClient, constants, cryptography, passphrase, transaction };

@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-reference
+/// <reference path="../../../types/browserify-bignum/index.d.ts" />
+import * as cryptography from '@liskhq/lisk-cryptography';
+import BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
-} from '@liskhq/lisk-constants';
-import cryptography from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
-import {
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
@@ -40,8 +40,7 @@ export const checkPublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
 ) =>
 	publicKeys.every((element, index) => {
-		const elementFound = publicKeys.slice(index + 1).indexOf(element);
-		if (elementFound > -1) {
+		if (publicKeys.slice(index + 1).includes(element)) {
 			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
 		}
 
@@ -84,7 +83,7 @@ export const validateAddress = (address: string): boolean => {
 		);
 	}
 
-	if (address.indexOf('.') > -1) {
+	if (address.includes('.')) {
 		throw new Error(
 			'Address format does not match requirements. Address includes invalid character: `.`.',
 		);

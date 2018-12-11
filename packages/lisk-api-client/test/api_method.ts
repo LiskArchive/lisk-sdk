@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { apiMethod } from '../src/api_method';
-import { ApiResponse, Resource } from '../src/api_types';
+import { Resource, APIHandler } from '../src/api_types';
 
 describe('API method module', () => {
 	const GET = 'GET';
@@ -33,14 +33,10 @@ describe('API method module', () => {
 	const errorArgumentNumber =
 		'This endpoint must be supplied with the following parameters: related,id';
 	const firstURLParam = 'r-123';
-	const secondURLParam = 'id-123';
+	const secondURLParam = 123;
 	let resource: Resource;
 	let requestResult: object;
-	let handler: (
-		firstURLParam?: string,
-		secondURLParam?: string,
-		options?: object,
-	) => Promise<ApiResponse | Error>;
+	let handler: APIHandler;
 	let validationError: Error;
 
 	beforeEach(() => {
@@ -83,6 +79,8 @@ describe('API method module', () => {
 		});
 
 		describe('when initialized with POST / parameters', () => {
+			const parameterStringError = 'Parameter must be a string or a number';
+
 			beforeEach(() => {
 				handler = apiMethod({
 					method: POST,
@@ -114,6 +112,12 @@ describe('API method module', () => {
 					Error,
 					errorArgumentNumber,
 				);
+			});
+
+			it('should throw an error if input is not a string or a number', () => {
+				return expect(
+					handler({ num: 3 }, secondURLParam, { needed: true }),
+				).to.be.rejectedWith(Error, parameterStringError);
 			});
 
 			it('should be rejected with no data', () => {

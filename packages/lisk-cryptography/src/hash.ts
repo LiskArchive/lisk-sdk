@@ -28,7 +28,7 @@ export const hash = (data: Buffer | string, format?: string): Buffer => {
 	}
 
 	if (typeof data === 'string' && typeof format === 'string') {
-		if (['utf8', 'hex'].indexOf(format) === -1) {
+		if (!['utf8', 'hex'].includes(format)) {
 			throw new Error(
 				'Unsupported string format. Currently only `hex` and `utf8` are supported.',
 			);

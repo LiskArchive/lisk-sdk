@@ -12,22 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { APIClient } from '../api_client';
-import { apiMethod } from '../api_method';
-import { APIResource } from '../api_resource';
-import { APIHandler } from '../api_types';
-import { GET } from '../constants';
-
-export class PeersResource extends APIResource {
-	public get: APIHandler;
-	public path: string;
-
-	public constructor(apiClient: APIClient) {
-		super(apiClient);
-		this.path = '/peers';
-
-		this.get = apiMethod({
-			method: GET,
-		}).bind(this);
-	}
-}
+export const SIGNED_MESSAGE_PREFIX = 'Lisk Signed Message:\n';

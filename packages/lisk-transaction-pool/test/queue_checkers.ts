@@ -1,15 +1,17 @@
 import { expect } from 'chai';
 import { Transaction } from '../src/transaction_pool';
+import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as queueCheckers from '../src/queue_checkers';
 import transactionObjects from '../fixtures/transactions.json';
 import { SinonStub } from 'sinon';
-import { wrapTransferTransaction } from './utils/add_transaction_functions';
 
 describe('queueCheckers', () => {
-	const [unincludedTransaction, ...transactions] = transactionObjects.map(wrapTransferTransaction);
+	const [unincludedTransaction, ...transactions] = transactionObjects.map(
+		wrapTransferTransaction,
+	);
 
 	describe('#checkTransactionPropertyForValues', () => {
-		const propertyName: queueCheckers.transactionFilterableKeys =
+		const propertyName: queueCheckers.TransactionFilterableKeys =
 			'senderPublicKey';
 		const values = transactions.map(
 			(transaction: Transaction) => transaction.senderPublicKey,
@@ -63,16 +65,16 @@ describe('queueCheckers', () => {
 
 	describe('#checkTransactionForExpiry', () => {
 		it('should return a function', () => {
-			return expect(
-				queueCheckers.checkTransactionForExpiry()
-			).to.be.a('function');
+			return expect(queueCheckers.checkTransactionForExpiry()).to.be.a(
+				'function',
+			);
 		});
 
 		it('should call transaction.isExpired function', () => {
 			const transactionExpiryCheckFunction = queueCheckers.checkTransactionForExpiry();
 			const transaction = {
 				...transactions[0],
-				receivedAt: new Date((new Date().getTime() - 29000))
+				receivedAt: new Date(new Date().getTime() - 29000),
 			};
 
 			const isExpiredStub = sandbox.stub(transaction, 'isExpired');
@@ -97,7 +99,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transactions senderPublicKeys values and senderPublicKey property', () => {
 			queueCheckers.checkTransactionForSenderPublicKey(transactions);
-			const senderProperty: queueCheckers.transactionFilterableKeys =
+			const senderProperty: queueCheckers.TransactionFilterableKeys =
 				'senderPublicKey';
 			const transactionSenderPublicKeys = transactions.map(
 				(transaction: Transaction) => transaction.senderPublicKey,
@@ -116,14 +118,14 @@ describe('queueCheckers', () => {
 		});
 
 		it('should return a function', () => {
-			return expect(
-				queueCheckers.checkTransactionForId(transactions),
-			).to.be.a('function');
+			return expect(queueCheckers.checkTransactionForId(transactions)).to.be.a(
+				'function',
+			);
 		});
 
 		it('should call checkTransactionPropertyForValues with transactions id values and id property', () => {
 			queueCheckers.checkTransactionForId(transactions);
-			const idProperty: queueCheckers.transactionFilterableKeys = 'id';
+			const idProperty: queueCheckers.TransactionFilterableKeys = 'id';
 			const transactionIds = transactions.map(
 				(transaction: Transaction) => transaction.id,
 			);
@@ -148,7 +150,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transacitons recipientId values and recipientId property', () => {
 			queueCheckers.checkTransactionForRecipientId(transactions);
-			const recipientProperty: queueCheckers.transactionFilterableKeys =
+			const recipientProperty: queueCheckers.TransactionFilterableKeys =
 				'recipientId';
 			const transactionRecipientIds = transactions.map(
 				(transaction: Transaction) => transaction.recipientId,
@@ -174,7 +176,7 @@ describe('queueCheckers', () => {
 
 		it('should call checkTransactionPropertyForValues with transaction type values and type property', () => {
 			queueCheckers.checkTransactionForTypes(transactions);
-			const typeProperty: queueCheckers.transactionFilterableKeys = 'type';
+			const typeProperty: queueCheckers.TransactionFilterableKeys = 'type';
 			const transactionTypes = transactions.map(
 				(transaction: Transaction) => transaction.type,
 			);
