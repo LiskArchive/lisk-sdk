@@ -179,8 +179,8 @@ class PgpAdapter extends BaseAdapter {
 		const qf = new QueryFile(fullPath, options);
 
 		if (qf.error) {
-			console.error(qf.error); // Something is wrong with our query file
-			process.exit(1); // Exit the process with fatal error
+			this.logger.error(qf.error); // Something is wrong with our query file
+			throw qf.error; // throw pg-promisse QueryFileError error
 		}
 
 		return qf;
