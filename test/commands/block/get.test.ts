@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 import * as queryHandler from '../../../src/utils/query';
 
 describe('block:get', () => {
@@ -29,15 +29,15 @@ describe('block:get', () => {
 	const apiClientStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub));
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub));
 
 	describe('block:get', () => {
 		setupTest()
 			.stdout()
 			.command(['block:get'])
-			.catch(error =>
+			.catch((error: Error) =>
 				expect(error.message).to.contain('Missing 1 required arg'),
 			)
 			.it('should throw an error when arg is not provided');
@@ -55,7 +55,7 @@ describe('block:get', () => {
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['block:get', blockId])
 			.it('should get block info and display as an object', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
 					endpoint,
@@ -95,7 +95,7 @@ describe('block:get', () => {
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['block:get', blockIds.join(',')])
 			.it('should get blocks info and display as an array', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
 					endpoint,
@@ -132,7 +132,7 @@ describe('block:get', () => {
 			.it(
 				'should get blocks info only using non-empty args and display as an array',
 				() => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,

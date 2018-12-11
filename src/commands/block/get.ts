@@ -17,10 +17,37 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly blockIds: string;
+}
+
 export default class GetCommand extends BaseCommand {
-	async run() {
-		const { args: { blockIds } } = this.parse(GetCommand);
-		const req = blockIds.map(blockId => ({
+	static args = [
+		{
+			name: 'blockIds',
+			required: true,
+			description: 'Comma-separated block ID(s) to get information about.',
+		},
+	];
+
+	static description = `
+		Gets block information from the blockchain.
+	`;
+
+	static examples = [
+		'block:get 17108498772892203620',
+		'block:get 17108498772892203620,8541428004955961162',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
+		const { args } = this.parse(GetCommand);
+		const { blockIds: blockIdsStr }: Args = args;
+		const blockIds = blockIdsStr.split(',').filter(Boolean);
+		const req = blockIds.map((blockId: string) => ({
 			query: {
 				limit: 1,
 				blockId,
@@ -35,25 +62,3 @@ export default class GetCommand extends BaseCommand {
 		this.print(results);
 	}
 }
-
-GetCommand.args = [
-	{
-		name: 'blockIds',
-		required: true,
-		description: 'Comma-separated block ID(s) to get information about.',
-		parse: input => input.split(',').filter(Boolean),
-	},
-];
-
-GetCommand.flags = {
-	...BaseCommand.flags,
-};
-
-GetCommand.description = `
-Gets block information from the blockchain.
-`;
-
-GetCommand.examples = [
-	'block:get 17108498772892203620',
-	'block:get 17108498772892203620,8541428004955961162',
-];
