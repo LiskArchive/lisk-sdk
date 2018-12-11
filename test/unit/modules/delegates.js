@@ -735,6 +735,33 @@ describe('delegates', () => {
 						delegateListArray
 					);
 				});
+
+				// See: https://github.com/LiskHQ/lisk/issues/2652
+				it('ensures ordering rounds correctly', () => {
+					// Arrange
+					const initialSate = {
+						9: ['j', 'k', 'l'],
+						10: ['x', 'y', 'z'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 11;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					expect(Object.keys(__private.delegatesListCache)).to.deep.equal([
+						'10',
+						'11',
+					]);
+					expect(__private.delegatesListCache['10']).to.deep.equal(
+						initialSate['10']
+					);
+					return expect(__private.delegatesListCache[round]).to.deep.equal(
+						delegateListArray
+					);
+				});
 			});
 
 			describe('__private.clearDelegateListCache', () => {
