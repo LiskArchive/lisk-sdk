@@ -6,8 +6,6 @@ Entities describe a business entity persisted to storage layer.
 
 Just extend a class from `BaseEntity` and you will have basic features. This base class provides generic structure to manage entities but don't provide hardcore SQL or persisting logic. You have to implement that logic your self. You have to implement at least these methods in your entity class.
 
-Just extend `BaseEntity` and your Entity will inherit all the basic CRUD operations. The `BaseEntity` does not provide advance SQL queries or business logic which you need to provide in your Entity's implementation.
-
 * constructor
 * getFieldSets
 
