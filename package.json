@@ -140,7 +140,6 @@
 		"chai": "4.1.2",
 		"chai-as-promised": "7.1.1",
 		"coveralls": "3.0.0",
-		"globby": "8.0.1",
 		"husky": "0.14.3",
 		"lint-staged": "5.0.0",
 		"mocha": "4.0.1",

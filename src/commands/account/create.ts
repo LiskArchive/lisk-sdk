@@ -56,15 +56,15 @@ export default class CreateCommand extends BaseCommand {
 
 	async run(): Promise<void> {
 		const { flags: { number: numberStr } } = this.parse(CreateCommand);
-		const numberOfAccount = parseInt(numberStr as string, 10);
+		const numberOfAccounts = parseInt(numberStr as string, 10);
 		if (
-			numberStr !== numberOfAccount.toString() ||
-			!Number.isInteger(numberOfAccount) ||
-			numberOfAccount <= 0
+			numberStr !== numberOfAccounts.toString() ||
+			!Number.isInteger(numberOfAccounts) ||
+			numberOfAccounts <= 0
 		) {
 			throw new Error('Number flag must be an integer and greater than 0');
 		}
-		const accounts = new Array(numberOfAccount).fill(0).map(createAccount);
+		const accounts = new Array(numberOfAccounts).fill(0).map(createAccount);
 		this.print(accounts);
 	}
 }
