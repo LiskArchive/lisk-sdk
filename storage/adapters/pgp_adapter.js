@@ -85,7 +85,7 @@ class PgpAdapter extends BaseAdapter {
 			},
 		};
 		monitor.attach(
-			Object.assign(this.pgpOptions, monitorOptions),
+			{ ...this.pgpOptions, ...monitorOptions },
 			this.options.logEvents
 		);
 		monitor.setLog((msg, info) => {
