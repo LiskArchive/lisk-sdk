@@ -159,10 +159,10 @@ export class TransactionPool {
 			.map(queueName => this._queues[queueName].removeFor(condition))
 			.reduce(
 				(
-					transactionsAccumelatedFromQueues: ReadonlyArray<Transaction>,
+					transactionsAccumulatedFromQueues: ReadonlyArray<Transaction>,
 					transactionsFromCurrentQueue: ReadonlyArray<Transaction>,
 				) =>
-					transactionsAccumelatedFromQueues.concat(
+					transactionsAccumulatedFromQueues.concat(
 						transactionsFromCurrentQueue,
 					),
 				[],
