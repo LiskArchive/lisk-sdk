@@ -13,16 +13,25 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { hexToBuffer } from '@liskhq/lisk-cryptography';
 import url from 'url';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
+import { ConfigOptions, setConfig, WritableValue } from '../../utils/config';
 import {
+	API_PROTOCOLS,
 	CONFIG_VARIABLES,
 	NETHASHES,
-	API_PROTOCOLS,
 } from '../../utils/constants';
 import { FileSystemError, ValidationError } from '../../utils/error';
-import { setConfig } from '../../utils/config';
+
+interface Args {
+	readonly values?: string;
+	readonly variable: string;
+}
+
+interface WriteResult {
+	readonly message: string;
+}
 
 const availableVariables = CONFIG_VARIABLES.join(', ');
 
@@ -38,11 +47,15 @@ const URL_ERROR_MESSAGE = `Node URLs must include a supported protocol (${API_PR
 	', ',
 )}) and a hostname. E.g. https://127.0.0.1:4000 or http://localhost.`;
 
-const checkBoolean = value => ['true', 'false'].includes(value);
+const checkBoolean = (value: string) => ['true', 'false'].includes(value);
 
-const setNestedConfigProperty = (config, path, value) => {
+const setNestedConfigProperty = (
+	config: ConfigOptions,
+	path: string,
+	value: WritableValue,
+): void => {
 	const dotNotationArray = path.split('.');
-	dotNotationArray.reduce((obj, pathComponent, i) => {
+	dotNotationArray.reduce<ConfigOptions>((obj, pathComponent, i) => {
 		if (i === dotNotationArray.length - 1) {
 			if (obj === undefined) {
 				throw new ValidationError(
@@ -53,16 +66,24 @@ const setNestedConfigProperty = (config, path, value) => {
 					} or remove it (a fresh default configuration file will be created when you run Lisk Commander again).`,
 				);
 			}
-			// eslint-disable-next-line no-param-reassign
 			obj[pathComponent] = value;
+
 			return config;
 		}
-		return obj[pathComponent];
+
+		return obj[pathComponent] as ConfigOptions;
 	}, config);
 };
 
-const attemptWriteToFile = (newConfig, value, dotNotation) => {
-	const writeSuccess = setConfig(process.env.XDG_CONFIG_HOME, newConfig);
+const attemptWriteToFile = (
+	newConfig: ConfigOptions,
+	value: WritableValue,
+	dotNotation: string,
+): WriteResult => {
+	const writeSuccess = setConfig(
+		process.env.XDG_CONFIG_HOME as string,
+		newConfig,
+	);
 
 	if (!writeSuccess) {
 		throw new FileSystemError(WRITE_FAIL_WARNING);
@@ -80,47 +101,82 @@ const attemptWriteToFile = (newConfig, value, dotNotation) => {
 	return result;
 };
 
-const setValue = (config, dotNotation, value) => {
+const setValue = (
+	config: ConfigOptions,
+	dotNotation: string,
+	value: WritableValue,
+) => {
 	setNestedConfigProperty(config, dotNotation, value);
+
 	return attemptWriteToFile(config, value, dotNotation);
 };
 
-const setBoolean = (config, dotNotation, value) => {
+const setBoolean = (
+	config: ConfigOptions,
+	dotNotation: string,
+	value: string,
+) => {
 	if (!checkBoolean(value)) {
 		throw new ValidationError('Value must be a boolean.');
 	}
 	const newValue = value === 'true';
+
 	return setValue(config, dotNotation, newValue);
 };
 
-const setArrayURL = (config, dotNotation, value, inputs) => {
+const setArrayURL = (
+	config: ConfigOptions,
+	dotNotation: string,
+	_: string,
+	inputs: ReadonlyArray<string>,
+) => {
 	inputs.forEach(input => {
 		const { protocol, hostname } = url.parse(input);
-		if (!API_PROTOCOLS.includes(protocol) || !hostname) {
+		if (
+			protocol === undefined ||
+			!API_PROTOCOLS.includes(protocol) ||
+			!hostname
+		) {
 			throw new ValidationError(URL_ERROR_MESSAGE);
 		}
 	});
+
 	return setValue(config, dotNotation, inputs);
 };
 
-const setNethash = (config, dotNotation, value) => {
+const setNethash = (
+	config: ConfigOptions,
+	dotNotation: string,
+	value: string,
+) => {
 	if (
 		dotNotation === 'api.network' &&
 		!Object.keys(NETHASHES).includes(value)
 	) {
-		if (value.length !== 64) {
+		const NETHASH_LENGTH = 64;
+		if (value.length !== NETHASH_LENGTH) {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 		try {
-			cryptography.hexToBuffer(value, 'utf8');
+			hexToBuffer(value, 'utf8');
 		} catch (error) {
 			throw new ValidationError(NETHASH_ERROR_MESSAGE);
 		}
 	}
+
 	return setValue(config, dotNotation, value);
 };
 
-const handlers = {
+interface KeywordHandler {
+	readonly [key: string]: (
+		config: ConfigOptions,
+		dotNotation: string,
+		value: string,
+		inputs: ReadonlyArray<string>,
+	) => WriteResult;
+}
+
+const handlers: KeywordHandler = {
 	'api.nodes': setArrayURL,
 	'api.network': setNethash,
 	json: setBoolean,
@@ -129,8 +185,37 @@ const handlers = {
 };
 
 export default class SetCommand extends BaseCommand {
-	async run() {
-		const { args: { variable, values } } = this.parse(SetCommand);
+	static args = [
+		{
+			name: 'variable',
+			required: true,
+			// tslint:disable-next-line array-type
+			options: CONFIG_VARIABLES as Array<string>,
+			description: '',
+		},
+		{
+			name: 'values',
+			required: false,
+			description: '',
+		},
+	];
+
+	static description = `
+		Sets configuration.
+		...
+		Variables available: ${availableVariables}.
+	`;
+
+	static examples = [
+		'config:set json true',
+		'config:set api.network main',
+		'config:set api.nodes https://127.0.0.1:4000,http://mynode.com:7000',
+	];
+
+	async run(): Promise<void> {
+		const { args } = this.parse(SetCommand);
+		const { variable, values: valuesStr = '' }: Args = args;
+		const values = valuesStr.split(',').filter(Boolean);
 		const safeValues = values || [];
 		const safeValue = safeValues[0] || '';
 		const result = handlers[variable](
@@ -142,34 +227,3 @@ export default class SetCommand extends BaseCommand {
 		this.print(result, true);
 	}
 }
-
-SetCommand.args = [
-	{
-		name: 'variable',
-		required: true,
-		options: CONFIG_VARIABLES,
-		description: '',
-	},
-	{
-		name: 'values',
-		required: false,
-		parse: input => input.split(','),
-		description: '',
-	},
-];
-
-SetCommand.flags = {
-	...BaseCommand.flags,
-};
-
-SetCommand.description = `
-Sets configuration.
-...
-Variables available: ${availableVariables}.
-`;
-
-SetCommand.examples = [
-	'config:set json true',
-	'config:set api.network main',
-	'config:set api.nodes https://127.0.0.1:4000,http://mynode.com:7000',
-];

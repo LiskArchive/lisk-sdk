@@ -16,16 +16,17 @@
 import BaseCommand from '../../base';
 
 export default class ShowCommand extends BaseCommand {
-	async run() {
+	static description = `
+		Prints the current configuration.
+	`;
+
+	static examples = ['config:show'];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
 		this.print(this.userConfig);
 	}
 }
-
-ShowCommand.flags = {
-	...BaseCommand.flags,
-};
-
-ShowCommand.description = `
-Prints the current configuration.
-`;
-ShowCommand.examples = ['config:show'];

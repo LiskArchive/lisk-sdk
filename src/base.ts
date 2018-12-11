@@ -15,7 +15,7 @@
  */
 import { Command, flags as flagParser } from '@oclif/command';
 import os from 'os';
-import { getConfig } from './utils/config';
+import { ConfigOptions, getConfig } from './utils/config';
 import { handleEPIPE } from './utils/helpers';
 import { print } from './utils/print';
 
@@ -32,15 +32,6 @@ interface PrintFlags {
 	readonly pretty?: boolean;
 }
 
-interface APIConfig {
-	readonly api: {
-		readonly network: string;
-		readonly nodes: ReadonlyArray<string>;
-	};
-}
-
-type UserConfig = PrintFlags & APIConfig;
-
 export default abstract class BaseCommand extends Command {
 	static flags = {
 		json: flagParser.boolean({
@@ -55,11 +46,13 @@ export default abstract class BaseCommand extends Command {
 	};
 
 	public printFlags: PrintFlags = {};
-	public userConfig: UserConfig = {
+	public userConfig: ConfigOptions = {
 		api: {
-			network: '',
+			network: 'main',
 			nodes: [],
 		},
+		json: true,
+		pretty: true,
 	};
 
 	async finally(error?: Error | string): Promise<void> {
@@ -70,8 +63,9 @@ export default abstract class BaseCommand extends Command {
 
 	async init(): Promise<void> {
 		// Typing problem where constructor is not allow as Input<any> but it requires to be the type
-		// tslint:disable-next-line no-any
-		const { flags } = this.parse(this.constructor as unknown as flagParser.Input<any>);
+		const { flags } = this.parse((this
+			// tslint:disable-next-line no-any
+			.constructor as unknown) as flagParser.Input<any>);
 		this.printFlags = flags;
 
 		process.stdout.on('error', handleEPIPE);
