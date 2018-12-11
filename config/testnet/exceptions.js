@@ -92,5 +92,5 @@ module.exports = {
 	 *
 	 * So we are using the exception key below to skip caching for the rounds provided in the array.
 	 * */
-	ignoreDelegateListCacheForRounds: [80, 82],
+	ignoreDelegateListCacheForRounds: [81, 83],
 };
