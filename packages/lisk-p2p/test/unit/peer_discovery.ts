@@ -31,11 +31,11 @@ describe('peer discovery', () => {
 			height: 545981,
 			id: '12.13.12.12:5001',
 		};
-		// TODO need to cover all the test
+		// TODO cover rpcRequesthandler
 		const newPeer = new Peer(peerOption);
 		const peerDuplicate = new Peer(peerOptionDuplicate);
 		const peers = [...initializePeerList(), newPeer, peerDuplicate];
-		const blacklistIds = [peers[4].id];
+		const blacklist = [peers[4].id];
 
 		describe('return an array with all the peers of input peers', () => {
 			let discoveredPeers: ReadonlyArray<Peer>;
@@ -50,14 +50,14 @@ describe('peer discovery', () => {
 					.resolves([peerList1, peerList2, peerList3]);
 
 				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
-					blacklistIds,
+					blacklist,
 				});
 			});
 
 			it('should return an array', () => {
 				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
 					peers,
-					{ procedure: 'getPeers' },
+					'getPeers',
 				);
 
 				return expect(discoveredPeers).to.be.an('array');
@@ -66,7 +66,7 @@ describe('peer discovery', () => {
 			it('should return an array with length of 2', () => {
 				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
 					peers,
-					{ procedure: 'getPeers' },
+					'getPeers',
 				);
 
 				return expect(discoveredPeers)
@@ -77,12 +77,26 @@ describe('peer discovery', () => {
 			it('should return an array with discovered peers', () => {
 				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
 					peers,
-					{ procedure: 'getPeers' },
+					'getPeers',
 				);
 
 				return expect(discoveredPeers)
 					.to.be.an('array')
 					.and.eql(discoveredPeersResult);
+			});
+
+			it('should return an array with discovered peers for blank blacklist', async () => {
+				discoveredPeers = await discoverPeersModule.discoverPeers(peers, {
+					blacklist: [],
+				});
+				expect(discoverPeersModule.rpcRequestHandler).to.be.calledWithExactly(
+					peers,
+					'getPeers',
+				);
+
+				return expect(discoveredPeers)
+					.to.be.an('array')
+					.and.eql(discoveredPeers);
 			});
 		});
 	});

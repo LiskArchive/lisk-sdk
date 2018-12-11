@@ -30,6 +30,7 @@ export interface PeerConfig {
 	readonly height?: number;
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
 	readonly os?: string;
+	readonly outboundSocket?: any; // TODO: Type SCServerSocket
 	readonly version?: string;
 }
 
@@ -51,6 +52,7 @@ export class Peer {
 	private _inboundSocket: any;
 	private _outboundSocket: any;
 	private readonly _ipAddress: string;
+	private readonly _outboundSocket: any;
 	private readonly _wsPort: number;
 	private _nodeStatus: P2PNodeStatus | undefined;
 
