@@ -31,26 +31,40 @@ describe('job', () => {
 
         it('should call the job stub', async () => {
             job.start();
-            clock.tick(100000);
+            clock.tick(interval + 1);
             expect(jobStub).to.be.calledOnce;
         });
 
         it('should set the context of the job correctly', async () => {
             job.start();
-            clock.tick(1000000);
+            clock.tick(interval + 1);
             expect(jobStub).to.be.calledOn(context);
         });
 
         it('should run twice when interval is passed two times', async () => {
             job.start();
-            clock.tick(220000);
-            expect(jobStub).to.be.calledTwice;
+            clock.tick(interval + 1);
+            return new Promise(resolve => {
+                // need to use nextTick because clock.tick calls the callbacks in setTimeout but does not resolve the wrapping promises.
+                process.nextTick(() => {
+                    clock.tick(interval + 1);
+                    expect(jobStub).to.be.calledTwice;
+                    resolve();
+                });
+            })
         });
 
         it('should set the id of the job', async () => {
             job.start();
-            clock.tick(220000);
+            clock.tick(interval + 1);
             expect((job as any)._id).to.exist;
+        });
+
+        it('should call this.run function only once on multiple start calls', () => {
+            const runStub = sandbox.stub((job as any), 'run');
+            job.start();
+            job.start();
+            expect(runStub).to.be.calledOnce;
         });
     });
 

@@ -1,5 +1,7 @@
 export class Job<T> {
 	// tslint:disable-next-line variable-name
+	private _execute = false;
+	// tslint:disable-next-line variable-name
 	private _id: NodeJS.Timer | undefined;
 	// tslint:disable-next-line variable-name
 	private readonly _interval: number;
@@ -15,16 +17,39 @@ export class Job<T> {
 		this._job = job.bind(context);
 	}
 
-	public start(): void {
-		if (typeof this._id === 'undefined') {
-			this._id = setInterval(this._job, this._interval);
+	public async start(): Promise<void> {
+		if (this._id  === undefined && this._execute === false) {
+			this._execute = true;
+
+			return this.run();
 		}
 	}
 
 	public stop(): void {
-		if (typeof this._id !== 'undefined') {
-			clearInterval(this._id);
+		if (this._id  !== undefined && this._execute === true) {
+			clearTimeout(this._id);
 			this._id = undefined;
+			this._execute = false;
 		}
+	}
+
+	private async callJobAfterTimeout(): Promise<void> {
+		return new Promise<void>(resolve => {
+			this._id = setTimeout(async () => {
+				await this._job();
+
+				return resolve();
+			}, this._interval);
+		});
+	}
+
+	private async run(): Promise<void> {
+		// Base case for recursive function
+		if (!this._execute) {
+			return;
+		}
+		await this.callJobAfterTimeout();
+
+		return this.run();
 	}
 }
