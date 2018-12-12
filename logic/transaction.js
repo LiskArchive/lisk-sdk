@@ -19,6 +19,7 @@ const ByteBuffer = require('bytebuffer');
 const _ = require('lodash');
 const Bignum = require('../helpers/bignum.js');
 const slots = require('../helpers/slots.js');
+const transactionTypes = require('../helpers/transaction_types.js');
 
 const exceptions = global.exceptions;
 const POSTGRESQL_BIGINT_MAX_VALUE = '9223372036854775807';
@@ -423,6 +424,12 @@ class Transaction {
 		// Reject if transaction has requester public key
 		if (transaction.requesterPublicKey) {
 			return setImmediate(cb, 'Multisig request is not allowed');
+		}
+
+		// Check if sender account has second signature enabled.
+		// Abort if registering again.
+		if (transaction.type === transactionTypes.SIGNATURE && sender.secondSignature) {
+			return setImmediate(cb, 'This account is already enabled with second signature');
 		}
 
 		// Check for missing sender second signature
