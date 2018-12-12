@@ -1,8 +1,8 @@
 export class Job<T> {
-	private _execute = false;
 	private _id: NodeJS.Timer | undefined;
 	private readonly _interval: number;
 	private readonly _job: () => Promise<T>;
+	private _running = false;
 
 	public constructor(
 		context: object,
@@ -14,18 +14,17 @@ export class Job<T> {
 	}
 
 	public async start(): Promise<void> {
-		if (this._id  === undefined && this._execute === false) {
-			this._execute = true;
+		if (!this._running) {
+			this._running = true;
 
 			return this.run();
 		}
 	}
 
 	public stop(): void {
-		if (this._id  !== undefined && this._execute === true) {
+		if (this._running && this._id  !== undefined) {
 			clearTimeout(this._id);
-			this._id = undefined;
-			this._execute = false;
+			this._running = false;
 		}
 	}
 
@@ -41,7 +40,7 @@ export class Job<T> {
 
 	private async run(): Promise<void> {
 		// Base case for recursive function
-		if (!this._execute) {
+		if (!this._running) {
 			return;
 		}
 		await this.callJobAfterTimeout();
