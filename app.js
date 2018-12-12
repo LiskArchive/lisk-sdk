@@ -814,21 +814,21 @@ d.run(() => {
 							);
 
 							if (!serverListenErr) {
-								// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
-								scope.network.https.headersTimeout =
-									appConfig.api.options.limits.headersTimeout;
-								scope.network.https.setTimeout(
-									appConfig.api.options.limits.serverTimeout
-								);
-								scope.network.https.on('timeout', socket => {
-									scope.logger.info(
-										`Disconnecting idle socket: ${socket.remoteAddress}:${
-											socket.remotePort
-										}`
-									);
-									socket.destroy();
-								});
 								if (scope.config.api.ssl.enabled) {
+									// Security vulnerabilities fixed by Node v8.14.0 - "Slowloris (cve-2018-12122)"
+									scope.network.https.headersTimeout =
+										appConfig.api.options.limits.headersTimeout;
+									scope.network.https.setTimeout(
+										appConfig.api.options.limits.serverTimeout
+									);
+									scope.network.https.on('timeout', socket => {
+										scope.logger.info(
+											`Disconnecting idle socket: ${socket.remoteAddress}:${
+												socket.remotePort
+											}`
+										);
+										socket.destroy();
+									});
 									return scope.network.https.listen(
 										scope.config.api.ssl.options.port,
 										scope.config.api.ssl.options.address,

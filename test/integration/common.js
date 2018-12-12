@@ -352,6 +352,13 @@ function loadTransactionType(key, account, dapp, secondPassphrase, cb) {
 	cb(transaction);
 }
 
+function transactionInPool(library, transactionId) {
+	const transactionPool = library.rewiredModules.transactions.__get__(
+		'__private.transactionPool'
+	);
+	return transactionPool.transactionInPool(transactionId);
+}
+
 module.exports = {
 	getNextForger,
 	forge,
@@ -368,4 +375,5 @@ module.exports = {
 	beforeBlock,
 	loadTransactionType,
 	getMultisignatureTransactions,
+	transactionInPool,
 };
