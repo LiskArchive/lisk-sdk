@@ -8,6 +8,7 @@ To create a new entity, extend the `BaseEntity` class which provides a generic s
 
 * constructor
 * getFieldSets
+
 ## Utility Methods
 
 The following utility methods are available each class extending `BaseEntity`.
@@ -26,28 +27,28 @@ You can find more details in its [implementation](./entities/base_entity.js#L63)
 
 Following is the list of available suffixes based on filter types:
 
-| Filter Type | Filter Suffixes | Description                                                |
-| ----------- | --------------- | ---------------------------------------------------------- |
-| BOOLEAN     | \_eql           | returns entries that match the value                     |
-|             | \_ne            | returns entries that do not match the value             |
-| TEXT        | \_eql           | returns entries that match the value                     |
-|             | \_ne            | returns entries that do not match the value             |
-|             | \_in            | returns entries that match any of values from the list          |
-|             | \_like          | returns entries that match the pattern                     |
-| NUMBER      | \_eq            | returns entries that match the value                     |
-|             | \_ne            | returns entries that do not match the value             |
-|             | \_gt            | returns entries greater than the value             |
-|             | \_gte           | returns entries greater than or equal to the value |
-|             | \_lt            | returns entries less than the value                |
-|             | \_lte           | returns entries less than or equal to the value    |
-|             | \_in            | returns entries that match any of values from the list         |
+| Filter Type | Filter Suffixes | Description                                            |
+| ----------- | --------------- | ------------------------------------------------------ |
+| BOOLEAN     | \_eql           | returns entries that match the value                   |
+|             | \_ne            | returns entries that do not match the value            |
+| TEXT        | \_eql           | returns entries that match the value                   |
+|             | \_ne            | returns entries that do not match the value            |
+|             | \_in            | returns entries that match any of values from the list |
+|             | \_like          | returns entries that match the pattern                 |
+| NUMBER      | \_eq            | returns entries that match the value                   |
+|             | \_ne            | returns entries that do not match the value            |
+|             | \_gt            | returns entries greater than the value                 |
+|             | \_gte           | returns entries greater than or equal to the value     |
+|             | \_lt            | returns entries less than the value                    |
+|             | \_lte           | returns entries less than or equal to the value        |
+|             | \_in            | returns entries that match any of values from the list |
 
 You can call `<Entity>.getFilters()` to see a list of available filters for any entity.
 
 ### Filter Combinator
 
 If filters are provided as JSON objects, they will always be joined with an `AND` combinator. For instance, specifying filters as `{name: 'Alpha', description_like: 'Bravo'}` results in fetching all results which have a name equal to `Alpha` and description matching `Bravo`. Specifying filters as an array of objects, e.g. `[{name: 'Alpha'}, {description_like: 'Bravo'}]`, will result in joining objects with `OR` combinator, i.e. fetching data which name equal to `Alpha` or description like `Bravo`.
- You can register a `CUSTOM` filter, by defining your own key and a function which will return a custom condition.
+You can register a `CUSTOM` filter, by defining your own key and a function which will return a custom condition.
 
 ## Conventions
 
