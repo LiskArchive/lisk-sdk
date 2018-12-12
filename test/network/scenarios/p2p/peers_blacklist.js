@@ -47,7 +47,9 @@ module.exports = function(
 					mutualPeers.forEach(mutualPeer => {
 						if (mutualPeer) {
 							mutualPeer.peers.map(peer => {
-								wsPorts.add(peer.wsPort);
+								if (peer.wsPort > 5000 && peer.wsPort <= 5009) {
+									wsPorts.add(peer.wsPort);
+								}
 								return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 							});
 						}
@@ -55,61 +57,31 @@ module.exports = function(
 				});
 			});
 
-			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-				utils.getEstablishedConnections(
-					Array.from(wsPorts),
-					(err, establishedConnections) => {
-						if (err) {
-							return done(err);
-						}
-
-						if (
-							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
-							EXPECTED_TOTAL_CONNECTIONS
-						) {
-							return done();
-						}
-						return done(
-							`There are ${establishedConnections} established connections on web socket ports.`
-						);
-					}
-				);
-			});
-
 			describe('when a node blacklists an ip', () => {
-				before(done => {
+				before(() => {
 					configurations[0].peers.access.blackList.push('127.0.0.1');
 					fs.writeFileSync(
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					network
-						.restartNode('node_0', true)
-						.then(done)
-						.catch(err => {
-							done(err.message);
-						});
+					return network.restartNode('node_0', true).then(() => {
+						// Make sure that there is enough time for monitoring connection
+						// to be re-established after restart.
+						return network.waitForBlocksOnNode('node_1', 2);
+					});
 				});
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, establishedConnections) => {
-							if (err) {
-								return done(err);
-							}
-
-							if (
+							expect(err).to.be.null;
+							expect(
 								establishedConnections -
-									EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING ===
-								EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING
-							) {
-								return done();
-							}
-							return done(
-								`There are ${establishedConnections} established connections on web socket ports.`
-							);
+									EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING
+							).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING);
+							done();
 						}
 					);
 				});
@@ -149,23 +121,22 @@ module.exports = function(
 			});
 
 			describe('when a node remove the just blacklisted ip', () => {
-				before(done => {
+				before(() => {
 					configurations[0].peers.access.blackList = [];
 					fs.writeFileSync(
 						`${__dirname}/../../configs/config.node-0.json`,
 						JSON.stringify(configurations[0], null, 4)
 					);
 					// Restart the node to load the just changed configuration
-					network
+					return network
 						.restartNode('node_0', true)
+						.then(() => {
+							return network.enableForgingForDelegates();
+						})
 						.then(() => {
 							// Make sure that there is enough time for monitoring connection
 							// to be re-established after restart.
 							return network.waitForBlocksOnNode('node_0', 2);
-						})
-						.then(done)
-						.catch(err => {
-							done(err.message);
 						});
 				});
 
@@ -173,19 +144,11 @@ module.exports = function(
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, establishedConnections) => {
-							if (err) {
-								return done(err);
-							}
-
-							if (
-								establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
+							expect(err).to.be.null;
+							expect(establishedConnections).to.equal(
 								EXPECTED_TOTAL_CONNECTIONS
-							) {
-								return done();
-							}
-							return done(
-								`There are ${establishedConnections} established connections on web socket ports.`
 							);
+							done();
 						}
 					);
 				});

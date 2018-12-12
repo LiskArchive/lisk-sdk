@@ -27,6 +27,10 @@ module.exports = function(
 	const TOTAL_PEERS_LESS_ONE = TOTAL_PEERS - 1;
 	const EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER =
 		(TOTAL_PEERS_LESS_ONE - 1) * TOTAL_PEERS_LESS_ONE * 2;
+	// One of the bi-directional monitoring connections should be down so
+	// we need to subtract 2.
+	const EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE =
+		NUMBER_OF_MONITORING_CONNECTIONS - 2;
 
 	describe('@network : peer Disconnect', () => {
 		const wsPorts = new Set();
@@ -52,105 +56,83 @@ module.exports = function(
 			});
 
 			describe('when a node is stopped', () => {
-				before(done => {
-					network
-						.stopNode('node_1')
-						.then(done)
-						.catch(done);
+				before(() => {
+					return network.stopNode('node_0');
 				});
 
-				it(`peer manager should remove peer from the list and there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
+				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, establishedConnections) => {
-							if (err) {
-								return done(err);
-							}
-
-							if (
-								establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
-								EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER
-							) {
-								return done();
-							}
-							return done(
-								`There are ${establishedConnections} established connections on web socket ports.`
-							);
+							expect(err).to.be.null;
+							expect(
+								establishedConnections -
+									EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE
+							).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER);
+							done();
 						}
 					);
 				});
 			});
 
 			describe('when a stopped node is started', () => {
-				before(done => {
-					network
-						.startNode('node_1', true)
-						.then(done)
-						.catch(done);
+				before(() => {
+					return network
+						.startNode('node_0', true)
+						.then(() => {
+							return network.enableForgingForDelegates();
+						})
+						.then(() => {
+							// Make sure that there is enough time for monitoring connection
+							// to be re-established after restart.
+							return network.waitForBlocksOnNode('node_0', 2);
+						});
 				});
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
 						(err, establishedConnections) => {
-							if (err) {
-								return done(err);
-							}
-
-							if (establishedConnections <= EXPECTED_TOTAL_CONNECTIONS) {
-								return done();
-							}
-							return done(
-								`There are ${establishedConnections} established connections on web socket ports.`
+							expect(err).to.be.null;
+							expect(establishedConnections).to.equal(
+								EXPECTED_TOTAL_CONNECTIONS
 							);
+							done();
 						}
 					);
 				});
 			});
 
-			describe('node restart', () => {
-				// To validate peers holding socket connection
-				// Need to keep one peer so that we can validate
-				// Duplicate socket connection exists or not
-				before('restart all nodes in the network except node_0', () => {
+			describe('when all nodes restart except node_0 ', () => {
+				before(() => {
 					const peersPromises = [];
 					for (let i = 1; i < TOTAL_PEERS; i++) {
 						const nodeName = `node_${i}`;
 						peersPromises.push(network.restartNode(nodeName, true));
 					}
-					console.info('Wait for nodes to be started');
+					console.info(
+						'Wait for nodes to be started & restart monitoring connections'
+					);
 					return Promise.all(peersPromises)
 						.then(() => {
 							return network.enableForgingForDelegates();
 						})
 						.then(() => {
-							return network.waitForBlocksOnAllNodes(1);
+							return network.waitForBlocksOnAllNodes(3);
 						});
 				});
 
-				describe('after all the nodes restart', () => {
-					// The expected connection becomes EXPECTED_TOTAL_CONNECTIONS + 18 previously held connections
-					it(`there should be ${EXPECTED_TOTAL_CONNECTIONS +
-						18} established connections from 500[0-9] ports`, done => {
-						utils.getEstablishedConnections(
-							Array.from(wsPorts),
-							(err, establishedConnections) => {
-								if (err) {
-									return done(err);
-								}
-
-								if (
-									establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS <=
-									EXPECTED_TOTAL_CONNECTIONS
-								) {
-									return done();
-								}
-								return done(
-									`There are ${establishedConnections} established connections on web socket ports.`
-								);
-							}
-						);
-					});
+				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
+					utils.getEstablishedConnections(
+						Array.from(wsPorts),
+						(err, establishedConnections) => {
+							expect(err).to.be.null;
+							expect(establishedConnections).to.equal(
+								EXPECTED_TOTAL_CONNECTIONS
+							);
+							done();
+						}
+					);
 				});
 			});
 		});
