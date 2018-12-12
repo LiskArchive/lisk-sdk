@@ -58,19 +58,19 @@ module.exports = function(
 			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 				utils.getEstablishedConnections(
 					Array.from(wsPorts),
-					(err, numOfConnections) => {
+					(err, establishedConnections) => {
 						if (err) {
 							return done(err);
 						}
 
 						if (
-							numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
+							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
 							EXPECTED_TOTAL_CONNECTIONS
 						) {
 							return done();
 						}
 						return done(
-							`There are ${numOfConnections} established connections on web socket ports.`
+							`There are ${establishedConnections} established connections on web socket ports.`
 						);
 					}
 				);
@@ -95,20 +95,20 @@ module.exports = function(
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
-						(err, numOfConnections) => {
+						(err, establishedConnections) => {
 							if (err) {
 								return done(err);
 							}
 
 							if (
-								numOfConnections -
+								establishedConnections -
 									EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING ===
 								EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING
 							) {
 								return done();
 							}
 							return done(
-								`There are ${numOfConnections} established connections on web socket ports.`
+								`There are ${establishedConnections} established connections on web socket ports.`
 							);
 						}
 					);
@@ -172,19 +172,19 @@ module.exports = function(
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
 						Array.from(wsPorts),
-						(err, numOfConnections) => {
+						(err, establishedConnections) => {
 							if (err) {
 								return done(err);
 							}
 
 							if (
-								numOfConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
+								establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS ===
 								EXPECTED_TOTAL_CONNECTIONS
 							) {
 								return done();
 							}
 							return done(
-								`There are ${numOfConnections} established connections on web socket ports.`
+								`There are ${establishedConnections} established connections on web socket ports.`
 							);
 						}
 					);

@@ -52,34 +52,34 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 	});
 
 	it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
-		utils.getListeningConnections(wsPorts, (err, numOfConnections) => {
+		utils.getListeningConnections(wsPorts, (err, listeningConnections) => {
 			if (err) {
 				return done(err);
 			}
 
-			if (numOfConnections === TOTAL_PEERS) {
+			if (listeningConnections === TOTAL_PEERS) {
 				return done();
 			}
 			return done(
-				`There are ${numOfConnections} listening connections on web socket ports.`
+				`There are ${listeningConnections} listening connections on web socket ports.`
 			);
 		});
 	});
 
 	it(`there should be a maximum ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-		utils.getEstablishedConnections(wsPorts, (err, numOfConnections) => {
+		utils.getEstablishedConnections(wsPorts, (err, establishedConnections) => {
 			if (err) {
 				return done(err);
 			}
 			// It should be less than EXPECTED_TOTAL_CONNECTIONS, as nodes are just started and establishing the connections
 			if (
-				numOfConnections <=
+				establishedConnections <=
 				EXPECTED_TOTAL_CONNECTIONS + NUMBER_OF_MONITORING_CONNECTIONS
 			) {
 				return done();
 			}
 			return done(
-				`There are ${numOfConnections} established connections on web socket ports.`
+				`There are ${establishedConnections} established connections on web socket ports.`
 			);
 		});
 	});
