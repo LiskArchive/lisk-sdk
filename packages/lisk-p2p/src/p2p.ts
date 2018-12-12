@@ -15,14 +15,15 @@
 
 import { EventEmitter } from 'events';
 import http, { Server } from 'http';
-import os from 'os';
+import { platform } from 'os';
 import querystring from 'querystring';
 import socketClusterServer from 'socketcluster-server';
+
+import { Peer } from './peer';
 
 import {
 	NetworkStatus,
 	P2PMessagePacket,
-	P2PNodeStatus,
 	P2PPenalty,
 	P2PRequestPacket,
 	P2PResponsePacket,
@@ -30,7 +31,7 @@ import {
 	PeerInfo,
 	RPCResponsePeerList,
 	RPCResponsePeerInfo,
-	NodeInfo,
+	P2PNodeStatus,
 } from './p2p_types';
 
 import { PeerPool } from './peer_pool';
@@ -38,14 +39,6 @@ import { PeerPool } from './peer_pool';
 export const EVENT_NEW_INBOUND_PEER = 'newInboundPeer';
 export const EVENT_FAILED_TO_ADD_INBOUND_PEER = 'failedToAddInboundPeer';
 export const EVENT_NEW_PEER = 'newPeer';
-
-export interface IPeerReturnType {
-	readonly options: IPeerOptions;
-	readonly peers: ReadonlyArray<Peer>;
-}
-export interface IPeerOptions {
-	readonly [key: string]: string | number;
-}
 
 const BASE_10_RADIX = 10;
 
@@ -55,19 +48,19 @@ export class P2P extends EventEmitter {
 	private readonly _httpServer: Server;
 	private readonly _scServer: any;
 	private readonly _newPeers: Set<string>;
-	private readonly _triedPeers: Set<string>;
-	private readonly _nodeInfo: NodeInfo;
+	// TODO: private readonly _triedPeers: Set<string>;
+	private _nodeStatus: P2PNodeStatus;
 
 	public constructor(config: P2PConfig) {
 		super();
 		this._config = config;
-		this._nodeInfo = {
+		this._nodeStatus = {
 			wsPort: config.wsPort,
-			os: os.platform(),
+			os: platform(),
 			version: config.version,
 		};
 		this._newPeers = new Set();
-		this._triedPeers = new Set();
+		// TODO: this._triedPeers = new Set();
 
 		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
@@ -81,9 +74,6 @@ export class P2P extends EventEmitter {
 	public getNetworkStatus = (): NetworkStatus => true;
 	// TODO
 
-	public getNodeStatus = (): P2PNodeStatus => true;
-	// TODO: Implement
-
 	public async request<T>(
 		packet: P2PRequestPacket<T>,
 	): Promise<P2PResponsePacket> {
@@ -94,10 +84,14 @@ export class P2P extends EventEmitter {
 		message;
 		// TODO
 	}
-	public setNodeStatus = (nodeStatus: P2PNodeStatus): void => {
-		nodeStatus;
-		// TODO
-	};
+
+	public getNodeStatus(): P2PNodeStatus {
+		return this._nodeStatus;
+	}
+
+	public setNodeStatus(nodeStatus: P2PNodeStatus): void {
+		this._nodeStatus = nodeStatus;
+	}
 
 	private async _startPeerServer(): Promise<void> {
 		this._scServer.on(
@@ -126,7 +120,7 @@ export class P2P extends EventEmitter {
 							os: queryObject.os,
 							version: queryObject.version,
 							wsPort,
-							nodeInfo: this._nodeInfo,
+							nodeStatus: this._nodeStatus,
 						});
 						this._peerPool.addPeer(peer);
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
@@ -134,7 +128,7 @@ export class P2P extends EventEmitter {
 					} else {
 						existingPeer.inboundSocket = socket;
 					}
-					this._triedPeers.add(peerId);
+					this._newPeers.add(peerId);
 				}
 			},
 		);
@@ -157,13 +151,13 @@ export class P2P extends EventEmitter {
 					id: seedPeerId,
 					ipAddress: seedPeer.ipAddress,
 					wsPort: seedPeer.wsPort,
-					nodeInfo: this._nodeInfo,
+					nodeStatus: this._nodeStatus,
 				});
+				this._newPeers.add(seedPeerId);
 				/**
 				 * TODO LATER: For the LIP phase, we shouldn't add the seed peers to our
 				 * _peerPool and we should disconnect from them as soon as we've loaded their peer lists.
 				 */
-				this._newPeers.add(seedPeerId);
 				this._peerPool.addPeer(peer);
 				// TODO LATER: For the LIP phase, the 'list' request will need to be renamed.
 				const seedNodePeerListResponse = await peer.request<void>({
@@ -182,7 +176,7 @@ export class P2P extends EventEmitter {
 						id: peerOfPeerId,
 						ipAddress: peerObject.ip,
 						wsPort: peerObject.wsPort, // TODO ASAP: Add more properties
-						nodeInfo: this._nodeInfo,
+						nodeStatus: this._nodeStatus,
 					});
 				});
 			}),
