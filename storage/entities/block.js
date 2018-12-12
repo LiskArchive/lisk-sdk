@@ -351,18 +351,6 @@ class Block extends BaseEntity {
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE];
 	}
-
-	/**
-	 * Merge multiple filters together
-	 * @param {Array.<Object>|Object} filters
-	 * @return {*}
-	 */
-	mergeFilters(filters) {
-		if (Array.isArray(filters)) {
-			return filters.map(item => Object.assign({}, item, this.defaultFilters));
-		}
-		return Object.assign({}, filters, this.defaultFilters);
-	}
 }
 
 module.exports = Block;

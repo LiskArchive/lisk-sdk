@@ -486,26 +486,6 @@ class Account extends BaseEntity {
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
 	}
-
-	/**
-	 * Merge multiple filters together
-	 * @param {Array.<Object>|Object} filters
-	 * @return {*}
-	 */
-	mergeFilters(filters) {
-		const mergedFilters = filters;
-
-		if (Array.isArray(mergedFilters)) {
-			const lastIndex = mergedFilters.length - 1;
-			mergedFilters[lastIndex] = Object.assign(
-				{},
-				mergedFilters[lastIndex],
-				this.defaultFilters
-			);
-			return mergedFilters;
-		}
-		return Object.assign({}, mergedFilters, this.defaultFilters);
-	}
 }
 
 module.exports = Account;
