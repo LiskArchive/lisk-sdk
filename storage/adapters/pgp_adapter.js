@@ -21,6 +21,7 @@ const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
+// ToDo: Shall be converted to `Enum` type after TS migration.
 const resultCountToMethodMap = {
 	0: 'none',
 	1: 'one',
