@@ -20,7 +20,7 @@ module.exports = function(configurations, network) {
 			return network.waitForAllNodesToBeReady();
 		});
 
-		describe('mutual connections', () => {
+		describe('when there are mutual connections among peers', () => {
 			let mutualPeers = [];
 
 			before(done => {
@@ -74,116 +74,88 @@ module.exports = function(configurations, network) {
 			});
 		});
 
-		describe('forging', () => {
-			before(() => {
-				return network.waitForBlocksOnAllNodes(3).then(() => {
-					return new Promise(resolve => {
-						// Add 5 seconds to give time for networkHeight
-						// to update across all nodes.
-						setTimeout(() => {
-							resolve();
-						}, 5000);
+		describe('after 2 blocks are created in the network', () => {
+			let status;
+
+			before(done => {
+				network
+					.waitForBlocksOnAllNodes(2)
+					.then(() => {
+						return network.getAllNodesStatus();
+					})
+					.then(data => {
+						status = data;
+						done();
+					});
+			});
+
+			it('should have height > 1', () => {
+				return expect(status.networkMaxAvgHeight.maxHeight).to.be.above(1);
+			});
+
+			it('should have average height above 1', () => {
+				return expect(status.networkMaxAvgHeight.averageHeight).to.be.above(1);
+			});
+
+			it('should have valid values matching specification', () => {
+				return network.getAllPeersLists().then(results => {
+					return results.map(peersList => {
+						return peersList.peers.map(peer => {
+							expect(peer.ip).to.not.empty;
+							expect(peer.wsPort).to.be.gte(5000);
+							expect(peer.wsPort).to.be.lt(5010);
+							expect(peer.version).to.not.empty;
+							return expect(peer.nonce).to.not.empty;
+						});
 					});
 				});
 			});
 
-			describe('network status after 3 blocks', () => {
-				let getAllNodesStatusError;
-				let networkHeight;
-				let networkAverageHeight;
-				// TODO: Uncomment when networkHeight issue has been fixed.
-				// See https://github.com/LiskHQ/lisk/issues/2438
-				// let peersCount;
-				// let peerStatusList;
-
-				before(done => {
-					network
-						.getAllNodesStatus()
-						.then(data => {
-							// TODO: Uncomment when networkHeight issue has been fixed.
-							// See https://github.com/LiskHQ/lisk/issues/2438
-							// peersCount = data.peersCount;
-							// peerStatusList = data.peerStatusList;
-							networkHeight = data.networkMaxAvgHeight.maxHeight;
-							networkAverageHeight = data.networkMaxAvgHeight.averageHeight;
-							done();
-						})
-						.catch(err => {
-							getAllNodesStatusError = err;
-							done();
-						});
-				});
-
-				it('should have no error', () => {
-					return expect(getAllNodesStatusError).not.to.exist;
-				});
-
-				it('should have height > 1', () => {
-					return expect(networkHeight).to.be.above(1);
-				});
-
-				it('should have average height above 1', () => {
-					return expect(networkAverageHeight).to.be.above(1);
-				});
-
-				it('should have valid values matching specification', () => {
-					return network.getAllPeersLists().then(results => {
-						return results.map(peersList => {
-							return peersList.peers.map(peer => {
-								expect(peer.ip).to.not.empty;
-								expect(peer.wsPort).to.be.gte(5000);
-								expect(peer.wsPort).to.be.lt(5010);
-								expect(peer.version).to.not.empty;
-								return expect(peer.nonce).to.not.empty;
+			it('should have different peers heights propagated correctly on peers lists', () => {
+				return network.getAllPeersLists().then(results => {
+					expect(
+						results.some(peersList => {
+							return peersList.peers.some(peer => {
+								return peer.height > 1;
 							});
-						});
-					});
+						})
+					).to.be.true;
+				});
+			});
+
+			// TODO https://github.com/LiskHQ/lisk/issues/2438
+			// eslint-disable-next-line mocha/no-skipped-tests
+			it.skip('should have matching height across all nodes', () => {
+				return network.getAllNodesStatus().then(result => {
+					const heights = Object.keys(
+						_.groupBy(result.peerStatusList, 'height')
+					);
+					expect(heights).to.have.lengthOf(1);
+				});
+			});
+
+			// TODO https://github.com/LiskHQ/lisk/issues/2438
+			// eslint-disable-next-line mocha/no-skipped-tests
+			describe.skip('network height', () => {
+				it('should have networkHeight > 1 for all peers', () => {
+					expect(status.peerStatusList)
+						.to.be.an('Array')
+						.to.have.lengthOf(status.peersCount);
+					return expect(
+						status.peerStatusList.forEach(peer => {
+							expect(peer.networkHeight).to.be.above(1);
+						})
+					);
 				});
 
-				it('should have different peers heights propagated correctly on peers lists', () => {
-					return network.getAllPeersLists().then(results => {
-						expect(
-							results.some(peersList => {
-								return peersList.peers.some(peer => {
-									return peer.height > 1;
-								});
-							})
-						).to.be.true;
-					});
+				it('should be same for all the peers', () => {
+					const networkHeights = _.groupBy(
+						status.peerStatusList,
+						'networkHeight'
+					);
+					const heights = Object.keys(networkHeights);
+					return expect(heights).to.have.lengthOf(1); // TODO 2: This fails sometimes
 				});
-
-				it('should have matching height across all nodes', () => {
-					return network.getAllNodesStatus().then(result => {
-						const heights = Object.keys(
-							_.groupBy(result.peerStatusList, 'height')
-						);
-						expect(heights).to.have.lengthOf(1);
-					});
-				});
-
-				// TODO: networkHeight is not updating fast enough across all nodes
-				// so this test currently fails.
-				// See https://github.com/LiskHQ/lisk/issues/2438
-				/*
-				describe('network height', () => {
-					it('should have networkHeight > 1 for all peers', () => {
-						expect(peerStatusList)
-							.to.be.an('Array')
-							.to.have.lengthOf(peersCount);
-						return expect(
-							peerStatusList.forEach(peer => {
-								expect(peer.networkHeight).to.be.above(1);
-							})
-						);
-					});
-
-					it('should be same for all the peers', () => {
-						const networkHeights = _.groupBy(peerStatusList, 'networkHeight');
-						const heights = Object.keys(networkHeights);
-						return expect(heights).to.have.lengthOf(1); // TODO 2: This fails sometimes
-					});
-				});
-				*/
 			});
 		});
 	});
