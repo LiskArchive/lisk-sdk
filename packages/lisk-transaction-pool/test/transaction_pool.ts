@@ -50,7 +50,7 @@ describe('transaction pool', () => {
 	});
 
 	afterEach(async () => {
-		(transactionPool as any).expireTransactionsJob.stop();
+		(transactionPool as any)._expireTransactionsJob.stop();
 	});
 	describe('#addTransaction', () => {});
 	describe('getProcessableTransactions', () => {});

@@ -46,10 +46,9 @@ interface Queues {
 const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
 
 export class TransactionPool {
-	// tslint:disable-next-line variable-name
+	private readonly _expireTransactionsInterval: number;
+	private readonly _expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
 	private readonly _queues: Queues;
-	private readonly expireTransactionsInterval: number;
-	private readonly expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
 
 	public constructor({
 		expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL,
@@ -61,13 +60,13 @@ export class TransactionPool {
 			pending: new Queue(),
 			ready: new Queue(),
 		};
-		this.expireTransactionsInterval = expireTransactionsInterval;
-		this.expireTransactionsJob = new Job(
+		this._expireTransactionsInterval = expireTransactionsInterval;
+		this._expireTransactionsJob = new Job(
 			this,
 			this.expireTransactions,
-			this.expireTransactionsInterval,
+			this._expireTransactionsInterval,
 		);
-		this.expireTransactionsJob.start();
+		this._expireTransactionsJob.start();
 	}
 
 	public addTransactions(transactions: ReadonlyArray<Transaction>): void {

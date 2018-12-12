@@ -16,9 +16,7 @@ interface DequeueUntilReduceObject {
 }
 
 export class Queue {
-	// tslint:disable-next-line variable-name
 	private readonly _index: QueueIndex;
-	// tslint:disable-next-line variable-name
 	private _transactions: ReadonlyArray<Transaction>;
 
 	public get transactions(): ReadonlyArray<Transaction> {

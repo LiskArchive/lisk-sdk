@@ -1,11 +1,7 @@
 export class Job<T> {
-	// tslint:disable-next-line variable-name
 	private _execute = false;
-	// tslint:disable-next-line variable-name
 	private _id: NodeJS.Timer | undefined;
-	// tslint:disable-next-line variable-name
 	private readonly _interval: number;
-	// tslint:disable-next-line variable-name
 	private readonly _job: () => Promise<T>;
 
 	public constructor(
