@@ -138,6 +138,8 @@ const BaseEntity = require('./base_entity');
  * @value 'FIELD_SET_SIMPLE'
  */
 
+const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
+
 class Block extends BaseEntity {
 	/**
 	 * Constructor
@@ -147,6 +149,7 @@ class Block extends BaseEntity {
 		super(adapter);
 
 		this.defaultFilters = defaultFilters;
+		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('id', 'string', { filter: ft.TEXT });
 		this.addField('height', 'number', { filter: ft.NUMBER });
@@ -183,6 +186,11 @@ class Block extends BaseEntity {
 			create: this.adapter.loadSQLFile('blocks/create.sql'),
 			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
 		};
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	get FIELD_SET_SIMPLE() {
+		return FIELD_SET_SIMPLE;
 	}
 
 	/**
@@ -356,12 +364,5 @@ class Block extends BaseEntity {
 		return Object.assign({}, filters, this.defaultFilters);
 	}
 }
-
-Block.prototype.FIELD_SET_SIMPLE = 'FIELD_SET_SIMPLE';
-Block.prototype.defaultOptions = {
-	limit: 10,
-	offset: 0,
-	fieldSet: Block.prototype.FIELD_SET_SIMPLE,
-};
 
 module.exports = Block;

@@ -57,6 +57,14 @@ describe('Block', () => {
 				create: 'loadSQLFile',
 				isPersisted: 'loadSQLFile',
 			});
+			expect(block.FIELD_SET_SIMPLE.toString()).to.be.eql(
+				'Symbol(FIELD_SET_SIMPLE)'
+			);
+			expect(block.defaultOptions).to.be.eql({
+				fieldSet: block.FIELD_SET_SIMPLE,
+				limit: 10,
+				offset: 0,
+			});
 
 			done();
 		});
@@ -463,7 +471,7 @@ describe('Block', () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			const block = new Block(adapter);
 
-			expect(block.getFieldSets()).to.eql(['FIELD_SET_SIMPLE']);
+			expect(block.getFieldSets()).to.eql([block.FIELD_SET_SIMPLE]);
 			done();
 		});
 	});
@@ -657,19 +665,5 @@ describe('Block', () => {
 				done();
 			});
 		});
-	});
-
-	it('should assign a prototype property FIELD_SET_SIMPLE', done => {
-		expect(Block.prototype.FIELD_SET_SIMPLE).to.eql('FIELD_SET_SIMPLE');
-		done();
-	});
-
-	it('should assign a prototype property defaultOptions', done => {
-		expect(Block.prototype.defaultOptions).to.eql({
-			fieldSet: 'FIELD_SET_SIMPLE',
-			limit: 10,
-			offset: 0,
-		});
-		done();
 	});
 });
