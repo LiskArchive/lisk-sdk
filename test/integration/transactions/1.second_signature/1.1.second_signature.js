@@ -104,7 +104,9 @@ describe('system test (type 1) - double second signature registrations', () => {
 
 		it('adding to pool second signature registration for same account should fail', done => {
 			localCommon.addTransaction(library, transaction1, err => {
-				expect(err).to.equal('Missing sender second signature');
+				expect(err).to.equal(
+					'This account is already enabled with second signature'
+				);
 				done();
 			});
 		});
