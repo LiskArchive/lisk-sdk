@@ -22,7 +22,6 @@ const Network = require('./network');
 const TOTAL_PEERS = Number.parseInt(process.env.TOTAL_PEERS) || 10;
 // Full mesh network with 2 connection for bi-directional communication
 const EXPECTED_TOTAL_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
-const NUMBER_OF_TRANSACTIONS = process.env.NUMBER_OF_TRANSACTIONS || 1000;
 // 2 connections (1 bidirectional) are established for each node in order to
 // monitor and interact with them as part of the test.
 const NUMBER_OF_MONITORING_CONNECTIONS = TOTAL_PEERS * 2;
@@ -97,7 +96,6 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 				network,
 				TOTAL_PEERS,
 				EXPECTED_TOTAL_CONNECTIONS,
-				NUMBER_OF_TRANSACTIONS,
 				NUMBER_OF_MONITORING_CONNECTIONS
 			);
 		});

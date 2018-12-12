@@ -23,7 +23,6 @@ module.exports = function(
 	network,
 	TOTAL_PEERS,
 	EXPECTED_TOTAL_CONNECTIONS,
-	NUMBER_OF_TRANSACTIONS,
 	NUMBER_OF_MONITORING_CONNECTIONS
 ) {
 	// One of the bi-directional monitoring connections should be down so
