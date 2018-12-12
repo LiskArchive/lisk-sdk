@@ -16,10 +16,11 @@
 
 const path = require('path');
 const {
-	BaseEntity,
 	Account,
-	Delegate,
+	BaseEntity,
 	Block,
+	Delegate,
+	Peer,
 	Transaction,
 } = require('./entities');
 const PgpAdapter = require('./adapters/pgp_adapter');
@@ -38,7 +39,6 @@ class Storage {
 		Storage.instance = this;
 
 		Storage.instance.BaseEntity = BaseEntity;
-		Storage.instance.BaseEntity.adapter = null;
 	}
 
 	/**
@@ -48,7 +48,7 @@ class Storage {
 		const adapter = new PgpAdapter(
 			Object.assign({}, this.options, {
 				inTest: process.env.NODE_ENV === 'test',
-				sqlDirectory: path.join(path.dirname(__filename), './sql'),
+				sqlDirectory: path.join(path.dirname(__filename), 'sql'),
 				logger: this.logger,
 			})
 		);
@@ -57,13 +57,13 @@ class Storage {
 			if (status) {
 				this.isReady = true;
 				Storage.instance.adapter = adapter;
-				BaseEntity.prototype.adapter = adapter;
 
 				Storage.instance.entities = {
-					Transaction: new Transaction(),
-					Block: new Block(),
-					Account: new Account(),
-					Delegate: new Delegate(),
+					Account: new Account(Storage.instance.adapter),
+					Block: new Block(Storage.instance.adapter),
+					Delegate: new Delegate(Storage.instance.adapter),
+					Peer: new Peer(Storage.instance.adapter),
+					Transaction: new Transaction(Storage.instance.adapter),
 				};
 			}
 

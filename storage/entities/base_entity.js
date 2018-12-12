@@ -14,15 +14,21 @@
 
 'use strict';
 
-const { ImplementationPendingError } = require('../errors');
+const {
+	ImplementationPendingError,
+	NonSupportedFilterTypeError,
+	NonSupportedOptionError,
+} = require('../errors');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
 
 class BaseEntity {
-	constructor() {
+	constructor(adapter, defaultFilters = {}) {
+		this.adapter = adapter;
 		this.fields = {};
 		this.filters = {};
+		this.defaultFilters = defaultFilters;
 		this.defaultOptions = {
 			limit: 10,
 			offset: 0,
@@ -226,6 +232,73 @@ class BaseEntity {
 		);
 	}
 
+	/**
+	 * Validate allowed filters
+	 * @param {Array.<Object>|Object} filters
+	 * @param {Boolean} required
+	 * @return {true, NonSupportedFilterTypeError>}
+	 */
+	validateFilters(filters = {}, required = false) {
+		if (required && (!filters || !Object.keys(filters).length)) {
+			throw new NonSupportedFilterTypeError(
+				'Filters are required for this operation.'
+			);
+		}
+
+		let flattenedFilters = [];
+		let invalidFilters = [];
+
+		if (Array.isArray(filters)) {
+			flattenedFilters = filters.reduce(
+				(acc, curr) => Object.assign(acc, curr),
+				{}
+			);
+		} else {
+			flattenedFilters = filters;
+		}
+
+		invalidFilters = Object.keys(flattenedFilters).filter(
+			item => !this.getFilters().includes(item)
+		);
+
+		if (invalidFilters.length) {
+			throw new NonSupportedFilterTypeError(
+				'One or more filters are not supported.',
+				invalidFilters
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Validate allowed options
+	 * @param {Object} options
+	 * @param {Boolean} required
+	 * @return {true, NonSupportedFilterTypeError>}
+	 */
+	validateOptions(options = {}, required = false) {
+		if (required && (!options || !Object.keys(options).length)) {
+			throw new NonSupportedOptionError(
+				'Options are required for this operation.'
+			);
+		}
+
+		let invalidOptions = [];
+
+		invalidOptions = Object.keys(options).filter(
+			item => !(item in this.defaultOptions)
+		);
+
+		if (invalidOptions.length) {
+			throw new NonSupportedOptionError(
+				'One or more options are not supported.',
+				invalidOptions
+			);
+		}
+
+		return true;
+	}
 	parseFilters(filters) {
 		let filterString = null;
 
@@ -256,6 +329,18 @@ class BaseEntity {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Merge multiple filters together
+	 * @param {Array.<Object>|Object} filters
+	 * @return {*}
+	 */
+	mergeFilters(filters) {
+		if (Array.isArray(filters)) {
+			return filters.map(item => Object.assign({}, item, this.defaultFilters));
+		}
+		return Object.assign({}, filters, this.defaultFilters);
 	}
 }
 
