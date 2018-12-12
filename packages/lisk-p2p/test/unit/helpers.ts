@@ -13,68 +13,57 @@
  *
  */
 import { expect } from 'chai';
-import { checkIncomingPeerValues } from '../../src/helpers';
+import { instantiatePeerFromResponse } from '../../src/helpers';
+import { Peer } from '../../src/peer';
 
 describe('helpers', () => {
-	describe('#checkIncomingPeerValues', () => {
-		const peer = {
-			ip: '12.12.12.12',
-			wsPort: '4001',
-			height: '272788',
-		};
+	describe('#instantiatePeerFromResponse', () => {
+		describe('for valid peer response object', () => {
+			const peer: unknown = {
+				ip: '12.23.54.3',
+				wsPort: '5393',
+				os: 'darwin',
+				height: '23232',
+				version: '1.1.2',
+			};
 
-		const peerWithMissingValue = {
-			wsPort: 4001,
-			height: 272788,
-		};
+			const peerWithOsVersion: unknown = {
+				ip: '12.23.54.3',
+				wsPort: '5393',
+				os: 778,
+				height: '23232',
+				version: {},
+			};
 
-		const peerWithIncorrectIp = {
-			ip: '12.12.hh12.12',
-			wsPort: 4001,
-			height: 272788,
-		};
+			it('should return peer object and instance of Peer', () => {
+				return expect(instantiatePeerFromResponse(peer))
+					.to.be.an('object')
+					.and.instanceOf(Peer);
+			});
 
-		const peerWithIncorrectPort = {
-			ip: '12.12.12.12',
-			wsPort: '400f1',
-			height: 272788,
-		};
-
-		const peerWithIncorrectHeight = {
-			ip: '12.12.12.12',
-			wsPort: '4001',
-			height: 'j272788',
-		};
-
-		describe('correct peer values', () => {
-			it('should return true', () => {
-				return expect(checkIncomingPeerValues(peer)).to.be.true;
+			it('should return peer object and instance of Peer ignoring os and version value', () => {
+				return expect(instantiatePeerFromResponse(peerWithOsVersion))
+					.to.be.an('object')
+					.and.instanceOf(Peer);
 			});
 		});
 
-		describe('peer with missing values', () => {
+		describe('for invalid peer response object', () => {
+			const peerInvalid: unknown = {
+				ip: '12.23.54.uhig3',
+				wsPort: '53937888',
+				os: 'darwin',
+				height: '23232',
+			};
+
 			it('should return false', () => {
-				return expect(checkIncomingPeerValues(peerWithMissingValue)).to.be
-					.false;
+				return expect(instantiatePeerFromResponse(peerInvalid)).to.be.false;
 			});
 		});
 
-		describe('peer with incorrect Ip', () => {
+		describe('for undefined peer response object', () => {
 			it('should return false', () => {
-				return expect(checkIncomingPeerValues(peerWithIncorrectIp)).to.be.false;
-			});
-		});
-
-		describe('peer with incorrect port', () => {
-			it('should return false', () => {
-				return expect(checkIncomingPeerValues(peerWithIncorrectPort)).to.be
-					.false;
-			});
-		});
-
-		describe('peer with incorrect height', () => {
-			it('should return false', () => {
-				expect(checkIncomingPeerValues(peerWithIncorrectHeight)).to.be.false;
+				return expect(instantiatePeerFromResponse(undefined)).to.be.false;
 			});
 		});
 	});

@@ -14,11 +14,17 @@
  */
 const IP_NUMBER_OF_BLOCKS = 4;
 const IP_MAX_VAL_PER_BLOCK = 256;
+const IP_MIN_VAL_PER_BLOCK = 0;
 const MAX_VAL_PORT = 65535;
 const MIN_VAL_PORT = 1;
-
-export const validateIp = (ipAddress: string): boolean => {
-	const ipAddressSplit = ipAddress.split('.');
+// We disabled no-any because we want to validate the values in response from the network that could be any
+/* tslint:disable: no-any */
+export const validateIp = (ipAddress: any): boolean => {
+	// Only string values are acceptable
+	if (!(typeof ipAddress === 'string')) {
+		return false;
+	}
+	const ipAddressSplit: ReadonlyArray<string> = ipAddress.split('.');
 
 	if (ipAddressSplit.length !== IP_NUMBER_OF_BLOCKS) {
 		return false;
@@ -31,8 +37,8 @@ export const validateIp = (ipAddress: string): boolean => {
 	ipAddressSplit.forEach(block => {
 		if (
 			reg.test(block) &&
-			parseInt(block, 10) >= 0 &&
-			parseInt(block, 10) < IP_MAX_VAL_PER_BLOCK
+			+block >= IP_MIN_VAL_PER_BLOCK &&
+			+block < IP_MAX_VAL_PER_BLOCK
 		) {
 			return;
 		}
@@ -42,7 +48,11 @@ export const validateIp = (ipAddress: string): boolean => {
 	return isValid;
 };
 
-export const validatePort = (port: string | number): boolean => {
+export const validatePort = (port: any): boolean => {
+	// Only numbers and strings
+	if (!['number', 'string'].includes(typeof port)) {
+		return false;
+	}
 	const portInt = +port;
 
 	return (
@@ -52,7 +62,11 @@ export const validatePort = (port: string | number): boolean => {
 	);
 };
 
-export const onlyDigits = (input: string | number): boolean => {
+export const onlyDigits = (input: any): boolean => {
+	// Only numbers and strings
+	if (!['number', 'string'].includes(typeof input)) {
+		return false;
+	}
 	const inputInteger = +input;
 
 	return input === inputInteger.toString();
