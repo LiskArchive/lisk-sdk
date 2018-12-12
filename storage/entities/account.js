@@ -200,12 +200,12 @@ const FIELD_SET_FULL = Symbol('FIELD_SET_FULL');
 class Account extends BaseEntity {
 	/**
 	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
 	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
-		super(adapter);
+		super(adapter, defaultFilters);
 
-		this.defaultFilters = defaultFilters;
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });

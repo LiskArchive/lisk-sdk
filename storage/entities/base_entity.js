@@ -24,15 +24,20 @@ const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
 
 class BaseEntity {
-	constructor(adapter) {
+	/**
+	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {filters.BaseEntity} defaultFilters - Set of default filters applied on every query
+	 */
+	constructor(adapter, defaultFilters = {}) {
 		this.adapter = adapter;
 		this.fields = {};
 		this.filters = {};
+		this.defaultFilters = defaultFilters;
 		this.defaultOptions = {
 			limit: 10,
 			offset: 0,
 		};
-		this.defaultFilters = {};
 	}
 
 	/**

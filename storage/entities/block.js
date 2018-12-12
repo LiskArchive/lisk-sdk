@@ -143,12 +143,12 @@ const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
 class Block extends BaseEntity {
 	/**
 	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
 	 * @param {filters.Block} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
-		super(adapter);
+		super(adapter, defaultFilters);
 
-		this.defaultFilters = defaultFilters;
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('id', 'string', { filter: ft.TEXT });
