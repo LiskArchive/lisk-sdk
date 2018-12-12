@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-/* tslint:disable:interface-name */
+
 import {
 	P2PRequestPacket,
 	P2PMessagePacket,
 	P2PResponsePacket,
-	NodeInfo,
+	P2PNodeStatus,
 } from './p2p_types';
 
 import socketClusterClient from 'socketcluster-client';
@@ -26,13 +26,12 @@ export interface PeerConfig {
 	readonly clock?: Date;
 	readonly height?: number;
 	readonly id: string;
-	/* tslint:disable:next-line: no-any */
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
 	readonly ipAddress: string;
 	readonly os?: string;
 	readonly version?: string;
 	readonly wsPort: number;
-	readonly nodeInfo: NodeInfo;
+	readonly nodeStatus: P2PNodeStatus;
 }
 
 export enum ConnectionState {
@@ -41,13 +40,9 @@ export enum ConnectionState {
 	DISCONNECTED = 2,
 }
 
-export interface PeerState {
+export interface PeerConnectionState {
 	readonly inbound: ConnectionState;
 	readonly outbound: ConnectionState;
-}
-
-interface RawResponseBody {
-	readonly data: unknown;
 }
 
 export class Peer {
@@ -57,27 +52,23 @@ export class Peer {
 	private _outboundSocket: any;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
-	private readonly _nodeInfo: NodeInfo;
+	private readonly _nodeStatus: P2PNodeStatus;
 
 	public constructor(peerConfig: PeerConfig) {
 		this._id = peerConfig.id;
 		this._ipAddress = peerConfig.ipAddress;
 		this._wsPort = peerConfig.wsPort;
 		this._inboundSocket = peerConfig.inboundSocket;
-		this._nodeInfo = peerConfig.nodeInfo;
+		this._nodeStatus = peerConfig.nodeStatus;
 		this._height = peerConfig.height === undefined ? 0 : peerConfig.height;
 	}
 
 	public connect(): void {
-		const nodeInfo = this._nodeInfo;
+		const nodeStatus = this._nodeStatus;
 		this._outboundSocket = socketClusterClient.create({
 			hostname: this._ipAddress,
 			port: this._wsPort,
-			query: {
-				wsPort: nodeInfo.wsPort,
-				os: nodeInfo.os,
-				version: nodeInfo.version, // TODO LATER: Provide nonce for compatibility with current protocol.
-			},
+			query: nodeStatus,
 		});
 	}
 
@@ -89,7 +80,10 @@ export class Peer {
 		packet: P2PRequestPacket<T>,
 	): Promise<P2PResponsePacket> {
 		return new Promise<P2PResponsePacket>(
-			(resolve: (result: any) => void, reject: (result: any) => void): void => {
+			(
+				resolve: (result: P2PResponsePacket) => void,
+				reject: (result: Error) => void,
+			): void => {
 				// TODO LATER: Change to LIP protocol format.
 				this._outboundSocket.emit(
 					'rpc-request',
@@ -106,10 +100,7 @@ export class Peer {
 						}
 
 						if (responseData) {
-							const rawResponse = responseData as RawResponseBody;
-							resolve({
-								data: rawResponse.data,
-							});
+							resolve(responseData as P2PResponsePacket);
 
 							return;
 						}
@@ -155,7 +146,7 @@ export class Peer {
 		return this._height;
 	}
 
-	public get state(): PeerState {
+	public get state(): PeerConnectionState {
 		const inbound = this._inboundSocket
 			? this._inboundSocket.state === this._inboundSocket.OPEN
 				? ConnectionState.CONNECTED

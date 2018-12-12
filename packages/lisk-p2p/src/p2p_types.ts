@@ -33,13 +33,11 @@ export interface PeerInfo {
 	readonly wsPort: number;
 }
 
-export interface NodeInfo {
+export interface P2PNodeStatus {
 	readonly wsPort: number;
 	readonly os: string;
 	readonly version: string;
 }
-
-export interface P2PNodeStatus {}
 
 export interface P2PPenalty {}
 
