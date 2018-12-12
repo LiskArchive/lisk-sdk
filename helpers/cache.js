@@ -15,6 +15,8 @@
 'use strict';
 
 const redis = require('redis');
+const Promise = require('bluebird');
+
 /**
  * Description of the module.
  *
@@ -32,8 +34,6 @@ const redis = require('redis');
  * @todo Add description for the function and the params
  */
 module.exports.connect = function(cacheEnabled, config, logger, cb) {
-	let isRedisLoaded = false;
-
 	if (!cacheEnabled) {
 		return cb(null, { cacheEnabled, client: null });
 	}
@@ -44,25 +44,28 @@ module.exports.connect = function(cacheEnabled, config, logger, cb) {
 	}
 	const client = redis.createClient(config);
 
-	client.on('ready', () => {
-		logger.info('App connected with redis server');
-		if (!isRedisLoaded) {
-			isRedisLoaded = true;
-			return cb(null, { cacheEnabled, client });
-		}
-
-		return null;
-	});
-
-	return client.on('error', err => {
-		logger.error('Redis:', err);
-		// Returns redis client so application can continue to try to connect with the redis server,
-		// and modules/cache can have client reference once it's connected
-		if (!isRedisLoaded) {
-			isRedisLoaded = true;
-			return cb(null, { cacheEnabled, client });
-		}
-
-		return null;
-	});
+	// Use promise to determine the Redis connection attempt result
+	return new Promise((resolve, reject) => {
+		client.on('ready', resolve);
+		client.on('error', err => {
+			// Log Redis errors before and after Redis was connected
+			logger.info('Redis:', err);
+			// Promise can be rejected only once
+			reject();
+		});
+	})
+		.then(() => {
+			// Called after "ready" Redis event
+			logger.info('App connected with Redis server');
+		})
+		.catch(() => {
+			// Called if the "error" event occured before "ready" event
+			logger.info('App was unable to connect to Redis server');
+			// Don't attempt to connect to Redis again as the connection was never established before
+			client.quit();
+		})
+		.finally(() =>
+			// Redis usage is optional; return successful message regardless of the Redis connect attempt outcome
+			cb(null, { cacheEnabled, client })
+		);
 };
