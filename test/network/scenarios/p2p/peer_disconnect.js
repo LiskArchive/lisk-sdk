@@ -102,39 +102,6 @@ module.exports = function(
 					);
 				});
 			});
-
-			describe('when all nodes restart except node_0 ', () => {
-				before(() => {
-					const peersPromises = [];
-					for (let i = 1; i < TOTAL_PEERS; i++) {
-						const nodeName = `node_${i}`;
-						peersPromises.push(network.restartNode(nodeName, true));
-					}
-					console.info(
-						'Wait for nodes to be started & restart monitoring connections'
-					);
-					return Promise.all(peersPromises)
-						.then(() => {
-							return network.enableForgingForDelegates();
-						})
-						.then(() => {
-							return network.waitForBlocksOnAllNodes(3);
-						});
-				});
-
-				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-					utils.getEstablishedConnections(
-						Array.from(wsPorts),
-						(err, establishedConnections) => {
-							expect(err).to.be.null;
-							expect(establishedConnections).to.equal(
-								EXPECTED_TOTAL_CONNECTIONS
-							);
-							done();
-						}
-					);
-				});
-			});
 		});
 	});
 };

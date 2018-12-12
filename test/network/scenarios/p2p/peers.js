@@ -123,9 +123,7 @@ module.exports = function(configurations, network) {
 				});
 			});
 
-			// TODO https://github.com/LiskHQ/lisk/issues/2438
-			// eslint-disable-next-line mocha/no-skipped-tests
-			it.skip('should have matching height across all nodes', () => {
+			it('should have matching height across all nodes', () => {
 				return network.getAllNodesStatus().then(result => {
 					const heights = Object.keys(
 						_.groupBy(result.peerStatusList, 'height')
@@ -134,9 +132,7 @@ module.exports = function(configurations, network) {
 				});
 			});
 
-			// TODO https://github.com/LiskHQ/lisk/issues/2438
-			// eslint-disable-next-line mocha/no-skipped-tests
-			describe.skip('network height', () => {
+			describe('network height', () => {
 				it('should have networkHeight > 1 for all peers', () => {
 					expect(status.peerStatusList)
 						.to.be.an('Array')
