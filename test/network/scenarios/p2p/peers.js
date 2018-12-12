@@ -45,8 +45,8 @@ module.exports = function(configurations, network) {
 					const allPorts = configurations.map(configuration => {
 						return configuration.wsPort;
 					});
-					expect(_.intersection(allPorts, peerPorts)).to.be.an('array').and.not
-						.to.be.empty;
+					return expect(_.intersection(allPorts, peerPorts)).to.be.an('array')
+						.and.not.to.be.empty;
 				});
 			});
 
@@ -113,13 +113,11 @@ module.exports = function(configurations, network) {
 
 			it('should have different peers heights propagated correctly on peers lists', () => {
 				return network.getAllPeersLists().then(results => {
-					expect(
-						results.some(peersList => {
-							return peersList.peers.some(peer => {
-								return peer.height > 1;
-							});
-						})
-					).to.be.true;
+					return results.some(peersList => {
+						return peersList.peers.some(peer => {
+							return expect(peer.height).to.gt(1);
+						});
+					});
 				});
 			});
 
@@ -128,7 +126,7 @@ module.exports = function(configurations, network) {
 					const heights = Object.keys(
 						_.groupBy(result.peerStatusList, 'height')
 					);
-					expect(heights).to.have.lengthOf(1);
+					return expect(heights).to.have.lengthOf(1);
 				});
 			});
 
@@ -137,11 +135,9 @@ module.exports = function(configurations, network) {
 					expect(status.peerStatusList)
 						.to.be.an('Array')
 						.to.have.lengthOf(status.peersCount);
-					return expect(
-						status.peerStatusList.forEach(peer => {
-							expect(peer.networkHeight).to.be.above(1);
-						})
-					);
+					return status.peerStatusList.map(peer => {
+						return expect(peer.networkHeight).to.be.above(1);
+					});
 				});
 
 				it('should be same for all the peers', () => {

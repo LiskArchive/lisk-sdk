@@ -26,9 +26,9 @@ const EXPECTED_TOTAL_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
 // monitor and interact with them as part of the test.
 const NUMBER_OF_MONITORING_CONNECTIONS = TOTAL_PEERS * 2;
 
-const wsPorts = [];
+const WSPORTS = [];
 _.range(TOTAL_PEERS).map(index => {
-	return wsPorts.push(5000 + index);
+	return WSPORTS.push(5000 + index);
 });
 const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
 
@@ -52,15 +52,15 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 	});
 
 	it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
-		utils.getListeningConnections(wsPorts, (err, listeningConnections) => {
+		utils.getListeningConnections(WSPORTS, (err, listeningConnections) => {
 			expect(err).to.be.null;
 			expect(listeningConnections).to.equal(TOTAL_PEERS);
 			done();
 		});
 	});
 
-	it(`there should be a maximum ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-		utils.getEstablishedConnections(wsPorts, (err, establishedConnections) => {
+	it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
+		utils.getEstablishedConnections(WSPORTS, (err, establishedConnections) => {
 			expect(err).to.be.null;
 			expect(
 				establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
@@ -79,6 +79,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			test(
 				configurations,
 				network,
+				WSPORTS,
 				TOTAL_PEERS,
 				EXPECTED_TOTAL_CONNECTIONS,
 				NUMBER_OF_MONITORING_CONNECTIONS

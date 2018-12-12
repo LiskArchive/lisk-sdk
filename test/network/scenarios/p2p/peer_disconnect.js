@@ -14,12 +14,12 @@
 
 'use strict';
 
-const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
 
 module.exports = function(
 	configurations,
 	network,
+	WSPORTS,
 	TOTAL_PEERS,
 	EXPECTED_TOTAL_CONNECTIONS,
 	NUMBER_OF_MONITORING_CONNECTIONS
@@ -33,28 +33,11 @@ module.exports = function(
 		NUMBER_OF_MONITORING_CONNECTIONS - 2;
 
 	describe('@network : peer Disconnect', () => {
-		const wsPorts = new Set();
-
 		before(() => {
 			return network.waitForAllNodesToBeReady();
 		});
 
 		describe('when peers are mutually connected in the network', () => {
-			before(() => {
-				return network.getAllPeersLists().then(mutualPeers => {
-					mutualPeers.forEach(mutualPeer => {
-						if (mutualPeer) {
-							mutualPeer.peers.map(peer => {
-								if (peer.wsPort > 5000 && peer.wsPort <= 5009) {
-									wsPorts.add(peer.wsPort);
-								}
-								return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-							});
-						}
-					});
-				});
-			});
-
 			describe('when a node is stopped', () => {
 				before(() => {
 					return network.stopNode('node_0');
@@ -62,7 +45,7 @@ module.exports = function(
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
-						Array.from(wsPorts),
+						WSPORTS,
 						(err, establishedConnections) => {
 							expect(err).to.be.null;
 							expect(
@@ -91,12 +74,12 @@ module.exports = function(
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
-						Array.from(wsPorts),
+						WSPORTS,
 						(err, establishedConnections) => {
 							expect(err).to.be.null;
-							expect(establishedConnections).to.equal(
-								EXPECTED_TOTAL_CONNECTIONS
-							);
+							expect(
+								establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
+							).to.equal(EXPECTED_TOTAL_CONNECTIONS);
 							done();
 						}
 					);

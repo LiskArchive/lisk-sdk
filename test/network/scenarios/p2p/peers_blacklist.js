@@ -21,6 +21,7 @@ const utils = require('../../utils');
 module.exports = function(
 	configurations,
 	network,
+	WSPORTS,
 	TOTAL_PEERS,
 	EXPECTED_TOTAL_CONNECTIONS,
 	NUMBER_OF_MONITORING_CONNECTIONS
@@ -35,28 +36,11 @@ module.exports = function(
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
 	describe('@network : peer Blacklisted', () => {
-		const wsPorts = new Set();
-
 		before(() => {
 			return network.waitForAllNodesToBeReady();
 		});
 
 		describe('when peers are mutually connected in the network', () => {
-			before(() => {
-				return network.getAllPeersLists().then(mutualPeers => {
-					mutualPeers.forEach(mutualPeer => {
-						if (mutualPeer) {
-							mutualPeer.peers.map(peer => {
-								if (peer.wsPort > 5000 && peer.wsPort <= 5009) {
-									wsPorts.add(peer.wsPort);
-								}
-								return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-							});
-						}
-					});
-				});
-			});
-
 			describe('when a node blacklists an ip', () => {
 				before(() => {
 					configurations[0].peers.access.blackList.push('127.0.0.1');
@@ -74,7 +58,7 @@ module.exports = function(
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
-						Array.from(wsPorts),
+						WSPORTS,
 						(err, establishedConnections) => {
 							expect(err).to.be.null;
 							expect(
@@ -86,23 +70,23 @@ module.exports = function(
 					);
 				});
 
-				it(`peers manager should contain ${TOTAL_PEERS -
+				it(`the peer's monitor should hold ${TOTAL_PEERS -
 					2} active connections`, () => {
-					return network.getAllPeersLists().then(mutualPeers => {
-						mutualPeers.forEach(mutualPeer => {
-							if (mutualPeer) {
-								expect(mutualPeer.peers.length).to.be.eql(TOTAL_PEERS - 2);
-								mutualPeer.peers.map(peer => {
-									return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
-								});
-							}
+					return network.getAllPeersLists().then(peers => {
+						return peers.map(peer => {
+							expect(peer.peers.length).to.be.eql(TOTAL_PEERS - 2);
+							return peer.peers.map(peerFromPeer => {
+								return expect(peerFromPeer.state).to.be.eql(
+									Peer.STATE.CONNECTED
+								);
+							});
 						});
 					});
 				});
 
 				it('node_0 should have every peer banned', () => {
 					return utils.http.getPeers().then(peers => {
-						peers.map(peer => {
+						return peers.map(peer => {
 							return expect(peer.state).to.be.eql(Peer.STATE.BANNED);
 						});
 					});
@@ -110,7 +94,7 @@ module.exports = function(
 
 				it('node_1 should have only himself and node_0 disconnected', () => {
 					return utils.http.getPeers(4001).then(peers => {
-						peers.map(peer => {
+						return peers.map(peer => {
 							if (peer.wsPort === 5000 || peer.wsPort === 5001) {
 								return expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
 							}
@@ -120,7 +104,7 @@ module.exports = function(
 				});
 			});
 
-			describe('when a node remove the just blacklisted ip', () => {
+			describe('when the node remove the just blacklisted ip', () => {
 				before(() => {
 					configurations[0].peers.access.blackList = [];
 					fs.writeFileSync(
@@ -142,12 +126,12 @@ module.exports = function(
 
 				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
 					utils.getEstablishedConnections(
-						Array.from(wsPorts),
+						WSPORTS,
 						(err, establishedConnections) => {
 							expect(err).to.be.null;
-							expect(establishedConnections).to.equal(
-								EXPECTED_TOTAL_CONNECTIONS
-							);
+							expect(
+								establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
+							).to.equal(EXPECTED_TOTAL_CONNECTIONS);
 							done();
 						}
 					);
@@ -155,9 +139,9 @@ module.exports = function(
 
 				it('node_0 should have every peer connected but himself', () => {
 					return utils.http.getPeers().then(peers => {
-						peers.map(peer => {
+						return peers.map(peer => {
 							if (peer.wsPort === 5000) {
-								return expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
+								return expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
 							}
 							return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 						});
