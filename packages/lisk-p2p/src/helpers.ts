@@ -12,29 +12,31 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { Peer, PeerConfig } from './peer';
+import { checkIncomingPeerValues } from './validators';
 
-import { onlyDigits, validateIp, validatePort } from './utils';
-
-interface ResponsePeerObject {
+interface RawPeerObject {
 	readonly height: string | number;
 	readonly ip: string;
+	readonly os?: string;
+	readonly version?: string;
 	readonly wsPort: string | number;
 }
 
-export const checkIncomingPeerValues = (peer: unknown): boolean => {
-	if (!peer) {
-		return false;
+export const instantiatePeerFromResponse = (peer: unknown): boolean | Peer => {
+	if (checkIncomingPeerValues(peer)) {
+		const rawPeer = peer as RawPeerObject;
+		const peerConfig: PeerConfig = {
+			ipAddress: rawPeer.ip,
+			wsPort: +rawPeer.wsPort,
+			height: +rawPeer.height,
+			id: `${rawPeer.ip}:${rawPeer.wsPort}`,
+			os: typeof rawPeer.os === 'string' ? rawPeer.os : '',
+			version: typeof rawPeer.version === 'string' ? rawPeer.version : '',
+		};
+
+		return new Peer(peerConfig);
 	}
 
-	const { ip, height, wsPort } = peer as ResponsePeerObject;
-
-	if (!ip || !height || !wsPort) {
-		return false;
-	}
-
-	if (!validateIp(ip) || !validatePort(wsPort) || !onlyDigits(height)) {
-		return false;
-	}
-
-	return true;
+	return false;
 };

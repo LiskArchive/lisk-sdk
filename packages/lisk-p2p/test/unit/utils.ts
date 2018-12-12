@@ -45,6 +45,18 @@ describe('utils', () => {
 				return expect(validateIp(IpWithSpaces)).to.be.false;
 			});
 		});
+
+		describe('ip is null', () => {
+			it('should return false', () => {
+				return expect(validateIp(null)).to.be.false;
+			});
+		});
+
+		describe('ip is object', () => {
+			it('should return false', () => {
+				return expect(validateIp({})).to.be.false;
+			});
+		});
 	});
 
 	describe('#onlyDigits', () => {
@@ -60,6 +72,18 @@ describe('utils', () => {
 		describe('incorrect string with not only digits', () => {
 			it('should return false', () => {
 				return expect(onlyDigits(inCorrectString)).to.be.false;
+			});
+		});
+
+		describe('if argument is null', () => {
+			it('should return false', () => {
+				return expect(onlyDigits(null)).to.be.false;
+			});
+		});
+
+		describe('if argument is an object', () => {
+			it('should return false', () => {
+				return expect(onlyDigits({})).to.be.false;
 			});
 		});
 	});
@@ -84,6 +108,18 @@ describe('utils', () => {
 		describe('incorrect port number out of range', () => {
 			it('should return false', () => {
 				return expect(validatePort(portOutOfRange)).to.be.false;
+			});
+		});
+
+		describe('port number is null', () => {
+			it('should return false', () => {
+				return expect(validatePort(null)).to.be.false;
+			});
+		});
+
+		describe('port number is an object', () => {
+			it('should return false', () => {
+				return expect(validatePort({})).to.be.false;
 			});
 		});
 	});
