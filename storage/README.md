@@ -67,4 +67,3 @@ Following conventions must be followed strictly
 * Height should always be integer because of Number.MAX_SAFE_INTEGER is too high
 * Round number should be exposed as integer
 * All `BYTEA` fields with 'hex' encoding should be exposed as strings
-* All other `BYTEA` fields should be exposed as Buffer
