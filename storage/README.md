@@ -1,19 +1,16 @@
-# Entities
+# Data Persistence Model
 
 Entities describe a business entity persisted to storage layer.
 
 ## How to create entity
 
-Just extend a class from `BaseEntity` and you will have basic features. This base class provides generic structure to manage entities but don't provide hardcore SQL or persisting logic. You have to implement that logic your self. You have to implement at least these methods in your entity class.
+To create a new entity, extend the `BaseEntity` class which provides a generic structure to manage entities. The more sophisticated scenarios of persistence logic need to be implemented by yourself, following the easy to follow patterns, have a look for an example entity - [Account](./entities/account.js)). Each custom entity needs to implement at least the following functions:
 
 * constructor
 * getFieldSets
-
-To look for an example Entity check [Account](./entities/account.js)
-
 ## Utility Methods
 
-The following utility methods are available to your class when you extend from `BaseEntity`.
+The following utility methods are available each class extending `BaseEntity`.
 
 ### addFilter
 
@@ -26,8 +23,6 @@ addFilter(fieldName, filterType = filterTypes.NUMBER, fieldSets=[])
 You can find more details in its [implementation](./entities/base_entity.js#L63)
 
 ## Filters
-
-Filters are a convention to provide a flexible but powerful structure to fetch data from the persistence layer. When you register a field in an entity you have to specify its filter type. Based on that filter type the entity registers some filter names available to be used as json objects. Each filter suffixes an additional value to the field name e.g. `_in`, `_lt`. It depends on filter type which suffixes are appended. A filter without any suffix to the field name refers to `_eql` equals.
 
 Following is the list of available suffixes based on filter types:
 
