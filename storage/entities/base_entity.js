@@ -288,9 +288,7 @@ class BaseEntity {
 			);
 		}
 
-		let invalidOptions = [];
-
-		invalidOptions = Object.keys(options).filter(
+		const invalidOptions = Object.keys(options).filter(
 			item => !(item in this.defaultOptions)
 		);
 
