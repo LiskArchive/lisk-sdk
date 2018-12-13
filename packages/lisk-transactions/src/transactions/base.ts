@@ -60,7 +60,7 @@ export abstract class BaseTransaction {
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
 	public readonly receivedAt: Date = new Date();
-	public readonly isMultiSignature?: boolean = false;
+	public readonly isMultisignature?: boolean = false;
 
 	public constructor(rawTransaction: TransactionJSON) {
 		const { valid, errors } = checkTypes(rawTransaction);
@@ -86,7 +86,7 @@ export abstract class BaseTransaction {
 		this.timestamp = rawTransaction.timestamp;
 		this.type = rawTransaction.type;
 		this.receivedAt = rawTransaction.receivedAt;
-		this.isMultiSignature =
+		this.isMultisignature =
 			rawTransaction.signatures && rawTransaction.signatures.length > 0
 				? true
 				: false;
@@ -150,8 +150,8 @@ export abstract class BaseTransaction {
 			  )
 			: [];
 
-		if (errors.length === 0) {
-			// PublicKey passed format check, now check equality to senderId
+		if (!errors.find(err => err.dataPath === '.senderPublicKey')) {
+			// `senderPublicKey` passed format check, safely check equality to senderId
 			if (
 				this.senderId.toUpperCase() !==
 				cryptography.getAddressFromPublicKey(this.senderPublicKey).toUpperCase()
@@ -304,8 +304,6 @@ export abstract class BaseTransaction {
 		}
 
 		// Verify multisignatures
-
-		// Check if transaction has enough signatures to be confirmed
 		if (
 			Array.isArray(sender.multisignatures) &&
 			sender.multisignatures.length > 0 &&
@@ -373,7 +371,7 @@ export abstract class BaseTransaction {
 	public isExpired(date: Date = new Date()): boolean {
 		// tslint:disable-next-line no-magic-numbers
 		const timeNow = Math.floor(date.getTime() / 1000);
-		const timeOut = this.isMultiSignature
+		const timeOut = this.isMultisignature
 			? UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT
 			: UNCONFIRMED_TRANSACTION_TIMEOUT;
 		const timeElapsed =
