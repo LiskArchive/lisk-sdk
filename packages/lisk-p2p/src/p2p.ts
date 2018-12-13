@@ -22,7 +22,7 @@ import socketClusterServer from 'socketcluster-server';
 import { Peer } from './peer';
 
 import {
-	NetworkStatus,
+	// TODO ASAP: NetworkStatus,
 	P2PMessagePacket,
 	P2PPenalty,
 	P2PRequestPacket,
@@ -48,7 +48,7 @@ export class P2P extends EventEmitter {
 	private readonly _httpServer: Server;
 	private readonly _scServer: any;
 	private readonly _newPeers: Set<string>;
-	// TODO: private readonly _triedPeers: Set<string>;
+	// TODO ASAP: private readonly _triedPeers: Set<string>;
 	private _nodeStatus: P2PNodeStatus;
 
 	public constructor(config: P2PConfig) {
@@ -60,19 +60,18 @@ export class P2P extends EventEmitter {
 			version: config.version,
 		};
 		this._newPeers = new Set();
-		// TODO: this._triedPeers = new Set();
+		// TODO ASAP: this._triedPeers = new Set();
 
 		this._peerPool = new PeerPool();
 		this._httpServer = http.createServer();
 		this._scServer = socketClusterServer.attach(this._httpServer);
 	}
 
-	public applyPenalty = (penalty: P2PPenalty): void => {
+	public applyPenalty(penalty: P2PPenalty): void {
 		penalty;
 	};
-	// TODO
-	public getNetworkStatus = (): NetworkStatus => true;
-	// TODO
+
+	// TODO ASAP: public getNetworkStatus(): NetworkStatus {};
 
 	public async request<T>(
 		packet: P2PRequestPacket<T>,
@@ -82,7 +81,7 @@ export class P2P extends EventEmitter {
 
 	public send<T>(message: P2PMessagePacket<T>): void {
 		message;
-		// TODO
+		// TODO ASAP
 	}
 
 	public get nodeStatus(): P2PNodeStatus {
@@ -142,7 +141,7 @@ export class P2P extends EventEmitter {
 	}
 
 	private async _stopPeerServer(): Promise<void> {
-		// TODO: Test this and check for potential failure scenarios.
+		// TODO ASAP: Test this and check for potential failure scenarios.
 		return new Promise<void>(resolve => {
 			this._scServer.close(() => {
 				resolve();
@@ -192,12 +191,12 @@ export class P2P extends EventEmitter {
 		);
 	}
 
-	public start = async (): Promise<void> => {
+	public async start(): Promise<void> {
 		await this._startPeerServer();
 		await this._loadListOfPeerListsFromSeeds(this._config.seedPeers);
 	};
 
-	public stop = async (): Promise<void> => {
+	public async stop(): Promise<void> {
 		this._peerPool.disconnectAllPeers();
 		await this._stopPeerServer();
 	};
