@@ -36,10 +36,6 @@ module.exports = function(
 		(TOTAL_PEERS - 2) * (TOTAL_PEERS - 1) * 2;
 
 	describe('@network : peer Blacklisted', () => {
-		before(() => {
-			return network.waitForAllNodesToBeReady();
-		});
-
 		describe('when a node blacklists an ip', () => {
 			before(() => {
 				configurations[0].peers.access.blackList.push('127.0.0.1');

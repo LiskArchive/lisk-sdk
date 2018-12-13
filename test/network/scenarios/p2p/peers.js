@@ -16,10 +16,6 @@
 
 module.exports = function(configurations, network) {
 	describe('@network : peers', () => {
-		before(() => {
-			return network.waitForAllNodesToBeReady();
-		});
-
 		describe('when there are mutual connections among peers', () => {
 			let mutualPeers = [];
 

@@ -33,57 +33,51 @@ module.exports = function(
 		NUMBER_OF_MONITORING_CONNECTIONS - 2;
 
 	describe('@network : peer Disconnect', () => {
-		before(() => {
-			return network.waitForAllNodesToBeReady();
-		});
-
-		describe('when peers are mutually connected in the network', () => {
-			describe('when a node is stopped', () => {
-				before(() => {
-					return network.stopNode('node_0');
-				});
-
-				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
-					utils.getEstablishedConnections(
-						WSPORTS,
-						(err, establishedConnections) => {
-							expect(err).to.be.null;
-							expect(
-								establishedConnections -
-									EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE
-							).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER);
-							done();
-						}
-					);
-				});
+		describe('when a node is stopped', () => {
+			before(() => {
+				return network.stopNode('node_0');
 			});
 
-			describe('when a stopped node is started', () => {
-				before(() => {
-					return network
-						.startNode('node_0', true)
-						.then(() => {
-							return network.enableForgingForDelegates();
-						})
-						.then(() => {
-							// Make sure that there is enough time for monitoring connection
-							// to be re-established after restart.
-							return network.waitForBlocksOnNode('node_0', 2);
-						});
-				});
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, done => {
+				utils.getEstablishedConnections(
+					WSPORTS,
+					(err, establishedConnections) => {
+						expect(err).to.be.null;
+						expect(
+							establishedConnections -
+								EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE
+						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER);
+						done();
+					}
+				);
+			});
+		});
 
-				it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-					utils.getEstablishedConnections(
-						WSPORTS,
-						(err, establishedConnections) => {
-							expect(err).to.be.null;
-							expect(
-								establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
-							).to.equal(EXPECTED_TOTAL_CONNECTIONS);
-							done();
-						}
-					);
-				});
+		describe('when a stopped node is started', () => {
+			before(() => {
+				return network
+					.startNode('node_0', true)
+					.then(() => {
+						return network.enableForgingForDelegates();
+					})
+					.then(() => {
+						// Make sure that there is enough time for monitoring connection
+						// to be re-established after restart.
+						return network.waitForBlocksOnNode('node_0', 2);
+					});
+			});
+
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
+				utils.getEstablishedConnections(
+					WSPORTS,
+					(err, establishedConnections) => {
+						expect(err).to.be.null;
+						expect(
+							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
+						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
+						done();
+					}
+				);
 			});
 		});
 	});

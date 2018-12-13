@@ -15,7 +15,6 @@
 'use strict';
 
 const find = require('find');
-const utils = require('./utils');
 const setup = require('./setup');
 const Network = require('./network');
 
@@ -25,16 +24,17 @@ const EXPECTED_TOTAL_CONNECTIONS = (TOTAL_PEERS - 1) * TOTAL_PEERS * 2;
 // 2 connections (1 bidirectional) are established for each node in order to
 // monitor and interact with them as part of the test.
 const NUMBER_OF_MONITORING_CONNECTIONS = TOTAL_PEERS * 2;
-
 const WSPORTS = [];
 _.range(TOTAL_PEERS).map(index => {
 	return WSPORTS.push(5000 + index);
 });
-const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
-
-const network = new Network(configurations);
 
 describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS ports 500[0-9] and HTTP ports 400[0-9] using separate databases`, () => {
+	const configurations = setup.config.generateLiskConfigs(TOTAL_PEERS);
+	const network = new Network(configurations);
+	const suiteFolder = 'test/network/scenarios/';
+	const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+
 	before(() => {
 		return network.launchNetwork({ enableForging: true });
 	});
@@ -51,27 +51,7 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 		return network.killNetwork();
 	});
 
-	it(`there should be exactly ${TOTAL_PEERS} listening connections for 500[0-9] ports`, done => {
-		utils.getListeningConnections(WSPORTS, (err, listeningConnections) => {
-			expect(err).to.be.null;
-			expect(listeningConnections).to.equal(TOTAL_PEERS);
-			done();
-		});
-	});
-
-	it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-		utils.getEstablishedConnections(WSPORTS, (err, establishedConnections) => {
-			expect(err).to.be.null;
-			expect(
-				establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
-			).to.equal(EXPECTED_TOTAL_CONNECTIONS);
-			done();
-		});
-	});
-
-	describe('when WS connections to all nodes all established', () => {
-		const suiteFolder = 'test/network/scenarios/';
-		const filepaths = find.fileSync(/^((?!common)[\s\S])*.js$/, suiteFolder);
+	describe('launching test scenarios', () => {
 		filepaths.forEach(filepath => {
 			const currentFilePath = filepath.replace('test/network', '.');
 			// eslint-disable-next-line import/no-dynamic-require
@@ -86,8 +66,4 @@ describe(`Start a network of ${TOTAL_PEERS} nodes with address "127.0.0.1", WS p
 			);
 		});
 	});
-});
-
-process.on('unhandledRejection', err => {
-	throw err;
 });
