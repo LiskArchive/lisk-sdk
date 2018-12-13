@@ -14,6 +14,8 @@
  */
 /* tslint:disable:no-empty-interface*/
 
+import { PeerConfig } from './peer';
+
 export interface P2PRequestPacket<T> {
 	readonly procedure: string;
 	readonly params?: T;
@@ -28,30 +30,30 @@ export interface P2PMessagePacket<T> {
 	readonly data: T;
 }
 
-export interface PeerInfo {
-	readonly ipAddress: string;
-	readonly wsPort: number;
-}
-
 export interface P2PNodeStatus {
 	readonly wsPort: number;
 	readonly os: string;
 	readonly version: string;
+	readonly height: number;
 }
 
 export interface P2PPenalty {}
 
 export interface P2PConfig {
-	readonly blacklistedPeers: ReadonlyArray<PeerInfo>;
+	readonly blacklistedPeers: ReadonlyArray<PeerConfig>;
 	readonly connectTimeout: number;
 	readonly ipAddress?: string;
-	readonly seedPeers: ReadonlyArray<PeerInfo>;
+	readonly seedPeers: ReadonlyArray<PeerConfig>;
 	readonly wsEngine?: string;
 	readonly wsPort: number;
 	readonly version: string;
 }
 
-export interface RPCResponsePeerInfo {
+export interface NetworkStatus {}
+
+// This is a representation of the peer object according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolPeerInfo {
 	readonly ip: string;
 	readonly wsPort: number;
 	readonly os: string;
@@ -61,8 +63,9 @@ export interface RPCResponsePeerInfo {
 	readonly nonce: string;
 }
 
-export interface RPCResponsePeerList {
+// This is a representation of the peer list according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolPeerList {
 	readonly success: boolean;
-	readonly peers: ReadonlyArray<RPCResponsePeerInfo>;
+	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
 }
-export interface NetworkStatus {}

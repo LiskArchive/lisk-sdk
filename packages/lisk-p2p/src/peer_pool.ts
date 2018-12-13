@@ -17,7 +17,7 @@
  * The purpose of the PeerPool is to provide a simple interface for selecting,
  * interacting with and handling aggregated events from a collection of peers.
  */
-/* tslint:disable:variable-name */
+
 import { EventEmitter } from 'events';
 import { Peer } from './peer';
 
@@ -46,6 +46,10 @@ export class PeerPool extends EventEmitter {
 
 	public addPeer(peer: Peer): void {
 		this._peerMap.set(peer.id, peer);
+	}
+
+	public removePeer(peerId: string): boolean {
+		return this._peerMap.delete(peerId);
 	}
 
 	public getPeer(peerId: string): Peer | undefined {
