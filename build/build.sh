@@ -137,10 +137,11 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	# shellcheck disable=SC1090
 	. "$(pwd)/env.sh"
 	set -u
-	npm install --production
+	npm ci --production
 
 	echo "Installing pm2 and lisk-commander..."
 	echo "--------------------------------------------------------------------------"
+# TODO: move pm2 to dependencies? add lisk-commander?
 	npm install --production --global "pm2@$PM2_VERSION"
 	npm install --production --global "lisk-commander@$LISK_COMMANDER_VERSION"
 
