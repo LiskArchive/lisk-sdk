@@ -13,7 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { NotEnoughPeersError, PeerTransportError } from '../../src';
+import {
+	InValidPeerAddress,
+	NotEnoughPeersError,
+	PeerTransportError,
+	RPCResponseError,
+} from '../../src';
 
 describe('errors', () => {
 	describe('#NotEnoughPeersError', () => {
@@ -80,6 +85,95 @@ describe('errors', () => {
 
 			it('should set error property peerId when passed as an argument', () => {
 				return expect(peerTransportError.peerId).to.eql(peerId);
+			});
+		});
+	});
+
+	describe('#RPCGetPeersFailed', () => {
+		let rpcGetPeersFailed: RPCResponseError;
+		const peerId = '127.0.0.1:5001';
+		const defaultMessage = `Error when fetching peerlist of peer with peer id ${peerId}`;
+		const defaultError = new Error('Peer not available');
+
+		beforeEach(() => {
+			rpcGetPeersFailed = new RPCResponseError(
+				defaultMessage,
+				defaultError,
+				peerId,
+			);
+			return Promise.resolve();
+		});
+
+		describe('should create an error object', () => {
+			it('should create a new instance of RPCResponseError', () => {
+				return expect(rpcGetPeersFailed)
+					.to.be.an('object')
+					.and.be.instanceof(RPCResponseError);
+			});
+
+			it('should set error name to `RPCResponseError`', () => {
+				return expect(rpcGetPeersFailed.name).to.eql('RPCResponseError');
+			});
+		});
+
+		describe('should set error object properties', () => {
+			beforeEach(() => {
+				rpcGetPeersFailed = new RPCResponseError(
+					defaultMessage,
+					defaultError,
+					peerId,
+				);
+				return Promise.resolve();
+			});
+
+			it('should set error property peerId when passed as an argument', () => {
+				return expect(rpcGetPeersFailed)
+					.and.to.have.property('peerId')
+					.which.is.eql(peerId);
+			});
+
+			it('should set error property cause when passed as an argument', () => {
+				expect(rpcGetPeersFailed)
+					.and.to.have.property('cause')
+					.and.to.be.a('function');
+
+				return expect(rpcGetPeersFailed.cause())
+					.is.instanceOf(Error)
+					.has.property('message')
+					.and.eql('Peer not available');
+			});
+		});
+	});
+
+	describe('#InValidPeerAddress', () => {
+		let inValidPeerAddress: InValidPeerAddress;
+		const defaultMessage = 'Invalid Peer Ip or Port';
+
+		beforeEach(() => {
+			inValidPeerAddress = new InValidPeerAddress(defaultMessage);
+			return Promise.resolve();
+		});
+
+		describe('should create an error object instance of InValidPeerAddress', () => {
+			it('should create a new instance of InValidPeerAddress', () => {
+				return expect(inValidPeerAddress)
+					.to.be.an('object')
+					.and.be.instanceof(InValidPeerAddress);
+			});
+
+			it('should set error name to `InValidPeerAddress`', () => {
+				return expect(inValidPeerAddress.name).to.eql('InValidPeerAddress');
+			});
+		});
+
+		describe('should set error object properties', () => {
+			beforeEach(() => {
+				inValidPeerAddress = new InValidPeerAddress(defaultMessage);
+				return Promise.resolve();
+			});
+
+			it('should set error message when passed an argument', () => {
+				return expect(inValidPeerAddress.message).to.eql(defaultMessage);
 			});
 		});
 	});

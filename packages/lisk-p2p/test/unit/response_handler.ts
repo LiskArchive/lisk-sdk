@@ -13,10 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import { instantiatePeerFromResponse } from '../../src/helpers';
-import { Peer } from '../../src/peer';
+import {
+	checkPeerAddress,
+	instantiatePeerFromResponse,
+} from '../../src/response_handler';
 
-describe('helpers', () => {
+describe('response handlers', () => {
 	describe('#instantiatePeerFromResponse', () => {
 		describe('for valid peer response object', () => {
 			const peer: unknown = {
@@ -30,21 +32,21 @@ describe('helpers', () => {
 			const peerWithOsVersion: unknown = {
 				ip: '12.23.54.3',
 				wsPort: '5393',
-				os: 778,
+				os: '778',
 				height: '23232',
-				version: {},
+				version: '',
 			};
 
 			it('should return peer object and instance of Peer', () => {
 				return expect(instantiatePeerFromResponse(peer))
 					.to.be.an('object')
-					.and.instanceOf(Peer);
+					.has.property('ipAddress');
 			});
 
 			it('should return peer object and instance of Peer ignoring os and version value', () => {
 				return expect(instantiatePeerFromResponse(peerWithOsVersion))
 					.to.be.an('object')
-					.and.instanceOf(Peer);
+					.has.property('ipAddress');
 			});
 		});
 
@@ -57,13 +59,57 @@ describe('helpers', () => {
 			};
 
 			it('should return false', () => {
-				return expect(instantiatePeerFromResponse(peerInvalid)).to.be.false;
+				return expect(instantiatePeerFromResponse(peerInvalid))
+					.to.be.an('object')
+					.and.instanceOf(Error);
 			});
 		});
+	});
 
-		describe('for undefined peer response object', () => {
+	describe('validators', () => {
+		describe('#checkPeerAddress', () => {
+			it('should return true for IPv4', () => {
+				const peer = {
+					ip: '12.12.12.12',
+					wsPort: '4001',
+				};
+
+				return expect(checkPeerAddress(peer)).to.be.true;
+			});
+
+			it('should return true for IPv6', () => {
+				const peer = {
+					ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
+					wsPort: '4001',
+				};
+
+				return expect(checkPeerAddress(peer)).to.be.true;
+			});
+
 			it('should return false', () => {
-				return expect(instantiatePeerFromResponse(undefined)).to.be.false;
+				const peerWithMissingValue = {
+					wsPort: '4001',
+				};
+
+				return expect(checkPeerAddress(peerWithMissingValue)).to.be.false;
+			});
+
+			it('should return false', () => {
+				const peerWithIncorrectIp = {
+					ip: '12.12.hh12.12',
+					wsPort: '4001',
+				};
+
+				return expect(checkPeerAddress(peerWithIncorrectIp)).to.be.false;
+			});
+
+			it('should return false', () => {
+				const peerWithIncorrectPort = {
+					ip: '12.12.12.12',
+					wsPort: '400f1',
+				};
+
+				return expect(checkPeerAddress(peerWithIncorrectPort)).to.be.false;
 			});
 		});
 	});

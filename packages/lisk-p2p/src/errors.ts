@@ -31,3 +31,20 @@ export class NotEnoughPeersError extends VError {
 		this.name = 'NotEnoughPeersError';
 	}
 }
+
+export class RPCResponseError extends VError {
+	public peerId: string;
+
+	public constructor(message: string, cause: Error, peerId: string) {
+		super(cause, message);
+		this.name = 'RPCResponseError';
+		this.peerId = peerId;
+	}
+}
+
+export class InValidPeerAddress extends VError {
+	public constructor(message: string) {
+		super(message);
+		this.name = 'InValidPeerAddress';
+	}
+}
