@@ -129,4 +129,3 @@ export default class VotersCommand extends BaseCommand {
 		this.print(results);
 	}
 }
-

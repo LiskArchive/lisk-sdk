@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import { expect, test } from '@oclif/test';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('message:encrypt', () => {
 	const message = 'Hello World';
@@ -37,7 +37,7 @@ describe('message:encrypt', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				cryptography,
@@ -45,8 +45,8 @@ describe('message:encrypt', () => {
 				sandbox.stub().returns(defaultEncryptedMessage),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -54,7 +54,7 @@ describe('message:encrypt', () => {
 	describe('message:encrypt', () => {
 		setupTest()
 			.command(['message:encrypt'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error');
@@ -63,7 +63,7 @@ describe('message:encrypt', () => {
 	describe('message:encrypt recipientPublicKey', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No message was provided.');
 			})
 			.it('should throw an error');
@@ -73,12 +73,12 @@ describe('message:encrypt', () => {
 		setupTest()
 			.command(['message:encrypt', defaultRecipientPublicKey, message])
 			.it('should encrypt the message with the arg', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					data: null,
+					data: undefined,
 				});
 				expect(
 					cryptography.encryptMessageWithPassphrase,
@@ -104,7 +104,7 @@ describe('message:encrypt', () => {
 			.it(
 				'should encrypt the message with the arg and the message flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: undefined,
 							repeatPrompt: true,
@@ -139,7 +139,7 @@ describe('message:encrypt', () => {
 			.it(
 				'should encrypt the message with the arg and the message flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source:
 								'pass:"card earn shift valley learn scorpion cage select help title control satoshi"',

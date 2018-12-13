@@ -33,7 +33,7 @@ interface InputFromSourceInputs {
 	readonly secondPassphrase?: InputSource;
 }
 
-interface InputFromSourceOutput {
+export interface InputFromSourceOutput {
 	readonly data?: string;
 	readonly passphrase?: string;
 	readonly password?: string;

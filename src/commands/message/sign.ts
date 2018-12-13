@@ -13,22 +13,59 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { signMessageWithPassphrase } from '@liskhq/lisk-cryptography';
 import { flags as flagParser } from '@oclif/command';
-import * as cryptography from '@liskhq/lisk-cryptography';
 import BaseCommand from '../../base';
 import { ValidationError } from '../../utils/error';
-import { getInputsFromSources } from '../../utils/input';
 import { flags as commonFlags } from '../../utils/flags';
+import { getInputsFromSources, InputFromSourceOutput } from '../../utils/input';
 
-const processInputs = message => ({ passphrase, data }) =>
-	cryptography.signMessageWithPassphrase(message || data, passphrase);
+interface Args {
+	readonly message?: string;
+}
+
+const processInputs = (message?: string) => ({
+	passphrase,
+	data,
+}: InputFromSourceOutput) => {
+	const targetMessage = message || data;
+	if (!targetMessage) {
+		throw new ValidationError('No message was provided.');
+	}
+	if (!passphrase) {
+		throw new ValidationError('No passphrase was provided.');
+	}
+
+	return signMessageWithPassphrase(targetMessage, passphrase);
+};
 
 export default class SignCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'message',
+			description: 'Message to sign.',
+		},
+	];
+
+	static description = `
+	Signs a message using your secret passphrase.
+	`;
+
+	static examples = ['message:sign "Hello world"'];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+		message: flagParser.string(commonFlags.message),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { message },
+			args,
 			flags: { passphrase: passphraseSource, message: messageSource },
 		} = this.parse(SignCommand);
+
+		const { message }: Args = args;
 
 		if (!message && !messageSource) {
 			throw new ValidationError('No message was provided.');
@@ -40,7 +77,7 @@ export default class SignCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 			data: message
-				? null
+				? undefined
 				: {
 						source: messageSource,
 					},
@@ -49,22 +86,3 @@ export default class SignCommand extends BaseCommand {
 		this.print(result);
 	}
 }
-
-SignCommand.args = [
-	{
-		name: 'message',
-		description: 'Message to sign.',
-	},
-];
-
-SignCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-	message: flagParser.string(commonFlags.message),
-};
-
-SignCommand.description = `
-Signs a message using your secret passphrase.
-`;
-
-SignCommand.examples = ['message:sign "Hello world"'];
