@@ -28,6 +28,11 @@ module.exports = {
 			hostname: '127.0.0.1',
 			port: null,
 			autoReconnect: true,
+			autoReconnectOptions: {
+				initialDelay: 1000,
+				randomness: 1000,
+				maxDelay: 10000,
+			},
 			// Since we are running a multiple nodes on a single machine, we
 			// need to give nodes a lot of time to respond.
 			ackTimeout: 15000,
