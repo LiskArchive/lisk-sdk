@@ -30,12 +30,12 @@ module.exports = {
 			autoReconnect: true,
 			autoReconnectOptions: {
 				initialDelay: 1000,
-				randomness: 1000,
+				randomness: 0,
 				maxDelay: 10000,
 			},
 			// Since we are running a multiple nodes on a single machine, we
 			// need to give nodes a lot of time to respond.
-			ackTimeout: 15000,
+			ackTimeout: 2000,
 			query: WSServerMaster.generatePeerHeaders({
 				wsPort: firstConfiguration.wsPort,
 				httpPort: firstConfiguration.httpPort,
