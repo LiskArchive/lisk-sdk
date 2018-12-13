@@ -85,12 +85,12 @@ export class P2P extends EventEmitter {
 		// TODO
 	}
 
-	public getNodeStatus(): P2PNodeStatus {
+	public get nodeStatus(): P2PNodeStatus {
 		return this._nodeStatus;
 	}
 
-	public setNodeStatus(nodeStatus: P2PNodeStatus): void {
-		this._nodeStatus = nodeStatus;
+	public set nodeStatus(value: P2PNodeStatus) {
+		this._nodeStatus = value;
 	}
 
 	private async _startPeerServer(): Promise<void> {
@@ -136,6 +136,15 @@ export class P2P extends EventEmitter {
 
 		return new Promise<void>(resolve => {
 			this._scServer.once('ready', () => {
+				resolve();
+			});
+		});
+	}
+
+	private async _stopPeerServer(): Promise<void> {
+		// TODO: Test this and check for potential failure scenarios.
+		return new Promise<void>(resolve => {
+			this._scServer.close(() => {
 				resolve();
 			});
 		});
@@ -190,10 +199,7 @@ export class P2P extends EventEmitter {
 
 	public stop = async (): Promise<void> => {
 		this._peerPool.disconnectAllPeers();
-		// In the current implementation, we don't need to shut down any child processes.
-		// This method resolves immediately.
-
-		return Promise.resolve();
+		await this._stopPeerServer();
 	};
 
 	public static generatePeerIdFromPeerInfo(peerInfo: PeerInfo): string {
