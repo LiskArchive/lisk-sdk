@@ -15,8 +15,8 @@
  */
 import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 import * as queryHandler from '../../../src/utils/query';
 
 describe('delegate:voters', () => {
@@ -53,15 +53,15 @@ describe('delegate:voters', () => {
 	];
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
 	describe('delegate:voters', () => {
 		setupTest()
 			.command(['delegate:voters'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 1 required arg');
 			})
 			.it('should throw an error when arg is not provided');
@@ -71,7 +71,7 @@ describe('delegate:voters', () => {
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0]])
 				.it('should get delegate voters and display as an array', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -99,7 +99,7 @@ describe('delegate:voters', () => {
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames.join(',')])
 				.it('should get delegates voters and display as an array', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -135,7 +135,7 @@ describe('delegate:voters', () => {
 				.it(
 					'should get delegates voters only using non-empty args and display as an array',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.query).to.be.calledWithExactly(
 							apiClientStub,
 							endpoint,
@@ -160,7 +160,7 @@ describe('delegate:voters', () => {
 		describe('delegate:voters --limit=xxx', () => {
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--limit=wronglimit'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Limit must be an integer and greater than 0',
 					);
@@ -169,7 +169,7 @@ describe('delegate:voters', () => {
 
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--limit=0'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Limit must be an integer and greater than 0',
 					);
@@ -178,7 +178,7 @@ describe('delegate:voters', () => {
 
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--limit=101'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Maximum limit amount is 100',
 					);
@@ -189,7 +189,7 @@ describe('delegate:voters', () => {
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--limit=3'])
 				.it('should get voters for delegate with limit', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -216,7 +216,7 @@ describe('delegate:voters', () => {
 		describe('delegate:voters --offset=xxx', () => {
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--offset=wrongoffset'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Offset must be an integer and greater than or equal to 0',
 					);
@@ -225,7 +225,7 @@ describe('delegate:voters', () => {
 
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--offset=-1'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Offset must be an integer and greater than or equal to 0',
 					);
@@ -236,7 +236,7 @@ describe('delegate:voters', () => {
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--offset=1'])
 				.it('should get voters for delegate with offset', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -263,7 +263,7 @@ describe('delegate:voters', () => {
 		describe('delegate:voters --sort=xxx', () => {
 			setupTest()
 				.command(['delegate:voters', usernames[0], '--sort=wrongsort'])
-				.catch(error => {
+				.catch((error: Error) => {
 					return expect(error.message).to.contain(
 						'Sort must be one of: publicKey:asc, publicKey:desc, balance:asc, balance:desc, username:asc, username:desc',
 					);
@@ -274,7 +274,7 @@ describe('delegate:voters', () => {
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['delegate:voters', usernames[0], '--sort=publicKey:asc'])
 				.it('should get sorted voters for delegate', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,

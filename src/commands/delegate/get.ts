@@ -17,9 +17,36 @@ import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
 import { query } from '../../utils/query';
 
+interface Args {
+	readonly usernames: string;
+}
+
 export default class GetCommand extends BaseCommand {
-	async run() {
-		const { args: { usernames } } = this.parse(GetCommand);
+	static args = [
+		{
+			name: 'usernames',
+			required: true,
+			description: 'Comma-separated username(s) to get information about.',
+		},
+	];
+
+	static description = `
+	Gets delegate information from the blockchain.
+	`;
+
+	static examples = [
+		'delegate:get lightcurve',
+		'delegate:get lightcurve,4miners.net',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
+		const { args } = this.parse(GetCommand);
+		const { usernames: usernamesStr }: Args = args;
+		const usernames: ReadonlyArray<string> = usernamesStr.split(',').filter(Boolean);
 		const req = usernames.map(username => ({
 			query: {
 				limit: 1,
@@ -35,25 +62,3 @@ export default class GetCommand extends BaseCommand {
 		this.print(results);
 	}
 }
-
-GetCommand.args = [
-	{
-		name: 'usernames',
-		required: true,
-		description: 'Comma-separated username(s) to get information about.',
-		parse: input => input.split(',').filter(Boolean),
-	},
-];
-
-GetCommand.flags = {
-	...BaseCommand.flags,
-};
-
-GetCommand.description = `
-Gets delegate information from the blockchain.
-`;
-
-GetCommand.examples = [
-	'delegate:get lightcurve',
-	'delegate:get lightcurve,4miners.net',
-];

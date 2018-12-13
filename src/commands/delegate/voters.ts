@@ -16,12 +16,25 @@
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
 import { getAPIClient } from '../../utils/api';
-import { query } from '../../utils/query';
 import { SORT_FIELDS } from '../../utils/constants';
+import { query } from '../../utils/query';
+
+interface Args {
+	readonly usernames: string;
+}
+
+interface QueryParameters {
+	readonly limit: number;
+	readonly offset: number;
+	readonly sort?: string;
+}
 
 const MAXIMUM_LIMIT = 100;
+const DEFAULT_LIMIT = 10;
+const DEFAULT_OFFSET = 0;
+const DEFAULT_SORT = 'balance:desc';
 
-const processFlagInputs = (limitStr, offsetStr, sortStr) => {
+const processFlagInputs = (limitStr: string, offsetStr: string, sortStr: string): QueryParameters => {
 	const limit = parseInt(limitStr, 10);
 	const offset = parseInt(offsetStr, 10);
 	const sort = sortStr ? sortStr.trim() : undefined;
@@ -38,7 +51,7 @@ const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 	) {
 		throw new Error('Offset must be an integer and greater than or equal to 0');
 	}
-	if (!SORT_FIELDS.includes(sort)) {
+	if (sort !== undefined && !SORT_FIELDS.includes(sort)) {
 		throw new Error(`Sort must be one of: ${SORT_FIELDS.join(', ')}`);
 	}
 
@@ -50,24 +63,61 @@ const processFlagInputs = (limitStr, offsetStr, sortStr) => {
 };
 
 export default class VotersCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'usernames',
+			required: true,
+			description: 'Comma-separated username(s) to get information about.',
+		},
+	];
+
+	static description = `
+	Gets voters information for given delegate(s) from the blockchain.
+	`;
+
+	static examples = [
+		'delegate:voters lightcurve',
+		'delegate:voters lightcurve,4miners.net',
+		'delegate:voters lightcurve,4miners.net --limit 20 --offset 5 --sort publicKey:asc --pretty',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		limit: flagParser.string({
+			description: 'Limit applied to results.',
+			default: '10',
+		}),
+		offset: flagParser.string({
+			description: 'Offset applied to results.',
+			default: '0',
+		}),
+		sort: flagParser.string({
+			description: 'Fields to sort results by.',
+			default: DEFAULT_SORT,
+		}),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { usernames },
+			args,
 			flags: { limit: limitStr, offset: offsetStr, sort: sortStr },
 		} = this.parse(VotersCommand);
+		const { usernames: usernamesStr }: Args = args;
+
+		const usernames = usernamesStr.split(',').filter(Boolean);
 
 		const { limit, offset, sort } = processFlagInputs(
-			limitStr,
-			offsetStr,
-			sortStr,
+			limitStr as string,
+			offsetStr as string,
+			sortStr as string,
 		);
 
 		const req = usernames.map(username => ({
 			query: {
 				username,
-				limit: limit || 10,
-				offset: offset || 0,
-				sort: sort || 'balance:desc',
+				limit: limit || DEFAULT_LIMIT,
+				offset: offset || DEFAULT_OFFSET,
+				sort: sort || DEFAULT_SORT,
 			},
 			placeholder: {
 				username,
@@ -80,37 +130,3 @@ export default class VotersCommand extends BaseCommand {
 	}
 }
 
-VotersCommand.args = [
-	{
-		name: 'usernames',
-		required: true,
-		description: 'Comma-separated username(s) to get information about.',
-		parse: input => input.split(',').filter(Boolean),
-	},
-];
-
-VotersCommand.flags = {
-	...BaseCommand.flags,
-	limit: flagParser.string({
-		description: 'Limit applied to results.',
-		default: '10',
-	}),
-	offset: flagParser.string({
-		description: 'Offset applied to results.',
-		default: '0',
-	}),
-	sort: flagParser.string({
-		description: 'Fields to sort results by.',
-		default: 'balance:desc',
-	}),
-};
-
-VotersCommand.description = `
-Gets voters information for given delegate(s) from the blockchain.
-`;
-
-VotersCommand.examples = [
-	'delegate:voters lightcurve',
-	'delegate:voters lightcurve,4miners.net',
-	'delegate:voters lightcurve,4miners.net --limit 20 --offset 5 --sort publicKey:asc --pretty',
-];
