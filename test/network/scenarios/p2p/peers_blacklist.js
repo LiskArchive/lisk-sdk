@@ -65,7 +65,13 @@ module.exports = function(
 				);
 			});
 
-			it(`the peer's monitor should hold ${TOTAL_PEERS -
+			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS - 1);
+				});
+			});
+
+			it(`every peer must hold only ${TOTAL_PEERS -
 				2} active connections`, () => {
 				return network.getAllPeersLists().then(peers => {
 					return peers.map(peer => {
