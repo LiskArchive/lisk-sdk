@@ -19,7 +19,7 @@ import { platform } from 'os';
 import querystring from 'querystring';
 import socketClusterServer from 'socketcluster-server';
 
-import { Peer } from './peer';
+import { Peer, PeerConfig } from './peer';
 
 import {
 	// TODO ASAP: NetworkStatus,
@@ -28,9 +28,8 @@ import {
 	P2PRequestPacket,
 	P2PResponsePacket,
 	P2PConfig,
-	PeerInfo,
-	RPCResponsePeerList,
-	RPCResponsePeerInfo,
+	ProtocolPeerList,
+	ProtocolPeerInfo,
 	P2PNodeStatus,
 } from './p2p_types';
 
@@ -47,8 +46,8 @@ export class P2P extends EventEmitter {
 	private readonly _peerPool: PeerPool;
 	private readonly _httpServer: Server;
 	private readonly _scServer: any;
-	private readonly _newPeers: Set<string>;
-	// TODO ASAP: private readonly _triedPeers: Set<string>;
+	private readonly _newPeers: Set<PeerConfig>;
+	// TODO ASAP: private readonly _triedPeers: Set<PeerConfig>;
 	private _nodeStatus: P2PNodeStatus;
 
 	public constructor(config: P2PConfig) {
@@ -58,6 +57,7 @@ export class P2P extends EventEmitter {
 			wsPort: config.wsPort,
 			os: platform(),
 			version: config.version,
+			height: 0,
 		};
 		this._newPeers = new Set();
 		// TODO ASAP: this._triedPeers = new Set();
@@ -69,7 +69,7 @@ export class P2P extends EventEmitter {
 
 	public applyPenalty(penalty: P2PPenalty): void {
 		penalty;
-	};
+	}
 
 	// TODO ASAP: public getNetworkStatus(): NetworkStatus {};
 
@@ -105,15 +105,10 @@ export class P2P extends EventEmitter {
 					super.emit(EVENT_FAILED_TO_ADD_INBOUND_PEER);
 				} else {
 					const wsPort: number = parseInt(queryObject.wsPort, BASE_10_RADIX);
-					const peerId = P2P.generatePeerIdFromPeerInfo({
-						ipAddress: socket.remoteAddress,
-						wsPort,
-					});
+					const peerId = Peer.constructPeerId(socket.remoteAddress, wsPort);
 					const existingPeer = this._peerPool.getPeer(peerId);
 					if (existingPeer === undefined) {
 						const peer = new Peer({
-							height: 0,
-							id: peerId,
 							inboundSocket: socket,
 							ipAddress: socket.remoteAddress,
 							os: queryObject.os,
@@ -124,10 +119,11 @@ export class P2P extends EventEmitter {
 						this._peerPool.addPeer(peer);
 						super.emit(EVENT_NEW_INBOUND_PEER, peer);
 						super.emit(EVENT_NEW_PEER, peer);
+						this._newPeers.add(peer.peerConfig);
 					} else {
 						existingPeer.inboundSocket = socket;
+						this._newPeers.add(existingPeer.peerConfig);
 					}
-					this._newPeers.add(peerId);
 				}
 			},
 		);
@@ -150,18 +146,16 @@ export class P2P extends EventEmitter {
 	}
 
 	public async _loadListOfPeerListsFromSeeds(
-		seedList: ReadonlyArray<PeerInfo>,
+		seedList: ReadonlyArray<PeerConfig>,
 	): Promise<ReadonlyArray<ReadonlyArray<Peer>>> {
 		return Promise.all(
-			seedList.map(async (seedPeer: PeerInfo) => {
-				const seedPeerId = P2P.generatePeerIdFromPeerInfo(seedPeer);
+			seedList.map(async (seedPeer: PeerConfig) => {
 				const peer = new Peer({
-					id: seedPeerId,
 					ipAddress: seedPeer.ipAddress,
 					wsPort: seedPeer.wsPort,
 					nodeStatus: this._nodeStatus,
 				});
-				this._newPeers.add(seedPeerId);
+				this._newPeers.add(peer.peerConfig);
 				/**
 				 * TODO LATER: For the LIP phase, we shouldn't add the seed peers to our
 				 * _peerPool and we should disconnect from them as soon as we've loaded their peer lists.
@@ -171,17 +165,11 @@ export class P2P extends EventEmitter {
 				const seedNodePeerListResponse = await peer.request<void>({
 					procedure: 'list',
 				});
-				const peerListResponse = seedNodePeerListResponse.data as RPCResponsePeerList;
+				const peerListResponse = seedNodePeerListResponse.data as ProtocolPeerList;
 				// TODO ASAP: Validate the response before returning. Check that seedNodePeerListResponse.data.peers exists.
 
-				return peerListResponse.peers.map((peerObject: RPCResponsePeerInfo) => {
-					const peerOfPeerId = P2P.generatePeerIdFromPeerInfo({
-						ipAddress: peerObject.ip,
-						wsPort: peerObject.wsPort,
-					});
-
+				return peerListResponse.peers.map((peerObject: ProtocolPeerInfo) => {
 					return new Peer({
-						id: peerOfPeerId,
 						ipAddress: peerObject.ip,
 						wsPort: peerObject.wsPort, // TODO ASAP: Add more properties
 						nodeStatus: this._nodeStatus,
@@ -194,14 +182,10 @@ export class P2P extends EventEmitter {
 	public async start(): Promise<void> {
 		await this._startPeerServer();
 		await this._loadListOfPeerListsFromSeeds(this._config.seedPeers);
-	};
+	}
 
 	public async stop(): Promise<void> {
 		this._peerPool.disconnectAllPeers();
 		await this._stopPeerServer();
-	};
-
-	public static generatePeerIdFromPeerInfo(peerInfo: PeerInfo): string {
-		return `${peerInfo.ipAddress}:${peerInfo.wsPort}`;
 	}
 }

@@ -23,15 +23,14 @@ import {
 import socketClusterClient from 'socketcluster-client';
 
 export interface PeerConfig {
+	readonly ipAddress: string;
+	readonly wsPort: number;
+	readonly nodeStatus?: P2PNodeStatus; // TODO DELEEETETETE
 	readonly clock?: Date;
 	readonly height?: number;
-	readonly id: string;
 	readonly inboundSocket?: any; // TODO: Type SCServerSocket
-	readonly ipAddress: string;
 	readonly os?: string;
 	readonly version?: string;
-	readonly wsPort: number;
-	readonly nodeStatus: P2PNodeStatus;
 }
 
 export enum ConnectionState {
@@ -46,30 +45,38 @@ export interface PeerConnectionState {
 }
 
 export class Peer {
-	private readonly _height: number;
 	private readonly _id: string;
+	private readonly _peerConfig: PeerConfig;
+	private readonly _height: number;
 	private _inboundSocket: any;
 	private _outboundSocket: any;
 	private readonly _ipAddress: string;
 	private readonly _wsPort: number;
-	private readonly _nodeStatus: P2PNodeStatus;
+	private _nodeStatus: P2PNodeStatus | undefined;
 
 	public constructor(peerConfig: PeerConfig) {
-		this._id = peerConfig.id;
+		this._peerConfig = peerConfig;
 		this._ipAddress = peerConfig.ipAddress;
 		this._wsPort = peerConfig.wsPort;
+		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
 		this._inboundSocket = peerConfig.inboundSocket;
-		this._nodeStatus = peerConfig.nodeStatus;
 		this._height = peerConfig.height === undefined ? 0 : peerConfig.height;
 	}
 
+	private _createOutboundSocket(): any {
+		if (!this._outboundSocket) {
+			this._outboundSocket = socketClusterClient.create({
+				hostname: this._ipAddress,
+				port: this._wsPort,
+				query: this._nodeStatus,
+				autoConnect: false,
+			});
+		}
+	}
+
 	public connect(): void {
-		const nodeStatus = this._nodeStatus;
-		this._outboundSocket = socketClusterClient.create({
-			hostname: this._ipAddress,
-			port: this._wsPort,
-			query: nodeStatus,
-		});
+		this._createOutboundSocket();
+		this._outboundSocket.connect();
 	}
 
 	public disconnect(code: number = 1000, reason?: string): void {
@@ -89,6 +96,7 @@ export class Peer {
 				resolve: (result: P2PResponsePacket) => void,
 				reject: (result: Error) => void,
 			): void => {
+				this._createOutboundSocket();
 				this._outboundSocket.emit(
 					'rpc-request',
 					{
@@ -120,13 +128,30 @@ export class Peer {
 	}
 
 	public send<T>(packet: P2PMessagePacket<T>): void {
+		this._createOutboundSocket();
 		this._outboundSocket.emit(packet.event, {
 			data: packet.data,
 		});
 	}
 
+	public get peerConfig(): PeerConfig {
+		return this._peerConfig;
+	}
+
 	public get id(): string {
 		return this._id;
+	}
+
+	/**
+	 * This is not a declared as a setter because this method will need
+	 * invoke an async RPC on the socket to pass it the new node status.
+	 */
+	public updateNodeStatus(value: P2PNodeStatus | undefined): void {
+		this._nodeStatus = value;
+	}
+
+	public get nodeStatus(): P2PNodeStatus | undefined {
+		return this._nodeStatus;
 	}
 
 	public set inboundSocket(value: any) {
@@ -173,5 +198,9 @@ export class Peer {
 
 	public get wsPort(): number {
 		return this._wsPort;
+	}
+
+	public static constructPeerId(ipAddress: string, port: number): string {
+		return `${ipAddress}:${port}`;
 	}
 }
