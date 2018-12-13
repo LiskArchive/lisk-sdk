@@ -69,9 +69,9 @@ module.exports = function(
 				2} active connections`, () => {
 				return network.getAllPeersLists().then(peers => {
 					return peers.map(peer => {
-						expect(peer.peers.length).to.be.eql(TOTAL_PEERS - 2);
+						expect(peer.peers.length).to.equal(TOTAL_PEERS - 2);
 						return peer.peers.map(peerFromPeer => {
-							return expect(peerFromPeer.state).to.be.eql(Peer.STATE.CONNECTED);
+							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
 						});
 					});
 				});
@@ -80,7 +80,7 @@ module.exports = function(
 			it('node_0 should have every peer banned', () => {
 				return utils.http.getPeers().then(peers => {
 					return peers.map(peer => {
-						return expect(peer.state).to.be.eql(Peer.STATE.BANNED);
+						return expect(peer.state).to.equal(Peer.STATE.BANNED);
 					});
 				});
 			});
@@ -89,9 +89,9 @@ module.exports = function(
 				return utils.http.getPeers(4001).then(peers => {
 					return peers.map(peer => {
 						if (peer.wsPort === 5000 || peer.wsPort === 5001) {
-							return expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
+							return expect(peer.state).to.equal(Peer.STATE.DISCONNECTED);
 						}
-						return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
 					});
 				});
 			});
@@ -134,9 +134,9 @@ module.exports = function(
 				return utils.http.getPeers().then(peers => {
 					return peers.map(peer => {
 						if (peer.wsPort === 5000) {
-							return expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
+							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
 						}
-						return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
+						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
 					});
 				});
 			});

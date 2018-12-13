@@ -102,7 +102,7 @@ module.exports = function(configurations, network) {
 							createSignatureObject(transaction, accounts[j]),
 						]);
 						return sendTransactionPromise(transaction).then(res => {
-							expect(res.statusCode).to.be.eql(200);
+							expect(res.statusCode).to.equal(200);
 						});
 					})
 				);
