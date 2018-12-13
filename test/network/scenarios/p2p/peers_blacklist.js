@@ -138,7 +138,7 @@ module.exports = function(
 				return utils.http.getPeers().then(peers => {
 					return peers.map(peer => {
 						if (peer.wsPort === 5000) {
-							return expect(peer.state).to.be.eql(Peer.STATE.DISCONNECTED);
+							return expect(peer.state).to.be.not.eql(Peer.STATE.CONNECTED);
 						}
 						return expect(peer.state).to.be.eql(Peer.STATE.CONNECTED);
 					});
