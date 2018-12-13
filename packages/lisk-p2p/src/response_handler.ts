@@ -12,9 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+<<<<<<< HEAD
 import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
 import { InvalidPeer } from './errors';
+=======
+import { isAlpha, isIP, isNumeric, isPort } from 'validator';
+import { InValidPeerAddress } from './errors';
+>>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 import { PeerConfig } from './peer';
 
 const IPV4_NUMBER = 4;
@@ -28,7 +33,26 @@ interface RawPeerObject {
 	readonly wsPort: string;
 }
 
+<<<<<<< HEAD
 export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
+=======
+interface ResponsePeerObject {
+	readonly ip: string;
+	readonly wsPort: string;
+}
+
+export const checkPeerAddress = (peer: unknown): boolean => {
+	if (!peer) {
+		return false;
+	}
+
+	const { ip, wsPort } = peer as ResponsePeerObject;
+
+	if (!ip || !wsPort) {
+		return false;
+	}
+
+>>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(wsPort)) {
 		return false;
 	}
@@ -36,6 +60,7 @@ export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	return true;
 };
 
+<<<<<<< HEAD
 export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 	if (!peer) {
 		throw new InvalidPeer(`Invalid peer object`);
@@ -59,15 +84,39 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 	const version = rawPeer.version;
 	const wsPort = +rawPeer.wsPort;
 	const os = rawPeer.os && isAlpha(rawPeer.os.toString()) ? rawPeer.os : '';
+=======
+export const instantiatePeerFromResponse = (
+	peer: unknown,
+): PeerConfig | Error => {
+	if (!checkPeerAddress(peer)) {
+		return new InValidPeerAddress(`Invalid Peer Ip or Port`);
+	}
+
+	const rawPeer = peer as RawPeerObject;
+
+	const os = rawPeer.os && isAlpha(rawPeer.os.toString()) ? rawPeer.os : '';
+	const version =
+		rawPeer.version && isAlpha(rawPeer.version.toString())
+			? rawPeer.version
+			: '';
+>>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 	const id = `${rawPeer.ip}:${rawPeer.wsPort}`;
 	const height =
 		rawPeer.height && isNumeric(rawPeer.height.toString())
 			? +rawPeer.height
+<<<<<<< HEAD
 			: 0;
 
 	const peerConfig: PeerConfig = {
 		ipAddress: rawPeer.ip,
 		wsPort,
+=======
+			: 1;
+
+	const peerConfig: PeerConfig = {
+		ipAddress: rawPeer.ip,
+		wsPort: +rawPeer.wsPort,
+>>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 		height,
 		id,
 		os,
