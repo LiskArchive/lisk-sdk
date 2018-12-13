@@ -20,16 +20,7 @@ const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedFilterTypeError } = require('../errors');
 const BaseEntity = require('./base_entity');
 
-const defaultCreateValues = {
-	ip: null,
-	wsPort: 0,
-	state: 0,
-	os: null,
-	version: null,
-	clock: false,
-	boradhash: false,
-	height: '0',
-};
+const defaultCreateValues = {};
 
 const readOnlyFields = [];
 
@@ -43,7 +34,7 @@ const readOnlyFields = [];
  * @property {string} os
  * @property {string} version
  * @property {number} clock
- * @property {string} boradhash
+ * @property {string} broadhash
  * @property {number} height
  */
 
