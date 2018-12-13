@@ -5,12 +5,11 @@ export class Job<T> {
 	private _running = false;
 
 	public constructor(
-		context: object,
 		job: () => Promise<T>,
 		interval: number,
 	) {
 		this._interval = interval;
-		this._job = job.bind(context);
+		this._job = job;
 	}
 
 	public async start(): Promise<void> {
@@ -24,6 +23,7 @@ export class Job<T> {
 	public stop(): void {
 		if (this._running && this._id  !== undefined) {
 			clearTimeout(this._id);
+			this._id = undefined;
 			this._running = false;
 		}
 	}

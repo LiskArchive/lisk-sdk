@@ -4,10 +4,6 @@ import { SinonFakeTimers } from 'sinon';
 
 describe('job', () => {
     let jobStub: sinon.SinonStub;
-    const context = {
-        x: 1
-    };
-
     const interval = 100000;
 
     beforeEach(async () => {
@@ -16,7 +12,7 @@ describe('job', () => {
 
     describe('#constructor', () => {
         it('should return a job instance', async () => {
-            expect(new Job(context, jobStub, interval)).to.be.instanceof(Job);
+            expect(new Job(jobStub, interval)).to.be.instanceof(Job);
         });
     });
 
@@ -25,7 +21,7 @@ describe('job', () => {
         let clock: SinonFakeTimers;
 
         beforeEach(async () => {
-            job = new Job(context, jobStub, interval);
+            job = new Job(jobStub, interval);
             clock = sandbox.useFakeTimers();
         });
 
@@ -33,12 +29,6 @@ describe('job', () => {
             job.start();
             clock.tick(interval + 1);
             expect(jobStub).to.be.calledOnce;
-        });
-
-        it('should set the context of the job correctly', async () => {
-            job.start();
-            clock.tick(interval + 1);
-            expect(jobStub).to.be.calledOn(context);
         });
 
         it('should run twice when interval is passed two times', async () => {
@@ -73,7 +63,7 @@ describe('job', () => {
         let clock: SinonFakeTimers;
 
         beforeEach(async () => {
-            job = new Job(context, jobStub, interval);
+            job = new Job(jobStub, interval);
             clock = sandbox.useFakeTimers();
             job.start();
         });

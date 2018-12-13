@@ -62,8 +62,7 @@ export class TransactionPool {
 		};
 		this._expireTransactionsInterval = expireTransactionsInterval;
 		this._expireTransactionsJob = new Job(
-			this,
-			this.expireTransactions,
+			this.expireTransactions.bind(this),
 			this._expireTransactionsInterval,
 		);
 		this._expireTransactionsJob.start();
