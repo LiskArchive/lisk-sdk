@@ -72,8 +72,13 @@ export class Peer {
 		});
 	}
 
-	public disconnect(): void {
-		return;
+	public disconnect(code: number = 1000, reason?: string): void {
+		if (this._inboundSocket) {
+			this._inboundSocket.disconnect(code, reason);
+		}
+		if (this._outboundSocket) {
+			this._outboundSocket.disconnect(code, reason);
+		}
 	}
 
 	public async request<T>(
