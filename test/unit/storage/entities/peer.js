@@ -372,10 +372,7 @@ describe('Peer', () => {
 	describe('getFieldSets()', () => {
 		it('should return FIELD_SET_SIMPLE, FIELD_SET_FULL', async () => {
 			const peer = new Peer(adapter);
-			expect(peer.getFieldSets()).to.eql([
-				peer.FIELD_SET_SIMPLE,
-				peer.FIELD_SET_FULL,
-			]);
+			expect(peer.getFieldSets()).to.eql([peer.FIELD_SET_SIMPLE]);
 		});
 	});
 

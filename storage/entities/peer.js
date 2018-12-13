@@ -56,11 +56,9 @@ const readOnlyFields = [];
  * @typedef {string} fieldSets.Peer
  * @enum
  * @value 'FIELD_SET_SIMPLE'
- * @value 'FIELD_SET_FULL'
  */
 
 const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
-const FIELD_SET_FULL = Symbol('FIELD_SET_FULL');
 
 class Peer extends BaseEntity {
 	/**
@@ -108,11 +106,6 @@ class Peer extends BaseEntity {
 		return FIELD_SET_SIMPLE;
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	get FIELD_SET_FULL() {
-		return FIELD_SET_FULL;
-	}
-
 	/**
 	 * Get one peer
 	 *
@@ -146,7 +139,6 @@ class Peer extends BaseEntity {
 		return this.adapter.executeFile(
 			{
 				[Peer.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				[Peer.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[parsedOptions.fieldSet],
 			params,
 			{ expectedResult: 1 },
@@ -185,7 +177,6 @@ class Peer extends BaseEntity {
 		return this.adapter.executeFile(
 			{
 				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				[this.FIELD_SET_FULL]: this.SQLs.selectFull,
 			}[parsedOptions.fieldSet],
 			params,
 			{},
@@ -297,7 +288,7 @@ class Peer extends BaseEntity {
 	}
 
 	getFieldSets() {
-		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
+		return [this.FIELD_SET_SIMPLE];
 	}
 
 	/**
