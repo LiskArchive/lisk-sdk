@@ -51,21 +51,21 @@ module.exports = function(
 				});
 			});
 
-			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, () => {
-				return utils
-					.getEstablishedConnections(WSPORTS)
-					.then(establishedConnections => {
-						expect(
-							establishedConnections -
-								EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING
-						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING);
-					});
-			});
-
 			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
 				return network.getAllPeersLists().then(peers => {
 					return expect(peers.length).to.equal(TOTAL_PEERS - 1);
 				});
+			});
+
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, () => {
+				return utils
+					.getEstablishedConnections(WSPORTS)
+					.then(establishedConnections => {
+						return expect(
+							establishedConnections -
+								EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING
+						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING);
+					});
 			});
 
 			it(`every peer must hold only ${TOTAL_PEERS -
@@ -120,11 +120,17 @@ module.exports = function(
 					});
 			});
 
+			it(`there should be ${TOTAL_PEERS} active peers again`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS);
+				});
+			});
+
 			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, () => {
 				return utils
 					.getEstablishedConnections(WSPORTS)
 					.then(establishedConnections => {
-						expect(
+						return expect(
 							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
 					});

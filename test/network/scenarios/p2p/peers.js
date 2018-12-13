@@ -14,7 +14,7 @@
 
 'use strict';
 
-module.exports = function(configurations, network) {
+module.exports = function(configurations, network, WSPORTS, TOTAL_PEERS) {
 	describe('@network : peers', () => {
 		describe('when there are mutual connections among peers', () => {
 			let mutualPeers = [];
@@ -27,6 +27,12 @@ module.exports = function(configurations, network) {
 						done();
 					})
 					.catch(done);
+			});
+
+			it(`there should be ${TOTAL_PEERS} active peers`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS);
+				});
 			});
 
 			it('should return a list of peers mutually interconnected', () => {

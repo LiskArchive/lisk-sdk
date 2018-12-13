@@ -42,7 +42,7 @@ module.exports = function(
 				return utils
 					.getEstablishedConnections(WSPORTS)
 					.then(establishedConnections => {
-						expect(
+						return expect(
 							establishedConnections -
 								EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER);
@@ -74,7 +74,7 @@ module.exports = function(
 				return utils
 					.getEstablishedConnections(WSPORTS)
 					.then(establishedConnections => {
-						expect(
+						return expect(
 							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
 					});
