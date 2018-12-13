@@ -22,7 +22,7 @@ module.exports = {
 	ws: require('./ws'),
 	transactions: require('./transactions'),
 	logger: new Logger({
-		filename: `${__dirname}/networkTestsLogger.logs`,
+		filename: 'test/network/networkTestsLogger.logs',
 		echo: 'log',
 	}),
 	getListeningConnections: (ports, cb) => {
