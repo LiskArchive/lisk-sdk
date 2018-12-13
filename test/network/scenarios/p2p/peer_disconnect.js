@@ -51,6 +51,12 @@ module.exports = function(
 					}
 				);
 			});
+
+			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS - 1);
+				});
+			});
 		});
 
 		describe('when a stopped node is started', () => {
@@ -78,6 +84,12 @@ module.exports = function(
 						done();
 					}
 				);
+			});
+
+			it(`there should be ${TOTAL_PEERS} active peers again`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS);
+				});
 			});
 		});
 	});
