@@ -2,8 +2,8 @@
 import { VError } from 'verror';
 
 export class TransactionError extends VError {
-	public dataPath: string;
 	public id: string;
+	public dataPath: string;
 	public constructor(
 		message: string = '',
 		id: string = '',
@@ -17,13 +17,18 @@ export class TransactionError extends VError {
 }
 
 export class TransactionMultiError extends TransactionError {
+	public id: string;
+	public dataPath: string;
 	public errors: ReadonlyArray<TransactionError>;
 	public constructor(
 		message: string = '',
+		id: string = '',
 		errors: ReadonlyArray<TransactionError> = [],
 	) {
 		super(message);
-		this.name = 'Transaction Error';
+		this.name = 'Transaction MultiError';
+		this.id = id;
+		this.dataPath = errors.map(error => error.dataPath).join(':');
 		this.errors = errors;
 	}
 }

@@ -151,6 +151,10 @@ export const baseTransaction = {
 		asset: {
 			type: 'object',
 		},
+		receivedAt: {
+			type: 'object',
+			format: 'receivedAt',
+		},
 	},
 };
 

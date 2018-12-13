@@ -12,13 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as cryptography from '@liskhq/lisk-cryptography';
 import { expect } from 'chai';
-import { BaseTransaction } from '../src/base_transaction';
-import { TransactionJSON, Status, Account } from '../src/transaction_types';
-import { TransactionError, TransactionMultiError } from '../src/errors';
+import { BaseTransaction } from '../../src/transactions/base';
+import { TransactionJSON, Status, Account } from '../../src/transaction_types';
+import { TransactionError } from '../../src/errors';
 import BigNum from 'browserify-bignum';
-import { TestTransaction } from './helpers/test_transaction_class';
+import { TestTransaction } from '../helpers/test_transaction_class';
 
 describe('Base transaction class', () => {
 	const defaultSignature =
@@ -121,67 +120,15 @@ describe('Base transaction class', () => {
 				.to.be.an('object')
 				.and.be.instanceof(BaseTransaction);
 		});
-
-		describe('when given a transaction with invalid types', () => {
-			let invalidTypeTransaction: any;
-			beforeEach(() => {
-				invalidTypeTransaction = {
-					...defaultTransaction,
-					amount: 100,
-					fee: 100,
-				};
-			});
-
-			it('should throw a multierror', () => {
-				return expect(
-					() => new TestTransaction(invalidTypeTransaction),
-				).to.throw(TransactionMultiError);
-			});
-		});
 	});
 
 	describe('#toJSON', () => {
 		it('should return transaction json', () => {
+			const { signSignature, ...unsignedTransaction } = defaultTransaction;
+			baseTransaction = new TestTransaction(unsignedTransaction);
 			const transactionJSON = baseTransaction.toJSON();
 
 			return expect(transactionJSON).to.be.eql(defaultTransaction);
-		});
-	});
-
-	describe('#getBasicBytes', () => {
-		beforeEach(() => {
-			baseTransaction = new TestTransaction(defaultTransaction);
-
-			return Promise.resolve();
-		});
-
-		it('should return a buffer', () => {
-			const expectedBuffer = Buffer.from(
-				'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b02000000',
-				'hex',
-			);
-
-			return expect(baseTransaction.getBytes()).to.be.eql(expectedBuffer);
-		});
-
-		it('should call cryptography.hexToBuffer', () => {
-			const hexToBufferStub = sandbox
-				.stub(cryptography, 'hexToBuffer')
-				.returns(Buffer.from('senderPublicKey'));
-			baseTransaction.getBytes();
-
-			return expect(hexToBufferStub).to.be.calledWithExactly(
-				baseTransaction.senderPublicKey,
-			);
-		});
-
-		it('should call cryptography.bigNumberToBuffer once when recipientId provided', () => {
-			const bigNumberToBufferStub = sandbox
-				.stub(cryptography, 'bigNumberToBuffer')
-				.returns(Buffer.from('recipientId'));
-			baseTransaction.getBytes();
-
-			return expect(bigNumberToBufferStub).to.be.calledOnce;
 		});
 	});
 
@@ -214,7 +161,7 @@ describe('Base transaction class', () => {
 					amount: '00001',
 					fee: '0000',
 					recipientId: '',
-					senderPublicKey: '111111111',
+					senderPublicKey: '11111111',
 					senderId: '11111111',
 					timestamp: 79289378,
 					asset: {},
@@ -234,10 +181,36 @@ describe('Base transaction class', () => {
 			it('should return a transaction response with errors ', () => {
 				const { errors } = baseTransaction.checkSchema();
 				const errorsArray = errors as ReadonlyArray<TransactionError>;
-
 				return errorsArray.forEach(error =>
 					expect(error).to.be.instanceof(TransactionError),
 				);
+			});
+
+			describe('with invalid id', () => {
+				beforeEach(() => {
+					const invalidIdTransaction = {
+						...defaultTransaction,
+						id: defaultTransaction.id.replace('1', '0'),
+					};
+
+					baseTransaction = new TestTransaction(invalidIdTransaction as any);
+					return Promise.resolve();
+				});
+
+				it('should return a transaction response with status = FAIL', () => {
+					const { status } = baseTransaction.checkSchema();
+
+					return expect(status).to.eql(Status.FAIL);
+				});
+
+				it('should return a transaction response containing invalid ID error', () => {
+					const { errors } = baseTransaction.checkSchema();
+					const errorArray = errors as ReadonlyArray<TransactionError>;
+
+					return expect(errorArray[0])
+						.to.be.instanceof(TransactionError)
+						.and.to.have.property('message', 'Invalid transaction id');
+				});
 			});
 		});
 	});
@@ -273,32 +246,6 @@ describe('Base transaction class', () => {
 							'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
 						),
 					);
-			});
-
-			describe('with invalid id', () => {
-				beforeEach(() => {
-					const invalidIdTransaction = {
-						...defaultTransaction,
-						id: defaultTransaction.id.replace('1', '0'),
-					};
-					baseTransaction = new TestTransaction(invalidIdTransaction as any);
-					return Promise.resolve();
-				});
-
-				it('should return a transaction response with status = FAIL', () => {
-					const { status } = baseTransaction.validate();
-
-					return expect(status).to.eql(Status.FAIL);
-				});
-
-				it('should return a transaction response containing Invalid ID error', () => {
-					const { errors } = baseTransaction.validate();
-					const errorArray = errors as ReadonlyArray<TransactionError>;
-
-					return expect(errorArray[0])
-						.to.be.instanceof(TransactionError)
-						.and.to.have.property('message', 'Invalid transaction id');
-				});
 			});
 
 			describe('with duplicate signatures', () => {
@@ -352,10 +299,7 @@ describe('Base transaction class', () => {
 	describe('#verify', () => {
 		describe('when given valid data', () => {
 			it('should return a transaction response with status = OK', () => {
-				const senderAccount = {
-					...defaultSenderAccount,
-				};
-				const { status } = baseTransaction.verify(senderAccount);
+				const { status } = baseTransaction.verify(defaultSenderAccount);
 
 				return expect(status).to.eql(Status.OK);
 			});
@@ -459,7 +403,7 @@ describe('Base transaction class', () => {
 			});
 
 			it('should return false', () => {
-				return expect(baseTransaction.isExpired()).to.be.false;
+				return expect(baseTransaction.isExpired(new Date())).to.be.false;
 			});
 		});
 
@@ -475,7 +419,7 @@ describe('Base transaction class', () => {
 			});
 
 			it('should return true', () => {
-				return expect(baseTransaction.isExpired()).to.be.true;
+				return expect(baseTransaction.isExpired(new Date())).to.be.true;
 			});
 		});
 	});

@@ -1,8 +1,9 @@
 import {
 	BaseTransaction,
 	TransactionResponse,
-} from '../../src/base_transaction';
+} from '../../src/transactions/base';
 import { TransactionJSON, Status } from '../../src/transaction_types';
+import { getBytes } from '../../src/transactions/helpers';
 
 export class TestTransaction extends BaseTransaction {
 	public containsUniqueData() {
@@ -14,7 +15,7 @@ export class TestTransaction extends BaseTransaction {
 	}
 
 	public getBytes() {
-		const transactionBytes = this.getBasicBytes();
+		const transactionBytes = getBytes(this.toJSON());
 
 		return transactionBytes;
 	}

@@ -12,7 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export { checkBalance } from './check_balance';
 export { getTransactionBytes } from './get_transaction_bytes';
 export { getTransactionHash } from './get_transaction_hash';
 export { getTransactionId } from './get_transaction_id';
@@ -45,4 +44,3 @@ export {
 	validateTransaction,
 	validator,
 } from './validation';
-export { validateMultisignatures } from './validate_multisignatures';

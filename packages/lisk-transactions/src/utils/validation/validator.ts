@@ -95,6 +95,12 @@ validator.addFormat('additionPublicKey', data => {
 	}
 });
 
+validator.addFormat(
+	'receivedAt',
+	(data: unknown) =>
+		data instanceof Date && !isNaN((data as unknown) as number),
+);
+
 validator.addKeyword('uniqueSignedPublicKeys', {
 	type: 'array',
 	compile: () => (data: ReadonlyArray<string>) =>

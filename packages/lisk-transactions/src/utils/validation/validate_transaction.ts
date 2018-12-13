@@ -69,7 +69,9 @@ const validateMultiTransaction = (
 	};
 };
 
-const isMultiSignatureTransaction = (tx: TransactionJSON): boolean =>
+const isMultiSignatureTransaction = (
+	tx: TransactionJSON,
+): tx is MultiSignatureTransaction =>
 	tx.type === TRANSACTION_TYPE_MULTI_SIGNATURE;
 
 export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
@@ -86,7 +88,7 @@ export const validateTransaction = (tx: TransactionJSON): ValidationResult => {
 		  )
 		: undefined;
 	if (valid && isMultiSignatureTransaction(tx)) {
-		return validateMultiTransaction(tx as MultiSignatureTransaction);
+		return validateMultiTransaction(tx);
 	}
 
 	return {
