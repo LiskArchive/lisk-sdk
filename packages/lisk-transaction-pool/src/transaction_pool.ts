@@ -179,11 +179,9 @@ export class TransactionPool {
 	}
 
 	private async expireTransactions(): Promise<ReadonlyArray<Transaction>> {
-		return Promise.resolve(
-			this.removeTransactionsFromQueues(
-				Object.keys(this._queues),
-				queueCheckers.checkTransactionForExpiry(),
-			),
+		return this.removeTransactionsFromQueues(
+			Object.keys(this._queues),
+			queueCheckers.checkTransactionForExpiry(),
 		);
 	}
 
