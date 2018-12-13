@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 
 describe('node:get', () => {
 	const defaultGetConstantsResponse = {
@@ -50,9 +50,9 @@ describe('node:get', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
 	describe('node:get', () => {
@@ -63,7 +63,7 @@ describe('node:get', () => {
 				sandbox.stub().rejects(new Error('getConstants failed')),
 			)
 			.command(['node:get'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('getConstants failed');
 			})
 			.it('should throw error when getConstants fails');
@@ -75,7 +75,7 @@ describe('node:get', () => {
 				sandbox.stub().rejects(new Error('getStatus failed')),
 			)
 			.command(['node:get'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('getStatus failed');
 			})
 			.it('should throw error when getStatus fails');

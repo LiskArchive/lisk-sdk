@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('node:forging', () => {
 	const defaultInputs = {
@@ -41,12 +41,12 @@ describe('node:forging', () => {
 	};
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -54,7 +54,7 @@ describe('node:forging', () => {
 	describe('node:forging', () => {
 		setupTest()
 			.command(['node:forging'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('Missing 2 required arg');
 			})
 			.it('should throw an error');
@@ -63,14 +63,14 @@ describe('node:forging', () => {
 	describe('node:forging status', () => {
 		setupTest()
 			.command(['node:forging', 'disable'])
-			.catch(error =>
+			.catch((error: Error) =>
 				expect(error.message).to.contain('Missing 1 required arg'),
 			)
 			.it('should throw an error without public key');
 
 		setupTest()
 			.command(['node:forging', 'wrong'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Expected wrong to be one of: enable, disable',
 				);
@@ -85,7 +85,7 @@ describe('node:forging', () => {
 				'enable',
 				'479b0fdb56199a211062203fa5c431bafe6a0a628661fc58f30fxxxxxxxxxxxx',
 			])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Argument must be a valid hex string.',
 				);
@@ -97,7 +97,7 @@ describe('node:forging', () => {
 			.it(
 				'should update the forging status of the node with the public key',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						password: {
 							source: undefined,
 						},
@@ -127,7 +127,7 @@ describe('node:forging', () => {
 			.it(
 				'should disable the forging status of the node with the public key and the password from the flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						password: {
 							source: 'pass:123',
 						},
