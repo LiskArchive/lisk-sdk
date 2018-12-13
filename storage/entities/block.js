@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedOperationError } = require('../errors');
-const ft = require('../utils/filter_types');
+const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 /**
@@ -151,12 +151,12 @@ class Block extends BaseEntity {
 
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
-		this.addField('id', 'string', { filter: ft.TEXT });
-		this.addField('height', 'number', { filter: ft.NUMBER });
+		this.addField('id', 'string', { filter: filterType.TEXT });
+		this.addField('height', 'number', { filter: filterType.NUMBER });
 		this.addField(
 			'blockSignature',
 			'string',
-			{ filter: ft.TEXT },
+			{ filter: filterType.TEXT },
 			stringToByte
 		);
 		this.addField(
@@ -164,22 +164,29 @@ class Block extends BaseEntity {
 			'string',
 			{
 				format: 'publicKey',
-				filter: ft.TEXT,
+				filter: filterType.TEXT,
 			},
 			stringToByte
 		);
-		this.addField('payloadHash', 'string', { filter: ft.TEXT }, stringToByte);
-		this.addField('payloadLength', 'number', { filter: ft.NUMBER });
-		this.addField('numberOfTransactions', 'number', { filter: ft.NUMBER });
+		this.addField(
+			'payloadHash',
+			'string',
+			{ filter: filterType.TEXT },
+			stringToByte
+		);
+		this.addField('payloadLength', 'number', { filter: filterType.NUMBER });
+		this.addField('numberOfTransactions', 'number', {
+			filter: filterType.NUMBER,
+		});
 		this.addField('previousBlockId', 'string', {
-			filter: ft.TEXT,
+			filter: filterType.TEXT,
 			fieldName: 'previousBlock',
 		});
-		this.addField('timestamp', 'number', { filter: ft.NUMBER });
-		this.addField('totalAmount', 'string', { filter: ft.NUMBER });
-		this.addField('totalFee', 'string', { filter: ft.NUMBER });
-		this.addField('reward', 'string', { filter: ft.NUMBER });
-		this.addField('version', 'number', { filter: ft.NUMBER });
+		this.addField('timestamp', 'number', { filter: filterType.NUMBER });
+		this.addField('totalAmount', 'string', { filter: filterType.NUMBER });
+		this.addField('totalFee', 'string', { filter: filterType.NUMBER });
+		this.addField('reward', 'string', { filter: filterType.NUMBER });
+		this.addField('version', 'number', { filter: filterType.NUMBER });
 
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('blocks/get_simple.sql'),

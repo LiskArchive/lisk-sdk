@@ -29,7 +29,7 @@ describe('Block', () => {
 		done();
 	});
 
-	it('should be be inherited by BaseEntity', done => {
+	it('should extend BaseEntity', done => {
 		expect(Block.prototype).to.be.an.instanceof(BaseEntity);
 		done();
 	});
@@ -71,8 +71,10 @@ describe('Block', () => {
 
 		it('should setup specific fields', done => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
+			const addFieldSpy = sinonSandbox.spy(Block.prototype, 'addField');
 			const block = new Block(adapter);
 
+			expect(addFieldSpy.callCount).to.eql(Object.keys(block.fields).length);
 			expect(block.fields).to.have.all.keys([
 				'blockSignature',
 				'generatorPublicKey',
@@ -393,7 +395,7 @@ describe('Block', () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			block.mergeFilters = sinonSandbox.stub();
 			block.isPersisted(filters);
-			expect(block.mergeFilters.calledWith(filters)).to.be.ok;
+			expect(block.mergeFilters.calledWith(filters)).to.be.true;
 			done();
 		});
 
@@ -402,7 +404,7 @@ describe('Block', () => {
 			block.mergeFilters = sinonSandbox.stub().returns(filters);
 			block.parseFilters = sinonSandbox.stub();
 			block.isPersisted(filters);
-			expect(block.parseFilters.calledWith(filters)).to.be.ok;
+			expect(block.parseFilters.calledWith(filters)).to.be.true;
 			done();
 		});
 
@@ -431,7 +433,7 @@ describe('Block', () => {
 					{},
 					undefined
 				)
-			).to.be.ok;
+			).to.be.true;
 			done();
 		});
 
