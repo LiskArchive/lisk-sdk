@@ -20,14 +20,13 @@ properties([
 		string(name: 'LOG_DB_EVENTS', defaultValue: 'false', description: 'To get detailed info on db events log.', ),
 		string(name: 'FILE_LOG_LEVEL', defaultValue: 'error', description: 'To get desired file log output change the log level', ),
 		string(name: 'SILENT', defaultValue: 'true', description: 'To turn off test debug logs.', ),
-		string(name: 'JENKINS_PROFILE', defaultValue: '', description: 'Set to "jenkins-extensive" to run extensive tests.', )
 	 ])
 ])
 
 pipeline {
 	agent { node { label 'lisk-core-network' } }
 	stages {
-		stage('Install') {
+		stage('Build') {
 			steps {
 				ansiColor('xterm') {
 					nvm(getNodejsVersion()) {
@@ -76,3 +75,4 @@ pipeline {
 		}
 	}
 }
+// vim: filetype=groovy
