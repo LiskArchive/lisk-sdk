@@ -84,7 +84,6 @@ export class Peer {
 				resolve: (result: P2PResponsePacket) => void,
 				reject: (result: Error) => void,
 			): void => {
-				// TODO LATER: Change to LIP protocol format.
 				this._outboundSocket.emit(
 					'rpc-request',
 					{
@@ -116,7 +115,6 @@ export class Peer {
 	}
 
 	public send<T>(packet: P2PMessagePacket<T>): void {
-		// TODO LATER: Change to LIP protocol format.
 		this._outboundSocket.emit(packet.event, {
 			data: packet.data,
 		});
