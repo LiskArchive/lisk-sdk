@@ -13,7 +13,7 @@
  *
  */
 // tslint:disable-next-line no-reference
-/// <reference path="../../../../types/browserify-bignum/index.d.ts" />
+/// <reference path="../../types/browserify-bignum/index.d.ts" />
 
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';

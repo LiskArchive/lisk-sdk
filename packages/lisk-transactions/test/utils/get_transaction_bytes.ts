@@ -74,6 +74,7 @@ describe('getTransactionBytes module', () => {
 					senderId: defaultSenderId,
 					signature: defaultSignature,
 					id: defaultTransactionId,
+					receivedAt: new Date(),
 				};
 				return Promise.resolve();
 			});
@@ -123,9 +124,12 @@ describe('getTransactionBytes module', () => {
 					...defaultTransaction,
 					amount,
 				};
-				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
-					'Transaction amount must not be negative.',
-				);
+				return expect(
+					getTransactionBytes.bind(
+						null,
+						(transaction as unknown) as TransactionJSON,
+					),
+				).to.throw('Transaction amount must not be negative.');
 			});
 
 			it('should throw on type 0 with an amount that is too large', () => {
@@ -136,9 +140,12 @@ describe('getTransactionBytes module', () => {
 					...defaultTransaction,
 					amount,
 				};
-				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
-					'Transaction amount is too large.',
-				);
+				return expect(
+					getTransactionBytes.bind(
+						null,
+						(transaction as unknown) as TransactionJSON,
+					),
+				).to.throw('Transaction amount is too large.');
 			});
 
 			it('should return Buffer of transaction with second signature', () => {
@@ -187,14 +194,20 @@ describe('getTransactionBytes module', () => {
 			it('should throw on missing required parameter type', () => {
 				const { type, ...defaultTransactionClone } = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`type is a required parameter.`);
 			});
 
 			it('should throw on missing required parameter timestamp', () => {
 				const { timestamp, ...defaultTransactionClone } = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`timestamp is a required parameter.`);
 			});
 
@@ -204,14 +217,20 @@ describe('getTransactionBytes module', () => {
 					...defaultTransactionClone
 				} = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`senderPublicKey is a required parameter.`);
 			});
 
 			it('should throw on missing required parameter amount', () => {
 				const { amount, ...defaultTransactionClone } = defaultTransaction;
 				expect(
-					getTransactionBytes.bind(null, defaultTransactionClone),
+					getTransactionBytes.bind(
+						null,
+						(defaultTransactionClone as unknown) as TransactionJSON,
+					),
 				).to.throw(`amount is a required parameter.`);
 			});
 		});
@@ -229,6 +248,7 @@ describe('getTransactionBytes module', () => {
 				asset: { signature: { publicKey: defaultSenderSecondPublicKey } },
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 1 (register second signature) transaction', () => {
@@ -255,6 +275,7 @@ describe('getTransactionBytes module', () => {
 				asset: { delegate: { username: defaultDelegateUsername } },
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 2 (register delegate) transaction', () => {
@@ -288,6 +309,7 @@ describe('getTransactionBytes module', () => {
 				},
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 3 (vote) transaction', () => {
@@ -323,6 +345,7 @@ describe('getTransactionBytes module', () => {
 				},
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer from type 4 (register multisignature) transaction', () => {
@@ -362,6 +385,7 @@ describe('getTransactionBytes module', () => {
 				},
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 5 (register dapp) transaction', () => {
@@ -388,6 +412,7 @@ describe('getTransactionBytes module', () => {
 				asset: { inTransfer: { dappId: defaultAppId } },
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 6 (dapp inTransfer) transaction', () => {
@@ -419,6 +444,7 @@ describe('getTransactionBytes module', () => {
 				},
 				signature: defaultSignature,
 				id: defaultTransactionId,
+				receivedAt: new Date(),
 			};
 
 			it('should return Buffer of type 7 (dapp outTransfer) transaction', () => {
@@ -764,6 +790,7 @@ describe('getTransactionBytes module', () => {
 					senderId: defaultSenderId,
 					signature: defaultSignature,
 					id: defaultTransactionId,
+					receivedAt: new Date(),
 				};
 				return Promise.resolve();
 			});

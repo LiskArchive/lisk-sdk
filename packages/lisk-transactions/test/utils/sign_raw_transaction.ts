@@ -14,9 +14,7 @@
  */
 import { expect } from 'chai';
 import { signRawTransaction } from '../../src/utils/sign_raw_transaction';
-import {
-	TransactionJSON,
-} from '../../src/transaction_types';
+import { TransactionJSON } from '../../src/transaction_types';
 import * as time from '../../src/utils/time';
 
 describe('#signRawTransaction', () => {
@@ -305,6 +303,7 @@ describe('#signRawTransaction', () => {
 				id: transactionId,
 				recipientPublicKey: '',
 				asset,
+				receivedAt: new Date(),
 			};
 			return Promise.resolve();
 		});

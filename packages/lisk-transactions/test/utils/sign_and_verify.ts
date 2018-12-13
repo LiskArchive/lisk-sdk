@@ -25,7 +25,9 @@ import fixtureTransactions from '../../fixtures/transactions.json';
 import { TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 // Require is used for stubbing
-const validTransactions = fixtureTransactions as unknown as ReadonlyArray<TransactionJSON>;
+const validTransactions = (fixtureTransactions as unknown) as ReadonlyArray<
+	TransactionJSON
+>;
 
 describe('signAndVerify module', () => {
 	describe('signAndVerify transaction utils', () => {
@@ -61,6 +63,7 @@ describe('signAndVerify module', () => {
 				asset: {},
 				id: '13987348420913138422',
 				senderPublicKey: defaultPublicKey,
+				receivedAt: new Date(),
 			};
 
 			cryptoSignDataStub = sandbox
