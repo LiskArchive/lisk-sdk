@@ -34,13 +34,15 @@ module.exports = function(configurations, network) {
 					nodesTransactions = results.map(res => {
 						return res.blocks;
 					});
-					expect(nodesTransactions).to.have.lengthOf(configurations.length);
+					return expect(nodesTransactions).to.have.lengthOf(
+						configurations.length
+					);
 				});
 		});
 
 		it('should contain non empty transactions', () => {
-			return nodesTransactions.forEach(transactions => {
-				expect(transactions).to.be.an('array').and.not.empty;
+			return nodesTransactions.map(transactions => {
+				return expect(transactions).to.be.an('array').and.not.empty;
 			});
 		});
 
@@ -52,16 +54,15 @@ module.exports = function(configurations, network) {
 			return expect(uniquePeersTransactionsNumber).to.have.lengthOf.at.least(1);
 		});
 
-		it('should have all transactions the same at all peers', done => {
+		it('should have all transactions the same at all peers', () => {
 			const transactionsFromOtherNodes = nodesTransactions.splice(1);
 			const transactionsFromNode0 = nodesTransactions[0];
 
-			transactionsFromOtherNodes.forEach(transactionsFromOtherNode =>
-				expect(transactionsFromOtherNode).to.include.deep.members(
+			return transactionsFromOtherNodes.map(transactionsFromOtherNode => {
+				return expect(transactionsFromOtherNode).to.include.deep.members(
 					transactionsFromNode0
-				)
-			);
-			done();
+				);
+			});
 		});
 	});
 };

@@ -68,17 +68,13 @@ module.exports = function(configurations, network) {
 				);
 			});
 
-			it('should confirm all transactions on all nodes', done => {
+			it('should confirm all transactions on all nodes', () => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
 					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
-				network
-					.waitForBlocksOnAllNodes(blocksToWait)
-					.then(() => {
-						return confirmTransactionsOnAllNodes(transactions, configurations);
-					})
-					.then(done)
-					.catch(done);
+				return network.waitForBlocksOnAllNodes(blocksToWait).then(() => {
+					return confirmTransactionsOnAllNodes(transactions, configurations);
+				});
 			});
 		});
 
@@ -133,17 +129,13 @@ module.exports = function(configurations, network) {
 				);
 			});
 
-			it('check all the nodes received the transactions', done => {
+			it('check all the nodes received the transactions', () => {
 				// Adding two extra blocks as a safety timeframe
 				const blocksToWait =
 					Math.ceil(numberOfTransactions / MAX_TRANSACTIONS_PER_BLOCK) + 2;
-				network
-					.waitForBlocksOnAllNodes(blocksToWait)
-					.then(() => {
-						return confirmTransactionsOnAllNodes(transactions, configurations);
-					})
-					.then(done)
-					.catch(done);
+				return network.waitForBlocksOnAllNodes(blocksToWait).then(() => {
+					return confirmTransactionsOnAllNodes(transactions, configurations);
+				});
 			});
 		});
 	});
