@@ -23,29 +23,10 @@ module.exports = function(grunt) {
 				cmd(tagFilter, suite, section) {
 					if (suite === 'network') {
 						let filter = '';
-						if (tagFilter === 'default') {
-							filter = "--grep '@slow|@unstable|@sequential' --invert";
-						} else if (tagFilter === 'extensive') {
-							filter = '--grep @unstable --invert';
-						} else if (tagFilter === 'slow') {
-							filter = '--grep @slow';
-						} else if (tagFilter === 'unstable') {
-							filter = '--grep @unstable';
-						} else if (tagFilter === 'sequential') {
-							/**
-							 * Tests or test suites which contains @sequential tag
-							 * are going to be run sequentially after all parallel
-							 * tests were executed.
-							 */
-							filter = '--grep @sequential';
-						} else if (tagFilter === 'network') {
+						if (tagFilter === 'network') {
 							filter = '--grep @network';
 						} else if (tagFilter === 'propagation') {
 							filter = '--grep @propagation';
-						} else {
-							grunt.fail.fatal(
-								'The specified tag is not supported.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | integration | functional | network (required)\n- Where section can be one of get | post | ws (optional)'
-							);
 						}
 						return `./node_modules/.bin/_mocha test/network/index.js ${filter}`;
 					}
