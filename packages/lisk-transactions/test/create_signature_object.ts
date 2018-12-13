@@ -17,6 +17,7 @@ import {
 	createSignatureObject,
 	SignatureObject,
 } from '../src/create_signature_object';
+import { TransactionJSON } from '../src/transaction_types';
 
 describe('#createSignatureObject', () => {
 	const transaction = {
@@ -28,11 +29,13 @@ describe('#createSignatureObject', () => {
 		timestamp: 59353522,
 		type: 0,
 		fee: '10000000',
-		recipientPublicKey: '3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
+		recipientPublicKey:
+			'3358a1562f9babd523a768e700bb12ad58f230f84031055802dc0ea58cef1e1b',
 		asset: {},
 		signature:
 			'b84b95087c381ad25b5701096e2d9366ffd04037dcc941cd0747bfb0cf93111834a6c662f149018be4587e6fc4c9f5ba47aa5bbbd3dd836988f153aa8258e604',
 		id: '3694188453012384790',
+		receivedAt: new Date(),
 	};
 	const account = {
 		passphrase:
@@ -49,7 +52,7 @@ describe('#createSignatureObject', () => {
 			return expect(
 				createSignatureObject.bind(
 					null,
-					mutatedTransaction,
+					mutatedTransaction as TransactionJSON,
 					account.passphrase,
 				),
 			).to.throw('Transaction ID is required to create a signature object.');
@@ -89,7 +92,11 @@ describe('#createSignatureObject', () => {
 		it('should throw an Error if passphrase is number', () => {
 			const passphrase = 1;
 			return expect(
-				createSignatureObject.bind(null, transaction, passphrase),
+				createSignatureObject.bind(
+					null,
+					transaction,
+					(passphrase as unknown) as string,
+				),
 			).to.throw(
 				'Unsupported data format. Currently only Buffers or `hex` and `utf8` strings are supported.',
 			);
