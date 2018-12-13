@@ -51,18 +51,15 @@ module.exports = function(
 				});
 			});
 
-			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, done => {
-				utils.getEstablishedConnections(
-					WSPORTS,
-					(err, establishedConnections) => {
-						expect(err).to.be.null;
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING} established connections from 500[0-9] ports`, () => {
+				return utils
+					.getEstablishedConnections(WSPORTS)
+					.then(establishedConnections => {
 						expect(
 							establishedConnections -
 								EXPECTED_MONITORING_CONNECTIONS_AFTER_BLACKLISTING
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_BLACKLISTING);
-						done();
-					}
-				);
+					});
 			});
 
 			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
@@ -123,17 +120,14 @@ module.exports = function(
 					});
 			});
 
-			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, done => {
-				utils.getEstablishedConnections(
-					WSPORTS,
-					(err, establishedConnections) => {
-						expect(err).to.be.null;
+			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, () => {
+				return utils
+					.getEstablishedConnections(WSPORTS)
+					.then(establishedConnections => {
 						expect(
 							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
-						done();
-					}
-				);
+					});
 			});
 
 			it('node_0 should have every peer connected but himself', () => {

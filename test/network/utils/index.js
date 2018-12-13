@@ -14,7 +14,8 @@
 
 'use strict';
 
-const childProcess = require('child_process');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 const Logger = require('../../../logger');
 
 module.exports = {
@@ -25,28 +26,26 @@ module.exports = {
 		filename: 'test/network/networkTestsLogger.logs',
 		echo: 'log',
 	}),
-	getListeningConnections: (ports, cb) => {
+	async getListeningConnections(ports) {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:LISTEN -t | wc -l
 		// tail -n +2 to strip the headers of lsof so we can count the rows
-		childProcess.exec(
+		const { stdout } = await exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`,
-			(err, stdout) => {
-				cb(err, parseInt(stdout.toString().trim()));
-			}
+				.join(' ')} -P -n -s TCP:LISTEN | tail -n +2 | wc -l`
 		);
+
+		return parseInt(stdout.toString().trim());
 	},
-	getEstablishedConnections: (ports, cb) => {
+	async getEstablishedConnections(ports) {
 		// lsof -i :5000 -i :5001 -P -n -s TCP:ESTABLISHED  -t | wc -l
 		// tail -n +2 to strip the headers of lsof so we can count the rows
-		childProcess.exec(
+		const { stdout } = await exec(
 			`lsof ${ports
 				.map(p => `-i :${p}`)
-				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`,
-			(err, stdout) => {
-				cb(err, parseInt(stdout.toString().trim()));
-			}
+				.join(' ')} -P -n -s TCP:ESTABLISHED | tail -n +2 | wc -l`
 		);
+
+		return parseInt(stdout.toString().trim());
 	},
 };
