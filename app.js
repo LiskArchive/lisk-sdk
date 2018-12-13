@@ -490,11 +490,23 @@ d.run(() => {
 			 * @todo Add description for the params
 			 */
 			cache(cb) {
-				const cache = require('./helpers/cache.js');
+				const RedisConnector = require('./helpers/redis_connector.js');
 				logger.debug(
 					`Cache ${appConfig.cacheEnabled ? 'Enabled' : 'Disabled'}`
 				);
-				cache.connect(config.cacheEnabled, config.cache, logger, cb);
+				// delete password key if it's value is null
+				const cacheConfigParam = Object.assign({}, config.cache);
+				if (cacheConfigParam.password === null) {
+					delete cacheConfigParam.password;
+				}
+				const redisConnector = new RedisConnector(
+					config.cacheEnabled,
+					cacheConfigParam,
+					logger
+				);
+				redisConnector.connect((redisConnectError, redisClient) =>
+					cb(null, { cacheEnabled: config.cacheEnabled, client: redisClient })
+				);
 			},
 
 			webSocket: [

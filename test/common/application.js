@@ -176,12 +176,17 @@ function __init(initScope, done) {
 						});
 					},
 					cache(cb) {
-						const cache = require('../../helpers/cache.js');
-						cache.connect(
+						const RedisConnector = require('../../helpers/redis_connector.js');
+						const redisConnector = new RedisConnector(
 							__testContext.config.cacheEnabled,
 							__testContext.config.redis,
-							logger,
-							cb
+							logger
+						);
+						redisConnector.connect(client =>
+							cb(null, {
+								cacheEnabled: __testContext.config.cacheEnabled,
+								client,
+							})
 						);
 					},
 					webSocket: [

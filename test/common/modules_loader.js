@@ -21,7 +21,7 @@ const Sequence = require('../../helpers/sequence.js');
 const database = require('../../db');
 const Logger = require('../../logger.js');
 const Z_schema = require('../../helpers/z_schema.js');
-const cacheHelper = require('../../helpers/cache.js');
+const RedisConnector = require('../../helpers/redis_connector.js');
 const Cache = require('../../modules/cache.js');
 const ed = require('../../helpers/ed');
 const jobsQueue = require('../../helpers/jobs_queue');
@@ -291,20 +291,13 @@ const modulesLoader = new function() {
 	this.initCache = function(cb) {
 		const cacheEnabled = this.scope.config.cacheEnabled;
 		const cacheConfig = this.scope.config.redis;
-		cacheHelper.connect(
+		const redisConnector = new RedisConnector(
 			cacheEnabled,
 			cacheConfig,
-			this.logger,
-			(err, __cache) => {
-				if (err) {
-					return cb(err, __cache);
-				}
-				return this.initModule(
-					Cache,
-					_.merge(this.scope, { cache: __cache }),
-					cb
-				);
-			}
+			this.logger
+		);
+		redisConnector.connect(client =>
+			this.initModule(Cache, _.merge(this.scope, { cache: client }), cb)
 		);
 	};
 }();
