@@ -14,10 +14,10 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('passphrase:encrypt', () => {
 	const encryptedPassphraseString =
@@ -42,7 +42,7 @@ describe('passphrase:encrypt', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(cryptography, 'getKey', sandbox.stub().returns(defaultKeys))
 			.stub(
@@ -56,8 +56,8 @@ describe('passphrase:encrypt', () => {
 				sandbox.stub().returns(encryptedPassphraseString),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -75,7 +75,7 @@ describe('passphrase:encrypt', () => {
 				expect(
 					cryptography.stringifyEncryptedPassphrase,
 				).to.be.calledWithExactly(encryptedPassphraseObject);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -104,7 +104,7 @@ describe('passphrase:encrypt', () => {
 				expect(
 					cryptography.stringifyEncryptedPassphrase,
 				).to.be.calledWithExactly(encryptedPassphraseObject);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
@@ -139,7 +139,7 @@ describe('passphrase:encrypt', () => {
 					expect(
 						cryptography.stringifyEncryptedPassphrase,
 					).to.be.calledWithExactly(encryptedPassphraseObject);
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source:
 								'pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"',
@@ -176,7 +176,7 @@ describe('passphrase:encrypt', () => {
 					expect(
 						cryptography.stringifyEncryptedPassphrase,
 					).to.be.calledWithExactly(encryptedPassphraseObject);
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source:
 								'pass:"enemy pill squeeze gold spoil aisle awake thumb congress false box wagon"',

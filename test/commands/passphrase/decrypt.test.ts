@@ -14,10 +14,10 @@
  *
  */
 import { expect, test } from '@oclif/test';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as getInputsFromSources from '../../../src/utils/input';
+import * as printUtils from '../../../src/utils/print';
+import * as inputUtils from '../../../src/utils/input';
 
 describe('passphrase:decrypt', () => {
 	const defaultEncryptedPassphrase =
@@ -39,7 +39,7 @@ describe('passphrase:decrypt', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				cryptography,
@@ -52,8 +52,8 @@ describe('passphrase:decrypt', () => {
 				sandbox.stub().returns(passphrase),
 			)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -61,7 +61,7 @@ describe('passphrase:decrypt', () => {
 	describe('passphrase:decrypt', () => {
 		setupTest()
 			.command(['passphrase:decrypt'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'No encrypted passphrase was provided.',
 				);
@@ -73,11 +73,11 @@ describe('passphrase:decrypt', () => {
 		setupTest()
 			.command(['passphrase:decrypt', defaultEncryptedPassphrase])
 			.it('should decrypt passphrase with arg', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					password: {
 						source: undefined,
 					},
-					data: null,
+					data: undefined,
 				});
 				expect(cryptography.parseEncryptedPassphrase).to.be.calledWithExactly(
 					defaultEncryptedPassphrase,
@@ -97,7 +97,7 @@ describe('passphrase:decrypt', () => {
 		setupTest()
 			.command(['passphrase:decrypt', `--passphrase=${passphraseSource}`])
 			.it('should decrypt passphrase with passphrase flag', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					password: {
 						source: undefined,
 					},
@@ -129,7 +129,7 @@ describe('passphrase:decrypt', () => {
 			.it(
 				'should decrypt passphrase with passphrase flag and password flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						password: {
 							source: 'pass:LbYpLpV9Wpec6ux8',
 						},
