@@ -37,22 +37,20 @@ module.exports = function(grunt) {
 				},
 				maxBuffer: maxBufferSize,
 			},
-
-			fetchCoverage: {
-				command:
-					'rm -rf ./test/.coverage-func.zip; curl -o ./test/.coverage-func.zip $HOST/coverage/download',
-				maxBuffer: maxBufferSize,
-			},
-
-			coverageReport: {
-				command:
-					'rm -f ./test/.coverage-unit/lcov.info; ./node_modules/.bin/istanbul report --root ./test/.coverage-unit/ --dir ./test/.coverage-unit',
-			},
 		},
 	});
 
-	grunt.loadTasks('tasks');
+	grunt.registerTask('mocha', 'Run test suite.', (tag, suite, section) => {
+		if (['unit', 'functional', 'integration', 'network'].indexOf(suite) < 0) {
+			grunt.fail.fatal(
+				'Please specify a test suite to run.\n\nExample: `grunt mocha:<tag>:<suite>:[section]` or `npm test -- mocha:<tag>:<suite>:[section]`\n\n- Where tag can be one of default | unstable | slow | extensive (required)\n- Where suite can be one of unit | integration | functional | network (required)\n- Where section can be one of get | post | ws (optional)'
+			);
+		} else {
+			const toExecute = [tag, suite, section].filter(val => val).join(':');
+			grunt.task.run(`exec:mocha:${toExecute}`);
+		}
+	});
+
 	grunt.loadNpmTasks('grunt-exec');
-	grunt.registerTask('coverageReport', ['exec:coverageReport']);
 	grunt.registerTask('default', 'mocha');
 };
