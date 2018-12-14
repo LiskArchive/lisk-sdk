@@ -305,33 +305,43 @@ class BaseEntity {
 	parseFilters(filters) {
 		let filterString = null;
 
-		const parseFilterObject = object =>
-			Object.keys(object)
-				.map(key => this.filters[key])
-				.join(' AND ');
-
 		if (Array.isArray(filters)) {
-			filterString = filters
-				.map(filterObject => parseFilterObject(filterObject))
-				.join(' OR ');
-		} else if (typeof filters === 'object') {
-			filterString = parseFilterObject(filters);
+			filterString = this._parseArrayFilter(filters);
+		} else if (Object.keys(filters).length > 0) {
+			filterString = this._parseFilterObject(filters);
 		}
 
-		let filtersObject = filters;
+		const filtersObject = BaseEntity._filtersToObject(filters);
 
-		if (Array.isArray(filters)) {
-			filtersObject = Object.assign({}, ...filters);
-		}
+		return this._filterClause(filterString, filtersObject);
+	}
 
+	_filterClause(filterString, filtersObject) {
+		let filterClause;
 		if (filterString) {
-			return `WHERE ${this.adapter.parseQueryComponent(
+			filterClause = `WHERE ${this.adapter.parseQueryComponent(
 				filterString,
 				filtersObject
 			)}`;
 		}
 
-		return '';
+		return filterClause || '';
+	}
+
+	static _filtersToObject(filters) {
+		return Array.isArray(filters) ? Object.assign({}, ...filters) : filters;
+	}
+
+	_parseArrayFilter(filters) {
+		return filters
+			.map(filterObject => this._parseFilterObject(filterObject))
+			.join(' OR ');
+	}
+
+	_parseFilterObject(object) {
+		return `(${Object.keys(object)
+			.map(key => this.filters[key])
+			.join(' AND ')})`;
 	}
 
 	/**
