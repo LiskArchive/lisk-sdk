@@ -146,7 +146,7 @@ export class Peer {
 	 * This is not a declared as a setter because this method will need
 	 * invoke an async RPC on the socket to pass it the new node status.
 	 */
-	public updateNodeStatus(value: P2PNodeStatus | undefined): void {
+	public applyNodeStatus(value: P2PNodeStatus | undefined): void {
 		this._nodeStatus = value;
 	}
 
