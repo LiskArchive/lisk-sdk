@@ -1,13 +1,14 @@
 import publicKeys from '../fixtures/public_keys.json';
 import { expect } from 'chai';
 import transactionObjects from '../fixtures/transactions.json';
-import { TransactionPool } from '../src/transaction_pool';
+import { Transaction, TransactionPool } from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
 import { Queue } from '../src/queue';
 import * as queueCheckers from '../src/queue_checkers';
 
 describe('transaction pool', () => {
+	const expireTransactionsInterval = 1000;
 	let transactionPool: TransactionPool;
 	const transactions = transactionObjects.map(wrapTransferTransaction);
 
@@ -33,9 +34,14 @@ describe('transaction pool', () => {
 				queueCheckers,
 				'checkTransactionForRecipientId',
 			),
+			checkTransactionForExpiry: sandbox.stub(
+				queueCheckers,
+				'checkTransactionForExpiry',
+			),
 		};
 
-		transactionPool = new TransactionPool();
+		transactionPool = new TransactionPool({ expireTransactionsInterval });
+		// Stub queues
 		Object.keys(transactionPool.queues).forEach(queueName => {
 			sandbox
 				.stub((transactionPool as any)._queues, queueName)
@@ -43,30 +49,43 @@ describe('transaction pool', () => {
 		});
 	});
 
-	describe('#addTransaction', () => { });
+	afterEach(async () => {
+		(transactionPool as any)._expireTransactionsJob.stop();
+	});
+	describe('#addTransaction', () => {});
 	describe('getProcessableTransactions', () => {});
 	describe('#addVerifiedRemovedTransactions', () => {
-		const verifiedRemovedTransactions = [transactions[0], transactions[1], transactions[2]];
+		const verifiedRemovedTransactions = [
+			transactions[0],
+			transactions[1],
+			transactions[2],
+		];
 
-		it('should call checkTransactionForRecipientId with transactions', () => {
-			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
+		it('should call checkTransactionForRecipientId with transactions', async () => {
+			transactionPool.addVerifiedRemovedTransactions(
+				verifiedRemovedTransactions,
+			);
 			expect(
 				checkerStubs.checkTransactionForRecipientId,
 			).to.be.calledWithExactly(verifiedRemovedTransactions);
 		});
 
-		it('should call removeFor for verified, pending and ready queues once', () => {
-			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
+		it('should call removeFor for verified, pending and ready queues once', async () => {
+			transactionPool.addVerifiedRemovedTransactions(
+				verifiedRemovedTransactions,
+			);
 			const { pending, verified, ready } = transactionPool.queues;
 			expect(pending.removeFor).to.be.calledOnce;
 			expect(verified.removeFor).to.be.calledOnce;
 			expect(ready.removeFor).to.be.calledOnce;
 		});
 
-		it('should call enqueueMany for verified queue with transactions', () => {
-			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
+		it('should call enqueueMany for verified queue with transactions', async () => {
+			transactionPool.addVerifiedRemovedTransactions(
+				verifiedRemovedTransactions,
+			);
 			expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
-				verifiedRemovedTransactions
+				verifiedRemovedTransactions,
 			);
 		});
 
@@ -80,7 +99,9 @@ describe('transaction pool', () => {
 					return removedTransactions;
 				})
 				.reduce((acc, value) => acc.concat(value), []);
-			transactionPool.addVerifiedRemovedTransactions(verifiedRemovedTransactions);
+			transactionPool.addVerifiedRemovedTransactions(
+				verifiedRemovedTransactions,
+			);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
@@ -88,7 +109,11 @@ describe('transaction pool', () => {
 	});
 
 	describe('#removeConfirmedTransactions', () => {
-		const confirmedTransactions = [transactions[0], transactions[1], transactions[2]];
+		const confirmedTransactions = [
+			transactions[0],
+			transactions[1],
+			transactions[2],
+		];
 
 		it('should call checkTransactionForId with confirmed transactions', async () => {
 			transactionPool.removeConfirmedTransactions(confirmedTransactions);
@@ -171,6 +196,26 @@ describe('transaction pool', () => {
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
 				removedTransactions,
 			);
+		});
+	});
+
+	describe('#expireTransactions', () => {
+		let removeTransactionsFromQueuesStub: sinon.SinonStub;
+		let expireTransactions: () => Promise<ReadonlyArray<Transaction>>;
+
+		beforeEach(async () => {
+			removeTransactionsFromQueuesStub = sandbox.stub(
+				transactionPool as any,
+				'removeTransactionsFromQueues',
+			);
+			expireTransactions = (transactionPool as any)['expireTransactions'].bind(
+				transactionPool,
+			);
+		});
+
+		it('should call removeTransactionsFromQueues once', async () => {
+			await expireTransactions();
+			expect(removeTransactionsFromQueuesStub).to.be.calledOnce;
 		});
 	});
 });

@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { Job } from './job';
 import { Queue } from './queue';
 import * as queueCheckers from './queue_checkers';
 
@@ -20,14 +21,20 @@ export interface TransactionObject {
 	receivedAt?: Date;
 	readonly recipientId: string;
 	readonly senderPublicKey: string;
+	signatures?: ReadonlyArray<string>;
 	readonly type: number;
 }
 
 export interface TransactionFunctions {
 	containsUniqueData(): boolean;
+	isExpired(date: Date): boolean;
 	verifyTransactionAgainstOtherTransactions(
 		otherTransactions: ReadonlyArray<Transaction>,
 	): boolean;
+}
+
+interface TransactionPoolOptions {
+	readonly expireTransactionsInterval: number;
 }
 
 export type Transaction = TransactionObject & TransactionFunctions;
@@ -36,11 +43,16 @@ interface Queues {
 	readonly [queue: string]: Queue;
 }
 
+const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
+
 export class TransactionPool {
-	// tslint:disable-next-line variable-name
+	private readonly _expireTransactionsInterval: number;
+	private readonly _expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
 	private readonly _queues: Queues;
 
-	public constructor() {
+	public constructor({
+		expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL,
+	}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
 			validated: new Queue(),
@@ -48,6 +60,12 @@ export class TransactionPool {
 			pending: new Queue(),
 			ready: new Queue(),
 		};
+		this._expireTransactionsInterval = expireTransactionsInterval;
+		this._expireTransactionsJob = new Job(
+			this.expireTransactions.bind(this),
+			this._expireTransactionsInterval,
+		);
+		this._expireTransactionsJob.start();
 	}
 
 	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
@@ -58,7 +76,9 @@ export class TransactionPool {
 		});
 	}
 
-	public addVerifiedRemovedTransactions(transactions: ReadonlyArray<Transaction>): void {
+	public addVerifiedRemovedTransactions(
+		transactions: ReadonlyArray<Transaction>,
+	): void {
 		const { received, validated, ...otherQueues } = this._queues;
 
 		// Move transactions from the verified, pending and ready queues to the validated queue where account was a receipient in the verified removed transactions
@@ -90,7 +110,9 @@ export class TransactionPool {
 		);
 	}
 
-	public removeConfirmedTransactions(transactions: ReadonlyArray<Transaction>): void {
+	public removeConfirmedTransactions(
+		transactions: ReadonlyArray<Transaction>,
+	): void {
 		// Remove transactions in the transaction pool which were included in the confirmed transactions
 		this.removeTransactionsFromQueues(
 			Object.keys(this._queues),
@@ -112,7 +134,9 @@ export class TransactionPool {
 		);
 		const removedTransactionsByTypes = this.removeTransactionsFromQueues(
 			Object.keys(otherQueues),
-			queueCheckers.checkTransactionForTypes(confirmedTransactionsWithUniqueData),
+			queueCheckers.checkTransactionForTypes(
+				confirmedTransactionsWithUniqueData,
+			),
 		);
 
 		// Add transactions which need to be reverified to the validated queue
@@ -122,7 +146,9 @@ export class TransactionPool {
 		]);
 	}
 
-	public reverifyTransactionsFromSenders(senderPublicKeys: ReadonlyArray<string>): void {
+	public reverifyTransactionsFromSenders(
+		senderPublicKeys: ReadonlyArray<string>,
+	): void {
 		// Move transactions from the verified, pending and ready queues to the validated queue which were sent from sender accounts
 		const { received, validated, ...otherQueues } = this._queues;
 		const senderProperty: queueCheckers.TransactionFilterableKeys =
@@ -149,6 +175,13 @@ export class TransactionPool {
 					...this.queues.verified.transactions,
 			  ])
 			: true;
+	}
+
+	private async expireTransactions(): Promise<ReadonlyArray<Transaction>> {
+		return this.removeTransactionsFromQueues(
+			Object.keys(this._queues),
+			queueCheckers.checkTransactionForExpiry(),
+		);
 	}
 
 	private removeTransactionsFromQueues(
