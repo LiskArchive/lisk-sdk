@@ -89,7 +89,7 @@ describe('system test (type 1) - checking validated second signature registratio
 				secondPassphrase: account.secondPassphrase,
 			});
 			localCommon.addTransaction(library, auxTransaction, err => {
-				expect(err).to.equal('This account is already enabled with second signature');
+				expect(err).to.equal('Sender already has second signature enabled');
 				done();
 			});
 		});

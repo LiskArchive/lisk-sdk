@@ -594,9 +594,7 @@ describe('transaction', () => {
 			vs.secondSignature = true;
 
 			transactionLogic.verify(transaction, vs, null, null, err => {
-				expect(err).to.equal(
-					'This account is already enabled with second signature'
-				);
+				expect(err).to.equal('Sender already has second signature enabled');
 				done();
 			});
 		});

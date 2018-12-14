@@ -428,8 +428,11 @@ class Transaction {
 
 		// Check if sender account has second signature enabled.
 		// Abort if registering again.
-		if (transaction.type === transactionTypes.SIGNATURE && sender.secondSignature) {
-			return setImmediate(cb, 'This account is already enabled with second signature');
+		if (
+			transaction.type === transactionTypes.SIGNATURE &&
+			sender.secondSignature
+		) {
+			return setImmediate(cb, 'Sender already has second signature enabled');
 		}
 
 		// Check for missing sender second signature
