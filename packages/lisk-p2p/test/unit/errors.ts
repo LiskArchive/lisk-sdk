@@ -14,11 +14,7 @@
  */
 import { expect } from 'chai';
 import {
-<<<<<<< HEAD
 	InvalidPeer,
-=======
-	InValidPeerAddress,
->>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 	NotEnoughPeersError,
 	PeerTransportError,
 	RPCResponseError,
@@ -150,7 +146,6 @@ describe('errors', () => {
 	});
 
 	describe('#InValidPeerAddress', () => {
-<<<<<<< HEAD
 		let invalidPeer: InvalidPeer;
 		const defaultMessage = 'Invalid peer ip or port';
 
@@ -168,44 +163,17 @@ describe('errors', () => {
 
 			it('should set error name to `InvalidPeer`', () => {
 				return expect(invalidPeer.name).to.eql('InvalidPeer');
-=======
-		let inValidPeerAddress: InValidPeerAddress;
-		const defaultMessage = 'Invalid Peer Ip or Port';
-
-		beforeEach(() => {
-			inValidPeerAddress = new InValidPeerAddress(defaultMessage);
-			return Promise.resolve();
-		});
-
-		describe('should create an error object instance of InValidPeerAddress', () => {
-			it('should create a new instance of InValidPeerAddress', () => {
-				return expect(inValidPeerAddress)
-					.to.be.an('object')
-					.and.be.instanceof(InValidPeerAddress);
-			});
-
-			it('should set error name to `InValidPeerAddress`', () => {
-				return expect(inValidPeerAddress.name).to.eql('InValidPeerAddress');
->>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 			});
 		});
 
 		describe('should set error object properties', () => {
 			beforeEach(() => {
-<<<<<<< HEAD
 				invalidPeer = new InvalidPeer(defaultMessage);
-=======
-				inValidPeerAddress = new InValidPeerAddress(defaultMessage);
->>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 				return Promise.resolve();
 			});
 
 			it('should set error message when passed an argument', () => {
-<<<<<<< HEAD
 				return expect(invalidPeer.message).to.eql(defaultMessage);
-=======
-				return expect(inValidPeerAddress.message).to.eql(defaultMessage);
->>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 			});
 		});
 	});

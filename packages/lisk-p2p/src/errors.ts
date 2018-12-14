@@ -42,16 +42,9 @@ export class RPCResponseError extends VError {
 	}
 }
 
-<<<<<<< HEAD
 export class InvalidPeer extends VError {
 	public constructor(message: string) {
 		super(message);
 		this.name = 'InvalidPeer';
-=======
-export class InValidPeerAddress extends VError {
-	public constructor(message: string) {
-		super(message);
-		this.name = 'InValidPeerAddress';
->>>>>>> 395847e6... :recycle: Add validator lib and update response handler
 	}
 }
