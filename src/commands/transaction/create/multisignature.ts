@@ -13,12 +13,18 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { registerMultisignature, utils as transactionUtils } from '@liskhq/lisk-transactions';
+import {
+	registerMultisignature,
+	utils as transactionUtils,
+} from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { flags as commonFlags } from '../../../utils/flags';
 import { validateLifetime, validateMinimum } from '../../../utils/helpers';
-import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+import {
+	getInputsFromSources,
+	InputFromSourceOutput,
+} from '../../../utils/input';
 
 interface Args {
 	readonly keysgroup: string;
@@ -26,10 +32,11 @@ interface Args {
 	readonly minimum: string;
 }
 
-const processInputs = (lifetime: number, minimum: number, keysgroup: ReadonlyArray<string>) => ({
-	passphrase,
-	secondPassphrase,
-}: InputFromSourceOutput) =>
+const processInputs = (
+	lifetime: number,
+	minimum: number,
+	keysgroup: ReadonlyArray<string>,
+) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
 	registerMultisignature({
 		passphrase,
 		secondPassphrase,

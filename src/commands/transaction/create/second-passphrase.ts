@@ -18,9 +18,15 @@ import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+import {
+	getInputsFromSources,
+	InputFromSourceOutput,
+} from '../../../utils/input';
 
-export const processInputs = () => ({ passphrase, secondPassphrase }: InputFromSourceOutput) => {
+export const processInputs = () => ({
+	passphrase,
+	secondPassphrase,
+}: InputFromSourceOutput) => {
 	if (!secondPassphrase) {
 		throw new ValidationError('No second passphrase was provided.');
 	}
@@ -29,8 +35,7 @@ export const processInputs = () => ({ passphrase, secondPassphrase }: InputFromS
 		passphrase,
 		secondPassphrase,
 	});
-}
-	
+};
 
 export default class SecondPassphraseCommand extends BaseCommand {
 	static description = `

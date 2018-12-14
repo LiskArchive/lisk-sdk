@@ -13,7 +13,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import Mnemonic from 'bip39';
+import { Mnemonic } from '@liskhq/lisk-passphrase';
 
 export const createMnemonicPassphrase = Mnemonic.generateMnemonic;
 

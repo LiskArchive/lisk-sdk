@@ -17,7 +17,10 @@ import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+import {
+	getInputsFromSources,
+	InputFromSourceOutput,
+} from '../../../utils/input';
 
 interface Args {
 	readonly address: string;
@@ -62,9 +65,7 @@ export default class TransferCommand extends BaseCommand {
 	Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
 		`;
 
-	static examples = [
-		'transaction:create:transfer 100 13356260975429434553L',
-	];
+	static examples = ['transaction:create:transfer 100 13356260975429434553L'];
 
 	static flags = {
 		...BaseCommand.flags,

@@ -87,14 +87,17 @@ export const query = async (
 					handleResponse(endpoint, res, parameters.placeholder),
 				);
 
-export const queryNodeTransaction =
-	async (client: NodeResource, txnState: string, parameters: ReadonlyArray<QueryParameter>): Promise<unknown> =>
-		Promise.all(
-			parameters.map(async (param: QueryParameter) =>
-				client
-					.getTransactions(txnState, param.query)
-					.then(res =>
-						handleResponse('node/transactions', res, param.placeholder),
-					),
-			),
-		);
+export const queryNodeTransaction = async (
+	client: NodeResource,
+	txnState: string,
+	parameters: ReadonlyArray<QueryParameter>,
+): Promise<unknown> =>
+	Promise.all(
+		parameters.map(async (param: QueryParameter) =>
+			client
+				.getTransactions(txnState, param.query)
+				.then(res =>
+					handleResponse('node/transactions', res, param.placeholder),
+				),
+		),
+	);

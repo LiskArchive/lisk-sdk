@@ -133,12 +133,14 @@ describe('signature:create', () => {
 			.it(
 				'should take transaction from arg and passphrase from flag to create',
 				() => {
-					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
+					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly(
+						{
+							passphrase: {
+								source: 'pass:123',
+								repeatPrompt: true,
+							},
 						},
-					});
+					);
 					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
@@ -183,12 +185,14 @@ describe('signature:create', () => {
 			.it(
 				'should take transaction from stdin and create signature object',
 				() => {
-					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: undefined,
-							repeatPrompt: true,
+					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly(
+						{
+							passphrase: {
+								source: undefined,
+								repeatPrompt: true,
+							},
 						},
-					});
+					);
 					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,
@@ -211,12 +215,14 @@ describe('signature:create', () => {
 			.it(
 				'should take transaction from stdin and sign with passphrase from flag',
 				() => {
-					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly({
-						passphrase: {
-							source: 'pass:123',
-							repeatPrompt: true,
+					expect(inputUtilsModule.getInputsFromSources).to.be.calledWithExactly(
+						{
+							passphrase: {
+								source: 'pass:123',
+								repeatPrompt: true,
+							},
 						},
-					});
+					);
 					expect(transactions.createSignatureObject).to.be.calledWithExactly(
 						defaultTransaction,
 						defaultInputs.passphrase,

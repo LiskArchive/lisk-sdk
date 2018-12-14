@@ -33,17 +33,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 `.trim();
 
 export default class CopyrightCommand extends BaseCommand {
-	async run() {
+	static description = `
+	Displays copyright notice.
+	`;
+
+	static examples = ['copyright'];
+
+	static flags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
 		this.print({ copyright });
 	}
 }
-
-CopyrightCommand.flags = {
-	...BaseCommand.flags,
-};
-
-CopyrightCommand.description = `
-Displays copyright notice.
-`;
-
-CopyrightCommand.examples = ['copyright'];

@@ -37,7 +37,11 @@ const typeNumberMap: TypeNumberMap = {
 };
 
 const options = Object.entries(typeNumberMap).reduce(
-	(accumulated: string[], [key, value]: [string, string]) => [...accumulated, key, value],
+	(accumulated: string[], [key, value]: [string, string]) => [
+		...accumulated,
+		key,
+		value,
+	],
 	[],
 );
 
@@ -53,7 +57,10 @@ const typeClassMap: TypeClassMap = {
 	multisignature: MultisignatureCommand,
 };
 
-const resolveFlags = (accumulated: ReadonlyArray<string>, [key, value]: [string, string | boolean | undefined]) => {
+const resolveFlags = (
+	accumulated: ReadonlyArray<string>,
+	[key, value]: [string, string | boolean | undefined],
+): ReadonlyArray<string> => {
 	if (key === 'type') {
 		return accumulated;
 	}
@@ -104,6 +111,3 @@ export default class CreateCommand extends BaseCommand {
 		await typeClassMap[commandType].run([...argv, ...resolvedFlags]);
 	}
 }
-
-
-

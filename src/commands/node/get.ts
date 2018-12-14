@@ -62,6 +62,3 @@ export default class GetCommand extends BaseCommand {
 		this.print(fullInfo);
 	}
 }
-
-
-

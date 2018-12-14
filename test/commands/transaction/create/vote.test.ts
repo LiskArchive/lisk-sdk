@@ -63,7 +63,11 @@ describe('transaction:create:vote', () => {
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(transactions, 'utils', transactionUtilStub)
-			.stub(inputModule, 'getData', sandbox.stub().resolves(fileVotes.join(',')))
+			.stub(
+				inputModule,
+				'getData',
+				sandbox.stub().resolves(fileVotes.join(',')),
+			)
 			.stub(
 				inputUtils,
 				'getInputsFromSources',

@@ -79,7 +79,7 @@ export default class VerifyCommand extends BaseCommand {
 			args,
 			flags: { 'second-public-key': secondPublicKeySource },
 		} = this.parse(VerifyCommand);
-		
+
 		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);

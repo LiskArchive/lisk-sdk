@@ -46,7 +46,9 @@ export default class GetCommand extends BaseCommand {
 	async run(): Promise<void> {
 		const { args } = this.parse(GetCommand);
 		const { usernames: usernamesStr }: Args = args;
-		const usernames: ReadonlyArray<string> = usernamesStr.split(',').filter(Boolean);
+		const usernames: ReadonlyArray<string> = usernamesStr
+			.split(',')
+			.filter(Boolean);
 		const req = usernames.map(username => ({
 			query: {
 				limit: 1,

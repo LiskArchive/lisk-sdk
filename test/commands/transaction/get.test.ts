@@ -360,7 +360,11 @@ describe('transaction:get', () => {
 
 		describe('transaction:get transactions --state=unprocessed', () => {
 			setupTest()
-				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStubNode))
+				.stub(
+					apiUtils,
+					'getAPIClient',
+					sandbox.stub().returns(apiClientStubNode),
+				)
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
@@ -523,7 +527,11 @@ describe('transaction:get', () => {
 				};
 
 				setupTest()
-					.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(localClientStub))
+					.stub(
+						apiUtils,
+						'getAPIClient',
+						sandbox.stub().returns(localClientStub),
+					)
 					.stub(
 						queryHandler,
 						'queryNodeTransaction',

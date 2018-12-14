@@ -13,15 +13,24 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { castVotes, utils as transactionUtils } from '@liskhq/lisk-transactions';
+import {
+	castVotes,
+	utils as transactionUtils,
+} from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../../base';
 import { ValidationError } from '../../../utils/error';
 import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+import {
+	getInputsFromSources,
+	InputFromSourceOutput,
+} from '../../../utils/input';
 import { getData } from '../../../utils/input/utils';
 
-const processInputs = (votes: ReadonlyArray<string>, unvotes: ReadonlyArray<string>) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+const processInputs = (
+	votes: ReadonlyArray<string>,
+	unvotes: ReadonlyArray<string>,
+) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
 	castVotes({
 		passphrase,
 		votes,
@@ -118,7 +127,7 @@ export default class VoteCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 			secondPassphrase: !secondPassphraseSource
-				? undefined 
+				? undefined
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
