@@ -24,7 +24,6 @@
 		"no-new": "off",
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
-		"no-prototype-builtins": "off",
 		"no-restricted-globals": "off",
 		"no-template-curly-in-string": "off",
 		"no-throw-literal": "off",
@@ -32,7 +31,6 @@
 		"no-unused-expressions": "off",
 		"no-use-before-define": "off",
 		"prefer-destructuring": "off",
-		"prefer-rest-params": "off",
 		"radix": "off",
 		"require-jsdoc": [
 			"error",
