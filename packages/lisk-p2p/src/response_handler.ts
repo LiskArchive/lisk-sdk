@@ -12,8 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { valid as isValidVersion } from 'semver';
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
-import { InvalidPeerAddress } from './errors';
+import { InvalidPeer } from './errors';
 import { PeerConfig } from './peer';
 
 const IPV4_NUMBER = 4;
@@ -27,17 +28,10 @@ interface RawPeerObject {
 	readonly wsPort: string;
 }
 
-export const checkPeerAddress = (peer: unknown): boolean => {
-	if (!peer) {
-		return false;
-	}
-
-	const { ip, wsPort } = peer as RawPeerObject;
-
-	if (!ip || !wsPort) {
-		return false;
-	}
-
+export const checkForValidPeerAddress = (
+	ip: string,
+	wsPort: string,
+): boolean => {
 	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(wsPort)) {
 		return false;
 	}
@@ -45,29 +39,38 @@ export const checkPeerAddress = (peer: unknown): boolean => {
 	return true;
 };
 
-export const instantiatePeerFromResponse = (
-	peer: unknown,
-): PeerConfig | Error => {
-	if (!checkPeerAddress(peer)) {
-		return new InvalidPeerAddress(`Invalid Peer Ip or Port`);
+export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
+	if (!peer) {
+		throw new InvalidPeer(`Invalid peer object`);
 	}
 
+	// TODO: We will use the ProtocolPeerInfo from p2p_types.ts which is similar to RawPeerObject
 	const rawPeer = peer as RawPeerObject;
 
+	if (
+		!rawPeer.ip ||
+		!rawPeer.wsPort ||
+		!checkForValidPeerAddress(rawPeer.ip, rawPeer.wsPort)
+	) {
+		throw new InvalidPeer(`Invalid peer ip or port`);
+	}
+
+	if (!rawPeer.version || !isValidVersion(rawPeer.version)) {
+		throw new InvalidPeer(`Invalid peer version`);
+	}
+
+	const version = rawPeer.version;
+	const wsPort = +rawPeer.wsPort;
 	const os = rawPeer.os && isAlpha(rawPeer.os.toString()) ? rawPeer.os : '';
-	const version =
-		rawPeer.version && isAlpha(rawPeer.version.toString())
-			? rawPeer.version
-			: '';
 	const id = `${rawPeer.ip}:${rawPeer.wsPort}`;
 	const height =
 		rawPeer.height && isNumeric(rawPeer.height.toString())
 			? +rawPeer.height
-			: 1;
+			: 0;
 
 	const peerConfig: PeerConfig = {
 		ipAddress: rawPeer.ip,
-		wsPort: +rawPeer.wsPort,
+		wsPort,
 		height,
 		id,
 		os,

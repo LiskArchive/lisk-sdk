@@ -44,6 +44,7 @@
 		"prepublishOnly": "npm run lint && npm test && npm run build && npm run build:check"
 	},
 	"dependencies": {
+		"semver": "5.6.0",
 		"socketcluster-client": "14.2.1",
 		"socketcluster-server": "14.3.1",
 		"validator": "10.9.0",
@@ -57,6 +58,7 @@
 		"@types/jsonwebtoken": "8.3.0",
 		"@types/mocha": "5.2.5",
 		"@types/node": "10.10.1",
+		"@types/semver": "5.5.0",
 		"@types/sinon": "5.0.7",
 		"@types/sinon-chai": "3.2.1",
 		"@types/validator": "9.4.4",
