@@ -15,8 +15,11 @@
 'use strict';
 
 const fs = require('fs');
+const util = require('util');
 const Peer = require('../../../../logic/peer');
 const utils = require('../../utils');
+
+const fs_writeFile = util.promisify(fs.writeFile);
 
 module.exports = function(
 	configurations,
@@ -39,16 +42,19 @@ module.exports = function(
 		describe('when a node blacklists an ip', () => {
 			before(() => {
 				configurations[0].peers.access.blackList.push('127.0.0.1');
-				fs.writeFileSync(
+				return fs_writeFile(
 					`${__dirname}/../../configs/config.node-0.json`,
 					JSON.stringify(configurations[0], null, 4)
-				);
-				// Restart the node to load the just changed configuration
-				return network.restartNode('node_0', true).then(() => {
-					// Make sure that there is enough time for monitoring connection
-					// to be re-established after restart.
-					return network.waitForBlocksOnNode('node_1', 3);
-				});
+				)
+					.then(() => {
+						// Restart the node to load the just changed configuration
+						return network.restartNode('node_0', true);
+					})
+					.then(() => {
+						// Make sure that there is enough time for monitoring connection
+						// to be re-established after restart.
+						return network.waitForBlocksOnNode('node_1', 3);
+					});
 			});
 
 			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
@@ -103,13 +109,14 @@ module.exports = function(
 		describe('when the node remove the just blacklisted ip', () => {
 			before(() => {
 				configurations[0].peers.access.blackList = [];
-				fs.writeFileSync(
+				return fs_writeFile(
 					`${__dirname}/../../configs/config.node-0.json`,
 					JSON.stringify(configurations[0], null, 4)
-				);
-				// Restart the node to load the just changed configuration
-				return network
-					.restartNode('node_0', true)
+				)
+					.then(() => {
+						// Restart the node to load the just changed configuration
+						return network.restartNode('node_0', true);
+					})
 					.then(() => {
 						return network.enableForgingForDelegates();
 					})
