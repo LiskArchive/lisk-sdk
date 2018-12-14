@@ -583,6 +583,22 @@ describe('transaction', () => {
 			});
 		});
 
+		it('should return error when transaction is type 1 and sender already has second signature enabled', done => {
+			const transaction = _.cloneDeep(validTransaction);
+			transaction.type = 1;
+			transaction.asset = {
+				signature: validKeypair.publicKey,
+			};
+
+			const vs = _.cloneDeep(sender);
+			vs.secondSignature = true;
+
+			transactionLogic.verify(transaction, vs, null, null, err => {
+				expect(err).to.equal('Sender already has second signature enabled');
+				done();
+			});
+		});
+
 		it('should return error when missing sender second signature', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			const vs = _.cloneDeep(sender);
