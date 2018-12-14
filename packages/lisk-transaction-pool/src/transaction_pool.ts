@@ -45,7 +45,7 @@ export interface AddTransactionResult {
 
 export type Transaction = TransactionObject & TransactionFunctions;
 
-export type queueNames = 'received' | 'validated' | 'verified' | 'pending' | 'ready';
+export type QueueNames = 'received' | 'validated' | 'verified' | 'pending' | 'ready';
 
 interface Queues {
 	readonly [queue: string]: Queue;
