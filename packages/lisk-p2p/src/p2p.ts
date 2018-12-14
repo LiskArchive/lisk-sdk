@@ -150,7 +150,7 @@ export class P2P extends EventEmitter {
 		});
 	}
 
-	public async _loadListOfPeerListsFromSeeds(
+	private async _loadListOfPeerListsFromSeeds(
 		seedList: ReadonlyArray<PeerConfig>,
 	): Promise<ReadonlyArray<ReadonlyArray<Peer>>> {
 		return Promise.all(
