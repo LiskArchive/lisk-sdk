@@ -18,12 +18,17 @@ import { TransactionJSON } from '../../transaction_types';
 import { getTransactionBytes } from '../../utils';
 import { getBytes } from './get_bytes';
 
+interface VerifyReturn {
+	readonly verified: boolean;
+	readonly error?: TransactionError;
+}
+
 export const verifySignature = (
 	publicKey: string,
 	signature: string,
 	transaction: TransactionJSON,
 	isSecondSignature: boolean = false,
-): { readonly verified: boolean; readonly error?: TransactionError } => {
+): VerifyReturn => {
 	const {
 		signature: removedSignature,
 		signSignature,

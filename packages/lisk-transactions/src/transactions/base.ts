@@ -295,9 +295,7 @@ export abstract class BaseTransaction {
 		) {
 			if (
 				!this.signatures ||
-				(this.signatures &&
-					(this.signatures.length === 0 ||
-						this.signatures.length < sender.multimin))
+				(this.signatures && this.signatures.length === 0)
 			) {
 				errors.push(
 					new TransactionError('Missing signatures', this.id, '.signatures'),

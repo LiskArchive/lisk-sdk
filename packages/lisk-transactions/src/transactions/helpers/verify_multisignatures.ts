@@ -24,11 +24,27 @@ export const verifyMultisignatures = (
 	readonly verified: boolean;
 	readonly errors: ReadonlyArray<TransactionError>;
 } => {
+	if (
+		!transaction.signatures ||
+		transaction.signatures.length < minimumValidations
+	) {
+		return {
+			verified: false,
+			errors: [
+				new TransactionError(
+					'Missing signatures',
+					transaction.id,
+					'.signatures',
+				),
+			],
+		};
+	}
+
+	// tslint:disable-next-line no-unnecessary-type-assertion
 	const transactionSignatures = transaction.signatures as ReadonlyArray<string>;
 	// tslint:disable-next-line no-let
-	let validatedSignaturesCount = 0;
+	const verifiedSignatures: string[] = [];
 	const checkedPublicKeys: string[] = [];
-	const errors: TransactionError[] = [];
 
 	memberPublicKeys.forEach(publicKey => {
 		if (checkedPublicKeys.includes(publicKey)) {
@@ -36,21 +52,37 @@ export const verifyMultisignatures = (
 		}
 
 		transactionSignatures.forEach((signature: string) => {
-			const {
-				verified: signatureVerified,
-				error: verificationError,
-			} = verifySignature(publicKey, signature, transaction);
-			if (!signatureVerified) {
-				errors.push(verificationError as TransactionError);
-			} else {
+			if (verifiedSignatures.includes(signature)) {
+				return;
+			}
+			const { verified: signatureVerified } = verifySignature(
+				publicKey,
+				signature,
+				transaction,
+			);
+			if (signatureVerified) {
 				checkedPublicKeys.push(publicKey);
-				validatedSignaturesCount++;
+				verifiedSignatures.push(signature);
 			}
 		});
 	});
 
+	const unverifiedSignatures = transactionSignatures.filter(
+		e => !verifiedSignatures.find(a => e === a),
+	);
+
 	return {
-		verified: validatedSignaturesCount >= minimumValidations,
-		errors,
+		verified: verifiedSignatures.length >= minimumValidations,
+		errors:
+			unverifiedSignatures.length > 0
+				? unverifiedSignatures.map(
+						signature =>
+							new TransactionError(
+								`Failed to verify signature ${signature}`,
+								transaction.id,
+								'.signature',
+							),
+				  )
+				: [],
 	};
 };

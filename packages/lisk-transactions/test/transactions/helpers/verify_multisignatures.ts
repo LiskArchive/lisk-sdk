@@ -64,6 +64,28 @@ describe('#verifyMultisignatures', () => {
 			);
 			return expect(verified).to.be.true;
 		});
+
+		describe('when not enough valid signatures', () => {
+			it('should return a verification fail response', () => {
+				const invalidTransaction = {
+					...defaultTransaction,
+					signatures: defaultTransaction.signatures.slice(0, 1),
+				};
+				const { verified, errors } = verifyMultisignatures(
+					defaultMemberPublicKeys,
+					3,
+					invalidTransaction,
+				);
+
+				const errorsArray = errors as ReadonlyArray<TransactionError>;
+
+				expect(errors).to.be.an('array');
+				errorsArray.forEach(error =>
+					expect(error).to.be.instanceof(TransactionError),
+				);
+				return expect(verified).to.be.false;
+			});
+		});
 	});
 
 	describe('given an invalid multisignatures', () => {
@@ -78,18 +100,8 @@ describe('#verifyMultisignatures', () => {
 			return Promise.resolve();
 		});
 
-		it('should return an object with verified = false', () => {
-			const { verified } = verifyMultisignatures(
-				defaultMemberPublicKeys,
-				3,
-				invalidTransaction as TransactionJSON,
-			);
-
-			return expect(verified).to.be.false;
-		});
-
-		it('should return an object with transaction errors', () => {
-			const { errors } = verifyMultisignatures(
+		it('should return a verification fail response', () => {
+			const { verified, errors } = verifyMultisignatures(
 				defaultMemberPublicKeys,
 				3,
 				invalidTransaction as TransactionJSON,
@@ -97,9 +109,10 @@ describe('#verifyMultisignatures', () => {
 			const errorsArray = errors as ReadonlyArray<TransactionError>;
 
 			expect(errors).to.be.an('array');
-			return errorsArray.forEach(error =>
+			errorsArray.forEach(error =>
 				expect(error).to.be.instanceof(TransactionError),
 			);
+			return expect(verified).to.be.false;
 		});
 	});
 });

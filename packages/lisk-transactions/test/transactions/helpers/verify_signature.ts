@@ -18,28 +18,28 @@ import { verifySignature } from '../../../src/transactions/helpers';
 
 describe('#verifySignature', () => {
 	const defaultTransaction = {
-		id: '5374209778555788325',
-		type: 0,
-		timestamp: 2346273,
+		amount: '10000000000',
+		recipientId: '13356260975429434553L',
+		senderId: '',
 		senderPublicKey:
-			'b3eae984ec05ea3b4d4564fa1f195d67d14fe56a1a0d038c2c34780e0c0f9a09',
-		senderId: '1977368676922172803L',
-		recipientId: '7675634738153324567L',
-		recipientPublicKey: '',
-		amount: '1',
+			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8',
+		timestamp: 80685381,
+		type: 0,
 		fee: '10000000',
-		signature:
-			'bc42403a1a29bcd786839c13d8f84e39d30ff486e032b755bcd1cf9a74c9ef1817ab94f5eccbc61959daf2b2f23721edc1848ee707f9d74dbf2f6f38fe1ada0a',
-		signatures: [],
+		recipientPublicKey: '',
 		asset: {},
+		signature:
+			'3357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
+		signSignature:
+			'11f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
+		id: '11638517642515821734',
 		receivedAt: new Date(),
 	};
 
-	describe('given a valid signature', () => {
-		beforeEach(() => {
-			return Promise.resolve();
-		});
+	const defaultSecondPublicKey =
+		'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8';
 
+	describe('given a valid signature', () => {
 		it('should return an object with verfied = true', () => {
 			const { verified } = verifySignature(
 				defaultTransaction.senderPublicKey,
@@ -68,6 +68,44 @@ describe('#verifySignature', () => {
 				defaultTransaction.senderPublicKey,
 				invalidSignature,
 				defaultTransaction,
+			);
+
+			return expect(error).to.be.instanceof(TransactionError);
+		});
+	});
+
+	describe('given a valid signSignature', () => {
+		it('should return an object with verfied = true', () => {
+			const { verified } = verifySignature(
+				defaultSecondPublicKey,
+				defaultTransaction.signSignature,
+				defaultTransaction,
+				true,
+			);
+			return expect(verified).to.be.true;
+		});
+	});
+
+	describe('given an invalid signSignature', () => {
+		let invalidSignature = defaultTransaction.signSignature.replace('1', '0');
+
+		it('should return an object with verified = false', () => {
+			const { verified } = verifySignature(
+				defaultSecondPublicKey,
+				invalidSignature,
+				defaultTransaction,
+				true,
+			);
+
+			return expect(verified).to.be.false;
+		});
+
+		it('should return an object with transaction error', () => {
+			const { error } = verifySignature(
+				defaultSecondPublicKey,
+				invalidSignature,
+				defaultTransaction,
+				true,
 			);
 
 			return expect(error).to.be.instanceof(TransactionError);
