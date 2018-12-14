@@ -13,28 +13,59 @@
  *
  */
 /* tslint:disable:no-empty-interface*/
-export interface P2PMessagePacket {}
 
-export interface P2PRequestPacket {}
+import { PeerConfig } from './peer';
 
-export interface P2PResponsePacket {}
+export interface P2PRequestPacket<T> {
+	readonly procedure: string;
+	readonly params?: T;
+}
 
-export interface P2PNodeStatus {}
+export interface P2PResponsePacket {
+	readonly data: unknown;
+}
 
-export interface P2PPenality {}
+export interface P2PMessagePacket<T> {
+	readonly event: string;
+	readonly data: T;
+}
+
+export interface P2PNodeStatus {
+	readonly wsPort: number;
+	readonly os: string;
+	readonly version: string;
+	readonly height: number;
+}
+
+export interface P2PPenalty {}
 
 export interface P2PConfig {
-	readonly blacklistedPeers: ReadonlyArray<string>;
+	readonly blacklistedPeers: ReadonlyArray<PeerConfig>;
 	readonly connectTimeout: number;
 	readonly ipAddress?: string;
-	readonly seedPeers: ReadonlyArray<string>;
+	readonly seedPeers: ReadonlyArray<PeerConfig>;
 	readonly wsEngine?: string;
 	readonly wsPort: number;
+	readonly version: string;
 }
 
-export enum PeerState {
-	BANNED = 0,
-	DISCONNECTED = 1,
-	CONNECTED = 2,
-}
 export interface NetworkStatus {}
+
+// This is a representation of the peer object according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolPeerInfo {
+	readonly ip: string;
+	readonly wsPort: number;
+	readonly os: string;
+	readonly version: string;
+	readonly broadhash: string;
+	readonly height: number;
+	readonly nonce: string;
+}
+
+// This is a representation of the peer list according to the current protocol.
+// TODO later: Switch to LIP protocol format.
+export interface ProtocolPeerList {
+	readonly success: boolean;
+	readonly peers: ReadonlyArray<ProtocolPeerInfo>;
+}

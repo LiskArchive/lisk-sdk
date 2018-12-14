@@ -2,7 +2,7 @@ import { P2P } from '../../src/index';
 
 describe('Integration tests for P2P library', () => {
 	const NETWORK_PEER_COUNT = 10;
-	let blockchainP2PList: Array<P2P> = [];
+	let blockchainP2PList: ReadonlyArray<P2P> = [];
 
 	describe('Start and stop network', () => {
 		beforeEach(async () => {
@@ -13,14 +13,15 @@ describe('Integration tests for P2P library', () => {
 					seedPeers: [],
 					wsEngine: 'ws',
 					wsPort: 5000 + index,
+					version: '1.0.0',
 				});
 			});
 
-			let peerStartPromises: Array<Promise<void>> = blockchainP2PList.map(
-				blockchainP2P => {
-					return blockchainP2P.start();
-				},
-			);
+			let peerStartPromises: ReadonlyArray<
+				Promise<void>
+			> = blockchainP2PList.map(blockchainP2P => {
+				return blockchainP2P.start();
+			});
 			await Promise.all(peerStartPromises);
 		});
 
