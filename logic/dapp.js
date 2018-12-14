@@ -100,12 +100,9 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid application category');
 	}
 
-	let foundCategory = false;
-	Object.keys(dappCategories).forEach(key => {
-		if (dappCategories[key] === transaction.asset.dapp.category) {
-			foundCategory = true;
-		}
-	});
+	const foundCategory = Object.values(dappCategories).includes(
+		transaction.asset.dapp.category
+	);
 
 	if (!foundCategory) {
 		return setImmediate(cb, 'Application category not found');
