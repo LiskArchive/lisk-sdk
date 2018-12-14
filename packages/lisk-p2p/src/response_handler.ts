@@ -13,7 +13,7 @@
  *
  */
 import { isAlpha, isIP, isNumeric, isPort } from 'validator';
-import { InValidPeerAddress } from './errors';
+import { InvalidPeerAddress } from './errors';
 import { PeerConfig } from './peer';
 
 const IPV4_NUMBER = 4;
@@ -27,17 +27,12 @@ interface RawPeerObject {
 	readonly wsPort: string;
 }
 
-interface ResponsePeerObject {
-	readonly ip: string;
-	readonly wsPort: string;
-}
-
 export const checkPeerAddress = (peer: unknown): boolean => {
 	if (!peer) {
 		return false;
 	}
 
-	const { ip, wsPort } = peer as ResponsePeerObject;
+	const { ip, wsPort } = peer as RawPeerObject;
 
 	if (!ip || !wsPort) {
 		return false;
@@ -54,7 +49,7 @@ export const instantiatePeerFromResponse = (
 	peer: unknown,
 ): PeerConfig | Error => {
 	if (!checkPeerAddress(peer)) {
-		return new InValidPeerAddress(`Invalid Peer Ip or Port`);
+		return new InvalidPeerAddress(`Invalid Peer Ip or Port`);
 	}
 
 	const rawPeer = peer as RawPeerObject;

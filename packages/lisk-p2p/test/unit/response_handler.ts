@@ -58,7 +58,7 @@ describe('response handlers', () => {
 				height: '23232',
 			};
 
-			it('should return false', () => {
+			it('should return false for invalid peer values', () => {
 				return expect(instantiatePeerFromResponse(peerInvalid))
 					.to.be.an('object')
 					.and.instanceOf(Error);
@@ -86,7 +86,7 @@ describe('response handlers', () => {
 				return expect(checkPeerAddress(peer)).to.be.true;
 			});
 
-			it('should return false', () => {
+			it('should return false for missing required values', () => {
 				const peerWithMissingValue = {
 					wsPort: '4001',
 				};
@@ -94,7 +94,7 @@ describe('response handlers', () => {
 				return expect(checkPeerAddress(peerWithMissingValue)).to.be.false;
 			});
 
-			it('should return false', () => {
+			it('should return false for incorrect ip', () => {
 				const peerWithIncorrectIp = {
 					ip: '12.12.hh12.12',
 					wsPort: '4001',
@@ -103,7 +103,7 @@ describe('response handlers', () => {
 				return expect(checkPeerAddress(peerWithIncorrectIp)).to.be.false;
 			});
 
-			it('should return false', () => {
+			it('should return false for incorrect port', () => {
 				const peerWithIncorrectPort = {
 					ip: '12.12.12.12',
 					wsPort: '400f1',

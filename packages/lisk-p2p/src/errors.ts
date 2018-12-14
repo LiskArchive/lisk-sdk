@@ -42,9 +42,9 @@ export class RPCResponseError extends VError {
 	}
 }
 
-export class InValidPeerAddress extends VError {
+export class InvalidPeerAddress extends VError {
 	public constructor(message: string) {
 		super(message);
-		this.name = 'InValidPeerAddress';
+		this.name = 'InvalidPeerAddress';
 	}
 }
