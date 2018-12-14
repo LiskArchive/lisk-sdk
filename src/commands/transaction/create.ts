@@ -60,7 +60,7 @@ const typeClassMap: TypeClassMap = {
 const resolveFlags = (
 	accumulated: ReadonlyArray<string>,
 	[key, value]: [string, string | boolean | undefined],
-) => {
+): ReadonlyArray<string> => {
 	if (key === 'type') {
 		return accumulated;
 	}

@@ -30,12 +30,12 @@ interface Args {
 const STATUS_ENABLE = 'enable';
 const STATUS_DISABLE = 'disable';
 
-const processInput = (
+const processInput = async (
 	client: APIClient,
 	status: string,
 	publicKey: string,
 	password?: string,
-) => {
+): Promise<unknown> => {
 	if (!password) {
 		throw new ValidationError('No password was provided.');
 	}
