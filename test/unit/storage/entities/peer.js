@@ -171,16 +171,10 @@ describe('Peer', () => {
 			'should call adapter.executeFile with proper param for FIELD_SET_SIMPLE'
 		);
 
-		it('should call adapter.executeFile with proper param for FIELD_SET_FULL');
-
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 
 		it(
 			'should resolve with one object matching specification of type definition for FIELD_SET_SIMPLE'
-		);
-
-		it(
-			'should resolve with one object matching specification of type definition for FIELD_SET_FULL'
 		);
 
 		it(
@@ -229,13 +223,9 @@ describe('Peer', () => {
 		it(
 			'should call adapter.executeFile with proper param for FIELD_SET_SIMPLE'
 		);
-		it('should call adapter.executeFile with proper param for FIELD_SET_FULL');
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 		it(
 			'should resolve with array of objects matching specification of type definition for FIELD_SET_SIMPLE'
-		);
-		it(
-			'should resolve with array of objects matching specification of type definition for FIELD_SET_FULL'
 		);
 		it('should not change any of the provided parameter');
 
@@ -370,7 +360,7 @@ describe('Peer', () => {
 	});
 
 	describe('getFieldSets()', () => {
-		it('should return FIELD_SET_SIMPLE, FIELD_SET_FULL', async () => {
+		it('should return FIELD_SET_SIMPLE', async () => {
 			const peer = new Peer(adapter);
 			expect(peer.getFieldSets()).to.eql([peer.FIELD_SET_SIMPLE]);
 		});
