@@ -112,7 +112,7 @@ __private.updateDelegateListCache = function(round, delegatesList) {
 	// We want to cache delegates for only last 2 rounds and get rid of old ones
 	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
 		// sort round numbers in ascending order so we can have most recent 2 rounds at the end of the list.
-		.sort()
+		.sort((a, b) => a - b)
 		// delete all round cache except last two rounds.
 		.slice(-2)
 		.reduce((acc, current) => {
