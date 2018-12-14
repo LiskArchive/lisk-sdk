@@ -1,7 +1,11 @@
 import publicKeys from '../fixtures/public_keys.json';
 import { expect } from 'chai';
 import transactionObjects from '../fixtures/transactions.json';
-import { Transaction, TransactionPool, AddTransactionResult } from '../src/transaction_pool';
+import {
+	Transaction,
+	TransactionPool,
+	AddTransactionResult,
+} from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
 import { Queue } from '../src/queue';
@@ -41,7 +45,10 @@ describe('transaction pool', () => {
 			),
 		};
 
-		transactionPool = new TransactionPool({ expireTransactionsInterval, maxTransactionsPerQueue });
+		transactionPool = new TransactionPool({
+			expireTransactionsInterval,
+			maxTransactionsPerQueue,
+		});
 		// Stub queues
 		Object.keys(transactionPool.queues).forEach(queueName => {
 			sandbox
@@ -57,7 +64,10 @@ describe('transaction pool', () => {
 	describe('#addTransactionToQueue', () => {
 		let existsInPoolStub: sinon.SinonStub;
 		let receviedQueueSizeStub: sinon.SinonStub;
-		let addTransactionToQueue: (queueName: string, transaction: Transaction) => AddTransactionResult;
+		let addTransactionToQueue: (
+			queueName: string,
+			transaction: Transaction,
+		) => AddTransactionResult;
 		const queueName = 'received';
 
 		beforeEach(async () => {
@@ -65,9 +75,12 @@ describe('transaction pool', () => {
 				transactionPool,
 				'existsInTransactionPool',
 			);
-			receviedQueueSizeStub = transactionPool.queues.received.size as sinon.SinonStub;
+			receviedQueueSizeStub = transactionPool.queues.received
+				.size as sinon.SinonStub;
 			// addTransactionToQueue is a private function, therefore removing typesafety and binding the context here.
-			addTransactionToQueue = (transactionPool as any).addTransactionToQueue.bind(transactionPool);
+			addTransactionToQueue = (transactionPool as any).addTransactionToQueue.bind(
+				transactionPool,
+			);
 		});
 
 		it('should return true for alreadyExists if transaction already exists in pool', async () => {
@@ -92,7 +105,8 @@ describe('transaction pool', () => {
 		it('should return true for isFull if queue.size is equal to or greater than maxTransactionsPerQueue', async () => {
 			existsInPoolStub.returns(false);
 			receviedQueueSizeStub.returns(maxTransactionsPerQueue);
-			expect(addTransactionToQueue(queueName, transactions[0]).isFull).to.be.true;
+			expect(addTransactionToQueue(queueName, transactions[0]).isFull).to.be
+				.true;
 		});
 
 		it('should call enqueue for received queue if the transaction does not exist and queue is not full', async () => {
@@ -119,25 +133,39 @@ describe('transaction pool', () => {
 		let addTransactionToQueueStub: sinon.SinonStub;
 
 		beforeEach(async () => {
-			addTransactionToQueueStub = sandbox.stub((transactionPool as any), 'addTransactionToQueue');
+			addTransactionToQueueStub = sandbox.stub(
+				transactionPool as any,
+				'addTransactionToQueue',
+			);
 		});
 
 		it('should call addTransactionToQueue with with correct parameters', async () => {
 			transactionPool.addTransaction(transactions[0]);
 			const receivedQueueName = 'received';
-			expect(addTransactionToQueueStub).to.be.calledWith(receivedQueueName, transactions[0]);
+			expect(addTransactionToQueueStub).to.be.calledWith(
+				receivedQueueName,
+				transactions[0],
+			);
 		});
 	});
 
 	describe('#addVerifiedTransaction', () => {
 		let addTransactionToQueueStub: sinon.SinonStub;
- 		beforeEach(async () => {
-			addTransactionToQueueStub = sandbox.stub((transactionPool as any), 'addTransactionToQueue');
+
+		beforeEach(async () => {
+			addTransactionToQueueStub = sandbox.stub(
+				transactionPool as any,
+				'addTransactionToQueue',
+			);
 		});
- 		it('should call addTransactionToQueue with with correct parameters', async () => {
+
+		it('should call addTransactionToQueue with with correct parameters', async () => {
 			transactionPool.addVerifiedTransaction(transactions[0]);
 			const verifiedQueueName = 'verified';
-			expect(addTransactionToQueueStub).to.be.calledWith(verifiedQueueName, transactions[0]);
+			expect(addTransactionToQueueStub).to.be.calledWith(
+				verifiedQueueName,
+				transactions[0],
+			);
 		});
 	});
 
