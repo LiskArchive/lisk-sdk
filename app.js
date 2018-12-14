@@ -236,7 +236,7 @@ d.run(() => {
 										peer.ip
 									} to an IP address`
 								);
-								return callback(err, peer);
+								return callback(null, peer);
 							}
 							return callback(null, Object.assign({}, peer, { ip: address }));
 						});
@@ -244,9 +244,7 @@ d.run(() => {
 				);
 
 				return async.parallel(peerDomainLookupTasks, (_, results) => {
-					appConfig.peers.list = results
-						.filter(result => result.hasOwnProperty('value'))
-						.map(result => result.value);
+					appConfig.peers.list = results.map(result => result.value);
 					return cb(null, appConfig);
 				});
 			},
