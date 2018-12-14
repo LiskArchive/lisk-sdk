@@ -245,7 +245,9 @@ d.run(() => {
 
 				return async.parallel(peerDomainLookupTasks, (_, results) => {
 					appConfig.peers.list = results
-						.filter(result => result.hasOwnProperty('value'))
+						.filter(result =>
+							Object.prototype.hasOwnProperty.call(result, 'value')
+						)
 						.map(result => result.value);
 					return cb(null, appConfig);
 				});
