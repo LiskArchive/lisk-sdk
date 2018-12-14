@@ -16,10 +16,10 @@
 import { Queue } from '../src/queue';
 import { Transaction } from '../src/transaction_pool';
 import { expect } from 'chai';
-import transactions from '../fixtures/transactions.json';
+import transactionObjects from '../fixtures/transactions.json';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 
-const transferTransactionInstances = transactions.map(wrapTransferTransaction);
+const transactions = transactionObjects.map(wrapTransferTransaction);
 
 describe('Queue', () => {
 	let queue: Queue;
@@ -30,13 +30,13 @@ describe('Queue', () => {
 
 	describe('#enqueueOne', () => {
 		it('should add transaction to the queue', async () => {
-			const transaction = transferTransactionInstances[0];
+			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
 			expect(queue.transactions).to.include(transaction);
 		});
 
 		it('should add transaction to the queue index', async () => {
-			const transaction = transferTransactionInstances[0];
+			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
 			expect(queue.index[transaction.id]).to.deep.equal(transaction);
 		});
@@ -44,7 +44,6 @@ describe('Queue', () => {
 
 	describe('#enqueueMany', () => {
 		it('should add transactions to the queue', async () => {
-			const transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
 			transactions.forEach((transaction: Transaction) =>
 				expect(queue.transactions).to.include(transaction),
@@ -52,7 +51,6 @@ describe('Queue', () => {
 		});
 
 		it('should add transactions to the queue index', async () => {
-			const transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
 			transactions.forEach((transaction: Transaction) =>
 				expect(queue.index[transaction.id]).to.eq(transaction),
@@ -62,19 +60,18 @@ describe('Queue', () => {
 
 	describe('#exists', () => {
 		it('should return true if transaction exists in queue', async () => {
-			const transaction = transferTransactionInstances[0];
+			const transaction = transactions[0];
 			queue.enqueueOne(transaction);
 			expect(queue.exists(transaction)).to.be.true;
 		});
 
 		it('should return false if transaction does not exist in queue', async () => {
-			const transaction = transferTransactionInstances[0];
+			const transaction = transactions[0];
 			expect(queue.exists(transaction)).to.be.false;
 		});
 	});
 
 	describe('#removeFor', () => {
-		let transactions: ReadonlyArray<Transaction>;
 		const alwaysReturnFalse = () => () => false;
 		const checkIdsExists = (
 			ids: ReadonlyArray<string>,
@@ -83,7 +80,6 @@ describe('Queue', () => {
 		};
 
 		beforeEach(async () => {
-			transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
 		});
 
@@ -150,8 +146,6 @@ describe('Queue', () => {
 	});
 
 	describe('#dequeueUntil', () => {
-		let transactions: ReadonlyArray<Transaction>;
-
 		const returnTrueUntilLimit = (limit: number) => {
 			let currentValue = 0;
 
@@ -159,7 +153,6 @@ describe('Queue', () => {
 		};
 
 		beforeEach(async () => {
-			transactions = transferTransactionInstances;
 			queue.enqueueMany(transactions);
 		});
 
