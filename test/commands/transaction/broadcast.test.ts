@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 import * as inputUtils from '../../../src/utils/input/utils';
 
 describe('transaction:broadcast', () => {
@@ -55,9 +55,9 @@ describe('transaction:broadcast', () => {
 	};
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stdout();
 
 	describe('transaction:broadcast', () => {
@@ -68,7 +68,7 @@ describe('transaction:broadcast', () => {
 				sandbox.stub().rejects(new Error('Timeout error')),
 			)
 			.command(['transaction:broadcast'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
 			})
 			.it('should throw an error without transaction');
@@ -77,7 +77,7 @@ describe('transaction:broadcast', () => {
 	describe('transaction:broadcast transaction', () => {
 		setupTest()
 			.command(['transaction:broadcast', wrongTransaction])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse transaction JSON.',
 				);
@@ -87,7 +87,7 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.command(['transaction:broadcast', JSON.stringify(defaultTransaction)])
 			.it('should broadcast the transaction', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(
 					defaultTransaction,
 				);
@@ -101,7 +101,7 @@ describe('transaction:broadcast', () => {
 		setupTest()
 			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['transaction:broadcast'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No transaction was provided.');
 			})
 			.it('should throw an error with invalid transaction from stdin');
@@ -128,7 +128,7 @@ describe('transaction:broadcast', () => {
 			)
 			.command(['transaction:broadcast'])
 			.it('should broadcast the transaction', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(apiClientStub.transactions.broadcast).to.be.calledWithExactly(
 					defaultTransaction,
 				);

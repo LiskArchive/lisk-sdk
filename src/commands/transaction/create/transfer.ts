@@ -13,25 +13,30 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { transfer, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
-import * as transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
-import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources } from '../../../utils/input';
+import { AlphabetLowercase, flags as commonFlags } from '../../../utils/flags';
+import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+
+interface Args {
+	readonly address: string;
+	readonly amount: string;
+}
 
 const dataFlag = {
-	char: 'd',
+	char: 'd' as AlphabetLowercase,
 	description: `Optional UTF8 encoded data (maximum of 64 bytes) to include in the transaction asset.
 	Examples:
 	- --data=customInformation
 `,
 };
 
-const processInputs = (amount, address, data) => ({
+const processInputs = (amount: string, address: string, data?: string) => ({
 	passphrase,
 	secondPassphrase,
-}) =>
-	transactions.transfer({
+}: InputFromSourceOutput) =>
+	transfer({
 		recipientId: address,
 		amount,
 		data,
@@ -40,9 +45,38 @@ const processInputs = (amount, address, data) => ({
 	});
 
 export default class TransferCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'amount',
+			required: true,
+			description: 'Amount of LSK to send.',
+		},
+		{
+			name: 'address',
+			required: true,
+			description: 'Address of the recipient.',
+		},
+	];
+
+	static description = `
+	Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
+		`;
+
+	static examples = [
+		'transaction:create:transfer 100 13356260975429434553L',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
+		'no-signature': flagParser.boolean(commonFlags.noSignature),
+		data: flagParser.string(dataFlag),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { amount, address },
+			args,
 			flags: {
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
@@ -51,8 +85,10 @@ export default class TransferCommand extends BaseCommand {
 			},
 		} = this.parse(TransferCommand);
 
-		transactions.utils.validateAddress(address);
-		const normalizedAmount = transactions.utils.convertLSKToBeddows(amount);
+		const { amount, address }: Args = args;
+
+		transactionUtils.validateAddress(address);
+		const normalizedAmount = transactionUtils.convertLSKToBeddows(amount);
 
 		const processFunction = processInputs(
 			normalizedAmount,
@@ -61,11 +97,13 @@ export default class TransferCommand extends BaseCommand {
 		);
 
 		if (noSignature) {
-			const result = processFunction({
-				passphrase: null,
-				secondPassphrase: null,
+			const noSignatureResult = processFunction({
+				passphrase: undefined,
+				secondPassphrase: undefined,
 			});
-			return this.print(result);
+			this.print(noSignatureResult);
+
+			return;
 		}
 
 		const inputs = await getInputsFromSources({
@@ -74,42 +112,13 @@ export default class TransferCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 			secondPassphrase: !secondPassphraseSource
-				? null
+				? undefined
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
 					},
 		});
 		const result = processFunction(inputs);
-		return this.print(result);
+		this.print(result);
 	}
 }
-
-TransferCommand.args = [
-	{
-		name: 'amount',
-		required: true,
-		description: 'Amount of LSK to send.',
-	},
-	{
-		name: 'address',
-		required: true,
-		description: 'Address of the recipient.',
-	},
-];
-
-TransferCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
-	'no-signature': flagParser.boolean(commonFlags.noSignature),
-	data: flagParser.string(dataFlag),
-};
-
-TransferCommand.description = `
-Creates a transaction which will transfer the specified amount to an address if broadcast to the network.
-	`;
-
-TransferCommand.examples = [
-	'transaction:create:transfer 100 13356260975429434553L',
-];

@@ -13,11 +13,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import { expect, test } from '@oclif/test';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
-import * as print from '../../../../src/utils/print';
-import * as getInputsFromSources from '../../../../src/utils/input';
+import * as printUtils from '../../../../src/utils/print';
+import * as inputUtils from '../../../../src/utils/input';
 
 describe('transaction:create:transfer', () => {
 	const defaultAmount = '1';
@@ -45,7 +45,7 @@ describe('transaction:create:transfer', () => {
 
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				transactions,
@@ -54,8 +54,8 @@ describe('transaction:create:transfer', () => {
 			)
 			.stub(transactions, 'utils', transactionUtilStub)
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -88,12 +88,12 @@ describe('transaction:create:transfer', () => {
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
 					defaultAmount,
 				);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -116,12 +116,12 @@ describe('transaction:create:transfer', () => {
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
 					defaultAmount,
 				);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -144,7 +144,7 @@ describe('transaction:create:transfer', () => {
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
 					defaultAmount,
 				);
-				expect(getInputsFromSources.default).not.to.be.called;
+				expect(inputUtils.getInputsFromSources).not.to.be.called;
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
 				);
@@ -166,12 +166,12 @@ describe('transaction:create:transfer', () => {
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
 					defaultAmount,
 				);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: 'pass:123',
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				return expect(printMethodStub).to.be.calledWithExactly(
 					defaultTransaction,
@@ -195,7 +195,7 @@ describe('transaction:create:transfer', () => {
 				expect(transactionUtilStub.convertLSKToBeddows).to.be.calledWithExactly(
 					defaultAmount,
 				);
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: 'pass:123',
 						repeatPrompt: true,

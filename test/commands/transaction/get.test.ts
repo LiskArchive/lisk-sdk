@@ -13,10 +13,10 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
+import * as apiUtils from '../../../src/utils/api';
 import * as queryHandler from '../../../src/utils/query';
 
 describe('transaction:get', () => {
@@ -29,7 +29,7 @@ describe('transaction:get', () => {
 	const apiClientStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({ api: apiConfig }))
 			.stdout();
 
@@ -41,11 +41,11 @@ describe('transaction:get', () => {
 		};
 
 		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionId])
 			.it('should get a transaction’s info and display as an array', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
 					endpoint,
@@ -87,11 +87,11 @@ describe('transaction:get', () => {
 		];
 
 		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIds.join(',')])
 			.it('should get two transaction’s info and display as an array.', () => {
-				expect(api.default).to.be.calledWithExactly(apiConfig);
+				expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 				expect(queryHandler.query).to.be.calledWithExactly(
 					apiClientStub,
 					endpoint,
@@ -122,13 +122,13 @@ describe('transaction:get', () => {
 			});
 
 		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 			.command(['transaction:get', transactionIdsWithEmpty.join(',')])
 			.it(
 				'should get transaction’s info only using non-empty args and display as an array.',
 				() => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -161,11 +161,11 @@ describe('transaction:get', () => {
 
 		describe('transaction:get --sender-id', () => {
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['transaction:get', '--sender-id=12668885769632475474L'])
 				.it('should get all transactions for a given sender-id.', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -187,11 +187,11 @@ describe('transaction:get', () => {
 
 		describe('transaction: get --limit --offset', () => {
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['transaction:get', '--limit=10'])
 				.it('should get all transactions info limited by limit value.', () => {
-					expect(api.default).to.be.calledWithExactly(apiConfig);
+					expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 					expect(queryHandler.query).to.be.calledWithExactly(
 						apiClientStub,
 						endpoint,
@@ -210,13 +210,13 @@ describe('transaction:get', () => {
 				});
 
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 				.stub(queryHandler, 'query', sandbox.stub().resolves(queryResult))
 				.command(['transaction:get'])
 				.it(
 					'should get all transactions based on default value of limit(10) and offset(0).',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.query).to.be.calledWithExactly(
 							apiClientStub,
 							endpoint,
@@ -236,7 +236,7 @@ describe('transaction:get', () => {
 				);
 
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 				.stub(
 					queryHandler,
 					'query',
@@ -246,7 +246,7 @@ describe('transaction:get', () => {
 				.it(
 					'should return a message that no transactions found when there are no transactions after a given offset value.',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.query).to.be.calledWithExactly(
 							apiClientStub,
 							endpoint,
@@ -299,7 +299,7 @@ describe('transaction:get', () => {
 		};
 
 		setupTest()
-			.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStubNode))
 			.command(['transaction:get', '--state=unsign', '--offset=1'])
 			.catch(error => {
 				return expect(error.message).to.contain(
@@ -324,7 +324,7 @@ describe('transaction:get', () => {
 			};
 
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(localClientStub))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(localClientStub))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
@@ -334,7 +334,7 @@ describe('transaction:get', () => {
 				.it(
 					'should get an unprocessed transaction’s info by Id and display as an array.',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
 							localClientStub.node,
 							'unprocessed',
@@ -360,7 +360,7 @@ describe('transaction:get', () => {
 
 		describe('transaction:get transactions --state=unprocessed', () => {
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(apiClientStubNode))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStubNode))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
@@ -374,7 +374,7 @@ describe('transaction:get', () => {
 				.it(
 					'should get transaction’s info for given ids and unsigned state.',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
 							apiClientStubNode.node,
 							'unsigned',
@@ -426,7 +426,7 @@ describe('transaction:get', () => {
 			};
 
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(clientStubNode))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(clientStubNode))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
@@ -440,7 +440,7 @@ describe('transaction:get', () => {
 				.it(
 					'should get a transaction’s info for a given sender’s address and state and display as an array.',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
 							clientStubNode.node,
 							'unprocessed',
@@ -466,7 +466,7 @@ describe('transaction:get', () => {
 				);
 
 			setupTest()
-				.stub(api, 'default', sandbox.stub().returns(clientStubNode))
+				.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(clientStubNode))
 				.stub(
 					queryHandler,
 					'queryNodeTransaction',
@@ -481,7 +481,7 @@ describe('transaction:get', () => {
 				.it(
 					'should get a transaction’s info for a given txn Id, sender’s address and state and display as an array.',
 					() => {
-						expect(api.default).to.be.calledWithExactly(apiConfig);
+						expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 						expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
 							clientStubNode.node,
 							'unprocessed',
@@ -523,7 +523,7 @@ describe('transaction:get', () => {
 				};
 
 				setupTest()
-					.stub(api, 'default', sandbox.stub().returns(localClientStub))
+					.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(localClientStub))
 					.stub(
 						queryHandler,
 						'queryNodeTransaction',
@@ -533,7 +533,7 @@ describe('transaction:get', () => {
 					.it(
 						'should get transactions for a given state without specified txn id and limited by limit flag.',
 						() => {
-							expect(api.default).to.be.calledWithExactly(apiConfig);
+							expect(apiUtils.getAPIClient).to.be.calledWithExactly(apiConfig);
 							expect(queryHandler.queryNodeTransaction).to.be.calledWithExactly(
 								localClientStub.node,
 								'unprocessed',

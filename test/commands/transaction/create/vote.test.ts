@@ -13,12 +13,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
-import transactions from '@liskhq/lisk-transactions';
+import { expect, test } from '@oclif/test';
+import * as transactions from '@liskhq/lisk-transactions';
 import * as config from '../../../../src/utils/config';
-import * as print from '../../../../src/utils/print';
-import * as getInputsFromSources from '../../../../src/utils/input';
-import * as inputUtils from '../../../../src/utils/input/utils';
+import * as printUtils from '../../../../src/utils/print';
+import * as inputUtils from '../../../../src/utils/input';
+import * as inputModule from '../../../../src/utils/input/utils';
 
 describe('transaction:create:vote', () => {
 	const defaultVote = [
@@ -55,7 +55,7 @@ describe('transaction:create:vote', () => {
 
 	const setupStub = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(
 				transactions,
@@ -63,10 +63,10 @@ describe('transaction:create:vote', () => {
 				sandbox.stub().returns(defaultTransaction),
 			)
 			.stub(transactions, 'utils', transactionUtilStub)
-			.stub(inputUtils, 'getData', sandbox.stub().resolves(fileVotes.join(',')))
+			.stub(inputModule, 'getData', sandbox.stub().resolves(fileVotes.join(',')))
 			.stub(
-				getInputsFromSources,
-				'default',
+				inputUtils,
+				'getInputsFromSources',
 				sandbox.stub().resolves(defaultInputs),
 			)
 			.stdout();
@@ -86,12 +86,12 @@ describe('transaction:create:vote', () => {
 		setupStub()
 			.command(['transaction:create:vote', `--votes=${defaultVote.join(',')}`])
 			.it('should create transaction with only votes', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
@@ -110,14 +110,14 @@ describe('transaction:create:vote', () => {
 		setupStub()
 			.command(['transaction:create:vote', '--votes=file:vote.txt'])
 			.it('should create transaction with only votes from the file', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
-				expect(inputUtils.getData).to.be.calledWithExactly('file:vote.txt');
+				expect(inputModule.getData).to.be.calledWithExactly('file:vote.txt');
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					fileVotes,
 				);
@@ -140,12 +140,12 @@ describe('transaction:create:vote', () => {
 				`--unvotes=${defaultUnvote.join(',')}`,
 			])
 			.it('should create transaction with only unvotes', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultUnvote,
@@ -164,14 +164,14 @@ describe('transaction:create:vote', () => {
 		setupStub()
 			.command(['transaction:create:vote', '--unvotes=file:unvote.txt'])
 			.it('should create transaction with only unvotes from the file', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
-				expect(inputUtils.getData).to.be.calledWithExactly('file:unvote.txt');
+				expect(inputModule.getData).to.be.calledWithExactly('file:unvote.txt');
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					fileVotes,
 				);
@@ -208,12 +208,12 @@ describe('transaction:create:vote', () => {
 				`--unvotes=${defaultUnvote.join(',')}`,
 			])
 			.it('should create a transaction with votes and unvotes', () => {
-				expect(getInputsFromSources.default).to.be.calledWithExactly({
+				expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 					passphrase: {
 						source: undefined,
 						repeatPrompt: true,
 					},
-					secondPassphrase: null,
+					secondPassphrase: undefined,
 				});
 				expect(transactionUtilStub.validatePublicKeys).to.be.calledWithExactly(
 					defaultVote,
@@ -244,7 +244,7 @@ describe('transaction:create:vote', () => {
 			.it(
 				'should create a transaction with votes and unvotes without signature',
 				() => {
-					expect(getInputsFromSources.default).not.to.be.called;
+					expect(inputUtils.getInputsFromSources).not.to.be.called;
 					expect(
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultVote);
@@ -252,8 +252,8 @@ describe('transaction:create:vote', () => {
 						transactionUtilStub.validatePublicKeys,
 					).to.be.calledWithExactly(defaultUnvote);
 					expect(transactions.castVotes).to.be.calledWithExactly({
-						passphrase: null,
-						secondPassphrase: null,
+						passphrase: undefined,
+						secondPassphrase: undefined,
 						votes: defaultVote,
 						unvotes: defaultUnvote,
 					});
@@ -275,12 +275,12 @@ describe('transaction:create:vote', () => {
 			.it(
 				'should create a transaction with votes and unvotes with the passphrase from the flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,
 						},
-						secondPassphrase: null,
+						secondPassphrase: undefined,
 					});
 					expect(
 						transactionUtilStub.validatePublicKeys,
@@ -313,7 +313,7 @@ describe('transaction:create:vote', () => {
 			.it(
 				'should create a transaction with votes and unvotes with the passphrase and second passphrase from the flag',
 				() => {
-					expect(getInputsFromSources.default).to.be.calledWithExactly({
+					expect(inputUtils.getInputsFromSources).to.be.calledWithExactly({
 						passphrase: {
 							source: 'pass:123',
 							repeatPrompt: true,

@@ -13,39 +13,57 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { castVotes, utils as transactionUtils } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
-import * as transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
-import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources } from '../../../utils/input';
-import { getData } from '../../../utils/input/utils';
 import { ValidationError } from '../../../utils/error';
+import { flags as commonFlags } from '../../../utils/flags';
+import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
+import { getData } from '../../../utils/input/utils';
 
-const processInputs = (votes, unvotes) => ({ passphrase, secondPassphrase }) =>
-	transactions.castVotes({
+const processInputs = (votes: ReadonlyArray<string>, unvotes: ReadonlyArray<string>) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+	castVotes({
 		passphrase,
 		votes,
 		unvotes,
 		secondPassphrase,
 	});
 
-const processVotesInput = async votes =>
+const processVotesInput = async (votes: string) =>
 	votes.includes(':') ? getData(votes) : votes;
 
-const processVotes = votes =>
+const processVotes = (votes: string) =>
 	votes
 		.replace(/\n/g, ',')
 		.split(',')
 		.filter(Boolean)
 		.map(vote => vote.trim());
 
-const validatePublicKeys = inputs => {
-	transactions.utils.validatePublicKeys(inputs);
+const validatePublicKeys = (inputs: ReadonlyArray<string>) => {
+	transactionUtils.validatePublicKeys(inputs);
+
 	return inputs;
 };
 
 export default class VoteCommand extends BaseCommand {
-	async run() {
+	static description = `
+	Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
+	`;
+
+	static examples = [
+		'transaction:create:vote --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
+		'no-signature': flagParser.boolean(commonFlags.noSignature),
+		votes: flagParser.string(commonFlags.votes),
+		unvotes: flagParser.string(commonFlags.unvotes),
+	};
+
+	async run(): Promise<void> {
 		const {
 			flags: {
 				passphrase: passphraseSource,
@@ -70,10 +88,10 @@ export default class VoteCommand extends BaseCommand {
 
 		const processedVotesInput = votes
 			? await processVotesInput(votes.toString())
-			: null;
+			: undefined;
 		const processedUnvotesInput = unvotes
 			? await processVotesInput(unvotes.toString())
-			: null;
+			: undefined;
 
 		const validatedVotes = processedVotesInput
 			? validatePublicKeys(processVotes(processedVotesInput))
@@ -85,11 +103,13 @@ export default class VoteCommand extends BaseCommand {
 		const processFunction = processInputs(validatedVotes, validatedUnvotes);
 
 		if (noSignature) {
-			const result = processFunction({
-				passphrase: null,
-				secondPassphrase: null,
+			const noSignatureResult = processFunction({
+				passphrase: undefined,
+				secondPassphrase: undefined,
 			});
-			return this.print(result);
+			this.print(noSignatureResult);
+
+			return;
 		}
 
 		const inputs = await getInputsFromSources({
@@ -98,7 +118,7 @@ export default class VoteCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 			secondPassphrase: !secondPassphraseSource
-				? null
+				? undefined 
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
@@ -106,23 +126,6 @@ export default class VoteCommand extends BaseCommand {
 		});
 
 		const result = processFunction(inputs);
-		return this.print(result);
+		this.print(result);
 	}
 }
-
-VoteCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
-	'no-signature': flagParser.boolean(commonFlags.noSignature),
-	votes: flagParser.string(commonFlags.votes),
-	unvotes: flagParser.string(commonFlags.unvotes),
-};
-
-VoteCommand.description = `
-Creates a transaction which will cast votes (or unvotes) for delegate candidates using their public keys if broadcast to the network.
-`;
-
-VoteCommand.examples = [
-	'transaction:create:vote --votes 215b667a32a5cd51a94c9c2046c11fffb08c65748febec099451e3b164452bca,922fbfdd596fa78269bbcadc67ec2a1cc15fc929a19c462169568d7a3df1a1aa --unvotes e01b6b8a9b808ec3f67a638a2d3fa0fe1a9439b91dbdde92e2839c3327bd4589,ac09bc40c889f688f9158cca1fcfcdf6320f501242e0f7088d52a5077084ccba',
-];

@@ -13,23 +13,48 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { registerDelegate } from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
-import * as transactions from '@liskhq/lisk-transactions';
 import BaseCommand from '../../../base';
 import { flags as commonFlags } from '../../../utils/flags';
-import { getInputsFromSources } from '../../../utils/input';
+import { getInputsFromSources, InputFromSourceOutput } from '../../../utils/input';
 
-const processInputs = username => ({ passphrase, secondPassphrase }) =>
-	transactions.registerDelegate({
+interface Args {
+	readonly username: string;
+}
+
+const processInputs = (username: string) => ({ passphrase, secondPassphrase }: InputFromSourceOutput) =>
+	registerDelegate({
 		passphrase,
 		secondPassphrase,
 		username,
 	});
 
 export default class DelegateCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'username',
+			required: true,
+			description: 'Username to register as a delegate.',
+		},
+	];
+
+	static description = `
+	Creates a transaction which will register the account as a delegate candidate if broadcast to the network.
+	`;
+
+	static examples = ['transaction:create:delegate lightcurve'];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
+		'no-signature': flagParser.boolean(commonFlags.noSignature),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { username },
+			args,
 			flags: {
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
@@ -37,14 +62,17 @@ export default class DelegateCommand extends BaseCommand {
 			},
 		} = this.parse(DelegateCommand);
 
+		const { username }: Args = args;
 		const processFunction = processInputs(username);
 
 		if (noSignature) {
-			const result = processFunction({
-				passphrase: null,
-				secondPassphrase: null,
+			const noSignatureResult = processFunction({
+				passphrase: undefined,
+				secondPassphrase: undefined,
 			});
-			return this.print(result);
+			this.print(noSignatureResult);
+
+			return;
 		}
 
 		const inputs = await getInputsFromSources({
@@ -53,34 +81,13 @@ export default class DelegateCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 			secondPassphrase: !secondPassphraseSource
-				? null
+				? undefined
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
 					},
 		});
 		const result = processFunction(inputs);
-		return this.print(result);
+		this.print(result);
 	}
 }
-
-DelegateCommand.args = [
-	{
-		name: 'username',
-		required: true,
-		description: 'Username to register as a delegate.',
-	},
-];
-
-DelegateCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
-	'no-signature': flagParser.boolean(commonFlags.noSignature),
-};
-
-DelegateCommand.description = `
-Creates a transaction which will register the account as a delegate candidate if broadcast to the network.
-`;
-
-DelegateCommand.examples = ['transaction:create:delegate lightcurve'];

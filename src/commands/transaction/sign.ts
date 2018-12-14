@@ -16,18 +16,23 @@
 import * as transactions from '@liskhq/lisk-transactions';
 import { flags as flagParser } from '@oclif/command';
 import BaseCommand from '../../base';
-import { getStdIn } from '../../utils/input/utils';
 import { ValidationError } from '../../utils/error';
-import { parseTransactionString } from '../../utils/transactions';
-import { getInputsFromSources } from '../../utils/input';
 import { flags as commonFlags } from '../../utils/flags';
+import { getInputsFromSources } from '../../utils/input';
+import { getStdIn } from '../../utils/input/utils';
+import { parseTransactionString } from '../../utils/transactions';
 
-const getTransactionInput = async () => {
+interface Args {
+	readonly transaction?: string;
+}
+
+const getTransactionInput = async (): Promise<string> => {
 	try {
 		const { data } = await getStdIn({ dataIsRequired: true });
 		if (!data) {
 			throw new ValidationError('No transaction was provided.');
 		}
+
 		return data;
 	} catch (e) {
 		throw new ValidationError('No transaction was provided.');
@@ -35,15 +40,37 @@ const getTransactionInput = async () => {
 };
 
 export default class SignCommand extends BaseCommand {
-	async run() {
+	static args = [
+		{
+			name: 'transaction',
+			description: 'Transaction to sign in JSON format.',
+		},
+	];
+
+	static description = `
+	Sign a transaction using your secret passphrase.
+	`;
+
+	static examples = [
+		'transaction:sign \'{"amount":"100","recipientId":"13356260975429434553L","senderPublicKey":null,"timestamp":52871598,"type":0,"fee":"10000000","recipientPublicKey":null,"asset":{}}\'',
+	];
+
+	static flags = {
+		...BaseCommand.flags,
+		passphrase: flagParser.string(commonFlags.passphrase),
+		'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
+	};
+
+	async run(): Promise<void> {
 		const {
-			args: { transaction },
+			args,
 			flags: {
 				passphrase: passphraseSource,
 				'second-passphrase': secondPassphraseSource,
 			},
 		} = this.parse(SignCommand);
 
+		const { transaction }: Args = args;
 		const transactionInput = transaction || (await getTransactionInput());
 		const transactionObject = parseTransactionString(transactionInput);
 
@@ -58,7 +85,7 @@ export default class SignCommand extends BaseCommand {
 				repeatPrompt: true,
 			},
 			secondPassphrase: !secondPassphraseSource
-				? null
+				? undefined
 				: {
 						source: secondPassphraseSource,
 						repeatPrompt: true,
@@ -74,24 +101,3 @@ export default class SignCommand extends BaseCommand {
 		this.print(result);
 	}
 }
-
-SignCommand.args = [
-	{
-		name: 'transaction',
-		description: 'Transaction to sign in JSON format.',
-	},
-];
-
-SignCommand.flags = {
-	...BaseCommand.flags,
-	passphrase: flagParser.string(commonFlags.passphrase),
-	'second-passphrase': flagParser.string(commonFlags.secondPassphrase),
-};
-
-SignCommand.description = `
-Sign a transaction using your secret passphrase.
-`;
-
-SignCommand.examples = [
-	'transaction:sign \'{"amount":"100","recipientId":"13356260975429434553L","senderPublicKey":null,"timestamp":52871598,"type":0,"fee":"10000000","recipientPublicKey":null,"asset":{}}\'',
-];

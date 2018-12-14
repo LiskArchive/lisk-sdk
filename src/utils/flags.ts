@@ -65,7 +65,7 @@ const unvotesDescription = `Specifies the public keys for the delegate candidate
 const noSignatureDescription =
 	'Creates the transaction without a signature. Your passphrase will therefore not be required.';
 
-type AlphabetLowercase =
+export type AlphabetLowercase =
 	| 'a'
 	| 'b'
 	| 'c'

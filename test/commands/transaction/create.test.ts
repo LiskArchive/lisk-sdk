@@ -13,9 +13,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { test } from '@oclif/test';
+import { expect, test } from '@oclif/test';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
+import * as printUtils from '../../../src/utils/print';
 import TransferCommand from '../../../src/commands/transaction/create/transfer';
 import SecondPassphraseCommand from '../../../src/commands/transaction/create/second-passphrase';
 import DelegateCommand from '../../../src/commands/transaction/create/delegate';
@@ -26,7 +26,7 @@ describe('transaction:create', () => {
 	const printMethodStub = sandbox.stub();
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
 			.stub(TransferCommand, 'run', sandbox.stub())
 			.stub(SecondPassphraseCommand, 'run', sandbox.stub())
