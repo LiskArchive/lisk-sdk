@@ -53,7 +53,7 @@ const processFlagInputs = (
 	) {
 		throw new Error('Offset must be an integer and greater than or equal to 0');
 	}
-	if (sort !== undefined && !VOTES_SORT_FIELDS.includes(sort)) {
+	if (sort && !VOTES_SORT_FIELDS.includes(sort)) {
 		throw new Error(`Sort must be one of: ${VOTES_SORT_FIELDS.join(', ')}`);
 	}
 
