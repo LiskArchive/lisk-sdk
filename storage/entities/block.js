@@ -21,8 +21,8 @@ const filterType = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
 /**
- * Basic Block
- * @typedef {Object} BasicBlock
+ * Block
+ * @typedef {Object} Block
  * @property {string} id
  * @property {string} payloadHash
  * @property {string} generatorPublicKey
