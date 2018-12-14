@@ -583,7 +583,7 @@ describe('transaction', () => {
 			});
 		});
 
-		it('should return error when transaction is type 1 and sender already has a second passphrase', done => {
+		it('should return error when transaction is type 1 and sender already has second signature enabled', done => {
 			const transaction = _.cloneDeep(validTransaction);
 			transaction.type = 1;
 			transaction.asset = {
