@@ -35,9 +35,7 @@ class Storage {
 		}
 
 		this.isReady = false;
-
 		Storage.instance = this;
-
 		Storage.instance.BaseEntity = BaseEntity;
 	}
 
@@ -59,11 +57,11 @@ class Storage {
 				Storage.instance.adapter = adapter;
 
 				Storage.instance.entities = {
-					Account: new Account(Storage.instance.adapter),
-					Block: new Block(Storage.instance.adapter),
-					Delegate: new Delegate(Storage.instance.adapter),
-					Peer: new Peer(Storage.instance.adapter),
-					Transaction: new Transaction(Storage.instance.adapter),
+					Account: new Account(adapter),
+					Block: new Block(adapter),
+					Delegate: new Delegate(adapter),
+					Peer: new Peer(adapter),
+					Transaction: new Transaction(adapter),
 				};
 			}
 

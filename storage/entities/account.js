@@ -200,12 +200,12 @@ const FIELD_SET_FULL = Symbol('FIELD_SET_FULL');
 class Account extends BaseEntity {
 	/**
 	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
 	 * @param {filters.Account} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.defaultFilters = defaultFilters;
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });
@@ -485,26 +485,6 @@ class Account extends BaseEntity {
 
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
-	}
-
-	/**
-	 * Merge multiple filters together
-	 * @param {Array.<Object>|Object} filters
-	 * @return {*}
-	 */
-	mergeFilters(filters) {
-		const mergedFilters = filters;
-
-		if (Array.isArray(mergedFilters)) {
-			const lastIndex = mergedFilters.length - 1;
-			mergedFilters[lastIndex] = Object.assign(
-				{},
-				mergedFilters[lastIndex],
-				this.defaultFilters
-			);
-			return mergedFilters;
-		}
-		return Object.assign({}, mergedFilters, this.defaultFilters);
 	}
 }
 

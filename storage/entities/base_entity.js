@@ -24,6 +24,11 @@ const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
 
 class BaseEntity {
+	/**
+	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrive the data from
+	 * @param {filters.BaseEntity} defaultFilters - Set of default filters applied on every query
+	 */
 	constructor(adapter, defaultFilters = {}) {
 		this.adapter = adapter;
 		this.fields = {};
@@ -33,7 +38,6 @@ class BaseEntity {
 			limit: 10,
 			offset: 0,
 		};
-		this.defaultFilters = {};
 	}
 
 	/**
@@ -235,13 +239,13 @@ class BaseEntity {
 	/**
 	 * Validate allowed filters
 	 * @param {Array.<Object>|Object} filters
-	 * @param {Boolean} required
+	 * @param {Boolean} atLeastOneRequired
 	 * @return {true, NonSupportedFilterTypeError>}
 	 */
-	validateFilters(filters = {}, required = false) {
-		if (required && (!filters || !Object.keys(filters).length)) {
+	validateFilters(filters = {}, atLeastOneRequired = false) {
+		if (atLeastOneRequired && (!filters || !Object.keys(filters).length)) {
 			throw new NonSupportedFilterTypeError(
-				'Filters are required for this operation.'
+				'One or more filters are required for this operation.'
 			);
 		}
 
@@ -274,19 +278,17 @@ class BaseEntity {
 	/**
 	 * Validate allowed options
 	 * @param {Object} options
-	 * @param {Boolean} required
+	 * @param {Boolean} atLeastOneRequired
 	 * @return {true, NonSupportedFilterTypeError>}
 	 */
-	validateOptions(options = {}, required = false) {
-		if (required && (!options || !Object.keys(options).length)) {
+	validateOptions(options = {}, atLeastOneRequired = false) {
+		if (atLeastOneRequired && (!options || !Object.keys(options).length)) {
 			throw new NonSupportedOptionError(
-				'Options are required for this operation.'
+				'One or more options are required for this operation.'
 			);
 		}
 
-		let invalidOptions = [];
-
-		invalidOptions = Object.keys(options).filter(
+		const invalidOptions = Object.keys(options).filter(
 			item => !(item in this.defaultOptions)
 		);
 
@@ -299,46 +301,37 @@ class BaseEntity {
 
 		return true;
 	}
+
 	parseFilters(filters) {
 		let filterString = null;
 
+		const parseFilterObject = object =>
+			Object.keys(object)
+				.map(key => this.filters[key])
+				.join(' AND ');
+
 		if (Array.isArray(filters)) {
-			filterString = this._parseArrayFilter(filters);
-		} else if (Object.keys(filters).length > 0) {
-			filterString = this._parseFilterObject(filters);
+			filterString = filters
+				.map(filterObject => parseFilterObject(filterObject))
+				.join(' OR ');
+		} else if (typeof filters === 'object') {
+			filterString = parseFilterObject(filters);
 		}
 
-		const filtersObject = BaseEntity._filtersToObject(filters);
+		let filtersObject = filters;
 
-		return this._filterClause(filterString, filtersObject);
-	}
+		if (Array.isArray(filters)) {
+			filtersObject = Object.assign({}, ...filters);
+		}
 
-	_filterClause(filterString, filtersObject) {
-		let filterClause;
 		if (filterString) {
-			filterClause = `WHERE ${this.adapter.parseQueryComponent(
+			return `WHERE ${this.adapter.parseQueryComponent(
 				filterString,
 				filtersObject
 			)}`;
 		}
 
-		return filterClause || '';
-	}
-
-	static _filtersToObject(filters) {
-		return Array.isArray(filters) ? Object.assign({}, ...filters) : filters;
-	}
-
-	_parseArrayFilter(filters) {
-		return filters
-			.map(filterObject => this._parseFilterObject(filterObject))
-			.join(' OR ');
-	}
-
-	_parseFilterObject(object) {
-		return `(${Object.keys(object)
-			.map(key => this.filters[key])
-			.join(' AND ')})`;
+		return '';
 	}
 
 	/**
