@@ -16,8 +16,15 @@ import BigNum from 'browserify-bignum';
 import { TransactionError } from '../../errors';
 import { Account } from '../../transaction_types';
 import { convertBeddowsToLSK } from '../../utils';
+interface VerifyReturn {
+	readonly verified: boolean;
+	readonly error?: TransactionError;
+}
 
-export const verifyBalance = (sender: Account, amount: BigNum) => {
+export const verifyBalance = (
+	sender: Account,
+	amount: BigNum,
+): VerifyReturn => {
 	const exceeded = new BigNum(sender.balance).lt(new BigNum(amount));
 
 	return {

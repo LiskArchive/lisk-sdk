@@ -68,7 +68,7 @@ export abstract class BaseTransaction {
 			throw new TransactionMultiError(
 				'Invalid field types',
 				rawTransaction.id,
-				errors as ReadonlyArray<TransactionError>,
+				errors,
 			);
 		}
 

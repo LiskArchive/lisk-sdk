@@ -16,14 +16,16 @@ import { TransactionError } from '../../errors';
 import { TransactionJSON } from '../../transaction_types';
 import { verifySignature } from './verify_signature';
 
+interface VerifyReturn {
+	readonly verified: boolean;
+	readonly errors: ReadonlyArray<TransactionError>;
+}
+
 export const verifyMultisignatures = (
 	memberPublicKeys: ReadonlyArray<string> = [],
 	minimumValidations: number = 0,
 	transaction: TransactionJSON,
-): {
-	readonly verified: boolean;
-	readonly errors: ReadonlyArray<TransactionError>;
-} => {
+): VerifyReturn => {
 	if (
 		!transaction.signatures ||
 		transaction.signatures.length < minimumValidations

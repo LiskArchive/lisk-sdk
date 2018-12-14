@@ -17,9 +17,12 @@ import { TransactionJSON } from '../../transaction_types';
 import { validator } from '../../utils';
 import * as schemas from '../../utils/validation/schema';
 
-export const checkTypes = (
-	tx: TransactionJSON,
-): { readonly valid: boolean; readonly errors?: ReadonlyArray<Error> } => {
+interface CheckReturn {
+	readonly valid: boolean;
+	readonly errors: ReadonlyArray<TransactionError>;
+}
+
+export const checkTypes = (tx: TransactionJSON): CheckReturn => {
 	const typeValidator = validator.compile(schemas.transaction);
 	const valid = typeValidator(tx) as boolean;
 
@@ -32,7 +35,7 @@ export const checkTypes = (
 						error.dataPath,
 					),
 		  )
-		: undefined;
+		: [];
 
 	return { valid, errors };
 };
