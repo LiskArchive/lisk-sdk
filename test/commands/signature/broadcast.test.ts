@@ -14,9 +14,9 @@
  *
  */
 import { expect, test } from '@oclif/test';
+import * as apiUtils from '../../../src/utils/api';
 import * as config from '../../../src/utils/config';
-import * as print from '../../../src/utils/print';
-import * as api from '../../../src/utils/api';
+import * as printUtils from '../../../src/utils/print';
 import * as inputUtils from '../../../src/utils/input/utils';
 
 describe('signature:broadcast', () => {
@@ -38,9 +38,9 @@ describe('signature:broadcast', () => {
 
 	const setupTest = () =>
 		test
-			.stub(print, 'default', sandbox.stub().returns(printMethodStub))
+			.stub(printUtils, 'print', sandbox.stub().returns(printMethodStub))
 			.stub(config, 'getConfig', sandbox.stub().returns({}))
-			.stub(api, 'default', sandbox.stub().returns(apiClientStub))
+			.stub(apiUtils, 'getAPIClient', sandbox.stub().returns(apiClientStub))
 			.stub(
 				inputUtils,
 				'getStdIn',
@@ -52,7 +52,7 @@ describe('signature:broadcast', () => {
 		setupTest()
 			.stub(inputUtils, 'getStdIn', sandbox.stub().resolves({}))
 			.command(['signature:broadcast'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain('No signature was provided.');
 			})
 			.it('should throw an error when no signature was provided');
@@ -61,7 +61,7 @@ describe('signature:broadcast', () => {
 	describe('signature:broadcast signature', () => {
 		setupTest()
 			.command(['signature:broadcast', '{invalid: json, format: bad}'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse signature JSON. Did you use the `--json` option?',
 				);
@@ -88,7 +88,7 @@ describe('signature:broadcast', () => {
 				sandbox.stub().resolves({ data: '{invalid: json, format: bad}' }),
 			)
 			.command(['signature:broadcast'])
-			.catch(error => {
+			.catch((error: Error) => {
 				return expect(error.message).to.contain(
 					'Could not parse signature JSON. Did you use the `--json` option?',
 				);

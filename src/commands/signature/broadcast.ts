@@ -14,9 +14,13 @@
  *
  */
 import BaseCommand from '../../base';
+import { getAPIClient } from '../../utils/api';
 import { ValidationError } from '../../utils/error';
 import { getStdIn } from '../../utils/input/utils';
-import { getAPIClient } from '../../utils/api';
+
+interface Args {
+	readonly signature?: string;
+}
 
 const getSignatureInput = async () => {
 	try {
@@ -24,6 +28,7 @@ const getSignatureInput = async () => {
 		if (!data) {
 			throw new ValidationError('No signature was provided.');
 		}
+
 		return data;
 	} catch (e) {
 		throw new ValidationError('No signature was provided.');
@@ -31,10 +36,34 @@ const getSignatureInput = async () => {
 };
 
 export default class BroadcastCommand extends BaseCommand {
-	async run() {
-		const { args: { signature } } = this.parse(BroadcastCommand);
+	static args = [
+		{
+			name: 'signature',
+			description: 'Signature to broadcast.',
+		},
+	];
+
+	static description = `
+	Broadcasts a signature for a transaction from a multisignature account.
+	Accepts a stringified JSON signature as an argument, or a signature can be piped from a previous command.
+	If piping make sure to quote out the entire command chain to avoid piping-related conflicts in your shell.
+	`;
+
+	static examples = [
+		'signature:broadcast \'{"transactionId":"abcd1234","publicKey":"abcd1234","signature":"abcd1234"}\'',
+		'echo \'{"transactionId":"abcd1234","publicKey":"abcd1234","signature":"abcd1234"}\' | lisk signature:broadcast',
+	];
+
+	static lags = {
+		...BaseCommand.flags,
+	};
+
+	async run(): Promise<void> {
+		const { args } = this.parse(BroadcastCommand);
+		const { signature }: Args = args;
 		const signatureInput = signature || (await getSignatureInput());
-		let signatureObject;
+		// tslint:disable-next-line no-let
+		let signatureObject: object;
 		try {
 			signatureObject = JSON.parse(signatureInput);
 		} catch (error) {
@@ -48,24 +77,3 @@ export default class BroadcastCommand extends BaseCommand {
 	}
 }
 
-BroadcastCommand.args = [
-	{
-		name: 'signature',
-		description: 'Signature to broadcast.',
-	},
-];
-
-BroadcastCommand.flags = {
-	...BaseCommand.flags,
-};
-
-BroadcastCommand.description = `
-Broadcasts a signature for a transaction from a multisignature account.
-Accepts a stringified JSON signature as an argument, or a signature can be piped from a previous command.
-If piping make sure to quote out the entire command chain to avoid piping-related conflicts in your shell.
-`;
-
-BroadcastCommand.examples = [
-	'signature:broadcast \'{"transactionId":"abcd1234","publicKey":"abcd1234","signature":"abcd1234"}\'',
-	'echo \'{"transactionId":"abcd1234","publicKey":"abcd1234","signature":"abcd1234"}\' | lisk signature:broadcast',
-];
