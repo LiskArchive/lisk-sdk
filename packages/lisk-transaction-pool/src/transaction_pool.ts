@@ -35,23 +35,34 @@ export interface TransactionFunctions {
 
 interface TransactionPoolOptions {
 	readonly expireTransactionsInterval: number;
+	readonly maxTransactionsPerQueue: number;
+}
+
+export interface AddTransactionResult {
+	readonly alreadyExists: boolean;
+	readonly isFull: boolean;
 }
 
 export type Transaction = TransactionObject & TransactionFunctions;
+
+export type queueNames = 'received' | 'validated' | 'verified' | 'pending' | 'ready';
 
 interface Queues {
 	readonly [queue: string]: Queue;
 }
 
 const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
+const DEFAULT_MAX_TRANSACTIONS_PER_QUEUE = 30000;
 
 export class TransactionPool {
 	private readonly _expireTransactionsInterval: number;
 	private readonly _expireTransactionsJob: Job<ReadonlyArray<Transaction>>;
+	private readonly _maxTransactionsPerQueue: number;
 	private readonly _queues: Queues;
 
 	public constructor({
 		expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL,
+		maxTransactionsPerQueue = DEFAULT_MAX_TRANSACTIONS_PER_QUEUE,
 	}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
@@ -66,14 +77,14 @@ export class TransactionPool {
 			this._expireTransactionsInterval,
 		);
 		this._expireTransactionsJob.start();
+
+		this._maxTransactionsPerQueue = maxTransactionsPerQueue;
 	}
 
-	public addTransactions(transactions: ReadonlyArray<Transaction>): void {
-		transactions.forEach((transaction: Transaction) => {
-			if (this.existsInTransactionPool(transaction)) {
-				this._queues.received.enqueueOne(transaction);
-			}
-		});
+	public addTransaction(transaction: Transaction): AddTransactionResult {
+		const receivedQueue: queueNames = 'received';
+
+		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
 
 	public addVerifiedRemovedTransactions(
@@ -176,6 +187,32 @@ export class TransactionPool {
 			  ])
 			: true;
 	}
+
+	private addTransactionToQueue(queueName: queueNames, transaction: Transaction): AddTransactionResult {
+		if (this.existsInTransactionPool(transaction)) {
+			return {
+				isFull: false,
+				alreadyExists: true
+			};
+		}
+
+		if (this._queues[queueName].size() >= this._maxTransactionsPerQueue) {
+			return {
+				isFull: true,
+				alreadyExists: false
+			};
+		}
+		// Add receivedAt property for the transaction
+		transaction.receivedAt = new Date();
+
+		this._queues[queueName].enqueueOne(transaction);
+
+		return {
+			isFull: false,
+			alreadyExists: false
+		};
+	}
+
 
 	private async expireTransactions(): Promise<ReadonlyArray<Transaction>> {
 		return this.removeTransactionsFromQueues(
