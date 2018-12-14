@@ -69,7 +69,7 @@ describe('response handlers', () => {
 					});
 			});
 
-			it('should return peer object and instance of Peer sets blank for invalid value of os', () => {
+			it('should return peerConfig and instance of Peer sets blank for invalid value of os', () => {
 				return expect(instantiatePeerFromResponse(peerWithInvalidOsValue))
 					.to.be.an('object')
 					.include({
@@ -83,7 +83,7 @@ describe('response handlers', () => {
 		});
 
 		describe('for invalid peer response object', () => {
-			it('should return false for invalid peer values', () => {
+			it('throw InvalidPeer error for invalid peer', () => {
 				const peerInvalid: unknown = null;
 
 				return expect(
@@ -91,7 +91,7 @@ describe('response handlers', () => {
 				).to.throw('Invalid peer object');
 			});
 
-			it('should return false for invalid peer values', () => {
+			it('throw InvalidPeer error for invalid peer ip or port', () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.uhig3',
 					wsPort: '53937888',
@@ -104,7 +104,7 @@ describe('response handlers', () => {
 				).to.throw('Invalid peer ip or port');
 			});
 
-			it('should return false for invalid peer values', () => {
+			it('throw InvalidPeer error for invalid peer version', () => {
 				const peerInvalid: unknown = {
 					ip: '12.23.54.23',
 					wsPort: '5390',
@@ -120,8 +120,8 @@ describe('response handlers', () => {
 		});
 	});
 
-	describe('#checkPeerAddress', () => {
-		it('should return true for IPv4', () => {
+	describe('#checkForValidPeerAddress', () => {
+		it('should return true for correct IPv4', () => {
 			const peer = {
 				ip: '12.12.12.12',
 				wsPort: '4001',
@@ -130,7 +130,7 @@ describe('response handlers', () => {
 			return expect(checkForValidPeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
-		it('should return true for IPv6', () => {
+		it('should return true for correct IPv6', () => {
 			const peer = {
 				ip: '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
 				wsPort: '4001',
