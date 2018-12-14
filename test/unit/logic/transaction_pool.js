@@ -81,6 +81,16 @@ describe('transactionPool', () => {
 		message: sinonSandbox.spy(),
 	};
 
+	const removeQueuedTransactionSpy = sinonSandbox.spy(
+		TransactionPool.prototype,
+		'removeQueuedTransaction'
+	);
+
+	const removeMultisignatureTransactionSpy = sinonSandbox.spy(
+		TransactionPool.prototype,
+		'removeMultisignatureTransaction'
+	);
+
 	const resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
 		transactionPool.bundled = _.cloneDeep(freshListState);
@@ -116,6 +126,9 @@ describe('transactionPool', () => {
 			'modules.transactions.undoUnconfirmed',
 			dummyUndoUnconfirmed
 		);
+
+		removeQueuedTransactionSpy.reset();
+		removeMultisignatureTransactionSpy.reset();
 	};
 
 	before(done => {
@@ -224,6 +237,28 @@ describe('transactionPool', () => {
 					transactions: transactionsStub,
 					loader: loaderStub,
 				});
+			});
+		});
+
+		describe('jobsQueue', () => {
+			it('should register transactionPoolNextBundle with bundledInterval', () => {
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
+				expect(jobsQueue.jobs).to.have.any.key('transactionPoolNextBundle');
+				return expect(
+					jobsQueue.jobs.transactionPoolNextBundle._idleTimeout
+				).to.equal(transactionPool.bundledInterval);
+			});
+
+			it('should register transactionPoolNextExpiry with expiryInterval', () => {
+				expect(Object.keys(jobsQueue.jobs))
+					.to.be.an('array')
+					.and.lengthOf(2);
+				expect(jobsQueue.jobs).to.have.any.key('transactionPoolNextExpiry');
+				return expect(
+					jobsQueue.jobs.transactionPoolNextExpiry._idleTimeout
+				).to.equal(transactionPool.expiryInterval);
 			});
 		});
 	});
@@ -1032,6 +1067,33 @@ describe('transactionPool', () => {
 				done();
 			});
 		});
+
+		describe('when node is syncing', () => {
+			it('should not process bundled transactions', done => {
+				const getBundledTransactionListStub = sinonSandbox.stub();
+				const processVerifyTransactionStub = sinonSandbox.stub();
+				const queueTransactionStub = sinonSandbox.stub();
+				TransactionPool.__set__(
+					'TransactionPool.prototype.getBundledTransactionList',
+					getBundledTransactionListStub
+				);
+				TransactionPool.__set__(
+					'__private.processVerifyTransaction',
+					processVerifyTransactionStub
+				);
+				TransactionPool.__set__(
+					'__private.queueTransaction',
+					queueTransactionStub
+				);
+				loaderStub.syncing.returns(true);
+				transactionPool.processBundled(() => {
+					expect(getBundledTransactionListStub.called).to.be.false;
+					expect(processVerifyTransactionStub.called).to.be.false;
+					expect(queueTransactionStub.called).to.be.false;
+					done();
+				});
+			});
+		});
 	});
 
 	describe('undoUnconfirmedList', () => {
@@ -1516,6 +1578,28 @@ describe('transactionPool', () => {
 									return expect(index).to.be.an('undefined');
 								});
 							});
+						});
+
+						it('should call removeQueuedTransaction when failed to process', () => {
+							return expect(removeQueuedTransactionSpy.callCount).to.eql(1);
+						});
+
+						it('should call removeQueuedTransaction with the correct transactionId', () => {
+							return expect(
+								removeQueuedTransactionSpy.calledWith(badTransaction.id)
+							).to.eql(true);
+						});
+
+						it('should call removeMultisignatureTransaction when failed to process', () => {
+							return expect(
+								removeMultisignatureTransactionSpy.callCount
+							).to.eql(1);
+						});
+
+						it('should call removeMultisignatureTransaction with the correct transactionId', () => {
+							return expect(
+								removeMultisignatureTransactionSpy.calledWith(badTransaction.id)
+							).to.eql(true);
 						});
 
 						after(resetStates);

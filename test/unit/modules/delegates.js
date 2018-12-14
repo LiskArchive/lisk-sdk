@@ -23,6 +23,8 @@ const seeder = require('../../common/db_seed');
 
 let db;
 
+const exceptions = global.exceptions;
+
 describe('delegates', () => {
 	let library;
 
@@ -495,6 +497,7 @@ describe('delegates', () => {
 		describe('getDelegateKeypairForCurrentSlot', () => {
 			let delegates;
 			let __private;
+			let originalGenerateDelegateList;
 
 			const genesis1 = {
 				passphrase:
@@ -540,6 +543,13 @@ describe('delegates', () => {
 				__private.keypairs[genesis2.publicKey] = genesis2Keypair;
 				__private.keypairs[genesis3.publicKey] = genesis3Keypair;
 
+				originalGenerateDelegateList = delegates.generateDelegateList;
+
+				done();
+			});
+
+			after(done => {
+				delegates.generateDelegateList = originalGenerateDelegateList;
 				done();
 			});
 
@@ -657,6 +667,233 @@ describe('delegates', () => {
 					}
 				);
 			});
+		});
+
+		describe('__private.delegatesListCache operations', () => {
+			let __private;
+			beforeEach(done => {
+				__private = library.rewiredModules.delegates.__get__('__private');
+				done();
+			});
+
+			describe('__private.updateDelegateListCache', () => {
+				it('should insert the given delegateList array to __private.delegateListCache for given round.', () => {
+					// Arrange
+					__private.delegatesListCache = {};
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 1;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					expect(__private.delegatesListCache).to.have.property(round);
+					return expect(__private.delegatesListCache[round]).to.deep.equal(
+						delegateListArray
+					);
+				});
+
+				it('should sort rounds in ascending order.', () => {
+					// Arrange
+					__private.delegatesListCache = {
+						2: ['x', 'y', 'z'],
+					};
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 1;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					return expect(
+						Object.keys(__private.delegatesListCache)
+					).to.deep.equal(['1', '2']);
+				});
+
+				it('should keep only the last two rounds in the __private.delegateListCache.', () => {
+					// Arrange
+					const initialSate = {
+						1: ['j', 'k', 'l'],
+						2: ['x', 'y', 'z'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 3;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					expect(Object.keys(__private.delegatesListCache)).to.deep.equal([
+						'2',
+						'3',
+					]);
+					expect(__private.delegatesListCache['2']).to.deep.equal(
+						initialSate['2']
+					);
+					return expect(__private.delegatesListCache[round]).to.deep.equal(
+						delegateListArray
+					);
+				});
+
+				// See: https://github.com/LiskHQ/lisk/issues/2652
+				it('ensures ordering rounds correctly', () => {
+					// Arrange
+					const initialSate = {
+						9: ['j', 'k', 'l'],
+						10: ['x', 'y', 'z'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+					const delegateListArray = ['a', 'b', 'c'];
+					const round = 11;
+
+					// Act
+					__private.updateDelegateListCache(round, delegateListArray);
+
+					// Assert
+					expect(Object.keys(__private.delegatesListCache)).to.deep.equal([
+						'10',
+						'11',
+					]);
+					expect(__private.delegatesListCache['10']).to.deep.equal(
+						initialSate['10']
+					);
+					return expect(__private.delegatesListCache[round]).to.deep.equal(
+						delegateListArray
+					);
+				});
+			});
+
+			describe('__private.clearDelegateListCache', () => {
+				it('should clear __private.delegateListCache object.', () => {
+					// Arrange
+					const initialSate = {
+						1: ['j', 'k', 'l'],
+						2: ['x', 'y', 'z'],
+					};
+					__private.delegatesListCache = { ...initialSate };
+
+					// Act
+					library.modules.delegates.clearDelegateListCache();
+
+					// Assert
+					return expect(__private.delegatesListCache).to.deep.equal({});
+				});
+
+				it('should not mutate empty __private.delegateListCache object.', () => {
+					// Arrange
+					__private.delegatesListCache = {};
+
+					// Act
+					library.modules.delegates.clearDelegateListCache();
+
+					// Assert
+					return expect(__private.delegatesListCache).to.deep.equal({});
+				});
+			});
+		});
+	});
+
+	describe('generateDelegateList', () => {
+		let __private;
+		let sourceStub;
+		let originalExceptions;
+		const dummyDelegateList = ['x', 'y', 'z'];
+		beforeEach(done => {
+			__private = library.rewiredModules.delegates.__get__('__private');
+			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
+			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
+			done();
+		});
+
+		afterEach(done => {
+			exceptions.ignoreDelegateListCacheForRounds = originalExceptions;
+			done();
+		});
+
+		it('should return the cached delegate list when there is cache for the round', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				1,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(delegateList).to.deep.equal(initialSate[1]);
+					expect(sourceStub).to.not.been.called;
+					done();
+				}
+			);
+		});
+
+		it('should call the source function when cache not found', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				2,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(sourceStub).to.been.called;
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					done();
+				}
+			);
+		});
+
+		it('should update the delegate list cache when source function was executed', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+			const shuffledDummyDelegateList = ['y', 'z', 'x'];
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				2,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					expect(__private.delegatesListCache['2']).to.deep.equal(
+						shuffledDummyDelegateList
+					);
+					done();
+				}
+			);
+		});
+
+		it('should not update the delegate list cache when round is an exception', done => {
+			// Arrange
+			const initialSate = {
+				1: ['j', 'k', 'l'],
+			};
+			__private.delegatesListCache = { ...initialSate };
+			exceptions.ignoreDelegateListCacheForRounds.push(666);
+
+			// Act
+			library.modules.delegates.generateDelegateList(
+				666,
+				sourceStub,
+				(err, delegateList) => {
+					// Assert
+
+					expect(delegateList).to.deep.equal(dummyDelegateList);
+					expect(__private.delegatesListCache).to.not.have.property('666');
+					done();
+				}
+			);
 		});
 	});
 

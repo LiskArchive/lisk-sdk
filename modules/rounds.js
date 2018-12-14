@@ -181,7 +181,7 @@ Rounds.prototype.backwardTick = function(block, previousBlock, done, tx) {
 			 * delegate list.
 			 * */
 			if (scope.finishRound) {
-				modules.delegates.clearLastDelegateListCache();
+				modules.delegates.clearDelegateListCache();
 			}
 
 			return done();

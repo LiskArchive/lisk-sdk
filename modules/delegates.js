@@ -112,7 +112,7 @@ __private.updateDelegateListCache = function(round, delegatesList) {
 	// We want to cache delegates for only last 2 rounds and get rid of old ones
 	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
 		// sort round numbers in ascending order so we can have most recent 2 rounds at the end of the list.
-		.sort()
+		.sort((a, b) => a - b)
 		// delete all round cache except last two rounds.
 		.slice(-2)
 		.reduce((acc, current) => {
@@ -125,17 +125,10 @@ __private.updateDelegateListCache = function(round, delegatesList) {
  * Invalidates the cached delegate list.
  *
  */
-Delegates.prototype.clearLastDelegateListCache = function() {
+Delegates.prototype.clearDelegateListCache = function() {
 	library.logger.debug('Clearing delegate list cache.');
-	// We want to clear the cache for the latest round but want to keep the cache for previous round.
-	__private.delegatesListCache = Object.keys(__private.delegatesListCache)
-		.sort()
-		// delete all round cache except previous round.
-		.slice(0, 1)
-		.reduce((acc, current) => {
-			acc[current] = __private.delegatesListCache[current];
-			return acc;
-		}, {});
+	// We want to clear the cache.
+	__private.delegatesListCache = {};
 };
 
 /**

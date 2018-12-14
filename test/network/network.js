@@ -242,6 +242,10 @@ class Network {
 
 		return new Promise((resolve, reject) => {
 			waitFor.blockchainReady(
+				retries,
+				timeout,
+				`http://${configuration.ip}:${configuration.httpPort}`,
+				!logRetries,
 				err => {
 					if (err) {
 						return reject(
@@ -252,11 +256,7 @@ class Network {
 						);
 					}
 					return resolve();
-				},
-				retries,
-				timeout,
-				`http://${configuration.ip}:${configuration.httpPort}`,
-				!logRetries
+				}
 			);
 		});
 	}
@@ -293,6 +293,7 @@ class Network {
 		return new Promise((resolve, reject) => {
 			waitFor.blocks(
 				blocksToWait,
+				`http://${configuration.ip}:${configuration.httpPort}`,
 				err => {
 					if (err) {
 						return reject(
@@ -303,8 +304,7 @@ class Network {
 						);
 					}
 					return resolve();
-				},
-				`http://${configuration.ip}:${configuration.httpPort}`
+				}
 			);
 		});
 	}

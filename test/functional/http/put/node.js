@@ -50,7 +50,7 @@ describe('PUT /node/status/forging', () => {
 						});
 				}
 
-				return Promise.resolve();
+				return null;
 			});
 	});
 

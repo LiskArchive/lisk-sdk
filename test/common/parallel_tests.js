@@ -172,7 +172,7 @@ const runParallelTests = (suiteFolder, mochaArguments) => {
 						return next();
 					}
 
-					return resolve();
+					return null;
 				})
 				.catch(err => {
 					console.error(`Parallel test failed: ${testFile}`);

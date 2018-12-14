@@ -86,18 +86,6 @@ class TransactionPool {
 		self.bundleLimit = library.config.broadcasts.releaseLimit;
 		self.processed = 0;
 		self.hourInSeconds = 3600;
-
-		jobsQueue.register(
-			'transactionPoolNextBundle',
-			nextBundle,
-			self.bundledInterval
-		);
-
-		jobsQueue.register(
-			'transactionPoolNextExpiry',
-			nextExpiry,
-			self.expiryInterval
-		);
 	}
 }
 
@@ -139,6 +127,18 @@ TransactionPool.prototype.bind = function(accounts, transactions, loader) {
 		transactions,
 		loader,
 	};
+
+	jobsQueue.register(
+		'transactionPoolNextBundle',
+		nextBundle,
+		self.bundledInterval
+	);
+
+	jobsQueue.register(
+		'transactionPoolNextExpiry',
+		nextExpiry,
+		self.expiryInterval
+	);
 };
 
 /**
@@ -511,9 +511,14 @@ TransactionPool.prototype.reindexQueues = function() {
  * @todo Compare / standardize the returns-description
  */
 TransactionPool.prototype.processBundled = function(cb) {
+	if (modules.loader.syncing()) {
+		// There is no need to process bundled transacions if node is syncing
+		return setImmediate(cb);
+	}
+
 	const bundled = self.getBundledTransactionList(true, self.bundleLimit);
 
-	library.balancesSequence.add(
+	return library.balancesSequence.add(
 		balancesSequenceCb => {
 			async.eachSeries(
 				bundled,
@@ -947,6 +952,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 									processVerifyErr
 								);
 								self.removeQueuedTransaction(transaction.id);
+								self.removeMultisignatureTransaction(transaction.id);
 								return setImmediate(eachSeriesCb);
 							}
 							return modules.transactions.applyUnconfirmed(
@@ -961,6 +967,7 @@ __private.applyUnconfirmedList = function(transactions, cb, tx) {
 											applyUnconfirmErr
 										);
 										self.removeQueuedTransaction(transaction.id);
+										self.removeMultisignatureTransaction(transaction.id);
 										return setImmediate(eachSeriesCb);
 									}
 									// Transaction successfully applied to unconfirmed states, move it to unconfirmed list

@@ -190,8 +190,25 @@ module.exports = {
 									windowMs: {
 										type: 'integer',
 									},
+									headersTimeout: {
+										type: 'integer',
+										minimum: 1,
+										maximum: 40000,
+									},
+									serverSetTimeout: {
+										type: 'integer',
+										minimum: 1,
+										maximum: 120000,
+									},
 								},
-								required: ['max', 'delayMs', 'delayAfter', 'windowMs'],
+								required: [
+									'max',
+									'delayMs',
+									'delayAfter',
+									'windowMs',
+									'headersTimeout',
+									'serverSetTimeout',
+								],
 							},
 							cors: {
 								type: 'object',
