@@ -332,8 +332,8 @@ class Block extends BaseEntity {
 	 * @returns {Promise.<boolean, Error>}
 	 */
 	isPersisted(filters, options, tx) {
-		const filtersRequired = true;
-		this.validateFilters(filters, filtersRequired);
+		const atLeastOneRequired = true;
+		this.validateFilters(filters, atLeastOneRequired);
 		this.validateOptions(options);
 
 		const mergedFilters = this.mergeFilters(filters);

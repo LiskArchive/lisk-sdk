@@ -239,13 +239,13 @@ class BaseEntity {
 	/**
 	 * Validate allowed filters
 	 * @param {Array.<Object>|Object} filters
-	 * @param {Boolean} required
+	 * @param {Boolean} atLeastOneRequired
 	 * @return {true, NonSupportedFilterTypeError>}
 	 */
-	validateFilters(filters = {}, required = false) {
-		if (required && (!filters || !Object.keys(filters).length)) {
+	validateFilters(filters = {}, atLeastOneRequired = false) {
+		if (atLeastOneRequired && (!filters || !Object.keys(filters).length)) {
 			throw new NonSupportedFilterTypeError(
-				'Filters are required for this operation.'
+				'One or more filters are required for this operation.'
 			);
 		}
 
@@ -278,13 +278,13 @@ class BaseEntity {
 	/**
 	 * Validate allowed options
 	 * @param {Object} options
-	 * @param {Boolean} required
+	 * @param {Boolean} atLeastOneRequired
 	 * @return {true, NonSupportedFilterTypeError>}
 	 */
-	validateOptions(options = {}, required = false) {
-		if (required && (!options || !Object.keys(options).length)) {
+	validateOptions(options = {}, atLeastOneRequired = false) {
+		if (atLeastOneRequired && (!options || !Object.keys(options).length)) {
 			throw new NonSupportedOptionError(
-				'Options are required for this operation.'
+				'One or more options are required for this operation.'
 			);
 		}
 

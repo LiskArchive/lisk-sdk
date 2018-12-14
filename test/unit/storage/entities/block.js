@@ -511,27 +511,31 @@ describe('Block', () => {
 		});
 
 		describe('when required flag is true', () => {
-			const filtersRequired = true;
+			const atLeastOneRequired = true;
 
 			it('should accept valid filters as single object', done => {
 				const filters = { height: 101 };
-				expect(block.validateFilters(filters, filtersRequired)).to.be.eq(true);
+				expect(block.validateFilters(filters, atLeastOneRequired)).to.be.eq(
+					true
+				);
 				done();
 			});
 
 			it('should accept valid filters as array of objects', done => {
 				const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
-				expect(block.validateFilters(filters, filtersRequired)).to.be.eq(true);
+				expect(block.validateFilters(filters, atLeastOneRequired)).to.be.eq(
+					true
+				);
 				done();
 			});
 
 			it('should throw error when filter is empty array', done => {
 				const filters = [];
 				expect(() => {
-					block.validateFilters(filters, filtersRequired);
+					block.validateFilters(filters, atLeastOneRequired);
 				}).to.throw(
 					NonSupportedFilterTypeError,
-					'Filters are required for this operation.'
+					'One or more filters are required for this operation.'
 				);
 				done();
 			});
@@ -539,10 +543,10 @@ describe('Block', () => {
 			it('should throw error when filter is empty object', done => {
 				const filters = {};
 				expect(() => {
-					block.validateFilters(filters, filtersRequired);
+					block.validateFilters(filters, atLeastOneRequired);
 				}).to.throw(
 					NonSupportedFilterTypeError,
-					'Filters are required for this operation.'
+					'One or more filters are required for this operation.'
 				);
 				done();
 			});
@@ -550,10 +554,10 @@ describe('Block', () => {
 			it('should throw error when filter is null', done => {
 				const filters = null;
 				expect(() => {
-					block.validateFilters(filters, filtersRequired);
+					block.validateFilters(filters, atLeastOneRequired);
 				}).to.throw(
 					NonSupportedFilterTypeError,
-					'Filters are required for this operation.'
+					'One or more filters are required for this operation.'
 				);
 				done();
 			});
@@ -561,10 +565,10 @@ describe('Block', () => {
 			it('should throw error when filter is empty string', done => {
 				const filters = '';
 				expect(() => {
-					block.validateFilters(filters, filtersRequired);
+					block.validateFilters(filters, atLeastOneRequired);
 				}).to.throw(
 					NonSupportedFilterTypeError,
-					'Filters are required for this operation.'
+					'One or more filters are required for this operation.'
 				);
 				done();
 			});
@@ -572,10 +576,10 @@ describe('Block', () => {
 			it('should throw error when filter is undefined', done => {
 				const filters = undefined;
 				expect(() => {
-					block.validateFilters(filters, filtersRequired);
+					block.validateFilters(filters, atLeastOneRequired);
 				}).to.throw(
 					NonSupportedFilterTypeError,
-					'Filters are required for this operation.'
+					'One or more filters are required for this operation.'
 				);
 				done();
 			});
@@ -583,7 +587,7 @@ describe('Block', () => {
 			it('should throw error when filter is invalid', done => {
 				const filters = { invalid_filter: 1 };
 				expect(() => {
-					block.validateFilters(filters, filtersRequired);
+					block.validateFilters(filters, atLeastOneRequired);
 				}).to.throw(
 					NonSupportedFilterTypeError,
 					'One or more filters are not supported.'
