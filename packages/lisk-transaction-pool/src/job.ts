@@ -36,12 +36,9 @@ export class Job<T> {
 	}
 
 	private async run(): Promise<void> {
-		// Base case for recursive function
-		if (!this._active) {
-			return;
+		// tslint:disable-next-line no-loop-statement
+		while (this._active) {
+			await this.callJobAfterTimeout();
 		}
-		await this.callJobAfterTimeout();
-
-		return this.run();
 	}
 }
