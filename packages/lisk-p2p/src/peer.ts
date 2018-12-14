@@ -60,7 +60,7 @@ export class Peer {
 		this._wsPort = peerConfig.wsPort;
 		this._id = Peer.constructPeerId(this._ipAddress, this._wsPort);
 		this._inboundSocket = peerConfig.inboundSocket;
-		this._height = peerConfig.height === undefined ? 0 : peerConfig.height;
+		this._height = peerConfig.height ? peerConfig.height : 0;
 	}
 
 	private _createOutboundSocket(): any {
