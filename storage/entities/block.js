@@ -189,7 +189,7 @@ class Block extends BaseEntity {
 		this.addField('version', 'number', { filter: filterType.NUMBER });
 
 		this.SQLs = {
-			selectSimple: this.adapter.loadSQLFile('blocks/get_simple.sql'),
+			select: this.adapter.loadSQLFile('blocks/get.sql'),
 			create: this.adapter.loadSQLFile('blocks/create.sql'),
 			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
 		};
@@ -231,7 +231,7 @@ class Block extends BaseEntity {
 
 		return this.adapter.executeFile(
 			{
-				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
+				[this.FIELD_SET_SIMPLE]: this.SQLs.select,
 			}[parsedOptions.fieldSet],
 			params,
 			{},
@@ -270,7 +270,7 @@ class Block extends BaseEntity {
 
 		return this.adapter.executeFile(
 			{
-				[Block.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
+				[Block.prototype.FIELD_SET_SIMPLE]: this.SQLs.select,
 			}[parsedOptions.fieldSet],
 			params,
 			{ expectedResult: 1 },

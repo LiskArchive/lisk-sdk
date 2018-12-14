@@ -53,7 +53,7 @@ describe('Block', () => {
 			expect(block.adapter).to.be.eq(adapter);
 			expect(block.defaultFilters).to.be.eq(defaultFilters);
 			expect(block.SQLs).to.be.eql({
-				selectSimple: 'loadSQLFile',
+				select: 'loadSQLFile',
 				create: 'loadSQLFile',
 				isPersisted: 'loadSQLFile',
 			});
