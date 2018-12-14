@@ -119,13 +119,25 @@ describe('transaction pool', () => {
 		let addTransactionToQueueStub: sinon.SinonStub;
 
 		beforeEach(async () => {
-			addTransactionToQueueStub = sandbox.stub((transactionPool as any),  'addTransactionToQueue');
+			addTransactionToQueueStub = sandbox.stub((transactionPool as any), 'addTransactionToQueue');
 		});
 
 		it('should call addTransactionToQueue with with correct parameters', async () => {
 			transactionPool.addTransaction(transactions[0]);
 			const receivedQueueName = 'received';
 			expect(addTransactionToQueueStub).to.be.calledWith(receivedQueueName, transactions[0]);
+		});
+	});
+
+	describe('#addVerifiedTransaction', () => {
+		let addTransactionToQueueStub: sinon.SinonStub;
+ 		beforeEach(async () => {
+			addTransactionToQueueStub = sandbox.stub((transactionPool as any), 'addTransactionToQueue');
+		});
+ 		it('should call addTransactionToQueue with with correct parameters', async () => {
+			transactionPool.addVerifiedTransaction(transactions[0]);
+			const verifiedQueueName = 'verified';
+			expect(addTransactionToQueueStub).to.be.calledWith(verifiedQueueName, transactions[0]);
 		});
 	});
 

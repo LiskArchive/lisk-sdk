@@ -92,6 +92,12 @@ export class TransactionPool {
 		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
 
+	public addVerifiedTransaction(transaction: Transaction): AddTransactionResult {
+		const verifiedQueue: QueueNames = 'verified';
+
+ 		return this.addTransactionToQueue(verifiedQueue, transaction);
+	}
+
 	public addVerifiedRemovedTransactions(
 		transactions: ReadonlyArray<Transaction>,
 	): void {
