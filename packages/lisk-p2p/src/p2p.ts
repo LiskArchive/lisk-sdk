@@ -88,8 +88,13 @@ export class P2P extends EventEmitter {
 		return this._nodeStatus;
 	}
 
-	public set nodeStatus(value: P2PNodeStatus) {
+	/**
+	 * This is not a declared as a setter because this method will need
+	 * invoke an async RPC on Peers to give them our new node status.
+	 */
+	public applyNodeStatus(value: P2PNodeStatus): void {
 		this._nodeStatus = value;
+		// TODO ASAP: Pass to PeerPool -> connected Peer objects
 	}
 
 	private async _startPeerServer(): Promise<void> {
