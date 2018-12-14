@@ -57,9 +57,16 @@ module.exports = function(
 					});
 			});
 
-			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
+			it(`there should be ${TOTAL_PEERS - 1} peers holding ${TOTAL_PEERS -
+				2} active connections each one`, () => {
 				return network.getAllPeersLists().then(peers => {
-					return expect(peers.length).to.equal(TOTAL_PEERS - 1);
+					expect(peers.length).to.equal(TOTAL_PEERS - 1);
+					return peers.map(peer => {
+						expect(peer.peers.length).to.equal(TOTAL_PEERS - 2);
+						return peer.peers.map(peerFromPeer => {
+							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
+						});
+					});
 				});
 			});
 
@@ -74,20 +81,9 @@ module.exports = function(
 					});
 			});
 
-			it(`every peer must hold only ${TOTAL_PEERS -
-				2} active connections`, () => {
-				return network.getAllPeersLists().then(peers => {
-					return peers.map(peer => {
-						expect(peer.peers.length).to.equal(TOTAL_PEERS - 2);
-						return peer.peers.map(peerFromPeer => {
-							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
-						});
-					});
-				});
-			});
-
-			it('node_0 should have every peer banned', () => {
+			it(`node_0 should have ${TOTAL_PEERS} peers banned`, () => {
 				return utils.http.getPeers().then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
 						return expect(peer.state).to.equal(Peer.STATE.BANNED);
 					});
@@ -96,6 +92,7 @@ module.exports = function(
 
 			it('node_1 should have only himself and node_0 disconnected', () => {
 				return utils.http.getPeers(4001).then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
 						if (peer.wsPort === 5000 || peer.wsPort === 5001) {
 							return expect(peer.state).to.equal(Peer.STATE.DISCONNECTED);
@@ -127,9 +124,16 @@ module.exports = function(
 					});
 			});
 
-			it(`there should be ${TOTAL_PEERS} active peers again`, () => {
+			it(`there should be ${TOTAL_PEERS} peers holding ${TOTAL_PEERS -
+				1} active connections each one`, () => {
 				return network.getAllPeersLists().then(peers => {
-					return expect(peers.length).to.equal(TOTAL_PEERS);
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						expect(peer.peers.length).to.equal(TOTAL_PEERS - 1);
+						return peer.peers.map(peerFromPeer => {
+							return expect(peerFromPeer.state).to.equal(Peer.STATE.CONNECTED);
+						});
+					});
 				});
 			});
 
@@ -145,8 +149,21 @@ module.exports = function(
 
 			it('node_0 should have every peer connected but himself', () => {
 				return utils.http.getPeers().then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
 						if (peer.wsPort === 5000) {
+							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
+						}
+						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
+					});
+				});
+			});
+
+			it('node_1 should have every peer connected but himself', () => {
+				return utils.http.getPeers(4001).then(peers => {
+					expect(peers.length).to.equal(TOTAL_PEERS);
+					return peers.map(peer => {
+						if (peer.wsPort === 5001) {
 							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
 						}
 						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);

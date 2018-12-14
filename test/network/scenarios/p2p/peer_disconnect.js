@@ -38,6 +38,12 @@ module.exports = function(
 				return network.stopNode('node_0');
 			});
 
+			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS - 1);
+				});
+			});
+
 			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER} established connections from 500[0-9] ports`, () => {
 				return utils
 					.getEstablishedConnections(WSPORTS)
@@ -47,12 +53,6 @@ module.exports = function(
 								EXPECTED_MONITORING_CONNECTIONS_AFTER_STOPPING_A_NODE
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS_AFTER_REMOVING_PEER);
 					});
-			});
-
-			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
-				return network.getAllPeersLists().then(peers => {
-					return expect(peers.length).to.equal(TOTAL_PEERS - 1);
-				});
 			});
 		});
 
@@ -70,6 +70,12 @@ module.exports = function(
 					});
 			});
 
+			it(`there should be ${TOTAL_PEERS} active peers again`, () => {
+				return network.getAllPeersLists().then(peers => {
+					return expect(peers.length).to.equal(TOTAL_PEERS);
+				});
+			});
+
 			it(`there should be ${EXPECTED_TOTAL_CONNECTIONS} established connections from 500[0-9] ports`, () => {
 				return utils
 					.getEstablishedConnections(WSPORTS)
@@ -78,12 +84,6 @@ module.exports = function(
 							establishedConnections - NUMBER_OF_MONITORING_CONNECTIONS
 						).to.equal(EXPECTED_TOTAL_CONNECTIONS);
 					});
-			});
-
-			it(`there should be ${TOTAL_PEERS} active peers again`, () => {
-				return network.getAllPeersLists().then(peers => {
-					return expect(peers.length).to.equal(TOTAL_PEERS);
-				});
 			});
 		});
 	});
