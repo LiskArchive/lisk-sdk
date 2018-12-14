@@ -15,6 +15,7 @@
 'use strict';
 
 const childProcess = require('child_process');
+const path = require('path');
 const Logger = require('../../../logger');
 
 module.exports = {
@@ -22,7 +23,10 @@ module.exports = {
 	ws: require('./ws'),
 	transactions: require('./transactions'),
 	logger: new Logger({
-		filename: `${__dirname}/networkTestsLogger.logs`,
+		filename: path.relative(
+			process.cwd(),
+			`${__dirname}/networkTestsLogger.logs`
+		),
 		echo: 'log',
 	}),
 	getListeningConnections: (ports, cb) => {
