@@ -55,7 +55,7 @@ export abstract class BaseTransaction {
 	public readonly senderPublicKey: string;
 	public readonly signature: string = '';
 	public readonly signatures?: ReadonlyArray<string> = [];
-	public readonly signSignature?: string;
+	public readonly signSignature?: string = '';
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
@@ -105,30 +105,14 @@ export abstract class BaseTransaction {
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
+			signature: this.signature ? this.signature : undefined,
+			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
 			asset: this.assetToJSON(this.asset),
 			receivedAt: this.receivedAt,
 		};
 
-		if (!this.signature) {
-			return transaction;
-		}
-
-		const singleSignedTransaction = {
-			...transaction,
-			signature: this.signature,
-		};
-
-		if (!this.signSignature) {
-			return singleSignedTransaction;
-		}
-
-		const signedTransaction = {
-			...singleSignedTransaction,
-			signSignature: this.signSignature,
-		};
-
-		return signedTransaction;
+		return transaction;
 	}
 
 	public abstract getBytes(): Buffer;

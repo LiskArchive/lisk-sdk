@@ -35,6 +35,7 @@ describe('Base transaction class', () => {
 		amount: '9312934243',
 		fee: '10000000',
 		signature: defaultSignature,
+		signSignature: undefined,
 		signatures: [],
 		asset: {},
 		receivedAt: new Date(),
@@ -91,6 +92,18 @@ describe('Base transaction class', () => {
 	});
 
 	it('should have senderPublicKey string', () => {
+		return expect(baseTransaction)
+			.to.have.property('senderPublicKey')
+			.and.be.a('string');
+	});
+
+	it('should have signature string', () => {
+		return expect(baseTransaction)
+			.to.have.property('senderPublicKey')
+			.and.be.a('string');
+	});
+
+	it('should have signSignature string', () => {
 		return expect(baseTransaction)
 			.to.have.property('senderPublicKey')
 			.and.be.a('string');

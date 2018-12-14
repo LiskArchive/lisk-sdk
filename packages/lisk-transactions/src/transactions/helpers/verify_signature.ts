@@ -33,7 +33,7 @@ export const verifySignature = (
 	// If transaction includes asset data, include those bytes
 	const transactionBytes =
 		transaction.asset && Object.keys(transaction.asset).length
-			? getTransactionBytes(strippedTransaction)
+			? getTransactionBytes(strippedTransaction as TransactionJSON)
 			: getBytes(transaction, !isSecondSignature);
 	const transactionHash = cryptography.hash(transactionBytes);
 
