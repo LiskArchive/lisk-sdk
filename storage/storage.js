@@ -34,11 +34,8 @@ class Storage {
 		}
 
 		this.isReady = false;
-
 		Storage.instance = this;
-
 		Storage.instance.BaseEntity = BaseEntity;
-		Storage.instance.BaseEntity.adapter = null;
 	}
 
 	/**
@@ -57,13 +54,12 @@ class Storage {
 			if (status) {
 				this.isReady = true;
 				Storage.instance.adapter = adapter;
-				BaseEntity.prototype.adapter = adapter;
 
 				Storage.instance.entities = {
-					Transaction: new Transaction(),
-					Block: new Block(),
-					Account: new Account(),
-					Delegate: new Delegate(),
+					Transaction: new Transaction(adapter),
+					Block: new Block(adapter),
+					Account: new Account(adapter),
+					Delegate: new Delegate(adapter),
 				};
 			}
 

@@ -12,19 +12,23 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
+SELECT
+	"id",
+	ENCODE("payloadHash", 'hex') as "payloadHash",
+	ENCODE("generatorPublicKey", 'hex') as "generatorPublicKey",
+	ENCODE("blockSignature", 'hex') as "blockSignature",
+	"height",
+	"totalFee",
+	"reward",
+	"payloadLength",
+	"previousBlock" as "previousBlockId",
+	"numberOfTransactions",
+	"totalAmount",
+	"timestamp",
+	"version"::text
+FROM
+	blocks
 
-const Account = require('./account');
+${parsedFilters:raw}
 
-class Delegate extends Account {
-	constructor(adapter, defaultFilters = {}) {
-		super(adapter, {
-			...defaultFilters,
-			isDelegate: true,
-		});
-
-		this.defaultOptions.fieldSet = Account.prototype.FIELD_SET_FULL;
-	}
-}
-
-module.exports = Delegate;
+LIMIT ${limit} OFFSET ${offset}

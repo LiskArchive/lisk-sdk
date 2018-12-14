@@ -12,19 +12,6 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-'use strict';
-
-const Account = require('./account');
-
-class Delegate extends Account {
-	constructor(adapter, defaultFilters = {}) {
-		super(adapter, {
-			...defaultFilters,
-			isDelegate: true,
-		});
-
-		this.defaultOptions.fieldSet = Account.prototype.FIELD_SET_FULL;
-	}
-}
-
-module.exports = Delegate;
+SELECT EXISTS (
+	SELECT 1 FROM blocks ${parsedFilters:raw}
+);
