@@ -13,6 +13,7 @@
  */
 
 SELECT
+	"id",
 	"ip",
 	"wsPort",
 	"state",
