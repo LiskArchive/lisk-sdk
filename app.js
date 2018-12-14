@@ -437,9 +437,7 @@ d.run(() => {
 				function(scope, cb) {
 					const changeCase = require('change-case');
 					const Bus = function() {
-						this.message = function() {
-							const args = [];
-							Array.prototype.push.apply(args, arguments);
+						this.message = function(...args) {
 							const topic = args.shift();
 							const eventName = `on${changeCase.pascalCase(topic)}`;
 
