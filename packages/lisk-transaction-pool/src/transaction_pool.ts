@@ -45,7 +45,12 @@ export interface AddTransactionResult {
 
 export type Transaction = TransactionObject & TransactionFunctions;
 
-export type queueNames = 'received' | 'validated' | 'verified' | 'pending' | 'ready';
+export type QueueNames =
+	| 'received'
+	| 'validated'
+	| 'verified'
+	| 'pending'
+	| 'ready';
 
 interface Queues {
 	readonly [queue: string]: Queue;
@@ -82,7 +87,7 @@ export class TransactionPool {
 	}
 
 	public addTransaction(transaction: Transaction): AddTransactionResult {
-		const receivedQueue: queueNames = 'received';
+		const receivedQueue: QueueNames = 'received';
 
 		return this.addTransactionToQueue(receivedQueue, transaction);
 	}
@@ -188,18 +193,21 @@ export class TransactionPool {
 			: true;
 	}
 
-	private addTransactionToQueue(queueName: queueNames, transaction: Transaction): AddTransactionResult {
+	private addTransactionToQueue(
+		queueName: QueueNames,
+		transaction: Transaction,
+	): AddTransactionResult {
 		if (this.existsInTransactionPool(transaction)) {
 			return {
 				isFull: false,
-				alreadyExists: true
+				alreadyExists: true,
 			};
 		}
 
 		if (this._queues[queueName].size() >= this._maxTransactionsPerQueue) {
 			return {
 				isFull: true,
-				alreadyExists: false
+				alreadyExists: false,
 			};
 		}
 		// Add receivedAt property for the transaction
@@ -209,10 +217,9 @@ export class TransactionPool {
 
 		return {
 			isFull: false,
-			alreadyExists: false
+			alreadyExists: false,
 		};
 	}
-
 
 	private async expireTransactions(): Promise<ReadonlyArray<Transaction>> {
 		return this.removeTransactionsFromQueues(
