@@ -296,8 +296,12 @@ const modulesLoader = new function() {
 			cacheConfig,
 			this.logger
 		);
-		redisConnector.connect(client =>
-			this.initModule(Cache, _.merge(this.scope, { cache: client }), cb)
+		redisConnector.connect((_, client) =>
+			this.initModule(
+				Cache,
+				Object.assign(this.scope, { cache: { client, cacheEnabled } }),
+				cb
+			)
 		);
 	};
 }();

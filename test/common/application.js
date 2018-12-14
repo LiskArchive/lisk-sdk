@@ -182,7 +182,7 @@ function __init(initScope, done) {
 							__testContext.config.redis,
 							logger
 						);
-						redisConnector.connect(client =>
+						redisConnector.connect((_, client) =>
 							cb(null, {
 								cacheEnabled: __testContext.config.cacheEnabled,
 								client,
