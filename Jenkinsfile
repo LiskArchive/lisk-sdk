@@ -224,8 +224,7 @@ pipeline {
 		failure {
 			script {
 				build_info = getBuildInfo()
-				// TODO: uncomment
-				//liskSlackSend('danger', "Build ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)")
+				liskSlackSend('danger', "Build ${build_info} failed (<${env.BUILD_URL}/console|console>, <${env.BUILD_URL}/changes|changes>)")
 			}
 		}
 		cleanup {
