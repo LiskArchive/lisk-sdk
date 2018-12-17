@@ -203,14 +203,17 @@ export abstract class BaseTransaction {
 
 	public validate(): TransactionResponse {
 		const errors: TransactionError[] = [];
-
+		const transactionBytes = Buffer.concat([
+			this.getBasicBytes(),
+			this.getAssetBytes(),
+		]);
 		const {
 			verified: signatureVerified,
 			error: verificationError,
 		} = verifySignature(
 			this.senderPublicKey,
 			this.signature,
-			this.getBasicBytes(),
+			transactionBytes,
 			this.id,
 		);
 
@@ -303,6 +306,7 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
+					this.getAssetBytes(),
 					Buffer.from(this.signature, 'hex'),
 				]);
 
@@ -332,9 +336,10 @@ export abstract class BaseTransaction {
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
 						this.getBasicBytes(),
+						this.getAssetBytes(),
 						Buffer.from(this.signature, 'hex'),
 				  ])
-				: this.getBasicBytes();
+				: Buffer.concat([this.getBasicBytes(), this.getAssetBytes()]);
 
 			const { errors: multisignatureErrors } = verifyMultisignatures(
 				sender.multisignatures,
