@@ -226,7 +226,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} data
 	 * @param {Object} [options]
 	 * @param {Object} tx - Transaction object
-	 * @return {*}
+	 * @return {null}
 	 */
 	// eslint-disable-next-line no-unused-vars
 	create(data, options = {}, tx = null) {
@@ -239,7 +239,7 @@ class Peer extends BaseEntity {
 		return this.adapter.executeFile(
 			this.SQLs.create,
 			{ createSet, attributes },
-			{},
+			{ expectedResult: 0 },
 			tx
 		);
 	}
@@ -251,7 +251,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} data
 	 * @param {Object} [options]
 	 * @param {Object} tx - Transaction object
-	 * @return {*}
+	 * @return {null}
 	 */
 	// eslint-disable-next-line no-unused-vars
 	update(filters, data, options = {}, tx = null) {
@@ -267,7 +267,12 @@ class Peer extends BaseEntity {
 			updateSet,
 		});
 
-		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.update,
+			params,
+			{ expectedResult: 0 },
+			tx
+		);
 	}
 
 	/**
@@ -277,7 +282,7 @@ class Peer extends BaseEntity {
 	 * @param {Object} data
 	 * @param {Object} [options]
 	 * @param {Object} tx - Transaction object
-	 * @return {*}
+	 * @return {null}
 	 */
 	// eslint-disable-next-line no-unused-vars
 	updateOne(filters, data, options = {}, tx = null) {
@@ -293,7 +298,12 @@ class Peer extends BaseEntity {
 			updateSet,
 		});
 
-		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.updateOne,
+			params,
+			{ expectedResult: 0 },
+			tx
+		);
 	}
 
 	/**
