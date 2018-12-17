@@ -455,17 +455,57 @@ describe('node', () => {
 
 	describe('onBind', () => {
 		/* eslint-disable mocha/no-pending-tests */
-		describe('modules', () => {
-			it('should assign blocks');
+		let rewiredNodeModule;
 
-			it('should assign loader');
-
-			it('should assign peers');
-
-			it('should assign system');
+		beforeEach(done => {
+			rewiredNodeModule = library.rewiredModules.node;
+			done();
 		});
 
-		it('should assign loaded = true');
+		describe('modules', () => {
+			let modules;
+
+			beforeEach(done => {
+				modules = rewiredNodeModule.__get__('modules');
+				done();
+			});
+
+			it('should assign blocks', () => {
+				return expect(modules).to.have.property(
+					'blocks',
+					library.modules.blocks
+				);
+			});
+
+			it('should assign loader', () => {
+				return expect(modules).to.have.property(
+					'loader',
+					library.modules.loader
+				);
+			});
+
+			it('should assign peers', () => {
+				return expect(modules).to.have.property('peers', library.modules.peers);
+			});
+
+			it('should assign system', () => {
+				return expect(modules).to.have.property(
+					'system',
+					library.modules.system
+				);
+			});
+
+			it('should assign delegates', () => {
+				return expect(modules).to.have.property(
+					'delegates',
+					library.modules.delegates
+				);
+			});
+		});
+
+		it('should assign loaded = true', () => {
+			return expect(rewiredNodeModule.__get__('loaded')).to.be.true;
+		});
 		/* eslint-enable mocha/no-pending-tests */
 	});
 });
