@@ -35,6 +35,8 @@
 		// Better to have functionally similar items be close together.
 		"member-ordering": false,
 		// This rule can sometimes encourage bad practices; better leave this to the PR process.
-		"prefer-function-over-method": false
+		"prefer-function-over-method": false,
+		// The shorthand arrow notation is often more difficult and error-prone to refactor.
+		"arrow-return-shorthand": true
 	}
 }
