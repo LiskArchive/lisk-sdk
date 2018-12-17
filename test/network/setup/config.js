@@ -92,6 +92,9 @@ const config = {
 			const index = pm2Config.apps.length;
 			configuration.db.database = `${configuration.db.database}_${index}`;
 			try {
+				if (!fs.existsSync(`${__dirname}/../configs/`)) {
+					fs.mkdirSync(`${__dirname}/../configs/`);
+				}
 				fs.writeFileSync(
 					`${__dirname}/../configs/config.node-${index}.json`,
 					JSON.stringify(configuration, null, 4)
