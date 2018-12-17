@@ -111,13 +111,12 @@ class PgpAdapter extends BaseAdapter {
 			.connect()
 			.then(co => {
 				connectionObject = co;
-				return Promise.resolve(true);
+				return true;
 			})
 			.finally(() => {
 				if (connectionObject) {
 					connectionObject.done();
 				}
-				return Promise.resolve(true);
 			});
 	}
 
