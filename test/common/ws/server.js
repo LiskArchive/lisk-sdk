@@ -78,7 +78,7 @@ const wsServer = {
 	options: {
 		workers: 1,
 		port: 9999,
-		wsEngine: 'uws',
+		wsEngine: 'ws',
 		appName: 'testWSServer',
 		secretKey: 'liskSecretKey',
 		workerController: `${__dirname}/server.js`,

@@ -35,7 +35,7 @@ function WSServer(headers) {
 	this.options = {
 		workers: 1,
 		port: this.headers.wsPort,
-		wsEngine: 'uws',
+		wsEngine: 'ws',
 		appName: `LiskTestServer-${randomstring.generate(8)}`,
 		secretKey: 'liskSecretKey',
 		headers,
