@@ -15,7 +15,7 @@
 'use strict';
 
 const _ = require('lodash');
-const ft = require('../utils/filter_types');
+const filterType = require('../utils/filter_types');
 const { stringToByte } = require('../utils/inputSerializers');
 const { NonSupportedFilterTypeError } = require('../errors');
 const BaseEntity = require('./base_entity');
@@ -59,28 +59,42 @@ class Peer extends BaseEntity {
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
 
-		this.defaultFilters = defaultFilters;
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
-		this.addField('id', 'number', { format: 'number', filter: ft.NUMBER });
-		this.addField('ip', 'string', { format: 'ip', filter: ft.TEXT });
+		this.addField('id', 'number', {
+			format: 'number',
+			filter: filterType.NUMBER,
+		});
+		this.addField('ip', 'string', { format: 'ip', filter: filterType.TEXT });
 		this.addField('wsPort', 'number', {
 			format: 'number',
-			filter: ft.NUMBER,
+			filter: filterType.NUMBER,
 		});
-		this.addField('state', 'number', { format: 'number', filter: ft.NUMBER });
-		this.addField('os', 'string', { format: 'string', filter: ft.TEXT });
-		this.addField('version', 'string', { format: 'string', filter: ft.TEXT });
-		this.addField('clock', 'number', { format: 'number', filter: ft.NUMBER });
+		this.addField('state', 'number', {
+			format: 'number',
+			filter: filterType.NUMBER,
+		});
+		this.addField('os', 'string', {
+			format: 'string',
+			filter: filterType.TEXT,
+		});
+		this.addField('version', 'string', {
+			format: 'string',
+			filter: filterType.TEXT,
+		});
+		this.addField('clock', 'number', {
+			format: 'number',
+			filter: filterType.NUMBER,
+		});
 		this.addField(
 			'broadhash',
 			'string',
-			{ format: 'string', filter: ft.TEXT },
+			{ format: 'string', filter: filterType.TEXT },
 			stringToByte
 		);
 		this.addField('height', 'number', {
 			format: 'number',
-			filter: ft.NUMBER,
+			filter: filterType.NUMBER,
 		});
 
 		this.SQLs = {

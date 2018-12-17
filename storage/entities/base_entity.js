@@ -308,10 +308,10 @@ class BaseEntity {
 		if (Array.isArray(filters)) {
 			filterString = this._parseArrayFilter(filters);
 		} else if (Object.keys(filters).length > 0) {
-			filterString = this._parseFilterObject(filters);
+			filterString = this._parseObjectFilter(filters);
 		}
 
-		const filtersObject = BaseEntity._filtersToObject(filters);
+		const filtersObject = this._filtersToObject(filters);
 
 		return this._filterClause(filterString, filtersObject);
 	}
@@ -328,17 +328,18 @@ class BaseEntity {
 		return filterClause || '';
 	}
 
-	static _filtersToObject(filters) {
+	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	_filtersToObject(filters) {
 		return Array.isArray(filters) ? Object.assign({}, ...filters) : filters;
 	}
 
 	_parseArrayFilter(filters) {
 		return filters
-			.map(filterObject => this._parseFilterObject(filterObject))
+			.map(filterObject => this._parseObjectFilter(filterObject))
 			.join(' OR ');
 	}
 
-	_parseFilterObject(object) {
+	_parseObjectFilter(object) {
 		return `(${Object.keys(object)
 			.map(key => this.filters[key])
 			.join(' AND ')})`;
