@@ -54,6 +54,7 @@ const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
 class Peer extends BaseEntity {
 	/**
 	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
 	 * @param {filters.Peer} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
@@ -61,10 +62,7 @@ class Peer extends BaseEntity {
 
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
-		this.addField('id', 'number', {
-			format: 'number',
-			filter: filterType.NUMBER,
-		});
+		this.addField('id', 'number', { filter: filterType.NUMBER });
 		this.addField('ip', 'string', { format: 'ip', filter: filterType.TEXT });
 		this.addField('wsPort', 'number', {
 			format: 'number',
@@ -120,7 +118,7 @@ class Peer extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Peer} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicPeer|ExtendedPeer, Error>}
+	 * @return {Promise.<BasicPeer, Error>}
 	 */
 	getOne(filters, options = {}, tx) {
 		this.validateFilters(filters);
