@@ -34,14 +34,14 @@ export interface TransactionFunctions {
 }
 
 export interface CheckTransactionsResult {
-	transactionsResponses: ReadonlyArray<TransactionResponse>
+	transactionsResponses: ReadonlyArray<TransactionResponse>;
 	status: boolean;
-};
+}
 
 interface TransactionResponse {
-	readonly errors: ReadonlyArray<Error>,
-	readonly id: string,
-	readonly status: boolean,
+	readonly errors: ReadonlyArray<Error>;
+	readonly id: string;
+	readonly status: boolean;
 }
 
 interface TransactionPoolConfiguration {
@@ -57,10 +57,13 @@ export interface AddTransactionResult {
 }
 
 interface TransactionPoolDependecies {
-	validateTransactions(transactions: ReadonlyArray<Transaction>): CheckTransactionsResult
+	validateTransactions(
+		transactions: ReadonlyArray<Transaction>,
+	): CheckTransactionsResult;
 }
 
-type TransactionPoolOptions = TransactionPoolConfiguration & TransactionPoolDependecies;
+type TransactionPoolOptions = TransactionPoolConfiguration &
+	TransactionPoolDependecies;
 
 export type Transaction = TransactionObject & TransactionFunctions;
 
@@ -87,7 +90,9 @@ export class TransactionPool {
 	private readonly _queues: Queues;
 	private readonly _receivedTransactionsProcessingInterval: number;
 	private readonly _receivedTransactionsProcessingLimitPerInterval: number;
-	private readonly _validateTransactions: (transactions: ReadonlyArray<Transaction>) => CheckTransactionsResult ;
+	private readonly _validateTransactions: (
+		transactions: ReadonlyArray<Transaction>,
+	) => CheckTransactionsResult;
 	private readonly _validateTransactionsJob: Job<ReadonlyArray<Transaction>>;
 
 	public constructor({
@@ -95,7 +100,7 @@ export class TransactionPool {
 		maxTransactionsPerQueue = DEFAULT_MAX_TRANSACTIONS_PER_QUEUE,
 		receivedTransactionsProcessingInterval = DEFAULT_RECEIVED_TRANSACTIONS_PROCESSING_INTERVAL,
 		receivedTransactionsLimitPerProcessing = DEFAULT_RECEIVED_TRANSACTIONS_LIMIT_PER_PROCESSING,
-		validateTransactions
+		validateTransactions,
 	}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
@@ -119,7 +124,7 @@ export class TransactionPool {
 
 		this._validateTransactionsJob = new Job(
 			this.validateReceivedTransactions.bind(this),
-			this._receivedTransactionsProcessingInterval
+			this._receivedTransactionsProcessingInterval,
 		);
 		this._validateTransactionsJob.start();
 	}
@@ -226,26 +231,43 @@ export class TransactionPool {
 		this._queues.validated.enqueueMany(removedTransactionsBySenderPublicKeys);
 	}
 
-	public async validateReceivedTransactions(): Promise<ReadonlyArray<TransactionResponse>> {
+	public async validateReceivedTransactions(): Promise<
+		ReadonlyArray<TransactionResponse>
+	> {
 		// Get transactions from the received queue
 		const transactionsToValidate = this._queues.received.peekUntil(
-			queueCheckers.returnTrueUntilLimit(this._receivedTransactionsProcessingLimitPerInterval)
+			queueCheckers.returnTrueUntilLimit(
+				this._receivedTransactionsProcessingLimitPerInterval,
+			),
 		);
 		// Validate transactions
-		const validateTransactionsResponse = await this._validateTransactions(transactionsToValidate).transactionsResponses;
+		const validateTransactionsResponse = await this._validateTransactions(
+			transactionsToValidate,
+		).transactionsResponses;
 
 		// Get ids of invalid transactions from validateTransactionsResponse
-		const invalidTransactionIds = validateTransactionsResponse.filter((transactionResponse) => transactionResponse.status)
+		const invalidTransactionIds = validateTransactionsResponse
+			.filter(transactionResponse => transactionResponse.status)
 			.map(transationStatus => transationStatus.id);
 
 		// Filter transactions in transactionToValidate which are invalid
-		const invalidTransactions = transactionsToValidate.filter(transaction => invalidTransactionIds.includes(transaction.id));
-		// Filter transactions in transactionToValidate which are valid 
-		const validTransactions = transactionsToValidate.filter(transaction => !invalidTransactionIds.includes(transaction.id));
+		const invalidTransactions = transactionsToValidate.filter(transaction =>
+			invalidTransactionIds.includes(transaction.id),
+		);
+		// Filter transactions in transactionToValidate which are valid
+		const validTransactions = transactionsToValidate.filter(
+			transaction => !invalidTransactionIds.includes(transaction.id),
+		);
 		// Remove invalid transactions
-		this.queues.received.removeFor(queueCheckers.checkTransactionForId(invalidTransactions));
+		this.queues.received.removeFor(
+			queueCheckers.checkTransactionForId(invalidTransactions),
+		);
 		// Move valid transactions from the received queue to the validated queue
-		this.queues.validated.enqueueMany(this.queues.received.removeFor(queueCheckers.checkTransactionForId(validTransactions)));
+		this.queues.validated.enqueueMany(
+			this.queues.received.removeFor(
+				queueCheckers.checkTransactionForId(validTransactions),
+			),
+		);
 
 		return validateTransactionsResponse;
 	}

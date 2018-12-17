@@ -88,7 +88,9 @@ export class Queue {
 		return !!this._index[transaction.id];
 	}
 
-	public peekUntil(condition: (transaction: Transaction) => boolean): ReadonlyArray<Transaction> {
+	public peekUntil(
+		condition: (transaction: Transaction) => boolean,
+	): ReadonlyArray<Transaction> {
 		const reduceResult: ReduceUntilObject = this._transactions.reduceRight(
 			(
 				{ affected, unaffected, conditionFailedOnce }: ReduceUntilObject,
