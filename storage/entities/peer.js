@@ -54,6 +54,7 @@ const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
 class Peer extends BaseEntity {
 	/**
 	 * Constructor
+	 * @param {BaseAdapter} adapter - Adapter to retrieve the data from
 	 * @param {filters.Peer} defaultFilters - Set of default filters applied on every query
 	 */
 	constructor(adapter, defaultFilters = {}) {
