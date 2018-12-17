@@ -35,7 +35,8 @@ module.exports = function(
 	describe('@network : peer Disconnect', () => {
 		describe('when a node is stopped', () => {
 			before(() => {
-				return network.stopNode('node_0');
+				// Disconnecting the node number 9 which is not producing any blocks
+				return network.stopNode('node_9');
 			});
 
 			it(`there should be ${TOTAL_PEERS - 1} active peers`, () => {
@@ -58,16 +59,11 @@ module.exports = function(
 
 		describe('when a stopped node is started', () => {
 			before(() => {
-				return network
-					.startNode('node_0', true)
-					.then(() => {
-						return network.enableForgingForDelegates();
-					})
-					.then(() => {
-						// Make sure that there is enough time for monitoring connection
-						// to be re-established after restart.
-						return network.waitForBlocksOnNode('node_0', 2);
-					});
+				return network.startNode('node_9', true).then(() => {
+					// Make sure that there is enough time for monitoring connection
+					// to be re-established after restart.
+					return network.waitForBlocksOnNode('node_9', 2);
+				});
 			});
 
 			it(`there should be ${TOTAL_PEERS} active peers again`, () => {

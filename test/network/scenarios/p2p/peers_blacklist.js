@@ -41,19 +41,20 @@ module.exports = function(
 	describe('@network : peer Blacklisted', () => {
 		describe('when a node blacklists an ip', () => {
 			before(() => {
-				configurations[0].peers.access.blackList.push('127.0.0.1');
+				// Blacklisting ip on the node number 9 which is not producing any blocks
+				configurations[9].peers.access.blackList.push('127.0.0.1');
 				return fs_writeFile(
-					`${__dirname}/../../configs/config.node-0.json`,
-					JSON.stringify(configurations[0], null, 4)
+					`${__dirname}/../../configs/config.node-9.json`,
+					JSON.stringify(configurations[9], null, 4)
 				)
 					.then(() => {
 						// Restart the node to load the just changed configuration
-						return network.restartNode('node_0', true);
+						return network.restartNode('node_9', true);
 					})
 					.then(() => {
 						// Make sure that there is enough time for monitoring connection
 						// to be re-established after restart.
-						return network.waitForBlocksOnNode('node_1', 3);
+						return network.waitForBlocksOnNode('node_0', 3);
 					});
 			});
 
@@ -81,8 +82,8 @@ module.exports = function(
 					});
 			});
 
-			it(`node_0 should have ${TOTAL_PEERS} peers banned`, () => {
-				return utils.http.getPeers().then(peers => {
+			it(`node_9 should have ${TOTAL_PEERS} peers banned`, () => {
+				return utils.http.getPeers(4009).then(peers => {
 					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
 						return expect(peer.state).to.equal(Peer.STATE.BANNED);
@@ -90,11 +91,11 @@ module.exports = function(
 				});
 			});
 
-			it('node_1 should have only himself and node_0 disconnected', () => {
-				return utils.http.getPeers(4001).then(peers => {
+			it('node_0 should have only himself and node_9 disconnected', () => {
+				return utils.http.getPeers(4000).then(peers => {
 					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
-						if (peer.wsPort === 5000 || peer.wsPort === 5001) {
+						if (peer.wsPort === 5000 || peer.wsPort === 5009) {
 							return expect(peer.state).to.equal(Peer.STATE.DISCONNECTED);
 						}
 						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
@@ -105,22 +106,19 @@ module.exports = function(
 
 		describe('when the node remove the just blacklisted ip', () => {
 			before(() => {
-				configurations[0].peers.access.blackList = [];
+				configurations[9].peers.access.blackList = [];
 				return fs_writeFile(
-					`${__dirname}/../../configs/config.node-0.json`,
-					JSON.stringify(configurations[0], null, 4)
+					`${__dirname}/../../configs/config.node-9.json`,
+					JSON.stringify(configurations[9], null, 4)
 				)
 					.then(() => {
 						// Restart the node to load the just changed configuration
-						return network.restartNode('node_0', true);
-					})
-					.then(() => {
-						return network.enableForgingForDelegates();
+						return network.restartNode('node_9', true);
 					})
 					.then(() => {
 						// Make sure that there is enough time for monitoring connection
 						// to be re-established after restart.
-						return network.waitForBlocksOnNode('node_0', 3);
+						return network.waitForBlocksOnNode('node_9', 3);
 					});
 			});
 
@@ -147,11 +145,11 @@ module.exports = function(
 					});
 			});
 
-			it('node_0 should have every peer connected but himself', () => {
-				return utils.http.getPeers().then(peers => {
+			it('node_9 should have every peer connected but himself', () => {
+				return utils.http.getPeers(4009).then(peers => {
 					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
-						if (peer.wsPort === 5000) {
+						if (peer.wsPort === 5009) {
 							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
 						}
 						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);
@@ -159,11 +157,11 @@ module.exports = function(
 				});
 			});
 
-			it('node_1 should have every peer connected but himself', () => {
-				return utils.http.getPeers(4001).then(peers => {
+			it('node_0 should have every peer connected but himself', () => {
+				return utils.http.getPeers(4000).then(peers => {
 					expect(peers.length).to.equal(TOTAL_PEERS);
 					return peers.map(peer => {
-						if (peer.wsPort === 5001) {
+						if (peer.wsPort === 5000) {
 							return expect(peer.state).to.not.equal(Peer.STATE.CONNECTED);
 						}
 						return expect(peer.state).to.equal(Peer.STATE.CONNECTED);

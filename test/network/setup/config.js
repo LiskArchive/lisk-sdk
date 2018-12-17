@@ -73,7 +73,7 @@ const config = {
 
 		// Configuring nodes to forge with force or without
 		const delegatesMaxLength = Math.ceil(
-			devConfig.forging.delegates.length / configurations.length
+			devConfig.forging.delegates.length / (configurations.length - 1)
 		);
 		const delegates = _.clone(devConfig.forging.delegates);
 
