@@ -9,7 +9,7 @@ interface RemoveForReduceObject {
 	readonly unaffected: Transaction[];
 }
 
-interface DequeueUntilReduceObject {
+interface ReduceUntilObject {
 	readonly affected: Transaction[];
 	readonly conditionFailedOnce: boolean;
 	readonly unaffected: Transaction[];
@@ -35,9 +35,9 @@ export class Queue {
 	public dequeueUntil(
 		condition: (transaction: Transaction) => boolean,
 	): ReadonlyArray<Transaction> {
-		const reduceResult: DequeueUntilReduceObject = this._transactions.reduceRight(
+		const reduceResult: ReduceUntilObject = this._transactions.reduceRight(
 			(
-				{ affected, unaffected, conditionFailedOnce }: DequeueUntilReduceObject,
+				{ affected, unaffected, conditionFailedOnce }: ReduceUntilObject,
 				transaction: Transaction,
 			) => {
 				// Add transaction to the unaffected list if the condition failed for this transaction or any previous transaction
@@ -86,6 +86,37 @@ export class Queue {
 
 	public exists(transaction: Transaction): boolean {
 		return !!this._index[transaction.id];
+	}
+
+	public peekUntil(condition: (transaction: Transaction) => boolean): ReadonlyArray<Transaction> {
+		const reduceResult: ReduceUntilObject = this._transactions.reduceRight(
+			(
+				{ affected, unaffected, conditionFailedOnce }: ReduceUntilObject,
+				transaction: Transaction,
+			) => {
+				// Add transaction to the unaffected list if the condition failed for this transaction or any previous transaction
+				if (conditionFailedOnce || !condition(transaction)) {
+					return {
+						affected,
+						unaffected,
+						conditionFailedOnce: true,
+					};
+				}
+
+				return {
+					affected: [transaction, ...affected],
+					unaffected,
+					conditionFailedOnce: false,
+				};
+			},
+			{
+				affected: [],
+				unaffected: [],
+				conditionFailedOnce: false,
+			},
+		);
+
+		return reduceResult.affected;
 	}
 
 	public removeFor(
