@@ -28,10 +28,7 @@ interface RawPeerObject {
 	readonly wsPort: string;
 }
 
-export const checkForValidPeerAddress = (
-	ip: string,
-	wsPort: string,
-): boolean => {
+export const validatePeerAddress = (ip: string, wsPort: string): boolean => {
 	if ((!isIP(ip, IPV4_NUMBER) && !isIP(ip, IPV6_NUMBER)) || !isPort(wsPort)) {
 		return false;
 	}
@@ -50,7 +47,7 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 	if (
 		!rawPeer.ip ||
 		!rawPeer.wsPort ||
-		!checkForValidPeerAddress(rawPeer.ip, rawPeer.wsPort)
+		!validatePeerAddress(rawPeer.ip, rawPeer.wsPort)
 	) {
 		throw new InvalidPeer(`Invalid peer ip or port`);
 	}

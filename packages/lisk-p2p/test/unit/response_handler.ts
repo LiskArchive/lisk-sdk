@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import {
-	checkForValidPeerAddress,
+	validatePeerAddress,
 	instantiatePeerFromResponse,
 } from '../../src/response_handler';
 
@@ -120,14 +120,14 @@ describe('response handlers', () => {
 		});
 	});
 
-	describe('#checkForValidPeerAddress', () => {
+	describe('#validatePeerAddress', () => {
 		it('should return true for correct IPv4', () => {
 			const peer = {
 				ip: '12.12.12.12',
 				wsPort: '4001',
 			};
 
-			return expect(checkForValidPeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			return expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
 		it('should return true for correct IPv6', () => {
@@ -136,7 +136,7 @@ describe('response handlers', () => {
 				wsPort: '4001',
 			};
 
-			return expect(checkForValidPeerAddress(peer.ip, peer.wsPort)).to.be.true;
+			return expect(validatePeerAddress(peer.ip, peer.wsPort)).to.be.true;
 		});
 
 		it('should return false for incorrect ip', () => {
@@ -146,7 +146,7 @@ describe('response handlers', () => {
 			};
 
 			return expect(
-				checkForValidPeerAddress(
+				validatePeerAddress(
 					peerWithIncorrectIp.ip,
 					peerWithIncorrectIp.wsPort,
 				),
@@ -160,7 +160,7 @@ describe('response handlers', () => {
 			};
 
 			return expect(
-				checkForValidPeerAddress(
+				validatePeerAddress(
 					peerWithIncorrectPort.ip,
 					peerWithIncorrectPort.wsPort,
 				),
