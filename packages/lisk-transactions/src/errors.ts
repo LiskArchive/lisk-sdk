@@ -10,7 +10,7 @@ export class TransactionError extends VError {
 		dataPath: string = '',
 	) {
 		super(message);
-		this.name = 'Transaction Error';
+		this.name = 'TransactionError';
 		this.id = id;
 		this.dataPath = dataPath;
 	}
@@ -26,7 +26,7 @@ export class TransactionMultiError extends TransactionError {
 		errors: ReadonlyArray<TransactionError> = [],
 	) {
 		super(message);
-		this.name = 'Transaction MultiError';
+		this.name = 'TransactionMultiError';
 		this.id = id;
 		this.dataPath = errors.map(error => error.dataPath).join(':');
 		this.errors = errors;

@@ -14,8 +14,8 @@
  */
 import BigNum from 'browserify-bignum';
 import { expect } from 'chai';
-import { verifyBalance } from '../../../src/transactions/helpers';
-import { TransactionError } from '../../../src/errors';
+import { verifyBalance } from '../../src/utils';
+import { TransactionError } from '../../src/errors';
 
 describe('#verifyBalance', () => {
 	const defaultSender = {

@@ -13,9 +13,9 @@
  *
  */
 import { expect } from 'chai';
-import { checkTypes } from '../../../src/transactions/helpers';
-import { TransactionError } from '../../../src/errors';
-import { TransactionJSON } from '../../../src/transaction_types';
+import { checkTypes } from '../../src/utils';
+import { TransactionError } from '../../src/errors';
+import { TransactionJSON } from '../../src/transaction_types';
 
 describe('#checkTypes', () => {
 	const defaultTransaction: TransactionJSON = {

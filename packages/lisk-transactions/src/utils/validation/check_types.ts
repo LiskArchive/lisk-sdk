@@ -14,8 +14,8 @@
  */
 import { TransactionError } from '../../errors';
 import { TransactionJSON } from '../../transaction_types';
-import { validator } from '../../utils';
-import * as schemas from '../../utils/validation/schema';
+import { validator } from './';
+import * as schemas from './schema';
 
 interface CheckReturn {
 	readonly valid: boolean;

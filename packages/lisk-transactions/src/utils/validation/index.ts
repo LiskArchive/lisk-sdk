@@ -12,7 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+export { checkTypes } from './check_types';
 export {
 	checkPublicKeysForDuplicates,
 	validatePublicKey,

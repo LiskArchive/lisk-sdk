@@ -13,10 +13,11 @@
  *
  */
 import BigNum from 'browserify-bignum';
-import { TransactionError } from '../../errors';
-import { Account } from '../../transaction_types';
-import { convertBeddowsToLSK } from '../../utils';
-interface VerifyReturn {
+import { TransactionError } from '../errors';
+import { Account } from '../transaction_types';
+import { convertBeddowsToLSK } from './';
+
+interface VerifyBalanceReturn {
 	readonly verified: boolean;
 	readonly error?: TransactionError;
 }
@@ -24,7 +25,7 @@ interface VerifyReturn {
 export const verifyBalance = (
 	sender: Account,
 	amount: BigNum,
-): VerifyReturn => {
+): VerifyBalanceReturn => {
 	const exceeded = new BigNum(sender.balance).lt(new BigNum(amount));
 
 	return {

@@ -13,6 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { TransactionError } from '../errors';
 import { TransactionJSON } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
@@ -44,7 +45,107 @@ export const multiSignTransaction = (
 	return cryptography.signData(transactionHash, passphrase);
 };
 
-// TODO: Change name to validate but keep same name for exposed in index
+interface VerifySignatureReturn {
+	readonly verified: boolean;
+	readonly error?: TransactionError;
+}
+
+export const verifySignature = (
+	publicKey: string,
+	signature: string,
+	transactionBytes: Buffer,
+	id?: string,
+): VerifySignatureReturn => {
+	const transactionHash = cryptography.hash(transactionBytes);
+
+	const verified = cryptography.verifyData(
+		transactionHash,
+		signature,
+		publicKey,
+	);
+
+	return {
+		verified,
+		error: !verified
+			? new TransactionError(
+					`Failed to verify signature ${signature}`,
+					id,
+					'.signature',
+			  )
+			: undefined,
+	};
+};
+
+interface VerifyMultisignatureReturn {
+	readonly verified: boolean;
+	readonly errors: ReadonlyArray<TransactionError>;
+}
+
+export const verifyMultisignatures = (
+	memberPublicKeys: ReadonlyArray<string> = [],
+	signatures: ReadonlyArray<string>,
+	minimumValidations: number,
+	transactionBytes: Buffer,
+	id?: string,
+): VerifyMultisignatureReturn => {
+	if (!minimumValidations || typeof minimumValidations !== 'number') {
+		return {
+			verified: false,
+			errors: [new TransactionError('Sender does not have valid multimin', id)],
+		};
+	}
+	if (!signatures || (signatures && signatures.length < minimumValidations)) {
+		return {
+			verified: false,
+			errors: [new TransactionError('Missing signatures', id, '.signatures')],
+		};
+	}
+
+	const verifiedSignatures: string[] = [];
+	const checkedPublicKeys: string[] = [];
+
+	memberPublicKeys.forEach(publicKey => {
+		if (checkedPublicKeys.includes(publicKey)) {
+			return;
+		}
+
+		signatures.forEach((signature: string) => {
+			if (verifiedSignatures.includes(signature)) {
+				return;
+			}
+			const { verified: signatureVerified } = verifySignature(
+				publicKey,
+				signature,
+				transactionBytes,
+			);
+			if (signatureVerified) {
+				checkedPublicKeys.push(publicKey);
+				verifiedSignatures.push(signature);
+			}
+		});
+	});
+
+	const unverifiedSignatures = signatures.filter(
+		e => !verifiedSignatures.find(a => e === a),
+	);
+
+	return {
+		verified: verifiedSignatures.length >= minimumValidations,
+		errors:
+			unverifiedSignatures.length > 0
+				? unverifiedSignatures.map(
+						signature =>
+							new TransactionError(
+								`Failed to verify signature ${signature}`,
+								id,
+								'.signature',
+							),
+				  )
+				: [],
+	};
+};
+
+// FIXME: Deprecated
 export const verifyTransaction = (
 	transaction: TransactionJSON,
 	secondPublicKey?: string,

@@ -201,6 +201,7 @@ export const checkTransaction = (transaction: TransactionJSON): boolean => {
 	return true;
 };
 
+// FIXME: Deprecated
 export const getTransactionBytes = (transaction: TransactionJSON): Buffer => {
 	checkTransaction(transaction);
 	const {

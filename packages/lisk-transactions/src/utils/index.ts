@@ -14,7 +14,7 @@
  */
 export { getTransactionBytes } from './get_transaction_bytes';
 export { getTransactionHash } from './get_transaction_hash';
-export { getTransactionId } from './get_transaction_id';
+export { getId, getTransactionId } from './get_transaction_id';
 export {
 	convertBeddowsToLSK,
 	convertLSKToBeddows,
@@ -26,11 +26,14 @@ export {
 	signTransaction,
 	secondSignTransaction,
 	multiSignTransaction,
+	verifySignature,
+	verifyMultisignatures,
 	verifyTransaction,
 } from './sign_and_verify';
 export { signRawTransaction } from './sign_raw_transaction';
 export { getTimeFromBlockchainEpoch, getTimeWithOffset } from './time';
 export {
+	checkTypes,
 	checkPublicKeysForDuplicates,
 	validatePublicKey,
 	validatePublicKeys,
@@ -44,3 +47,4 @@ export {
 	validateTransaction,
 	validator,
 } from './validation';
+export { verifyBalance } from './verify_balance';

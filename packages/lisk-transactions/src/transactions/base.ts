@@ -18,6 +18,7 @@
 import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
 import {
+	BYTESIZES,
 	UNCONFIRMED_MULTISIG_TRANSACTION_TIMEOUT,
 	UNCONFIRMED_TRANSACTION_TIMEOUT,
 } from '../constants';
@@ -28,15 +29,15 @@ import {
 	TransactionAsset,
 	TransactionJSON,
 } from '../transaction_types';
-import { validator } from '../utils';
-import * as schemas from '../utils/validation/schema';
 import {
 	checkTypes,
 	getId,
+	validator,
 	verifyBalance,
 	verifyMultisignatures,
 	verifySignature,
-} from './helpers';
+} from '../utils';
+import * as schemas from '../utils/validation/schema';
 
 export interface TransactionResponse {
 	readonly id: string;
@@ -92,7 +93,7 @@ export abstract class BaseTransaction {
 				: false;
 	}
 
-	public abstract assetToJSON(asset: TransactionAsset): TransactionAsset;
+	public abstract assetToJSON(): TransactionAsset;
 
 	public toJSON(): TransactionJSON {
 		const transaction = {
@@ -108,11 +109,48 @@ export abstract class BaseTransaction {
 			signature: this.signature ? this.signature : undefined,
 			signSignature: this.signSignature ? this.signSignature : undefined,
 			signatures: this.signatures,
-			asset: this.assetToJSON(this.asset),
+			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt,
 		};
 
 		return transaction;
+	}
+
+	protected abstract getAssetBytes(): Buffer;
+
+	protected getBasicBytes(): Buffer {
+		const transactionType = Buffer.alloc(BYTESIZES.TYPE, this.type);
+		const transactionTimestamp = Buffer.alloc(BYTESIZES.TIMESTAMP);
+		transactionTimestamp.writeIntLE(this.timestamp, 0, BYTESIZES.TIMESTAMP);
+
+		const transactionSenderPublicKey = cryptography.hexToBuffer(
+			this.senderPublicKey,
+		);
+
+		const transactionRecipientID = this.recipientId
+			? cryptography.bigNumberToBuffer(
+					this.recipientId.slice(0, -1),
+					BYTESIZES.RECIPIENT_ID,
+			  )
+			: Buffer.alloc(BYTESIZES.RECIPIENT_ID);
+
+		const transactionAmount = this.amount.toBuffer({
+			endian: 'little',
+			size: BYTESIZES.AMOUNT,
+		});
+
+		const transactionAsset = this.asset
+			? this.getAssetBytes()
+			: Buffer.alloc(0);
+
+		return Buffer.concat([
+			transactionType,
+			transactionTimestamp,
+			transactionSenderPublicKey,
+			transactionRecipientID,
+			transactionAmount,
+			transactionAsset,
+		]);
 	}
 
 	public abstract getBytes(): Buffer;
@@ -150,7 +188,7 @@ export abstract class BaseTransaction {
 			}
 		}
 
-		if (this.id !== getId(transaction)) {
+		if (this.id !== getId(this.getBytes())) {
 			errors.push(
 				new TransactionError('Invalid transaction id', this.id, '.id'),
 			);
@@ -165,13 +203,6 @@ export abstract class BaseTransaction {
 
 	public validate(): TransactionResponse {
 		const errors: TransactionError[] = [];
-		const transaction = this.toJSON();
-		const {
-			signature,
-			signSignature,
-			asset,
-			...unsignedTransaction
-		} = transaction;
 
 		const {
 			verified: signatureVerified,
@@ -179,7 +210,8 @@ export abstract class BaseTransaction {
 		} = verifySignature(
 			this.senderPublicKey,
 			this.signature,
-			unsignedTransaction as TransactionJSON,
+			this.getBasicBytes(),
+			this.id,
 		);
 
 		if (!signatureVerified) {
@@ -217,7 +249,7 @@ export abstract class BaseTransaction {
 
 	public verify(sender: Account): TransactionResponse {
 		// tslint:disable-next-line no-let
-		let errors: TransactionError[] = [];
+		const errors: TransactionError[] = [];
 
 		// Check senderPublicKey
 		if (sender.publicKey !== this.senderPublicKey) {
@@ -270,15 +302,19 @@ export abstract class BaseTransaction {
 					),
 				);
 			} else {
-				const transaction = this.toJSON();
+				const transactionBytes = Buffer.concat([
+					this.getBasicBytes(),
+					Buffer.from(this.signature, 'hex'),
+				]);
+
 				const {
 					verified: signatureVerified,
 					error: verificationError,
 				} = verifySignature(
 					sender.secondPublicKey,
 					this.signSignature,
-					transaction,
-					true,
+					transactionBytes,
+					this.id,
 				);
 
 				if (!signatureVerified) {
@@ -291,27 +327,28 @@ export abstract class BaseTransaction {
 		if (
 			Array.isArray(sender.multisignatures) &&
 			sender.multisignatures.length > 0 &&
-			sender.multimin
+			sender.multimin &&
+			this.signatures
 		) {
-			if (
-				!this.signatures ||
-				(this.signatures && this.signatures.length === 0)
-			) {
-				errors.push(
-					new TransactionError('Missing signatures', this.id, '.signatures'),
-				);
-			} else {
-				const transaction = this.toJSON();
-				const { signSignature, asset, ...unsignedTransaction } = transaction;
-				const { errors: multisignatureErrors } = verifyMultisignatures(
-					sender.multisignatures,
-					sender.multimin,
-					unsignedTransaction as TransactionJSON,
-				);
+			const transactionBytes = this.signSignature
+				? Buffer.concat([
+						this.getBasicBytes(),
+						Buffer.from(this.signature, 'hex'),
+				  ])
+				: this.getBasicBytes();
 
-				if (multisignatureErrors.length > 0) {
-					errors = [...errors, ...multisignatureErrors];
-				}
+			const { errors: multisignatureErrors } = verifyMultisignatures(
+				sender.multisignatures,
+				this.signatures,
+				sender.multimin,
+				transactionBytes,
+				this.id,
+			);
+
+			if (multisignatureErrors.length > 0) {
+				multisignatureErrors.forEach(error => {
+					errors.push(error);
+				});
 			}
 		}
 

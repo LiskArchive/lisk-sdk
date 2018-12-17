@@ -49,6 +49,34 @@ describe('Base transaction class', () => {
 		secondPublicKey: '',
 	};
 
+	const defaultSecondSignatureTransaction = {
+		amount: '10000000000',
+		recipientId: '13356260975429434553L',
+		senderId: '10582186986223407633L',
+		senderPublicKey:
+			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8',
+		timestamp: 80685381,
+		type: 0,
+		fee: '10000000',
+		recipientPublicKey: '',
+		asset: {},
+		signature:
+			'3357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
+		signSignature:
+			'11f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
+		id: '11638517642515821734',
+		receivedAt: new Date(),
+	};
+
+	const defaultSecondSignatureAccount = {
+		address: '10582186986223407633L',
+		balance: '9500000000',
+		publicKey:
+			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8',
+		secondPublicKey:
+			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8',
+	};
+
 	let baseTransaction: BaseTransaction;
 
 	beforeEach(() => {
@@ -188,7 +216,7 @@ describe('Base transaction class', () => {
 
 	describe('#assetToJSON', () => {
 		it('should return an object of type transaction asset', () => {
-			return expect(baseTransaction.assetToJSON({})).to.be.an('object');
+			return expect(baseTransaction.assetToJSON()).to.be.an('object');
 		});
 	});
 
@@ -486,6 +514,46 @@ describe('Base transaction class', () => {
 						.and.to.have.property(
 							'message',
 							'Sender does not have a secondPublicKey',
+						);
+					return expect(status).to.eql(Status.FAIL);
+				});
+			});
+
+			describe('when transaction signSignature is valid', () => {
+				it('should return a success transaction response', () => {
+					baseTransaction = new TestTransaction(
+						defaultSecondSignatureTransaction,
+					);
+					const { id, status } = baseTransaction.verify(
+						defaultSecondSignatureAccount,
+					);
+					expect(id).to.be.eql(baseTransaction.id);
+					return expect(status).to.eql(Status.OK);
+				});
+			});
+
+			describe('when transaction signSignature is invalid', () => {
+				const invalidTransaction = {
+					...defaultSecondSignatureTransaction,
+					signSignature: defaultSecondSignatureTransaction.signSignature.replace(
+						'0',
+						'1',
+					),
+				};
+
+				it('should return a failed transaction response', () => {
+					baseTransaction = new TestTransaction(invalidTransaction);
+					const { id, status, errors } = baseTransaction.verify(
+						defaultSecondSignatureAccount,
+					);
+					const errorArray = errors as ReadonlyArray<TransactionError>;
+
+					expect(id).to.be.eql(baseTransaction.id);
+					expect(errorArray[0])
+						.to.be.instanceof(TransactionError)
+						.and.to.have.property(
+							'message',
+							'Failed to verify signature 11f77b8596df14410f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
 						);
 					return expect(status).to.eql(Status.FAIL);
 				});

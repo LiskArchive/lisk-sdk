@@ -18,10 +18,12 @@ import { getTransactionId } from './get_transaction_id';
 import { secondSignTransaction, signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';
 
+// FIXME: Deprecated
 const validTransaction = (
 	partial: PartialTransaction,
 ): partial is TransactionJSON => partial.type !== undefined;
 
+// FIXME: Deprecated
 export const prepareTransaction = (
 	partialTransaction: PartialTransaction,
 	passphrase?: string,
