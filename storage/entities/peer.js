@@ -63,7 +63,7 @@ class Peer extends BaseEntity {
 		this.defaultFilters = defaultFilters;
 		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
-		this.addField('id', 'number', { format: 'number', filter: ft.NUMBER });
+		this.addField('id', 'number', { filter: ft.NUMBER });
 		this.addField('ip', 'string', { format: 'ip', filter: ft.TEXT });
 		this.addField('wsPort', 'number', {
 			format: 'number',
