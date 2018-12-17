@@ -26,7 +26,7 @@ const readOnlyFields = [];
 
 /**
  * Basic Peer
- * @typedef {Object} BasicPeer
+ * @typedef {Object} Peer
  * @property {number} id
  * @property {inet} ip
  * @property {number} wsPort
@@ -41,6 +41,57 @@ const readOnlyFields = [];
 /**
  * Peer Filters
  * @typedef {Object} filters.Peer
+ * @property {number} [id_eq]
+ * @property {number} [id_ne]
+ * @property {number} [id_gt]
+ * @property {number} [id_gte]
+ * @property {number} [id_lt]
+ * @property {number} [id_lte]
+ * @property {number} [id_in]
+ * @property {string} [ip]
+ * @property {string} [ip_ne]
+ * @property {string} [ip_in]
+ * @property {string} [ip_like]
+ * @property {number} [wsPort]
+ * @property {number} [wsPort_ne]
+ * @property {number} [wsPort_gt]
+ * @property {number} [wsPort_gte]
+ * @property {number} [wsPort_lt]
+ * @property {number} [wsPort_lte]
+ * @property {number} [wsPort_in]
+ * @property {number} [state]
+ * @property {number} [state_ne]
+ * @property {number} [state_gt]
+ * @property {number} [state_gte]
+ * @property {number} [state_lt]
+ * @property {number} [state_lte]
+ * @property {number} [state_in]
+ * @property {string} [os]
+ * @property {string} [os_ne]
+ * @property {string} [os_in]
+ * @property {string} [os_like]
+ * @property {string} [version]
+ * @property {string} [version__ne]
+ * @property {string} [version_in]
+ * @property {string} [version_like]
+ * @property {number} [clock]
+ * @property {number} [clock_ne]
+ * @property {number} [clock_gt]
+ * @property {number} [clock_gte]
+ * @property {number} [clock_lt]
+ * @property {number} [clock_lte]
+ * @property {number} [clock_in]
+ * @property {string} [broadhash]
+ * @property {string} [broadhash_ne]
+ * @property {string} [broadhash_in]
+ * @property {string} [broadhash_like]
+ * @property {number} [height]
+ * @property {number} [height_ne]
+ * @property {number} [height_gt]
+ * @property {number} [height_gte]
+ * @property {number} [height_lt]
+ * @property {number} [height_lte]
+ * @property {number} [height_in]
  */
 
 /**
@@ -64,36 +115,18 @@ class Peer extends BaseEntity {
 
 		this.addField('id', 'number', { filter: filterType.NUMBER });
 		this.addField('ip', 'string', { format: 'ip', filter: filterType.TEXT });
-		this.addField('wsPort', 'number', {
-			format: 'number',
-			filter: filterType.NUMBER,
-		});
-		this.addField('state', 'number', {
-			format: 'number',
-			filter: filterType.NUMBER,
-		});
-		this.addField('os', 'string', {
-			format: 'string',
-			filter: filterType.TEXT,
-		});
-		this.addField('version', 'string', {
-			format: 'string',
-			filter: filterType.TEXT,
-		});
-		this.addField('clock', 'number', {
-			format: 'number',
-			filter: filterType.NUMBER,
-		});
+		this.addField('wsPort', 'number', { filter: filterType.NUMBER });
+		this.addField('state', 'number', { filter: filterType.NUMBER });
+		this.addField('os', 'string', { filter: filterType.TEXT });
+		this.addField('version', 'string', { filter: filterType.TEXT });
+		this.addField('clock', 'number', { filter: filterType.NUMBER });
 		this.addField(
 			'broadhash',
 			'string',
-			{ format: 'string', filter: filterType.TEXT },
+			{ filter: filterType.TEXT },
 			stringToByte
 		);
-		this.addField('height', 'number', {
-			format: 'number',
-			filter: filterType.NUMBER,
-		});
+		this.addField('height', 'number', { filter: filterType.NUMBER });
 
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('peers/get_simple.sql'),
@@ -118,9 +151,9 @@ class Peer extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Peer} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicPeer, Error>}
+	 * @return {Promise.<Peer, Error>}
 	 */
-	getOne(filters, options = {}, tx) {
+	getOne(filters, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
 		const parsedOptions = _.defaults(
@@ -158,9 +191,9 @@ class Peer extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Peer} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicPeer[]|ExtendedPeer[], Error>}
+	 * @return {Promise.<Peer[], Error>}
 	 */
-	get(filters = {}, options = {}, tx) {
+	get(filters = {}, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
 		const mergedFilters = this.mergeFilters(filters);
@@ -196,7 +229,7 @@ class Peer extends BaseEntity {
 	 * @return {*}
 	 */
 	// eslint-disable-next-line no-unused-vars
-	create(data, options = {}, tx) {
+	create(data, options = {}, tx = null) {
 		const objectData = _.defaults(data, defaultCreateValues);
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
@@ -221,7 +254,7 @@ class Peer extends BaseEntity {
 	 * @return {*}
 	 */
 	// eslint-disable-next-line no-unused-vars
-	update(filters, data, options = {}, tx) {
+	update(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
 		const objectData = _.omit(data, readOnlyFields);
@@ -247,7 +280,7 @@ class Peer extends BaseEntity {
 	 * @return {*}
 	 */
 	// eslint-disable-next-line no-unused-vars
-	updateOne(filters, data, options = {}, tx) {
+	updateOne(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
 		const objectData = _.omit(data, readOnlyFields);
@@ -272,7 +305,7 @@ class Peer extends BaseEntity {
 	 * @returns {Promise.<boolean, Error>}
 	 */
 	// eslint-disable-next-line no-unused-vars
-	isPersisted(filters, options = {}, tx) {
+	isPersisted(filters, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
 		const mergedFilters = this.mergeFilters(filters);
@@ -292,26 +325,6 @@ class Peer extends BaseEntity {
 
 	getFieldSets() {
 		return [this.FIELD_SET_SIMPLE];
-	}
-
-	/**
-	 * Merge multiple filters together
-	 * @param {Array.<Object>|Object} filters
-	 * @return {*}
-	 */
-	mergeFilters(filters) {
-		const mergedFilters = filters;
-
-		if (Array.isArray(mergedFilters)) {
-			const lastIndex = mergedFilters.length - 1;
-			mergedFilters[lastIndex] = Object.assign(
-				{},
-				mergedFilters[lastIndex],
-				this.defaultFilters
-			);
-			return mergedFilters;
-		}
-		return Object.assign({}, mergedFilters, this.defaultFilters);
 	}
 }
 

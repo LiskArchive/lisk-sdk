@@ -12,5 +12,4 @@
  * Removal or modification of this copyright notice is prohibited.
  */
 
-
-UPDATE peers SET ${updateSet:raw} WHERE id = ${parsedFilters:raw} LIMIT 1;
+UPDATE peers SET ${updateSet:raw} WHERE id = (SELECT id FROM peers ${parsedFilters:raw} LIMIT 1);
