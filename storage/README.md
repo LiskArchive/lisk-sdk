@@ -61,3 +61,4 @@ Following conventions must be followed strictly
 * Timestamp types always refer to the network Epoch timestamp. In the case of Unix timestamp, the attribute name should be prefixed with `unix_`.
 * All values related to the amounts should be exposed as strings, due to the limited JavaScript integers precision (find out more while reading about Number. MAX_SAFE_INTEGER). The block height and round number can be safely stored as integers and should be exposed as integers.
 * All `BYTEA` fields in 'hex' encoding should be exposed as strings. Any other encoding should be exposed as Buffer.
+* When required to use constants, use `Symbol` and then export it from interface, so later everyone explicitly use those defined constants instead of strings.
