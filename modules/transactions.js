@@ -393,7 +393,7 @@ __private.getPooledTransactions = function(method, filters, cb) {
 		filters.recipientPublicKey ||
 		filters.senderId ||
 		filters.senderPublicKey ||
-		filters.hasOwnProperty('type')
+		Object.prototype.hasOwnProperty.call(filters, 'type')
 	) {
 		toSend = _.filter(
 			transactions,

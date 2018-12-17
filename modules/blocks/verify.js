@@ -318,31 +318,28 @@ __private.verifyPayload = function(block, result) {
 	const payloadHash = crypto.createHash('sha256');
 	const appliedTransactions = {};
 
-	for (const i in block.transactions) {
-		if (Object.prototype.hasOwnProperty.call(block.transactions, i)) {
-			const transaction = block.transactions[i];
-			let bytes;
+	block.transactions.forEach(transaction => {
+		let bytes;
 
-			try {
-				bytes = library.logic.transaction.getBytes(transaction);
-			} catch (e) {
-				result.errors.push(e.toString());
-			}
-
-			if (appliedTransactions[transaction.id]) {
-				result.errors.push(
-					`Encountered duplicate transaction: ${transaction.id}`
-				);
-			}
-
-			appliedTransactions[transaction.id] = transaction;
-			if (bytes) {
-				payloadHash.update(bytes);
-			}
-			totalAmount = totalAmount.plus(transaction.amount);
-			totalFee = totalFee.plus(transaction.fee);
+		try {
+			bytes = library.logic.transaction.getBytes(transaction);
+		} catch (e) {
+			result.errors.push(e.toString());
 		}
-	}
+
+		if (appliedTransactions[transaction.id]) {
+			result.errors.push(
+				`Encountered duplicate transaction: ${transaction.id}`
+			);
+		}
+
+		appliedTransactions[transaction.id] = transaction;
+		if (bytes) {
+			payloadHash.update(bytes);
+		}
+		totalAmount = totalAmount.plus(transaction.amount);
+		totalFee = totalFee.plus(transaction.fee);
+	});
 
 	if (payloadHash.digest().toString('hex') !== block.payloadHash) {
 		result.errors.push('Invalid payload hash');

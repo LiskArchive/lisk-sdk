@@ -100,13 +100,9 @@ DApp.prototype.verify = function(transaction, sender, cb, tx) {
 		return setImmediate(cb, 'Invalid application category');
 	}
 
-	let foundCategory = false;
-	for (const i of Object.keys(dappCategories)) {
-		if (dappCategories[i] === transaction.asset.dapp.category) {
-			foundCategory = true;
-			break;
-		}
-	}
+	const foundCategory = Object.values(dappCategories).includes(
+		transaction.asset.dapp.category
+	);
 
 	if (!foundCategory) {
 		return setImmediate(cb, 'Application category not found');
@@ -435,14 +431,14 @@ DApp.prototype.schema = {
  * @todo Add description for the params
  */
 DApp.prototype.objectNormalize = function(transaction) {
-	for (const i of Object.keys(transaction.asset.dapp)) {
+	Object.keys(transaction.asset.dapp).forEach(key => {
 		if (
-			transaction.asset.dapp[i] === null ||
-			typeof transaction.asset.dapp[i] === 'undefined'
+			transaction.asset.dapp[key] === null ||
+			typeof transaction.asset.dapp[key] === 'undefined'
 		) {
-			delete transaction.asset.dapp[i];
+			delete transaction.asset.dapp[key];
 		}
-	}
+	});
 
 	const report = library.schema.validate(
 		transaction.asset.dapp,

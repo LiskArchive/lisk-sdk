@@ -176,12 +176,17 @@ function __init(initScope, done) {
 						});
 					},
 					cache(cb) {
-						const cache = require('../../helpers/cache.js');
-						cache.connect(
+						const RedisConnector = require('../../helpers/redis_connector.js');
+						const redisConnector = new RedisConnector(
 							__testContext.config.cacheEnabled,
 							__testContext.config.redis,
-							logger,
-							cb
+							logger
+						);
+						redisConnector.connect((_, client) =>
+							cb(null, {
+								cacheEnabled: __testContext.config.cacheEnabled,
+								client,
+							})
 						);
 					},
 					webSocket: [
@@ -258,9 +263,7 @@ function __init(initScope, done) {
 							const bus =
 								initScope.bus ||
 								new function() {
-									this.message = function() {
-										const args = [];
-										Array.prototype.push.apply(args, arguments);
+									this.message = function(...args) {
 										const topic = args.shift();
 										const eventName = `on${changeCase.pascalCase(topic)}`;
 

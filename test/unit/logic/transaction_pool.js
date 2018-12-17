@@ -81,6 +81,16 @@ describe('transactionPool', () => {
 		message: sinonSandbox.spy(),
 	};
 
+	const removeQueuedTransactionSpy = sinonSandbox.spy(
+		TransactionPool.prototype,
+		'removeQueuedTransaction'
+	);
+
+	const removeMultisignatureTransactionSpy = sinonSandbox.spy(
+		TransactionPool.prototype,
+		'removeMultisignatureTransaction'
+	);
+
 	const resetStates = function() {
 		transactionPool.unconfirmed = _.cloneDeep(freshListState);
 		transactionPool.bundled = _.cloneDeep(freshListState);
@@ -116,6 +126,9 @@ describe('transactionPool', () => {
 			'modules.transactions.undoUnconfirmed',
 			dummyUndoUnconfirmed
 		);
+
+		removeQueuedTransactionSpy.reset();
+		removeMultisignatureTransactionSpy.reset();
 	};
 
 	before(done => {
@@ -1565,6 +1578,28 @@ describe('transactionPool', () => {
 									return expect(index).to.be.an('undefined');
 								});
 							});
+						});
+
+						it('should call removeQueuedTransaction when failed to process', () => {
+							return expect(removeQueuedTransactionSpy.callCount).to.eql(1);
+						});
+
+						it('should call removeQueuedTransaction with the correct transactionId', () => {
+							return expect(
+								removeQueuedTransactionSpy.calledWith(badTransaction.id)
+							).to.eql(true);
+						});
+
+						it('should call removeMultisignatureTransaction when failed to process', () => {
+							return expect(
+								removeMultisignatureTransactionSpy.callCount
+							).to.eql(1);
+						});
+
+						it('should call removeMultisignatureTransaction with the correct transactionId', () => {
+							return expect(
+								removeMultisignatureTransactionSpy.calledWith(badTransaction.id)
+							).to.eql(true);
 						});
 
 						after(resetStates);

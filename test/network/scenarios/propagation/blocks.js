@@ -41,8 +41,8 @@ module.exports = function(configurations, network) {
 		});
 
 		it('should contain non empty blocks', () => {
-			return nodesBlocks.forEach(blocks => {
-				expect(blocks).to.be.an('array').and.not.to.be.empty;
+			return nodesBlocks.map(blocks => {
+				return expect(blocks).to.be.an('array').and.not.to.be.empty;
 			});
 		});
 
@@ -54,14 +54,13 @@ module.exports = function(configurations, network) {
 			return expect(uniquePeersHeights).to.have.lengthOf.at.least(1);
 		});
 
-		it('should have all blocks the same at all peers', done => {
+		it('should have all blocks the same at all peers', () => {
 			const blocksFromOtherNodes = nodesBlocks.splice(1);
 			const blocksFromNode0 = nodesBlocks[0];
 
-			blocksFromOtherNodes.forEach(blocksFromNode =>
-				expect(blocksFromNode).to.include.deep.members(blocksFromNode0)
-			);
-			done();
+			return blocksFromOtherNodes.map(blocksFromNode => {
+				return expect(blocksFromNode).to.include.deep.members(blocksFromNode0);
+			});
 		});
 	});
 };
