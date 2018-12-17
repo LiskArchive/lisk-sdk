@@ -107,7 +107,7 @@ class Peer extends BaseEntity {
 	 * @param {Number} [options.offset=0] - Offset to start the records
 	 * @param {fieldSets.Peer} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
-	 * @return {Promise.<BasicPeer|ExtendedPeer, Error>}
+	 * @return {Promise.<BasicPeer, Error>}
 	 */
 	getOne(filters, options = {}, tx) {
 		this.validateFilters(filters);

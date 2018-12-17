@@ -100,7 +100,7 @@ describe('Peer', () => {
 	});
 
 	describe('constructor()', () => {
-		it('should accept only one parameter', async () => {
+		it('should accept only one mandatory parameter', async () => {
 			expect(Peer.prototype.constructor.length).to.be.eql(1);
 		});
 
@@ -146,7 +146,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for in-valid filters', async () => {
+		it('should throw error for invalid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.getOne(invalidFilter);
@@ -160,7 +160,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for in-valid options', async () => {
+		it('should throw error for invalid options', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.getOne(validFilter, invalidOptions);
@@ -199,7 +199,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for in-valid filters', async () => {
+		it('should throw error for invalid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.getOne(invalidFilter);
@@ -213,7 +213,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for in-valid options', async () => {
+		it('should throw error for invalid options', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.getOne(validFilter, invalidOptions);
@@ -239,7 +239,7 @@ describe('Peer', () => {
 
 	describe('create()', () => {
 		it('should accept only valid options');
-		it('should throw error for in-valid options');
+		it('should throw error for invalid options');
 		it('should call getValuesSet with proper params');
 		it('should call adapter.executeFile with proper params');
 		it('should create a peer object successfully');
@@ -256,7 +256,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for in-valid filters', async () => {
+		it('should throw error for invalid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.update(invalidFilter, validPeer);
@@ -270,7 +270,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for in-valid options', async () => {
+		it('should throw error for invalid options', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.update(validFilter, validPeer, invalidOptions);
@@ -293,7 +293,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for in-valid filters', async () => {
+		it('should throw error for invalid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.updateOne(invalidFilter, validPeer);
@@ -307,7 +307,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for in-valid options', async () => {
+		it('should throw error for invalid options', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.updateOne(validFilter, validPeer, invalidOptions);
@@ -332,7 +332,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedFilterTypeError);
 		});
 
-		it('should throw error for in-valid filters', async () => {
+		it('should throw error for invalid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.isPersisted(invalidFilter);
@@ -346,7 +346,7 @@ describe('Peer', () => {
 			}).not.to.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for in-valid options', async () => {
+		it('should throw error for invalid options', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
 				peer.isPersisted(validFilter, invalidOptions);
