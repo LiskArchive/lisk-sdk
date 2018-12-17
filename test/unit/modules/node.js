@@ -17,6 +17,10 @@
 const genesisDelegates = require('../../data/genesis_delegates.json');
 const accountFixtures = require('../../fixtures/accounts');
 const application = require('../../common/application');
+const BlockReward = require('../../../logic/block_reward');
+const Node = require('../../../modules/node');
+
+const { EPOCH_TIME, FEES } = global.constants;
 
 describe('node', () => {
 	const testDelegate = genesisDelegates.delegates[0];
@@ -43,27 +47,85 @@ describe('node', () => {
 	});
 
 	describe('constructor', () => {
-		/* eslint-disable mocha/no-pending-tests */
-		describe('library', () => {
-			it('should assign build');
+		let rewiredNodeModule;
 
-			it('should assign lastCommit');
-
-			it('should assign config.version');
-
-			it('should assign config.nethash');
-
-			it('should assign config.nonce');
+		before(done => {
+			rewiredNodeModule = library.rewiredModules.node;
+			done();
 		});
 
-		it('should assign blockReward');
+		describe('library', () => {
+			let privateLibrary;
 
-		it('should assign blockReward with BlockReward instance');
+			before(done => {
+				privateLibrary = rewiredNodeModule.__get__('library');
+				done();
+			});
 
-		it('should call callback with error = null');
+			it('should assign build', done => {
+				expect(privateLibrary).to.have.property('build', library.build);
+				done();
+			});
 
-		it('should call callback with result as a Node instance');
-		/* eslint-enable mocha/no-pending-tests */
+			it('should assign lastCommit', done => {
+				expect(privateLibrary).to.have.property(
+					'lastCommit',
+					library.lastCommit
+				);
+				done();
+			});
+
+			it('should assign config.version', done => {
+				expect(privateLibrary).to.have.nested.property(
+					'config.version',
+					library.config.version
+				);
+				done();
+			});
+
+			it('should assign config.nethash', done => {
+				expect(privateLibrary).to.have.nested.property(
+					'config.nethash',
+					library.config.nethash
+				);
+				done();
+			});
+
+			it('should assign config.nonce', done => {
+				expect(privateLibrary).to.have.nested.property(
+					'config.nonce',
+					library.config.nonce
+				);
+				done();
+			});
+		});
+
+		it('should assign blockReward', done => {
+			const blockReward = rewiredNodeModule.__get__('blockReward');
+			expect(blockReward).to.not.be.undefined;
+			done();
+		});
+
+		it('should assign blockReward with BlockReward instance', done => {
+			const blockReward = rewiredNodeModule.__get__('blockReward');
+			expect(blockReward).to.be.an.instanceof(BlockReward);
+			done();
+		});
+
+		it('should call callback with error = null', done => {
+			// eslint-disable-next-line no-unused-vars
+			new Node((error, instance) => {
+				expect(error).to.be.null;
+				done();
+			}, library);
+		});
+
+		it('should call callback with result as a Node instance', done => {
+			new Node((error, instance) => {
+				expect(instance).to.be.an.instanceof(Node);
+				done();
+			}, library);
+		});
 	});
 
 	describe('internal', () => {
@@ -266,57 +328,147 @@ describe('node', () => {
 	describe('shared', () => {
 		let node_module;
 
-		beforeEach(done => {
+		before(done => {
 			node_module = library.modules.node;
 			done();
 		});
 
 		describe('getConstants', () => {
-			/* eslint-disable mocha/no-pending-tests */
+			let getConstantsError;
+			let getConstantsResult;
+
+			beforeEach(done => {
+				node_module.shared.getConstants(null, (error, result) => {
+					getConstantsError = error;
+					getConstantsResult = result;
+					done();
+				});
+			});
+
 			describe('when loaded = false', () => {
-				it('should call callback with error = "Blockchain is loading"');
+				before(done => {
+					library.rewiredModules.node.__set__('loaded', false);
+					done();
+				});
+
+				it('should call callback with error = "Blockchain is loading"', done => {
+					expect(getConstantsError).to.equal('Blockchain is loading');
+					done();
+				});
+
+				after(done => {
+					library.rewiredModules.node.__set__('loaded', true);
+					done();
+				});
 			});
 
 			describe('when loaded = true', () => {
-				it('should call modules.blocks.lastBlock.get');
+				let getLastBlockSpy;
 
-				it('should call callback with error = null');
+				before(done => {
+					getLastBlockSpy = sinonSandbox.spy(
+						library.modules.blocks.lastBlock,
+						'get'
+					);
+					done();
+				});
 
-				it('should call callback with result containing build = library.build');
+				after(done => {
+					sinonSandbox.restore();
+					done();
+				});
 
-				it(
-					'should call callback with result containing commit = library.commit'
-				);
+				it('should call modules.blocks.lastBlock.get', done => {
+					expect(getLastBlockSpy).to.be.called;
+					done();
+				});
 
-				it('should call callback with result containing epoch = EPOCH_TIME');
+				it('should call callback with error = null', done => {
+					expect(getConstantsError).to.be.null;
+					done();
+				});
 
-				it('should call callback with result containing fees = FEES');
+				it('should call callback with result containing build = library.build', done => {
+					expect(getConstantsResult).to.have.property('build', library.build);
+					done();
+				});
 
-				it(
-					'should call callback with result containing nethash = library.config.nethash'
-				);
+				it('should call callback with result containing commit = library.commit', done => {
+					expect(getConstantsResult).to.have.property('commit', library.commit);
+					done();
+				});
 
-				it(
-					'should call callback with result containing nonce = library.config.nonce'
-				);
+				it('should call callback with result containing epoch = EPOCH_TIME', done => {
+					expect(getConstantsResult).to.have.property('epoch', EPOCH_TIME);
+					done();
+				});
 
-				it(
-					'should call callback with result containing milestone = blockReward.calcMilestone result'
-				);
+				it('should call callback with result containing fees = FEES', done => {
+					expect(getConstantsResult).to.have.deep.property('fees', {
+						send: FEES.SEND,
+						vote: FEES.VOTE,
+						secondSignature: FEES.SECOND_SIGNATURE,
+						delegate: FEES.DELEGATE,
+						multisignature: FEES.MULTISIGNATURE,
+						dappRegistration: FEES.DAPP_REGISTRATION,
+						dappWithdrawal: FEES.DAPP_WITHDRAWAL,
+						dappDeposit: FEES.DAPP_DEPOSIT,
+					});
+					done();
+				});
 
-				it(
-					'should call callback with result containing reward = blockReward.calcReward result'
-				);
+				it('should call callback with result containing nethash = library.config.nethash', done => {
+					expect(getConstantsResult).to.have.property(
+						'nethash',
+						library.config.nethash
+					);
+					done();
+				});
 
-				it(
-					'should call callback with result containing supply = blockReward.calcSupply result'
-				);
+				it('should call callback with result containing nonce = library.config.nonce', done => {
+					expect(getConstantsResult).to.have.property(
+						'nonce',
+						library.config.nonce
+					);
+					done();
+				});
 
-				it(
-					'should call callback with result containing version = library.config.version'
-				);
+				it('should call callback with result containing milestone = blockReward.calcMilestone result', done => {
+					const blockHeight = library.modules.blocks.lastBlock.get().height;
+					const milestone = library.rewiredModules.node
+						.__get__('blockReward')
+						.calcMilestone(blockHeight);
+					expect(getConstantsResult).to.have.property('milestone', milestone);
+					done();
+				});
+
+				it('should call callback with result containing reward = blockReward.calcReward result', done => {
+					const blockHeight = library.modules.blocks.lastBlock.get().height;
+					const reward = library.rewiredModules.node
+						.__get__('blockReward')
+						.calcReward(blockHeight)
+						.toString();
+					expect(getConstantsResult).to.have.property('reward', reward);
+					done();
+				});
+
+				it('should call callback with result containing supply = blockReward.calcSupply result', done => {
+					const blockHeight = library.modules.blocks.lastBlock.get().height;
+					const supply = library.rewiredModules.node
+						.__get__('blockReward')
+						.calcSupply(blockHeight);
+					expect(getConstantsResult).to.have.deep.property('supply', supply);
+					done();
+				});
+
+				it('should call callback with result containing version = library.config.version', done => {
+					expect(getConstantsResult).to.have.property(
+						'version',
+						library.config.version
+					);
+					done();
+				});
 			});
-			/* eslint-enable mocha/no-pending-tests */
 		});
 
 		describe('getStatus', () => {
@@ -454,58 +606,62 @@ describe('node', () => {
 	});
 
 	describe('onBind', () => {
-		/* eslint-disable mocha/no-pending-tests */
 		let rewiredNodeModule;
 
-		beforeEach(done => {
+		before(done => {
 			rewiredNodeModule = library.rewiredModules.node;
 			done();
 		});
 
 		describe('modules', () => {
-			let modules;
+			let privateModules;
 
-			beforeEach(done => {
-				modules = rewiredNodeModule.__get__('modules');
+			before(done => {
+				privateModules = rewiredNodeModule.__get__('modules');
 				done();
 			});
 
-			it('should assign blocks', () => {
-				return expect(modules).to.have.property(
+			it('should assign blocks', done => {
+				expect(privateModules).to.have.property(
 					'blocks',
 					library.modules.blocks
 				);
+				done();
 			});
 
-			it('should assign loader', () => {
-				return expect(modules).to.have.property(
+			it('should assign loader', done => {
+				expect(privateModules).to.have.property(
 					'loader',
 					library.modules.loader
 				);
+				done();
 			});
 
-			it('should assign peers', () => {
-				return expect(modules).to.have.property('peers', library.modules.peers);
+			it('should assign peers', done => {
+				expect(privateModules).to.have.property('peers', library.modules.peers);
+				done();
 			});
 
-			it('should assign system', () => {
-				return expect(modules).to.have.property(
+			it('should assign system', done => {
+				expect(privateModules).to.have.property(
 					'system',
 					library.modules.system
 				);
+				done();
 			});
 
-			it('should assign delegates', () => {
-				return expect(modules).to.have.property(
+			it('should assign delegates', done => {
+				expect(privateModules).to.have.property(
 					'delegates',
 					library.modules.delegates
 				);
+				done();
 			});
 		});
 
-		it('should assign loaded = true', () => {
-			return expect(rewiredNodeModule.__get__('loaded')).to.be.true;
+		it('should assign loaded = true', done => {
+			expect(rewiredNodeModule.__get__('loaded')).to.be.true;
+			done();
 		});
-		/* eslint-enable mocha/no-pending-tests */
 	});
 });
