@@ -21,7 +21,6 @@ describe('peer', () => {
 		ipAddress: '12.12.12.12',
 		wsPort: 5001,
 		height: 545776,
-		id: '12.12.12.12:5001',
 		inboundSocket: undefined,
 	};
 
@@ -56,12 +55,6 @@ describe('peer', () => {
 			return expect(defaultPeer.wsPort)
 				.to.be.a('number')
 				.and.be.eql(5001);
-		});
-
-		it('should get id property', () => {
-			return expect(defaultPeer.id)
-				.to.be.a('string')
-				.and.be.eql('12.12.12.12:5001');
 		});
 
 		it('should get inboundSocket property', () => {
