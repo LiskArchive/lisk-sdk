@@ -25,7 +25,6 @@
 		"no-param-reassign": "off",
 		"no-plusplus": "off",
 		"no-restricted-globals": "off",
-		"no-restricted-syntax": "off",
 		"no-template-curly-in-string": "off",
 		"no-throw-literal": "off",
 		"no-underscore-dangle": "off",
