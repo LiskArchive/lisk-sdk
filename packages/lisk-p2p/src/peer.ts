@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-
+/* tslint:disable: variable-name */
 import {
-	P2PRequestPacket,
 	P2PMessagePacket,
-	P2PResponsePacket,
 	P2PNodeStatus,
+	P2PRequestPacket,
+	P2PResponsePacket,
 } from './p2p_types';
 
 import socketClusterClient from 'socketcluster-client';
