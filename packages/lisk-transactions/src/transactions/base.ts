@@ -248,7 +248,6 @@ export abstract class BaseTransaction {
 	}
 
 	public verify(sender: Account): TransactionResponse {
-		// tslint:disable-next-line no-let
 		const errors: TransactionError[] = [];
 
 		// Check senderPublicKey
