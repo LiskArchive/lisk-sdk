@@ -22,12 +22,10 @@ const filters = require('../../../../storage/utils/filters');
 const customSerializer = sinonSandbox.stub().returns('custom serialized value');
 
 describe('filters', () => {
-	beforeEach(done => {
+	beforeEach(async () => {
 		sinonSandbox
 			.stub(inputSerializers, 'defaultInput')
 			.returns('defaultInput serialized value');
-
-		done();
 	});
 
 	afterEach(() => {

@@ -23,26 +23,23 @@ const {
 } = require('../../../../storage/errors');
 
 describe('Block', () => {
-	it('should be a constructable function', done => {
+	it('should be a constructable function', async () => {
 		expect(Block.prototype.constructor).to.be.not.null;
 		expect(Block.prototype.constructor.name).to.be.eql('Block');
-		done();
 	});
 
-	it('should extend BaseEntity', done => {
+	it('should extend BaseEntity', async () => {
 		expect(Block.prototype).to.be.an.instanceof(BaseEntity);
-		done();
 	});
 
 	describe('constructor()', () => {
-		it('should have one mandatory parameter', done => {
+		it('should have one mandatory parameter', async () => {
 			expect(Block.prototype.constructor.length).to.be.eq(1);
-			done();
 		});
 
 		it('should call super');
 
-		it('should assign proper parameters', done => {
+		it('should assign proper parameters', async () => {
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
 			};
@@ -65,11 +62,9 @@ describe('Block', () => {
 				limit: 10,
 				offset: 0,
 			});
-
-			done();
 		});
 
-		it('should setup specific fields', done => {
+		it('should setup specific fields', async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			const addFieldSpy = sinonSandbox.spy(Block.prototype, 'addField');
 			const block = new Block(adapter);
@@ -90,11 +85,9 @@ describe('Block', () => {
 				'totalFee',
 				'version',
 			]);
-
-			done();
 		});
 
-		it('should setup specific filters', done => {
+		it('should setup specific filters', async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			const block = new Block(adapter);
 
@@ -189,50 +182,43 @@ describe('Block', () => {
 				'version_lte',
 				'version_ne',
 			]);
-
-			done();
 		});
 	});
 
 	describe('get()', () => {
 		let block;
 
-		before(done => {
+		before(async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			block = new Block(adapter);
-			done();
 		});
 
-		it('should accept valid filters', done => {
+		it('should accept valid filters', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.get(filters);
 			}).to.not.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should throw error for invalid filters', done => {
+		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.get(filters);
 			}).to.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should accept valid options', done => {
+		it('should accept valid options', async () => {
 			const options = { limit: 100, offset: 0 };
 			expect(() => {
 				block.get({}, options);
 			}).to.not.throw(NonSupportedOptionError);
-			done();
 		});
 
-		it('should throw error for invalid options', done => {
+		it('should throw error for invalid options', async () => {
 			const options = { invalid_option: 1, offset: 0 };
 			expect(() => {
 				block.get({}, options);
 			}).to.throw(NonSupportedOptionError);
-			done();
 		});
 
 		it(
@@ -255,42 +241,37 @@ describe('Block', () => {
 	describe('getOne()', () => {
 		let block;
 
-		before(done => {
+		before(async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			block = new Block(adapter);
-			done();
 		});
 
-		it('should accept valid filters', done => {
+		it('should accept valid filters', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.getOne(filters);
 			}).to.not.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should throw error for invalid filters', done => {
+		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.getOne(filters);
 			}).to.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should accept valid options', done => {
+		it('should accept valid options', async () => {
 			const options = { limit: 100, offset: 0 };
 			expect(() => {
 				block.getOne({}, options);
 			}).to.not.throw(NonSupportedOptionError);
-			done();
 		});
 
-		it('should throw error for invalid options', done => {
+		it('should throw error for invalid options', async () => {
 			const options = { invalid_option: 1, offset: 0 };
 			expect(() => {
 				block.getOne({}, options);
 			}).to.throw(NonSupportedOptionError);
-			done();
 		});
 
 		it(
@@ -325,90 +306,80 @@ describe('Block', () => {
 	});
 
 	describe('update()', () => {
-		it('should always throw NonSupportedOperationError', done => {
+		it('should always throw NonSupportedOperationError', async () => {
 			expect(Block.prototype.update).to.throw(NonSupportedOperationError);
-			done();
 		});
 	});
 
 	describe('updateOne()', () => {
-		it('should always throw NonSupportedOperationError', done => {
+		it('should always throw NonSupportedOperationError', async () => {
 			expect(Block.prototype.updateOne).to.throw(NonSupportedOperationError);
-			done();
 		});
 	});
 
 	describe('isPersisted()', () => {
 		let block;
 
-		before(done => {
+		before(async () => {
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub(),
 				executeFile: sinonSandbox.stub().resolves([]),
 			};
 			block = new Block(adapter);
-			done();
 		});
 
-		it('should accept valid filters', done => {
+		it('should accept valid filters', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.isPersisted(filters);
 			}).to.not.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should throw error for invalid filters', done => {
+		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.isPersisted(filters);
 			}).to.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should throw error for empty filter', done => {
+		it('should throw error for empty filter', async () => {
 			const filters = {};
 			expect(() => {
 				block.isPersisted(filters);
 			}).to.throw(NonSupportedFilterTypeError);
-			done();
 		});
 
-		it('should accept valid options', done => {
+		it('should accept valid options', async () => {
 			const options = { limit: 100, offset: 0 };
 			expect(() => {
 				block.isPersisted({}, options);
 			}).to.not.throw(NonSupportedOptionError);
-			done();
 		});
 
-		it('should throw error for invalid options', done => {
+		it('should throw error for invalid options', async () => {
 			const filters = { height: 101 };
 			const options = { invalid_option: 1, offset: 0 };
 			expect(() => {
 				block.isPersisted(filters, options);
 			}).to.throw(NonSupportedOptionError);
-			done();
 		});
 
-		it('should call mergeFilters with proper params', done => {
+		it('should call mergeFilters with proper params', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			block.mergeFilters = sinonSandbox.stub();
 			block.isPersisted(filters);
 			expect(block.mergeFilters.calledWith(filters)).to.be.true;
-			done();
 		});
 
-		it('should call parseFilters with proper params', done => {
+		it('should call parseFilters with proper params', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			block.mergeFilters = sinonSandbox.stub().returns(filters);
 			block.parseFilters = sinonSandbox.stub();
 			block.isPersisted(filters);
 			expect(block.parseFilters.calledWith(filters)).to.be.true;
-			done();
 		});
 
-		it('should call adapter.executeFile with proper params', done => {
+		it('should call adapter.executeFile with proper params', async () => {
 			const adapter = {
 				loadSQLFile: sinonSandbox.stub(),
 				executeFile: sinonSandbox.stub().resolves([]),
@@ -434,7 +405,6 @@ describe('Block', () => {
 					undefined
 				)
 			).to.be.true;
-			done();
 		});
 
 		it('should resolve with true if matching record found', async () => {
@@ -469,37 +439,33 @@ describe('Block', () => {
 	});
 
 	describe('getFieldSets()', () => {
-		it('should return FIELD_SET_SIMPLE', done => {
+		it('should return FIELD_SET_SIMPLE', async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			const block = new Block(adapter);
 
 			expect(block.getFieldSets()).to.eql([block.FIELD_SET_SIMPLE]);
-			done();
 		});
 	});
 
 	describe('validateFilters()', () => {
 		let block;
 
-		before(done => {
+		before(async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			block = new Block(adapter);
-			done();
 		});
 
-		it('should accept valid filters as single object', done => {
+		it('should accept valid filters as single object', async () => {
 			const filters = { height: 101 };
 			expect(block.validateFilters(filters)).to.be.eq(true);
-			done();
 		});
 
-		it('should accept valid filters as array of objects', done => {
+		it('should accept valid filters as array of objects', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			expect(block.validateFilters(filters)).to.be.eq(true);
-			done();
 		});
 
-		it('should throw error for invalid filters', done => {
+		it('should throw error for invalid filters', async () => {
 			const filters = [{ invalid_filter: 1 }, { timestamp_gte: 1234567890 }];
 			expect(() => {
 				block.validateFilters(filters);
@@ -507,29 +473,26 @@ describe('Block', () => {
 				NonSupportedFilterTypeError,
 				'One or more filters are not supported.'
 			);
-			done();
 		});
 
 		describe('when required flag is true', () => {
 			const atLeastOneRequired = true;
 
-			it('should accept valid filters as single object', done => {
+			it('should accept valid filters as single object', async () => {
 				const filters = { height: 101 };
 				expect(block.validateFilters(filters, atLeastOneRequired)).to.be.eq(
 					true
 				);
-				done();
 			});
 
-			it('should accept valid filters as array of objects', done => {
+			it('should accept valid filters as array of objects', async () => {
 				const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 				expect(block.validateFilters(filters, atLeastOneRequired)).to.be.eq(
 					true
 				);
-				done();
 			});
 
-			it('should throw error when filter is empty array', done => {
+			it('should throw error when filter is empty array', async () => {
 				const filters = [];
 				expect(() => {
 					block.validateFilters(filters, atLeastOneRequired);
@@ -537,10 +500,9 @@ describe('Block', () => {
 					NonSupportedFilterTypeError,
 					'One or more filters are required for this operation.'
 				);
-				done();
 			});
 
-			it('should throw error when filter is empty object', done => {
+			it('should throw error when filter is empty object', async () => {
 				const filters = {};
 				expect(() => {
 					block.validateFilters(filters, atLeastOneRequired);
@@ -548,10 +510,9 @@ describe('Block', () => {
 					NonSupportedFilterTypeError,
 					'One or more filters are required for this operation.'
 				);
-				done();
 			});
 
-			it('should throw error when filter is null', done => {
+			it('should throw error when filter is null', async () => {
 				const filters = null;
 				expect(() => {
 					block.validateFilters(filters, atLeastOneRequired);
@@ -559,10 +520,9 @@ describe('Block', () => {
 					NonSupportedFilterTypeError,
 					'One or more filters are required for this operation.'
 				);
-				done();
 			});
 
-			it('should throw error when filter is empty string', done => {
+			it('should throw error when filter is empty string', async () => {
 				const filters = '';
 				expect(() => {
 					block.validateFilters(filters, atLeastOneRequired);
@@ -570,10 +530,9 @@ describe('Block', () => {
 					NonSupportedFilterTypeError,
 					'One or more filters are required for this operation.'
 				);
-				done();
 			});
 
-			it('should throw error when filter is undefined', done => {
+			it('should throw error when filter is undefined', async () => {
 				const filters = undefined;
 				expect(() => {
 					block.validateFilters(filters, atLeastOneRequired);
@@ -581,10 +540,9 @@ describe('Block', () => {
 					NonSupportedFilterTypeError,
 					'One or more filters are required for this operation.'
 				);
-				done();
 			});
 
-			it('should throw error when filter is invalid', done => {
+			it('should throw error when filter is invalid', async () => {
 				const filters = { invalid_filter: 1 };
 				expect(() => {
 					block.validateFilters(filters, atLeastOneRequired);
@@ -592,7 +550,6 @@ describe('Block', () => {
 					NonSupportedFilterTypeError,
 					'One or more filters are not supported.'
 				);
-				done();
 			});
 		});
 	});
@@ -600,24 +557,21 @@ describe('Block', () => {
 	describe('validateOptions()', () => {
 		let block;
 
-		before(done => {
+		before(async () => {
 			const adapter = { loadSQLFile: sinonSandbox.stub() };
 			block = new Block(adapter);
-			done();
 		});
 
-		it('should accept valid options as single object', done => {
+		it('should accept valid options as single object', async () => {
 			const options = { limit: 100, offset: 0 };
 			expect(block.validateOptions(options)).to.be.eq(true);
-			done();
 		});
 
-		it('should throw error for invalid options', done => {
+		it('should throw error for invalid options', async () => {
 			const options = { invalid_option: 1, offset: 0 };
 			expect(() => {
 				block.validateOptions(options);
 			}).to.throw(NonSupportedOptionError);
-			done();
 		});
 	});
 
@@ -625,50 +579,44 @@ describe('Block', () => {
 		describe('without defaultFilters', () => {
 			let block;
 
-			before(done => {
+			before(async () => {
 				const adapter = { loadSQLFile: sinonSandbox.stub() };
 				block = new Block(adapter);
-				done();
 			});
 
-			it('should accept filters as single object', done => {
+			it('should accept filters as single object', async () => {
 				const filters = { height: 101 };
 				expect(block.mergeFilters(filters)).to.be.eql(filters);
-				done();
 			});
 
-			it('should accept filters as array of objects', done => {
+			it('should accept filters as array of objects', async () => {
 				const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 				expect(block.mergeFilters(filters)).to.be.eql(filters);
-				done();
 			});
 		});
 
 		describe('with defaultFilters', () => {
 			let block;
 
-			before(done => {
+			before(async () => {
 				const adapter = { loadSQLFile: sinonSandbox.stub() };
 				const defaultFilters = { version: 1 };
 				block = new Block(adapter, defaultFilters);
-				done();
 			});
 
-			it('should merge provided filter with default filters by preserving default filters values', done => {
+			it('should merge provided filter with default filters by preserving default filters values', async () => {
 				const filters = { height: 101 };
 				const expectedResult = { height: 101, version: 1 };
 				expect(block.mergeFilters(filters)).to.be.eql(expectedResult);
-				done();
 			});
 
-			it('should merge provided filter with default filters by preserving default filters in each object when passing an array', done => {
+			it('should merge provided filter with default filters by preserving default filters in each object when passing an array', async () => {
 				const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 				const expectedResult = [
 					{ height: 101, version: 1 },
 					{ timestamp_gte: 1234567890, version: 1 },
 				];
 				expect(block.mergeFilters(filters)).to.be.eql(expectedResult);
-				done();
 			});
 		});
 	});
