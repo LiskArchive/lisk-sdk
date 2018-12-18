@@ -44,11 +44,9 @@ class Storage {
 	bootstrap() {
 		const adapter = new PgpAdapter({
 			...this.options,
-			...{
-				inTest: process.env.NODE_ENV === 'test',
-				sqlDirectory: path.join(path.dirname(__filename), './sql'),
-				logger: this.logger,
-			},
+			inTest: process.env.NODE_ENV === 'test',
+			sqlDirectory: path.join(path.dirname(__filename), './sql'),
+			logger: this.logger,
 		});
 
 		return adapter.connect().then(status => {

@@ -210,7 +210,8 @@ class Block extends BaseEntity {
 	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	getOne(filters, options = {}, tx) {
-		return this._getResults(filters, options, tx, 1);
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
 	/**
@@ -262,30 +263,19 @@ class Block extends BaseEntity {
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Block} filters
-	 * @param {Object} [options]
+	 * @param {Object} [_options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	isPersisted(filters, options, tx) {
+	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
-		this.validateOptions(options);
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset']),
-			_.pick(this.defaultOptions, ['limit', 'offset'])
-		);
-
-		const params = {
-			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			...{ parsedFilters },
-		};
 
 		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { params }, {}, tx)
+			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => !!result[0]);
 	}
 
@@ -302,8 +292,9 @@ class Block extends BaseEntity {
 		);
 
 		const params = {
-			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			...{ parsedFilters },
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
 		};
 
 		return this.adapter.executeFile(

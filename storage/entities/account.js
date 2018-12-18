@@ -184,7 +184,7 @@ const readOnlyFields = ['address'];
  * @property {string} [rank_lte]
  * @property {string} [rank_in]
  * @property {string} [votes]
- * @property {string} [votes_in]'
+ * @property {string} [votes_in]
  */
 
 class Account extends BaseEntity {
@@ -304,7 +304,8 @@ class Account extends BaseEntity {
 	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
 	getOne(filters, options = {}, tx) {
-		return this._getResults(filters, options, tx, 1);
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
 	/**
@@ -362,10 +363,8 @@ class Account extends BaseEntity {
 
 		const params = {
 			...objectData,
-			...{
-				parsedFilters,
-				updateSet,
-			},
+			parsedFilters,
+			updateSet,
 		};
 
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
@@ -388,10 +387,8 @@ class Account extends BaseEntity {
 
 		const params = {
 			...objectData,
-			...{
-				parsedFilters,
-				updateSet,
-			},
+			parsedFilters,
+			updateSet,
 		};
 
 		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
@@ -401,10 +398,11 @@ class Account extends BaseEntity {
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Account} filters
+	 * @param {Object} [_options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	isPersisted(filters, tx) {
+	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 
@@ -433,8 +431,9 @@ class Account extends BaseEntity {
 		);
 
 		const params = {
-			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			...{ parsedFilters },
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
 		};
 
 		return this.adapter.executeFile(

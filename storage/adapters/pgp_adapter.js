@@ -132,7 +132,7 @@ class PgpAdapter extends BaseAdapter {
 	 * @return {*}
 	 */
 	executeFile(file, params = {}, options = {}, tx) {
-		return this._getExecutionHandler(tx, options.expectedResultCount)(
+		return this._getExecutionContext(tx, options.expectedResultCount)(
 			file,
 			params
 		);
@@ -149,7 +149,7 @@ class PgpAdapter extends BaseAdapter {
 	 * @return {*}
 	 */
 	execute(sql, params = {}, options = {}, tx) {
-		return this._getExecutionHandler(tx, options.expectedResultCount)(
+		return this._getExecutionContext(tx, options.expectedResultCount)(
 			sql,
 			params
 		);
@@ -184,7 +184,7 @@ class PgpAdapter extends BaseAdapter {
 		return this.pgp.as.format(query, params);
 	}
 
-	_getExecutionHandler(tx, expectedResultCount) {
+	_getExecutionContext(tx, expectedResultCount) {
 		const count = Number(expectedResultCount);
 		const context = tx || this.db;
 
