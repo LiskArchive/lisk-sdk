@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
-const { NonSupportedFilterTypeError } = require('../errors');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -408,13 +407,6 @@ class Account extends BaseEntity {
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-
-		if (parsedFilters === '') {
-			throw new NonSupportedFilterTypeError(
-				'Please provide some filters to check.',
-				filters
-			);
-		}
 
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
