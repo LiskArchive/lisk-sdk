@@ -13,16 +13,11 @@
  *
  */
 import { TransactionError } from '../../errors';
-import { TransactionJSON } from '../../transaction_types';
+import { IsValidResponse, TransactionJSON } from '../../transaction_types';
 import { validator } from './';
 import * as schemas from './schema';
 
-interface CheckReturn {
-	readonly valid: boolean;
-	readonly errors: ReadonlyArray<TransactionError>;
-}
-
-export const checkTypes = (tx: TransactionJSON): CheckReturn => {
+export const checkTypes = (tx: TransactionJSON): IsValidResponse => {
 	const typeValidator = validator.compile(schemas.transaction);
 	const valid = typeValidator(tx) as boolean;
 

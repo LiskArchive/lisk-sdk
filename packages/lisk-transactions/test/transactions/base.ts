@@ -62,6 +62,7 @@ describe('Base transaction class', () => {
 		asset: {},
 		signature:
 			'3357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
+		signatures: [],
 		signSignature:
 			'11f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
 		id: '11638517642515821734',
@@ -83,114 +84,114 @@ describe('Base transaction class', () => {
 		baseTransaction = new TestTransaction(defaultTransaction);
 	});
 
-	it('should have amount of type BigNum', () => {
-		return expect(baseTransaction)
-			.to.have.property('amount')
-			.and.be.instanceof(BigNum);
-	});
-
-	it('should have fee of type BigNum', () => {
-		return expect(baseTransaction)
-			.to.have.property('fee')
-			.and.be.instanceof(BigNum);
-	});
-
-	it('should have id string', () => {
-		return expect(baseTransaction)
-			.to.have.property('id')
-			.and.be.a('string');
-	});
-
-	it('should have recipientId string', () => {
-		return expect(baseTransaction)
-			.to.have.property('recipientId')
-			.and.be.a('string');
-	});
-
-	it('should have recipientPublicKey string', () => {
-		return expect(baseTransaction)
-			.to.have.property('recipientPublicKey')
-			.and.be.a('string');
-	});
-
-	it('should have senderId string', () => {
-		return expect(baseTransaction)
-			.to.have.property('senderId')
-			.and.be.a('string');
-	});
-
-	it('should have senderPublicKey string', () => {
-		return expect(baseTransaction)
-			.to.have.property('senderPublicKey')
-			.and.be.a('string');
-	});
-
-	it('should have signature string', () => {
-		return expect(baseTransaction)
-			.to.have.property('senderPublicKey')
-			.and.be.a('string');
-	});
-
-	it('should have signSignature string', () => {
-		return expect(baseTransaction)
-			.to.have.property('senderPublicKey')
-			.and.be.a('string');
-	});
-
-	it('should have signatures array', () => {
-		return expect(baseTransaction)
-			.to.have.property('signatures')
-			.and.be.a('array');
-	});
-
-	it('should have timestamp number', () => {
-		return expect(baseTransaction)
-			.to.have.property('timestamp')
-			.and.be.a('number');
-	});
-
-	it('should have type number', () => {
-		return expect(baseTransaction)
-			.to.have.property('type')
-			.and.be.a('number');
-	});
-
-	it('should have receivedAt Date', () => {
-		return expect(baseTransaction)
-			.to.have.property('type')
-			.and.be.a('number');
-	});
-
-	it('should have isMultisignature boolean', () => {
-		return expect(baseTransaction)
-			.to.have.property('isMultisignature')
-			.and.be.a('boolean');
-	});
-
-	describe('when transaction has empty `signatures`', () => {
-		it('should set isMultisignature to false', () => {
-			return expect(baseTransaction.isMultisignature).to.be.false;
-		});
-	});
-
-	describe('when transaction has non-empty `signatures`', () => {
-		beforeEach(() => {
-			const multisignatureTransaction = {
-				...defaultTransaction,
-				signatures: [defaultSignature, defaultSignature],
-			};
-			baseTransaction = new TestTransaction(multisignatureTransaction);
-		});
-		it('should set isMultisignature to true', () => {
-			return expect(baseTransaction.isMultisignature).to.be.true;
-		});
-	});
-
 	describe('#constructor', () => {
 		it('should create a new instance of BaseTransaction', () => {
 			return expect(baseTransaction)
 				.to.be.an('object')
 				.and.be.instanceof(BaseTransaction);
+		});
+
+		it('should have amount of type BigNum', () => {
+			return expect(baseTransaction)
+				.to.have.property('amount')
+				.and.be.instanceof(BigNum);
+		});
+
+		it('should have fee of type BigNum', () => {
+			return expect(baseTransaction)
+				.to.have.property('fee')
+				.and.be.instanceof(BigNum);
+		});
+
+		it('should have id string', () => {
+			return expect(baseTransaction)
+				.to.have.property('id')
+				.and.be.a('string');
+		});
+
+		it('should have recipientId string', () => {
+			return expect(baseTransaction)
+				.to.have.property('recipientId')
+				.and.be.a('string');
+		});
+
+		it('should have recipientPublicKey string', () => {
+			return expect(baseTransaction)
+				.to.have.property('recipientPublicKey')
+				.and.be.a('string');
+		});
+
+		it('should have senderId string', () => {
+			return expect(baseTransaction)
+				.to.have.property('senderId')
+				.and.be.a('string');
+		});
+
+		it('should have senderPublicKey string', () => {
+			return expect(baseTransaction)
+				.to.have.property('senderPublicKey')
+				.and.be.a('string');
+		});
+
+		it('should have signature string', () => {
+			return expect(baseTransaction)
+				.to.have.property('senderPublicKey')
+				.and.be.a('string');
+		});
+
+		it('should have signSignature string', () => {
+			return expect(baseTransaction)
+				.to.have.property('senderPublicKey')
+				.and.be.a('string');
+		});
+
+		it('should have signatures array', () => {
+			return expect(baseTransaction)
+				.to.have.property('signatures')
+				.and.be.a('array');
+		});
+
+		it('should have timestamp number', () => {
+			return expect(baseTransaction)
+				.to.have.property('timestamp')
+				.and.be.a('number');
+		});
+
+		it('should have type number', () => {
+			return expect(baseTransaction)
+				.to.have.property('type')
+				.and.be.a('number');
+		});
+
+		it('should have receivedAt Date', () => {
+			return expect(baseTransaction)
+				.to.have.property('type')
+				.and.be.a('number');
+		});
+
+		it('should have isMultisignature boolean', () => {
+			return expect(baseTransaction)
+				.to.have.property('isMultisignature')
+				.and.be.a('boolean');
+		});
+
+		describe('when transaction has empty `signatures`', () => {
+			it('should set isMultisignature to false', () => {
+				return expect(baseTransaction.isMultisignature).to.be.false;
+			});
+		});
+
+		describe('when transaction has non-empty `signatures`', () => {
+			beforeEach(() => {
+				const multisignatureTransaction = {
+					...defaultTransaction,
+					signatures: [defaultSignature, defaultSignature],
+				};
+				baseTransaction = new TestTransaction(multisignatureTransaction);
+			});
+			it('should set isMultisignature to true', () => {
+				return expect(baseTransaction.isMultisignature).to.be.true;
+			});
 		});
 
 		describe('when given a transaction with invalid types', () => {

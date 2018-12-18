@@ -303,6 +303,7 @@ describe('#signRawTransaction', () => {
 				id: transactionId,
 				recipientPublicKey: '',
 				asset,
+				signatures: [],
 				receivedAt: new Date(),
 			};
 			return Promise.resolve();

@@ -65,6 +65,7 @@ describe('signAndVerify module', () => {
 				timestamp: 141738,
 				asset: {},
 				id: '13987348420913138422',
+				signatures: [],
 				senderPublicKey: defaultPublicKey,
 				receivedAt: new Date(),
 			};

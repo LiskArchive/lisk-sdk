@@ -55,8 +55,8 @@ export abstract class BaseTransaction {
 	public readonly senderId: string;
 	public readonly senderPublicKey: string;
 	public readonly signature: string = '';
-	public readonly signatures?: ReadonlyArray<string> = [];
-	public readonly signSignature?: string = '';
+	public readonly signatures: ReadonlyArray<string> = [];
+	public readonly signSignature?: string;
 	public readonly timestamp: number;
 	public readonly type: number;
 	public readonly asset: TransactionAsset = {};
@@ -330,8 +330,7 @@ export abstract class BaseTransaction {
 		if (
 			Array.isArray(sender.multisignatures) &&
 			sender.multisignatures.length > 0 &&
-			sender.multimin &&
-			this.signatures
+			sender.multimin
 		) {
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
@@ -341,7 +340,10 @@ export abstract class BaseTransaction {
 				  ])
 				: Buffer.concat([this.getBasicBytes(), this.getAssetBytes()]);
 
-			const { errors: multisignatureErrors } = verifyMultisignatures(
+			const {
+				verified: multisignaturesVerified,
+				errors: multisignatureErrors,
+			} = verifyMultisignatures(
 				sender.multisignatures,
 				this.signatures,
 				sender.multimin,
@@ -349,7 +351,11 @@ export abstract class BaseTransaction {
 				this.id,
 			);
 
-			if (multisignatureErrors.length > 0) {
+			if (
+				!multisignaturesVerified &&
+				multisignatureErrors &&
+				multisignatureErrors.length > 0
+			) {
 				multisignatureErrors.forEach(error => {
 					errors.push(error);
 				});

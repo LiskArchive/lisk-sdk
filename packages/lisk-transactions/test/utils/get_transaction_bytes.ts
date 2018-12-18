@@ -73,6 +73,7 @@ describe('getTransactionBytes module', () => {
 					senderPublicKey: defaultSenderPublicKey,
 					senderId: defaultSenderId,
 					signature: defaultSignature,
+					signatures: [],
 					id: defaultTransactionId,
 					receivedAt: new Date(),
 				};
@@ -247,6 +248,7 @@ describe('getTransactionBytes module', () => {
 				timestamp: defaultTimestamp,
 				asset: { signature: { publicKey: defaultSenderSecondPublicKey } },
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -274,6 +276,7 @@ describe('getTransactionBytes module', () => {
 				timestamp: defaultTimestamp,
 				asset: { delegate: { username: defaultDelegateUsername } },
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -308,6 +311,7 @@ describe('getTransactionBytes module', () => {
 					],
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -344,6 +348,7 @@ describe('getTransactionBytes module', () => {
 					},
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -384,6 +389,7 @@ describe('getTransactionBytes module', () => {
 					},
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -411,6 +417,7 @@ describe('getTransactionBytes module', () => {
 				timestamp: defaultTimestamp,
 				asset: { inTransfer: { dappId: defaultAppId } },
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -443,6 +450,7 @@ describe('getTransactionBytes module', () => {
 					},
 				},
 				signature: defaultSignature,
+				signatures: [],
 				id: defaultTransactionId,
 				receivedAt: new Date(),
 			};
@@ -789,6 +797,7 @@ describe('getTransactionBytes module', () => {
 					recipientPublicKey: defaultRecipientPublicKey,
 					senderId: defaultSenderId,
 					signature: defaultSignature,
+					signatures: [],
 					id: defaultTransactionId,
 					receivedAt: new Date(),
 				};

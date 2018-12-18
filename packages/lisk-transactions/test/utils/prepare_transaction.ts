@@ -40,6 +40,7 @@ describe('#prepareTransaction', () => {
 		timestamp: 10,
 		senderPublicKey: keys.publicKey,
 		asset: {},
+		signatures: [],
 	};
 	let inputTransaction: PartialTransaction;
 	let preparedTransaction: TransactionJSON;

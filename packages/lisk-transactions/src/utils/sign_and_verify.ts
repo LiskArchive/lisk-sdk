@@ -14,7 +14,7 @@
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
 import { TransactionError } from '../errors';
-import { TransactionJSON } from '../transaction_types';
+import { IsVerifiedResponse, TransactionJSON } from '../transaction_types';
 import { getTransactionHash } from './get_transaction_hash';
 
 export const signTransaction = (
@@ -45,17 +45,12 @@ export const multiSignTransaction = (
 	return cryptography.signData(transactionHash, passphrase);
 };
 
-interface VerifySignatureReturn {
-	readonly verified: boolean;
-	readonly error?: TransactionError;
-}
-
 export const verifySignature = (
 	publicKey: string,
 	signature: string,
 	transactionBytes: Buffer,
 	id?: string,
-): VerifySignatureReturn => {
+): IsVerifiedResponse => {
 	const transactionHash = cryptography.hash(transactionBytes);
 
 	const verified = cryptography.verifyData(
@@ -76,18 +71,13 @@ export const verifySignature = (
 	};
 };
 
-interface VerifyMultisignatureReturn {
-	readonly verified: boolean;
-	readonly errors: ReadonlyArray<TransactionError>;
-}
-
 export const verifyMultisignatures = (
 	memberPublicKeys: ReadonlyArray<string> = [],
 	signatures: ReadonlyArray<string>,
 	minimumValidations: number,
 	transactionBytes: Buffer,
 	id?: string,
-): VerifyMultisignatureReturn => {
+): IsVerifiedResponse => {
 	if (!minimumValidations || typeof minimumValidations !== 'number') {
 		return {
 			verified: false,
@@ -126,11 +116,16 @@ export const verifyMultisignatures = (
 	});
 
 	const unverifiedSignatures = signatures.filter(
-		e => !verifiedSignatures.find(a => e === a),
+		signature =>
+			!verifiedSignatures.find(
+				verifiedSignature => signature === verifiedSignature,
+			),
 	);
 
 	return {
-		verified: verifiedSignatures.length >= minimumValidations,
+		verified:
+			verifiedSignatures.length >= minimumValidations &&
+			unverifiedSignatures.length === 0,
 		errors:
 			unverifiedSignatures.length > 0
 				? unverifiedSignatures.map(

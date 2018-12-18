@@ -106,7 +106,10 @@ describe('#createSignatureObject', () => {
 	describe('when valid transaction and passphrase is used', () => {
 		let signatureObject: SignatureObject;
 		beforeEach(() => {
-			signatureObject = createSignatureObject(transaction, account.passphrase);
+			signatureObject = createSignatureObject(
+				transaction as TransactionJSON,
+				account.passphrase,
+			);
 			return Promise.resolve();
 		});
 

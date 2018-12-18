@@ -12,6 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { TransactionError } from './errors';
+
 export enum Status {
 	OK = 1,
 	FAIL,
@@ -52,11 +54,23 @@ export interface TransactionJSON {
 	readonly senderId: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
-	readonly signatures?: ReadonlyArray<string>;
+	readonly signatures: ReadonlyArray<string>;
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
 	readonly receivedAt: Date;
+}
+
+export interface IsValidResponse {
+	readonly valid: boolean;
+	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly error?: TransactionError;
+}
+
+export interface IsVerifiedResponse {
+	readonly verified: boolean;
+	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly error?: TransactionError;
 }
 
 export type PartialTransaction = Partial<TransactionJSON>;
