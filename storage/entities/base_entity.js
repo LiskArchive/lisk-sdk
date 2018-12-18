@@ -328,7 +328,7 @@ class BaseEntity {
 		return filterClause || '';
 	}
 
-	// eslint-disable-next-line class-methods-use-this,no-unused-vars
+	// eslint-disable-next-line class-methods-use-this
 	_filtersToObject(filters) {
 		return Array.isArray(filters) ? Object.assign({}, ...filters) : filters;
 	}

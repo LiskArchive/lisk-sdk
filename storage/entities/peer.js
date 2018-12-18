@@ -27,7 +27,7 @@ const readOnlyFields = [];
  * Peer
  * @typedef {Object} Peer
  * @property {number} id
- * @property {inet} ip
+ * @property {string} ip
  * @property {number} wsPort
  * @property {number} state
  * @property {string} os
@@ -228,7 +228,6 @@ class Peer extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {null}
 	 */
-	// eslint-disable-next-line no-unused-vars
 	update(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
@@ -262,7 +261,6 @@ class Peer extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {null}
 	 */
-	// eslint-disable-next-line no-unused-vars
 	updateOne(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
@@ -295,9 +293,9 @@ class Peer extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	// eslint-disable-next-line no-unused-vars
 	isPersisted(filters, options = {}, tx = null) {
-		this.validateFilters(filters, true);
+		const atLeastOneRequired = true;
+		this.validateFilters(filters, atLeastOneRequired);
 		this.validateOptions(options);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
