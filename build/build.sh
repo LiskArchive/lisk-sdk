@@ -139,12 +139,6 @@ if [ ! -f "$BUILD_NAME/finished" ]; then
 	set -u
 	npm ci --production
 
-	echo "Installing pm2 and lisk-commander..."
-	echo "--------------------------------------------------------------------------"
-# TODO: move pm2 to dependencies? add lisk-commander?
-	npm install --production --global "pm2@$PM2_VERSION"
-	npm install --production --global "lisk-commander@$LISK_COMMANDER_VERSION"
-
 	date --utc "+%Y-%m-%dT%H:%M:%S.000Z" >.build
 	date >finished
 	popd
