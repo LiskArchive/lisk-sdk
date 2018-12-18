@@ -12,6 +12,7 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+import { CheckerFunction, checkTransactions, CheckTransactionsResponse} from './check_transactions';
 import { Job } from './job';
 import { Queue } from './queue';
 import * as queueCheckers from './queue_checkers';
@@ -33,27 +34,13 @@ export interface TransactionFunctions {
 	): boolean;
 }
 
-export enum Status {
-	OK = 1,
-	FAIL,
-}
-
-export interface CheckTransactionsResult {
-	transactionsResponses: ReadonlyArray<TransactionResponse>;
-	status: Status;
-}
-
-interface TransactionResponse {
-	readonly errors: ReadonlyArray<Error>;
-	readonly id: string;
-	readonly status: Status;
-}
-
 interface TransactionPoolConfiguration {
 	readonly expireTransactionsInterval: number;
 	readonly maxTransactionsPerQueue: number;
 	readonly receivedTransactionsLimitPerProcessing: number;
 	readonly receivedTransactionsProcessingInterval: number;
+	readonly validatedTransactionsLimitPerProcessing: number;
+	readonly validatedTransactionsProcessingInterval: number;
 }
 
 export interface AddTransactionResult {
@@ -61,10 +48,10 @@ export interface AddTransactionResult {
 	readonly isFull: boolean;
 }
 
+
 interface TransactionPoolDependencies {
-	validateTransactions(
-		transactions: ReadonlyArray<Transaction>,
-	): CheckTransactionsResult;
+	validateTransactions: CheckerFunction;
+	verifyTransactions: CheckerFunction;
 }
 
 type TransactionPoolOptions = TransactionPoolConfiguration &
@@ -87,6 +74,8 @@ const DEFAULT_EXPIRE_TRANSACTION_INTERVAL = 30000;
 const DEFAULT_MAX_TRANSACTIONS_PER_QUEUE = 30000;
 const DEFAULT_RECEIVED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
 const DEFAULT_RECEIVED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
+const DEFAULT_VALIDATED_TRANSACTIONS_PROCESSING_INTERVAL = 30000;
+const DEFAULT_VALIDATED_TRANSACTIONS_LIMIT_PER_PROCESSING = 100;
 
 export class TransactionPool {
 	private readonly _expireTransactionsInterval: number;
@@ -95,17 +84,22 @@ export class TransactionPool {
 	private readonly _queues: Queues;
 	private readonly _receivedTransactionsProcessingInterval: number;
 	private readonly _receivedTransactionsProcessingLimitPerInterval: number;
-	private readonly _validateTransactions: (
-		transactions: ReadonlyArray<Transaction>,
-	) => CheckTransactionsResult;
+	private readonly _validatedTransactionsProcessingInterval: number;
+	private readonly _validatedTransactionsProcessingLimitPerInterval: number;
+	private readonly _validateTransactions: CheckerFunction;
 	private readonly _validateTransactionsJob: Job<ReadonlyArray<Transaction>>;
+	private readonly _verifyTransactions: CheckerFunction;
+	private readonly _verifyTransactionsJob: Job<ReadonlyArray<Transaction>>;
 
 	public constructor({
 		expireTransactionsInterval = DEFAULT_EXPIRE_TRANSACTION_INTERVAL,
 		maxTransactionsPerQueue = DEFAULT_MAX_TRANSACTIONS_PER_QUEUE,
 		receivedTransactionsProcessingInterval = DEFAULT_RECEIVED_TRANSACTIONS_PROCESSING_INTERVAL,
 		receivedTransactionsLimitPerProcessing = DEFAULT_RECEIVED_TRANSACTIONS_LIMIT_PER_PROCESSING,
+		validatedTransactionsProcessingInterval = DEFAULT_VALIDATED_TRANSACTIONS_PROCESSING_INTERVAL,
+		validatedTransactionsLimitPerProcessing = DEFAULT_VALIDATED_TRANSACTIONS_LIMIT_PER_PROCESSING,
 		validateTransactions,
+		verifyTransactions,
 	}: TransactionPoolOptions) {
 		this._queues = {
 			received: new Queue(),
@@ -132,6 +126,16 @@ export class TransactionPool {
 			this._receivedTransactionsProcessingInterval,
 		);
 		this._validateTransactionsJob.start();
+
+		this._validatedTransactionsProcessingInterval = validatedTransactionsProcessingInterval;
+		this._validatedTransactionsProcessingLimitPerInterval = validatedTransactionsLimitPerProcessing;
+		this._verifyTransactions = verifyTransactions;
+
+		this._verifyTransactionsJob = new Job(
+			this.verifyValidatedTransactions.bind(this),
+			this._validatedTransactionsProcessingInterval,
+		);
+		this._verifyTransactionsJob.start();
 	}
 
 	public addTransaction(transaction: Transaction): AddTransactionResult {
@@ -236,58 +240,14 @@ export class TransactionPool {
 		this._queues.validated.enqueueMany(removedTransactionsBySenderPublicKeys);
 	}
 
-	public async validateReceivedTransactions(): Promise<
-		ReadonlyArray<TransactionResponse>
-	> {
-		// Get transactions from the received queue
-		const transactionsToValidate = this._queues.received.peekUntil(
-			queueCheckers.returnTrueUntilLimit(
-				this._receivedTransactionsProcessingLimitPerInterval,
-			),
-		);
-		// Validate transactions
-		const {
-			transactionsResponses: validateTransactionsResponse,
-		} = await this._validateTransactions(transactionsToValidate);
-
-		// Get ids of invalid transactions from validateTransactionsResponse
-		const invalidTransactionIds = validateTransactionsResponse
-			.filter(transactionResponse => transactionResponse.status === Status.FAIL)
-			.map(transationStatus => transationStatus.id);
-
-		// Filter transactions in transactionToValidate which are invalid
-		const invalidTransactions = transactionsToValidate.filter(transaction =>
-			invalidTransactionIds.includes(transaction.id),
-		);
-		// Filter transactions in transactionToValidate which are valid
-		const validTransactions = transactionsToValidate.filter(
-			transaction => !invalidTransactionIds.includes(transaction.id),
-		);
-		// Remove invalid transactions
-		this.queues.received.removeFor(
-			queueCheckers.checkTransactionForId(invalidTransactions),
-		);
-		// Move valid transactions from the received queue to the validated queue
-		this.queues.validated.enqueueMany(
-			this.queues.received.removeFor(
-				queueCheckers.checkTransactionForId(validTransactions),
-			),
-		);
-
-		return validateTransactionsResponse;
-	}
-
 	public validateTransactionAgainstTransactionsInPool(
 		transaction: Transaction,
 	): boolean {
-		// TODO: remove the condition for checking `verifyTransactionAgainstOtherTransactions` exists, because it should always exist
-		return transaction.verifyTransactionAgainstOtherTransactions
-			? transaction.verifyTransactionAgainstOtherTransactions([
+		return transaction.verifyTransactionAgainstOtherTransactions([
 					...this.queues.ready.transactions,
 					...this.queues.pending.transactions,
 					...this.queues.verified.transactions,
-			  ])
-			: true;
+			  ]);
 	}
 
 	private addTransactionToQueue(
@@ -341,5 +301,61 @@ export class TransactionPool {
 					),
 				[],
 			);
+	}
+
+	private async validateReceivedTransactions(): Promise<
+		CheckTransactionsResponse
+	> {
+		const toValidateTransactions = this._queues.received.peekUntil(
+			queueCheckers.returnTrueUntilLimit(this._receivedTransactionsProcessingLimitPerInterval)
+		);
+		const {
+			passedTransactions,
+			failedTransactions	
+		} = await checkTransactions(toValidateTransactions, this._validateTransactions);
+
+		// Remove invalid transactions
+		this._queues.received.removeFor(
+			queueCheckers.checkTransactionForId(failedTransactions),
+		);
+		// Move valid transactions from the received queue to the validated queue
+		this._queues.validated.enqueueMany(
+			this._queues.received.removeFor(
+				queueCheckers.checkTransactionForId(passedTransactions),
+			),
+		);
+
+		return {
+			passedTransactions,
+			failedTransactions
+		};
+	}
+
+	private async verifyValidatedTransactions(): Promise<
+		CheckTransactionsResponse
+	> {
+		const toVerifyTransactions = this._queues.validated.peekUntil(
+			queueCheckers.returnTrueUntilLimit(this._validatedTransactionsProcessingLimitPerInterval)
+		);
+		const {
+			passedTransactions,
+			failedTransactions	
+		} = await checkTransactions(toVerifyTransactions, this._verifyTransactions);
+
+		// Remove invalid transactions
+		this._queues.validated.removeFor(
+			queueCheckers.checkTransactionForId(failedTransactions),
+		);
+		// Move verified transactions from the validated queue to the verified queue
+		this._queues.verified.enqueueMany(
+			this._queues.validated.removeFor(
+				queueCheckers.checkTransactionForId(passedTransactions),
+			),
+		);
+
+		return {
+			passedTransactions,
+			failedTransactions
+		};
 	}
 }
