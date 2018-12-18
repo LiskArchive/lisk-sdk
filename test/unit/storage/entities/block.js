@@ -54,11 +54,8 @@ describe('Block', () => {
 				create: 'loadSQLFile',
 				isPersisted: 'loadSQLFile',
 			});
-			expect(block.FIELD_SET_SIMPLE.toString()).to.be.eql(
-				'Symbol(FIELD_SET_SIMPLE)'
-			);
 			expect(block.defaultOptions).to.be.eql({
-				fieldSet: block.FIELD_SET_SIMPLE,
+				extended: false,
 				limit: 10,
 				offset: 0,
 			});
@@ -435,15 +432,6 @@ describe('Block', () => {
 			const filters = { height: 101 };
 			const resp = await block.isPersisted(filters);
 			expect(resp).to.be.eql(false);
-		});
-	});
-
-	describe('getFieldSets()', () => {
-		it('should return FIELD_SET_SIMPLE', async () => {
-			const adapter = { loadSQLFile: sinonSandbox.stub() };
-			const block = new Block(adapter);
-
-			expect(block.getFieldSets()).to.eql([block.FIELD_SET_SIMPLE]);
 		});
 	});
 
