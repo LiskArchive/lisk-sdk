@@ -61,14 +61,14 @@ export interface AddTransactionResult {
 	readonly isFull: boolean;
 }
 
-interface TransactionPoolDependecies {
+interface TransactionPoolDependencies {
 	validateTransactions(
 		transactions: ReadonlyArray<Transaction>,
 	): CheckTransactionsResult;
 }
 
 type TransactionPoolOptions = TransactionPoolConfiguration &
-	TransactionPoolDependecies;
+	TransactionPoolDependencies;
 
 export type Transaction = TransactionObject & TransactionFunctions;
 
