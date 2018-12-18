@@ -12,9 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { VOTE_FEE } from './constants';
-import { PartialTransaction, VoteTransaction } from './types/transactions';
+import { PartialTransaction, VoteTransaction } from './transaction_types';
 import {
 	prepareTransaction,
 	prependMinusToPublicKeys,
@@ -61,7 +61,7 @@ export const castVotes = (inputs: CastVoteInputs): VoteTransaction => {
 	} = inputs;
 	const recipientId = passphrase
 		? cryptography.getAddressAndPublicKeyFromPassphrase(passphrase).address
-		: undefined;
+		: '';
 
 	const plusPrependedVotes = prependPlusToPublicKeys(votes);
 	const minusPrependedUnvotes = prependMinusToPublicKeys(unvotes);

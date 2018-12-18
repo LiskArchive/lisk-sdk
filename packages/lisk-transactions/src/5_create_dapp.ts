@@ -13,7 +13,7 @@
  *
  */
 import { DAPP_FEE } from './constants';
-import { DappTransaction, PartialTransaction } from './types/transactions';
+import { DappTransaction, PartialTransaction } from './transaction_types';
 import { isValidInteger, prepareTransaction } from './utils';
 
 export interface DappOptions {

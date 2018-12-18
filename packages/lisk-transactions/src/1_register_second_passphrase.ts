@@ -12,12 +12,12 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { SIGNATURE_FEE } from './constants';
 import {
 	PartialTransaction,
 	SecondSignatureTransaction,
-} from './types/transactions';
+} from './transaction_types';
 import { prepareTransaction } from './utils';
 
 export interface SecondPassphraseInputs {

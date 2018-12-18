@@ -12,19 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import * as buffer from './buffer';
-import * as convert from './convert';
-import * as encrypt from './encrypt';
-import * as hash from './hash';
-import * as keys from './keys';
-import * as sign from './sign';
+import * as constants from './constants';
 
-// tslint:disable-next-line no-default-export
-export default {
-	...buffer,
-	...convert,
-	...encrypt,
-	...hash,
-	...keys,
-	...sign,
-};
+export * from './buffer';
+export * from './convert';
+export * from './encrypt';
+export * from './hash';
+export * from './keys';
+export * from './sign';
+
+export { constants };

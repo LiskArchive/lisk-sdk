@@ -32,7 +32,7 @@ import {
 	TransferTransaction,
 	BaseTransaction,
 	MultiSignatureAsset,
-} from '../../src/types/transactions';
+} from '../../src/transaction_types';
 
 const fixedPoint = 10 ** 8;
 const defaultRecipient = '58191285901858109L';
@@ -123,17 +123,6 @@ describe('getTransactionBytes module', () => {
 				return expect(getTransactionBytes.bind(null, transaction)).to.throw(
 					'Transaction amount must not be negative.',
 				);
-			});
-
-			it('should not throw on type 0 with an amount that is 0', () => {
-				const amount = 0;
-				const transaction = {
-					...defaultTransaction,
-					amount,
-				};
-				return expect(
-					getTransactionBytes.bind(null, transaction),
-				).not.to.throw();
 			});
 
 			it('should throw on type 0 with an amount that is too large', () => {

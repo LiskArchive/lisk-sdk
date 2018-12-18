@@ -16,7 +16,7 @@ import { expect } from 'chai';
 import fixtures from '../../../fixtures/transactions.json';
 import invalidFixtures from '../../../fixtures/invalid_transactions.json';
 import { validateTransaction } from '../../../src/utils/validation/validate_transaction';
-import { PartialTransaction } from '../../../src/types/transactions';
+import { PartialTransaction } from '../../../src/transaction_types';
 import { ErrorObject } from 'ajv';
 
 describe('validateTransaction', () => {

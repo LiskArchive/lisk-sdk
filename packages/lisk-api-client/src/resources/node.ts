@@ -15,16 +15,16 @@
 import { APIClient } from '../api_client';
 import { apiMethod } from '../api_method';
 import { APIResource } from '../api_resource';
+import { APIHandler } from '../api_types';
 import { GET, PUT } from '../constants';
-import { ApiHandler } from '../types/lisk-api-client';
 
 export class NodeResource extends APIResource {
-	public getConstants: ApiHandler;
-	public getForgingStatus: ApiHandler;
-	public getStatus: ApiHandler;
-	public getTransactions: ApiHandler;
+	public getConstants: APIHandler;
+	public getForgingStatus: APIHandler;
+	public getStatus: APIHandler;
+	public getTransactions: APIHandler;
 	public path: string;
-	public updateForgingStatus: ApiHandler;
+	public updateForgingStatus: APIHandler;
 
 	public constructor(apiClient: APIClient) {
 		super(apiClient);

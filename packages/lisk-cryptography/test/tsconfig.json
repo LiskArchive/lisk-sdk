@@ -3,8 +3,8 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"declaration": false,
-		"target": "es6",
-		"typeRoots": ["../src/types", "../../../types", "../node_modules/@types"]
+		"target": "es2017",
+		"typeRoots": ["../types", "../../../types", "../node_modules/@types"]
 	},
 	"include": ["../../../types/**/*", "./**/*"]
 }

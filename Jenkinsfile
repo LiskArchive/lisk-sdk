@@ -28,50 +28,58 @@ pipeline {
 		}
 		stage('Install dependencies') {
 			steps {
-				script {
-					cache_file = restoreCache("package.json")
-					sh 'npm install --verbose'
-					saveCache(cache_file, './node_modules', 10)
+				nvm(getNodejsVersion()) {
 					sh '''
-					if [ ! -f "/home/lisk/.cache/Cypress/$(jq -r .devDependencies.cypress ./packages/lisk-constants/package.json)/Cypress/Cypress" ]; then
-						./packages/lisk-constants/node_modules/.bin/cypress install --force
-					fi
+					mkdir -p "/home/lisk/.cache/Cypress/$( jq -r .devDependencies.cypress ./packages/lisk-constants/package.json )/Cypress"
+					npm ci
 					'''
 				}
 			}
 		}
 		stage('Build') {
 			steps {
-				sh 'npm run build'
+				nvm(getNodejsVersion()) {
+					sh 'npm run build'
+				}
 			}
 		}
 		stage('Run lint') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run lint'
+					nvm(getNodejsVersion()) {
+						sh 'npm run lint'
+					}
 				}
 			}
 		}
 		stage('Run tests') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run test'
+					nvm(getNodejsVersion()) {
+						sh 'npm run test'
+					}
 				}
 			}
 		}
 		stage('Run node tests') {
 			steps {
 				ansiColor('xterm') {
-					sh 'npm run test:node'
+					nvm(getNodejsVersion()) {
+						sh 'npm run test:node'
+					}
 				}
 			}
 		}
 		stage('Run browser tests') {
 			steps {
-				sh '''
-				npm run build:browsertest
-				npm run test:browser
-				'''
+				ansiColor('xterm') {
+					nvm(getNodejsVersion()) {
+						sh '''
+						npm run build:browsertest
+						npm run test:browser
+						'''
+					}
+				}
 			}
 		}
 	}

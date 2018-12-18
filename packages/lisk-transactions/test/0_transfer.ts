@@ -13,9 +13,9 @@
  *
  */
 import { expect } from 'chai';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { transfer } from '../src/0_transfer';
-import { TransferTransaction } from '../src/types/transactions';
+import { TransferTransaction } from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#transfer transaction', () => {
@@ -165,7 +165,7 @@ describe('#transfer transaction', () => {
 						data: Buffer.from('hello'),
 					}),
 				).to.throw(
-					'Invalid encoding in transaction data. Data must be utf-8 encoded.',
+					'Invalid encoding in transaction data. Data must be utf-8 encoded string.',
 				);
 			});
 
@@ -323,7 +323,7 @@ describe('#transfer transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(transferTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {

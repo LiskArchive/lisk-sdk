@@ -12,10 +12,9 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { MAX_TRANSACTION_AMOUNT } from '@liskhq/lisk-constants';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import BigNum from 'browserify-bignum';
-import { BYTESIZES } from '../constants';
+import { BYTESIZES, MAX_TRANSACTION_AMOUNT } from '../constants';
 import {
 	BaseTransaction,
 	DappAsset,
@@ -29,7 +28,7 @@ import {
 	TransferAsset,
 	TransferTransaction,
 	VoteAsset,
-} from '../types/transactions';
+} from '../transaction_types';
 
 export const isValidValue = (value: unknown): boolean => {
 	if (value === undefined) {
@@ -51,10 +50,7 @@ export const checkRequiredFields = (
 ): boolean => {
 	const dataFields = Object.keys(data);
 	requiredFields.forEach(parameter => {
-		if (
-			dataFields.indexOf(parameter) === -1 ||
-			!isValidValue(data[parameter])
-		) {
+		if (!dataFields.includes(parameter) || !isValidValue(data[parameter])) {
 			throw new Error(`${parameter} is a required parameter.`);
 		}
 	});

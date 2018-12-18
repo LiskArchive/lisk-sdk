@@ -13,7 +13,7 @@
  *
  */
 import { expect } from 'chai';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import {
 	signTransaction,
 	multiSignTransaction,
@@ -25,7 +25,7 @@ import fixtureTransactions from '../../fixtures/transactions.json';
 import {
 	PartialTransaction,
 	BaseTransaction,
-} from '../../src/types/transactions';
+} from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
 // Require is used for stubbing
 const validTransactions = fixtureTransactions as ReadonlyArray<BaseTransaction>;

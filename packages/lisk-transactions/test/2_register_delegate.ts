@@ -14,7 +14,7 @@
  */
 import { expect } from 'chai';
 import { registerDelegate } from '../src/2_register_delegate';
-import { DelegateAsset, DelegateTransaction } from '../src/types/transactions';
+import { DelegateAsset, DelegateTransaction } from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -220,7 +220,7 @@ describe('#registerDelegate transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(registerDelegateTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {

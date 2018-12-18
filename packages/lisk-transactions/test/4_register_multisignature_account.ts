@@ -13,12 +13,12 @@
  *
  */
 import { expect } from 'chai';
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { registerMultisignature } from '../src/4_register_multisignature_account';
 import {
 	MultiSignatureAsset,
 	MultiSignatureTransaction,
-} from '../src/types/transactions';
+} from '../src/transaction_types';
 // Require is used for stubbing
 const time = require('../src/utils/time');
 
@@ -460,7 +460,7 @@ describe('#registerMultisignature transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(registerMultisignatureTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {

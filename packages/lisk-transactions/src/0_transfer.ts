@@ -12,13 +12,13 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
+import * as cryptography from '@liskhq/lisk-cryptography';
 import { BYTESIZES, TRANSFER_FEE } from './constants';
 import {
 	PartialTransaction,
 	TransferAsset,
 	TransferTransaction,
-} from './types/transactions';
+} from './transaction_types';
 import {
 	prepareTransaction,
 	validateAddress,

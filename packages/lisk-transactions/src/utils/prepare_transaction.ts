@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction, PartialTransaction } from '../types/transactions';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { BaseTransaction, PartialTransaction } from '../transaction_types';
 import { getTransactionId } from './get_transaction_id';
 import { signTransaction } from './sign_and_verify';
 import { getTimeWithOffset } from './time';

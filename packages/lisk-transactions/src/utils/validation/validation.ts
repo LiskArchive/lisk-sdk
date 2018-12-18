@@ -12,14 +12,14 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+// tslint:disable-next-line no-reference
+/// <reference path="../../../types/browserify-bignum/index.d.ts" />
+import * as cryptography from '@liskhq/lisk-cryptography';
+import BigNum from 'browserify-bignum';
 import {
 	MAX_ADDRESS_NUMBER,
 	MAX_TRANSACTION_AMOUNT,
 	MAX_TRANSACTION_ID,
-} from '@liskhq/lisk-constants';
-import cryptography from '@liskhq/lisk-cryptography';
-import BigNum from 'browserify-bignum';
-import {
 	MULTISIGNATURE_MAX_KEYSGROUP,
 	MULTISIGNATURE_MIN_KEYSGROUP,
 } from '../../constants';
@@ -40,8 +40,7 @@ export const checkPublicKeysForDuplicates = (
 	publicKeys: ReadonlyArray<string>,
 ) =>
 	publicKeys.every((element, index) => {
-		const elementFound = publicKeys.slice(index + 1).indexOf(element);
-		if (elementFound > -1) {
+		if (publicKeys.slice(index + 1).includes(element)) {
 			throw new Error(`Duplicated public key: ${publicKeys[index]}.`);
 		}
 
@@ -67,7 +66,8 @@ export const validateKeysgroup = (keysgroup: ReadonlyArray<string>) => {
 
 const MIN_ADDRESS_LENGTH = 2;
 const MAX_ADDRESS_LENGTH = 22;
-export const validateAddress = (address: string) => {
+const BASE_TEN = 10;
+export const validateAddress = (address: string): boolean => {
 	if (
 		address.length < MIN_ADDRESS_LENGTH ||
 		address.length > MAX_ADDRESS_LENGTH
@@ -83,11 +83,24 @@ export const validateAddress = (address: string) => {
 		);
 	}
 
-	const addressAsBignum = new BigNum(address.slice(0, -1));
+	if (address.includes('.')) {
+		throw new Error(
+			'Address format does not match requirements. Address includes invalid character: `.`.',
+		);
+	}
 
-	if (addressAsBignum.cmp(new BigNum(MAX_ADDRESS_NUMBER)) > 0) {
+	const addressString = address.slice(0, -1);
+	const addressNumber = new BigNum(addressString);
+
+	if (addressNumber.cmp(new BigNum(MAX_ADDRESS_NUMBER)) > 0) {
 		throw new Error(
 			'Address format does not match requirements. Address out of maximum range.',
+		);
+	}
+
+	if (addressString !== addressNumber.toString(BASE_TEN)) {
+		throw new Error(
+			"Address string format does not match it's number representation.",
 		);
 	}
 

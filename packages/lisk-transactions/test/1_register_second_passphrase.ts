@@ -17,7 +17,7 @@ import { registerSecondPassphrase } from '../src/1_register_second_passphrase';
 import {
 	SecondSignatureAsset,
 	SecondSignatureTransaction,
-} from '../src/types/transactions';
+} from '../src/transaction_types';
 import * as time from '../src/utils/time';
 
 describe('#registerSecondPassphrase transaction', () => {
@@ -225,7 +225,7 @@ describe('#registerSecondPassphrase transaction', () => {
 			it('should have the sender public key', () => {
 				return expect(registerSecondPassphraseTransaction)
 					.to.have.property('senderPublicKey')
-					.equal(null);
+					.equal(undefined);
 			});
 
 			it('should have the timestamp', () => {

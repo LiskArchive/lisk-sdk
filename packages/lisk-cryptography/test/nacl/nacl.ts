@@ -15,7 +15,7 @@
 import { expect } from 'chai';
 import { KeypairBytes } from '../../src/keys';
 import { makeInvalid } from '../helpers';
-import { NaclInterface } from '../../src/types/nacl';
+import { NaclInterface } from '../../src/nacl/nacl_types';
 import * as fast from '../../src/nacl/fast';
 import * as slow from '../../src/nacl/slow';
 
@@ -194,6 +194,21 @@ describe('nacl', () => {
 					return expect(
 						Buffer.from(decryptedMessageBytes).toString('utf8'),
 					).to.be.eql(defaultMessage);
+				});
+
+				it('should throw an error for an invalid message', () => {
+					return expect(
+						openBox.bind(
+							null,
+							Buffer.from(
+								'abcdef1234567890abcdef1234567890abcdef1234567890',
+								'hex',
+							),
+							Buffer.from(defaultNonce, 'hex'),
+							Buffer.from(defaultConvertedPublicKeyEd2Curve, 'hex'),
+							Buffer.from(defaultConvertedPrivateKeyEd2Curve, 'hex'),
+						),
+					).to.throw(Error, 'Failed to decrypt message');
 				});
 			});
 

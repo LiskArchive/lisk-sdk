@@ -12,8 +12,8 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '../types/transactions';
+import * as cryptography from '@liskhq/lisk-cryptography';
+import { BaseTransaction } from '../transaction_types';
 import { getTransactionBytes } from './get_transaction_bytes';
 
 export const getTransactionId = (transaction: BaseTransaction): string => {
