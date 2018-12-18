@@ -24,9 +24,7 @@ describe('validateTransaction', () => {
 		describe('when fixtures provided', () => {
 			it('should be all valid for the fixtures', () => {
 				return fixtures.forEach((tx: unknown) => {
-					const { valid, errors } = validateTransaction(
-						tx as TransactionJSON,
-					);
+					const { valid, errors } = validateTransaction(tx as TransactionJSON);
 					expect(valid).to.be.true;
 					expect(errors).to.be.undefined;
 				});
@@ -48,7 +46,7 @@ describe('validateTransaction', () => {
 			};
 			it('should throw an error', () => {
 				return expect(
-					validateTransaction.bind(null, invalidTransaction),
+					validateTransaction.bind(null, invalidTransaction as TransactionJSON),
 				).to.throw(Error, 'Transaction type is required.');
 			});
 		});
@@ -92,7 +90,9 @@ describe('validateTransaction', () => {
 			};
 
 			it('should not include $merge error when the merged schema has error', () => {
-				const { valid, errors } = validateTransaction(invalidTransaction as TransactionJSON);
+				const { valid, errors } = validateTransaction(
+					invalidTransaction as TransactionJSON,
+				);
 				expect(valid).to.be.false;
 				expect(errors).not.to.be.undefined;
 				const errorsArray = errors as ReadonlyArray<ErrorObject>;
@@ -134,17 +134,15 @@ describe('validateTransaction', () => {
 		};
 
 		it('should throw an error when type 6 transaction is provided', () => {
-			return expect(validateTransaction.bind(null, type6Tx)).to.throw(
-				Error,
-				'Unsupported transaction type.',
-			);
+			return expect(
+				validateTransaction.bind(null, type6Tx as TransactionJSON),
+			).to.throw(Error, 'Unsupported transaction type.');
 		});
 
 		it('should throw an error when type 7 transaction is provided', () => {
-			return expect(validateTransaction.bind(null, type7Tx)).to.throw(
-				Error,
-				'Unsupported transaction type.',
-			);
+			return expect(
+				validateTransaction.bind(null, type7Tx as TransactionJSON),
+			).to.throw(Error, 'Unsupported transaction type.');
 		});
 	});
 
@@ -176,7 +174,9 @@ describe('validateTransaction', () => {
 		};
 
 		it('should be invalid when min is greater than the keysgroup', () => {
-			const { valid, errors } = validateTransaction(invalidMultiTransaction as any);
+			const { valid, errors } = validateTransaction(
+				invalidMultiTransaction as any,
+			);
 			expect(valid).to.be.false;
 			expect(errors).not.to.be.undefined;
 			const errorsArray = errors as ReadonlyArray<ErrorObject>;

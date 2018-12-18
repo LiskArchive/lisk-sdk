@@ -106,14 +106,22 @@ export abstract class BaseTransaction {
 			recipientId: this.recipientId,
 			recipientPublicKey: this.recipientPublicKey,
 			fee: this.fee.toString(),
-			signature: this.signature ? this.signature : undefined,
-			signSignature: this.signSignature ? this.signSignature : undefined,
+			signature: this.signature,
 			signatures: this.signatures,
 			asset: this.assetToJSON(),
 			receivedAt: this.receivedAt,
 		};
 
-		return transaction;
+		if (!this.signSignature) {
+			return transaction;
+		}
+
+		const signedTransaction = {
+			...transaction,
+			signSignature: this.signSignature,
+		};
+
+		return signedTransaction;
 	}
 
 	protected abstract getAssetBytes(): Buffer;
@@ -139,9 +147,10 @@ export abstract class BaseTransaction {
 			size: BYTESIZES.AMOUNT,
 		});
 
-		const transactionAsset = this.asset
-			? this.getAssetBytes()
-			: Buffer.alloc(0);
+		const transactionAsset =
+			this.asset && Object.keys(this.asset).length
+				? this.getAssetBytes()
+				: Buffer.alloc(0);
 
 		return Buffer.concat([
 			transactionType,
@@ -203,10 +212,8 @@ export abstract class BaseTransaction {
 
 	public validate(): TransactionResponse {
 		const errors: TransactionError[] = [];
-		const transactionBytes = Buffer.concat([
-			this.getBasicBytes(),
-			this.getAssetBytes(),
-		]);
+		const transactionBytes = this.getBasicBytes();
+
 		const {
 			verified: signatureVerified,
 			error: verificationError,
@@ -306,7 +313,6 @@ export abstract class BaseTransaction {
 			} else {
 				const transactionBytes = Buffer.concat([
 					this.getBasicBytes(),
-					this.getAssetBytes(),
 					Buffer.from(this.signature, 'hex'),
 				]);
 
@@ -335,10 +341,9 @@ export abstract class BaseTransaction {
 			const transactionBytes = this.signSignature
 				? Buffer.concat([
 						this.getBasicBytes(),
-						this.getAssetBytes(),
 						Buffer.from(this.signature, 'hex'),
 				  ])
-				: Buffer.concat([this.getBasicBytes(), this.getAssetBytes()]);
+				: this.getBasicBytes();
 
 			const {
 				verified: multisignaturesVerified,

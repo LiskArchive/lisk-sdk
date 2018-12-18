@@ -267,6 +267,14 @@ describe('validation', () => {
 		it('should return true when amount is 0', () => {
 			return expect(validateNonTransferAmount('0')).to.be.true;
 		});
+
+		it('should return false when amount is greater than 0', () => {
+			return expect(validateNonTransferAmount('1')).to.be.false;
+		});
+
+		it('should return false when amount is less than 0', () => {
+			return expect(validateNonTransferAmount('-1')).to.be.false;
+		});
 	});
 
 	describe('#validateTransferAmount', () => {

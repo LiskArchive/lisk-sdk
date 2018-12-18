@@ -14,6 +14,7 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
+import { addDate } from '../helpers';
 import {
 	signTransaction,
 	multiSignTransaction,
@@ -27,12 +28,194 @@ import { TransactionError } from '../../src/errors';
 import fixtureTransactions from '../../fixtures/transactions.json';
 import { TransactionJSON } from '../../src/transaction_types';
 import * as getTransactionHashModule from '../../src/utils/get_transaction_hash';
+import {
+	validMultisignatureTransaction,
+	validSecondSignatureTransaction,
+} from '../../fixtures';
+
 // Require is used for stubbing
 const validTransactions = (fixtureTransactions as unknown) as ReadonlyArray<
 	TransactionJSON
 >;
 
 describe('signAndVerify module', () => {
+	describe('#verifySignature', () => {
+		const defaultSecondSignatureTransaction = addDate(
+			validSecondSignatureTransaction,
+		);
+		const defaultSecondSignatureTransactionBytes = Buffer.from(
+			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b54020000003357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
+			'hex',
+		);
+		const defaultSecondPublicKey =
+			'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8';
+		const defaultTransactionBytes = Buffer.from(
+			'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b5402000000',
+			'hex',
+		);
+
+		it('should call cryptography hash', async () => {
+			const cryptographyHashStub = sandbox
+				.stub(cryptography, 'hash')
+				.callThrough();
+			verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature,
+				defaultTransactionBytes,
+			);
+			expect(cryptographyHashStub).to.be.calledOnce;
+		});
+
+		it('should call cryptography verifyData', async () => {
+			const cryptographyVerifyDataStub = sandbox
+				.stub(cryptography, 'hash')
+				.callThrough();
+			verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature,
+				defaultTransactionBytes,
+			);
+			expect(cryptographyVerifyDataStub).to.be.calledOnce;
+		});
+
+		it('should return a verified response with valid signature', async () => {
+			const { verified } = verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.true;
+		});
+
+		it('should return an unverified response with invalid signature', async () => {
+			const { verified, error } = verifySignature(
+				defaultSecondSignatureTransaction.senderPublicKey,
+				defaultSecondSignatureTransaction.signature.replace('1', '0'),
+				Buffer.from(defaultTransactionBytes),
+			);
+
+			expect(verified).to.be.false;
+			expect(error)
+				.to.be.instanceof(TransactionError)
+				.and.have.property(
+					'message',
+					`Failed to verify signature ${defaultSecondSignatureTransaction.signature.replace(
+						'1',
+						'0',
+					)}`,
+				);
+		});
+
+		it('should return a verified response with valid signSignature', async () => {
+			const { verified } = verifySignature(
+				defaultSecondPublicKey,
+				defaultSecondSignatureTransaction.signSignature,
+				defaultSecondSignatureTransactionBytes,
+			);
+
+			expect(verified).to.be.true;
+		});
+
+		it('should return an unverified response with invalid signSignature', async () => {
+			const { verified, error } = verifySignature(
+				defaultSecondPublicKey,
+				defaultSecondSignatureTransaction.signSignature.replace('1', '0'),
+				defaultSecondSignatureTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			expect(error)
+				.to.be.instanceof(TransactionError)
+				.and.have.property(
+					'message',
+					`Failed to verify signature ${defaultSecondSignatureTransaction.signSignature.replace(
+						'1',
+						'0',
+					)}`,
+				);
+		});
+	});
+
+	describe('#verifyMultisignatures', () => {
+		const defaultMultisignatureTransaction = addDate(
+			validMultisignatureTransaction,
+		);
+		const defaultTransactionBytes = Buffer.from(
+			'00de46a00424193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d3c9ea25a6b7c648f00e1f50500000000746865207265616c2074657374',
+			'hex',
+		);
+		const memberKeys = [
+			'c44a88e68196e4d2f608873467c7350fb92b954eb7c3b31a989b1afd8d55ebdb',
+			'2eca11a4786f35f367299e1defd6a22ac4eb25d2552325d6c5126583a3bdd0fb',
+			'a17e03f21bfa187d2a30fe389aa78431c587bf850e9fa851b3841274fc9f100f',
+			'758fc45791faf5796e8201e49950a9ee1ee788192714b935be982f315b1af8cd',
+			'9af12d260cf5fcc49bf8e8fce2880b34268c7a4ac8915e549c07429a01f2e4a5',
+		];
+
+		it('should return a verified response with valid signatures', async () => {
+			const { verified } = verifyMultisignatures(
+				memberKeys,
+				defaultMultisignatureTransaction.signatures,
+				3,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.true;
+		});
+
+		it('should return a verification fail response with invalid multimin', () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberKeys,
+				defaultMultisignatureTransaction.signatures,
+				'3' as any,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			expect((errors as ReadonlyArray<TransactionError>)[0])
+				.to.be.instanceof(TransactionError)
+				.and.have.property('message', `Sender does not have valid multimin`);
+		});
+
+		it('should return a verification fail response with invalid signatures', () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberKeys,
+				defaultMultisignatureTransaction.signatures.map((signature: string) =>
+					signature.replace('1', '0'),
+				),
+				3,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			(errors as ReadonlyArray<TransactionError>).forEach((error, i) => {
+				expect(error)
+					.to.be.instanceof(TransactionError)
+					.and.have.property(
+						'message',
+						`Failed to verify signature ${defaultMultisignatureTransaction.signatures[
+							i
+						].replace('1', '0')}`,
+					);
+			});
+		});
+
+		it('should return a verification fail response when missing signatures', async () => {
+			const { verified, errors } = verifyMultisignatures(
+				memberKeys,
+				defaultMultisignatureTransaction.signatures.slice(0, 1),
+				3,
+				defaultTransactionBytes,
+			);
+
+			expect(verified).to.be.false;
+			expect((errors as ReadonlyArray<TransactionError>)[0])
+				.to.be.instanceof(TransactionError)
+				.and.have.property('message', 'Missing signatures');
+		});
+	});
+
 	describe('signAndVerify transaction utils', () => {
 		const defaultPassphrase =
 			'minute omit local rare sword knee banner pair rib museum shadow juice';
@@ -160,226 +343,6 @@ describe('signAndVerify module', () => {
 
 			it('should return the signature', () => {
 				return expect(signature).to.be.equal(defaultSignature);
-			});
-		});
-
-		describe('#verifySignature', () => {
-			const defaultTransaction = {
-				amount: '10000000000',
-				recipientId: '13356260975429434553L',
-				senderId: '',
-				senderPublicKey:
-					'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8',
-				timestamp: 80685381,
-				type: 0,
-				fee: '10000000',
-				recipientPublicKey: '',
-				asset: {},
-				signature:
-					'3357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
-				signSignature:
-					'11f77b8596df14400f5dd5cf9ef9bd2a20f66a48863455a163cabc0c220ea235d8b98dec684bd86f62b312615e7f64b23d7b8699775e7c15dad0aef0abd4f503',
-				id: '11638517642515821734',
-				receivedAt: new Date(),
-			};
-
-			beforeEach(() => {
-				cryptoVerifyDataStub.restore();
-			});
-
-			const defaultSecondPublicKey =
-				'bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8';
-
-			const defaultTransactionBytes = Buffer.from(
-				'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b5402000000',
-				'hex',
-			);
-
-			describe('given a valid signature', () => {
-				it('should return an object with verified = true', () => {
-					const { verified } = verifySignature(
-						defaultTransaction.senderPublicKey,
-						defaultTransaction.signature,
-						defaultTransactionBytes,
-					);
-
-					return expect(verified).to.be.true;
-				});
-			});
-
-			describe('given an invalid signature', () => {
-				let invalidSignature = defaultTransaction.signature.replace('1', '0');
-
-				it('should return an object with verified = false', () => {
-					const { verified } = verifySignature(
-						defaultTransaction.senderPublicKey,
-						invalidSignature,
-						Buffer.from(defaultTransactionBytes),
-					);
-
-					return expect(verified).to.be.false;
-				});
-
-				it('should return an object with transaction error', () => {
-					const { error } = verifySignature(
-						defaultTransaction.senderPublicKey,
-						invalidSignature,
-						Buffer.from(defaultTransactionBytes),
-					);
-
-					return expect(error).to.be.instanceof(TransactionError);
-				});
-			});
-
-			const defaultSecondSignatureTransactionBytes = Buffer.from(
-				'004529cf04bc10685b802c8dd127e5d78faadc9fad1903f09d562fdcf632462408d4ba52e8b95af897b7e23cb900e40b54020000003357658f70b9bece24bd42769b984b3e7b9be0b2982f82e6eef7ffbd841598d5868acd45f8b1e2f8ab5ccc8c47a245fe9d8e3dc32fc311a13cc95cc851337e01',
-				'hex',
-			);
-
-			describe('given a valid signSignature', () => {
-				it('should return an object with verfied = true', () => {
-					const { verified } = verifySignature(
-						defaultSecondPublicKey,
-						defaultTransaction.signSignature,
-						defaultSecondSignatureTransactionBytes,
-					);
-					return expect(verified).to.be.true;
-				});
-			});
-
-			describe('given an invalid signSignature', () => {
-				let invalidSignature = defaultTransaction.signSignature.replace(
-					'1',
-					'0',
-				);
-
-				it('should return an object with verified = false', () => {
-					const { verified } = verifySignature(
-						defaultSecondPublicKey,
-						invalidSignature,
-						defaultSecondSignatureTransactionBytes,
-					);
-
-					return expect(verified).to.be.false;
-				});
-
-				it('should return an object with transaction error', () => {
-					const { error } = verifySignature(
-						defaultSecondPublicKey,
-						invalidSignature,
-						defaultSecondSignatureTransactionBytes,
-					);
-
-					return expect(error).to.be.instanceof(TransactionError);
-				});
-			});
-		});
-
-		describe('#verifyMultisignatures', () => {
-			const defaultMemberPublicKeys = [
-				'c44a88e68196e4d2f608873467c7350fb92b954eb7c3b31a989b1afd8d55ebdb',
-				'2eca11a4786f35f367299e1defd6a22ac4eb25d2552325d6c5126583a3bdd0fb',
-				'a17e03f21bfa187d2a30fe389aa78431c587bf850e9fa851b3841274fc9f100f',
-				'758fc45791faf5796e8201e49950a9ee1ee788192714b935be982f315b1af8cd',
-				'9af12d260cf5fcc49bf8e8fce2880b34268c7a4ac8915e549c07429a01f2e4a5',
-			];
-
-			const defaultTransaction = {
-				id: '15181013796707110990',
-				type: 0,
-				timestamp: 77612766,
-				senderPublicKey:
-					'24193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d',
-				senderId: '4368107197830030479L',
-				recipientId: '4368107197830030479L',
-				recipientPublicKey:
-					'24193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d',
-				amount: '100000000',
-				fee: '10000000',
-				signature:
-					'dc8fe25f817c81572585b3769f3c6df13d3dc93ff470b2abe807f43a3359ed94e9406d2539013971431f2d540e42dc7d3d71c7442da28572c827d59adc5dfa08',
-				signatures: [
-					'2df1fae6865ec72783dcb5f87a7d906fe20b71e66ad9613c01a89505ebd77279e67efa2c10b5ad880abd09efd27ea350dd8a094f44efa3b4b2c8785fbe0f7e00',
-					'2ec5bbc4ff552f991262867cd8f1c30a417e4596e8343d882b7c4fc86288b9e53592031f3de75ffe8cf4d431a7291b76c758999bb52f46a4da62a27c8901b60a',
-					'36d5c7da5f54007e22609105570fad04597f4f2b00d46baba603c213eaed8de55e9f3e5d0f39789dbc396330b2d9d4da46b7d67187075e86220bc0341c3f7802',
-				],
-				asset: {
-					data: 'the real test',
-				},
-				receivedAt: new Date(),
-			};
-
-			beforeEach(() => {
-				cryptoVerifyDataStub.restore();
-			});
-
-			const defaultTransactionBytes = Buffer.from(
-				'00de46a00424193236b7cbeaf5e6feafbbf7a791095ea64ec73abde8f0470001fee5d39d9d3c9ea25a6b7c648f00e1f50500000000746865207265616c2074657374',
-				'hex',
-			);
-
-			describe('given valid multisignatures', () => {
-				beforeEach(() => {
-					cryptoVerifyDataStub.restore();
-
-					return Promise.resolve();
-				});
-
-				it('should return an object with verfied = true', () => {
-					const { verified } = verifyMultisignatures(
-						defaultMemberPublicKeys,
-						defaultTransaction.signatures,
-						3,
-						defaultTransactionBytes,
-					);
-					return expect(verified).to.be.true;
-				});
-
-				describe('when not enough valid signatures', () => {
-					it('should return a verification fail response', () => {
-						const { verified, errors } = verifyMultisignatures(
-							defaultMemberPublicKeys,
-							defaultTransaction.signatures.slice(0, 1),
-							3,
-							defaultTransactionBytes,
-						);
-
-						const errorsArray = errors as ReadonlyArray<TransactionError>;
-
-						expect(errors).to.be.an('array');
-						errorsArray.forEach(error =>
-							expect(error).to.be.instanceof(TransactionError),
-						);
-						return expect(verified).to.be.false;
-					});
-				});
-			});
-
-			describe('given an invalid multisignatures', () => {
-				let invalidSignatures: ReadonlyArray<string>;
-				beforeEach(() => {
-					invalidSignatures = defaultTransaction.signatures.map(signature =>
-						signature.replace('1', '0'),
-					);
-
-					return Promise.resolve();
-				});
-
-				it('should return a verification fail response', () => {
-					const { verified, errors } = verifyMultisignatures(
-						defaultMemberPublicKeys,
-						invalidSignatures,
-						3,
-						defaultTransactionBytes,
-					);
-					const errorsArray = errors as ReadonlyArray<TransactionError>;
-
-					expect(errors).to.be.an('array');
-					errorsArray.forEach(error =>
-						expect(error).to.be.instanceof(TransactionError),
-					);
-					return expect(verified).to.be.false;
-				});
 			});
 		});
 
