@@ -13,7 +13,7 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction, PartialTransaction } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 import { prepareTransaction } from './prepare_transaction';
 import { getTimeWithOffset } from './time';
 
@@ -21,7 +21,7 @@ interface SignRawTransactionInput {
 	readonly passphrase: string;
 	readonly secondPassphrase?: string;
 	readonly timeOffset?: number;
-	readonly transaction: PartialTransaction;
+	readonly transaction: TransactionJSON;
 }
 
 export const signRawTransaction = ({
@@ -29,7 +29,7 @@ export const signRawTransaction = ({
 	passphrase,
 	secondPassphrase,
 	timeOffset,
-}: SignRawTransactionInput): BaseTransaction => {
+}: SignRawTransactionInput): TransactionJSON => {
 	const {
 		publicKey,
 		address,

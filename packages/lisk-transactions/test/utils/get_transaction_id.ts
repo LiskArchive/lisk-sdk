@@ -14,10 +14,40 @@
  */
 import { expect } from 'chai';
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { getTransactionId } from '../../src/utils';
-import { BaseTransaction } from '../../src/transaction_types';
+import { getId, getTransactionId } from '../../src/utils';
+import { TransactionJSON } from '../../src/transaction_types';
 // Require is used for stubbing
 const utils = require('../../src/utils');
+
+describe('#getId', () => {
+	const defaultTransaction: TransactionJSON = {
+		id: '15822870279184933850',
+		type: 0,
+		timestamp: 79289378,
+		senderPublicKey:
+			'0eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243',
+		senderId: '18278674964748191682L',
+		recipientId: '17243547555692708431L',
+		recipientPublicKey:
+			'3f82af600f7507a5c95e8a1c2b69aa353b59f26906298dce1d8009a2a52c6f59',
+		amount: '9312934243',
+		fee: '10000000',
+		signature:
+			'2092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309',
+		signatures: [],
+		asset: {},
+		receivedAt: new Date(),
+	};
+
+	const defaultTransactionBytes =
+		'0022dcb9040eb0a6d7b862dc35c856c02c47fde3b4f60f2f3571a888b9a8ca7540c6793243ef4d6324449e824f6319182b020000002092abc5dd72d42b289f69ddfa85d0145d0bfc19a0415be4496c189e5fdd5eff02f57849f484192b7d34b1671c17e5c22ce76479b411cad83681132f53d7b309';
+
+	it('should return a valid id', () => {
+		return expect(getId(Buffer.from(defaultTransactionBytes, 'hex'))).to.be.eql(
+			defaultTransaction.id,
+		);
+	});
+});
 
 describe('#getTransactionId', () => {
 	const defaultPublicKey =
@@ -39,7 +69,7 @@ describe('#getTransactionId', () => {
 	});
 
 	it('should return an id of 13987348420913138422 for a transaction', () => {
-		const transaction: BaseTransaction = {
+		const transaction: unknown = {
 			type: 0,
 			amount: defaultAmount,
 			fee: '0',
@@ -49,7 +79,7 @@ describe('#getTransactionId', () => {
 			senderPublicKey: defaultPublicKey,
 			signature: defaultSignature,
 		};
-		const id = getTransactionId(transaction);
+		const id = getTransactionId(transaction as TransactionJSON);
 
 		return expect(id).to.be.equal(defaultTransactionId);
 	});

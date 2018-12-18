@@ -12,26 +12,68 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-export interface BaseTransaction {
+import { TransactionError } from './errors';
+
+export enum Status {
+	OK = 1,
+	FAIL,
+}
+export interface Account {
+	readonly address: string;
+	readonly balance: string;
+	readonly delegate?: Delegate;
+	readonly publicKey: string;
+	readonly secondPublicKey?: string;
+	readonly multisignatures?: ReadonlyArray<string>;
+	readonly multimin?: number;
+}
+
+export interface MultiSignatureAccount extends Account {
+	readonly min: number;
+	readonly lifetime: number;
+	readonly members: ReadonlyArray<Account>;
+}
+
+export interface Delegate {
+	readonly username: string;
+	readonly vote: string;
+}
+
+export interface RequiredState {
+	readonly accounts: ReadonlyArray<Account>;
+	readonly transactions: ReadonlyArray<TransactionJSON>;
+}
+
+export interface TransactionJSON {
 	readonly amount: string;
 	readonly asset: TransactionAsset;
 	readonly fee: string;
-	readonly id?: string;
-	readonly recipientId: string | null;
-	readonly recipientPublicKey?: string | null;
-	readonly requesterPublicKey?: string;
-	readonly senderId?: string;
+	readonly id: string;
+	readonly recipientId: string;
+	readonly recipientPublicKey: string;
+	readonly senderId: string;
 	readonly senderPublicKey: string;
 	readonly signature?: string;
-	readonly signatures?: ReadonlyArray<string>;
+	readonly signatures: ReadonlyArray<string>;
 	readonly signSignature?: string;
 	readonly timestamp: number;
 	readonly type: number;
+	readonly receivedAt: Date;
 }
 
-type Partial<T> = { [P in keyof T]?: T[P] };
+export interface IsValidResponse {
+	readonly valid: boolean;
+	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly error?: TransactionError;
+}
 
-export type PartialTransaction = Partial<BaseTransaction>;
+export interface IsVerifiedResponse {
+	readonly verified: boolean;
+	readonly errors?: ReadonlyArray<TransactionError>;
+	readonly error?: TransactionError;
+}
+
+export type PartialTransaction = Partial<TransactionJSON>;
 
 export type TransactionAsset =
 	| TransferAsset
@@ -41,9 +83,10 @@ export type TransactionAsset =
 	| MultiSignatureAsset
 	| DappAsset
 	| InTransferAsset
-	| OutTransferAsset;
+	| OutTransferAsset
+	| object;
 
-export interface TransferTransaction extends BaseTransaction {
+export interface TransferTransaction extends TransactionJSON {
 	readonly asset: TransferAsset;
 }
 
@@ -51,7 +94,7 @@ export interface TransferAsset {
 	readonly data?: string;
 }
 
-export interface SecondSignatureTransaction extends BaseTransaction {
+export interface SecondSignatureTransaction extends TransactionJSON {
 	readonly asset: SecondSignatureAsset;
 }
 
@@ -61,7 +104,7 @@ export interface SecondSignatureAsset {
 	};
 }
 
-export interface DelegateTransaction extends BaseTransaction {
+export interface DelegateTransaction extends TransactionJSON {
 	readonly asset: DelegateAsset;
 }
 
@@ -71,7 +114,7 @@ export interface DelegateAsset {
 	};
 }
 
-export interface VoteTransaction extends BaseTransaction {
+export interface VoteTransaction extends TransactionJSON {
 	readonly asset: VoteAsset;
 }
 
@@ -79,7 +122,7 @@ export interface VoteAsset {
 	readonly votes: ReadonlyArray<string>;
 }
 
-export interface MultiSignatureTransaction extends BaseTransaction {
+export interface MultiSignatureTransaction extends TransactionJSON {
 	readonly asset: MultiSignatureAsset;
 }
 
@@ -91,7 +134,7 @@ export interface MultiSignatureAsset {
 	};
 }
 
-export interface DappTransaction extends BaseTransaction {
+export interface DappTransaction extends TransactionJSON {
 	readonly asset: DappAsset;
 }
 
@@ -107,7 +150,7 @@ export interface DappAsset {
 	};
 }
 
-export interface InTransferTransaction extends BaseTransaction {
+export interface InTransferTransaction extends TransactionJSON {
 	readonly asset: InTransferAsset;
 }
 
@@ -117,7 +160,7 @@ export interface InTransferAsset {
 	};
 }
 
-export interface OutTransferTransaction extends BaseTransaction {
+export interface OutTransferTransaction extends TransactionJSON {
 	readonly asset: OutTransferAsset;
 }
 

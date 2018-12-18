@@ -123,8 +123,8 @@ export const isNumberString = (str: string) => {
 	return /^[0-9]+$/g.test(str);
 };
 
-export const validateAmount = (data: string) =>
-	isNumberString(data) && !isGreaterThanZero(new BigNum(data));
+export const validateNonTransferAmount = (data: string) =>
+	isNumberString(data) && data === '0';
 
 export const validateTransferAmount = (data: string) =>
 	isNumberString(data) &&

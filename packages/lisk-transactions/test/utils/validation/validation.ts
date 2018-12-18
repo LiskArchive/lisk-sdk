@@ -21,7 +21,7 @@ import {
 	validatePublicKeys,
 	validateKeysgroup,
 	validateAddress,
-	validateAmount,
+	validateNonTransferAmount,
 	validateTransferAmount,
 	validateFee,
 	isGreaterThanMaxTransactionAmount,
@@ -263,9 +263,9 @@ describe('validation', () => {
 		});
 	});
 
-	describe('#validateAmount', () => {
+	describe('#validateNonTransferAmount', () => {
 		it('should return true when amount is 0', () => {
-			return expect(validateAmount('0')).to.be.true;
+			return expect(validateNonTransferAmount('0')).to.be.true;
 		});
 	});
 

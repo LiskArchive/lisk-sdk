@@ -12,6 +12,69 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
+export const transaction = {
+	$id: 'lisk/transaction',
+	type: 'object',
+	required: [
+		'id',
+		'type',
+		'amount',
+		'fee',
+		'senderPublicKey',
+		'senderId',
+		'recipientId',
+		'timestamp',
+		'asset',
+		'signature',
+	],
+	properties: {
+		id: {
+			type: 'string',
+		},
+		amount: {
+			type: 'string',
+		},
+		fee: {
+			type: 'string',
+		},
+		type: {
+			type: 'integer',
+		},
+		timestamp: {
+			type: 'integer',
+		},
+		senderId: {
+			type: 'string',
+		},
+		senderPublicKey: {
+			type: 'string',
+		},
+		senderSecondPublicKey: {
+			type: 'string',
+		},
+		recipientId: {
+			type: 'string',
+		},
+		recipientPublicKey: {
+			type: ['string', 'null'],
+		},
+		signature: {
+			type: 'string',
+		},
+		signSignature: {
+			type: 'string',
+		},
+		signatures: {
+			type: 'array',
+		},
+		asset: {
+			type: 'object',
+		},
+		receivedAt: {
+			type: 'object',
+		},
+	},
+};
 
 export const baseTransaction = {
 	$id: 'lisk/base-transaction',
@@ -22,7 +85,6 @@ export const baseTransaction = {
 		'amount',
 		'fee',
 		'senderPublicKey',
-		'recipientId',
 		'timestamp',
 		'asset',
 		'signature',
@@ -84,9 +146,14 @@ export const baseTransaction = {
 				type: 'string',
 				format: 'signature',
 			},
+			minItems: 0,
 		},
 		asset: {
 			type: 'object',
+		},
+		receivedAt: {
+			type: 'object',
+			format: 'receivedAt',
 		},
 	},
 };
@@ -121,6 +188,9 @@ export const signatureTransaction = {
 		source: { $ref: 'lisk/base-transaction' },
 		with: {
 			properties: {
+				amount: {
+					format: 'nonTransferAmount',
+				},
 				asset: {
 					type: 'object',
 					required: ['signature'],
@@ -147,6 +217,9 @@ export const delegateTransaction = {
 		source: { $ref: 'lisk/base-transaction' },
 		with: {
 			properties: {
+				amount: {
+					format: 'nonTransferAmount',
+				},
 				asset: {
 					type: 'object',
 					required: ['delegate'],
@@ -173,6 +246,9 @@ export const voteTransaction = {
 		source: { $ref: 'lisk/base-transaction' },
 		with: {
 			properties: {
+				amount: {
+					format: 'nonTransferAmount',
+				},
 				asset: {
 					type: 'object',
 					required: ['votes'],
@@ -199,6 +275,9 @@ export const multiTransaction = {
 		source: { $ref: 'lisk/base-transaction' },
 		with: {
 			properties: {
+				amount: {
+					format: 'nonTransferAmount',
+				},
 				asset: {
 					type: 'object',
 					required: ['multisignature'],
@@ -241,6 +320,9 @@ export const dappTransaction = {
 		source: { $ref: 'lisk/base-transaction' },
 		with: {
 			properties: {
+				amount: {
+					format: 'nonTransferAmount',
+				},
 				asset: {
 					type: 'object',
 					required: ['dapp'],

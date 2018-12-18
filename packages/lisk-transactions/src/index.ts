@@ -20,9 +20,11 @@ import { registerMultisignature } from './4_register_multisignature_account';
 import { createDapp } from './5_create_dapp';
 import * as constants from './constants';
 import { createSignatureObject } from './create_signature_object';
+import { BaseTransaction } from './transactions/base';
 import * as utils from './utils';
 
 export {
+	BaseTransaction,
 	transfer,
 	registerSecondPassphrase,
 	registerDelegate,

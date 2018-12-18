@@ -13,10 +13,23 @@
  *
  */
 import * as cryptography from '@liskhq/lisk-cryptography';
-import { BaseTransaction } from '../transaction_types';
+import { TransactionJSON } from '../transaction_types';
 import { getTransactionBytes } from './get_transaction_bytes';
 
-export const getTransactionId = (transaction: BaseTransaction): string => {
+export const getId = (transactionBytes: Buffer): string => {
+	const transactionHash = cryptography.hash(transactionBytes);
+	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
+		transactionHash,
+	);
+	const transactionId = cryptography.bufferToBigNumberString(
+		bufferFromFirstEntriesReversed,
+	);
+
+	return transactionId;
+};
+
+// FIXME: Deprecated
+export const getTransactionId = (transaction: TransactionJSON): string => {
 	const transactionBytes = getTransactionBytes(transaction);
 	const transactionHash = cryptography.hash(transactionBytes);
 	const bufferFromFirstEntriesReversed = cryptography.getFirstEightBytesReversed(
