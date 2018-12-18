@@ -195,7 +195,7 @@ class Block extends BaseEntity {
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
-	async get(filters = {}, options = {}, tx) {
+	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
@@ -209,7 +209,7 @@ class Block extends BaseEntity {
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
-	async getOne(filters, options = {}, tx) {
+	getOne(filters, options = {}, tx) {
 		return this._getResults(filters, options, tx, 1);
 	}
 
@@ -221,7 +221,7 @@ class Block extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	async create(data, _options, tx) {
+	create(data, _options, tx) {
 		const objectData = data;
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
@@ -243,7 +243,7 @@ class Block extends BaseEntity {
 	 * @throws {NonSupportedOperationError}
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	async update() {
+	update() {
 		throw new NonSupportedOperationError();
 	}
 
@@ -254,7 +254,7 @@ class Block extends BaseEntity {
 	 * @throws {NonSupportedOperationError}
 	 */
 	// eslint-disable-next-line class-methods-use-this
-	async updateOne() {
+	updateOne() {
 		throw new NonSupportedOperationError();
 	}
 
@@ -266,7 +266,7 @@ class Block extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	async isPersisted(filters, options, tx) {
+	isPersisted(filters, options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 		this.validateOptions(options);

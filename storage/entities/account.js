@@ -303,7 +303,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
-	async getOne(filters, options = {}, tx) {
+	getOne(filters, options = {}, tx) {
 		return this._getResults(filters, options, tx, 1);
 	}
 
@@ -318,7 +318,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
 	 */
-	async get(filters = {}, options = {}, tx) {
+	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
 	}
 
@@ -330,7 +330,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	async create(data, _options, tx) {
+	create(data, _options, tx) {
 		const objectData = _.defaults(data, defaultCreateValues);
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
@@ -354,7 +354,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	async update(filters, data, _options, tx) {
+	update(filters, data, _options, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -380,7 +380,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	async updateOne(filters, data, _options, tx) {
+	updateOne(filters, data, _options, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -404,7 +404,7 @@ class Account extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	async isPersisted(filters, tx) {
+	isPersisted(filters, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 
