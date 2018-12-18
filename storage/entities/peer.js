@@ -24,7 +24,7 @@ const defaultCreateValues = {};
 const readOnlyFields = [];
 
 /**
- * Basic Peer
+ * Peer
  * @typedef {Object} Peer
  * @property {number} id
  * @property {inet} ip
@@ -93,14 +93,6 @@ const readOnlyFields = [];
  * @property {number} [height_in]
  */
 
-/**
- * @typedef {string} fieldSets.Peer
- * @enum
- * @value 'FIELD_SET_SIMPLE'
- */
-
-const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
-
 class Peer extends BaseEntity {
 	/**
 	 * Constructor
@@ -109,8 +101,6 @@ class Peer extends BaseEntity {
 	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
-
-		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('id', 'number', { filter: filterType.NUMBER });
 		this.addField('ip', 'string', { format: 'ip', filter: filterType.TEXT });
@@ -128,17 +118,12 @@ class Peer extends BaseEntity {
 		this.addField('height', 'number', { filter: filterType.NUMBER });
 
 		this.SQLs = {
-			selectSimple: this.adapter.loadSQLFile('peers/get_simple.sql'),
+			select: this.adapter.loadSQLFile('peers/get.sql'),
 			create: this.adapter.loadSQLFile('peers/create.sql'),
 			update: this.adapter.loadSQLFile('peers/update.sql'),
 			updateOne: this.adapter.loadSQLFile('peers/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('peers/is_persisted.sql'),
 		};
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	get FIELD_SET_SIMPLE() {
-		return FIELD_SET_SIMPLE;
 	}
 
 	/**
@@ -148,7 +133,6 @@ class Peer extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Peer} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<Peer, Error>}
 	 */
@@ -157,28 +141,19 @@ class Peer extends BaseEntity {
 		this.validateOptions(options);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
+			_.pick(options, ['limit', 'offset']),
+			_.pick(options, ['limit', 'offset'])
 		);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{
-				parsedFilters,
-			}
-		);
+		const params = {
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
+		};
 
-		return this.adapter.executeFile(
-			{
-				[Peer.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-			}[parsedOptions.fieldSet],
-			params,
-			{ expectedResult: 1 },
-			tx
-		);
+		return this.adapter.executeFile(this.SQLs.select, params, {}, tx);
 	}
 
 	/**
@@ -188,7 +163,6 @@ class Peer extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Peer} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<Peer[], Error>}
 	 */
@@ -199,24 +173,17 @@ class Peer extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
+			_.pick(options, ['limit', 'offset']),
+			_.pick(options, ['limit', 'offset'])
 		);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
+		const params = {
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
+		};
 
-		return this.adapter.executeFile(
-			{
-				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-			}[parsedOptions.fieldSet],
-			params,
-			{},
-			tx
-		);
+		return this.adapter.executeFile(this.SQLs.select, params, {}, tx);
 	}
 
 	/**
@@ -238,7 +205,7 @@ class Peer extends BaseEntity {
 		return this.adapter.executeFile(
 			this.SQLs.create,
 			{ createSet, attributes },
-			{ expectedResult: 0 },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
@@ -261,15 +228,18 @@ class Peer extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
-		const params = Object.assign(objectData, {
-			parsedFilters,
-			updateSet,
-		});
+		const params = {
+			...objectData,
+			...{
+				parsedFilters,
+				updateSet,
+			},
+		};
 
 		return this.adapter.executeFile(
 			this.SQLs.update,
 			params,
-			{ expectedResult: 0 },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
@@ -292,15 +262,18 @@ class Peer extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
-		const params = Object.assign(objectData, {
-			parsedFilters,
-			updateSet,
-		});
+		const params = {
+			...objectData,
+			...{
+				parsedFilters,
+				updateSet,
+			},
+		};
 
 		return this.adapter.executeFile(
 			this.SQLs.updateOne,
 			params,
-			{ expectedResult: 0 },
+			{ expectedResultCount: 0 },
 			tx
 		);
 	}
