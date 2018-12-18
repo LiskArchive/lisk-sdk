@@ -133,7 +133,7 @@ class BaseEntity {
 	 * @param {Object} options - Options object
 	 */
 	extendDefaultOptions(options) {
-		this.defaultOptions = Object.assign({}, this.defaultOptions, options);
+		this.defaultOptions = { ...this.defaultOptions, ...options };
 	}
 
 	/**
@@ -154,11 +154,10 @@ class BaseEntity {
 
 		this.fields[name] = new Field(name, type, options, writer);
 
-		this.filters = Object.assign(
-			{},
-			this.filters,
-			this.fields[name].getFilters()
-		);
+		this.filters = {
+			...this.filters,
+			...this.fields[name].getFilters(),
+		};
 	}
 
 	getUpdateSet(data) {
@@ -214,16 +213,16 @@ class BaseEntity {
 	addFilter(filterName, filterType = filterTypes.NUMBER, options = {}) {
 		// TODO: The dynamic generated json-schema for filters should be implemented for validation
 
-		this.filters = Object.assign(
-			this.filters,
-			filterGenerator(
+		this.filters = {
+			...this.filters,
+			...filterGenerator(
 				filterType,
 				filterName,
 				options.fieldName || filterName,
 				options.inputSerializer,
 				options.condition
-			)
-		);
+			),
+		};
 	}
 
 	/**
@@ -244,7 +243,7 @@ class BaseEntity {
 
 		if (Array.isArray(filters)) {
 			flattenedFilters = filters.reduce(
-				(acc, curr) => Object.assign(acc, curr),
+				(acc, curr) => ({ ...acc, ...curr }),
 				{}
 			);
 		} else {
@@ -311,7 +310,7 @@ class BaseEntity {
 		let filtersObject = filters;
 
 		if (Array.isArray(filters)) {
-			filtersObject = Object.assign({}, ...filters);
+			filtersObject = { ...filters };
 		}
 
 		if (filterString) {
@@ -331,9 +330,9 @@ class BaseEntity {
 	 */
 	mergeFilters(filters) {
 		if (Array.isArray(filters)) {
-			return filters.map(item => Object.assign({}, item, this.defaultFilters));
+			return filters.map(item => ({ ...item, ...this.defaultFilters }));
 		}
-		return Object.assign({}, filters, this.defaultFilters);
+		return { ...filters, ...this.defaultFilters };
 	}
 }
 

@@ -207,11 +207,10 @@ class Block extends BaseEntity {
 			_.pick(this.defaultOptions, ['limit', 'offset'])
 		);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
+		const params = {
+			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			...{ parsedFilters },
+		};
 
 		return this.adapter.executeFile(this.SQLs.select, params, {}, tx);
 	}
@@ -238,11 +237,10 @@ class Block extends BaseEntity {
 			_.pick(this.defaultOptions, ['limit', 'offset'])
 		);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
+		const params = {
+			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			...{ parsedFilters },
+		};
 
 		return this.adapter.executeFile(
 			this.SQLs.select,
@@ -318,11 +316,10 @@ class Block extends BaseEntity {
 			_.pick(this.defaultOptions, ['limit', 'offset'])
 		);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
+		const params = {
+			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			...{ parsedFilters },
+		};
 
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { params }, {}, tx)

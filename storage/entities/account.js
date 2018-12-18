@@ -312,13 +312,10 @@ class Account extends BaseEntity {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{
-				parsedFilters,
-			}
-		);
+		const params = {
+			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			...{ parsedFilters },
+		};
 
 		return this.adapter.executeFile(
 			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
@@ -348,11 +345,10 @@ class Account extends BaseEntity {
 			_.pick(this.defaultOptions, ['limit', 'offset', 'extended'])
 		);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
+		const params = {
+			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			...{ parsedFilters },
+		};
 
 		return this.adapter.executeFile(
 			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
@@ -400,10 +396,13 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
-		const params = Object.assign(objectData, {
-			parsedFilters,
-			updateSet,
-		});
+		const params = {
+			...objectData,
+			...{
+				parsedFilters,
+				updateSet,
+			},
+		};
 
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
@@ -423,10 +422,13 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
-		const params = Object.assign(objectData, {
-			parsedFilters,
-			updateSet,
-		});
+		const params = {
+			...objectData,
+			...{
+				parsedFilters,
+				updateSet,
+			},
+		};
 
 		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
 	}

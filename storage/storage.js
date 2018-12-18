@@ -42,13 +42,14 @@ class Storage {
 	 * @return Promise
 	 */
 	bootstrap() {
-		const adapter = new PgpAdapter(
-			Object.assign({}, this.options, {
+		const adapter = new PgpAdapter({
+			...this.options,
+			...{
 				inTest: process.env.NODE_ENV === 'test',
 				sqlDirectory: path.join(path.dirname(__filename), './sql'),
 				logger: this.logger,
-			})
-		);
+			},
+		});
 
 		return adapter.connect().then(status => {
 			if (status) {
