@@ -320,7 +320,7 @@ class Account extends BaseEntity {
 		return this.adapter.executeFile(
 			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
 			params,
-			{ expectedResult: 1 },
+			{ expectedResultCount: 1 },
 			tx
 		);
 	}

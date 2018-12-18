@@ -245,7 +245,7 @@ class Block extends BaseEntity {
 		return this.adapter.executeFile(
 			this.SQLs.select,
 			params,
-			{ expectedResult: 1 },
+			{ expectedResultCount: 1 },
 			tx
 		);
 	}
