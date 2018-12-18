@@ -33,15 +33,20 @@ export interface TransactionFunctions {
 	): boolean;
 }
 
+export enum Status {
+	FAIL,
+	OK,
+}
+
 export interface CheckTransactionsResult {
 	transactionsResponses: ReadonlyArray<TransactionResponse>;
-	status: boolean;
+	status: Status;
 }
 
 interface TransactionResponse {
 	readonly errors: ReadonlyArray<Error>;
 	readonly id: string;
-	readonly status: boolean;
+	readonly status: Status;
 }
 
 interface TransactionPoolConfiguration {
@@ -247,7 +252,7 @@ export class TransactionPool {
 
 		// Get ids of invalid transactions from validateTransactionsResponse
 		const invalidTransactionIds = validateTransactionsResponse
-			.filter(transactionResponse => transactionResponse.status)
+			.filter(transactionResponse => transactionResponse.status === Status.FAIL)
 			.map(transationStatus => transationStatus.id);
 
 		// Filter transactions in transactionToValidate which are invalid

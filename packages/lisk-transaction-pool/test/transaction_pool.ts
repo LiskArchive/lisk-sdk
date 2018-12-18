@@ -7,6 +7,7 @@ import {
 	TransactionPool,
 	AddTransactionResult,
 	CheckTransactionsResult,
+	Status
 } from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
@@ -362,31 +363,31 @@ describe('transaction pool', () => {
 		const checkForTransactionValidTransactionId = sandbox.stub();
 
 		const validateTransactionsResponse: CheckTransactionsResult = {
-			status: false,
+			status: Status.FAIL,
 			transactionsResponses: [
 				{
 					id: invalidTransactions[0].id,
-					status: false,
+					status: Status.FAIL,
 					errors: [new Error(), new Error()],
 				},
 				{
 					id: invalidTransactions[1].id,
-					status: false,
+					status: Status.FAIL,
 					errors: [new Error(), new Error()],
 				},
 				{
 					id: validTransactions[0].id,
-					status: true,
+					status: Status.OK,
 					errors: [],
 				},
 				{
 					id: validTransactions[1].id,
-					status: true,
+					status: Status.OK,
 					errors: [],
 				},
 				{
 					id: invalidTransactions[2].id,
-					status: false,
+					status: Status.FAIL,
 					errors: [new Error()],
 				},
 			],
