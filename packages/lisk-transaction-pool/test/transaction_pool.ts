@@ -7,7 +7,7 @@ import {
 	TransactionPool,
 	AddTransactionResult,
 	CheckTransactionsResult,
-	Status
+	Status,
 } from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
@@ -408,12 +408,14 @@ describe('transaction pool', () => {
 				.onFirstCall()
 				.returns(checkForTransactionInvalidTransactionId);
 			await validateReceivedTransactions();
-			expect(checkerStubs.checkTransactionForId).to.be.calledWith(
+			expect(checkerStubs.checkTransactionForId.getCall(0)).to.be.calledWith(
 				invalidTransactions,
 			);
-			expect(transactionPool.queues.received.removeFor).to.be.calledWith(
-				checkForTransactionInvalidTransactionId,
-			);
+			expect(
+				(transactionPool.queues.received.removeFor as sinon.SinonStub).getCall(
+					0,
+				),
+			).to.be.calledWith(checkForTransactionInvalidTransactionId);
 		});
 
 		it('should move valid transactions to the validated queue', async () => {
@@ -424,10 +426,11 @@ describe('transaction pool', () => {
 				.onSecondCall()
 				.returns(validTransactions);
 			await validateReceivedTransactions();
-			expect(checkerStubs.checkTransactionForId).to.be.calledWith(
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
 				validTransactions,
 			);
-			expect(transactionPool.queues.received.removeFor).to.be.calledWith(
+			expect(transactionPool.queues.received
+				.removeFor as sinon.SinonStub).to.be.calledWith(
 				checkForTransactionValidTransactionId,
 			);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
@@ -435,7 +438,7 @@ describe('transaction pool', () => {
 			);
 		});
 
-		it('should not move valid transactions to the validated queue which no longer exist in the recievied queue', async () => {
+		it('should not move valid transactions to the validated queue which no longer exist in the received queue', async () => {
 			const validTransactionsExistingInReceivedQueue = validTransactions.slice(
 				1,
 			);
@@ -443,7 +446,7 @@ describe('transaction pool', () => {
 				.onSecondCall()
 				.returns(validTransactionsExistingInReceivedQueue);
 			await validateReceivedTransactions();
-			expect(checkerStubs.checkTransactionForId).to.be.calledWith(
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
 				validTransactions,
 			);
 			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(

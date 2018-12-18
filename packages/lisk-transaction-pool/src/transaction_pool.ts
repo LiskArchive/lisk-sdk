@@ -246,9 +246,9 @@ export class TransactionPool {
 			),
 		);
 		// Validate transactions
-		const validateTransactionsResponse = await this._validateTransactions(
-			transactionsToValidate,
-		).transactionsResponses;
+		const {
+			transactionsResponses: validateTransactionsResponse,
+		} = await this._validateTransactions(transactionsToValidate);
 
 		// Get ids of invalid transactions from validateTransactionsResponse
 		const invalidTransactionIds = validateTransactionsResponse
