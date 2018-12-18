@@ -14,7 +14,7 @@
 
 'use strict';
 
-const _ = require('lodash');
+const { defaults, omit, pick } = require('lodash');
 const filterType = require('../utils/filter_types');
 const { stringToByte } = require('../utils/inputSerializers');
 const BaseEntity = require('./base_entity');
@@ -146,23 +146,8 @@ class Peer extends BaseEntity {
 	 * @return {Promise.<Peer, Error>}
 	 */
 	getOne(filters, options = {}, tx = null) {
-		this.validateFilters(filters);
-		this.validateOptions(options);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset']),
-			_.pick(options, ['limit', 'offset'])
-		);
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-
-		const params = {
-			limit: parsedOptions.limit,
-			offset: parsedOptions.offset,
-			parsedFilters,
-		};
-
-		return this.adapter.executeFile(this.SQLs.select, params, {}, tx);
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
 	/**
@@ -176,14 +161,19 @@ class Peer extends BaseEntity {
 	 * @return {Promise.<Peer[], Error>}
 	 */
 	get(filters = {}, options = {}, tx = null) {
+		return this._getResults(filters, options, tx);
+	}
+
+	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
+		const parsedOptions = defaults(
 			{},
-			_.pick(options, ['limit', 'offset']),
-			_.pick(options, ['limit', 'offset'])
+			pick(options, ['limit', 'offset']),
+			pick(this.defaultOptions, ['limit', 'offset'])
 		);
 
 		const params = {
@@ -192,20 +182,25 @@ class Peer extends BaseEntity {
 			parsedFilters,
 		};
 
-		return this.adapter.executeFile(this.SQLs.select, params, {}, tx);
+		return this.adapter.executeFile(
+			this.SQLs.select,
+			params,
+			{ expectedResultCount },
+			tx
+		);
 	}
 
 	/**
 	 * Create peer object
 	 *
 	 * @param {Object} data
-	 * @param {Object} [options]
+	 * @param {Object} [_options]
 	 * @param {Object} tx - Transaction object
 	 * @return {null}
 	 */
 	// eslint-disable-next-line no-unused-vars
-	create(data, options = {}, tx = null) {
-		const objectData = _.defaults(data, defaultCreateValues);
+	create(data, _options = {}, tx = null) {
+		const objectData = defaults(data, defaultCreateValues);
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
 			.map(k => `"${this.fields[k].fieldName}"`)
@@ -231,7 +226,7 @@ class Peer extends BaseEntity {
 	update(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
-		const objectData = _.omit(data, readOnlyFields);
+		const objectData = omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
@@ -264,7 +259,7 @@ class Peer extends BaseEntity {
 	updateOne(filters, data, options = {}, tx = null) {
 		this.validateFilters(filters);
 		this.validateOptions(options);
-		const objectData = _.omit(data, readOnlyFields);
+		const objectData = omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
@@ -303,10 +298,6 @@ class Peer extends BaseEntity {
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
-	}
-
-	getFieldSets() {
-		return [this.FIELD_SET_SIMPLE];
 	}
 }
 

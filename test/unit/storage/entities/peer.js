@@ -25,12 +25,14 @@ describe('Peer', () => {
 	let adapter;
 	let validPeerFields;
 	let validPeerSQLs;
+	let validFilters;
 	let addFieldSpy;
 	let invalidFilter;
 	let validFilter;
 	let invalidOptions;
 	let validOptions;
 	let validPeer;
+	let validFilterGetOneExecuteArgs;
 
 	before(async () => {
 		validPeerFields = [
@@ -45,12 +47,69 @@ describe('Peer', () => {
 			'height',
 		];
 
-		validPeerSQLs = [
-			'selectSimple',
-			'create',
-			'update',
-			'updateOne',
-			'isPersisted',
+		validPeerSQLs = ['select', 'create', 'update', 'updateOne', 'isPersisted'];
+
+		validFilters = [
+			'id',
+			'id_eql',
+			'id_ne',
+			'id_gt',
+			'id_gte',
+			'id_lt',
+			'id_lte',
+			'id_in',
+			'ip',
+			'ip_eql',
+			'ip_ne',
+			'ip_in',
+			'ip_like',
+			'wsPort',
+			'wsPort_eql',
+			'wsPort_ne',
+			'wsPort_gt',
+			'wsPort_gte',
+			'wsPort_lt',
+			'wsPort_lte',
+			'wsPort_in',
+			'state',
+			'state_eql',
+			'state_ne',
+			'state_gt',
+			'state_gte',
+			'state_lt',
+			'state_lte',
+			'state_in',
+			'os',
+			'os_eql',
+			'os_ne',
+			'os_in',
+			'os_like',
+			'version',
+			'version_eql',
+			'version_ne',
+			'version_in',
+			'version_like',
+			'clock',
+			'clock_eql',
+			'clock_ne',
+			'clock_gt',
+			'clock_gte',
+			'clock_lt',
+			'clock_lte',
+			'clock_in',
+			'broadhash',
+			'broadhash_eql',
+			'broadhash_ne',
+			'broadhash_in',
+			'broadhash_like',
+			'height',
+			'height_eql',
+			'height_ne',
+			'height_gt',
+			'height_gte',
+			'height_lt',
+			'height_lte',
+			'height_in',
 		];
 
 		invalidFilter = {
@@ -61,6 +120,13 @@ describe('Peer', () => {
 		validFilter = {
 			id: 20,
 		};
+
+		validFilterGetOneExecuteArgs = [
+			'loadSQLFile',
+			{ limit: 10, offset: 0, parsedFilters: 'WHERE undefined' },
+			{ expectedResultCount: 1 },
+			null,
+		];
 
 		validPeer = {
 			id: 20,
@@ -139,6 +205,30 @@ describe('Peer', () => {
 	});
 
 	describe('getOne()', () => {
+		it('should call _getResults with the correct expectedResultCount', async () => {
+			const peer = new Peer(adapter);
+			const _getResultsStub = sinonSandbox
+				.stub(peer, '_getResults')
+				.returns(validPeer);
+			peer.getOne(validFilter, validOptions, null);
+			const _getResultsCall = _getResultsStub.firstCall.args;
+			expect(_getResultsCall).to.be.eql([validFilter, validOptions, null, 1]);
+		});
+	});
+
+	describe('get()', () => {
+		it('should call _getResults with the correct expectedResultCount', async () => {
+			const peer = new Peer(adapter);
+			const _getResultsStub = sinonSandbox
+				.stub(peer, '_getResults')
+				.returns(validPeer);
+			peer.get(validFilter, validOptions, null);
+			const _getResultsCall = _getResultsStub.firstCall.args;
+			expect(_getResultsCall).to.be.eql([validFilter, validOptions, null]);
+		});
+	});
+
+	describe('_getResults()', () => {
 		it('should accept only valid filters', async () => {
 			const peer = new Peer(adapter);
 			expect(() => {
@@ -167,9 +257,17 @@ describe('Peer', () => {
 			}).to.throw(NonSupportedOptionError);
 		});
 
-		it(
-			'should call adapter.executeFile with proper param for FIELD_SET_SIMPLE'
-		);
+		it('should call adapter.executeFile with proper param for FIELD_SET_SIMPLE', async () => {
+			const localAdapter = {
+				loadSQLFile: sinonSandbox.stub().returns('loadSQLFile'),
+				executeFile: sinonSandbox.stub().returns(validPeer),
+				parseQueryComponent: sinonSandbox.stub(),
+			};
+			const peer = new Peer(localAdapter);
+			peer.getOne(validFilter);
+			const executeFileCall = localAdapter.executeFile.firstCall.args;
+			expect(executeFileCall).to.eql(validFilterGetOneExecuteArgs);
+		});
 
 		it('should accept "tx" as last parameter and pass to adapter.executeFile');
 
@@ -177,69 +275,20 @@ describe('Peer', () => {
 			'should resolve with one object matching specification of type definition for FIELD_SET_SIMPLE'
 		);
 
-		it(
-			'should reject with error if matched with multiple records for provided filters'
-		);
-
 		it('should not change any of the provided parameter');
 
 		describe('filters', () => {
 			// To make add/remove filters we add their tests.
-			it('should have only specific filters');
-			// For each filter type
-			it('should return matching result for provided filter');
-		});
-	});
-
-	describe('get()', () => {
-		it('should accept only valid filters', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.getOne(validFilter);
-			}).not.to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should throw error for invalid filters', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.getOne(invalidFilter);
-			}).to.throw(NonSupportedFilterTypeError);
-		});
-
-		it('should accept only valid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.getOne(validFilter, validOptions);
-			}).not.to.throw(NonSupportedOptionError);
-		});
-
-		it('should throw error for invalid options', async () => {
-			const peer = new Peer(adapter);
-			expect(() => {
-				peer.getOne(validFilter, invalidOptions);
-			}).to.throw(NonSupportedOptionError);
-		});
-
-		it(
-			'should call adapter.executeFile with proper param for FIELD_SET_SIMPLE'
-		);
-		it('should accept "tx" as last parameter and pass to adapter.executeFile');
-		it(
-			'should resolve with array of objects matching specification of type definition for FIELD_SET_SIMPLE'
-		);
-		it('should not change any of the provided parameter');
-
-		describe('filters', () => {
-			// To make add/remove filters we add their tests.
-			it('should have only specific filters');
+			it('should have only specific filters', async () => {
+				const peer = new Peer(adapter);
+				expect(peer.getFilters()).to.eql(validFilters);
+			});
 			// For each filter type
 			it('should return matching result for provided filter');
 		});
 	});
 
 	describe('create()', () => {
-		it('should accept only valid options');
-		it('should throw error for invalid options');
 		it('should call getValuesSet with proper params');
 		it('should call adapter.executeFile with proper params');
 		it('should create a peer object successfully');
@@ -357,13 +406,6 @@ describe('Peer', () => {
 		it('should call adapter.executeFile with proper params');
 		it('should resolve with true if matching record found');
 		it('should resolve with false if matching record not found');
-	});
-
-	describe('getFieldSets()', () => {
-		it('should return FIELD_SET_SIMPLE', async () => {
-			const peer = new Peer(adapter);
-			expect(peer.getFieldSets()).to.eql([peer.FIELD_SET_SIMPLE]);
-		});
 	});
 
 	describe('mergeFilters()', () => {
