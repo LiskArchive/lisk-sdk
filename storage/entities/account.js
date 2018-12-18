@@ -283,8 +283,8 @@ class Account extends BaseEntity {
 		});
 
 		this.SQLs = {
-			selectSimple: this.adapter.loadSQLFile('accounts/get_simple.sql'),
-			selectFull: this.adapter.loadSQLFile('accounts/get_full.sql'),
+			selectSimple: this.adapter.loadSQLFile('accounts/get.sql'),
+			selectFull: this.adapter.loadSQLFile('accounts/get_extended.sql'),
 			create: this.adapter.loadSQLFile('accounts/create.sql'),
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
