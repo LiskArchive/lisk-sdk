@@ -132,7 +132,7 @@ class BaseEntity {
 	 *
 	 * @param {Object} options - Options object
 	 */
-	overrideDefaultOptions(options) {
+	extendDefaultOptions(options) {
 		this.defaultOptions = Object.assign({}, this.defaultOptions, options);
 	}
 
