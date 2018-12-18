@@ -16,7 +16,6 @@
 
 const _ = require('lodash');
 const { stringToByte, booleanToInt } = require('../utils/inputSerializers');
-const { NonSupportedFilterTypeError } = require('../errors');
 const ft = require('../utils/filter_types');
 const BaseEntity = require('./base_entity');
 
@@ -184,18 +183,8 @@ const readOnlyFields = ['address'];
  * @property {string} [rank_lte]
  * @property {string} [rank_in]
  * @property {string} [votes]
- * @property {string} [votes_in]'
+ * @property {string} [votes_in]
  */
-
-/**
- * @typedef {string} fieldSets.Account
- * @enum
- * @value 'FIELD_SET_SIMPLE'
- * @value 'FIELD_SET_FULL'
- */
-
-const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
-const FIELD_SET_FULL = Symbol('FIELD_SET_FULL');
 
 class Account extends BaseEntity {
 	/**
@@ -205,8 +194,6 @@ class Account extends BaseEntity {
 	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
-
-		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('address', 'string', { format: 'address', filter: ft.TEXT });
 		this.addField(
@@ -295,23 +282,13 @@ class Account extends BaseEntity {
 		});
 
 		this.SQLs = {
-			selectSimple: this.adapter.loadSQLFile('accounts/get_simple.sql'),
-			selectFull: this.adapter.loadSQLFile('accounts/get_full.sql'),
+			selectSimple: this.adapter.loadSQLFile('accounts/get.sql'),
+			selectFull: this.adapter.loadSQLFile('accounts/get_extended.sql'),
 			create: this.adapter.loadSQLFile('accounts/create.sql'),
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
 			isPersisted: this.adapter.loadSQLFile('accounts/is_persisted.sql'),
 		};
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	get FIELD_SET_SIMPLE() {
-		return FIELD_SET_SIMPLE;
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	get FIELD_SET_FULL() {
-		return FIELD_SET_FULL;
 	}
 
 	/**
@@ -321,36 +298,13 @@ class Account extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
 	getOne(filters, options = {}, tx) {
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
-		);
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{
-				parsedFilters,
-			}
-		);
-
-		return this.adapter.executeFile(
-			{
-				[Account.prototype.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				[Account.prototype.FIELD_SET_FULL]: this.SQLs.selectFull,
-			}[parsedOptions.fieldSet],
-			params,
-			{ expectedResult: 1 },
-			tx
-		);
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
 	/**
@@ -360,34 +314,12 @@ class Account extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Account} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
+	 * @param {Boolean} [options.extended=false] - Get extended fields for entity
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
 	 */
 	get(filters = {}, options = {}, tx) {
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
-		);
-
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
-
-		return this.adapter.executeFile(
-			{
-				[this.FIELD_SET_SIMPLE]: this.SQLs.selectSimple,
-				[this.FIELD_SET_FULL]: this.SQLs.selectFull,
-			}[parsedOptions.fieldSet],
-			params,
-			{},
-			tx
-		);
+		return this._getResults(filters, options, tx);
 	}
 
 	/**
@@ -428,10 +360,11 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
-		const params = Object.assign(objectData, {
+		const params = {
+			...objectData,
 			parsedFilters,
 			updateSet,
-		});
+		};
 
 		return this.adapter.executeFile(this.SQLs.update, params, {}, tx);
 	}
@@ -451,10 +384,11 @@ class Account extends BaseEntity {
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const updateSet = this.getUpdateSet(objectData);
 
-		const params = Object.assign(objectData, {
+		const params = {
+			...objectData,
 			parsedFilters,
 			updateSet,
-		});
+		};
 
 		return this.adapter.executeFile(this.SQLs.updateOne, params, {}, tx);
 	}
@@ -463,28 +397,43 @@ class Account extends BaseEntity {
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Account} filters
-	 * @param {Object} [options]
+	 * @param {Object} [_options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
 	isPersisted(filters, _options, tx) {
+		const atLeastOneRequired = true;
+		this.validateFilters(filters, atLeastOneRequired);
+
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-
-		if (parsedFilters === '') {
-			throw new NonSupportedFilterTypeError(
-				'Please provide some filters to check.',
-				filters
-			);
-		}
 
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
 			.then(result => result[0].exists);
 	}
 
-	getFieldSets() {
-		return [this.FIELD_SET_SIMPLE, this.FIELD_SET_FULL];
+	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedOptions = _.defaults(
+			{},
+			_.pick(options, ['limit', 'offset', 'extended']),
+			_.pick(this.defaultOptions, ['limit', 'offset', 'extended'])
+		);
+
+		const params = {
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
+		};
+
+		return this.adapter.executeFile(
+			parsedOptions.extended ? this.SQLs.selectFull : this.SQLs.selectSimple,
+			params,
+			{ expectedResultCount },
+			tx
+		);
 	}
 }
 

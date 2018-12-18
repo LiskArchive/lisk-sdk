@@ -21,14 +21,6 @@ const pgpLib = require('pg-promise');
 const QueryFile = require('pg-promise').QueryFile;
 const BaseAdapter = require('./base_adapter');
 
-// ToDo: Shall be converted to `Enum` type after TS migration.
-const resultCountToMethodMap = {
-	0: 'none',
-	1: 'one',
-	3: 'any',
-	[undefined]: 'any',
-};
-
 class PgpAdapter extends BaseAdapter {
 	/**
 	 *
@@ -97,7 +89,9 @@ class PgpAdapter extends BaseAdapter {
 
 		this.options.user = this.options.user || process.env.USER;
 
-		this.pgp.end();
+		// TODO: When we remove the old db layer we can uncomment this line.
+		// this.pgp.end();
+
 		this.db = this.pgp(this.options);
 
 		// As of the nature of pg-promise the connection is acquired either a query is started to execute.
@@ -111,13 +105,12 @@ class PgpAdapter extends BaseAdapter {
 			.connect()
 			.then(co => {
 				connectionObject = co;
-				return Promise.resolve(true);
+				return true;
 			})
 			.finally(() => {
 				if (connectionObject) {
 					connectionObject.done();
 				}
-				return Promise.resolve(true);
 			});
 	}
 
@@ -134,12 +127,12 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {string} file
 	 * @param {Object} params
 	 * @param {Object} options
-	 * @param {Number} [options.expectedResult]
+	 * @param {Number} [options.expectedResultCount]
 	 * @param {Object} tx
 	 * @return {*}
 	 */
 	executeFile(file, params = {}, options = {}, tx) {
-		return (tx || this.db)[resultCountToMethodMap[options.expectedResult]](
+		return this._getExecutionContext(tx, options.expectedResultCount)(
 			file,
 			params
 		);
@@ -151,12 +144,12 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {string} sql
 	 * @param {Object} params
 	 * @param {Object} options
-	 * @param {Number} [options.expectedResult]
+	 * @param {Number} [options.expectedResultCount]
 	 * @param {Object} tx
 	 * @return {*}
 	 */
 	execute(sql, params = {}, options = {}, tx) {
-		return (tx || this.db)[resultCountToMethodMap[options.expectedResult]](
+		return this._getExecutionContext(tx, options.expectedResultCount)(
 			sql,
 			params
 		);
@@ -189,6 +182,24 @@ class PgpAdapter extends BaseAdapter {
 
 	parseQueryComponent(query, params) {
 		return this.pgp.as.format(query, params);
+	}
+
+	_getExecutionContext(tx, expectedResultCount) {
+		const count = Number(expectedResultCount);
+		const context = tx || this.db;
+
+		if (!Number.isInteger(count)) {
+			return context.query;
+		}
+
+		switch (count) {
+			case 0:
+				return context.none;
+			case 1:
+				return context.one;
+			default:
+				return context.any;
+		}
 	}
 }
 

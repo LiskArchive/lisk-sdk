@@ -45,9 +45,8 @@ describe('BaseAdapter', () => {
 
 	describe('interfaces', () => {
 		let adapter;
-		beforeEach(done => {
+		beforeEach(async () => {
 			adapter = new BaseAdapter({ engineName: 'my-name', inTest: true });
-			done();
 		});
 
 		describe('connect', () => {

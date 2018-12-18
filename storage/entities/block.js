@@ -132,14 +132,6 @@ const BaseEntity = require('./base_entity');
  * @property {string} [version_in]
  */
 
-/**
- * @typedef {string} fieldSets.Block
- * @enum
- * @value 'FIELD_SET_SIMPLE'
- */
-
-const FIELD_SET_SIMPLE = Symbol('FIELD_SET_SIMPLE');
-
 class Block extends BaseEntity {
 	/**
 	 * Constructor
@@ -148,8 +140,6 @@ class Block extends BaseEntity {
 	 */
 	constructor(adapter, defaultFilters = {}) {
 		super(adapter, defaultFilters);
-
-		this.overrideDefaultOptions({ fieldSet: FIELD_SET_SIMPLE });
 
 		this.addField('id', 'string', { filter: filterType.TEXT });
 		this.addField('height', 'number', { filter: filterType.NUMBER });
@@ -195,11 +185,6 @@ class Block extends BaseEntity {
 		};
 	}
 
-	// eslint-disable-next-line class-methods-use-this
-	get FIELD_SET_SIMPLE() {
-		return FIELD_SET_SIMPLE;
-	}
-
 	/**
 	 * Get list of blocks
 	 *
@@ -207,36 +192,11 @@ class Block extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	get(filters = {}, options = {}, tx) {
-		this.validateFilters(filters);
-		this.validateOptions(options);
-
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
-		);
-
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
-
-		return this.adapter.executeFile(
-			{
-				[this.FIELD_SET_SIMPLE]: this.SQLs.select,
-			}[parsedOptions.fieldSet],
-			params,
-			{},
-			tx
-		);
+		return this._getResults(filters, options, tx);
 	}
 
 	/**
@@ -246,36 +206,12 @@ class Block extends BaseEntity {
 	 * @param {Object} [options = {}] - Options to filter data
 	 * @param {Number} [options.limit=10] - Number of records to fetch
 	 * @param {Number} [options.offset=0] - Offset to start the records
-	 * @param {fieldSets.Block} [options.fieldSet='FIELD_SET_SIMPLE'] - Fieldset to choose
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	getOne(filters, options = {}, tx) {
-		this.validateFilters(filters);
-		this.validateOptions(options);
-
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
-		);
-
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
-		);
-
-		return this.adapter.executeFile(
-			{
-				[Block.prototype.FIELD_SET_SIMPLE]: this.SQLs.select,
-			}[parsedOptions.fieldSet],
-			params,
-			{ expectedResult: 1 },
-			tx
-		);
+		const expectedResultCount = 1;
+		return this._getResults(filters, options, tx, expectedResultCount);
 	}
 
 	/**
@@ -327,36 +263,46 @@ class Block extends BaseEntity {
 	 * Check if the record exists with following conditions
 	 *
 	 * @param {filters.Block} filters
-	 * @param {Object} [options]
+	 * @param {Object} [_options]
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	isPersisted(filters, options, tx) {
+	isPersisted(filters, _options, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+
+		return this.adapter
+			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
+			.then(result => !!result[0]);
+	}
+
+	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateFilters(filters);
 		this.validateOptions(options);
 
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
 			{},
-			_.pick(options, ['limit', 'offset', 'fieldSet']),
-			_.pick(this.defaultOptions, ['limit', 'offset', 'fieldSet'])
+			_.pick(options, ['limit', 'offset']),
+			_.pick(this.defaultOptions, ['limit', 'offset'])
 		);
 
-		const params = Object.assign(
-			{},
-			{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			{ parsedFilters }
+		const params = {
+			limit: parsedOptions.limit,
+			offset: parsedOptions.offset,
+			parsedFilters,
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.select,
+			params,
+			{ expectedResultCount },
+			tx
 		);
-
-		return this.adapter
-			.executeFile(this.SQLs.isPersisted, { params }, {}, tx)
-			.then(result => !!result[0]);
-	}
-
-	getFieldSets() {
-		return [this.FIELD_SET_SIMPLE];
 	}
 }
 
