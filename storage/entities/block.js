@@ -196,23 +196,7 @@ class Block extends BaseEntity {
 	 * @return {Promise.<BasicBlock[], NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	async get(filters = {}, options = {}, tx) {
-		this.validateFilters(filters);
-		this.validateOptions(options);
-
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset']),
-			_.pick(this.defaultOptions, ['limit', 'offset'])
-		);
-
-		const params = {
-			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			...{ parsedFilters },
-		};
-
-		return this.adapter.executeFile(this.SQLs.select, params, {}, tx);
+		return this._getResults(filters, options, tx);
 	}
 
 	/**
@@ -226,28 +210,7 @@ class Block extends BaseEntity {
 	 * @return {Promise.<BasicBlock, NonSupportedFilterTypeError|NonSupportedOptionError>}
 	 */
 	async getOne(filters, options = {}, tx) {
-		this.validateFilters(filters);
-		this.validateOptions(options);
-
-		const mergedFilters = this.mergeFilters(filters);
-		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedOptions = _.defaults(
-			{},
-			_.pick(options, ['limit', 'offset']),
-			_.pick(this.defaultOptions, ['limit', 'offset'])
-		);
-
-		const params = {
-			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
-			...{ parsedFilters },
-		};
-
-		return this.adapter.executeFile(
-			this.SQLs.select,
-			params,
-			{ expectedResultCount: 1 },
-			tx
-		);
+		return this._getResults(filters, options, tx, 1);
 	}
 
 	/**
@@ -324,6 +287,31 @@ class Block extends BaseEntity {
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { params }, {}, tx)
 			.then(result => !!result[0]);
+	}
+
+	_getResults(filters, options, tx, expectedResultCount = undefined) {
+		this.validateFilters(filters);
+		this.validateOptions(options);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const parsedOptions = _.defaults(
+			{},
+			_.pick(options, ['limit', 'offset']),
+			_.pick(this.defaultOptions, ['limit', 'offset'])
+		);
+
+		const params = {
+			...{ limit: parsedOptions.limit, offset: parsedOptions.offset },
+			...{ parsedFilters },
+		};
+
+		return this.adapter.executeFile(
+			this.SQLs.select,
+			params,
+			{ expectedResultCount },
+			tx
+		);
 	}
 }
 

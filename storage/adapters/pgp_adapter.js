@@ -187,7 +187,7 @@ class PgpAdapter extends BaseAdapter {
 		const context = tx || this.db;
 
 		if (!Number.isInteger(count)) {
-			return context.result;
+			return context.query;
 		}
 
 		switch (count) {
