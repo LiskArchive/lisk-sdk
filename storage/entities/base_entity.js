@@ -37,6 +37,7 @@ class BaseEntity {
 		this.defaultOptions = {
 			limit: 10,
 			offset: 0,
+			extended: false,
 		};
 	}
 
@@ -45,7 +46,6 @@ class BaseEntity {
 	 *
 	 * @param {string | Object} filters - Multiple filters or just primary key
 	 * @param {Object} options - Extended options
-	 * @param {string} options.fieldSet - Fieldset to get
 	 * @param {Object} tx - transaction object
 	 *
 	 * @return {Promise}
@@ -60,7 +60,6 @@ class BaseEntity {
 	 *
 	 * @param {string | Object} filters - Multiple filters or just primary key
 	 * @param {Object} options - Extended options
-	 * @param {string} options.fieldSet - Field set to get for object
 	 * @param {Object} tx - transaction object
 	 *
 	 * @return {Promise}
@@ -121,15 +120,6 @@ class BaseEntity {
 
 	// eslint-disable-next-line class-methods-use-this
 	isPersisted() {
-		throw new ImplementationPendingError();
-	}
-
-	/**
-	 * Returns the available fields sets
-	 * @return Array
-	 */
-	// eslint-disable-next-line class-methods-use-this
-	getFieldSets() {
 		throw new ImplementationPendingError();
 	}
 
