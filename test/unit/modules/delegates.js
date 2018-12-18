@@ -558,7 +558,7 @@ describe('delegates', () => {
 				const currentSlot = 35;
 				const round = 1;
 
-				delegates.generateDelegateList = (round, cb) => {
+				delegates.generateDelegateList = (blockHeight, cb) => {
 					cb(null, delegatesRoundsList[round]);
 				};
 
@@ -583,7 +583,7 @@ describe('delegates', () => {
 				const currentSlot = 578;
 				const round = 2;
 
-				delegates.generateDelegateList = (round, cb) => {
+				delegates.generateDelegateList = (blockHeight, cb) => {
 					cb(null, delegatesRoundsList[round]);
 				};
 
@@ -608,7 +608,7 @@ describe('delegates', () => {
 				const currentSlot = 1051;
 				const round = 3;
 
-				delegates.generateDelegateList = (round, cb) => {
+				delegates.generateDelegateList = (blockHeight, cb) => {
 					cb(null, delegatesRoundsList[round]);
 				};
 
@@ -634,7 +634,7 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (round, cb) => {
+				delegates.generateDelegateList = (blockHeight, cb) => {
 					cb(null, delegatesRoundsList[round]);
 				};
 
@@ -653,7 +653,7 @@ describe('delegates', () => {
 				const currentSlot = 1;
 				const round = 4;
 
-				delegates.generateDelegateList = (round, cb) => {
+				delegates.generateDelegateList = (blockHeight, cb) => {
 					cb('generateDelegateList error');
 				};
 
