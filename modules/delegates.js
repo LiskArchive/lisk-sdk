@@ -184,14 +184,14 @@ __private.getDelegatesFromPreviousRound = function(cb, tx) {
  *
  * @private
  * @param {number} slot
- * @param {number} round
+ * @param {block} block
  * @param {function} cb - Callback function
  * @returns {setImmediateCallback} cb, err, {time, keypair}
  * @todo Add description for the params
  */
-__private.getDelegateKeypairForCurrentSlot = function(currentSlot, round, cb) {
+__private.getDelegateKeypairForCurrentSlot = function(currentSlot, block, cb) {
 	self.generateDelegateList(
-		round,
+		block,
 		(generateDelegateListErr, activeDelegates) => {
 			if (generateDelegateListErr) {
 				return setImmediate(cb, generateDelegateListErr);
@@ -685,15 +685,16 @@ Delegates.prototype.updateForgingStatus = function(
 /**
  * Gets delegate list based on input function by vote and changes order.
  *
- * @param {number} round
+ * @param {number} blockHeight
  * @param {function} cb - Callback function
  * @param {Object} tx - Database transaction/task object
  * @returns {setImmediateCallback} cb, err, truncated delegate list
  * @todo Add description for the params
  */
-Delegates.prototype.generateDelegateList = function(round, cb, tx) {
-	// Set default function for getting delegates
+Delegates.prototype.generateDelegateList = function(blockHeight, cb, tx) {
+	const round = slots.calcRound(blockHeight);
 	const lastBlockRound = slots.calcRound(modules.blocks.lastBlock.get().height);
+	// Set default function for getting delegates
 	const source =
 		lastBlockRound > round
 			? 'getDelegatesFromPreviousRound'
@@ -739,8 +740,7 @@ Delegates.prototype.generateDelegateList = function(round, cb, tx) {
  * @todo Add description for the params
  */
 Delegates.prototype.validateBlockSlot = function(block, cb) {
-	const round = slots.calcRound(block.height);
-	self.generateDelegateList(round, (err, activeDelegates) => {
+	self.generateDelegateList(block.height, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
@@ -817,9 +817,7 @@ Delegates.prototype.getForgers = function(query, cb) {
 
 	// We calculate round using height + 1, because we want the list to be generated for next block - it will be passed as seed for generating the list
 	// For example: last block height is 101 (still round 1, but already finished), then we want the list for round 2 (height 102)
-	const round = slots.calcRound(currentBlock.height + 1);
-
-	self.generateDelegateList(round, (err, activeDelegates) => {
+	self.generateDelegateList(currentBlock.height + 1, (err, activeDelegates) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}
