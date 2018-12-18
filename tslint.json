@@ -28,15 +28,9 @@
 		"readonly-keyword": [true, "ignore-class"],
 		"strict-boolean-expressions": false,
 		"strict-type-predicates": false,
-		// Better to have functionally similar items be close together.
-		"ordered-imports": false,
 		// We need private class properties to start with an underscore.
 		"variable-name": [true, "allow-leading-underscore"],
 		// Better to have functionally similar items be close together.
-		"member-ordering": false,
-		// This rule can sometimes encourage bad practices; better leave this to the PR process.
-		"prefer-function-over-method": false,
-		// The shorthand arrow notation is often more difficult and error-prone to refactor.
-		"arrow-return-shorthand": true
+		"member-ordering": false
 	}
 }
