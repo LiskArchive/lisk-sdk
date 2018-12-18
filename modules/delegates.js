@@ -693,13 +693,19 @@ Delegates.prototype.updateForgingStatus = function(
  */
 Delegates.prototype.generateDelegateList = function(blockHeight, cb, tx) {
 	const round = slots.calcRound(blockHeight);
+
+	if (__private.delegatesListCache[round]) {
+		return setImmediate(cb, null, __private.delegatesListCache[round]);
+	}
+
 	const lastBlockRound = slots.calcRound(modules.blocks.lastBlock.get().height);
 	// Set default function for getting delegates
 	const source =
 		lastBlockRound > round
 			? 'getDelegatesFromPreviousRound'
 			: 'getKeysSortByVote';
-	__private[source]((err, truncDelegateList) => {
+
+	return __private[source]((err, truncDelegateList) => {
 		if (err) {
 			return setImmediate(cb, err);
 		}

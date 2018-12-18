@@ -24,6 +24,7 @@ const seeder = require('../../common/storage_seed');
 let storage;
 
 const exceptions = global.exceptions;
+const { ACTIVE_DELEGATES } = global.constants;
 
 describe('delegates', () => {
 	let library;
@@ -802,6 +803,7 @@ describe('delegates', () => {
 		beforeEach(done => {
 			__private = library.rewiredModules.delegates.__get__('__private');
 			sourceStub = sinonSandbox.stub().callsArgWith(0, null, dummyDelegateList);
+			__private.getKeysSortByVote = sourceStub;
 			originalExceptions = _.clone(exceptions.ignoreDelegateListCacheForRounds);
 			done();
 		});
@@ -820,12 +822,11 @@ describe('delegates', () => {
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				1,
-				sourceStub,
+				ACTIVE_DELEGATES - 1,
 				(err, delegateList) => {
 					// Assert
 					expect(delegateList).to.deep.equal(initialSate[1]);
-					expect(sourceStub).to.not.been.called;
+					expect(__private.getKeysSortByVote).to.not.been.called;
 					done();
 				}
 			);
@@ -840,11 +841,10 @@ describe('delegates', () => {
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				2,
-				sourceStub,
+				ACTIVE_DELEGATES + 1,
 				(err, delegateList) => {
 					// Assert
-					expect(sourceStub).to.been.called;
+					expect(__private.getKeysSortByVote).to.been.called;
 					expect(delegateList).to.deep.equal(dummyDelegateList);
 					done();
 				}
@@ -861,8 +861,7 @@ describe('delegates', () => {
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				2,
-				sourceStub,
+				ACTIVE_DELEGATES + 1,
 				(err, delegateList) => {
 					// Assert
 					expect(delegateList).to.deep.equal(dummyDelegateList);
@@ -880,17 +879,16 @@ describe('delegates', () => {
 				1: ['j', 'k', 'l'],
 			};
 			__private.delegatesListCache = { ...initialSate };
-			exceptions.ignoreDelegateListCacheForRounds.push(666);
+			exceptions.ignoreDelegateListCacheForRounds.push(6);
 
 			// Act
 			library.modules.delegates.generateDelegateList(
-				666,
-				sourceStub,
+				ACTIVE_DELEGATES * 6,
 				(err, delegateList) => {
 					// Assert
 
 					expect(delegateList).to.deep.equal(dummyDelegateList);
-					expect(__private.delegatesListCache).to.not.have.property('666');
+					expect(__private.delegatesListCache).to.not.have.property('6');
 					done();
 				}
 			);
