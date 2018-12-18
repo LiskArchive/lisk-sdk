@@ -39,10 +39,11 @@ var modules;
  * @todo Add description for the params
  */
 class API {
-	constructor(logger, db, block, schema) {
+	constructor(logger, db, storage, block, schema) {
 		library = {
 			logger,
 			db,
+			storage,
 			schema,
 			logic: {
 				block,

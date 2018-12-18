@@ -54,6 +54,7 @@ class Process {
 		transaction,
 		schema,
 		db,
+		storage,
 		sequence,
 		genesisBlock
 	) {
@@ -61,6 +62,7 @@ class Process {
 			logger,
 			schema,
 			db,
+			storage,
 			sequence,
 			genesisBlock,
 			logic: {

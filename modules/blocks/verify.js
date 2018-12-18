@@ -50,10 +50,11 @@ __private.lastNBlockIds = [];
  * @todo Add description for the class
  */
 class Verify {
-	constructor(logger, block, transaction, db, config) {
+	constructor(logger, block, transaction, db, storage, config) {
 		library = {
 			logger,
 			db,
+			storage,
 			logic: {
 				block,
 				transaction,

@@ -48,6 +48,7 @@ class Chain {
 		block,
 		transaction,
 		db,
+		storage,
 		genesisBlock,
 		bus,
 		balancesSequence
@@ -55,6 +56,7 @@ class Chain {
 		library = {
 			logger,
 			db,
+			storage,
 			genesisBlock,
 			bus,
 			balancesSequence,
