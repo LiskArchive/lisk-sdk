@@ -89,7 +89,9 @@ class PgpAdapter extends BaseAdapter {
 
 		this.options.user = this.options.user || process.env.USER;
 
-		this.pgp.end();
+		// TODO: When we remove the old db layer we can uncomment this line.
+		// this.pgp.end();
+
 		this.db = this.pgp(this.options);
 
 		// As of the nature of pg-promise the connection is acquired either a query is started to execute.

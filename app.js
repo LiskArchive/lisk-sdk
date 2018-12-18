@@ -50,6 +50,7 @@ const Sequence = require('./helpers/sequence.js');
 const httpApi = require('./helpers/http_api.js');
 // eslint-disable-next-line import/order
 const swaggerHelper = require('./helpers/swagger');
+const createStorage = require('./storage');
 
 /**
  * Main application entry point.
@@ -482,6 +483,19 @@ d.run(() => {
 					});
 			},
 
+			storage(cb) {
+				const storage = createStorage(config.db, dbLogger);
+				storage
+					.bootstrap()
+					.then(status => {
+						cb(!status, storage);
+					})
+					.catch(err => {
+						console.error(err);
+						cb(err);
+					});
+			},
+
 			/**
 			 * Description of the function.
 			 *
@@ -705,6 +719,7 @@ d.run(() => {
 				'sequence',
 				'balancesSequence',
 				'db',
+				'storage',
 				'logic',
 				'cache',
 				/**
