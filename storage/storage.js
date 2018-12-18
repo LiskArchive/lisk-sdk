@@ -41,7 +41,7 @@ class Storage {
 	/**
 	 * @return Promise
 	 */
-	bootstrap() {
+	async bootstrap() {
 		const adapter = new PgpAdapter({
 			...this.options,
 			...{
@@ -68,7 +68,7 @@ class Storage {
 		});
 	}
 
-	cleanup() {
+	async cleanup() {
 		return Storage.instance.adapter.disconnect().then(() => {
 			this.isReady = false;
 		});

@@ -303,7 +303,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount|ExtendedAccount, Error>}
 	 */
-	getOne(filters, options = {}, tx) {
+	async getOne(filters, options = {}, tx) {
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'extended']),
@@ -336,7 +336,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Database transaction object
 	 * @return {Promise.<BasicAccount[]|ExtendedAccount[], Error>}
 	 */
-	get(filters = {}, options = {}, tx) {
+	async get(filters = {}, options = {}, tx) {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
 		const parsedOptions = _.defaults(
@@ -366,7 +366,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	create(data, _options, tx) {
+	async create(data, _options, tx) {
 		const objectData = _.defaults(data, defaultCreateValues);
 		const createSet = this.getValuesSet(objectData);
 		const attributes = Object.keys(data)
@@ -390,7 +390,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	update(filters, data, _options, tx) {
+	async update(filters, data, _options, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -416,7 +416,7 @@ class Account extends BaseEntity {
 	 * @param {Object} tx - Transaction object
 	 * @return {*}
 	 */
-	updateOne(filters, data, _options, tx) {
+	async updateOne(filters, data, _options, tx) {
 		const objectData = _.omit(data, readOnlyFields);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
@@ -440,7 +440,7 @@ class Account extends BaseEntity {
 	 * @param {Object} [tx]
 	 * @returns {Promise.<boolean, Error>}
 	 */
-	isPersisted(filters, tx) {
+	async isPersisted(filters, tx) {
 		const atLeastOneRequired = true;
 		this.validateFilters(filters, atLeastOneRequired);
 

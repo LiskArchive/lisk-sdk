@@ -69,7 +69,7 @@ class PgpAdapter extends BaseAdapter {
 	/**
 	 * @return {Promise}
 	 */
-	connect() {
+	async connect() {
 		if (monitor.isAttached()) {
 			monitor.detach();
 		}
@@ -120,7 +120,7 @@ class PgpAdapter extends BaseAdapter {
 			});
 	}
 
-	disconnect() {
+	async disconnect() {
 		this.logger.info('Disconnecting');
 		if (monitor.isAttached()) {
 			monitor.detach();
@@ -137,7 +137,7 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {Object} tx
 	 * @return {*}
 	 */
-	executeFile(file, params = {}, options = {}, tx) {
+	async executeFile(file, params = {}, options = {}, tx) {
 		return (tx || this.db)[resultCountToMethodMap[options.expectedResult]](
 			file,
 			params
@@ -154,7 +154,7 @@ class PgpAdapter extends BaseAdapter {
 	 * @param {Object} tx
 	 * @return {*}
 	 */
-	execute(sql, params = {}, options = {}, tx) {
+	async execute(sql, params = {}, options = {}, tx) {
 		return (tx || this.db)[resultCountToMethodMap[options.expectedResult]](
 			sql,
 			params
