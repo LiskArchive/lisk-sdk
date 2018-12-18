@@ -353,14 +353,6 @@ describe('Block', () => {
 			}).to.not.throw(NonSupportedOptionError);
 		});
 
-		it('should throw error for invalid options', async () => {
-			const filters = { height: 101 };
-			const options = { invalid_option: 1, offset: 0 };
-			expect(() => {
-				block.isPersisted(filters, options);
-			}).to.throw(NonSupportedOptionError);
-		});
-
 		it('should call mergeFilters with proper params', async () => {
 			const filters = [{ height: 101 }, { timestamp_gte: 1234567890 }];
 			block.mergeFilters = sinonSandbox.stub();
@@ -390,14 +382,12 @@ describe('Block', () => {
 				.returns('WHERE "height" = 101 OR "timestamp" >= 1234567890');
 			block.isPersisted(filters);
 			const params = {
-				limit: 10,
-				offset: 0,
 				parsedFilters: 'WHERE "height" = 101 OR "timestamp" >= 1234567890',
 			};
 			expect(
 				adapter.executeFile.calledWith(
 					block.SQLs.isPersisted,
-					{ params },
+					params,
 					{},
 					undefined
 				)
