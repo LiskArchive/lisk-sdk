@@ -17,7 +17,6 @@
 const _ = require('lodash');
 const filterType = require('../utils/filter_types');
 const { stringToByte } = require('../utils/inputSerializers');
-const { NonSupportedFilterTypeError } = require('../errors');
 const BaseEntity = require('./base_entity');
 
 const defaultCreateValues = {};
@@ -316,17 +315,10 @@ class Peer extends BaseEntity {
 	 */
 	// eslint-disable-next-line no-unused-vars
 	isPersisted(filters, options = {}, tx = null) {
-		this.validateFilters(filters);
+		this.validateFilters(filters, true);
 		this.validateOptions(options);
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-
-		if (parsedFilters === '') {
-			throw new NonSupportedFilterTypeError(
-				'Please provide some filters to check.',
-				filters
-			);
-		}
 
 		return this.adapter
 			.executeFile(this.SQLs.isPersisted, { parsedFilters }, {}, tx)
