@@ -307,11 +307,9 @@ class BaseEntity {
 			filterString = parseFilterObject(filters);
 		}
 
-		let filtersObject = filters;
-
-		if (Array.isArray(filters)) {
-			filtersObject = { ...filters };
-		}
+		const filtersObject = Array.isArray(filters)
+			? filters.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+			: filters;
 
 		if (filterString) {
 			return `WHERE ${this.adapter.parseQueryComponent(
