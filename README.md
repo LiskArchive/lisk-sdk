@@ -136,14 +136,6 @@ nvm install 8.14.0
 
 For the following steps, logout from the 'lisk' user again with `CTRL+D`, and continue with your user with sudo rights.
 
-### [PM2](https://github.com/Unitech/pm2) (recommended)
-
-PM2 manages the node process for Lisk.
-
-```
-npm install -g pm2
-```
-
 ### PostgreSQL:
 
 * Ubuntu:
