@@ -25,16 +25,25 @@ const dbNames = [];
  * @param {Object} db
  * @param {function} cb
  */
-function clearDatabaseTable(db, logger, table, cb) {
-	db
-		.query(`DELETE FROM ${table}`)
-		.then(result => {
-			cb(null, result);
-		})
-		.catch(err => {
-			console.error(`Failed to clear database table: ${table}`);
-			throw err;
-		});
+
+/**
+ * @param {string} table
+ * @param {Logger} logger
+ * @param {Object} db
+ * @param {function} cb
+ */
+function clearDatabaseTable(storageInstance, logger, table) {
+	return new Promise((resolve, reject) => {
+		storageInstance.adapter.db
+			.query(`DELETE FROM ${table}`)
+			.then(result => {
+				return resolve(result);
+			})
+			.catch(err => {
+				logger.error(`Failed to clear database table: ${table}`);
+				return reject(err);
+			});
+	});
 }
 
 class StorageSandbox {
@@ -85,6 +94,11 @@ class StorageSandbox {
 		} catch (err) {
 			return new Error(err);
 		}
+	}
+
+	// eslint-disable-next-line class-methods-use-this
+	async createSchema() {
+		// run migrations for creating db tables
 	}
 
 	destroy(logger) {
