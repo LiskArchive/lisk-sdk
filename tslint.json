@@ -27,6 +27,10 @@
 		"readonly-array": true,
 		"readonly-keyword": [true, "ignore-class"],
 		"strict-boolean-expressions": false,
-		"strict-type-predicates": false
+		"strict-type-predicates": false,
+		// We need private class properties to start with an underscore.
+		"variable-name": [true, "allow-leading-underscore"],
+		// Better to have functionally similar items be close together.
+		"member-ordering": false
 	}
 }
