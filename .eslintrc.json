@@ -16,7 +16,6 @@
 			}
 		],
 		"func-names": "off",
-		"guard-for-in": "off",
 		"max-len": "off",
 		"no-new": "off",
 		"no-param-reassign": "off",
