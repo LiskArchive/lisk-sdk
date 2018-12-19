@@ -50,9 +50,7 @@ pipeline {
 	}
 	post {
 		always {
-			nvm(getNodejsVersion()) {
-				sh './node_modules/.bin/pm2 kill || true'
-			}
+			archiveArtifacts artifacts: 'test/network/logs/*.log', allowEmptyArchive: true
 		}
 		failure {
 			script {
@@ -64,6 +62,11 @@ pipeline {
 			script {
 				build_info = getBuildInfo()
 				liskSlackSend('good', "Job ${build_info} was successful.", 'lisk-ci-core')
+			}
+		}
+		cleanup {
+			nvm(getNodejsVersion()) {
+				sh './node_modules/.bin/pm2 kill || true'
 			}
 		}
 	}
