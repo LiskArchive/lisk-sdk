@@ -33,4 +33,6 @@ FROM
 
 ${parsedFilters:raw}
 
-LIMIT ${limit} OFFSET ${offset}
+ORDER BY ${orderBy.field:raw} ${orderBy.method:raw}
+LIMIT ${limit}
+OFFSET ${offset}
