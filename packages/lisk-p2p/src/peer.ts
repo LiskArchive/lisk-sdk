@@ -22,6 +22,9 @@ import {
 
 import socketClusterClient from 'socketcluster-client';
 
+import { processPeerListFromResponse } from './response_handler';
+import { RPCResponseError } from './errors';
+
 export interface PeerConfig {
 	readonly ipAddress: string;
 	readonly wsPort: number;
@@ -43,6 +46,8 @@ export interface PeerConnectionState {
 	readonly inbound: ConnectionState;
 	readonly outbound: ConnectionState;
 }
+
+const GET_ALL_PEERS_LIST_RPC = 'list';
 
 export class Peer {
 	private readonly _id: string;
@@ -125,6 +130,25 @@ export class Peer {
 				);
 			},
 		);
+	}
+
+	public async fetchPeers(): Promise<ReadonlyArray<PeerConfig>> {
+		try {
+			const response: P2PResponsePacket = await this.request<void>({
+				procedure: GET_ALL_PEERS_LIST_RPC,
+			});
+
+			return processPeerListFromResponse(response.data);
+		} catch (error) {
+			throw new RPCResponseError(
+				`Error when fetching peerlist of peer with peer ip ${
+					this.ipAddress
+				} and port ${this.wsPort}`,
+				error,
+				this.ipAddress,
+				this.wsPort,
+			);
+		}
 	}
 
 	public send<T>(packet: P2PMessagePacket<T>): void {

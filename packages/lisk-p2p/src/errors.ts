@@ -55,3 +55,10 @@ export class InvalidPeer extends VError {
 		this.name = 'InvalidPeer';
 	}
 }
+
+export class DiscoveryError extends VError {
+	public constructor(message: string, cause: Error) {
+		super(cause, message);
+		this.name = 'DiscoveryError';
+	}
+}

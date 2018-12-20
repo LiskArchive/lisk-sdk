@@ -74,3 +74,29 @@ export const instantiatePeerFromResponse = (peer: unknown): PeerConfig => {
 
 	return peerConfig;
 };
+
+interface RPCPeerListResponse {
+	readonly peers: ReadonlyArray<object>;
+	readonly success?: boolean; // Could be used in future
+}
+
+export const processPeerListFromResponse = (
+	response: unknown,
+): ReadonlyArray<PeerConfig> => {
+	if (!response) {
+		return [];
+	}
+
+	const { peers } = response as RPCPeerListResponse;
+	try {
+		if (Array.isArray(peers)) {
+			const peerList = peers.map<PeerConfig>(instantiatePeerFromResponse);
+			return peerList;
+		}
+	} catch (error) {
+		throw error;
+	}
+
+	// Ignores any other value of response that is not an array
+	return [];
+};
