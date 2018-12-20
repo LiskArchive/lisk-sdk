@@ -284,6 +284,7 @@ class Account extends BaseEntity {
 		this.SQLs = {
 			selectSimple: this.adapter.loadSQLFile('accounts/get.sql'),
 			selectFull: this.adapter.loadSQLFile('accounts/get_extended.sql'),
+			count: this.adapter.loadSQLFile('accounts/count.sql'),
 			create: this.adapter.loadSQLFile('accounts/create.sql'),
 			update: this.adapter.loadSQLFile('accounts/update.sql'),
 			updateOne: this.adapter.loadSQLFile('accounts/update_one.sql'),
@@ -320,6 +321,24 @@ class Account extends BaseEntity {
 	 */
 	get(filters = {}, options = {}, tx) {
 		return this._getResults(filters, options, tx);
+	}
+
+	/**
+	 * Count total entries based on filters
+	 *
+	 * @param {filters.Account|filters.Account[]} [filters = {}]
+	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
+	 */
+	count(filters = {}) {
+		this.validateFilters(filters);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const expectedResultCount = 1;
+
+		return this.adapter
+			.executeFile(this.SQLs.count, { parsedFilters }, { expectedResultCount })
+			.then(result => +result.count);
 	}
 
 	/**

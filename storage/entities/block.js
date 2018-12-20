@@ -180,6 +180,7 @@ class Block extends BaseEntity {
 
 		this.SQLs = {
 			select: this.adapter.loadSQLFile('blocks/get.sql'),
+			count: this.adapter.loadSQLFile('blocks/count.sql'),
 			create: this.adapter.loadSQLFile('blocks/create.sql'),
 			isPersisted: this.adapter.loadSQLFile('blocks/is_persisted.sql'),
 		};
@@ -212,6 +213,24 @@ class Block extends BaseEntity {
 	getOne(filters, options = {}, tx) {
 		const expectedResultCount = 1;
 		return this._getResults(filters, options, tx, expectedResultCount);
+	}
+
+	/**
+	 * Count total entries based on filters
+	 *
+	 * @param {filters.Block|filters.Block[]} [filters = {}]
+	 * @return {Promise.<Integer, NonSupportedFilterTypeError>}
+	 */
+	count(filters = {}) {
+		this.validateFilters(filters);
+
+		const mergedFilters = this.mergeFilters(filters);
+		const parsedFilters = this.parseFilters(mergedFilters);
+		const expectedResultCount = 1;
+
+		return this.adapter
+			.executeFile(this.SQLs.count, { parsedFilters }, { expectedResultCount })
+			.then(result => +result.count);
 	}
 
 	/**
