@@ -1,10 +1,13 @@
 import publicKeys from '../fixtures/public_keys.json';
 import { expect } from 'chai';
 import transactionObjects from '../fixtures/transactions.json';
+import { Job } from '../src/job';
 import {
 	Transaction,
 	TransactionPool,
 	AddTransactionResult,
+	CheckTransactionsResult,
+	Status,
 } from '../src/transaction_pool';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
@@ -14,6 +17,9 @@ import * as queueCheckers from '../src/queue_checkers';
 describe('transaction pool', () => {
 	const expireTransactionsInterval = 1000;
 	const maxTransactionsPerQueue = 1000;
+	const receivedTransactionsProcessingInterval = 100;
+	const receivedTransactionsLimitPerProcessing = 100;
+
 	let transactionPool: TransactionPool;
 	const transactions = transactionObjects.map(wrapTransferTransaction);
 
@@ -21,7 +27,11 @@ describe('transaction pool', () => {
 		[key: string]: sinon.SinonStub;
 	};
 
+	let validateTransactionsStub: sinon.SinonStub;
+
 	beforeEach(async () => {
+		// Stubbing start function so the jobs do not start in the background.
+		sandbox.stub(Job.prototype, 'start');
 		checkerStubs = {
 			checkTransactionPropertyForValues: sandbox.stub(
 				queueCheckers,
@@ -45,9 +55,14 @@ describe('transaction pool', () => {
 			),
 		};
 
+		validateTransactionsStub = sandbox.stub();
+
 		transactionPool = new TransactionPool({
 			expireTransactionsInterval,
 			maxTransactionsPerQueue,
+			receivedTransactionsProcessingInterval,
+			receivedTransactionsLimitPerProcessing,
+			validateTransactions: validateTransactionsStub,
 		});
 		// Stub queues
 		Object.keys(transactionPool.queues).forEach(queueName => {
@@ -332,6 +347,117 @@ describe('transaction pool', () => {
 		it('should call removeTransactionsFromQueues once', async () => {
 			await expireTransactions();
 			expect(removeTransactionsFromQueuesStub).to.be.calledOnce;
+		});
+	});
+
+	describe('#validateReceivedTransactions', () => {
+		const validTransactions = transactions.slice(0, 2);
+		const invalidTransactions = transactions.slice(2, 5);
+		const transactionToValidate = [
+			...validTransactions,
+			...invalidTransactions,
+		];
+		let validateReceivedTransactions: () => Promise<ReadonlyArray<Transaction>>;
+		// Dummy functions to check used for assertions in tests
+		const checkForTransactionInvalidTransactionId = sandbox.stub();
+		const checkForTransactionValidTransactionId = sandbox.stub();
+
+		const validateTransactionsResponse: CheckTransactionsResult = {
+			status: Status.FAIL,
+			transactionsResponses: [
+				{
+					id: invalidTransactions[0].id,
+					status: Status.FAIL,
+					errors: [new Error(), new Error()],
+				},
+				{
+					id: invalidTransactions[1].id,
+					status: Status.FAIL,
+					errors: [new Error(), new Error()],
+				},
+				{
+					id: validTransactions[0].id,
+					status: Status.OK,
+					errors: [],
+				},
+				{
+					id: validTransactions[1].id,
+					status: Status.OK,
+					errors: [],
+				},
+				{
+					id: invalidTransactions[2].id,
+					status: Status.FAIL,
+					errors: [new Error()],
+				},
+			],
+		};
+
+		beforeEach(async () => {
+			validateTransactionsStub.returns(validateTransactionsResponse);
+			(transactionPool.queues.received.peekUntil as sinon.SinonStub).returns(
+				transactionToValidate,
+			);
+			validateReceivedTransactions = (transactionPool as any)[
+				'validateReceivedTransactions'
+			].bind(transactionPool);
+		});
+
+		it('should remove invalid transactions from the received queue', async () => {
+			checkerStubs.checkTransactionForId
+				.onFirstCall()
+				.returns(checkForTransactionInvalidTransactionId);
+			await validateReceivedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(0)).to.be.calledWith(
+				invalidTransactions,
+			);
+			expect(
+				(transactionPool.queues.received.removeFor as sinon.SinonStub).getCall(
+					0,
+				),
+			).to.be.calledWith(checkForTransactionInvalidTransactionId);
+		});
+
+		it('should move valid transactions to the validated queue', async () => {
+			checkerStubs.checkTransactionForId
+				.onSecondCall()
+				.returns(checkForTransactionValidTransactionId);
+			(transactionPool.queues.received.removeFor as sinon.SinonStub)
+				.onSecondCall()
+				.returns(validTransactions);
+			await validateReceivedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
+				validTransactions,
+			);
+			expect(transactionPool.queues.received
+				.removeFor as sinon.SinonStub).to.be.calledWith(
+				checkForTransactionValidTransactionId,
+			);
+			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
+				validTransactions,
+			);
+		});
+
+		it('should not move valid transactions to the validated queue which no longer exist in the received queue', async () => {
+			const validTransactionsExistingInReceivedQueue = validTransactions.slice(
+				1,
+			);
+			(transactionPool.queues.received.removeFor as sinon.SinonStub)
+				.onSecondCall()
+				.returns(validTransactionsExistingInReceivedQueue);
+			await validateReceivedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
+				validTransactions,
+			);
+			expect(transactionPool.queues.validated.enqueueMany).to.be.calledWith(
+				validTransactionsExistingInReceivedQueue,
+			);
+		});
+
+		it('should return transactions responses', async () => {
+			expect(await validateReceivedTransactions()).to.equal(
+				validateTransactionsResponse.transactionsResponses,
+			);
 		});
 	});
 });

@@ -145,6 +145,37 @@ describe('Queue', () => {
 		});
 	});
 
+	describe('#peekUntil', () => {
+		const returnTrueUntilLimit = (limit: number) => {
+			let currentValue = 0;
+
+			return () => currentValue++ < limit;
+		};
+
+		beforeEach(async () => {
+			queue.enqueueMany(transactions);
+		});
+
+		it('should not return any transactions if the condition fails for first transaction', async () => {
+			const peekedTransactions = queue.peekUntil(returnTrueUntilLimit(0));
+			expect(peekedTransactions).to.have.length(0);
+		});
+
+		it('should return transactions which pass condition', async () => {
+			const [secondToLastTransaciton, lastTransaction] = transactions.slice(
+				transactions.length - 2,
+				transactions.length,
+			);
+			const condition = returnTrueUntilLimit(2);
+
+			const peekedTransactions = queue.peekUntil(condition);
+			expect(peekedTransactions).to.deep.equal([
+				secondToLastTransaciton,
+				lastTransaction,
+			]);
+		});
+	});
+
 	describe('#dequeueUntil', () => {
 		const returnTrueUntilLimit = (limit: number) => {
 			let currentValue = 0;
