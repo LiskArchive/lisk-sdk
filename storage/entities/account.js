@@ -419,7 +419,7 @@ class Account extends BaseEntity {
 	_getResults(filters, options, tx, expectedResultCount = undefined) {
 		const mergedFilters = this.mergeFilters(filters);
 		const parsedFilters = this.parseFilters(mergedFilters);
-		const parsedSort = this.parseSort(options.sort || this.defaultOptions.sort);
+		const parsedSort = this.parseSort(options.sort);
 		const parsedOptions = _.defaults(
 			{},
 			_.pick(options, ['limit', 'offset', 'extended']),

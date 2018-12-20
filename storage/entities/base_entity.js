@@ -19,6 +19,7 @@ const {
 	NonSupportedFilterTypeError,
 	NonSupportedOptionError,
 } = require('../errors');
+const { isSortOptionValid, parseSortString } = require('../utils/sort_option');
 const filterTypes = require('../utils/filter_types');
 const Field = require('../utils/field');
 const { filterGenerator } = require('../utils/filters');
@@ -121,6 +122,10 @@ class BaseEntity {
 	// eslint-disable-next-line class-methods-use-this
 	isPersisted() {
 		throw new ImplementationPendingError();
+	}
+
+	getFields() {
+		return Object.keys(this.fields);
 	}
 
 	getFilters() {
@@ -288,6 +293,10 @@ class BaseEntity {
 			);
 		}
 
+		if (!isSortOptionValid(options.sort, this.getFields())) {
+			throw new NonSupportedOptionError('Invalid sort option.', options);
+		}
+
 		return true;
 	}
 
@@ -338,22 +347,16 @@ class BaseEntity {
 	 * @param {Array.<String>|String} sortOption
 	 * @return {String}
 	 */
-	parseSort(sortOption) {
+	parseSort(sortOption = this.defaultOptions.sort) {
 		const sortString = Array.isArray(sortOption)
-			? sortOption.map(this._parseSortString).join(', ')
-			: this._parseSortString(sortOption);
+			? sortOption.map(parseSortString).join(', ')
+			: parseSortString(sortOption);
 
 		if (sortString) {
 			return `ORDER BY ${sortString}`;
 		}
 
 		return '';
-	}
-
-	// eslint-disable-next-line class-methods-use-this
-	_parseSortString(item) {
-		const [field, method = 'ASC'] = item.split(':');
-		return `"${field}" ${method.toUpperCase()}`;
 	}
 }
 
