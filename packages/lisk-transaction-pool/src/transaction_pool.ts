@@ -12,7 +12,11 @@
  * Removal or modification of this copyright notice is prohibited.
  *
  */
-import { CheckerFunction, checkTransactions, CheckTransactionsResponse} from './check_transactions';
+import {
+	CheckerFunction,
+	checkTransactions,
+	CheckTransactionsResponse,
+} from './check_transactions';
 import { Job } from './job';
 import { Queue } from './queue';
 import * as queueCheckers from './queue_checkers';
@@ -47,7 +51,6 @@ export interface AddTransactionResult {
 	readonly alreadyExists: boolean;
 	readonly isFull: boolean;
 }
-
 
 interface TransactionPoolDependencies {
 	validateTransactions: CheckerFunction;
@@ -244,10 +247,10 @@ export class TransactionPool {
 		transaction: Transaction,
 	): boolean {
 		return transaction.verifyTransactionAgainstOtherTransactions([
-					...this.queues.ready.transactions,
-					...this.queues.pending.transactions,
-					...this.queues.verified.transactions,
-			  ]);
+			...this.queues.ready.transactions,
+			...this.queues.pending.transactions,
+			...this.queues.verified.transactions,
+		]);
 	}
 
 	private addTransactionToQueue(
@@ -307,12 +310,14 @@ export class TransactionPool {
 		CheckTransactionsResponse
 	> {
 		const toValidateTransactions = this._queues.received.peekUntil(
-			queueCheckers.returnTrueUntilLimit(this._receivedTransactionsProcessingLimitPerInterval)
+			queueCheckers.returnTrueUntilLimit(
+				this._receivedTransactionsProcessingLimitPerInterval,
+			),
 		);
-		const {
-			passedTransactions,
-			failedTransactions	
-		} = await checkTransactions(toValidateTransactions, this._validateTransactions);
+		const { passedTransactions, failedTransactions } = await checkTransactions(
+			toValidateTransactions,
+			this._validateTransactions,
+		);
 
 		// Remove invalid transactions
 		this._queues.received.removeFor(
@@ -327,7 +332,7 @@ export class TransactionPool {
 
 		return {
 			passedTransactions,
-			failedTransactions
+			failedTransactions,
 		};
 	}
 
@@ -335,12 +340,14 @@ export class TransactionPool {
 		CheckTransactionsResponse
 	> {
 		const toVerifyTransactions = this._queues.validated.peekUntil(
-			queueCheckers.returnTrueUntilLimit(this._validatedTransactionsProcessingLimitPerInterval)
+			queueCheckers.returnTrueUntilLimit(
+				this._validatedTransactionsProcessingLimitPerInterval,
+			),
 		);
-		const {
-			passedTransactions,
-			failedTransactions	
-		} = await checkTransactions(toVerifyTransactions, this._verifyTransactions);
+		const { passedTransactions, failedTransactions } = await checkTransactions(
+			toVerifyTransactions,
+			this._verifyTransactions,
+		);
 
 		// Remove invalid transactions
 		this._queues.validated.removeFor(
@@ -355,7 +362,7 @@ export class TransactionPool {
 
 		return {
 			passedTransactions,
-			failedTransactions
+			failedTransactions,
 		};
 	}
 }

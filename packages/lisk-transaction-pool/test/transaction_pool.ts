@@ -6,9 +6,8 @@ import {
 	Transaction,
 	TransactionPool,
 	AddTransactionResult,
-	CheckTransactionsResult,
-	Status,
 } from '../src/transaction_pool';
+import * as checkTransactions from '../src/check_transactions';
 import { wrapTransferTransaction } from './utils/add_transaction_functions';
 import * as sinon from 'sinon';
 import { Queue } from '../src/queue';
@@ -19,6 +18,8 @@ describe('transaction pool', () => {
 	const maxTransactionsPerQueue = 1000;
 	const receivedTransactionsProcessingInterval = 100;
 	const receivedTransactionsLimitPerProcessing = 100;
+	const validatedTransactionsProcessingInterval = 100;
+	const validatedTransactionsLimitPerProcessing = 100;
 
 	let transactionPool: TransactionPool;
 	const transactions = transactionObjects.map(wrapTransferTransaction);
@@ -27,7 +28,9 @@ describe('transaction pool', () => {
 		[key: string]: sinon.SinonStub;
 	};
 
+	let checkTransactionsStub: sinon.SinonStub;
 	let validateTransactionsStub: sinon.SinonStub;
+	let verifyTransactionsStub: sinon.SinonStub;
 
 	beforeEach(async () => {
 		// Stubbing start function so the jobs do not start in the background.
@@ -55,14 +58,22 @@ describe('transaction pool', () => {
 			),
 		};
 
+		checkTransactionsStub = sandbox.stub(
+			checkTransactions,
+			'checkTransactions',
+		);
 		validateTransactionsStub = sandbox.stub();
+		verifyTransactionsStub = sandbox.stub();
 
 		transactionPool = new TransactionPool({
 			expireTransactionsInterval,
 			maxTransactionsPerQueue,
 			receivedTransactionsProcessingInterval,
 			receivedTransactionsLimitPerProcessing,
+			validatedTransactionsProcessingInterval,
+			validatedTransactionsLimitPerProcessing,
 			validateTransactions: validateTransactionsStub,
+			verifyTransactions: verifyTransactionsStub,
 		});
 		// Stub queues
 		Object.keys(transactionPool.queues).forEach(queueName => {
@@ -353,7 +364,7 @@ describe('transaction pool', () => {
 	describe('#validateReceivedTransactions', () => {
 		const validTransactions = transactions.slice(0, 2);
 		const invalidTransactions = transactions.slice(2, 5);
-		const transactionToValidate = [
+		const transactionsToValidate = [
 			...validTransactions,
 			...invalidTransactions,
 		];
@@ -362,45 +373,19 @@ describe('transaction pool', () => {
 		const checkForTransactionInvalidTransactionId = sandbox.stub();
 		const checkForTransactionValidTransactionId = sandbox.stub();
 
-		const validateTransactionsResponse: CheckTransactionsResult = {
-			status: Status.FAIL,
-			transactionsResponses: [
-				{
-					id: invalidTransactions[0].id,
-					status: Status.FAIL,
-					errors: [new Error(), new Error()],
-				},
-				{
-					id: invalidTransactions[1].id,
-					status: Status.FAIL,
-					errors: [new Error(), new Error()],
-				},
-				{
-					id: validTransactions[0].id,
-					status: Status.OK,
-					errors: [],
-				},
-				{
-					id: validTransactions[1].id,
-					status: Status.OK,
-					errors: [],
-				},
-				{
-					id: invalidTransactions[2].id,
-					status: Status.FAIL,
-					errors: [new Error()],
-				},
-			],
+		const checkTransactionsResponse: checkTransactions.CheckTransactionsResponse = {
+			passedTransactions: validTransactions,
+			failedTransactions: invalidTransactions,
 		};
 
 		beforeEach(async () => {
-			validateTransactionsStub.returns(validateTransactionsResponse);
 			(transactionPool.queues.received.peekUntil as sinon.SinonStub).returns(
-				transactionToValidate,
+				transactionsToValidate,
 			);
 			validateReceivedTransactions = (transactionPool as any)[
 				'validateReceivedTransactions'
 			].bind(transactionPool);
+			checkTransactionsStub.resolves(checkTransactionsResponse);
 		});
 
 		it('should remove invalid transactions from the received queue', async () => {
@@ -416,6 +401,14 @@ describe('transaction pool', () => {
 					0,
 				),
 			).to.be.calledWith(checkForTransactionInvalidTransactionId);
+		});
+
+		it('should call checkTransactions with transactions and validateTransactionsStub', async () => {
+			await validateReceivedTransactions();
+			expect(checkTransactionsStub).to.be.calledOnceWith(
+				transactionsToValidate,
+				validateTransactionsStub,
+			);
 		});
 
 		it('should move valid transactions to the validated queue', async () => {
@@ -454,9 +447,102 @@ describe('transaction pool', () => {
 			);
 		});
 
-		it('should return transactions responses', async () => {
-			expect(await validateReceivedTransactions()).to.equal(
-				validateTransactionsResponse.transactionsResponses,
+		it('should return passed and failed transactions', async () => {
+			expect(await validateReceivedTransactions()).to.deep.equal(
+				checkTransactionsResponse,
+			);
+		});
+	});
+
+	describe('#verifyValidatedTransactions', () => {
+		const verifiableTransactions = transactions.slice(0, 2);
+		const unverifiableTransactions = transactions.slice(2, 5);
+		const transactionsToVerify = [
+			...verifiableTransactions,
+			...unverifiableTransactions,
+		];
+		let verifyValidatedTransactions: () => Promise<ReadonlyArray<Transaction>>;
+		// Dummy functions to check used for assertions in tests
+		const checkForTransactionUnverifiableTransactionId = sandbox.stub();
+		const checkForTransactionVerifiableTransactionId = sandbox.stub();
+
+		const checkTransactionsResponse: checkTransactions.CheckTransactionsResponse = {
+			passedTransactions: verifiableTransactions,
+			failedTransactions: unverifiableTransactions,
+		};
+
+		beforeEach(async () => {
+			(transactionPool.queues.validated.peekUntil as sinon.SinonStub).returns(
+				transactionsToVerify,
+			);
+			verifyValidatedTransactions = (transactionPool as any)[
+				'verifyValidatedTransactions'
+			].bind(transactionPool);
+			checkTransactionsStub.resolves(checkTransactionsResponse);
+		});
+
+		it('should remove unverifialbe transactions from the validated queue', async () => {
+			checkerStubs.checkTransactionForId
+				.onFirstCall()
+				.returns(checkForTransactionUnverifiableTransactionId);
+			await verifyValidatedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(0)).to.be.calledWith(
+				unverifiableTransactions,
+			);
+			expect(
+				(transactionPool.queues.validated.removeFor as sinon.SinonStub).getCall(
+					0,
+				),
+			).to.be.calledWith(checkForTransactionUnverifiableTransactionId);
+		});
+
+		it('should call checkTransactions with transactions and verifyTransactionsStub', async () => {
+			await verifyValidatedTransactions();
+			expect(checkTransactionsStub).to.be.calledOnceWith(
+				transactionsToVerify,
+				verifyTransactionsStub,
+			);
+		});
+
+		it('should move verified transactions to the verified queue', async () => {
+			checkerStubs.checkTransactionForId
+				.onSecondCall()
+				.returns(checkForTransactionVerifiableTransactionId);
+			(transactionPool.queues.validated.removeFor as sinon.SinonStub)
+				.onSecondCall()
+				.returns(verifiableTransactions);
+			await verifyValidatedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
+				verifiableTransactions,
+			);
+			expect(transactionPool.queues.validated
+				.removeFor as sinon.SinonStub).to.be.calledWith(
+				checkForTransactionVerifiableTransactionId,
+			);
+			expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
+				verifiableTransactions,
+			);
+		});
+
+		it('should not move verified transactions to the verified queue which no longer exist in the validated queue', async () => {
+			const verifiableTransactionsExistingInValidatedQueue = verifiableTransactions.slice(
+				1,
+			);
+			(transactionPool.queues.validated.removeFor as sinon.SinonStub)
+				.onSecondCall()
+				.returns(verifiableTransactionsExistingInValidatedQueue);
+			await verifyValidatedTransactions();
+			expect(checkerStubs.checkTransactionForId.getCall(1)).to.be.calledWith(
+				verifiableTransactions,
+			);
+			expect(transactionPool.queues.verified.enqueueMany).to.be.calledWith(
+				verifiableTransactionsExistingInValidatedQueue,
+			);
+		});
+
+		it('should return passed and failed transactions', async () => {
+			expect(await verifyValidatedTransactions()).to.deep.equal(
+				checkTransactionsResponse,
 			);
 		});
 	});
