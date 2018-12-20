@@ -186,7 +186,7 @@ class Transaction extends BaseEntity {
 	}
 
 	/**
-	 * Get one account
+	 * Get one transaction
 	 *
 	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
@@ -202,7 +202,7 @@ class Transaction extends BaseEntity {
 	}
 
 	/**
-	 * Get one account
+	 * Get list of transactions
 	 *
 	 * @param {filters.Transaction|filters.Transaction[]} [filters = {}]
 	 * @param {Object} [options = {}] - Options to filter data
